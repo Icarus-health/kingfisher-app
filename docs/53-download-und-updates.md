@@ -87,7 +87,9 @@ start` und der Doppelklick-Starter sagen das, solange ein fertiges Bild eingetra
 1. `VERSION` erhöhen (etwa `1.2.0`).
 2. `docs/fassungen/1.2.0.md` schreiben: ein Satz je Spiegelstrich, Alltagssprache, der wichtigste zuerst. Braucht
    die Fassung eine neuere App, die Zeile `App mindestens: 1.2.0`.
-3. Beides auf `main` bringen, dann den Tag setzen und schieben: `git tag v1.2.0 && git push origin v1.2.0`.
+3. Beides auf `main` bringen, dann den Tag setzen und schieben: `git tag v1.2.0 && git push origin v1.2.0`. Ohne
+   Terminal: Actions → „Release“ → „Run workflow“ auf `main` mit dem Tag `v1.2.0`; fehlt der Tag, legt der Lauf ihn
+   nach der Prüfung von `VERSION` selbst an.
 
 `release.yml` prüft Tag gegen `VERSION` und die Notiz, baut das Bild (beide Architekturen, `:1.2.0` und `:latest`),
 ruft `mac-app.yml` mit `fassung` auf und erwartet das Artefakt `Kingfisher.dmg`, legt den Release `v1.2.0` mit der

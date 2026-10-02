@@ -90,6 +90,9 @@ def test_workflow_reihenfolge_und_rechte():
     text = WORKFLOW.read_text(encoding='utf-8')
     assert 'tags: ["v*"]' in text and 'workflow_dispatch:' in text
     assert 'scripts/release_seite.py pruefen --tag' in text
+    # Von Hand gestartet, legt der Lauf einen fehlenden Tag erst nach der Prüfung von VERSION an.
+    anlegen = text.index('Tag anlegen, falls er fehlt')
+    assert text.index('release_seite.py pruefen --tag', anlegen) < text.index('git tag "$TAG"', anlegen)
     assert 'platforms: linux/amd64,linux/arm64' in text
     assert '${{ env.IMAGE }}:${{ needs.fassung.outputs.fassung }}' in text and '${{ env.IMAGE }}:latest' in text
     assert 'KINGFISHER_FASSUNG=${{ needs.fassung.outputs.fassung }}' in text

@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag der Fassung, etwa v1.2.0 (muss schon existieren)"
+        description: "Tag der Fassung, etwa v1.2.0 (fehlt er, wird er auf dem gewählten Branch angelegt)"
         required: true
         type: string
 
@@ -35,13 +35,31 @@ jobs:
   fassung:
     name: Tag und VERSION
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # nur für das Anlegen des Tags bei einem Start von Hand
     outputs:
       fassung: ${{ steps.pruefen.outputs.fassung }}
       tag: ${{ steps.pruefen.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+      # Von Hand gestartet und den Tag gibt es noch nicht: Er entsteht hier auf dem gewählten Branch, nachdem
+      # VERSION und Notiz geprüft sind (ein Tag ohne passende Fassung entsteht nie).
+      - name: Tag anlegen, falls er fehlt
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            git checkout -q "$TAG"
+          else
+            python3 scripts/release_seite.py pruefen --tag "$TAG" >/dev/null
+            git tag "$TAG"
+            git push origin "refs/tags/$TAG"
+          fi
       - name: Tag muss VERSION sein
         id: pruefen
         env:
