@@ -1,0 +1,129 @@
+{
+  "commit": "0ed3c2bc5a79c5df4c395d56b6ad7ad591fc2d06",
+  "synthetic_only": true,
+  "episode_id": "e-b70bdeb416f5",
+  "conversation_id": "c-50cf8ea21cfe",
+  "answer": {
+    "id": "m-98a20bb7398e4a",
+    "conversation_id": "c-50cf8ea21cfe",
+    "role": "assistant",
+    "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Routing-Buchung-928.txt\nBuchungsbestätigung HB-TEST-928: Für die Reise nach Bremen ist das Hotel Hafenblick verbindlich gebucht. Anreise 14. Oktober, Abreise 16. Oktober 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 13:05 Uhr",
+    "status": "complete",
+    "created_at": "2026-09-28T11:06:03.309962+00:00",
+    "metadata": {
+      "approvals": [],
+      "notices": [],
+      "used_tools": [],
+      "context": {
+        "query": "Liegt jetzt eine Hotelbuchung für die Reise nach Bremen vor?",
+        "generated_at": "2026-09-28T11:06:03.309416+00:00",
+        "items": [],
+        "withheld_count": 0,
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "working_answer": {
+          "version": 1,
+          "query": "Liegt jetzt eine Hotelbuchung für die Reise nach Bremen vor?",
+          "basis": [
+            {
+              "episode_id": "e-b70bdeb416f5",
+              "fingerprint": "8c74871f089962e38b97ede2d8df8866be27bef7ad553994666e7b5dac1e3b48",
+              "start": 0,
+              "end": 151,
+              "kind": "fact"
+            },
+            {
+              "episode_id": "e-12b66c8cd275",
+              "fingerprint": "5d9c6547548a372013f65bcd2d35ad673ad366df028735c64fcf51a46f13d480",
+              "start": 746,
+              "end": 808,
+              "kind": "fact"
+            },
+            {
+              "episode_id": "e-0a9101f34e84",
+              "fingerprint": "7caee1a1241e6d8299e4326a611c1583ca996fa9df34ddbf60de5fc2f6283779",
+              "start": 903,
+              "end": 3756,
+              "kind": "fact"
+            },
+            {
+              "episode_id": "e-14e29a16752f",
+              "fingerprint": "781f72b455f456372e0a8a6ca1eaab65c27d4e3f8ab4cfff2ac717c27c084de1",
+              "start": 291,
+              "end": 559,
+              "kind": "request"
+            },
+            {
+              "episode_id": "e-1a4c9d27e8a9",
+              "fingerprint": "2d978505d82a27eac96843df0c2f23ed1a8c1afb31019157fc9e19b73b294d4d",
+              "start": 227,
+              "end": 510,
+              "kind": "fact"
+            },
+            {
+              "episode_id": "e-9d17e05163d9",
+              "fingerprint": "25df2fa230e3ffeb117a09e8816ef843ef7ac25330d1159539814180d29c0aa5",
+              "start": 71,
+              "end": 160,
+              "kind": "status"
+            }
+          ],
+          "refs": [
+            {
+              "episode_id": "e-b70bdeb416f5",
+              "fingerprint": "8c74871f089962e38b97ede2d8df8866be27bef7ad553994666e7b5dac1e3b48",
+              "start": 0,
+              "end": 151,
+              "kind": "fact"
+            }
+          ],
+          "claim_basis": {},
+          "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "candidate_signature": "1dcef621fe2a69b7c52aeea12c9aac8fca5c30b4657b0a2030af622e388ba9f5",
+          "status": "reports",
+          "uncertainty": "none",
+          "limited": false,
+          "project_assignment_basis": {
+            "e-b70bdeb416f5": null,
+            "e-12b66c8cd275": null,
+            "e-0a9101f34e84": null,
+            "e-14e29a16752f": null,
+            "e-1a4c9d27e8a9": null,
+            "e-9d17e05163d9": null
+          }
+        },
+        "answer_contract": {
+          "version": 1,
+          "status": "working_reports",
+          "semantic_validation": false,
+          "model_called": true,
+          "selected_assertion_ids": []
+        },
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [],
+        "knowledge_inputs": {},
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "source_links": [
+          {
+            "episode_id": "e-b70bdeb416f5",
+            "label": "Quelle 1 öffnen",
+            "automatic_memory": true
+          }
+        ],
+        "original_question": "Liegt jetzt eine Hotelbuchung für die Reise nach Bremen vor?",
+        "refresh_available": false
+      },
+      "conversation_source_lineage": [
+        {
+          "episode_id": "e-9be3774f6307",
+          "fingerprint": "04a92c4fc9f5c2851d0cab3bb755daf3ffa4077ddd3de54252eb8dbcd556acb0"
+        }
+      ]
+    }
+  },
+  "passed": true
+}

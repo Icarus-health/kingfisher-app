@@ -1,0 +1,14 @@
+{
+  "model": "qwen3.5:4b",
+  "source": "Ich sende den Entwurf für Projekt Lindenpfad morgen um 11 Uhr, aber nur nach schriftlicher Freigabe. Die Freigabe liegt noch nicht vor.",
+  "incoming": "Was hatte ich zur Lieferung des Entwurfs für Projekt Lindenpfad angekündigt?",
+  "instruction": "Antworte Mara kurz, was sie damals angekündigt hat. Erhalte die Bedingung und die fehlende Freigabe. Sage selbst nichts zu.",
+  "expected_source_time": "2026-09-21T10:00:00Z",
+  "expected_current_mail_time": "2026-09-23T10:00:00Z",
+  "criteria": [
+    "Prior sender Mara remains the person who conditionally offered delivery; replying user does not adopt promise.",
+    "Relative morgen refers to 22 September 2026, or is quoted explicitly as source wording dated21September withoutpresentingnewcurrentdate.",
+    "Writtenapprovalcondition and missingapproval remain explicit.",
+    "Currentmemorysource attached, tokenpresent, withdrawalhideshistory andblocksapprovedsend, nooutwardmail."
+  ]
+}

@@ -1,0 +1,11 @@
+/* Worauf eine Antwort sich stützt: eine ruhige Überschrift, je Quelle der Hinweis in Alltagssprache mit einem Klick,
+   die Technik eingeklappt darunter (Fremdprobe 2, Befund 13). */
+.beleg-quellen { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(16, 44, 58, .08); }
+.message .beleg-quellen > .beleg-kopf, .message .beleg-links > .beleg-kopf { margin: 0; font-size: 11px; font-weight: 600; opacity: .7; }
+.beleg-quellen > .beleg-quelle { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; min-width: 0; max-width: 100%; }
+.message .beleg-quellen > .beleg-quelle .beleg-text { font-size: 13px; overflow-wrap: anywhere; }
+.beleg-quellen > .beleg-quelle .task-source { margin: 0; }
+.beleg-quellen > .quelle-technik { align-self: stretch; font-size: 11px; opacity: .72; }
+.beleg-quellen > .quelle-technik p { margin: 2px 0; overflow-wrap: anywhere; }
+.beleg-links { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(16, 44, 58, .08); }
+.message p.beleg-ohne, .beleg-ohne { margin: 6px 0 0; font-size: 12px; line-height: 17px; opacity: .72; }

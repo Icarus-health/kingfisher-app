@@ -1,0 +1,42 @@
+{
+  "fragen": [
+    {
+      "id": "eigene-01",
+      "frage": "Bis wann muss ich das Angebot für die Firma Muster schicken?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [["15. November", "15.11."]]
+      },
+      "verboten": {
+        "aussagen": ["31. Oktober"]
+      },
+      "notiz": "Erfundenes Beispiel. Tragen Sie hier Ihr eigenes Datum ein: das aktuelle in „aussagen“, ein früheres, überholtes in „verboten“."
+    },
+    {
+      "id": "eigene-02",
+      "frage": "Was ist mit Berlin los?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "bedeutungen": [["Umzug", "Wohnung"], ["Konferenz", "Tagung"]]
+      },
+      "notiz": "Erfundenes Beispiel für einen Begriff mit zwei Bedeutungen. Jede Gruppe nennt Wörter, an denen man die Bedeutung in der Rückfrage erkennt."
+    },
+    {
+      "id": "eigene-03",
+      "frage": "Wie lautet die Kontonummer meines Steuerberaters?",
+      "kategorie": "falle",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "nicht_bekannt"
+      },
+      "verboten": {
+        "aussagen": ["DE89"]
+      },
+      "notiz": "Erfundenes Beispiel für etwas, das nirgends steht: Richtig ist zu sagen, dass nichts vorliegt, und nichts zu erfinden."
+    }
+  ]
+}

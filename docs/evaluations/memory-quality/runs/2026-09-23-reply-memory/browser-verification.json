@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-23",
+  "product_ui_commit": "1c0384d",
+  "surface": "Codex in-app browser, isolated127.0.0.1:19004",
+  "data": "syntheticmailcollection; deterministiclocalprovider forselection; noexternalmailtransport",
+  "passed": [
+    "Expired pre-restart local draft hidden on reopen, explanatorynoticevisible, preparebuttondisabled",
+    "Sourcequote preservesoriginalsender,originaldatedtimezone,andfullconditionalbody",
+    "Originalsourcepanel openscompletebody",
+    "Apply,edit,reapplysametoken finisheswithoutfrozeneditor",
+    "Usereditpersists acrossreload andmailreopen withsourcebinding",
+    "Sourcequotationscannotbeadoptedasownstyleexample",
+    "Afterignore, reopening saveddraftclearsbodyandlinksanddisablesprepare",
+    "Preparingreplyshowscorrectfromaccount,toaddress,subject,completebodyandseparateconfirmation",
+    "Afterignore,conversationreloadhidesolddraftandapprovalbodyandremovesexecutecontrol",
+    "Singlemailtaskform aftersiblingkeyfix",
+    "Visualinspection: desktopreplytextarea,sourcebuttonandprepareactionreadable",
+    "Browserwarnings/errors afterfinalreload:none"
+  ],
+  "not_covered": [
+    "Mobileviewport",
+    "Realmaildelivery",
+    "Realpersonalcontent",
+    "Generalretrievalorsemanticaccuracy"
+  ]
+}

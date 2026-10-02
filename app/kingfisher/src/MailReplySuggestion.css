@@ -1,0 +1,6 @@
+.mail-reply-suggestion { display: grid; gap: 9px; margin-top: 20px; padding: 20px 24px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
+.mail-reply-suggestion label { display: grid; gap: 6px; color: var(--kf-schrift-062b3a); font-size: 12px; font-weight: 700; }
+.mail-reply-suggestion input, .mail-reply-suggestion textarea { width: 100%; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 10px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 13px/20px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.mail-reply-suggestion textarea { min-height: 140px; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mail-reply-suggestion-label { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
+.mail-reply-suggestion-result { display: grid; gap: 9px; margin-top: 8px; }

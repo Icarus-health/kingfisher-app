@@ -1,0 +1,4 @@
+.interface-icon { display: block; flex: 0 0 auto; }
+.nav-item .interface-icon { width: 22px; height: 22px; margin: 0 1.5px; }
+.command-bar > .interface-icon { width: 20px; height: 20px; color: var(--kf-schrift-b5ced0); }
+.command-bar button .interface-icon { width: 18px; height: 18px; color: #fffefa; }

@@ -1,0 +1,30 @@
+{
+  "full_suite": {
+    "commit": "d6d4a2b",
+    "tests_passed": 2432,
+    "subtests_passed": 4,
+    "seconds": 203.79,
+    "warnings": "2 existing test-client deprecations",
+    "sha256": "a0ba6b8fd9de3054453d933ac2d3a83c4e008d0091ba30d20df0decb887f1433"
+  },
+  "final_targeted": {
+    "commit": "6c72867",
+    "tests_passed": 131,
+    "seconds": 16.48,
+    "sha256": "3e2b3e16c305991098ea96049a8311b0b7099bf770fac90adc034557ad3de87a"
+  },
+  "regressions_proven_before_fix": {
+    "descriptive_status_mapping": {
+      "failed_without_fix": 6,
+      "negative_control_passed": 1
+    },
+    "model_episode_boundary": {
+      "failed_without_fix": 2,
+      "direct_tool_control_passed": 1
+    }
+  },
+  "ui_assets_changed": false,
+  "private_processing_enabled": false,
+  "model_downloaded": false,
+  "ci_restarted": false
+}

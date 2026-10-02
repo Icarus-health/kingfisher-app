@@ -1,0 +1,17 @@
+{
+  "purpose": "Frozen before first local-model run: newly captured ordinary conversation turns, original conditions, explicit correction, restart and withdrawal.",
+  "chat_acknowledgement": "controlled provider acknowledgement; classification and retrieval selection use actual local qwen3.5:4b",
+  "sources": [
+    {"id":"U1", "text":"Kobalt-Delta: Nora liefert den Entwurf am 28. September 2026, aber nur wenn die schriftliche Freigabe vorliegt."},
+    {"id":"U2", "text":"Zum Vorhaben Rubin-Tor habe ich Dario gebeten, die Unterlagen am 29. September 2026 zu schicken. Eine Zusage von Dario habe ich noch nicht."},
+    {"id":"U3", "text":"Die Ersatzkarte für das Studio Nordstern liegt im grünen Umschlag. Auf dem Umschlag steht der Testcode SYNTH-NACHTIGALL-826."},
+    {"id":"U4", "text":"Korrektur zum Entwurf Kobalt-Delta: Nora hat den 28. September ausdrücklich durch den 30. September 2026 ersetzt. Die schriftliche Freigabe ist weiterhin Voraussetzung."}
+  ],
+  "questions": [
+    {"id":"Q1", "after":"U3", "text":"Wann liefert Nora den Entwurf für Kobalt-Delta?", "required_sources":["U1"], "required_text":["28. September 2026", "nur wenn die schriftliche Freigabe vorliegt"], "forbidden_sources":["U2","U3"]},
+    {"id":"Q2", "after":"U3", "text":"Hat Dario für Rubin-Tor bereits eine Zusage gemacht?", "required_sources":["U2"], "required_text":["Eine Zusage von Dario habe ich noch nicht"], "forbidden_sources":["U1","U3"]},
+    {"id":"Q3", "after":"restart", "text":"Wo liegt die Ersatzkarte für das Studio Nordstern?", "required_sources":["U3"], "required_text":["grünen Umschlag"], "forbidden_sources":["U1","U2"]},
+    {"id":"Q4", "after":"U4", "text":"Welches Lieferdatum gilt jetzt für Noras Entwurf Kobalt-Delta?", "required_sources":["U4"], "required_text":["30. September 2026", "Freigabe ist weiterhin Voraussetzung"], "forbidden_sources":["U2","U3"], "review":"If U1 also appears, assess whether old/current distinction is clear; valid source references alone are not semantic acceptance."}
+  ],
+  "lifecycle": ["All four source turns captured through POST conversation messages, no manual candidate acceptance", "No Claims or Tasks created", "Restart retains retrieval of U3", "Excluding U3 removes its test code from conversation/list payloads and fresh retrieval", "Original U3 remains available only in source inspection"]
+}

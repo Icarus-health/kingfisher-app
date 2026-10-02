@@ -1,0 +1,19 @@
+{
+  "purpose": "One independent synthetic local-model HTTP check of source correction, provenance, retrieval and withdrawal.",
+  "model": "qwen3.5:4b",
+  "source": {
+    "filename": "synthetic-keramik-pruefung.txt",
+    "title": "synthetic-keramik-pruefung.txt",
+    "body": "Anna soll den Keramik-Prüfbericht für Mainz am 25. September 2026 übergeben. Das gilt nur, wenn vorher eine schriftliche Freigabe vorliegt; ohne Freigabe ist die Übergabe nicht bestätigt."
+  },
+  "first_question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+  "corrected_body": "Anna soll den Keramik-Prüfbericht für Mainz am 28. September 2026 übergeben. Das gilt nur, wenn die schriftliche Freigabe vorliegt; die Freigabe fehlt noch.",
+  "second_question": "Zu welchem Termin ist Annas Übergabe des Keramik-Prüfberichts in Mainz vorgesehen?",
+  "assertions": [
+    "The original uploaded source is automatically classified by the installed local model.",
+    "A real conversation HTTP request reports the original source with the 25 September date and approval condition.",
+    "The correction HTTP request stores a full separate manual_correction source, excludes the original, creates no claim, and keeps occurred_at unset.",
+    "Two differently worded conversation HTTP requests report the exact corrected full text, never the 25 September source.",
+    "After withdrawal of the correction, a fresh HTTP question cannot report either version; the original remains excluded."
+  ]
+}

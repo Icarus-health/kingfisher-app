@@ -1,0 +1,17 @@
+/* Fassung und Update-Angebot (Fassung.tsx). Auf Heute ein ruhiger Hinweis in der Fläche der übrigen Hinweise;
+   kein gefüllter Knopf, denn der wichtigste Gegenstand der Ansicht ist der Tag, nicht das Update. */
+.fassung-heute { display: grid; gap: 8px; min-width: 0; margin: 16px 0 0; padding: 14px 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); box-shadow: 0 3px 12px rgba(5,32,44,.12); color: var(--today-muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.fassung-heute p { margin: 0; }
+.fassung-heute .fassung-titel { color: var(--today-ink); font-size: 14px; font-weight: 600; }
+.fassung-heute a { color: var(--today-link); }
+.fassung-angebot { display: grid; gap: 8px; min-width: 0; }
+.fassung-angebot p { margin: 0; }
+.fassung-knopf { justify-self: start; min-height: 44px; }
+.fassung-einstellung .fassung-angebot { padding: 12px 0 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.fassung-einstellung .fassung-titel { font-weight: 600; }
+.fassung-einstellung label:has(> input[role="switch"]) { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.fassung-einstellung input[role="switch"] { flex: none; width: 20px; height: 20px; margin: 2px 0 0; }
+.fassung-einstellung label > span { display: grid; gap: 4px; min-width: 0; }
+.fassung-einstellung label > span > strong { font-weight: 600; }
+.fassung-einstellung label > span > small { color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.55; font-weight: 400; }
+.fassung-einstellung .fassung-satz { color: var(--kf-schrift-31535f); font-size: 14px; line-height: 1.7; }

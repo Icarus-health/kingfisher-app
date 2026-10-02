@@ -1,0 +1,74 @@
+{
+  "design_locked_before_model_run": true,
+  "scope": "Targeted temporal correction check, four new synthetic sources and two questions; not a general benchmark",
+  "sources": [
+    {
+      "id": "T1",
+      "title": "Keramik-Test: Anlieferung durch Edda Winter",
+      "body": "Von: Edda Winter <edda@example.test>\nDie Prüfstücke für Keramik-Test bringe ich morgen um 9 Uhr, sofern die Türfreigabe vorliegt.",
+      "occurred_at": "2026-09-21T09:00:00+02:00",
+      "participants": [
+        "Edda Winter <edda@example.test>"
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Keramik-Test: Korrektur der Anlieferung",
+      "body": "Von: Edda Winter <edda@example.test>\nKorrektur zu meiner Anlieferungsnachricht für Keramik-Test vom 21. September: Die Prüfstücke kommen nicht am 22. September. Ich bringe sie stattdessen morgen um 11 Uhr, weiterhin nur sofern die Türfreigabe vorliegt.",
+      "occurred_at": "2026-09-22T10:00:00+02:00",
+      "participants": [
+        "Edda Winter <edda@example.test>"
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Bergsee-Archiv: relative Frist ohne Nachrichtendatum",
+      "body": "Von: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Freitag.",
+      "occurred_at": null,
+      "participants": [
+        "Malik Stein <malik@example.test>"
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Bergsee-Archiv: zweite undatierte Angabe",
+      "body": "Von: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Montag.",
+      "occurred_at": null,
+      "participants": [
+        "Malik Stein <malik@example.test>"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "R1",
+      "text": "Wann bringt Edda Winter die Prüfstücke für Keramik-Test jetzt?",
+      "expected_status": "reports",
+      "must_include": [
+        "T2"
+      ],
+      "must_exclude": [
+        "T3",
+        "T4"
+      ],
+      "semantic_expectation": "Explizite Korrektur mit Zeitbezug 22.09.2026 und vollständiger Bedingung; nie die alte 9-Uhr-Angabe allein. Originalwort morgen nicht durch erfundenes Datum ersetzen."
+    },
+    {
+      "id": "R2",
+      "text": "An welchem konkreten Datum sendet Malik Stein die Bestandsliste für Bergsee-Archiv?",
+      "expected_status_options": [
+        "time",
+        "conflict"
+      ],
+      "must_include": [
+        "T3",
+        "T4"
+      ],
+      "must_exclude": [
+        "T1",
+        "T2"
+      ],
+      "semantic_expectation": "Beide widersprüchlichen undatierten Quellen, sichtbare Rückfrage; kein erfundenes Kalenderdatum und keine unbelegte Auswahl nach Aufnahmereihenfolge."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "id": "widersprueche",
+  "titel": "Widersprüche, Waisen und fehlende Querverweise",
+  "beschreibung": "Eine Fortbildungsreihe mit verschobener Frist, die nur die Projektakte kennt; eine Lieferanschrift, die Lea angenommen hat, bis die Druckerei umzieht; ein Name, den zwei Menschen tragen; ein Referent, der oft über das Projekt schreibt, ohne dass seine Mails dem Projekt zugeordnet sind. Das sind die Fälle, die der Lint über alle Akten finden muss, ohne auf den übrigen Welten Fehlalarm zu geben. Namen und Betreffzeilen stammen aus dem Wortschatz der übrigen Welt, damit das Rauschen der Messlatte unverändert bleibt.",
+  "projekte": [
+    {"id": "widersprueche-fortbildung", "name": "Fortbildungsreihe Hauswirtschaft"}
+  ],
+  "quellen": [
+    {
+      "id": "widersprueche-001",
+      "art": "mail",
+      "zeit": "2026-06-10T09:12:00+02:00",
+      "von": {"name": "Volker Busch", "adresse": "v.busch@tagungshaus-rhein.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Seminarraum und Termin",
+      "text": "Sehr geehrte Frau Hartmann,\n\nden großen Saal im Tagungshaus haben wir für die Fortbildungsreihe Hauswirtschaft reserviert.\n\nBitte schicken Sie mir den Belegungsplan bis zum 15. Januar 2027, damit wir die Räume einteilen können.\n\nViele Grüße\nVolker Busch\nTagungshaus Rhein",
+      "projekt": "widersprueche-fortbildung"
+    },
+    {
+      "id": "widersprueche-002",
+      "art": "mail",
+      "zeit": "2026-08-12T14:40:00+02:00",
+      "von": {"name": "Beate Franke", "adresse": "b.franke@hauswirtschaftsverband.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Verlängerung",
+      "text": "Liebe Frau Hartmann,\n\nder Verband hat den Beginn der Fortbildungsreihe Hauswirtschaft auf Februar gelegt.\n\nDer Belegungsplan verschiebt sich deshalb auf den 29. Januar 2027; Herr Busch bekommt ihn dann direkt von uns.\n\nHerzliche Grüße\nBeate Franke\nHauswirtschaftsverband",
+      "projekt": "widersprueche-fortbildung"
+    },
+    {
+      "id": "widersprueche-003",
+      "art": "mail",
+      "zeit": "2026-07-02T10:05:00+02:00",
+      "von": {"name": "Jens Arnold", "adresse": "jens.arnold@referentennetz.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Anfrage",
+      "text": "Guten Tag Frau Hartmann,\n\nfür die Fortbildungsreihe Hauswirtschaft könnte ich das Modul zur Wäschepflege übernehmen.\n\nBeste Grüße\nJens Arnold"
+    },
+    {
+      "id": "widersprueche-004",
+      "art": "mail",
+      "zeit": "2026-07-21T16:30:00+02:00",
+      "von": {"name": "Jens Arnold", "adresse": "jens.arnold@referentennetz.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Konzept",
+      "text": "Guten Tag Frau Hartmann,\n\nanbei meine Gliederung für das Modul Wäschepflege in der Fortbildungsreihe Hauswirtschaft: Fleckenkunde, Pflegesymbole, Hygiene in der Wäscherei.\n\nBeste Grüße\nJens Arnold"
+    },
+    {
+      "id": "widersprueche-005",
+      "art": "mail",
+      "zeit": "2026-09-08T11:15:00+02:00",
+      "von": {"name": "Jens Arnold", "adresse": "jens.arnold@referentennetz.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Rückfrage",
+      "text": "Guten Tag Frau Hartmann,\n\ngibt es für die Fortbildungsreihe Hauswirtschaft schon eine Liste der Wäschereien, die wir besichtigen können?\n\nBeste Grüße\nJens Arnold"
+    },
+    {
+      "id": "widersprueche-006",
+      "art": "notiz",
+      "zeit": "2026-05-06T15:20:00+02:00",
+      "titel": "Notizen Rechnung",
+      "text": "Mit Herrn Kranz von der Druckerei Kranz über die Handzettel gesprochen.\n\nDie Lieferanschrift der Druckerei ist Fabrikweg 3, 64807 Dieburg.\n\nHandzettel kommen zwei Wochen nach Freigabe."
+    },
+    {
+      "id": "widersprueche-007",
+      "art": "mail",
+      "zeit": "2026-09-15T08:50:00+02:00",
+      "von": {"name": "Uwe Kranz", "adresse": "u.kranz@druckerei-kranz.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Hinweis zur Rechnung",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir sind in eine größere Halle umgezogen.\n\nUnsere Lieferanschrift hat sich geändert: Druckerei Kranz, Hafenstraße 8, 64823 Groß-Umstadt.\n\nMit freundlichen Grüßen\nUwe Kranz\nDruckerei Kranz"
+    },
+    {
+      "id": "widersprueche-008",
+      "art": "mail",
+      "zeit": "2026-03-03T09:30:00+01:00",
+      "von": {"name": "Jonas Peters", "adresse": "j.peters@tagungshaus-rhein.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Seminarraum",
+      "text": "Hallo Frau Hartmann,\n\nanbei der Belegungsplan des Tagungshauses für das Frühjahr. Der kleine Saal ist dienstags frei.\n\nGruß\nJonas Peters"
+    },
+    {
+      "id": "widersprueche-009",
+      "art": "mail",
+      "zeit": "2026-04-14T13:05:00+02:00",
+      "von": {"name": "Jonas Peters", "adresse": "jonas.peters@stadtwerke-dieburg.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Hinweis",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir lesen am 28. April die Wasserzähler in Ihrem Haus ab. Bitte sorgen Sie dafür, dass der Keller zugänglich ist.\n\nMit freundlichen Grüßen\nJonas Peters\nStadtwerke Dieburg"
+    },
+    {
+      "id": "widersprueche-010",
+      "art": "transkript",
+      "zeit": "2026-05-12T10:00:00+02:00",
+      "titel": "Abstimmungsgespräch",
+      "teilnehmer": ["Lea Hartmann", "Jonas Peters"],
+      "text": "Lea Hartmann: Wie viele Plätze hat der große Saal?\nJonas Peters: Sechzig Plätze, dazu zwei Beamer.\nLea Hartmann: Dann reichen zwei Gruppen am Vormittag."
+    },
+    {
+      "id": "widersprueche-011",
+      "art": "transkript",
+      "zeit": "2026-06-23T10:00:00+02:00",
+      "titel": "Treffen",
+      "teilnehmer": ["Lea Hartmann", "Jonas Peters"],
+      "text": "Jonas Peters: Die Lüftung im großen Saal wird im Juli erneuert.\nLea Hartmann: Dann planen wir die Gruppenarbeit erst danach.\nJonas Peters: Genau, im Juli nur der kleine Saal."
+    },
+    {
+      "id": "widersprueche-012",
+      "art": "transkript",
+      "zeit": "2026-08-04T10:00:00+02:00",
+      "titel": "Nachgespräch",
+      "teilnehmer": ["Lea Hartmann", "Jonas Peters"],
+      "text": "Jonas Peters: Die neue Lüftung läuft, deutlich leiser.\nLea Hartmann: Schön, dann können wir wieder beide Säle nutzen.\nJonas Peters: Die Schlüssel liegen am Empfang."
+    }
+  ],
+  "angenommen": [
+    {
+      "id": "widersprueche-a1",
+      "beleg": "widersprueche-006",
+      "zitat": "Die Lieferanschrift der Druckerei ist Fabrikweg 3, 64807 Dieburg.",
+      "subjekt": "organisation:druckereikranz",
+      "praedikat": "Lieferanschrift",
+      "wert": "Fabrikweg 3, 64807 Dieburg",
+      "aussage": "Die Lieferanschrift der Druckerei Kranz ist Fabrikweg 3, 64807 Dieburg."
+    }
+  ],
+  "lint": [
+    {
+      "art": "widerspruch",
+      "quellen": ["widersprueche-001", "widersprueche-002"],
+      "notiz": "Person gegen Projekt: Die Akte von Volker Busch (und seines Tagungshauses) nennt als Frist des Belegungsplans noch den 15.01.2027, die Projektakte kennt die Verschiebung auf den 29.01.2027."
+    },
+    {
+      "art": "aussage_gegen_quelle",
+      "quellen": ["widersprueche-006", "widersprueche-007"],
+      "notiz": "Angenommen ist Fabrikweg 3; die jüngere Mail der Druckerei nennt Hafenstraße 8."
+    },
+    {
+      "art": "waise",
+      "unterart": "ohne_akte",
+      "quellen": ["widersprueche-010", "widersprueche-011", "widersprueche-012"],
+      "notiz": "Drei Gespräche mit „Jonas Peters“, aber zwei Adressen tragen diesen Namen: keine Akte, bis Lea sagt, wer gemeint ist."
+    },
+    {
+      "art": "querverweis",
+      "quellen": ["widersprueche-003", "widersprueche-004", "widersprueche-005"],
+      "notiz": "Jens Arnold schreibt dreimal über die Fortbildungsreihe Hauswirtschaft; seine Mails sind dem Projekt nicht zugeordnet."
+    }
+  ],
+  "fragen": []
+}

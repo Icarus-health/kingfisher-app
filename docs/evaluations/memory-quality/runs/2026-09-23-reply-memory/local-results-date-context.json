@@ -1,0 +1,31 @@
+{
+  "model": "qwen3.5:4b",
+  "started_at": "2026-09-23T10:41:22.401807+00:00",
+  "calls": [
+    {
+      "kind": "classification",
+      "seconds": 7.478,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.151,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "draft",
+      "seconds": 1.22,
+      "text": "{\"body\":\"Nach der schriftlichen Freigabe werden Sie den Entwurf am 23.09.2026 um 11 Uhr versenden.\"}"
+    }
+  ],
+  "suggestion_status": 200,
+  "draft": "Nach der schriftlichen Freigabe werden Sie den Entwurf am 23.09.2026 um 11 Uhr versenden.",
+  "source_status": "reports",
+  "expected_source_attached": true,
+  "token_present": true,
+  "withdrawal_hides_draft": true,
+  "withdrawal_blocks_send": true,
+  "no_delivery": true,
+  "claims_revision": 0,
+  "finished_at": "2026-09-23T10:41:32.655772+00:00"
+}

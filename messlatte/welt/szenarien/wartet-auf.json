@@ -1,0 +1,393 @@
+{
+  "id": "wartet-auf",
+  "titel": "Worauf Lea wartet",
+  "beschreibung": "Lea wartet seit Tagen auf einen unterschriebenen Vertrag und ein Flyer-Layout; eine dritte Freigabe ist inzwischen eingetroffen und darf nicht als offen gelten.",
+  "quellen": [
+    {
+      "id": "wartet-auf-001",
+      "art": "mail",
+      "zeit": "2026-09-08T09:30:00+02:00",
+      "von": {
+        "name": "Petra Zimmermann",
+        "adresse": "p.zimmermann@rehaklinik-eichenberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Beratungsvertrag Entwurf zur Unterschrift",
+      "text": "Sehr geehrte Frau Hartmann,\n\nanbei der Entwurf des Beratungsvertrags für die Rehaklinik Eichenberg. Die Unterschrift der Geschäftsführung folgt nach\nder Gremiumssitzung am 15. September, ich schicke Ihnen dann das unterschriebene Exemplar zurück.\n\nFreundliche Grüße\nPetra Zimmermann\nVerwaltungsleitung\nRehaklinik Eichenberg"
+    },
+    {
+      "id": "wartet-auf-002",
+      "art": "mail",
+      "zeit": "2026-09-14T08:50:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Petra Zimmermann",
+          "adresse": "p.zimmermann@rehaklinik-eichenberg.example"
+        }
+      ],
+      "betreff": "AW: Beratungsvertrag Entwurf zur Unterschrift",
+      "text": "Sehr geehrte Frau Zimmermann,\n\nich habe den Entwurf geprüft und habe keine Änderungswünsche. Sobald das Gremium getagt hat, freue ich mich auf das\nunterschriebene Exemplar. Mein Beginn soll ja der 12. Oktober sein.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "wartet-auf-001"
+    },
+    {
+      "id": "wartet-auf-003",
+      "art": "mail",
+      "zeit": "2026-09-16T15:10:00+02:00",
+      "von": {
+        "name": "Petra Zimmermann",
+        "adresse": "p.zimmermann@rehaklinik-eichenberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: AW: Beratungsvertrag Entwurf zur Unterschrift",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndas Gremium hat den Punkt leider vertagt, es fehlte eine Unterlage. Ich rechne mit der Unterschrift Anfang nächster\nWoche und schicke Ihnen den Vertrag dann sofort zu.\n\nFreundliche Grüße\nPetra Zimmermann",
+      "antwort_auf": "wartet-auf-002"
+    },
+    {
+      "id": "wartet-auf-004",
+      "art": "mail",
+      "zeit": "2026-09-23T09:05:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Petra Zimmermann",
+          "adresse": "p.zimmermann@rehaklinik-eichenberg.example"
+        }
+      ],
+      "betreff": "Erinnerung: unterschriebener Beratungsvertrag",
+      "text": "Sehr geehrte Frau Zimmermann,\n\nich wollte kurz nachfragen, ob der unterschriebene Beratungsvertrag inzwischen vorliegt. Ohne ihn kann ich die\nTermine im Oktober nicht verbindlich planen.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "wartet-auf-003"
+    },
+    {
+      "id": "wartet-auf-005",
+      "art": "notiz",
+      "zeit": "2026-09-24T17:30:00+02:00",
+      "titel": "Rehaklinik Eichenberg: Vertrag fehlt",
+      "text": "Vertrag Rehaklinik Eichenberg noch nicht da (Frau Zimmermann). Gremium hat am 15.9. vertagt, Unterschrift wurde für\nAnfang letzter Woche versprochen. Beginn am 12. Oktober gefährdet. Wenn bis Freitag nichts kommt, telefonisch nachfassen."
+    },
+    {
+      "id": "wartet-auf-006",
+      "art": "mail",
+      "zeit": "2026-09-10T10:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Stefan Maurer",
+          "adresse": "s.maurer@datenschutz-maurer.example"
+        }
+      ],
+      "betreff": "Datenschutzkonzept zur Freigabe",
+      "text": "Sehr geehrter Herr Maurer,\n\nanbei mein Entwurf des Datenschutzkonzepts für die Beratungsdokumentation. Könnten Sie mir Ihre Freigabe geben?\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "wartet-auf-007",
+      "art": "mail",
+      "zeit": "2026-09-11T08:35:00+02:00",
+      "von": {
+        "name": "Stefan Maurer",
+        "adresse": "s.maurer@datenschutz-maurer.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: Datenschutzkonzept zur Freigabe",
+      "text": "Guten Tag Frau Hartmann,\n\ndanke, ich prüfe das bis Ende nächster Woche und melde mich mit der Freigabe.\n\nBeste Grüße\nStefan Maurer\nExterner Datenschutzbeauftragter",
+      "antwort_auf": "wartet-auf-006"
+    },
+    {
+      "id": "wartet-auf-008",
+      "art": "mail",
+      "zeit": "2026-09-25T16:12:00+02:00",
+      "von": {
+        "name": "Stefan Maurer",
+        "adresse": "s.maurer@datenschutz-maurer.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Freigabe Datenschutzkonzept",
+      "text": "Guten Tag Frau Hartmann,\n\nhiermit erteile ich die Freigabe für Ihr Datenschutzkonzept. Zwei Anmerkungen: Bitte konkretisieren Sie die\nAufbewahrungsfristen für Beratungsprotokolle, und ergänzen Sie den Vertrag zur Auftragsverarbeitung für den\nCloud-Speicher.\n\nBeste Grüße\nStefan Maurer",
+      "antwort_auf": "wartet-auf-007"
+    },
+    {
+      "id": "wartet-auf-009",
+      "art": "mail",
+      "zeit": "2026-09-02T11:00:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Lisa Brandl",
+          "adresse": "lisa@brandl-grafik.example"
+        }
+      ],
+      "betreff": "Auftrag Flyer Fachtag",
+      "text": "Liebe Frau Brandl,\n\nich möchte Sie für das Layout des Flyers zum Fachtag beauftragen. Text und Logos schicke ich Ihnen separat. Bis wann\nwäre ein erster Entwurf möglich?\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "wartet-auf-010",
+      "art": "mail",
+      "zeit": "2026-09-04T09:14:00+02:00",
+      "von": {
+        "name": "Lisa Brandl",
+        "adresse": "lisa@brandl-grafik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: Auftrag Flyer Fachtag",
+      "text": "Hallo Frau Hartmann,\n\nsehr gerne! Das Layout schicke ich Ihnen bis Mittwoch, 23. September.\n\nViele Grüße\nLisa Brandl\nBrandl Grafik",
+      "antwort_auf": "wartet-auf-009"
+    },
+    {
+      "id": "wartet-auf-011",
+      "art": "mail",
+      "zeit": "2026-09-28T09:10:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Lisa Brandl",
+          "adresse": "lisa@brandl-grafik.example"
+        }
+      ],
+      "betreff": "Flyer Fachtag: Wo bleibt das Layout?",
+      "text": "Liebe Frau Brandl,\n\nich habe das versprochene Layout für den Flyer noch nicht erhalten. Könnten Sie mir bitte kurz sagen, wann ich damit\nrechnen kann? Der Druck muss bald in Auftrag gehen.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "wartet-auf-010"
+    },
+    {
+      "id": "wartet-auf-012",
+      "art": "mail",
+      "zeit": "2026-09-28T09:41:00+02:00",
+      "von": {
+        "name": "Lisa Brandl",
+        "adresse": "lisa@brandl-grafik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Automatische Antwort: Krankheitsbedingt eingeschränkt erreichbar",
+      "text": "Guten Tag,\n\nich bin krankheitsbedingt bis Mittwoch eingeschränkt erreichbar. Ich melde mich schnellstmöglich.\n\nLisa Brandl\nBrandl Grafik",
+      "antwort_auf": "wartet-auf-011"
+    },
+    {
+      "id": "wartet-auf-013",
+      "art": "notiz",
+      "zeit": "2026-09-28T20:05:00+02:00",
+      "titel": "Offene Punkte diese Woche",
+      "text": "Offen: (1) Layout Flyer von Frau Brandl, war für 23.9. versprochen, kommt wohl erst nach Mittwoch. (2) Unterschriebener\nVertrag Eichenberg. Datenschutz ist erledigt, die zwei Anmerkungen von Herrn Maurer noch einarbeiten."
+    }
+  ],
+  "fragen": [
+    {
+      "id": "wartet-auf-01",
+      "frage": "Worauf warte ich noch?",
+      "kategorie": "wartet_auf",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Zimmermann",
+            "Eichenberg"
+          ],
+          [
+            "Brandl"
+          ]
+        ],
+        "belege": [
+          "wartet-auf-003",
+          "wartet-auf-004",
+          "wartet-auf-011",
+          "wartet-auf-012"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Maurer noch nicht",
+          "Maurer hat noch nicht",
+          "Freigabe von Herrn Maurer steht noch aus",
+          "warten auf Herrn Maurer",
+          "warte auf Herrn Maurer",
+          "wartest auf Herrn Maurer"
+        ],
+        "belege": [
+          "wartet-auf-008"
+        ]
+      },
+      "notiz": "Offen sind der Vertrag (Zimmermann) und das Layout (Brandl). Die Datenschutz-Freigabe ist erledigt und darf nicht als offen genannt werden."
+    },
+    {
+      "id": "wartet-auf-02",
+      "frage": "Hat Frau Zimmermann den unterschriebenen Vertrag schon geschickt?",
+      "kategorie": "wartet_auf",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "noch nicht",
+            "steht noch aus",
+            "fehlt noch",
+            "noch offen",
+            "nicht erhalten",
+            "liegt noch nicht",
+            "nicht geschickt"
+          ]
+        ],
+        "belege": [
+          "wartet-auf-003",
+          "wartet-auf-004",
+          "wartet-auf-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Vertrag liegt vor",
+          "Vertrag ist eingegangen",
+          "hat den Vertrag unterschrieben geschickt",
+          "Vertrag wurde unterschrieben zurückgeschickt"
+        ],
+        "belege": []
+      },
+      "notiz": "Nein: Gremium hat vertagt, Unterschrift wurde für Anfang letzter Woche versprochen, ist aber nicht eingegangen."
+    },
+    {
+      "id": "wartet-auf-03",
+      "frage": "Hat Herr Maurer schon geliefert?",
+      "kategorie": "wartet_auf",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Freigabe",
+            "freigegeben"
+          ],
+          [
+            "25.09.2026",
+            "25. September 2026",
+            "25.09.",
+            "25. September",
+            "25. Sep.",
+            "2026-09-25",
+            "25.09",
+            "25.9."
+          ]
+        ],
+        "belege": [
+          "wartet-auf-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "noch nicht geliefert",
+          "hat noch nicht geliefert",
+          "noch keine Freigabe",
+          "Freigabe steht noch aus",
+          "Freigabe steht aus",
+          "Freigabe fehlt",
+          "Freigabe liegt noch nicht vor"
+        ],
+        "belege": []
+      },
+      "notiz": "Ja: Freigabe am 25. September, mit zwei Anmerkungen."
+    },
+    {
+      "id": "wartet-auf-04",
+      "frage": "Bis wann hatte mir Frau Brandl das Layout für den Flyer versprochen?",
+      "kategorie": "wartet_auf",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "23.09.2026",
+            "23. September 2026",
+            "23.09.",
+            "23. September",
+            "23. Sep.",
+            "2026-09-23",
+            "23.09",
+            "23.9."
+          ]
+        ],
+        "belege": [
+          "wartet-auf-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zusage vom 4. September; bis heute nicht eingehalten."
+    },
+    {
+      "id": "wartet-auf-05",
+      "frage": "Was hat Herr Maurer bei der Freigabe des Datenschutzkonzepts angemerkt?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Aufbewahrungsfrist",
+            "Aufbewahrung"
+          ],
+          [
+            "Auftragsverarbeitung",
+            "AV-Vertrag"
+          ]
+        ],
+        "belege": [
+          "wartet-auf-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zwei Anmerkungen aus der Freigabemail."
+    }
+  ]
+}

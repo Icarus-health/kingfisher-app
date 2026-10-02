@@ -1,0 +1,11 @@
+# German noun forms in memory retrieval
+
+Continuation of the approved memory roadmap, baseline 5cc6ed9. User asks to continue improving practical memory; human multi-day usefulness cannot be completed by synthetic tests.
+
+Observed failures: literal lexical-v1 lookup misses Atlasbericht/Atlasberichte, Server/Servers and similar inflections before evidence selection. Keep lexical-v1 storage and exact accent/name normalization unchanged. Add a closed, versioned query-side list of 23 common noun paradigms, including explicit umlaut forms. Compound variants retain their alphabetic prefix of at least three characters. No arbitrary suffix stemming, synonym inference, model request, new dependency, index migration or identity alias.
+
+Search exact tokens first, then listed alternatives in remaining candidate slots, with an extra row to detect truncation. Preserve 64 original query terms, 128 candidates and five delivered canonical records. Agent uses the same alternatives, keeps exact candidate priority, marks the retrieval reason, and rechecks original evidence/withdrawal. Semantic search remains experimental/off in the private app.
+
+Validate real Agent/provider output, named/accent/compound distractors, exact hit priority over 200 inflected candidates, canonical source withdrawal, query budgets and existing-store reopen. Twelve regression cases failed before implementation; seven negative controls already passed. Freeze measurements against existing 22 retrieval and eight meaning cases and report gains/regressions honestly. Run full local suites, independent immutable review, actual HTTP/restart/withdrawal flow; merge/update with fresh backup on success. Human holdout, broad paraphrases, meanings and large-store semantic coverage remain separate gates.
+
+Review correction: independent review reproduced a dependency starvation regression with one exact dependent claim plus 200 inflected alternatives. Ranking used up the same 128-claim cache needed for canonical dependency validation. A separate fresh validation build now preserves its own 128-claim/128-source budget after the at-most-128 ranking reads; the existing egress/history freshness checks remain additional unchanged gates. The new regression failed before this correction and covers both successful exact delivery and withdrawal of its dependency.

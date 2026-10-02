@@ -1,0 +1,14 @@
+.inbox-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.inbox-filter button[aria-pressed="true"] { background: var(--kf-flaeche-075268); color: var(--kf-schrift-ffffff); }
+.inbox-account { max-width: 260px; padding: 8px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 6px; font: inherit; }
+.inbox-category { display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: var(--kf-flaeche-e8f0ee); color: var(--kf-schrift-075268); font-size: 10px; }
+.inbox-reason { font-size: 11px; color: var(--kf-schrift-53635f); }
+.inbox-count { font-size: 12px; color: var(--kf-schrift-53635f); }
+
+.inbox-filter button { border: 1px solid var(--kf-rand-d7e1df); border-radius: 7px; padding: 8px 12px; background: var(--kf-flaeche-ffffff); color: var(--kf-schrift-063e55); font: inherit; cursor: pointer; }
+.inbox-filter button:focus-visible, .inbox-account:focus-visible { outline: 2px solid var(--kf-rand-075268); outline-offset: 3px; }
+
+.inbox-page .inbox-open { display: grid; gap: 4px; text-align: left; }
+.inbox-page .inbox-open strong { font-size: 13px; }
+.inbox-page .inbox-open small { font-size: 12px; }
+.inbox-abgerufen { margin: 0 0 8px; font-size: 12px; color: var(--kf-schrift-53635f); }

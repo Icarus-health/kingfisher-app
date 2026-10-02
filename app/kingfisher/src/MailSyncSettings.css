@@ -1,0 +1,16 @@
+/* „Mails regelmäßig abrufen“: ein Schalter, eine Auswahl, wie oft, darunter Eingeklapptes (MailSyncSettings.tsx). */
+.mail-sync-settings { display: grid; gap: 14px; padding: 18px 22px; }
+.mail-sync-settings p { font-size: 13px; line-height: 1.55; margin: 0; }
+.mail-abruf-schalter { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.mail-abruf-schalter input[role="switch"] { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--kf-akzent-075268); }
+.mail-abruf-schalter > span { display: grid; gap: 4px; min-width: 0; }
+.mail-abruf-schalter > span > strong { font-weight: 600; }
+.mail-abruf-schalter > span > small { color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.55; }
+.mail-abruf-wie-oft { display: grid; gap: 6px; max-width: 320px; font-size: 13px; font-weight: 600; }
+.mail-abruf-wie-oft select { min-height: 44px; }
+.mail-abruf-konten { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.mail-abruf-konten legend { margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+.mail-abruf-konten label { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 13px; }
+.mail-abruf-konten input { width: 16px; height: 16px; margin: 0; accent-color: var(--kf-akzent-075268); }
+.mail-sync-settings details > summary { min-height: 36px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.mail-sync-settings details[open] { display: grid; gap: 8px; }

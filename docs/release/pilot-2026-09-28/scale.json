@@ -1,0 +1,719 @@
+{
+ "suite": "working-memory-scale-v1",
+ "runs": [
+  {
+   "suite": "working-memory-scale-v1",
+   "synthetic_only": true,
+   "network_used": false,
+   "model_called": false,
+   "postfach": {
+    "mails": 1000,
+    "nadeln": 40,
+    "seed": 20260925
+   },
+   "zeit_sekunden": {
+    "aufnahme": 0.738,
+    "einordnung_ohne_modell": 3.138,
+    "suche_median": 0.0134,
+    "suche_p95": 0.0807
+   },
+   "datenbank_mb": 6.23,
+   "eingeordnet": 1000,
+   "abdeckung": {
+    "complete": 500,
+    "failed": 0,
+    "deferred": 0,
+    "dismissed": 0,
+    "pending": 0,
+    "truncated": true
+   },
+   "ergebnis": {
+    "nadel_auf_platz_1": 40,
+    "nadel_in_top_12": 40,
+    "nadel_beim_modell": 40,
+    "antworten_begrenzt": 40,
+    "quellen_beim_modell_im_mittel": 11.38,
+    "fragen": 40
+   },
+   "rows": [
+    {
+     "id": "N030",
+     "q": "Wann liefert Rafael das Lastenheft für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N040",
+     "q": "Wann liefert Moritz den Messplan für Polaris?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N005",
+     "q": "Wann liefert Clara das Angebot für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N032",
+     "q": "Wann liefert Sara die Stückliste für Nordlicht?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N021",
+     "q": "Wann liefert Lena die Prüfmuster für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N014",
+     "q": "Wann liefert Greta die Rechnung für Hafenblick?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N004",
+     "q": "Wann liefert Jonas den Entwurf für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N009",
+     "q": "Wann liefert Sara die Stückliste für Hafenblick?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N019",
+     "q": "Wann liefert Katrin die Rechnung für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N015",
+     "q": "Wann liefert Greta die Rechnung für Vega?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N008",
+     "q": "Wann liefert Moritz den Entwurf für Kranich?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N035",
+     "q": "Wann liefert David die Zeichnungen für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N027",
+     "q": "Wann liefert Paula die Stückliste für Polaris?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N039",
+     "q": "Wann liefert Rafael das Angebot für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N037",
+     "q": "Wann liefert Moritz die Freigabeliste für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N001",
+     "q": "Wann liefert Rafael den Messplan für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N028",
+     "q": "Wann liefert Rafael das Angebot für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N007",
+     "q": "Wann liefert Moritz die Freigabeliste für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N023",
+     "q": "Wann liefert Eva das Angebot für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N013",
+     "q": "Wann liefert Jonas den Prüfbericht für Vega?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N024",
+     "q": "Wann liefert Hanna die Zeichnungen für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N012",
+     "q": "Wann liefert Oskar das Angebot für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N036",
+     "q": "Wann liefert Moritz die Prüfmuster für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N029",
+     "q": "Wann liefert Felix das Lastenheft für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N006",
+     "q": "Wann liefert Katrin die Zeichnungen für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N003",
+     "q": "Wann liefert Nora die Zeichnungen für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N017",
+     "q": "Wann liefert Eva die Rechnung für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N033",
+     "q": "Wann liefert Moritz die Rechnung für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 10,
+     "begrenzt": true
+    },
+    {
+     "id": "N010",
+     "q": "Wann liefert Felix die Prüfmuster für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N026",
+     "q": "Wann liefert Sara den Entwurf für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N018",
+     "q": "Wann liefert Paula das Lastenheft für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N025",
+     "q": "Wann liefert Ben die Rechnung für Kranich?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 11,
+     "begrenzt": true
+    },
+    {
+     "id": "N034",
+     "q": "Wann liefert Rafael den Messplan für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 9,
+     "begrenzt": true
+    },
+    {
+     "id": "N038",
+     "q": "Wann liefert Sara den Entwurf für Tessin?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N002",
+     "q": "Wann liefert Jonas die Zeichnungen für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 9,
+     "begrenzt": true
+    },
+    {
+     "id": "N031",
+     "q": "Wann liefert Nora den Prüfbericht für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 7,
+     "begrenzt": true
+    },
+    {
+     "id": "N022",
+     "q": "Wann liefert Jonas den Prüfbericht für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 8,
+     "begrenzt": true
+    },
+    {
+     "id": "N016",
+     "q": "Wann liefert Sara die Stückliste für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 9,
+     "begrenzt": true
+    },
+    {
+     "id": "N020",
+     "q": "Wann liefert Greta die Rechnung für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 9,
+     "begrenzt": true
+    },
+    {
+     "id": "N011",
+     "q": "Wann liefert Jonas die Zeichnungen für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 11,
+     "begrenzt": true
+    }
+   ]
+  },
+  {
+   "suite": "working-memory-scale-v1",
+   "synthetic_only": true,
+   "network_used": false,
+   "model_called": false,
+   "postfach": {
+    "mails": 10000,
+    "nadeln": 40,
+    "seed": 20260925
+   },
+   "zeit_sekunden": {
+    "aufnahme": 10.228,
+    "einordnung_ohne_modell": 66.33,
+    "suche_median": 0.1422,
+    "suche_p95": 0.1687
+   },
+   "datenbank_mb": 60.42,
+   "eingeordnet": 10000,
+   "abdeckung": {
+    "complete": 500,
+    "failed": 0,
+    "deferred": 0,
+    "dismissed": 0,
+    "pending": 0,
+    "truncated": true
+   },
+   "ergebnis": {
+    "nadel_auf_platz_1": 40,
+    "nadel_in_top_12": 40,
+    "nadel_beim_modell": 40,
+    "antworten_begrenzt": 40,
+    "quellen_beim_modell_im_mittel": 11.9,
+    "fragen": 40
+   },
+   "rows": [
+    {
+     "id": "N026",
+     "q": "Wann liefert Sara den Entwurf für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N005",
+     "q": "Wann liefert Clara das Angebot für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N004",
+     "q": "Wann liefert Jonas den Entwurf für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N037",
+     "q": "Wann liefert Moritz die Freigabeliste für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N021",
+     "q": "Wann liefert Lena die Prüfmuster für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N035",
+     "q": "Wann liefert David die Zeichnungen für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N028",
+     "q": "Wann liefert Rafael das Angebot für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N027",
+     "q": "Wann liefert Paula die Stückliste für Polaris?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N025",
+     "q": "Wann liefert Ben die Rechnung für Kranich?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N029",
+     "q": "Wann liefert Felix das Lastenheft für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N036",
+     "q": "Wann liefert Moritz die Prüfmuster für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N011",
+     "q": "Wann liefert Jonas die Zeichnungen für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N012",
+     "q": "Wann liefert Oskar das Angebot für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N007",
+     "q": "Wann liefert Moritz die Freigabeliste für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N038",
+     "q": "Wann liefert Sara den Entwurf für Tessin?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N040",
+     "q": "Wann liefert Moritz den Messplan für Polaris?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N017",
+     "q": "Wann liefert Eva die Rechnung für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N034",
+     "q": "Wann liefert Rafael den Messplan für Merkur?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N024",
+     "q": "Wann liefert Hanna die Zeichnungen für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N032",
+     "q": "Wann liefert Sara die Stückliste für Nordlicht?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N019",
+     "q": "Wann liefert Katrin die Rechnung für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N001",
+     "q": "Wann liefert Rafael den Messplan für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N022",
+     "q": "Wann liefert Jonas den Prüfbericht für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N023",
+     "q": "Wann liefert Eva das Angebot für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N030",
+     "q": "Wann liefert Rafael das Lastenheft für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N031",
+     "q": "Wann liefert Nora den Prüfbericht für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N033",
+     "q": "Wann liefert Moritz die Rechnung für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N013",
+     "q": "Wann liefert Jonas den Prüfbericht für Vega?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N039",
+     "q": "Wann liefert Rafael das Angebot für Mainz?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N016",
+     "q": "Wann liefert Sara die Stückliste für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N020",
+     "q": "Wann liefert Greta die Rechnung für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N018",
+     "q": "Wann liefert Paula das Lastenheft für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N003",
+     "q": "Wann liefert Nora die Zeichnungen für Orion?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N010",
+     "q": "Wann liefert Felix die Prüfmuster für Lotus?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N006",
+     "q": "Wann liefert Katrin die Zeichnungen für Atlas?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N008",
+     "q": "Wann liefert Moritz den Entwurf für Kranich?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N015",
+     "q": "Wann liefert Greta die Rechnung für Vega?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N009",
+     "q": "Wann liefert Sara die Stückliste für Hafenblick?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N014",
+     "q": "Wann liefert Greta die Rechnung für Hafenblick?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 12,
+     "begrenzt": true
+    },
+    {
+     "id": "N002",
+     "q": "Wann liefert Jonas die Zeichnungen für Saphir?",
+     "suchtreffer_rang": 1,
+     "beim_modell": true,
+     "quellen_beim_modell": 8,
+     "begrenzt": true
+    }
+   ]
+  }
+ ]
+}

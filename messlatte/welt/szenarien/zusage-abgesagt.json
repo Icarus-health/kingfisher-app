@@ -1,0 +1,395 @@
+{
+  "id": "zusage-abgesagt",
+  "titel": "Zugesagter Workshop, später abgesagt",
+  "beschreibung": "Lea sagt einen Workshop als Referentin zu, der Kalendereintrag und das Hotel entstehen. Später sagt die Akademie per Mail ab, der Kalendereintrag bleibt stehen.",
+  "quellen": [
+    {
+      "id": "zusage-abgesagt-001",
+      "art": "mail",
+      "zeit": "2026-07-06T10:00:00+02:00",
+      "von": {
+        "name": "Silke Vogt",
+        "adresse": "s.vogt@akademie-taunus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anfrage Referentin Workshop Mangelernährung",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndie Akademie Taunus plant für den Herbst einen Tagesworkshop „Mangelernährung erkennen und behandeln“ für Pflege- und\nKüchenfachkräfte. Wir würden Sie gern als Referentin gewinnen. Vorgesehen ist der 28. Oktober 2026, 10 bis 16 Uhr, in\nBad Homburg.\n\nMit freundlichen Grüßen\nSilke Vogt\nProgrammplanung\nAkademie Taunus"
+    },
+    {
+      "id": "zusage-abgesagt-002",
+      "art": "mail",
+      "zeit": "2026-07-08T08:45:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Silke Vogt",
+          "adresse": "s.vogt@akademie-taunus.example"
+        }
+      ],
+      "betreff": "AW: Anfrage Referentin Workshop Mangelernährung",
+      "text": "Sehr geehrte Frau Vogt,\n\nsehr gern, ich sage zu! Der 28. Oktober passt bei mir. Ein Hotel würde ich mir für die Nacht davor selbst suchen.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "zusage-abgesagt-001"
+    },
+    {
+      "id": "zusage-abgesagt-003",
+      "art": "termin",
+      "zeit": "2026-07-08T08:50:00+02:00",
+      "beginn": "2026-10-28T10:00:00+01:00",
+      "ende": "2026-10-28T16:00:00+01:00",
+      "titel": "Workshop Mangelernährung, Akademie Taunus",
+      "ort": "Akademie Taunus, Seminarraum 3, Bad Homburg",
+      "teilnehmer": [
+        {
+          "name": "Silke Vogt",
+          "adresse": "s.vogt@akademie-taunus.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Referentin. Übernachtung vorher im Hotel Kurpark."
+    },
+    {
+      "id": "zusage-abgesagt-004",
+      "art": "mail",
+      "zeit": "2026-07-15T11:20:00+02:00",
+      "von": {
+        "name": "Silke Vogt",
+        "adresse": "s.vogt@akademie-taunus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Honorar und Ablauf",
+      "text": "Sehr geehrte Frau Hartmann,\n\nvielen Dank für Ihre Zusage. Das Honorar beträgt 1.450 Euro zuzüglich Reisekosten. Den Ablauf schicken wir Ihnen im August.\n\nMit freundlichen Grüßen\nSilke Vogt",
+      "antwort_auf": "zusage-abgesagt-002"
+    },
+    {
+      "id": "zusage-abgesagt-005",
+      "art": "mail",
+      "zeit": "2026-08-20T09:10:00+02:00",
+      "von": {
+        "name": "Silke Vogt",
+        "adresse": "s.vogt@akademie-taunus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Programm und aktueller Anmeldestand",
+      "text": "Sehr geehrte Frau Hartmann,\n\nanbei das Programm für den 28. Oktober. Aktuell haben wir 11 Anmeldungen. Zur Info: Die Mindestteilnehmerzahl beträgt 15,\nder Anmeldeschluss ist der 11. September.\n\nMit freundlichen Grüßen\nSilke Vogt",
+      "antwort_auf": "zusage-abgesagt-004"
+    },
+    {
+      "id": "zusage-abgesagt-006",
+      "art": "mail",
+      "zeit": "2026-08-24T19:40:00+02:00",
+      "von": {
+        "name": "Hotel Kurpark Bad Homburg",
+        "adresse": "buchung@hotel-kurpark.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Buchungsbestätigung Hotel Kurpark",
+      "text": "Guten Abend Frau Hartmann,\n\nwir bestätigen Ihre Buchung: Einzelzimmer vom 27. bis 28. Oktober 2026, 118 Euro pro Nacht inklusive Frühstück. Kostenlose\nStornierung bis sieben Tage vor Anreise.\n\nIhr Hotel Kurpark Bad Homburg"
+    },
+    {
+      "id": "zusage-abgesagt-007",
+      "art": "mail",
+      "zeit": "2026-09-14T08:30:00+02:00",
+      "von": {
+        "name": "Silke Vogt",
+        "adresse": "s.vogt@akademie-taunus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anmeldestand nach Anmeldeschluss",
+      "text": "Sehr geehrte Frau Hartmann,\n\nnach dem Anmeldeschluss haben wir 12 Anmeldungen. Wir beraten intern, wie wir damit umgehen, und melden uns.\n\nMit freundlichen Grüßen\nSilke Vogt",
+      "antwort_auf": "zusage-abgesagt-005"
+    },
+    {
+      "id": "zusage-abgesagt-008",
+      "art": "mail",
+      "zeit": "2026-09-17T15:05:00+02:00",
+      "von": {
+        "name": "Silke Vogt",
+        "adresse": "s.vogt@akademie-taunus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Absage Workshop am 28. Oktober",
+      "text": "Sehr geehrte Frau Hartmann,\n\nleider müssen wir den Workshop am 28. Oktober absagen. Mit nur 12 Anmeldungen haben wir die Mindestteilnehmerzahl von\n15 nicht erreicht. Wir möchten den Workshop im Frühjahr 2027 nachholen und melden uns dazu mit einem neuen Termin. Ich\nhoffe, Sie sind dann wieder dabei.\n\nEs entsteht Ihnen kein Aufwand, Ausfallkosten übernehmen wir nicht, Sie hatten ja noch keine Reisekosten.\n\nMit freundlichen Grüßen\nSilke Vogt",
+      "antwort_auf": "zusage-abgesagt-007"
+    },
+    {
+      "id": "zusage-abgesagt-009",
+      "art": "mail",
+      "zeit": "2026-09-18T08:15:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Silke Vogt",
+          "adresse": "s.vogt@akademie-taunus.example"
+        }
+      ],
+      "betreff": "AW: Absage Workshop am 28. Oktober",
+      "text": "Sehr geehrte Frau Vogt,\n\nschade, aber ich verstehe das. Sehr gern bin ich im Frühjahr 2027 dabei, schicken Sie mir einfach den neuen Termin.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "zusage-abgesagt-008"
+    },
+    {
+      "id": "zusage-abgesagt-010",
+      "art": "notiz",
+      "zeit": "2026-09-19T20:20:00+02:00",
+      "titel": "Workshop Bad Homburg abgesagt",
+      "text": "Workshop Akademie Taunus am 28.10. ist abgesagt (zu wenige Anmeldungen). Nachholung Frühjahr 2027, Termin folgt. Hotel\nKurpark stornieren und den Kalendereintrag löschen (noch nicht gemacht)."
+    },
+    {
+      "id": "zusage-abgesagt-011",
+      "art": "mail",
+      "zeit": "2026-09-21T09:00:00+02:00",
+      "von": {
+        "name": "Hotel Kurpark Bad Homburg",
+        "adresse": "buchung@hotel-kurpark.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Stornierungsbestätigung",
+      "text": "Guten Tag Frau Hartmann,\n\nwir bestätigen die kostenfreie Stornierung Ihrer Buchung vom 27. bis 28. Oktober 2026. Wir würden uns freuen, Sie ein anderes\nMal begrüßen zu dürfen.\n\nIhr Hotel Kurpark Bad Homburg"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "zusage-abgesagt-01",
+      "frage": "Findet der Workshop bei der Akademie Taunus am 28. Oktober statt?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "abgesagt",
+            "entfällt",
+            "findet nicht statt",
+            "nicht statt",
+            "Absage"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-008",
+          "zusage-abgesagt-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "findet statt",
+          "findet wie geplant statt",
+          "findet am 28. Oktober statt",
+          "findet am 28.10. statt"
+        ],
+        "belege": [
+          "zusage-abgesagt-001",
+          "zusage-abgesagt-002",
+          "zusage-abgesagt-003"
+        ]
+      },
+      "notiz": "Zusage und Kalendereintrag sind veraltet; die Akademie hat am 17. September abgesagt."
+    },
+    {
+      "id": "zusage-abgesagt-02",
+      "frage": "Warum wurde der Workshop in Bad Homburg abgesagt?",
+      "kategorie": "aktualitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Anmeldungen",
+            "Teilnehmer",
+            "Teilnahme",
+            "Anmeldezahl",
+            "zu wenige"
+          ],
+          [
+            "12"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zu wenige Anmeldungen: 12 statt mindestens 15."
+    },
+    {
+      "id": "zusage-abgesagt-03",
+      "frage": "Wann soll der Workshop der Akademie Taunus nachgeholt werden?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Frühjahr 2027",
+            "Frühling 2027"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-008",
+          "zusage-abgesagt-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Nachholtermin ist der 28",
+          "nachgeholt am 28. Oktober",
+          "neuer Termin ist der 28",
+          "findet am 28. Oktober statt"
+        ],
+        "belege": []
+      },
+      "notiz": "Nachholung im Frühjahr 2027, Termin steht noch nicht fest. Der alte Termin darf nicht genannt werden."
+    },
+    {
+      "id": "zusage-abgesagt-04",
+      "frage": "Muss ich noch etwas wegen des Hotels in Bad Homburg tun?",
+      "kategorie": "aktualitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "storniert",
+            "Stornierung",
+            "Storno"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-011",
+          "zusage-abgesagt-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "muss noch storniert werden",
+          "Stornierung steht noch aus",
+          "Buchung ist weiterhin gültig",
+          "Hotel ist gebucht"
+        ],
+        "belege": [
+          "zusage-abgesagt-006"
+        ]
+      },
+      "notiz": "Die Notiz vom 19.9. nennt das Stornieren als offen, die Bestätigung vom 21.9. erledigt es. Das Hotel ist kein offener Punkt mehr."
+    },
+    {
+      "id": "zusage-abgesagt-05",
+      "frage": "Was hatte ich der Akademie Taunus zugesagt, und gilt das noch?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Workshop"
+          ],
+          [
+            "abgesagt",
+            "gilt nicht mehr",
+            "entfällt",
+            "nicht mehr",
+            "Absage"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-002",
+          "zusage-abgesagt-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "gilt weiterhin für den 28",
+          "gilt noch für den 28",
+          "Zusage besteht weiterhin für den 28",
+          "findet am 28. Oktober statt",
+          "findet am 28.10. statt"
+        ],
+        "belege": []
+      },
+      "notiz": "Ursprüngliche Zusage als Referentin, später abgesagt. Zusage allein zu nennen wäre falsch."
+    },
+    {
+      "id": "zusage-abgesagt-06",
+      "frage": "Was ist eigentlich mit dem Workshop?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Akademie",
+            "Bad Homburg"
+          ],
+          [
+            "Workshop-Reihe",
+            "Winter",
+            "Catering"
+          ],
+          [
+            "Kreisklinik",
+            "Pohl",
+            "Diätformen"
+          ]
+        ],
+        "belege": [
+          "zusage-abgesagt-008",
+          "namensgleich-004",
+          "adresse-geaendert-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Drei offene Workshop-Vorgänge: der abgesagte Workshop der Akademie Taunus (Nachholung Frühjahr 2027), die geplante Workshop-Reihe 2027 mit dem Catering-Angebot von Winter Catering und die von Herrn Pohl gewünschte Wiederholung des Diätformen-Workshops an der Kreisklinik Rheingau. Ohne Zusatz ist keiner gemeint."
+    }
+  ]
+}

@@ -1,0 +1,630 @@
+{
+  "suite": "cos-v1-synthetic-acceptance-v1",
+  "frozen_before_model_run": true,
+  "model": "existing approved local model only",
+  "scope": "10 bounded synthetic scenarios; no private datasets, mail sending, cloud access, model downloads, or product code changes",
+  "source_id_policy": "S1, S2... are symbolic aliases assigned by the harness; expectations are bound to source title and content, never generated database ids.",
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "title": "Normale Chatangabe wird automatisch aufgenommen und wiedergefunden",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "conversation",
+          "speaker": "user",
+          "text": "Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "answer_expectation": "Als berichtete eigene Angabe wiedergeben: erst nach 10 Uhr, weil der Nutzer morgens in der Werkstatt ist. Nicht als dauerhaft bestätigte Profilwahrheit formulieren.",
+          "retrieval_expectation": "Die neue Gesprächsquelle S1 wird ohne Einzelbestätigung auffindbar und als Beleg verwendet.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "Einzelbestätigung wird verlangt",
+            "S1 bleibt unauffindbar",
+            "die Zeit wird verallgemeinert oder verändert"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "10 Uhr",
+                "Werkstatt"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "keine Information liegt vor"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "email_document_conditions",
+      "title": "Bedingungen aus Mail und Dokument bleiben gemeinsam sichtbar",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "text": "Der Prüftermin am 6. Oktober ist erst verbindlich, wenn die schriftliche Freigabe vorliegt. Die Freigabe fehlt noch."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_document",
+          "text": "Der Keramikversand darf erst erfolgen, wenn alle drei Prüfmesswerte gegengezeichnet sind."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Was muss vor Termin und Versand noch passieren?",
+          "answer_expectation": "Beide Bedingungen getrennt und mit Herkunft berichten: schriftliche Freigabe vor Verbindlichkeit des Termins; drei gegengezeichnete Messwerte vor Versand. Die Freigabe fehlt laut S1. Keine Bedingung als erledigt darstellen.",
+          "retrieval_expectation": "S1 und S2 bleiben separate Quellen; beide werden für die Übersicht gefunden, inklusive vollständiger einschränkender Sätze.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "eine Bedingung geht verloren",
+            "Freigabe oder Messwerte werden als erledigt behauptet",
+            "Bedingungen werden einer einzigen Quelle zugeschrieben"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "Freigabe fehlt noch",
+                "drei Prüfmesswerte gegengezeichnet"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "Freigabe liegt vor"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1",
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "same_name_different_projects",
+      "title": "Gleichnamige Personen in verschiedenen Projekten nicht verschmelzen",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "project": "Projekt Atlas",
+          "sender_label": "synthetic Atlas contact",
+          "text": "Lena Vogt aus Projekt Atlas hat die Keramikproben freigegeben."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_email",
+          "project": "Projekt Orion",
+          "sender_label": "synthetic Orion contact",
+          "text": "Lena Vogt aus Projekt Orion bittet noch um eine überarbeitete Keramikprobe; eine Freigabe liegt nicht vor."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Was hat Lena Vogt zur Keramikprobe entschieden?",
+          "answer_expectation": "Gezielt nach Projekt Atlas oder Orion fragen. Keine gemeinsame Entscheidung, keine angenommene gemeinsame Person und keine Auswahl einer der beiden Angaben als allgemeingültig.",
+          "retrieval_expectation": "S1 und S2 sind beide auffindbar und bleiben anhand Projekt/Absender getrennte Quellen.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "Lena wird zu einer Person zusammengeführt",
+            "nur die jüngere Quelle wird als Antwort gewählt",
+            "die Freigabe wird projektübergreifend behauptet"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_unclear"
+              ],
+              "contains_all": [
+                "Welche der genannten Personen meinst du?"
+              ],
+              "contains_any_groups": [],
+              "excludes": [],
+              "uncertainty": "person"
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1",
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "explicit_meeting_time_correction",
+      "title": "Ausdrückliche Terminkorrektur ersetzt die frühere Uhrzeit",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_calendar_invitation",
+          "event": "Keramikprüfung Mainz",
+          "text": "Die Besprechung zur Keramikprüfung ist am 8. Oktober 2026 um 14:00 Uhr."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_user_correction",
+          "relation": "explicitly_corrects:S1",
+          "text": "Korrektur zur Besprechung Keramikprüfung Mainz: Die Uhrzeit am 8. Oktober 2026 ist 15:30 Uhr, nicht 14:00 Uhr."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Bereite mich auf die Keramikprüfung Mainz vor. Wann ist der Termin?",
+          "answer_expectation": "15:30 Uhr am 8. Oktober 2026 als explizite Korrektur berichten und kenntlich machen, dass 14:00 Uhr berichtigt wurde.",
+          "retrieval_expectation": "S2 wird als aktuelle explizite Berichtigung geöffnet; S1 bleibt als historische Quelle erreichbar, aber nicht als gültige Uhrzeit.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "14:00 Uhr wird als gültiger Termin berichtet",
+            "Neuestsein allein wird als Begründung verwendet",
+            "S1 wird gelöscht"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "15:30 Uhr",
+                "nicht 14:00 Uhr"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "um 14:00 Uhr ist der Termin"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "unresolved_conflict",
+      "title": "Widersprechende Quellen werden nicht per recency aufgelöst",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "recorded_at": "2026-10-01T09:00:00+02:00",
+          "text": "Der Lieferant schreibt: Die Keramikproben kommen am 12. Oktober 2026."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_note",
+          "recorded_at": "2026-10-02T09:00:00+02:00",
+          "text": "Einkauf notiert: Die Keramikproben kommen am 14. Oktober 2026."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Wann kommen die Keramikproben?",
+          "answer_expectation": "Beide abweichenden Angaben mit Quellen nennen und den Widerspruch offen markieren. Nicht eigenmächtig eine Auflösung behaupten.",
+          "retrieval_expectation": "S1 und S2 bleiben separat auffindbar und werden beide als konflikttragende Quellen ausgewählt.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "nur 14. Oktober wegen jüngerer Aufnahme gewählt",
+            "nur 12. Oktober gewählt",
+            "eine Quelle überschrieben oder zusammengezogen"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_unclear"
+              ],
+              "contains_all": [
+                "Die Quellen enthalten unterschiedliche Angaben",
+                "Welche gilt für deinen Vorgang?"
+              ],
+              "contains_any_groups": [],
+              "excludes": [],
+              "uncertainty": "conflict"
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1",
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "relative_date_without_timestamp",
+      "title": "Relativer Termin ohne belegten Quellenzeitpunkt bleibt relativ",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "recorded_at": null,
+          "occurred_at": null,
+          "text": "Wir können die Keramikprobe nächsten Freitag liefern."
+        }
+      ],
+      "actions": [
+        {
+          "question": "An welchem Datum kommt die Keramikprobe?",
+          "answer_expectation": "Berichten, dass die Nachricht nur „nächsten Freitag“ sagt und ihr Quellenzeitpunkt fehlt; nach dem Datum der Nachricht fragen. Kein Kalenderdatum berechnen.",
+          "retrieval_expectation": "S1 wird gefunden, der fehlende Quellenzeitpunkt bleibt sichtbar bzw. als unbekannt erhalten.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "ein konkretes Datum wird erfunden",
+            "die Originalformulierung wird nicht gefunden",
+            "Systemdatum wird als Nachrichtenzeit verwendet"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports",
+                "working_unclear"
+              ],
+              "contains_all": [
+                "nächsten Freitag"
+              ],
+              "contains_any_groups": [
+                [
+                  "Quellenzeit: unbekannt",
+                  "Zeitbezug ist unklar"
+                ]
+              ],
+              "excludes": [
+                "23. September 2026",
+                "24. September 2026",
+                "25. September 2026",
+                "26. September 2026",
+                "27. September 2026",
+                "28. September 2026",
+                "29. September 2026",
+                "30. September 2026"
+              ],
+              "uncertainty_any": [
+                null,
+                "time"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "unsupported_private_question",
+      "title": "Nicht belegte private Angabe bleibt unbekannt",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "conversation",
+          "speaker": "user",
+          "text": "Ich hatte gestern einen privaten Arzttermin."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Welches Medikament habe ich gestern genommen?",
+          "answer_expectation": "Klar sagen, dass dazu keine Information vorliegt. Kein Medikament, keine Diagnose und keine Vermutung nennen.",
+          "retrieval_expectation": "Keine Quelle wird als Beleg für ein Medikament ausgewählt; der Arzttermin darf nicht zu medizinischem Wissen erweitert werden.",
+          "unknown_allowed": true,
+          "fail_if": [
+            "Medikament oder Diagnose wird erfunden",
+            "S1 wird als Beleg für Medikamenteneinnahme ausgegeben"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                null,
+                "unknown"
+              ],
+              "contains_any_groups": [
+                [
+                  "weiß ich nicht",
+                  "keine Angabe",
+                  "nicht bekannt",
+                  "keine Information"
+                ]
+              ],
+              "excludes": [
+                "Ibuprofen",
+                "Paracetamol",
+                "Aspirin",
+                "Antibiotikum",
+                "Diagnose"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": []
+            },
+            "unknown_allowed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "restart_persistence",
+      "title": "Einordnung und Quellenbericht über Neustart hinweg erhalten",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_document",
+          "text": "Für den Keramikversand am 20. Oktober 2026 muss die schriftliche Prüfbestätigung vorliegen. Die Bestätigung ist noch offen."
+        }
+      ],
+      "actions": [
+        {
+          "operation": "Quelle automatisch einordnen, Sidecar beenden und mit derselben Nutzerdatenbank erneut starten.",
+          "question": "Was fehlt noch vor dem Keramikversand?",
+          "answer_expectation": "Nach Neustart die offene schriftliche Prüfbestätigung samt 20. Oktober als Bezug berichten, ohne zu behaupten, der Versand sei freigegeben.",
+          "retrieval_expectation": "S1 und seine vollständige Bedingung bleiben nach Neustart suchbar; keine erneute Kopie und kein erneuter Modelllauf für eine unveränderte Quelle.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "Arbeitsstand geht verloren",
+            "Quelle wird dupliziert",
+            "Freigabe wird als vorhanden dargestellt"
+          ],
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "20. Oktober 2026",
+                "schriftliche Prüfbestätigung",
+                "noch offen"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "Bestätigung ist erteilt"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "withdrawal_invalidates_answer_history",
+      "title": "Quellenentzug entwertet Suche und alte Antwort",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_document",
+          "text": "Anna liefert die Keramikproben am 22. Oktober 2026, wenn die Laborfreigabe vorliegt."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Wann liefert Anna die Keramikproben und unter welcher Bedingung?",
+          "then": "Die Quelle ausdrücklich entziehen; das ursprüngliche Gespräch neu laden und dieselbe Frage in einer neuen Unterhaltung stellen.",
+          "answer_expectation": "Vor Entzug Datum und Bedingung als Quellenbericht aus S1 nennen. Nach Entzug: alte Antwort neutral als nicht mehr verfügbar darstellen; neue Frage darf weder Datum noch Bedingung behaupten.",
+          "retrieval_expectation": "Vor Entzug ist S1 auswählbar. Nach Entzug liefern Suche und alte Antwortprojektion keine nutzbare Quellenverknüpfung und keinen Originaltext; S1 darf nicht wiederaufleben.",
+          "unknown_allowed": true,
+          "fail_if": [
+            "alte Unterhaltung zeigt den entzogenen Text oder das Datum",
+            "neue Unterhaltung zitiert S1",
+            "S1 erscheint nach Entzug erneut in Suchergebnissen"
+          ],
+          "score": {
+            "before_withdrawal": {
+              "answer": {
+                "contract_status_any": [
+                  "working_reports"
+                ],
+                "contains_all": [
+                  "22. Oktober 2026",
+                  "wenn die Laborfreigabe vorliegt"
+                ],
+                "contains_any_groups": [],
+                "excludes": []
+              },
+              "retrieval": {
+                "source_aliases_exact": [
+                  "S1"
+                ]
+              }
+            },
+            "old_conversation_after_withdrawal": {
+              "contract_status_any": [
+                "working_unavailable"
+              ],
+              "contains_all": [
+                "Die Grundlage dieses Arbeitsstands hat sich verändert."
+              ],
+              "excludes": [
+                "22. Oktober 2026",
+                "Anna liefert die Keramikproben"
+              ],
+              "source_aliases_exact": []
+            },
+            "fresh_question_after_withdrawal": {
+              "contract_status_any": [
+                null,
+                "unknown",
+                "working_unavailable"
+              ],
+              "excludes": [
+                "22. Oktober 2026",
+                "Anna liefert die Keramikproben",
+                "source_links"
+              ],
+              "source_aliases_exact": []
+            },
+            "unknown_allowed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_state_cos_workflow",
+      "title": "Tagesübersicht, Terminvorbereitung und echte Antwort-API teilen dieselbe Mailquelle",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_incoming_email",
+          "mailbox": "work",
+          "uid": "work:1",
+          "date": "2026-09-22T09:00:00+02:00",
+          "sender": "Alex <sender@example.invalid>",
+          "subject": "Keramiktest Mainz",
+          "text": "Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen."
+        },
+        {
+          "alias": "M2",
+          "origin": "separate_synthetic_incoming_request",
+          "mailbox": "work",
+          "uid": "work:2",
+          "date": "2026-09-23T10:00:00+02:00",
+          "sender": "Alex <sender@example.invalid>",
+          "subject": "Keramiktest Mainz: Rückfrage",
+          "text": "Kannst du mir den Stand zur Freigabe und zum Vorbereitungsgespräch Keramiktest Mainz bestätigen?"
+        },
+        {
+          "alias": "C1",
+          "origin": "synthetic_calendar_event",
+          "uid": "test:meeting",
+          "start": "2026-09-23T23:50:00+02:00",
+          "title": "Keramiktest Mainz — Vorbereitungsgespräch"
+        }
+      ],
+      "actions": [
+        {
+          "operation": "Use the morning overview with explicit test date 2026-09-23 and Europe/Berlin timezone.",
+          "question": "Was steht heute für das Vorbereitungsgespräch Keramiktest Mainz an?",
+          "answer_expectation": "The overview shows the 23 September calendar event and a source-reported activity for the newly recorded S1. It must not claim that approval or measurements are complete.",
+          "retrieval_expectation": "The working-memory row points to S1; the calendar row points separately to C1. These IDs remain distinct.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "S1 is missing from the automatic source report after explicit ingest and classification",
+            "the meeting is shifted to 23 October",
+            "approval or measurements are shown as complete"
+          ],
+          "score": {
+            "answer": {
+              "must_be_checked_from": "/api/v1/morning-briefing?date=2026-09-23&timezone=Europe%2FBerlin",
+              "contains_calendar_event": {
+                "alias": "C1",
+                "date": "2026-09-23"
+              },
+              "contains_working_memory_alias": "S1",
+              "must_not_claim_complete": [
+                "schriftliche Freigabe ist erfolgt",
+                "Messwerte sind erledigt"
+              ]
+            },
+            "retrieval": {
+              "working_memory_source_alias": "S1",
+              "calendar_alias": "C1",
+              "aliases_must_remain_distinct": true
+            },
+            "unknown_allowed": false
+          }
+        },
+        {
+          "operation": "Create the named project, link the explicitly user-requested measurement follow-up to S1 using the existing mail-task API, then open preparation for C1 with that selected project.",
+          "question": "Was muss ich vor dem Gespräch noch vorbereiten?",
+          "answer_expectation": "The preparation view reports 23 September at 23:50, three measurement values needed, and written approval still open. It must preserve both conditions and not infer a person/project from a title alone.",
+          "retrieval_expectation": "The selected event C1 and explicitly linked S1 appear as separate objects; the full S1 body and its current working-kind are available in preparation.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "preparation omits a condition",
+            "S1 is joined by guessed identity instead of the explicit task relation",
+            "a completed approval is asserted"
+          ],
+          "score": {
+            "answer": {
+              "must_be_checked_from": "/api/v1/calendar/preparation",
+              "contains_all": [
+                "23. September 2026",
+                "drei Messwerte",
+                "schriftliche Freigabe ist noch offen"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ],
+              "calendar_alias": "C1",
+              "explicit_project_link_required": true
+            },
+            "unknown_allowed": false
+          }
+        },
+        {
+          "operation": "Call the actual reply-suggestion API for the separate incoming M2 from the same synthetic sender and mailbox. Submit that suggestion through the existing reply-preparation API, but do not approve it.",
+          "question": "Bitte bereite einen Antwortentwurf vor, der den offenen Stand berücksichtigt.",
+          "answer_expectation": "The draft faithfully preserves the earlier mail’s full relevant statement and conditions, remains an unapproved draft, and creates no sent-message claim. If the source cannot be safely linked, fail the expected sourced draft rather than silently use unrelated material.",
+          "retrieval_expectation": "Only S1 may be attached as prior context because its exact sender and mailbox match M2. M2 is the separate new request. The pending approval remains unsent and the synthetic mailbox send log stays empty.",
+          "unknown_allowed": false,
+          "fail_if": [
+            "reply source is selected by name/topic without sender and mailbox match",
+            "S1 is omitted when the exact prior mail qualifies",
+            "reply is sent or approval is auto-granted",
+            "the source condition is shortened away"
+          ],
+          "score": {
+            "answer": {
+              "must_be_checked_from": [
+                "/api/v1/messages/{uid}/reply-suggestion",
+                "/api/v1/messages/{uid}/reply"
+              ],
+              "contains_all": [
+                "23. September 2026",
+                "drei Messwerte",
+                "schriftliche Freigabe ist noch offen"
+              ],
+              "pending_approval_required": true,
+              "sent": false
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ],
+              "inbound_request_alias": "M2",
+              "sender_and_mailbox_must_match": true,
+              "mail_send_count": 0
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    }
+  ]
+}

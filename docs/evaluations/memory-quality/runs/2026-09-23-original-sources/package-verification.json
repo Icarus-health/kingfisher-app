@@ -1,0 +1,25 @@
+{
+  "commit": "cc7fd99",
+  "synthetic": true,
+  "upload_http": true,
+  "quoted_search_auto": true,
+  "exact_condition_preserved": true,
+  "model_called": false,
+  "restart_before_withdrawal": true,
+  "withdrawal": true,
+  "restart_after_withdrawal": true,
+  "old_answer_not_revived": true,
+  "new_search_after_reopen": true,
+  "conversation_id": "c-db5624305220",
+  "source_id": "e-f1b9bd70c493",
+  "browser": {
+    "native_ui_original_answer": true,
+    "native_ui_original_view": true,
+    "native_ui_ignore_reload": true,
+    "neutral_conversation_preview": true,
+    "console_errors": [],
+    "file_chooser": "automation session lost before upload; source entered through real HTTP upload route",
+    "synthetic_only": true,
+    "packaged_old_invalid_new_valid_visible": true
+  }
+}

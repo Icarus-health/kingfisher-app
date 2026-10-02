@@ -1,0 +1,1333 @@
+{
+  "tested_commit": "46465369b2f0bd4d5e76a36b8f3ef6c324b66d59",
+  "synthetic_only": true,
+  "suites": [
+    {
+      "name": "reviewed-known",
+      "fixture_sha256": "e2668ac61505b420ee8b2ee7cf7205d7af49dedd03b780eb6930714395801907",
+      "model": "qwen3.5:4b",
+      "weights": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "weights_unchanged": true,
+      "cases": [
+        {
+          "id": "conditional",
+          "passed": false,
+          "checks": {
+            "source_selection": true,
+            "status": false,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-c4ccb331957f4d",
+              "conversation_id": "c-ca8cf6f18621",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · holdout-0.txt\nProjekt Birkenhain: Lea verschickt die Baupläne am 14. Dezember 2026.\n\nDies gilt ausschließlich nach schriftlicher Zustimmung der Eigentümer. Diese Zustimmung steht noch aus.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:37.256722+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                  "generated_at": "2026-09-28T09:34:37.256592+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                    "basis": [
+                      {
+                        "episode_id": "e-b5e3478a000a",
+                        "fingerprint": "12bcaced313e77b4a26c06512b302e3a616a609471ab7fd589097ac6e233d595",
+                        "start": 0,
+                        "end": 69,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-78ae478b8d6e",
+                        "fingerprint": "ea13ce43333ffc6d29ddb913422113d0a505dd24cdb6087e5fa7e436a87104b8",
+                        "start": 0,
+                        "end": 94,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-b5e3478a000a",
+                        "fingerprint": "12bcaced313e77b4a26c06512b302e3a616a609471ab7fd589097ac6e233d595",
+                        "start": 0,
+                        "end": 69,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "de77a01b530f2870c446b285886bd9013092d36c8b60c45f9d087454afedcd62",
+                    "status": "unclear",
+                    "uncertainty": "person",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-b5e3478a000a": null,
+                      "e-78ae478b8d6e": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unclear",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-b5e3478a000a",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-b75658bf2ed1",
+                    "fingerprint": "649e358e691ef9b81f2609d53ad81a9904125a22456be37ba4fd97cc58f4855b"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "wrong_project",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-b59cb7b65e7747",
+              "conversation_id": "c-f2e51bf10ef5",
+              "role": "assistant",
+              "content": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:40.410614+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                  "generated_at": "2026-09-28T09:34:40.410285+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                    "basis": [
+                      {
+                        "episode_id": "e-f8f7b2efccc0",
+                        "fingerprint": "5445969f0c68502b1ee0ef4ca4aaad74f9375ff24d611fbff3df2c85d2524445",
+                        "start": 0,
+                        "end": 69,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "ee56063b026e46c37c7327a4136f51f27b2c0eb574683d6bfb1ee9398fae23e2",
+                    "status": "unknown",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-f8f7b2efccc0": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unknown",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [],
+                  "original_question": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-02d5a07dd5e9",
+                    "fingerprint": "09613449052e6ae95db8bb948d03253a71358af609b04d06f4d0e98403cdedcb"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "project_ambiguity",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-03d39948bd454c",
+              "conversation_id": "c-4640cac4cd5b",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\nWelches Projekt oder welchen Vorgang meinst du?\n\nAngabe · holdout-1.txt\nDie Schlüsselübergabe für Projekt Felsenpark ist am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr\n\nAngabe · holdout-0.txt\nDie Schlüsselübergabe für Projekt Birkenhain ist am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:43.294853+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann ist die Schlüsselübergabe?",
+                  "generated_at": "2026-09-28T09:34:43.294608+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann ist die Schlüsselübergabe?",
+                    "basis": [
+                      {
+                        "episode_id": "e-901a12d6fa89",
+                        "fingerprint": "06955b7cf2b5537ae5dc6fd78eb861d1d28e36ea4724f18655cec6fd35e7c7c9",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-c6408a73f2ce",
+                        "fingerprint": "3b8d5091b23ef432f74bd044b20c0997266057f30f28ad2ac827a22d9ead0cf6",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-901a12d6fa89",
+                        "fingerprint": "06955b7cf2b5537ae5dc6fd78eb861d1d28e36ea4724f18655cec6fd35e7c7c9",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-c6408a73f2ce",
+                        "fingerprint": "3b8d5091b23ef432f74bd044b20c0997266057f30f28ad2ac827a22d9ead0cf6",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "d0c21a3580f57670d964ad67598872e88995ba2cd5d642bf57e4079aa9f35c63",
+                    "status": "unclear",
+                    "uncertainty": "scope",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-901a12d6fa89": null,
+                      "e-c6408a73f2ce": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unclear",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-901a12d6fa89",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    },
+                    {
+                      "episode_id": "e-c6408a73f2ce",
+                      "label": "Quelle 2 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann ist die Schlüsselübergabe?",
+                  "refresh_available": false,
+                  "clarification_choices": [
+                    {
+                      "label": "holdout-1.txt"
+                    },
+                    {
+                      "label": "holdout-0.txt"
+                    }
+                  ]
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-804edad10d9e",
+                    "fingerprint": "5f660ed91eaaa9c00bbe7f7b3edd0512bf2850966b646ce8c09da72e3ef2455b"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "same_name",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-d83a558a80994a",
+              "conversation_id": "c-940db8a7df08",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Ersatzteilbestellung Heizung H92\nDie Ersatzteilbestellung für die Heizung H92 kommt am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr\n\nAngabe · Ersatzteilbestellung Pumpe R41\nDie Ersatzteilbestellung für die Pumpe R41 kommt am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:47.064648+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                  "generated_at": "2026-09-28T09:34:47.064298+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                    "basis": [
+                      {
+                        "episode_id": "e-ae7eeef06aa4",
+                        "fingerprint": "141bd360bb75970ec0a0867f31a8ddc02a8805d735e3130da6d8a2da28d039a6",
+                        "start": 0,
+                        "end": 72,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-0ddd90945288",
+                        "fingerprint": "1118da91b92a9ff5140f957d542f0693935c8bae6afef264091ff6b318d63b1a",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-ae7eeef06aa4",
+                        "fingerprint": "141bd360bb75970ec0a0867f31a8ddc02a8805d735e3130da6d8a2da28d039a6",
+                        "start": 0,
+                        "end": 72,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-0ddd90945288",
+                        "fingerprint": "1118da91b92a9ff5140f957d542f0693935c8bae6afef264091ff6b318d63b1a",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "4b8ee2ca7fb566dfe4e2f6b2996b9dfad0199b9e5b83c11b528d26bda3428443",
+                    "status": "unclear",
+                    "uncertainty": "person",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-ae7eeef06aa4": null,
+                      "e-0ddd90945288": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unclear",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-ae7eeef06aa4",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    },
+                    {
+                      "episode_id": "e-0ddd90945288",
+                      "label": "Quelle 2 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                  "refresh_available": false,
+                  "clarification_choices": [
+                    {
+                      "label": "Lena Brandt <lena@werk-b.example.invalid> · Ersatzteilbestellung Heizung H92"
+                    },
+                    {
+                      "label": "Lena Brandt <lena@werk-a.example.invalid> · Ersatzteilbestellung Pumpe R41"
+                    }
+                  ]
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-a90de31f942b",
+                    "fingerprint": "2f1947d9c3c63c93370abf27e51dbc87c3e39e6f7884ad470d93536db2898f7a"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "unknown_time",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true,
+            "time_uncertainty": true
+          },
+          "responses": [
+            {
+              "id": "m-250be3dbf5b942",
+              "conversation_id": "c-c9de01580d08",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nUnklare Einordnung · Dachprüfung\nDie Dachprüfung findet nächsten Donnerstag statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:49.801875+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "An welchem Datum findet die Dachprüfung statt?",
+                  "generated_at": "2026-09-28T09:34:49.801602+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "An welchem Datum findet die Dachprüfung statt?",
+                    "basis": [
+                      {
+                        "episode_id": "e-59addc28ed8e",
+                        "fingerprint": "dda7a2d0d153b8bb7d29402c1e9612b23fd558377dbe1fd5305ded70b77ebcd9",
+                        "start": 0,
+                        "end": 49,
+                        "kind": "uncertain"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-59addc28ed8e",
+                        "fingerprint": "dda7a2d0d153b8bb7d29402c1e9612b23fd558377dbe1fd5305ded70b77ebcd9",
+                        "start": 0,
+                        "end": 49,
+                        "kind": "uncertain"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "46cb37b5cb433f4875b612888689d13b39ba56e3f504e1d45b9617b250430101",
+                    "status": "unclear",
+                    "uncertainty": "time",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-59addc28ed8e": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unclear",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-59addc28ed8e",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "An welchem Datum findet die Dachprüfung statt?",
+                  "refresh_available": false,
+                  "clarification_date": true
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-4bf94670f87e",
+                    "fingerprint": "5175e9b99c5b040e2797db48ce2218e604890d0121c1a22d8dbb284d6120da9c"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "correction_withdrawal",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true,
+            "old_answer_invalidated": true,
+            "corrected_content": true,
+            "corrected_source_selected": true,
+            "withdrawn_history_hidden": true,
+            "withdrawn_after_reopen": true
+          },
+          "responses": [
+            {
+              "id": "m-b65ea382fe694b",
+              "conversation_id": "c-cb1cdf96c75a",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Kiefernwald: Die Schließanlage wird am 14. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:51.602031+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "generated_at": "2026-09-28T09:34:51.601907+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                    "basis": [
+                      {
+                        "episode_id": "e-709a8313a49b",
+                        "fingerprint": "1acb6fb20c830f2981aa58e4a87c0946fe8b7144e59e86021af9a1e44067568b",
+                        "start": 0,
+                        "end": 74,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-709a8313a49b",
+                        "fingerprint": "1acb6fb20c830f2981aa58e4a87c0946fe8b7144e59e86021af9a1e44067568b",
+                        "start": 0,
+                        "end": 74,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "0c493547b587991d311841084620b572eb3fa15ced9d96d07a10c9ed801162ad",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-709a8313a49b": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-709a8313a49b",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-5a7fd64910a8",
+                    "fingerprint": "1e7953ede001d274765760f54c08f0abdf52f9ecc95f75a18612b290d943fbe2"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "m-84ea9285f6e543",
+              "conversation_id": "c-e26d40c10400",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: holdout-0.txt\nProjekt Kiefernwald: Der bisherige Termin am 14. Dezember 2026 ist abgesagt. Die Schließanlage wird am 22. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:52.673607+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "generated_at": "2026-09-28T09:34:52.673429+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                    "basis": [
+                      {
+                        "episode_id": "e-b90c06daf760",
+                        "fingerprint": "aea68c56335ce4496831ad28bdf16b0ef27c99cd12543c6874b3b231863a7977",
+                        "start": 0,
+                        "end": 130,
+                        "kind": "change"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-b90c06daf760",
+                        "fingerprint": "aea68c56335ce4496831ad28bdf16b0ef27c99cd12543c6874b3b231863a7977",
+                        "start": 0,
+                        "end": 130,
+                        "kind": "change"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "36476df25ad1094ccdb32b34b42e64bfb94830ab91d915f62059ca9b1035c643",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-b90c06daf760": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-b90c06daf760",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-a7e379f075d3",
+                    "fingerprint": "0669e47ce89210f83b29ebf112644dc13e0c1bd32f1b324eb3c2bc5dd1eaef73"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "paraphrase",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-adbe87a0dbe74c",
+              "conversation_id": "c-f54d46401cdb",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nDer Wohnungsschlüssel steckt in der blauen Keramikschale neben dem Kühlschrank.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:54.870439+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                  "generated_at": "2026-09-28T09:34:54.870293+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                    "basis": [
+                      {
+                        "episode_id": "e-997ef09cd53d",
+                        "fingerprint": "3707054d1005e6aa7e0e53c0196fc6b5b639d84aec68ad5fda966530ef3d406f",
+                        "start": 0,
+                        "end": 79,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-997ef09cd53d",
+                        "fingerprint": "3707054d1005e6aa7e0e53c0196fc6b5b639d84aec68ad5fda966530ef3d406f",
+                        "start": 0,
+                        "end": 79,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "a5c86dbb9f18b4468f01ced598fc5e3e1a0d57b08e9fded5d5d76e85f3102c51",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-997ef09cd53d": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-997ef09cd53d",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wo finde ich den Schlüssel für meine Wohnung?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-69e21c964e40",
+                    "fingerprint": "b204d59fe232c7e9def7b6b903e5b84fa4eeda684a13c198ae28692824f59b27"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reviewed-new",
+      "fixture_sha256": "0130e93faa9cf91cf2f3c71a2a8895b44e2eeebd55fa2b5345883b0ddbf30949",
+      "model": "qwen3.5:4b",
+      "weights": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "weights_unchanged": true,
+      "cases": [
+        {
+          "id": "different-deliverable",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-b52ae084b85d4b",
+              "conversation_id": "c-e91ca0958651",
+              "role": "assistant",
+              "content": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+              "status": "complete",
+              "created_at": "2026-09-28T11:34:57.210994+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann liefert Jonas die Brandschutzunterlagen für Abendrot?",
+                  "generated_at": "2026-09-28T09:34:57.210871+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann liefert Jonas die Brandschutzunterlagen für Abendrot?",
+                    "basis": [
+                      {
+                        "episode_id": "e-d83089fbcb9f",
+                        "fingerprint": "2f82e824a1d5c38745177fb6e410a9321a7770a2f74db6fd02789514995e8b6c",
+                        "start": 0,
+                        "end": 81,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "041e5b5f87ab7cc19c921814ce949493553f815ff73f1df164e8881e33ea8b62",
+                    "status": "unknown",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-d83089fbcb9f": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unknown",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [],
+                  "original_question": "Wann liefert Jonas die Brandschutzunterlagen für Abendrot?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-cefeb26954d5",
+                    "fingerprint": "972c307c26f7b32d279377e5e7fcb6436320e4fa15b6f8bb19e9b676943fb9c9"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "inspection-ambiguity",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-119e2034440142",
+              "conversation_id": "c-c29ff01aec98",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\nWelches Projekt oder welchen Vorgang meinst du?\n\nAngabe · holdout-1.txt\nDie Bauabnahme für Projekt Abendrot findet am 11. November 2026 statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr\n\nAngabe · holdout-0.txt\nDie Bauabnahme für Projekt Morgenstern findet am 7. November 2026 statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:34 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:35:00.204297+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann ist die Bauabnahme?",
+                  "generated_at": "2026-09-28T09:35:00.204179+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann ist die Bauabnahme?",
+                    "basis": [
+                      {
+                        "episode_id": "e-3a5a379fb759",
+                        "fingerprint": "171a9ef15c313c92fc6891dfa9c29dcc787c146e6b9eec2f0033d36624a4c7dd",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-621b18ec5769",
+                        "fingerprint": "0b510371c4aa5c8952133d1130ef80abb2bc673e73f7b909f37c43a0f9fd5947",
+                        "start": 0,
+                        "end": 72,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-3a5a379fb759",
+                        "fingerprint": "171a9ef15c313c92fc6891dfa9c29dcc787c146e6b9eec2f0033d36624a4c7dd",
+                        "start": 0,
+                        "end": 70,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-621b18ec5769",
+                        "fingerprint": "0b510371c4aa5c8952133d1130ef80abb2bc673e73f7b909f37c43a0f9fd5947",
+                        "start": 0,
+                        "end": 72,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "8f90d1181f7853b806d31ebe082db06354b850f3f647dcf7bd810f33308d399e",
+                    "status": "unclear",
+                    "uncertainty": "scope",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-3a5a379fb759": null,
+                      "e-621b18ec5769": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_unclear",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-3a5a379fb759",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    },
+                    {
+                      "episode_id": "e-621b18ec5769",
+                      "label": "Quelle 2 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann ist die Bauabnahme?",
+                  "refresh_available": false,
+                  "clarification_choices": [
+                    {
+                      "label": "holdout-1.txt"
+                    },
+                    {
+                      "label": "holdout-0.txt"
+                    }
+                  ]
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-4c4f6982337e",
+                    "fingerprint": "64b67216c3dab4e73c52f87ea8a5f663b93d003046a636ba82b268a432e89371"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "multiword-scope",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-3b7408465e144a",
+              "conversation_id": "c-605724d47772",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Grüne Wiese: Die Dachprüfung ist am 7. November 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:35 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:35:03.012799+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann ist die Dachprüfung für Grüne Wiese?",
+                  "generated_at": "2026-09-28T09:35:03.012677+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann ist die Dachprüfung für Grüne Wiese?",
+                    "basis": [
+                      {
+                        "episode_id": "e-77331c1ad30f",
+                        "fingerprint": "64532a1232db88edab24fa24dfa9568811ca445e907217da6d9a566329f99363",
+                        "start": 0,
+                        "end": 61,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-c098a6fc1aa9",
+                        "fingerprint": "5d78ccd63e4ac8fe44c6202e901ec1a4f520665709c725e5dbf3b03c7d7231ce",
+                        "start": 0,
+                        "end": 59,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-77331c1ad30f",
+                        "fingerprint": "64532a1232db88edab24fa24dfa9568811ca445e907217da6d9a566329f99363",
+                        "start": 0,
+                        "end": 61,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "5547f515ff916362c1fd8904f8d226e29e0090d32895aba4ab5e1769433602eb",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-77331c1ad30f": null,
+                      "e-c098a6fc1aa9": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-77331c1ad30f",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann ist die Dachprüfung für Grüne Wiese?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-f8e9b76d0ade",
+                    "fingerprint": "e32d3f0a89dec9397cf72d8cac5f0268f11a4e3b24bca32d40f705c3ca796960"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "compare-projects",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-41c88acc1fb24d",
+              "conversation_id": "c-1778efff82ab",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-1.txt\nProjekt Abendrot: Die Bauabnahme ist am 11. November 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:35 Uhr\n\nAngabe · holdout-0.txt\nProjekt Morgenstern: Die Bauabnahme ist am 7. November 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:35 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:35:06.088120+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wann sind die Bauabnahmen für beide Projekte?",
+                  "generated_at": "2026-09-28T09:35:06.087925+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wann sind die Bauabnahmen für beide Projekte?",
+                    "basis": [
+                      {
+                        "episode_id": "e-83526d550f27",
+                        "fingerprint": "23c84505b825541b72f995f8fd9c90d334ad65580f3e66e6405d786af3255f60",
+                        "start": 0,
+                        "end": 58,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-8910a524eb1b",
+                        "fingerprint": "e98e54f9197a48f5a1d338ee0766f2f93565bfa5c388dff4a3ca24dac616da99",
+                        "start": 0,
+                        "end": 60,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-83526d550f27",
+                        "fingerprint": "23c84505b825541b72f995f8fd9c90d334ad65580f3e66e6405d786af3255f60",
+                        "start": 0,
+                        "end": 58,
+                        "kind": "fact"
+                      },
+                      {
+                        "episode_id": "e-8910a524eb1b",
+                        "fingerprint": "e98e54f9197a48f5a1d338ee0766f2f93565bfa5c388dff4a3ca24dac616da99",
+                        "start": 0,
+                        "end": 60,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "d82513d8447625484ed50f2719b6de5ee323f2200424498fe8d0dcc33b9852ec",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-83526d550f27": null,
+                      "e-8910a524eb1b": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-83526d550f27",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    },
+                    {
+                      "episode_id": "e-8910a524eb1b",
+                      "label": "Quelle 2 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wann sind die Bauabnahmen für beide Projekte?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-0effac5eead8",
+                    "fingerprint": "031e86f878345df801c3b9e624025e2dfd679c86b60c4624bddbcf593dfb3326"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "recipient-is-not-project",
+          "passed": true,
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          },
+          "responses": [
+            {
+              "id": "m-4aecc74b7cd746",
+              "conversation_id": "c-047cd440553e",
+              "role": "assistant",
+              "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Morgenstern: Die Schlüssel für Eigentümer liegen im Umschlag am Empfang.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 11:35 Uhr",
+              "status": "complete",
+              "created_at": "2026-09-28T11:35:08.164959+02:00",
+              "metadata": {
+                "approvals": [],
+                "notices": [],
+                "used_tools": [],
+                "context": {
+                  "query": "Wo liegen die Schlüssel für Eigentümer?",
+                  "generated_at": "2026-09-28T09:35:08.164812+00:00",
+                  "items": [],
+                  "withheld_count": 0,
+                  "memory_revision": 0,
+                  "answer_mode": "memory_evidence",
+                  "history_egress": "local_only",
+                  "working_answer": {
+                    "version": 1,
+                    "query": "Wo liegen die Schlüssel für Eigentümer?",
+                    "basis": [
+                      {
+                        "episode_id": "e-001448635969",
+                        "fingerprint": "8a41ece67709437d7c5932ec9e61c2cc2d193afbda613f16038e457370854046",
+                        "start": 0,
+                        "end": 80,
+                        "kind": "fact"
+                      }
+                    ],
+                    "refs": [
+                      {
+                        "episode_id": "e-001448635969",
+                        "fingerprint": "8a41ece67709437d7c5932ec9e61c2cc2d193afbda613f16038e457370854046",
+                        "start": 0,
+                        "end": 80,
+                        "kind": "fact"
+                      }
+                    ],
+                    "claim_basis": {},
+                    "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "candidate_signature": "f30fa2c755e7b9ef60cec1472e1080e2e3c37d1a5433a42f482aeedb1a18eb2f",
+                    "status": "reports",
+                    "uncertainty": "none",
+                    "limited": false,
+                    "project_assignment_basis": {
+                      "e-001448635969": null
+                    }
+                  },
+                  "answer_contract": {
+                    "version": 1,
+                    "status": "working_reports",
+                    "semantic_validation": false,
+                    "model_called": true,
+                    "selected_assertion_ids": []
+                  },
+                  "knowledge_claim_lineage_version": 2,
+                  "knowledge_claim_ids": [],
+                  "knowledge_inputs": {},
+                  "knowledge_history_reset": false,
+                  "self_model_lineage_version": 3,
+                  "self_model_inputs": {},
+                  "self_model_history_reset": false,
+                  "source_links": [
+                    {
+                      "episode_id": "e-001448635969",
+                      "label": "Quelle 1 öffnen",
+                      "automatic_memory": true
+                    }
+                  ],
+                  "original_question": "Wo liegen die Schlüssel für Eigentümer?",
+                  "refresh_available": false
+                },
+                "conversation_source_lineage": [
+                  {
+                    "episode_id": "e-4e6acce75356",
+                    "fingerprint": "0e8285c8afa9ebbcfef695bda46be7eb0c9492e787083773faa823bc43be1180"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

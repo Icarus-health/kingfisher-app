@@ -1,0 +1,145 @@
+{
+  "model": "qwen3.5:4b",
+  "base_url": "http://127.0.0.1:11434/v1",
+  "expected_file": "expected.json",
+  "started_at": "2026-09-23T10:47:10.372422+02:00",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8",
+      "episode_id": "e-b05f68d98013",
+      "items": [
+        {
+          "kind": "commitment",
+          "text": "Von: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026."
+        }
+      ],
+      "committed": true,
+      "latency_s": 7.283
+    },
+    {
+      "id": "S02",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19",
+      "episode_id": "e-447573c9c02e",
+      "items": [
+        {
+          "kind": "commitment",
+          "text": "Von: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026."
+        }
+      ],
+      "committed": true,
+      "latency_s": 0.957
+    },
+    {
+      "id": "S10",
+      "title": "Atelier Orion: Website Farbpalette",
+      "episode_id": "e-f5ced534aa1c",
+      "items": [
+        {
+          "kind": "fact",
+          "text": "Die Website von Atelier Orion zeigt seit März 2026 eine digitale Farbpalette. Diese Notiz betrifft keine Stoff-Farbmuster und keine Lieferung durch Nora Beck."
+        }
+      ],
+      "committed": true,
+      "latency_s": 0.845
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "Wann liefert Nora Beck die Stoff-Farbmuster für Atelier Orion?",
+      "status": "unclear",
+      "uncertainty": "conflict",
+      "candidate_source_ids": [
+        "S02",
+        "S01",
+        "S10"
+      ],
+      "selected_source_ids": [
+        "S02",
+        "S01"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19\nVon: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026.\nQuellenzeit: 2026-09-21T10:00:00+02:00\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8\nVon: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026.\nQuellenzeit: 2026-09-21T09:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-447573c9c02e",
+          "label": "Quelle 1 öffnen"
+        },
+        {
+          "episode_id": "e-b05f68d98013",
+          "label": "Quelle 2 öffnen"
+        }
+      ],
+      "contract": "working_unclear",
+      "limited": false,
+      "latency_s": 1.936
+    },
+    {
+      "id": "Q02",
+      "question": "Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster für Atelier Orion?",
+      "status": "unclear",
+      "uncertainty": "conflict",
+      "candidate_source_ids": [
+        "S01",
+        "S02",
+        "S10"
+      ],
+      "selected_source_ids": [
+        "S01",
+        "S02"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8\nVon: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026.\nQuellenzeit: 2026-09-21T09:00:00+02:00\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19\nVon: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026.\nQuellenzeit: 2026-09-21T10:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-b05f68d98013",
+          "label": "Quelle 1 öffnen"
+        },
+        {
+          "episode_id": "e-447573c9c02e",
+          "label": "Quelle 2 öffnen"
+        }
+      ],
+      "contract": "working_unclear",
+      "limited": false,
+      "latency_s": 2.314
+    }
+  ],
+  "raw_calls": [
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8",
+      "question": null,
+      "latency_s": 7.277,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19",
+      "question": null,
+      "latency_s": 0.952,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Website Farbpalette",
+      "question": null,
+      "latency_s": 0.842,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Wann liefert Nora Beck die Stoff-Farbmuster für Atelier Orion?",
+      "latency_s": 1.927,
+      "text": "{\"status\":\"conflict\",\"ids\":[\"S1\",\"S2\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster für Atelier Orion?",
+      "latency_s": 2.304,
+      "text": "{\"status\":\"conflict\",\"ids\":[\"S1\",\"S2\"]}"
+    }
+  ],
+  "finished_at": "2026-09-23T10:47:23.722356+02:00"
+}

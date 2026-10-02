@@ -1,0 +1,45 @@
+{
+  "type": "single_case_scorer_erratum",
+  "purpose": "Document one typo correction and a one-time rescore of the already saved HTTP answer; no model call.",
+  "frozen_inputs": {
+    "cases_file": "cases.json",
+    "cases_sha256": "0e3f411c7c623f95c1b2774db8194a40c54b6e7da9e036e50f27a3833e462fd2",
+    "results_file": "focus-real-qwen3-5-4b-results.json",
+    "results_sha256": "a5d3983c9fd6a814a6b99f1951a430b6361a07fe7c56c0e43108f02b85d89e9c",
+    "case_id": "holdout_two_conditions_hard_negative",
+    "product_revision": "6c72867e593226ea70457b5dc153656135c0cd81",
+    "model": "qwen3.5:4b"
+  },
+  "original_frozen_score": {
+    "overall": "3/4 cases scored pass",
+    "case_id": "holdout_two_conditions_hard_negative",
+    "answer": "fail",
+    "retrieval": "pass",
+    "stored_reasons": [
+      "answer did not meet frozen content/status checks"
+    ]
+  },
+  "erratum": {
+    "field": "cases[1].actions[0].score.answer.contains_all[4]",
+    "frozen_expected": "gegeneichnet",
+    "correct_spelling": "gegengezeichnet",
+    "reason": "The original source and saved rendered answer contain the correctly spelled word; the expected substring has a typo."
+  },
+  "one_time_rescore": {
+    "input": "The exact saved answer, status, and selected aliases from the original results file.",
+    "changed_criterion": "Only the misspelled expected substring above was replaced for this rescore; all other frozen answer and retrieval checks were applied unchanged.",
+    "answer": "pass",
+    "retrieval": "pass",
+    "case_result": "pass",
+    "source_aliases": [
+      "S2",
+      "S1"
+    ],
+    "answer_contains_both_conditions": true,
+    "inapplicable_S3_selected": false,
+    "additional_model_calls": 0,
+    "result_file_modified": false,
+    "cases_file_modified": false
+  },
+  "reporting": "Retain and report the original machine score as 3/4. Separately report this erratum-adjusted one-time evaluation as 4/4; do not replace or relabel the original score."
+}

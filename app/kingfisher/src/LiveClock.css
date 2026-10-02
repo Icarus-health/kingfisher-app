@@ -1,0 +1,10 @@
+.sidebar-clock {
+  display: grid;
+  flex-shrink: 0;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 0 15px;
+  color: var(--kf-schrift-f4faf9);
+}
+.sidebar-clock strong { font-size: 20px; line-height: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sidebar-clock span { color: var(--kf-schrift-b5ced0); font-size: 11px; line-height: 16px; }

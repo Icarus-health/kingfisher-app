@@ -1,0 +1,20 @@
+/* Antwortzeit: unter der Antwort eine Zeile Nebeninformation, in den Einstellungen eine ruhige Tabelle. Keine Farbe, nichts blinkt. */
+.message p.antwortzeit { margin: 2px 0 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; white-space: normal; font-variant-numeric: tabular-nums; }
+.antwortzeit-ursache { display: block; }
+
+.antwortzeiten { padding: 24px; }
+.antwortzeiten-tabelle { width: 100%; margin: 12px 0 0; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.antwortzeiten-tabelle caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.antwortzeiten-tabelle th, .antwortzeiten-tabelle td { padding: 8px 0; border-top: 1px solid var(--kf-rand-d7e1df); text-align: right; font-weight: 400; }
+.antwortzeiten-tabelle thead th { border-top: 0; color: var(--kf-schrift-5f777d); font-size: 12px; }
+.antwortzeiten-tabelle th:first-child { text-align: left; }
+.antwortzeiten-tabelle tbody th { color: var(--kf-schrift-31535f); }
+.antwortzeiten-tabelle .ist-gesamt th, .antwortzeiten-tabelle .ist-gesamt td { color: var(--kf-schrift-062b3a); font-weight: 600; }
+.antwortzeiten-schalter { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--kf-rand-d7e1df); cursor: pointer; }
+.antwortzeiten-schalter input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--kf-akzent-075268); }
+.antwortzeiten-schalter input:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; }
+.antwortzeiten-schalter strong { display: block; color: var(--kf-schrift-062b3a); font-size: 15px; }
+.antwortzeiten-schalter small { display: block; margin-top: 2px; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.6; }
+@media (max-width: 640px) {
+  .antwortzeiten { padding: 16px; }
+}

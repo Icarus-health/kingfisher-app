@@ -1,0 +1,315 @@
+{
+  "id": "falle",
+  "titel": "Fallen: plausibel, aber nie vorgekommen",
+  "beschreibung": "Fragen zu Dingen, die plausibel klingen, aber nirgends vorkommen: ein Flug, ein Angebot für ein Jahr ohne Angebot, ein Treffen, ein Kongress-Folgetermin und ein namensähnlicher Kontakt. Eine Gegenprobe ist beantwortbar.",
+  "quellen": [
+    {
+      "id": "falle-001",
+      "art": "mail",
+      "zeit": "2026-03-02T09:12:00+01:00",
+      "von": {
+        "name": "Kongressbüro Klinische Ernährung",
+        "adresse": "anmeldung@kongress-klinernaehrung.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anmeldebestätigung Kongress Klinische Ernährung Leipzig",
+      "text": "Sehr geehrte Frau Hartmann,\n\nIhre Anmeldung zum Kongress Klinische Ernährung ist bestätigt. Veranstaltungsort: Leipzig, Kongresshalle am Park.\nTermin: 19. bis 21. März 2026. Die Teilnahmegebühr von 390 Euro stellen wir Ihnen gesondert in Rechnung.\n\nDas Kongressbüro"
+    },
+    {
+      "id": "falle-002",
+      "art": "mail",
+      "zeit": "2026-03-02T09:20:00+01:00",
+      "von": {
+        "name": "Kongressbüro Klinische Ernährung",
+        "adresse": "anmeldung@kongress-klinernaehrung.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Rechnung Teilnahmegebühr",
+      "text": "Sehr geehrte Frau Hartmann,\n\nanbei die Rechnung über 390 Euro für Ihre Teilnahme am Kongress Klinische Ernährung in Leipzig. Bitte überweisen Sie\ninnerhalb von 14 Tagen.\n\nDas Kongressbüro"
+    },
+    {
+      "id": "falle-003",
+      "art": "notiz",
+      "zeit": "2026-03-20T21:30:00+01:00",
+      "titel": "Notizen Kongress Leipzig",
+      "text": "Leipzig, zweiter Tag: Beste Session war die zum Thema Ernährungsvisite. Kontakte mitgenommen (Karten liegen im Büro).\nRückfahrt Samstag mit dem Zug. Rechnung Kongress bezahlt."
+    },
+    {
+      "id": "falle-004",
+      "art": "mail",
+      "zeit": "2025-04-08T10:30:00+02:00",
+      "von": {
+        "name": "Jens Lorenzen",
+        "adresse": "j.lorenzen@klinik-vogelsberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anfrage Speiseplanung Klinik Vogelsberg",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndie Klinik Vogelsberg möchte ihre Speiseplanung überarbeiten. Können Sie uns dabei unterstützen und ein Angebot machen?\n\nMit freundlichen Grüßen\nJens Lorenzen\nVerwaltungsdirektor\nKlinik Vogelsberg"
+    },
+    {
+      "id": "falle-005",
+      "art": "mail",
+      "zeit": "2025-04-15T15:00:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Jens Lorenzen",
+          "adresse": "j.lorenzen@klinik-vogelsberg.example"
+        }
+      ],
+      "betreff": "Angebot Speiseplanung Klinik Vogelsberg",
+      "text": "Sehr geehrter Herr Lorenzen,\n\nanbei mein Angebot für die Überarbeitung der Speiseplanung: 18.400 Euro netto für sechs Monate.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "falle-004"
+    },
+    {
+      "id": "falle-006",
+      "art": "mail",
+      "zeit": "2025-06-02T09:50:00+02:00",
+      "von": {
+        "name": "Jens Lorenzen",
+        "adresse": "j.lorenzen@klinik-vogelsberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Auftrag Speiseplanung",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir erteilen Ihnen den Auftrag zu den Bedingungen Ihres Angebots. Start ist der 16. Juni 2025.\n\nMit freundlichen Grüßen\nJens Lorenzen",
+      "antwort_auf": "falle-005"
+    },
+    {
+      "id": "falle-007",
+      "art": "mail",
+      "zeit": "2025-12-10T11:15:00+01:00",
+      "von": {
+        "name": "Jens Lorenzen",
+        "adresse": "j.lorenzen@klinik-vogelsberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Abschluss und Dank",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndas Projekt ist aus unserer Sicht abgeschlossen. Die neue Speiseplanung läuft, vielen Dank für die gute Zusammenarbeit.\nDie Schlussrechnung geben wir zur Zahlung frei.\n\nMit freundlichen Grüßen\nJens Lorenzen",
+      "antwort_auf": "falle-006"
+    },
+    {
+      "id": "falle-008",
+      "art": "mail",
+      "zeit": "2026-06-17T08:40:00+02:00",
+      "von": {
+        "name": "Markus Helwig",
+        "adresse": "m.helwig@physio-helwig.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ihr Kurs Rückenfit: Bestätigung",
+      "text": "Guten Tag Frau Hartmann,\n\nhiermit bestätigen wir Ihre Anmeldung zum Kurs Rückenfit, jeweils dienstags ab dem 23. Juni.\n\nViele Grüße\nMarkus Helwig\nPhysiotherapie Helwig"
+    },
+    {
+      "id": "falle-009",
+      "art": "termin",
+      "zeit": "2026-06-17T08:45:00+02:00",
+      "beginn": "2026-06-23T18:00:00+02:00",
+      "ende": "2026-06-23T19:00:00+02:00",
+      "titel": "Kurs Rückenfit (erster Termin)",
+      "ort": "Physiotherapie Helwig, Wiesbaden",
+      "teilnehmer": [
+        {
+          "name": "Markus Helwig",
+          "adresse": "m.helwig@physio-helwig.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ]
+    },
+    {
+      "id": "falle-010",
+      "art": "mail",
+      "zeit": "2026-01-08T10:05:00+01:00",
+      "von": {
+        "name": "Jens Lorenzen",
+        "adresse": "j.lorenzen@klinik-vogelsberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Zahlungsavis Schlussrechnung",
+      "text": "Guten Tag Frau Hartmann,\n\ndie Schlussrechnung zum Projekt Speiseplanung wurde heute überwiesen.\n\nKlinik Vogelsberg, Finanzbuchhaltung",
+      "ordner": "INBOX"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "falle-01",
+      "frage": "Wann ist mein Flug nach Hamburg?",
+      "kategorie": "falle",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "nicht_bekannt",
+        "aussagen": [],
+        "belege": []
+      },
+      "verboten": {
+        "aussagen": [
+          "Flug nach Hamburg am",
+          "Flug nach Hamburg ist am",
+          "Ihr Flug nach Hamburg geht",
+          "Flug nach Hamburg findet"
+        ],
+        "belege": []
+      },
+      "notiz": "Nie kam ein Flug oder eine Reise nach Hamburg vor. Jede Uhrzeit oder jedes Datum wäre erfunden."
+    },
+    {
+      "id": "falle-02",
+      "frage": "Was hat das Angebot für die Klinik Vogelsberg für 2026 gekostet?",
+      "kategorie": "falle",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "nicht_bekannt",
+        "aussagen": [],
+        "belege": []
+      },
+      "verboten": {
+        "aussagen": [
+          "Angebot für 2026 betrug",
+          "Angebot für 2026 lautet",
+          "für 2026 kostet",
+          "Angebot für 2026 kostete"
+        ],
+        "belege": [
+          "falle-005"
+        ]
+      },
+      "notiz": "Es gibt nur ein Angebot aus dem Jahr 2025. Für 2026 liegt keines vor; den Preis von 2025 als Preis für 2026 auszugeben wäre falsch."
+    },
+    {
+      "id": "falle-03",
+      "frage": "Wann habe ich zuletzt mit Marcus Hellmann gesprochen?",
+      "kategorie": "falle",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "nicht_bekannt",
+        "aussagen": [],
+        "belege": []
+      },
+      "verboten": {
+        "aussagen": [
+          "Marcus Hellmann hat",
+          "Marcus Hellmann ist",
+          "Marcus Hellmann wurde",
+          "mit Marcus Hellmann gesprochen am"
+        ],
+        "belege": [
+          "falle-008",
+          "falle-009"
+        ]
+      },
+      "notiz": "Es existiert nur ein namensähnlicher Markus Helwig (Physiotherapie). Ein Marcus Hellmann kam nie vor; Helwigs Daten dürfen ihm nicht zugeschrieben werden."
+    },
+    {
+      "id": "falle-04",
+      "frage": "Was wurde beim Treffen mit Herrn Lorenzen im Juli 2026 besprochen?",
+      "kategorie": "falle",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "nicht_bekannt",
+        "aussagen": [],
+        "belege": []
+      },
+      "verboten": {
+        "aussagen": [
+          "Im Juli 2026 besprachen",
+          "Beim Treffen im Juli wurde besprochen",
+          "Treffen im Juli 2026 ging es um",
+          "im Juli 2026 wurde besprochen"
+        ],
+        "belege": [
+          "falle-007",
+          "falle-010"
+        ]
+      },
+      "notiz": "Herr Lorenzen gab es, ein Treffen im Juli 2026 aber nicht; das Projekt war Ende 2025 abgeschlossen."
+    },
+    {
+      "id": "falle-05",
+      "frage": "Wann findet der nächste Kongress zur Klinischen Ernährung statt?",
+      "kategorie": "falle",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "nicht_bekannt",
+        "aussagen": [],
+        "belege": []
+      },
+      "verboten": {
+        "aussagen": [
+          "nächste Kongress findet am",
+          "nächste Kongress ist am",
+          "nächste Kongress findet in",
+          "nächste Kongress findet im"
+        ],
+        "belege": [
+          "falle-001"
+        ]
+      },
+      "notiz": "Bekannt ist nur der Kongress in Leipzig im März 2026, der schon stattfand. Ein Folgetermin ist nirgends genannt."
+    },
+    {
+      "id": "falle-06",
+      "frage": "Was hat das Angebot für die Klinik Vogelsberg 2025 gekostet?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "18.400",
+            "18400",
+            "18 400"
+          ]
+        ],
+        "belege": [
+          "falle-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Gegenprobe: Dies ist beantwortbar, damit „weiß nicht“ nicht immer richtig ist."
+    }
+  ]
+}

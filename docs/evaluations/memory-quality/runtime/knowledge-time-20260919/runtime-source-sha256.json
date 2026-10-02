@@ -1,0 +1,19 @@
+{
+  "head": "ccb47b1f8a60ee8fe57665dd7b557516ad45e4fb",
+  "files": {
+    "app/kingfisher/src/api.ts": "1b7d3c40a1442593762e89f2a0441a8de1d4a560c88478233a18d4e9c7d58bfc",
+    "scripts/memory_probe_fixtures.py": "fff46cd4043e0d39a8cd87a7d0bcac5029730fbf1f4aea405b82edc3bdf3887e",
+    "scripts/probe_memory_pipeline.py": "1bfddf8a0938bd0c5037ddcc48c5adffac67ce9580115de5fe33ef413630042c",
+    "scripts/test_probe_memory_pipeline.py": "1dd96410dd53c43bb7694ca492991ae3d8a47dbebb9ef3afba30de1811b792b0",
+    "sidecar/icarus_memory/agent.py": "cd6edd7a1e8c90382ee904aa3f49aaca7fbab3fc4ec2dfe22c5ffae810642d87",
+    "sidecar/icarus_memory/context.py": "3fd975a58a008736ebca40531d0853083fc137d91342e5fc59f42b02ee2dec54",
+    "sidecar/icarus_memory/knowledge_context.py": "be51dd02631bf1006060b33c61de23eac14cd82d165f0bec85da151917665eed",
+    "sidecar/icarus_memory/knowledge_history.py": "8f9b0dd4fba8ef8bb409e6702ecff6e026186e7375881f3f4ef287976bef5432",
+    "sidecar/icarus_memory/knowledge_render.py": "1daab4e38f7d693a8e7cc4799e4283236f8ab2c6ca48a4be40586c3f2377dbfc",
+    "sidecar/icarus_memory/server.py": "0c3f29d7ebbd52afec809ccdfcb6d23cd765b7d83ffa611dd8d870cd661b29d7",
+    "sidecar/tests/test_context_identity.py": "ddc9cfd074d1227c7248d2c9ce32c538d4164ff6f118e0ecf672d107461947bb",
+    "sidecar/tests/test_conversation_actions.py": "3fbd7a9ecb0e58fac3f891dbbb4091fd15a0a260584f51d05f146834dd002fb2",
+    "sidecar/tests/test_evidence_validity.py": "6b7ee27fa81d0214eea44fda1df9db75095a8958bb4bc781f55a3a6247d9074a",
+    "sidecar/tests/test_knowledge_time.py": "25a3dcce68d520e43d1f7d088d5385308a8d1cf7f84af7cf966909f1b3156dde"
+  }
+}

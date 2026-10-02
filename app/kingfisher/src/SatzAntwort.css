@@ -1,0 +1,23 @@
+/* Eine belegte Antwort in Sätzen: ruhig, ein Grund aus Material, kein Farbfeld. Nichts ruft. */
+.satzantwort { display: grid; gap: 8px; }
+.satz-liste { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.message .satz-liste li p { margin: 0; white-space: normal; overflow-wrap: anywhere; }
+.satz-belege { white-space: nowrap; }
+/* Verlässlichkeit: ein gedämpfter Nebensatz hinter dem Satz, nur bei „einfach“ und „dünn“. Keine Farbe, kein Symbol. */
+.satz-verlaesslichkeit { color: var(--kf-schrift-5f777d); font-size: 12px; }
+.satz-nr { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin: 0 1px; padding: 0 4px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 999px; background: var(--kf-flaeche-f8fbfa); color: var(--kf-schrift-31535f); font: inherit; font-size: 11px; line-height: 1; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+button.satz-nr { cursor: pointer; }
+button.satz-nr:hover { border-color: var(--kf-rand-b9cac8); }
+button.satz-nr:focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 2px; }
+.satz-nr-still { margin: 0 4px 0 0; }
+.message .satz-hinweis { margin: 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; white-space: normal; }
+.satz-weg { padding-top: 6px; border-top: 1px solid var(--kf-rand-d7e1df); }
+.satz-weg > summary { min-height: 28px; display: flex; align-items: center; color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; cursor: pointer; }
+.satz-weg > summary:focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 2px; }
+.satz-weg section { padding: 6px 0; }
+.satz-weg h4 { margin: 0 0 4px; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; }
+.satz-weg article { padding: 6px 0; }
+.satz-weg article + article { border-top: 1px solid var(--kf-rand-e4ebe9); }
+.satz-weg small { display: block; margin: 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; }
+.satz-weg blockquote { margin: 4px 0; padding-left: 10px; border-left: 2px solid var(--kf-rand-b9cac8); color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
+.satz-ueberholt blockquote { color: var(--kf-schrift-5f777d); }

@@ -1,0 +1,45 @@
+[
+  {
+    "case": "ambiguous_mainz",
+    "model": "qwen3.5:4b",
+    "seconds": 83.05,
+    "question": "Was ist mit Mainz?",
+    "expectation": "Kurze Rückfrage zum bevorstehenden Termin; keine erfundenen Zusagen oder Kontakte.",
+    "reply": "",
+    "notices": [],
+    "context": {
+      "query": "Was ist mit Mainz?",
+      "generated_at": "2026-09-13T15:46:29.746988+02:00",
+      "items": [],
+      "withheld_count": 0,
+      "memory_revision": 0,
+      "history_egress": "local_only",
+      "history_omitted": false,
+      "calendar": {
+        "status": "available",
+        "scope": "selected_mac_calendars",
+        "observed_at": "2026-09-13T13:46:29.744962+00:00",
+        "window_from": "2026-09-13T13:46:29.744962+00:00",
+        "window_to": "2026-09-20T13:46:29.744962+00:00",
+        "synced_at": "2026-09-13T13:46:29.744962+00:00",
+        "coverage": "covered",
+        "events": [
+          {
+            "uid": "synthetic-mainz",
+            "source_id": "synthetic-work",
+            "start": "2026-09-13T14:46:29.744962+00:00",
+            "end": "2026-09-13T15:46:29.744962+00:00",
+            "summary": "Uniklinik Mainz: Angebotsgespräch",
+            "source_label": "Testkalender",
+            "location": "Videokonferenz",
+            "all_day": false
+          }
+        ],
+        "truncated": false,
+        "invalid_count": 0
+      },
+      "calendar_fingerprint": "21e426646966c52c099016d557224ff0c4f4776bbf7a37911b954d8a873db50b",
+      "calendar_history_reset": false
+    }
+  }
+]

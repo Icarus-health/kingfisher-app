@@ -1,0 +1,304 @@
+{
+  "id": "paraphrase",
+  "titel": "Paraphrase: Catering und Verpflegungspauschale",
+  "beschreibung": "Die Fragen benutzen andere Worte als die Quellen („Catering für die Tagung“ statt „Verpflegungspauschale Fachtag“). Daneben gibt es eine vorläufige Kalkulation mit falscher Teilnehmerzahl und einen anderen Caterer.",
+  "quellen": [
+    {
+      "id": "paraphrase-001",
+      "art": "notiz",
+      "zeit": "2026-02-10T09:10:00+01:00",
+      "titel": "Fachtag Klinikverpflegung Rhein-Main: Planung",
+      "text": "Fachtag Klinikverpflegung Rhein-Main am 19. November 2026, Kongresshaus Eltville. Ziel: rund 100 Teilnehmende\n(Küchenleitungen, Diätassistenz, Einkauf). Programm: zwei Impulsvorträge, drei Workshops, Mittagsimbiss. To-do:\nRaum, Verpflegung, Referent, Flyer, Anmeldeportal."
+    },
+    {
+      "id": "paraphrase-002",
+      "art": "mail",
+      "zeit": "2026-03-05T10:40:00+01:00",
+      "von": {
+        "name": "Kongresshaus Eltville Veranstaltungsbüro",
+        "adresse": "veranstaltung@kongresshaus-eltville.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ihre Anfrage: Gutenberg-Saal am 19. November",
+      "text": "Sehr geehrte Frau Hartmann,\n\nfür Ihren Fachtag am 19. November 2026 können wir Ihnen den Gutenberg-Saal (bis 140 Personen) anbieten. Die Raummiete\nbeträgt 1.900 Euro netto für den ganzen Tag. Verpflegung bietet unser Haus nicht selbst an, wir arbeiten dafür mit\nexternen Partnern zusammen.\n\nMit freundlichen Grüßen\nVeranstaltungsbüro Kongresshaus Eltville"
+    },
+    {
+      "id": "paraphrase-003",
+      "art": "mail",
+      "zeit": "2026-03-06T08:30:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Kongresshaus Eltville Veranstaltungsbüro",
+          "adresse": "veranstaltung@kongresshaus-eltville.example"
+        }
+      ],
+      "betreff": "AW: Ihre Anfrage: Gutenberg-Saal am 19. November",
+      "text": "Sehr geehrte Damen und Herren,\n\nvielen Dank, ich reserviere den Gutenberg-Saal verbindlich für den 19. November. Für die Verpflegung würde ich mich um\neinen eigenen Partner kümmern.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "paraphrase-002"
+    },
+    {
+      "id": "paraphrase-004",
+      "art": "mail",
+      "zeit": "2026-04-14T13:22:00+02:00",
+      "von": {
+        "name": "Nadine Roth",
+        "adresse": "n.roth@tagungsservice-rheinblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Verpflegung Fachtag: unser Angebot",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwie besprochen unser Angebot für die Verpflegung Ihres Fachtags am 19. November im Kongresshaus Eltville:\n\nVerpflegungspauschale Fachtag: 28 Euro netto je Gast, enthalten sind Begrüßungskaffee, zwei Kaffeepausen, Mittagsimbiss\nund Getränke.\n\nDie Abrechnung erfolgt nach der verbindlichen Teilnehmerzahl, die Sie uns bis zum 25. September mitteilen.\n\nFreundliche Grüße\nNadine Roth\nTagungsservice Rheinblick GmbH"
+    },
+    {
+      "id": "paraphrase-005",
+      "art": "notiz",
+      "zeit": "2026-06-12T16:45:00+02:00",
+      "titel": "Kalkulation Fachtag (vorläufig)",
+      "text": "Vorläufig: 120 Teilnehmende mal 28 Euro Verpflegungspauschale = 3.360 Euro. Raummiete 1.900 Euro, Referent 900 Euro.\nTeilnahmegebühr so kalkulieren, dass alles gedeckt ist. Endgültig erst nach Anmeldeschluss."
+    },
+    {
+      "id": "paraphrase-006",
+      "art": "mail",
+      "zeit": "2026-08-20T09:44:00+02:00",
+      "von": {
+        "name": "Prof. Dr. Wolfgang Sattler",
+        "adresse": "w.sattler@hochschule-rheinmain-med.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Zusage Impulsvortrag Fachtag",
+      "text": "Sehr geehrte Frau Hartmann,\n\nich sage gern zu und halte den Impulsvortrag am 19. November. Mein Honorar bleibt bei 900 Euro.\n\nHerzliche Grüße\nWolfgang Sattler"
+    },
+    {
+      "id": "paraphrase-007",
+      "art": "termin",
+      "zeit": "2026-08-25T10:00:00+02:00",
+      "beginn": "2026-09-09T10:00:00+02:00",
+      "ende": "2026-09-09T11:00:00+02:00",
+      "titel": "Ortstermin Kongresshaus Eltville",
+      "ort": "Kongresshaus Eltville, Gutenberg-Saal",
+      "teilnehmer": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Raum besichtigen, Bestuhlung und Technik klären."
+    },
+    {
+      "id": "paraphrase-008",
+      "art": "mail",
+      "zeit": "2026-09-21T06:00:00+02:00",
+      "von": {
+        "name": "Eventanmeldung Fachtag",
+        "adresse": "no-reply@eventanmeldung-fachtag.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anmeldestand Fachtag: Anmeldeschluss erreicht",
+      "text": "Der Anmeldeschluss für den Fachtag Klinikverpflegung Rhein-Main ist erreicht.\n\nVerbindlich angemeldet: 96 Personen\nDavon Mitglieder-Tarif: 61, Gäste-Tarif: 35\nWarteliste: 4 Personen"
+    },
+    {
+      "id": "paraphrase-009",
+      "art": "mail",
+      "zeit": "2026-09-22T14:15:00+02:00",
+      "von": {
+        "name": "Nadine Roth",
+        "adresse": "n.roth@tagungsservice-rheinblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Kostenvoranschlag Verpflegung Fachtag",
+      "text": "Sehr geehrte Frau Hartmann,\n\nvielen Dank für die verbindliche Teilnehmerzahl. Unser Kostenvoranschlag für die Verpflegung am 19. November:\n\n96 Gäste zu je 28 Euro netto: 2.688 Euro netto.\n\nSpeisenwünsche laut Anmeldung: vegetarisch 18, vegan 6, glutenfrei 4. Wir stellen das entsprechend ein.\n\nFreundliche Grüße\nNadine Roth\nTagungsservice Rheinblick GmbH",
+      "antwort_auf": "paraphrase-004"
+    },
+    {
+      "id": "paraphrase-010",
+      "art": "mail",
+      "zeit": "2026-09-23T08:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Nadine Roth",
+          "adresse": "n.roth@tagungsservice-rheinblick.example"
+        }
+      ],
+      "betreff": "AW: Kostenvoranschlag Verpflegung Fachtag",
+      "text": "Sehr geehrte Frau Roth,\n\nvielen Dank, ich bestätige den Kostenvoranschlag. Bitte schicken Sie mir die Rechnung nach der Veranstaltung.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "paraphrase-009"
+    },
+    {
+      "id": "paraphrase-011",
+      "art": "mail",
+      "zeit": "2026-09-25T11:05:00+02:00",
+      "von": {
+        "name": "Kongresshaus Eltville Veranstaltungsbüro",
+        "adresse": "veranstaltung@kongresshaus-eltville.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Bestätigung Aufbau Fachtag 19. November",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir bestätigen den Gutenberg-Saal für den 19. November, Bestuhlung Parlament für 100 Personen. Der Zugang ist ab 7:30 Uhr\nmöglich.\n\nMit freundlichen Grüßen\nVeranstaltungsbüro Kongresshaus Eltville"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "paraphrase-01",
+      "frage": "Wie viel kostet uns das Catering für die Tagung?",
+      "kategorie": "paraphrase",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "2.688",
+            "2688",
+            "2 688"
+          ]
+        ],
+        "belege": [
+          "paraphrase-009",
+          "paraphrase-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "kostet 3.360",
+          "kostet 3360",
+          "beträgt 3.360",
+          "beträgt 3360",
+          "betragen 3.360",
+          "sind 3.360",
+          "liegt bei 3.360",
+          "insgesamt 3.360"
+        ],
+        "belege": [
+          "paraphrase-005"
+        ]
+      },
+      "notiz": "„Catering“ und „Tagung“ statt „Verpflegungspauschale“ und „Fachtag“. Endbetrag nach verbindlicher Teilnehmerzahl (96), nicht die vorläufige Kalkulation (120). Das Catering für die Workshop-Reihe (anderes Angebot) ist eine andere Sache."
+    },
+    {
+      "id": "paraphrase-02",
+      "frage": "Wie viele Leute kommen zu der Veranstaltung, die ich im November ausrichte?",
+      "kategorie": "paraphrase",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "96"
+          ]
+        ],
+        "belege": [
+          "paraphrase-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "120 Teilnehmende",
+          "120 Personen",
+          "120 Gäste",
+          "120 Anmeldungen"
+        ],
+        "belege": [
+          "paraphrase-005"
+        ]
+      },
+      "notiz": "Verbindliche Anmeldungen (96), nicht die Planungszahl (100) oder die vorläufige Kalkulation (120)."
+    },
+    {
+      "id": "paraphrase-03",
+      "frage": "Wer liefert die Verpflegung beim Fachtag?",
+      "kategorie": "paraphrase",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Tagungsservice Rheinblick",
+            "Rheinblick"
+          ]
+        ],
+        "belege": [
+          "paraphrase-004",
+          "paraphrase-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Winter Catering liefert",
+          "Winter Catering übernimmt",
+          "Winter Catering beliefert",
+          "Winter Catering kümmert"
+        ],
+        "belege": []
+      },
+      "notiz": "Tagungsservice Rheinblick; der andere Caterer (Winter Catering) betrifft die Workshop-Reihe 2027, nicht den Fachtag."
+    },
+    {
+      "id": "paraphrase-04",
+      "frage": "Wie viel wurde pro Kopf für Mittagessen und Pausen bei der Tagung im November veranschlagt?",
+      "kategorie": "paraphrase",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "28 Euro",
+            "28,00",
+            "28 €"
+          ]
+        ],
+        "belege": [
+          "paraphrase-004",
+          "paraphrase-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "38 Euro",
+          "34 Euro",
+          "38,00",
+          "34,00"
+        ],
+        "belege": []
+      },
+      "notiz": "„Pro Kopf“ statt „je Gast“; der Preis von Winter Catering (34/38 Euro) gehört zu einer anderen Veranstaltung."
+    }
+  ]
+}

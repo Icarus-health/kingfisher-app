@@ -1,0 +1,130 @@
+{
+  "version": "1.3.0",
+  "purpose": "Closed asset manifest for implementation. Use only listed source files; do not generate substitutions.",
+  "driveMirror": {
+    "required": true,
+    "sourceOfRecord": "Google Drive",
+    "folderName": "Kingfisher",
+    "folderId": "(intern)",
+    "repositoryRole": "Frozen, reproducible implementation copy",
+    "rule": "Every approved asset used by Kingfisher must remain available in the Kingfisher Google Drive folder and be versioned in this repository. GitHub is not the sole media archive.",
+    "releaseRule": "Before an asset is added or replaced, record its Drive file reference or approved folder, Drive revision when available, and SHA-256 in the corresponding asset-release record."
+  },
+  "precedence": [
+    "06_Screens/Approved canonical source PNGs",
+    "01_Brand/Approved",
+    "02_Icons/Approved",
+    "03_Media/Approved",
+    "04_UI_Foundation/Approved tokens"
+  ],
+  "screenReferences": {},
+  "brand": {
+    "logoLight": "01_Brand/Approved/kingfisher-logo-light-approved-v1.png",
+    "logoDark": "01_Brand/Approved/kingfisher-logo-dark-approved-v1.png",
+    "appIcons": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-{size}.png",
+    "allowedAppIconSizes": [
+      1024,
+      512,
+      256,
+      180,
+      167,
+      152,
+      120,
+      80,
+      60,
+      40,
+      29,
+      20
+    ]
+  },
+  "fonts": {
+    "source": "07_Coding_Package/Fonts",
+    "display": [
+      "CormorantGaramond-Regular.ttf",
+      "CormorantGaramond-SemiBold.ttf"
+    ],
+    "ui": [
+      "Inter-Regular.ttf",
+      "Inter-Medium.ttf",
+      "Inter-SemiBold.ttf",
+      "Inter-Bold.ttf"
+    ],
+    "stylesheet": "kingfisher-fonts.css",
+    "rule": "Cormorant Garamond for display greetings; Inter for interface text and the approved Today section headings (SDR-014)."
+  },
+  "icons": {
+    "source": "02_Icons/Approved",
+    "variants": [
+      "Outline",
+      "Filled"
+    ],
+    "approvedNames": [
+      "arrow-up",
+      "bell",
+      "brain",
+      "calendar-days",
+      "check",
+      "circle-alert",
+      "clock3",
+      "download",
+      "eye",
+      "file-text",
+      "folder",
+      "funnel",
+      "house",
+      "info",
+      "link",
+      "mail",
+      "message-circle",
+      "microphone",
+      "network",
+      "pause",
+      "pencil",
+      "plus",
+      "search",
+      "settings",
+      "trash2",
+      "triangle-alert",
+      "users-round"
+    ],
+    "allowedSizesPx": [
+      16,
+      20,
+      24,
+      32
+    ],
+    "rule": "Never use a different icon library, an emoji, a Unicode symbol or generated icon artwork."
+  },
+  "media": {
+    "source": "03_Media/Approved",
+    "approved": [
+      "data-current-dark-approved-v1.png",
+      "morning-lake-panorama-approved-v1.png",
+      "kingfisher-hero-dark-approved-v1.png",
+      "kingfisher-flight-transparent-approved-v1.png",
+      "water-reflection-light-approved-v1.png",
+      "Freigestellter Eisvogel auf Zweig.png",
+      "kingfisher-flight-horizontal.png",
+      "aurora-network-tile.png",
+      "ice-abstract-tile.png",
+      "network-constellation-tile.png",
+      "landscape-calm-page-v1.png",
+      "kingfisher-flight-clean-v1.png",
+      "calendar-lakeside-header-v1.png"
+    ],
+    "rule": "Use media only where a canonical screen shows an image-led space. Do not add decorative media to routine cards."
+  },
+  "forbidden": [
+    "new image generation",
+    "stock photos",
+    "placeholder avatars",
+    "emoji",
+    "unlisted icon libraries",
+    "new gradients",
+    "new logos"
+  ],
+  "missingAssetProtocol": "ASSET-REQUEST: purpose, target screen, dimensions, reason no approved asset fits.",
+  "approvedDeviations": {
+    "SDR-014": "Product owner selected the second final proposal on 2026-09-27: continuous landscape, opaque panels, Inter headings, pill controls, flying kingfisher, refined shared navigation marks. Three generated raster assets and one canonical screen are explicitly approved for this implementation; see ASSET-RELEASE-2026-09-27.md. Other legacy asset restrictions remain in force."
+  }
+}

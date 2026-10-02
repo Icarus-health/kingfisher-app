@@ -1,0 +1,138 @@
+{
+  "case_file_sha256": "f89c894605b068adb6abb47c7d6b8c10283dbc4b8543ed66cbc8e2c2edad8f68",
+  "runner_file_sha256": "1688c0e6158e7c7b4ab33897972d4aa1fb3ba4d6bfcc7e72a31b03e6945ab480",
+  "selected_case_ids": [
+    "chat_capture_and_recall",
+    "relative_date_without_timestamp"
+  ],
+  "provider_mode": "real",
+  "model": "qwen3.5:4b",
+  "requested_model": "qwen3.5:4b",
+  "installed_model_metadata": {
+    "name": "qwen3.5:4b",
+    "model": "qwen3.5:4b",
+    "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+    "size": 3389983735,
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "4.7B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2560
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ]
+  },
+  "model_endpoint": "127.0.0.1 (local Ollama)",
+  "synthetic_only": true,
+  "network_enabled": true,
+  "started_at": "2026-09-23T15:08:54.487396+02:00",
+  "classification_method": "existing scheduler._run_working_memory worker; no direct commit",
+  "source_revision": "7ec5b85e130514c95079438425264fcbc9f980c6",
+  "source_tree_clean": true,
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "failures": [],
+  "finished_at": "2026-09-23T15:09:12.267503+02:00",
+  "mail_send_count": 0,
+  "assessment_note": "Bounded single pass over the selected frozen cases; fake-provider runs verify harness route coverage only. Real mode uses the already-installed local model; no approval is posted and mail-send counts come from the synthetic sink.",
+  "raw_artifact_sha256": "ad0657518996c95a238e75a52dcb349b56789aa0e78c21a05e665d890bc6ddf9",
+  "model_seconds": 17.105,
+  "model_calls": 5,
+  "harness_limit": "Chat limited to one tool round; source selection uses the real local model. Not a production conversation-length test.",
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "title": "Normale Chatangabe wird automatisch aufgenommen und wiedergefunden",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-e0a3d65603b4",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "conversation_id": "c-9f29c3aa8a65",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nBitte · Gesprächsausschnitt\nFür den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.\nQuellenzeit: 2026-09-23T15:08:54.820115+02:00",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-e0a3d65603b4"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-e0a3d65603b4",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "relative_date_without_timestamp",
+      "title": "Relativer Termin ohne belegten Quellenzeitpunkt bleibt relativ",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-1e690a05fcb1",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "An welchem Datum kommt die Keramikprobe?",
+          "conversation_id": "c-e26f1f68a3a5",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nZusage · Synthetic\nWir können die Keramikprobe nächsten Freitag liefern.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-1e690a05fcb1"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-1e690a05fcb1",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ],
+      "status": "completed"
+    }
+  ]
+}

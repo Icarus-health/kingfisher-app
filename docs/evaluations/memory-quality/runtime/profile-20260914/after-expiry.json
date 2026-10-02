@@ -1,0 +1,462 @@
+{
+  "conversation": {
+    "id": "c-4fcbab74d6e4",
+    "title": "Welche Kaffeevorliebe ist in meinem Profil hinterlegt?",
+    "created_at": "2026-09-14T07:41:30.185875+00:00",
+    "updated_at": "2026-09-14T07:43:25.104639+00:00"
+  },
+  "messages": [
+    {
+      "id": "m-703a9cc1cf6443",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "user",
+      "content": "Welche Kaffeevorliebe ist in meinem Profil hinterlegt?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:30.226446+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-2cb379f86e3a44",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "assistant",
+      "content": "In deinem Profil ist hinterlegt, dass du in der synthetischen Testpause Filterkaffee bevorzugst.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:49.852993+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Kaffeevorliebe ist in meinem Profil hinterlegt?",
+          "generated_at": "2026-09-14T07:41:30.228204+00:00",
+          "items": [
+            {
+              "assertion_id": "a-f991dea445c1",
+              "statement": "Der Nutzer bevorzugt in der synthetischen Testpause Filterkaffee.",
+              "kind": "preference",
+              "state": "current",
+              "reason": "Stabiles Profil",
+              "source_type": "user_stated",
+              "source_ref": "synthetic:docker-profile",
+              "evidence_at": "2026-09-14T07:41:30.211345+00:00",
+              "confidence": null,
+              "self_model_input": {
+                "fingerprint": "1f8329881aea8ec60fc31ce00d1e66edf6620f3e77bcaa63c125bb4d744e1003",
+                "state": "current",
+                "currency": "current"
+              }
+            }
+          ],
+          "withheld_count": 0,
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 1,
+          "self_model_inputs": {
+            "a-f991dea445c1": {
+              "fingerprint": "1f8329881aea8ec60fc31ce00d1e66edf6620f3e77bcaa63c125bb4d744e1003",
+              "state": "current",
+              "currency": "current"
+            }
+          },
+          "self_model_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:41:30.227817+00:00",
+            "window_from": "2026-09-14T07:41:30.227817+00:00",
+            "window_to": "2026-09-21T07:41:30.227817+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:41:30.228544+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-9ee9270b9ea642",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "user",
+      "content": "Welche Kaffeevorliebe ist jetzt aktuell hinterlegt?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:49.886824+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-a08ee829a4654a",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "assistant",
+      "content": "Das weiß ich nicht. Es gibt keine hinterlegte Kaffeevorliebe in deinem Profil.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:52.826330+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [
+          "Frühere Profilableitungen sind nicht mehr gültig oder nicht vollständig zuordenbar. Sie bleiben gespeichert und werden für diese Antwort zurückgestellt."
+        ],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Kaffeevorliebe ist jetzt aktuell hinterlegt?",
+          "generated_at": "2026-09-14T07:41:49.889590+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 1,
+          "self_model_inputs": {},
+          "self_model_history_reset": true,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:41:49.889351+00:00",
+            "window_from": "2026-09-14T07:41:49.889351+00:00",
+            "window_to": "2026-09-21T07:41:49.889351+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:41:49.890261+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-4bc3c27cfcfa43",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "user",
+      "content": "Hast du einen aktuellen Beleg für meine Kaffeevorliebe?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:54.765480+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-162fe69834984d",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "assistant",
+      "content": "Nach deinem hinterlegten Ziel oder den notierten Informationen gibt es keine aktuelle Kaffeevorliebe, die ich als Beleg vorliegen sehe. Möchtest du ein Beispiel oder eine frühere Vorliebe aufgreifen?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:58.466202+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Kaffeevorliebe ist jetzt aktuell hinterlegt?\nHast du einen aktuellen Beleg für meine Kaffeevorliebe?",
+          "generated_at": "2026-09-14T07:41:54.768817+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 1,
+          "self_model_inputs": {},
+          "self_model_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:41:54.768402+00:00",
+            "window_from": "2026-09-14T07:41:54.768402+00:00",
+            "window_to": "2026-09-21T07:41:54.768402+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:41:54.769051+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-c5da62452a164a",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "user",
+      "content": "Welche Teevorliebe ist aktuell hinterlegt?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:41:58.531232+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-9c6b80c0346e43",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "assistant",
+      "content": "Nach deinem hinterlegten Profil ist deine aktuelle Teevorliebe Rooibostee.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:42:02.189187+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Kaffeevorliebe ist jetzt aktuell hinterlegt?\nHast du einen aktuellen Beleg für meine Kaffeevorliebe?\nWelche Teevorliebe ist aktuell hinterlegt?",
+          "generated_at": "2026-09-14T07:41:58.534063+00:00",
+          "items": [
+            {
+              "assertion_id": "a-705fc8b28f51",
+              "statement": "Der Nutzer bevorzugt für den synthetischen Teetest Rooibostee.",
+              "kind": "preference",
+              "state": "current",
+              "reason": "Stabiles Profil",
+              "source_type": "user_stated",
+              "source_ref": "synthetic:docker-profile-expiry",
+              "evidence_at": "2026-09-14T07:41:58.487945+00:00",
+              "confidence": null,
+              "self_model_input": {
+                "fingerprint": "2a5c89d1879947e6804e96b267b84bb9504cafdc6bb87ef6905bed5c38590cd8",
+                "state": "current",
+                "currency": "current"
+              }
+            }
+          ],
+          "withheld_count": 0,
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 1,
+          "self_model_inputs": {
+            "a-705fc8b28f51": {
+              "fingerprint": "2a5c89d1879947e6804e96b267b84bb9504cafdc6bb87ef6905bed5c38590cd8",
+              "state": "current",
+              "currency": "current"
+            }
+          },
+          "self_model_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:41:58.533668+00:00",
+            "window_from": "2026-09-14T07:41:58.533668+00:00",
+            "window_to": "2026-09-21T07:41:58.533668+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:41:58.535043+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-d7b6f7c27c0347",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "user",
+      "content": "Welche Teevorliebe ist jetzt noch gültig hinterlegt?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:43:19.509113+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-e68e58ce0df04a",
+      "conversation_id": "c-4fcbab74d6e4",
+      "role": "assistant",
+      "content": "Es ist aktuell nichts über eine aktuelle Teevorliebe hinterlegt. Möchtest du Details zu einem früheren Vorlieben oder soll ich deine aktuelle Präferenz erfassen, damit ich dich unterstützen kann?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:43:25.104639+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [
+          "Frühere Profilableitungen sind nicht mehr gültig oder nicht vollständig zuordenbar. Sie bleiben gespeichert und werden für diese Antwort zurückgestellt."
+        ],
+        "used_tools": [
+          "gedaechtnis_suchen"
+        ],
+        "context": {
+          "query": "Welche Teevorliebe ist jetzt noch gültig hinterlegt?",
+          "generated_at": "2026-09-14T07:43:19.517526+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 1,
+          "self_model_inputs": {},
+          "self_model_history_reset": true,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:43:19.516812+00:00",
+            "window_from": "2026-09-14T07:43:19.516812+00:00",
+            "window_to": "2026-09-21T07:43:19.516812+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:43:19.520900+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    }
+  ],
+  "context": {
+    "query": "Welche Teevorliebe ist jetzt noch gültig hinterlegt?",
+    "generated_at": "2026-09-14T07:43:19.517526+00:00",
+    "items": [],
+    "withheld_count": 0,
+    "memory_revision": 0,
+    "history_egress": "local_only",
+    "history_omitted": false,
+    "knowledge_claim_lineage_version": 1,
+    "knowledge_claim_ids": [],
+    "knowledge_history_reset": false,
+    "self_model_lineage_version": 1,
+    "self_model_inputs": {},
+    "self_model_history_reset": true,
+    "calendar": {
+      "status": "disabled",
+      "scope": "selected_mac_calendars",
+      "observed_at": "2026-09-14T07:43:19.516812+00:00",
+      "window_from": "2026-09-14T07:43:19.516812+00:00",
+      "window_to": "2026-09-21T07:43:19.516812+00:00",
+      "synced_at": null,
+      "coverage": "unknown",
+      "events": [],
+      "truncated": false,
+      "invalid_count": 0
+    },
+    "calendar_model_context": false,
+    "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+    "calendar_history_reset": false,
+    "coverage": {
+      "total_sources": 0,
+      "sampled_sources": 0,
+      "counts": {
+        "pending": 0,
+        "running": 0,
+        "partial": 0,
+        "completed": 0,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-14T07:43:19.520900+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    }
+  },
+  "action_requests": [],
+  "memory_candidates": []
+}

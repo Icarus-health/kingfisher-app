@@ -1,0 +1,451 @@
+{
+ "suite": "working-memory-paraphrase-v1",
+ "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+ "synthetic_only": true,
+ "network_used": false,
+ "arms": {
+  "lexikalisch": {
+   "score": {
+    "direct": {
+     "n": 16,
+     "treffer_platz_1": 15,
+     "treffer_in_top_12": 16,
+     "kandidaten_im_mittel": 1.38
+    },
+    "paraphrase": {
+     "n": 16,
+     "treffer_platz_1": 3,
+     "treffer_in_top_12": 3,
+     "kandidaten_im_mittel": 0.44
+    },
+    "unanswerable": {
+     "n": 4,
+     "mit_kandidaten": 0
+    }
+   },
+   "rows": [
+    {
+     "q": "Wann beginnt das Wartungsfenster für den Server?",
+     "type": "direct",
+     "expect": [
+      "S1"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "beginnt",
+      "server",
+      "wartungsfenster"
+     ],
+     "ranking": [
+      "S1"
+     ]
+    },
+    {
+     "q": "Ab wann ist das System am Abend nicht erreichbar?",
+     "type": "paraphrase",
+     "expect": [
+      "S1"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+     "type": "direct",
+     "expect": [
+      "S2"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "dachreparatur",
+      "rechnung",
+      "überwiesen"
+     ],
+     "ranking": [
+      "S2",
+      "S7"
+     ]
+    },
+    {
+     "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+     "type": "paraphrase",
+     "expect": [
+      "S2"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wo liegt die Zugangskarte?",
+     "type": "direct",
+     "expect": [
+      "S3"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "liegt",
+      "zugangskarte"
+     ],
+     "ranking": [
+      "S3",
+      "S9"
+     ]
+    },
+    {
+     "q": "Wo finde ich den Ausweis zum Reinkommen?",
+     "type": "paraphrase",
+     "expect": [
+      "S3"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wer betreut die Lieferantenverträge?",
+     "type": "direct",
+     "expect": [
+      "S4"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "betreut",
+      "lieferantenverträge"
+     ],
+     "ranking": [
+      "S4"
+     ]
+    },
+    {
+     "q": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+     "type": "paraphrase",
+     "expect": [
+      "S4"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wann endet die Anmeldung zum Workshop?",
+     "type": "direct",
+     "expect": [
+      "S5"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "anmeldung",
+      "endet",
+      "workshop"
+     ],
+     "ranking": [
+      "S5"
+     ]
+    },
+    {
+     "q": "Bis wann kann ich mich fürs Seminar registrieren?",
+     "type": "paraphrase",
+     "expect": [
+      "S5"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wann muss das Auto zur Hauptuntersuchung?",
+     "type": "direct",
+     "expect": [
+      "S6"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "auto",
+      "hauptuntersuchung"
+     ],
+     "ranking": [
+      "S6",
+      "S14"
+     ]
+    },
+    {
+     "q": "Wann ist beim Wagen der TÜV fällig?",
+     "type": "paraphrase",
+     "expect": [
+      "S6"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": [
+      "S13"
+     ]
+    },
+    {
+     "q": "Wann ist die Veranstaltung in Dresden?",
+     "type": "direct",
+     "expect": [
+      "S7"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "dresden",
+      "veranstaltung"
+     ],
+     "ranking": [
+      "S7"
+     ]
+    },
+    {
+     "q": "Auf welchen Tag wurde das Treffen in Sachsen verlegt?",
+     "type": "paraphrase",
+     "expect": [
+      "S7"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": [
+      "S7",
+      "S2"
+     ]
+    },
+    {
+     "q": "Was erlaubt die Lizenz für das Foto?",
+     "type": "direct",
+     "expect": [
+      "S8"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "erlaubt",
+      "foto",
+      "lizenz"
+     ],
+     "ranking": [
+      "S8"
+     ]
+    },
+    {
+     "q": "Dürfen wir die Grafik öffentlich nutzen?",
+     "type": "paraphrase",
+     "expect": [
+      "S8"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Ist der Quartalsbericht freigegeben?",
+     "type": "direct",
+     "expect": [
+      "S9"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "quartalsbericht"
+     ],
+     "ranking": [
+      "S9"
+     ]
+    },
+    {
+     "q": "Darf der Report schon raus?",
+     "type": "paraphrase",
+     "expect": [
+      "S9"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": [
+      "S9"
+     ]
+    },
+    {
+     "q": "Warum verzögert sich die Lieferung?",
+     "type": "direct",
+     "expect": [
+      "S10"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "lieferung",
+      "verzögert"
+     ],
+     "ranking": [
+      "S10"
+     ]
+    },
+    {
+     "q": "Weshalb kommt die Ware später an?",
+     "type": "paraphrase",
+     "expect": [
+      "S10"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wann kann man mich wegen des Keramiktests anrufen?",
+     "type": "direct",
+     "expect": [
+      "S11"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "anrufen"
+     ],
+     "ranking": [
+      "S14",
+      "S11",
+      "S10"
+     ]
+    },
+    {
+     "q": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+     "type": "paraphrase",
+     "expect": [
+      "S11"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wann ist der Umzug des Büros?",
+     "type": "direct",
+     "expect": [
+      "S12"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "büros",
+      "umzug"
+     ],
+     "ranking": [
+      "S12"
+     ]
+    },
+    {
+     "q": "Wann ziehen wir mit der Firma in die neuen Räume?",
+     "type": "paraphrase",
+     "expect": [
+      "S12"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Was verträgt Jonas nicht?",
+     "type": "direct",
+     "expect": [
+      "S13"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "jonas",
+      "verträgt"
+     ],
+     "ranking": [
+      "S13"
+     ]
+    },
+    {
+     "q": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+     "type": "paraphrase",
+     "expect": [
+      "S13"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "achten"
+     ],
+     "ranking": [
+      "S13",
+      "S14",
+      "S6"
+     ]
+    },
+    {
+     "q": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+     "type": "direct",
+     "expect": [
+      "S14"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "mobilfunkvertrag"
+     ],
+     "ranking": [
+      "S14",
+      "S6"
+     ]
+    },
+    {
+     "q": "Welche Frist gilt für das Handy-Abo?",
+     "type": "paraphrase",
+     "expect": [
+      "S14"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wie viel Euro stehen für die Messe zur Verfügung?",
+     "type": "direct",
+     "expect": [
+      "S15"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "euro",
+      "messe",
+      "stehen",
+      "verfügung"
+     ],
+     "ranking": [
+      "S15"
+     ]
+    },
+    {
+     "q": "Welches Geld haben wir für den Stand auf der Ausstellung?",
+     "type": "paraphrase",
+     "expect": [
+      "S15"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+     "type": "direct",
+     "expect": [
+      "S16"
+     ],
+     "gemeinsame_inhaltswoerter": [
+      "anna",
+      "kundenanfragen",
+      "urlaubs",
+      "während",
+      "übernimmt"
+     ],
+     "ranking": [
+      "S16"
+     ]
+    },
+    {
+     "q": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+     "type": "paraphrase",
+     "expect": [
+      "S16"
+     ],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wie lautet die PIN meiner Bankkarte?",
+     "type": "unanswerable",
+     "expect": [],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Welche Blutgruppe habe ich?",
+     "type": "unanswerable",
+     "expect": [],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Wann hat meine Schwester Geburtstag?",
+     "type": "unanswerable",
+     "expect": [],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    },
+    {
+     "q": "Welches Passwort hat das WLAN?",
+     "type": "unanswerable",
+     "expect": [],
+     "gemeinsame_inhaltswoerter": [],
+     "ranking": []
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,5036 @@
+{
+  "mode": "retrieval",
+  "semantic_qualification": false,
+  "extraction_evaluated": false,
+  "commit": "44643565129e0a7a45b8d246994dd05f032cc945",
+  "dataset_sha256": "3ad687fbb5431282a0c1fd68dfa3d985eda7e71412d0e3e5c17b0d1008ba56f4",
+  "cases": [
+    {
+      "id": "everyday-search-1",
+      "scenario_id": "everyday-search-1",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann ist die Wartung des Servers?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-2",
+      "scenario_id": "everyday-search-2",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann können wir den Rechner nicht nutzen?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S1"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-3",
+      "scenario_id": "everyday-search-3",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Ist die Rechnung bezahlt?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-4",
+      "scenario_id": "everyday-search-4",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Sind die Kosten für das Dach beglichen?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S2"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-5",
+      "scenario_id": "everyday-search-5",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wo liegt die Zugangskarte?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-6",
+      "scenario_id": "everyday-search-6",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wo finde ich den Ausweis für den Zutritt?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S3"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-7",
+      "scenario_id": "everyday-search-7",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wer betreut die Lieferantenverträge?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-8",
+      "scenario_id": "everyday-search-8",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wer kümmert sich bei Linde um Vereinbarungen mit Zulieferern?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S4"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-9",
+      "scenario_id": "everyday-search-9",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann endet die Workshopanmeldung?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-10",
+      "scenario_id": "everyday-search-10",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Bis wann kann ich mich zum Seminar registrieren?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S5"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-11",
+      "scenario_id": "everyday-search-11",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann ist die Hauptuntersuchung des Autos?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S6"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-12",
+      "scenario_id": "everyday-search-12",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann ist der nächste TÜV fällig?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S6"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-13",
+      "scenario_id": "everyday-search-13",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wann ist die Veranstaltung in Dresden?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-14",
+      "scenario_id": "everyday-search-14",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Auf welchen Wochentag wurde das Treffen in Sachsen verlegt?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S7"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-15",
+      "scenario_id": "everyday-search-15",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Darf das Bild extern verwendet werden?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S8"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-16",
+      "scenario_id": "everyday-search-16",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Welche Nutzungsrechte gelten für die Grafik?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S8"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-17",
+      "scenario_id": "everyday-search-17",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Ist der Bericht freigegeben?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S9"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-18",
+      "scenario_id": "everyday-search-18",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Kann der fertige Report veröffentlicht werden?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S9"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-19",
+      "scenario_id": "everyday-search-19",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Warum verspätet sich die Lieferung?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S10"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-20",
+      "scenario_id": "everyday-search-20",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Welcher Grund verhindert den rechtzeitigen Wareneingang?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [
+        "S10"
+      ],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-21",
+      "scenario_id": "everyday-search-21",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Wie lautet die PIN meiner Bankkarte?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    },
+    {
+      "id": "everyday-search-22",
+      "scenario_id": "everyday-search-22",
+      "split": "development",
+      "fixture_mode": "prepared_memory",
+      "clock_utc": "2026-09-20T07:00:00Z",
+      "timezone": "Europe/Berlin",
+      "question": "Welche Blutgruppe habe ich?",
+      "sources": [
+        {
+          "id": "S1",
+          "text": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_type": "document"
+        },
+        {
+          "id": "S2",
+          "text": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_type": "document"
+        },
+        {
+          "id": "S3",
+          "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_type": "document"
+        },
+        {
+          "id": "S4",
+          "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_type": "document"
+        },
+        {
+          "id": "S5",
+          "text": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_type": "document"
+        },
+        {
+          "id": "S6",
+          "text": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_type": "document"
+        },
+        {
+          "id": "S7",
+          "text": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_type": "document"
+        },
+        {
+          "id": "S8",
+          "text": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_type": "document"
+        },
+        {
+          "id": "S9",
+          "text": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_type": "document"
+        },
+        {
+          "id": "S10",
+          "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_type": "document"
+        }
+      ],
+      "entities": [
+        {
+          "id": "topic:record-1",
+          "kind": "topic",
+          "label": "Synthetic 1"
+        },
+        {
+          "id": "topic:record-2",
+          "kind": "topic",
+          "label": "Synthetic 2"
+        },
+        {
+          "id": "topic:record-3",
+          "kind": "topic",
+          "label": "Synthetic 3"
+        },
+        {
+          "id": "topic:record-4",
+          "kind": "topic",
+          "label": "Synthetic 4"
+        },
+        {
+          "id": "topic:record-5",
+          "kind": "topic",
+          "label": "Synthetic 5"
+        },
+        {
+          "id": "topic:record-6",
+          "kind": "topic",
+          "label": "Synthetic 6"
+        },
+        {
+          "id": "topic:record-7",
+          "kind": "topic",
+          "label": "Synthetic 7"
+        },
+        {
+          "id": "topic:record-8",
+          "kind": "topic",
+          "label": "Synthetic 8"
+        },
+        {
+          "id": "topic:record-9",
+          "kind": "topic",
+          "label": "Synthetic 9"
+        },
+        {
+          "id": "topic:record-10",
+          "kind": "topic",
+          "label": "Synthetic 10"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "subject_ref": "topic:record-1",
+          "predicate": "observed_note",
+          "value": "Das Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr.",
+          "source_id": "S1"
+        },
+        {
+          "id": "C2",
+          "subject_ref": "topic:record-2",
+          "predicate": "observed_note",
+          "value": "Die Rechnung für die Dachreparatur wurde am 10. September bezahlt.",
+          "source_id": "S2"
+        },
+        {
+          "id": "C3",
+          "subject_ref": "topic:record-3",
+          "predicate": "observed_note",
+          "value": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+          "source_id": "S3"
+        },
+        {
+          "id": "C4",
+          "subject_ref": "topic:record-4",
+          "predicate": "observed_note",
+          "value": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+          "source_id": "S4"
+        },
+        {
+          "id": "C5",
+          "subject_ref": "topic:record-5",
+          "predicate": "observed_note",
+          "value": "Die Anmeldung zum Workshop endet am 30. September.",
+          "source_id": "S5"
+        },
+        {
+          "id": "C6",
+          "subject_ref": "topic:record-6",
+          "predicate": "observed_note",
+          "value": "Das Auto muss im November zur Hauptuntersuchung.",
+          "source_id": "S6"
+        },
+        {
+          "id": "C7",
+          "subject_ref": "topic:record-7",
+          "predicate": "observed_note",
+          "value": "Die Veranstaltung in Dresden wurde auf Freitag verschoben.",
+          "source_id": "S7"
+        },
+        {
+          "id": "C8",
+          "subject_ref": "topic:record-8",
+          "predicate": "observed_note",
+          "value": "Die Lizenz für das Bild darf nur intern verwendet werden.",
+          "source_id": "S8"
+        },
+        {
+          "id": "C9",
+          "subject_ref": "topic:record-9",
+          "predicate": "observed_note",
+          "value": "Der Bericht ist als Entwurf gespeichert. Eine Freigabe liegt nicht vor.",
+          "source_id": "S9"
+        },
+        {
+          "id": "C10",
+          "subject_ref": "topic:record-10",
+          "predicate": "observed_note",
+          "value": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+          "source_id": "S10"
+        }
+      ],
+      "expected_source_ids": [],
+      "forbidden_source_ids": [],
+      "required": [
+        "Original wording, attribution and source are preserved; no action inferred."
+      ],
+      "forbidden": [
+        "Unsupported execution claim or preference."
+      ],
+      "severity": "retrieval"
+    }
+  ],
+  "results": [
+    {
+      "case_id": "everyday-search-1",
+      "arm": "lexical",
+      "seconds": 0.0037402420000489656,
+      "actual_source_ids": [
+        "S1"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 3,
+        "word_form_candidates": 1,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-2",
+      "arm": "lexical",
+      "seconds": 0.0007606959999293395,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S1"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-3",
+      "arm": "lexical",
+      "seconds": 0.002416384000071048,
+      "actual_source_ids": [
+        "S2"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 1,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-4",
+      "arm": "lexical",
+      "seconds": 0.0007695410000678748,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S2"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-5",
+      "arm": "lexical",
+      "seconds": 0.002402931999995417,
+      "actual_source_ids": [
+        "S3"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-6",
+      "arm": "lexical",
+      "seconds": 0.0007728740000629841,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S3"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-7",
+      "arm": "lexical",
+      "seconds": 0.002425226000013936,
+      "actual_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 4,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-8",
+      "arm": "lexical",
+      "seconds": 0.002600325999992492,
+      "actual_source_ids": [
+        "S4"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 5,
+        "query_terms_used": 5,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-9",
+      "arm": "lexical",
+      "seconds": 0.002347041000007266,
+      "actual_source_ids": [
+        "S5"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 1,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-10",
+      "arm": "lexical",
+      "seconds": 0.0006525899999587637,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S5"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-11",
+      "arm": "lexical",
+      "seconds": 0.0022493179999401036,
+      "actual_source_ids": [
+        "S6"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-12",
+      "arm": "lexical",
+      "seconds": 0.0007676029999856837,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S6"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-13",
+      "arm": "lexical",
+      "seconds": 0.0021742030000950763,
+      "actual_source_ids": [
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-14",
+      "arm": "lexical",
+      "seconds": 0.0036915310000722457,
+      "actual_source_ids": [
+        "S2",
+        "S7"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S2"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 6,
+        "query_terms_used": 6,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-15",
+      "arm": "lexical",
+      "seconds": 0.0026906939999662427,
+      "actual_source_ids": [
+        "S8"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 5,
+        "query_terms_used": 5,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-16",
+      "arm": "lexical",
+      "seconds": 0.0006712929999821426,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S8"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-17",
+      "arm": "lexical",
+      "seconds": 0.002321047999998882,
+      "actual_source_ids": [
+        "S9"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 6,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-18",
+      "arm": "lexical",
+      "seconds": 0.003793219000044701,
+      "actual_source_ids": [
+        "S8",
+        "S9"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [
+          "S8"
+        ],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 2,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 2,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 6,
+        "word_form_candidates": 1,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-19",
+      "arm": "lexical",
+      "seconds": 0.0024181019999787168,
+      "actual_source_ids": [
+        "S10"
+      ],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 1,
+        "actual_count": 1,
+        "recall": 1.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 3,
+        "query_terms_used": 3,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 1,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-20",
+      "arm": "lexical",
+      "seconds": 0.0006962250000697168,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [
+          "S10"
+        ],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 1,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": 0.0
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 5,
+        "query_terms_used": 5,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-21",
+      "arm": "lexical",
+      "seconds": 0.0006301079999957437,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 4,
+        "query_terms_used": 4,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    },
+    {
+      "case_id": "everyday-search-22",
+      "arm": "lexical",
+      "seconds": 0.0007122780000372586,
+      "actual_source_ids": [],
+      "retrieval": {
+        "missing": [],
+        "forbidden_seen": [],
+        "unexpected": [],
+        "expected_count": 0,
+        "found_count": 0,
+        "actual_count": 0,
+        "recall": null
+      },
+      "payload_mismatch_claim_ids": [],
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 0,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "word_form_version": 1,
+        "word_forms_used": 0,
+        "word_form_candidates": 0,
+        "payload_omitted": 0
+      }
+    }
+  ],
+  "status": "completed",
+  "local_only": true,
+  "arms_selected": [
+    "lexical"
+  ],
+  "arms_skipped": [
+    "live_cold",
+    "live_warm"
+  ],
+  "embedding_initialized": false,
+  "seconds": 2.919843441000012
+}

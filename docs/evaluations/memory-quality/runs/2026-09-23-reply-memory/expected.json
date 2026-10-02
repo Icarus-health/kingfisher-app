@@ -1,0 +1,9 @@
+{
+  "locked_before_model_run": true,
+  "model": "qwen3.5:4b",
+  "case": "same-account same-sender conditional prior mail used in reply suggestion",
+  "source": "Den Entwurf für Projekt Sturmvogel sende ich dir am 4. Oktober 2026, aber ausschließlich nach schriftlicher Freigabe. Bisher liegt diese Freigabe nicht vor.",
+  "incoming": "Was ist zur Lieferung des Entwurfs für Projekt Sturmvogel vermerkt?",
+  "instruction": "Fasse unseren bisherigen Stand kurz zusammen. Erhalte die Bedingung und dass die Freigabe noch fehlt. Sage keine neue Lieferung oder erledigte Handlung zu.",
+  "requirements": ["earlier exact mail source attached with token", "draft preserves written approval condition and current absence", "no new unconditional promise", "source withdrawal hides persisted edited draft and blocks approval", "fake mail sink receives nothing"]
+}

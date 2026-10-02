@@ -1,0 +1,12 @@
+{
+  "product_commit": "36f2054",
+  "command": "PYTHONPATH=sidecar:scripts python -m pytest sidecar/tests scripts -q",
+  "passed": 2246,
+  "subtests_passed": 4,
+  "warnings": 2,
+  "seconds": 182.29,
+  "log_sha256": "56625ab7d14176790ab7ca06601f023da9b61298c9325a747afaff034f75a040",
+  "ui_build": "passed",
+  "asset_contract": "passed",
+  "live_model_semantics": "independent 7/8 on c088b07; corrected identity cases separately checked, not a new independent score"
+}

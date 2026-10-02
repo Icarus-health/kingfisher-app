@@ -1,0 +1,56 @@
+{
+  "pairs": [
+    {
+      "case_id": "everyday-meaning-hypothesis",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-request",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-decision",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-completed",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-denied",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-unknown",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-quoted",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    },
+    {
+      "case_id": "everyday-meaning-preference",
+      "identical_visible_reply": true,
+      "messages_equal_except_fresh_claim_episode_ids": true
+    }
+  ],
+  "legacy": {
+    "model_calls": 7,
+    "median_seconds": 26.629536874999758,
+    "min_seconds": 13.21275120798964,
+    "max_seconds": 41.687307915999554
+  },
+  "bounded": {
+    "model_calls": 7,
+    "median_seconds": 1.1579430420242716,
+    "min_seconds": 0.9863945829856675,
+    "max_seconds": 1.2679331669933163
+  }
+}

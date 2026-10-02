@@ -1,0 +1,11 @@
+{
+  "synthetic_only": true,
+  "real_model_quality_tested": false,
+  "total_active_claims": 130,
+  "configured_inventory_limit": 512,
+  "cached_claims": 128,
+  "coverage": "partial",
+  "live_target_found": false,
+  "explicit_snapshot_target_found": true,
+  "exact_lexical_target_found": true
+}

@@ -1,0 +1,416 @@
+{
+  "id": "frist-verschoben",
+  "titel": "Förderantrag mit verschobener Frist",
+  "beschreibung": "Ein gemeinsamer Förderantrag mit einer Klinik hat eine Einreichfrist, die die Stiftung per Mail einmal verschiebt. Die alte Frist steht weiter in älteren Quellen und Lea-Notizen.",
+  "quellen": [
+    {
+      "id": "frist-verschoben-001",
+      "art": "mail",
+      "zeit": "2026-06-02T09:00:00+02:00",
+      "von": {
+        "name": "Förderteam Stiftung Zukunft Gesundheit",
+        "adresse": "foerderung@stiftung-zgrm.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ausschreibung Förderlinie „Ernährung im Krankenhaus 2026“",
+      "text": "Sehr geehrte Damen und Herren,\n\ndie Stiftung Zukunft Gesundheit Rhein-Main schreibt die Förderlinie „Ernährung im Krankenhaus 2026“ aus. Gefördert werden\nProjekte zur Vorbeugung von Mangelernährung in Kliniken, Laufzeit bis zu 18 Monate.\n\nEinreichfrist für Anträge ist der 15. Oktober 2026. Anträge werden ausschließlich über unser Onlineportal angenommen.\n\nMit freundlichen Grüßen\nFörderteam der Stiftung Zukunft Gesundheit Rhein-Main"
+    },
+    {
+      "id": "frist-verschoben-002",
+      "art": "mail",
+      "zeit": "2026-06-05T10:12:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Ines Kaltenbach",
+          "adresse": "i.kaltenbach@klinik-taunushang.example"
+        }
+      ],
+      "betreff": "Gemeinsamer Antrag „NutriBrücke“?",
+      "text": "Sehr geehrte Frau Dr. Kaltenbach,\n\ndie Stiftung Zukunft Gesundheit hat eine Förderlinie zur Mangelernährung ausgeschrieben. Ich hätte Lust, mit Ihrer\nKlinik gemeinsam einen Antrag zu stellen, Arbeitstitel „NutriBrücke“: Screening auf der Aufnahme, danach ein\nstrukturierter Übergang in die ambulante Versorgung. Hätten Sie Interesse?\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "frist-verschoben-003",
+      "art": "mail",
+      "zeit": "2026-06-08T17:45:00+02:00",
+      "von": {
+        "name": "Dr. Ines Kaltenbach",
+        "adresse": "i.kaltenbach@klinik-taunushang.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: Gemeinsamer Antrag „NutriBrücke“?",
+      "text": "Liebe Frau Hartmann,\n\nsehr gern! Die Geschäftsführung ist einverstanden, wir stellen den klinischen Teil. Eine Absichtserklärung der Klinik\nlasse ich unterschreiben, sobald der Antrag steht.\n\nViele Grüße\nInes Kaltenbach\nÄrztliche Leitung Klinische Ernährung\nKlinik am Taunushang",
+      "antwort_auf": "frist-verschoben-002"
+    },
+    {
+      "id": "frist-verschoben-004",
+      "art": "notiz",
+      "zeit": "2026-06-15T08:30:00+02:00",
+      "titel": "Förderantrag NutriBrücke Planung",
+      "text": "Antrag NutriBrücke, Stiftung Zukunft Gesundheit.\n- Einreichfrist Stiftung: 15.10.2026 (Portal)\n- Rohfassung Kostenplan intern bis 25.09.\n- Absichtserklärung der Klinik Taunushang muss dem Antrag beiliegen\n- Förderhöhe laut Ausschreibung prüfen"
+    },
+    {
+      "id": "frist-verschoben-005",
+      "art": "termin",
+      "zeit": "2026-07-01T12:00:00+02:00",
+      "beginn": "2026-07-14T10:00:00+02:00",
+      "ende": "2026-07-14T11:30:00+02:00",
+      "titel": "Antragswerkstatt Stiftung Zukunft Gesundheit (online)",
+      "ort": "online",
+      "notiz": "Fragen zum Antragsverfahren, Link kommt per Mail."
+    },
+    {
+      "id": "frist-verschoben-006",
+      "art": "mail",
+      "zeit": "2026-07-20T09:15:00+02:00",
+      "von": {
+        "name": "Förderteam Stiftung Zukunft Gesundheit",
+        "adresse": "foerderung@stiftung-zgrm.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Häufige Fragen zur Förderlinie: Zusammenfassung",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndanke für Ihre Teilnahme an der Antragswerkstatt. Zusammengefasst die wichtigsten Punkte:\n- Die Förderhöhe beträgt maximal 80.000 Euro je Projekt.\n- Die Laufzeit beträgt bis zu 18 Monate.\n- Ein Eigenanteil von 10 Prozent ist nachzuweisen.\n\nMit freundlichen Grüßen\nFörderteam der Stiftung Zukunft Gesundheit Rhein-Main"
+    },
+    {
+      "id": "frist-verschoben-007",
+      "art": "mail",
+      "zeit": "2026-08-25T14:02:00+02:00",
+      "von": {
+        "name": "Dr. Ines Kaltenbach",
+        "adresse": "i.kaltenbach@klinik-taunushang.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Entwurf Kostenplan NutriBrücke",
+      "text": "Liebe Frau Hartmann,\n\nanbei mein Entwurf zum Kostenplan, vor allem die Personalkosten auf unserer Seite. Bitte prüfen Sie die Ansätze für\nIhre Beratungstage.\n\nViele Grüße\nInes Kaltenbach",
+      "antwort_auf": "frist-verschoben-003"
+    },
+    {
+      "id": "frist-verschoben-008",
+      "art": "mail",
+      "zeit": "2026-09-03T11:20:00+02:00",
+      "von": {
+        "name": "Förderteam Stiftung Zukunft Gesundheit",
+        "adresse": "foerderung@stiftung-zgrm.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Verlängerung der Einreichfrist",
+      "text": "Sehr geehrte Antragstellerinnen und Antragsteller,\n\naufgrund technischer Umstellungen bei unserem Onlineportal verlängern wir die Einreichfrist der Förderlinie „Ernährung im\nKrankenhaus 2026“. Die neue Einreichfrist ist der 12. November 2026, 12 Uhr. Die bisherige Frist entfällt.\n\nDas Portal für die Antragstellung wird ab dem 13. Oktober 2026 freigeschaltet.\n\nMit freundlichen Grüßen\nFörderteam der Stiftung Zukunft Gesundheit Rhein-Main"
+    },
+    {
+      "id": "frist-verschoben-009",
+      "art": "mail",
+      "zeit": "2026-09-03T13:40:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Ines Kaltenbach",
+          "adresse": "i.kaltenbach@klinik-taunushang.example"
+        }
+      ],
+      "betreff": "WG: Verlängerung der Einreichfrist",
+      "text": "Liebe Frau Dr. Kaltenbach,\n\nzur Info, die Stiftung hat die Frist verschoben, siehe unten. Das gibt uns etwas Luft für den Kostenplan.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142\n\n----- Weitergeleitete Nachricht -----\nVon: Förderteam Stiftung Zukunft Gesundheit\nBetreff: Verlängerung der Einreichfrist\nDie neue Einreichfrist ist der 12. November 2026, 12 Uhr. Die bisherige Frist entfällt.",
+      "ordner": "Sent",
+      "antwort_auf": "frist-verschoben-008"
+    },
+    {
+      "id": "frist-verschoben-010",
+      "art": "mail",
+      "zeit": "2026-09-05T08:58:00+02:00",
+      "von": {
+        "name": "Dr. Ines Kaltenbach",
+        "adresse": "i.kaltenbach@klinik-taunushang.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: WG: Verlängerung der Einreichfrist",
+      "text": "Liebe Frau Hartmann,\n\nsehr gut, danke! Dann schaffen wir es entspannter. Die unterschriebene Absichtserklärung der Klinik bekommen Sie von mir\nbis zum 29. Oktober, damit wir sie noch einscannen können.\n\nViele Grüße\nInes Kaltenbach",
+      "antwort_auf": "frist-verschoben-009"
+    },
+    {
+      "id": "frist-verschoben-011",
+      "art": "mail",
+      "zeit": "2026-09-16T10:05:00+02:00",
+      "von": {
+        "name": "Förderteam Stiftung Zukunft Gesundheit",
+        "adresse": "foerderung@stiftung-zgrm.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Hinweis zum Antragsportal",
+      "text": "Sehr geehrte Frau Hartmann,\n\nfür die Registrierung im Antragsportal benötigen Sie einen Account. Die Registrierung ist bereits möglich, das\nAntragsformular steht ab dem 13. Oktober zur Verfügung.\n\nMit freundlichen Grüßen\nFörderteam der Stiftung Zukunft Gesundheit Rhein-Main"
+    },
+    {
+      "id": "frist-verschoben-012",
+      "art": "notiz",
+      "zeit": "2026-09-20T18:15:00+02:00",
+      "titel": "To-do Förderantrag",
+      "text": "Förderantrag NutriBrücke\n- Portalaccount anlegen\n- Kostenplan mit Frau Kaltenbach abstimmen\n- Absichtserklärung Klinik: kommt bis 29.10.\n- Wichtig: Frist wurde verschoben, immer die Mail der Stiftung vom 3. September maßgeblich"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "frist-verschoben-01",
+      "frage": "Bis wann muss ich den Förderantrag NutriBrücke einreichen?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "12.11.2026",
+            "12. November 2026",
+            "12.11.",
+            "12. November",
+            "12. Nov.",
+            "2026-11-12",
+            "12.11"
+          ]
+        ],
+        "belege": [
+          "frist-verschoben-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "ist der 15.10.",
+          "ist am 15.10.",
+          "spätestens 15.10.",
+          "bleibt der 15.10.",
+          "weiterhin der 15.10.",
+          "weiterhin am 15.10.",
+          "einreichen bis 15.10.",
+          "einreichen bis zum 15.10.",
+          "einzureichen bis 15.10.",
+          "einzureichen bis zum 15.10.",
+          "ist der 15. Oktober",
+          "ist am 15. Oktober",
+          "spätestens 15. Oktober",
+          "bleibt der 15. Oktober",
+          "weiterhin der 15. Oktober",
+          "weiterhin am 15. Oktober",
+          "einreichen bis 15. Oktober",
+          "einreichen bis zum 15. Oktober",
+          "einzureichen bis 15. Oktober",
+          "einzureichen bis zum 15. Oktober"
+        ],
+        "belege": [
+          "frist-verschoben-001",
+          "frist-verschoben-004"
+        ]
+      },
+      "notiz": "Die Frist wurde am 3. September vom 15. Oktober auf den 12. November verschoben. Das alte Datum als aktuell zu nennen ist falsch."
+    },
+    {
+      "id": "frist-verschoben-02",
+      "frage": "Wurde die Frist bei der Stiftung Zukunft Gesundheit geändert und wann ist sie jetzt?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "12.11.2026",
+            "12. November 2026",
+            "12.11.",
+            "12. November",
+            "12. Nov.",
+            "2026-11-12",
+            "12.11"
+          ]
+        ],
+        "belege": [
+          "frist-verschoben-008",
+          "frist-verschoben-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "ist der 15.10.",
+          "ist am 15.10.",
+          "spätestens 15.10.",
+          "bleibt der 15.10.",
+          "weiterhin der 15.10.",
+          "weiterhin am 15.10.",
+          "einreichen bis 15.10.",
+          "einreichen bis zum 15.10.",
+          "einzureichen bis 15.10.",
+          "einzureichen bis zum 15.10.",
+          "ist der 15. Oktober",
+          "ist am 15. Oktober",
+          "spätestens 15. Oktober",
+          "bleibt der 15. Oktober",
+          "weiterhin der 15. Oktober",
+          "weiterhin am 15. Oktober",
+          "einreichen bis 15. Oktober",
+          "einreichen bis zum 15. Oktober",
+          "einzureichen bis 15. Oktober",
+          "einzureichen bis zum 15. Oktober",
+          "Frist wurde nicht geändert",
+          "Frist wurde nicht verschoben",
+          "Frist wurde nicht verlängert",
+          "keine Änderung der Frist",
+          "Frist ist unverändert"
+        ],
+        "belege": [
+          "frist-verschoben-001"
+        ]
+      },
+      "notiz": "Änderung erkennen und die neue Frist nennen; die Weiterleitung an Frau Kaltenbach bestätigt sie."
+    },
+    {
+      "id": "frist-verschoben-03",
+      "frage": "Bis wann bekomme ich die Absichtserklärung von der Klinik am Taunushang?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "29.10.2026",
+            "29. Oktober 2026",
+            "29.10.",
+            "29. Oktober",
+            "29. Okt.",
+            "2026-10-29",
+            "29.10"
+          ]
+        ],
+        "belege": [
+          "frist-verschoben-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 15.10.",
+          "bis 15.10.",
+          "am 15.10.",
+          "ist der 15.10.",
+          "ist am 15.10.",
+          "spätestens 15.10.",
+          "zum 15.10.",
+          "bis zum 15. Oktober",
+          "bis 15. Oktober",
+          "am 15. Oktober",
+          "ist der 15. Oktober",
+          "ist am 15. Oktober",
+          "spätestens 15. Oktober",
+          "zum 15. Oktober",
+          "15.10.2026",
+          "15. Oktober 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Zusage von Frau Kaltenbach, nicht mit der Antragsfrist verwechseln."
+    },
+    {
+      "id": "frist-verschoben-04",
+      "frage": "Wie hoch darf die Förderung für unseren Antrag höchstens sein?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "80.000",
+            "80 000",
+            "80000"
+          ]
+        ],
+        "belege": [
+          "frist-verschoben-006"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Sachfrage aus der FAQ-Mail."
+    },
+    {
+      "id": "frist-verschoben-05",
+      "frage": "Ab wann steht das Antragsformular im Portal zur Verfügung?",
+      "kategorie": "frist",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "13.10.2026",
+            "13. Oktober 2026",
+            "13.10.",
+            "13. Oktober",
+            "13. Okt.",
+            "2026-10-13",
+            "13.10"
+          ]
+        ],
+        "belege": [
+          "frist-verschoben-008",
+          "frist-verschoben-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 15.10.",
+          "bis 15.10.",
+          "am 15.10.",
+          "ist der 15.10.",
+          "ist am 15.10.",
+          "spätestens 15.10.",
+          "zum 15.10.",
+          "bis zum 15. Oktober",
+          "bis 15. Oktober",
+          "am 15. Oktober",
+          "ist der 15. Oktober",
+          "ist am 15. Oktober",
+          "spätestens 15. Oktober",
+          "zum 15. Oktober",
+          "15.10.2026",
+          "15. Oktober 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Portalstart ist nicht die Einreichfrist."
+    }
+  ]
+}

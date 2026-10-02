@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kingfisher laden</title>
+<meta name="description" content="Kingfisher, dein Stabschef auf dem Mac: Post, Termine und Aufgaben an einem Ort, ganz auf deinem Rechner.">
+<link rel="icon" type="image/png" href="kingfisher.png">
+<!--
+  Download-Seite (docs/53-download-und-updates.md). Vorlage: Der Release-Workflow setzt mit
+  scripts/release_seite.py Fassung, Datum, Neuerungen und die Links ein und legt latest.json daneben.
+  Keine fremden Skripte, keine Kekse, keine Zählung; Schrift und Bild liegen neben dieser Datei.
+  Gestaltung nach docs/16-gestaltung.md: kühles Leinen, ein gedeckter Akzent, eine Schrift.
+-->
+<style>
+@font-face { font-family: "Inter"; src: url("Inter-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("Inter-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+:root {
+  --grund-oben: #f4f4f1; --grund-unten: #e7e8e3; --flaeche: #fcfcfa; --tinte: #171a1a; --gedaempft: #4a5352;
+  --rand: #d9dcd6; --akzent: #2f5069; --auf-akzent: #fcfcfa; --licht: rgba(255,255,255,.85);
+  --schatten-nah: 0 1px 2px rgba(23,26,26,.06); --schatten-weit: 0 12px 32px rgba(23,26,26,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grund-oben: #16191a; --grund-unten: #101314; --flaeche: #212527; --tinte: #e9ecea; --gedaempft: #aab3b1;
+    --rand: #343a3c; --akzent: #7ba7c4; --auf-akzent: #101314; --licht: rgba(255,255,255,.06);
+    --schatten-nah: 0 1px 2px rgba(0,0,0,.4); --schatten-weit: 0 12px 32px rgba(0,0,0,.35);
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--grund-unten); }
+body {
+  margin: 0; min-height: 100vh; color: var(--tinte);
+  background: linear-gradient(180deg, var(--grund-oben), var(--grund-unten) 900px) no-repeat;
+  font: 400 17px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 760px; margin: 0 auto; padding: 56px 24px 64px; }
+a { color: var(--akzent); text-underline-offset: 3px; }
+.kopf { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.kopf img { width: 48px; height: 48px; border-radius: 11px; box-shadow: var(--schatten-nah); }
+.kopf span { font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+h1 { margin: 0 0 16px; font-size: 40px; line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+h2 { margin: 0 0 16px; font-size: 22px; line-height: 1.3; font-weight: 600; }
+p { margin: 0 0 12px; }
+.einleitung { max-width: 620px; color: var(--gedaempft); font-size: 19px; }
+.laden { display: grid; justify-items: start; gap: 10px; margin: 32px 0 48px; }
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 32px;
+  border-radius: 12px; background: var(--akzent); color: var(--auf-akzent); font-size: 18px; font-weight: 600;
+  text-decoration: none; box-shadow: inset 0 1px 0 var(--licht), var(--schatten-nah), var(--schatten-weit);
+}
+.knopf:focus-visible { outline: 3px solid var(--tinte); outline-offset: 3px; }
+.stand { color: var(--gedaempft); font-size: 14px; }
+.flaeche {
+  margin: 0 0 24px; padding: 28px; border: 1px solid var(--rand); border-radius: 16px; background: var(--flaeche);
+  box-shadow: inset 0 1px 0 var(--licht), var(--schatten-nah), var(--schatten-weit);
+}
+ol.schritte { margin: 0; padding: 0; list-style: none; counter-reset: schritt; }
+ol.schritte > li { position: relative; padding: 0 0 0 48px; counter-increment: schritt; }
+ol.schritte > li + li { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rand); }
+ol.schritte > li::before {
+  content: counter(schritt); position: absolute; left: 0; width: 32px; height: 32px; border: 1px solid var(--rand);
+  border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 600;
+}
+ol.schritte > li + li::before { top: 24px; }
+ol.schritte h3 { margin: 2px 0 6px; font-size: 18px; font-weight: 600; }
+ol.schritte p, .flaeche ul { color: var(--gedaempft); font-size: 16px; }
+.flaeche ul { margin: 8px 0 0; padding-left: 20px; }
+.flaeche ul li + li { margin-top: 6px; }
+.flaeche > p:last-child, ol.schritte p:last-child { margin-bottom: 0; }
+footer { margin-top: 40px; color: var(--gedaempft); font-size: 14px; }
+footer p { margin: 0 0 6px; }
+@media (max-width: 700px) {
+  main { padding: 32px 16px 48px; }
+  h1 { font-size: 30px; }
+  .einleitung { font-size: 17px; }
+  .flaeche { padding: 20px; }
+  .knopf { width: 100%; }
+  .laden { justify-items: stretch; }
+  ol.schritte > li { padding-left: 44px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="kopf"><img src="kingfisher.png" alt=""><span>Kingfisher</span></header>
+
+  <h1>Dein Stabschef auf dem Mac.</h1>
+  <p class="einleitung">Kingfisher bringt deine Post, deine Termine und deine Aufgaben an einen Ort und sagt dir morgens,
+    was heute wichtig ist. Es läuft ganz auf deinem Rechner, und was es sich merkt, kannst du jederzeit nachprüfen.</p>
+
+  <div class="laden">
+    <a class="knopf" href="{{DMG_LATEST}}">Für Mac laden</a>
+    <span class="stand">Fassung {{FASSUNG}} vom {{DATUM}} · kostenlos</span>
+  </div>
+
+  <section class="flaeche" aria-labelledby="schritte-titel">
+    <h2 id="schritte-titel">In drei Schritten</h2>
+    <ol class="schritte">
+      <li>
+        <h3>Docker Desktop installieren und einmal öffnen</h3>
+        <p>Docker Desktop ist kostenlos und lässt Kingfisher im Hintergrund laufen.
+          <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop laden</a>, installieren und einmal
+          öffnen, bis der Wal oben in der Menüleiste ruhig steht.</p>
+      </li>
+      <li>
+        <h3>Kingfisher.dmg öffnen und die App in „Programme“ ziehen</h3>
+        <p>Beim ersten Öffnen hält macOS die App an, weil sie nicht aus dem App Store kommt. Das erlaubst du einmal:</p>
+        <p><strong>macOS 15 oder neuer:</strong> die Meldung schließen, dann Systemeinstellungen → Datenschutz &amp;
+          Sicherheit, ganz unten bei Kingfisher auf „Dennoch öffnen“ klicken und mit deinem Passwort bestätigen.</p>
+        <p><strong>macOS 14 oder älter:</strong> die App mit der rechten Maustaste anklicken, „Öffnen“ wählen und noch
+          einmal „Öffnen“.</p>
+      </li>
+      <li>
+        <h3>Ollama installieren</h3>
+        <p>Mit <a href="https://ollama.com/download">Ollama</a> (kostenlos) beantwortet Kingfisher deine Fragen in eigenen
+          Worten, ebenfalls auf deinem Rechner. Ohne Ollama kommen Post, Termine und dein Briefing trotzdem.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="flaeche" aria-labelledby="updates-titel">
+    <h2 id="updates-titel">Neue Fassungen kommen von selbst</h2>
+    <p>Gibt es eine neue Fassung, bietet Kingfisher sie dir in der App an. Ein Klick genügt; vorher sichert es deine Daten.</p>
+    <p>Neu in Fassung {{FASSUNG}}:</p>
+    <ul>
+{{NEU}}
+    </ul>
+  </section>
+
+  <footer>
+    <p>Diese Seite setzt keine Kekse, zählt niemanden und lädt nichts von anderen Seiten.</p>
+    <p>Quelltext und Anleitung für Entwickler: <a href="{{REPO}}">auf GitHub</a>.</p>
+  </footer>
+</main>
+</body>
+</html>

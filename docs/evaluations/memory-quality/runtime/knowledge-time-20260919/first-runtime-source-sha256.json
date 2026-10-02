@@ -1,0 +1,15 @@
+{
+  "app/kingfisher/src/api.ts": "1b7d3c40a1442593762e89f2a0441a8de1d4a560c88478233a18d4e9c7d58bfc",
+  "scripts/memory_probe_fixtures.py": "fff46cd4043e0d39a8cd87a7d0bcac5029730fbf1f4aea405b82edc3bdf3887e",
+  "scripts/probe_memory_pipeline.py": "58606d233f8559616c31e7eeeac4fbe00e6e1cdda547cb66a5d1848c22ad195e",
+  "scripts/test_probe_memory_pipeline.py": "17e114ab7fb0eb712896247f34cec4a7fbd570fd35ba2f334909f0ca1733b833",
+  "sidecar/icarus_memory/agent.py": "29e0b5deb8a11689ec01a6c28f45ae9ea66f10b300caf5b133d2ddf2b720892d",
+  "sidecar/icarus_memory/context.py": "3fd975a58a008736ebca40531d0853083fc137d91342e5fc59f42b02ee2dec54",
+  "sidecar/icarus_memory/knowledge_context.py": "be51dd02631bf1006060b33c61de23eac14cd82d165f0bec85da151917665eed",
+  "sidecar/icarus_memory/knowledge_history.py": "8f9b0dd4fba8ef8bb409e6702ecff6e026186e7375881f3f4ef287976bef5432",
+  "sidecar/icarus_memory/server.py": "ff9acda3073ac5a0de826f2165799acf5dfe34a9b3735beab43c14886078332c",
+  "sidecar/tests/test_context_identity.py": "ddc9cfd074d1227c7248d2c9ce32c538d4164ff6f118e0ecf672d107461947bb",
+  "sidecar/tests/test_evidence_validity.py": "6b7ee27fa81d0214eea44fda1df9db75095a8958bb4bc781f55a3a6247d9074a",
+  "sidecar/icarus_memory/knowledge_render.py": "1daab4e38f7d693a8e7cc4799e4283236f8ab2c6ca48a4be40586c3f2377dbfc",
+  "sidecar/tests/test_knowledge_time.py": "289496fb7e7850c10e4f1aefeb3205696e016e6ceed6ea54d609801ecbb1296a"
+}

@@ -1,0 +1,17 @@
+{
+  "synthetic_only": true,
+  "scope": "low-level snapshot_all/restore_all and source state only",
+  "before": {
+    "generation": 0,
+    "current": true
+  },
+  "withdrawn": {
+    "generation": 1,
+    "current": false
+  },
+  "restored": {
+    "generation": 0,
+    "current": true
+  },
+  "withdrawal_survives_old_backup": false
+}

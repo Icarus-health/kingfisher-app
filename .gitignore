@@ -1,0 +1,49 @@
+# Lokale Konfiguration mit Secrets — niemals committen
+.env
+.env.*
+!.env.example
+
+# Token und Passphrase des Containerbetriebs, von `make start` erzeugt.
+# Eigene Zeile, weil weder `.env` noch `.env.*` darauf passen — der Name
+# beginnt nicht mit `.env`.
+.icarus.env
+.kingfisher.env
+.kingfisher.sources
+.kingfisher-notes/
+
+# Laufzeitdaten des Selbstmodells — niemals committen
+.icarus-data/
+*.sqlite3
+*.log
+sicherungen/
+exporte/
+*.icarus
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.playwright-cli/
+
+build/
+
+# Node
+node_modules/
+app/dist/
+app/kingfisher/*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Lokale Entwicklungsumgebung
+sidecar/.venv/
+
+
+# Automatische Abnahmen mit ausschließlich synthetischen Testdaten
+/verification/

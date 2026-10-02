@@ -1,0 +1,232 @@
+{
+  "conversation": {
+    "id": "c-050341d7a978",
+    "title": "Synthetischer Entscheidungstest",
+    "created_at": "2026-09-14T08:55:37.811022+00:00",
+    "updated_at": "2026-09-14T08:55:44.958189+00:00"
+  },
+  "messages": [
+    {
+      "id": "m-030cbeaa969740",
+      "conversation_id": "c-050341d7a978",
+      "role": "user",
+      "content": "Vela?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:37.933130+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-e98bdea7b20e4d",
+      "conversation_id": "c-050341d7a978",
+      "role": "assistant",
+      "content": "Ich verstehe, dass du ein Projekt namens \"Vela\" begonnen hast. Für eine genaue Bestätigung oder Details zum Projekt \"Vela\" müssten wir prüfen, ob es bereits offiziell gestartet wurde und ob es relevante Informationen oder Aufgaben darauf bezogen hat. Möchtest du eine neue Aufgabe für Vela anlegen oder mehr darüber erfahren?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:44.958189+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Vela?",
+          "generated_at": "2026-09-14T08:55:37.936897+00:00",
+          "items": [
+            {
+              "assertion_id": "a-3d18bcbdda2f",
+              "statement": "Ich habe den Start von Vela beschlossen.",
+              "kind": "decision",
+              "state": "current",
+              "reason": "Passt zum Gespräch: vela",
+              "source_type": "user_stated",
+              "source_ref": "synthetic:docker-basis",
+              "evidence_at": "2026-09-14T08:55:10.405714+00:00",
+              "confidence": null,
+              "basis": {
+                "version": 1,
+                "state": "review",
+                "reason": "changed"
+              },
+              "self_model_input": {
+                "fingerprint": "02b257f1a34c0343c55d6add4dcd934fb3c389bfd5ae06592f395cfdab0e3130",
+                "state": "current",
+                "currency": "current",
+                "basis": {
+                  "version": 1,
+                  "state": "review",
+                  "reason": "changed"
+                },
+                "basis_signature": "1e459408029d454501289b14e266c34140f12536fc348f8eb740ef4b6aa97196"
+              }
+            }
+          ],
+          "withheld_count": 0,
+          "basis_omitted": false,
+          "knowledge_retrieval": {
+            "query_terms_total": 1,
+            "query_terms_used": 1,
+            "query_truncated": false,
+            "candidate_limit": 128,
+            "candidates_returned": 0,
+            "candidates_truncated": false,
+            "selection_truncated": false,
+            "truncated": false
+          },
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 2,
+          "self_model_inputs": {
+            "a-3d18bcbdda2f": {
+              "fingerprint": "02b257f1a34c0343c55d6add4dcd934fb3c389bfd5ae06592f395cfdab0e3130",
+              "state": "current",
+              "currency": "current",
+              "basis": {
+                "version": 1,
+                "state": "review",
+                "reason": "changed"
+              },
+              "basis_signature": "1e459408029d454501289b14e266c34140f12536fc348f8eb740ef4b6aa97196"
+            }
+          },
+          "self_model_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T08:55:37.936549+00:00",
+            "window_from": "2026-09-14T08:55:37.936549+00:00",
+            "window_to": "2026-09-21T08:55:37.936549+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T08:55:37.938170+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    }
+  ],
+  "context": {
+    "query": "Vela?",
+    "generated_at": "2026-09-14T08:55:37.936897+00:00",
+    "items": [
+      {
+        "assertion_id": "a-3d18bcbdda2f",
+        "statement": "Ich habe den Start von Vela beschlossen.",
+        "kind": "decision",
+        "state": "current",
+        "reason": "Passt zum Gespräch: vela",
+        "source_type": "user_stated",
+        "source_ref": "synthetic:docker-basis",
+        "evidence_at": "2026-09-14T08:55:10.405714+00:00",
+        "confidence": null,
+        "basis": {
+          "version": 1,
+          "state": "review",
+          "reason": "changed"
+        },
+        "self_model_input": {
+          "fingerprint": "02b257f1a34c0343c55d6add4dcd934fb3c389bfd5ae06592f395cfdab0e3130",
+          "state": "current",
+          "currency": "current",
+          "basis": {
+            "version": 1,
+            "state": "review",
+            "reason": "changed"
+          },
+          "basis_signature": "1e459408029d454501289b14e266c34140f12536fc348f8eb740ef4b6aa97196"
+        }
+      }
+    ],
+    "withheld_count": 0,
+    "basis_omitted": false,
+    "knowledge_retrieval": {
+      "query_terms_total": 1,
+      "query_terms_used": 1,
+      "query_truncated": false,
+      "candidate_limit": 128,
+      "candidates_returned": 0,
+      "candidates_truncated": false,
+      "selection_truncated": false,
+      "truncated": false
+    },
+    "memory_revision": 0,
+    "history_egress": "local_only",
+    "history_omitted": false,
+    "knowledge_claim_lineage_version": 1,
+    "knowledge_claim_ids": [],
+    "knowledge_history_reset": false,
+    "self_model_lineage_version": 2,
+    "self_model_inputs": {
+      "a-3d18bcbdda2f": {
+        "fingerprint": "02b257f1a34c0343c55d6add4dcd934fb3c389bfd5ae06592f395cfdab0e3130",
+        "state": "current",
+        "currency": "current",
+        "basis": {
+          "version": 1,
+          "state": "review",
+          "reason": "changed"
+        },
+        "basis_signature": "1e459408029d454501289b14e266c34140f12536fc348f8eb740ef4b6aa97196"
+      }
+    },
+    "self_model_history_reset": false,
+    "calendar": {
+      "status": "disabled",
+      "scope": "selected_mac_calendars",
+      "observed_at": "2026-09-14T08:55:37.936549+00:00",
+      "window_from": "2026-09-14T08:55:37.936549+00:00",
+      "window_to": "2026-09-21T08:55:37.936549+00:00",
+      "synced_at": null,
+      "coverage": "unknown",
+      "events": [],
+      "truncated": false,
+      "invalid_count": 0
+    },
+    "calendar_model_context": false,
+    "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+    "calendar_history_reset": false,
+    "coverage": {
+      "total_sources": 0,
+      "sampled_sources": 0,
+      "counts": {
+        "pending": 0,
+        "running": 0,
+        "partial": 0,
+        "completed": 0,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-14T08:55:37.938170+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    }
+  },
+  "action_requests": [],
+  "memory_candidates": []
+}

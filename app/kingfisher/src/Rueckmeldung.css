@@ -1,0 +1,33 @@
+/* Rückkanal für Fehler: still, bis man ihn braucht (docs/16-gestaltung.md). Nur vorhandene Farbvariablen. */
+.stimmt-nicht-link { min-height: 28px; padding: 0; border: 0; background: none; color: var(--kf-schrift-5f777d); font: inherit; font-size: 11px; line-height: 16px; text-decoration: underline; text-decoration-color: var(--kf-rand-b9cac8); text-underline-offset: 3px; cursor: pointer; justify-self: start; }
+.stimmt-nicht-link:hover { color: var(--kf-schrift-31535f); }
+.stimmt-nicht-link:focus-visible, .stimmt-nicht-arten button:focus-visible, .stimmt-nicht-feld input:focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 2px; }
+.stimmt-nicht-link:disabled { opacity: .45; cursor: default; }
+.message .stimmt-nicht-gemerkt { margin: 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; }
+.stimmt-nicht { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid var(--kf-rand-d7e1df); max-width: 560px; }
+.message .stimmt-nicht p { margin: 0; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; white-space: normal; }
+.stimmt-nicht-arten { display: flex; flex-wrap: wrap; gap: 6px; }
+.stimmt-nicht-arten button { min-height: 32px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 999px; background: var(--kf-flaeche-f8fbfa); color: var(--kf-schrift-31535f); font: inherit; font-size: 12px; cursor: pointer; }
+.stimmt-nicht-arten button:hover { border-color: var(--kf-rand-b9cac8); }
+.stimmt-nicht-arten button[aria-pressed="true"] { border-color: var(--kf-rand-063e55); color: var(--kf-schrift-062b3a); font-weight: 600; }
+.stimmt-nicht-arten button:disabled { opacity: .45; cursor: default; }
+.stimmt-nicht-feld { display: grid; gap: 4px; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; }
+.stimmt-nicht-feld small { color: var(--kf-schrift-5f777d); font-size: 11px; }
+.stimmt-nicht-feld input { min-height: 36px; padding: 0 10px; border: 1px solid var(--kf-rand-b9cac8); border-radius: 8px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: inherit; font-size: 13px; }
+.message .stimmt-nicht .stimmt-nicht-fehler { color: var(--kf-schrift-5f777d); font-weight: 600; }
+.stimmt-nicht-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.stimmt-nicht-aktionen .secondary-action { min-height: 32px; }
+
+.rueckmeldungen { padding: 22px 26px 24px; }
+.rueckmeldungen h2 { margin: 0 0 8px; }
+.rueckmeldungen > p { margin: 0 0 12px; }
+.rueckmeldungen-zahl { font-weight: 600; }
+.rueckmeldungen-liste { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; }
+.rueckmeldungen-liste li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.rueckmeldungen-liste li:last-child { border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.rueckmeldungen-liste li > div { display: grid; gap: 2px; min-width: 0; }
+.rueckmeldungen-liste strong { font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.rueckmeldungen-liste small, .rueckmeldungen-export small { color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
+.rueckmeldung-erledigt strong { color: var(--kf-schrift-5f777d); font-weight: 500; }
+.rueckmeldungen-export { display: grid; gap: 8px; justify-items: start; }
+.rueckmeldungen-export code { font-size: 11px; }

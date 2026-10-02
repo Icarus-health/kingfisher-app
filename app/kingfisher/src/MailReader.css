@@ -1,0 +1,57 @@
+.mail-reader { min-height: 100vh; max-width: 900px; padding: 28px 48px 72px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
+.mail-reader-header { display: flex; align-items: center; justify-content: space-between; min-height: 42px; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.mail-reader-close, .mail-reader-secondary, .mail-reader-primary { min-height: 38px; border-radius: 8px; padding: 0 14px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.mail-reader-close, .mail-reader-secondary { border: 1px solid var(--kf-rand-d7e1df); color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
+.mail-reader-source, .mail-reader-eyebrow { color: var(--kf-schrift-8a6a2c); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.mail-reader-meta { padding: 42px 0 28px; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.mail-reader-eyebrow { margin: 0 0 9px; }
+.mail-reader-meta h1 { max-width: 760px; margin: 0 0 24px; color: var(--kf-schrift-062b3a); font-family: "Cormorant Garamond", Georgia, serif; font-size: 38px; line-height: 42px; font-weight: 600; }
+.mail-reader-meta dl { display: grid; gap: 8px; margin: 0; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; }
+.mail-reader-meta dl div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
+.mail-reader-meta dt { font-weight: 700; }
+.mail-reader-meta dd { margin: 0; overflow-wrap: anywhere; }
+.mail-reader-body { padding: 34px 0; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.mail-reader-body pre { margin: 0; color: var(--kf-schrift-062b3a); font: 400 14px/23px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mail-reader-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 24px 0 12px; }
+.mail-reader-status { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
+.mail-reader-reply { display: grid; gap: 9px; margin-top: 20px; padding: 24px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-f7f5ef); }
+.mail-reader-reply label { color: var(--kf-schrift-062b3a); font-size: 13px; font-weight: 700; }
+.mail-reader-reply-target { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; overflow-wrap: anywhere; }
+.mail-reader-reply textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 12px; outline: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 13px/20px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.mail-reader-reply textarea:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
+.mail-reader-reply-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
+.mail-reader-primary { border: 1px solid var(--kf-rand-063e55); color: var(--kf-schrift-fffefa); background: var(--kf-flaeche-063e55); }
+.mail-reader-primary:disabled, .mail-reader-secondary:disabled { cursor: default; opacity: .5; }
+.mail-task-form { display: grid; gap: 18px; margin-top: 20px; padding: 24px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-f7f5ef); }
+.mail-task-form-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; }
+.mail-task-form h2 { margin: 0; color: var(--kf-schrift-062b3a); font-family: "Cormorant Garamond", Georgia, serif; font-size: 25px; line-height: 28px; font-weight: 600; }
+.mail-task-form form { display: grid; gap: 9px; }
+.mail-task-form label { display: grid; gap: 6px; color: var(--kf-schrift-062b3a); font-size: 12px; font-weight: 700; }
+.mail-task-form input, .mail-task-form select { min-height: 38px; width: 100%; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 8px 10px; outline: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 13px/20px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.mail-task-form input:focus, .mail-task-form select:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
+.mail-task-suggestions { display: grid; gap: 10px; }
+.mail-task-suggestions-list { display: grid; gap: 10px; }
+.mail-task-suggestion { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); }
+.mail-task-suggestion-title, .mail-task-suggestion-quote { margin: 0; font-size: 12px; line-height: 17px; }
+.mail-task-suggestion-title { color: var(--kf-schrift-062b3a); font-weight: 700; }
+.mail-task-suggestion-quote { margin-top: 4px; color: var(--kf-schrift-31535f); }
+.mail-task-form-fields { display: grid; grid-template-columns: 1.25fr .75fr 1fr; gap: 12px; }
+.mail-task-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mail-task-form-success { margin: 0; color: var(--kf-schrift-176b4d); font-size: 12px; line-height: 17px; }
+.mail-task-form-success a { color: var(--kf-schrift-007e92); font-weight: 700; }
+.mail-reader-loading { padding: 44px 0; color: var(--kf-schrift-31535f); font-size: 12px; }
+.mail-reader-error { margin: 24px 0; color: var(--kf-schrift-bf3b44); font-size: 12px; line-height: 17px; }
+.mail-reader-error p { margin: 0 0 8px; }
+.mail-reader-error button { border: 0; padding: 0; color: var(--kf-schrift-007e92); background: transparent; font: inherit; font-weight: 600; cursor: pointer; }
+@media (max-width: 680px) {
+  .mail-reader { padding: 20px 20px 48px; }
+  .mail-reader-meta h1 { font-size: 32px; line-height: 36px; }
+  .mail-reader-reply-footer { align-items: stretch; flex-direction: column; }
+  .mail-task-form { padding: 20px; }
+  .mail-task-form-heading, .mail-task-form-footer { align-items: stretch; flex-direction: column; }
+  .mail-task-form-fields { grid-template-columns: 1fr; }
+  .mail-task-suggestion { flex-direction: column; }
+}
+
+.task-suggestion-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 14px; }
+.task-suggestion-actions { display: flex; gap: 8px; flex-wrap: wrap; }

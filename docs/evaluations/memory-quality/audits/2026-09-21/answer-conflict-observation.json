@@ -1,0 +1,9 @@
+{
+  "question": "Welche Frist gilt für Aurora?",
+  "accepted": "Die Frist für Aurora ist der 22. September.",
+  "conflicting_candidate": "Die Frist für Aurora ist der 26. September.",
+  "clarifications_count": 1,
+  "reply": "Gespeicherte Aussagen mit Quellenbezug:\n\n[1] Gespeicherte Aussage: Die Frist für Aurora ist der 22. September.\nQuelle [1]: E-Mail · \"synthetic:1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T09:00:00+00:00",
+  "status": "evidence",
+  "warning_in_reply": false
+}

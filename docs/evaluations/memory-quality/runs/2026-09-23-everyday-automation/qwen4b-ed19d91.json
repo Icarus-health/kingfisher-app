@@ -1,0 +1,781 @@
+{
+  "case_file_sha256": "f89c894605b068adb6abb47c7d6b8c10283dbc4b8543ed66cbc8e2c2edad8f68",
+  "provider_mode": "real",
+  "model": "qwen3.5:4b",
+  "model_endpoint": "127.0.0.1 (local Ollama)",
+  "synthetic_only": true,
+  "network_enabled": true,
+  "started_at": "2026-09-23T14:40:19.444807+02:00",
+  "classification_method": "existing scheduler._run_working_memory worker; no direct commit",
+  "source_revision": "ed19d91acbcc8435c38fe52fa262af182075be36",
+  "source_tree_clean": true,
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "failures": [],
+  "finished_at": "2026-09-23T14:40:51.381064+02:00",
+  "mail_send_count": 0,
+  "assessment_note": "Bounded single pass over the selected frozen cases; fake-provider runs verify harness route coverage only. Real mode uses the already-installed local model; no approval is posted and mail-send counts come from the synthetic sink.",
+  "raw_artifact_sha256": "ce931df2af2a5afac01970b02c2325e882cb5b4f8e62f828339e03cb65b5caa4",
+  "model_seconds": 29.702,
+  "model_calls": 18,
+  "harness_limit": "Chat limited to one tool round; source selection uses the real local model. Not a production conversation-length test.",
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "title": "Normale Chatangabe wird automatisch aufgenommen und wiedergefunden",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-883a409dfc37",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "conversation_id": "c-e6fb655aff7b",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nBitte · Gesprächsausschnitt\nFür den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.\nQuellenzeit: 2026-09-23T14:40:19.742881+02:00",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-883a409dfc37"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-883a409dfc37",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "email_document_conditions",
+      "title": "Bedingungen aus Mail und Dokument bleiben gemeinsam sichtbar",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-29d8620135b7",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        },
+        {
+          "alias": "S2",
+          "episode_id": "e-9524ae620a49",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was muss vor Termin und Versand noch passieren?",
+          "conversation_id": "c-dc997b190e08",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S2.txt\nDer Keramikversand darf erst erfolgen, wenn alle drei Prüfmesswerte gegengezeichnet sind.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-9524ae620a49"
+          ],
+          "selected_source_aliases": [
+            "S2"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-9524ae620a49",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "fail",
+            "reasons": [
+              "answer did not meet frozen content/status checks",
+              "selected source aliases ['S2'] != frozen ['S1', 'S2']"
+            ]
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "same_name_different_projects",
+      "title": "Gleichnamige Personen in verschiedenen Projekten nicht verschmelzen",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-523211f219fa",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        },
+        {
+          "alias": "S2",
+          "episode_id": "e-c400368e98b4",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was hat Lena Vogt zur Keramikprobe entschieden?",
+          "conversation_id": "c-f5b631b95c5c",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nBitte · Synthetic\nLena Vogt aus Projekt Orion bittet noch um eine überarbeitete Keramikprobe; eine Freigabe liegt nicht vor.\nQuellenzeit: unbekannt\n\nAngabe · Synthetic\nLena Vogt aus Projekt Atlas hat die Keramikproben freigegeben.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-c400368e98b4",
+            "e-523211f219fa"
+          ],
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-c400368e98b4",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            },
+            {
+              "episode_id": "e-523211f219fa",
+              "label": "Quelle 2 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed",
+      "explicit_project_links": [
+        {
+          "alias": "S1",
+          "project": "Projekt Atlas",
+          "project_id": "p-140ae68a6ddc",
+          "task_status": 201,
+          "source_episode_id": "e-523211f219fa"
+        },
+        {
+          "alias": "S2",
+          "project": "Projekt Orion",
+          "project_id": "p-844a0fce7fae",
+          "task_status": 201,
+          "source_episode_id": "e-c400368e98b4"
+        }
+      ]
+    },
+    {
+      "id": "explicit_meeting_time_correction",
+      "title": "Ausdrückliche Terminkorrektur ersetzt die frühere Uhrzeit",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-5249b23f4679",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Bereite mich auf die Keramikprüfung Mainz vor. Wann ist der Termin?",
+          "conversation_id": "c-083024a07f92",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: synthetic-S1.txt\nKorrektur zur Besprechung Keramikprüfung Mainz: Die Uhrzeit am 8. Oktober 2026 ist 15:30 Uhr, nicht 14:00 Uhr.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-0db9ecb18a13"
+          ],
+          "selected_source_aliases": [
+            "S2"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-0db9ecb18a13",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "relative_date_without_timestamp",
+      "title": "Relativer Termin ohne belegten Quellenzeitpunkt bleibt relativ",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-e92dc3d914e1",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "An welchem Datum kommt die Keramikprobe?",
+          "conversation_id": "c-d917a81429b3",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nZusage · Synthetic\nWir können die Keramikprobe nächsten Freitag liefern.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-e92dc3d914e1"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-e92dc3d914e1",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "withdrawal_invalidates_answer_history",
+      "title": "Quellenentzug entwertet Suche und alte Antwort",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-83b75ba7abe0",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "before_withdrawal",
+          "conversation_id": "c-9ad0f0e25c3b",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S1.txt\nAnna liefert die Keramikproben am 22. Oktober 2026, wenn die Laborfreigabe vorliegt.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-83b75ba7abe0"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-83b75ba7abe0",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        },
+        {
+          "stage": "old_conversation_after_withdrawal",
+          "contract_status": "working_unavailable",
+          "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+          "selected_source_aliases": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        },
+        {
+          "stage": "fresh_question_after_withdrawal",
+          "conversation_id": "c-9fb6e41fec0a",
+          "http_status": 201,
+          "answer": "Ich weiß, dass Anna Keramikproben einliefert soll, aber mir sind die genauen Liefertermine und Bedingungen nicht bekannt. Hast du einen Terminplan oder eine Aufgabenliste, in dem sich dieser Vorgang befindet? Ich kann dann prüfen, ob eine konkrete Deadline oder Anforderung hinterlegt ist.",
+          "contract_status": null,
+          "selected_episode_ids": [],
+          "selected_source_aliases": [],
+          "source_links": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "shared_state_cos_workflow",
+      "title": "Tagesübersicht, Terminvorbereitung und echte Antwort-API teilen dieselbe Mailquelle",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-d8d8ea09c735",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "today",
+          "http_status": 200,
+          "raw": {
+            "generated_at": "2026-09-23T14:40:50.141236+02:00",
+            "timezone": "Europe/Berlin",
+            "greeting": "Guten Tag, Lena.",
+            "relevance_count": 2,
+            "needs_you": [
+              {
+                "id": "attn-f704e7bb8651da",
+                "kind": "need",
+                "title": "Um 23:50 Uhr ist „Keramiktest Mainz — Vorbereitungsgespräch“ (Synthetic room).",
+                "detail": "Quelle: termin",
+                "priority": "Hoch",
+                "source": "termin",
+                "source_ref": "test:meeting",
+                "reason": "Um 23:50 Uhr ist „Keramiktest Mainz — Vorbereitungsgespräch“ (Synthetic room).",
+                "action": "Vorbereiten"
+              },
+              {
+                "id": "attn-ba3eb914736202",
+                "kind": "need",
+                "title": "Eine ungelesene Nachricht liegt im Postfach.",
+                "detail": "Quelle: mail",
+                "priority": "Hoch",
+                "source": "mail",
+                "source_ref": null,
+                "reason": "Eine ungelesene Nachricht liegt im Postfach.",
+                "action": "Ansehen"
+              }
+            ],
+            "happening_now": [
+              {
+                "id": "attn-ab8af9065d516e",
+                "kind": "activity",
+                "title": "Keramiktest Mainz: Rückfrage",
+                "detail": "Alex <sender@example.invalid>",
+                "icon": "mail",
+                "source": "mail",
+                "source_ref": "work:2",
+                "reason": "Ungelesene Nachricht",
+                "action": null
+              },
+              {
+                "id": "attn-38d5c693e2b376",
+                "kind": "activity",
+                "title": "Keramiktest Mainz",
+                "detail": "Quelle berichtet · Statusmeldung",
+                "icon": "brain",
+                "source": "working_memory",
+                "source_ref": "e-d8d8ea09c735",
+                "reason": "In den letzten 24 Stunden aufgenommen; keine bestätigte Aussage",
+                "action": null
+              },
+              {
+                "id": "attn-af60b0770fd920",
+                "kind": "activity",
+                "title": "Neue Hinweise",
+                "detail": "1 Quelle aufgenommen",
+                "icon": "brain",
+                "source": "episodes",
+                "source_ref": null,
+                "reason": "Ungesichtetes Material",
+                "action": null
+              }
+            ],
+            "working_memory_more": false,
+            "later_today": [
+              {
+                "id": "attn-3a16f1f64be145",
+                "time": "23:50",
+                "title": "Keramiktest Mainz — Vorbereitungsgespräch",
+                "detail": "Synthetic room",
+                "source": "calendar",
+                "source_ref": "test:meeting",
+                "reason": "Heute geplant",
+                "action": null
+              }
+            ],
+            "timeline": [
+              {
+                "id": "yesterday",
+                "label": "GESTERN",
+                "icon": "mail",
+                "tone": "navy"
+              },
+              {
+                "id": "now",
+                "label": "JETZT",
+                "icon": "brand",
+                "tone": "navy"
+              },
+              {
+                "id": "later",
+                "label": "SPÄTER",
+                "icon": "circle-alert",
+                "tone": "orange"
+              }
+            ],
+            "weather": null,
+            "partial_failures": [],
+            "fixture": false
+          }
+        },
+        {
+          "stage": "calendar_preparation",
+          "http_status": 200,
+          "raw": {
+            "event": {
+              "uid": "test:meeting",
+              "summary": "Keramiktest Mainz — Vorbereitungsgespräch",
+              "start": "2026-09-23T23:50:00+02:00",
+              "end": null,
+              "location": "Synthetic room",
+              "attendees": [],
+              "all_day": false,
+              "source_id": "test",
+              "source_label": "Synthetic calendar"
+            },
+            "project": {
+              "id": "p-9d5bae961196",
+              "name": "Keramiktest Mainz",
+              "area": null,
+              "status": "active",
+              "priority": "medium",
+              "description": null,
+              "provenance": {
+                "source_type": "user_stated",
+                "captured_at": "2026-09-23T12:40:50.152333Z"
+              },
+              "created_at": "2026-09-23T14:40:50.153607+02:00",
+              "deadline": null,
+              "closed_at": null,
+              "tags": [],
+              "open": true
+            },
+            "person": null,
+            "tasks": [
+              {
+                "id": "t-86f6bbc1efb6",
+                "title": "Drei Messwerte zusammentragen",
+                "status": "open",
+                "provenance": {
+                  "source_type": "user_stated",
+                  "source_ref": "episode:e-d8d8ea09c735",
+                  "captured_at": "2026-09-23T12:40:50.159784Z"
+                },
+                "created_at": "2026-09-23T14:40:50.160556+02:00",
+                "due": null,
+                "notes": null,
+                "done_at": null,
+                "tags": [],
+                "project_id": "p-9d5bae961196",
+                "wartet_auf": null,
+                "wartet_seit": null,
+                "wartet_tage": null,
+                "overdue": false
+              }
+            ],
+            "decisions": [],
+            "claims": [],
+            "notes": [],
+            "sources": [
+              {
+                "id": "e-d8d8ea09c735",
+                "kind": "message",
+                "title": "Keramiktest Mainz",
+                "body": "Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.",
+                "digest": "sha256:41bf40fe14c652c85d08a81e5d1eec102ddc46de5abceacb84347aa0453c37c9",
+                "provenance": {
+                  "source_type": "email",
+                  "source_ref": "work:<1@example.invalid>",
+                  "captured_at": "2026-09-22T07:00:00Z"
+                },
+                "recorded_at": "2026-09-23T14:40:49.141476+02:00",
+                "occurred_at": "2026-09-22T09:00:00+02:00",
+                "state": "new",
+                "project_id": null,
+                "participants": [
+                  "Alex <sender@example.invalid>"
+                ],
+                "produced": [],
+                "consolidated_at": null,
+                "tags": [],
+                "covers": [],
+                "period": "",
+                "reason": "Quelle einer offenen Aufgabe",
+                "truncated": false,
+                "working_kinds": [
+                  "status"
+                ]
+              }
+            ],
+            "sources_more": false,
+            "working_memory_more": false
+          }
+        },
+        {
+          "stage": "reply_draft",
+          "http_status": 200,
+          "raw": {
+            "suggestion_http": 200,
+            "suggestion": {
+              "body": "In einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+              "basis": "source_quotes",
+              "context_token": "03HZDdVods9mBDLGbdKfTHbkBEI1OUKAdpzEiwQdW9U",
+              "source_status": "reports",
+              "sources": [
+                {
+                  "episode_id": "e-d8d8ea09c735",
+                  "title": "Keramiktest Mainz"
+                }
+              ]
+            },
+            "sent_before": 0,
+            "prepare_http": 201,
+            "prepared": {
+              "conversation": {
+                "id": "c-b65a749ecd0c",
+                "title": "Antwort: Keramiktest Mainz: Rückfrage",
+                "created_at": "2026-09-23T14:40:51.340680+02:00",
+                "updated_at": "2026-09-23T14:40:51.343800+02:00"
+              },
+              "messages": [
+                {
+                  "id": "m-d3dbad28168949",
+                  "conversation_id": "c-b65a749ecd0c",
+                  "role": "user",
+                  "content": "Mein Antwortentwurf:\n\nIn einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+                  "status": "complete",
+                  "created_at": "2026-09-23T14:40:51.342169+02:00",
+                  "metadata": {
+                    "mail_reply_context": {
+                      "token": "03HZDdVods9mBDLGbdKfTHbkBEI1OUKAdpzEiwQdW9U",
+                      "source_ids": [
+                        "e-d8d8ea09c735"
+                      ],
+                      "selection_proof": {
+                        "version": 1,
+                        "query": "Was ist zum Antwortvorgang von Alex <sender@example.invalid> bekannt? Betreff: Keramiktest Mainz: Rückfrage. Mail: Kannst du mir den Stand zur Freigabe und zum Vorbereitungsgespräch Keramiktest Mainz bestätigen?. Mein Hinweis: Bitte bereite einen Antwortentwurf vor, der den offenen Stand berücksichtigt.",
+                        "basis": [
+                          {
+                            "episode_id": "e-d8d8ea09c735",
+                            "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d",
+                            "start": 0,
+                            "end": 147,
+                            "kind": "status"
+                          }
+                        ],
+                        "refs": [
+                          {
+                            "episode_id": "e-d8d8ea09c735",
+                            "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d",
+                            "start": 0,
+                            "end": 147,
+                            "kind": "status"
+                          }
+                        ],
+                        "claim_basis": {},
+                        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                        "candidate_signature": "12ea461ca9414c7865875e964d4be9d313adacbfd22c0dfb2be1affc3821b946",
+                        "status": "reports",
+                        "uncertainty": "none",
+                        "limited": false,
+                        "retrieval_query": "Keramiktest Mainz: Rückfrage"
+                      },
+                      "conversation_source_lineage": [
+                        {
+                          "episode_id": "e-d8d8ea09c735",
+                          "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d"
+                        }
+                      ]
+                    },
+                    "context": {
+                      "source_links": [
+                        {
+                          "episode_id": "e-d8d8ea09c735",
+                          "label": "Rohquelle ansehen",
+                          "automatic_memory": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "m-8cc70d4539464d",
+                  "conversation_id": "c-b65a749ecd0c",
+                  "role": "assistant",
+                  "content": "Die Antwort ist vorbereitet. Bitte Empfänger, Absender und Inhalt prüfen, bevor du den Versand freigibst.",
+                  "status": "complete",
+                  "created_at": "2026-09-23T14:40:51.343800+02:00",
+                  "metadata": {
+                    "approvals": [
+                      {
+                        "id": "ap-54e564bf4524",
+                        "tool": "mail_senden",
+                        "arguments": {
+                          "to": "Alex <sender@example.invalid>",
+                          "subject": "Re: Keramiktest Mainz: Rückfrage",
+                          "body": "In einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+                          "in_reply_to": "<2@example.invalid>",
+                          "account_id": "work"
+                        },
+                        "action_class": "outward",
+                        "level": "confirm_strict",
+                        "reasons": [],
+                        "dry_run": "E-Mail senden\nVon:     Synthetic work (owner@example.invalid)\nAn:      Alex <sender@example.invalid>\nBetreff: Re: Keramiktest Mainz: Rückfrage\nAntwort auf: <2@example.invalid>\n---\nIn einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+                        "requested_at": "2026-09-23T12:40:51.339093+00:00",
+                        "expires_at": "2026-09-23T12:50:51.339093+00:00",
+                        "confirmation_phrase": "Alex <sender@example.invalid>"
+                      }
+                    ],
+                    "mail_source": {
+                      "uid": "work:2",
+                      "account_id": "work"
+                    },
+                    "context": {
+                      "items": [],
+                      "history_egress": "local_only",
+                      "knowledge_claim_lineage_version": 2,
+                      "knowledge_claim_ids": [],
+                      "knowledge_inputs": {},
+                      "knowledge_history_reset": false,
+                      "self_model_lineage_version": 3,
+                      "self_model_inputs": {},
+                      "self_model_history_reset": false
+                    },
+                    "mail_reply_context": {
+                      "token": "03HZDdVods9mBDLGbdKfTHbkBEI1OUKAdpzEiwQdW9U",
+                      "source_ids": [
+                        "e-d8d8ea09c735"
+                      ],
+                      "selection_proof": {
+                        "version": 1,
+                        "query": "Was ist zum Antwortvorgang von Alex <sender@example.invalid> bekannt? Betreff: Keramiktest Mainz: Rückfrage. Mail: Kannst du mir den Stand zur Freigabe und zum Vorbereitungsgespräch Keramiktest Mainz bestätigen?. Mein Hinweis: Bitte bereite einen Antwortentwurf vor, der den offenen Stand berücksichtigt.",
+                        "basis": [
+                          {
+                            "episode_id": "e-d8d8ea09c735",
+                            "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d",
+                            "start": 0,
+                            "end": 147,
+                            "kind": "status"
+                          }
+                        ],
+                        "refs": [
+                          {
+                            "episode_id": "e-d8d8ea09c735",
+                            "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d",
+                            "start": 0,
+                            "end": 147,
+                            "kind": "status"
+                          }
+                        ],
+                        "claim_basis": {},
+                        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                        "candidate_signature": "12ea461ca9414c7865875e964d4be9d313adacbfd22c0dfb2be1affc3821b946",
+                        "status": "reports",
+                        "uncertainty": "none",
+                        "limited": false,
+                        "retrieval_query": "Keramiktest Mainz: Rückfrage"
+                      },
+                      "conversation_source_lineage": [
+                        {
+                          "episode_id": "e-d8d8ea09c735",
+                          "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d"
+                        }
+                      ]
+                    },
+                    "conversation_source_lineage": [
+                      {
+                        "episode_id": "e-d8d8ea09c735",
+                        "fingerprint": "bed2a4fe2a63d14664103f9ee0d19647435a0ef18be7c0581e344324bb43109d"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "context": {
+                "items": [],
+                "history_egress": "local_only",
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "memory_revision": 0
+              },
+              "action_requests": [
+                {
+                  "id": "ap-54e564bf4524",
+                  "tool": "mail_senden",
+                  "arguments": {
+                    "to": "Alex <sender@example.invalid>",
+                    "subject": "Re: Keramiktest Mainz: Rückfrage",
+                    "body": "In einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+                    "in_reply_to": "<2@example.invalid>",
+                    "account_id": "work"
+                  },
+                  "action_class": "outward",
+                  "level": "confirm_strict",
+                  "reasons": [],
+                  "dry_run": "E-Mail senden\nVon:     Synthetic work (owner@example.invalid)\nAn:      Alex <sender@example.invalid>\nBetreff: Re: Keramiktest Mainz: Rückfrage\nAntwort auf: <2@example.invalid>\n---\nIn einer früheren Nachricht von Alex <sender@example.invalid> vom 22.09.2026 um 09:00 UTC+02:00 steht:\n\n„Das Vorbereitungsgespräch ist am 23. September 2026 um 23:50 Uhr. Vorher benötige ich die drei Messwerte; die schriftliche Freigabe ist noch offen.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+                  "requested_at": "2026-09-23T12:40:51.339093+00:00",
+                  "expires_at": "2026-09-23T12:50:51.339093+00:00",
+                  "confirmation_phrase": "Alex <sender@example.invalid>",
+                  "message_id": "m-8cc70d4539464d",
+                  "state": "pending"
+                }
+              ],
+              "memory_candidates": []
+            },
+            "sent_after": 0,
+            "outward_sink_calls_after_prepare": 0,
+            "approval_pending": true,
+            "selected_source_aliases": [
+              "S1"
+            ],
+            "basis": "source_quotes",
+            "draft_quotes_complete_source": true,
+            "context_token_present": true
+          }
+        }
+      ],
+      "status": "completed",
+      "checks": {
+        "today_event_and_source_row": true,
+        "preparation_keeps_full_open_source": true,
+        "reply_uses_exact_prior_source": true,
+        "reply_quotes_complete_source": true,
+        "reply_prepared_pending_no_send": true
+      }
+    }
+  ]
+}

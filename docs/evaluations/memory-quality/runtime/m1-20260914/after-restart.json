@@ -1,0 +1,274 @@
+{
+  "conversation": {
+    "id": "c-75ff00fee70e",
+    "title": "Welche Rolle hat Ada im Projekt Quellprobe? Antworte nur aus",
+    "created_at": "2026-09-14T07:19:57.958766+00:00",
+    "updated_at": "2026-09-14T07:22:28.149099+00:00"
+  },
+  "messages": [
+    {
+      "id": "m-4658dc85299145",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "user",
+      "content": "Welche Rolle hat Ada im Projekt Quellprobe? Antworte nur aus den vorhandenen Belegen.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:19:57.968407+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-75129338c3774f",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "assistant",
+      "content": "Ada leitet das Projekt Quellprobe. Das ist der einzige relevant gezeigte Beleg.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:20:19.342194+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Rolle hat Ada im Projekt Quellprobe? Antworte nur aus den vorhandenen Belegen.",
+          "generated_at": "2026-09-14T07:19:57.971456+00:00",
+          "items": [
+            {
+              "assertion_id": "claim:k-469b060eb067",
+              "statement": "Ada leitet das synthetische Projekt Quellprobe.",
+              "kind": "knowledge",
+              "state": "current",
+              "reason": "Passt zum Gespräch: ada, projekt, quellprobe",
+              "source_type": "user_stated",
+              "source_ref": "synthetic:docker-m1",
+              "evidence_at": "2026-09-14T07:19:56.760863+00:00",
+              "confidence": null
+            }
+          ],
+          "withheld_count": 0,
+          "memory_revision": 1,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [
+            "k-469b060eb067"
+          ],
+          "knowledge_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:19:57.970912+00:00",
+            "window_from": "2026-09-14T07:19:57.970912+00:00",
+            "window_to": "2026-09-21T07:19:57.970912+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 1,
+            "sampled_sources": 1,
+            "counts": {
+              "pending": 1,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:19:57.972114+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-e9ca27599c884d",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "user",
+      "content": "Welche Rolle hat Ada jetzt laut aktuell gültigen Belegen?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:21:27.915680+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-a3a23075dfb14f",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "assistant",
+      "content": "Ich kann keine spezifische Rolle für Ada im aktuellen Kontext identifizieren. Könnten Sie mehr Informationen oder einen spezifischen Beleg bereitstellen, damit ich Ihnen genauere Auskunft geben kann?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:21:31.096557+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [
+          "Frühere Wissensableitungen sind nicht mehr aktuell oder ihre Herkunft ist unvollständig. Sie bleiben im Gespräch gespeichert und werden für diese Antwort zurückgestellt."
+        ],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Rolle hat Ada jetzt laut aktuell gültigen Belegen?",
+          "generated_at": "2026-09-14T07:21:27.925799+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "memory_revision": 1,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": true,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:21:27.924835+00:00",
+            "window_from": "2026-09-14T07:21:27.924835+00:00",
+            "window_to": "2026-09-21T07:21:27.924835+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 1,
+            "sampled_sources": 1,
+            "counts": {
+              "pending": 1,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:21:27.927690+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-00f15f94b54e45",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "user",
+      "content": "Welche belegte Information hast du zu Ada?",
+      "status": "complete",
+      "created_at": "2026-09-14T07:22:25.131905+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-39edf9ff499744",
+      "conversation_id": "c-75ff00fee70e",
+      "role": "assistant",
+      "content": "Nach meinem derzeitigen Wissen gibt es keine spezifischen Informationen oder Belege zum Thema Ada. Wenn Sie mehr Details oder spezifische Fragen zu Ada haben, lassen Sie es mich wissen, und ich helfe Ihnen gerne weiter.",
+      "status": "complete",
+      "created_at": "2026-09-14T07:22:28.149099+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Welche Rolle hat Ada jetzt laut aktuell gültigen Belegen?\nWelche belegte Information hast du zu Ada?",
+          "generated_at": "2026-09-14T07:22:25.138366+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "memory_revision": 1,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T07:22:25.136021+00:00",
+            "window_from": "2026-09-14T07:22:25.136021+00:00",
+            "window_to": "2026-09-21T07:22:25.136021+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 1,
+            "sampled_sources": 1,
+            "counts": {
+              "pending": 1,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T07:22:25.139943+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    }
+  ],
+  "context": {
+    "query": "Welche Rolle hat Ada jetzt laut aktuell gültigen Belegen?\nWelche belegte Information hast du zu Ada?",
+    "generated_at": "2026-09-14T07:22:25.138366+00:00",
+    "items": [],
+    "withheld_count": 0,
+    "memory_revision": 1,
+    "history_egress": "local_only",
+    "history_omitted": false,
+    "knowledge_claim_lineage_version": 1,
+    "knowledge_claim_ids": [],
+    "knowledge_history_reset": false,
+    "calendar": {
+      "status": "disabled",
+      "scope": "selected_mac_calendars",
+      "observed_at": "2026-09-14T07:22:25.136021+00:00",
+      "window_from": "2026-09-14T07:22:25.136021+00:00",
+      "window_to": "2026-09-21T07:22:25.136021+00:00",
+      "synced_at": null,
+      "coverage": "unknown",
+      "events": [],
+      "truncated": false,
+      "invalid_count": 0
+    },
+    "calendar_model_context": false,
+    "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+    "calendar_history_reset": false,
+    "coverage": {
+      "total_sources": 1,
+      "sampled_sources": 1,
+      "counts": {
+        "pending": 1,
+        "running": 0,
+        "partial": 0,
+        "completed": 0,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-14T07:22:25.139943+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    }
+  },
+  "action_requests": [],
+  "memory_candidates": []
+}

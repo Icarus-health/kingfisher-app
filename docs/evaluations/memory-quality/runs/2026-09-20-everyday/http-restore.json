@@ -1,0 +1,312 @@
+{
+  "cid": "c-73af8cd748ab",
+  "pending": {
+    "id": "m-57643a23f96a4c",
+    "conversation_id": "c-73af8cd748ab",
+    "role": "assistant",
+    "content": "Welchen Eintrag meinst du?\n\n[1] \"Alex Winter an der Schule: school@example.invalid.\"\nQuelle [1]: E-Mail · \"synthetic:school\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-20T07:39:41.535756+00:00\n\n[2] \"Alex Winter im Einkauf: buying@example.invalid.\"\nQuelle [2]: E-Mail · \"synthetic:purchase\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-20T07:39:41.474661+00:00",
+    "status": "complete",
+    "created_at": "2026-09-20T07:43:41.486639+00:00",
+    "metadata": {
+      "approvals": [],
+      "notices": [],
+      "used_tools": [],
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-3a268fd47575",
+            "statement": "Alex Winter an der Schule: school@example.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: alex, winter",
+            "source_type": "email",
+            "source_ref": "synthetic:school",
+            "evidence_at": "2026-09-20T07:39:41.535756+00:00",
+            "confidence": null,
+            "subject_ref": "person:alex-school",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-3a268fd47575",
+              "statement": "Alex Winter an der Schule: school@example.invalid.",
+              "subject_ref": "person:alex-school",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "Alex Winter an der Schule: school@example.invalid.",
+              "claim_created_at": "2026-09-20T07:39:41.581414+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f800720186c1",
+                "digest": "sha256:0d5f86ddec0010cffbc92b6af4b5ad20fae5127b3191f77ff21714d10e688aaa",
+                "source_type": "email",
+                "source_ref": "synthetic:school",
+                "occurred_at": null,
+                "recorded_at": "2026-09-20T07:39:41.535756+00:00"
+              },
+              "reason": "Passt zum Gespräch: alex, winter"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-3a268fd47575",
+              "primary_episode_id": "e-f800720186c1",
+              "projection_sha256": "92aca91d0a8f41c1918d8fa2765d97ede9f6067a773a58788774f50f423832cf",
+              "source_generations": {
+                "e-f800720186c1": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-4c99ca8d11f3",
+            "statement": "Alex Winter im Einkauf: buying@example.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: alex, winter",
+            "source_type": "email",
+            "source_ref": "synthetic:purchase",
+            "evidence_at": "2026-09-20T07:39:41.474661+00:00",
+            "confidence": null,
+            "subject_ref": "person:alex-purchase",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-4c99ca8d11f3",
+              "statement": "Alex Winter im Einkauf: buying@example.invalid.",
+              "subject_ref": "person:alex-purchase",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "Alex Winter im Einkauf: buying@example.invalid.",
+              "claim_created_at": "2026-09-20T07:39:41.495646+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f046d6b814e4",
+                "digest": "sha256:fea51b3306342216e169e84c453af0dd1d48939c4ba7ceaa6354e07d61871f15",
+                "source_type": "email",
+                "source_ref": "synthetic:purchase",
+                "occurred_at": null,
+                "recorded_at": "2026-09-20T07:39:41.474661+00:00"
+              },
+              "reason": "Passt zum Gespräch: alex, winter"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-4c99ca8d11f3",
+              "primary_episode_id": "e-f046d6b814e4",
+              "projection_sha256": "c8ab4f166509340052b261bf3cec36c4ee8fa7352f3620bc3c13bcc0f5254dd1",
+              "source_generations": {
+                "e-f046d6b814e4": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-3a268fd47575",
+          "k-4c99ca8d11f3"
+        ],
+        "knowledge_inputs": {
+          "k-3a268fd47575": {
+            "version": 1,
+            "claim_id": "k-3a268fd47575",
+            "primary_episode_id": "e-f800720186c1",
+            "projection_sha256": "92aca91d0a8f41c1918d8fa2765d97ede9f6067a773a58788774f50f423832cf",
+            "source_generations": {
+              "e-f800720186c1": 0
+            }
+          },
+          "k-4c99ca8d11f3": {
+            "version": 1,
+            "claim_id": "k-4c99ca8d11f3",
+            "primary_episode_id": "e-f046d6b814e4",
+            "projection_sha256": "c8ab4f166509340052b261bf3cec36c4ee8fa7352f3620bc3c13bcc0f5254dd1",
+            "source_generations": {
+              "e-f046d6b814e4": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "presentation_version": 2,
+          "status": "clarify",
+          "selected_assertion_ids": [
+            "claim:k-3a268fd47575",
+            "claim:k-4c99ca8d11f3"
+          ],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "query": "Welche Adresse hat Alex Winter?",
+        "generated_at": "2026-09-20T07:43:41.485205+00:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      }
+    }
+  },
+  "restart_selection": {
+    "id": "m-4563e512990641",
+    "conversation_id": "c-73af8cd748ab",
+    "role": "assistant",
+    "content": "In den ausgewählten Belegen steht:\n\n[1] \"Alex Winter im Einkauf: buying@example.invalid.\"\nQuelle [1]: E-Mail · \"synthetic:purchase\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-20T07:39:41.474661+00:00",
+    "status": "complete",
+    "created_at": "2026-09-20T07:43:42.963789+00:00",
+    "metadata": {
+      "approvals": [],
+      "notices": [],
+      "used_tools": [],
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-4c99ca8d11f3",
+            "statement": "Alex Winter im Einkauf: buying@example.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: alex, winter",
+            "source_type": "email",
+            "source_ref": "synthetic:purchase",
+            "evidence_at": "2026-09-20T07:39:41.474661+00:00",
+            "confidence": null,
+            "subject_ref": "person:alex-purchase",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-4c99ca8d11f3",
+              "statement": "Alex Winter im Einkauf: buying@example.invalid.",
+              "subject_ref": "person:alex-purchase",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "Alex Winter im Einkauf: buying@example.invalid.",
+              "claim_created_at": "2026-09-20T07:39:41.495646+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f046d6b814e4",
+                "digest": "sha256:fea51b3306342216e169e84c453af0dd1d48939c4ba7ceaa6354e07d61871f15",
+                "source_type": "email",
+                "source_ref": "synthetic:purchase",
+                "occurred_at": null,
+                "recorded_at": "2026-09-20T07:39:41.474661+00:00"
+              },
+              "reason": "Passt zum Gespräch: alex, winter"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-4c99ca8d11f3",
+              "primary_episode_id": "e-f046d6b814e4",
+              "projection_sha256": "c8ab4f166509340052b261bf3cec36c4ee8fa7352f3620bc3c13bcc0f5254dd1",
+              "source_generations": {
+                "e-f046d6b814e4": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-4c99ca8d11f3"
+        ],
+        "knowledge_inputs": {
+          "k-4c99ca8d11f3": {
+            "version": 1,
+            "claim_id": "k-4c99ca8d11f3",
+            "primary_episode_id": "e-f046d6b814e4",
+            "projection_sha256": "c8ab4f166509340052b261bf3cec36c4ee8fa7352f3620bc3c13bcc0f5254dd1",
+            "source_generations": {
+              "e-f046d6b814e4": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "presentation_version": 2,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-4c99ca8d11f3"
+          ],
+          "semantic_validation": false,
+          "model_called": false,
+          "selection_method": "literal"
+        }
+      }
+    }
+  },
+  "snapshot": "kingfisher-20260920T074844Z",
+  "withdrawn_episode": "e-f800720186c1",
+  "restore": {
+    "restored": "kingfisher-20260920T074844Z",
+    "mode": "inspection",
+    "operational": false,
+    "assertions": 5,
+    "detail": "Historischer Sicherungsstand geöffnet. Modelle, Verbindungen und Aktionen bleiben gesperrt. Der bisherige Stand liegt unter vor-wiederherstellung. Bitte die Wiederherstellungsansicht öffnen."
+  },
+  "invalidated": {
+    "id": "m-f3e1234d9a344b",
+    "conversation_id": "c-1c2a584be8d4",
+    "role": "assistant",
+    "content": "Die Beleggrundlage hat sich verändert. Bitte frage erneut.",
+    "status": "complete",
+    "created_at": "2026-09-20T07:48:44.833483+00:00",
+    "metadata": {
+      "approvals": [],
+      "notices": [],
+      "used_tools": [],
+      "context": {
+        "items": [],
+        "memory_revision": 3,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [],
+        "knowledge_inputs": {},
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "presentation_version": 2,
+          "status": "invalidated",
+          "selected_assertion_ids": [],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "invalidated": true
+      }
+    }
+  },
+  "inspection_survives_restart": true,
+  "result": "passed"
+}

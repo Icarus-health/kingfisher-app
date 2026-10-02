@@ -1,0 +1,100 @@
+/* Einstellungen in zwei Ebenen (docs/47-einstellungen.md). Nur Abstände, Breiten und Gliederung; Farben und Karten
+   kommen aus styles.css und theme.css (docs/16-gestaltung.md). */
+
+/* Seitenbreite: Die Einstellungen brauchen keine 1280 px. Darunter stapeln sich die Karten, die Seitenleiste wird ein
+   Streifen oben. Die globale Mindestbreite gilt für die übrigen Seiten weiter und wird hier aufgehoben. */
+html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell) { min-width: 0; }
+.settings-shell { overflow-x: clip; }
+.settings-shell .settings-page { min-width: 0; max-width: 1280px; padding: 48px clamp(16px, 4vw, 64px) 72px; }
+.settings-shell .settings-heading h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.1; }
+.settings-shell .settings-layout { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1100px) { .settings-shell .settings-layout { grid-template-columns: minmax(0, 1fr) 336px; } }
+.settings-shell .settings-sources > * { min-width: 0; }
+.settings-shell .source-section, .settings-shell .source-form, .settings-shell .darf-zeile { min-width: 0; max-width: 100%; }
+.settings-shell .source-row { flex-wrap: wrap; }
+.settings-shell .source-row > span:nth-child(2) { flex: 1 1 160px; }
+.settings-shell .source-row em { margin-left: auto; text-align: right; }
+.settings-shell .source-form-actions { flex-wrap: wrap; }
+.settings-shell .source-section input, .settings-shell .source-section select, .settings-shell .source-section textarea { max-width: 100%; }
+.settings-shell pre, .settings-shell code { overflow-wrap: anywhere; white-space: pre-wrap; }
+
+/* Breite Inhalte brechen um, statt die Seite zu weiten: Knöpfe, Überschriftenzeilen, Raster mit Knöpfen darin. */
+.settings-shell :is(.source-section, .profile-card, .darf-zeile, .ich, .einstellungen-aufklapp) { overflow-wrap: anywhere; }
+.settings-shell button { max-width: 100%; white-space: normal; }
+.settings-shell .compact-integration-heading { flex-wrap: wrap; }
+.settings-shell :is(.transkript-status, .akten-ordner-block, .model-rec-row) { grid-template-columns: minmax(0, 1fr); }
+.settings-shell :is(.transkript-aktionen, .akten-ordner-aktionen, .model-rec-confirm) { flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .shell.settings-shell::before { left: 0; }
+  .shell.settings-shell { grid-template-columns: minmax(0, 1fr); }
+  .shell.settings-shell > main { grid-column: 1; }
+  .settings-shell .settings-page { padding-top: 24px; }
+}
+@media (max-width: 700px) {
+  .settings-shell .source-form { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .settings-shell .source-section-heading { padding: 16px; }
+  .settings-shell .source-row { padding: 12px 16px; }
+  .settings-shell .settings-data { padding: 16px; }
+}
+
+/* Reiter: die vier vorderen, dann abgesetzt „Für Techniker“. */
+.settings-section-nav button.settings-section-hinten { flex: 0 0 auto; margin-left: auto; border: 1px dashed var(--kf-rand-d7e1df); }
+.settings-section-nav button.settings-section-hinten[aria-pressed="true"] { border-style: solid; }
+@media (max-width: 600px) { .settings-section-nav button.settings-section-hinten { margin-left: 0; flex-basis: 100%; } }
+
+/* „Was Kingfisher darf“: fünf Zeilen, je ein Schalter mit Titel und dem Satz, was den Rechner verlässt. */
+.darf { display: grid; gap: 16px; }
+.darf-zeile { display: grid; gap: 10px; padding: 18px 22px; }
+.darf-zeile label:has(> input[role="switch"]) { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.darf-zeile input[role="switch"] { flex: none; width: 20px; height: 20px; margin: 2px 0 0; }
+.darf-zeile label > span { display: grid; gap: 4px; min-width: 0; }
+.darf-zeile label > span > strong { font-weight: 600; }
+.darf-zeile label > span > small { color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.55; font-weight: 400; }
+.darf-zeile p { margin: 0; }
+.darf-zeile select { min-height: 44px; max-width: 100%; }
+.darf-frage { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-eef3f1); }
+.darf-frage p { font-size: 14px; line-height: 1.6; }
+.darf-frage-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; }
+.darf-zeile .autostart-meldung { margin-top: 0; }
+
+/* Quellen zum Anklicken: ein Knopf je Quelle, an oder aus. */
+.darf-zeile .welt-vorschlaege { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 8px; margin: 4px 0; }
+.welt-vorgabe { display: grid; gap: 4px; min-width: 0; }
+.welt-vorgabe-knopf { display: grid; gap: 2px; min-height: 52px; padding: 8px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: inherit; text-align: left; cursor: pointer; }
+.welt-vorgabe-knopf small { color: var(--kf-schrift-31535f); font-size: 12px; line-height: 1.4; }
+.welt-vorgabe-knopf[aria-pressed="true"] { color: var(--kf-schrift-fffefa); background: var(--kf-flaeche-075268); border-color: var(--kf-flaeche-075268); }
+.welt-vorgabe-knopf[aria-pressed="true"] small { color: var(--kf-schrift-fffefa); }
+.welt-vorgabe-knopf[aria-pressed="true"]::after { content: "dabei"; font-size: 11px; letter-spacing: .4px; }
+.welt-vorgabe-knopf:disabled { opacity: .6; cursor: default; }
+.welt-vorgabe-knopf:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; }
+.welt-eigene { display: grid; gap: 6px; margin-top: 6px; }
+.welt-eigene input { max-width: 520px; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
+.welt-eigene button { justify-self: start; }
+
+/* Zugänge und Kingfisher und du. */
+.zugang-kopf { margin-top: 8px; }
+.zugang-kopf h2 { margin: 0 0 4px; color: var(--kf-schrift-062b3a); font-size: 17px; }
+.zugang-kopf p { margin: 0; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.6; }
+.ich { display: grid; gap: 22px; padding: 22px 26px; }
+.ich-feld { display: grid; gap: 6px; min-width: 0; }
+.ich-feld > label, .ich-feld > strong { font-size: 15px; font-weight: 600; }
+.ich-feld > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.ich-feld input { flex: 1 1 240px; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
+.ich-feld p { margin: 0; }
+
+/* Für Techniker: eingeklappte Abschnitte mit einem Satz darunter. */
+.technik { display: grid; gap: 10px; }
+.einstellungen-aufklapp { min-width: 0; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
+.einstellungen-aufklapp > summary { display: grid; gap: 2px; min-height: 44px; padding: 12px 16px; cursor: pointer; list-style: none; }
+.einstellungen-aufklapp > summary::-webkit-details-marker { display: none; }
+.einstellungen-aufklapp > summary > span { color: var(--kf-schrift-062b3a); font-size: 15px; font-weight: 600; }
+.einstellungen-aufklapp > summary > span::before { content: "›"; display: inline-block; width: 18px; transition: transform .15s; }
+.einstellungen-aufklapp[open] > summary > span::before { transform: rotate(90deg); }
+.einstellungen-aufklapp > summary > small { padding-left: 18px; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 1.5; }
+.einstellungen-aufklapp > summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; border-radius: 12px; }
+.einstellungen-aufklapp-inhalt { display: grid; gap: 16px; padding: 0 16px 16px; min-width: 0; }
+.einstellungen-aufklapp-inhalt > * { min-width: 0; }
+.speicherorte ul { margin: 0; padding: 16px 20px 0 36px; display: grid; gap: 8px; font-size: 14px; line-height: 1.6; }
+.speicherorte .source-hint { padding: 12px 20px 16px; }
+@media (prefers-reduced-motion: reduce) { .einstellungen-aufklapp > summary > span::before { transition: none; } }

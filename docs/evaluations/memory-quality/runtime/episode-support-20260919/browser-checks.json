@@ -1,0 +1,72 @@
+{
+  "base": "http://127.0.0.1:18992",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "checks": [
+    {
+      "name": "Unauthenticated review list denied",
+      "passed": true
+    },
+    {
+      "name": "Real memory review page renders",
+      "passed": true
+    },
+    {
+      "name": "Legacy unverified inference omitted from actual chat context",
+      "passed": true
+    },
+    {
+      "name": "Both original quotes shown",
+      "passed": true
+    },
+    {
+      "name": "Source review has no ignore or reopen action",
+      "passed": true
+    },
+    {
+      "name": "Reassessment preserves every original assertion field except support",
+      "passed": true
+    },
+    {
+      "name": "Explicit reassessment restores supported actual chat context",
+      "passed": true
+    },
+    {
+      "name": "Stale preview denied and UI discards token",
+      "passed": true
+    },
+    {
+      "name": "Ignore then reopen cannot resurrect earlier support",
+      "passed": true
+    },
+    {
+      "name": "Prior assistant derivation removed from recording-provider input",
+      "passed": true
+    },
+    {
+      "name": "Single-use preview rejects replay",
+      "passed": true
+    },
+    {
+      "name": "Actual external-provider mode excludes episode-backed profile",
+      "passed": true
+    },
+    {
+      "name": "No unexpected page or console errors",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Deterministic recording provider; no semantic model qualification.",
+    "Existing desktop minimum width; not a mobile redesign."
+  ],
+  "screenshots": [
+    "Kingfisher-Belegpruefung.png"
+  ],
+  "consoleErrors": [],
+  "ok": true
+}

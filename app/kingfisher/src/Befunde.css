@@ -1,0 +1,20 @@
+/* „Was Kingfisher aufgefallen ist“: eine ruhige Liste (docs/16-gestaltung.md). Nur vorhandene Farbvariablen. */
+.befunde { padding: 22px 26px 24px; }
+.befunde h2 { margin: 0 0 8px; }
+.befunde > p { margin: 0 0 12px; }
+.befunde-zahl { font-weight: 600; }
+.befunde-liste { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; }
+.befund { display: grid; gap: 6px; padding: 12px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.befunde-liste > .befund:last-child { border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.befund-wichtig { padding-left: 12px; border-left: 2px solid var(--kf-rand-063e55); }
+.befunde .befund-text { margin: 0; font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.befund-kopf, .befunde-pruefen small { color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; }
+.befunde .befund-hinweis { margin: 0; color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; }
+.befund-akten { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.befund-akten .text-action { font-size: 12px; }
+.befund-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 2px; }
+.befund-aktionen .primary-action, .befund-aktionen .secondary-action { min-height: 32px; }
+.befunde-ruhend { margin: 4px 0 12px; }
+.befunde-ruhend summary { cursor: pointer; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 20px; }
+.befunde-pruefen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.befunde-pruefen .secondary-action { min-height: 32px; }

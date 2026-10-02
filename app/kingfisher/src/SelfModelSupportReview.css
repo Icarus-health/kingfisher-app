@@ -1,0 +1,35 @@
+.support-review > header { margin-bottom: 22px; }
+.support-review > header h1 { margin-bottom: 8px; }
+.support-review-intro { max-width: 680px; margin: 0; color: var(--kf-schrift-adc5ca); font-size: 14px; line-height: 1.6; }
+.support-review-list { max-width: 860px; }
+.support-review-card h2 { margin-bottom: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.support-review-facts { margin: 0 0 18px; }
+.support-review-facts dd { margin-top: 3px; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.support-review-reason { margin: 0 0 16px; color: var(--kf-schrift-c7d6d9); font-size: 13px; line-height: 1.5; }
+.support-review-preview { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--kf-rand-35535e); }
+.support-review-preview h3 { margin: 0 0 8px; font-size: 16px; }
+.support-review-preview > p { color: var(--kf-schrift-c7d6d9); line-height: 1.5; }
+.support-review-preview ol { margin: 16px 0; padding: 0; border-left: 0; counter-reset: evidence; }
+.support-review-preview li { list-style: none; padding: 16px 0; border-top: 1px solid var(--kf-rand-35535e); border-bottom: 0; }
+.support-review-preview li strong { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.support-review-preview blockquote { margin: 12px 0; padding: 12px 16px; border-left: 2px solid var(--kf-rand-b5ced0); background: var(--kf-flaeche-153b4a); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.support-review-preview .task-source { margin-top: 12px; }
+.support-review-preview .task-source-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.support-review-confirm { display: block; width: 100%; margin-top: 18px; border-color: var(--kf-rand-b5ced0) !important; background: var(--kf-flaeche-dbe8e9) !important; color: var(--kf-schrift-062b3a) !important; font-weight: 700 !important; text-align: center; }
+.support-review button:disabled { opacity: .55; cursor: default; }
+.support-review-message, .support-review-warning { max-width: 860px; padding: 12px 16px; border: 1px solid var(--kf-rand-45606a); border-radius: 8px; background: var(--kf-flaeche-153b4a); line-height: 1.5; }
+.support-review-warning { border-color: var(--kf-rand-b88b63); }
+.support-review-pagination { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.support-review-pagination span { color: var(--kf-schrift-adc5ca); font-size: 13px; }
+@media (max-width: 700px) {
+  .memory-shell:has(.memory-page-status) { display: block; }
+  /* Die Seitenleiste als Streifen steht für alle Seiten in Seitenbreite.css (Fremdprobe 3, Befund 14). */
+  .memory-shell:has(.memory-page-status) > .memory-page-status { display: block; }
+  .memory-page-status .memory-filter { display: flex; min-height: 0; gap: 6px; overflow-x: auto; padding: 12px; }
+  .memory-page-status .memory-filter > p, .memory-page-status .memory-filter > small { display: none; }
+  .memory-page-status .memory-filter > div { display: flex; flex: 0 0 auto; gap: 6px; }
+  .memory-page-status .memory-filter button { flex: 0 0 auto; min-height: 40px; white-space: nowrap; }
+  .memory-page-status .memory-filter > button.active { order: -1; }
+  .support-review-facts { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .support-review-card > button { max-width: 100%; white-space: normal; }
+}

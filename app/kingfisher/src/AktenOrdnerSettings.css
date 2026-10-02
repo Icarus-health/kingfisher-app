@@ -1,0 +1,11 @@
+/* Akten als Ordner unter „Für Techniker“: eingeklappt, ruhig, dieselben Bausteine wie die übrigen Quellen (docs/16-gestaltung.md). */
+.akten-ordner { padding: 22px 26px 24px; }
+.akten-ordner h2 { margin: 0 0 8px; }
+.akten-ordner > p { margin: 0 0 12px; }
+.akten-ordner-block { display: grid; gap: 10px; margin-top: 12px; }
+.akten-ordner-block p { margin: 0; }
+.akten-ordner-pfad { font-variant-numeric: tabular-nums; word-break: break-all; }
+.akten-ordner-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.akten-ordner-schalter { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 15px; }
+.akten-ordner-ruhig { color: var(--calm-muted, inherit); font-size: 13px; }
+.akten-ordner small { color: var(--calm-muted, inherit); }

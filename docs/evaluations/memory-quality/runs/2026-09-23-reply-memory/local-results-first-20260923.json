@@ -1,0 +1,29 @@
+{
+  "model": "qwen3.5:4b",
+  "started_at": "2026-09-23T10:24:53.102943+00:00",
+  "calls": [
+    {
+      "kind": "classification",
+      "seconds": 7.002,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.126,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "draft",
+      "seconds": 0.984,
+      "text": "{\"body\":\"Der Entwurf für Projekt Sturmvogel existiert derzeit nicht in Lieferstatus. Es ist lediglich festgehalten, dass keine Freigabe vorliegt und somit keine weitere Lieferung erfolgt.\"}"
+    }
+  ],
+  "suggestion_status": 200,
+  "draft": "Der Entwurf für Projekt Sturmvogel existiert derzeit nicht in Lieferstatus. Es ist lediglich festgehalten, dass keine Freigabe vorliegt und somit keine weitere Lieferung erfolgt.",
+  "source_status": "limited",
+  "expected_source_attached": false,
+  "token_present": false,
+  "no_delivery": true,
+  "claims_revision": 0,
+  "finished_at": "2026-09-23T10:25:02.570368+00:00"
+}

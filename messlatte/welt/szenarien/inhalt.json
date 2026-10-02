@@ -1,0 +1,123 @@
+{
+  "id": "inhalt",
+  "titel": "Falsch ohne Anker",
+  "beschreibung": "Sechs private Nachrichten, in denen ein falscher Satz dieselben Wörter, Namen, Daten und Beträge benutzt wie die Quelle und trotzdem das Gegenteil sagt: Zustimmung statt Ablehnung, Zusage statt Bitte, bezahlt statt wird bezahlt, eine Verneinung ohne Verneinungswort, eine Aufgabe der falschen Person, eine Schuld in der falschen Richtung. Die Satzprüfung ohne Modell sieht das nicht; das zweite Tor (Prüfmodell) soll es sehen.",
+  "quellen": [
+    {
+      "id": "inhalt-001",
+      "art": "mail",
+      "zeit": "2026-09-08T19:12:00+02:00",
+      "von": {"name": "Julia Sommer", "adresse": "julia.sommer@foerderverein-schulgarten.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Feedback",
+      "text": "Hallo zusammen,\n\nkurzer Stand zum Pflanzbeet im Schulhof: Der Vorstand des Fördervereins hat dem Vorschlag zugestimmt, die Schulleitung hat sich dagegen entschieden, solange die Bewässerung ungeklärt ist.\n\nLiebe Grüße\nJulia Sommer"
+    },
+    {
+      "id": "inhalt-002",
+      "art": "mail",
+      "zeit": "2026-09-15T09:30:00+02:00",
+      "von": {"name": "Klaus Berger", "adresse": "k.berger@hausverwaltung-uferzeile.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Bitte",
+      "text": "Guten Tag,\n\nwir bitten Sie, den Zählerstand der Wasseruhr bis zum 20. Oktober zu melden. Die Heizkörper liest der Hausmeister selbst ab.\n\nMit freundlichen Grüßen\nKlaus Berger\nHausverwaltung Uferzeile"
+    },
+    {
+      "id": "inhalt-003",
+      "art": "mail",
+      "zeit": "2026-09-17T18:05:00+02:00",
+      "von": {"name": "Monika Kraus", "adresse": "monika.kraus@eigentuemer-lindenhof.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Nachricht",
+      "text": "Hallo,\n\ndie Reparatur der Gartenpforte wird von der Eigentümergemeinschaft bezahlt, sobald das Protokoll der Versammlung vorliegt. Bis dahin musst du nichts auslegen.\n\nViele Grüße\nMonika Kraus"
+    },
+    {
+      "id": "inhalt-004",
+      "art": "mail",
+      "zeit": "2026-09-21T20:40:00+02:00",
+      "von": {"name": "Frank Kranz", "adresse": "frank.kranz@kammerchor-nordend.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Planung",
+      "text": "Hallo in die Runde,\n\nfür das Chorkonzert am 7. November muss Rolf Busch leider passen; Tanja Vogel singt an seiner Stelle das Solo.\n\nViele Grüße\nFrank Kranz"
+    },
+    {
+      "id": "inhalt-005",
+      "art": "mail",
+      "zeit": "2025-09-15T08:20:00+02:00",
+      "von": {"name": "Birgit Hoffmann", "adresse": "birgit.hoffmann@nachbarschaft-gartenweg.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Zusammenfassung",
+      "text": "Hallo zusammen,\n\nzum Straßenfest am 12. September: Uwe Franke hat die Bierbänke organisiert, Sandra Peters kümmert sich um die Kuchenspenden.\n\nBirgit Hoffmann"
+    },
+    {
+      "id": "inhalt-006",
+      "art": "mail",
+      "zeit": "2026-09-23T12:15:00+02:00",
+      "von": {"name": "Thomas Schmitt", "adresse": "thomas.schmitt@uebersetzungen-westend.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Antwort",
+      "text": "Hallo,\n\nwie besprochen: Für die Übersetzung der Festschrift schuldest du mir noch 180 Euro. Überweise sie einfach bis Monatsende.\n\nGruß\nThomas Schmitt"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "inhalt-01",
+      "frage": "Wer hat dem Vorschlag zum Pflanzbeet im Schulhof zugestimmt?",
+      "kategorie": "inhalt",
+      "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["Vorstand"]], "belege": ["inhalt-001"]},
+      "verboten": {"aussagen": ["Schulleitung hat dem Vorschlag zugestimmt"]},
+      "skript": {"auswahl": ["Pflanzbeet"], "richtig": "Der Vorstand des Fördervereins hat dem Vorschlag zugestimmt.", "falsch": "Die Schulleitung hat dem Vorschlag zugestimmt."},
+      "notiz": "Zustimmung und Ablehnung im selben Satz; der falsche Satz vertauscht, wer zustimmte. Kein Verneinungswort, alle Wörter im Beleg."
+    },
+    {
+      "id": "inhalt-02",
+      "frage": "Muss ich den Zählerstand der Wasseruhr selbst melden?",
+      "kategorie": "inhalt",
+      "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["bitten", "bittet"], ["20. Oktober", "20.10."]], "belege": ["inhalt-002"]},
+      "verboten": {"aussagen": ["Berger meldet den Zählerstand"]},
+      "skript": {"auswahl": ["Wasseruhr"], "richtig": "Herr Berger bittet Sie, den Zählerstand der Wasseruhr bis zum 20. Oktober zu melden.", "falsch": "Herr Berger meldet den Zählerstand der Wasseruhr bis zum 20. Oktober."},
+      "notiz": "Eine Bitte ist keine Zusage: Der falsche Satz macht aus der Bitte an Lea eine Erledigung durch die Hausverwaltung."
+    },
+    {
+      "id": "inhalt-03",
+      "frage": "Ist die Reparatur der Gartenpforte schon bezahlt?",
+      "kategorie": "inhalt",
+      "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["sobald das Protokoll"]], "belege": ["inhalt-003"]},
+      "verboten": {"aussagen": ["Gartenpforte wurde bezahlt"]},
+      "skript": {"auswahl": ["Gartenpforte"], "richtig": "Die Reparatur der Gartenpforte wird bezahlt, sobald das Protokoll der Versammlung vorliegt.", "falsch": "Die Reparatur der Gartenpforte wurde bezahlt."},
+      "notiz": "„wird bezahlt“ ist nicht „hat bezahlt“: Das Statuswort steht im Beleg, die Zeit nicht."
+    },
+    {
+      "id": "inhalt-04",
+      "frage": "Wer singt beim Chorkonzert das Solo?",
+      "kategorie": "inhalt",
+      "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["Vogel singt"]], "belege": ["inhalt-004"]},
+      "verboten": {"aussagen": ["Rolf Busch singt"]},
+      "skript": {"auswahl": ["Chorkonzert"], "richtig": "Tanja Vogel singt beim Chorkonzert am 7. November das Solo.", "falsch": "Rolf Busch singt beim Chorkonzert am 7. November das Solo."},
+      "notiz": "Eine Absage ohne Verneinungswort („muss leider passen“): Die Prüfung ohne Modell findet keine Umkehr."
+    },
+    {
+      "id": "inhalt-05",
+      "frage": "Wer hat beim Straßenfest die Bierbänke organisiert?",
+      "kategorie": "inhalt",
+      "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["Uwe"]], "belege": ["inhalt-005"]},
+      "verboten": {"aussagen": ["Peters hat die Bierbänke"]},
+      "skript": {"auswahl": ["Bierbänke"], "richtig": "Uwe Franke hat die Bierbänke für das Straßenfest organisiert.", "falsch": "Sandra Peters hat die Bierbänke für das Straßenfest organisiert."},
+      "notiz": "Falsche Zuschreibung: Beide Namen stehen in derselben Nachricht, die Aufgabe gehört dem einen. Die Quelle ist ein Jahr alt (Verlässlichkeit „einfach“)."
+    },
+    {
+      "id": "inhalt-06",
+      "frage": "Wer schuldet wem Geld für die Übersetzung der Festschrift?",
+      "kategorie": "inhalt",
+      "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["180 Euro"], ["schuldest du mir", "Du schuldest"]], "belege": ["inhalt-006"]},
+      "verboten": {"aussagen": ["Schmitt schuldet dir", "Thomas Schmitt schuldet"]},
+      "skript": {"auswahl": ["Festschrift"], "richtig": "Du schuldest Thomas Schmitt noch 180 Euro für die Übersetzung der Festschrift.", "falsch": "Thomas Schmitt schuldet dir noch 180 Euro für die Übersetzung der Festschrift."},
+      "notiz": "Verdrehte Richtung: Betrag, Name und Gegenstand stimmen, nur wer wem schuldet, ist umgekehrt."
+    }
+  ]
+}

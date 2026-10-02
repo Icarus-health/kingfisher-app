@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "source_state": "ignored",
+    "raw_retained": true,
+    "claim_retained": false,
+    "revoked_text_in_model_messages": true
+  },
+  "current": {
+    "source_state": "ignored",
+    "raw_retained": false,
+    "claim_retained": false,
+    "revoked_text_in_model_messages": false
+  }
+}

@@ -1,0 +1,165 @@
+.people-review {
+  width: calc(100% - 48px);
+  max-width: 760px;
+  box-sizing: border-box;
+  align-self: start;
+  color: var(--kf-schrift-062b3a);
+  margin: 18px auto 28px;
+  padding: 18px 22px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 12px;
+  background: var(--kf-flaeche-fffefa);
+}
+
+.people-review-note,
+.people-review-group > p,
+.people-review-group small {
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.people-review-group {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--kf-rand-d7e1df);
+}
+
+.people-review-group h3 {
+  margin: 0 0 6px;
+  color: var(--kf-schrift-062b3a);
+  font-size: 14px;
+}
+
+.people-review-group ul {
+  display: grid;
+  gap: 10px;
+  padding-left: 20px;
+}
+
+.people-review-group li {
+  display: grid;
+  gap: 3px;
+}
+
+.people-review fieldset {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0;
+  border: 0;
+}
+
+.people-review-choice {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+
+.people-review-choice > span { display: grid; gap: 3px; }
+.people-review-choice input { margin-top: 3px; accent-color: var(--kf-akzent-063e55); }
+
+.people-review-label {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.people-review-label input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border: 1px solid var(--kf-rand-b9cac8);
+  border-radius: 7px;
+  color: var(--kf-schrift-062b3a);
+  background: var(--kf-flaeche-ffffff);
+  font: inherit;
+}
+
+.people-review-action,
+.people-review-secondary {
+  padding: 8px 12px;
+  border: 1px solid var(--kf-rand-063e55);
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.people-review-action { color: var(--kf-schrift-ffffff); background: var(--kf-flaeche-063e55); }
+.people-review-secondary { color: var(--kf-schrift-063e55); background: transparent; }
+.people-review-action:disabled,
+.people-review-secondary:disabled { opacity: .55; cursor: default; }
+
+.people-review-preview,
+.people-review-saved {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--kf-rand-c9d8d5);
+  border-radius: 9px;
+  background: var(--kf-flaeche-f6faf8);
+}
+
+.people-review-preview h4,
+.people-review-saved h3,
+.people-review-history h2 { margin: 0 0 7px; color: var(--kf-schrift-062b3a); }
+.people-review-preview h4,
+.people-review-saved h3 { font-size: 14px; }
+.people-review-history h2 { font-size: 16px; }
+.people-review-preview ul,
+.people-review-saved ul { margin: 8px 0 12px; padding-left: 20px; }
+.people-review-preview p,
+.people-review-saved p,
+.people-review-hint { color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; }
+.people-review-saved { margin-bottom: 10px; }
+.people-review-saved.undone { background: var(--kf-flaeche-fbfbf8); opacity: .78; }
+.people-review-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.people-review-confirm p { width: 100%; margin-bottom: 0; }
+.people-review-error { color: var(--kf-schrift-8c2f28); font-size: 12px; }
+.people-review-error button { color: inherit; border: 0; padding: 0; background: transparent; font: inherit; text-decoration: underline; cursor: pointer; }
+.people-review-history { margin-top: 18px; }
+
+.people-review-link {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  color: var(--kf-schrift-063e55);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.memory-person-filter {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.memory-person-filter button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--kf-schrift-c8d9da);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.memory-person-filter button.active {
+  color: var(--kf-schrift-f4faf9);
+  background: var(--kf-flaeche-063e55);
+}
+
+.people-review-verloren { margin: 10px 0; padding: 10px 14px; border-left: 3px solid var(--kf-rand-b88b63, #b88b63); background: var(--calm-inset, #f2f5f2); border-radius: 0 8px 8px 0; }
+.people-review-verloren h4 { margin: 0 0 4px; font-size: 13px; }
+.people-review-verloren p, .people-review-verloren li { font-size: 13px; line-height: 1.6; }
+.people-review-verloren ul { margin: 6px 0 0; padding-left: 18px; }

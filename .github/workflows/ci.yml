@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Welcher Rechner die Jobs ausführt. Ohne Repository-Variable die GitHub-Runner.
+# Mit KINGFISHER_RUNNER=self-hosted ein eigener Rechner (etwa der Mac), der
+# keine Actions-Minuten verbraucht. Anleitung: docs/release/CI-EIGENER-RUNNER.md
+# Pull Requests aus Forks laufen immer auf GitHub-Runnern: Fremder Code darf nie
+# auf dem eigenen Rechner laufen (öffentliches Repository).
+
+jobs:
+  sidecar:
+    name: Sidecar (Python ${{ matrix.python }})
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || vars.KINGFISHER_RUNNER || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install ./sidecar pytest jsonschema
+
+      - name: Tests
+        run: python -m pytest sidecar/tests -q
+
+      - name: Synthetische Gedächtnisdiagnostik ohne Modell
+        run: python -m pytest scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py scripts/test_memory_probe_catalog.py scripts/test_memory_answer_comparison.py scripts/test_probe_everyday_memory.py scripts/test_probe_working_memory_paraphrase.py scripts/test_probe_working_memory_scale.py scripts/test_probe_working_memory_models.py -q
+
+      - name: Messlatte, Rahmenwerk auf der Mini-Welt (kein Modell)
+        run: python -m pytest messlatte/tests -q
+
+      - name: Mac-App, statische Prüfungen (das Übersetzen prüft mac-app.yml)
+        run: python -m pytest macos/test_mac_app.py -q
+
+      - name: Beispielprofil gegen das Schema
+        run: |
+          python - <<'PY'
+          import json, jsonschema
+          schema = json.load(open("schema/self-model.schema.json"))
+          jsonschema.Draft202012Validator.check_schema(schema)
+          jsonschema.Draft202012Validator(schema).validate(
+              json.load(open("schema/beispiel-profil.json")))
+          print("Schema und Beispiel sind valide.")
+          PY
+
+  kingfisher-ui:
+    name: Kingfisher UI und Asset-Vertrag
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || vars.KINGFISHER_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/kingfisher/package-lock.json
+      - run: npm ci
+        working-directory: app/kingfisher
+      - run: npm run build
+        working-directory: app/kingfisher
+      - run: python3 scripts/check_asset_manifest.py

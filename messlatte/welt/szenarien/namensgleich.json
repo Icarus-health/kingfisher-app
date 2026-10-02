@@ -1,0 +1,465 @@
+{
+  "id": "namensgleich",
+  "titel": "Zwei Personen namens Alex Winter",
+  "beschreibung": "Zwei verschiedene Personen heißen Alex Winter (Catering-Geschäftsführer und Institutsmitarbeiterin) mit getrennten Adressen und Themen. Eine Vermischung führt zu falschen Aussagen.",
+  "quellen": [
+    {
+      "id": "namensgleich-001",
+      "art": "mail",
+      "zeit": "2025-11-04T11:15:00+01:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@winter-catering.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Catering für Ihre Veranstaltungen",
+      "text": "Sehr geehrte Frau Hartmann,\n\nich bin Geschäftsführer der Winter Catering & Verpflegung GmbH in Rüsselsheim und habe gehört, dass Sie im nächsten Jahr\neine Workshop-Reihe für Klinikküchen organisieren. Wir sind auf Verpflegung für Tagungen im Gesundheitswesen spezialisiert.\nDarf ich Ihnen ein Angebot machen?\n\nMit freundlichen Grüßen\nAlex Winter\nGeschäftsführer\nWinter Catering & Verpflegung GmbH"
+    },
+    {
+      "id": "namensgleich-002",
+      "art": "mail",
+      "zeit": "2025-11-05T08:30:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Alex Winter",
+          "adresse": "alex.winter@winter-catering.example"
+        }
+      ],
+      "betreff": "AW: Catering für Ihre Veranstaltungen",
+      "text": "Sehr geehrter Herr Winter,\n\ngern. Die Workshop-Reihe ist für 2027 geplant, etwa 30 Personen je Termin. Bitte machen Sie mir ein Angebot pro Person,\nKaffeepausen und Mittagsimbiss.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "namensgleich-001"
+    },
+    {
+      "id": "namensgleich-003",
+      "art": "mail",
+      "zeit": "2026-03-12T14:05:00+01:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@winter-catering.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Angebot Verpflegung Workshop-Reihe",
+      "text": "Sehr geehrte Frau Hartmann,\n\nhier unser Angebot: 34 Euro pro Person netto, inklusive zwei Kaffeepausen, Mittagsimbiss und Getränken. Bei mehr als 20\nPersonen gilt dieser Preis.\n\nBeste Grüße\nAlex Winter\nWinter Catering & Verpflegung GmbH",
+      "antwort_auf": "namensgleich-002"
+    },
+    {
+      "id": "namensgleich-004",
+      "art": "mail",
+      "zeit": "2026-08-27T10:48:00+02:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@winter-catering.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Preisanpassung und Probeverkostung",
+      "text": "Guten Tag Frau Hartmann,\n\nleider müssen wir wegen gestiegener Lebensmittelpreise anpassen: Der Preis pro Person beträgt jetzt 38 Euro netto. Gern\nlade ich Sie zu einer Probeverkostung ein, am 20. Oktober um 12 Uhr in unserer Küche in Rüsselsheim.\n\nHerzliche Grüße\nAlex\n\nWinter Catering & Verpflegung GmbH\nalex.winter@winter-catering.example",
+      "antwort_auf": "namensgleich-003"
+    },
+    {
+      "id": "namensgleich-005",
+      "art": "termin",
+      "zeit": "2026-08-28T09:00:00+02:00",
+      "beginn": "2026-10-20T12:00:00+02:00",
+      "ende": "2026-10-20T13:30:00+02:00",
+      "titel": "Probeverkostung Winter Catering",
+      "ort": "Winter Catering & Verpflegung GmbH, Rüsselsheim (Produktionsküche)",
+      "teilnehmer": [
+        {
+          "name": "Alex Winter",
+          "adresse": "alex.winter@winter-catering.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Probeverkostung für die Workshop-Reihe 2027."
+    },
+    {
+      "id": "namensgleich-006",
+      "art": "mail",
+      "zeit": "2026-01-15T09:50:00+01:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@ifeh-hessen.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Interviewanfrage Studie ambulante Pflege",
+      "text": "Sehr geehrte Frau Hartmann,\n\nich bin wissenschaftliche Mitarbeiterin am Institut für Ernährungsforschung Hessen und führe eine Studie zu Mangelernährung\nin der ambulanten Pflege durch. Ich würde Sie gern als Expertin interviewen (etwa 45 Minuten).\n\nHerzliche Grüße\nAlex Winter\nWissenschaftliche Mitarbeiterin\nInstitut für Ernährungsforschung Hessen"
+    },
+    {
+      "id": "namensgleich-007",
+      "art": "mail",
+      "zeit": "2026-01-16T08:12:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Alex Winter",
+          "adresse": "alex.winter@ifeh-hessen.example"
+        }
+      ],
+      "betreff": "AW: Interviewanfrage Studie ambulante Pflege",
+      "text": "Sehr geehrte Frau Winter,\n\nsehr gern, ich stehe für ein Interview zur Verfügung. Wie wäre der 10. Februar?\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "namensgleich-006"
+    },
+    {
+      "id": "namensgleich-008",
+      "art": "termin",
+      "zeit": "2026-01-17T09:00:00+01:00",
+      "beginn": "2026-02-10T15:00:00+01:00",
+      "ende": "2026-02-10T16:00:00+01:00",
+      "titel": "Interview Studie Mangelernährung (Institut)",
+      "ort": "online",
+      "teilnehmer": [
+        {
+          "name": "Alex Winter",
+          "adresse": "alex.winter@ifeh-hessen.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Expertinneninterview für die Studie zu Mangelernährung in der ambulanten Pflege."
+    },
+    {
+      "id": "namensgleich-009",
+      "art": "mail",
+      "zeit": "2026-09-10T13:25:00+02:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@ifeh-hessen.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Bitte um Feedback zum Fragebogen",
+      "text": "Sehr geehrte Frau Hartmann,\n\nvielen Dank noch einmal für das Interview im Februar. Wir haben aus den Ergebnissen einen Fragebogen für Pflegedienste\nentwickelt und würden uns über Ihre fachliche Rückmeldung freuen. Könnten Sie mir bis zum 16. Oktober Feedback geben?\n\nHerzliche Grüße\nAlex Winter\nInstitut für Ernährungsforschung Hessen"
+    },
+    {
+      "id": "namensgleich-010",
+      "art": "mail",
+      "zeit": "2026-09-24T09:40:00+02:00",
+      "von": {
+        "name": "Alex Winter",
+        "adresse": "alex.winter@ifeh-hessen.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Einladung Gastvortrag am Institut",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir möchten Sie zu einem Gastvortrag im Rahmen unserer Vortragsreihe einladen: Mittwoch, 18. November, 17 Uhr, am Institut\nfür Ernährungsforschung Hessen, Thema „Screening in der Praxis“. Über eine Zusage würde ich mich sehr freuen.\n\nHerzliche Grüße\nAlex Winter",
+      "antwort_auf": "namensgleich-009"
+    },
+    {
+      "id": "namensgleich-011",
+      "art": "mail",
+      "zeit": "2026-09-25T07:58:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Alex Winter",
+          "adresse": "alex.winter@ifeh-hessen.example"
+        }
+      ],
+      "betreff": "AW: Einladung Gastvortrag am Institut",
+      "text": "Sehr geehrte Frau Winter,\n\nherzlichen Dank für die Einladung! Ich sage gern zu und schicke Ihnen bis Ende Oktober den Titel und einen kurzen Text.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "namensgleich-010"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "namensgleich-01",
+      "frage": "Was kostet das Catering von Alex Winter pro Person?",
+      "kategorie": "identitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "38 Euro",
+            "38,00",
+            "38 €",
+            "38 EUR",
+            "38,-"
+          ]
+        ],
+        "belege": [
+          "namensgleich-004"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "kostet 34",
+          "beträgt 34",
+          "sind 34",
+          "liegt bei 34",
+          "34 Euro pro Person netto, inklusive"
+        ],
+        "belege": [
+          "namensgleich-003",
+          "namensgleich-006",
+          "namensgleich-009",
+          "namensgleich-010"
+        ]
+      },
+      "notiz": "Alex Winter vom Catering; der Preis wurde von 34 auf 38 Euro angepasst. Der Institutskontakt gleichen Namens hat damit nichts zu tun."
+    },
+    {
+      "id": "namensgleich-02",
+      "frage": "Bis wann soll ich Alex Winter vom Institut Feedback zum Fragebogen geben?",
+      "kategorie": "identitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "16.10.2026",
+            "16. Oktober 2026",
+            "16.10.",
+            "16. Oktober",
+            "16. Okt.",
+            "2026-10-16",
+            "16.10"
+          ]
+        ],
+        "belege": [
+          "namensgleich-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 20.10.",
+          "bis 20.10.",
+          "am 20.10.",
+          "ist der 20.10.",
+          "ist am 20.10.",
+          "spätestens 20.10.",
+          "zum 20.10.",
+          "bis zum 20. Oktober",
+          "bis 20. Oktober",
+          "am 20. Oktober",
+          "ist der 20. Oktober",
+          "ist am 20. Oktober",
+          "spätestens 20. Oktober",
+          "zum 20. Oktober",
+          "20.10.2026",
+          "20. Oktober 2026",
+          "bis zum 18.11.",
+          "bis 18.11.",
+          "ist der 18.11.",
+          "ist am 18.11.",
+          "spätestens 18.11.",
+          "bis zum 18. November",
+          "bis 18. November",
+          "ist der 18. November",
+          "ist am 18. November",
+          "spätestens 18. November"
+        ],
+        "belege": [
+          "namensgleich-004",
+          "namensgleich-005"
+        ]
+      },
+      "notiz": "Frist gehört zur Institutsperson; der 20.10. gehört zur Catering-Person."
+    },
+    {
+      "id": "namensgleich-03",
+      "frage": "Wann ist die Probeverkostung?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "20.10.2026",
+            "20. Oktober 2026",
+            "20.10.",
+            "20. Oktober",
+            "20. Okt.",
+            "2026-10-20",
+            "20.10"
+          ],
+          [
+            "12 Uhr",
+            "12:00",
+            "12.00 Uhr"
+          ]
+        ],
+        "belege": [
+          "namensgleich-004",
+          "namensgleich-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 18.11.",
+          "bis 18.11.",
+          "am 18.11.",
+          "ist der 18.11.",
+          "ist am 18.11.",
+          "spätestens 18.11.",
+          "zum 18.11.",
+          "bis zum 18. November",
+          "bis 18. November",
+          "am 18. November",
+          "ist der 18. November",
+          "ist am 18. November",
+          "spätestens 18. November",
+          "zum 18. November",
+          "18.11.2026",
+          "18. November 2026",
+          "bis zum 16.10.",
+          "bis 16.10.",
+          "am 16.10.",
+          "ist der 16.10.",
+          "ist am 16.10.",
+          "spätestens 16.10.",
+          "zum 16.10.",
+          "bis zum 16. Oktober",
+          "bis 16. Oktober",
+          "am 16. Oktober",
+          "ist der 16. Oktober",
+          "ist am 16. Oktober",
+          "spätestens 16. Oktober",
+          "zum 16. Oktober",
+          "16.10.2026",
+          "16. Oktober 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Probeverkostung (Catering), nicht der Gastvortrag am Institut."
+    },
+    {
+      "id": "namensgleich-04",
+      "frage": "Für welche Firma arbeitet Alex Winter?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Winter Catering",
+            "Catering"
+          ],
+          [
+            "Institut",
+            "Ernährungsforschung"
+          ]
+        ],
+        "belege": [
+          "namensgleich-001",
+          "namensgleich-006"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zwei verschiedene Personen namens Alex Winter; eine willkürliche Antwort vermischt sie."
+    },
+    {
+      "id": "namensgleich-05",
+      "frage": "Welche E-Mail-Adresse hat Alex Winter vom Catering?",
+      "kategorie": "identitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "alex.winter@winter-catering.example"
+          ]
+        ],
+        "belege": [
+          "namensgleich-004",
+          "namensgleich-001"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Catering ist alex.winter@ifeh-hessen.example",
+          "Catering lautet alex.winter@ifeh-hessen.example",
+          "Catering: alex.winter@ifeh-hessen.example",
+          "Catering, alex.winter@ifeh-hessen.example"
+        ],
+        "belege": [
+          "namensgleich-006",
+          "namensgleich-009"
+        ]
+      },
+      "notiz": "Zwei Adressen, gleicher Anzeigename; die Cateringadresse ist gefragt."
+    },
+    {
+      "id": "namensgleich-06",
+      "frage": "Was ist mit Alex Winter?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Winter Catering",
+            "Catering",
+            "Probeverkostung"
+          ],
+          [
+            "Institut",
+            "Ernährungsforschung",
+            "Fragebogen",
+            "Gastvortrag"
+          ]
+        ],
+        "belege": [
+          "namensgleich-004",
+          "namensgleich-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Offene Frage nach einem Namen, der zwei Personen gehört (Catering-Geschäftsführer mit Preisanpassung und Probeverkostung, Institutsmitarbeiterin mit Fragebogen-Feedback und Gastvortrag). Eine von beiden zu wählen oder beide zu vermischen ist falsch."
+    }
+  ]
+}

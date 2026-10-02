@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-23",
+  "code_commit": "818b582",
+  "environment": "Isolated temporary native sidecar, built production UI, controlled provider, synthetic calendar and sources; no real mail or private source data",
+  "checks": {
+    "ordinary_conversation_captured_by_http": true,
+    "background_worker_classified_without_merke_command": true,
+    "conditional_reply_kept_full_original": true,
+    "today_source_opened_readably": true,
+    "today_source_exclusion_removed_activity_and_dependent_history": true,
+    "meeting_requires_explicit_context": true,
+    "meeting_conditional_label_visible": true,
+    "meeting_full_condition_visible": true,
+    "source_panel_survived_automatic_15_second_refresh": true,
+    "dismissal_removed_classification_kept_original": true,
+    "context_change_removed_old_source_immediately": true,
+    "console_warnings_errors": []
+  },
+  "limitations": [
+    "No mobile viewport override tested",
+    "Controlled model for browser flow; real local classification/selection checked separately",
+    "No broad independent retrieval benchmark or long-term user test"
+  ]
+}

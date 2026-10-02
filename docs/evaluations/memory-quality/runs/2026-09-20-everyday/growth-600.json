@@ -1,0 +1,64 @@
+{
+  "qualification": false,
+  "kind": "synthetic_local_embedding_growth",
+  "sizes": [
+    600
+  ],
+  "rows": [
+    {
+      "size": 600,
+      "phase": "cold",
+      "seconds": 2.438799083000049,
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "bounded_live",
+        "semantic_snapshot_items": 128,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-13cfa16a9c7e"
+        ],
+        "semantic_inventory_total": 600,
+        "semantic_inventory_limit": 512,
+        "semantic_coverage": "partial"
+      }
+    },
+    {
+      "size": 600,
+      "phase": "warm",
+      "seconds": 0.07104279199847952,
+      "metadata": {
+        "query_terms_total": 2,
+        "query_terms_used": 2,
+        "query_truncated": false,
+        "candidate_limit": 128,
+        "candidates_returned": 1,
+        "candidates_truncated": false,
+        "selection_truncated": false,
+        "truncated": false,
+        "ranking_mode": "hybrid",
+        "semantic_status": "ok",
+        "semantic_scope": "bounded_live",
+        "semantic_snapshot_items": 128,
+        "semantic_hits": 1,
+        "semantic_stale": 0,
+        "semantic_candidate_ids": [
+          "k-13cfa16a9c7e"
+        ],
+        "semantic_inventory_total": 600,
+        "semantic_inventory_limit": 512,
+        "semantic_coverage": "partial"
+      }
+    }
+  ],
+  "status": "completed"
+}

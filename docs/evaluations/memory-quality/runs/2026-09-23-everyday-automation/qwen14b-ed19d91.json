@@ -1,0 +1,329 @@
+{
+  "case_file_sha256": "f89c894605b068adb6abb47c7d6b8c10283dbc4b8543ed66cbc8e2c2edad8f68",
+  "runner_file_sha256": "1688c0e6158e7c7b4ab33897972d4aa1fb3ba4d6bfcc7e72a31b03e6945ab480",
+  "selected_case_ids": [
+    "chat_capture_and_recall",
+    "email_document_conditions",
+    "same_name_different_projects",
+    "relative_date_without_timestamp",
+    "withdrawal_invalidates_answer_history"
+  ],
+  "provider_mode": "real",
+  "model": "qwen2.5:14b",
+  "requested_model": "qwen2.5:14b",
+  "installed_model_metadata": {
+    "name": "qwen2.5:14b",
+    "model": "qwen2.5:14b",
+    "modified_at": "2026-07-09T11:24:55.788016158+02:00",
+    "size": 8988124069,
+    "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "14.8B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 5120
+    },
+    "capabilities": [
+      "completion",
+      "tools"
+    ]
+  },
+  "model_endpoint": "127.0.0.1 (local Ollama)",
+  "synthetic_only": true,
+  "network_enabled": true,
+  "started_at": "2026-09-23T14:46:12.453056+02:00",
+  "classification_method": "existing scheduler._run_working_memory worker; no direct commit",
+  "source_revision": "ed19d91acbcc8435c38fe52fa262af182075be36",
+  "source_tree_clean": true,
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "failures": [],
+  "finished_at": "2026-09-23T14:47:11.176208+02:00",
+  "mail_send_count": 0,
+  "assessment_note": "Bounded single pass over the selected frozen cases; fake-provider runs verify harness route coverage only. Real mode uses the already-installed local model; no approval is posted and mail-send counts come from the synthetic sink.",
+  "raw_artifact_sha256": "e6ce896c3ba3581aef8367c1a6d9fafe201433750547df35dc0fa3f704f40955",
+  "model_seconds": 57.046,
+  "model_calls": 14,
+  "harness_limit": "Chat limited to one tool round; source selection uses the real local model. Not a production conversation-length test.",
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "title": "Normale Chatangabe wird automatisch aufgenommen und wiedergefunden",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-288c52e35617",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "conversation_id": "c-9ea7d9ca10ac",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nAngabe · Gesprächsausschnitt\nFür den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.\nQuellenzeit: 2026-09-23T14:46:12.753567+02:00",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-288c52e35617"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-288c52e35617",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "email_document_conditions",
+      "title": "Bedingungen aus Mail und Dokument bleiben gemeinsam sichtbar",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-5dedaa30fe48",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        },
+        {
+          "alias": "S2",
+          "episode_id": "e-83ce3d745b55",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was muss vor Termin und Versand noch passieren?",
+          "conversation_id": "c-6eb4036891fa",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S2.txt\nDer Keramikversand darf erst erfolgen, wenn alle drei Prüfmesswerte gegengezeichnet sind.\nQuellenzeit: unbekannt\n\nBedingte Aussage · Synthetic\nDer Prüftermin am 6. Oktober ist erst verbindlich, wenn die schriftliche Freigabe vorliegt. Die Freigabe fehlt noch.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-83ce3d745b55",
+            "e-5dedaa30fe48"
+          ],
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-83ce3d745b55",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            },
+            {
+              "episode_id": "e-5dedaa30fe48",
+              "label": "Quelle 2 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "same_name_different_projects",
+      "title": "Gleichnamige Personen in verschiedenen Projekten nicht verschmelzen",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-da721e6d529e",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        },
+        {
+          "alias": "S2",
+          "episode_id": "e-584d9d29fe67",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was hat Lena Vogt zur Keramikprobe entschieden?",
+          "conversation_id": "c-75aee80c4d2d",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · Synthetic\nLena Vogt aus Projekt Orion bittet noch um eine überarbeitete Keramikprobe; eine Freigabe liegt nicht vor.\nQuellenzeit: unbekannt\n\nAngabe · Synthetic\nLena Vogt aus Projekt Atlas hat die Keramikproben freigegeben.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-584d9d29fe67",
+            "e-da721e6d529e"
+          ],
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-584d9d29fe67",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            },
+            {
+              "episode_id": "e-da721e6d529e",
+              "label": "Quelle 2 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed",
+      "explicit_project_links": [
+        {
+          "alias": "S1",
+          "project": "Projekt Atlas",
+          "project_id": "p-43c93a407be3",
+          "task_status": 201,
+          "source_episode_id": "e-da721e6d529e"
+        },
+        {
+          "alias": "S2",
+          "project": "Projekt Orion",
+          "project_id": "p-ad8584608163",
+          "task_status": 201,
+          "source_episode_id": "e-584d9d29fe67"
+        }
+      ]
+    },
+    {
+      "id": "relative_date_without_timestamp",
+      "title": "Relativer Termin ohne belegten Quellenzeitpunkt bleibt relativ",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-a60e17d5237e",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "An welchem Datum kommt die Keramikprobe?",
+          "conversation_id": "c-0f38b6d0dd00",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nAngabe · Synthetic\nWir können die Keramikprobe nächsten Freitag liefern.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-a60e17d5237e"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-a60e17d5237e",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "withdrawal_invalidates_answer_history",
+      "title": "Quellenentzug entwertet Suche und alte Antwort",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-bdaedb8283b3",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "before_withdrawal",
+          "conversation_id": "c-2f2d9e1b80c5",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S1.txt\nAnna liefert die Keramikproben am 22. Oktober 2026, wenn die Laborfreigabe vorliegt.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_episode_ids": [
+            "e-bdaedb8283b3"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-bdaedb8283b3",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        },
+        {
+          "stage": "old_conversation_after_withdrawal",
+          "contract_status": "working_unavailable",
+          "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+          "selected_source_aliases": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        },
+        {
+          "stage": "fresh_question_after_withdrawal",
+          "conversation_id": "c-e0220825d22a",
+          "http_status": 201,
+          "answer": "Um diese Information zu erhalten, benötige ich eine spezifische Quelle, wie zum Beispiel eine E-Mail von Anna oder ein vorliegender Plan oder eine Notiz. Möchtest du mir eine spezifische Quelle dazu nennen? Wenn du sie hast, teile sie mir mit, dann werde ich die Antwort für dich ermitteln.",
+          "contract_status": null,
+          "selected_episode_ids": [],
+          "selected_source_aliases": [],
+          "source_links": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        }
+      ],
+      "status": "completed"
+    }
+  ]
+}

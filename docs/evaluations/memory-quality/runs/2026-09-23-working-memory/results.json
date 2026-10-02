@@ -1,0 +1,510 @@
+{
+  "model": "qwen3.5:4b",
+  "base_url": "http://127.0.0.1:11434/v1",
+  "expected_file": "expected.json",
+  "started_at": "2026-09-23T10:37:43.509166+02:00",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8",
+      "episode_id": "e-3bc28beecfd8",
+      "items": [
+        {
+          "kind": "commitment",
+          "text": "Von: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026."
+        }
+      ],
+      "committed": true,
+      "latency_s": 7.486
+    },
+    {
+      "id": "S02",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19",
+      "episode_id": "e-75294e2912c9",
+      "items": [
+        {
+          "kind": "commitment",
+          "text": "Von: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.019
+    },
+    {
+      "id": "S03",
+      "title": "Kran: Elias fragt nach Messprotokoll",
+      "episode_id": "e-097b7d1aa823",
+      "items": [
+        {
+          "kind": "request",
+          "text": "Von: Elias Dorn <elias@example.test>\nKannst du mir das Messprotokoll für den Kran bis Freitag schicken? Ich brauche es für die Abnahme."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.101
+    },
+    {
+      "id": "S04",
+      "title": "Projekt Kobalt: Probenliste unter Vorbehalt",
+      "episode_id": "e-800c79afb755",
+      "items": [
+        {
+          "kind": "conditional",
+          "text": "Von: Mira Vogt <mira@example.test>\nWenn die Sicherheitsfreigabe vom Labor vorliegt:\n\ndann stelle ich die Probenliste für Projekt Kobalt am 8. Oktober 2026 bereit."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.477
+    },
+    {
+      "id": "S05",
+      "title": "Besprechungsraum: aktuelle Absage von Dana",
+      "episode_id": "e-4a56025e6c74",
+      "items": [
+        {
+          "kind": "historical",
+          "text": "Von: Dana Seifert <dana@example.test>\nZitat meiner alten Mail vom 12. September: 'Ich nehme den Besprechungsraum am Dienstag um 10 Uhr.'"
+        },
+        {
+          "kind": "status",
+          "text": "Aktuell sage ich die Buchung des Besprechungsraums für Dienstag um 10 Uhr ab."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.756
+    },
+    {
+      "id": "S06",
+      "title": "Projekt Atlas: ursprüngliche Abgabefrist",
+      "episode_id": "e-05a87f2dd9d9",
+      "items": [
+        {
+          "kind": "uncertain",
+          "text": "Von: Leila Yilmaz <leila@example.test>\nFür Projekt Atlas gilt als Abgabefrist der 15. Oktober 2026. Das ist mein derzeitiger Plan."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.405
+    },
+    {
+      "id": "S07",
+      "title": "Projekt Atlas: Leilas ausdrückliche Fristkorrektur",
+      "episode_id": "e-5011e209bdc9",
+      "items": [
+        {
+          "kind": "change",
+          "text": "Von: Leila Yilmaz <leila@example.test>\nIch korrigiere meine Mail zur Abgabefrist für Projekt Atlas vom 18. September: Statt 15. Oktober gilt nun der 19. Oktober 2026."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.463
+    },
+    {
+      "id": "S08",
+      "title": "Druckauftrag Jade: Angebot verschickt",
+      "episode_id": "e-08cc1f604ddf",
+      "items": [
+        {
+          "kind": "fact",
+          "text": "Von: Tom Gerber <tom@example.test>\nDas Angebot für den Druckauftrag Jade habe ich heute verschickt. Vom Kunden liegt bisher keine Antwort und keine Annahme vor."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.532
+    },
+    {
+      "id": "S09",
+      "title": "Schlüsselkarten: Nachricht ohne Quellenzeit",
+      "episode_id": "e-6f0dc308192a",
+      "items": [
+        {
+          "kind": "commitment",
+          "text": "Von: Ruth Falk <ruth@example.test>\nNächsten Freitag bringe ich die Schlüsselkarten für Haus Mohn vorbei."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.36
+    },
+    {
+      "id": "S10",
+      "title": "Atelier Orion: Website Farbpalette",
+      "episode_id": "e-2ad6735fc1e1",
+      "items": [
+        {
+          "kind": "fact",
+          "text": "Die Website von Atelier Orion zeigt seit März 2026 eine digitale Farbpalette. Diese Notiz betrifft keine Stoff-Farbmuster und keine Lieferung durch Nora Beck."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.359
+    },
+    {
+      "id": "S11",
+      "title": "Kobalt: Lageretikett",
+      "episode_id": "e-cf4ac472422e",
+      "items": [
+        {
+          "kind": "fact",
+          "text": "Im Lager Kobalt ist die Inventarnummer der blauen Kiste 7042. Das Etikett sagt nichts über die Probenliste oder eine Sicherheitsfreigabe."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.365
+    },
+    {
+      "id": "S12",
+      "title": "Atlas: Kartenleser",
+      "episode_id": "e-a6852af7e7e2",
+      "items": [
+        {
+          "kind": "fact",
+          "text": "Der Kartenleser am Eingang Atlas wurde am 21. September gewartet. Die Wartung hat keinen Bezug zur Abgabefrist von Projekt Atlas."
+        }
+      ],
+      "committed": true,
+      "latency_s": 1.323
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "question": "Wann liefert Nora Beck die Stoff-Farbmuster für Atelier Orion?",
+      "status": "unclear",
+      "uncertainty": "conflict",
+      "candidate_source_ids": [
+        "S02",
+        "S01",
+        "S10"
+      ],
+      "selected_source_ids": [
+        "S02",
+        "S01"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19\nVon: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026.\nQuellenzeit: 2026-09-21T10:00:00+02:00\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8\nVon: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026.\nQuellenzeit: 2026-09-21T09:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-75294e2912c9",
+          "label": "Quelle 1 öffnen"
+        },
+        {
+          "episode_id": "e-3bc28beecfd8",
+          "label": "Quelle 2 öffnen"
+        }
+      ],
+      "contract": "working_unclear",
+      "limited": false,
+      "latency_s": 2.286
+    },
+    {
+      "id": "Q02",
+      "question": "Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster für Atelier Orion?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S01",
+        "S02",
+        "S10"
+      ],
+      "selected_source_ids": [
+        "S01"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nZusage · Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8\nVon: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026.\nQuellenzeit: 2026-09-21T09:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-3bc28beecfd8",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 2.14
+    },
+    {
+      "id": "Q03",
+      "question": "Hat Elias zugesagt, das Messprotokoll für den Kran zu schicken?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S03"
+      ],
+      "selected_source_ids": [
+        "S03"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nBitte · Kran: Elias fragt nach Messprotokoll\nVon: Elias Dorn <elias@example.test>\nKannst du mir das Messprotokoll für den Kran bis Freitag schicken? Ich brauche es für die Abnahme.\nQuellenzeit: 2026-09-22T11:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-097b7d1aa823",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 1.337
+    },
+    {
+      "id": "Q04",
+      "question": "Ist Miras Probenliste für Projekt Kobalt am 8. Oktober fest zugesagt?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S04",
+        "S07",
+        "S11",
+        "S06",
+        "S12",
+        "S02",
+        "S01"
+      ],
+      "selected_source_ids": [
+        "S04"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · Projekt Kobalt: Probenliste unter Vorbehalt\nVon: Mira Vogt <mira@example.test>\nWenn die Sicherheitsfreigabe vom Labor vorliegt:\n\ndann stelle ich die Probenliste für Projekt Kobalt am 8. Oktober 2026 bereit.\nQuellenzeit: 2026-09-22T13:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-800c79afb755",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 3.626
+    },
+    {
+      "id": "Q05",
+      "question": "Gilt Danas Buchung des Besprechungsraums für Dienstag um 10 Uhr noch?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S05",
+        "S05",
+        "S07",
+        "S06"
+      ],
+      "selected_source_ids": [
+        "S05"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Besprechungsraum: aktuelle Absage von Dana\nVon: Dana Seifert <dana@example.test>\nZitat meiner alten Mail vom 12. September: 'Ich nehme den Besprechungsraum am Dienstag um 10 Uhr.'\n\nAktuell sage ich die Buchung des Besprechungsraums für Dienstag um 10 Uhr ab.\nQuellenzeit: 2026-09-22T14:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-4a56025e6c74",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 2.658
+    },
+    {
+      "id": "Q06",
+      "question": "Welche Abgabefrist gilt jetzt für Projekt Atlas laut Leila Yilmaz?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S07",
+        "S06",
+        "S12",
+        "S04"
+      ],
+      "selected_source_ids": [
+        "S07"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Projekt Atlas: Leilas ausdrückliche Fristkorrektur\nVon: Leila Yilmaz <leila@example.test>\nIch korrigiere meine Mail zur Abgabefrist für Projekt Atlas vom 18. September: Statt 15. Oktober gilt nun der 19. Oktober 2026.\nQuellenzeit: 2026-09-22T15:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-5011e209bdc9",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 2.119
+    },
+    {
+      "id": "Q07",
+      "question": "Hat der Kunde das Angebot für den Druckauftrag Jade angenommen?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "S08"
+      ],
+      "selected_source_ids": [
+        "S08"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Druckauftrag Jade: Angebot verschickt\nVon: Tom Gerber <tom@example.test>\nDas Angebot für den Druckauftrag Jade habe ich heute verschickt. Vom Kunden liegt bisher keine Antwort und keine Annahme vor.\nQuellenzeit: 2026-09-22T16:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-08cc1f604ddf",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 1.12
+    },
+    {
+      "id": "Q08",
+      "question": "An welchem konkreten Datum bringt Ruth die Schlüsselkarten für Haus Mohn?",
+      "status": "unclear",
+      "uncertainty": "time",
+      "candidate_source_ids": [
+        "S09"
+      ],
+      "selected_source_ids": [
+        "S09"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\nWelcher Zeitpunkt ist für diese Frage gemeint?\n\nZusage · Schlüsselkarten: Nachricht ohne Quellenzeit\nVon: Ruth Falk <ruth@example.test>\nNächsten Freitag bringe ich die Schlüsselkarten für Haus Mohn vorbei.\nQuellenzeit: unbekannt",
+      "links": [
+        {
+          "episode_id": "e-6f0dc308192a",
+          "label": "Quelle 1 öffnen"
+        }
+      ],
+      "contract": "working_unclear",
+      "limited": false,
+      "latency_s": 0.691
+    }
+  ],
+  "raw_calls": [
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8",
+      "question": null,
+      "latency_s": 7.481,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19",
+      "question": null,
+      "latency_s": 1.014,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Kran: Elias fragt nach Messprotokoll",
+      "question": null,
+      "latency_s": 1.093,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Projekt Kobalt: Probenliste unter Vorbehalt",
+      "question": null,
+      "latency_s": 1.457,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Besprechungsraum: aktuelle Absage von Dana",
+      "question": null,
+      "latency_s": 1.746,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"historical\"},{\"block_id\":\"B2\",\"kind\":\"status\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Projekt Atlas: ursprüngliche Abgabefrist",
+      "question": null,
+      "latency_s": 1.397,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Projekt Atlas: Leilas ausdrückliche Fristkorrektur",
+      "question": null,
+      "latency_s": 1.447,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"change\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Druckauftrag Jade: Angebot verschickt",
+      "question": null,
+      "latency_s": 1.52,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Schlüsselkarten: Nachricht ohne Quellenzeit",
+      "question": null,
+      "latency_s": 1.354,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Atelier Orion: Website Farbpalette",
+      "question": null,
+      "latency_s": 1.353,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Kobalt: Lageretikett",
+      "question": null,
+      "latency_s": 1.36,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Atlas: Kartenleser",
+      "question": null,
+      "latency_s": 1.317,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Wann liefert Nora Beck die Stoff-Farbmuster für Atelier Orion?",
+      "latency_s": 2.274,
+      "text": "{\"status\":\"conflict\",\"ids\":[\"S1\",\"S2\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster für Atelier Orion?",
+      "latency_s": 2.13,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Hat Elias zugesagt, das Messprotokoll für den Kran zu schicken?",
+      "latency_s": 1.333,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Ist Miras Probenliste für Projekt Kobalt am 8. Oktober fest zugesagt?",
+      "latency_s": 3.609,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Gilt Danas Buchung des Besprechungsraums für Dienstag um 10 Uhr noch?",
+      "latency_s": 2.648,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Welche Abgabefrist gilt jetzt für Projekt Atlas laut Leila Yilmaz?",
+      "latency_s": 2.106,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Hat der Kunde das Angebot für den Druckauftrag Jade angenommen?",
+      "latency_s": 1.102,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "An welchem konkreten Datum bringt Ruth die Schlüsselkarten für Haus Mohn?",
+      "latency_s": 0.661,
+      "text": "{\"status\":\"time\",\"ids\":[\"S1\"]}"
+    }
+  ],
+  "finished_at": "2026-09-23T10:38:22.184876+02:00"
+}

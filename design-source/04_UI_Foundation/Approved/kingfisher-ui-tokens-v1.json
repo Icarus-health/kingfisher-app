@@ -1,0 +1,56 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "name": "Kingfisher UI Foundation",
+    "version": "1.0.0-review",
+    "rule": "Use these tokens as-is. Do not invent visual values."
+  },
+  "font": {
+    "display": { "family": "Cormorant Garamond", "fallback": "Georgia, serif", "weights": [400, 600] },
+    "ui": { "family": "Inter", "fallback": "-apple-system, BlinkMacSystemFont, sans-serif", "weights": [400, 500, 600, 700] }
+  },
+  "type": {
+    "display-xl": { "size": 48, "lineHeight": 54, "weight": 600, "tracking": -0.8 },
+    "display-lg": { "size": 32, "lineHeight": 38, "weight": 600, "tracking": -0.4 },
+    "heading-lg": { "size": 24, "lineHeight": 30, "weight": 600, "tracking": -0.2 },
+    "heading-md": { "size": 20, "lineHeight": 26, "weight": 600, "tracking": -0.2 },
+    "body": { "size": 14, "lineHeight": 21, "weight": 400, "tracking": 0 },
+    "body-strong": { "size": 14, "lineHeight": 21, "weight": 600, "tracking": 0 },
+    "label": { "size": 12, "lineHeight": 16, "weight": 700, "tracking": 0.45 },
+    "caption": { "size": 11, "lineHeight": 15, "weight": 500, "tracking": 0.15 },
+    "metric": { "size": 32, "lineHeight": 36, "weight": 600, "tracking": -0.8, "fontFeatureSettings": "tnum" }
+  },
+  "color": {
+    "ink": "#062B3A",
+    "ink-soft": "#31535F",
+    "canvas": "#F7F5EF",
+    "surface": "#FFFEFA",
+    "surface-muted": "#EEF3F1",
+    "navy": "#063E55",
+    "navy-deep": "#032D40",
+    "teal": "#007E92",
+    "kingfisher": "#00A7C4",
+    "orange": "#E76F2B",
+    "gold": "#D6A63C",
+    "line": "#D7E1DF",
+    "focus": "#00A7C4",
+    "success": "#197A58",
+    "warning": "#B7791F",
+    "danger": "#BF3B44",
+    "on-dark": "#F4FAF9",
+    "on-dark-muted": "#B5CED0"
+  },
+  "space": { "0": 0, "1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "10": 40, "12": 48, "16": 64 },
+  "radius": { "sm": 8, "md": 12, "lg": 16, "xl": 24, "pill": 999 },
+  "shadow": {
+    "card": "0 1px 2px rgba(6,43,58,.04), 0 8px 24px rgba(6,43,58,.06)",
+    "float": "0 12px 32px rgba(3,45,64,.16)"
+  },
+  "layout": {
+    "desktop": { "min": 1280, "canvas": 1440, "sidebar": 248, "contentMax": 1120, "pagePadding": 40, "grid": 12, "gutter": 24 },
+    "tablet": { "min": 768, "pagePadding": 28, "grid": 8, "gutter": 20 },
+    "mobile": { "canvas": 390, "pagePadding": 20, "grid": 4, "gutter": 16, "bottomNav": 72 }
+  },
+  "icon": { "stroke": 1.8, "sizes": [16, 20, 24, 32], "rule": "Use only the approved SVG set; never use emoji, generated glyphs, or a different icon family." },
+  "motion": { "fast": 120, "base": 180, "slow": 260, "easing": "cubic-bezier(0.2,0,0,1)" }
+}

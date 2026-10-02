@@ -1,0 +1,4 @@
+.audio-briefing audio { display: none; }
+.audio-briefing .audio-message { grid-column: 1 / -1; margin: 8px 0 0; color: var(--kf-schrift-31535f); font-size: 12px; }
+.audio-briefing .audio-message button, .audio-ready { margin-left: 8px; }
+.audio-briefing .audio-ready { grid-column: 1 / -1; justify-self: start; }

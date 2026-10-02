@@ -1,0 +1,38 @@
+[
+  {
+    "file": "agent-same-name-01.json",
+    "sha256": "c0c14b876c2c8fe04982a8d0fe4c7d10e457193858e4efb53a20925475903b25"
+  },
+  {
+    "file": "agent-same-name-02.json",
+    "sha256": "017143a5ec8901324da5484cc41763d2e4577183b079fdfc760fb850ff20db0c"
+  },
+  {
+    "file": "agent-same-name-03.json",
+    "sha256": "c9f3a6bd9c1e5dc28db27b3a21d3a5775941e8326c63885b9f07478b3f29ce6d"
+  },
+  {
+    "file": "reference_context-same-name-01.json",
+    "sha256": "48ff2ae4ce0d2068d30d8799bc7ada325c1a73b9d7ac6efa6ccb31a26129c285"
+  },
+  {
+    "file": "reference_context-same-name-02.json",
+    "sha256": "eb2ecb333f620eab655fb9be7973d99333995756ec4bc4007cd522042f902ae1"
+  },
+  {
+    "file": "reference_context-same-name-03.json",
+    "sha256": "83b4d9cf5ea8e00605d30c328b25da8e4225af95e3a9666e1c5ba943fea9b37f"
+  },
+  {
+    "file": "reference_identity_context-same-name-01.json",
+    "sha256": "e472065046ac3e1476ee228247a3edf2c504ed3fa2c98b31d7df2581f7d576fe"
+  },
+  {
+    "file": "reference_identity_context-same-name-02.json",
+    "sha256": "943231581a69200b1e6c2f091a330c5d8ac1d2e95eedec313fb0b704b4f56b7e"
+  },
+  {
+    "file": "reference_identity_context-same-name-03.json",
+    "sha256": "d0bf229c478df65c8304cb9ce38301324f8571191aa10bd8de0d961311982659"
+  }
+]

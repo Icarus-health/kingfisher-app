@@ -1,0 +1,450 @@
+{
+  "case_file_sha256": "f89c894605b068adb6abb47c7d6b8c10283dbc4b8543ed66cbc8e2c2edad8f68",
+  "runner_file_sha256": "5d222598576b3347a11371ca8852636b5ebc6269cd6ca4e470bc3b61abc60a88",
+  "selected_case_ids": [
+    "chat_capture_and_recall",
+    "email_document_conditions",
+    "same_name_different_projects",
+    "explicit_meeting_time_correction",
+    "unresolved_conflict",
+    "relative_date_without_timestamp",
+    "unsupported_private_question",
+    "restart_persistence",
+    "withdrawal_invalidates_answer_history",
+    "shared_state_cos_workflow"
+  ],
+  "model": "qwen3.5:4b",
+  "installed_model_metadata": {
+    "name": "qwen3.5:4b",
+    "model": "qwen3.5:4b",
+    "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+    "size": 3389983735,
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "4.7B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2560
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ]
+  },
+  "source_revision": "90a018265b845fe23f7c153a324cb448dd6b52fa",
+  "source_tree_clean": false,
+  "source_file_hashes": {
+    "episodes.py": "272e7b7437cec9ac5a6d7df2862fe62352a42f120db9c7d581f6a9750ad0eef2",
+    "working_memory_store.py": "c779b99516a0f0ddde941588b7bc902e2504a9b4829c9b64663ea46c73383237",
+    "working_memory_context.py": "30c5015ecdfaa8423bd8affd92ca8149e7ff827356685c42a4b68d9fb462f247",
+    "working_memory_answers.py": "62282dbbe30fd227c01e471235b27441ca33731026ca24c8a4ecf383075226aa",
+    "source_corrections.py": "850e826a19ce27575870e6306d1c1fb28fef24dda95a90f1d96a750fca764f14",
+    "server.py": "4de36547ab097ff653b4e40d255ef92480ea24a10744f16365bb0414cc0cd28e",
+    "working_memory_words.py": "ea9820e65698f352ab1f068641af58a1d4277cba94bd811e35c1deb51098ca17",
+    "providers.py": "d1df0e859cf924e72bdc7788f0e0bb9afc6e958af775db9550a6fe1200b24567",
+    "agent.py": "25990fb1950d6bb0ad62d62e5ec20dc68ed57ea867936b868fe8d15afdc9cdb6",
+    "tools.py": "f38549d08c82e088911ebecf17a7ce15c8c1b5fda62676a7707293a59d2e9464"
+  },
+  "started_at": "2026-09-23T15:38:01.610943+02:00",
+  "finished_at": "2026-09-23T15:38:39.743359+02:00",
+  "failures": [],
+  "mail_send_count": 0,
+  "raw_artifact_sha256": "e06dc871234f42ff5da0da3cb8c24be3b73a76f16d4b441137c7b6141308f7a0",
+  "synthetic_only": true,
+  "production_model_or_schedule_changed": false,
+  "matching_committed_production_code": "d6d4a2b",
+  "harness_limit": "max_rounds=4; object recreation is not an OS restart; frozen development cases are not an independent holdout",
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBitte · Gesprächsausschnitt\nFür den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.\nQuellenzeit: 2026-09-23T15:38:01.953146+02:00",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "email_document_conditions",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was muss vor Termin und Versand noch passieren?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S2.txt\nDer Keramikversand darf erst erfolgen, wenn alle drei Prüfmesswerte gegengezeichnet sind.\nQuellenzeit: unbekannt\n\nStatusmeldung · Synthetic\nDer Prüftermin am 6. Oktober ist erst verbindlich, wenn die schriftliche Freigabe vorliegt. Die Freigabe fehlt noch.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "same_name_different_projects",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was hat Lena Vogt zur Keramikprobe entschieden?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nBitte · Synthetic\nLena Vogt aus Projekt Orion bittet noch um eine überarbeitete Keramikprobe; eine Freigabe liegt nicht vor.\nQuellenzeit: unbekannt\n\nAngabe · Synthetic\nLena Vogt aus Projekt Atlas hat die Keramikproben freigegeben.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "explicit_meeting_time_correction",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Bereite mich auf die Keramikprüfung Mainz vor. Wann ist der Termin?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: synthetic-S1.txt\nKorrektur zur Besprechung Keramikprüfung Mainz: Die Uhrzeit am 8. Oktober 2026 ist 15:30 Uhr, nicht 14:00 Uhr.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S2"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "unresolved_conflict",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kommen die Keramikproben?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nAngabe · synthetic-S2.txt\nEinkauf notiert: Die Keramikproben kommen am 14. Oktober 2026.\nQuellenzeit: unbekannt\n\nAngabe · Synthetic\nDer Lieferant schreibt: Die Keramikproben kommen am 12. Oktober 2026.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "relative_date_without_timestamp",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "An welchem Datum kommt die Keramikprobe?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nZusage · Synthetic\nWir können die Keramikprobe nächsten Freitag liefern.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "unsupported_private_question",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Welches Medikament habe ich gestern genommen?",
+          "answer": "Aus den bisher eingeordneten Quellen konnte ich dazu keine eindeutige Antwort bestimmen.",
+          "contract_status": "working_unknown",
+          "selected_source_aliases": [],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "restart_persistence",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was fehlt noch vor dem Keramikversand?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · synthetic-S1.txt\nFür den Keramikversand am 20. Oktober 2026 muss die schriftliche Prüfbestätigung vorliegen. Die Bestätigung ist noch offen.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "withdrawal_invalidates_answer_history",
+      "status": "completed",
+      "checks": {},
+      "actions": [
+        {
+          "stage": "before_withdrawal",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-S1.txt\nAnna liefert die Keramikproben am 22. Oktober 2026, wenn die Laborfreigabe vorliegt.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        },
+        {
+          "stage": "old_conversation_after_withdrawal",
+          "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+          "contract_status": "working_unavailable",
+          "selected_source_aliases": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        },
+        {
+          "stage": "fresh_question_after_withdrawal",
+          "answer": "Ich habe in Ihrem aktuellen Bestand keine Information darüber, wann Anna die Keramikproben liefert oder unter welchen Bedingungen dies erfolgt.\n\nUm Ihnen eine fundierte Antwort zu geben, wäre es hilfreich, wenn Sie mir mehr Kontext geben könnten:\n*   Handelt es sich um ein laufendes Projekt (z.B. \"Keramikkurs\", \"Probestück\"), sodass ich den aktuellen Stand danach prüfen kann?\n*   Obergrenze Ihre Erinnerung an eine bestimmte Person oder einen Vorgang mit diesem Thema?",
+          "contract_status": null,
+          "selected_source_aliases": [],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_state_cos_workflow",
+      "status": "completed",
+      "checks": {
+        "today_event_and_source_row": true,
+        "preparation_keeps_full_open_source": true,
+        "reply_uses_exact_prior_source": true,
+        "reply_quotes_complete_source": true,
+        "reply_prepared_pending_no_send": true
+      },
+      "actions": [
+        {
+          "stage": "today"
+        },
+        {
+          "stage": "calendar_preparation"
+        },
+        {
+          "stage": "reply_draft"
+        }
+      ]
+    }
+  ],
+  "model_calls": [
+    {
+      "kind": "chat",
+      "seconds": 5.734,
+      "response": "Ich habe diese Information festgehalten, um später über die Termine und Aufgaben mit Bezug zum „Keramiktest“ oder ähnlichen Projekten korrekt zu handeln. Sollte es eine konkrete Aufgabe dabei geben, wird sie entsprechend aktualisiert.",
+      "tool_calls": []
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.503,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 2.118,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.892,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.959,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.34,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\",\"S2\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.826,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.866,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.214,
+      "response": "{\"status\":\"needs_person_choice\",\"ids\":[\"S1\",\"S2\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.878,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.945,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.843,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.94,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.135,
+      "response": "{\"status\":\"unresolved_conflicting_sources\",\"ids\":[\"S1\",\"S2\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.77,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"commitment\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.797,
+      "response": "{\"status\":\"needs_missing_time_reference\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "chat",
+      "seconds": 2.164,
+      "response": "",
+      "tool_calls": [
+        {
+          "name": "episode_festhalten",
+          "arguments": {
+            "titel": "Privater Arzttermin am gestern",
+            "text": "Nutzer hatte gestern einen privaten Arzttermin.",
+            "art": "event"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "chat",
+      "seconds": 0.479,
+      "response": "Gestern war dein Arzttermin festgehalten.",
+      "tool_calls": []
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.101,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.905,
+      "response": "{\"status\":\"no_relevant_sources\",\"ids\":[]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.871,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.769,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.856,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.958,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "chat",
+      "seconds": 2.909,
+      "response": "Ich habe in Ihrem aktuellen Bestand keine Information darüber, wann Anna die Keramikproben liefert oder unter welchen Bedingungen dies erfolgt.\n\nUm Ihnen eine fundierte Antwort zu geben, wäre es hilfreich, wenn Sie mir mehr Kontext geben könnten:\n*   Handelt es sich um ein laufendes Projekt (z.B. \"Keramikkurs\", \"Probestück\"), sodass ich den aktuellen Stand danach prüfen kann?\n*   Obergrenze Ihre Erinnerung an eine bestimmte Person oder einen Vorgang mit diesem Thema?",
+      "tool_calls": []
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.99,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.119,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    }
+  ]
+}

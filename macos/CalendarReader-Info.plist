@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>health.kingfisher.calendar-reader</string>
+<key>CFBundleName</key><string>Kingfisher Kalender</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>NSCalendarsFullAccessUsageDescription</key>
+<string>Kingfisher liest ausgewählte Kalender für deine Terminübersicht. Dieser Adapter verändert keine Termine. macOS bezeichnet die zum Lesen erforderliche Berechtigung als Vollzugriff.</string>
+</dict></plist>

@@ -1,0 +1,406 @@
+{
+  "id": "terminvorbereitung",
+  "titel": "Vorbereitung auf ein Gespräch mit zwei Personen",
+  "beschreibung": "Morgen (30.09.2026) ist ein Gespräch mit zwei Personen einer Seniorenresidenz. Aus Mails und einer Telefonnotiz geht hervor, was jede will, und dass sich das Budget geändert hat.",
+  "quellen": [
+    {
+      "id": "terminvorbereitung-001",
+      "art": "mail",
+      "zeit": "2026-05-12T09:00:00+02:00",
+      "von": {
+        "name": "Netzwerk Klinische Ernährung Rhein-Main",
+        "adresse": "info@netzwerk-kern.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Rückblick Netzwerktreffen 7. Mai: Teilnehmerliste",
+      "text": "Liebe Teilnehmende,\n\nvielen Dank für das gelungene Treffen. Anbei die Teilnehmerliste zum Weitergeben. Neu dabei waren unter anderem\nDr. Ruth Engel und Marcel Odenthal von der Seniorenresidenz Rheinauenblick in Wiesbaden.\n\nDas Netzwerkteam"
+    },
+    {
+      "id": "terminvorbereitung-002",
+      "art": "mail",
+      "zeit": "2026-05-18T10:30:00+02:00",
+      "von": {
+        "name": "Dr. Ruth Engel",
+        "adresse": "r.engel@rheinauenblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Gespräch am Rande des Netzwerktreffens",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir haben uns beim Netzwerktreffen kurz gesprochen. Wir sind die Seniorenresidenz Rheinauenblick in Wiesbaden-Biebrich mit\n84 Bewohnerinnen und Bewohnern. Ich leite das Haus und würde gern mit Ihnen über Ernährung im Pflegeheim sprechen,\ninsbesondere ein strukturiertes Screening auf Mangelernährung.\n\nWann hätten Sie Zeit für ein erstes Telefonat?\n\nFreundliche Grüße\nDr. Ruth Engel\nEinrichtungsleitung\nSeniorenresidenz Rheinauenblick"
+    },
+    {
+      "id": "terminvorbereitung-003",
+      "art": "mail",
+      "zeit": "2026-05-19T08:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Ruth Engel",
+          "adresse": "r.engel@rheinauenblick.example"
+        }
+      ],
+      "betreff": "AW: Gespräch am Rande des Netzwerktreffens",
+      "text": "Sehr geehrte Frau Dr. Engel,\n\ngern. Ich rufe Sie am 18. Juni um 10 Uhr an, passt das?\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "terminvorbereitung-002"
+    },
+    {
+      "id": "terminvorbereitung-004",
+      "art": "notiz",
+      "zeit": "2026-06-18T10:50:00+02:00",
+      "titel": "Telefonat Dr. Engel, Rheinauenblick",
+      "text": "Telefonat mit Frau Dr. Engel, 25 Minuten.\n- Seniorenresidenz Rheinauenblick, Biebrich, 84 Bewohner\n- Wunsch: Screening auf Mangelernährung einführen (Start Januar 2027)\n- Budget zunächst grob 15.000 Euro, Geschäftsführung muss noch zustimmen\n- Küchenleiter Herr Odenthal soll später dazukommen\n- Erster gemeinsamer Termin im Haus im Herbst"
+    },
+    {
+      "id": "terminvorbereitung-005",
+      "art": "mail",
+      "zeit": "2026-09-02T09:12:00+02:00",
+      "von": {
+        "name": "Marcel Odenthal",
+        "adresse": "m.odenthal@rheinauenblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Kostform bei Schluckstörungen: Frage von der Küche",
+      "text": "Guten Tag Frau Hartmann,\n\nich bin Küchenleiter der Seniorenresidenz Rheinauenblick. Frau Dr. Engel hat mir gesagt, dass Sie zum Gespräch kommen.\nAus Sicht der Küche wäre mir am wichtigsten: Wir haben immer mehr Bewohner mit Schluckstörungen, und unser\nKüchenteam weiß nicht genau, wie man Kost sicher und appetitlich anpasst.\n\nIch würde mir eine Schulung fürs Küchenteam wünschen, gern zwei Tage.\n\nViele Grüße\nMarcel Odenthal\nKüchenleitung"
+    },
+    {
+      "id": "terminvorbereitung-006",
+      "art": "mail",
+      "zeit": "2026-09-03T08:00:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Marcel Odenthal",
+          "adresse": "m.odenthal@rheinauenblick.example"
+        }
+      ],
+      "betreff": "AW: Kostform bei Schluckstörungen: Frage von der Küche",
+      "text": "Sehr geehrter Herr Odenthal,\n\ndanke, das ist ein wichtiger Punkt. Wir besprechen das gemeinsam mit Frau Dr. Engel bei unserem Termin im Haus.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "terminvorbereitung-005"
+    },
+    {
+      "id": "terminvorbereitung-007",
+      "art": "mail",
+      "zeit": "2026-09-10T15:18:00+02:00",
+      "von": {
+        "name": "Dr. Ruth Engel",
+        "adresse": "r.engel@rheinauenblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Termin im Haus und Ihr Angebot",
+      "text": "Sehr geehrte Frau Hartmann,\n\nlassen Sie uns den Termin im Haus festmachen: Mittwoch, 30. September, um 14 Uhr, bei uns in der Seniorenresidenz\n(Uferweg 7, Besprechungsraum im Erdgeschoss). Herr Odenthal ist dabei.\n\nZum Budget: Die Geschäftsführung hat zugestimmt, wir können bis zu 12.000 Euro einplanen. Es ist also etwas weniger,\nals ich Ihnen am Telefon genannt hatte.\n\nFreundliche Grüße\nRuth Engel",
+      "antwort_auf": "terminvorbereitung-003"
+    },
+    {
+      "id": "terminvorbereitung-008",
+      "art": "termin",
+      "zeit": "2026-09-10T16:00:00+02:00",
+      "beginn": "2026-09-30T14:00:00+02:00",
+      "ende": "2026-09-30T15:30:00+02:00",
+      "titel": "Gespräch Seniorenresidenz Rheinauenblick",
+      "ort": "Seniorenresidenz Rheinauenblick, Uferweg 7, Wiesbaden-Biebrich",
+      "teilnehmer": [
+        {
+          "name": "Dr. Ruth Engel",
+          "adresse": "r.engel@rheinauenblick.example"
+        },
+        {
+          "name": "Marcel Odenthal",
+          "adresse": "m.odenthal@rheinauenblick.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Screening Mangelernährung, Küchenschulung. Frau Dr. Engel, Herr Odenthal."
+    },
+    {
+      "id": "terminvorbereitung-009",
+      "art": "mail",
+      "zeit": "2026-09-15T07:45:00+02:00",
+      "von": {
+        "name": "Marcel Odenthal",
+        "adresse": "m.odenthal@rheinauenblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Beschwerde von Angehörigen, bitte vorbereiten",
+      "text": "Guten Morgen Frau Hartmann,\n\nfalls es hilft, fürs Gespräch: Wir hatten letzte Woche eine Beschwerde von Angehörigen über die pürierte Kost. Sie sehe\n„nicht mehr nach Essen aus“. Das setzt das Team unter Druck und ist der Grund, warum mir die Schulung so wichtig ist.\nPersonal ist knapp, deshalb sind zwei Tage am Stück schwierig; vielleicht geht es in zwei Blöcken.\n\nViele Grüße\nMarcel Odenthal",
+      "antwort_auf": "terminvorbereitung-006"
+    },
+    {
+      "id": "terminvorbereitung-010",
+      "art": "mail",
+      "zeit": "2026-09-22T16:40:00+02:00",
+      "von": {
+        "name": "Dr. Ruth Engel",
+        "adresse": "r.engel@rheinauenblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Zahlen für unser Gespräch",
+      "text": "Sehr geehrte Frau Hartmann,\n\nzu unserem Termin am 30. September bringe ich folgende Zahlen mit: Von unseren 84 Bewohnern haben nach der letzten\ninternen Erhebung 23 eine Schluckstörung, und bei 17 wurde ein Gewichtsverlust dokumentiert. Das Screening hätte ich gern\nab Januar 2027 in der Routine.\n\nFreundliche Grüße\nRuth Engel",
+      "antwort_auf": "terminvorbereitung-007"
+    },
+    {
+      "id": "terminvorbereitung-011",
+      "art": "mail",
+      "zeit": "2026-09-24T09:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Ruth Engel",
+          "adresse": "r.engel@rheinauenblick.example"
+        }
+      ],
+      "betreff": "AW: Zahlen für unser Gespräch",
+      "text": "Sehr geehrte Frau Dr. Engel,\n\nvielen Dank für die Zahlen, die helfen sehr. Ich bringe einen Vorschlag für einen Zeitplan und eine grobe Kalkulation mit,\ndamit wir im Rahmen von 12.000 Euro bleiben.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "terminvorbereitung-010"
+    },
+    {
+      "id": "terminvorbereitung-012",
+      "art": "notiz",
+      "zeit": "2026-09-28T20:10:00+02:00",
+      "titel": "Vorbereitung Rheinauenblick",
+      "text": "Für Mittwoch: Zeitplan Screening ab Januar, zwei Schulungsblöcke für die Küche statt zwei Tage am Stück (Personalmangel),\nKalkulation unter 12.000 Euro. Laptop, Handout Dysphagiekost mitnehmen."
+    }
+  ],
+  "fragen": [
+    {
+      "id": "terminvorbereitung-01",
+      "frage": "Was muss ich für morgen mit Frau Engel und Herrn Odenthal wissen?",
+      "kategorie": "vorbereitung",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "14 Uhr",
+            "14:00",
+            "14.00 Uhr"
+          ],
+          [
+            "Screening"
+          ],
+          [
+            "Schluck",
+            "Dysphagie"
+          ],
+          [
+            "12.000",
+            "12000"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-007",
+          "terminvorbereitung-005",
+          "terminvorbereitung-002",
+          "terminvorbereitung-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zu 15.000",
+          "Budget beträgt 15.000",
+          "Budget: 15.000",
+          "Budget ist 15.000",
+          "15.000 Euro eingeplant"
+        ],
+        "belege": []
+      },
+      "notiz": "Vorbereitung: Uhrzeit, Frau Engel will ein Screening, Herr Odenthal die Schulung wegen Schluckstörungen, aktuelles Budget 12.000 statt der früher genannten 15.000."
+    },
+    {
+      "id": "terminvorbereitung-02",
+      "frage": "Wann und wo ist mein Termin morgen?",
+      "kategorie": "vorbereitung",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "14 Uhr",
+            "14:00",
+            "14.00 Uhr"
+          ],
+          [
+            "Uferweg"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-008",
+          "terminvorbereitung-007"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zeit und Ort des Termins."
+    },
+    {
+      "id": "terminvorbereitung-03",
+      "frage": "Was will Herr Odenthal von mir?",
+      "kategorie": "vorbereitung",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Schulung"
+          ],
+          [
+            "Schluck",
+            "Dysphagie"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-005",
+          "terminvorbereitung-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Odenthal will das Screening",
+          "Odenthal möchte das Screening",
+          "Odenthal will ein Screening",
+          "Odenthal möchte ein Screening",
+          "Odenthal wünscht sich ein Screening",
+          "Odenthal wünscht sich das Screening"
+        ],
+        "belege": []
+      },
+      "notiz": "Herr Odenthal (Küche) will eine Schulung wegen Schluckstörungen, nicht das Screening von Frau Engel."
+    },
+    {
+      "id": "terminvorbereitung-04",
+      "frage": "Welches Budget hat Frau Engel für das Projekt genannt?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "12.000",
+            "12000"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-007"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zu 15.000",
+          "Budget beträgt 15.000",
+          "Budget: 15.000",
+          "Budget ist 15.000",
+          "15.000 Euro eingeplant"
+        ],
+        "belege": [
+          "terminvorbereitung-004"
+        ]
+      },
+      "notiz": "Das Budget wurde von grob 15.000 (Telefonnotiz) auf 12.000 Euro (Mail vom 10. September) korrigiert."
+    },
+    {
+      "id": "terminvorbereitung-05",
+      "frage": "Wie viele Bewohner haben in der Seniorenresidenz Rheinauenblick eine Schluckstörung?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "23"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "84 Bewohner haben eine Schluckstörung",
+          "17 Bewohner haben eine Schluckstörung"
+        ],
+        "belege": []
+      },
+      "notiz": "Zahl aus der Mail vom 22. September; 84 ist die Gesamtzahl, 17 die Zahl mit Gewichtsverlust."
+    },
+    {
+      "id": "terminvorbereitung-06",
+      "frage": "Was steht morgen bei mir an?",
+      "kategorie": "vorbereitung",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "14 Uhr",
+            "14:00",
+            "14.00 Uhr"
+          ],
+          [
+            "Rheinauenblick",
+            "Engel"
+          ],
+          [
+            "Layout"
+          ]
+        ],
+        "belege": [
+          "terminvorbereitung-008",
+          "meeting-protokoll-009",
+          "meeting-protokoll-012"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": [
+          "zusage-abgesagt-003"
+        ]
+      },
+      "notiz": "Morgen (Mittwoch, 30.09.2026): Gespräch in der Seniorenresidenz Rheinauenblick um 14 Uhr und Leas eigene Zusage, den Layoutvorschlag fürs Dysphagie-Handbuch bis 30.09. zu liefern. Der stehengebliebene Kalendereintrag des abgesagten Akademie-Workshops (28.10.) gehört nicht hierher."
+    }
+  ]
+}

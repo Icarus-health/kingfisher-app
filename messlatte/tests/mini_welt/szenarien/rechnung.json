@@ -1,0 +1,81 @@
+{
+  "id": "rechnung",
+  "titel": "Stromrechnung und Umsatzsteuer",
+  "beschreibung": "Eine Stromrechnung mit Zahlungserinnerung und späterer Überweisung sowie eine Steuerfrist aus einem Telefonat. Prüft Aktualität, Fristen und die ehrliche Antwort auf einen Termin, den es nicht gibt.",
+  "quellen": [
+    {
+      "id": "rechnung-001", "art": "mail", "zeit": "2026-09-01T07:10:00+02:00",
+      "von": {"name": "Stadtwerke Rheinau", "adresse": "service@stadtwerke-rheinau.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Rechnung Strom August",
+      "text": "Sehr geehrte Frau Hartmann,\n\nIhr Rechnungsbetrag für August beträgt 84,20 Euro und ist am 15. September fällig.\n\nStadtwerke Rheinau"
+    },
+    {
+      "id": "rechnung-002", "art": "mail", "zeit": "2026-09-16T07:10:00+02:00",
+      "von": {"name": "Stadtwerke Rheinau", "adresse": "service@stadtwerke-rheinau.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Zahlungserinnerung Strom August",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir haben noch keinen Zahlungseingang festgestellt. Offen sind 84,20 Euro.\n\nStadtwerke Rheinau"
+    },
+    {
+      "id": "rechnung-003", "art": "mail", "zeit": "2026-09-17T19:45:00+02:00",
+      "von": {"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"},
+      "an": [{"name": "Stadtwerke Rheinau", "adresse": "service@stadtwerke-rheinau.example"}],
+      "betreff": "Re: Zahlungserinnerung Strom August",
+      "ordner": "Sent", "antwort_auf": "rechnung-002",
+      "text": "Guten Tag,\n\ndie Überweisung ist am 17. September erfolgt.\n\nLea Hartmann"
+    },
+    {
+      "id": "rechnung-004", "art": "transkript", "zeit": "2026-09-05T16:00:00+02:00",
+      "titel": "Telefonat Steuerberater Weber",
+      "text": "Karl Weber: Die Umsatzsteuervoranmeldung muss bis zum 10. Oktober beim Finanzamt sein.\nLea Hartmann: Ich schicke die Unterlagen nächste Woche.",
+      "teilnehmer": ["Karl Weber", "Lea Hartmann"]
+    },
+    {
+      "id": "rechnung-005", "art": "notiz", "zeit": "2026-08-30T09:00:00+02:00",
+      "titel": "Drucker Wartung",
+      "text": "Der Drucker im Büro braucht neue Tonerkartuschen, Bestellnummer T-4471."
+    },
+    {
+      "id": "rechnung-006", "art": "termin", "zeit": "2026-09-20T12:00:00+02:00",
+      "beginn": "2026-09-30T15:00:00+02:00", "ende": "2026-09-30T16:00:00+02:00",
+      "titel": "Zahnarzt Dr. Lindner", "ort": "Praxis Lindner"
+    },
+    {
+      "id": "rechnung-007", "art": "mail", "zeit": "2026-09-25T09:30:00+02:00",
+      "von": {"name": "Karl Weber", "adresse": "k.weber@weber-steuer.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Unterlagen Umsatzsteuer",
+      "text": "Hallo Frau Hartmann,\n\nbitte schicken Sie mir die Belege für die Umsatzsteuer, sobald Sie sie haben.\n\nKarl Weber"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "rechnung-01",
+      "frage": "Wie hoch war die Stromrechnung im August?",
+      "kategorie": "rueckblick", "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["84,20"]], "belege": ["rechnung-001"]}
+    },
+    {
+      "id": "rechnung-02",
+      "frage": "Bis wann muss die Umsatzsteuervoranmeldung abgegeben werden?",
+      "kategorie": "frist", "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["10. Oktober", "10.10."]], "belege": ["rechnung-004"]}
+    },
+    {
+      "id": "rechnung-03",
+      "frage": "Wann ist mein Termin beim Finanzamt?",
+      "kategorie": "falle", "schwere": "kritisch",
+      "erwartet": {"verhalten": "nicht_bekannt"},
+      "verboten": {"aussagen": ["10. Oktober"]},
+      "notiz": "Es gibt eine Frist, aber keinen Termin beim Finanzamt; die Frist als Termin auszugeben wäre erfunden."
+    },
+    {
+      "id": "rechnung-04",
+      "frage": "Wurde die Stromrechnung schon bezahlt?",
+      "kategorie": "aktualitaet", "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["17. September"]], "belege": ["rechnung-003"]},
+      "verboten": {"aussagen": ["noch keinen Zahlungseingang"], "belege": ["rechnung-002"]}
+    }
+  ]
+}

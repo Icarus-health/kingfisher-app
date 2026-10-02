@@ -1,0 +1,103 @@
+{
+  "upload_second_location": {
+    "first": {
+      "id": "e-e1c7b6f89716",
+      "created": true,
+      "title": "one.txt",
+      "project_id": "p-2b9fc4e548a8"
+    },
+    "second": {
+      "id": "e-e1c7b6f89716",
+      "created": false,
+      "title": "one.txt",
+      "project_id": "p-2b9fc4e548a8"
+    },
+    "second_project_has_source": false,
+    "stored_source_refs": [
+      "upload:one.txt"
+    ]
+  },
+  "raw_to_memory_answer": {
+    "raw_search_ids": [
+      "e-e1c7b6f89716"
+    ],
+    "before": {
+      "reply": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "contract": {
+        "version": 1,
+        "presentation_version": 2,
+        "status": "unknown",
+        "selected_assertion_ids": [],
+        "semantic_validation": false,
+        "model_called": false
+      }
+    },
+    "consolidation": {
+      "assertions": 1,
+      "confirmations": 0,
+      "conflicts": 0,
+      "proposed": 1,
+      "episodes_seen": 1,
+      "archived": 0,
+      "used_model": true,
+      "errors": []
+    },
+    "accepted_self_model_id": "a-a8d3058ee918",
+    "after": {
+      "reply": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "contract": {
+        "version": 1,
+        "presentation_version": 2,
+        "status": "unknown",
+        "selected_assertion_ids": [],
+        "semantic_validation": false,
+        "model_called": false
+      }
+    },
+    "claim_count": 0,
+    "self_model_count": 1
+  },
+  "truncated_mail_analysis": {
+    "stored_characters": 20000,
+    "tags": [
+      "source:truncated"
+    ],
+    "tail_present": false,
+    "attachment_present": false,
+    "analysis": {
+      "episode_id": "e-f8e6401f2261",
+      "digest": "sha256:d1d4d35bcb8ec9ada1eb91ce26d281de0f2f2e62ed8ea6bfc511a59843c47ad1",
+      "version": "requests-v3",
+      "model": "b7539570415201e08b269ed043bc310c694098c49cb9206124d0bce007fc01ae",
+      "offset": 20000,
+      "total": 20000,
+      "state": "completed",
+      "attempts": 3,
+      "updated_at": 1789988068.178186,
+      "lease_until": 0.0
+    },
+    "coverage": {
+      "total_sources": 1,
+      "sampled_sources": 1,
+      "counts": {
+        "pending": 0,
+        "running": 0,
+        "partial": 0,
+        "completed": 1,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-21T10:54:28.179191+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    }
+  },
+  "docx_components": {
+    "preview_body": "BODY_ONLY",
+    "header_present": false,
+    "footnote_present": false
+  }
+}

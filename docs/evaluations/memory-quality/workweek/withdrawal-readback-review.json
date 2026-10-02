@@ -1,0 +1,6 @@
+{
+  "original_result_preserved": true,
+  "new_model_calls": 0,
+  "reason": "working_unavailable with empty source_links retains historical fingerprint lineage; this is not a live citation. Verified against App.tsx source_links rendering.",
+  "withdrawn_history_hidden": true
+}

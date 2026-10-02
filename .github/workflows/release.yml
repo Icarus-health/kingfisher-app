@@ -1,0 +1,159 @@
+# Eine Fassung veröffentlichen (docs/53-download-und-updates.md).
+#
+# Auslöser: ein Tag `vX.Y.Z` (oder von Hand mit dem Tag als Eingabe). Der Tag muss zu `VERSION` passen, und
+# `docs/fassungen/X.Y.Z.md` muss die Neuerungen nennen. Dann:
+#   1. das Docker-Bild für arm64 und amd64 nach ghcr.io/icarus-health/kingfisher-app:X.Y.Z und :latest,
+#   2. die Mac-App über den wiederverwendbaren Workflow mac-app.yml (Artefakt `Kingfisher.dmg`),
+#   3. der GitHub-Release im eigenen Repository mit Kingfisher.dmg,
+#   4. die Download-Seite und latest.json über GitHub Pages (Quelle „GitHub Actions“).
+# Die Reihenfolge ist Absicht: latest.json erscheint erst, wenn Bild und App da sind; sonst böte Kingfisher eine
+# Fassung an, die sich noch nicht laden lässt.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag der Fassung, etwa v1.2.0 (muss schon existieren)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/icarus-health/kingfisher-app
+
+jobs:
+  fassung:
+    name: Tag und VERSION
+    runs-on: ubuntu-latest
+    outputs:
+      fassung: ${{ steps.pruefen.outputs.fassung }}
+      tag: ${{ steps.pruefen.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Tag muss VERSION sein
+        id: pruefen
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          fassung=$(python3 scripts/release_seite.py pruefen --tag "$TAG")
+          echo "fassung=$fassung" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  bild:
+    name: Docker-Bild (arm64, amd64)
+    needs: fassung
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.fassung.outputs.tag }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            KINGFISHER_FASSUNG=${{ needs.fassung.outputs.fassung }}
+          tags: |
+            ${{ env.IMAGE }}:${{ needs.fassung.outputs.fassung }}
+            ${{ env.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.fassung.outputs.fassung }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  mac:
+    name: Mac-App
+    needs: fassung
+    uses: ./.github/workflows/mac-app.yml
+    with:
+      fassung: ${{ needs.fassung.outputs.fassung }}
+    secrets: inherit
+
+  release:
+    name: GitHub-Release mit Kingfisher.dmg
+    needs: [fassung, bild, mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.fassung.outputs.tag }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: Kingfisher.dmg
+          path: dmg
+      - name: Release anlegen oder ergänzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.fassung.outputs.tag }}
+          FASSUNG: ${{ needs.fassung.outputs.fassung }}
+        run: |
+          set -euo pipefail
+          datei=$(find dmg -name 'Kingfisher.dmg' -type f | head -n 1)
+          if [ -z "$datei" ]; then
+            echo "Im Artefakt der Mac-App fehlt Kingfisher.dmg. Prüfe den Lauf von mac-app.yml."
+            exit 1
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$datei" --clobber
+          else
+            gh release create "$TAG" "$datei" --title "Kingfisher $FASSUNG" \
+              --notes-file "docs/fassungen/$FASSUNG.md" --verify-tag
+          fi
+
+  seite:
+    name: Download-Seite und latest.json
+    needs: [fassung, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.veroeffentlichen.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.fassung.outputs.tag }}
+      - name: Seite bauen
+        env:
+          FASSUNG: ${{ needs.fassung.outputs.fassung }}
+          REPO: ${{ github.repository }}
+        run: python3 scripts/release_seite.py bauen --fassung "$FASSUNG" --repo "$REPO" --ausgabe _site
+      - name: Pages vorbereiten
+        uses: actions/configure-pages@v5
+        # Schlägt fehl, solange Settings → Pages → Source nicht auf „GitHub Actions“ steht (docs/53).
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Veröffentlichen
+        id: veroeffentlichen
+        uses: actions/deploy-pages@v4

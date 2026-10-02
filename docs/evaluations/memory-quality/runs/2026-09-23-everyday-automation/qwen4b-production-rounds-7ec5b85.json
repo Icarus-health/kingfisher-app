@@ -1,0 +1,153 @@
+{
+  "case_file_sha256": "f89c894605b068adb6abb47c7d6b8c10283dbc4b8543ed66cbc8e2c2edad8f68",
+  "runner_file_sha256": "5d222598576b3347a11371ca8852636b5ebc6269cd6ca4e470bc3b61abc60a88",
+  "selected_case_ids": [
+    "chat_capture_and_recall"
+  ],
+  "provider_mode": "real",
+  "model": "qwen3.5:4b",
+  "requested_model": "qwen3.5:4b",
+  "installed_model_metadata": {
+    "name": "qwen3.5:4b",
+    "model": "qwen3.5:4b",
+    "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+    "size": 3389983735,
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "4.7B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2560
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ]
+  },
+  "model_endpoint": "127.0.0.1 (local Ollama)",
+  "synthetic_only": true,
+  "network_enabled": true,
+  "started_at": "2026-09-23T15:13:49.642423+02:00",
+  "classification_method": "existing scheduler._run_working_memory worker; no direct commit",
+  "source_revision": "7ec5b85e130514c95079438425264fcbc9f980c6",
+  "source_tree_clean": true,
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "failures": [],
+  "finished_at": "2026-09-23T15:13:54.583611+02:00",
+  "mail_send_count": 0,
+  "assessment_note": "Bounded single pass over the selected frozen cases; fake-provider runs verify harness route coverage only. Real mode uses the already-installed local model; no approval is posted and mail-send counts come from the synthetic sink.",
+  "raw_artifact_sha256": "9a917e59f942a8a4c7f62dd5149d161ecc5323fee49b429e3355dd5fd8af8534",
+  "harness_limit": "max_rounds=4; single synthetic production-length chat case; not a comparable repeated trial.",
+  "model_calls": [
+    {
+      "kind": "chat",
+      "seconds": 2.452,
+      "response": "Dieses Anliegen klingt wie eine Notiz für sich selbst oder einen anderen Kontakt.  \nMöchtest du, dass ich diese Information speichere? Falls ja, könnte ich sie alsEpisode festhalten (z. B. „Erinnerung: Keramiktest nur ab 10 Uhr anrufen, da morgens Werkstatt geöffnet ist\").",
+      "tool_calls": []
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.169,
+      "payload": {
+        "title": "Gesprächsausschnitt",
+        "occurred_at": "2026-09-23T15:13:49.958303+02:00",
+        "source": {
+          "title": "Gesprächsausschnitt",
+          "occurred_at": "2026-09-23T15:13:49.958303+02:00",
+          "recorded_at": "2026-09-23T15:13:49.958961+02:00",
+          "kind": "message",
+          "provenance": {
+            "source_type": "chat",
+            "source_ref": "conversation:c-f8d3ad37ed68:message:m-0bf2f64305fe48",
+            "captured_at": "2026-09-23T13:13:49.958303Z",
+            "verbatim": "Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt."
+          },
+          "participants": [],
+          "project_id": null
+        },
+        "blocks": [
+          {
+            "block_id": "B1",
+            "text": "Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt."
+          }
+        ]
+      },
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 0.915,
+      "payload": {
+        "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+        "sources": [
+          {
+            "id": "S1",
+            "title": "Gesprächsausschnitt",
+            "text": "Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.",
+            "kind": "request",
+            "occurred_at": "2026-09-23T15:13:49.958303+02:00",
+            "recorded_at": "2026-09-23T15:13:49.958961+02:00",
+            "source_ref": "conversation:c-f8d3ad37ed68:message:m-0bf2f64305fe48",
+            "participants": [],
+            "project_id": null,
+            "context": "Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt."
+          }
+        ]
+      },
+      "response": "{\"status\":\"time\",\"ids\":[\"S1\"]}"
+    }
+  ],
+  "cases": [
+    {
+      "id": "chat_capture_and_recall",
+      "title": "Normale Chatangabe wird automatisch aufgenommen und wiedergefunden",
+      "source_capture": [
+        {
+          "alias": "S1",
+          "episode_id": "e-a27949d6f279",
+          "worker": "1 Quellen automatisch eingeordnet",
+          "searchable_by_source_text": true
+        }
+      ],
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen des Keramiktests anrufen?",
+          "conversation_id": "c-6081b8e02bd4",
+          "http_status": 201,
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nBitte · Gesprächsausschnitt\nFür den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.\nQuellenzeit: 2026-09-23T15:13:49.958303+02:00",
+          "contract_status": "working_unclear",
+          "selected_episode_ids": [
+            "e-a27949d6f279"
+          ],
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "source_links": [
+            {
+              "episode_id": "e-a27949d6f279",
+              "label": "Quelle 1 öffnen",
+              "automatic_memory": true
+            }
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ],
+      "status": "completed"
+    }
+  ]
+}

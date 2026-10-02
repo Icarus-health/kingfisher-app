@@ -1,0 +1,42 @@
+# Kingfisher als fertiges Bild, ohne Quelltext: die Konfiguration, die die Mac-App in ihr Bündel kopiert.
+#
+# Dieselbe Konfiguration wie compose.yaml im Wurzelverzeichnis, nur ohne `build:`; das Bild kommt aus
+# KINGFISHER_IMAGE (die App setzt es auf ghcr.io/icarus-health/kingfisher-app:<fassung>), sonst die neueste Fassung.
+# Aufruf wie `make start`: docker compose -p kingfisher --env-file <.kingfisher.env> -f compose.app.yaml up -d
+#
+# Nicht von Hand auseinanderlaufen lassen: sidecar/tests/test_compose_vertrag.py vergleicht beide Dateien. Projektname,
+# Datenvolume und Port müssen bleiben, sonst findet eine bestehende Installation ihre Daten nicht mehr.
+name: kingfisher
+
+services:
+  kingfisher:
+    image: ${KINGFISHER_IMAGE:-ghcr.io/icarus-health/kingfisher-app:latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8890:8890"
+    environment:
+      - ICARUS_SIDECAR_TOKEN=${ICARUS_SIDECAR_TOKEN:?bitte setzen}
+      - ICARUS_SECRETS_PASSPHRASE=${ICARUS_SECRETS_PASSPHRASE:?bitte setzen}
+      - KINGFISHER_USER_NAME=${KINGFISHER_USER_NAME:-}
+      - KINGFISHER_FIXTURE=${KINGFISHER_FIXTURE:-}
+      - KINGFISHER_WEATHER_ENABLED=${KINGFISHER_WEATHER_ENABLED:-false}
+      - KINGFISHER_WEATHER_LOCATION=${KINGFISHER_WEATHER_LOCATION:-}
+      # Zeitzone für Zeitangaben in Antworten; der Container selbst läuft in UTC.
+      - KINGFISHER_TIMEZONE=${KINGFISHER_TIMEZONE:-Europe/Berlin}
+      - KINGFISHER_WEATHER_LATITUDE=${KINGFISHER_WEATHER_LATITUDE:-}
+      - KINGFISHER_WEATHER_LONGITUDE=${KINGFISHER_WEATHER_LONGITUDE:-}
+      - ICARUS_PROVIDER=${ICARUS_PROVIDER:-}
+      - ICARUS_MODEL=${ICARUS_MODEL:-}
+      - ICARUS_BASE_URL=${ICARUS_BASE_URL:-}
+      - ICARUS_TRUSTED_LOCAL_MODEL_HOSTS=${ICARUS_TRUSTED_LOCAL_MODEL_HOSTS:-host.docker.internal}
+      # Bedeutungssuche mit lokalem bge-m3; leer = aus. Siehe docs/evaluations/memory-quality/paraphrase.
+      - ICARUS_MEMORY_SEMANTIC=${ICARUS_MEMORY_SEMANTIC:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - kingfisher-data:/data
+
+volumes:
+  kingfisher-data:
+

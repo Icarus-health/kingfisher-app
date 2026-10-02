@@ -1,0 +1,155 @@
+{
+  "started_at": "2026-09-23T11:27:06.768665+02:00",
+  "scope": "controlled provider acknowledgement; classification and retrieval selection use actual local qwen3.5:4b",
+  "sources": [
+    {
+      "id": "U1",
+      "episode_id": "e-fc1dc77e2e67",
+      "created_at": "2026-09-23T11:27:07.010996+02:00",
+      "worker": {
+        "name": "gedaechtnis",
+        "ok": true,
+        "detail": "1 Quellen automatisch eingeordnet"
+      }
+    },
+    {
+      "id": "U2",
+      "episode_id": "e-f529fa7bdcca",
+      "created_at": "2026-09-23T11:27:16.757866+02:00",
+      "worker": {
+        "name": "gedaechtnis",
+        "ok": true,
+        "detail": "1 Quellen automatisch eingeordnet"
+      }
+    },
+    {
+      "id": "U3",
+      "episode_id": "e-f4d8edba6827",
+      "created_at": "2026-09-23T11:27:18.234379+02:00",
+      "worker": {
+        "name": "gedaechtnis",
+        "ok": true,
+        "detail": "1 Quellen automatisch eingeordnet"
+      }
+    },
+    {
+      "id": "U4",
+      "episode_id": "e-80fac686d68c",
+      "created_at": "2026-09-23T11:27:24.323672+02:00",
+      "worker": {
+        "name": "gedaechtnis",
+        "ok": true,
+        "detail": "1 Quellen automatisch eingeordnet"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "conversation_id": "c-281da4623896",
+      "status": "reports",
+      "selected_sources": [
+        "U1"
+      ],
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · Gesprächsausschnitt\nconversation:c-cf2a3ecd8a1f:message:m-757346c75ea146\n\nKobalt-Delta: Nora liefert den Entwurf am 28. September 2026, aber nur wenn die schriftliche Freigabe vorliegt.\nQuellenzeit: 2026-09-23T11:27:07.010996+02:00",
+      "required_sources_present": true,
+      "forbidden_sources_absent": true,
+      "required_text_present": true
+    },
+    {
+      "id": "Q2",
+      "conversation_id": "c-1c5ca0cc9cbc",
+      "status": "reports",
+      "selected_sources": [
+        "U2"
+      ],
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Gesprächsausschnitt\nconversation:c-cf2a3ecd8a1f:message:m-ba3e1c9488de44\n\nZum Vorhaben Rubin-Tor habe ich Dario gebeten, die Unterlagen am 29. September 2026 zu schicken. Eine Zusage von Dario habe ich noch nicht.\nQuellenzeit: 2026-09-23T11:27:16.757866+02:00",
+      "required_sources_present": true,
+      "forbidden_sources_absent": true,
+      "required_text_present": true
+    },
+    {
+      "id": "Q3",
+      "conversation_id": "c-6740a6362f7c",
+      "status": "reports",
+      "selected_sources": [
+        "U3"
+      ],
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Gesprächsausschnitt\nconversation:c-cf2a3ecd8a1f:message:m-a33fec5619394a\n\nDie Ersatzkarte für das Studio Nordstern liegt im grünen Umschlag. Auf dem Umschlag steht der Testcode SYNTH-NACHTIGALL-826.\nQuellenzeit: 2026-09-23T11:27:18.234379+02:00",
+      "required_sources_present": true,
+      "forbidden_sources_absent": true,
+      "required_text_present": true
+    },
+    {
+      "id": "Q4",
+      "conversation_id": "c-2f0600cc300f",
+      "status": "reports",
+      "selected_sources": [
+        "U4"
+      ],
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Gesprächsausschnitt\nconversation:c-cf2a3ecd8a1f:message:m-e341666ea77645\n\nKorrektur zum Entwurf Kobalt-Delta: Nora hat den 28. September ausdrücklich durch den 30. September 2026 ersetzt. Die schriftliche Freigabe ist weiterhin Voraussetzung.\nQuellenzeit: 2026-09-23T11:27:24.323672+02:00",
+      "required_sources_present": true,
+      "forbidden_sources_absent": true,
+      "required_text_present": true
+    }
+  ],
+  "calls": [
+    {
+      "kind": "classification",
+      "question": null,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"},{\"block_id\":\"B2\",\"kind\":\"conditional\"}]}",
+      "seconds": 9.677
+    },
+    {
+      "kind": "classification",
+      "question": null,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"},{\"block_id\":\"B2\",\"kind\":\"status\"}]}",
+      "seconds": 1.424
+    },
+    {
+      "kind": "classification",
+      "question": null,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"},{\"block_id\":\"B2\",\"kind\":\"fact\"}]}",
+      "seconds": 1.738
+    },
+    {
+      "kind": "selection",
+      "question": "Wann liefert Nora den Entwurf für Kobalt-Delta?",
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}",
+      "seconds": 1.631
+    },
+    {
+      "kind": "selection",
+      "question": "Hat Dario für Rubin-Tor bereits eine Zusage gemacht?",
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}",
+      "seconds": 1.207
+    },
+    {
+      "kind": "selection",
+      "question": "Wo liegt die Ersatzkarte für das Studio Nordstern?",
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}",
+      "seconds": 1.152
+    },
+    {
+      "kind": "classification",
+      "question": null,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"irrelevant\"},{\"block_id\":\"B2\",\"kind\":\"change\"}]}",
+      "seconds": 1.714
+    },
+    {
+      "kind": "selection",
+      "question": "Welches Lieferdatum gilt jetzt für Noras Entwurf Kobalt-Delta?",
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}",
+      "seconds": 1.535
+    }
+  ],
+  "restart": true,
+  "withdrawal": {
+    "old_and_list_payloads_hide_code": true,
+    "fresh_answer_hides_code": true,
+    "original_preserved": true
+  },
+  "claims_revision": 0,
+  "open_tasks": 0,
+  "finished_at": "2026-09-23T11:27:27.670876+02:00"
+}

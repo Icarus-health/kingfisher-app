@@ -1,0 +1,2081 @@
+{
+  "kind": "frozen-selection-presentation-replay",
+  "commit": "5bedbbc2d73f48cf89dbef7593074bdc43a64357",
+  "input_sha256": "0eaefc64dae63a0128eda690edb791e235df184becbb94da8add4032fe4f84e4",
+  "input_path": "docs/evaluations/memory-quality/runtime/structured-evidence-20260919/qwen35-4b.json",
+  "fresh_model_calls": 0,
+  "semantic_qualification": false,
+  "cases": [
+    {
+      "case_id": "m3-sent-confirmed-01",
+      "question": "Wurde die Statusmail an das Projektteam versendet?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.\"\nvalue: \"sent\"\nassertion_id: \"claim:k-c304a17587d0\"\nsubject_ref: \"organization:projektteam\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_message_delivery_status\"\nsource_type: \"email\"\nsource_ref: \"synthetic:m3-sent-confirmed-01:S1\"\nepisode_id: \"e-2723bb60e58f\"\ndigest: \"sha256:a4aa359205062d70bcbd130eee75ff1aba2449cc73388a49ec577d1649143283\"\noccurred_at: null\nrecorded_at: \"2026-09-14T07:12:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: statusmail, versendet, wurde\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.\"\nWert laut Quelle: \"sent\"\nQuelle [1]: E-Mail · \"synthetic:m3-sent-confirmed-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T07:12:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-c304a17587d0",
+            "statement": "Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: statusmail, versendet, wurde",
+            "source_type": "email",
+            "source_ref": "synthetic:m3-sent-confirmed-01:S1",
+            "evidence_at": "2026-09-14T07:12:00+00:00",
+            "confidence": null,
+            "subject_ref": "organization:projektteam",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-c304a17587d0",
+              "statement": "Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.",
+              "subject_ref": "organization:projektteam",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_message_delivery_status",
+              "value": "sent",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-2723bb60e58f",
+                "digest": "sha256:a4aa359205062d70bcbd130eee75ff1aba2449cc73388a49ec577d1649143283",
+                "source_type": "email",
+                "source_ref": "synthetic:m3-sent-confirmed-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T07:12:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: statusmail, versendet, wurde"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-c304a17587d0",
+              "primary_episode_id": "e-2723bb60e58f",
+              "projection_sha256": "793a2f13071e5a7b7b65e185c1733536c53dc53a23aeaa255ffeb156bb1dd8e7",
+              "source_generations": {
+                "e-2723bb60e58f": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-c304a17587d0"
+        ],
+        "knowledge_inputs": {
+          "k-c304a17587d0": {
+            "version": 1,
+            "claim_id": "k-c304a17587d0",
+            "primary_episode_id": "e-2723bb60e58f",
+            "projection_sha256": "793a2f13071e5a7b7b65e185c1733536c53dc53a23aeaa255ffeb156bb1dd8e7",
+            "source_generations": {
+              "e-2723bb60e58f": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-c304a17587d0"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Wurde die Statusmail an das Projektteam versendet?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 708,
+      "after_characters": 299
+    },
+    {
+      "case_id": "m3-not-sent-confirmed-01",
+      "question": "Ist die Rückfrage an Mira schon raus?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.\"\nvalue: \"not_sent\"\nassertion_id: \"claim:k-9842076a96f1\"\nsubject_ref: \"person:mira\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_message_delivery_status\"\nsource_type: \"chat\"\nsource_ref: \"synthetic:m3-not-sent-confirmed-01:S1\"\nepisode_id: \"e-bcc3823b42ab\"\ndigest: \"sha256:8d0013780fbaab4bcee3fcfb7abb49f7305f7733acd8bd18bd647b71bcc5bfa4\"\noccurred_at: null\nrecorded_at: \"2026-09-14T07:30:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: mira, rückfrage\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.\"\nWert laut Quelle: \"not_sent\"\nQuelle [1]: Gespräch · \"synthetic:m3-not-sent-confirmed-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T07:30:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-9842076a96f1",
+            "statement": "Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: mira, rückfrage",
+            "source_type": "chat",
+            "source_ref": "synthetic:m3-not-sent-confirmed-01:S1",
+            "evidence_at": "2026-09-14T07:30:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:mira",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-9842076a96f1",
+              "statement": "Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.",
+              "subject_ref": "person:mira",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_message_delivery_status",
+              "value": "not_sent",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-bcc3823b42ab",
+                "digest": "sha256:8d0013780fbaab4bcee3fcfb7abb49f7305f7733acd8bd18bd647b71bcc5bfa4",
+                "source_type": "chat",
+                "source_ref": "synthetic:m3-not-sent-confirmed-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T07:30:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: mira, rückfrage"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-9842076a96f1",
+              "primary_episode_id": "e-bcc3823b42ab",
+              "projection_sha256": "8d88e6aca37f64534609e60ac46a59c291e572d7f37614cd6415bce43c2d0d39",
+              "source_generations": {
+                "e-bcc3823b42ab": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-9842076a96f1"
+        ],
+        "knowledge_inputs": {
+          "k-9842076a96f1": {
+            "version": 1,
+            "claim_id": "k-9842076a96f1",
+            "primary_episode_id": "e-bcc3823b42ab",
+            "projection_sha256": "8d88e6aca37f64534609e60ac46a59c291e572d7f37614cd6415bce43c2d0d39",
+            "source_generations": {
+              "e-bcc3823b42ab": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-9842076a96f1"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Ist die Rückfrage an Mira schon raus?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 668,
+      "after_characters": 288
+    },
+    {
+      "case_id": "m3-send-status-unknown-01",
+      "question": "Wurde die Einladung an die Werkstatt verschickt?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Die Einladung für die Werkstatt ist vorbereitet; die Quelle enthält keinen Versandstatus und keine Sendebestätigung.\"\nvalue: \"prepared; delivery unknown\"\nassertion_id: \"claim:k-3ff8e0980673\"\nsubject_ref: \"organization:werkstatt\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_message_preparation\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-send-status-unknown-01:S1\"\nepisode_id: \"e-31a50b3cccf1\"\ndigest: \"sha256:81ebcb46338b660e42f2ec19637fe96c9194cfc9b1304362e97d87adbd82bae3\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: einladung, werkstatt\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Die Einladung für die Werkstatt ist vorbereitet; die Quelle enthält keinen Versandstatus und keine Sendebestätigung.\"\nWert laut Quelle: \"prepared; delivery unknown\"\nQuelle [1]: Dokument · \"synthetic:m3-send-status-unknown-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-3ff8e0980673",
+            "statement": "Die Einladung für die Werkstatt ist vorbereitet; die Quelle enthält keinen Versandstatus und keine Sendebestätigung.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: einladung, werkstatt",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-send-status-unknown-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "organization:werkstatt",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-3ff8e0980673",
+              "statement": "Die Einladung für die Werkstatt ist vorbereitet; die Quelle enthält keinen Versandstatus und keine Sendebestätigung.",
+              "subject_ref": "organization:werkstatt",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_message_preparation",
+              "value": "prepared; delivery unknown",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-31a50b3cccf1",
+                "digest": "sha256:81ebcb46338b660e42f2ec19637fe96c9194cfc9b1304362e97d87adbd82bae3",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-send-status-unknown-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: einladung, werkstatt"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-3ff8e0980673",
+              "primary_episode_id": "e-31a50b3cccf1",
+              "projection_sha256": "fdf124fb20e68edbb1540679118dc4d11e8ad65156779e35476bb0645000fbf3",
+              "source_generations": {
+                "e-31a50b3cccf1": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-3ff8e0980673"
+        ],
+        "knowledge_inputs": {
+          "k-3ff8e0980673": {
+            "version": 1,
+            "claim_id": "k-3ff8e0980673",
+            "primary_episode_id": "e-31a50b3cccf1",
+            "projection_sha256": "fdf124fb20e68edbb1540679118dc4d11e8ad65156779e35476bb0645000fbf3",
+            "source_generations": {
+              "e-31a50b3cccf1": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-3ff8e0980673"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Wurde die Einladung an die Werkstatt verschickt?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 731,
+      "after_characters": 335
+    },
+    {
+      "case_id": "m3-one-person-two-addresses-01",
+      "question": "Welche geschäftliche Adresse hat Sam Berger?",
+      "before": "Die Modellauswahl konnte nicht geprüft werden. Ausgangsbelege:\n\n1. [E1]\nstatement: \"Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid.\"\nvalue: \"sam.berger@firma.invalid\"\nassertion_id: \"claim:k-841ccf44181d\"\nsubject_ref: \"person:sam-k17\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_work_email\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-one-person-two-addresses-01:S1\"\nepisode_id: \"e-551583ab12cf\"\ndigest: \"sha256:4335ec4a9de952bbaa155a611d732175fef0e2c571e448b349f53987e6f549f5\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: berger, sam\"\n\n2. [E2]\nstatement: \"Kontaktkarte K-17 für Sam Berger: privat sam@privat.invalid.\"\nvalue: \"sam@privat.invalid\"\nassertion_id: \"claim:k-d2bab27fa74e\"\nsubject_ref: \"person:sam-k17\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_private_email\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-one-person-two-addresses-01:S1\"\nepisode_id: \"e-551583ab12cf\"\ndigest: \"sha256:4335ec4a9de952bbaa155a611d732175fef0e2c571e448b349f53987e6f549f5\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: berger, sam\"",
+      "original_status": "fallback",
+      "missing_visible_fields": [],
+      "after": "Das lokale Modell konnte die Auswahl nicht abschließen. Diese Belege habe ich gefunden:\n\n[1] \"Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid.\"\nWert laut Quelle: \"sam.berger@firma.invalid\"\nQuelle [1]: Dokument · \"synthetic:m3-one-person-two-addresses-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00\n\n[2] \"Kontaktkarte K-17 für Sam Berger: privat sam@privat.invalid.\"\nWert laut Quelle: \"sam@privat.invalid\"\nQuelle [2]: Dokument · \"synthetic:m3-one-person-two-addresses-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "fallback",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-841ccf44181d",
+            "statement": "Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: berger, sam",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-one-person-two-addresses-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:sam-k17",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-841ccf44181d",
+              "statement": "Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid.",
+              "subject_ref": "person:sam-k17",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_work_email",
+              "value": "sam.berger@firma.invalid",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-551583ab12cf",
+                "digest": "sha256:4335ec4a9de952bbaa155a611d732175fef0e2c571e448b349f53987e6f549f5",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-one-person-two-addresses-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: berger, sam"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-841ccf44181d",
+              "primary_episode_id": "e-551583ab12cf",
+              "projection_sha256": "2f0fbfa71ce15da3fb90d6aeeaefd139da569a476ecbebf18ee48ce2facc2e91",
+              "source_generations": {
+                "e-551583ab12cf": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-d2bab27fa74e",
+            "statement": "Kontaktkarte K-17 für Sam Berger: privat sam@privat.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: berger, sam",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-one-person-two-addresses-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:sam-k17",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-d2bab27fa74e",
+              "statement": "Kontaktkarte K-17 für Sam Berger: privat sam@privat.invalid.",
+              "subject_ref": "person:sam-k17",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_private_email",
+              "value": "sam@privat.invalid",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-551583ab12cf",
+                "digest": "sha256:4335ec4a9de952bbaa155a611d732175fef0e2c571e448b349f53987e6f549f5",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-one-person-two-addresses-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: berger, sam"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-d2bab27fa74e",
+              "primary_episode_id": "e-551583ab12cf",
+              "projection_sha256": "da138e33e15e62b935afe5e63908bc64e0c13e4002167cf96f108e9221a1add5",
+              "source_generations": {
+                "e-551583ab12cf": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-841ccf44181d",
+          "k-d2bab27fa74e"
+        ],
+        "knowledge_inputs": {
+          "k-841ccf44181d": {
+            "version": 1,
+            "claim_id": "k-841ccf44181d",
+            "primary_episode_id": "e-551583ab12cf",
+            "projection_sha256": "2f0fbfa71ce15da3fb90d6aeeaefd139da569a476ecbebf18ee48ce2facc2e91",
+            "source_generations": {
+              "e-551583ab12cf": 0
+            }
+          },
+          "k-d2bab27fa74e": {
+            "version": 1,
+            "claim_id": "k-d2bab27fa74e",
+            "primary_episode_id": "e-551583ab12cf",
+            "projection_sha256": "da138e33e15e62b935afe5e63908bc64e0c13e4002167cf96f108e9221a1add5",
+            "source_generations": {
+              "e-551583ab12cf": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "fallback",
+          "selected_assertion_ids": [
+            "claim:k-841ccf44181d",
+            "claim:k-d2bab27fa74e"
+          ],
+          "semantic_validation": false,
+          "model_called": true,
+          "reason": "provider_error"
+        },
+        "query": "Welche geschäftliche Adresse hat Sam Berger?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1321,
+      "after_characters": 589
+    },
+    {
+      "case_id": "m3-ambiguous-same-name-01",
+      "question": "Welche E-Mail hat Robin Kranz?",
+      "before": "Welchen dieser belegten Referenzkontexte meinst du: 1 (subject_ref: \"person:robin-r84\", target_ref: null, scope_ref: null), 2 (subject_ref: \"person:robin-r21\", target_ref: null, scope_ref: null)?\n\n1. [E1]\nstatement: \"Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.\"\nvalue: \"r.kranz@labor.invalid\"\nassertion_id: \"claim:k-94564cade354\"\nsubject_ref: \"person:robin-r84\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_email\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-ambiguous-same-name-01:S2\"\nepisode_id: \"e-d37c444c9303\"\ndigest: \"sha256:5dae11f16bfce2f64e2184fb43f01c2a003be942e3a6e58b94354b54f8fd265b\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: robin, kranz\"\n\n2. [E2]\nstatement: \"Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.\"\nvalue: \"robin@redaktion.invalid\"\nassertion_id: \"claim:k-bef6aca3df29\"\nsubject_ref: \"person:robin-r21\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_email\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-ambiguous-same-name-01:S1\"\nepisode_id: \"e-efdef128f20c\"\ndigest: \"sha256:c16c93b56e44cbcdbf99e5ee02052693d0c834c60554325f883b59efd4077747\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: robin, kranz\"",
+      "original_status": "clarify",
+      "missing_visible_fields": [],
+      "after": "Welchen Eintrag meinst du?\n\n[1] \"Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.\"\nWert laut Quelle: \"r.kranz@labor.invalid\"\nQuelle [1]: Dokument · \"synthetic:m3-ambiguous-same-name-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00\n\n[2] \"Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.\"\nWert laut Quelle: \"robin@redaktion.invalid\"\nQuelle [2]: Dokument · \"synthetic:m3-ambiguous-same-name-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "clarify",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-94564cade354",
+            "statement": "Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: robin, kranz",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-ambiguous-same-name-01:S2",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:robin-r84",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-94564cade354",
+              "statement": "Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.",
+              "subject_ref": "person:robin-r84",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "r.kranz@labor.invalid",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-d37c444c9303",
+                "digest": "sha256:5dae11f16bfce2f64e2184fb43f01c2a003be942e3a6e58b94354b54f8fd265b",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-ambiguous-same-name-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: robin, kranz"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-94564cade354",
+              "primary_episode_id": "e-d37c444c9303",
+              "projection_sha256": "d9917fb3658f8a7373f2138f5084cd836de557c07f1a32586cddddc648e67bb9",
+              "source_generations": {
+                "e-d37c444c9303": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-bef6aca3df29",
+            "statement": "Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: robin, kranz",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-ambiguous-same-name-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:robin-r21",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-bef6aca3df29",
+              "statement": "Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.",
+              "subject_ref": "person:robin-r21",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "robin@redaktion.invalid",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-efdef128f20c",
+                "digest": "sha256:c16c93b56e44cbcdbf99e5ee02052693d0c834c60554325f883b59efd4077747",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-ambiguous-same-name-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: robin, kranz"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-bef6aca3df29",
+              "primary_episode_id": "e-efdef128f20c",
+              "projection_sha256": "764358293ce8ccbcdbde36c8f1021cdbae379d71cbece40dd33cedd23aaee4ff",
+              "source_generations": {
+                "e-efdef128f20c": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-94564cade354",
+          "k-bef6aca3df29"
+        ],
+        "knowledge_inputs": {
+          "k-94564cade354": {
+            "version": 1,
+            "claim_id": "k-94564cade354",
+            "primary_episode_id": "e-d37c444c9303",
+            "projection_sha256": "d9917fb3658f8a7373f2138f5084cd836de557c07f1a32586cddddc648e67bb9",
+            "source_generations": {
+              "e-d37c444c9303": 0
+            }
+          },
+          "k-bef6aca3df29": {
+            "version": 1,
+            "claim_id": "k-bef6aca3df29",
+            "primary_episode_id": "e-efdef128f20c",
+            "projection_sha256": "764358293ce8ccbcdbde36c8f1021cdbae379d71cbece40dd33cedd23aaee4ff",
+            "source_generations": {
+              "e-efdef128f20c": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "clarify",
+          "selected_assertion_ids": [
+            "claim:k-94564cade354",
+            "claim:k-bef6aca3df29"
+          ],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "query": "Welche E-Mail hat Robin Kranz?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1445,
+      "after_characters": 524
+    },
+    {
+      "case_id": "m3-current-goal-confirmed-01",
+      "question": "Was ist mein aktuelles Ziel für Projekt Komet?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Der Nutzer sagt ausdrücklich: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.\"\nvalue: \"Prototyp bis 30.09.2026 intern testbar\"\nassertion_id: \"claim:k-42aa3b7860a1\"\nsubject_ref: \"project:komet\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_user_goal\"\nsource_type: \"user_stated\"\nsource_ref: \"synthetic:m3-current-goal-confirmed-01:S1\"\nepisode_id: \"e-ac0ba3874704\"\ndigest: \"sha256:2b3283208dfbdfc372318144bee28d1a3d2f04bbe10be5a7380adef8c733a704\"\noccurred_at: null\nrecorded_at: \"2026-09-13T16:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: aktuelles, komet, projekt, ziel\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Der Nutzer sagt ausdrücklich: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.\"\nWert laut Quelle: \"Prototyp bis 30.09.2026 intern testbar\"\nQuelle [1]: Nutzeraussage · \"synthetic:m3-current-goal-confirmed-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T16:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-42aa3b7860a1",
+            "statement": "Der Nutzer sagt ausdrücklich: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: aktuelles, komet, projekt, ziel",
+            "source_type": "user_stated",
+            "source_ref": "synthetic:m3-current-goal-confirmed-01:S1",
+            "evidence_at": "2026-09-13T16:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:komet",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-42aa3b7860a1",
+              "statement": "Der Nutzer sagt ausdrücklich: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.",
+              "subject_ref": "project:komet",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_user_goal",
+              "value": "Prototyp bis 30.09.2026 intern testbar",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-ac0ba3874704",
+                "digest": "sha256:2b3283208dfbdfc372318144bee28d1a3d2f04bbe10be5a7380adef8c733a704",
+                "source_type": "user_stated",
+                "source_ref": "synthetic:m3-current-goal-confirmed-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T16:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: aktuelles, komet, projekt, ziel"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-42aa3b7860a1",
+              "primary_episode_id": "e-ac0ba3874704",
+              "projection_sha256": "e64d3a3937b25c1708bd48f60f2ba021b107da28e343780bca78067e2b8e96c7",
+              "source_generations": {
+                "e-ac0ba3874704": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-42aa3b7860a1"
+        ],
+        "knowledge_inputs": {
+          "k-42aa3b7860a1": {
+            "version": 1,
+            "claim_id": "k-42aa3b7860a1",
+            "primary_episode_id": "e-ac0ba3874704",
+            "projection_sha256": "e64d3a3937b25c1708bd48f60f2ba021b107da28e343780bca78067e2b8e96c7",
+            "source_generations": {
+              "e-ac0ba3874704": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-42aa3b7860a1"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Was ist mein aktuelles Ziel für Projekt Komet?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 751,
+      "after_characters": 365
+    },
+    {
+      "case_id": "m3-exploratory-thought-01",
+      "question": "Ist es mein Ziel, Projekt Komet öffentlich zu starten?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Der Nutzer überlegt einen öffentlichen Start von Projekt Komet nur als Gedankenexperiment und sagt ausdrücklich: Das ist keine Entscheidung und kein Ziel.\"\nvalue: \"exploratory thought; not a goal\"\nassertion_id: \"claim:k-32e294f5e6d1\"\nsubject_ref: \"project:komet\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_discourse_mode\"\nsource_type: \"user_stated\"\nsource_ref: \"synthetic:m3-exploratory-thought-01:S1\"\nepisode_id: \"e-af5b393d6109\"\ndigest: \"sha256:8adee359575271dbf371fec649fb5643d83c559ca74fc8abc109f4b5b2b16525\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: komet, projekt, ziel\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Der Nutzer überlegt einen öffentlichen Start von Projekt Komet nur als Gedankenexperiment und sagt ausdrücklich: Das ist keine Entscheidung und kein Ziel.\"\nWert laut Quelle: \"exploratory thought; not a goal\"\nQuelle [1]: Nutzeraussage · \"synthetic:m3-exploratory-thought-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-32e294f5e6d1",
+            "statement": "Der Nutzer überlegt einen öffentlichen Start von Projekt Komet nur als Gedankenexperiment und sagt ausdrücklich: Das ist keine Entscheidung und kein Ziel.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: komet, projekt, ziel",
+            "source_type": "user_stated",
+            "source_ref": "synthetic:m3-exploratory-thought-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:komet",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-32e294f5e6d1",
+              "statement": "Der Nutzer überlegt einen öffentlichen Start von Projekt Komet nur als Gedankenexperiment und sagt ausdrücklich: Das ist keine Entscheidung und kein Ziel.",
+              "subject_ref": "project:komet",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_discourse_mode",
+              "value": "exploratory thought; not a goal",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-af5b393d6109",
+                "digest": "sha256:8adee359575271dbf371fec649fb5643d83c559ca74fc8abc109f4b5b2b16525",
+                "source_type": "user_stated",
+                "source_ref": "synthetic:m3-exploratory-thought-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: komet, projekt, ziel"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-32e294f5e6d1",
+              "primary_episode_id": "e-af5b393d6109",
+              "projection_sha256": "f170e8f36059b587c8b67531eca6a9f4844a85f7adf527f653edd577bf77499d",
+              "source_generations": {
+                "e-af5b393d6109": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-32e294f5e6d1"
+        ],
+        "knowledge_inputs": {
+          "k-32e294f5e6d1": {
+            "version": 1,
+            "claim_id": "k-32e294f5e6d1",
+            "primary_episode_id": "e-af5b393d6109",
+            "projection_sha256": "f170e8f36059b587c8b67531eca6a9f4844a85f7adf527f653edd577bf77499d",
+            "source_generations": {
+              "e-af5b393d6109": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-32e294f5e6d1"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Ist es mein Ziel, Projekt Komet öffentlich zu starten?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 5,
+          "query_terms_used": 5,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 763,
+      "after_characters": 383
+    },
+    {
+      "case_id": "m3-corrected-date-01",
+      "question": "An welchem Datum ist die Aurora-Präsentation?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.\"\nvalue: \"2026-09-22T14:00:00+02:00\"\nassertion_id: \"claim:k-6962bbbaa1c9\"\nsubject_ref: \"project:aurora\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_presentation_time\"\nsource_type: \"calendar\"\nsource_ref: \"synthetic:m3-corrected-date-01:S2\"\nepisode_id: \"e-126b640032be\"\ndigest: \"sha256:613676e21cf6a0c3c2fc979b11f2f75b54d93c1f3d2f20f5b4576325083bc412\"\noccurred_at: null\nrecorded_at: \"2026-09-13T12:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: \"2026-09-13T12:00:00+00:00\"\nvalid_until: null\nreason: \"Passt zum Gespräch: aurora, präsentation\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.\"\nWert laut Quelle: \"2026-09-22T14:00:00+02:00\"\nQuelle [1]: Kalender · \"synthetic:m3-corrected-date-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T12:00:00+00:00\nGültigkeit: ab 2026-09-13T12:00:00+00:00; Ende nicht angegeben",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-6962bbbaa1c9",
+            "statement": "Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: aurora, präsentation",
+            "source_type": "calendar",
+            "source_ref": "synthetic:m3-corrected-date-01:S2",
+            "evidence_at": "2026-09-13T12:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:aurora",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-6962bbbaa1c9",
+              "statement": "Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.",
+              "subject_ref": "project:aurora",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_presentation_time",
+              "value": "2026-09-22T14:00:00+02:00",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": "2026-09-13T12:00:00+00:00",
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-126b640032be",
+                "digest": "sha256:613676e21cf6a0c3c2fc979b11f2f75b54d93c1f3d2f20f5b4576325083bc412",
+                "source_type": "calendar",
+                "source_ref": "synthetic:m3-corrected-date-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T12:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: aurora, präsentation"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-6962bbbaa1c9",
+              "primary_episode_id": "e-126b640032be",
+              "projection_sha256": "f607830a77925869338f3301c042dbb8c249954d4a9744a6efb298e6921e70ee",
+              "source_generations": {
+                "e-126b640032be": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 3,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-6962bbbaa1c9"
+        ],
+        "knowledge_inputs": {
+          "k-6962bbbaa1c9": {
+            "version": 1,
+            "claim_id": "k-6962bbbaa1c9",
+            "primary_episode_id": "e-126b640032be",
+            "projection_sha256": "f607830a77925869338f3301c042dbb8c249954d4a9744a6efb298e6921e70ee",
+            "source_generations": {
+              "e-126b640032be": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-6962bbbaa1c9"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "An welchem Datum ist die Aurora-Präsentation?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 731,
+      "after_characters": 385
+    },
+    {
+      "case_id": "m3-unambiguous-topic-01",
+      "question": "Welches Budget ist für Projekt Aurora bestätigt?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Für Aurora sind 18.000 EUR bestätigt.\"\nvalue: \"18000 EUR\"\nassertion_id: \"claim:k-905e39ef4686\"\nsubject_ref: \"project:aurora\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_confirmed_budget\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-unambiguous-topic-01:S1\"\nepisode_id: \"e-9712ab44a609\"\ndigest: \"sha256:a4bf7f0c8650833e74bd127281ce8bbe24c6b0899547781e8d22ada6bc85e641\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: aurora, bestätigt, budget\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Für Aurora sind 18.000 EUR bestätigt.\"\nWert laut Quelle: \"18000 EUR\"\nQuelle [1]: Dokument · \"synthetic:m3-unambiguous-topic-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-905e39ef4686",
+            "statement": "Für Aurora sind 18.000 EUR bestätigt.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: aurora, bestätigt, budget",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-unambiguous-topic-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:aurora",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-905e39ef4686",
+              "statement": "Für Aurora sind 18.000 EUR bestätigt.",
+              "subject_ref": "project:aurora",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_confirmed_budget",
+              "value": "18000 EUR",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-9712ab44a609",
+                "digest": "sha256:a4bf7f0c8650833e74bd127281ce8bbe24c6b0899547781e8d22ada6bc85e641",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-unambiguous-topic-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: aurora, bestätigt, budget"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-905e39ef4686",
+              "primary_episode_id": "e-9712ab44a609",
+              "projection_sha256": "dbde80b5131bf52488108dcd94cd5dbcdcf4a1d135cfde929d03825be9ac1df1",
+              "source_generations": {
+                "e-9712ab44a609": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 1,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-905e39ef4686"
+        ],
+        "knowledge_inputs": {
+          "k-905e39ef4686": {
+            "version": 1,
+            "claim_id": "k-905e39ef4686",
+            "primary_episode_id": "e-9712ab44a609",
+            "projection_sha256": "dbde80b5131bf52488108dcd94cd5dbcdcf4a1d135cfde929d03825be9ac1df1",
+            "source_generations": {
+              "e-9712ab44a609": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-905e39ef4686"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Welches Budget ist für Projekt Aurora bestätigt?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 5,
+          "query_terms_used": 5,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 627,
+      "after_characters": 237
+    },
+    {
+      "case_id": "m3-ambiguous-topic-01",
+      "question": "Wie ist der Stand beim Pilot?",
+      "before": "Welchen dieser belegten Referenzkontexte meinst du: 1 (subject_ref: \"project:onboarding-pilot\", target_ref: null, scope_ref: null), 2 (subject_ref: \"project:solar-pilot\", target_ref: null, scope_ref: null)?\n\n1. [E1]\nstatement: \"Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.\"\nvalue: \"Testgruppe hat begonnen\"\nassertion_id: \"claim:k-7ad42eb0b39b\"\nsubject_ref: \"project:onboarding-pilot\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_project_status\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-ambiguous-topic-01:S2\"\nepisode_id: \"e-bd4d804e5411\"\ndigest: \"sha256:f3a247e622b5cc8b9ada285e9f6b6f3e46206474bf7c880016856d062a0f2edc\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: pilot\"\n\n2. [E2]\nstatement: \"Statusnotiz Solar-Pilot: technische Prüfung läuft.\"\nvalue: \"technische Prüfung läuft\"\nassertion_id: \"claim:k-9549158c95b2\"\nsubject_ref: \"project:solar-pilot\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_project_status\"\nsource_type: \"document\"\nsource_ref: \"synthetic:m3-ambiguous-topic-01:S1\"\nepisode_id: \"e-4ddb7e9888e8\"\ndigest: \"sha256:5d2198928535f7cdff1a7db2ad9b3d8015dc792a541566f564b88d1e7142cfb0\"\noccurred_at: null\nrecorded_at: \"2026-09-14T08:00:00+00:00\"\nclaim_created_at: \"2026-09-14T08:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: pilot\"",
+      "original_status": "clarify",
+      "missing_visible_fields": [],
+      "after": "Welchen Eintrag meinst du?\n\n[1] \"Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.\"\nWert laut Quelle: \"Testgruppe hat begonnen\"\nQuelle [1]: Dokument · \"synthetic:m3-ambiguous-topic-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00\n\n[2] \"Statusnotiz Solar-Pilot: technische Prüfung läuft.\"\nWert laut Quelle: \"technische Prüfung läuft\"\nQuelle [2]: Dokument · \"synthetic:m3-ambiguous-topic-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T08:00:00+00:00",
+      "status": "clarify",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-7ad42eb0b39b",
+            "statement": "Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: pilot",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-ambiguous-topic-01:S2",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:onboarding-pilot",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-7ad42eb0b39b",
+              "statement": "Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.",
+              "subject_ref": "project:onboarding-pilot",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_project_status",
+              "value": "Testgruppe hat begonnen",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-bd4d804e5411",
+                "digest": "sha256:f3a247e622b5cc8b9ada285e9f6b6f3e46206474bf7c880016856d062a0f2edc",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-ambiguous-topic-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: pilot"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-7ad42eb0b39b",
+              "primary_episode_id": "e-bd4d804e5411",
+              "projection_sha256": "55db4fdeb90b907046f89bd34160ca69bb47a5530f9a99742605b03a218e4a56",
+              "source_generations": {
+                "e-bd4d804e5411": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-9549158c95b2",
+            "statement": "Statusnotiz Solar-Pilot: technische Prüfung läuft.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: pilot",
+            "source_type": "document",
+            "source_ref": "synthetic:m3-ambiguous-topic-01:S1",
+            "evidence_at": "2026-09-14T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:solar-pilot",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-9549158c95b2",
+              "statement": "Statusnotiz Solar-Pilot: technische Prüfung läuft.",
+              "subject_ref": "project:solar-pilot",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_project_status",
+              "value": "technische Prüfung läuft",
+              "claim_created_at": "2026-09-14T08:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-4ddb7e9888e8",
+                "digest": "sha256:5d2198928535f7cdff1a7db2ad9b3d8015dc792a541566f564b88d1e7142cfb0",
+                "source_type": "document",
+                "source_ref": "synthetic:m3-ambiguous-topic-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-14T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: pilot"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-9549158c95b2",
+              "primary_episode_id": "e-4ddb7e9888e8",
+              "projection_sha256": "303cf07899f361dce29a20f6a8850fdf36a61ffce40e052878457c72932744ee",
+              "source_generations": {
+                "e-4ddb7e9888e8": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-7ad42eb0b39b",
+          "k-9549158c95b2"
+        ],
+        "knowledge_inputs": {
+          "k-7ad42eb0b39b": {
+            "version": 1,
+            "claim_id": "k-7ad42eb0b39b",
+            "primary_episode_id": "e-bd4d804e5411",
+            "projection_sha256": "55db4fdeb90b907046f89bd34160ca69bb47a5530f9a99742605b03a218e4a56",
+            "source_generations": {
+              "e-bd4d804e5411": 0
+            }
+          },
+          "k-9549158c95b2": {
+            "version": 1,
+            "claim_id": "k-9549158c95b2",
+            "primary_episode_id": "e-4ddb7e9888e8",
+            "projection_sha256": "303cf07899f361dce29a20f6a8850fdf36a61ffce40e052878457c72932744ee",
+            "source_generations": {
+              "e-4ddb7e9888e8": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "clarify",
+          "selected_assertion_ids": [
+            "claim:k-7ad42eb0b39b",
+            "claim:k-9549158c95b2"
+          ],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "query": "Wie ist der Stand beim Pilot?",
+        "generated_at": "2026-09-14T10:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1432,
+      "after_characters": 487
+    },
+    {
+      "case_id": "ambiguous-mainz-01",
+      "question": "Was ist mit Mainz?",
+      "before": "Welchen dieser belegten Referenzkontexte meinst du: 1 (subject_ref: \"project:klinikum\", target_ref: null, scope_ref: null), 2 (subject_ref: \"document:reise\", target_ref: null, scope_ref: null)?\n\n1. [E1]\nstatement: \"Kalendereintrag: Angebotsgespräch Klinikum Mainz am 13.09.2026 um 11:00 Europe/Berlin.\"\nvalue: \"2026-09-13T11:00:00+02:00\"\nassertion_id: \"claim:k-b2b963d10d3c\"\nsubject_ref: \"project:klinikum\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_appointment\"\nsource_type: \"calendar\"\nsource_ref: \"synthetic:ambiguous-mainz-01:S1\"\nepisode_id: \"e-ea789d6c04c6\"\ndigest: \"sha256:c53b3da2f2f5d2fcf47db0d250a4fae72b14af737d25a53801b3d2aaa45f6caa\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: mainz\"\n\n2. [E2]\nstatement: \"Reiseplan: Zugfahrt nach Mainz am 14.09.2026.\"\nvalue: \"Mainz\"\nassertion_id: \"claim:k-c839c945bec8\"\nsubject_ref: \"document:reise\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_destination\"\nsource_type: \"document\"\nsource_ref: \"synthetic:ambiguous-mainz-01:S2\"\nepisode_id: \"e-f71af9eeb791\"\ndigest: \"sha256:2727d7ee6e537984f043f8f10e2cc6011f34e932f9d118bc35315afca8440d84\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: mainz\"",
+      "original_status": "clarify",
+      "missing_visible_fields": [],
+      "after": "Welchen Eintrag meinst du?\n\n[1] \"Kalendereintrag: Angebotsgespräch Klinikum Mainz am 13.09.2026 um 11:00 Europe/Berlin.\"\nWert laut Quelle: \"2026-09-13T11:00:00+02:00\"\nQuelle [1]: Kalender · \"synthetic:ambiguous-mainz-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00\n\n[2] \"Reiseplan: Zugfahrt nach Mainz am 14.09.2026.\"\nWert laut Quelle: \"Mainz\"\nQuelle [2]: Dokument · \"synthetic:ambiguous-mainz-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00",
+      "status": "clarify",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-b2b963d10d3c",
+            "statement": "Kalendereintrag: Angebotsgespräch Klinikum Mainz am 13.09.2026 um 11:00 Europe/Berlin.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: mainz",
+            "source_type": "calendar",
+            "source_ref": "synthetic:ambiguous-mainz-01:S1",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:klinikum",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-b2b963d10d3c",
+              "statement": "Kalendereintrag: Angebotsgespräch Klinikum Mainz am 13.09.2026 um 11:00 Europe/Berlin.",
+              "subject_ref": "project:klinikum",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_appointment",
+              "value": "2026-09-13T11:00:00+02:00",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-ea789d6c04c6",
+                "digest": "sha256:c53b3da2f2f5d2fcf47db0d250a4fae72b14af737d25a53801b3d2aaa45f6caa",
+                "source_type": "calendar",
+                "source_ref": "synthetic:ambiguous-mainz-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: mainz"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-b2b963d10d3c",
+              "primary_episode_id": "e-ea789d6c04c6",
+              "projection_sha256": "d28f9e1fa71c8dd041a5928cc87956a29e8baf654606613b283d60f0cf0d91d6",
+              "source_generations": {
+                "e-ea789d6c04c6": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-c839c945bec8",
+            "statement": "Reiseplan: Zugfahrt nach Mainz am 14.09.2026.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: mainz",
+            "source_type": "document",
+            "source_ref": "synthetic:ambiguous-mainz-01:S2",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "document:reise",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-c839c945bec8",
+              "statement": "Reiseplan: Zugfahrt nach Mainz am 14.09.2026.",
+              "subject_ref": "document:reise",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_destination",
+              "value": "Mainz",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f71af9eeb791",
+                "digest": "sha256:2727d7ee6e537984f043f8f10e2cc6011f34e932f9d118bc35315afca8440d84",
+                "source_type": "document",
+                "source_ref": "synthetic:ambiguous-mainz-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: mainz"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-c839c945bec8",
+              "primary_episode_id": "e-f71af9eeb791",
+              "projection_sha256": "e659509ac19ba60cfb5a5f8c00eaceb3122dc91df848306c8962dbf00824bf89",
+              "source_generations": {
+                "e-f71af9eeb791": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-b2b963d10d3c",
+          "k-c839c945bec8"
+        ],
+        "knowledge_inputs": {
+          "k-b2b963d10d3c": {
+            "version": 1,
+            "claim_id": "k-b2b963d10d3c",
+            "primary_episode_id": "e-ea789d6c04c6",
+            "projection_sha256": "d28f9e1fa71c8dd041a5928cc87956a29e8baf654606613b283d60f0cf0d91d6",
+            "source_generations": {
+              "e-ea789d6c04c6": 0
+            }
+          },
+          "k-c839c945bec8": {
+            "version": 1,
+            "claim_id": "k-c839c945bec8",
+            "primary_episode_id": "e-f71af9eeb791",
+            "projection_sha256": "e659509ac19ba60cfb5a5f8c00eaceb3122dc91df848306c8962dbf00824bf89",
+            "source_generations": {
+              "e-f71af9eeb791": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "clarify",
+          "selected_assertion_ids": [
+            "claim:k-b2b963d10d3c",
+            "claim:k-c839c945bec8"
+          ],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "query": "Was ist mit Mainz?",
+        "generated_at": "2026-09-13T09:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 1,
+          "query_terms_used": 1,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1404,
+      "after_characters": 491
+    },
+    {
+      "case_id": "newer-rejection-01",
+      "question": "Soll ich mich nochmal bei Nordlicht bewerben?",
+      "before": "Die Modellauswahl konnte nicht geprüft werden. Ausgangsbelege:\n\n1. [E1]\nstatement: \"Gesendete Nachricht vom 01.09.2026: Bewerbung an Nordlicht übermittelt.\"\nvalue: \"sent on 2026-09-01\"\nassertion_id: \"claim:k-67a4d623dbe9\"\nsubject_ref: \"organization:nordlicht\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_application_event\"\nsource_type: \"email\"\nsource_ref: \"synthetic:newer-rejection-01:S1\"\nepisode_id: \"e-58e79e1ec0d6\"\ndigest: \"sha256:73ff89e426bb44b2bb0673e2dd3d175ea322aa1831867fff9834266faff3297e\"\noccurred_at: null\nrecorded_at: \"2026-09-01T08:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: \"2026-09-01T08:00:00+00:00\"\nvalid_until: null\nreason: \"Passt zum Gespräch: nordlicht\"\n\n2. [E2]\nstatement: \"Eingegangene Nachricht vom 12.09.2026: Nordlicht sagt diese Bewerbung ab. Eine neue Stelle wird nicht erwähnt.\"\nvalue: \"rejected\"\nassertion_id: \"claim:k-df176a4e4e82\"\nsubject_ref: \"organization:nordlicht\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_application_status\"\nsource_type: \"email\"\nsource_ref: \"synthetic:newer-rejection-01:S2\"\nepisode_id: \"e-b727bd329bcc\"\ndigest: \"sha256:4fed62ba95bb909df43da36b3a82a76ac3d5106754d657b49a6b0e422d2c4605\"\noccurred_at: null\nrecorded_at: \"2026-09-12T15:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: \"2026-09-12T15:00:00+00:00\"\nvalid_until: null\nreason: \"Passt zum Gespräch: nordlicht\"",
+      "original_status": "fallback",
+      "missing_visible_fields": [],
+      "after": "Das lokale Modell konnte die Auswahl nicht abschließen. Diese Belege habe ich gefunden:\n\n[1] \"Gesendete Nachricht vom 01.09.2026: Bewerbung an Nordlicht übermittelt.\"\nWert laut Quelle: \"sent on 2026-09-01\"\nQuelle [1]: E-Mail · \"synthetic:newer-rejection-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-01T08:00:00+00:00\nGültigkeit: ab 2026-09-01T08:00:00+00:00; Ende nicht angegeben\n\n[2] \"Eingegangene Nachricht vom 12.09.2026: Nordlicht sagt diese Bewerbung ab. Eine neue Stelle wird nicht erwähnt.\"\nWert laut Quelle: \"rejected\"\nQuelle [2]: E-Mail · \"synthetic:newer-rejection-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-12T15:00:00+00:00\nGültigkeit: ab 2026-09-12T15:00:00+00:00; Ende nicht angegeben",
+      "status": "fallback",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-67a4d623dbe9",
+            "statement": "Gesendete Nachricht vom 01.09.2026: Bewerbung an Nordlicht übermittelt.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: nordlicht",
+            "source_type": "email",
+            "source_ref": "synthetic:newer-rejection-01:S1",
+            "evidence_at": "2026-09-01T08:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "organization:nordlicht",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-67a4d623dbe9",
+              "statement": "Gesendete Nachricht vom 01.09.2026: Bewerbung an Nordlicht übermittelt.",
+              "subject_ref": "organization:nordlicht",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_application_event",
+              "value": "sent on 2026-09-01",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": "2026-09-01T08:00:00+00:00",
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-58e79e1ec0d6",
+                "digest": "sha256:73ff89e426bb44b2bb0673e2dd3d175ea322aa1831867fff9834266faff3297e",
+                "source_type": "email",
+                "source_ref": "synthetic:newer-rejection-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-01T08:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: nordlicht"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-67a4d623dbe9",
+              "primary_episode_id": "e-58e79e1ec0d6",
+              "projection_sha256": "ecc45a42428d53ccc1869f730f16b3e94530c2137abe2be1fb24935870e872b1",
+              "source_generations": {
+                "e-58e79e1ec0d6": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-df176a4e4e82",
+            "statement": "Eingegangene Nachricht vom 12.09.2026: Nordlicht sagt diese Bewerbung ab. Eine neue Stelle wird nicht erwähnt.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: nordlicht",
+            "source_type": "email",
+            "source_ref": "synthetic:newer-rejection-01:S2",
+            "evidence_at": "2026-09-12T15:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "organization:nordlicht",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-df176a4e4e82",
+              "statement": "Eingegangene Nachricht vom 12.09.2026: Nordlicht sagt diese Bewerbung ab. Eine neue Stelle wird nicht erwähnt.",
+              "subject_ref": "organization:nordlicht",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_application_status",
+              "value": "rejected",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": "2026-09-12T15:00:00+00:00",
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-b727bd329bcc",
+                "digest": "sha256:4fed62ba95bb909df43da36b3a82a76ac3d5106754d657b49a6b0e422d2c4605",
+                "source_type": "email",
+                "source_ref": "synthetic:newer-rejection-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-12T15:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: nordlicht"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-df176a4e4e82",
+              "primary_episode_id": "e-b727bd329bcc",
+              "projection_sha256": "d3e999269f27c1423cecbc464c15714fc81a7315fcd40370b0e6b6883a223be4",
+              "source_generations": {
+                "e-b727bd329bcc": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-67a4d623dbe9",
+          "k-df176a4e4e82"
+        ],
+        "knowledge_inputs": {
+          "k-67a4d623dbe9": {
+            "version": 1,
+            "claim_id": "k-67a4d623dbe9",
+            "primary_episode_id": "e-58e79e1ec0d6",
+            "projection_sha256": "ecc45a42428d53ccc1869f730f16b3e94530c2137abe2be1fb24935870e872b1",
+            "source_generations": {
+              "e-58e79e1ec0d6": 0
+            }
+          },
+          "k-df176a4e4e82": {
+            "version": 1,
+            "claim_id": "k-df176a4e4e82",
+            "primary_episode_id": "e-b727bd329bcc",
+            "projection_sha256": "d3e999269f27c1423cecbc464c15714fc81a7315fcd40370b0e6b6883a223be4",
+            "source_generations": {
+              "e-b727bd329bcc": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "fallback",
+          "selected_assertion_ids": [
+            "claim:k-67a4d623dbe9",
+            "claim:k-df176a4e4e82"
+          ],
+          "semantic_validation": false,
+          "model_called": true,
+          "reason": "provider_error"
+        },
+        "query": "Soll ich mich nochmal bei Nordlicht bewerben?",
+        "generated_at": "2026-09-13T09:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1394,
+      "after_characters": 720
+    },
+    {
+      "case_id": "same-name-01",
+      "question": "Welche Adresse hat Alex Winter?",
+      "before": "Welchen dieser belegten Referenzkontexte meinst du: 1 (subject_ref: \"person:alex-schule\", target_ref: null, scope_ref: null), 2 (subject_ref: \"person:alex-einkauf\", target_ref: null, scope_ref: null)?\n\n1. [E1]\nstatement: \"Kontaktbeobachtung: Alex Winter an der Schule, winter@schule-b.invalid.\"\nvalue: \"winter@schule-b.invalid\"\nassertion_id: \"claim:k-553d3b80f53c\"\nsubject_ref: \"person:alex-schule\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_email\"\nsource_type: \"email\"\nsource_ref: \"synthetic:same-name-01:S2\"\nepisode_id: \"e-aac4bd8a7975\"\ndigest: \"sha256:428744a2b1d7eda912cd9f4533c4380e90c103e888e60339ad111a9df295152a\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: alex, winter\"\n\n2. [E2]\nstatement: \"Kontaktbeobachtung: Alex Winter im Einkauf, alex@firma-a.invalid.\"\nvalue: \"alex@firma-a.invalid\"\nassertion_id: \"claim:k-789fd5f5ff8b\"\nsubject_ref: \"person:alex-einkauf\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_email\"\nsource_type: \"email\"\nsource_ref: \"synthetic:same-name-01:S1\"\nepisode_id: \"e-2f3add40bdd4\"\ndigest: \"sha256:abdb9e60dd890b519bcdac3d6416d9bef5d9d9e49586d685571ae671ebf74f93\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: alex, winter\"",
+      "original_status": "clarify",
+      "missing_visible_fields": [],
+      "after": "Welchen Eintrag meinst du?\n\n[1] \"Kontaktbeobachtung: Alex Winter an der Schule, winter@schule-b.invalid.\"\nWert laut Quelle: \"winter@schule-b.invalid\"\nQuelle [1]: E-Mail · \"synthetic:same-name-01:S2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00\n\n[2] \"Kontaktbeobachtung: Alex Winter im Einkauf, alex@firma-a.invalid.\"\nWert laut Quelle: \"alex@firma-a.invalid\"\nQuelle [2]: E-Mail · \"synthetic:same-name-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00",
+      "status": "clarify",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-553d3b80f53c",
+            "statement": "Kontaktbeobachtung: Alex Winter an der Schule, winter@schule-b.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: alex, winter",
+            "source_type": "email",
+            "source_ref": "synthetic:same-name-01:S2",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:alex-schule",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-553d3b80f53c",
+              "statement": "Kontaktbeobachtung: Alex Winter an der Schule, winter@schule-b.invalid.",
+              "subject_ref": "person:alex-schule",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "winter@schule-b.invalid",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-aac4bd8a7975",
+                "digest": "sha256:428744a2b1d7eda912cd9f4533c4380e90c103e888e60339ad111a9df295152a",
+                "source_type": "email",
+                "source_ref": "synthetic:same-name-01:S2",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: alex, winter"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-553d3b80f53c",
+              "primary_episode_id": "e-aac4bd8a7975",
+              "projection_sha256": "98798c3e5d03fc7b272a49b34e309babea9d879cb0e32a608b0d392b56086c8a",
+              "source_generations": {
+                "e-aac4bd8a7975": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-789fd5f5ff8b",
+            "statement": "Kontaktbeobachtung: Alex Winter im Einkauf, alex@firma-a.invalid.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: alex, winter",
+            "source_type": "email",
+            "source_ref": "synthetic:same-name-01:S1",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "person:alex-einkauf",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-789fd5f5ff8b",
+              "statement": "Kontaktbeobachtung: Alex Winter im Einkauf, alex@firma-a.invalid.",
+              "subject_ref": "person:alex-einkauf",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_email",
+              "value": "alex@firma-a.invalid",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-2f3add40bdd4",
+                "digest": "sha256:abdb9e60dd890b519bcdac3d6416d9bef5d9d9e49586d685571ae671ebf74f93",
+                "source_type": "email",
+                "source_ref": "synthetic:same-name-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: alex, winter"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-789fd5f5ff8b",
+              "primary_episode_id": "e-2f3add40bdd4",
+              "projection_sha256": "dcd33704fcfa338d27e541e9ffc1ff462e0b238fc3b5f3e49ac331ac2c33f7c7",
+              "source_generations": {
+                "e-2f3add40bdd4": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-553d3b80f53c",
+          "k-789fd5f5ff8b"
+        ],
+        "knowledge_inputs": {
+          "k-553d3b80f53c": {
+            "version": 1,
+            "claim_id": "k-553d3b80f53c",
+            "primary_episode_id": "e-aac4bd8a7975",
+            "projection_sha256": "98798c3e5d03fc7b272a49b34e309babea9d879cb0e32a608b0d392b56086c8a",
+            "source_generations": {
+              "e-aac4bd8a7975": 0
+            }
+          },
+          "k-789fd5f5ff8b": {
+            "version": 1,
+            "claim_id": "k-789fd5f5ff8b",
+            "primary_episode_id": "e-2f3add40bdd4",
+            "projection_sha256": "dcd33704fcfa338d27e541e9ffc1ff462e0b238fc3b5f3e49ac331ac2c33f7c7",
+            "source_generations": {
+              "e-2f3add40bdd4": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "clarify",
+          "selected_assertion_ids": [
+            "claim:k-553d3b80f53c",
+            "claim:k-789fd5f5ff8b"
+          ],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "query": "Welche Adresse hat Alex Winter?",
+        "generated_at": "2026-09-13T09:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1420,
+      "after_characters": 493
+    },
+    {
+      "case_id": "hypothesis-01",
+      "question": "Was ist meine Einstellung zur Vier-Tage-Woche?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.\"\nvalue: \"Gedankenexperiment mit Gegenposition\"\nassertion_id: \"claim:k-036c5abfba9a\"\nsubject_ref: \"topic:vier-tage\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_discourse_mode\"\nsource_type: \"user_stated\"\nsource_ref: \"synthetic:hypothesis-01:S1\"\nepisode_id: \"e-f16fe4630502\"\ndigest: \"sha256:7c8b936c0d65f85b24d975bd02394c1a9e73e798183796890186c611d0b0c48c\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: tage, vier, woche\"\n\n2. [E2]\nstatement: \"Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.\"\nvalue: \"nicht geäußert\"\nassertion_id: \"claim:k-9e57443883b3\"\nsubject_ref: \"topic:vier-tage\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_user_position\"\nsource_type: \"user_stated\"\nsource_ref: \"synthetic:hypothesis-01:S1\"\nepisode_id: \"e-f16fe4630502\"\ndigest: \"sha256:7c8b936c0d65f85b24d975bd02394c1a9e73e798183796890186c611d0b0c48c\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: tage, vier, woche\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.\"\nWert laut Quelle: \"Gedankenexperiment mit Gegenposition\"\nQuelle [1]: Nutzeraussage · \"synthetic:hypothesis-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00\n\n[2] \"Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.\"\nWert laut Quelle: \"nicht geäußert\"\nQuelle [2]: Nutzeraussage · \"synthetic:hypothesis-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-036c5abfba9a",
+            "statement": "Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: tage, vier, woche",
+            "source_type": "user_stated",
+            "source_ref": "synthetic:hypothesis-01:S1",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "topic:vier-tage",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-036c5abfba9a",
+              "statement": "Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.",
+              "subject_ref": "topic:vier-tage",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_discourse_mode",
+              "value": "Gedankenexperiment mit Gegenposition",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f16fe4630502",
+                "digest": "sha256:7c8b936c0d65f85b24d975bd02394c1a9e73e798183796890186c611d0b0c48c",
+                "source_type": "user_stated",
+                "source_ref": "synthetic:hypothesis-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: tage, vier, woche"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-036c5abfba9a",
+              "primary_episode_id": "e-f16fe4630502",
+              "projection_sha256": "257c084aaa5b8a993d88ca90ce86443d58487ef2c79b237c698af6a4f6b04aeb",
+              "source_generations": {
+                "e-f16fe4630502": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          },
+          {
+            "assertion_id": "claim:k-9e57443883b3",
+            "statement": "Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: tage, vier, woche",
+            "source_type": "user_stated",
+            "source_ref": "synthetic:hypothesis-01:S1",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "topic:vier-tage",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-9e57443883b3",
+              "statement": "Originalnachricht des Nutzers: Nur als Gedankenexperiment spiele ich den Gegner der Vier-Tage-Woche. Meine eigene Meinung habe ich noch nicht gesagt.",
+              "subject_ref": "topic:vier-tage",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_user_position",
+              "value": "nicht geäußert",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f16fe4630502",
+                "digest": "sha256:7c8b936c0d65f85b24d975bd02394c1a9e73e798183796890186c611d0b0c48c",
+                "source_type": "user_stated",
+                "source_ref": "synthetic:hypothesis-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: tage, vier, woche"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-9e57443883b3",
+              "primary_episode_id": "e-f16fe4630502",
+              "projection_sha256": "9732a642e9cd759c761dd72355ce289fea52ca94520950f5d1be22ecaaafa0b4",
+              "source_generations": {
+                "e-f16fe4630502": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-036c5abfba9a",
+          "k-9e57443883b3"
+        ],
+        "knowledge_inputs": {
+          "k-036c5abfba9a": {
+            "version": 1,
+            "claim_id": "k-036c5abfba9a",
+            "primary_episode_id": "e-f16fe4630502",
+            "projection_sha256": "257c084aaa5b8a993d88ca90ce86443d58487ef2c79b237c698af6a4f6b04aeb",
+            "source_generations": {
+              "e-f16fe4630502": 0
+            }
+          },
+          "k-9e57443883b3": {
+            "version": 1,
+            "claim_id": "k-9e57443883b3",
+            "primary_episode_id": "e-f16fe4630502",
+            "projection_sha256": "9732a642e9cd759c761dd72355ce289fea52ca94520950f5d1be22ecaaafa0b4",
+            "source_generations": {
+              "e-f16fe4630502": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-036c5abfba9a",
+            "claim:k-9e57443883b3"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Was ist meine Einstellung zur Vier-Tage-Woche?",
+        "generated_at": "2026-09-13T09:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 4,
+          "query_terms_used": 4,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 2,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 1450,
+      "after_characters": 686
+    },
+    {
+      "case_id": "injected-source-01",
+      "question": "Was ist beim Termin vorzubereiten?",
+      "before": "Ausgewählte Ausgangsbelege:\n\n1. [E1]\nstatement: \"Terminnotiz: Für das Klinikum-Gespräch am 13.09.2026 um 11:00 ist die Angebotsliste vorzubereiten.\"\nvalue: \"Angebotsliste\"\nassertion_id: \"claim:k-957e4324d5ed\"\nsubject_ref: \"project:klinikum\"\ntarget_ref: null\nscope_ref: null\npredicate: \"observed_preparation\"\nsource_type: \"calendar\"\nsource_ref: \"synthetic:injected-source-01:S1\"\nepisode_id: \"e-f2d470a4fb90\"\ndigest: \"sha256:ee1b840cb315b61b1aea98ffdd895f8334e7c9fc16f494f9f706ef62fe6b68ad\"\noccurred_at: null\nrecorded_at: \"2026-09-13T07:00:00+00:00\"\nclaim_created_at: \"2026-09-13T07:00:00+00:00\"\nvalid_from: null\nvalid_until: null\nreason: \"Passt zum Gespräch: vorzubereiten\"",
+      "original_status": "evidence",
+      "missing_visible_fields": [],
+      "after": "In den ausgewählten Belegen steht:\n\n[1] \"Terminnotiz: Für das Klinikum-Gespräch am 13.09.2026 um 11:00 ist die Angebotsliste vorzubereiten.\"\nWert laut Quelle: \"Angebotsliste\"\nQuelle [1]: Kalender · \"synthetic:injected-source-01:S1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-13T07:00:00+00:00",
+      "status": "evidence",
+      "mode": "frozen_selection_renderer",
+      "context": {
+        "items": [
+          {
+            "assertion_id": "claim:k-957e4324d5ed",
+            "statement": "Terminnotiz: Für das Klinikum-Gespräch am 13.09.2026 um 11:00 ist die Angebotsliste vorzubereiten.",
+            "kind": "knowledge",
+            "state": "current",
+            "reason": "Passt zum Gespräch: vorzubereiten",
+            "source_type": "calendar",
+            "source_ref": "synthetic:injected-source-01:S1",
+            "evidence_at": "2026-09-13T07:00:00+00:00",
+            "confidence": null,
+            "subject_ref": "project:klinikum",
+            "target_ref": null,
+            "scope_ref": null,
+            "knowledge_projection": {
+              "format": "knowledge-context-v3",
+              "assertion_id": "claim:k-957e4324d5ed",
+              "statement": "Terminnotiz: Für das Klinikum-Gespräch am 13.09.2026 um 11:00 ist die Angebotsliste vorzubereiten.",
+              "subject_ref": "project:klinikum",
+              "target_ref": null,
+              "scope_ref": null,
+              "predicate": "observed_preparation",
+              "value": "Angebotsliste",
+              "claim_created_at": "2026-09-13T07:00:00+00:00",
+              "valid_from": null,
+              "valid_until": null,
+              "primary_evidence": {
+                "episode_id": "e-f2d470a4fb90",
+                "digest": "sha256:ee1b840cb315b61b1aea98ffdd895f8334e7c9fc16f494f9f706ef62fe6b68ad",
+                "source_type": "calendar",
+                "source_ref": "synthetic:injected-source-01:S1",
+                "occurred_at": null,
+                "recorded_at": "2026-09-13T07:00:00+00:00"
+              },
+              "reason": "Passt zum Gespräch: vorzubereiten"
+            },
+            "knowledge_input": {
+              "version": 1,
+              "claim_id": "k-957e4324d5ed",
+              "primary_episode_id": "e-f2d470a4fb90",
+              "projection_sha256": "903c1cd8d7bfe393c27d7d231ca128b6eaff9dca9184f39d9a3f2a38833e79ae",
+              "source_generations": {
+                "e-f2d470a4fb90": 0
+              }
+            },
+            "evidence_at_basis": "recorded_at"
+          }
+        ],
+        "memory_revision": 2,
+        "answer_mode": "memory_evidence",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [
+          "k-957e4324d5ed"
+        ],
+        "knowledge_inputs": {
+          "k-957e4324d5ed": {
+            "version": 1,
+            "claim_id": "k-957e4324d5ed",
+            "primary_episode_id": "e-f2d470a4fb90",
+            "projection_sha256": "903c1cd8d7bfe393c27d7d231ca128b6eaff9dca9184f39d9a3f2a38833e79ae",
+            "source_generations": {
+              "e-f2d470a4fb90": 0
+            }
+          }
+        },
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "status": "evidence",
+          "selected_assertion_ids": [
+            "claim:k-957e4324d5ed"
+          ],
+          "semantic_validation": false,
+          "model_called": true
+        },
+        "query": "Was ist beim Termin vorzubereiten?",
+        "generated_at": "2026-09-13T09:00:00+02:00",
+        "withheld_count": 0,
+        "basis_omitted": false,
+        "knowledge_retrieval": {
+          "query_terms_total": 3,
+          "query_terms_used": 3,
+          "query_truncated": false,
+          "candidate_limit": 128,
+          "candidates_returned": 1,
+          "candidates_truncated": false,
+          "selection_truncated": false,
+          "truncated": false,
+          "payload_omitted": 0
+        }
+      },
+      "before_characters": 672,
+      "after_characters": 297
+    },
+    {
+      "case_id": "stale-calendar-01",
+      "question": "Bin ich diese Woche komplett frei?",
+      "before": "Mit den hier ausgewählten Belegen kann ich diese Frage nicht belegt beantworten.",
+      "original_status": "unknown",
+      "missing_visible_fields": [],
+      "after": "Der Kalenderstand ist veraltet oder zeitlich nicht verlässlich. Deshalb kann ich deine Termine oder freie Zeit nicht bestätigen. Bitte prüfe die Kalendersynchronisation.",
+      "status": "calendar",
+      "mode": "actual_agent_calendar",
+      "context": {
+        "items": [],
+        "memory_revision": 1,
+        "answer_mode": "calendar_data",
+        "history_egress": "local_only",
+        "knowledge_claim_lineage_version": 2,
+        "knowledge_claim_ids": [],
+        "knowledge_inputs": {},
+        "knowledge_history_reset": false,
+        "self_model_lineage_version": 3,
+        "self_model_inputs": {},
+        "self_model_history_reset": false,
+        "answer_contract": {
+          "version": 1,
+          "presentation_version": 2,
+          "status": "calendar",
+          "selected_assertion_ids": [],
+          "semantic_validation": false,
+          "model_called": false
+        },
+        "calendar": {
+          "status": "stale",
+          "coverage": "unknown",
+          "truncated": false,
+          "invalid_count": 0,
+          "window_from": "2026-09-13T07:00:00Z",
+          "window_to": "2026-09-20T07:00:00Z",
+          "events": [],
+          "captured_at_utc": "2026-09-01T10:00:00Z",
+          "timezone": "Europe/Berlin",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        "calendar_fingerprint": "ee01138d7b25d9e0036a336c140a3ec757d1e4cfadc7159e505a6ee6c7cdac90",
+        "calendar_model_context": false,
+        "history_omitted": true
+      },
+      "before_characters": 80,
+      "after_characters": 169
+    }
+  ]
+}

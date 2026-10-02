@@ -1,0 +1,40 @@
+{
+  "suite": "cos-workweek-memory-v1",
+  "synthetic_only": true,
+  "days": [
+    {"day":"Montag","sources":[
+      {"key":"briefing","text":"Projekt Lindenhof: Nora ist für die Kostenübersicht zuständig und hat die Lieferung für den 12. Oktober 2026 zugesagt. Kai prüft danach die Kostenübersicht."},
+      {"key":"approval","text":"Projekt Lindenhof: Kai versendet die Baupläne am 13. Oktober 2026 nur nach schriftlicher Freigabe von Nora. Die Freigabe liegt noch nicht vor."},
+      {"key":"travel-plan","text":"Reise zum Kundentermin in Bremen am 15. Oktober 2026: Das Hotel ist bislang nur geplant. Es gibt noch keine Hotelbuchung und keine Buchungsbestätigung."}
+    ],"questions":[
+      {"id":"owner","question":"Wer liefert die Kostenübersicht für Lindenhof und wann?","required":["briefing"],"allowed":["briefing"],"status":["working_reports"],"contains":["Nora","12. Oktober 2026"]},
+      {"id":"condition","question":"Unter welchen Voraussetzungen versendet Kai die Baupläne für Lindenhof?","required":["approval"],"allowed":["approval","briefing"],"status":["working_reports"],"contains":["nur nach schriftlicher Freigabe","noch nicht vor"]},
+      {"id":"not-booked","question":"Ist das Hotel für die Reise nach Bremen bereits gebucht?","required":["travel-plan"],"allowed":["travel-plan"],"status":["working_reports"],"contains":["keine Hotelbuchung"]}
+    ]},
+    {"day":"Dienstag","sources":[
+      {"key":"people","text":"Projekt Werkstatt: Lea Sommer liefert die Ventile am 14. Oktober 2026. Lea Winter liefert die Ventile am 19. Oktober 2026. Lea Sommer und Lea Winter sind zwei verschiedene Personen."},
+      {"key":"other-project","text":"Projekt Buchenblick: Nora hat die Lieferung der Kostenübersicht für den 21. Oktober 2026 zugesagt."}
+    ],"questions":[
+      {"id":"people-ambiguity","question":"Wann liefert Lea die Ventile für Werkstatt?","required":["people"],"allowed":["people"],"status":["working_unclear"],"contains":["Lea Sommer","Lea Winter"]},
+      {"id":"project-isolation","question":"Wann liefert Nora die Kostenübersicht für Lindenhof?","required":["briefing"],"allowed":["briefing"],"status":["working_reports"],"contains":["12. Oktober 2026"],"excludes":["21. Oktober 2026"]}
+    ]},
+    {"day":"Mittwoch","sources":[
+      {"key":"booking","text":"Buchungsbestätigung HB-731: Für die Reise zum Kundentermin in Bremen am 15. Oktober 2026 ist das Hotel Hafenblick verbindlich gebucht. Anreise 14. Oktober, Abreise 16. Oktober 2026."},
+      {"key":"move","text":"Aktualisierung Projekt Lindenhof: Nora verschiebt die Lieferung der Kostenübersicht vom 12. Oktober auf den 16. Oktober 2026. Der Termin am 12. Oktober gilt nicht mehr."}
+    ],"questions":[
+      {"id":"booking-arrived","question":"Liegt jetzt eine Hotelbuchung für die Reise nach Bremen vor?","required":["booking"],"allowed":["travel-plan","booking"],"status":["working_reports","working_unclear"],"contains":["HB-731","verbindlich gebucht"]},
+      {"id":"deadline-moved","question":"Was ist der aktuelle Liefertermin der Kostenübersicht für Lindenhof?","required":["move"],"allowed":["briefing","move"],"status":["working_reports","working_unclear"],"contains":["16. Oktober 2026","gilt nicht mehr"]}
+    ]},
+    {"day":"Donnerstag","sources":[
+      {"key":"cancel","text":"Stornierungsbestätigung zu Hotelbuchung HB-731: Das Hotel Hafenblick für die Bremen-Reise vom 14. bis 16. Oktober 2026 ist storniert. Es besteht keine aktive Hotelbuchung mehr."},
+      {"key":"approval-arrived","text":"Aktualisierung Projekt Lindenhof: Nora hat die schriftliche Freigabe für den Versand der Baupläne erteilt. Kai darf jetzt versenden. Der Versand selbst ist noch nicht erfolgt."}
+    ],"questions":[
+      {"id":"booking-cancelled","question":"Ist meine Hotelbuchung HB-731 für Bremen noch aktiv?","required":["cancel"],"allowed":["travel-plan","booking","cancel"],"status":["working_reports","working_unclear"],"contains":["storniert","keine aktive Hotelbuchung"]},
+      {"id":"permission-not-completion","question":"Hat Kai die Baupläne für Lindenhof bereits versendet?","required":["approval-arrived"],"allowed":["approval","approval-arrived"],"status":["working_reports","working_unclear"],"contains":["noch nicht erfolgt"]}
+    ]},
+    {"day":"Freitag","duplicate":"booking","withdraw":"people","withdraw_spans":["Lea Sommer","Lea Winter","14. Oktober 2026","19. Oktober 2026"],"questions":[
+      {"id":"withdrawn-people","question":"Wann liefert Lea die Ventile für Werkstatt?","required":[],"allowed":[],"status":["working_unknown","unknown","insufficient_evidence"],"excludes":["14. Oktober 2026","19. Oktober 2026"]},
+      {"id":"unrelated-unknown","question":"Welche Zugbuchung habe ich für Bremen?","required":[],"allowed":[],"status":["working_unknown","unknown","insufficient_evidence"],"excludes":["HB-731"]}
+    ]}
+  ]
+}

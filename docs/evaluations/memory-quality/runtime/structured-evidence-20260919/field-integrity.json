@@ -1,0 +1,103 @@
+{
+  "run_status": "completed",
+  "completed_cases": 16,
+  "integrity_only": true,
+  "results": [
+    {
+      "case_id": "m3-sent-confirmed-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-not-sent-confirmed-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-send-status-unknown-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-one-person-two-addresses-01",
+      "status": "fallback",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-ambiguous-same-name-01",
+      "status": "clarify",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-current-goal-confirmed-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-exploratory-thought-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-corrected-date-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-unambiguous-topic-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "m3-ambiguous-topic-01",
+      "status": "clarify",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "ambiguous-mainz-01",
+      "status": "clarify",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "newer-rejection-01",
+      "status": "fallback",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "same-name-01",
+      "status": "clarify",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "hypothesis-01",
+      "status": "evidence",
+      "rendered_rows": 2,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "injected-source-01",
+      "status": "evidence",
+      "rendered_rows": 1,
+      "field_mismatches": []
+    },
+    {
+      "case_id": "stale-calendar-01",
+      "status": "unknown",
+      "rendered_rows": 0,
+      "field_mismatches": []
+    }
+  ]
+}

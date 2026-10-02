@@ -1,0 +1,229 @@
+{
+  "commit": "55e9bca9f772213c5a00396e77aa96a3876c3b54",
+  "synthetic_only": true,
+  "answers": [
+    {
+      "question": "Wann ist die Heizungsprüfung?",
+      "conversation_id": "c-b97c3038173a",
+      "message": {
+        "id": "m-35034ed1767b4f",
+        "conversation_id": "c-b97c3038173a",
+        "role": "assistant",
+        "content": "Quelle berichtet · automatisch eingeordnet\nWelches Projekt oder welchen Vorgang meinst du?\n\nAngabe · Neue-Aufnahme-1-28.txt\nProjekt Birkenufer: Die Heizungsprüfung ist am 15. November 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 12:05 Uhr\n\nAngabe · Neue-Aufnahme-0-28.txt\nProjekt Abendhain: Mara führt die Heizungsprüfung am 8. November 2026 durch.\n\nBedingung ist die schriftliche Freigabe der Bauherrin. Diese Freigabe fehlt noch.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 12:05 Uhr",
+        "status": "complete",
+        "created_at": "2026-09-28T10:15:43.026097+00:00",
+        "metadata": {
+          "approvals": [],
+          "notices": [],
+          "used_tools": [],
+          "context": {
+            "query": "Wann ist die Heizungsprüfung?",
+            "generated_at": "2026-09-28T10:15:43.025100+00:00",
+            "items": [],
+            "withheld_count": 0,
+            "memory_revision": 2,
+            "answer_mode": "memory_evidence",
+            "history_egress": "local_only",
+            "working_answer": {
+              "version": 1,
+              "query": "Wann ist die Heizungsprüfung?",
+              "basis": [
+                {
+                  "episode_id": "e-0760641cbd75",
+                  "fingerprint": "777268d50b53d08667b068fe0a977014ad5db65abf6c064dd36079741946b1f3",
+                  "start": 0,
+                  "end": 214,
+                  "kind": "request"
+                },
+                {
+                  "episode_id": "e-0760641cbd75",
+                  "fingerprint": "777268d50b53d08667b068fe0a977014ad5db65abf6c064dd36079741946b1f3",
+                  "start": 1052,
+                  "end": 3614,
+                  "kind": "historical"
+                },
+                {
+                  "episode_id": "e-83bc88df695c",
+                  "fingerprint": "c83c12e1f2bc0b801352e50f46437c8a83f058e9bde962c95f48ba11a8486fdb",
+                  "start": 0,
+                  "end": 65,
+                  "kind": "fact"
+                },
+                {
+                  "episode_id": "e-7e67a954010c",
+                  "fingerprint": "b5db7ecd6d4ec5f9904ebea9f0d2354591f0fda5de8f25a4cb02d44cc1facfc9",
+                  "start": 0,
+                  "end": 76,
+                  "kind": "fact"
+                }
+              ],
+              "refs": [
+                {
+                  "episode_id": "e-83bc88df695c",
+                  "fingerprint": "c83c12e1f2bc0b801352e50f46437c8a83f058e9bde962c95f48ba11a8486fdb",
+                  "start": 0,
+                  "end": 65,
+                  "kind": "fact"
+                },
+                {
+                  "episode_id": "e-7e67a954010c",
+                  "fingerprint": "b5db7ecd6d4ec5f9904ebea9f0d2354591f0fda5de8f25a4cb02d44cc1facfc9",
+                  "start": 0,
+                  "end": 76,
+                  "kind": "fact"
+                }
+              ],
+              "claim_basis": {},
+              "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "candidate_signature": "fa4d2b97dfe69d164505818a6fa5c23156c1e940b6a20d83397ecec7d5c837f5",
+              "status": "unclear",
+              "uncertainty": "scope",
+              "limited": false,
+              "project_assignment_basis": {
+                "e-0760641cbd75": null,
+                "e-83bc88df695c": null,
+                "e-7e67a954010c": null
+              }
+            },
+            "answer_contract": {
+              "version": 1,
+              "status": "working_unclear",
+              "semantic_validation": false,
+              "model_called": true,
+              "selected_assertion_ids": []
+            },
+            "knowledge_claim_lineage_version": 2,
+            "knowledge_claim_ids": [],
+            "knowledge_inputs": {},
+            "knowledge_history_reset": false,
+            "self_model_lineage_version": 3,
+            "self_model_inputs": {},
+            "self_model_history_reset": false,
+            "source_links": [
+              {
+                "episode_id": "e-83bc88df695c",
+                "label": "Quelle 1 öffnen",
+                "automatic_memory": true
+              },
+              {
+                "episode_id": "e-7e67a954010c",
+                "label": "Quelle 2 öffnen",
+                "automatic_memory": true
+              }
+            ],
+            "original_question": "Wann ist die Heizungsprüfung?",
+            "refresh_available": false,
+            "clarification_choices": [
+              {
+                "label": "Projekt Birkenufer"
+              },
+              {
+                "label": "Projekt Abendhain"
+              }
+            ]
+          },
+          "conversation_source_lineage": [
+            {
+              "episode_id": "e-83376ea492c3",
+              "fingerprint": "8a49b02f3900ba2219ea174232178c5858a5c31a70a56575d790566381ef9728"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "question": "Unter welchen Voraussetzungen führt Mara die Heizungsprüfung für Abendhain durch?",
+      "conversation_id": "c-49146e18b563",
+      "message": {
+        "id": "m-10574aa3578a45",
+        "conversation_id": "c-49146e18b563",
+        "role": "assistant",
+        "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Neue-Aufnahme-0-28.txt\nProjekt Abendhain: Mara führt die Heizungsprüfung am 8. November 2026 durch.\n\nBedingung ist die schriftliche Freigabe der Bauherrin. Diese Freigabe fehlt noch.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 12:05 Uhr",
+        "status": "complete",
+        "created_at": "2026-09-28T10:15:45.478821+00:00",
+        "metadata": {
+          "approvals": [],
+          "notices": [],
+          "used_tools": [],
+          "context": {
+            "query": "Unter welchen Voraussetzungen führt Mara die Heizungsprüfung für Abendhain durch?",
+            "generated_at": "2026-09-28T10:15:45.478126+00:00",
+            "items": [],
+            "withheld_count": 0,
+            "memory_revision": 2,
+            "answer_mode": "memory_evidence",
+            "history_egress": "local_only",
+            "working_answer": {
+              "version": 1,
+              "query": "Unter welchen Voraussetzungen führt Mara die Heizungsprüfung für Abendhain durch?",
+              "basis": [
+                {
+                  "episode_id": "e-7e67a954010c",
+                  "fingerprint": "b5db7ecd6d4ec5f9904ebea9f0d2354591f0fda5de8f25a4cb02d44cc1facfc9",
+                  "start": 0,
+                  "end": 76,
+                  "kind": "fact"
+                },
+                {
+                  "episode_id": "e-83bc88df695c",
+                  "fingerprint": "c83c12e1f2bc0b801352e50f46437c8a83f058e9bde962c95f48ba11a8486fdb",
+                  "start": 0,
+                  "end": 65,
+                  "kind": "fact"
+                }
+              ],
+              "refs": [
+                {
+                  "episode_id": "e-7e67a954010c",
+                  "fingerprint": "b5db7ecd6d4ec5f9904ebea9f0d2354591f0fda5de8f25a4cb02d44cc1facfc9",
+                  "start": 0,
+                  "end": 76,
+                  "kind": "fact"
+                }
+              ],
+              "claim_basis": {},
+              "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "candidate_signature": "5b98d96f54456a056f38ea34d068f27fb5e4e780135b04db5beee2934c4d91fa",
+              "status": "reports",
+              "uncertainty": "none",
+              "limited": false,
+              "project_assignment_basis": {
+                "e-7e67a954010c": null,
+                "e-83bc88df695c": null
+              }
+            },
+            "answer_contract": {
+              "version": 1,
+              "status": "working_reports",
+              "semantic_validation": false,
+              "model_called": true,
+              "selected_assertion_ids": []
+            },
+            "knowledge_claim_lineage_version": 2,
+            "knowledge_claim_ids": [],
+            "knowledge_inputs": {},
+            "knowledge_history_reset": false,
+            "self_model_lineage_version": 3,
+            "self_model_inputs": {},
+            "self_model_history_reset": false,
+            "source_links": [
+              {
+                "episode_id": "e-7e67a954010c",
+                "label": "Quelle 1 öffnen",
+                "automatic_memory": true
+              }
+            ],
+            "original_question": "Unter welchen Voraussetzungen führt Mara die Heizungsprüfung für Abendhain durch?",
+            "refresh_available": false
+          },
+          "conversation_source_lineage": [
+            {
+              "episode_id": "e-643cf9b241a5",
+              "fingerprint": "06e150fc6d57f0e7d46d22bf76748d4725ac2a7da5dffaaad8ff4c5b95c361e0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

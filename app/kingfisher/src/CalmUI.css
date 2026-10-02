@@ -1,0 +1,341 @@
+/* SDR-015: Die freigegebene Heute-Gestaltung in den übrigen Arbeitsbereichen.
+   Gemeinsam benannte Materialwerte; bestehende Zustände und Aktionen bleiben erhalten. */
+:root {
+  --calm-surface: #fffefa;
+  --calm-inset: #f2f5f2;
+  --calm-soft: #e3eef0;
+  --calm-ink: #102c3a;
+  --calm-muted: #48616d;
+  --calm-line: #dce3e0;
+  --calm-primary: #063e55;
+  --calm-on-primary: #f4faf9;
+  --calm-link: #145769;
+  --calm-shadow: 0 2px 5px rgba(5,32,44,.08), 0 14px 32px rgba(5,32,44,.13), inset 0 1px 0 rgba(255,255,255,.8);
+  --calm-radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calm-surface: #172d36;
+    --calm-inset: #1c3540;
+    --calm-soft: #284650;
+    --calm-ink: #eef4f3;
+    --calm-muted: #b8cbd1;
+    --calm-line: #36505a;
+    --calm-primary: #d6e9ed;
+    --calm-on-primary: #102c3a;
+    --calm-link: #a2d8de;
+    --calm-shadow: 0 2px 5px rgba(0,0,0,.2), 0 14px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+}
+
+/* Die Landschaft bleibt zwischen deckenden Leseflächen sichtbar. */
+.shell { isolation: isolate; }
+.shell:not(:has(.today-page)) { background: #a9c2cc; }
+.shell:not(:has(.today-page))::before {
+  content: ""; position: fixed; inset: 0 0 0 220px; z-index: -1; pointer-events: none;
+  background: linear-gradient(rgba(235,243,242,.24), rgba(235,243,242,.24)), #a9c2cc url('/03_Media/Approved/landscape-calm-page-v1.png') center top / cover no-repeat;
+}
+.shell > main:not(.today-page) {
+  --kf-flaeche-fffefa: var(--calm-surface);
+  --kf-flaeche-ffffff: var(--calm-surface);
+  --kf-flaeche-f7f5ef: var(--calm-inset);
+  --kf-flaeche-f7f6f1: var(--calm-inset);
+  --kf-flaeche-f8fbfa: var(--calm-inset);
+  --kf-flaeche-eef3f1: var(--calm-soft);
+  --kf-rand-d7e1df: var(--calm-line);
+  --kf-rand-d8d4cc: var(--calm-line);
+  --kf-schrift-062b3a: var(--calm-ink);
+  --kf-schrift-31535f: var(--calm-muted);
+  --kf-schrift-007e92: var(--calm-link);
+  background: transparent; color: var(--calm-ink);
+}
+.tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history {
+  width: 100%; max-width: 1440px; padding: 32px 36px 56px;
+}
+.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading {
+  min-height: 120px; max-width: none; margin: 0 0 24px; padding: 16px 0;
+}
+.tasks-heading h1, .settings-heading h1, .inbox-heading h1, .history-heading h1, .profile-heading h1 {
+  margin: 0; font: 600 36px/1.2 'Inter', sans-serif; letter-spacing: -1px; color: var(--calm-ink);
+}
+.tasks-heading .eyebrow, .settings-heading .eyebrow, .profile-heading .eyebrow { font-size: 11px; letter-spacing: 1.3px; }
+.settings-heading > span, .settings-heading > p:last-child, .inbox-heading > p, .history-heading > p, .profile-heading > span {
+  display: block; margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: var(--calm-muted);
+}
+.tasks-add { bottom: 18px; }
+.inbox-heading { position: relative; padding-right: 135px; }
+.inbox-heading > button { position: absolute; right: 0; top: 20px; }
+.profile-back { min-height: 40px; font-size: 13px; }
+.profile-heading { min-height: 100px; }
+
+/* Einheitliche Bedienelemente. Destruktive Bestätigungen behalten ihre Farbe. */
+.shell :is(.primary-action, .secondary-action, .tasks-add, .mail-reader-primary, .mail-reader-secondary,
+  .mail-reader-close, .memory-actions button, .people-review-action, .people-review-secondary, .chronik-mehr) {
+  min-height: 42px; border-radius: 18px; padding: 9px 18px; font-size: 13px; line-height: 1.5; font-weight: 500;
+}
+.shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action) {
+  background: var(--calm-primary); color: var(--calm-on-primary); border-color: var(--calm-primary); box-shadow: 0 2px 5px rgba(5,32,44,.10);
+}
+.shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr) {
+  background: var(--calm-soft); border-color: transparent; color: var(--calm-ink);
+}
+.shell .secondary-action.decision-confirm { color: var(--kf-schrift-bf3b44); border-color: var(--kf-rand-bf3b44); }
+.shell button:not(:disabled) { cursor: pointer; }
+.shell :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--calm-link); outline-offset: 3px; }
+.shell .sidebar :is(button, a):focus-visible { outline-color: #a2d8de; }
+.shell :is(input, select, textarea) { font-family: 'Inter', sans-serif; }
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.history-search input) {
+  border-radius: 11px; border-color: var(--calm-line); background: var(--calm-surface); color: var(--calm-ink); font-size: 14px;
+}
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select):not(.command-bar input):not(.history-search input) { min-height: 42px; }
+.shell .text-action { font-size: 13px; line-height: 1.6; text-underline-offset: 4px; }
+.shell .text-action:hover { text-decoration: underline; }
+.shell main :is(.source-form label, .task-create label, .project-select-field, .project-create-form label,
+  .project-status-control label, .decision-create-form > label) { font-size: 13px; line-height: 1.5; }
+.shell main :is(.source-hint, .source-empty, .project-selection-hint, .task-empty, .profile-empty, .inbox-empty) { font-size: 14px; line-height: 1.7; }
+.shell main :is(.profile-card, .profile-metrics, .source-section, .source-form, .settings-data, .task-table,
+  .project-controls, .decision-controls, .calendar-board, .calendar-entry, .calendar-preparation, .inbox-content, .history-list,
+  .memory-directory, .memory-status, .people-review, .profile-state) {
+  border: 1px solid var(--calm-line); border-radius: var(--calm-radius); background: var(--calm-surface); box-shadow: var(--calm-shadow);
+}
+.shell main :is(.profile-card, .settings-data, .project-controls, .decision-controls) { padding: 24px; }
+.shell main :is(.profile-card h2, .source-section-heading h2, .compact-integration-heading h2, .decision-controls h2, .settings-data h2, .document-import h2) {
+  font: 600 20px/1.35 'Inter', sans-serif; letter-spacing: -.4px;
+}
+.shell main :is(.profile-card p, .profile-claims strong, .profile-list-card strong, .decision-statement) { font-size: 14px; line-height: 1.7; }
+.shell main :is(.profile-card small, .profile-claims details, .profile-list-card small, .source-section-heading span, .settings-data-row span, .settings-data > p) { font-size: 12px; line-height: 1.6; }
+.profile-grid { gap: 22px; }
+.profile-metrics div { border: 0; padding: 24px; }
+.profile-metrics strong { font: 600 28px/1.3 'Inter', sans-serif; }
+.profile-metrics span { font-size: 12px; }
+.profile-list-card { max-width: none; }
+.shell main :is(.mappe-teil strong, .mappe-teil blockquote, .chronik article strong) { font-size: 14px; line-height: 1.6; }
+.shell main :is(.mappe-teil small, .chronik article small, .mappe-teil > h3) { font-size: 12px; line-height: 1.6; }
+
+/* Ruhige Auswahlleisten statt durchgehender Tabellenlinien. */
+.task-tabs, .profile-tabs, .settings-section-nav, .view-switch {
+  display: flex; flex-wrap: wrap; gap: 6px; width: fit-content; max-width: 100%; padding: 6px; margin-bottom: 22px;
+  border: 1px solid var(--calm-line); border-radius: 23px; background: var(--calm-surface); box-shadow: 0 2px 5px rgba(5,32,44,.05);
+}
+.task-tabs button, .profile-tabs button, .settings-section-nav button, .view-switch button {
+  min-height: 42px; padding: 10px 18px; border: 0; border-radius: 18px; background: transparent; color: var(--calm-muted); font-size: 13px; font-weight: 500;
+}
+.task-tabs button.active, .profile-tabs button.active, .settings-section-nav button[aria-pressed='true'], .view-switch button[aria-pressed='true'] {
+  background: var(--calm-primary); color: var(--calm-on-primary);
+}
+.project-controls { margin-bottom: 22px; }
+.task-table > header { text-transform: none; font-size: 13px; letter-spacing: 0; font-weight: 500; min-height: 54px; }
+.task-row { padding: 20px 24px; min-height: 96px; }
+.task-copy strong { font-size: 16px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.task-copy small, .task-row time, .task-copy select { font-size: 13px; line-height: 1.5; }
+.shell main .task-copy select { min-height: 32px; width: fit-content; padding: 3px 5px; background: transparent; }
+.task-create { grid-template-columns: minmax(0,1fr) 180px minmax(180px,.8fr); padding: 24px; }
+.task-create > div { grid-column: 1 / -1; justify-content: flex-end; flex-wrap: wrap; }
+.task-wait-control button { border-radius: 14px; min-height: 36px; font-size: 12px; }
+.task-check { border-radius: 50%; width: 26px; height: 26px; }
+.project-create-form { grid-template-columns: 1fr 1.4fr; }
+.project-form-actions { grid-column: 1 / -1; justify-content: flex-end; }
+
+/* Kalender: ein ruhiges Blatt, getrennt von Vor- und Nachbereitung. */
+.calendar-board { padding: 24px; }
+.calendar-actions { flex-wrap: wrap; gap: 10px; }
+.calendar-actions .view-switch { margin: 0 auto 0 0; box-shadow: none; background: var(--calm-inset); border-color: transparent; }
+.calendar-period { margin: 22px 0 16px; }
+.calendar-period h2 { font-size: 24px; font-weight: 500; letter-spacing: -.5px; }
+.calendar-period button { border-radius: 16px; background: var(--calm-soft); color: var(--calm-ink); min-height: 40px; }
+.month-grid { gap: 6px; }
+.month-day { min-height: 90px; padding: 10px; border-radius: 10px; border-color: var(--calm-line); background: var(--calm-inset); color: var(--calm-ink); }
+.month-day strong { font-size: 14px; font-weight: 500; }
+.month-day.is-selected { background: var(--calm-soft); outline-color: var(--calm-link); }
+.day-event { padding: 4px 5px; font-size: 11px; color: var(--calm-ink); background: var(--calm-soft); }
+.weekday { color: var(--calm-muted); }
+.week-grid section { min-width: 0; background: var(--calm-inset); border-radius: 12px; padding: 12px; }
+.week-event { background: var(--calm-soft); padding: 10px; }
+.week-date { color: var(--calm-ink); }
+.calendar-board .calendar-entry { box-shadow: none; background: var(--calm-inset); padding: 22px; }
+.calendar-entry h2 { font-size: 18px; line-height: 1.4; }
+.calendar-entry small { display: block; color: var(--calm-muted); margin-bottom: 12px; }
+.calendar-entry .calendar-prepare-button { margin: 0 10px 0 0; }
+.calendar-preparation { margin-top: 24px; }
+.calendar-preparation-section { background: var(--calm-inset); border-color: var(--calm-line); padding: 20px; border-radius: 12px; }
+.calendar-preparation-section h3 { font-size: 16px; }
+.calendar-preparation-item, .calendar-preparation-section p, .calendar-preparation-items a { font-size: 14px; line-height: 1.6; }
+
+/* Einstellungen und Nachrichten: Inhalte tragen ihre eigene deckende Fläche. */
+.settings-layout { grid-template-columns: minmax(0,1fr) 280px; gap: 24px; }
+.settings-section-panel > header { padding: 20px 24px; border-radius: 14px; background: var(--calm-surface); }
+.settings-section-panel > header h2 { font-size: 24px; font-weight: 500; }
+.settings-section-nav { width: 100%; }
+.settings-data-row { padding: 18px 0; }
+.settings-data-row strong { font-size: 14px; }
+.shell main .compact-model .source-form { border: 0; box-shadow: none; background: transparent; border-radius: 0; }
+.tasks-page > .decision-controls + .decision-controls { margin-top: 24px; }
+.source-section-heading { border-bottom: 0; padding: 24px; }
+.source-section-heading > .interface-icon { color: var(--calm-link); }
+.source-add { border-radius: 15px; }
+.inbox-content { padding: 24px; }
+.inbox-count { margin-top: 0; font-size: 13px; line-height: 1.6; }
+.inbox-filter { gap: 8px; margin: 20px 0; }
+.inbox-filter button { min-height: 40px; border-radius: 17px; font-size: 13px; border-color: transparent; background: var(--calm-inset); color: var(--calm-muted); }
+.inbox-filter button[aria-pressed='true'] { background: var(--calm-primary); color: var(--calm-on-primary); }
+.inbox-account { margin-left: auto; }
+.inbox-list { border: 0; }
+.inbox-row { min-height: 100px; padding: 22px 14px; border-color: var(--calm-line); }
+.inbox-page .inbox-open strong { font-size: 16px; line-height: 1.5; }
+.inbox-page .inbox-open small { font-size: 14px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.inbox-copy p, .inbox-meta time, .inbox-meta small { font-size: 12px; line-height: 1.6; }
+.mail-reader { max-width: none; min-height: 0; padding: 8px 12px 24px; }
+.mail-reader-meta h1 { font: 600 30px/1.3 'Inter', sans-serif; letter-spacing: -.7px; overflow-wrap: anywhere; }
+.mail-reader-body pre { font-size: 15px; line-height: 1.8; }
+.mail-reader-meta dl { font-size: 14px; line-height: 1.6; }
+.mail-reader-reply, .mail-task-form { border-radius: 14px; background: var(--calm-inset); }
+.mail-task-form h2 { font: 600 22px/1.4 'Inter', sans-serif; }
+.mail-reader-source { letter-spacing: 0; text-transform: none; font-size: 12px; }
+
+/* Gespräche: gleicher Rahmen, lesbare Quellen, deutlicher Senden-Knopf. */
+.history-tools { justify-content: flex-start; margin-bottom: 22px; }
+.history-search { width: min(100%,560px); height: 46px; border-radius: 16px; padding: 0 16px; }
+.history-search input { font-size: 14px; }
+.history-create { width: auto; min-height: 44px; padding: 0 18px; border-radius: 18px; display: flex; gap: 10px; color: #f4faf9; font-size: 13px; }
+.history-list { max-width: none; margin: 0; padding: 12px 24px; }
+.history-row { min-height: 96px; padding: 22px 8px; }
+.history-row:last-child { border-bottom: 0; }
+.history-copy strong { font-size: 16px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.history-copy small, .history-meta time, .history-meta small { font-size: 13px; line-height: 1.6; }
+.history-empty { margin: 12px 0; padding: 20px 0; font-size: 15px; line-height: 1.7; }
+.conversation-page { padding: 24px; gap: 24px; grid-template-columns: 230px minmax(0,1fr); }
+.context-panel { padding: 24px; border: 1px solid var(--calm-line); border-radius: 16px; align-self: start; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
+.context-panel h2 { font: 600 20px/1.4 'Inter', sans-serif; }
+.context-caption, .context-list p { font-size: 13px; line-height: 1.65; }
+.thread { min-height: calc(100vh - 48px); }
+.thread-header { min-height: 118px; padding: 24px; border: 1px solid var(--calm-line); border-radius: 16px; background: var(--calm-surface); gap: 20px; }
+.thread-header h1 { font: 600 27px/1.35 'Inter', sans-serif; overflow-wrap: anywhere; }
+.local-status { flex-shrink: 0; font-size: 11px; }
+.messages { width: 100%; padding: 24px 0 130px; }
+.message { border-radius: 16px; padding: 24px; max-width: 92%; }
+.message p { font-size: 15px; line-height: 1.75; }
+.message.assistant { background: var(--calm-surface); box-shadow: var(--calm-shadow); }
+.message.user { background: #063e55; color: #f4faf9; }
+.thread-command { left: 498px; right: 24px; bottom: 24px; }
+.conversation-command { height: 60px; border-radius: 16px; box-shadow: var(--calm-shadow); }
+.conversation-command .send-button { background: var(--calm-primary); border-radius: 14px; }
+.conversation-command button .interface-icon { color: var(--calm-on-primary); }
+.command-bar:focus-within, .history-search:focus-within { outline: 2px solid var(--calm-link); outline-offset: 3px; }
+.task-source section { border-radius: 12px; padding: 20px; }
+.task-source p, .memory-candidate .memory-source, .memory-candidate .memory-notice, .memory-candidate .memory-decision { font-size: 13px; line-height: 1.65; }
+.task-source-body { font-size: 14px; line-height: 1.7; }
+
+/* Gedächtnis: die Akten folgen dem gleichen Material wie Aufgaben und Kalender. */
+.memory-page { padding: 24px; grid-template-columns: 222px minmax(0,1fr); gap: 24px; align-items: start; }
+.memory-filter { min-height: 0; padding: 24px 16px; border: 1px solid var(--calm-line); border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
+.memory-filter > p, .memory-filter > small { color: var(--calm-muted); }
+.memory-filter button, .memory-person-filter button { color: var(--calm-muted); border-radius: 14px; padding: 10px 12px; min-height: 44px; }
+.memory-filter button:hover { background: var(--calm-inset); }
+.memory-filter button.active { background: var(--calm-soft); color: var(--calm-ink); }
+.memory-filter > small { padding: 20px 12px 12px; font-size: 12px; }
+.memory-filter > button { width: 100%; font-size: 13px; }
+.memory-person-filter { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--calm-line); }
+.memory-person-filter button { font-size: 12px; }
+.memory-directory { padding: 32px; color: var(--calm-ink); max-height: none; min-height: 650px; }
+.memory-directory h1 { font: 600 32px/1.3 'Inter', sans-serif; letter-spacing: -.8px; }
+.memory-directory .eyebrow, .memory-directory header > p:last-child, .directory-count,
+  .directory-label small, .directory-open, .directory-empty { color: var(--calm-muted); }
+.directory-search input::placeholder { color: var(--calm-muted); }
+.directory-list { border-top: 0; }
+.directory-list li { border-color: var(--calm-line); }
+.directory-list li:last-child { border: 0; }
+.directory-list button { padding: 24px 8px; border-radius: 12px; }
+.directory-list button:hover { background: var(--calm-inset); }
+.directory-monogram { background: var(--calm-soft); color: var(--calm-ink); border-radius: 16px; width: 52px; height: 52px; flex-basis: 52px; }
+.directory-pagination button, .directory-empty button { background: var(--calm-soft); color: var(--calm-ink); border-color: transparent; border-radius: 16px; }
+.memory-canvas { min-height: 700px; border: 1px solid var(--calm-line); border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
+.memory-canvas::before { display: none; }
+.memory-empty p, .memory-empty small, .memory-error p { color: var(--calm-muted); }
+.memory-node span, .memory-brand-node span { color: var(--calm-ink); }
+.memory-node, .memory-node.reference, .memory-brand-node { background: var(--calm-soft); border-color: var(--calm-line); color: var(--calm-ink); }
+.memory-node > .interface-icon { width: 30px; height: 30px; }
+.memory-status { color: var(--calm-ink); padding: 32px; }
+.memory-status h1 { font: 600 28px/1.3 'Inter', sans-serif; letter-spacing: -.6px; }
+.memory-status-card { background: var(--calm-inset); border-color: var(--calm-line); padding: 24px; }
+.memory-status :is(dt, details, small, .eyebrow, .memory-status-note),
+  .support-review :is(.support-review-intro, .support-review-reason, .support-review-preview > p, .support-review-pagination span) { color: var(--calm-muted); }
+.memory-status button { background: var(--calm-soft); color: var(--calm-ink); border-color: var(--calm-line); border-radius: 16px; min-height: 40px; font-size: 13px; }
+.memory-status input { color-scheme: light dark; }
+.memory-status :is(ol, li), .support-review-preview, .support-review-preview li { border-color: var(--calm-line); }
+.memory-status .task-source section, .support-review-preview blockquote, .support-review-message, .support-review-warning {
+  background: var(--calm-surface); color: var(--calm-ink); border-color: var(--calm-line);
+}
+.memory-status .task-source p { color: var(--calm-muted); }
+.support-review-warning { border-color: var(--kf-rand-b88b63); }
+.people-review { width: 100%; max-width: none; margin: 0; padding: 32px; }
+
+/* Briefing und reduzierte Bewegung gehören ebenfalls zum gemeinsamen Abschluss. */
+.briefing-drawer { background: var(--calm-inset); color: var(--calm-ink); }
+.drawer-heading h2 { font: 600 36px/1.3 'Inter', sans-serif; }
+.drawer-card { border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
+@media (prefers-color-scheme: dark) {
+  .shell:not(:has(.today-page))::before { filter: brightness(.62) saturate(.65); }
+  .tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading, .profile-back { text-shadow: 0 1px 5px rgba(5,32,44,.5); }
+  .tasks-add img { filter: brightness(0) saturate(100%); }
+  .drawer-heading p, .drawer-heading h2, .drawer-heading span { color: #102c3a; text-shadow: 0 1px 8px #fffefa; }
+}
+@media (max-width: 1350px) {
+  .tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history { padding: 28px; }
+  .settings-layout { grid-template-columns: minmax(0,1fr) 250px; gap: 20px; }
+  .settings-section-nav button { padding: 10px 12px; }
+  .calendar-board { padding: 20px; }
+}
+/* Die vorhandenen schmalen Gedächtnisansichten bleiben nutzbar. */
+@media (max-width: 1100px) {
+  .memory-page.memory-page-status { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 900px) {
+  .memory-page:has(.memory-directory) { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 700px) {
+  .memory-shell:has(.memory-page-status)::before { left: 0; }
+  .memory-page.memory-page-status { padding: 12px; }
+  .memory-status { padding: 20px; margin-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell *, .shell *::before, .shell *::after { scroll-behavior: auto !important; transition-duration: 0s !important; animation-duration: 0s !important; }
+}
+
+/* Verweis in die Einstellungen (Verweis.tsx): ein Klick dorthin statt eines Wegs in Worten (Befund 25). */
+.verweis { color: var(--calm-link); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+/* Startort direkt an der Wegezeit, wenn er fehlt (WegezeitSettings.tsx, Befund 19). */
+.wegezeit-startort { display: grid; gap: 6px; }
+.wegezeit-startort label { font-size: 14px; font-weight: 600; }
+.wegezeit-startort > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.wegezeit-startort input { flex: 1 1 220px; min-width: 0; min-height: 40px; }
+/* Kalender wie Mail (KalenderMitAdresse.tsx, Befund 7). */
+.kalender-adresse { display: grid; gap: 10px; min-width: 0; }
+.kalender-adresse input { box-sizing: border-box; width: 100%; max-width: 100%; }
+.kalender-techniker summary { cursor: pointer; font-size: 13px; color: var(--calm-muted); }
+/* Ordner im Browser wählen (OrdnerImBrowser.tsx, Befund 6). */
+.ordner-im-browser { display: grid; gap: 10px; min-width: 0; }
+.ordner-im-browser p { margin: 0; }
+.ordner-orte { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ordner-orte li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.ordner-orte button { max-width: 100%; overflow-wrap: anywhere; text-align: left; }
+.ordner-orte small { color: var(--calm-muted); }
+.ordner-eigener { display: block; }
+.ordner-eigener summary { cursor: pointer; color: var(--calm-muted); font-size: 13px; }
+.ordner-eigener form { display: grid; gap: 6px; margin-top: 8px; }
+.ordner-eigener label { font-size: 14px; font-weight: 600; }
+.ordner-eigener form > div { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Ordner durchsehen statt tippen (Fremdprobe 2, Befund 30). */
+.ordner-durchsehen { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
+.ordner-durchsehen .ordner-hier { margin: 0; overflow-wrap: anywhere; }
+.ordner-liste { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; max-height: 260px; overflow-y: auto; }
+.ordner-eintrag { width: 100%; min-height: 36px; padding: 6px 10px; border: 0; border-radius: 6px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.ordner-eintrag .ordner-pfeil { color: var(--calm-muted); }
+.ordner-eintrag:hover, .ordner-eintrag:focus-visible { background: var(--kf-flaeche-eef3f1); }
+.ordner-durchsehen > .primary-action { justify-self: start; }
+.ordner-eigener input { flex: 1 1 220px; min-width: 0; min-height: 40px; }
+/* „Postfach hinzufügen“ und „Kalender hinzufügen“ unter Zugänge: eine Spalte wie im Assistenten (Fremdprobe 2, Befund 2). */
+.source-form:is(.postfach-hinzufuegen, .kalender-hinzufuegen) { grid-template-columns: minmax(0, 1fr); }
+.postfach-adresse { display: grid; gap: 10px; min-width: 0; }
+.postfach-adresse input, .postfach-adresse select { box-sizing: border-box; width: 100%; max-width: 100%; }
+.postfach-server { display: grid; gap: 8px; }
+.postfach-hinzufuegen .kalender-techniker .source-form { padding: 16px 0 0; }

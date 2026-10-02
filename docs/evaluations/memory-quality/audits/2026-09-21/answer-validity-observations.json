@@ -1,0 +1,79 @@
+{
+  "A1_interpretation_presented_as_quote": {
+    "source_original": "Mira: Wenn die Freigabe kommt, prüfe ich Aurora am Freitag; bis dahin gibt es keine feste Zusage.",
+    "accepted_interpretation": "Mira prüft Aurora am Freitag nur nach Freigabe; eine feste Zusage liegt noch nicht vor.",
+    "reply": "In den ausgewählten Belegen steht:\n\n[1] \"Mira prüft Aurora am Freitag nur nach Freigabe; eine feste Zusage liegt noch nicht vor.\"\nWert laut Quelle: \"bedingt, keine feste Zusage\"\nQuelle [1]: E-Mail · \"synthetic:aurora\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T09:00:00+00:00",
+    "original_quote_reaches_model": false,
+    "precondition": "Explicitly accepted faithful paraphrase, not automatically promoted knowledge"
+  },
+  "A2_factual_route_boundary": {
+    "routes": {
+      "Wer ist für Aurora verantwortlich?": "chat",
+      "Bis wann muss Aurora fertig sein?": "chat",
+      "Welche Aufgaben habe ich noch offen?": "chat",
+      "Habe ich Mira etwas zugesagt?": "chat",
+      "Welche Frist gilt für Aurora?": "memory_evidence",
+      "Kannst du mir sagen, welche Frist für Aurora gilt?": "chat"
+    },
+    "question": "Wer ist für Aurora verantwortlich?",
+    "correct_claim_in_model_input": "Mira ist für die Prüfung von Aurora verantwortlich.",
+    "injected_wrong_model_reply_delivered_unchanged": "Jan ist für Aurora verantwortlich, die Frist ist der 30. September.",
+    "scope": "Demonstrates missing deterministic boundary, not natural-model error rate"
+  },
+  "A3_withdrawal_historical_presentation": {
+    "reopened_current_context_items": [],
+    "old_answer_text": "In den ausgewählten Belegen steht:\n\n[1] \"Aurora PRIVATE_AUDIT_MARKER hat den Abgabetermin 25. September.\"\nQuelle [1]: E-Mail · \"synthetic:1\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T09:00:00+00:00",
+    "old_answer_contract_status": "evidence",
+    "historical_message_metadata_unchanged": true,
+    "old_marker_sent_to_next_model": false,
+    "scope": "Ignore is source-use withdrawal, not a deletion request; preservation itself is allowed"
+  },
+  "A4_unnecessary_overview_clarification": {
+    "question": "Was wissen wir über Aurora?",
+    "reply": "Welchen Eintrag meinst du?\n\n[1] \"Jan liefert Aurora am Donnerstag.\"\nQuelle [1]: E-Mail · \"synthetic:3\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T09:00:00+00:00\n\n[2] \"Mira prüft Aurora am Freitag.\"\nQuelle [2]: E-Mail · \"synthetic:2\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-14T09:00:00+00:00",
+    "status": "clarify",
+    "model_called": false,
+    "finding": "Both records answer project overview; distinct subjects alone force exclusive choice"
+  },
+  "A5_missing_processing_gap_in_answer": {
+    "reply": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+    "context_keys": [
+      "answer_contract",
+      "answer_mode",
+      "basis_omitted",
+      "generated_at",
+      "history_egress",
+      "items",
+      "knowledge_claim_ids",
+      "knowledge_claim_lineage_version",
+      "knowledge_history_reset",
+      "knowledge_inputs",
+      "knowledge_retrieval",
+      "memory_revision",
+      "query",
+      "self_model_history_reset",
+      "self_model_inputs",
+      "self_model_lineage_version",
+      "withheld_count"
+    ],
+    "coverage": {
+      "total_sources": 1,
+      "sampled_sources": 1,
+      "counts": {
+        "pending": 1,
+        "running": 0,
+        "partial": 0,
+        "completed": 0,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-21T10:52:49.607884+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    },
+    "scope": "Correct bounded unknown; incomplete processing/source search is not explained in answer"
+  }
+}

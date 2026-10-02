@@ -1,0 +1,370 @@
+{
+  "id": "kontakt-vor-jahren",
+  "titel": "Kontakt vor Jahren zu Küchensoftware",
+  "beschreibung": "Im Herbst 2023 gab es kurzen Kontakt zu einem Vertriebler für Diätküchen-Software, danach nie wieder. Viele andere Softwareleute im Bestand klingen ähnlich, haben aber nichts mit Küchen zu tun.",
+  "quellen": [
+    {
+      "id": "kontakt-vor-jahren-001",
+      "art": "mail",
+      "zeit": "2023-10-09T10:22:00+02:00",
+      "von": {
+        "name": "Holger Weidner",
+        "adresse": "h.weidner@diaetplan-systeme.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Kontakt nach dem Fachkongress",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir haben uns am Rande des Fachkongresses in Frankfurt kurz am Stand unterhalten. Sie hatten Interesse an unserer\nSoftware für Diätküchen geäußert. Ich stelle mich kurz vor: Ich betreue bei der DiätPlan Systeme GmbH die Kliniken im\nRhein-Main-Gebiet. Unser Programm MenüPilot Diät plant Diät- und Sonderkostformen in Klinikküchen, inklusive\nAllergenkennzeichnung und Rezeptverwaltung.\n\nDarf ich Sie in den nächsten Tagen kurz anrufen?\n\nMit freundlichen Grüßen\nHolger Weidner\nVertrieb Kliniken\nDiätPlan Systeme GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-002",
+      "art": "mail",
+      "zeit": "2023-10-10T08:15:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Holger Weidner",
+          "adresse": "h.weidner@diaetplan-systeme.example"
+        }
+      ],
+      "betreff": "AW: Kontakt nach dem Fachkongress",
+      "text": "Sehr geehrter Herr Weidner,\n\ndanke für Ihre Nachricht. Gern, am besten am Montag nachmittag. Ich berate allerdings keine Küchen bei der\nSoftwareauswahl, mich interessiert vor allem, wie ein Programm Diätformen abbildet.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "kontakt-vor-jahren-001"
+    },
+    {
+      "id": "kontakt-vor-jahren-003",
+      "art": "notiz",
+      "zeit": "2023-10-16T15:40:00+02:00",
+      "titel": "Telefonat Weidner (DiätPlan Systeme)",
+      "text": "Telefonat mit Herrn Weidner, ca. 20 Minuten. MenüPilot Diät ist eine Küchensoftware für Diätküchen (Diätformen,\nRezepte, Allergene), keine Beratungssoftware. Er bietet einen Demozugang an. Für mich aktuell kein Bedarf, ich behalte die\nUnterlagen. Er meldet sich bei Neuerungen."
+    },
+    {
+      "id": "kontakt-vor-jahren-004",
+      "art": "mail",
+      "zeit": "2023-10-23T09:03:00+02:00",
+      "von": {
+        "name": "Holger Weidner",
+        "adresse": "h.weidner@diaetplan-systeme.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Demozugang MenüPilot Diät",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwie besprochen anbei die Zugangsdaten für den Demozugang zu MenüPilot Diät (gültig bis 30. November 2023). Bei Fragen\nrufen Sie mich gern an.\n\nMit freundlichen Grüßen\nHolger Weidner\nDiätPlan Systeme GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-005",
+      "art": "mail",
+      "zeit": "2024-03-04T13:12:00+01:00",
+      "von": {
+        "name": "Petra Lindner",
+        "adresse": "p.lindner@lohnpilot.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Lohnabrechnung für Selbständige mit Angestellten",
+      "text": "Guten Tag Frau Hartmann,\n\nSie haben sich für unsere Software Lohnpilot interessiert. Damit erledigen Sie die Lohnabrechnung für Ihre\nMitarbeitenden in wenigen Minuten. Ich schicke Ihnen gern einen Testzugang.\n\nBeste Grüße\nPetra Lindner\nLohnpilot GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-006",
+      "art": "mail",
+      "zeit": "2024-03-11T10:00:00+01:00",
+      "von": {
+        "name": "Petra Lindner",
+        "adresse": "p.lindner@lohnpilot.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Erinnerung Testzugang Lohnpilot",
+      "text": "Guten Tag Frau Hartmann,\n\nich wollte nachfragen, ob Sie den Testzugang schon ausprobieren konnten.\n\nBeste Grüße\nPetra Lindner"
+    },
+    {
+      "id": "kontakt-vor-jahren-007",
+      "art": "mail",
+      "zeit": "2024-06-17T11:25:00+02:00",
+      "von": {
+        "name": "Dirk Albrecht",
+        "adresse": "d.albrecht@caredoc-pflege.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "CareDoc Pflegedokumentation: Einladung zur Live-Demo",
+      "text": "Sehr geehrte Frau Hartmann,\n\nCareDoc ist die Software für die digitale Pflegedokumentation in Heimen und Kliniken. Wir laden Sie zu einer Live-Demo\nam 4. Juli ein, online.\n\nMit freundlichen Grüßen\nDirk Albrecht\nCareDoc Pflege GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-008",
+      "art": "termin",
+      "zeit": "2024-06-18T09:00:00+02:00",
+      "beginn": "2024-07-04T11:00:00+02:00",
+      "ende": "2024-07-04T11:45:00+02:00",
+      "titel": "Live-Demo CareDoc (online)",
+      "ort": "online",
+      "notiz": "Pflegedokumentationssoftware, Herr Albrecht. Nur anhören."
+    },
+    {
+      "id": "kontakt-vor-jahren-009",
+      "art": "mail",
+      "zeit": "2024-11-05T14:33:00+01:00",
+      "von": {
+        "name": "Ulrike Fahl",
+        "adresse": "u.fahl@naehrwertdaten.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Lizenz für unsere Nährwertdatenbank",
+      "text": "Hallo Frau Hartmann,\n\nunsere Nährwertdatenbank NutriBase liefert Nährstoffberechnungen für Ernährungsberaterinnen und Berater. Lizenz ab\n19 Euro im Monat. Wir würden uns freuen, wenn Sie das Programm testen.\n\nViele Grüße\nUlrike Fahl\nNaehrwertdaten GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-010",
+      "art": "notiz",
+      "zeit": "2024-11-12T16:10:00+01:00",
+      "titel": "NutriBase, Frau Fahl",
+      "text": "Telefonat mit Frau Fahl von Naehrwertdaten: NutriBase rechnet Nährstoffe für die Einzelberatung. Nichts für Großküchen\nund nichts für Speiseplanung. Kein Bedarf."
+    },
+    {
+      "id": "kontakt-vor-jahren-011",
+      "art": "mail",
+      "zeit": "2025-02-19T09:48:00+01:00",
+      "von": {
+        "name": "Miriam Sander",
+        "adresse": "m.sander@physioplaner.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Terminplaner für Ihre Praxis",
+      "text": "Guten Tag,\n\nmit PhysioPlaner verwalten Sie Termine für Ihre Praxis online. Kostenlos testen unter physioplaner.example.\n\nFreundliche Grüße\nMiriam Sander\nPhysioPlaner"
+    },
+    {
+      "id": "kontakt-vor-jahren-012",
+      "art": "mail",
+      "zeit": "2025-05-27T12:05:00+02:00",
+      "von": {
+        "name": "Kevin Osterloh",
+        "adresse": "k.osterloh@belegfix.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Belege digital verwalten",
+      "text": "Sehr geehrte Frau Hartmann,\n\nBelegfix macht die Buchhaltung für Selbständige einfacher: Belege fotografieren, wir kümmern uns um den Rest. Zwei\nMonate kostenlos.\n\nMit freundlichen Grüßen\nKevin Osterloh\nBelegfix GmbH"
+    },
+    {
+      "id": "kontakt-vor-jahren-013",
+      "art": "mail",
+      "zeit": "2026-01-13T10:14:00+01:00",
+      "von": {
+        "name": "Nordlicht Software Kundenservice",
+        "adresse": "service@nordlicht-software.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ihre Jahresrechnung Beratungssoftware",
+      "text": "Guten Tag Frau Hartmann,\n\nanbei die Rechnung für Ihre Lizenz der Beratungssoftware BeratungsPlus, 690 Euro für 2026. Vielen Dank für Ihr Vertrauen.\n\nIhr Nordlicht-Software-Team"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "kontakt-vor-jahren-01",
+      "frage": "Wir hatten doch vor ein paar Jahren mal Kontakt zu jemandem, der was mit Küchensoftware gemacht hat. Wer war das?",
+      "kategorie": "rueckblick",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Weidner"
+          ]
+        ],
+        "belege": [
+          "kontakt-vor-jahren-001",
+          "kontakt-vor-jahren-003"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Lindner",
+          "Albrecht",
+          "Fahl",
+          "Sander",
+          "Osterloh"
+        ],
+        "belege": [
+          "kontakt-vor-jahren-005",
+          "kontakt-vor-jahren-007",
+          "kontakt-vor-jahren-009",
+          "kontakt-vor-jahren-011",
+          "kontakt-vor-jahren-012"
+        ]
+      },
+      "notiz": "Nur Herr Weidner hatte mit Software für Diätküchen zu tun; alle anderen sind Softwareleute ohne Küchenbezug."
+    },
+    {
+      "id": "kontakt-vor-jahren-02",
+      "frage": "Wie hieß die Firma, mit deren Diätküchen-Software ich mal zu tun hatte?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "DiätPlan",
+            "DiaetPlan"
+          ]
+        ],
+        "belege": [
+          "kontakt-vor-jahren-001"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Lohnpilot",
+          "CareDoc",
+          "Naehrwertdaten",
+          "Belegfix",
+          "PhysioPlaner"
+        ],
+        "belege": []
+      },
+      "notiz": "Firma und Produkt stehen nur im Herbst 2023."
+    },
+    {
+      "id": "kontakt-vor-jahren-03",
+      "frage": "Wie heißt die Küchensoftware von Herrn Weidner und wann hatten wir Kontakt?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "MenüPilot"
+          ],
+          [
+            "Oktober 2023",
+            "Okt. 2023",
+            "10.2023",
+            "Herbst 2023",
+            "Okt 2023",
+            "10/2023",
+            "2023-10",
+            "Oktober und November 2023",
+            "Oktober/November 2023"
+          ]
+        ],
+        "belege": [
+          "kontakt-vor-jahren-001",
+          "kontakt-vor-jahren-004"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "NutriBase",
+          "BeratungsPlus"
+        ],
+        "belege": []
+      },
+      "notiz": "Produktname und Zeitraum; NutriBase (Nährwertdatenbank) ist nicht die Küchensoftware."
+    },
+    {
+      "id": "kontakt-vor-jahren-04",
+      "frage": "Mit wem hatte ich mal wegen einer Speiseplan-Software für Klinikküchen zu tun?",
+      "kategorie": "paraphrase",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Weidner"
+          ]
+        ],
+        "belege": [
+          "kontakt-vor-jahren-001",
+          "kontakt-vor-jahren-003"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Lindner",
+          "Albrecht",
+          "Fahl",
+          "Sander",
+          "Osterloh"
+        ],
+        "belege": []
+      },
+      "notiz": "Andere Worte als die Quelle („Diätküchen“, „Diätformen“). Das Nährwertprogramm von Frau Fahl ist ähnlich, aber nicht für Küchen."
+    },
+    {
+      "id": "kontakt-vor-jahren-05",
+      "frage": "Wer ist Petra Lindner und um was ging es?",
+      "kategorie": "identitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Lohnabrechnung",
+            "Lohnpilot"
+          ]
+        ],
+        "belege": [
+          "kontakt-vor-jahren-005",
+          "kontakt-vor-jahren-006"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "MenüPilot",
+          "DiätPlan"
+        ],
+        "belege": []
+      },
+      "notiz": "Frau Lindner verkauft Lohnabrechnungssoftware; sie darf nicht mit der Küchensoftware vermischt werden (Lohnpilot vs. MenüPilot)."
+    }
+  ],
+  "lint": [
+    {
+      "art": "waise",
+      "unterart": "ruhend",
+      "quellen": ["kontakt-vor-jahren-001", "kontakt-vor-jahren-002", "kontakt-vor-jahren-004"],
+      "notiz": "Holger Weidner und DiätPlan Systeme: drei Quellen, die jüngste vom Oktober 2023. Ein Hinweis, kein Vorschlag zum Löschen."
+    }
+  ]
+}

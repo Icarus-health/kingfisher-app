@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "image": "kingfisher:pr60-reviewed",
+  "code_commit": "f193bab5f4cc9efacb707069753f6195425e8cdf",
+  "model": "qwen3.5:4b",
+  "synthetic_only": true,
+  "browser_question": true,
+  "source_preserved": true,
+  "reason_synonym": true,
+  "reply_status": "evidence",
+  "reload": true,
+  "container_restart": true,
+  "withdrawal": true,
+  "historical_messages_retained": true,
+  "current_context_excludes_withdrawn_source": true,
+  "page_errors": 0
+}

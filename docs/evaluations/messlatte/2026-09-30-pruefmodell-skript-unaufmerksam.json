@@ -1,0 +1,1196 @@
+{
+  "kopf": {
+    "suchindex": {
+      "wortteile_jahre": 0,
+      "quellen": 182,
+      "zu_gross": 0,
+      "mit_wortteilen": 182,
+      "nur_woerter": 0,
+      "bytes": 475136
+    },
+    "commit": "2de256f40fb294dcba36c88b6a92225489082af2",
+    "modell": "skript:unaufmerksam",
+    "modell_hintergrund": "skript:unaufmerksam",
+    "modell_frage": "keins (Rückfall)",
+    "modell_pruefung": "skript:pruefung",
+    "datum": "2026-09-30T16:24:17+00:00",
+    "stichtag": "2026-09-29T07:30:00+02:00",
+    "zeitzone": "Europe/Berlin",
+    "welten": [
+      {
+        "name": "welt",
+        "version": 1,
+        "szenarien": 15,
+        "quellen": 182,
+        "fragen": 83
+      }
+    ],
+    "rauschen": {
+      "anzahl": 0,
+      "seed": 1
+    },
+    "nur_kategorie": "inhalt",
+    "dauer_s": 9.5,
+    "lange_quellen": null
+  },
+  "aufnahme": {
+    "aufgenommen": 182,
+    "dupliziert": 0,
+    "fehlgeschlagen": 0,
+    "je_art": {
+      "mail": {
+        "quellen": 139,
+        "aufgenommen": 139,
+        "fehlend": 0
+      },
+      "transkript": {
+        "quellen": 3,
+        "aufgenommen": 3,
+        "fehlend": 0
+      },
+      "notiz": {
+        "quellen": 21,
+        "aufgenommen": 21,
+        "fehlend": 0
+      },
+      "termin": {
+        "quellen": 19,
+        "aufgenommen": 19,
+        "fehlend": 0,
+        "im_kalender": 15,
+        "ausserhalb_fenster": 0
+      }
+    },
+    "episoden": 182,
+    "nicht_angekommen": {},
+    "termine_im_kalender": 15,
+    "termine_ausserhalb_fenster": 0,
+    "einordnung": "182 von 182 eingeordnet (Modell regel-einordnung)",
+    "meldungen": [],
+    "dauer_s": 4.854,
+    "quellen_gesamt": 182,
+    "rauschen": 0
+  },
+  "abruf": {
+    "gemessen": true,
+    "gesamt": {
+      "fragen": 6,
+      "belege_erwartet": 6,
+      "belege_gefunden": 6,
+      "fragen_mit_belegen": 6,
+      "fragen_alle_belege": 6,
+      "rang_1": 6,
+      "rang_bis_5": 6,
+      "rang_bis_12": 6,
+      "fragen_mit_verbotenem_beleg": 0,
+      "fragen_mit_verbotenem_beleg_ungekennzeichnet": 0,
+      "verbotene_belege": 0,
+      "verbotene_belege_ungekennzeichnet": 0,
+      "verbotene_belege_gekennzeichnet": {},
+      "fragen_abgeschnitten": 0,
+      "belege_abgeschnitten": 0,
+      "belege_zu_lang": 0,
+      "fragen_zu_lang": 0,
+      "fragen_ohne_stelle": 0,
+      "belege_ohne_stelle": 0,
+      "gekuerzte_quellen": 0,
+      "absaetze_gezeigt": 0,
+      "absaetze_gesamt": 0,
+      "kontext_zeichen_mittel": 11851,
+      "kontext_zeichen_median": 11731,
+      "kontext_zeichen_max": 17196,
+      "kontext_quellen_mittel": 6.8,
+      "rueckfragen_erwartet": 0,
+      "rueckfragen_angeboten": 0,
+      "rueckfragen_ohne_rueckfrage": 0,
+      "unnoetige_rueckfragen": 0,
+      "unnoetige_rueckfragen_moeglich": 6,
+      "fragen_im_chat": 0,
+      "verstanden_modell": 0,
+      "verstanden_rueckfall": 6
+    }
+  },
+  "antwort": {
+    "gemessen": true,
+    "grund": "",
+    "auswertung": {
+      "gesamt": {
+        "n": 6,
+        "richtig": 6,
+        "unvollstaendig": 0,
+        "falsch": 0,
+        "unnoetige_rueckfrage": 0,
+        "verweigert": 0,
+        "fehler": 0,
+        "falsche_aussagen": 0,
+        "verbotene_belege": 0
+      },
+      "je_kategorie": {
+        "inhalt": {
+          "n": 6,
+          "richtig": 6,
+          "unvollstaendig": 0,
+          "falsch": 0,
+          "unnoetige_rueckfrage": 0,
+          "verweigert": 0,
+          "fehler": 0,
+          "falsche_aussagen": 0,
+          "verbotene_belege": 0
+        }
+      },
+      "je_schwere": {
+        "kritisch": {
+          "n": 3,
+          "richtig": 3,
+          "unvollstaendig": 0,
+          "falsch": 0,
+          "unnoetige_rueckfrage": 0,
+          "verweigert": 0,
+          "fehler": 0,
+          "falsche_aussagen": 0,
+          "verbotene_belege": 0
+        },
+        "normal": {
+          "n": 3,
+          "richtig": 3,
+          "unvollstaendig": 0,
+          "falsch": 0,
+          "unnoetige_rueckfrage": 0,
+          "verweigert": 0,
+          "fehler": 0,
+          "falsche_aussagen": 0,
+          "verbotene_belege": 0
+        }
+      },
+      "je_herkunft": {
+        "welt": {
+          "n": 6,
+          "richtig": 6,
+          "unvollstaendig": 0,
+          "falsch": 0,
+          "unnoetige_rueckfrage": 0,
+          "verweigert": 0,
+          "fehler": 0,
+          "falsche_aussagen": 0,
+          "verbotene_belege": 0
+        }
+      },
+      "kritisch_nicht_richtig": []
+    },
+    "zeiten": {
+      "kalt_s": 0.206,
+      "warm_n": 5,
+      "warm_median_s": 0.14,
+      "warm_max_s": 0.181
+    },
+    "antwortzeit": {
+      "abruf": {
+        "n": 6,
+        "median_s": 0.07,
+        "p90_s": 0.241
+      },
+      "antwort_warm": {
+        "n": 5,
+        "median_s": 0.14,
+        "p90_s": 0.181
+      },
+      "abschnitte": {
+        "frage": {
+          "n": 5,
+          "median_s": 0.0,
+          "p90_s": 0.0
+        },
+        "suche": {
+          "n": 5,
+          "median_s": 0.028,
+          "p90_s": 0.036
+        },
+        "antwort_modell": {
+          "n": 5,
+          "median_s": 0.0,
+          "p90_s": 0.0
+        },
+        "saetze_modell": {
+          "n": 5,
+          "median_s": 0.0,
+          "p90_s": 0.0
+        },
+        "satzpruefung": {
+          "n": 5,
+          "median_s": 0.003,
+          "p90_s": 0.005
+        },
+        "pruefung_modell": {
+          "n": 5,
+          "median_s": 0.005,
+          "p90_s": 0.007
+        },
+        "gesamt": {
+          "n": 5,
+          "median_s": 0.041,
+          "p90_s": 0.06
+        }
+      },
+      "modell_lief": true,
+      "ziel": {
+        "grenze_s": 8.0,
+        "median_s": 0.14,
+        "bestanden": true
+      }
+    },
+    "tore": {
+      "satzpruefung": 0,
+      "pruefmodell": 6,
+      "antworten_satzpruefung": 0,
+      "antworten_pruefmodell": 6,
+      "zustaende": [
+        "an"
+      ]
+    }
+  },
+  "hinweise_der_weltpruefung": [
+    "szenarien/kontakt-vor-jahren.json [kontakt-vor-jahren-03]: Pflichtaussage ['Oktober 2023', 'Okt. 2023', '10.2023', 'Herbst 2023', 'Okt 2023', '10/2023', '2023-10', 'Oktober und November 2023', 'Oktober/November 2023'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren).",
+    "szenarien/meeting-protokoll.json [meeting-protokoll-05]: Pflichtaussage ['18.09.2026', '18. September 2026', '18.09.', '18. September', '18. Sep.', '2026-09-18', '18.09', '18.9.'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren).",
+    "szenarien/wartet-auf.json [wartet-auf-03]: Pflichtaussage ['25.09.2026', '25. September 2026', '25.09.', '25. September', '25. Sep.', '2026-09-25', '25.09', '25.9.'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren)."
+  ],
+  "fragen": [
+    {
+      "frage": {
+        "id": "inhalt-01",
+        "frage": "Wer hat dem Vorschlag zum Pflanzbeet im Schulhof zugestimmt?",
+        "kategorie": "inhalt",
+        "schwere": "kritisch",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "Vorstand"
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-001"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Schulleitung hat dem Vorschlag zugestimmt"
+          ],
+          "belege": []
+        },
+        "notiz": "Zustimmung und Ablehnung im selben Satz; der falsche Satz vertauscht, wer zustimmte. Kein Verneinungswort, alle Wörter im Beleg.",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Pflanzbeet"
+          ],
+          "richtig": "Der Vorstand des Fördervereins hat dem Vorschlag zugestimmt.",
+          "falsch": "Die Schulleitung hat dem Vorschlag zugestimmt."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-01",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-001",
+          "terminvorbereitung-011",
+          "meeting-protokoll-012",
+          "terminvorbereitung-007",
+          "fremde-anweisung-004",
+          "fremde-anweisung-003",
+          "meeting-protokoll-009",
+          "profil-018",
+          "mainz-002"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 15001,
+        "kontext_quellen": 9,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 14,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 0
+        },
+        "satz_zeichen": 7104,
+        "dauer_s": 0.241,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "person",
+        "sachen": [
+          "Vorschlag",
+          "Pflanzbeet",
+          "Schulhof"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-01",
+        "erwartet": [
+          "inhalt-001"
+        ],
+        "gefunden": [
+          "inhalt-001"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-001": 1
+        },
+        "quelle": {
+          "inhalt-001": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 15001,
+        "kontext_quellen": 9,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-01",
+        "text": "Der Vorstand des Fördervereins hat dem Vorschlag zugestimmt. [1]\n\nBelege\n[1] Feedback; von Julia Sommer <julia.sommer@foerderverein-schulgarten.example>; 08.09.2026\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-001"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.206,
+        "kalt": true,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.041,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.007,
+          "pruefung_modell": 0.004,
+          "gesamt": 0.063
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-01",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    },
+    {
+      "frage": {
+        "id": "inhalt-02",
+        "frage": "Muss ich den Zählerstand der Wasseruhr selbst melden?",
+        "kategorie": "inhalt",
+        "schwere": "normal",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "bitten",
+              "bittet"
+            ],
+            [
+              "20. Oktober",
+              "20.10."
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-002"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Berger meldet den Zählerstand"
+          ],
+          "belege": []
+        },
+        "notiz": "Eine Bitte ist keine Zusage: Der falsche Satz macht aus der Bitte an Lea eine Erledigung durch die Hausverwaltung.",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Wasseruhr"
+          ],
+          "richtig": "Herr Berger bittet Sie, den Zählerstand der Wasseruhr bis zum 20. Oktober zu melden.",
+          "falsch": "Herr Berger meldet den Zählerstand der Wasseruhr bis zum 20. Oktober."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-02",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-002",
+          "zusage-abgesagt-007",
+          "zusage-abgesagt-008",
+          "zusage-abgesagt-002",
+          "profil-003",
+          "paraphrase-002",
+          "wartet-auf-011",
+          "kontakt-vor-jahren-005",
+          "inhalt-004",
+          "mainz-017",
+          "kontakt-vor-jahren-012",
+          "terminvorbereitung-004",
+          "frist-verschoben-004"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 17196,
+        "kontext_quellen": 13,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [
+            "zusage-abgesagt-007",
+            "zusage-abgesagt-002"
+          ],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 16,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 2
+        },
+        "satz_zeichen": 7257,
+        "dauer_s": 0.218,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "fakt",
+        "sachen": [
+          "Zählerstand",
+          "Wasseruhr"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-02",
+        "erwartet": [
+          "inhalt-002"
+        ],
+        "gefunden": [
+          "inhalt-002"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-002": 1
+        },
+        "quelle": {
+          "inhalt-002": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 17196,
+        "kontext_quellen": 13,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-02",
+        "text": "Herr Berger bittet Sie, den Zählerstand der Wasseruhr bis zum 20. Oktober zu melden. [1]\n\nBelege\n[1] Bitte; von Klaus Berger <k.berger@hausverwaltung-uferzeile.example>; 15.09.2026\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-002"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.181,
+        "kalt": false,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.036,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.004,
+          "pruefung_modell": 0.005,
+          "gesamt": 0.06
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-02",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    },
+    {
+      "frage": {
+        "id": "inhalt-03",
+        "frage": "Ist die Reparatur der Gartenpforte schon bezahlt?",
+        "kategorie": "inhalt",
+        "schwere": "kritisch",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "sobald das Protokoll"
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-003"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Gartenpforte wurde bezahlt"
+          ],
+          "belege": []
+        },
+        "notiz": "„wird bezahlt“ ist nicht „hat bezahlt“: Das Statuswort steht im Beleg, die Zeit nicht.",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Gartenpforte"
+          ],
+          "richtig": "Die Reparatur der Gartenpforte wird bezahlt, sobald das Protokoll der Versammlung vorliegt.",
+          "falsch": "Die Reparatur der Gartenpforte wurde bezahlt."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-03",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-003",
+          "falle-003",
+          "meeting-protokoll-003",
+          "kontakt-vor-jahren-006"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 9466,
+        "kontext_quellen": 4,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 6,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 0
+        },
+        "satz_zeichen": 4316,
+        "dauer_s": 0.041,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "wartet_auf",
+        "sachen": [
+          "Reparatur",
+          "Gartenpforte"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-03",
+        "erwartet": [
+          "inhalt-003"
+        ],
+        "gefunden": [
+          "inhalt-003"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-003": 1
+        },
+        "quelle": {
+          "inhalt-003": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 9466,
+        "kontext_quellen": 4,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-03",
+        "text": "Die Reparatur der Gartenpforte wird bezahlt, sobald das Protokoll der Versammlung vorliegt. [1]\n\nBelege\n[1] Nachricht; von Monika Kraus <monika.kraus@eigentuemer-lindenhof.example>; 17.09.2026\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-003"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.095,
+        "kalt": false,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.021,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.005,
+          "pruefung_modell": 0.007,
+          "gesamt": 0.04
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-03",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    },
+    {
+      "frage": {
+        "id": "inhalt-04",
+        "frage": "Wer singt beim Chorkonzert das Solo?",
+        "kategorie": "inhalt",
+        "schwere": "normal",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "Vogel singt"
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-004"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Rolf Busch singt"
+          ],
+          "belege": []
+        },
+        "notiz": "Eine Absage ohne Verneinungswort („muss leider passen“): Die Prüfung ohne Modell findet keine Umkehr.",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Chorkonzert"
+          ],
+          "richtig": "Tanja Vogel singt beim Chorkonzert am 7. November das Solo.",
+          "falsch": "Rolf Busch singt beim Chorkonzert am 7. November das Solo."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-04",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-004",
+          "zeitraum-004",
+          "terminvorbereitung-002",
+          "profil-011",
+          "profil-010",
+          "profil-009",
+          "profil-001"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 11672,
+        "kontext_quellen": 7,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 10,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 0
+        },
+        "satz_zeichen": 5479,
+        "dauer_s": 0.076,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "fakt",
+        "sachen": [
+          "Chorkonzert",
+          "Solo"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-04",
+        "erwartet": [
+          "inhalt-004"
+        ],
+        "gefunden": [
+          "inhalt-004"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-004": 1
+        },
+        "quelle": {
+          "inhalt-004": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 11672,
+        "kontext_quellen": 7,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-04",
+        "text": "Tanja Vogel singt beim Chorkonzert am 7. November das Solo. [1]\n\nBelege\n[1] Planung; von Frank Kranz <frank.kranz@kammerchor-nordend.example>; 21.09.2026\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-004"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.115,
+        "kalt": false,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.028,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.003,
+          "pruefung_modell": 0.001,
+          "gesamt": 0.041
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-04",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    },
+    {
+      "frage": {
+        "id": "inhalt-05",
+        "frage": "Wer hat beim Straßenfest die Bierbänke organisiert?",
+        "kategorie": "inhalt",
+        "schwere": "normal",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "Uwe"
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-005"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Peters hat die Bierbänke"
+          ],
+          "belege": []
+        },
+        "notiz": "Falsche Zuschreibung: Beide Namen stehen in derselben Nachricht, die Aufgabe gehört dem einen. Die Quelle ist ein Jahr alt (Verlässlichkeit „einfach“).",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Bierbänke"
+          ],
+          "richtig": "Uwe Franke hat die Bierbänke für das Straßenfest organisiert.",
+          "falsch": "Sandra Peters hat die Bierbänke für das Straßenfest organisiert."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-05",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-005",
+          "zeitraum-004",
+          "terminvorbereitung-002",
+          "profil-011",
+          "profil-010",
+          "profil-009",
+          "profil-001"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 11731,
+        "kontext_quellen": 7,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 10,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 0
+        },
+        "satz_zeichen": 5513,
+        "dauer_s": 0.064,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "person",
+        "sachen": [
+          "Straßenfest",
+          "Bierbänke"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-05",
+        "erwartet": [
+          "inhalt-005"
+        ],
+        "gefunden": [
+          "inhalt-005"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-005": 1
+        },
+        "quelle": {
+          "inhalt-005": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 11731,
+        "kontext_quellen": 7,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-05",
+        "text": "Uwe Franke hat die Bierbänke für das Straßenfest organisiert. [1] (nur eine Quelle, von 2025)\n\nBelege\n[1] Zusammenfassung; von Birgit Hoffmann <birgit.hoffmann@nachbarschaft-gartenweg.example>; 15.09.2025\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-005"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.14,
+        "kalt": false,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.036,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.003,
+          "pruefung_modell": 0.006,
+          "gesamt": 0.053
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-05",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    },
+    {
+      "frage": {
+        "id": "inhalt-06",
+        "frage": "Wer schuldet wem Geld für die Übersetzung der Festschrift?",
+        "kategorie": "inhalt",
+        "schwere": "kritisch",
+        "erwartet": {
+          "verhalten": "antworten",
+          "aussagen": [
+            [
+              "180 Euro"
+            ],
+            [
+              "schuldest du mir",
+              "Du schuldest"
+            ]
+          ],
+          "bedeutungen": [],
+          "belege": [
+            "inhalt-006"
+          ]
+        },
+        "verboten": {
+          "aussagen": [
+            "Schmitt schuldet dir",
+            "Thomas Schmitt schuldet"
+          ],
+          "belege": []
+        },
+        "notiz": "Verdrehte Richtung: Betrag, Name und Gegenstand stimmen, nur wer wem schuldet, ist umgekehrt.",
+        "szenario": "inhalt",
+        "herkunft": "welt",
+        "skript": {
+          "auswahl": [
+            "Festschrift"
+          ],
+          "richtig": "Du schuldest Thomas Schmitt noch 180 Euro für die Übersetzung der Festschrift.",
+          "falsch": "Thomas Schmitt schuldet dir noch 180 Euro für die Übersetzung der Festschrift."
+        }
+      },
+      "abruf": {
+        "frage_id": "inhalt-06",
+        "weg": "arbeitsstand",
+        "status": "working_reports",
+        "route": "memory_evidence",
+        "kandidaten": [
+          "inhalt-006"
+        ],
+        "davon_rauschen": 0,
+        "angebote": [],
+        "termine_kalender": [],
+        "kontext_zeichen": 6039,
+        "kontext_quellen": 1,
+        "gekennzeichnet": [],
+        "gekennzeichnet_nach_art": {
+          "ueberholt": [],
+          "andere_person": [],
+          "ausserhalb_zeitraum": []
+        },
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "akten_zaehlung": {
+          "sachen": 0,
+          "akten_gelesen": 2,
+          "akten_ausgelassen": 0,
+          "oben": 0,
+          "gekennzeichnet": 0
+        },
+        "satz_zeichen": 2738,
+        "dauer_s": 0.031,
+        "fehler": "",
+        "verstanden": "rueckfall",
+        "verstanden_grund": "kein Modell",
+        "absicht": "fakt",
+        "sachen": [
+          "Geld",
+          "Übersetzung",
+          "Festschrift"
+        ]
+      },
+      "abruf_bewertung": {
+        "frage_id": "inhalt-06",
+        "erwartet": [
+          "inhalt-006"
+        ],
+        "gefunden": [
+          "inhalt-006"
+        ],
+        "fehlend": [],
+        "verboten_gesehen": [],
+        "raenge": {
+          "inhalt-006": 1
+        },
+        "quelle": {
+          "inhalt-006": "kandidat"
+        },
+        "verboten_ungekennzeichnet": [],
+        "verboten_gekennzeichnet": {},
+        "kontext_zeichen": 6039,
+        "kontext_quellen": 1,
+        "abgeschnitten": [],
+        "zu_lang": [],
+        "ohne_stelle": [],
+        "gekuerzt": 0,
+        "absaetze_gezeigt": 0,
+        "absaetze_gesamt": 0,
+        "rueckfrage_erwartet": false,
+        "rueckfrage_angeboten": false,
+        "fehlende_bedeutungen": [],
+        "ohne_rueckfrage_gewaehlt": false,
+        "unnoetige_rueckfrage": false,
+        "im_chat": false,
+        "verstanden": "rueckfall"
+      },
+      "antwort": {
+        "frage_id": "inhalt-06",
+        "text": "Du schuldest Thomas Schmitt noch 180 Euro für die Übersetzung der Festschrift. [1]\n\nBelege\n[1] Antwort; von Thomas Schmitt <thomas.schmitt@uebersetzungen-westend.example>; 23.09.2026\n\n1 Satz verworfen (Prüfmodell).\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "status": "working_reports",
+        "belege": [
+          "inhalt-006"
+        ],
+        "auswahl": [],
+        "dauer_s": 0.146,
+        "kalt": false,
+        "fehler": "",
+        "zeiten": {
+          "frage": 0.0,
+          "suche": 0.02,
+          "antwort_modell": 0.0,
+          "saetze_modell": 0.0,
+          "satzpruefung": 0.003,
+          "pruefung_modell": 0.001,
+          "gesamt": 0.03
+        },
+        "verworfen_satzpruefung": 0,
+        "verworfen_pruefmodell": 1,
+        "pruefung": "an"
+      },
+      "antwort_bewertung": {
+        "frage_id": "inhalt-06",
+        "klasse": "richtig",
+        "erkannt": "antworten",
+        "gruende": [],
+        "fehlende_aussagen": [],
+        "verbotene_aussagen": [],
+        "verbotene_belege": [],
+        "fehlende_belege": [],
+        "fehlende_bedeutungen": []
+      }
+    }
+  ]
+}

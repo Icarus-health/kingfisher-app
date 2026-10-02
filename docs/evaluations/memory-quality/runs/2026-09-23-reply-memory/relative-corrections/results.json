@@ -1,0 +1,163 @@
+{
+  "model": "qwen3.5:4b",
+  "base_url": "http://127.0.0.1:11434/v1",
+  "expected_file": "/Users/example/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-audit-evidence-20260921/relative-corrections/expected.json",
+  "started_at": "2026-09-23T12:13:08.883391+02:00",
+  "sources": [
+    {
+      "id": "T1",
+      "title": "Keramik-Test: Anlieferung durch Edda Winter",
+      "episode_id": "e-751e2c755494",
+      "items": [
+        {
+          "kind": "conditional",
+          "text": "Von: Edda Winter <edda@example.test>\nDie Prüfstücke für Keramik-Test bringe ich morgen um 9 Uhr, sofern die Türfreigabe vorliegt."
+        }
+      ],
+      "committed": true,
+      "latency_s": 7.78
+    },
+    {
+      "id": "T2",
+      "title": "Keramik-Test: Korrektur der Anlieferung",
+      "episode_id": "e-af454f377c50",
+      "items": [
+        {
+          "kind": "conditional",
+          "text": "Von: Edda Winter <edda@example.test>\nKorrektur zu meiner Anlieferungsnachricht für Keramik-Test vom 21. September: Die Prüfstücke kommen nicht am 22. September. Ich bringe sie stattdessen morgen um 11 Uhr, weiterhin nur sofern die Türfreigabe vorliegt."
+        }
+      ],
+      "committed": true,
+      "latency_s": 0.96
+    },
+    {
+      "id": "T3",
+      "title": "Bergsee-Archiv: relative Frist ohne Nachrichtendatum",
+      "episode_id": "e-2d98ea613d75",
+      "items": [
+        {
+          "kind": "uncertain",
+          "text": "Von: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Freitag."
+        }
+      ],
+      "committed": true,
+      "latency_s": 0.8
+    },
+    {
+      "id": "T4",
+      "title": "Bergsee-Archiv: zweite undatierte Angabe",
+      "episode_id": "e-388c588ba08c",
+      "items": [
+        {
+          "kind": "uncertain",
+          "text": "Von: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Montag."
+        }
+      ],
+      "committed": true,
+      "latency_s": 0.793
+    }
+  ],
+  "questions": [
+    {
+      "id": "R1",
+      "question": "Wann bringt Edda Winter die Prüfstücke für Keramik-Test jetzt?",
+      "status": "reports",
+      "uncertainty": "none",
+      "candidate_source_ids": [
+        "T2",
+        "T1",
+        "T4",
+        "T3"
+      ],
+      "selected_source_ids": [
+        "T2"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · Keramik-Test: Korrektur der Anlieferung\nVon: Edda Winter <edda@example.test>\nKorrektur zu meiner Anlieferungsnachricht für Keramik-Test vom 21. September: Die Prüfstücke kommen nicht am 22. September. Ich bringe sie stattdessen morgen um 11 Uhr, weiterhin nur sofern die Türfreigabe vorliegt.\nQuellenzeit: 2026-09-22T10:00:00+02:00",
+      "links": [
+        {
+          "episode_id": "e-af454f377c50",
+          "label": "Quelle 1 öffnen",
+          "automatic_memory": true
+        }
+      ],
+      "contract": "working_reports",
+      "limited": false,
+      "latency_s": 2.367
+    },
+    {
+      "id": "R2",
+      "question": "An welchem konkreten Datum sendet Malik Stein die Bestandsliste für Bergsee-Archiv?",
+      "status": "unclear",
+      "uncertainty": "conflict",
+      "candidate_source_ids": [
+        "T4",
+        "T3"
+      ],
+      "selected_source_ids": [
+        "T4",
+        "T3"
+      ],
+      "rendered": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nUnklare Einordnung · Bergsee-Archiv: zweite undatierte Angabe\nVon: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Montag.\nQuellenzeit: unbekannt\n\nUnklare Einordnung · Bergsee-Archiv: relative Frist ohne Nachrichtendatum\nVon: Malik Stein <malik@example.test>\nDie Bestandsliste für Bergsee-Archiv sende ich nächsten Freitag.\nQuellenzeit: unbekannt",
+      "links": [
+        {
+          "episode_id": "e-388c588ba08c",
+          "label": "Quelle 1 öffnen",
+          "automatic_memory": true
+        },
+        {
+          "episode_id": "e-2d98ea613d75",
+          "label": "Quelle 2 öffnen",
+          "automatic_memory": true
+        }
+      ],
+      "contract": "working_unclear",
+      "limited": false,
+      "latency_s": 1.666
+    }
+  ],
+  "raw_calls": [
+    {
+      "kind": "classification",
+      "source_title": "Keramik-Test: Anlieferung durch Edda Winter",
+      "question": null,
+      "latency_s": 7.774,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Keramik-Test: Korrektur der Anlieferung",
+      "question": null,
+      "latency_s": 0.956,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Bergsee-Archiv: relative Frist ohne Nachrichtendatum",
+      "question": null,
+      "latency_s": 0.796,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}"
+    },
+    {
+      "kind": "classification",
+      "source_title": "Bergsee-Archiv: zweite undatierte Angabe",
+      "question": null,
+      "latency_s": 0.789,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "Wann bringt Edda Winter die Prüfstücke für Keramik-Test jetzt?",
+      "latency_s": 2.358,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "selection",
+      "source_title": null,
+      "question": "An welchem konkreten Datum sendet Malik Stein die Bestandsliste für Bergsee-Archiv?",
+      "latency_s": 1.66,
+      "text": "{\"status\":\"conflict\",\"ids\":[\"S1\",\"S2\"]}"
+    }
+  ],
+  "finished_at": "2026-09-23T12:13:23.263602+02:00"
+}

@@ -1,0 +1,40 @@
+{
+  "code_commit": "cda54ad61cfc3a2346e87f8132e7b5190c53017a",
+  "unique_tests_passed": 2097,
+  "subtests_passed": 4,
+  "full_sandbox_run": {
+    "passed": 2081,
+    "sandbox_blocked": 16
+  },
+  "reruns": {
+    "previously_failed_subset": 5,
+    "model_script_files": 14,
+    "overlap_with_original_passes": 3
+  },
+  "native_ui_build": "passed",
+  "asset_manifest": "passed",
+  "independent_intake_review": "passed",
+  "independent_time_review": "passed",
+  "docker_build": "passed",
+  "native_browser": {
+    "unknown_contact_time": true,
+    "unknown_digest_citation_time": true,
+    "stored_claim_label": true,
+    "partial_capture_count": 1,
+    "full_processed_count": 2,
+    "capture_gap_explained": true,
+    "reload": true
+  },
+  "docker_browser": {
+    "unknown_contact_time": true,
+    "digest_generation": true,
+    "unknown_digest_citation_time": true,
+    "container_restart_and_reload": true,
+    "console_errors_observed": 0
+  },
+  "provider": "deterministic synthetic stub",
+  "natural_model_quality_evaluated": false,
+  "private_data_used": false,
+  "offline_exact": 13,
+  "offline_cases": 22
+}

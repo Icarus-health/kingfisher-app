@@ -1,0 +1,38 @@
+"""Human-readable intake status, derived from the current original and index."""
+from .working_memory_store import WorkingMemoryStore
+
+LABELS = {
+    'complete': 'Automatisch eingeordnet',
+    'empty': 'Eingeordnet · keine verwertbaren Angaben erkannt',
+    'pending': 'Gespeichert · noch nicht eingeordnet',
+    'queued': 'Gespeichert · zur Einordnung vorgemerkt',
+    'processing': 'Wird gerade automatisch eingeordnet',
+    'paused': 'Gespeichert · automatische Einordnung pausiert',
+    # Fremdprobe 3, Befund 9: „erneuter Versuch bei aktiver Automatik“ las sich bei laufender Automatik wie ein
+    # Widerspruch. Jetzt je nach Stand ein Satz, der stimmt.
+    'failed': 'Einordnung fehlgeschlagen · Kingfisher versucht es von selbst noch einmal',
+    'failed_paused': 'Einordnung fehlgeschlagen · Kingfisher versucht es wieder, sobald das automatische Sortieren läuft',
+    'deferred': 'Nicht eingeordnet · Quelle zu umfangreich oder unvollständig',
+    'dismissed': 'Automatische Einordnung von dir verworfen',
+    'excluded': 'Nicht für das Arbeitsgedächtnis verfügbar',
+}
+
+
+def _automatik_laeuft(app):
+    plan = app.state.settings.schedule
+    provider = getattr(getattr(app.state, 'agent', None), 'provider', None)
+    return bool(plan.enabled and plan.with_model and getattr(provider, 'is_local', False))
+
+
+def source_status(app, episode_id):
+    state = WorkingMemoryStore(app.state.episodes).source_state(episode_id)
+    if state == 'failed' and not _automatik_laeuft(app):
+        state = 'failed_paused'
+    if state == 'pending':
+        if not _automatik_laeuft(app):
+            state = 'paused'
+        else:
+            scheduler = getattr(app.state, 'scheduler', None)
+            state = scheduler.memory_state(episode_id) if scheduler is not None else None
+            state = state or 'pending'
+    return {'state': state, 'label': LABELS[state]}

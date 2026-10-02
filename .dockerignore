@@ -1,0 +1,44 @@
+# Was für das Container-Bild nicht gebraucht wird — kleineres Bild, kein
+# versehentliches Einschleppen von Secrets oder lokalen Laufzeitdaten.
+
+.git
+**/node_modules/
+**/*.tsbuildinfo
+.kingfisher.env
+.kingfisher.sources
+.github/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+.venv/
+sidecar/.venv/
+venv/
+**/*.egg-info/
+.pytest_cache/
+
+# Build-Artefakte
+build/
+app/dist/
+
+# Laufzeitdaten des Selbstmodells — niemals ins Image
+.icarus-data/
+**/*.sqlite3
+**/*.log
+sicherungen/
+exporte/
+**/*.icarus
+
+# Lokale Konfiguration mit Secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+**/*.swp
+
+# Dokumentation — ändert sich oft, betrifft aber nie den Build
+docs/

@@ -1,0 +1,442 @@
+{
+  "id": "meeting-protokoll",
+  "titel": "Zusagen aus zwei Projekttreffen",
+  "beschreibung": "Zwei Gesprächsprotokolle eines Projekttreffens zum Dysphagie-Handbuch enthalten Zusagen mit Fristen. Manche wurden erfüllt, eine wurde im zweiten Treffen verschoben.",
+  "quellen": [
+    {
+      "id": "meeting-protokoll-001",
+      "art": "mail",
+      "zeit": "2026-07-20T09:25:00+02:00",
+      "von": {
+        "name": "Beate Koch",
+        "adresse": "b.koch@klinik-muehlberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        }
+      ],
+      "betreff": "Projekttreffen Handbuch Dysphagiekost",
+      "text": "Hallo Lea, hallo Anselm,\n\nwie besprochen möchte ich unser Handbuch zur Kost bei Schluckstörungen (Dysphagiekost) für Küchen anstoßen. Ich schlage ein\nerstes Treffen am 12. August um 10 Uhr bei uns in der Klinik am Mühlberg vor. Die Küche ist gleich neben dem Konferenzraum.\n\nViele Grüße\nBeate Koch\nKüchenleitung\nKlinik am Mühlberg"
+    },
+    {
+      "id": "meeting-protokoll-002",
+      "art": "termin",
+      "zeit": "2026-07-20T10:00:00+02:00",
+      "beginn": "2026-08-12T10:00:00+02:00",
+      "ende": "2026-08-12T12:00:00+02:00",
+      "titel": "Projekttreffen Handbuch Dysphagiekost (1)",
+      "ort": "Klinik am Mühlberg, Konferenzraum neben der Küche",
+      "teilnehmer": [
+        {
+          "name": "Beate Koch",
+          "adresse": "b.koch@klinik-muehlberg.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ]
+    },
+    {
+      "id": "meeting-protokoll-003",
+      "art": "transkript",
+      "zeit": "2026-08-12T10:00:00+02:00",
+      "titel": "Projekttreffen Handbuch Dysphagiekost (1)",
+      "text": "Beate Koch: Dann fangen wir an. Ziel ist ein Handbuch für Küchen, das erklärt, wie man Kost bei Schluckstörungen sicher und trotzdem appetitlich zubereitet.\nAnselm Roth: Aus logopädischer Sicht brauchen wir zuerst eine saubere Einteilung in Texturstufen. Nach dem Muster der internationalen Stufen, aber auf deutsche Küchenpraxis übersetzt.\nLea Hartmann: Und ich würde das Ganze um ein Kapitel zur Ernährungsberatung und zur Mangelernährung ergänzen. Ein Konzeptpapier mit der Gliederung kann ich liefern.\nBeate Koch: Sehr gut. Wir haben in der Küche schon einige Rezepte für pürierte und weiche Kost. Ich schicke dir die Rezeptliste bis Freitag.\nLea Hartmann: Prima, und das Konzeptpapier bekommt ihr von mir bis zum 31. August.\nAnselm Roth: Den Entwurf der Texturstufen bringe ich zum nächsten Treffen mit.\nBeate Koch: Dann machen wir das so. Nächstes Treffen ungefähr Mitte September.",
+      "teilnehmer": [
+        "Beate Koch",
+        "Anselm Roth",
+        "Lea Hartmann"
+      ]
+    },
+    {
+      "id": "meeting-protokoll-004",
+      "art": "notiz",
+      "zeit": "2026-08-12T12:20:00+02:00",
+      "titel": "Handbuch Dysphagiekost To-dos",
+      "text": "Treffen 1 erledigt. Ich: Konzeptpapier bis 31.8. Beate: Rezeptliste bis Freitag. Anselm: Texturstufen zum nächsten Treffen."
+    },
+    {
+      "id": "meeting-protokoll-005",
+      "art": "mail",
+      "zeit": "2026-08-14T16:45:00+02:00",
+      "von": {
+        "name": "Beate Koch",
+        "adresse": "b.koch@klinik-muehlberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        }
+      ],
+      "betreff": "Rezeptliste für das Handbuch",
+      "text": "Hallo Lea, hallo Anselm,\n\nwie versprochen anbei unsere Rezeptliste (34 Rezepte für pürierte und weiche Kost).\n\nViele Grüße\nBeate",
+      "antwort_auf": "meeting-protokoll-001"
+    },
+    {
+      "id": "meeting-protokoll-006",
+      "art": "mail",
+      "zeit": "2026-08-28T15:10:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Beate Koch",
+          "adresse": "b.koch@klinik-muehlberg.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        }
+      ],
+      "betreff": "Konzeptpapier Handbuch Dysphagiekost",
+      "text": "Liebe Beate, lieber Anselm,\n\nanbei mein Konzeptpapier mit der Gliederung des Handbuchs (acht Kapitel). Ich bin gespannt auf euer Feedback.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "meeting-protokoll-005"
+    },
+    {
+      "id": "meeting-protokoll-007",
+      "art": "mail",
+      "zeit": "2026-09-02T09:00:00+02:00",
+      "von": {
+        "name": "Beate Koch",
+        "adresse": "b.koch@klinik-muehlberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        }
+      ],
+      "betreff": "Termin für das zweite Treffen",
+      "text": "Hallo zusammen,\n\nich schlage für das zweite Treffen Mittwoch, den 16. September, um 14 Uhr vor, wieder bei uns.\n\nViele Grüße\nBeate",
+      "antwort_auf": "meeting-protokoll-006"
+    },
+    {
+      "id": "meeting-protokoll-008",
+      "art": "termin",
+      "zeit": "2026-09-02T09:30:00+02:00",
+      "beginn": "2026-09-16T14:00:00+02:00",
+      "ende": "2026-09-16T16:00:00+02:00",
+      "titel": "Projekttreffen Handbuch Dysphagiekost (2)",
+      "ort": "Klinik am Mühlberg, Konferenzraum",
+      "teilnehmer": [
+        {
+          "name": "Beate Koch",
+          "adresse": "b.koch@klinik-muehlberg.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ]
+    },
+    {
+      "id": "meeting-protokoll-009",
+      "art": "transkript",
+      "zeit": "2026-09-16T14:00:00+02:00",
+      "titel": "Projekttreffen Handbuch Dysphagiekost (2)",
+      "text": "Beate Koch: Schön, dass ihr da seid. Wir sind mit der Gliederung von Lea durch, sie gefällt mir. Jetzt brauchen wir die Zahlen für die Küche.\nLea Hartmann: Was fehlt euch da?\nBeate Koch: Eine Schätzung, was die Umstellung der Küche kostet: Geräte für die Pürierstufen, Formen, Schulung. Die Kostenschätzung schicke ich dir bis Freitag.\nAnselm Roth: Bei mir hängt es leider. Der Entwurf der Texturstufen ist noch nicht fertig, ich hatte zu viele Patienten. Ich schicke ihn euch bis zum 16. Oktober.\nBeate Koch: Das ist für mich in Ordnung, dann besprechen wir ihn eben erst danach, aber es reicht.\nLea Hartmann: Ich liefere den Layoutvorschlag für das Handbuch bis zum 30. September.\nBeate Koch: Wunderbar. Dann machen wir das nächste Treffen am 14. Oktober, gleiche Zeit, gleicher Ort.",
+      "teilnehmer": [
+        "Beate Koch",
+        "Anselm Roth",
+        "Lea Hartmann"
+      ]
+    },
+    {
+      "id": "meeting-protokoll-010",
+      "art": "mail",
+      "zeit": "2026-09-18T11:35:00+02:00",
+      "von": {
+        "name": "Beate Koch",
+        "adresse": "b.koch@klinik-muehlberg.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        }
+      ],
+      "betreff": "Kostenschätzung Küchenumstellung",
+      "text": "Hallo Lea, hallo Anselm,\n\nwie zugesagt die Kostenschätzung für die Umstellung unserer Küche: rund 14.200 Euro (Geräte, Formen und Schulung des\nTeams). Die Aufstellung hängt an.\n\nViele Grüße\nBeate",
+      "antwort_auf": "meeting-protokoll-007"
+    },
+    {
+      "id": "meeting-protokoll-011",
+      "art": "termin",
+      "zeit": "2026-09-16T16:10:00+02:00",
+      "beginn": "2026-10-14T14:00:00+02:00",
+      "ende": "2026-10-14T16:00:00+02:00",
+      "titel": "Projekttreffen Handbuch Dysphagiekost (3)",
+      "ort": "Klinik am Mühlberg, Konferenzraum",
+      "teilnehmer": [
+        {
+          "name": "Beate Koch",
+          "adresse": "b.koch@klinik-muehlberg.example"
+        },
+        {
+          "name": "Dr. Anselm Roth",
+          "adresse": "a.roth@logopaedie-roth.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ]
+    },
+    {
+      "id": "meeting-protokoll-012",
+      "art": "notiz",
+      "zeit": "2026-09-16T16:20:00+02:00",
+      "titel": "Handbuch Dysphagiekost To-dos nach Treffen 2",
+      "text": "Treffen 2: Ich Layoutvorschlag bis 30.9. Beate Kostenschätzung bis Freitag. Anselm Texturstufen bis 16.10. Nächstes Treffen 14.10."
+    }
+  ],
+  "fragen": [
+    {
+      "id": "meeting-protokoll-01",
+      "frage": "Was hat mir Frau Koch beim Projekttreffen im September zugesagt?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Kostenschätzung"
+          ],
+          [
+            "Freitag",
+            "18.09.",
+            "18. September"
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Rezeptliste bis"
+        ],
+        "belege": [
+          "meeting-protokoll-003"
+        ]
+      },
+      "notiz": "Zusage aus dem zweiten Protokoll (Kostenschätzung bis Freitag); die Rezeptliste war die Zusage aus dem ersten Treffen."
+    },
+    {
+      "id": "meeting-protokoll-02",
+      "frage": "Bis wann hat Herr Roth den Entwurf der Texturstufen versprochen?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "16.10.2026",
+            "16. Oktober 2026",
+            "16.10.",
+            "16. Oktober",
+            "16. Okt.",
+            "2026-10-16",
+            "16.10"
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum nächsten Treffen",
+          "zum nächsten Treffen fertig",
+          "bis zum 14. Oktober",
+          "bis 14. Oktober",
+          "bis 14.10.",
+          "bis zum 14.10.",
+          "zum Treffen am 14. Oktober"
+        ],
+        "belege": [
+          "meeting-protokoll-003"
+        ]
+      },
+      "notiz": "Im ersten Treffen sagte er „zum nächsten Treffen“, im zweiten schob er auf den 16. Oktober. Maßgeblich ist die spätere Zusage."
+    },
+    {
+      "id": "meeting-protokoll-03",
+      "frage": "Welche Zusage habe ich selbst im letzten Treffen zum Handbuch gemacht?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Layout"
+          ],
+          [
+            "30.09.2026",
+            "30. September 2026",
+            "30.09.",
+            "30. September",
+            "30. Sep.",
+            "2026-09-30",
+            "30.09",
+            "30.9."
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-009",
+          "meeting-protokoll-012"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": [
+          "meeting-protokoll-003"
+        ]
+      },
+      "notiz": "Layoutvorschlag bis 30. September; das Konzeptpapier bis 31. August (erstes Treffen) ist erledigt."
+    },
+    {
+      "id": "meeting-protokoll-04",
+      "frage": "Wann ist das nächste Treffen zum Handbuch Dysphagiekost?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "14.10.2026",
+            "14. Oktober 2026",
+            "14.10.",
+            "14. Oktober",
+            "14. Okt.",
+            "2026-10-14",
+            "14.10"
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-009",
+          "meeting-protokoll-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "ist der 16.09.",
+          "ist am 16.09.",
+          "ist der 16. September",
+          "ist am 16. September",
+          "findet am 16.09. statt",
+          "findet am 16. September statt"
+        ],
+        "belege": []
+      },
+      "notiz": "Drittes Treffen am 14. Oktober; das zweite (16.9.) liegt in der Vergangenheit."
+    },
+    {
+      "id": "meeting-protokoll-05",
+      "frage": "Hat Frau Koch die Kostenschätzung für die Küchenumstellung inzwischen geschickt?",
+      "kategorie": "wartet_auf",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "14.200",
+            "14200",
+            "14 200"
+          ],
+          [
+            "18.09.2026",
+            "18. September 2026",
+            "18.09.",
+            "18. September",
+            "18. Sep.",
+            "2026-09-18",
+            "18.09",
+            "18.9."
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "noch nicht geschickt",
+          "steht noch aus",
+          "noch nicht erhalten"
+        ],
+        "belege": []
+      },
+      "notiz": "Ja, am 18. September, rund 14.200 Euro. Sie ist kein offener Punkt mehr."
+    },
+    {
+      "id": "meeting-protokoll-06",
+      "frage": "Was ist eigentlich der Stand bei Roth?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Nadine",
+            "Tagungsservice",
+            "Rheinblick",
+            "Fachtag"
+          ],
+          [
+            "Anselm",
+            "Logopäd",
+            "Texturstufen",
+            "Handbuch"
+          ]
+        ],
+        "belege": [
+          "meeting-protokoll-009",
+          "paraphrase-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zwei Personen namens Roth mit laufenden Vorgängen: Nadine Roth (Tagungsservice Rheinblick, Kostenvoranschlag Fachtag bestätigt) und Dr. Anselm Roth (Logopäde, Texturstufen-Entwurf bis 16.10.). Ohne Vornamen ist keine Bedeutung die richtige."
+    }
+  ],
+  "kreise": [
+    {"adresse": "b.koch@klinik-muehlberg.example", "kreis": "kollegen",
+     "merkmale": ["Mails in beide Richtungen", "Firmenadresse", "gemeinsame Termine"],
+     "notiz": "Projektpartnerin des Handbuchs, per Du und mit gemeinsamen Projekttreffen."}
+  ]
+}

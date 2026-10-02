@@ -1,0 +1,275 @@
+{
+  "conversation": {
+    "id": "c-ec77a54bfeef",
+    "title": "Synthetischer Ableitungstest",
+    "created_at": "2026-09-14T08:55:10.421226+00:00",
+    "updated_at": "2026-09-14T08:55:37.764601+00:00"
+  },
+  "messages": [
+    {
+      "id": "m-77fbb8b244b548",
+      "conversation_id": "c-ec77a54bfeef",
+      "role": "user",
+      "content": "Orion?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:10.455341+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-e3c5ce3221f44f",
+      "conversation_id": "c-ec77a54bfeef",
+      "role": "assistant",
+      "content": "Orion ist der Name eines Projekts, das bereits finanziert ist. Möchtest du mehr darüber wissen oder etwas konkreteres fragen?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:32.222305+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [],
+        "used_tools": [],
+        "context": {
+          "query": "Orion?",
+          "generated_at": "2026-09-14T08:55:10.457269+00:00",
+          "items": [
+            {
+              "assertion_id": "a-80f573badc7f",
+              "statement": "Orion ist finanziert.",
+              "kind": "state",
+              "state": "current",
+              "reason": "Passt zum Gespräch: orion",
+              "source_type": "inference",
+              "source_ref": "synthetic:docker-basis",
+              "evidence_at": "2026-09-14T08:55:10.393972+00:00",
+              "confidence": null,
+              "basis": {
+                "version": 1,
+                "state": "supported",
+                "reason": null
+              },
+              "self_model_input": {
+                "fingerprint": "2b476d10a565c7d830343b56291c25dbeef02bdceb1fb26c6c13748d9797ff54",
+                "state": "current",
+                "currency": "current",
+                "basis": {
+                  "version": 1,
+                  "state": "supported",
+                  "reason": null
+                },
+                "basis_signature": "1bbf77b9d8dc2e51357024c0e5da88c80d5af64f4fb5e054a79a9b6f09a38b78"
+              }
+            }
+          ],
+          "withheld_count": 0,
+          "basis_omitted": false,
+          "knowledge_retrieval": {
+            "query_terms_total": 1,
+            "query_terms_used": 1,
+            "query_truncated": false,
+            "candidate_limit": 128,
+            "candidates_returned": 0,
+            "candidates_truncated": false,
+            "selection_truncated": false,
+            "truncated": false
+          },
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 2,
+          "self_model_inputs": {
+            "a-80f573badc7f": {
+              "fingerprint": "2b476d10a565c7d830343b56291c25dbeef02bdceb1fb26c6c13748d9797ff54",
+              "state": "current",
+              "currency": "current",
+              "basis": {
+                "version": 1,
+                "state": "supported",
+                "reason": null
+              },
+              "basis_signature": "1bbf77b9d8dc2e51357024c0e5da88c80d5af64f4fb5e054a79a9b6f09a38b78"
+            }
+          },
+          "self_model_history_reset": false,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T08:55:10.456913+00:00",
+            "window_from": "2026-09-14T08:55:10.456913+00:00",
+            "window_to": "2026-09-21T08:55:10.456913+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T08:55:10.457924+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    },
+    {
+      "id": "m-9b1d354a09b742",
+      "conversation_id": "c-ec77a54bfeef",
+      "role": "user",
+      "content": "Orion?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:32.313803+00:00",
+      "metadata": {}
+    },
+    {
+      "id": "m-0fde7eea2e174a",
+      "conversation_id": "c-ec77a54bfeef",
+      "role": "assistant",
+      "content": "Es gibt keinen direkten Hinweis darauf, dass \"Orion\" im Kontext deiner bisherigen Aktivitäten oder Aufgaben eine besondere Bedeutung hat. Kannst du das genauer beschreiben oder brauchst du Informationen zu etwas Bestimmtem, was mit \"Orion\" zusammenhängt?",
+      "status": "complete",
+      "created_at": "2026-09-14T08:55:37.764601+00:00",
+      "metadata": {
+        "approvals": [],
+        "notices": [
+          "Frühere Profilableitungen sind nicht mehr gültig oder nicht vollständig zuordenbar. Sie bleiben gespeichert und werden für diese Antwort zurückgestellt."
+        ],
+        "used_tools": [],
+        "context": {
+          "query": "Orion?",
+          "generated_at": "2026-09-14T08:55:32.318345+00:00",
+          "items": [],
+          "withheld_count": 0,
+          "basis_omitted": true,
+          "knowledge_retrieval": {
+            "query_terms_total": 1,
+            "query_terms_used": 1,
+            "query_truncated": false,
+            "candidate_limit": 128,
+            "candidates_returned": 0,
+            "candidates_truncated": false,
+            "selection_truncated": false,
+            "truncated": false
+          },
+          "memory_revision": 0,
+          "history_egress": "local_only",
+          "history_omitted": false,
+          "knowledge_claim_lineage_version": 1,
+          "knowledge_claim_ids": [],
+          "knowledge_history_reset": false,
+          "self_model_lineage_version": 2,
+          "self_model_inputs": {},
+          "self_model_history_reset": true,
+          "calendar": {
+            "status": "disabled",
+            "scope": "selected_mac_calendars",
+            "observed_at": "2026-09-14T08:55:32.318184+00:00",
+            "window_from": "2026-09-14T08:55:32.318184+00:00",
+            "window_to": "2026-09-21T08:55:32.318184+00:00",
+            "synced_at": null,
+            "coverage": "unknown",
+            "events": [],
+            "truncated": false,
+            "invalid_count": 0
+          },
+          "calendar_model_context": false,
+          "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+          "calendar_history_reset": false,
+          "coverage": {
+            "total_sources": 0,
+            "sampled_sources": 0,
+            "counts": {
+              "pending": 0,
+              "running": 0,
+              "partial": 0,
+              "completed": 0,
+              "failed": 0,
+              "excluded": 0
+            },
+            "truncated": false,
+            "analysis_version": "requests-v3",
+            "semantic_completeness": false,
+            "generated_at": "2026-09-14T08:55:32.319276+00:00",
+            "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+            "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+          }
+        }
+      }
+    }
+  ],
+  "context": {
+    "query": "Orion?",
+    "generated_at": "2026-09-14T08:55:32.318345+00:00",
+    "items": [],
+    "withheld_count": 0,
+    "basis_omitted": true,
+    "knowledge_retrieval": {
+      "query_terms_total": 1,
+      "query_terms_used": 1,
+      "query_truncated": false,
+      "candidate_limit": 128,
+      "candidates_returned": 0,
+      "candidates_truncated": false,
+      "selection_truncated": false,
+      "truncated": false
+    },
+    "memory_revision": 0,
+    "history_egress": "local_only",
+    "history_omitted": false,
+    "knowledge_claim_lineage_version": 1,
+    "knowledge_claim_ids": [],
+    "knowledge_history_reset": false,
+    "self_model_lineage_version": 2,
+    "self_model_inputs": {},
+    "self_model_history_reset": true,
+    "calendar": {
+      "status": "disabled",
+      "scope": "selected_mac_calendars",
+      "observed_at": "2026-09-14T08:55:32.318184+00:00",
+      "window_from": "2026-09-14T08:55:32.318184+00:00",
+      "window_to": "2026-09-21T08:55:32.318184+00:00",
+      "synced_at": null,
+      "coverage": "unknown",
+      "events": [],
+      "truncated": false,
+      "invalid_count": 0
+    },
+    "calendar_model_context": false,
+    "calendar_fingerprint": "2f9e80d7bdd6f1ce3685524c0b5a51db6f9fdc49b4e9a899c8ae0f8c8e1ff074",
+    "calendar_history_reset": false,
+    "coverage": {
+      "total_sources": 0,
+      "sampled_sources": 0,
+      "counts": {
+        "pending": 0,
+        "running": 0,
+        "partial": 0,
+        "completed": 0,
+        "failed": 0,
+        "excluded": 0
+      },
+      "truncated": false,
+      "analysis_version": "requests-v3",
+      "semantic_completeness": false,
+      "generated_at": "2026-09-14T08:55:32.319276+00:00",
+      "scope": "Aufgenommene Nachrichten und Dokumente; Prüfung auf Aufgabenvorschläge.",
+      "detail": "Verarbeitet bedeutet: Der Text wurde ausgewertet. Es beweist nicht, dass jede Bitte richtig erkannt wurde. Nicht angebundene Kanäle und fehlende Anlagen sind nicht enthalten."
+    }
+  },
+  "action_requests": [],
+  "memory_candidates": []
+}

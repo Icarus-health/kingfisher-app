@@ -1,0 +1,18 @@
+[
+  {
+    "file": "first.json",
+    "sha256": "fd1cc7860e43525504e21dbee9bb0217b438c0a29947c398a1290aa31dbda503"
+  },
+  {
+    "file": "after-expiry.json",
+    "sha256": "3d40e4d2bb106981984d54705525822ab5dca6b5e5749b081d49b30dd0530e6e"
+  },
+  {
+    "file": "after-restart.json",
+    "sha256": "fc68825b397f5326a11ea8a2816496e7ba6b317681ea7f8dc2ab41b7c5e92213"
+  },
+  {
+    "file": "state.json",
+    "sha256": "c73c596d9b18c92690c95729fd3d03c534283728d14687064d7031e3021a72ff"
+  }
+]

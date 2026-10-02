@@ -1,0 +1,187 @@
+{
+  "model": "qwen3.5:4b",
+  "source_text_is_synthetic": true,
+  "prior_first_run": {
+    "model": "qwen3.5:4b",
+    "expected_file": "expected.json",
+    "started_at": "2026-09-23T13:29:44.859392+02:00",
+    "steps": [
+      {
+        "id": "upload",
+        "status": 200,
+        "episode_id": "synthetic-original-source"
+      },
+      {
+        "id": "automatic_classification",
+        "detail": "1 Quellen automatisch eingeordnet",
+        "episode_state": "new",
+        "working_memory_status": "complete",
+        "source_is_searchable": true,
+        "indexed_kind_labels": [
+          "conditional"
+        ]
+      }
+    ],
+    "model_calls": [
+      {
+        "kind": "classification",
+        "title": "synthetic-keramik-pruefung.txt",
+        "question": null,
+        "latency_s": 7.73,
+        "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+      },
+      {
+        "kind": "selection",
+        "title": null,
+        "question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+        "latency_s": 1.05,
+        "text": "{\"status\":\"time\",\"ids\":[\"S1\"]}"
+      }
+    ],
+    "claims_before": 0,
+    "claims_after": null,
+    "proposals_before": {},
+    "proposals_after": null,
+    "error": "AssertionError: ",
+    "finished_at": "2026-09-23T13:29:53.919573+02:00"
+  },
+  "comparison_run": {
+    "model": "qwen3.5:4b",
+    "expected_file": "expected.json",
+    "started_at": "2026-09-23T13:35:55.533685+02:00",
+    "steps": [
+      {
+        "id": "upload",
+        "status": 200,
+        "episode_id": "synthetic-original-source"
+      },
+      {
+        "id": "automatic_classification",
+        "detail": "1 Quellen automatisch eingeordnet",
+        "episode_state": "new",
+        "working_memory_status": "complete",
+        "source_is_searchable": true,
+        "indexed_kind_labels": [
+          "conditional"
+        ]
+      },
+      {
+        "id": "question_before_correction",
+        "question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+        "http_status": 201,
+        "contract_status": "working_reports",
+        "content": "Quelle berichtet · automatisch eingeordnet\n\nBedingte Aussage · synthetic-keramik-pruefung.txt\nAnna soll den Keramik-Prüfbericht für Mainz am 25. September 2026 übergeben. Das gilt nur, wenn vorher eine schriftliche Freigabe vorliegt; ohne Freigabe ist die Übergabe nicht bestätigt.\nQuellenzeit: unbekannt",
+        "selected_episode_ids": [
+          "synthetic-original-source"
+        ]
+      },
+      {
+        "id": "correction",
+        "status": 201,
+        "corrected_episode_id": "synthetic-manual-correction",
+        "source_type": "manual_correction",
+        "source_ref": "source-correction:<synthetic-original-source>:<current-support-fingerprint>",
+        "occurred_at": null,
+        "produced": [],
+        "original_state": "ignored",
+        "original_body_unchanged": true,
+        "claim_revision_unchanged": true,
+        "proposal_counts_unchanged": true
+      },
+      {
+        "id": "old_conversation_after_correction",
+        "http_status": 200,
+        "contract_status": "working_unavailable",
+        "content": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+        "selected_episode_ids": [
+          "synthetic-original-source"
+        ]
+      },
+      {
+        "id": "corrected_question_1",
+        "question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+        "http_status": 201,
+        "contract_status": "working_reports",
+        "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: synthetic-keramik-pruefung.txt\nAnna soll den Keramik-Prüfbericht für Mainz am 28. September 2026 übergeben. Das gilt nur, wenn die schriftliche Freigabe vorliegt; die Freigabe fehlt noch.\nQuellenzeit: unbekannt",
+        "selected_episode_ids": [
+          "synthetic-manual-correction"
+        ]
+      },
+      {
+        "id": "corrected_question_2_paraphrase",
+        "question": "Zu welchem Termin ist Annas Übergabe des Keramik-Prüfberichts in Mainz vorgesehen?",
+        "http_status": 201,
+        "contract_status": "working_reports",
+        "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: synthetic-keramik-pruefung.txt\nAnna soll den Keramik-Prüfbericht für Mainz am 28. September 2026 übergeben. Das gilt nur, wenn die schriftliche Freigabe vorliegt; die Freigabe fehlt noch.\nQuellenzeit: unbekannt",
+        "selected_episode_ids": [
+          "synthetic-manual-correction"
+        ]
+      },
+      {
+        "id": "after_correction_withdrawal",
+        "question": "Zu welchem Termin ist Annas Übergabe des Keramik-Prüfberichts in Mainz vorgesehen?",
+        "http_status": 201,
+        "contract_status": null,
+        "content": "das weiß ich nicht",
+        "selected_episode_ids": []
+      },
+      {
+        "id": "old_conversation_after_withdrawal",
+        "http_status": 200,
+        "contract_status": "working_unavailable",
+        "content": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+        "selected_episode_ids": [
+          "synthetic-original-source"
+        ]
+      }
+    ],
+    "model_calls": [
+      {
+        "kind": "classification",
+        "title": "synthetic-keramik-pruefung.txt",
+        "question": null,
+        "latency_s": 6.318,
+        "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+      },
+      {
+        "kind": "selection",
+        "title": null,
+        "question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+        "latency_s": 1.073,
+        "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+      },
+      {
+        "kind": "selection",
+        "title": null,
+        "question": "Wann soll Anna den Keramik-Prüfbericht in Mainz übergeben?",
+        "latency_s": 1.095,
+        "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+      },
+      {
+        "kind": "selection",
+        "title": null,
+        "question": "Zu welchem Termin ist Annas Übergabe des Keramik-Prüfberichts in Mainz vorgesehen?",
+        "latency_s": 1.09,
+        "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+      },
+      {
+        "kind": "chat",
+        "latency_s": 3.992,
+        "text": "das weiß ich nicht"
+      }
+    ],
+    "failures": [
+      {
+        "step": "after_correction_withdrawal",
+        "message": "fresh no-source query contract was None, expected 'unknown' per answer_memory path"
+      }
+    ],
+    "claims_before": 0,
+    "claims_after": 0,
+    "proposals_before": {},
+    "proposals_after": {},
+    "error": null,
+    "finished_at": "2026-09-23T13:36:09.511166+02:00"
+  },
+  "harness_note": "The comparison result preserves one narrow post-withdrawal harness mismatch. The no-source request routed to chat and returned a neutral answer without an answer_contract; the later harness edit accepts neutral no-source states while continuing to reject any source IDs, links, source text, or dates. That edited script was not the exact script used for this archived run."
+}

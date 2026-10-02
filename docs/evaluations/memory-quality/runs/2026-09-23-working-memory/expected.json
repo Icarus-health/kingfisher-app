@@ -1,0 +1,200 @@
+{
+  "design_locked_before_model_run": true,
+  "scope": "12 synthetic sources, 8 independent questions, one local-model pass; semantic spot check only",
+  "sources": [
+    {
+      "id": "S01",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Parkstraße 8",
+      "body": "Von: Nora Beck <nora.park@example.test>\nAdresse: Parkstraße 8, 04105 Leipzig.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 6. Oktober 2026.",
+      "occurred_at": "2026-09-21T09:00:00+02:00",
+      "participants": [
+        "Nora Beck <nora.park@example.test>"
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "Atelier Orion: Farbmuster von Nora Beck, Hafenweg 19",
+      "body": "Von: Nora Beck <nora.hafen@example.test>\nAdresse: Hafenweg 19, 22767 Hamburg.\nFür Atelier Orion liefere ich die Stoff-Farbmuster am 13. Oktober 2026.",
+      "occurred_at": "2026-09-21T10:00:00+02:00",
+      "participants": [
+        "Nora Beck <nora.hafen@example.test>"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "Kran: Elias fragt nach Messprotokoll",
+      "body": "Von: Elias Dorn <elias@example.test>\nKannst du mir das Messprotokoll für den Kran bis Freitag schicken? Ich brauche es für die Abnahme.",
+      "occurred_at": "2026-09-22T11:00:00+02:00",
+      "participants": [
+        "Elias Dorn <elias@example.test>"
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "Projekt Kobalt: Probenliste unter Vorbehalt",
+      "body": "Von: Mira Vogt <mira@example.test>\nWenn die Sicherheitsfreigabe vom Labor vorliegt:\n\ndann stelle ich die Probenliste für Projekt Kobalt am 8. Oktober 2026 bereit.",
+      "occurred_at": "2026-09-22T13:00:00+02:00",
+      "participants": [
+        "Mira Vogt <mira@example.test>"
+      ]
+    },
+    {
+      "id": "S05",
+      "title": "Besprechungsraum: aktuelle Absage von Dana",
+      "body": "Von: Dana Seifert <dana@example.test>\nZitat meiner alten Mail vom 12. September: 'Ich nehme den Besprechungsraum am Dienstag um 10 Uhr.'\n\nAktuell sage ich die Buchung des Besprechungsraums für Dienstag um 10 Uhr ab.",
+      "occurred_at": "2026-09-22T14:00:00+02:00",
+      "participants": [
+        "Dana Seifert <dana@example.test>"
+      ]
+    },
+    {
+      "id": "S06",
+      "title": "Projekt Atlas: ursprüngliche Abgabefrist",
+      "body": "Von: Leila Yilmaz <leila@example.test>\nFür Projekt Atlas gilt als Abgabefrist der 15. Oktober 2026. Das ist mein derzeitiger Plan.",
+      "occurred_at": "2026-09-18T08:30:00+02:00",
+      "participants": [
+        "Leila Yilmaz <leila@example.test>"
+      ]
+    },
+    {
+      "id": "S07",
+      "title": "Projekt Atlas: Leilas ausdrückliche Fristkorrektur",
+      "body": "Von: Leila Yilmaz <leila@example.test>\nIch korrigiere meine Mail zur Abgabefrist für Projekt Atlas vom 18. September: Statt 15. Oktober gilt nun der 19. Oktober 2026.",
+      "occurred_at": "2026-09-22T15:00:00+02:00",
+      "participants": [
+        "Leila Yilmaz <leila@example.test>"
+      ]
+    },
+    {
+      "id": "S08",
+      "title": "Druckauftrag Jade: Angebot verschickt",
+      "body": "Von: Tom Gerber <tom@example.test>\nDas Angebot für den Druckauftrag Jade habe ich heute verschickt. Vom Kunden liegt bisher keine Antwort und keine Annahme vor.",
+      "occurred_at": "2026-09-22T16:00:00+02:00",
+      "participants": [
+        "Tom Gerber <tom@example.test>"
+      ]
+    },
+    {
+      "id": "S09",
+      "title": "Schlüsselkarten: Nachricht ohne Quellenzeit",
+      "body": "Von: Ruth Falk <ruth@example.test>\nNächsten Freitag bringe ich die Schlüsselkarten für Haus Mohn vorbei.",
+      "occurred_at": null,
+      "participants": [
+        "Ruth Falk <ruth@example.test>"
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Atelier Orion: Website Farbpalette",
+      "body": "Die Website von Atelier Orion zeigt seit März 2026 eine digitale Farbpalette. Diese Notiz betrifft keine Stoff-Farbmuster und keine Lieferung durch Nora Beck.",
+      "occurred_at": "2026-09-20T10:00:00+02:00",
+      "participants": []
+    },
+    {
+      "id": "S11",
+      "title": "Kobalt: Lageretikett",
+      "body": "Im Lager Kobalt ist die Inventarnummer der blauen Kiste 7042. Das Etikett sagt nichts über die Probenliste oder eine Sicherheitsfreigabe.",
+      "occurred_at": "2026-09-20T10:30:00+02:00",
+      "participants": []
+    },
+    {
+      "id": "S12",
+      "title": "Atlas: Kartenleser",
+      "body": "Der Kartenleser am Eingang Atlas wurde am 21. September gewartet. Die Wartung hat keinen Bezug zur Abgabefrist von Projekt Atlas.",
+      "occurred_at": "2026-09-21T12:00:00+02:00",
+      "participants": []
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "text": "Wann liefert Nora Beck die Stoff-Farbmuster für Atelier Orion?",
+      "expected_status": "person",
+      "must_include": [
+        "S01",
+        "S02"
+      ],
+      "must_exclude": [
+        "S10"
+      ],
+      "semantic_expectation": "Two different Nora Beck senders and addresses; ask which person, retain both dates."
+    },
+    {
+      "id": "Q02",
+      "text": "Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster für Atelier Orion?",
+      "expected_status": "reports",
+      "must_include": [
+        "S01"
+      ],
+      "must_exclude": [
+        "S02",
+        "S10"
+      ],
+      "semantic_expectation": "6 October 2026 without a person clarification."
+    },
+    {
+      "id": "Q03",
+      "text": "Hat Elias zugesagt, das Messprotokoll für den Kran zu schicken?",
+      "expected_status": "reports",
+      "must_include": [
+        "S03"
+      ],
+      "must_exclude": [],
+      "semantic_expectation": "Only Elias's request to another person is evidenced; no own promise by Elias."
+    },
+    {
+      "id": "Q04",
+      "text": "Ist Miras Probenliste für Projekt Kobalt am 8. Oktober fest zugesagt?",
+      "expected_status": "reports",
+      "must_include": [
+        "S04"
+      ],
+      "must_exclude": [
+        "S11"
+      ],
+      "semantic_expectation": "Promise remains conditional on laboratory safety clearance in a separate paragraph."
+    },
+    {
+      "id": "Q05",
+      "text": "Gilt Danas Buchung des Besprechungsraums für Dienstag um 10 Uhr noch?",
+      "expected_status": "reports",
+      "must_include": [
+        "S05"
+      ],
+      "must_exclude": [],
+      "semantic_expectation": "Current cancellation controls; quoted old mail is historical."
+    },
+    {
+      "id": "Q06",
+      "text": "Welche Abgabefrist gilt jetzt für Projekt Atlas laut Leila Yilmaz?",
+      "expected_status": "reports",
+      "must_include": [
+        "S07"
+      ],
+      "must_exclude": [
+        "S12"
+      ],
+      "semantic_expectation": "Explicit correction by same author changes 15 to 19 October 2026; no conflict clarification."
+    },
+    {
+      "id": "Q07",
+      "text": "Hat der Kunde das Angebot für den Druckauftrag Jade angenommen?",
+      "expected_status": "reports",
+      "must_include": [
+        "S08"
+      ],
+      "must_exclude": [],
+      "semantic_expectation": "No acceptance; sent offer and missing reply do not imply agreement."
+    },
+    {
+      "id": "Q08",
+      "text": "An welchem konkreten Datum bringt Ruth die Schlüsselkarten für Haus Mohn?",
+      "expected_status": "time",
+      "must_include": [
+        "S09"
+      ],
+      "must_exclude": [],
+      "semantic_expectation": "Relative next Friday cannot be resolved because source occurred_at is absent; recorded_at is not the source time."
+    }
+  ]
+}

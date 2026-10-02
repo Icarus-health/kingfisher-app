@@ -1,0 +1,87 @@
+.mail-style {
+  margin-top: 20px;
+  padding: 20px 24px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 12px;
+  background: var(--kf-flaeche-fffefa);
+}
+
+.mail-style summary {
+  cursor: pointer;
+  color: var(--kf-schrift-062b3a);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mail-style > p,
+.mail-style article p {
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.mail-style-scope,
+.mail-style-rule {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  color: var(--kf-schrift-062b3a);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mail-style select {
+  min-height: 36px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 7px;
+  padding: 7px;
+  background: var(--kf-flaeche-fffefa);
+  font: inherit;
+  font-weight: 400;
+}
+
+.mail-style-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mail-style-proposal,
+.mail-style-learning {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--kf-rand-d7e1df);
+}
+
+.mail-style h3 {
+  margin: 0 0 7px;
+  color: var(--kf-schrift-062b3a);
+  font-size: 14px;
+}
+
+.mail-style-learning label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+}
+
+.mail-style-learning article {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 7px;
+}
+
+.mail-style-learning article p {
+  margin: 0 0 5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mail-style-learning small {
+  color: var(--kf-schrift-53635f);
+  font-size: 10px;
+}

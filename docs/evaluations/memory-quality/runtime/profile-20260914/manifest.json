@@ -1,0 +1,34 @@
+[
+  {
+    "file": "after-expiry-restart.json",
+    "sha256": "f92716ea3911068fc47d9de0d1738e37cc2edd1f92ba3599d4b328b08632b904"
+  },
+  {
+    "file": "after-expiry.json",
+    "sha256": "99c4bca9f4327319139a48eadb0430731a439c7b9dec21232c46da3895bbbf1f"
+  },
+  {
+    "file": "after-restart.json",
+    "sha256": "6c6ed6926b05ad06de43e86755f0b794d97ed67085ebd33ac5d072d80747b0c1"
+  },
+  {
+    "file": "after-retraction.json",
+    "sha256": "c3cb61564db3ebbfc2d17ce6e217c9dbae919020b1622d224e87709993828a5e"
+  },
+  {
+    "file": "before-expiry.json",
+    "sha256": "033fae7f0ec40912112a3a7cbb7c806c109057de2381d487eec3755add987dd4"
+  },
+  {
+    "file": "card-after-retraction.json",
+    "sha256": "5bb7f9f312f4b99a28706014ceb13380628d364c1b1ea368344ab1d3ca6ca4c8"
+  },
+  {
+    "file": "first.json",
+    "sha256": "3a2cb63f647338874321071f8c768b21d12719cd0172c0f7454ff13d093b8f64"
+  },
+  {
+    "file": "state.json",
+    "sha256": "b2e34820be96cb70b588dc6f7d0a330975efd92e6285464cdcdab7614c2073d3"
+  }
+]

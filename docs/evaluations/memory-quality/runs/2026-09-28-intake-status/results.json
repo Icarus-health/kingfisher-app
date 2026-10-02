@@ -1,0 +1,198 @@
+{
+  "shipping_commit": "55e9bca9f772213c5a00396e77aa96a3876c3b54",
+  "backend_tests": {
+    "passed": 2455,
+    "warnings": 2,
+    "seconds": 246.59
+  },
+  "ui_build": "passed",
+  "ui_verified": [
+    "document list complete and paused states",
+    "opened original with complete state",
+    "project choice Abendhain leads to its original"
+  ],
+  "rejected_experiment": {
+    "final-known": {
+      "commit": "46f075cca32c6f523fb6db37bf5a16c14bf62570",
+      "model": "qwen3.5:4b",
+      "cases": [
+        {
+          "id": "conditional",
+          "checks": {
+            "source_selection": false,
+            "status": false,
+            "content": false,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "wrong_project",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "project_ambiguity",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "same_name",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "unknown_time",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true,
+            "time_uncertainty": true
+          }
+        },
+        {
+          "id": "correction_withdrawal",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true,
+            "old_answer_invalidated": true,
+            "corrected_content": true,
+            "corrected_source_selected": true,
+            "withdrawn_history_hidden": true,
+            "withdrawn_after_reopen": true
+          }
+        },
+        {
+          "id": "paraphrase",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        }
+      ]
+    },
+    "final-new": {
+      "commit": "46f075cca32c6f523fb6db37bf5a16c14bf62570",
+      "model": "qwen3.5:4b",
+      "cases": [
+        {
+          "id": "different-deliverable",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "inspection-ambiguity",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "multiword-scope",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "compare-projects",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "recipient-is-not-project",
+          "checks": {
+            "source_selection": true,
+            "status": true,
+            "content": true,
+            "originals_preserved": true
+          }
+        }
+      ]
+    },
+    "independent": {
+      "commit": "46f075cca32c6f523fb6db37bf5a16c14bf62570",
+      "model": "qwen3.5:4b",
+      "cases": [
+        {
+          "id": "new-conditional",
+          "checks": {
+            "source_selection": true,
+            "status": false,
+            "content": true,
+            "originals_preserved": true
+          }
+        },
+        {
+          "id": "two-people-one-source",
+          "checks": {
+            "source_selection": true,
+            "status": false,
+            "content": true,
+            "originals_preserved": true
+          }
+        }
+      ]
+    }
+  },
+  "intake_measurement": {
+    "commit": "46f075cca32c6f523fb6db37bf5a16c14bf62570",
+    "synthetic_only": true,
+    "paused_status": {
+      "state": "paused",
+      "label": "Gespeichert · automatische Einordnung pausiert"
+    },
+    "intake": [
+      {
+        "id": "e-7e67a954010c",
+        "states": [
+          "processing",
+          "complete"
+        ],
+        "seconds": 1.55,
+        "complete": true,
+        "original_preserved": true
+      },
+      {
+        "id": "e-83bc88df695c",
+        "states": [
+          "queued",
+          "processing",
+          "complete"
+        ],
+        "seconds": 13.43,
+        "complete": true,
+        "original_preserved": true
+      }
+    ],
+    "provenance": "Measured before answer-contract rollback; intake, status and scheduler implementation identical to shipping commit."
+  }
+}

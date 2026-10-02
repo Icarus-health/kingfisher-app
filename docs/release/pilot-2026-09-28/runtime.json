@@ -1,0 +1,33 @@
+{
+  "synthetic_only": true,
+  "external_accounts_used": false,
+  "checks": {
+    "no_external_accounts": true,
+    "real_local_ingestion": true,
+    "real_source_answer": true,
+    "restart_source": true,
+    "restart_task": true,
+    "restart_answer": true,
+    "restart_automation": true,
+    "restored_historical_inspection": true,
+    "restored_original_source": true,
+    "restored_task_completion": true,
+    "restored_conversation_records": true,
+    "historical_actions_blocked": true
+  },
+  "image_revision": "6a4e07a614d8da3124a099ee8157239ea0bff617",
+  "episode_id": "e-9c90833b1fff",
+  "task_id": "t-c96a5c29d429",
+  "conversation_id": "c-f1065bcdb33d",
+  "snapshot": "kingfisher-20260928T113352Z",
+  "restore_image_revision": "9d6f190",
+  "passed": true,
+  "preexisting_files_preserved_aside": 0,
+  "ui_edit": {
+    "image_revision": "9d6f190",
+    "title_date_note_saved": true,
+    "reload_preserved": true,
+    "source_retained": true,
+    "history_edited_visible": true
+  }
+}

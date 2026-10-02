@@ -1,0 +1,509 @@
+{
+  "id": "profil",
+  "titel": "Profil einer wichtigen Klinikkontaktperson",
+  "beschreibung": "Eine Chefärztin begleitet Lea über zwei Jahre: Kennenlernen, Screening-Projekt, Duzen, Vortrag, Folgeprojekt, Fachartikel. Fragen zielen auf das Gesamtbild und die offenen Punkte.",
+  "quellen": [
+    {
+      "id": "profil-001",
+      "art": "mail",
+      "zeit": "2024-10-08T18:20:00+02:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Netzwerktreffen Frankfurt: Kontakt",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir haben uns gestern beim Netzwerktreffen in Frankfurt kennengelernt. Ich bin Chefärztin der Geriatrie an der\nSt.-Ludgerus-Klinik in Wiesbaden. Uns fehlt ein strukturiertes Screening auf Mangelernährung, und Ihr Beitrag zur\nErnährungsvisite hat mich überzeugt. Können wir uns zeitnah kennenlernen?\n\nMit freundlichen Grüßen\nDr. Claudia Reinhardt\nChefärztin Geriatrie\nSt.-Ludgerus-Klinik Wiesbaden"
+    },
+    {
+      "id": "profil-002",
+      "art": "mail",
+      "zeit": "2024-10-09T08:05:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        }
+      ],
+      "betreff": "AW: Netzwerktreffen Frankfurt: Kontakt",
+      "text": "Sehr geehrte Frau Dr. Reinhardt,\n\nvielen Dank für Ihre Nachricht, ich habe mich sehr über das Gespräch gefreut. Sehr gern, ich schlage ein Kennenlerngespräch\nbei Ihnen im Haus vor.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "profil-001"
+    },
+    {
+      "id": "profil-003",
+      "art": "mail",
+      "zeit": "2024-10-22T12:15:00+02:00",
+      "von": {
+        "name": "Sekretariat Geriatrie",
+        "adresse": "sekretariat.geriatrie@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Terminbestätigung Frau Dr. Reinhardt",
+      "text": "Sehr geehrte Frau Hartmann,\n\nim Auftrag von Frau Dr. Reinhardt bestätige ich den Termin am 29. Oktober um 15 Uhr in der Geriatrie, Haus B, 2. Etage.\nBitte melden Sie sich am Empfang.\n\nMit freundlichen Grüßen\nAnja Gerlach\nSekretariat Geriatrie\nSt.-Ludgerus-Klinik Wiesbaden"
+    },
+    {
+      "id": "profil-004",
+      "art": "termin",
+      "zeit": "2024-10-22T12:20:00+02:00",
+      "beginn": "2024-10-29T15:00:00+01:00",
+      "ende": "2024-10-29T16:30:00+01:00",
+      "titel": "Kennenlerngespräch Dr. Reinhardt",
+      "ort": "St.-Ludgerus-Klinik Wiesbaden, Geriatrie, Haus B",
+      "teilnehmer": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ]
+    },
+    {
+      "id": "profil-005",
+      "art": "mail",
+      "zeit": "2024-11-14T10:40:00+01:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Auftrag Screening-Einführung Station G3 und G5",
+      "text": "Sehr geehrte Frau Hartmann,\n\nnach unserem Gespräch möchte ich Sie beauftragen, das Screening auf Mangelernährung auf den Stationen G3 und G5 einzuführen.\nLaufzeit sechs Monate, beginnend im Dezember. Ansprechpartnerin für Termine und Organisation ist Frau Gerlach im Sekretariat\nGeriatrie. Am besten erreichen Sie mich telefonisch vor 8 Uhr morgens, danach bin ich in der Visite.\n\nFreundliche Grüße\nClaudia Reinhardt",
+      "antwort_auf": "profil-002"
+    },
+    {
+      "id": "profil-006",
+      "art": "transkript",
+      "zeit": "2025-02-20T14:00:00+01:00",
+      "titel": "Projektgespräch Screening G3/G5",
+      "text": "Claudia Reinhardt: Wir sind jetzt zwei Monate drin. Wie läuft das Screening auf G3?\nLea Hartmann: Die Pflege setzt es gut um. Auf G3 haben wir gut die Hälfte der Aufnahmen gescreent, auf G5 fangen wir gerade an.\nClaudia Reinhardt: Was brauchen Sie von mir?\nLea Hartmann: Eine Rückmeldung der Stationsleitungen und die Zusage, dass die Ärztinnen das Ergebnis in die Visite einbeziehen.\nClaudia Reinhardt: Das sage ich zu. Ich schreibe bis Freitag an die Stationsleitungen.\nLea Hartmann: Dann schicke ich Ihnen im Mai einen Zwischenbericht.",
+      "teilnehmer": [
+        "Claudia Reinhardt",
+        "Lea Hartmann"
+      ]
+    },
+    {
+      "id": "profil-007",
+      "art": "mail",
+      "zeit": "2025-05-15T09:30:00+02:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Zwischenbericht Screening: Rückmeldung",
+      "text": "Sehr geehrte Frau Hartmann,\n\nvielen Dank für den Zwischenbericht. Das Ergebnis ist beeindruckend: Die Screening-Quote bei Aufnahme ist von 54 Prozent\nauf 91 Prozent gestiegen. Die Geschäftsführung ist sehr zufrieden.\n\nFreundliche Grüße\nClaudia Reinhardt"
+    },
+    {
+      "id": "profil-008",
+      "art": "mail",
+      "zeit": "2025-06-27T16:10:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        }
+      ],
+      "betreff": "Abschlussbericht und Rechnung Screening-Einführung",
+      "text": "Sehr geehrte Frau Dr. Reinhardt,\n\nanbei der Abschlussbericht zur Einführung des Screenings auf G3 und G5 und meine Schlussrechnung. Es war mir eine Freude!\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "profil-009",
+      "art": "mail",
+      "zeit": "2025-09-04T07:50:00+02:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Vortrag beim Geriatrie-Kongress",
+      "text": "Liebe Lea,\n\nwir kennen uns ja nun fast ein Jahr, ich schlage vor, wir duzen uns: Claudia. Ich habe eine Bitte: Beim Geriatrie-Kongress\nim November würde ich dich gern für einen Vortrag über unser Screening gewinnen. Hast du Lust?\n\nHerzliche Grüße\nClaudia",
+      "antwort_auf": "profil-008"
+    },
+    {
+      "id": "profil-010",
+      "art": "mail",
+      "zeit": "2025-09-05T08:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        }
+      ],
+      "betreff": "AW: Vortrag beim Geriatrie-Kongress",
+      "text": "Liebe Claudia,\n\nsehr gern, das Du nehme ich mit Freude an! Ich mache den Vortrag gern.\n\nLiebe Grüße\nLea",
+      "ordner": "Sent",
+      "antwort_auf": "profil-009"
+    },
+    {
+      "id": "profil-011",
+      "art": "termin",
+      "zeit": "2025-09-05T08:30:00+02:00",
+      "beginn": "2025-11-21T11:00:00+01:00",
+      "ende": "2025-11-21T11:45:00+01:00",
+      "titel": "Vortrag Screening beim Geriatrie-Kongress",
+      "ort": "Rheinhalle Wiesbaden, Saal 2",
+      "teilnehmer": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Auf Einladung von Claudia Reinhardt."
+    },
+    {
+      "id": "profil-012",
+      "art": "mail",
+      "zeit": "2026-01-27T19:05:00+01:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Idee: Ernährungsvisite in der Geriatrie",
+      "text": "Liebe Lea,\n\ndas Screening läuft stabil. Der nächste Schritt wäre für mich eine systematische Ernährungsvisite auf allen geriatrischen\nStationen, bei der Ärztinnen, Pflege und Diätassistenz gemeinsam entscheiden. Würdest du das mit mir aufsetzen?\n\nLiebe Grüße\nClaudia",
+      "antwort_auf": "profil-010"
+    },
+    {
+      "id": "profil-013",
+      "art": "mail",
+      "zeit": "2026-03-10T11:00:00+01:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Vertrag Folgeprojekt Ernährungsvisite",
+      "text": "Liebe Lea,\n\ndie Geschäftsführung hat den Vertrag für das Folgeprojekt Ernährungsvisite freigegeben. Die Laufzeit ist vom 1. April 2026\nbis zum 31. März 2027. Bitte schick ihn unterschrieben an Frau Gerlach.\n\nLiebe Grüße\nClaudia",
+      "antwort_auf": "profil-012"
+    },
+    {
+      "id": "profil-014",
+      "art": "notiz",
+      "zeit": "2026-05-28T08:10:00+02:00",
+      "titel": "Claudia Reinhardt",
+      "text": "Claudia Reinhardt: Chefärztin Geriatrie an der St.-Ludgerus-Klinik Wiesbaden. Eine meiner wichtigsten Klinikkontakte, seit Oktober 2024.\nProjekte: Screening-Einführung G3/G5 (abgeschlossen), Ernährungsvisite (läuft bis 31.03.2027), Vortrag Kongress 2025.\nErreichbar am besten telefonisch vor 8 Uhr. Sekretariat: Frau Gerlach. Duzen seit September 2025."
+    },
+    {
+      "id": "profil-015",
+      "art": "mail",
+      "zeit": "2026-07-02T10:12:00+02:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Gemeinsamer Fachartikel Ernährungsvisite",
+      "text": "Liebe Lea,\n\neine Fachzeitschrift möchte einen Artikel über unsere Ernährungsvisite in der Geriatrie. Ich würde ihn gern mit dir\nzusammen schreiben. Du schreibst den Methodenteil, ich den klinischen Teil. Das Manuskript ist bis zum 30. Oktober\neinzureichen.\n\nLiebe Grüße\nClaudia",
+      "antwort_auf": "profil-013"
+    },
+    {
+      "id": "profil-016",
+      "art": "mail",
+      "zeit": "2026-07-03T08:00:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        }
+      ],
+      "betreff": "AW: Gemeinsamer Fachartikel Ernährungsvisite",
+      "text": "Liebe Claudia,\n\nsehr gern, ich übernehme den Methodenteil.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "profil-015"
+    },
+    {
+      "id": "profil-017",
+      "art": "mail",
+      "zeit": "2026-09-11T17:25:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Claudia Reinhardt",
+          "adresse": "c.reinhardt@ludgerus-klinik.example"
+        }
+      ],
+      "betreff": "Methodenteil Fachartikel: Stand",
+      "text": "Liebe Claudia,\n\nes ist bei mir leider etwas später geworden. Ich schicke dir den Entwurf des Methodenteils bis zum 9. Oktober, dann\nbleibt genug Zeit bis zur Einreichung am 30. Oktober.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "profil-016"
+    },
+    {
+      "id": "profil-018",
+      "art": "mail",
+      "zeit": "2026-09-24T07:40:00+02:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Schulung Pflege: Termin offen",
+      "text": "Liebe Lea,\n\nnoch ein offener Punkt aus dem Projekt: Die Schulung der Pflegekräfte zur Ernährungsvisite haben wir noch nicht terminiert.\nFrau Gerlach sammelt Terminvorschläge der Stationsleitungen. Kannst du mir zwei Wunschtermine im November nennen?\n\nLiebe Grüße\nClaudia",
+      "antwort_auf": "profil-013"
+    },
+    {
+      "id": "profil-019",
+      "art": "mail",
+      "zeit": "2025-12-18T09:00:00+01:00",
+      "von": {
+        "name": "Dr. Claudia Reinhardt",
+        "adresse": "c.reinhardt@ludgerus-klinik.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Frohe Feiertage",
+      "text": "Liebe Lea,\n\ndanke für deinen Vortrag im November, das Feedback war großartig. Frohe Feiertage und einen guten Start ins neue Jahr!\n\nClaudia"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "profil-01",
+      "frage": "Wer ist eigentlich Dr. Reinhardt, und was haben wir miteinander zu tun?",
+      "kategorie": "profil",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Chefärztin"
+          ],
+          [
+            "Screening"
+          ],
+          [
+            "Ernährungsvisite"
+          ],
+          [
+            "Artikel",
+            "Manuskript"
+          ]
+        ],
+        "belege": [
+          "profil-001",
+          "profil-005",
+          "profil-013",
+          "profil-015",
+          "profil-014"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Küchenleiterin",
+          "Einkaufsleiterin"
+        ],
+        "belege": []
+      },
+      "notiz": "Profil: Chefärztin Geriatrie, abgeschlossenes Screening-Projekt, laufende Ernährungsvisite, gemeinsamer Fachartikel."
+    },
+    {
+      "id": "profil-02",
+      "frage": "Seit wann kenne ich Claudia Reinhardt?",
+      "kategorie": "profil",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Oktober 2024",
+            "Okt. 2024",
+            "10.2024",
+            "Herbst 2024",
+            "07.10.2024",
+            "7. Oktober 2024",
+            "10/2024",
+            "2024-10"
+          ]
+        ],
+        "belege": [
+          "profil-001",
+          "profil-014"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Kennengelernt beim Netzwerktreffen in Frankfurt (7.10.2024); erste Mail am 8.10.2024."
+    },
+    {
+      "id": "profil-03",
+      "frage": "Welche offenen Punkte gibt es mit Frau Reinhardt?",
+      "kategorie": "profil",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Methodenteil"
+          ],
+          [
+            "09.10.2026",
+            "9. Oktober 2026",
+            "09.10.",
+            " 9. Oktober",
+            " 9.10.",
+            " 9. Okt.",
+            "2026-10-09",
+            "09. Oktober",
+            "09. Oktober 2026"
+          ],
+          [
+            "30.10.2026",
+            "30. Oktober 2026",
+            "30.10.",
+            "30. Oktober",
+            "30. Okt.",
+            "2026-10-30",
+            "30.10"
+          ],
+          [
+            "Schulung"
+          ]
+        ],
+        "belege": [
+          "profil-015",
+          "profil-017",
+          "profil-018"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Screening-Einführung ist offen",
+          "Vortrag steht noch aus"
+        ],
+        "belege": []
+      },
+      "notiz": "Offen: Methodenteil (Lea, bis 9.10.), Manuskript bis 30.10., Schulungstermine Pflege. Screening und Vortrag sind erledigt."
+    },
+    {
+      "id": "profil-04",
+      "frage": "Wie lange läuft das Folgeprojekt Ernährungsvisite?",
+      "kategorie": "profil",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "31.03.2027",
+            "31. März 2027",
+            "31.03.",
+            "31. März",
+            "31. Mär.",
+            "März 2027",
+            "Ende März 2027",
+            "31.3.2027"
+          ]
+        ],
+        "belege": [
+          "profil-013",
+          "profil-014"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Laufzeit 1. April 2026 bis 31. März 2027."
+    },
+    {
+      "id": "profil-05",
+      "frage": "Wer ist bei Frau Reinhardt für Termine zuständig?",
+      "kategorie": "profil",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Gerlach"
+          ]
+        ],
+        "belege": [
+          "profil-003",
+          "profil-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Sekretariat Geriatrie, Frau Anja Gerlach."
+    }
+  ],
+  "kreise": [
+    {"adresse": "c.reinhardt@ludgerus-klinik.example", "kreis": "kollegen",
+     "merkmale": ["Mails in beide Richtungen", "Firmenadresse", "gemeinsamer Termin"],
+     "notiz": "Arbeitsbeziehung über zwei Jahre, per Du: Du und Vorname bei einer Firmenadresse machen keinen inneren Kreis."}
+  ]
+}

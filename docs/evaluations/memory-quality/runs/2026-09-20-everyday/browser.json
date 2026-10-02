@@ -1,0 +1,20 @@
+{
+  "result": "desktop_passed",
+  "mobile_overflow": true,
+  "mobile_limitation": "Existing app root has min-width 1280px; mobile not qualified",
+  "url": "http://127.0.0.1:18998/settings",
+  "title": "Kingfisher",
+  "viewports": [
+    [
+      1440,
+      1100
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "errors": [],
+  "flow": "settings -> task preference -> reload -> retract -> general rule restored",
+  "browser_plugin": "not available; installed Playwright used"
+}

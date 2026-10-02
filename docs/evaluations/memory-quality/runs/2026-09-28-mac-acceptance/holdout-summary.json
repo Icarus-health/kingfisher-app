@@ -1,0 +1,2280 @@
+[
+  {
+    "file": "holdout-qwen3.5-4b.json",
+    "model": "qwen3.5:4b",
+    "weights": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "cases_sha256": "e2668ac61505b420ee8b2ee7cf7205d7af49dedd03b780eb6930714395801907",
+    "post_fix": false,
+    "limitation": "Baseline agent tools empty; post-fix registers production tools. Conditional failure independently confirmed in running Docker app.",
+    "cases": [
+      {
+        "id": "conditional",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-6d9be735713345",
+            "conversation_id": "c-18917a7c0a49",
+            "role": "assistant",
+            "content": "Ich habe im getrennten Kontextdatenblock keine Informationen über eine Person namens Lea, Bauvorhaben oder Birkenhain gefunden. Die verfügbaren Daten zu diesem Thema sind leer. Ich kann daher nicht unterstellte Zustände raten oder behaupten, wie etwas funktioniert, solange es keine konkreten Fakten gibt.",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:07.634381+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                "generated_at": "2026-09-28T10:53:05.776084+02:00",
+                "items": [],
+                "withheld_count": 0,
+                "basis_omitted": false,
+                "knowledge_retrieval": {
+                  "query_terms_total": 7,
+                  "query_terms_used": 7,
+                  "query_truncated": false,
+                  "candidate_limit": 128,
+                  "candidates_returned": 0,
+                  "candidates_truncated": false,
+                  "selection_truncated": false,
+                  "truncated": false,
+                  "word_form_version": 1,
+                  "word_forms_used": 4,
+                  "word_form_candidates": 0,
+                  "synonym_version": 1,
+                  "synonyms_used": 0,
+                  "synonym_candidates": 0,
+                  "payload_omitted": 0
+                },
+                "memory_revision": 0,
+                "history_egress": "local_only",
+                "history_omitted": false,
+                "working_profile_signature": {
+                  "ids": [],
+                  "conflicts": [],
+                  "overrides": {}
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-92c0f497da7d",
+                  "fingerprint": "1a4ea02f6f15f02e05cc67eb572c1ce70fbdec289092efad81bc711b4a6c8efc"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "wrong_project",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-64a6197e5a6c42",
+            "conversation_id": "c-af229d6c351d",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Birkenhain: Lea verschickt die Baupläne am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:11.221675+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "generated_at": "2026-09-28T08:53:11.221062+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                  "basis": [
+                    {
+                      "episode_id": "e-7bcc864f5449",
+                      "fingerprint": "d2b683cec369bdc50a391a32e9770ddc05af5509730f3d530482628d3a3cc62f",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-7bcc864f5449",
+                      "fingerprint": "d2b683cec369bdc50a391a32e9770ddc05af5509730f3d530482628d3a3cc62f",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "80003680349b2fa3d70f96c39d2d8605d5e673154e560aeb423a3f4c880ba08e",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-7bcc864f5449",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-566d77eea00b",
+                  "fingerprint": "232450c43b4a768766f8af478285f1f432b6c035f5bafa04b82a22a95962cdfa"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "project_ambiguity",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-8323434753cb48",
+            "conversation_id": "c-bfd6e831c215",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-1.txt\nDie Schlüsselübergabe für Projekt Felsenpark ist am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:15.735555+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann ist die Schlüsselübergabe?",
+                "generated_at": "2026-09-28T08:53:15.735255+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann ist die Schlüsselübergabe?",
+                  "basis": [
+                    {
+                      "episode_id": "e-3775f629fa70",
+                      "fingerprint": "d1cd016ae8b1445480cac3b517429f55206b1c7c0db125297d48b91931993e45",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-e0ad2de1071e",
+                      "fingerprint": "8ee57587d09990e4c388adbedd7b7ab3ea956c19ac29fd34ab6efb114279fc0a",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-3775f629fa70",
+                      "fingerprint": "d1cd016ae8b1445480cac3b517429f55206b1c7c0db125297d48b91931993e45",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "8d573ef9d1870ecb3a443e78b265227be6914ebfade7c6f075e589cfb7ac4419",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-3775f629fa70",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann ist die Schlüsselübergabe?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-a929658a129c",
+                  "fingerprint": "f0c9b64c13f538b81dec665d02732049aff13ade561ea2da7c5acd52afa77c6b"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "same_name",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-a78927f8a72a44",
+            "conversation_id": "c-8410c3f390b9",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Ersatzteilbestellung Heizung H92\nDie Ersatzteilbestellung für die Heizung H92 kommt am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr\n\nAngabe · Ersatzteilbestellung Pumpe R41\nDie Ersatzteilbestellung für die Pumpe R41 kommt am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:20.570755+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "generated_at": "2026-09-28T08:53:20.570533+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-e93acc0e6dbd",
+                      "fingerprint": "adecd46bbfb33b0d66d9e781f29e45935f39a7a4a5a045adf38062b72fff4b01",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-c47ef115fb09",
+                      "fingerprint": "9fc68256e4badd88a8139c9807f7543fea93c27b0ca2df466c2e98291ac11c76",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-e93acc0e6dbd",
+                      "fingerprint": "adecd46bbfb33b0d66d9e781f29e45935f39a7a4a5a045adf38062b72fff4b01",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-c47ef115fb09",
+                      "fingerprint": "9fc68256e4badd88a8139c9807f7543fea93c27b0ca2df466c2e98291ac11c76",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "13e902e18a9db4e81e7ec2034f3feb1d01155005850d5fe17c9674c0955e4513",
+                  "status": "unclear",
+                  "uncertainty": "person",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-e93acc0e6dbd",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  },
+                  {
+                    "episode_id": "e-c47ef115fb09",
+                    "label": "Quelle 2 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "refresh_available": false,
+                "clarification_choices": [
+                  {
+                    "label": "Lena Brandt <lena@werk-b.example.invalid> · Ersatzteilbestellung Heizung H92"
+                  },
+                  {
+                    "label": "Lena Brandt <lena@werk-a.example.invalid> · Ersatzteilbestellung Pumpe R41"
+                  }
+                ]
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-93a4fc9ce5ad",
+                  "fingerprint": "b8843c0e0fba91467983650ebfc100d18594cec10365c8bb002bf4bc1be67ed7"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "unknown_time",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "time_uncertainty": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-f63fcfdd4bef47",
+            "conversation_id": "c-0c6b3a5a5828",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nUnklare Einordnung · Dachprüfung\nDie Dachprüfung findet nächsten Donnerstag statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:23.689379+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "An welchem Datum findet die Dachprüfung statt?",
+                "generated_at": "2026-09-28T08:53:23.689217+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "An welchem Datum findet die Dachprüfung statt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-25a214b4defd",
+                      "fingerprint": "b42b6a4edf698095f6382ea190763632a925c0a0d4b0bc59106c95e9c0bb97df",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "uncertain"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-25a214b4defd",
+                      "fingerprint": "b42b6a4edf698095f6382ea190763632a925c0a0d4b0bc59106c95e9c0bb97df",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "uncertain"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "cd259ad19f3cfecb31fc5103f12d0f064e364b050b9bc2764f17a0a6feba4ced",
+                  "status": "unclear",
+                  "uncertainty": "time",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-25a214b4defd",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "An welchem Datum findet die Dachprüfung statt?",
+                "refresh_available": false,
+                "clarification_date": true
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-e43a73554ac2",
+                  "fingerprint": "53ba289a5c9d2629f75594288071c89dd1dabcb8395d8e8b16c185ea5cbe4631"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "correction_withdrawal",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "old_answer_invalidated": true,
+          "corrected_content": true,
+          "corrected_source_selected": true,
+          "withdrawn_history_hidden": true,
+          "withdrawn_after_reopen": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-a3ad5a47b66949",
+            "conversation_id": "c-95b8944d19ef",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Kiefernwald: Die Schließanlage wird am 14. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:26.990889+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:53:26.990721+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-e3ca0b2998b0",
+                      "fingerprint": "16a2e558ba851c6ec619530d8b43dc0d262ad48a12d33e4938501d17e855057f",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-e3ca0b2998b0",
+                      "fingerprint": "16a2e558ba851c6ec619530d8b43dc0d262ad48a12d33e4938501d17e855057f",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "7e475ef011a95f93a195cf4e26f3e06e3b0f45d653c77c46956ef6f4c4954a31",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-e3ca0b2998b0",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-9159ad1f2c1a",
+                  "fingerprint": "c4839dd59182dcb0241b121331c985e45beaee2d67792a56d8dcbce3cb7c2292"
+                }
+              ]
+            }
+          },
+          {
+            "id": "m-a207363fd7b942",
+            "conversation_id": "c-5388203c62b0",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: holdout-0.txt\nProjekt Kiefernwald: Der bisherige Termin am 14. Dezember 2026 ist abgesagt. Die Schließanlage wird am 22. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:29.010690+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:53:29.010527+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-0a70296bfc0d",
+                      "fingerprint": "51a80f98c77ecf7c0540a728f550d2c7d2011446143594848f6d54d5c38f3391",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-0a70296bfc0d",
+                      "fingerprint": "51a80f98c77ecf7c0540a728f550d2c7d2011446143594848f6d54d5c38f3391",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "91abbd2cf1232310c236370adfd437f6daac21b7772e4c53afb4322d7adbd369",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-0a70296bfc0d",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-a5ac916fb5f8",
+                  "fingerprint": "a22d726129f9b0b0da3f69472d1c0ecb018e02d3f2b9f65459de896a4d2cd143"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "paraphrase",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-a8f564e9911b4f",
+            "conversation_id": "c-8af93054f95c",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nDer Wohnungsschlüssel steckt in der blauen Keramikschale neben dem Kühlschrank.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:32.093195+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "generated_at": "2026-09-28T08:53:32.092887+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                  "basis": [
+                    {
+                      "episode_id": "e-4a41e6a0d3a8",
+                      "fingerprint": "c1f6f6b80beca1c98f5fe2811311fa42c858273433c5649a9cae415b687c0f1b",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-4a41e6a0d3a8",
+                      "fingerprint": "c1f6f6b80beca1c98f5fe2811311fa42c858273433c5649a9cae415b687c0f1b",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "e925a715d51b1b162b84c46929f75419466821b806c0f0d434e6ba470fbb2d3f",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-4a41e6a0d3a8",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-9a43659611e3",
+                  "fingerprint": "c7dd02410fe0c0f404074fdf055dbd4bfc415fbae0b551c89bc63be45521e366"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "holdout-qwen2.5-14b.json",
+    "model": "qwen2.5:14b",
+    "weights": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+    "cases_sha256": "e2668ac61505b420ee8b2ee7cf7205d7af49dedd03b780eb6930714395801907",
+    "post_fix": false,
+    "limitation": "Baseline agent tools empty; post-fix registers production tools. Conditional failure independently confirmed in running Docker app.",
+    "cases": [
+      {
+        "id": "conditional",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-ae6f6268dfe947",
+            "conversation_id": "c-6d1b254b9fa4",
+            "role": "assistant",
+            "content": "Lea verschickt die Baupläne für Birkenhain, wenn bestimmte Bedingungen erfüllt sind oder bestimmte Aktionen durchgeführt wurden. Um genau zu sagen, wann oder unter welchen Bedingungen das passiert, bräuchte ich mehr Informationen darüber, was bis jetzt in deinem Spiel passiert ist oder welche Bedingungen spezifisch für das Spiel erforderlich sind. Kannst du eine spezifische Situation oder Anforderung nennen?",
+            "status": "complete",
+            "created_at": "2026-09-28T10:53:54.194957+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                "generated_at": "2026-09-28T10:53:43.867739+02:00",
+                "items": [],
+                "withheld_count": 0,
+                "basis_omitted": false,
+                "knowledge_retrieval": {
+                  "query_terms_total": 7,
+                  "query_terms_used": 7,
+                  "query_truncated": false,
+                  "candidate_limit": 128,
+                  "candidates_returned": 0,
+                  "candidates_truncated": false,
+                  "selection_truncated": false,
+                  "truncated": false,
+                  "word_form_version": 1,
+                  "word_forms_used": 4,
+                  "word_form_candidates": 0,
+                  "synonym_version": 1,
+                  "synonyms_used": 0,
+                  "synonym_candidates": 0,
+                  "payload_omitted": 0
+                },
+                "memory_revision": 0,
+                "history_egress": "local_only",
+                "history_omitted": false,
+                "working_profile_signature": {
+                  "ids": [],
+                  "conflicts": [],
+                  "overrides": {}
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-b9cfe1643b3d",
+                  "fingerprint": "8fd5bf530c154c8b2392c3790a6d224a8588638c94557153bccc9f0d504a2613"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "wrong_project",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-f51adf740aba4a",
+            "conversation_id": "c-38f7d64a31e0",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Birkenhain: Lea verschickt die Baupläne am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:53 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:03.272178+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "generated_at": "2026-09-28T08:54:03.271637+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                  "basis": [
+                    {
+                      "episode_id": "e-499eb0531b6f",
+                      "fingerprint": "dfaff62348990bbb51d2fb646658637b446aaed79f6ac71f7147832ac5fbcc14",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-499eb0531b6f",
+                      "fingerprint": "dfaff62348990bbb51d2fb646658637b446aaed79f6ac71f7147832ac5fbcc14",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "a467611a28a8dfb8f44d74792123db289e803ef880408783263e02d721a09da2",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-499eb0531b6f",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-4ea3ec42b0fa",
+                  "fingerprint": "edd57b563a1c0f40c9442d1f4fa7c63bcca7f97e632c6f46ae8d01c0247c3308"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "project_ambiguity",
+        "checks": {
+          "source_selection": true,
+          "status": false,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-0e1c65c2e2a049",
+            "conversation_id": "c-b7ed946fbebd",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-1.txt\nDie Schlüsselübergabe für Projekt Felsenpark ist am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr\n\nAngabe · holdout-0.txt\nDie Schlüsselübergabe für Projekt Birkenhain ist am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:09.641122+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann ist die Schlüsselübergabe?",
+                "generated_at": "2026-09-28T08:54:09.640844+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann ist die Schlüsselübergabe?",
+                  "basis": [
+                    {
+                      "episode_id": "e-d120bd4e1162",
+                      "fingerprint": "ed7701fd1fc26365a0673bd0172ca2218967dfa8e52c20ee6bc929549abbecd7",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-6b0cb5f1845b",
+                      "fingerprint": "4a6c17018d7135967bdcd78c0fbb8c67e640bc79d8598374b8cf85a808804b03",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-d120bd4e1162",
+                      "fingerprint": "ed7701fd1fc26365a0673bd0172ca2218967dfa8e52c20ee6bc929549abbecd7",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-6b0cb5f1845b",
+                      "fingerprint": "4a6c17018d7135967bdcd78c0fbb8c67e640bc79d8598374b8cf85a808804b03",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "3f31956f85e4737ba3ac79499b98ad473ea0f251f8c97da9687130e66f70d983",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-d120bd4e1162",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  },
+                  {
+                    "episode_id": "e-6b0cb5f1845b",
+                    "label": "Quelle 2 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann ist die Schlüsselübergabe?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-ec4c7c66757a",
+                  "fingerprint": "a316363d534dee85b0fd48eedf04d6df9cbddb0ba4e68b319639c67562e3c752"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "same_name",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-3af408f4265e49",
+            "conversation_id": "c-9b4ebcd1cc96",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Ersatzteilbestellung Heizung H92\nDie Ersatzteilbestellung für die Heizung H92 kommt am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr\n\nAngabe · Ersatzteilbestellung Pumpe R41\nDie Ersatzteilbestellung für die Pumpe R41 kommt am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:16.368009+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "generated_at": "2026-09-28T08:54:16.367871+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-43bc67f4e789",
+                      "fingerprint": "106a619457c36ce2ec6762ddd68fd9a9a017f6311f316335bec3a528ee8ff524",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-378a1438f4a8",
+                      "fingerprint": "65338381590a63297ded0fec0fb1e6ac1e383be0826292024d3240638355cd9e",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-43bc67f4e789",
+                      "fingerprint": "106a619457c36ce2ec6762ddd68fd9a9a017f6311f316335bec3a528ee8ff524",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-378a1438f4a8",
+                      "fingerprint": "65338381590a63297ded0fec0fb1e6ac1e383be0826292024d3240638355cd9e",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "a280bba9fde3023474889a4ae654c3ab53ca8879c5ba2f3d455b933dac96c4de",
+                  "status": "unclear",
+                  "uncertainty": "person",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-43bc67f4e789",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  },
+                  {
+                    "episode_id": "e-378a1438f4a8",
+                    "label": "Quelle 2 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "refresh_available": false,
+                "clarification_choices": [
+                  {
+                    "label": "Lena Brandt <lena@werk-b.example.invalid> · Ersatzteilbestellung Heizung H92"
+                  },
+                  {
+                    "label": "Lena Brandt <lena@werk-a.example.invalid> · Ersatzteilbestellung Pumpe R41"
+                  }
+                ]
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-5df3678f5278",
+                  "fingerprint": "4eb274e92df908d2728bfe9b85d3b8f2a704dc719ed2a6798c31d40642710d79"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "unknown_time",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "time_uncertainty": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-ab3c8a34e3ac4e",
+            "conversation_id": "c-3ee4d4e212f3",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nAngabe · Dachprüfung\nDie Dachprüfung findet nächsten Donnerstag statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:19.954163+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "An welchem Datum findet die Dachprüfung statt?",
+                "generated_at": "2026-09-28T08:54:19.953668+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "An welchem Datum findet die Dachprüfung statt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-08045ec0c925",
+                      "fingerprint": "9d68edc339f598199190e893fd58f330ca5e96384d5169556a67efaa80ba83b5",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-08045ec0c925",
+                      "fingerprint": "9d68edc339f598199190e893fd58f330ca5e96384d5169556a67efaa80ba83b5",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "edea11a4b454406960667b62a91a569086b599b2947545d6af9f8ca2f2f57075",
+                  "status": "unclear",
+                  "uncertainty": "time",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-08045ec0c925",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "An welchem Datum findet die Dachprüfung statt?",
+                "refresh_available": false,
+                "clarification_date": true
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-a4445ba1c3cf",
+                  "fingerprint": "1657864899efa09ccae0ded74933f49fc979f6f5ed4789e0f0f2c181aa4ce391"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "correction_withdrawal",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "old_answer_invalidated": true,
+          "corrected_content": true,
+          "corrected_source_selected": true,
+          "withdrawn_history_hidden": true,
+          "withdrawn_after_reopen": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-86a6ab94bc3f41",
+            "conversation_id": "c-6be6193b5fcb",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Kiefernwald: Die Schließanlage wird am 14. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:24.382377+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:54:24.382025+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-e499f31fdb37",
+                      "fingerprint": "14016692501f072e5c3f43e5043c7f93b2a0b44739d8e4f82b9039415d3af987",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-e499f31fdb37",
+                      "fingerprint": "14016692501f072e5c3f43e5043c7f93b2a0b44739d8e4f82b9039415d3af987",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "3da5b98e4de9a5ab918d5cbef1743c0b41e6cc6b879ba48f2f9cb7455d5e0736",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-e499f31fdb37",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-b29e669074ee",
+                  "fingerprint": "ee5bf198d34f6a87c54c870ffb78f57f0f773f94a0d4130c8009d8b53e3ad054"
+                }
+              ]
+            }
+          },
+          {
+            "id": "m-bfd75bcc8a0a4c",
+            "conversation_id": "c-97ae569ab618",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: holdout-0.txt\nProjekt Kiefernwald: Der bisherige Termin am 14. Dezember 2026 ist abgesagt. Die Schließanlage wird am 22. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:26.825280+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:54:26.824839+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-440b90faadad",
+                      "fingerprint": "34d1aa726a63c1d5558972db5d787aa02172965bdd19f0e349cd68d5c27e9e27",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-440b90faadad",
+                      "fingerprint": "34d1aa726a63c1d5558972db5d787aa02172965bdd19f0e349cd68d5c27e9e27",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "88145a5ca48452392f1e9e5700c5bc9141ab52bfb4e6eeb4dc9434d6aadfea11",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-440b90faadad",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-592d8f3c2f4d",
+                  "fingerprint": "8f6ff0a99c369a22d5f6e3379e9bfde4dce4e2128f0661ddc6593730f010ea65"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "paraphrase",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-7f1dc39993894c",
+            "conversation_id": "c-a9ae2e59af34",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nDer Wohnungsschlüssel steckt in der blauen Keramikschale neben dem Kühlschrank.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:54 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:54:31.072092+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "generated_at": "2026-09-28T08:54:31.071671+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                  "basis": [
+                    {
+                      "episode_id": "e-614ecbc0b531",
+                      "fingerprint": "7c2d9060690364cff17ed00d799d2b526b54718d6bf22cb438190753fa5acc8c",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-614ecbc0b531",
+                      "fingerprint": "7c2d9060690364cff17ed00d799d2b526b54718d6bf22cb438190753fa5acc8c",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "1a9e25c406b44ebe24c97170a574868287246bd022b4d9482a8f7c4c8f0e4652",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-614ecbc0b531",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-7768b660c97e",
+                  "fingerprint": "08cb13ca7a325f20fbba75a397f9af53dfcafc696bacb7a47d513dedc66e295e"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "holdout-registry-qwen3.5-4b.json",
+    "model": "qwen3.5:4b",
+    "weights": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "cases_sha256": "e2668ac61505b420ee8b2ee7cf7205d7af49dedd03b780eb6930714395801907",
+    "post_fix": true,
+    "limitation": "Baseline agent tools empty; post-fix registers production tools. Conditional failure independently confirmed in running Docker app.",
+    "cases": [
+      {
+        "id": "conditional",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-7fdd716962ef42",
+            "conversation_id": "c-1367b8cda710",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Birkenhain: Lea verschickt die Baupläne am 14. Dezember 2026.\n\nDies gilt ausschließlich nach schriftlicher Zustimmung der Eigentümer. Diese Zustimmung steht noch aus.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:58:45.459891+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                "generated_at": "2026-09-28T08:58:45.459778+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                  "basis": [
+                    {
+                      "episode_id": "e-63ea5bc9424f",
+                      "fingerprint": "eece2ef9b3155342739b07c24815f1f3be4b16c758e760fc647641ccde4ea231",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-a985ea429e1c",
+                      "fingerprint": "01b38fb7b3e8b907ac8af7195f3649eb98395513b5e34e27d87030a6a2b71f6c",
+                      "start": 0,
+                      "end": 94,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-63ea5bc9424f",
+                      "fingerprint": "eece2ef9b3155342739b07c24815f1f3be4b16c758e760fc647641ccde4ea231",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "215d1ede8f7bfd2add1097935368600aede7f72c7be0fc7cb44cdf750b3f88ca",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-63ea5bc9424f",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Unter welchen Voraussetzungen verschickt Lea die Baupläne für Birkenhain?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-c58813f9d7e9",
+                  "fingerprint": "69cbf8d47ec0a43602d0b520dc578c3d651a07a04bfa3b7757b5e2b933516eb5"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "wrong_project",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-e3a4cd9d8ba84e",
+            "conversation_id": "c-71842e03d8fb",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Birkenhain: Lea verschickt die Baupläne am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:58:48.621845+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "generated_at": "2026-09-28T08:58:48.621415+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                  "basis": [
+                    {
+                      "episode_id": "e-103db41dc14a",
+                      "fingerprint": "e174efb0ca198b81c5534678793e3b066e8cb586c6c42dceae6ce8cb7ebe5a5b",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-103db41dc14a",
+                      "fingerprint": "e174efb0ca198b81c5534678793e3b066e8cb586c6c42dceae6ce8cb7ebe5a5b",
+                      "start": 0,
+                      "end": 69,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "a554c9da703b84953ef6ef3f63001fcfc5089979c4a2d7b33d3c3ec3f7ff9099",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-103db41dc14a",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann verschickt Lea die Baupläne für Felsenpark?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-4cadc5df55f1",
+                  "fingerprint": "93ed5e82f7c804d8048c416aa7fe9cd7f51214274e47f28922614beb9bf702c4"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "project_ambiguity",
+        "checks": {
+          "source_selection": false,
+          "status": false,
+          "content": false,
+          "originals_preserved": true
+        },
+        "passed": false,
+        "responses": [
+          {
+            "id": "m-ec6e010687cb4c",
+            "conversation_id": "c-7d5a681c2014",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-1.txt\nDie Schlüsselübergabe für Projekt Felsenpark ist am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:58:53.118255+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann ist die Schlüsselübergabe?",
+                "generated_at": "2026-09-28T08:58:53.117997+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann ist die Schlüsselübergabe?",
+                  "basis": [
+                    {
+                      "episode_id": "e-8223665cbe71",
+                      "fingerprint": "07b11e375167b691068c8797fbfed8f66ae5c1bfd47e1afe2336d982ca62855f",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-1fba94b4bc48",
+                      "fingerprint": "63e76a87d218826702cc69637afc0a0e748506ed88c651b76eeaa46db95ab33f",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-8223665cbe71",
+                      "fingerprint": "07b11e375167b691068c8797fbfed8f66ae5c1bfd47e1afe2336d982ca62855f",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "5107cbb30b7dc9b88eb8b2999bb7b8ecbadae23a7f4c6e481ab3bbed7ba962f0",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-8223665cbe71",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann ist die Schlüsselübergabe?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-5eca17305109",
+                  "fingerprint": "6fa67d1ac72c844b335a55714d7d615ea25eaf813daccac83dacf3c91a2193a3"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "same_name",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-efc9dc14e17c48",
+            "conversation_id": "c-fde91b009bbd",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Ersatzteilbestellung Heizung H92\nDie Ersatzteilbestellung für die Heizung H92 kommt am 21. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr\n\nAngabe · Ersatzteilbestellung Pumpe R41\nDie Ersatzteilbestellung für die Pumpe R41 kommt am 14. Dezember 2026.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:58:57.748690+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "generated_at": "2026-09-28T08:58:57.748218+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-5785403f8efc",
+                      "fingerprint": "253e56137d4b6be2665fa97dd67e9df0a327fda072b5fa3e60eae9e2b7fe6fd4",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-2e7ad5d27e8d",
+                      "fingerprint": "0ba6980e53dd94634cdad2f6abb05d5c1b8da1511b159687845921ff2f85cc18",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-5785403f8efc",
+                      "fingerprint": "253e56137d4b6be2665fa97dd67e9df0a327fda072b5fa3e60eae9e2b7fe6fd4",
+                      "start": 0,
+                      "end": 72,
+                      "kind": "fact"
+                    },
+                    {
+                      "episode_id": "e-2e7ad5d27e8d",
+                      "fingerprint": "0ba6980e53dd94634cdad2f6abb05d5c1b8da1511b159687845921ff2f85cc18",
+                      "start": 0,
+                      "end": 70,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "111a8d0a8821eb43e4ab3cf6f484f311909bf546c9dac4b45690a0fa9ee2b6c9",
+                  "status": "unclear",
+                  "uncertainty": "person",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-5785403f8efc",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  },
+                  {
+                    "episode_id": "e-2e7ad5d27e8d",
+                    "label": "Quelle 2 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann kommt die Ersatzteilbestellung von Lena Brandt?",
+                "refresh_available": false,
+                "clarification_choices": [
+                  {
+                    "label": "Lena Brandt <lena@werk-b.example.invalid> · Ersatzteilbestellung Heizung H92"
+                  },
+                  {
+                    "label": "Lena Brandt <lena@werk-a.example.invalid> · Ersatzteilbestellung Pumpe R41"
+                  }
+                ]
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-a325a0f58c51",
+                  "fingerprint": "d3d10e74406a7f93f4cde6ecdfcf4b50d65083dde5a35aea1b6c4dae4be419dd"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "unknown_time",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "time_uncertainty": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-60c1a5bb235c48",
+            "conversation_id": "c-633bd25969e6",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nUnklare Einordnung · Dachprüfung\nDie Dachprüfung findet nächsten Donnerstag statt.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:58 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:59:01.015488+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "An welchem Datum findet die Dachprüfung statt?",
+                "generated_at": "2026-09-28T08:59:01.015273+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "An welchem Datum findet die Dachprüfung statt?",
+                  "basis": [
+                    {
+                      "episode_id": "e-b54cf524b1bf",
+                      "fingerprint": "d7b0cc42eea816390f1a6b3bd89cf8dbeb011a05bb8eddb6e38d5cca37d547ab",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "uncertain"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-b54cf524b1bf",
+                      "fingerprint": "d7b0cc42eea816390f1a6b3bd89cf8dbeb011a05bb8eddb6e38d5cca37d547ab",
+                      "start": 0,
+                      "end": 49,
+                      "kind": "uncertain"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "70ec2bfed7de3e928ca5278aee22f44e019719910210c09cf44494d3be406e34",
+                  "status": "unclear",
+                  "uncertainty": "time",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_unclear",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-b54cf524b1bf",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "An welchem Datum findet die Dachprüfung statt?",
+                "refresh_available": false,
+                "clarification_date": true
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-ddc6c73299d2",
+                  "fingerprint": "4ef595887ff0d3e00832a970ae58e4801581dc378cb0195f05f8cae2da00be22"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "correction_withdrawal",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true,
+          "old_answer_invalidated": true,
+          "corrected_content": true,
+          "corrected_source_selected": true,
+          "withdrawn_history_hidden": true,
+          "withdrawn_after_reopen": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-a177fb3ebc8d4b",
+            "conversation_id": "c-cee301837e08",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nProjekt Kiefernwald: Die Schließanlage wird am 14. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:59 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:59:04.151012+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:59:04.150883+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-895dfab10dff",
+                      "fingerprint": "d7ddc2d9a1ed84769b7e8b87a06ffa1c6c207ebe6e670298c0b23213d42c8ab8",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-895dfab10dff",
+                      "fingerprint": "d7ddc2d9a1ed84769b7e8b87a06ffa1c6c207ebe6e670298c0b23213d42c8ab8",
+                      "start": 0,
+                      "end": 74,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "f2d1412706c2bf050083818dfaddd47a353809e926e632b2aa82b0cdf0fa1c22",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-895dfab10dff",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-13c102b59e16",
+                  "fingerprint": "ddc819bdffc7637218a384da4080a2dce71f47eb66491bc01c8f7fa0265cc4c9"
+                }
+              ]
+            }
+          },
+          {
+            "id": "m-db2edaa9f8c54d",
+            "conversation_id": "c-8d72ff71e2fb",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Deine Berichtigung: holdout-0.txt\nProjekt Kiefernwald: Der bisherige Termin am 14. Dezember 2026 ist abgesagt. Die Schließanlage wird am 22. Dezember 2026 erneuert.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:59 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:59:06.027048+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "generated_at": "2026-09-28T08:59:06.026660+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                  "basis": [
+                    {
+                      "episode_id": "e-2b63a294ed0d",
+                      "fingerprint": "e083894a70901f0ac7884cb29fcfe896719e37b69e53b133e892c24b4073ff73",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-2b63a294ed0d",
+                      "fingerprint": "e083894a70901f0ac7884cb29fcfe896719e37b69e53b133e892c24b4073ff73",
+                      "start": 0,
+                      "end": 130,
+                      "kind": "change"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "6ee3c766d0bdcef9e0a89d09079d293fcf6e74bc0af12306fd1a680a584b097a",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-2b63a294ed0d",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wann wird die Schließanlage für Kiefernwald erneuert?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-cfc67f21e695",
+                  "fingerprint": "aaa9d4bd00964a7f0245e7316f065f1c3c98ad20d1cc140f58a6534f3ccf7dd5"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "paraphrase",
+        "checks": {
+          "source_selection": true,
+          "status": true,
+          "content": true,
+          "originals_preserved": true
+        },
+        "passed": true,
+        "responses": [
+          {
+            "id": "m-2cb8a66227db43",
+            "conversation_id": "c-6958c9faf200",
+            "role": "assistant",
+            "content": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · holdout-0.txt\nDer Wohnungsschlüssel steckt in der blauen Keramikschale neben dem Kühlschrank.\nQuellenzeit: unbekannt · Erfasst: 28.09.2026, 10:59 Uhr",
+            "status": "complete",
+            "created_at": "2026-09-28T10:59:09.445338+02:00",
+            "metadata": {
+              "approvals": [],
+              "notices": [],
+              "used_tools": [],
+              "context": {
+                "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "generated_at": "2026-09-28T08:59:09.444851+00:00",
+                "items": [],
+                "withheld_count": 0,
+                "memory_revision": 0,
+                "answer_mode": "memory_evidence",
+                "history_egress": "local_only",
+                "working_answer": {
+                  "version": 1,
+                  "query": "Wo finde ich den Schlüssel für meine Wohnung?",
+                  "basis": [
+                    {
+                      "episode_id": "e-c2f7bb751fdc",
+                      "fingerprint": "b01d6ab0c50d651cdc12e2a39dc35fee09d6b5888e8a8e8d8b38cc7e680332a6",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "refs": [
+                    {
+                      "episode_id": "e-c2f7bb751fdc",
+                      "fingerprint": "b01d6ab0c50d651cdc12e2a39dc35fee09d6b5888e8a8e8d8b38cc7e680332a6",
+                      "start": 0,
+                      "end": 79,
+                      "kind": "fact"
+                    }
+                  ],
+                  "claim_basis": {},
+                  "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidate_signature": "d4e11a1c6b8677dd1e0da75423466297eeca3fd39b8ef2c5d9a952f8dcf60a75",
+                  "status": "reports",
+                  "uncertainty": "none",
+                  "limited": false
+                },
+                "answer_contract": {
+                  "version": 1,
+                  "status": "working_reports",
+                  "semantic_validation": false,
+                  "model_called": true,
+                  "selected_assertion_ids": []
+                },
+                "knowledge_claim_lineage_version": 2,
+                "knowledge_claim_ids": [],
+                "knowledge_inputs": {},
+                "knowledge_history_reset": false,
+                "self_model_lineage_version": 3,
+                "self_model_inputs": {},
+                "self_model_history_reset": false,
+                "source_links": [
+                  {
+                    "episode_id": "e-c2f7bb751fdc",
+                    "label": "Quelle 1 öffnen",
+                    "automatic_memory": true
+                  }
+                ],
+                "original_question": "Wo finde ich den Schlüssel für meine Wohnung?",
+                "refresh_available": false
+              },
+              "conversation_source_lineage": [
+                {
+                  "episode_id": "e-5e9e2cd00683",
+                  "fingerprint": "1dd7dab1190de80c7a33f6db0f72af0b2e5f8e1b69b90275795df1f5937fcfba"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

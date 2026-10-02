@@ -1,0 +1,12 @@
+{
+  "container": "kingfisher-pilot",
+  "volume": "kingfisher-pilot-data",
+  "url": "http://127.0.0.1:8892",
+  "image": "kingfisher:pilot-core-20260928",
+  "deployed_commit": "9d6f190",
+  "retention": "persistent; never reset on start/update",
+  "empty_initial_state_verified": true,
+  "local_automation": "active",
+  "external_accounts_configured": false,
+  "prior_test_data_preserved": true
+}

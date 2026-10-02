@@ -1,0 +1,206 @@
+{
+  "case_file_sha256": "0e3f411c7c623f95c1b2774db8194a40c54b6e7da9e036e50f27a3833e462fd2",
+  "runner_file_sha256": "5e4a4ec9bc11d850665f9351bfa17bf224a01814ae93a0692185d7d0e29352f4",
+  "selected_case_ids": [
+    "holdout_clear_call_window",
+    "holdout_two_conditions_hard_negative",
+    "holdout_relative_time_no_source_date",
+    "holdout_same_name_different_mailboxes"
+  ],
+  "model": "qwen3.5:4b",
+  "installed_model_metadata": {
+    "name": "qwen3.5:4b",
+    "model": "qwen3.5:4b",
+    "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+    "size": 3389983735,
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "4.7B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2560
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ]
+  },
+  "source_revision": "6c72867e593226ea70457b5dc153656135c0cd81",
+  "source_tree_clean": false,
+  "source_file_hashes": {
+    "episodes.py": "272e7b7437cec9ac5a6d7df2862fe62352a42f120db9c7d581f6a9750ad0eef2",
+    "working_memory_store.py": "c779b99516a0f0ddde941588b7bc902e2504a9b4829c9b64663ea46c73383237",
+    "working_memory_context.py": "30c5015ecdfaa8423bd8affd92ca8149e7ff827356685c42a4b68d9fb462f247",
+    "working_memory_answers.py": "62282dbbe30fd227c01e471235b27441ca33731026ca24c8a4ecf383075226aa",
+    "source_corrections.py": "850e826a19ce27575870e6306d1c1fb28fef24dda95a90f1d96a750fca764f14",
+    "server.py": "4de36547ab097ff653b4e40d255ef92480ea24a10744f16365bb0414cc0cd28e",
+    "working_memory_words.py": "ea9820e65698f352ab1f068641af58a1d4277cba94bd811e35c1deb51098ca17",
+    "providers.py": "d1df0e859cf924e72bdc7788f0e0bb9afc6e958af775db9550a6fe1200b24567",
+    "agent.py": "4602cfdfe826891288ac5430a4144bf989e5508d1629dd65d3323c705a0427da",
+    "tools.py": "f38549d08c82e088911ebecf17a7ce15c8c1b5fda62676a7707293a59d2e9464"
+  },
+  "started_at": "2026-09-23T15:47:31.859955+02:00",
+  "finished_at": "2026-09-23T15:47:56.660424+02:00",
+  "failures": [],
+  "mail_send_count": 0,
+  "raw_artifact_sha256": "a5d3983c9fd6a814a6b99f1951a430b6361a07fe7c56c0e43108f02b85d89e9c",
+  "synthetic_only": true,
+  "production_settings_changed": false,
+  "cases": [
+    {
+      "id": "holdout_clear_call_window",
+      "status": "completed",
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Wann kann man mich wegen der Gebäudewartung anrufen?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nBitte · Gesprächsausschnitt\nBitte wegen der Gebäudewartung nur zwischen 16:30 und 18:00 Uhr anrufen; davor unterrichte ich.\nQuellenzeit: 2026-09-23T15:47:32.151959+02:00",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_two_conditions_hard_negative",
+      "status": "completed",
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was ist noch vor dem Abnahmetermin und vor dem Versand der Prüfunterlagen zu erledigen?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · synthetic-S2.txt\nIm Vorgang WS-41 werden die Prüfunterlagen erst versandt, nachdem beide Messwerte im Abnahmeprotokoll gegengezeichnet sind.\nQuellenzeit: unbekannt\n\nAngabe · Vorgang WS-41 · Abnahmetermin\nIm Vorgang WS-41 wird der Abnahmetermin erst nach schriftlicher Kostenfreigabe verbindlich. Die Kostenfreigabe fehlt noch.\nQuellenzeit: unbekannt",
+          "contract_status": "working_reports",
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "score": {
+            "answer": "fail",
+            "retrieval": "pass",
+            "reasons": [
+              "answer did not meet frozen content/status checks"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_relative_time_no_source_date",
+      "status": "completed",
+      "actions": [
+        {
+          "stage": "question",
+          "question": "An welchem Datum können die Ersatzfilter versendet werden?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar. Von wann stammt die betreffende Nachricht?\n\nUnklare Einordnung · Ersatzfilter-Lieferung\nDie Ersatzfilter können nächsten Mittwoch versendet werden.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_source_aliases": [
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_same_name_different_mailboxes",
+      "status": "completed",
+      "actions": [
+        {
+          "stage": "question",
+          "question": "Was hat Jonas Weller zur Musterlieferung mitgeteilt?",
+          "answer": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Vorgang 9584 · Reklamation\nZur Musterlieferung im Vorgang 9584 für die Reklamation: Die Prüfmuster gehen am 18. November an Werk Süd zurück.\nQuellenzeit: unbekannt\n\nAngabe · Vorgang 4831 · Prototypenprüfung\nZur Musterlieferung im Vorgang 4831 für die Prototypenprüfung: Die Prüfmuster gehen am 12. November an Werk Nord.\nQuellenzeit: unbekannt",
+          "contract_status": "working_unclear",
+          "selected_source_aliases": [
+            "S2",
+            "S1"
+          ],
+          "score": {
+            "answer": "pass",
+            "retrieval": "pass",
+            "reasons": []
+          }
+        }
+      ]
+    }
+  ],
+  "model_calls": [
+    {
+      "kind": "chat",
+      "seconds": 9.259,
+      "response": "Ich habe notiert, dass bei der Gebäudewartung ein zeitlich begrenzter Anruf zwischen 16:30 und 18:00 Uhr vorliegt, bevor Sie mich entsprechend informieren.",
+      "tool_calls": []
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.09,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.847,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.015,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.06,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.285,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 2.243,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S2\",\"S3\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.987,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.167,
+      "response": "{\"status\":\"needs_missing_time_reference\",\"ids\":[\"S1\"]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 0.996,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "classification",
+      "seconds": 1.198,
+      "response": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.456,
+      "response": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}"
+    }
+  ]
+}

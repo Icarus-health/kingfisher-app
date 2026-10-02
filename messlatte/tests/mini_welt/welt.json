@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "stichtag": "2026-09-29T07:30:00+02:00",
+  "zeitzone": "Europe/Berlin",
+  "nutzer": {
+    "name": "Lea Hartmann",
+    "adressen": ["lea@hartmann-beratung.example"],
+    "wohnort": "Wiesbaden"
+  },
+  "wahrheit": {
+    "personen": [
+      {"id": "p-becker", "namen": ["Sabine Becker", "Frau Becker"],
+       "adressen": ["s.becker@klinikum-albanus.example"],
+       "beschreibung": "Einkaufsleiterin am St.-Albanus-Klinikum Mainz"},
+      {"id": "p-brandt", "namen": ["Tobias Brandt"],
+       "adressen": ["t.brandt@brandt-reisen.example"],
+       "beschreibung": "Freund, plant das Wochenende in Mainz"},
+      {"id": "p-weber", "namen": ["Karl Weber", "Herr Weber"],
+       "beschreibung": "Steuerberater"}
+    ],
+    "projekte": [
+      {"id": "pr-albanus", "namen": ["Albanus-Angebot", "Klinikum Mainz"],
+       "beschreibung": "Angebot Ernährungsberatung für das Klinikum"}
+    ]
+  }
+}

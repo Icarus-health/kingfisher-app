@@ -1,0 +1,199 @@
+# Docker + Browser ist der aktuelle Kingfisher-Lieferweg auf dem Mac.
+# PRs prüfen den echten Container ohne Veröffentlichung. Native Paketierung
+# und Mobile gehören nicht zu den aktuellen Freigabekriterien.
+
+name: Container
+
+# Fassungen (Tags `v*`) baut und veröffentlicht release.yml; `:latest` ist dort die neueste Fassung, nicht `main`.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/icarus-health/kingfisher-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        # Für den arm64-Anteil des Multi-Arch-Builds — der amd64-Runner kann
+        # arm64-Code nur emuliert ausführen, nicht nativ.
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Bei GHCR anmelden
+        # Nur zum Veröffentlichen nötig, nicht zum reinen Bauen im PR-Fall —
+        # deshalb bedingt, nicht immer.
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadaten (Tags, Labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=main,enable={{is_default_branch}}
+            type=sha,prefix=
+
+      - name: Bauen (und bei Push/Tag veröffentlichen)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # `load` (für den Rauchtest unten) funktioniert nur für ein
+          # einzelnes Zielarchitektur-Image — deshalb bei PRs nur amd64.
+          # Beim echten Publish werden beide Architekturen gebaut und direkt
+          # nach GHCR geschoben, ohne den Umweg über den lokalen Daemon.
+          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Lokales Testmodell und Kingfisher starten
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BUILD_DIGEST: ${{ steps.build.outputs.digest }}
+          META_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            docker pull --platform linux/amd64 "$IMAGE@$BUILD_DIGEST"
+            docker tag "$IMAGE@$BUILD_DIGEST" kingfisher-contract-image:latest
+          else
+            image_tag="${META_TAGS%%$'\n'*}"
+            docker tag "$image_tag" kingfisher-contract-image:latest
+          fi
+          docker network create kingfisher-contract
+          docker volume create kingfisher-contract-data
+          docker run -d --name kingfisher-contract-model --network kingfisher-contract \
+            --entrypoint python \
+            -v "$GITHUB_WORKSPACE/scripts/contract_model.py:/contract_model.py:ro" \
+            kingfisher-contract-image:latest /contract_model.py --host 0.0.0.0 --port 18080
+          docker run -d --name kingfisher-contract --network kingfisher-contract \
+            -p 127.0.0.1:8890:8890 \
+            -v kingfisher-contract-data:/data \
+            -e ICARUS_SIDECAR_TOKEN=kingfisher-ci-contract \
+            -e ICARUS_SECRETS_PASSPHRASE=kingfisher-ci-contract \
+            -e ICARUS_TRUSTED_LOCAL_MODEL_HOSTS=kingfisher-contract-model \
+            -e KINGFISHER_USER_NAME=Vertragstest \
+            kingfisher-contract-image:latest
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8890/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8890/health
+
+      - name: Ersteinrichtung ohne vorkonfiguriertes Modell
+        run: |
+          set -euo pipefail
+          mkdir -p verification
+          python scripts/test_configure_local_model.py
+          python scripts/test_contract_model.py
+          python - <<'PY'
+          import json, urllib.request
+          request = urllib.request.Request("http://127.0.0.1:8890/api/v1/status",
+              headers={"x-icarus-token": "kingfisher-ci-contract"})
+          with urllib.request.urlopen(request) as response:
+              assert json.load(response)["chat"] is False, "Test muss ohne Modell starten"
+          PY
+          (umask 077; echo 'ICARUS_SIDECAR_TOKEN=kingfisher-ci-contract' > "$RUNNER_TEMP/kingfisher-contract.env")
+          # Persistierte Konfiguration allein ist noch kein Verbindungsnachweis.
+          if python scripts/configure_local_model.py \
+            --env-file "$RUNNER_TEMP/kingfisher-contract.env" \
+            --model kingfisher-contract-model \
+            --endpoint http://kingfisher-contract-model:1/v1 > verification/setup-unreachable.log 2>&1; then
+            echo 'Unerreichbares Modell wurde fälschlich als verbunden gemeldet.'
+            exit 1
+          fi
+          python scripts/configure_local_model.py \
+            --env-file "$RUNNER_TEMP/kingfisher-contract.env" \
+            --model kingfisher-contract-model \
+            --endpoint http://kingfisher-contract-model:18080/v1 | tee verification/setup.log
+
+      - name: Gespräch und bestätigtes Gedächtnis im gebauten Container
+        env:
+          ICARUS_VERIFY_BASE_URL: http://127.0.0.1:8890
+          ICARUS_VERIFY_TOKEN: kingfisher-ci-contract
+        run: |
+          mkdir -p verification
+          python scripts/verify_container.py --phase seed --state verification/state.json | tee verification/seed.log
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Browserprüfung vorbereiten
+        run: |
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Ausgelieferte Kingfisher-Oberfläche bedienen
+        run: |
+          python scripts/verify_browser.py \
+            --base-url http://127.0.0.1:8890 \
+            --state verification/state.json --output verification/browser
+
+      - name: Neustart, erhaltenes Wissen und Widerruf prüfen
+        env:
+          ICARUS_VERIFY_BASE_URL: http://127.0.0.1:8890
+          ICARUS_VERIFY_TOKEN: kingfisher-ci-contract
+        run: |
+          docker restart kingfisher-contract
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8890/health >/dev/null; then break; fi
+            sleep 1
+          done
+          python scripts/verify_container.py --phase verify --state verification/state.json | tee verification/restart.log
+
+      - name: Quelle, Bestätigung und Widerruf in Kingfisher bedienen
+        run: |
+          python scripts/verify_browser.py --phase memory-controls \
+            --base-url http://127.0.0.1:8890 \
+            --state verification/state.json --output verification/memory-controls
+
+      - name: Browser-Widerruf über einen weiteren Neustart erhalten
+        env:
+          ICARUS_VERIFY_BASE_URL: http://127.0.0.1:8890
+          ICARUS_VERIFY_TOKEN: kingfisher-ci-contract
+        run: |
+          docker restart kingfisher-contract
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8890/health >/dev/null; then break; fi
+            sleep 1
+          done
+          python scripts/verify_container.py --phase verify-ui --state verification/state.json | tee verification/ui-restart.log
+
+      - name: Abnahmenachweise sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kingfisher-runtime-verification
+          path: verification/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Testprozesse aufräumen
+        if: always()
+        run: |
+          docker logs kingfisher-contract || true
+          docker logs kingfisher-contract-model || true
+          docker rm -f kingfisher-contract kingfisher-contract-model || true
+          docker volume rm kingfisher-contract-data || true
+          docker network rm kingfisher-contract || true

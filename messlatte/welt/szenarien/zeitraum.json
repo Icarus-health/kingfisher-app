@@ -1,0 +1,440 @@
+{
+  "id": "zeitraum",
+  "titel": "Zeitraum: letzte Woche beim Angebot",
+  "beschreibung": "Ein Angebot für ein Klinikum hat Ereignisse über sechs Monate. Fragen nach „letzter Woche“, „diese Woche“ und „im Frühjahr“ müssen das jeweils richtige Zeitfenster treffen.",
+  "quellen": [
+    {
+      "id": "zeitraum-001",
+      "art": "mail",
+      "zeit": "2026-03-11T09:05:00+01:00",
+      "von": {
+        "name": "Dr. Volker Amann",
+        "adresse": "v.amann@klinikum-rheingau-sued.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anfrage: Begleitung Verpflegungskonzept",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndas Klinikum Rheingau-Süd plant ein neues Verpflegungskonzept für die Stationen. Ich habe Ihren Namen von Kollegen\ngehört und würde Sie gern um ein Angebot für die fachliche Begleitung bitten.\n\nMit freundlichen Grüßen\nDr. Volker Amann\nÄrztlicher Direktor\nKlinikum Rheingau-Süd"
+    },
+    {
+      "id": "zeitraum-002",
+      "art": "mail",
+      "zeit": "2026-03-12T08:25:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Volker Amann",
+          "adresse": "v.amann@klinikum-rheingau-sued.example"
+        }
+      ],
+      "betreff": "AW: Anfrage: Begleitung Verpflegungskonzept",
+      "text": "Sehr geehrter Herr Dr. Amann,\n\nvielen Dank für Ihr Vertrauen. Ich mache Ihnen gern ein Angebot. Für die Kalkulation brauche ich noch Angaben zur\nBettenzahl und zu den Stationen, die einbezogen werden sollen.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "zeitraum-001"
+    },
+    {
+      "id": "zeitraum-003",
+      "art": "mail",
+      "zeit": "2026-04-02T15:40:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Dr. Volker Amann",
+          "adresse": "v.amann@klinikum-rheingau-sued.example"
+        },
+        {
+          "name": "Nora Feldmann",
+          "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+        }
+      ],
+      "betreff": "Angebot Verpflegungskonzept Klinikum Rheingau-Süd",
+      "text": "Sehr geehrter Herr Dr. Amann, sehr geehrte Frau Feldmann,\n\nanbei mein Angebot für die Begleitung des Verpflegungskonzepts am Klinikum Rheingau-Süd: 35.000 Euro netto für neun Monate.\n\nFür Rückfragen stehe ich gern zur Verfügung.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "zeitraum-004",
+      "art": "mail",
+      "zeit": "2026-05-19T10:12:00+02:00",
+      "von": {
+        "name": "Nora Feldmann",
+        "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Nachfrage zum Angebot",
+      "text": "Sehr geehrte Frau Hartmann,\n\nHerr Dr. Amann hat mich gebeten, den Preis noch einmal mit Ihnen zu besprechen. Ist bei der Laufzeit oder beim Umfang etwas\nSpielraum?\n\nFreundliche Grüße\nNora Feldmann\nVerwaltungsleitung\nKlinikum Rheingau-Süd",
+      "antwort_auf": "zeitraum-003"
+    },
+    {
+      "id": "zeitraum-005",
+      "art": "mail",
+      "zeit": "2026-06-30T14:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Nora Feldmann",
+          "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+        }
+      ],
+      "betreff": "Überarbeitetes Angebot Rheingau-Süd",
+      "text": "Sehr geehrte Frau Feldmann,\n\nnach Rücksprache kann ich Ihnen bei einem Verzicht auf zwei Vor-Ort-Tage entgegenkommen. Mein überarbeitetes Angebot: 32.400\nEuro netto für neun Monate.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "zeitraum-004"
+    },
+    {
+      "id": "zeitraum-006",
+      "art": "notiz",
+      "zeit": "2026-07-22T21:00:00+02:00",
+      "titel": "Rheingau-Süd Preisstrategie",
+      "text": "Untergrenze für Rheingau-Süd: 30.000 Euro. Wenn sie noch weiter drücken, eher auf Umfang verzichten als auf Preis."
+    },
+    {
+      "id": "zeitraum-007",
+      "art": "mail",
+      "zeit": "2026-08-11T16:30:00+02:00",
+      "von": {
+        "name": "Nora Feldmann",
+        "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Stand Verhandlung",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndanke für das überarbeitete Angebot. Wir konnten uns intern noch nicht abstimmen. Ich melde mich, sobald es einen Termin\ngibt.\n\nFreundliche Grüße\nNora Feldmann",
+      "antwort_auf": "zeitraum-005"
+    },
+    {
+      "id": "zeitraum-008",
+      "art": "termin",
+      "zeit": "2026-08-12T09:00:00+02:00",
+      "beginn": "2026-08-26T10:00:00+02:00",
+      "ende": "2026-08-26T11:00:00+02:00",
+      "titel": "Abstimmungsgespräch Klinikum Rheingau-Süd (Telefon)",
+      "ort": "Telefon",
+      "teilnehmer": [
+        {
+          "name": "Dr. Volker Amann",
+          "adresse": "v.amann@klinikum-rheingau-sued.example"
+        },
+        {
+          "name": "Nora Feldmann",
+          "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Rückfragen zum Leistungsumfang."
+    },
+    {
+      "id": "zeitraum-009",
+      "art": "mail",
+      "zeit": "2026-09-22T11:15:00+02:00",
+      "von": {
+        "name": "Nora Feldmann",
+        "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Gremium am 21. Oktober",
+      "text": "Sehr geehrte Frau Hartmann,\n\nder Vorstand des Klinikums beschäftigt sich mit Ihrem Angebot am 21. Oktober im Gremium. Für die Vorlage benötigen wir\nIhre Unterlagen bis zum 12. Oktober. Herr Dr. Amann meldet sich dazu noch persönlich bei Ihnen.\n\nFreundliche Grüße\nNora Feldmann",
+      "antwort_auf": "zeitraum-007"
+    },
+    {
+      "id": "zeitraum-010",
+      "art": "notiz",
+      "zeit": "2026-09-24T16:20:00+02:00",
+      "titel": "Telefonat Dr. Amann, Rheingau-Süd",
+      "text": "Herr Dr. Amann hat angerufen (10 Minuten). Fürs Gremium wünscht er drei Referenzen aus vergleichbaren Kliniken, möglichst\nmit Ansprechpartner. Ich soll sie Frau Feldmann schicken."
+    },
+    {
+      "id": "zeitraum-011",
+      "art": "mail",
+      "zeit": "2026-09-25T13:50:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Nora Feldmann",
+          "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+        }
+      ],
+      "betreff": "Referenzen für das Gremium",
+      "text": "Sehr geehrte Frau Feldmann,\n\nwie mit Herrn Dr. Amann besprochen, hier meine drei Referenzen für das Gremium: Klinik am Taunushang, Kreisklinik\nRheingau und Vitalzentrum Kassel. Ich habe alle drei vorab informiert. Bitte leiten Sie die Liste an Herrn Dr. Amann\nweiter.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "zeitraum-009"
+    },
+    {
+      "id": "zeitraum-012",
+      "art": "termin",
+      "zeit": "2026-09-25T14:10:00+02:00",
+      "beginn": "2026-10-07T14:00:00+02:00",
+      "ende": "2026-10-07T14:45:00+02:00",
+      "titel": "Nachgespräch Klinikum Rheingau-Süd (online)",
+      "ort": "online",
+      "teilnehmer": [
+        {
+          "name": "Dr. Volker Amann",
+          "adresse": "v.amann@klinikum-rheingau-sued.example"
+        },
+        {
+          "name": "Nora Feldmann",
+          "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Offene Fragen vor dem Gremium."
+    },
+    {
+      "id": "zeitraum-013",
+      "art": "mail",
+      "zeit": "2026-09-28T09:35:00+02:00",
+      "von": {
+        "name": "Nora Feldmann",
+        "adresse": "n.feldmann@klinikum-rheingau-sued.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Bindefrist des Angebots",
+      "text": "Sehr geehrte Frau Hartmann,\n\nfür die Vorlage im Gremium bitte ich Sie noch um die Bestätigung der Bindefrist: Gilt Ihr Angebot bis zum 31. Dezember 2026?\n\nFreundliche Grüße\nNora Feldmann",
+      "antwort_auf": "zeitraum-011"
+    }
+  ],
+  "fragen": [
+    {
+      "id": "zeitraum-01",
+      "frage": "Was lief letzte Woche mit dem Angebot für das Klinikum Rheingau-Süd?",
+      "kategorie": "zeitraum",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Referenz"
+          ],
+          [
+            "Gremium"
+          ]
+        ],
+        "belege": [
+          "zeitraum-009",
+          "zeitraum-010",
+          "zeitraum-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Bindefrist",
+          "35.000",
+          "32.400",
+          "Untergrenze"
+        ],
+        "belege": [
+          "zeitraum-003",
+          "zeitraum-005",
+          "zeitraum-013"
+        ]
+      },
+      "notiz": "Nur Ereignisse vom 21. bis 27. September: Mail zum Gremium, Anruf von Dr. Amann, Referenzliste. Preisverhandlung (März bis August) und die Mail vom 28.9. (diese Woche) gehören nicht dazu."
+    },
+    {
+      "id": "zeitraum-02",
+      "frage": "Was wollte Dr. Amann letzte Woche von mir?",
+      "kategorie": "zeitraum",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Referenz"
+          ]
+        ],
+        "belege": [
+          "zeitraum-010"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Nachlass",
+          "Untergrenze",
+          "Bindefrist"
+        ],
+        "belege": []
+      },
+      "notiz": "Anruf am 24. September: drei Referenzen fürs Gremium."
+    },
+    {
+      "id": "zeitraum-03",
+      "frage": "Wann tagt das Gremium des Klinikums Rheingau-Süd über mein Angebot?",
+      "kategorie": "frist",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "21.10.2026",
+            "21. Oktober 2026",
+            "21.10.",
+            "21. Oktober",
+            "21. Okt.",
+            "2026-10-21",
+            "21.10"
+          ]
+        ],
+        "belege": [
+          "zeitraum-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Gremium tagt am 12",
+          "Gremium am 12. Oktober",
+          "Gremium am 12.10.",
+          "Gremium tagt am 07.10.",
+          "Gremium am 07.10.",
+          "Gremium am 7. Oktober",
+          "Gremium tagt am 7. Oktober"
+        ],
+        "belege": []
+      },
+      "notiz": "Gremium am 21.10.; der 12.10. ist die Abgabe der Unterlagen, der 7.10. das Nachgespräch."
+    },
+    {
+      "id": "zeitraum-04",
+      "frage": "Was ist im Frühjahr mit dem Angebot für das Klinikum Rheingau-Süd passiert?",
+      "kategorie": "zeitraum",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "35.000"
+          ]
+        ],
+        "belege": [
+          "zeitraum-001",
+          "zeitraum-003",
+          "zeitraum-004"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Referenz",
+          "Gremium",
+          "Bindefrist",
+          "32.400"
+        ],
+        "belege": [
+          "zeitraum-009",
+          "zeitraum-010",
+          "zeitraum-011",
+          "zeitraum-013"
+        ]
+      },
+      "notiz": "Frühjahr: Anfrage im März, Angebot über 35.000 Euro im April, Preisnachfrage im Mai. Das überarbeitete Angebot (Juni) und alles danach gehört nicht dazu."
+    },
+    {
+      "id": "zeitraum-05",
+      "frage": "Was ist diese Woche beim Klinikum Rheingau-Süd Neues eingegangen?",
+      "kategorie": "zeitraum",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Bindefrist"
+          ],
+          [
+            "31.12.2026",
+            "31. Dezember 2026",
+            "31.12.",
+            "31. Dezember",
+            "Dezember 2026",
+            "Jahresende"
+          ]
+        ],
+        "belege": [
+          "zeitraum-013"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Untergrenze",
+          "35.000"
+        ],
+        "belege": [
+          "zeitraum-010",
+          "zeitraum-011"
+        ]
+      },
+      "notiz": "Nur die Mail von Frau Feldmann vom 28.9. (Bindefrist); die Referenzen der letzten Woche gehören nicht dazu."
+    },
+    {
+      "id": "zeitraum-06",
+      "frage": "Wann ist das Gremium?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Rheingau-Süd",
+            "Rheingau",
+            "Feldmann",
+            "Amann"
+          ],
+          [
+            "Albanus",
+            "Mainz",
+            "Becker",
+            "Vergabegremium"
+          ]
+        ],
+        "belege": [
+          "zeitraum-009",
+          "mainz-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zwei Gremien mit Terminen: Klinikum Rheingau-Süd (21.10.) und das Vergabegremium des St.-Albanus-Klinikums (Präsentation 13.10.). Als dritte Bedeutung käme das vertagte Gremium der Rehaklinik Eichenberg in Betracht (kein neuer Termin bekannt); sie wird nicht verlangt. Ein Datum ohne Rückfrage zu nennen ist geraten."
+    }
+  ]
+}

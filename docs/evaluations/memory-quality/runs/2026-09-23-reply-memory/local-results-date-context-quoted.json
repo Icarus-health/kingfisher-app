@@ -1,0 +1,26 @@
+{
+  "model": "qwen3.5:4b",
+  "started_at": "2026-09-23T10:47:27.238961+00:00",
+  "calls": [
+    {
+      "kind": "classification",
+      "seconds": 6.654,
+      "text": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"conditional\"}]}"
+    },
+    {
+      "kind": "selection",
+      "seconds": 1.104,
+      "text": "{\"status\":\"reports\",\"ids\":[\"S1\"]}"
+    }
+  ],
+  "suggestion_status": 200,
+  "draft": "In einer früheren Nachricht von Mara Kranz <mara@example.test> vom 21.09.2026 um 12:00 UTC+02:00 steht:\n\n„Ich sende den Entwurf für Projekt Lindenpfad morgen um 11 Uhr, aber nur nach schriftlicher Freigabe. Die Freigabe liegt noch nicht vor.“\n\nBitte gib mir Bescheid, ob dieser Stand noch gilt.",
+  "source_status": "reports",
+  "expected_source_attached": true,
+  "token_present": true,
+  "withdrawal_hides_draft": true,
+  "withdrawal_blocks_send": true,
+  "no_delivery": true,
+  "claims_revision": 0,
+  "finished_at": "2026-09-23T10:47:35.403381+00:00"
+}

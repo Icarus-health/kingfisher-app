@@ -1,0 +1,8 @@
+.mail-filter-settings { padding: 16px; }
+.mail-filter-settings summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.mail-filter-settings p { font-size: 12px; line-height: 1.5; margin: 8px 0; }
+.mail-filter-settings .mail-sync-check { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 9px 0; }
+.mail-filter-settings .mail-sync-check input { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; accent-color: var(--kf-akzent-075268); }
+.mail-filter-settings .mail-filter-rule { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; font-size: 12px; }
+.mail-filter-settings textarea { min-height: 76px; resize: vertical; padding: 8px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 6px; font: inherit; line-height: 1.45; }
+.mail-filter-settings .mail-filter-body { white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 6px; font-size: 12px; line-height: 1.5; }

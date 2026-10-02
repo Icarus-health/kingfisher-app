@@ -1,0 +1,18 @@
+{
+  "source_revision": "5929067",
+  "regular_tests_passed": 2421,
+  "initial_subtest_failures": 4,
+  "initial_failure_reason": "Mac calendar test binary missing in new worktree",
+  "calendar_followup": {
+    "tests_passed": 1,
+    "subtests_passed": 4
+  },
+  "ui_build": true,
+  "asset_contract": true,
+  "browser": true,
+  "log_sha256": {
+    "full-final.txt": "f6d320d95805194061be373b3201a781969d67ad45c344940217a70eeb317a48",
+    "calendar-followup.txt": "2664e9c0f936daf165f1656e4b6012377093bbddfc141090e2d571d77a4d607e",
+    "browser-verification.json": "0383af65ab8779540ba8de7d9ce84d85c71b8e58a610853268dd90c74498aa9f"
+  }
+}

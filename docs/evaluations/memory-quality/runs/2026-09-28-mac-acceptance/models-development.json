@@ -1,0 +1,505 @@
+{
+ "suite": "working-memory-models-v1",
+ "catalog_sha256": "a0e2d06356057bb096c86d38d1c0d05aebb51391794d34f89f75525849ee5265",
+ "synthetic_only": true,
+ "arms": [
+  {
+   "arm": "ollama:qwen3.5:4b",
+   "model": "qwen3.5:4b",
+   "local": true,
+   "einordnung": {
+    "absaetze_richtig": 14,
+    "absaetze": 17,
+    "faelle_ganz_richtig": 6,
+    "ungueltige_antworten": 0,
+    "faelle": 8,
+    "rows": [
+     {
+      "id": "I01",
+      "valid": true,
+      "correct": 1,
+      "blocks": 3,
+      "kinds": [
+       "fact",
+       "request",
+       "fact"
+      ]
+     },
+     {
+      "id": "I02",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "commitment",
+       "conditional"
+      ]
+     },
+     {
+      "id": "I03",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "change",
+       "fact"
+      ]
+     },
+     {
+      "id": "I04",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "uncertain",
+       "irrelevant"
+      ]
+     },
+     {
+      "id": "I05",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "historical",
+       "status"
+      ]
+     },
+     {
+      "id": "I06",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "uncertain",
+       "fact"
+      ]
+     },
+     {
+      "id": "I07",
+      "valid": true,
+      "correct": 1,
+      "blocks": 2,
+      "kinds": [
+       "status",
+       "fact"
+      ]
+     },
+     {
+      "id": "I08",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "conditional",
+       "commitment"
+      ]
+     }
+    ]
+   },
+   "auswahl": {
+    "status_richtig": 8,
+    "quellen_richtig": 8,
+    "beides_richtig": 8,
+    "ungueltige_antworten": 0,
+    "faelle": 10,
+    "rows": [
+     {
+      "id": "S01",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S02",
+      "status": "unknown",
+      "expected_status": "unknown",
+      "sources": [],
+      "expected_sources": [],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S03",
+      "status": "person",
+      "expected_status": "person",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S04",
+      "status": "reports",
+      "expected_status": "scope",
+      "sources": [
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": false,
+      "sources_ok": false,
+      "valid": true
+     },
+     {
+      "id": "S05",
+      "status": "time",
+      "expected_status": "time",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S06",
+      "status": "conflict",
+      "expected_status": "conflict",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S07",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S08",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S09",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S10",
+      "status": "unknown",
+      "expected_status": "reports",
+      "sources": [],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": false,
+      "sources_ok": false,
+      "valid": true
+     }
+    ]
+   },
+   "aufrufe": 18,
+   "sekunden_je_aufruf": 1.74,
+   "json_aus_codeblock": 0
+  },
+  {
+   "arm": "ollama:qwen2.5:14b",
+   "model": "qwen2.5:14b",
+   "local": true,
+   "einordnung": {
+    "absaetze_richtig": 15,
+    "absaetze": 17,
+    "faelle_ganz_richtig": 6,
+    "ungueltige_antworten": 0,
+    "faelle": 8,
+    "rows": [
+     {
+      "id": "I01",
+      "valid": true,
+      "correct": 3,
+      "blocks": 3,
+      "kinds": [
+       "irrelevant",
+       "request",
+       "irrelevant"
+      ]
+     },
+     {
+      "id": "I02",
+      "valid": true,
+      "correct": 1,
+      "blocks": 2,
+      "kinds": [
+       "fact",
+       "conditional"
+      ]
+     },
+     {
+      "id": "I03",
+      "valid": true,
+      "correct": 1,
+      "blocks": 2,
+      "kinds": [
+       "fact",
+       "fact"
+      ]
+     },
+     {
+      "id": "I04",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "uncertain",
+       "irrelevant"
+      ]
+     },
+     {
+      "id": "I05",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "historical",
+       "status"
+      ]
+     },
+     {
+      "id": "I06",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "uncertain",
+       "fact"
+      ]
+     },
+     {
+      "id": "I07",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "status",
+       "irrelevant"
+      ]
+     },
+     {
+      "id": "I08",
+      "valid": true,
+      "correct": 2,
+      "blocks": 2,
+      "kinds": [
+       "conditional",
+       "irrelevant"
+      ]
+     }
+    ]
+   },
+   "auswahl": {
+    "status_richtig": 6,
+    "quellen_richtig": 7,
+    "beides_richtig": 6,
+    "ungueltige_antworten": 0,
+    "faelle": 10,
+    "rows": [
+     {
+      "id": "S01",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S02",
+      "status": "reports",
+      "expected_status": "unknown",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [],
+      "status_ok": false,
+      "sources_ok": false,
+      "valid": true
+     },
+     {
+      "id": "S03",
+      "status": "reports",
+      "expected_status": "person",
+      "sources": [
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": false,
+      "sources_ok": false,
+      "valid": true
+     },
+     {
+      "id": "S04",
+      "status": "reports",
+      "expected_status": "scope",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": false,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S05",
+      "status": "time",
+      "expected_status": "time",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S06",
+      "status": "conflict",
+      "expected_status": "conflict",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S07",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S08",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A"
+      ],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S09",
+      "status": "reports",
+      "expected_status": "reports",
+      "sources": [
+       "A",
+       "B"
+      ],
+      "expected_sources": [
+       "A",
+       "B"
+      ],
+      "status_ok": true,
+      "sources_ok": true,
+      "valid": true
+     },
+     {
+      "id": "S10",
+      "status": "unknown",
+      "expected_status": "reports",
+      "sources": [],
+      "expected_sources": [
+       "A"
+      ],
+      "status_ok": false,
+      "sources_ok": false,
+      "valid": true
+     }
+    ]
+   },
+   "aufrufe": 18,
+   "sekunden_je_aufruf": 3.41,
+   "json_aus_codeblock": 0
+  }
+ ]
+}

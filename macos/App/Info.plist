@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>Kingfisher</string>
+	<key>CFBundleDisplayName</key>
+	<string>Kingfisher</string>
+	<key>CFBundleIdentifier</key>
+	<string>local.kingfisher.window</string>
+	<key>CFBundleExecutable</key>
+	<string>Kingfisher</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleIconFile</key>
+	<string>Kingfisher</string>
+	<key>CFBundleShortVersionString</key>
+	<string>__FASSUNG__</string>
+	<key>CFBundleVersion</key>
+	<string>__BUNDLE_VERSION__</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>de</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.3</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Kingfisher — lokale App</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

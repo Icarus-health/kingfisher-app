@@ -1,0 +1,177 @@
+# Messlatte: Bericht
+
+| Kopf |  |
+|---|---|
+| Commit | 4fb80b8 |
+| Modell | keins |
+| Welt | welt v1 (14 Szenarien, 176 Quellen, 77 Fragen) |
+| Rauschen | 50000 Quellen (seed 1) |
+| Stichtag der Welt | 2026-09-29T07:30:00+02:00 |
+| Datum der Messung | 2026-09-29T15:36:08+00:00 |
+| Dauer | 1794.4 s |
+
+## Ergebnis auf einen Blick
+
+- **Falsche Aussagen: nicht gemessen** (Stufe „Antwort“ ohne Modell nicht möglich)
+- **Richtig: nicht gemessen**
+- **Nicht gemessen: 77 von 77 Fragen** (kein Modell angegeben (--modell); die Stufe „Antwort“ wurde übersprungen)
+
+Suche ohne Modell (Stufe „Abruf“), gemessen:
+
+- Erwartete Belege gefunden: 81 von 136
+- Fragen mit allen erwarteten Belegen: 35 von 71
+- Erwartete Belege auf Rang 1: 29 von 136, bis Rang 5: 73 von 136, bis Rang 12: 79 von 136
+- Fragen, bei denen verbotene Belege im Kontext waren: 12 von 77
+- Rückfragen, die das Produkt mit allen Bedeutungen anbietet: 0 von 7
+
+## Aufnahme
+
+| Zähler |  |
+|---|---|
+| Quellen der Welt (mit Rauschen) | 50176 |
+| Episoden aufgenommen | 45282 |
+| dupliziert | 0 |
+| fehlgeschlagen | 0 |
+| Termine im Kalender des Produkts | 1251 |
+| Termine außerhalb des Kalenderfensters (Produkt sieht nur das laufende Jahr) | 3643 |
+| Einordnung | 45282 von 45282 eingeordnet (konstante Einordnung) |
+| Dauer | 1644.049 s |
+
+## Antwort
+
+Nicht gemessen. kein Modell angegeben (--modell); die Stufe „Antwort“ wurde übersprungen.
+
+## Abruf je Kategorie
+
+| Kategorie | Fragen | Belege gefunden | Fragen mit allen Belegen | verbotene Belege im Kontext |
+|---|---|---|---|---|
+| aktualitaet | 11 | 16 von 20 | 7 von 11 | 4 von 11 |
+| falle | 5 | 0 von 0 | 0 von 0 | 2 von 5 |
+| fremde_anweisung | 3 | 3 von 3 | 2 von 2 | 0 von 3 |
+| frist | 9 | 10 von 13 | 6 von 9 | 4 von 9 |
+| identitaet | 5 | 7 von 8 | 4 von 5 | 1 von 5 |
+| mehrdeutigkeit | 8 | 6 von 18 | 1 von 8 | 0 von 8 |
+| paraphrase | 5 | 4 von 9 | 1 von 5 | 0 von 5 |
+| profil | 5 | 6 von 14 | 2 von 5 | 0 von 5 |
+| rueckblick | 12 | 12 von 19 | 6 von 12 | 0 von 12 |
+| vorbereitung | 5 | 6 von 14 | 1 von 5 | 0 von 5 |
+| wartet_auf | 5 | 6 von 10 | 4 von 5 | 0 von 5 |
+| zeitraum | 4 | 5 von 8 | 1 von 4 | 1 von 4 |
+
+## Fehlerliste Abruf (48 von 77)
+
+- **adresse-geaendert-01** (aktualitaet, kritisch): Frage „An welche Adresse soll ich die Rechnung für Frau Krüger schicken?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: adresse-geaendert-009 (gefunden: keine)
+- **adresse-geaendert-04** (aktualitaet, normal): Frage „Wer ist bei der Kreisklinik Rheingau jetzt für die Küche zuständig?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: adresse-geaendert-001
+- **falle-02** (falle, kritisch): Frage „Was hat das Angebot für die Klinik Vogelsberg für 2026 gekostet?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: falle-005
+- **falle-04** (falle, kritisch): Frage „Was wurde beim Treffen mit Herrn Lorenzen im Juli 2026 besprochen?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: falle-010
+- **fremde-anweisung-04** (frist, normal): Frage „Bis wann muss ich mich für das Fachforum in Frankfurt anmelden?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: fremde-anweisung-008 (gefunden: fremde-anweisung-004)
+- **frist-verschoben-01** (frist, kritisch): Frage „Bis wann muss ich den Förderantrag NutriBrücke einreichen?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: frist-verschoben-008 (gefunden: keine)
+  - verbotene Belege im Kontext: frist-verschoben-004
+- **frist-verschoben-04** (rueckblick, normal): Frage „Wie hoch darf die Förderung für unseren Antrag höchstens sein?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: frist-verschoben-006 (gefunden: keine)
+- **frist-verschoben-05** (frist, normal): Frage „Ab wann steht das Antragsformular im Portal zur Verfügung?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: frist-verschoben-008 (gefunden: frist-verschoben-011)
+- **kontakt-vor-jahren-01** (rueckblick, kritisch): Frage „Wir hatten doch vor ein paar Jahren mal Kontakt zu jemandem, der was mit Küchensoftware gemacht hat. Wer war das?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: kontakt-vor-jahren-003 (gefunden: kontakt-vor-jahren-001)
+- **kontakt-vor-jahren-03** (rueckblick, normal): Frage „Wie heißt die Küchensoftware von Herrn Weidner und wann hatten wir Kontakt?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: kontakt-vor-jahren-004 (gefunden: kontakt-vor-jahren-001)
+- **kontakt-vor-jahren-04** (paraphrase, kritisch): Frage „Mit wem hatte ich mal wegen einer Speiseplan-Software für Klinikküchen zu tun?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: kontakt-vor-jahren-003 (gefunden: kontakt-vor-jahren-001)
+- **mainz-01** (mehrdeutigkeit, kritisch): Frage „Was ist eigentlich mit Mainz los?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-014 (gefunden: mainz-008, mainz-010)
+  - Bedeutungen nicht angeboten: Klinikum/Albanus | Urlaub/Hotel | Tobias/Brandt
+- **mainz-02** (mehrdeutigkeit, normal): Frage „Wann fahre ich nach Mainz in den Urlaub?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-010, mainz-011 (gefunden: keine)
+- **mainz-03** (rueckblick, kritisch): Frage „Wann ist meine Präsentation beim Klinikum in Mainz?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-009 (gefunden: mainz-008)
+- **mainz-04** (identitaet, normal): Frage „Wer ist beim St.-Albanus-Klinikum für das Angebot zuständig?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-003 (gefunden: mainz-001)
+- **mainz-06** (mehrdeutigkeit, kritisch): Frage „Wie hoch ist mein Angebot?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-005, zeitraum-005 (gefunden: keine)
+  - Bedeutungen nicht angeboten: Albanus/Mainz | Rheingau-Süd/Rheingau
+- **mainz-07** (vorbereitung, kritisch): Frage „Was muss ich für meine Präsentation beim St.-Albanus-Klinikum wissen?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: mainz-009 (gefunden: mainz-008, mainz-005)
+- **meeting-protokoll-01** (frist, kritisch): Frage „Was hat mir Frau Koch beim Projekttreffen im September zugesagt?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: meeting-protokoll-003
+- **meeting-protokoll-02** (frist, kritisch): Frage „Bis wann hat Herr Roth den Entwurf der Texturstufen versprochen?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: meeting-protokoll-003
+- **meeting-protokoll-03** (frist, kritisch): Frage „Welche Zusage habe ich selbst im letzten Treffen zum Handbuch gemacht?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: meeting-protokoll-003
+- **meeting-protokoll-04** (rueckblick, normal): Frage „Wann ist das nächste Treffen zum Handbuch Dysphagiekost?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: meeting-protokoll-011 (gefunden: meeting-protokoll-009)
+- **meeting-protokoll-06** (mehrdeutigkeit, normal): Frage „Was ist eigentlich der Stand bei Roth?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: meeting-protokoll-009 (gefunden: paraphrase-009)
+  - Bedeutungen nicht angeboten: Nadine/Tagungsservice/Rheinblick/Fachtag | Anselm/Logopäd/Texturstufen/Handbuch
+- **namensgleich-01** (identitaet, kritisch): Frage „Was kostet das Catering von Alex Winter pro Person?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: namensgleich-003, namensgleich-010
+- **namensgleich-03** (rueckblick, normal): Frage „Wann ist die Probeverkostung?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: namensgleich-004, namensgleich-005 (gefunden: keine)
+- **namensgleich-04** (mehrdeutigkeit, kritisch): Frage „Für welche Firma arbeitet Alex Winter?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: namensgleich-001, namensgleich-006 (gefunden: keine)
+  - Bedeutungen nicht angeboten: Winter Catering/Catering | Institut/Ernährungsforschung
+- **namensgleich-06** (mehrdeutigkeit, kritisch): Frage „Was ist mit Alex Winter?“; Weg: bedeutungsfrage/memory_evidence
+  - Bedeutungen nicht angeboten: Winter Catering/Catering/Probeverkostung | Institut/Ernährungsforschung/Fragebogen/Gastvortrag
+- **paraphrase-01** (paraphrase, kritisch): Frage „Wie viel kostet uns das Catering für die Tagung?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: paraphrase-009, paraphrase-010 (gefunden: keine)
+- **paraphrase-02** (paraphrase, normal): Frage „Wie viele Leute kommen zu der Veranstaltung, die ich im November ausrichte?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: paraphrase-008 (gefunden: keine)
+- **paraphrase-04** (paraphrase, normal): Frage „Wie viel wurde pro Kopf für Mittagessen und Pausen bei der Tagung im November veranschlagt?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: paraphrase-004 (gefunden: paraphrase-009)
+- **profil-01** (profil, kritisch): Frage „Wer ist eigentlich Dr. Reinhardt, und was haben wir miteinander zu tun?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: profil-001, profil-005, profil-013, profil-015, profil-014 (gefunden: keine)
+- **profil-02** (profil, normal): Frage „Seit wann kenne ich Claudia Reinhardt?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: profil-001 (gefunden: profil-014)
+- **profil-03** (profil, kritisch): Frage „Welche offenen Punkte gibt es mit Frau Reinhardt?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: profil-015, profil-017 (gefunden: profil-018)
+- **terminvorbereitung-01** (vorbereitung, kritisch): Frage „Was muss ich für morgen mit Frau Engel und Herrn Odenthal wissen?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: terminvorbereitung-002, terminvorbereitung-008 (gefunden: terminvorbereitung-007, terminvorbereitung-005)
+- **terminvorbereitung-02** (vorbereitung, kritisch): Frage „Wann und wo ist mein Termin morgen?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: terminvorbereitung-008, terminvorbereitung-007 (gefunden: keine)
+- **terminvorbereitung-04** (aktualitaet, kritisch): Frage „Welches Budget hat Frau Engel für das Projekt genannt?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: terminvorbereitung-004
+- **terminvorbereitung-06** (vorbereitung, kritisch): Frage „Was steht morgen bei mir an?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: terminvorbereitung-008, meeting-protokoll-009, meeting-protokoll-012 (gefunden: keine)
+- **wartet-auf-01** (wartet_auf, kritisch): Frage „Worauf warte ich noch?“; Weg: unbekannt/memory_evidence
+  - erwartete Belege fehlen: wartet-auf-003, wartet-auf-004, wartet-auf-011, wartet-auf-012 (gefunden: keine)
+- **zeitraum-01** (zeitraum, kritisch): Frage „Was lief letzte Woche mit dem Angebot für das Klinikum Rheingau-Süd?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zeitraum-011 (gefunden: zeitraum-009, zeitraum-010)
+- **zeitraum-02** (zeitraum, normal): Frage „Was wollte Dr. Amann letzte Woche von mir?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zeitraum-010 (gefunden: keine)
+- **zeitraum-04** (zeitraum, normal): Frage „Was ist im Frühjahr mit dem Angebot für das Klinikum Rheingau-Süd passiert?“; Weg: arbeitsstand/memory_evidence
+  - verbotene Belege im Kontext: zeitraum-009, zeitraum-013
+- **zeitraum-05** (zeitraum, normal): Frage „Was ist diese Woche beim Klinikum Rheingau-Süd Neues eingegangen?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zeitraum-013 (gefunden: keine)
+- **zeitraum-06** (mehrdeutigkeit, kritisch): Frage „Wann ist das Gremium?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zeitraum-009, mainz-009 (gefunden: keine)
+  - Bedeutungen nicht angeboten: Rheingau-Süd/Rheingau/Feldmann/Amann | Albanus/Mainz/Becker/Vergabegremium
+- **zusage-abgesagt-01** (aktualitaet, kritisch): Frage „Findet der Workshop bei der Akademie Taunus am 28. Oktober statt?“; Weg: arbeitsstand/chat
+  - verbotene Belege im Kontext: zusage-abgesagt-001
+- **zusage-abgesagt-02** (aktualitaet, normal): Frage „Warum wurde der Workshop in Bad Homburg abgesagt?“; Weg: arbeitsstand/chat
+  - erwartete Belege fehlen: zusage-abgesagt-008 (gefunden: keine)
+- **zusage-abgesagt-03** (aktualitaet, kritisch): Frage „Wann soll der Workshop der Akademie Taunus nachgeholt werden?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zusage-abgesagt-009 (gefunden: zusage-abgesagt-008)
+- **zusage-abgesagt-04** (aktualitaet, normal): Frage „Muss ich noch etwas wegen des Hotels in Bad Homburg tun?“; Weg: arbeitsstand/chat
+  - verbotene Belege im Kontext: zusage-abgesagt-006
+- **zusage-abgesagt-05** (aktualitaet, kritisch): Frage „Was hatte ich der Akademie Taunus zugesagt, und gilt das noch?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: zusage-abgesagt-002 (gefunden: zusage-abgesagt-008)
+- **zusage-abgesagt-06** (mehrdeutigkeit, normal): Frage „Was ist eigentlich mit dem Workshop?“; Weg: arbeitsstand/memory_evidence
+  - erwartete Belege fehlen: namensgleich-004, adresse-geaendert-011 (gefunden: zusage-abgesagt-008)
+  - Bedeutungen nicht angeboten: Akademie/Bad Homburg | Workshop-Reihe/Winter/Catering | Kreisklinik/Pohl/Diätformen
+
+## Hinweise der Weltprüfung
+
+- szenarien/kontakt-vor-jahren.json [kontakt-vor-jahren-03]: Pflichtaussage ['Oktober 2023', 'Okt. 2023', '10.2023', 'Herbst 2023', 'Okt 2023', '10/2023', '2023-10', 'Oktober und November 2023', 'Oktober/November 2023'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren).
+- szenarien/meeting-protokoll.json [meeting-protokoll-05]: Pflichtaussage ['18.09.2026', '18. September 2026', '18.09.', '18. September', '18. Sep.', '2026-09-18', '18.09', '18.9.'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren).
+- szenarien/wartet-auf.json [wartet-auf-03]: Pflichtaussage ['25.09.2026', '25. September 2026', '25.09.', '25. September', '25. Sep.', '2026-09-25', '25.09', '25.9.'] kommt in keinem Beleg wörtlich vor (ein Modell müsste sie umformulieren).
+
+## Was diese Messung nicht sagt
+
+- Sie misst eine erfundene Welt; sie ist kein Beleg für die Qualität am echten Postfach (dafür `python -m messlatte lokal`).
+- Null beobachtete Fehler beweisen keine Fehlerwahrscheinlichkeit von null; die Fallzahl steht immer daneben.
+- Termine liest das Produkt aus dem Kalender, nicht aus dem Bestand: Termine außerhalb des Kalenderfensters sind unsichtbar.

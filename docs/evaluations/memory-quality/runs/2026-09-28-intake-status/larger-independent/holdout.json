@@ -1,0 +1,44 @@
+{
+  "suite": "intake-clarification-new-20260928",
+  "frozen_before_runs": true,
+  "cases": [
+    {
+      "id": "new-conditional",
+      "sources": [
+        {
+          "text": "Projekt Eschenweg: Nils übergibt die Prüfberichte am 6. November 2026.\n\nVoraussetzung ist die schriftliche Genehmigung der Bauherrin. Diese Genehmigung liegt noch nicht vor."
+        }
+      ],
+      "question": "Unter welchen Voraussetzungen übergibt Nils die Prüfberichte für Eschenweg?",
+      "expected": [
+        0
+      ],
+      "status": [
+        "working_reports"
+      ],
+      "contains": [
+        "Genehmigung",
+        "noch nicht vor"
+      ]
+    },
+    {
+      "id": "two-people-one-source",
+      "sources": [
+        {
+          "text": "Zum Gusstest: Lea Sommer liefert am 6. November 2026. Lea Winter liefert am 13. November 2026. Es sind zwei verschiedene Personen."
+        }
+      ],
+      "question": "Wann liefert Lea zum Gusstest?",
+      "expected": [
+        0
+      ],
+      "status": [
+        "working_unclear"
+      ],
+      "contains": [
+        "Lea Sommer",
+        "Lea Winter"
+      ]
+    }
+  ]
+}

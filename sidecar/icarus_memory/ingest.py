@@ -1,0 +1,655 @@
+"""Aufnahme: aus fremden Ablagen werden Episoden.
+
+Ein bestehender Obsidian-Vault und die Mails von heute Morgen sind derselbe
+Fall — fremder Text mit einer Herkunft, aus dem vielleicht etwas folgt. Deshalb
+gibt es **eine** Pipeline, nicht zwei:
+
+    Quelle → Adapter → Episode (Digest, Herkunft) → Verdichtung → Vorschlag
+
+## Adapter sind absichtlich dumm
+
+Sie machen aus einer Datei eine Episode und raten nicht, was sie bedeutet. Kein
+Adapter entscheidet, ob „Termin mit Dr. Meier" eine Beziehung, ein Vorhaben oder
+Vergangenes ist. Die Deutung ist Sache der Verdichtung, und die legt vor, statt
+zu schreiben.
+
+Der Grund ist nicht Bequemlichkeit. Ein Adapter, der deutet, tut es nach Regeln,
+die in seinem Code stehen und die niemand sieht — und schreibt damit ein
+Lebensmodell fest, das für den nächsten Nutzer falsch ist. Was ein Adapter darf,
+ist ablesen, was buchstäblich dasteht: ein Datum im Dateinamen, ein Feld im
+Frontmatter, ein Ordnername.
+
+## Warum das ein Produktmerkmal ist
+
+Wer Icarus ausprobiert, muss seine bisherige Ablage nicht aufgeben, bevor er
+sieht, ob es trägt. Ein Produkt, das als ersten Schritt den Umzug des ganzen
+Lebens verlangt, wird nicht ausprobiert.
+
+Dieselbe Pipeline trägt später den Dauerbetrieb: Ein Vault, der jede Nacht
+erneut gelesen wird, erzeugt über die Digest-Entdopplung nur das, was wirklich
+neu ist.
+"""
+
+from __future__ import annotations
+
+import csv
+import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Iterator
+
+from . import logbuch
+from .episodes import EpisodeKind, EpisodeStore
+from .source_versions import source_key
+from .model import Provenance, SourceType
+from .security import resolve_readable_dir
+
+#: Was gelesen wird. Alles andere wird übersprungen und gezählt — ein
+#: Aufnahmelauf, der bei einem PDF abbricht, ist im Alltag unbrauchbar.
+TEXT_SUFFIXES = {".md", ".markdown", ".txt", ".org", ".rst", ".csv"}
+
+#: Obergrenze je Datei. Ein versehentlich mitgelesener Datenbankdump soll den
+#: Bestand nicht fluten; die Grenze ist großzügig für echte Notizen.
+MAX_FILE_BYTES = 512 * 1024
+
+#: Wie viele Begründungen für Übersprungenes mitgeführt werden. Genug, um das
+#: Muster zu erkennen, wenig genug, um lesbar zu bleiben.
+MAX_SKIP_REASONS = 20
+
+#: Ordner, die nie gelesen werden. `.obsidian` enthält die Konfiguration des
+#: Programms, nicht die Notizen des Menschen.
+SKIP_DIRS = {
+    ".git", ".obsidian", ".trash", ".stfolder", "node_modules",
+    "__pycache__", ".DS_Store", ".smart-env",
+}
+
+#: Notion hängt an jeden exportierten Dateinamen eine UUID ohne Bindestriche.
+_NOTION_SUFFIX = re.compile(r"\s+[0-9a-f]{32}$")
+
+#: Tagesnotizen heißen fast überall so. Das Datum daraus ist eine Ablesung,
+#: keine Deutung — deshalb ist es hier erlaubt.
+_DATE_IN_NAME = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
+
+_FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n?", re.DOTALL)
+_WIKILINK = re.compile(r"\[\[([^\]|#]+)")
+
+
+@dataclass
+class IngestReport:
+    """Was ein Aufnahmelauf tatsächlich getan hat.
+
+    Getrennt nach neu und bereits bekannt, weil das der Unterschied ist, den ein
+    Nutzer sehen will: „847 aufgenommen, 153 schon bekannt" beruhigt, „1000
+    verarbeitet" macht misstrauisch.
+    """
+
+    source: str = ""
+    recorded: int = 0
+    duplicates: int = 0
+    skipped: int = 0
+    changed: int = 0
+    removed: int = 0
+
+    skipped_reasons: list[str] = field(default_factory=list)
+    """Warum etwas übersprungen wurde — für den Nutzer, nicht fürs Protokoll.
+
+    Ohne diese Liste sieht jemand „5 übersprungen" und erfährt nie, welche
+    Dateien fehlen. Wer seinen Vault aufnimmt, glaubt danach, alles sei drin.
+    Genau das stille Vergessen, das dieses Projekt an anderer Stelle verbietet.
+    """
+
+    errors: list[str] = field(default_factory=list)
+    episode_ids: list[str] = field(default_factory=list)
+
+    @property
+    def seen(self) -> int:
+        return self.recorded + self.duplicates + self.skipped
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source,
+            "recorded": self.recorded,
+            "duplicates": self.duplicates,
+            "skipped": self.skipped,
+            "changed": self.changed,
+            "removed": self.removed,
+            "seen": self.seen,
+            "skipped_reasons": self.skipped_reasons,
+            "errors": self.errors,
+            # `episode_ids` bewusst **nicht** hier: Die Aufnahme eines Vaults
+            # liefert sonst Tausende Kennungen, die niemand benutzt. Wer sie
+            # braucht, bekommt sie im Bericht selbst — die HTTP-Antwort ist
+            # dafür der falsche Ort.
+        }
+
+    def summary(self) -> str:
+        parts = [f"{self.recorded} aufgenommen"]
+        if self.duplicates:
+            parts.append(f"{self.duplicates} schon bekannt")
+        if self.skipped:
+            parts.append(f"{self.skipped} übersprungen")
+        if self.errors:
+            parts.append(f"{len(self.errors)} Fehler")
+        return f"{self.source}: " + ", ".join(parts) + "."
+
+
+class ReadFailure(str):
+    """Lesefehler bleibt von absichtlich übersprungenen Formaten unterscheidbar."""
+
+
+@dataclass
+class RawDocument:
+    """Was ein Adapter aus einer Quelle herausholt, bevor daraus eine Episode wird."""
+
+    title: str
+    body: str
+    source_ref: str
+    kind: EpisodeKind = EpisodeKind.DOCUMENT
+    occurred_at: datetime | None = None
+    participants: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    transkript: Any = None
+    """Nur beim Adapter „transkripte“: die gelesene Mitschrift (`transkript_eingang.Transkript`)."""
+
+
+# -- Hilfsmittel ------------------------------------------------------------
+
+
+def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
+    """Liest YAML-Frontmatter, ohne YAML zu parsen.
+
+    Bewusst nur flache `schlüssel: wert`-Zeilen und einfache Listen. Ein echter
+    YAML-Parser wäre eine weitere Abhängigkeit für einen Randfall — und was ein
+    Adapter aus dem Frontmatter braucht (Datum, Schlagworte), steht dort flach.
+    Was nicht erkannt wird, bleibt einfach im Text stehen und geht nicht
+    verloren.
+    """
+    match = _FRONTMATTER.match(text)
+    if not match:
+        return {}, text
+
+    meta: dict[str, str] = {}
+    key: str | None = None
+    for line in match.group(1).splitlines():
+        if not line.strip():
+            continue
+        if line.lstrip().startswith("- ") and key:
+            meta[key] = (meta.get(key, "") + "," + line.lstrip()[2:].strip()).strip(",")
+            continue
+        if ":" in line and not line.startswith((" ", "\t")):
+            key, _, value = line.partition(":")
+            key = key.strip()
+            meta[key] = value.strip().strip("\"'")
+    return meta, text[match.end():]
+
+
+def date_from(meta: dict[str, str], name: str) -> datetime | None:
+    """Findet den Zeitpunkt, zu dem etwas gehört — abgelesen, nicht geraten.
+
+    Reihenfolge: ausdrückliches Feld im Frontmatter, dann ein Datum im
+    Dateinamen. Findet sich keins, bleibt es leer, und die Episode trägt nur
+    ihren Aufnahmezeitpunkt. Ein erfundenes Datum wäre schlimmer als keins: Die
+    Alterungsurteile in `currency.py` hängen daran.
+    """
+    for key in ("date", "datum", "created", "erstellt", "day"):
+        value = meta.get(key)
+        if not value:
+            continue
+        try:
+            parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+
+    found = _DATE_IN_NAME.search(name)
+    if found:
+        try:
+            return datetime(*(int(g) for g in found.groups()), tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    return None
+
+
+def tags_from(meta: dict[str, str]) -> list[str]:
+    raw = meta.get("tags") or meta.get("tag") or ""
+    return [t.strip().lstrip("#") for t in raw.replace(";", ",").split(",") if t.strip()]
+
+
+def clean_title(stem: str, occurred_at: datetime | None) -> str:
+    """Entfernt ein führendes Datum aus dem Titel, wenn es schon erfasst ist.
+
+    „2026-04-02 Jour fixe" wird zu „Jour fixe". Die Angabe geht nicht verloren —
+    sie steht in `occurred_at`, und dort kann `currency.py` damit rechnen. Sie
+    zusätzlich im Titel zu führen, macht jede Liste unlesbar.
+
+    Nur wenn das Datum tatsächlich übernommen wurde: Sonst wäre es fort, ohne
+    irgendwo anders aufzutauchen. Der Verweis auf die Datei bleibt in jedem Fall
+    unangetastet — er ist der verlässliche Schlüssel, nicht der Titel.
+    """
+    if occurred_at is None:
+        return stem
+    stripped = _DATE_IN_NAME.sub("", stem, count=1).strip(" -–—_")
+    return stripped or stem
+
+
+def beteiligte_aus(meta: dict[str, str]) -> list[str]:
+    """Wer laut Kopfzeilen dabei war.
+
+    Bewusst **nur** aus dem Kopf, nie aus dem Fließtext. Namen aus Prosa zu
+    lesen hieße raten, und geratene Menschen sind schlimmer als gar keine: Sie
+    tauchen in einer Liste auf, die aussieht, als wäre sie belegt.
+
+    Was hier steht, hat jemand hingeschrieben — das ist eine Angabe, keine
+    Vermutung.
+    """
+    roh = (
+        meta.get("participants")
+        or meta.get("teilnehmer")
+        or meta.get("anwesend")
+        or ""
+    )
+    # Auch `participants: [A, B]` — die Klammern schreibt jeder Vault anders.
+    roh = roh.strip().strip("[]")
+    namen: list[str] = []
+    for teil in roh.replace(";", ",").split(","):
+        name = teil.strip().strip("\"'").strip()
+        if name and name not in namen:
+            namen.append(name)
+    return namen
+
+
+def wikilinks(text: str) -> list[str]:
+    """`[[Verweise]]` als Rohmaterial für Verknüpfungen.
+
+    Nur eingesammelt, nicht aufgelöst. Ob „[[Dr. Meier]]" eine Person, ein
+    Projekt oder eine Notiz ist, entscheidet nicht der Adapter.
+    """
+    seen: list[str] = []
+    for name in _WIKILINK.findall(text):
+        cleaned = name.strip()
+        if cleaned and cleaned not in seen:
+            seen.append(cleaned)
+    return seen
+
+
+def _readable_files(root: Path) -> Iterator[Path]:
+    for path in sorted(root.rglob("*")):
+        if any(part in SKIP_DIRS for part in path.parts):
+            continue
+        if path.is_file():
+            yield path
+
+
+# -- Adapter ----------------------------------------------------------------
+
+
+def read_markdown_vault(root: Path, *, on_file=None) -> Iterator[RawDocument | str]:
+    """Obsidian-Vault oder jeder Ordner mit Markdown.
+
+    Liefert `RawDocument` für Gelesenes und einen `str` als Begründung für
+    Übersprungenes — der Aufrufer zählt beides, statt dass hier still
+    weggelassen wird.
+    """
+    for path in _readable_files(root):
+        if path.suffix.lower() not in TEXT_SUFFIXES:
+            yield f"{path.name}: kein Textformat"
+            continue
+        try:
+            size = path.stat().st_size
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        if size > MAX_FILE_BYTES:
+            yield f"{path.name}: größer als {MAX_FILE_BYTES // 1024} KB"
+            continue
+
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        meta, body = parse_frontmatter(text)
+        if on_file is not None:
+            relative_name = path.relative_to(root).as_posix()
+            on_file(relative_name, {f"vault:{relative_name}"} if body.strip() else set())
+        if not body.strip():
+            yield f"{path.name}: leer"
+            continue
+
+        relative = path.relative_to(root)
+        occurred = date_from(meta, path.stem)
+        yield RawDocument(
+            title=meta.get("title") or clean_title(path.stem, occurred),
+            body=body.strip(),
+            source_ref=f"vault:{relative.as_posix()}",
+            occurred_at=occurred,
+            participants=beteiligte_aus(meta) + [
+                w for w in wikilinks(body) if w not in beteiligte_aus(meta)
+            ],
+            # Der Ordnername ist eine Ablesung: In fast jedem Vault trägt die
+            # Ordnerstruktur Bedeutung, und sie zu verwerfen wäre Verlust.
+            tags=tags_from(meta) + [p for p in relative.parts[:-1]],
+        )
+
+
+def read_notion_export(root: Path, *, on_file=None) -> Iterator[RawDocument | str]:
+    """Notion-Markdown-Export.
+
+    Zwei Eigenheiten, die den eigenen Adapter rechtfertigen: An jeden
+    Dateinamen ist eine UUID ohne Bindestriche angehängt, und Datenbanken kommen
+    als CSV neben den Seiten. Beides würde der Vault-Adapter falsch behandeln —
+    Titel voller Hexzeichen und eine CSV als Fließtext.
+    """
+    for path in _readable_files(root):
+        suffix = path.suffix.lower()
+        if suffix not in {".md", ".csv"}:
+            yield f"{path.name}: kein Textformat"
+            continue
+        try:
+            size = path.stat().st_size
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        if size > MAX_FILE_BYTES:
+            yield f"{path.name}: größer als {MAX_FILE_BYTES // 1024} KB"
+            continue
+
+        relative = path.relative_to(root)
+        stem = _NOTION_SUFFIX.sub("", path.stem).strip()
+
+        if suffix == ".csv":
+            yield from _notion_database(path, relative, stem, on_file=on_file)
+            continue
+
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        # Notion schreibt den Titel als erste Überschrift und darunter die
+        # Eigenschaften als `Schlüssel: Wert`.
+        lines = text.splitlines()
+        title = stem
+        if lines and lines[0].startswith("# "):
+            title = lines[0][2:].strip() or stem
+            lines = lines[1:]
+
+        meta: dict[str, str] = {}
+        rest = list(lines)
+        for index, line in enumerate(lines):
+            if not line.strip():
+                rest = lines[index + 1:]
+                break
+            if ":" in line:
+                key, _, value = line.partition(":")
+                meta[key.strip().casefold()] = value.strip()
+
+        body = "\n".join(rest).strip()
+        if on_file is not None:
+            on_file(relative.as_posix(), {f"notion:{relative.as_posix()}"} if body else set())
+        if not body:
+            yield f"{path.name}: leer"
+            continue
+
+        yield RawDocument(
+            title=title,
+            body=body,
+            source_ref=f"notion:{relative.as_posix()}",
+            occurred_at=date_from(meta, stem),
+            participants=beteiligte_aus(meta),
+            tags=tags_from(meta) + [_NOTION_SUFFIX.sub("", p).strip()
+                                    for p in relative.parts[:-1]],
+        )
+
+
+def _notion_database(path: Path, relative: Path, stem: str, *, on_file=None) -> Iterator[RawDocument | str]:
+    """Eine Notion-Datenbank: jede Zeile wird eine eigene Episode.
+
+    Die ganze Tabelle als einen Text aufzunehmen wäre einfacher und falsch —
+    dann liegen fünfzig Vorgänge in einer Episode, und die Verdichtung kann
+    keinen davon einzeln behandeln oder verwerfen.
+    """
+    try:
+        with path.open(encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+    except (OSError, UnicodeError, csv.Error) as exc:
+        yield ReadFailure(f"{path.name}: {exc}")
+        return
+
+    if on_file is not None:
+        references = {
+            f"notion:{relative.as_posix()}#{index + 1}"
+            for index, row in enumerate(rows)
+            if any(k and isinstance(v, str) and v.strip() for k, v in row.items())
+        }
+        on_file(relative.as_posix(), references)
+    if not rows:
+        yield f"{path.name}: keine Zeilen"
+        return
+
+    first_column = next(iter(rows[0].keys()), "")
+    for index, row in enumerate(rows):
+        filled = {k: v for k, v in row.items() if k and v and v.strip()}
+        if not filled:
+            continue
+        title = (row.get(first_column) or "").strip() or f"{stem} #{index + 1}"
+        yield RawDocument(
+            title=title,
+            body="\n".join(f"{k}: {v}" for k, v in filled.items()),
+            source_ref=f"notion:{relative.as_posix()}#{index + 1}",
+            occurred_at=date_from({k.casefold(): v for k, v in filled.items()}, stem),
+            tags=[stem],
+        )
+
+
+def read_text_files(root: Path, *, on_file=None) -> Iterator[RawDocument | str]:
+    """Irgendein Ordner mit Textdateien. Keine Annahmen über Struktur."""
+    for path in _readable_files(root):
+        if path.suffix.lower() not in TEXT_SUFFIXES:
+            yield f"{path.name}: kein Textformat"
+            continue
+        try:
+            size = path.stat().st_size
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        if size > MAX_FILE_BYTES:
+            yield f"{path.name}: größer als {MAX_FILE_BYTES // 1024} KB"
+            continue
+        try:
+            body = path.read_text(encoding="utf-8", errors="replace").strip()
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        if on_file is not None:
+            relative_name = path.relative_to(root).as_posix()
+            on_file(relative_name, {f"datei:{relative_name}"} if body else set())
+        if not body:
+            yield f"{path.name}: leer"
+            continue
+        kopf, _ = parse_frontmatter(body)
+        occurred = date_from(kopf, path.stem)
+        yield RawDocument(
+            title=clean_title(path.stem, occurred),
+            # Der Rumpf bleibt, wie er ist. Den Kopf herauszuschneiden wäre
+            # sauberer und würde den Digest ändern — dann gälte alles schon
+            # Aufgenommene wieder als neu.
+            body=body,
+            source_ref=f"datei:{path.relative_to(root).as_posix()}",
+            occurred_at=occurred,
+            participants=beteiligte_aus(kopf),
+        )
+
+
+def read_transkripte(root: Path, *, on_file=None) -> Iterator[RawDocument | str]:
+    """Der Eingangsordner für Mitschriften (.txt, .vtt, .srt, .docx, .md).
+
+    Derselbe Ordner, den auf dem Mac der Ordnerarbeiter beobachtet; im Container
+    ist es ein eingebundener Ordner. Gelesen wird in `transkript_eingang`,
+    zugeordnet in `transkript_zuordnung`. Ein Lesefehler (etwa ein Word-Dokument
+    mit Passwort) zählt als übersprungen, nie als gelöschte Quelle.
+    """
+    from . import transkript_eingang
+
+    for path in _readable_files(root):
+        if path.suffix.lower() not in transkript_eingang.SUFFIXES:
+            yield f"{path.name}: keine Mitschrift"
+            continue
+        relativ = path.relative_to(root).as_posix()
+        try:
+            info = path.stat()
+            if info.st_size > transkript_eingang.MAX_BYTES:
+                yield f"{path.name}: größer als {transkript_eingang.MAX_BYTES // (1024 * 1024)} MB"
+                continue
+            daten = path.read_bytes()
+        except OSError:
+            yield ReadFailure(f"{path.name}: Datei gerade nicht lesbar; erneut versuchen")
+            continue
+        try:
+            gelesen = transkript_eingang.lesen(
+                relativ, daten, datetime.fromtimestamp(info.st_mtime, timezone.utc))
+        except ValueError as exc:
+            yield f"{path.name}: {exc}"
+            continue
+        if on_file is not None:
+            on_file(relativ, {f"transkript:{relativ}"})
+        angaben = transkript_eingang.episode_daten(gelesen)
+        yield RawDocument(title=angaben["title"], body=angaben["body"], source_ref=f"transkript:{relativ}",
+                          occurred_at=angaben["occurred_at"], participants=angaben["participants"],
+                          tags=angaben["tags"], transkript=gelesen)
+
+
+ADAPTERS = {
+    "transkripte": read_transkripte,
+    "obsidian": read_markdown_vault,
+    "markdown": read_markdown_vault,
+    "notion": read_notion_export,
+    "dateien": read_text_files,
+}
+
+
+# -- Der Lauf ---------------------------------------------------------------
+
+
+def ingest_directory(
+    store: EpisodeStore,
+    path: str | Path,
+    adapter: str = "markdown",
+    roots: list[Path] | None = None,
+    limit: int = 5000,
+    on_source=None,
+    on_complete=None,
+    on_transcript=None,
+) -> IngestReport:
+    """Liest einen Ordner ein und legt Episoden an.
+
+    `roots` sind die freigegebenen Ordner. Die Prüfung ist dieselbe wie beim
+    Werkzeug `datei_lesen` — die Aufnahme darf kein Weg sein, an der
+    Pfadbeschränkung vorbei den ganzen Rechner zu lesen. Ohne freigegebene
+    Ordner geht gar nichts, wie überall sonst auch.
+
+    Der Inhalt gilt durchgehend als **fremd**: Eine importierte Notiz kann eine
+    Anweisung enthalten, die an ein Modell gerichtet ist. Deshalb landet sie als
+    Episode und nicht im Bestand, und die Verdichtung legt vor, statt zu
+    schreiben.
+    """
+    if adapter not in ADAPTERS:
+        raise ValueError(
+            f"Unbekannter Adapter: {adapter}. Bekannt: {', '.join(sorted(ADAPTERS))}"
+        )
+
+    root = resolve_readable_dir(str(path), list(roots or []))
+    report = IngestReport(source=f"{adapter}:{root.name}")
+
+    # Nur erfolgreich gelesene Dateien liefern ein vollständiges Inhaltsverzeichnis.
+    # Übersprungene oder gesperrte Dateien dürfen nie als geleert gelten.
+    observed_files: dict[str, set[str]] = {}
+    gespraeche = 0
+    for item in ADAPTERS[adapter](root, on_file=lambda name, refs: observed_files.__setitem__(name, refs)):
+        # Die Grenze zählt nur **neue** Einträge. Bekanntes kostet kaum etwas und
+        # darf keine Fortschrittsgrenze sein: Sonst käme ein Ordner mit mehr als
+        # `limit` Dateien nie über die ersten hinaus, weil jeder Lauf wieder mit
+        # denselben (nun bekannten) beginnt. Übersprungenes liest ohnehin weiter.
+        if not isinstance(item, str) and report.recorded >= limit:
+            report.errors.append(
+                f"Nach {limit} neuen Einträgen angehalten — Grenze erreicht. Der nächste Lauf macht weiter."
+            )
+            break
+        if isinstance(item, str):
+            report.skipped += 1
+            if isinstance(item, ReadFailure):
+                report.errors.append(str(item))
+            # Gedeckelt: Bei einem Vault mit tausend Bildern wäre die volle
+            # Liste selbst wieder unlesbar. Die ersten paar sagen, *woran* es
+            # liegt; die Zahl daneben sagt, wie oft.
+            if len(report.skipped_reasons) < MAX_SKIP_REASONS:
+                report.skipped_reasons.append(item)
+            continue
+
+        try:
+            provenance = Provenance(
+                source_type=SourceType.DOCUMENT,
+                source_ref=item.source_ref,
+                extracted_by=f"icarus/ingest/{adapter}",
+                captured_at=datetime.now().astimezone(),
+            )
+            if item.transkript is not None:
+                from . import transkript_eingang
+                episode, is_new = transkript_eingang.aufnehmen(
+                    store, item.transkript, provenance, source_key(root, item.source_ref))
+            else:
+                episode, is_new = store.record(
+                    kind=item.kind,
+                    title=item.title,
+                    body=item.body,
+                    provenance=provenance,
+                    occurred_at=item.occurred_at,
+                    participants=item.participants,
+                    tags=item.tags,
+                    source_key=source_key(root, item.source_ref),
+                )
+            if on_source is not None:
+                report.changed += int(on_source(root, item.source_ref, episode))
+            if on_transcript is not None and item.transkript is not None:
+                on_transcript(episode, item.transkript.hinweise())
+        except Exception as exc:  # noqa: BLE001 - eine Datei darf den Lauf nicht kippen
+            report.errors.append(f"{item.source_ref}: {exc}")
+            continue
+
+        if is_new:
+            report.recorded += 1
+            report.episode_ids.append(episode.id)
+            gespraeche += int(item.transkript is not None)
+        else:
+            report.duplicates += 1
+
+    if on_complete is not None and not report.errors:
+        try:
+            report.removed = on_complete(root, adapter, observed_files)
+        except OSError:
+            report.errors.append("Quellenabgleich unvollständig: Ein Dateizugriff ist fehlgeschlagen. Bitte erneut versuchen.")
+    if report.recorded - gespraeche:
+        logbuch.vermerke('quellen', sorte='dokument', anzahl=report.recorded - gespraeche)
+    if gespraeche:
+        logbuch.vermerke('quellen', sorte='gespraech', anzahl=gespraeche)
+    return report
+
+
+__all__ = [
+    "ADAPTERS",
+    "IngestReport",
+    "MAX_FILE_BYTES",
+    "RawDocument",
+    "TEXT_SUFFIXES",
+    "clean_title",
+    "date_from",
+    "ingest_directory",
+    "parse_frontmatter",
+    "read_markdown_vault",
+    "read_notion_export",
+    "read_text_files",
+    "read_transkripte",
+    "tags_from",
+    "wikilinks",
+]

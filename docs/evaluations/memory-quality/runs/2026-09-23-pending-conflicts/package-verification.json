@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "upload_and_explicit_candidate_api": true,
+  "accepted_answer": true,
+  "pending_conflict_detected": true,
+  "old_answer_rechecked_after_restart": true,
+  "fresh_conflict_without_model": true,
+  "neutral_preview": true,
+  "rejection_restores_valid_answer": true,
+  "withdrawal_invalidates_saved_answer": true,
+  "two_restarts": true,
+  "conversation_id": "c-94362b1d3fb2",
+  "provider": "synthetic fixed-ID selector; no actual LLM; no semantic quality measurement",
+  "commit": "b667ecf08710519acc6f917c1a6a3c059c6e192f",
+  "browser_withdrawn_answer": true,
+  "browser_conflict_notice": true,
+  "browser_no_stale_context": true
+}

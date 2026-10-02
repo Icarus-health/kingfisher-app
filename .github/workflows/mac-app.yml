@@ -1,0 +1,54 @@
+# Mac-App (Kingfisher.dmg): universell übersetzt, ad hoc signiert, nicht notarisiert.
+#
+# - Aus dem Release-Workflow (`workflow_call` mit `fassung`): DMG bauen und als Artefakt `Kingfisher.dmg` hochladen.
+# - Bei Pull Requests, die macos/ oder diesen Workflow ändern: nur übersetzen, Logik prüfen und das DMG bauen,
+#   damit die macOS-Minuten sparsam bleiben. Hochgeladen wird dann nichts.
+
+name: Mac-App
+
+on:
+  workflow_call:
+    inputs:
+      fassung:
+        description: "Fassung nach SemVer, etwa 1.0.1 (Tag des Bildes und Fassung der App)"
+        required: true
+        type: string
+  pull_request:
+    paths:
+      - "macos/**"
+      - ".github/workflows/mac-app.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Logik prüfen
+        run: |
+          xcrun swiftc macos/App/Logic/*.swift macos/tests/main.swift -o "$RUNNER_TEMP/kingfisher-logic"
+          "$RUNNER_TEMP/kingfisher-logic"
+
+      - name: Fenster des Bestands übersetzen
+        # Teilt Shared/ mit der App; so fällt ein Bruch dort auch hier auf.
+        run: |
+          xcrun swiftc -parse-as-library -typecheck -target arm64-apple-macosx11.3 \
+            macos/Shared/*.swift macos/KingfisherApp.swift
+
+      - name: DMG bauen
+        env:
+          # Leer bei Pull Requests: dann gilt die Datei VERSION.
+          KINGFISHER_FASSUNG: ${{ inputs.fassung }}
+        run: bash macos/build_dmg.sh
+
+      - name: Artefakt hochladen
+        if: inputs.fassung != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kingfisher.dmg
+          path: dist/Kingfisher.dmg
+          if-no-files-found: error

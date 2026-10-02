@@ -1,0 +1,104 @@
+/* Seitenbreite für alle Seiten (docs/16-gestaltung.md, docs/47-einstellungen.md „Seitenbreite“, Fremdprobe Befund 1
+   und 28). Keine Seite ist breiter als das Fenster, und nichts ragt abgeschnitten über den Rand. Es gibt keine globale
+   Mindestbreite mehr; dieselben drei Stufen wie in den Einstellungen gelten überall:
+
+   * unter 1100 px stapeln sich Spalten, die nebeneinander keinen Platz mehr haben,
+   * unter 900 px wird die Seitenleiste ein Streifen oben (sonst deckt die feste Leiste die Seite zu), ohne eigenen
+     Rollbalken; unter 700 px nur mit Symbolen und dem Namen des aktiven Bereichs,
+   * unter 700 px haben Formulare und Raster eine Spalte.
+
+   Breite Inhalte brechen um, statt die Seite zu weiten. Diese Datei wird als letzte geladen (main.tsx). */
+
+.shell { overflow-x: clip; }
+.shell > main { min-width: 0; }
+.shell main :is(h1, h2, h3, p, strong, small, label, li, dd, dt, blockquote) { overflow-wrap: break-word; }
+.shell main :is(button, select, input, textarea) { max-width: 100%; }
+
+/* Auswahlleisten und Knopfreihen brechen um. */
+.shell main :is(.task-tabs, .profile-tabs, .view-switch, .inbox-filter, .history-tools, .calendar-actions,
+  .memory-actions, .memory-person-filter, .project-controls-toolbar, .decision-controls-heading) { flex-wrap: wrap; }
+
+@media (max-width: 1100px) {
+  .shell main.conversation-page { grid-template-columns: minmax(0, 1fr); }
+  .shell main.conversation-page .context-panel { order: 2; }
+  .thread-command { left: 244px; }
+  .thread-send-error, .memory-send-error { left: 264px; }
+  .shell main.memory-page { grid-template-columns: minmax(0, 1fr); }
+  .shell main.memory-page .memory-filter > div { display: flex; flex-wrap: wrap; gap: 4px; }
+  .shell main.memory-page .memory-filter > div button { width: auto; flex: 0 1 auto; }
+  .shell main.memory-page .memory-filter > button { width: auto; }
+  .shell main.memory-page .memory-filter > small { display: block; padding: 12px 4px 8px; }
+}
+
+/* Briefing: Unter 1100 px zwei Spalten, darunter eine; das Briefing füllt unter 900 px das Fenster. */
+@media (max-width: 1100px) {
+  .drawer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .drawer-grid > .drawer-card { grid-column: auto; min-height: 0; }
+  .drawer-grid > .world-card { grid-column: 1 / -1; }
+  .audio-briefing { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; row-gap: 12px; }
+  .audio-briefing .audio-title { grid-row: 1; }
+  .audio-briefing .waveform, .audio-briefing .audio-time, .audio-briefing .audio-duration { display: none; }
+  .audio-briefing .audio-controls { grid-column: 2; grid-row: 1; }
+  .audio-briefing .audio-message { grid-column: 1 / -1; }
+  .drawer-heading { max-width: calc(100% - 300px); }
+}
+
+@media (max-width: 900px) {
+  .scrim { left: 0; }
+  .today-landscape { inset: 0; }
+  .briefing-drawer { width: 100vw; }
+  .shell::before, .shell:not(:has(.today-page))::before { left: 0; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .shell > main { grid-column: 1; }
+  /* Die Seitenleiste als Streifen oben: alle Ziele in einer Reihe, ohne eigenen Rollbalken und ohne abgeschnittene
+     Beschriftung (Fremdprobe 3, Befund 14). Das Symbol steht über seinem Namen in kleiner Schrift; reicht der Platz
+     nicht für alle Namen (unter 700 px), trägt nur der aktive Bereich seinen Namen (Fremdprobe 2, Befund 25). Wird es
+     noch enger, bricht die Reihe um, statt seitlich zu rollen. */
+  .shell > .sidebar { position: static; width: auto; inset: auto; flex-direction: row; align-items: stretch; flex-wrap: nowrap; gap: 2px; padding: 6px 8px; }
+  .shell > .sidebar .brand-lockup, .shell > .sidebar [class*="clock"] { display: none; }
+  .shell > .sidebar nav { display: flex; flex: 1 1 auto; flex-wrap: wrap; justify-content: space-around; gap: 2px; margin: 0; min-width: 0; overflow: visible; }
+  .shell > .sidebar .nav-item { flex: 0 0 auto; flex-direction: column; justify-content: center; gap: 2px; width: auto; min-width: 44px; min-height: 48px; padding: 4px 6px; font-size: 11px; line-height: 14px; text-align: center; }
+  .shell > .sidebar .nav-item span { white-space: nowrap; }
+  .shell > .sidebar .sidebar-foot { display: flex; flex: 0 0 auto; margin: 0; }
+  .thread-command { left: 16px; right: 16px; bottom: 16px; }
+  .thread-send-error, .memory-send-error { left: 24px; right: 24px; }
+  .shell main :is(.tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history) { padding: 20px 16px 48px; }
+  .shell main.conversation-page, .shell main.memory-page { padding: 16px; }
+}
+
+@media (max-width: 700px) {
+  .shell > .sidebar .nav-item:not(.active) span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .shell main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) { min-height: 0; padding: 8px 0; }
+  .shell main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) h1 { font-size: 28px; }
+  .tasks-add, .inbox-heading > button { position: static; margin-top: 12px; }
+  .inbox-heading { padding-right: 0; }
+  .shell main .task-table > header, .shell main .task-row { grid-template-columns: 32px minmax(0, 1fr); }
+  .shell main .task-row > .task-copy { grid-column: 2; grid-row: 1; }
+  .shell main .task-row > time { grid-column: 2; grid-row: 2; text-align: left; }
+  .shell main .task-row > .task-wait-control { grid-column: 2; grid-row: 3; }
+  .shell main .task-table > header span:last-child { display: none; }
+  .shell main .task-create { grid-template-columns: minmax(0, 1fr); }
+  .shell main :is(.profile-grid, .profile-list) { grid-template-columns: minmax(0, 1fr); }
+  .shell main .profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shell main .inbox-account { margin-left: 0; }
+  .shell main .inbox-row { flex-wrap: wrap; gap: 8px; }
+  .shell main .history-row { gap: 12px; }
+  .shell main .history-meta { flex-basis: auto; }
+  .shell main .thread-header { flex-wrap: wrap; align-items: flex-start; }
+  .shell main .message { max-width: 100%; padding: 16px; }
+  .shell main .memory-canvas { min-height: 520px; }
+  .shell main .month-day { min-height: 56px; padding: 6px 4px; }
+  /* Gedächtnis: Die Bereichsauswahl bricht um, statt seitlich aus dem Bild zu rollen (Befund 28). */
+  .shell main.memory-page.memory-page-status .memory-filter { display: block; overflow-x: visible; padding: 16px; }
+  .shell main.memory-page.memory-page-status .memory-filter > :is(p, small) { display: block; }
+  .shell main.memory-page.memory-page-status .memory-filter > div { display: flex; flex-wrap: wrap; }
+  .shell main.memory-page.memory-page-status .memory-filter button { white-space: normal; }
+  .drawer-grid { grid-template-columns: minmax(0, 1fr); }
+  .drawer-content { padding: 0 12px 32px; }
+  .news-grid { grid-template-columns: minmax(0, 1fr); }
+  .audio-briefing { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .audio-briefing .audio-controls { grid-column: 1; grid-row: auto; justify-content: flex-start; flex-wrap: wrap; }
+  .drawer-bird { display: none; }
+  .drawer-heading { left: 12px; right: 12px; max-width: none; }
+  .drawer-heading h2 { font-size: 30px; line-height: 1.2; }
+}

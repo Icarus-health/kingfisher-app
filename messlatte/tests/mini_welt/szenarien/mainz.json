@@ -1,0 +1,94 @@
+{
+  "id": "mainz",
+  "titel": "Zwei Bedeutungen von Mainz",
+  "beschreibung": "Ein Angebot für ein Klinikum in Mainz mit verschobener Frist und ein privates Wochenende in Mainz. Prüft, ob die neue Frist gilt und ob bei einer offenen Frage nach Mainz beide Bedeutungen angeboten werden.",
+  "quellen": [
+    {
+      "id": "mainz-001", "art": "mail", "zeit": "2026-08-20T10:12:00+02:00",
+      "von": {"name": "Sabine Becker", "adresse": "s.becker@klinikum-albanus.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Angebot Ernährungsberatung Klinikum Mainz",
+      "text": "Guten Tag Frau Hartmann,\n\nfür das St.-Albanus-Klinikum in Mainz bitte ich Sie um ein Angebot für die Ernährungsberatung. Das Angebot benötigen wir bis zum 12. Oktober.\n\nViele Grüße\nSabine Becker"
+    },
+    {
+      "id": "mainz-002", "art": "mail", "zeit": "2026-08-21T08:40:00+02:00",
+      "von": {"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"},
+      "an": [{"name": "Sabine Becker", "adresse": "s.becker@klinikum-albanus.example"}],
+      "betreff": "Re: Angebot Ernährungsberatung Klinikum Mainz",
+      "ordner": "Sent", "antwort_auf": "mainz-001",
+      "text": "Guten Tag Frau Becker,\n\nich schicke Ihnen das Angebot bis zum 12. Oktober.\n\nViele Grüße\nLea Hartmann"
+    },
+    {
+      "id": "mainz-003", "art": "mail", "zeit": "2026-09-10T14:05:00+02:00",
+      "von": {"name": "Sabine Becker", "adresse": "s.becker@klinikum-albanus.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Neue Frist Angebot Klinikum Mainz",
+      "text": "Guten Tag Frau Hartmann,\n\ndie Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober.\n\nViele Grüße\nSabine Becker"
+    },
+    {
+      "id": "mainz-004", "art": "mail", "zeit": "2026-09-01T18:20:00+02:00",
+      "von": {"name": "Tobias Brandt", "adresse": "t.brandt@brandt-reisen.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Wochenende in Mainz",
+      "text": "Hallo Lea,\n\nwir haben für das erste Oktoberwochenende ein Hotel in Mainz gebucht, ein kleiner Urlaub am Rhein.\n\nTobias"
+    },
+    {
+      "id": "mainz-005", "art": "notiz", "zeit": "2026-09-02T21:00:00+02:00",
+      "titel": "Packliste Mainz-Urlaub",
+      "text": "Regenjacke, Ladekabel, Reiseführer Mainz."
+    },
+    {
+      "id": "mainz-006", "art": "termin", "zeit": "2026-09-02T21:10:00+02:00",
+      "beginn": "2026-10-03T10:00:00+02:00", "ende": "2026-10-03T12:00:00+02:00",
+      "titel": "Führung Gutenberg-Museum Mainz", "ort": "Mainz",
+      "teilnehmer": [{"name": "Tobias Brandt", "adresse": "t.brandt@brandt-reisen.example"}]
+    },
+    {
+      "id": "mainz-007", "art": "mail", "zeit": "2026-09-15T06:00:00+02:00",
+      "von": {"name": "Rheinhessen-Therme", "adresse": "info@rheinhessen-therme.example"},
+      "an": [{"name": "Lea Hartmann", "adresse": "lea@hartmann-beratung.example"}],
+      "betreff": "Herbstangebot der Rheinhessen-Therme Mainz",
+      "text": "Herbstangebot: Eintritt für Erwachsene ab 12 Euro, gültig bis Ende November."
+    },
+    {
+      "id": "mainz-008", "art": "transkript", "zeit": "2026-09-12T11:30:00+02:00",
+      "titel": "Telefonat mit Frau Becker",
+      "text": "Sabine Becker: Das Klinikum entscheidet über das Angebot erst Anfang November.\nLea Hartmann: Verstanden, ich sende es bis Ende Oktober.",
+      "teilnehmer": ["Sabine Becker", "Lea Hartmann"]
+    }
+  ],
+  "fragen": [
+    {
+      "id": "mainz-01",
+      "frage": "Bis wann muss das Angebot für das Klinikum Mainz raus?",
+      "kategorie": "aktualitaet", "schwere": "kritisch",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["26. Oktober", "26.10."]], "belege": ["mainz-003"]},
+      "verboten": {"aussagen": ["12. Oktober"], "belege": ["mainz-001", "mainz-002"]},
+      "notiz": "Die Frist wurde verschoben; das alte Datum ist veraltet."
+    },
+    {
+      "id": "mainz-02",
+      "frage": "Was ist mit Mainz los?",
+      "kategorie": "mehrdeutigkeit", "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "bedeutungen": [["Klinikum", "Angebot"], ["Urlaub", "Hotel", "Wochenende"]],
+        "belege": ["mainz-003", "mainz-004"]
+      },
+      "verboten": {"aussagen": ["Rheinhessen-Therme gebucht"]},
+      "notiz": "Zwei gleich starke Bedeutungen; eine willkürlich zu wählen ist falsch. Der Werbeabsender der Therme darf als schwache dritte Bedeutung erscheinen, aber nie als gebucht."
+    },
+    {
+      "id": "mainz-03",
+      "frage": "Wann entscheidet das Klinikum über mein Angebot?",
+      "kategorie": "wartet_auf", "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["Anfang November"]], "belege": ["mainz-008"]}
+    },
+    {
+      "id": "mainz-04",
+      "frage": "Um wie viel Uhr beginnt die Führung im Gutenberg-Museum?",
+      "kategorie": "vorbereitung", "schwere": "normal",
+      "erwartet": {"verhalten": "antworten", "aussagen": [["10:00", "10 Uhr"]], "belege": ["mainz-006"]}
+    }
+  ]
+}

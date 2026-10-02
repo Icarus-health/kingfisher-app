@@ -1,0 +1,30 @@
+[
+  {
+    "file": "after-parent-retraction.json",
+    "sha256": "777b3e6616be6825b78d84468ca71bdb7d8828d2ff49a8d7130cdd0acd218464"
+  },
+  {
+    "file": "card-after-parent-retraction.json",
+    "sha256": "575e44a379373666f1ccd883252f7d6a25d403edd88e562d369d843c8fb21134"
+  },
+  {
+    "file": "decision-after-restart.json",
+    "sha256": "50770cfcb74044768f4f0f32da5ffca4ef936dea0d6392be3e324bbbc2cab238"
+  },
+  {
+    "file": "decision-review.json",
+    "sha256": "33fd6389a5ef4a6baebb02904471ad4cb13c0bb4fc566a3ccb06bd8117b176d0"
+  },
+  {
+    "file": "first-inference.json",
+    "sha256": "343169f2b658a129d0f099ac9fcc1d7a3b5865971a880bd1f58ace4d98b1e838"
+  },
+  {
+    "file": "inference-after-restart.json",
+    "sha256": "626555e006d512e6003365349ab390b2b4591f6585f7770f1cb2a6c35415e2d4"
+  },
+  {
+    "file": "state.json",
+    "sha256": "395c5ee839877f6391775bb131c0bafaedb8af96dc2193960320913f0842211c"
+  }
+]

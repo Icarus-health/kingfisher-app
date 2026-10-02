@@ -1,0 +1,390 @@
+{
+  "id": "adresse-geaendert",
+  "titel": "Arbeitgeberwechsel und neue Anschrift",
+  "beschreibung": "Eine Kundin wechselt den Arbeitgeber und zieht damit auch für Rechnungsadresse und Mailadresse um. Die alten Angaben stehen in älteren Quellen und dürfen nicht mehr genannt werden.",
+  "quellen": [
+    {
+      "id": "adresse-geaendert-001",
+      "art": "mail",
+      "zeit": "2024-03-05T09:20:00+01:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anfrage Schulung Küchenteam",
+      "text": "Sehr geehrte Frau Hartmann,\n\nich leite die Küche der Kreisklinik Rheingau und würde gern das Küchenteam zum Thema Diätformen schulen lassen. Können\nSie das übernehmen?\n\nMit freundlichen Grüßen\nJasmin Krüger\nKüchenleitung\nKreisklinik Rheingau, Klinikstraße 5, 65366 Geisenheim\nTel. 06722 555-310"
+    },
+    {
+      "id": "adresse-geaendert-002",
+      "art": "mail",
+      "zeit": "2024-03-06T08:45:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Jasmin Krüger",
+          "adresse": "j.krueger@kreisklinik-rheingau.example"
+        }
+      ],
+      "betreff": "AW: Anfrage Schulung Küchenteam",
+      "text": "Sehr geehrte Frau Krüger,\n\nsehr gerne. Ich schlage einen Workshop im April oder Mai vor und schicke Ihnen dazu ein Angebot.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "adresse-geaendert-001"
+    },
+    {
+      "id": "adresse-geaendert-003",
+      "art": "mail",
+      "zeit": "2024-11-12T10:15:00+01:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Rechnungsanschrift für den Workshop",
+      "text": "Guten Tag Frau Hartmann,\n\nfür die Rechnung zum Workshop bitte folgende Anschrift verwenden:\n\nKreisklinik Rheingau\nVerwaltung, z. Hd. Frau Krüger\nKlinikstraße 5\n65366 Geisenheim\n\nMit freundlichen Grüßen\nJasmin Krüger"
+    },
+    {
+      "id": "adresse-geaendert-004",
+      "art": "termin",
+      "zeit": "2025-03-10T11:00:00+01:00",
+      "beginn": "2025-04-08T09:00:00+02:00",
+      "ende": "2025-04-08T16:00:00+02:00",
+      "titel": "Workshop Diätformen Kreisklinik Rheingau",
+      "ort": "Kreisklinik Rheingau, Schulungsraum, Geisenheim",
+      "teilnehmer": [
+        {
+          "name": "Jasmin Krüger",
+          "adresse": "j.krueger@kreisklinik-rheingau.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Ganztägiger Workshop für das Küchenteam."
+    },
+    {
+      "id": "adresse-geaendert-005",
+      "art": "mail",
+      "zeit": "2025-09-17T14:30:00+02:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Rückmeldung zum Workshop",
+      "text": "Liebe Frau Hartmann,\n\ndas Team spricht immer noch von Ihrem Workshop. Wir würden gern nächstes Jahr eine Wiederholung für die neuen Kolleginnen\nund Kollegen machen. Ich melde mich im Frühjahr.\n\nViele Grüße\nJasmin Krüger\nKreisklinik Rheingau"
+    },
+    {
+      "id": "adresse-geaendert-006",
+      "art": "mail",
+      "zeit": "2026-03-18T16:05:00+01:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ich wechsle den Arbeitgeber",
+      "text": "Liebe Frau Hartmann,\n\nich wollte es Ihnen persönlich sagen: Ich verlasse die Kreisklinik Rheingau und wechsle zum 15. April 2026 zum\nVitalzentrum Kassel, wo ich die Leitung des Verpflegungsmanagements übernehme. Meine neue Mailadresse ist\nj.krueger@vitalzentrum-kassel.example, ab dem 15. April bitte nur noch diese verwenden.\n\nIhre alte Adresse bei der Kreisklinik ist danach nicht mehr erreichbar.\n\nHerzliche Grüße\nJasmin Krüger"
+    },
+    {
+      "id": "adresse-geaendert-007",
+      "art": "mail",
+      "zeit": "2026-03-19T08:10:00+01:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Jasmin Krüger",
+          "adresse": "j.krueger@kreisklinik-rheingau.example"
+        }
+      ],
+      "betreff": "AW: Ich wechsle den Arbeitgeber",
+      "text": "Liebe Frau Krüger,\n\nich gratuliere Ihnen herzlich zur neuen Stelle! Ich habe die neue Adresse notiert und melde mich in Kassel.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "adresse-geaendert-006"
+    },
+    {
+      "id": "adresse-geaendert-008",
+      "art": "mail",
+      "zeit": "2026-04-22T09:40:00+02:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@vitalzentrum-kassel.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Neustart in Kassel",
+      "text": "Liebe Frau Hartmann,\n\nich bin gut in Kassel angekommen. Das Vitalzentrum hat ein großes Verpflegungsprojekt vor, bei dem ich Ihre Unterstützung\ngebrauchen könnte. Können wir im Mai telefonieren?\n\nHerzliche Grüße\nJasmin Krüger\nLeitung Verpflegungsmanagement\nVitalzentrum Kassel"
+    },
+    {
+      "id": "adresse-geaendert-009",
+      "art": "mail",
+      "zeit": "2026-06-30T11:12:00+02:00",
+      "von": {
+        "name": "Jasmin Krüger",
+        "adresse": "j.krueger@vitalzentrum-kassel.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Auftrag und Rechnungsanschrift Vitalzentrum",
+      "text": "Liebe Frau Hartmann,\n\nwir möchten Sie für das Verpflegungsprojekt beauftragen. Die Rechnungen bitte an:\n\nVitalzentrum Kassel GmbH\nVerpflegungsmanagement, z. Hd. Frau Krüger\nLindenallee 22\n34117 Kassel\n\nBitte verwenden Sie für alle Unterlagen diese Anschrift. Die Anschrift der Kreisklinik gilt nicht mehr.\n\nHerzliche Grüße\nJasmin Krüger"
+    },
+    {
+      "id": "adresse-geaendert-010",
+      "art": "mail",
+      "zeit": "2026-07-14T08:03:00+02:00",
+      "von": {
+        "name": "Kreisklinik Rheingau Zentrale",
+        "adresse": "zentrale@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Automatische Antwort: Nachricht an Frau Krüger",
+      "text": "Guten Tag,\n\nFrau Krüger ist nicht mehr bei der Kreisklinik Rheingau tätig. Bitte wenden Sie sich in Küchenangelegenheiten an ihren\nNachfolger, Herrn Dennis Pohl (d.pohl@kreisklinik-rheingau.example).\n\nIhre Zentrale der Kreisklinik Rheingau"
+    },
+    {
+      "id": "adresse-geaendert-011",
+      "art": "mail",
+      "zeit": "2026-07-14T08:20:00+02:00",
+      "von": {
+        "name": "Dennis Pohl",
+        "adresse": "d.pohl@kreisklinik-rheingau.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Hallo von der Kreisklinik",
+      "text": "Guten Tag Frau Hartmann,\n\nich bin seit Mai der Küchenleiter der Kreisklinik Rheingau, Nachfolger von Frau Krüger. Sie hat mir von Ihrem Workshop\nerzählt. Wir würden ihn gern im nächsten Jahr wiederholen.\n\nFreundliche Grüße\nDennis Pohl\nKüchenleitung\nKreisklinik Rheingau"
+    },
+    {
+      "id": "adresse-geaendert-012",
+      "art": "notiz",
+      "zeit": "2026-07-15T07:50:00+02:00",
+      "titel": "Kontakte aktualisiert",
+      "text": "Kontakt Jasmin Krüger im Adressbuch aktualisiert: jetzt Vitalzentrum Kassel (Lindenallee 22, 34117 Kassel). Alte\nKreisklinik-Adresse gelöscht. Neuer Ansprechpartner Kreisklinik: Dennis Pohl."
+    }
+  ],
+  "fragen": [
+    {
+      "id": "adresse-geaendert-01",
+      "frage": "An welche Adresse soll ich die Rechnung für Frau Krüger schicken?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Lindenallee 22"
+          ],
+          [
+            "Kassel"
+          ]
+        ],
+        "belege": [
+          "adresse-geaendert-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Rechnung an die Kreisklinik",
+          "Rechnungen an die Kreisklinik",
+          "Anschrift: Kreisklinik",
+          "Adresse: Kreisklinik",
+          "Kreisklinik Rheingau\nVerwaltung",
+          "Kreisklinik Rheingau, Verwaltung, z. Hd."
+        ],
+        "belege": [
+          "adresse-geaendert-003"
+        ]
+      },
+      "notiz": "Rechnungsanschrift wechselte von der Kreisklinik (Geisenheim) zum Vitalzentrum (Kassel)."
+    },
+    {
+      "id": "adresse-geaendert-02",
+      "frage": "Welche E-Mail-Adresse nutze ich für Jasmin Krüger?",
+      "kategorie": "aktualitaet",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "j.krueger@vitalzentrum-kassel.example"
+          ]
+        ],
+        "belege": [
+          "adresse-geaendert-006",
+          "adresse-geaendert-008",
+          "adresse-geaendert-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "nutze j.krueger@kreisklinik-rheingau.example",
+          "nutzen Sie j.krueger@kreisklinik-rheingau.example",
+          "verwende j.krueger@kreisklinik-rheingau.example",
+          "verwenden Sie j.krueger@kreisklinik-rheingau.example",
+          "Adresse ist j.krueger@kreisklinik-rheingau.example",
+          "Adresse lautet j.krueger@kreisklinik-rheingau.example"
+        ],
+        "belege": [
+          "adresse-geaendert-001",
+          "adresse-geaendert-003",
+          "adresse-geaendert-005"
+        ]
+      },
+      "notiz": "Alte Adresse ist nicht mehr erreichbar; die neue gilt seit dem 15. April 2026."
+    },
+    {
+      "id": "adresse-geaendert-03",
+      "frage": "Wo arbeitet Jasmin Krüger jetzt?",
+      "kategorie": "aktualitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Vitalzentrum"
+          ],
+          [
+            "Kassel"
+          ]
+        ],
+        "belege": [
+          "adresse-geaendert-006",
+          "adresse-geaendert-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "arbeitet bei der Kreisklinik",
+          "arbeitet weiterhin bei der Kreisklinik",
+          "ist Küchenleiterin der Kreisklinik",
+          "ist weiterhin Küchenleiterin",
+          "leitet die Küche der Kreisklinik"
+        ],
+        "belege": [
+          "adresse-geaendert-001"
+        ]
+      },
+      "notiz": "Neuer Arbeitgeber und Ort."
+    },
+    {
+      "id": "adresse-geaendert-04",
+      "frage": "Wer ist bei der Kreisklinik Rheingau jetzt für die Küche zuständig?",
+      "kategorie": "aktualitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Pohl"
+          ]
+        ],
+        "belege": [
+          "adresse-geaendert-010",
+          "adresse-geaendert-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Krüger leitet die Küche der Kreisklinik",
+          "Krüger leitet weiterhin",
+          "Krüger ist weiterhin Küchenleiterin",
+          "Krüger ist die Küchenleiterin der Kreisklinik"
+        ],
+        "belege": [
+          "adresse-geaendert-001"
+        ]
+      },
+      "notiz": "Frau Krüger ist ausgeschieden, Nachfolger ist Herr Pohl."
+    },
+    {
+      "id": "adresse-geaendert-05",
+      "frage": "Seit wann ist Frau Krüger beim Vitalzentrum Kassel?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "15.04.2026",
+            "15. April 2026",
+            "15.04.",
+            "15. April",
+            "15. Apr.",
+            "2026-04-15",
+            "15.04",
+            "15.4."
+          ]
+        ],
+        "belege": [
+          "adresse-geaendert-006",
+          "adresse-geaendert-008"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 22.04.",
+          "bis 22.04.",
+          "am 22.04.",
+          "ist der 22.04.",
+          "ist am 22.04.",
+          "spätestens 22.04.",
+          "zum 22.04.",
+          "bis zum 22. April",
+          "bis 22. April",
+          "am 22. April",
+          "ist der 22. April",
+          "ist am 22. April",
+          "spätestens 22. April",
+          "zum 22. April",
+          "22.04.2026",
+          "22. April 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Stichtag des Wechsels ist der 15. April (angekündigt am 18. März); die erste Mail aus Kassel kam später."
+    }
+  ]
+}

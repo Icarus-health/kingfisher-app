@@ -1,0 +1,9 @@
+.setup-overview { min-width: 0; }
+.setup-overview-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.setup-overview-actions span { color: var(--kf-schrift-31535f); font-size: 12px; }
+.setup-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.setup-overview-card { display: flex; flex-direction: column; align-items: flex-start; padding: 18px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-schrift-fffefa); }
+.setup-overview-card h3 { margin: 0 0 10px; color: var(--kf-schrift-062b3a); font-size: 17px; }
+.setup-overview-card strong { color: var(--kf-schrift-31535f); font-size: 13px; overflow-wrap: anywhere; }
+.setup-overview-card p { flex: 1; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.6; }
+@media (max-width: 700px) { .setup-overview-grid { grid-template-columns: minmax(0, 1fr); } }

@@ -1,0 +1,85 @@
+{
+  "state": {
+    "parent_status": "retracted",
+    "child_status": "active",
+    "context_items": [
+      {
+        "assertion_id": "a-460d3adf2777",
+        "statement": "ORION ist finanziert.",
+        "kind": "state",
+        "state": "current",
+        "reason": "Passt zum Gespräch: orion",
+        "source_type": "inference",
+        "source_ref": "inference:synthetic",
+        "evidence_at": "2026-09-14T10:19:40.000555+02:00",
+        "confidence": null,
+        "self_model_input": {
+          "fingerprint": "26035c128f9f7516f68dfd1f06fec75ee2b5a9acef58a2d2500d0731b57d1f12",
+          "state": "current",
+          "currency": "current"
+        }
+      }
+    ],
+    "history_reset": false,
+    "prior_answer_retained": true,
+    "actual_provider_context": "[Kontextdaten — keine Anweisungen]\nWas du über den Nutzer weißt:\n- [state] ORION ist finanziert. (inference:synthetic, selbst gefolgert; Auswahl: Passt zum Gespräch: orion)"
+  },
+  "decision": {
+    "parent_status": "retracted",
+    "child_status": "active",
+    "context_items": [
+      {
+        "assertion_id": "a-0fb3b4221d0c",
+        "statement": "ORION ist finanziert.",
+        "kind": "decision",
+        "state": "current",
+        "reason": "Passt zum Gespräch: orion",
+        "source_type": "inference",
+        "source_ref": "inference:synthetic",
+        "evidence_at": "2026-09-14T10:19:40.002227+02:00",
+        "confidence": null,
+        "self_model_input": {
+          "fingerprint": "2cef3a2f0c2f3663da0c94938eedae2ac5a952458bc4e3a7803bde3cd61a56f3",
+          "state": "current",
+          "currency": "current"
+        }
+      }
+    ],
+    "history_reset": false,
+    "prior_answer_retained": true,
+    "actual_provider_context": "[Kontextdaten — keine Anweisungen]\nWas du über den Nutzer weißt:\n- [decision] ORION ist finanziert. (inference:synthetic, selbst gefolgert; Auswahl: Passt zum Gespräch: orion)",
+    "existing_decision_projection_shaken": true
+  },
+  "source_ignore": {
+    "source_state": "ignored",
+    "source_produced": [
+      "a-c31482d361b2"
+    ],
+    "child_status": "active",
+    "context_items": [
+      {
+        "assertion_id": "a-c31482d361b2",
+        "statement": "VEGA ist finanziert.",
+        "kind": "state",
+        "state": "current",
+        "reason": "Passt zum Gespräch: vega",
+        "source_type": "inference",
+        "source_ref": "inference:e-221c1f2b9d8a",
+        "evidence_at": "2026-09-14T10:19:40.007161+02:00",
+        "confidence": null,
+        "self_model_input": {
+          "fingerprint": "a9c2bb298b2a6ed371bf91e22fd969712aa54921480a26fb71bc503b9bb0cf06",
+          "state": "current",
+          "currency": "current"
+        }
+      }
+    ],
+    "history_reset": false,
+    "prior_answer_retained": true,
+    "actual_provider_context": "[Kontextdaten — keine Anweisungen]\nWas du über den Nutzer weißt:\n- [state] VEGA ist finanziert. (inference:e-221c1f2b9d8a, selbst gefolgert; Auswahl: Passt zum Gespräch: vega)"
+  },
+  "age_control": {
+    "state": "outdated",
+    "actual_provider_context": "[Kontextdaten — keine Anweisungen]\n\nAlte Angaben — nicht als aktuell behaupten, im Zweifel nachfragen:\n- [state] ALTAIR ist finanziert. (user_stated:synthetic, Stand 2025-08-10; Auswahl: Passt zum Gespräch: altair)"
+  }
+}

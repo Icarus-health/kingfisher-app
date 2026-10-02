@@ -1,0 +1,21 @@
+.mappe { display: grid; gap: 14px; }
+.mappe h2 { margin-bottom: 0; }
+.mappe-hinweis { color: var(--kf-schrift-5f777d) !important; font-size: 11px !important; line-height: 16px !important; }
+.mappe-teil { padding-top: 12px; border-top: 1px solid var(--kf-rand-d7e1df); }
+.mappe-teil > h3 { margin: 0 0 6px; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; }
+.mappe-teil article { padding: 8px 0; }
+.mappe-teil article + article { border-top: 1px solid var(--kf-rand-e4ebe9); }
+.mappe-teil strong { display: block; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; font-weight: 600; }
+.mappe-teil small { display: block; margin-top: 2px; color: var(--kf-schrift-5f777d); font-size: 10px; line-height: 14px; }
+.mappe-teil blockquote { margin: 5px 0 4px; padding-left: 10px; border-left: 2px solid var(--kf-rand-b9cac8); color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
+.mappe-ueberfaellig { color: var(--kf-schrift-8c2f28) !important; font-weight: 600; }
+.mappe-mehr { margin-top: 6px !important; color: var(--kf-schrift-5f777d) !important; font-size: 10px !important; }
+.chronik { display: grid; gap: 14px; }
+.chronik > section > h3 { margin: 0 0 4px; color: var(--kf-schrift-5f777d); font-size: 10px; line-height: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.chronik article { padding: 8px 0; border-top: 1px solid var(--kf-rand-e4ebe9); }
+.chronik article strong, .chronik article small { display: block; }
+.chronik article strong { color: var(--kf-schrift-062b3a); font-size: 12px; font-weight: 600; }
+.chronik article small { margin-top: 2px; color: var(--kf-schrift-5f777d); font-size: 10px; }
+.chronik-mehr { justify-self: start; min-height: 32px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 7px; padding: 0 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+.mappe-teil .task-source { margin-top: 2px; }
+.mappe-teil .task-source > .quiet-source-toggle { min-height: 28px; padding: 0; }

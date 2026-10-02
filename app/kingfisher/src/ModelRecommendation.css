@@ -1,0 +1,37 @@
+/* Karte „Für diesen Rechner empfohlen“: ruhig, eine Zeile je Aufgabe, ein gedeckter Akzent. */
+.model-recommendation { padding: 24px; }
+.model-rec-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.model-rec-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px 16px; padding: 14px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.model-rec-text strong { display: block; color: var(--kf-schrift-062b3a); font-size: 15px; }
+.model-rec-model { display: inline-block; margin-top: 2px; color: var(--kf-schrift-31535f); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+.model-rec-text p { margin: 4px 0 0; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.6; }
+.model-recommendation .model-rec-meta { margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: var(--kf-schrift-31535f); }
+.model-rec-total { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--kf-rand-d7e1df); }
+.model-rec-total p { margin: 0 0 6px; font-size: 13px; line-height: 1.6; color: var(--kf-schrift-31535f); }
+.model-rec-total .model-rec-warn { color: var(--kf-schrift-062b3a); }
+.model-rec-warn { color: var(--kf-schrift-062b3a); font-size: 13px; }
+.model-rec-status { padding: 3px 10px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 999px; color: var(--kf-schrift-31535f); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.model-rec-status.is-eingerichtet { color: var(--kf-schrift-fffefa); background: var(--kf-flaeche-075268); border-color: var(--kf-flaeche-075268); }
+.model-rec-spacer { min-width: 1px; }
+.model-rec-confirm { grid-column: 1 / -1; margin-top: 8px; padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-eef3f1); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.model-rec-confirm p, .model-rec-confirm label { flex: 1 1 100%; margin: 0; font-size: 13px; line-height: 1.6; }
+.model-rec-progress { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
+.model-rec-progress p { margin: 6px 0 0; font-size: 13px; line-height: 1.6; }
+.model-rec-progress progress { display: block; width: 100%; height: 8px; margin-top: 8px; accent-color: var(--kf-akzent-075268); }
+.model-rec-progress progress::-webkit-progress-bar { border-radius: 4px; background: var(--kf-flaeche-eef3f1); }
+.model-rec-progress progress::-webkit-progress-value { border-radius: 4px; background: var(--kf-akzent-075268); }
+.model-rec-progress.is-failed { border-color: var(--kf-rand-bf3b44, var(--kf-rand-d7e1df)); }
+.model-rec-note { margin: 12px 0 0; font-size: 13px; line-height: 1.6; }
+.model-rec-expert { margin-top: 16px; }
+.model-rec-expert summary { color: var(--kf-schrift-31535f); cursor: pointer; font-weight: 600; }
+.model-rec-expert summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; }
+.model-role-card { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; min-width: 0; }
+.model-role-card legend { padding: 0 6px; font-weight: 600; }
+.model-role-card label { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.model-role-card .model-consent { flex-direction: row; align-items: flex-start; gap: 8px; }
+.model-recommendation button { min-height: 36px; }
+@media (max-width: 640px) {
+  .model-recommendation { padding: 16px; }
+  .model-rec-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .model-rec-row > button, .model-rec-row > .model-rec-spacer { grid-column: 1 / -1; }
+}

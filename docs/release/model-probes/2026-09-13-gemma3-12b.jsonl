@@ -1,0 +1,12 @@
+{"started_at": "2026-09-13T11:28:51.779350+00:00", "model": "gemma3:12b", "weights_digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a", "version": "requests-v3", "fixture": "development-v1", "qualification": false}
+{"case": "four_requests", "expected_quotes": ["Bitte den Entwurf 0 prüfen.", "Bitte den Entwurf 1 prüfen.", "Bitte den Entwurf 2 prüfen.", "Bitte den Entwurf 3 prüfen."], "items": [{"title": "Entwurf prüfen", "quote": "Bitte den Entwurf 0 prüfen."}, {"title": "Entwurf prüfen", "quote": "Bitte den Entwurf 1 prüfen."}, {"title": "Entwurf prüfen", "quote": "Bitte den Entwurf 2 prüfen."}, {"title": "Entwurf prüfen", "quote": "Bitte den Entwurf 3 prüfen."}], "passed": true, "seconds": 10.77}
+{"case": "negation", "expected_quotes": [], "items": [], "passed": true, "seconds": 2.34}
+{"case": "conditional", "expected_quotes": ["Bitte warte bis dahin."], "items": [{"title": "Warten bis zur Freigabe", "quote": "Bitte warte bis dahin."}], "passed": true, "seconds": 3.0}
+{"case": "quoted_old", "expected_quotes": ["Bitte nichts mehr versenden."], "items": [{"title": "Nichts mehr versenden", "quote": "Bitte nichts mehr versenden."}], "passed": true, "seconds": 2.92}
+{"case": "injection", "expected_quotes": [], "items": [], "passed": true, "seconds": 2.21}
+{"case": "ack", "expected_quotes": [], "items": [], "passed": true, "seconds": 2.17}
+{"case": "hypothesis", "expected_quotes": [], "items": [], "passed": true, "seconds": 2.17}
+{"case": "current_after_quote", "expected_quotes": ["Bitte sende mir jetzt den Entwurf."], "items": [{"title": "Entwurf senden", "quote": "Bitte sende mir jetzt den Entwurf."}], "passed": true, "seconds": 2.9}
+{"case": "explicit_commitment", "expected_quotes": ["Ich werde dir den bestätigten Termin morgen mitteilen."], "items": [], "passed": false, "seconds": 2.12}
+{"case": "informational_deadline", "expected_quotes": [], "items": [], "passed": true, "seconds": 2.17}
+{"model": "gemma3:12b", "version": "requests-v3", "weights_digest": "f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a", "weights_unchanged": true, "passed": 9, "total": 10, "qualification": false}

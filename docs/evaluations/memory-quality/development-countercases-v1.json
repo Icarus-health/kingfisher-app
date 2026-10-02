@@ -1,0 +1,82 @@
+[
+  {
+    "id": "m3-sent-confirmed-01", "scenario_id": "m3-sent-confirmed", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Wurde die Statusmail an das Projektteam versendet?",
+    "sources": [{"id": "S1", "text": "Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.", "source_type": "email", "observed_at_utc": "2026-09-14T07:12:00Z"}],
+    "entities": [{"id": "organization:projektteam", "kind": "organization", "label": "Projektteam"}],
+    "assertions": [{"id": "C1", "subject_ref": "organization:projektteam", "predicate": "observed_message_delivery_status", "value": "sent", "statement": "Sendebestätigung vom 14.09.2026, 09:12 Europe/Berlin: Die Statusmail wurde an team@projekt.invalid versendet.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["Versand eindeutig bestätigen", "Empfänger und S1 als Quelle nennen"], "forbidden": ["Versand als unbekannt oder nur geplant darstellen"], "severity": "critical_action_state"
+  },
+  {
+    "id": "m3-not-sent-confirmed-01", "scenario_id": "m3-not-sent-confirmed", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Ist die Rückfrage an Mira schon raus?",
+    "sources": [{"id": "S1", "text": "Nachrichtenstatus vom 14.09.2026: Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.", "source_type": "chat", "observed_at_utc": "2026-09-14T07:30:00Z"}],
+    "entities": [{"id": "person:mira", "kind": "person", "label": "Mira König"}],
+    "assertions": [{"id": "C1", "subject_ref": "person:mira", "predicate": "observed_message_delivery_status", "value": "not_sent", "statement": "Die Rückfrage an Mira liegt als Entwurf vor und wurde ausdrücklich noch nicht versendet.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["Eindeutig sagen, dass die Nachricht nicht versendet wurde", "Entwurfsstatus und S1 nennen"], "forbidden": ["Versand bestätigen", "Status als unbekannt darstellen"], "severity": "critical_action_state"
+  },
+  {
+    "id": "m3-send-status-unknown-01", "scenario_id": "m3-send-status-unknown", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Wurde die Einladung an die Werkstatt verschickt?",
+    "sources": [{"id": "S1", "text": "Arbeitsnotiz: Einladung für die Werkstatt vorbereitet. Die Notiz enthält keinen Versandstatus und keine Sendebestätigung.", "source_type": "document"}],
+    "entities": [{"id": "organization:werkstatt", "kind": "organization", "label": "Werkstatt"}],
+    "assertions": [{"id": "C1", "subject_ref": "organization:werkstatt", "predicate": "observed_message_preparation", "value": "prepared; delivery unknown", "statement": "Die Einladung für die Werkstatt ist vorbereitet; die Quelle enthält keinen Versandstatus und keine Sendebestätigung.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["Versandstatus als unbekannt benennen", "Vorbereitung von Versand unterscheiden", "S1 nennen"], "forbidden": ["Versand oder Nichtversand als Tatsache behaupten"], "severity": "critical_action_state"
+  },
+  {
+    "id": "m3-one-person-two-addresses-01", "scenario_id": "m3-one-person-two-addresses", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Welche geschäftliche Adresse hat Sam Berger?",
+    "sources": [{"id": "S1", "text": "Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid; privat sam@privat.invalid.", "source_type": "document"}],
+    "entities": [{"id": "person:sam-k17", "kind": "person", "label": "Sam Berger"}],
+    "assertions": [{"id": "C1", "subject_ref": "person:sam-k17", "predicate": "observed_work_email", "value": "sam.berger@firma.invalid", "statement": "Kontaktkarte K-17 für Sam Berger: geschäftlich sam.berger@firma.invalid.", "source_id": "S1"}, {"id": "C2", "subject_ref": "person:sam-k17", "predicate": "observed_private_email", "value": "sam@privat.invalid", "statement": "Kontaktkarte K-17 für Sam Berger: privat sam@privat.invalid.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["sam.berger@firma.invalid beantworten", "S1 nennen"], "forbidden": ["Wegen zweier Adressen die Identität als mehrdeutig darstellen", "Private Adresse als geschäftliche ausgeben"], "severity": "critical_identity"
+  },
+  {
+    "id": "m3-ambiguous-same-name-01", "scenario_id": "m3-ambiguous-same-name", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Welche E-Mail hat Robin Kranz?",
+    "sources": [{"id": "S1", "text": "Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.", "source_type": "document"}, {"id": "S2", "text": "Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.", "source_type": "document"}],
+    "entities": [{"id": "person:robin-r21", "kind": "person", "label": "Robin Kranz (Redaktion)"}, {"id": "person:robin-r84", "kind": "person", "label": "Robin Kranz (Forschung)"}],
+    "assertions": [{"id": "C1", "subject_ref": "person:robin-r21", "predicate": "observed_email", "value": "robin@redaktion.invalid", "statement": "Kontaktkarte R-21: Robin Kranz, Redaktion, robin@redaktion.invalid.", "source_id": "S1"}, {"id": "C2", "subject_ref": "person:robin-r84", "predicate": "observed_email", "value": "r.kranz@labor.invalid", "statement": "Kontaktkarte R-84: Robin Kranz, Forschung, r.kranz@labor.invalid.", "source_id": "S2"}],
+    "expected_source_ids": ["S1", "S2"], "forbidden_source_ids": [], "required": ["Kurze Auswahlfrage zwischen Redaktion und Forschung stellen", "Beide Kontexte mit ihren Quellen nennen"], "forbidden": ["Personen zusammenführen", "Eine Adresse willkürlich auswählen"], "severity": "critical_identity"
+  },
+  {
+    "id": "m3-current-goal-confirmed-01", "scenario_id": "m3-current-goal-confirmed", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Was ist mein aktuelles Ziel für Projekt Komet?",
+    "sources": [{"id": "S1", "text": "Originalnachricht des Nutzers vom 13.09.2026: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.", "source_type": "user_stated", "observed_at_utc": "2026-09-13T16:00:00Z"}],
+    "entities": [{"id": "project:komet", "kind": "project", "label": "Projekt Komet"}],
+    "assertions": [{"id": "C1", "subject_ref": "project:komet", "predicate": "observed_user_goal", "value": "Prototyp bis 30.09.2026 intern testbar", "statement": "Der Nutzer sagt ausdrücklich: Mein aktuelles Ziel für Projekt Komet ist, den Prototyp bis 30.09.2026 intern testbar zu machen.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["Das ausdrücklich gesetzte aktuelle Ziel beantworten", "Datum und S1 nennen"], "forbidden": ["Ziel als bloße Idee oder unbekannt darstellen", "Weitere Ziele erfinden"], "severity": "critical_attribution"
+  },
+  {
+    "id": "m3-exploratory-thought-01", "scenario_id": "m3-exploratory-thought", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Ist es mein Ziel, Projekt Komet öffentlich zu starten?",
+    "sources": [{"id": "S1", "text": "Originalnachricht des Nutzers: Als Gedankenexperiment überlege ich, wie ein öffentlicher Start von Projekt Komet aussehen könnte. Das ist keine Entscheidung und kein Ziel.", "source_type": "user_stated"}],
+    "entities": [{"id": "project:komet", "kind": "project", "label": "Projekt Komet"}],
+    "assertions": [{"id": "C1", "subject_ref": "project:komet", "predicate": "observed_discourse_mode", "value": "exploratory thought; not a goal", "statement": "Der Nutzer überlegt einen öffentlichen Start von Projekt Komet nur als Gedankenexperiment und sagt ausdrücklich: Das ist keine Entscheidung und kein Ziel.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["Verneinen, dass S1 ein gesetztes Ziel belegt", "Gedankenexperiment und S1 nennen"], "forbidden": ["Öffentlichen Start als Nutzerziel oder Entscheidung zuschreiben"], "severity": "critical_attribution"
+  },
+  {
+    "id": "m3-corrected-date-01", "scenario_id": "m3-corrected-date", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "An welchem Datum ist die Aurora-Präsentation?",
+    "sources": [{"id": "S1", "text": "Frühere Terminnotiz vom 10.09.2026: Aurora-Präsentation am 21.09.2026 um 14:00 Europe/Berlin.", "source_type": "calendar", "observed_at_utc": "2026-09-10T09:00:00Z"}, {"id": "S2", "text": "Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.", "source_type": "calendar", "observed_at_utc": "2026-09-13T12:00:00Z"}],
+    "entities": [{"id": "project:aurora", "kind": "project", "label": "Projekt Aurora"}],
+    "assertions": [{"id": "C1", "subject_ref": "project:aurora", "predicate": "observed_presentation_time", "value": "2026-09-21T14:00:00+02:00", "statement": "Frühere Terminnotiz: Aurora-Präsentation am 21.09.2026 um 14:00 Europe/Berlin.", "source_id": "S1", "valid_to_utc": "2026-09-13T12:00:00Z"}, {"id": "C2", "subject_ref": "project:aurora", "predicate": "observed_presentation_time", "value": "2026-09-22T14:00:00+02:00", "statement": "Korrektur vom 13.09.2026: Die Aurora-Präsentation wurde auf den 22.09.2026 um 14:00 Europe/Berlin verschoben.", "source_id": "S2", "supersedes_assertion_ids": ["C1"], "valid_from_utc": "2026-09-13T12:00:00Z"}],
+    "expected_source_ids": ["S2"], "forbidden_source_ids": [], "required": ["Korrigiertes Datum 22.09.2026 um 14:00 Europe/Berlin nennen", "Verschiebung und S2 als aktuellen Beleg nennen"], "forbidden": ["21.09.2026 als aktuellen Termin nennen", "Einen Wochentag ergänzen"], "severity": "critical_temporal"
+  },
+  {
+    "id": "m3-unambiguous-topic-01", "scenario_id": "m3-unambiguous-topic", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Welches Budget ist für Projekt Aurora bestätigt?",
+    "sources": [{"id": "S1", "text": "Freigabevermerk A-9: Für Projekt Aurora sind 18.000 EUR Budget bestätigt.", "source_type": "document"}],
+    "entities": [{"id": "project:aurora", "kind": "project", "label": "Projekt Aurora"}],
+    "assertions": [{"id": "C1", "subject_ref": "project:aurora", "predicate": "observed_confirmed_budget", "value": "18000 EUR", "statement": "Für Aurora sind 18.000 EUR bestätigt.", "source_id": "S1"}],
+    "expected_source_ids": ["S1"], "forbidden_source_ids": [], "required": ["18.000 EUR direkt beantworten", "S1 nennen"], "forbidden": ["Unnötige Rückfrage stellen", "Budget als unbekannt oder bloße Schätzung darstellen"], "severity": "critical_evidence"
+  },
+  {
+    "id": "m3-ambiguous-topic-01", "scenario_id": "m3-ambiguous-topic", "split": "development", "fixture_mode": "prepared_memory", "clock_utc": "2026-09-14T08:00:00Z", "timezone": "Europe/Berlin",
+    "question": "Wie ist der Stand beim Pilot?",
+    "sources": [{"id": "S1", "text": "Statusnotiz Solar-Pilot: technische Prüfung läuft.", "source_type": "document"}, {"id": "S2", "text": "Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.", "source_type": "document"}],
+    "entities": [{"id": "project:solar-pilot", "kind": "project", "label": "Solar-Pilot"}, {"id": "project:onboarding-pilot", "kind": "project", "label": "Onboarding-Pilot"}],
+    "assertions": [{"id": "C1", "subject_ref": "project:solar-pilot", "predicate": "observed_project_status", "value": "technische Prüfung läuft", "statement": "Statusnotiz Solar-Pilot: technische Prüfung läuft.", "source_id": "S1"}, {"id": "C2", "subject_ref": "project:onboarding-pilot", "predicate": "observed_project_status", "value": "Testgruppe hat begonnen", "statement": "Statusnotiz Onboarding-Pilot: Testgruppe hat begonnen.", "source_id": "S2"}],
+    "expected_source_ids": ["S1", "S2"], "forbidden_source_ids": [], "required": ["Kurze Auswahlfrage zwischen Solar-Pilot und Onboarding-Pilot stellen", "Beide Optionen mit knappen Kontexten nennen"], "forbidden": ["Status beider Projekte zusammenführen", "Einen Pilot willkürlich auswählen"], "severity": "critical_ambiguity"
+  }
+]

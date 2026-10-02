@@ -1,0 +1,18 @@
+/* Der Eingangsordner für Mitschriften: ruhig, dieselben Bausteine wie die übrigen Quellen. */
+.transkript-eingang { padding: 24px; }
+.transkript-status { display: grid; gap: 10px; margin-top: 12px; }
+.transkript-status p, .transkript-eingang h3 { margin: 0; }
+.transkript-eingang h3 { margin-top: 18px; font-size: 14px; }
+.transkript-pfad { font-variant-numeric: tabular-nums; word-break: break-all; }
+.transkript-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.transkript-bestaetigung { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--calm-line, currentColor); border-radius: 12px; background: var(--calm-inset, transparent); }
+.transkript-bestaetigung p { margin: 0; }
+.transkript-zeile { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--calm-line, currentColor); }
+.transkript-zeile small { display: block; color: var(--calm-muted, inherit); }
+.transkript-zeile p { margin: 4px 0 0; font-size: 13px; }
+.transkript-liste { margin-top: 16px; }
+.transkript-liste > summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.transkript-hinweis { color: var(--calm-muted, inherit); font-size: 13px; }
+@media (max-width: 720px) {
+  .transkript-zeile { grid-template-columns: 1fr; }
+}

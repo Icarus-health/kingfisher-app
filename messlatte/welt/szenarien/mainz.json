@@ -1,0 +1,627 @@
+{
+  "id": "mainz",
+  "titel": "Drei Bedeutungen von Mainz",
+  "beschreibung": "Mainz steht für ein Angebotsprojekt beim fiktiven St.-Albanus-Klinikum, einen Kurzurlaub und den umgezogenen Kollegen Tobias Brandt. Eine offene Frage nach „Mainz“ ist mehrdeutig, Fragen mit Kontext sind eindeutig.",
+  "quellen": [
+    {
+      "id": "mainz-001",
+      "art": "mail",
+      "zeit": "2026-06-10T09:14:00+02:00",
+      "von": {
+        "name": "Sabine Becker",
+        "adresse": "s.becker@klinikum-albanus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Anfrage Beratungsangebot Verpflegung",
+      "text": "Sehr geehrte Frau Hartmann,\n\nauf Empfehlung unserer Ärztlichen Direktion wende ich mich an Sie. Das St.-Albanus-Klinikum Mainz möchte die\nVerpflegungsplanung für alle Stationen extern begleiten lassen (Speiseplangestaltung, Mangelernährung, Schnittstelle\nzur Küche). Könnten Sie uns bis zum 30. Juni ein Angebot machen?\n\nIch bin als Einkaufsleiterin für das Verfahren zuständig.\n\nMit freundlichen Grüßen\nSabine Becker\nEinkaufsleitung\nSt.-Albanus-Klinikum Mainz\nTel. 06131 555-2210"
+    },
+    {
+      "id": "mainz-002",
+      "art": "mail",
+      "zeit": "2026-06-11T08:40:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Sabine Becker",
+          "adresse": "s.becker@klinikum-albanus.example"
+        }
+      ],
+      "betreff": "AW: Anfrage Beratungsangebot Verpflegung",
+      "text": "Sehr geehrte Frau Becker,\n\nvielen Dank für Ihre Anfrage, die ich gern annehme. Für eine seriöse Kalkulation brauche ich zwei Angaben:\nWie viele Betten hat das Haus, und wie viele Küchenstandorte gibt es?\n\nIch würde außerdem gern einen Vor-Ort-Termin vorschlagen.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "mainz-001"
+    },
+    {
+      "id": "mainz-003",
+      "art": "mail",
+      "zeit": "2026-06-12T11:02:00+02:00",
+      "von": {
+        "name": "Sabine Becker",
+        "adresse": "s.becker@klinikum-albanus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "AW: AW: Anfrage Beratungsangebot Verpflegung",
+      "text": "Sehr geehrte Frau Hartmann,\n\nwir haben 640 Betten und drei Küchenstandorte (Hauptküche, Kinderklinik, Geriatrie). Einen Vor-Ort-Termin halte ich\nfür sinnvoll, am 24. Juni um 10 Uhr hätte ich Zeit. Ich reserviere einen Raum im Verwaltungsgebäude.\n\nFreundliche Grüße\nS. Becker",
+      "antwort_auf": "mainz-002"
+    },
+    {
+      "id": "mainz-004",
+      "art": "termin",
+      "zeit": "2026-06-12T11:10:00+02:00",
+      "beginn": "2026-06-24T10:00:00+02:00",
+      "ende": "2026-06-24T12:00:00+02:00",
+      "titel": "Vor-Ort-Termin St.-Albanus-Klinikum",
+      "ort": "St.-Albanus-Klinikum Mainz, Verwaltungsgebäude, Raum 2.14",
+      "teilnehmer": [
+        {
+          "name": "Sabine Becker",
+          "adresse": "s.becker@klinikum-albanus.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "Bestandsaufnahme Verpflegung, Begehung der drei Küchen."
+    },
+    {
+      "id": "mainz-005",
+      "art": "mail",
+      "zeit": "2026-06-29T16:20:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Sabine Becker",
+          "adresse": "s.becker@klinikum-albanus.example"
+        }
+      ],
+      "betreff": "Angebot AN-2026-041 Verpflegungsberatung",
+      "text": "Sehr geehrte Frau Becker,\n\nanbei mein Angebot AN-2026-041 für die externe Begleitung der Verpflegungsplanung am St.-Albanus-Klinikum:\nPauschalpreis 48.500 Euro netto für zwölf Monate. Die Leistungen habe ich im Anhang beschrieben.\n\nIch freue mich auf Ihre Rückmeldung.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent"
+    },
+    {
+      "id": "mainz-006",
+      "art": "mail",
+      "zeit": "2026-07-15T10:31:00+02:00",
+      "von": {
+        "name": "Sabine Becker",
+        "adresse": "s.becker@klinikum-albanus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Rückfrage Vergabegremium zu AN-2026-041",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndas Vergabegremium hat Ihr Angebot gesichtet. Zwei Fragen: Lässt sich die Schulung des Küchenpersonals als Option\ngetrennt ausweisen? Und gilt der Preis auch bei Beginn erst im Januar 2027?\n\nBeste Grüße\nSabine Becker",
+      "antwort_auf": "mainz-005"
+    },
+    {
+      "id": "mainz-007",
+      "art": "mail",
+      "zeit": "2026-07-16T09:05:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Sabine Becker",
+          "adresse": "s.becker@klinikum-albanus.example"
+        }
+      ],
+      "betreff": "AW: Rückfrage Vergabegremium zu AN-2026-041",
+      "text": "Sehr geehrte Frau Becker,\n\ndie Schulung weise ich als Option aus: 6.200 Euro netto für zwei Schulungstage. Der Preis gilt auch bei einem Beginn\nim Januar 2027.\n\nBeste Grüße\nLea Hartmann\nErnährungsmanagement im Gesundheitswesen\nTel. 0611 555-0142",
+      "ordner": "Sent",
+      "antwort_auf": "mainz-006"
+    },
+    {
+      "id": "mainz-008",
+      "art": "mail",
+      "zeit": "2026-09-08T14:47:00+02:00",
+      "von": {
+        "name": "Sabine Becker",
+        "adresse": "s.becker@klinikum-albanus.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Einladung zur Präsentation im Klinikum",
+      "text": "Sehr geehrte Frau Hartmann,\n\ndas Vergabegremium hat am Montag getagt und Sie in die engere Wahl genommen. Wir laden Sie zu einer Präsentation\nIhres Konzepts ein: Dienstag, 13. Oktober, 11 Uhr, im Sitzungssaal des Klinikums in Mainz. Bitte planen Sie 30 Minuten\nplus Fragen ein.\n\nFreundliche Grüße\nSabine Becker\nEinkaufsleitung",
+      "antwort_auf": "mainz-007"
+    },
+    {
+      "id": "mainz-009",
+      "art": "termin",
+      "zeit": "2026-09-09T08:15:00+02:00",
+      "beginn": "2026-10-13T11:00:00+02:00",
+      "ende": "2026-10-13T12:00:00+02:00",
+      "titel": "Präsentation Konzept St.-Albanus-Klinikum",
+      "ort": "St.-Albanus-Klinikum Mainz, Sitzungssaal",
+      "teilnehmer": [
+        {
+          "name": "Sabine Becker",
+          "adresse": "s.becker@klinikum-albanus.example"
+        },
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "notiz": "30 Minuten Vortrag, dann Fragen des Gremiums. Beamer ist vorhanden."
+    },
+    {
+      "id": "mainz-010",
+      "art": "mail",
+      "zeit": "2026-08-19T20:12:00+02:00",
+      "von": {
+        "name": "Hotel Domblick Mainz",
+        "adresse": "reservierung@hotel-domblick.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ihre Buchungsbestätigung DB-48213",
+      "text": "Guten Tag Frau Hartmann,\n\nvielen Dank für Ihre Buchung im Hotel Domblick Mainz.\n\nAnreise: Freitag, 23. Oktober 2026\nAbreise: Montag, 26. Oktober 2026 (3 Nächte)\nZimmer: Doppelzimmer mit Frühstück, Gesamtpreis 462 Euro\n\nWir freuen uns auf Ihren Aufenthalt.\nIhr Team vom Hotel Domblick"
+    },
+    {
+      "id": "mainz-011",
+      "art": "mail",
+      "zeit": "2026-08-19T20:30:00+02:00",
+      "von": {
+        "name": "Fahrkarten-Service",
+        "adresse": "buchung@fahrkarten-service.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Ihre Fahrkarten Wiesbaden - Mainz",
+      "text": "Ihre Buchung ist bestätigt.\n\nHinfahrt: Freitag, 23.10.2026, Wiesbaden Hbf ab 14:12, Mainz Hbf an 14:31\nRückfahrt: Montag, 26.10.2026, Mainz Hbf ab 16:05, Wiesbaden Hbf an 16:24\n\nDie Fahrkarten liegen als PDF an. Viel Spaß auf Ihrer Reise!"
+    },
+    {
+      "id": "mainz-012",
+      "art": "notiz",
+      "zeit": "2026-08-21T21:05:00+02:00",
+      "titel": "Urlaub Mainz Ideen",
+      "text": "Urlaub Mainz 23. bis 26. Oktober, Handy so oft wie möglich aus.\n- Gutenberg-Museum, Altstadt\n- Weinstube am Rhein reservieren (Samstagabend)\n- Spaziergang Rheinufer, Sonntag\n- Katja fragen, ob sie Samstag zum Kaffee kommt"
+    },
+    {
+      "id": "mainz-013",
+      "art": "mail",
+      "zeit": "2026-08-22T09:33:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Katja Lorenz",
+          "adresse": "katja.lorenz@mailbox-lorenz.example"
+        }
+      ],
+      "betreff": "Kaffee in Mainz?",
+      "text": "Liebe Katja,\n\nich fahre Ende Oktober für ein paar Tage in den Urlaub nach Mainz, vom 23. bis 26. Oktober, und wollte einfach mal\nraus. Hast du Lust, am Samstag auf einen Kaffee vorbeizukommen?\n\nLiebe Grüße\nLea",
+      "ordner": "Sent"
+    },
+    {
+      "id": "mainz-014",
+      "art": "mail",
+      "zeit": "2026-05-20T19:48:00+02:00",
+      "von": {
+        "name": "Tobias Brandt",
+        "adresse": "tobias.brandt@brandt-nutrition.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Wir sind umgezogen",
+      "text": "Hallo Lea,\n\nkurze Neuigkeit: Wir sind seit Anfang Mai nach Mainz gezogen, neue Adresse Weinbergweg 12, 55116 Mainz. Die\nKinder finden es toll, ich pendle jetzt eben mit dem Zug nach Frankfurt zu den Kunden.\n\nMelde dich, wenn du mal in der Gegend bist!\n\nViele Grüße\nTobi"
+    },
+    {
+      "id": "mainz-015",
+      "art": "mail",
+      "zeit": "2026-05-21T07:55:00+02:00",
+      "von": {
+        "name": "Lea Hartmann",
+        "adresse": "lea@hartmann-beratung.example"
+      },
+      "an": [
+        {
+          "name": "Tobias Brandt",
+          "adresse": "tobias.brandt@brandt-nutrition.example"
+        }
+      ],
+      "betreff": "AW: Wir sind umgezogen",
+      "text": "Hallo Tobias,\n\nherzlichen Glückwunsch zum Umzug, das klingt nach einem guten Tausch! Ich komme bestimmt mal vorbei.\n\nLiebe Grüße\nLea",
+      "ordner": "Sent",
+      "antwort_auf": "mainz-014"
+    },
+    {
+      "id": "mainz-016",
+      "art": "mail",
+      "zeit": "2026-09-14T18:22:00+02:00",
+      "von": {
+        "name": "Tobias Brandt",
+        "adresse": "tobias.brandt@brandt-nutrition.example"
+      },
+      "an": [
+        {
+          "name": "Lea Hartmann",
+          "adresse": "lea@hartmann-beratung.example"
+        }
+      ],
+      "betreff": "Einweihungsfeier bei uns",
+      "text": "Hallo Lea,\n\njetzt haben wir es endlich geschafft: Einweihungsfeier bei uns in Mainz, Samstag, 14. November, ab 16 Uhr. Partner\nsind natürlich willkommen. Sag mir bitte bis Ende Oktober Bescheid, ob du kommst.\n\nLiebe Grüße\nTobi"
+    },
+    {
+      "id": "mainz-017",
+      "art": "notiz",
+      "zeit": "2026-09-15T08:02:00+02:00",
+      "titel": "Tobias Brandt",
+      "text": "Tobias Brandt, ehemaliger Kollege aus der gemeinsamen Zeit in der Klinikberatung, selbständig mit Brandt Nutrition.\nWohnt seit Mai 2026 in Mainz (Weinbergweg 12). Zur Einweihung am 14. November zusagen, Geschenk überlegen."
+    }
+  ],
+  "fragen": [
+    {
+      "id": "mainz-01",
+      "frage": "Was ist eigentlich mit Mainz los?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Klinikum",
+            "Albanus"
+          ],
+          [
+            "Urlaub",
+            "Hotel"
+          ],
+          [
+            "Tobias",
+            "Brandt"
+          ]
+        ],
+        "belege": [
+          "mainz-008",
+          "mainz-010",
+          "mainz-014"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Rheinhessen-Therme"
+        ],
+        "belege": []
+      },
+      "notiz": "Drei gleich starke Bedeutungen (Angebotsprojekt, Urlaub, Kollege Tobias); eine willkürlich zu wählen ist falsch."
+    },
+    {
+      "id": "mainz-02",
+      "frage": "Wann fahre ich nach Mainz in den Urlaub?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "23.10.2026",
+            "23. Oktober 2026",
+            "23.10.",
+            "23. Oktober",
+            "23. Okt.",
+            "2026-10-23",
+            "23.10"
+          ]
+        ],
+        "belege": [
+          "mainz-010",
+          "mainz-011"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 13.10.",
+          "bis 13.10.",
+          "am 13.10.",
+          "ist der 13.10.",
+          "ist am 13.10.",
+          "spätestens 13.10.",
+          "zum 13.10.",
+          "bis zum 13. Oktober",
+          "bis 13. Oktober",
+          "am 13. Oktober",
+          "ist der 13. Oktober",
+          "ist am 13. Oktober",
+          "spätestens 13. Oktober",
+          "zum 13. Oktober",
+          "13.10.2026",
+          "13. Oktober 2026",
+          "bis zum 14.11.",
+          "bis 14.11.",
+          "am 14.11.",
+          "ist der 14.11.",
+          "ist am 14.11.",
+          "spätestens 14.11.",
+          "zum 14.11.",
+          "bis zum 14. November",
+          "bis 14. November",
+          "am 14. November",
+          "ist der 14. November",
+          "ist am 14. November",
+          "spätestens 14. November",
+          "zum 14. November",
+          "14.11.2026",
+          "14. November 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Der Kontext „Urlaub“ macht die Frage eindeutig. Verwechslung mit Präsentation (13.10.) oder Einweihung (14.11.) ist falsch."
+    },
+    {
+      "id": "mainz-03",
+      "frage": "Wann ist meine Präsentation beim Klinikum in Mainz?",
+      "kategorie": "rueckblick",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "13.10.2026",
+            "13. Oktober 2026",
+            "13.10.",
+            "13. Oktober",
+            "13. Okt.",
+            "2026-10-13",
+            "13.10"
+          ],
+          [
+            "11 Uhr",
+            "11:00",
+            "11.00 Uhr"
+          ]
+        ],
+        "belege": [
+          "mainz-008",
+          "mainz-009"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 23.10.",
+          "bis 23.10.",
+          "am 23.10.",
+          "ist der 23.10.",
+          "ist am 23.10.",
+          "spätestens 23.10.",
+          "zum 23.10.",
+          "bis zum 23. Oktober",
+          "bis 23. Oktober",
+          "am 23. Oktober",
+          "ist der 23. Oktober",
+          "ist am 23. Oktober",
+          "spätestens 23. Oktober",
+          "zum 23. Oktober",
+          "23.10.2026",
+          "23. Oktober 2026",
+          "bis zum 24.06.",
+          "bis 24.06.",
+          "am 24.06.",
+          "ist der 24.06.",
+          "ist am 24.06.",
+          "spätestens 24.06.",
+          "zum 24.06.",
+          "bis zum 24. Juni",
+          "bis 24. Juni",
+          "am 24. Juni",
+          "ist der 24. Juni",
+          "ist am 24. Juni",
+          "spätestens 24. Juni",
+          "zum 24. Juni",
+          "24.06.2026",
+          "24. Juni 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Präsentation, nicht Vor-Ort-Termin im Juni und nicht Urlaubsanreise."
+    },
+    {
+      "id": "mainz-04",
+      "frage": "Wer ist beim St.-Albanus-Klinikum für das Angebot zuständig?",
+      "kategorie": "identitaet",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Becker"
+          ]
+        ],
+        "belege": [
+          "mainz-001",
+          "mainz-003"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Tobias Brandt ist",
+          "Katja Lorenz ist"
+        ],
+        "belege": []
+      },
+      "notiz": "Einkaufsleiterin Sabine Becker; Tobias Brandt hat mit dem Klinikum nichts zu tun."
+    },
+    {
+      "id": "mainz-05",
+      "frage": "Wohin ist Tobias Brandt gezogen und wann ist seine Einweihungsfeier?",
+      "kategorie": "rueckblick",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Mainz"
+          ],
+          [
+            "14.11.2026",
+            "14. November 2026",
+            "14.11.",
+            "14. November",
+            "14. Nov.",
+            "2026-11-14",
+            "14.11"
+          ]
+        ],
+        "belege": [
+          "mainz-014",
+          "mainz-016"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "bis zum 23.10.",
+          "bis 23.10.",
+          "am 23.10.",
+          "ist der 23.10.",
+          "ist am 23.10.",
+          "spätestens 23.10.",
+          "zum 23.10.",
+          "bis zum 23. Oktober",
+          "bis 23. Oktober",
+          "am 23. Oktober",
+          "ist der 23. Oktober",
+          "ist am 23. Oktober",
+          "spätestens 23. Oktober",
+          "zum 23. Oktober",
+          "23.10.2026",
+          "23. Oktober 2026",
+          "bis zum 13.10.",
+          "bis 13.10.",
+          "am 13.10.",
+          "ist der 13.10.",
+          "ist am 13.10.",
+          "spätestens 13.10.",
+          "zum 13.10.",
+          "bis zum 13. Oktober",
+          "bis 13. Oktober",
+          "am 13. Oktober",
+          "ist der 13. Oktober",
+          "ist am 13. Oktober",
+          "spätestens 13. Oktober",
+          "zum 13. Oktober",
+          "13.10.2026",
+          "13. Oktober 2026"
+        ],
+        "belege": []
+      },
+      "notiz": "Zwei Fakten aus zwei Mails; Urlaubs- und Präsentationstermin dürfen nicht hineinrutschen."
+    },
+    {
+      "id": "mainz-06",
+      "frage": "Wie hoch ist mein Angebot?",
+      "kategorie": "mehrdeutigkeit",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "rueckfrage",
+        "aussagen": [],
+        "bedeutungen": [
+          [
+            "Albanus",
+            "Mainz"
+          ],
+          [
+            "Rheingau-Süd",
+            "Rheingau"
+          ]
+        ],
+        "belege": [
+          "mainz-005",
+          "zeitraum-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [],
+        "belege": []
+      },
+      "notiz": "Zwei laufende Angebote von Lea: AN-2026-041 für das St.-Albanus-Klinikum (48.500 Euro netto) und das überarbeitete Angebot für das Klinikum Rheingau-Süd (32.400 Euro netto). Ohne Kontext ist keines das gemeinte; einen Betrag zu nennen ist geraten. Ein Betrag in der Rückfrage selbst ist unschädlich."
+    },
+    {
+      "id": "mainz-07",
+      "frage": "Was muss ich für meine Präsentation beim St.-Albanus-Klinikum wissen?",
+      "kategorie": "vorbereitung",
+      "schwere": "kritisch",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "13.10.2026",
+            "13. Oktober 2026",
+            "13.10.",
+            "13. Oktober",
+            "13. Okt.",
+            "2026-10-13",
+            "13.10"
+          ],
+          [
+            "11 Uhr",
+            "11:00",
+            "11.00 Uhr"
+          ],
+          [
+            "30 Minuten"
+          ],
+          [
+            "48.500"
+          ]
+        ],
+        "belege": [
+          "mainz-008",
+          "mainz-009",
+          "mainz-005"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "Präsentation ist am 24.",
+          "Präsentation ist am 23.",
+          "Präsentation am 24. Juni",
+          "Präsentation am 23. Oktober",
+          "Präsentation am 14. November"
+        ],
+        "belege": []
+      },
+      "notiz": "Vorbereitung: Termin 13.10. um 11 Uhr im Sitzungssaal des Klinikums, 30 Minuten Vortrag plus Fragen des Gremiums, Beamer vorhanden; Angebotspreis 48.500 Euro netto (Schulungsoption 6.200 Euro, Preis gilt auch bei Beginn im Januar 2027, siehe mainz-007). Der Vor-Ort-Termin im Juni und die Urlaubsanreise dürfen nicht hineinrutschen."
+    }
+  ]
+}

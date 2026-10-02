@@ -1,0 +1,195 @@
+{
+  "suite": "cos-v1-clarification-holdout-v1",
+  "frozen_before_model_run": true,
+  "model": "qwen3.5:4b (existing local model only; run pending availability gate)",
+  "scope": "Four fresh synthetic source-selection cases; no private data, product edits, sending, or cloud access.",
+  "source_id_policy": "S1, S2, S3 are harness aliases; expectations bind to authored synthetic content, not generated IDs.",
+  "selection_limit": 4,
+  "cases": [
+    {
+      "id": "holdout_clear_call_window",
+      "title": "Explicit daily call window needs no source-date clarification",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "conversation",
+          "speaker": "user",
+          "text": "Bitte wegen der Gebäudewartung nur zwischen 16:30 und 18:00 Uhr anrufen; davor unterrichte ich."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Wann kann man mich wegen der Gebäudewartung anrufen?",
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "16:30",
+                "18:00",
+                "unterrichte"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "Zeitbezug ist unklar",
+                "Von wann stammt die betreffende Nachricht?"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_two_conditions_hard_negative",
+      "title": "Two asked conditions come from separate sources; similar third source is out of scope",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "subject": "Vorgang WS-41 · Abnahmetermin",
+          "text": "Im Vorgang WS-41 wird der Abnahmetermin erst nach schriftlicher Kostenfreigabe verbindlich. Die Kostenfreigabe fehlt noch."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_document",
+          "text": "Im Vorgang WS-41 werden die Prüfunterlagen erst versandt, nachdem beide Messwerte im Abnahmeprotokoll gegengezeichnet sind."
+        },
+        {
+          "alias": "S3",
+          "origin": "synthetic_document",
+          "text": "Die Prüfunterlagen aus dem Wartungsvorgang MT-58 dienen nur der Archivierung. Die dortigen Messwerte betreffen das Prüfgerät und ausdrücklich nicht den Abnahmetermin WS-41 oder dessen Versand."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Was ist noch vor dem Abnahmetermin und vor dem Versand der Prüfunterlagen zu erledigen?",
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports"
+              ],
+              "contains_all": [
+                "Kostenfreigabe",
+                "fehlt noch",
+                "Messwerte",
+                "Abnahmeprotokoll",
+                "gegeneichnet"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "Kostenfreigabe liegt vor"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1",
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_relative_time_no_source_date",
+      "title": "Relative weekday without source time is not converted to a calendar date",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "subject": "Ersatzfilter-Lieferung",
+          "date": null,
+          "text": "Die Ersatzfilter können nächsten Mittwoch versendet werden."
+        }
+      ],
+      "actions": [
+        {
+          "question": "An welchem Datum können die Ersatzfilter versendet werden?",
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_reports",
+                "working_unclear"
+              ],
+              "contains_all": [
+                "nächsten Mittwoch"
+              ],
+              "contains_any_groups": [
+                [
+                  "Quellenzeit: unbekannt",
+                  "Zeitbezug ist unklar"
+                ]
+              ],
+              "excludes": [],
+              "forbid_calendar_dates": true
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "holdout_same_name_different_mailboxes",
+      "title": "Same display name from two mailboxes stays ambiguous across separate matters",
+      "setup": [
+        {
+          "alias": "S1",
+          "origin": "synthetic_email",
+          "uid": "work:1",
+          "sender": "Jonas Weller <jonas.weller@work-a.example.invalid>",
+          "subject": "Vorgang 4831 · Prototypenprüfung",
+          "text": "Zur Musterlieferung im Vorgang 4831 für die Prototypenprüfung: Die Prüfmuster gehen am 12. November an Werk Nord."
+        },
+        {
+          "alias": "S2",
+          "origin": "synthetic_email",
+          "uid": "work:2",
+          "sender": "Jonas Weller <jonas.weller@service-b.example.invalid>",
+          "subject": "Vorgang 9584 · Reklamation",
+          "text": "Zur Musterlieferung im Vorgang 9584 für die Reklamation: Die Prüfmuster gehen am 18. November an Werk Süd zurück."
+        }
+      ],
+      "actions": [
+        {
+          "question": "Was hat Jonas Weller zur Musterlieferung mitgeteilt?",
+          "score": {
+            "answer": {
+              "contract_status_any": [
+                "working_unclear"
+              ],
+              "contains_all": [
+                "Welche der genannten Personen meinst du?",
+                "Vorgang 4831",
+                "Vorgang 9584"
+              ],
+              "contains_any_groups": [],
+              "excludes": [
+                "Jonas Weller hat mitgeteilt"
+              ]
+            },
+            "retrieval": {
+              "source_aliases_exact": [
+                "S1",
+                "S2"
+              ]
+            },
+            "unknown_allowed": false
+          }
+        }
+      ]
+    }
+  ]
+}

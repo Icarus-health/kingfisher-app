@@ -1,0 +1,12 @@
+/* Logbuch: ruhig, gedämpft, ohne Rahmen um jede Zeile (docs/16-gestaltung.md, docs/44-logbuch.md). */
+.tageslage-verlauf { margin: 0 0 10px; padding: 0 0 10px; border-bottom: 1px solid var(--today-line); }
+.tageslage-verlauf p { margin: 0; color: var(--today-muted); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.tageslage-verlauf p + p { margin-top: 2px; }
+.tageslage-verlauf .tageslage-knopf { margin-top: 2px; font-size: 12.5px; }
+.logbuch { margin: 6px 0 4px; padding: 4px 0 0; }
+.logbuch-tag { padding: 10px 0 6px; }
+.logbuch-tag + .logbuch-tag { border-top: 1px dotted var(--today-line); }
+.logbuch-tag h3 { margin: 0 0 4px; color: var(--today-muted); font: 600 11px/1.5 'Inter', sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+.logbuch-tag ul { list-style: none; margin: 0; padding: 0; }
+.logbuch-tag li { padding: 2px 0; color: var(--today-ink); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.logbuch-hinweis { margin: 8px 0 0; color: var(--today-muted); font-size: 13px; line-height: 1.6; }

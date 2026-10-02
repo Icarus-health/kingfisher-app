@@ -1,0 +1,21 @@
+.mail-intake { margin: 16px 0; }
+.mail-intake h2 { margin: 0 0 8px; font-size: 15px; }
+.mail-intake-account { margin-top: 16px; padding: 16px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); }
+.mail-intake-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+.mail-intake h3 { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.mail-intake-heading span { color: var(--kf-schrift-31535f); font-size: 12px; }
+.mail-intake-folder { margin-top: 16px; border-top: 1px solid var(--kf-rand-d7e1df); padding-top: 12px; }
+.mail-intake h4 { margin: 0 0 12px; font-size: 13px; overflow-wrap: anywhere; }
+.mail-intake-stages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0; padding-left: 20px; }
+.mail-intake-stages li { padding-left: 4px; font-size: 12px; }
+.mail-intake-stages p { margin: 6px 0; }
+.mail-intake progress { display: block; width: 100%; height: 8px; accent-color: var(--kf-akzent-075268); }
+.mail-intake progress::-webkit-progress-bar { border-radius: 4px; background: var(--kf-flaeche-eef3f1); }
+.mail-intake progress::-webkit-progress-value { border-radius: 4px; background: var(--kf-akzent-075268); }
+.mail-intake-current { border-top: 1px solid var(--kf-rand-d7e1df); padding-top: 10px; }
+.mail-intake button { max-width: 100%; height: auto; min-height: 36px; white-space: normal; }
+.mail-intake button + button { margin-left: 8px; }
+@media (max-width: 640px) {
+  .mail-intake-account { padding: 12px; }
+  .mail-intake-stages { grid-template-columns: 1fr; }
+}

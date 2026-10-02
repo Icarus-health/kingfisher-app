@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Schnellprüfung vor jedem Push (wenige Sekunden). Angelegt mit `scripts/install_hooks.sh`.
+#
+#   1. JavaScript-Syntax: node --check app/src/main.js (nur, wenn die Datei da ist)
+#   2. Python-Syntax:     python -m compileall -q sidecar/icarus_memory messlatte
+#   3. Anführungszeichen: scripts/pruefe_anfuehrungszeichen.py (nie „…" in einer Zeichenkette, siehe CLAUDE.md)
+#   4. Statische Sperren: die Tests, die Kopien von Definitionen im Code verbieten (Sekunden)
+#
+# Die Tests des Sidecars laufen hier bewusst NICHT: Sie brauchen auch parallel rund 8 Minuten, nicht unter einer
+# Minute. Die volle Prüfung ist `scripts/ci_lokal.sh`. Der Hook bricht den Push ab, sobald etwas fehlschlägt, und
+# nennt in einem Satz, was. Im Notfall überspringt `git push --no-verify` ihn.
+set -u
+
+WURZEL="$(git rev-parse --show-toplevel)" || exit 1
+cd "$WURZEL" || exit 1
+
+# Python: $PY, sonst die .venv dieses Checkouts oder des Hauptcheckouts (ein Worktree hat keine eigene), sonst python3.
+gemeinsam="$(cd "$(git rev-parse --git-common-dir)/.." 2>/dev/null && pwd)"
+PY="${PY:-}"
+for kandidat in "$WURZEL/.venv/bin/python" "$gemeinsam/.venv/bin/python"; do
+    [ -n "$PY" ] && break
+    [ -x "$kandidat" ] && PY="$kandidat"
+done
+PY="${PY:-python3}"
+
+abbrechen() {
+    echo "Push abgebrochen: $1" >&2
+    echo "  (Die volle Prüfung ist scripts/ci_lokal.sh; im Notfall überspringt \`git push --no-verify\` diesen Hook.)" >&2
+    exit 1
+}
+
+# 1. JavaScript
+if [ -f app/src/main.js ]; then
+    command -v node >/dev/null || abbrechen "node fehlt, app/src/main.js lässt sich nicht prüfen."
+    node --check app/src/main.js || abbrechen "app/src/main.js hat einen Syntaxfehler."
+fi
+
+# 2. Python-Syntax
+"$PY" -m compileall -q sidecar/icarus_memory messlatte \
+    || abbrechen "Python-Syntaxfehler in sidecar/icarus_memory oder messlatte (Ausgabe oben: python -m compileall -q sidecar/icarus_memory messlatte)."
+
+# 3. Anführungszeichen
+"$PY" scripts/pruefe_anfuehrungszeichen.py \
+    || abbrechen "Zeichenketten mit falschen deutschen Anführungszeichen (Fundstellen oben; richtig ist „…“)."
+
+# 4. Statische Sperren: nur, wenn pytest da ist (die Python-Umgebung des Projekts hat es)
+if "$PY" -c 'import pytest' 2>/dev/null; then
+    (cd sidecar && TZ=UTC PYTHONPATH="$WURZEL/sidecar" "$PY" -m pytest -q -x -p no:cacheprovider \
+        tests/test_geltende_quelle.py tests/test_sammelpostfach.py tests/test_private_anbieter.py \
+        tests/test_pruefe_anfuehrungszeichen.py) \
+        || abbrechen "Eine statische Sperre schlägt an (Ausgabe oben); ein Muster wurde kopiert, das nur eine Quelle haben darf."
+else
+    echo "Hinweis: pytest fehlt in $PY; die statischen Sperren wurden nicht geprüft (make sidecar-dev)." >&2
+fi
+
+echo "Schnellprüfung bestanden. Die volle Prüfung bleibt scripts/ci_lokal.sh." >&2
+exit 0

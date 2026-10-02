@@ -1,0 +1,288 @@
+{
+  "synthetic": true,
+  "image": "kingfisher:bounded-45bdd40",
+  "checks": [
+    {
+      "phase": "real_local_model",
+      "seconds": 1.177327208,
+      "message": {
+        "id": "m-7559ebaeb64d43",
+        "conversation_id": "c-e356c5d56d30",
+        "role": "assistant",
+        "content": "In den ausgewählten Belegen steht:\n\n[1] \"Der Atlasbericht wurde ausdrücklich nicht versendet.\"\nQuelle [1]: Dokument · \"synthetic:atlas\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-20T08:20:06.711017+00:00",
+        "status": "complete",
+        "created_at": "2026-09-20T08:20:09.284363+00:00",
+        "metadata": {
+          "approvals": [],
+          "notices": [],
+          "used_tools": [],
+          "context": {
+            "items": [
+              {
+                "assertion_id": "claim:k-7375e0c6ee71",
+                "statement": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                "kind": "knowledge",
+                "state": "current",
+                "reason": "Passt zum Gespräch: atlasbericht",
+                "source_type": "document",
+                "source_ref": "synthetic:atlas",
+                "evidence_at": "2026-09-20T08:20:06.711017+00:00",
+                "confidence": null,
+                "subject_ref": "project:atlas",
+                "target_ref": null,
+                "scope_ref": null,
+                "knowledge_projection": {
+                  "format": "knowledge-context-v3",
+                  "assertion_id": "claim:k-7375e0c6ee71",
+                  "statement": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                  "subject_ref": "project:atlas",
+                  "target_ref": null,
+                  "scope_ref": null,
+                  "predicate": "observed_note",
+                  "value": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                  "claim_created_at": "2026-09-20T08:20:06.714908+00:00",
+                  "valid_from": null,
+                  "valid_until": null,
+                  "primary_evidence": {
+                    "episode_id": "e-68aa3096542d",
+                    "digest": "sha256:fe13ecd41c138d9d5ecd459d4f0b7f9234e5c8e0df708a939e7fe10ac1cdce1c",
+                    "source_type": "document",
+                    "source_ref": "synthetic:atlas",
+                    "occurred_at": null,
+                    "recorded_at": "2026-09-20T08:20:06.711017+00:00"
+                  },
+                  "reason": "Passt zum Gespräch: atlasbericht"
+                },
+                "knowledge_input": {
+                  "version": 1,
+                  "claim_id": "k-7375e0c6ee71",
+                  "primary_episode_id": "e-68aa3096542d",
+                  "projection_sha256": "5047079e03f3e076059b3cd245629d3f3d96e83ef17c370a196393adb4ddad8e",
+                  "source_generations": {
+                    "e-68aa3096542d": 0
+                  }
+                },
+                "evidence_at_basis": "recorded_at"
+              }
+            ],
+            "memory_revision": 1,
+            "answer_mode": "memory_evidence",
+            "history_egress": "local_only",
+            "knowledge_claim_lineage_version": 2,
+            "knowledge_claim_ids": [
+              "k-7375e0c6ee71"
+            ],
+            "knowledge_inputs": {
+              "k-7375e0c6ee71": {
+                "version": 1,
+                "claim_id": "k-7375e0c6ee71",
+                "primary_episode_id": "e-68aa3096542d",
+                "projection_sha256": "5047079e03f3e076059b3cd245629d3f3d96e83ef17c370a196393adb4ddad8e",
+                "source_generations": {
+                  "e-68aa3096542d": 0
+                }
+              }
+            },
+            "knowledge_history_reset": false,
+            "self_model_lineage_version": 3,
+            "self_model_inputs": {},
+            "self_model_history_reset": false,
+            "answer_contract": {
+              "version": 1,
+              "presentation_version": 2,
+              "status": "evidence",
+              "selected_assertion_ids": [
+                "claim:k-7375e0c6ee71"
+              ],
+              "semantic_validation": false,
+              "model_called": true
+            },
+            "query": "Was wissen wir über den Atlasbericht?",
+            "generated_at": "2026-09-20T08:20:08.102170+00:00",
+            "withheld_count": 0,
+            "basis_omitted": false,
+            "knowledge_retrieval": {
+              "query_terms_total": 2,
+              "query_terms_used": 2,
+              "query_truncated": false,
+              "candidate_limit": 128,
+              "candidates_returned": 1,
+              "candidates_truncated": false,
+              "selection_truncated": false,
+              "truncated": false,
+              "payload_omitted": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "restart",
+      "seconds": 0.44962687499999987,
+      "message": {
+        "id": "m-f72fba7c777243",
+        "conversation_id": "c-eb95447899e2",
+        "role": "assistant",
+        "content": "In den ausgewählten Belegen steht:\n\n[1] \"Der Atlasbericht wurde ausdrücklich nicht versendet.\"\nQuelle [1]: Dokument · \"synthetic:atlas\"\nEreigniszeit: nicht angegeben; Erfasst: 2026-09-20T08:20:06.711017+00:00",
+        "status": "complete",
+        "created_at": "2026-09-20T08:20:11.244655+00:00",
+        "metadata": {
+          "approvals": [],
+          "notices": [],
+          "used_tools": [],
+          "context": {
+            "items": [
+              {
+                "assertion_id": "claim:k-7375e0c6ee71",
+                "statement": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                "kind": "knowledge",
+                "state": "current",
+                "reason": "Passt zum Gespräch: atlasbericht",
+                "source_type": "document",
+                "source_ref": "synthetic:atlas",
+                "evidence_at": "2026-09-20T08:20:06.711017+00:00",
+                "confidence": null,
+                "subject_ref": "project:atlas",
+                "target_ref": null,
+                "scope_ref": null,
+                "knowledge_projection": {
+                  "format": "knowledge-context-v3",
+                  "assertion_id": "claim:k-7375e0c6ee71",
+                  "statement": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                  "subject_ref": "project:atlas",
+                  "target_ref": null,
+                  "scope_ref": null,
+                  "predicate": "observed_note",
+                  "value": "Der Atlasbericht wurde ausdrücklich nicht versendet.",
+                  "claim_created_at": "2026-09-20T08:20:06.714908+00:00",
+                  "valid_from": null,
+                  "valid_until": null,
+                  "primary_evidence": {
+                    "episode_id": "e-68aa3096542d",
+                    "digest": "sha256:fe13ecd41c138d9d5ecd459d4f0b7f9234e5c8e0df708a939e7fe10ac1cdce1c",
+                    "source_type": "document",
+                    "source_ref": "synthetic:atlas",
+                    "occurred_at": null,
+                    "recorded_at": "2026-09-20T08:20:06.711017+00:00"
+                  },
+                  "reason": "Passt zum Gespräch: atlasbericht"
+                },
+                "knowledge_input": {
+                  "version": 1,
+                  "claim_id": "k-7375e0c6ee71",
+                  "primary_episode_id": "e-68aa3096542d",
+                  "projection_sha256": "5047079e03f3e076059b3cd245629d3f3d96e83ef17c370a196393adb4ddad8e",
+                  "source_generations": {
+                    "e-68aa3096542d": 0
+                  }
+                },
+                "evidence_at_basis": "recorded_at"
+              }
+            ],
+            "memory_revision": 1,
+            "answer_mode": "memory_evidence",
+            "history_egress": "local_only",
+            "knowledge_claim_lineage_version": 2,
+            "knowledge_claim_ids": [
+              "k-7375e0c6ee71"
+            ],
+            "knowledge_inputs": {
+              "k-7375e0c6ee71": {
+                "version": 1,
+                "claim_id": "k-7375e0c6ee71",
+                "primary_episode_id": "e-68aa3096542d",
+                "projection_sha256": "5047079e03f3e076059b3cd245629d3f3d96e83ef17c370a196393adb4ddad8e",
+                "source_generations": {
+                  "e-68aa3096542d": 0
+                }
+              }
+            },
+            "knowledge_history_reset": false,
+            "self_model_lineage_version": 3,
+            "self_model_inputs": {},
+            "self_model_history_reset": false,
+            "answer_contract": {
+              "version": 1,
+              "presentation_version": 2,
+              "status": "evidence",
+              "selected_assertion_ids": [
+                "claim:k-7375e0c6ee71"
+              ],
+              "semantic_validation": false,
+              "model_called": true
+            },
+            "query": "Was wissen wir über den Atlasbericht?",
+            "generated_at": "2026-09-20T08:20:10.800935+00:00",
+            "withheld_count": 0,
+            "basis_omitted": false,
+            "knowledge_retrieval": {
+              "query_terms_total": 2,
+              "query_terms_used": 2,
+              "query_truncated": false,
+              "candidate_limit": 128,
+              "candidates_returned": 1,
+              "candidates_truncated": false,
+              "selection_truncated": false,
+              "truncated": false,
+              "payload_omitted": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "withdrawal",
+      "seconds": 0.005865541999999557,
+      "message": {
+        "id": "m-cb0cd44e805f4a",
+        "conversation_id": "c-333fbde4f5cf",
+        "role": "assistant",
+        "content": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+        "status": "complete",
+        "created_at": "2026-09-20T08:20:11.260130+00:00",
+        "metadata": {
+          "approvals": [],
+          "notices": [],
+          "used_tools": [],
+          "context": {
+            "items": [],
+            "memory_revision": 2,
+            "answer_mode": "memory_evidence",
+            "history_egress": "local_only",
+            "knowledge_claim_lineage_version": 2,
+            "knowledge_claim_ids": [],
+            "knowledge_inputs": {},
+            "knowledge_history_reset": false,
+            "self_model_lineage_version": 3,
+            "self_model_inputs": {},
+            "self_model_history_reset": false,
+            "answer_contract": {
+              "version": 1,
+              "presentation_version": 2,
+              "status": "unknown",
+              "selected_assertion_ids": [],
+              "semantic_validation": false,
+              "model_called": false
+            },
+            "query": "Was wissen wir über den Atlasbericht?",
+            "generated_at": "2026-09-20T08:20:11.260060+00:00",
+            "withheld_count": 0,
+            "basis_omitted": false,
+            "knowledge_retrieval": {
+              "query_terms_total": 2,
+              "query_terms_used": 2,
+              "query_truncated": false,
+              "candidate_limit": 128,
+              "candidates_returned": 0,
+              "candidates_truncated": false,
+              "selection_truncated": false,
+              "truncated": false,
+              "payload_omitted": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "status": "passed"
+}

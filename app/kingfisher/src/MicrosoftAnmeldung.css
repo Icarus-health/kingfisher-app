@@ -1,0 +1,19 @@
+/* Mit Microsoft anmelden: der Code groß und gut lesbar, Kopierknopf daneben, darunter der Weg zu Microsoft. */
+.ms-anmeldung { display: grid; gap: 10px; }
+.ms-code { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 10px; background: var(--kf-flaeche-f8fbfa); }
+.ms-code p { margin: 0; }
+.ms-code-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ms-code-wert { font-size: 26px; font-weight: 600; letter-spacing: .12em; color: var(--kf-schrift-062b3a); font-variant-numeric: tabular-nums; user-select: all; }
+.ms-link { display: inline-flex; align-items: center; text-decoration: none; }
+.ms-stand { font-weight: 500; }
+.ms-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ms-fehlt { margin: 0; }
+.ms-konto { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.ms-konto:first-of-type { border-top: 0; }
+.ms-konto ul { margin: 0; padding-left: 18px; }
+/* Die Karte „Microsoft 365“ unter Zugänge mit demselben Innenabstand wie die anderen Karten (Fremdprobe 2, Befund 23). */
+.source-section.ms-zugang { padding: 20px 24px; display: grid; gap: 10px; }
+.source-section.ms-zugang > h2 { margin: 0; color: var(--kf-schrift-062b3a); font-size: 15px; line-height: 20px; font-weight: 700; }
+.source-section.ms-zugang > p { margin: 0; }
+.source-section.ms-zugang > button { justify-self: start; }
+@media (max-width: 700px) { .source-section.ms-zugang { padding: 16px; } }

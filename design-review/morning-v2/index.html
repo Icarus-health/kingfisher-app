@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kingfisher – Morning Briefing V3 Review</title>
+    <link rel="stylesheet" href="./review.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <img class="brand" src="./assets/design-source/01_Brand/Approved/kingfisher-logo-dark-approved-v1.png" alt="Kingfisher" />
+        <nav aria-label="Hauptnavigation">
+          <button class="nav-item active" id="open-briefing" type="button">
+            <img src="./assets/design-source/02_Icons/Approved/Outline/house.svg" alt="" />
+            <span>Heute</span>
+          </button>
+          <button class="nav-item" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/message-circle.svg" alt="" /><span>Gespräche</span></button>
+          <button class="nav-item" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/folder.svg" alt="" /><span>Vorhaben</span></button>
+          <button class="nav-item" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/brain.svg" alt="" /><span>Gedächtnis</span></button>
+          <button class="nav-item" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/mail.svg" alt="" /><span>Nachrichten</span></button>
+          <button class="nav-item" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/calendar-days.svg" alt="" /><span>Kalender</span></button>
+        </nav>
+        <button class="nav-item settings" type="button"><img src="./assets/design-source/02_Icons/Approved/Outline/settings.svg" alt="" /><span>Einstellungen</span></button>
+      </aside>
+
+      <main class="dashboard" id="dashboard">
+        <section class="hero">
+          <img class="hero-landscape" src="./assets/design-source/03_Media/Approved/morning-lake-panorama-approved-v1.png" alt="" />
+          <div class="hero-copy">
+            <h1>Guten Morgen, Lena.</h1>
+          </div>
+          <div class="weather"><span>Freiburg</span><strong>12°</strong><small>Leicht bewölkt</small></div>
+          <div class="day-stamp"><strong>07:32</strong><span>Di, 20. Mai 2025</span></div>
+          <img class="hero-bird" src="./assets/design-source/03_Media/Approved/Freigestellter Eisvogel auf Zweig.png" alt="" />
+        </section>
+
+        <section class="content-band">
+          <div class="cards">
+            <article class="card"><header><span>BRAUCHT DICH</span><b>3</b></header><div class="rows">
+              <div class="row"><span><strong>Kingfisher Positionierung</strong><small>2 Entscheidungen blockieren weitere Arbeit</small></span><em>Hoch</em></div>
+              <div class="row"><span><strong>Clara Neumann</strong><small>wartet auf deine Rückmeldung</small></span><em>Hoch</em></div>
+              <div class="row"><span><strong>Jonas Brenner</strong><small>hat Dokument kommentiert</small></span><em>Mittel</em></div>
+            </div></article>
+            <article class="card"><header><span>PASSIERT GERADE</span><b class="teal">3</b></header><div class="rows">
+              <div class="row activity"><i><img src="./assets/design-source/02_Icons/Approved/Outline/folder.svg" alt="" /></i><span><strong>Cowork</strong><small>Wettbewerbsanalyse abgeschlossen</small></span></div>
+              <div class="row activity"><i><img src="./assets/design-source/02_Icons/Approved/Outline/mail.svg" alt="" /></i><span><strong>Neue E-Mail von Kunde X</strong><small>Angebotsfreigabe</small></span></div>
+              <div class="row activity"><i><img src="./assets/design-source/02_Icons/Approved/Outline/message-circle.svg" alt="" /></i><span><strong>Projektstatus aktualisiert</strong><small>7 neue Hinweise</small></span></div>
+            </div></article>
+            <article class="card"><header><span>SPÄTER HEUTE</span></header><div class="rows later">
+              <div class="row"><time>09:00</time><span><strong>Projekt-Update</strong><small>Beispiel GmbH</small></span></div>
+              <div class="row"><time>11:30</time><span><strong>Termin: Dr. Kranz</strong><small>Strategiegespräch</small></span></div>
+              <div class="row"><time>15:30</time><span><strong>Projektcall</strong><small>Kingfisher Roadmap</small></span></div>
+              <div class="row"><time>17:45</time><span><strong>Familienzeit</strong><small>Ab hier keine neue Arbeit</small></span></div>
+            </div></article>
+          </div>
+
+          <section class="timeline" aria-label="Tagesverlauf">
+            <button class="time-mode active" type="button">Jetzt</button>
+            <button class="time-mode later-button" type="button">Später</button>
+            <div class="time-label t1">08:00</div><div class="time-label t2">11:30</div><div class="time-label t3">15:30</div><div class="time-label t4">18:00</div>
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+              <path class="line-back" d="M0,54 C125,9 205,80 320,48 S520,15 635,51 S830,80 1000,44" />
+              <path class="line-front" d="M0,69 C115,26 228,77 344,46 S542,80 673,36 S858,14 1000,58" />
+            </svg>
+            <span class="event-dot dot1"><img src="./assets/design-source/02_Icons/Approved/Outline/mail.svg" alt="" /></span>
+            <span class="event-dot dot2"><img src="./assets/design-source/02_Icons/Approved/Outline/users-round.svg" alt="" /></span>
+            <span class="event-dot dot3 orange"><img src="./assets/design-source/02_Icons/Approved/Outline/calendar-days.svg" alt="" /></span>
+            <img class="now-bird" src="./assets/design-source/03_Media/Approved/kingfisher-flight-horizontal.png" alt="" />
+            <span class="now-line" aria-hidden="true"></span>
+          </section>
+
+          <form class="command-bar">
+            <img src="./assets/design-source/02_Icons/Approved/Outline/search.svg" alt="" />
+            <input aria-label="Kingfisher fragen" placeholder="Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“" />
+            <kbd>⌘ K</kbd>
+            <button class="voice-button" type="button" aria-label="Mit Kingfisher sprechen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M5.5 11.5v.5a6.5 6.5 0 0 0 13 0v-.5M12 18.5V22M8.5 22h7"/></svg>
+            </button>
+            <button class="send-button" type="button" aria-label="Senden">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></svg>
+            </button>
+          </form>
+        </section>
+      </main>
+
+      <div class="scrim" id="scrim"></div>
+      <section class="briefing-drawer" id="briefing-drawer" aria-label="Morning Briefing">
+        <button class="drawer-close" id="close-briefing" type="button" aria-label="Zum Dashboard">
+          <img src="./assets/design-source/02_Icons/Approved/Outline/house.svg" alt="" />
+          <span>Dashboard</span>
+        </button>
+        <div class="drawer-hero">
+          <img src="./assets/design-source/03_Media/Approved/morning-lake-panorama-approved-v1.png" alt="" />
+          <div><p>MORNING BRIEFING</p><h2>Guten Morgen, Lena.</h2><span>Dienstag, 20. Mai · Freiburg</span></div>
+          <img class="drawer-bird" src="./assets/design-source/03_Media/Approved/Freigestellter Eisvogel auf Zweig.png" alt="" />
+        </div>
+        <div class="drawer-content">
+          <section class="audio-briefing" aria-label="Audio-Briefing">
+            <div class="audio-title"><strong>Dein Briefing</strong><span>4:18 Minuten</span></div>
+            <div class="waveform" aria-hidden="true">
+              <i style="--h:16px"></i><i style="--h:28px"></i><i style="--h:20px"></i><i style="--h:39px"></i><i style="--h:24px"></i><i style="--h:46px"></i><i style="--h:31px"></i><i style="--h:19px"></i><i style="--h:35px"></i><i style="--h:48px"></i><i style="--h:29px"></i><i style="--h:40px"></i><i style="--h:23px"></i><i style="--h:33px"></i><i style="--h:17px"></i><i style="--h:44px"></i><i style="--h:30px"></i><i style="--h:21px"></i><i style="--h:38px"></i><i style="--h:26px"></i><i style="--h:42px"></i><i style="--h:18px"></i><i style="--h:31px"></i><i style="--h:46px"></i><i style="--h:27px"></i><i style="--h:36px"></i><i style="--h:20px"></i><i style="--h:41px"></i><i style="--h:25px"></i><i style="--h:34px"></i><i style="--h:17px"></i><i style="--h:29px"></i>
+            </div>
+            <span class="audio-time">01:24</span><span class="audio-duration">04:18</span>
+            <div class="audio-controls">
+              <button type="button" aria-label="10 Sekunden zurück"><span>10</span></button>
+              <button class="play-toggle" id="play-toggle" type="button" aria-label="Briefing pausieren"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+              <button type="button" aria-label="10 Sekunden vor"><span>10</span></button>
+              <button class="tempo" type="button">1,0×</button>
+            </div>
+          </section>
+
+          <div class="briefing-grid">
+            <article class="brief-card priorities"><header><span>HEUTIGE TOP-PRIORITÄTEN</span><b>3</b></header>
+              <div class="brief-row"><time>09:00</time><span><strong>Projekt-Update abschließen</strong><small>Beispiel GmbH – Status & nächste Schritte</small></span></div>
+              <div class="brief-row"><time>11:30</time><span><strong>Strategiegespräch mit Dr. Kranz</strong><small>Vorbereitung & Key Points prüfen</small></span></div>
+              <div class="brief-row"><time>15:30</time><span><strong>Projektcall Kingfisher Roadmap</strong><small>Abstimmung mit Produkt & Design</small></span></div>
+              <button class="card-link" type="button">Alle Prioritäten ansehen</button>
+            </article>
+
+            <article class="brief-card meeting"><header><span>MEETING-VORBEREITUNG</span></header>
+              <h3>Dr. Kranz</h3><p class="meeting-time">Strategiegespräch · 11:30–12:15</p>
+              <div class="meeting-context"><strong>Worum es geht</strong><p>Strategische Ausrichtung und Priorisierung der nächsten Initiativen.</p></div>
+              <ul><li>Letztes Gespräch prüfen</li><li>KPIs & Fortschritt Q2 Review</li><li>Budget-Update FY25</li></ul>
+              <button class="card-link" type="button">Gesprächsleitfaden öffnen</button>
+            </article>
+
+            <article class="brief-card messages"><header><span>RELEVANTE NACHRICHTEN</span><b class="teal">3</b></header>
+              <div class="message-row"><span><strong>Jonas Brenner</strong><small>hat das Dokument zur Positionierung kommentiert.</small></span><time>Gestern, 18:06</time></div>
+              <div class="message-row"><span><strong>Clara Neumann</strong><small>wartet auf deine Rückmeldung.</small></span><time>Gestern, 16:42</time></div>
+              <div class="message-row"><span><strong>Beispiel-Team</strong><small>hat das Projekt-Update hochgeladen.</small></span><time>Gestern, 14:15</time></div>
+              <button class="card-link" type="button">Alle Nachrichten ansehen</button>
+            </article>
+
+            <article class="brief-card route"><header><span>WETTER & WEG</span></header>
+              <div class="weather-route"><div><strong>12°</strong><span>Leicht bewölkt<br />Freiburg</span></div><div><p>Niederschlag <b>10 %</b></p><p>Wind <b>8 km/h</b></p><p>Luftqualität <b class="good">Gut</b></p></div></div>
+              <div class="commute"><strong>Arbeitsweg</strong><span>18 Min</span><small>Über B3 · freie Fahrt<br />Abfahrt: 07:40</small></div>
+              <button class="card-link" type="button">Route anzeigen</button>
+            </article>
+
+            <article class="brief-card world"><header><span>RELEVANTES AUS DER WELT</span><b>3</b></header>
+              <div class="news-grid">
+                <div><img src="./assets/design-source/03_Media/Approved/aurora-network-tile.png" alt="" /><span><small>Wirtschaft</small><strong>Neue Impulse für Europas Märkte</strong><em>Reuters · 06:45</em></span></div>
+                <div><img src="./assets/design-source/03_Media/Approved/ice-abstract-tile.png" alt="" /><span><small>Technologie</small><strong>KI-Forschung erreicht neuen Meilenstein</strong><em>Handelsblatt · 06:15</em></span></div>
+                <div><img src="./assets/design-source/03_Media/Approved/network-constellation-tile.png" alt="" /><span><small>Gesellschaft</small><strong>Digitale Zusammenarbeit verändert den Alltag</strong><em>Tagesschau · 05:30</em></span></div>
+              </div>
+              <button class="card-link" type="button">Alle Nachrichten lesen</button>
+            </article>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const root = document.documentElement;
+      const setOpen = (value) => root.classList.toggle("briefing-open", value);
+      setOpen(params.get("state") === "briefing");
+      document.getElementById("open-briefing").addEventListener("click", () => setOpen(true));
+      document.getElementById("close-briefing").addEventListener("click", () => setOpen(false));
+      document.getElementById("scrim").addEventListener("click", () => setOpen(false));
+      document.getElementById("play-toggle").addEventListener("click", (event) => event.currentTarget.classList.toggle("paused"));
+    </script>
+  </body>
+</html>
