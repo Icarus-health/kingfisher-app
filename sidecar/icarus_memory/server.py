@@ -26,6 +26,7 @@ import uuid
 from urllib.parse import urlsplit
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Annotated, Any, Literal
 
@@ -968,20 +969,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                     code = 'unavailable'
                     selected_filter = mail_filter.policy(app.state.settings)
                     screening_agent = app.state.agent
-                    raw_screening_provider = rollen_von(app).provider("hintergrund")
-                    screening_provider = raw_screening_provider
-                    if (selected_filter['ai_enabled'] and app.state.settings.schedule.local_model_only
-                            and raw_screening_provider is not None):
-                        from .local_model_guard import VerifiedLocalProvider
-                        from .memory_analysis import model_key
-                        screening_model = model_key(raw_screening_provider)
-                        screening_provider = VerifiedLocalProvider(raw_screening_provider, permitted=lambda: (
-                            app.state.local_model_automation_generation == generation
-                            and app.state.agent is screening_agent
-                            and app.state.settings.schedule.local_model_only
-                            and model_key(raw_screening_provider) == screening_model
-                            and permitted()
-                        ))
+                    screening_with_model = app.state.settings.schedule.with_model
                 def permitted():
                     current = app.state.settings
                     return (account_id in current.schedule.mail_accounts
@@ -990,7 +978,10 @@ def _wire_scheduler(app: FastAPI) -> None:
                             and app.state.mail.reader_for(account_id) is reader
                             and mail_filter.policy(current) == selected_filter
                             and app.state.agent is screening_agent
-                            and rollen_von(app).provider("hintergrund") is raw_screening_provider)
+                            and current.schedule.with_model == screening_with_model
+                            and app.state.local_model_automation_generation == generation)
+                screening_provider = (mail_filter.screening_provider(app, permitted=permitted)
+                    if selected_filter['ai_enabled'] else None)
                 report = mail_ingestion.sync_account(
                     app.state.episodes, account_id, reader, limit=10 if selected_filter['ai_enabled'] else 50,
                     permitted=permitted, permission_lock=app.state.conversation_lock, claims=app.state.claims,
@@ -1110,6 +1101,7 @@ def _wire_scheduler(app: FastAPI) -> None:
 
     def run_mail_intake():
         from .mail_intake import Intake
+        from . import mail_filter
         store = Intake(app.state.episodes)
         for account_id in store.accounts():
             if account_id not in app.state.settings.schedule.mail_accounts:
@@ -1120,13 +1112,26 @@ def _wire_scheduler(app: FastAPI) -> None:
                     # Gescannte Anhänge nur mit einem lokalen OCR-Modell (`anhaenge.ocr_fuer`), nie über die Cloud.
                     from .anhaenge import ocr_fuer
                     reader.ocr = ocr_fuer(app)
+                with app.state.conversation_lock:
+                    selected_filter = mail_filter.policy(app.state.settings)
+                    selected_settings = SimpleNamespace(mail_filter=selected_filter)
+                    screening_agent = app.state.agent
+                    screening_with_model = app.state.settings.schedule.with_model
                 def allowed():
                     current = app.state.settings.schedule
                     return (current.enabled and account_id in current.mail_accounts
                             and any(e.id == account_id and e.configured for e in app.state.settings.mail_accounts)
-                            and app.state.mail.reader_for(account_id) is reader)
-                ids = store.background_step(account_id, reader, app.state.settings, permitted=allowed,
-                    permission_lock=app.state.conversation_lock, claims=app.state.claims)
+                            and app.state.mail.reader_for(account_id) is reader
+                            and app.state.agent is screening_agent
+                            and current.with_model == screening_with_model
+                            and mail_filter.policy(app.state.settings) == selected_filter
+                            and app.state.local_model_automation_generation == generation)
+                screening_provider = (mail_filter.screening_provider(app, permitted=allowed)
+                    if selected_filter['ai_enabled'] else None)
+                ids = store.background_step(account_id, reader, selected_settings, permitted=allowed,
+                    permission_lock=app.state.conversation_lock, claims=app.state.claims, provider=screening_provider,
+                    hold=lambda message, decision, folder: mail_filter.hold(app, message, decision,
+                        lambda: config.save(_data_dir(), app.state.settings), folder=folder))
                 if ids:
                     for episode_id in ids:
                         scheduler.request_working_memory(episode_id)

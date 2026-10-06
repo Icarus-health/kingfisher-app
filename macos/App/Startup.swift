@@ -34,18 +34,33 @@ final class Startup {
         case .missing: return .keysMissing
         case .unwritable: return .failed(Satz.schluesselNichtGespeichert)
         }
+        guard let token = env.value(EnvKey.token) else { return .failed(Satz.schluesselGesucht) }
 
-        if !(env.value(EnvKey.image) ?? "").isEmpty {
+        if let configuredImage = env.value(EnvKey.image), !configuredImage.isEmpty {
             // Später: Läuft Kingfisher schon, gibt es nichts zu tun; sonst starten (lädt nur, was fehlt).
-            if !Loopback.healthy() {
+            let installed = docker.installedImage(paths: paths)
+            if (installed == nil && docker.volumeExists(Installation.dataVolume))
+                    || (installed != nil && installed?.name != configuredImage) {
+                return .failed(Satz.falscheInstallation)
+            }
+            if docker.runningImage(paths: paths)?.name != configuredImage || !Loopback.healthy() {
+                if installed != nil && docker.hasAdditionalMounts(paths: paths) != false {
+                    return .failed(Satz.bestehendeInstallation)
+                }
                 say(Satz.starten)
                 guard docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok else {
                     return .failed(Satz.startGescheitert)
                 }
             }
+            guard docker.runningImage(paths: paths)?.name == configuredImage else {
+                return .failed(Satz.startGescheitert)
+            }
         } else {
-            // Erster Start: welches Bild, laden, dann dauerhaft merken. Auch eine laufende Installation aus der
-            // Arbeitskopie wird hier auf das fertige Bild umgestellt – mit denselben Schlüsseln und Daten.
+            // Einen Bestand aus einer Arbeitskopie nie beim ersten App-Start still umstellen.
+            // Dessen Compose-Datei kann zusätzliche lesende Ordnerfreigaben enthalten.
+            if docker.projectContainer() != nil || docker.volumeExists(Installation.dataVolume) {
+                return .failed(Satz.bestehendeInstallation)
+            }
             let image = firstImage(manifest: Loopback.manifest(), appFassung: AppPaths.appFassung)
             say(Satz.laden)
             guard docker.compose(["pull"], paths: paths, image: image, timeout: 3600).ok else {
@@ -57,8 +72,16 @@ final class Startup {
             guard docker.compose(["up", "-d"], paths: paths, timeout: 1800).ok else {
                 return .failed(Satz.startGescheitert)
             }
+            guard docker.runningImage(paths: paths)?.name == image else { return .failed(Satz.startGescheitert) }
         }
         guard Loopback.waitUntilHealthy() else { return .failed(Satz.nichtErreichbar) }
+        let runningImage = docker.runningImage(paths: paths)?.name ?? ""
+        if let expectedVersion = ImageName.fassung(of: runningImage) {
+            guard Loopback.authenticatedVersion(token: token) == expectedVersion
+                    || Loopback.inspectionMode(token: token) else { return .failed(Satz.falscheInstallation) }
+        } else {
+            guard Loopback.inspectionMode(token: token) else { return .failed(Satz.falscheInstallation) }
+        }
         let ollamaMissing = !Loopback.ollamaRunning() && !FileManager.default.fileExists(atPath: "/Applications/Ollama.app")
         return .ready(ollamaMissing: ollamaMissing)
     }

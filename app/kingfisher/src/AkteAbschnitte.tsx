@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteLage, type AkteZeile } from "./api";
 import { displayLabel } from "./displayIdentity";
-import { ArtKarte, GeburtstagKarte, KreisKarte } from "./Kreis";
-import { WiederkehrendKarte } from "./Wiederkehrendes";
+import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
+import { WiederkehrendKarte } from "./WiederkehrendKarte";
 import { ProfileSource } from "./ProfileSource";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
@@ -180,9 +180,9 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
       <Gesamt gezeigt={data.aufgaben.eintraege.length} gesamt={data.aufgaben.gesamt} />
     </Teil> : null}
 
-    {data.beteiligte.eintraege.length ? <Teil titel="Beteiligte" kind="beteiligte">
+    {data.beteiligte.eintraege.length ? <Teil titel="In gemeinsamen Quellen" kind="beteiligte">
       <ul className="akte-beteiligte">{data.beteiligte.eintraege.map(b => <li key={b.sache}>
-        <button type="button" onClick={() => navigate(`/memory/akte/${encodeURIComponent(b.sache)}`)} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl}×</small></button>
+        <button type="button" onClick={() => navigate(`/memory/akte/${encodeURIComponent(b.sache)}`)} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl} gemeinsame {b.anzahl === 1 ? "Quelle" : "Quellen"}</small></button>
       </li>)}</ul>
       <Gesamt gezeigt={data.beteiligte.eintraege.length} gesamt={data.beteiligte.gesamt} wo="häufigste zuerst" />
     </Teil> : null}

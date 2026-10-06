@@ -42,7 +42,7 @@ test("nach „Melden“ steht, was mit der Meldung geschieht (Befund 12)", () =>
   // Fremdprobe 3, Befund 11: vorne nur, was die Nutzerin wissen muss; „Prüffrage“ und „Messlatte“ stehen hinten.
   assert.match(GEMELDET, /^Gemerkt\. Kingfisher soll diesen Fehler nicht wieder machen\. /);
   assert.doesNotMatch(GEMELDET, /Prüffrage|Messlatte|[Ww]er Kingfisher verbessert/);
-  const komponente = readFileSync(new URL("../src/Rueckmeldung.tsx", import.meta.url), "utf8");
+  const komponente = readFileSync(new URL("../src/RueckmeldungAnsicht.tsx", import.meta.url), "utf8");
   assert.match(komponente, /\{GEMELDET\} <Verweis ziel="technik-rueckmeldungen" \/>/);
 });
 

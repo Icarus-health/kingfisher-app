@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type TaskSource as Source } from "./api";
-import { Herkunft } from "./Herkunft";
+import { Herkunft } from "./HerkunftAnzeige";
 
 export function TaskSource({taskId}: {taskId: string}) {
   const [open, setOpen] = useState(false);

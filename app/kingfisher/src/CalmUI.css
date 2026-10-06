@@ -301,7 +301,7 @@
   .shell *, .shell *::before, .shell *::after { scroll-behavior: auto !important; transition-duration: 0s !important; animation-duration: 0s !important; }
 }
 
-/* Verweis in die Einstellungen (Verweis.tsx): ein Klick dorthin statt eines Wegs in Worten (Befund 25). */
+/* Verweis in die Einstellungen (VerweisLink.tsx): ein Klick dorthin statt eines Wegs in Worten (Befund 25). */
 .verweis { color: var(--calm-link); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 /* Startort direkt an der Wegezeit, wenn er fehlt (WegezeitSettings.tsx, Befund 19). */
 .wegezeit-startort { display: grid; gap: 6px; }

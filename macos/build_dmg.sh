@@ -29,7 +29,7 @@ fi
 FASSUNG="${FASSUNG:-0.0.0}"
 # SemVer ohne Build-Angabe: Die Fassung ist zugleich der Tag des Bildes, und Docker-Tags erlauben kein „+“.
 SEMVER='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
-[[ "$FASSUNG" =~ $SEMVER ]] || fehler "Die Fassung „$FASSUNG“ ist keine gültige SemVer-Fassung wie 1.0.0."
+[[ "$FASSUNG" =~ $SEMVER ]] || fehler "Die Fassung „${FASSUNG}“ ist keine gültige SemVer-Fassung wie 1.0.0."
 BUNDLE_VERSION="${FASSUNG%%-*}"   # CFBundleVersion erlaubt nur Zahlen und Punkte
 
 if [ "${1:-}" = "--nur-fassung" ]; then

@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {api, ApiError, type ModelRecommendation, type ModellLaden} from "../api";
 import {watchPull} from "../modelSetup";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 import {FAEHIGKEITEN, OHNE_OLLAMA, OLLAMA_DOWNLOAD, abschluss, ausstattungSatz, faehigkeitStand, laeufeAus, ladeSatz,
   ladenLaeuftSatz, laufAus, naechsteWahl, offeneRollen, probleme, type Lauf} from "./rechner";
 

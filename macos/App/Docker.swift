@@ -3,6 +3,10 @@ import Foundation
 // Docker finden, starten und Compose aufrufen – dieselben Orte und Schritte wie scripts/kingfisher_starten.py.
 
 struct Docker {
+    struct RunningImage: Equatable {
+        let id: String
+        let name: String
+    }
     /// Dieselben Orte wie `DOCKER_ORTE` in scripts/kingfisher_starten.py.
     static let places = ["/usr/local/bin/docker", "/opt/homebrew/bin/docker",
                          "/Applications/Docker.app/Contents/Resources/bin/docker"]
@@ -55,6 +59,44 @@ struct Docker {
         return run(["compose", "-p", Installation.project, "-f", paths.composeFile.path,
                     "--env-file", paths.envFile.path] + arguments,
                    environment: environment, timeout: timeout)
+    }
+
+    func runningImage(paths: AppPaths) -> RunningImage? {
+        serviceImage(paths: paths, includeStopped: false)
+    }
+
+    func installedImage(paths: AppPaths) -> RunningImage? {
+        serviceImage(paths: paths, includeStopped: true)
+    }
+
+    func hasAdditionalMounts(paths: AppPaths) -> Bool? {
+        guard let container = serviceContainer(paths: paths, includeStopped: true) else { return nil }
+        let inspected = run(["inspect", "--format", "{{json .Mounts}}", container])
+        guard inspected.ok, let data = inspected.output.data(using: .utf8),
+              let mounts = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return nil }
+        return mounts.contains { ($0["Destination"] as? String) != "/data" }
+    }
+
+    private func serviceContainer(paths: AppPaths, includeStopped: Bool) -> String? {
+        let options = includeStopped ? ["ps", "-a", "-q", "kingfisher"] : ["ps", "-q", "kingfisher"]
+        let service = compose(options, paths: paths, timeout: 30)
+        let container = service.output.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard service.ok, !container.isEmpty, !container.contains("\n") else { return nil }
+        return container
+    }
+
+    private func serviceImage(paths: AppPaths, includeStopped: Bool) -> RunningImage? {
+        guard let container = serviceContainer(paths: paths, includeStopped: includeStopped) else { return nil }
+        let inspected = run(["inspect", "--format", "{{.Image}}|{{.Config.Image}}", container])
+        let fields = inspected.output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: "|", omittingEmptySubsequences: false)
+        guard inspected.ok, fields.count == 2, fields[0].hasPrefix("sha256:"), fields[0].count == 71,
+              fields[0].dropFirst(7).allSatisfy({ $0.isHexDigit }), !fields[1].isEmpty else { return nil }
+        return RunningImage(id: String(fields[0]), name: String(fields[1]))
+    }
+
+    func pin(_ image: RunningImage) -> String? {
+        let tag = "kingfisher:rollback-" + image.id.dropFirst(7).prefix(16)
+        return run(["image", "tag", image.id, tag]).ok ? tag : nil
     }
 
     // MARK: Vorhandene Installation

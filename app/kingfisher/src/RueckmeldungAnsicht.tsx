@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError, api, type Rueckmeldung, type RueckmeldungArt, type RueckmeldungZaehlung } from "./api";
 import { ARTEN, GEMELDET, kurz, zaehlSatz } from "./rueckmeldung";
-import { Verweis } from "./Verweis";
+import { Verweis } from "./VerweisLink";
 import "./Rueckmeldung.css";
 
 /**

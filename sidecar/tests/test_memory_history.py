@@ -276,10 +276,20 @@ def test_historical_http_rejects_out_of_range_cursor_coordinates(core, coordinat
             assert 'Cursor' in response.json()['detail']
 
 
-def test_timeline_default_bounds_require_explicit_echo_for_continuation(core):
+def test_timeline_default_bounds_require_explicit_echo_for_continuation(core, monkeypatch):
+    import icarus_memory.memory_routes as routes
+
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return day(5).astimezone(tz)
+
     for n in range(3):
         accepted(core, text=f'Synthetic default bounds {n}', created=3)
     with history_client(core) as client:
+        # Keep the September fixture inside the default 30-day window forever.
+        # Patch after route creation so request annotations retain datetime.
+        monkeypatch.setattr(routes, 'datetime', FixedDateTime)
         first = client.get('/api/v1/memory/timeline', params={'limit': 1}).json()
         assert first['next_cursor']
         query = {'limit': 1, 'cursor': first['next_cursor']}

@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {api, ApiError, type MailIntakeAccount} from "../api";
 import {einlesenStand, einlesenVerweis} from "./einlesen";
 import {einlesenFrage} from "./postfach";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 import {MailErneut} from "./MailErneut";
 
 const fehlerText = (fehler: unknown) => fehler instanceof ApiError && fehler.detail ? fehler.detail

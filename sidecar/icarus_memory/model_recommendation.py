@@ -20,7 +20,7 @@ from typing import Any
 
 # Wann die Tabelle zuletzt gegen die Ollama-Bibliothek und die Messlatte geprüft
 # wurde. Bei jeder Änderung an KATALOG mitziehen.
-KATALOG_STAND = "2026-09-30"
+KATALOG_STAND = "2026-10-06"
 
 # Aufgaben des Stabschefs. Die Reihenfolge ist die der Anzeige.
 ROLLEN = ("frage", "antwort", "pruefung", "hintergrund", "einbettung")
@@ -51,7 +51,7 @@ def _e(rolle, stufen, name, groesse, speicher, art, begruendung, alternative=Fal
     return KatalogEintrag(rolle, tuple(stufen), name, groesse, speicher, art, begruendung, alternative)
 
 
-# Die Tabelle. Stand: KATALOG_STAND (Recherche September 2026).
+# Die Tabelle. Stand: KATALOG_STAND (Recherche September und Messwerte Oktober 2026).
 # Mixture-of-Experts-Modelle (MoE, wenige aktive Parameter) sind auf
 # Apple Silicon mit viel gemeinsamem Speicher das beste Allround-Modell:
 # Qualität eines großen Modells bei der Geschwindigkeit eines kleinen.
@@ -83,21 +83,19 @@ KATALOG: tuple[KatalogEintrag, ...] = (
        "Sehr kleines Entscheidungsmodell; sagt je Satz nur ja oder nein und kostet kaum Speicher."),
     _e("pruefung", (16, 24, 32, 64, 128), "bespoke-minicheck:7b", 4.7, 6, "klein",
        "Für Faktenprüfung gebaut: sagt, ob eine Textstelle einen Satz stützt."),
-    _e("pruefung", (16, 24, 32, 64, 128), "tev1:4b", 2.8, 4, "klein",
-       "Kleineres Entscheidungsmodell; ob es so genau prüft, sagt die Messlatte.", alternative=True),
+    _e("pruefung", (16, 24, 32, 64, 128), "tev1:4b", 4.5, 4.7, "klein",
+       "Kleineres Entscheidungsmodell; bei rund 4,7 GB Betriebsspeicher im 2050er Kontext. Genauigkeit mit der Messlatte prüfen.", alternative=True),
     # -- hintergrund: gründlich, darf langsam sein, läuft nachts --
     _e("hintergrund", (8,), "qwen3.5:4b", 3.4, 6, "klein",
        "Das größte Modell, das hier noch Platz hat; ordnet langsamer und gröber ein."),
-    _e("hintergrund", (16,), "qwen3.5:9b", 6.6, 10, "dicht",
+    _e("hintergrund", (16, 24, 32), "qwen3.5:9b", 6.6, 10, "dicht",
        "Sorgfältiger als die kleinen Modelle; die Einordnung darf ruhig dauern."),
-    _e("hintergrund", (24,), "qwen3.5:27b", 17.0, 20, "dicht",
-       "Das größte dichte Modell, das noch Platz hat; gründlich, aber langsam."),
-    _e("hintergrund", (32, 64), "qwen3.6:35b", 24.0, 27, "moe",
+    _e("hintergrund", (64,), "qwen3.6:35b", 24.0, 27, "moe",
        "Mixture-of-Experts: gründlich genug für Akten und Einordnung, in vertretbarer Zeit."),
-    _e("hintergrund", (64,), "qwen3.5:27b", 17.0, 20, "dicht",
-       "Dichtes Modell als Alternative, wenn Gründlichkeit vor Tempo geht.", alternative=True),
-    _e("hintergrund", (32, 64, 128), "nemotron-3.5-lightning:30b", 20.0, 23, "moe",
-       "Mixture-of-Experts (30B, 3B aktiv), für dauerhaft laufende Hintergrundarbeit gebaut; als Vergleich messen.",
+    _e("hintergrund", (32, 64), "qwen3.5:27b", 17.0, 20, "dicht",
+       "Dichtes größeres Modell als ausdrücklich wählbare Alternative; gründlich, aber langsam.", alternative=True),
+    _e("hintergrund", (64, 128), "nemotron-3.5-lightning:30b", 25.5, 27, "moe",
+       "Gemessen: 25,43 GB Gewichte und rund 26,7 GB Laufzeitspeicher ohne Kontextbegrenzung; für 32-GB-Macs zu knapp.",
        alternative=True),
     _e("hintergrund", (128,), "qwen3.5:122b", 81.0, 90, "moe",
        "Sehr großes Mixture-of-Experts-Modell; nachts die gründlichste Einordnung."),

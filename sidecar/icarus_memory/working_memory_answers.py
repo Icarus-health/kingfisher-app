@@ -569,8 +569,12 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     if scope:
         answer['project_scope'] = scope
     if persons:
-        # Fest gespeichert wie der Projektrahmen: Die Frischeprüfung rechnet mit denselben Quellen.
+        # Der verwendete Rahmen bleibt fest. Zusätzlich merken wir die aktuelle
+        # Personensuche, damit später hinzugekommene Quellen die Antwort veralten lassen.
+        from . import personenfrage
         answer['person_scope'] = persons
+        answer['person_scope_basis'] = personenfrage.kandidatenquellen(
+            retrieval_query or question, episodes)[:MAX_PERSON_SOURCES]
     shown = {row['project_id'] for row in rows if row.get('project')}
     if shown:
         # Nur für die Beschriftung von Auswahlknöpfen, nie als Beleg.
@@ -874,6 +878,19 @@ def _fresh(answer, episodes, claims):
     if (not isinstance(persons, list) or len(persons) > MAX_PERSON_SOURCES
             or any(not isinstance(identifier, str) for identifier in persons)):
         return False
+    if persons:
+        basis = answer.get('person_scope_basis')
+        if (not isinstance(basis, list) or len(basis) > MAX_PERSON_SOURCES
+                or any(not isinstance(identifier, str) for identifier in basis)):
+            return False
+        from . import personenfrage
+        try:
+            aktuell = personenfrage.kandidatenquellen(
+                answer.get('retrieval_query') or answer['query'], episodes)[:MAX_PERSON_SOURCES]
+        except Exception:  # noqa: BLE001 - ohne überprüfbare Personensuche keine alte Antwort zeigen
+            return False
+        if aktuell != basis:
+            return False
     if 'kennzeichnung' in answer and kennzeichnung.Rahmen.aus_dict(answer['kennzeichnung']) is None:
         return False
     sachen = answer.get('akten_sachen', [])

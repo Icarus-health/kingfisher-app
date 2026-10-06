@@ -12,8 +12,9 @@ Der Weg für alle, die Kingfisher aus einer Arbeitskopie mit `make start` betrei
 3. **Bild laden** (`docker pull`). Scheitert das, wird nichts verändert.
 4. **Umschalten:** `KINGFISHER_IMAGE` in `.kingfisher.env` auf das neue Bild, dann `make start` (dort `docker compose
    up -d` ohne Bauen, mit dem freigegebenen Notizordner wie bisher).
-5. **Nachsehen**, ob die neue Fassung antwortet. Wenn nicht: die Zeile von vorher zurück, `make start`, und ein Satz,
-   dass die Daten gesichert sind und wie man sie mit `make zurueck-vor-update` zurückholt.
+5. **Nachsehen**, ob die neue Fassung antwortet. Wenn nicht: neuen Container anhalten, Sicherung mit dem neuen Bild
+   offline zurückspielen, altes Bild ohne Neubau starten und den historischen Prüfmodus bestätigen. Scheitert das
+   Anhalten oder Zurückspielen, bleibt das alte Bild aus und die Sicherung erhalten.
 
 Nur die Standardbibliothek; Befehle und Anfragen sind austauschbar, damit die Tests ohne Docker auskommen.
 """
@@ -49,11 +50,14 @@ SATZ_SICHERUNG = 'Die Sicherung ist nicht gelungen. Es wurde nichts verändert.'
 SATZ_LADEN = ('Die Fassung {fassung} ließ sich nicht laden ({bild}). Es wurde nichts verändert; Kingfisher läuft '
               'weiter wie bisher.')
 SATZ_FERTIG = 'Kingfisher ist jetzt auf Fassung {fassung}. Die Sicherung von vorher heißt {sicherung}.'
-SATZ_ZURUECK = ('Das Update hat nicht geklappt; Kingfisher läuft wieder mit der Fassung von vorher. Deine Daten sind '
-                'gesichert ({sicherung}). Fehlt danach etwas, holt make zurueck-vor-update den Stand von vorher zurück.')
-SATZ_ZURUECK_GESCHEITERT = ('Das Update hat nicht geklappt, und Kingfisher startet auch mit der Fassung von vorher '
-                            'nicht von selbst. Deine Daten sind gesichert ({sicherung}). Starte mit make start und hole '
-                            'danach mit make zurueck-vor-update den Stand von vorher zurück.')
+SATZ_ZURUECK = ('Das Update hat nicht geklappt. Der gesicherte Stand ({sicherung}) wurde wiederhergestellt und '
+                'läuft mit dem vorherigen Bild im Prüfmodus. Prüfe die historischen Daten; frühere Freigaben sind aus.')
+SATZ_ZURUECK_GESCHEITERT = ('Das Update hat nicht geklappt. Der gesicherte Stand ({sicherung}) wurde '
+                            'wiederhergestellt, aber das vorherige Bild startet nicht geprüft. Der Prüfmodus bleibt aktiv.')
+SATZ_RESTORE_GESCHEITERT = ('Das Update hat nicht geklappt. Die Wiederherstellung von {sicherung} ist gescheitert '
+                            'oder der neue Container ließ sich nicht anhalten. Das vorherige Bild wurde nicht '
+                            'gestartet; Sicherung und neues Bild bleiben erhalten.')
+SATZ_ALTES_BILD_FEHLT = 'Das bisher laufende Docker-Bild ließ sich nicht eindeutig bestimmen. Es wurde nichts verändert.'
 
 Lauf = Callable[..., subprocess.CompletedProcess]
 Anfrage = Callable[[str, str, str], Optional[dict]]
@@ -144,6 +148,20 @@ def laeuft_fassung(token: str, anfrage: Anfrage, warten: Callable[[float], None]
     return None
 
 
+def laufendes_bild(compose: tuple[str, ...], lauf: Lauf) -> tuple[str, str] | None:
+    """Liest unveränderliche Bild-ID und Bildname des laufenden Service-Containers."""
+    container = lauf(*compose, 'ps', '-q', 'kingfisher', timeout=30)
+    kennung = (container.stdout or '').strip()
+    if container.returncode != 0 or not kennung or '\n' in kennung:
+        return None
+    bild = lauf('docker', 'inspect', '--format', '{{.Image}}|{{.Config.Image}}', kennung, timeout=30)
+    felder = (bild.stdout or '').strip().split('|')
+    if (bild.returncode != 0 or len(felder) != 2 or not felder[0].startswith('sha256:')
+            or len(felder[0]) != 71 or any(c not in '0123456789abcdef' for c in felder[0][7:]) or not felder[1]):
+        return None
+    return felder[0], felder[1]
+
+
 def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausfuehren, anfrage: Anfrage = anfragen,
                   sagen: Callable[[str], None] = print, warten: Callable[[float], None] = time.sleep) -> str | None:
     """Der ganze Weg. Gibt die neue Fassung zurück (None: schon aktuell); wirft `Abbruch` mit einem Satz."""
@@ -161,9 +179,15 @@ def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausf
         return None
     neue_fassung, bild = ziel
     vorher = werte.get('KINGFISHER_IMAGE') or None
+    compose = ('docker', 'compose', '-p', 'kingfisher', '--env-file', str(env), '-f', str(wurzel / 'compose.yaml'))
+    altes_bild = laufendes_bild(compose, lauf)
+    if altes_bild is None or altes_bild[1] != (vorher or VORGABE_BILD):
+        raise Abbruch(SATZ_ALTES_BILD_FEHLT)
+    rueckweg_bild = 'kingfisher:rollback-' + altes_bild[0][7:23]
+    if lauf('docker', 'image', 'tag', altes_bild[0], rueckweg_bild, timeout=30).returncode != 0:
+        raise Abbruch(SATZ_ALTES_BILD_FEHLT)
 
     sagen(f'Kingfisher sichert deine Daten, bevor es auf Fassung {neue_fassung} wechselt …')
-    compose = ('docker', 'compose', '-p', 'kingfisher', '--env-file', str(env), '-f', str(wurzel / 'compose.yaml'))
     sicherung = lauf(*compose, 'exec', '-T', 'kingfisher', 'python', '-c', SICHERN, timeout=600)
     name = (sicherung.stdout or '').strip().splitlines()[-1:] if sicherung.returncode == 0 else []
     if not name or not name[0].startswith('vor-update-'):
@@ -174,14 +198,31 @@ def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausf
         raise Abbruch(SATZ_LADEN.format(fassung=neue_fassung, bild=bild))
 
     env_setzen(env, 'KINGFISHER_IMAGE', bild)
-    lauf('make', '--no-print-directory', 'start', timeout=600, ausgabe=True)
-    if laeuft_fassung(token, anfrage, warten) == neue_fassung:
+    neuer_start = lauf('make', '--no-print-directory', 'start', timeout=600, ausgabe=True)
+    neues_bild = laufendes_bild(compose, lauf)
+    if (neuer_start.returncode == 0 and laeuft_fassung(token, anfrage, warten) == neue_fassung
+            and neues_bild is not None and neues_bild[1] == bild):
         sagen(SATZ_FERTIG.format(fassung=neue_fassung, sicherung=sicherung_name))
         return neue_fassung
 
-    env_setzen(env, 'KINGFISHER_IMAGE', vorher)
-    lauf('make', '--no-print-directory', 'start', timeout=1800, ausgabe=True)
-    if laeuft_fassung(token, anfrage, warten) is None:
+    # Der neue Code kann Datenbanken bereits migriert haben. Erst anhalten und
+    # mit dem neuen Bild offline den Snapshot zurückspielen; nie alten Code auf
+    # eine möglicherweise neuere Datenbank loslassen.
+    if lauf(*compose, 'stop', 'kingfisher', timeout=180, ausgabe=True).returncode != 0:
+        raise Abbruch(SATZ_RESTORE_GESCHEITERT.format(sicherung=sicherung_name))
+    restore = lauf(*compose, 'run', '--rm', '--no-deps', '-T', '--entrypoint', 'python', 'kingfisher',
+                   '-m', 'icarus_memory.update_restore', sicherung_name, timeout=1800, ausgabe=True)
+    if restore.returncode != 0:
+        raise Abbruch(SATZ_RESTORE_GESCHEITERT.format(sicherung=sicherung_name))
+
+    # Das exakte alte Bild festhalten: Auch ein lokaler Tag kann inzwischen
+    # durch einen anderen Bau ersetzt worden sein. Nie aus neuerem Quelltext bauen.
+    env_setzen(env, 'KINGFISHER_IMAGE', rueckweg_bild)
+    gestartet = lauf('make', '--no-print-directory', 'start', timeout=1800, ausgabe=True)
+    pruefmodus = anfrage('GET', '/api/v1/recovery/status', token)
+    if (gestartet.returncode != 0 or laufendes_bild(compose, lauf) != (altes_bild[0], rueckweg_bild)
+            or not isinstance(pruefmodus, dict) or pruefmodus.get('mode') != 'inspection'
+            or pruefmodus.get('operational') is not False):
         raise Abbruch(SATZ_ZURUECK_GESCHEITERT.format(sicherung=sicherung_name))
     raise Abbruch(SATZ_ZURUECK.format(sicherung=sicherung_name))
 

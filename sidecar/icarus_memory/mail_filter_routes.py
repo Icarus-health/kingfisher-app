@@ -2,6 +2,7 @@
 from copy import deepcopy
 from dataclasses import replace
 from typing import Literal
+import json
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from . import config, mail_filter, mail_ingestion
@@ -37,7 +38,8 @@ def register_mail_filter_routes(app,guard,data_dir):
     def read(item):
         try:
             reader=app.state.mail.reader_for(item['account_id'])
-            message=reader.message(item['uid'])
+            message=(reader.message_in_folder(item['folder'],item['uid']) if 'folder' in item
+                     else reader.message(item['uid']))
             if message.uid!=item['uid'] or mail_filter.digest(message)!=item['digest']:
                 raise ValueError('changed')
             return reader,message
@@ -75,8 +77,20 @@ def register_mail_filter_routes(app,guard,data_dir):
                 try:current=app.state.mail.reader_for(item['account_id'])
                 except Exception as exc:raise HTTPException(409,'Mailkonto nicht mehr verfügbar.') from exc
                 if current is not reader:raise HTTPException(409,'Mailkonto wurde geändert.')
-                mail_ingestion.remember(app.state.episodes,replace(message,account_id=item['account_id'],
-                    uid=item['account_id']+':'+item['uid']),claims=app.state.claims)
+                provider_id=getattr(message,'provider_id','')
+                folder=item.get('folder','INBOX')
+                source_identity=('gmail:'+provider_id if provider_id else
+                          (message.uid if folder.upper()=='INBOX' else json.dumps([folder,message.uid])))
+                with app.state.episodes.transaction():
+                    result=mail_ingestion.remember(app.state.episodes,replace(message,account_id=item['account_id'],
+                        uid=item['account_id']+':'+item['uid']),claims=app.state.claims,source_identity=source_identity)
+                    # Keep progress consistent after explicit review; only the exact filtered item changes.
+                    generation,separator,uid=item['uid'].rpartition('.')
+                    if separator and uid.isdecimal():
+                        app.state.episodes._conn.execute("""UPDATE mail_intake_items SET status=?,episode_id=?,grund=NULL,technik=NULL
+                            WHERE account=? AND folder=? AND generation=? AND uid=? AND status LIKE 'filtered:%'""",
+                            ('captured' if result['new'] else 'duplicate',result['episode']['id'],
+                             item['account_id'],folder,generation,int(uid)))
             value=deepcopy(app.state.settings.mail_filter)
             del value['pending'][identity]
             save(value)

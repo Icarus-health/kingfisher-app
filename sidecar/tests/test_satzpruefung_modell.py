@@ -90,7 +90,7 @@ def test_klassifikation_liest_nur_genau_yes_oder_no(ausgabe):
 
 
 def test_json_modell_bekommt_die_frage_mit_schema_und_nur_satz_und_belege():
-    pruefer = Pruefer(model='tev1:4b')
+    pruefer = Pruefer(model='qwen3.5:4b')
     spm.urteilen([('Die Geschäftsführung hat zugestimmt.', [beleg(pruef_text='Volltext der Quelle.', text='Auszug')])],
                  tor_mit(pruefer))
     system, nutzer = pruefer.anfragen[0]
@@ -144,6 +144,18 @@ def test_ist_das_gesamtbudget_verbraucht_wird_nicht_mehr_gefragt():
 
 def test_die_vorgaben_sind_zwei_sekunden_je_satz_und_sechs_gesamt():
     assert (spm.SATZ_BUDGET_S, spm.GESAMT_BUDGET_S) == (2.0, 6.0)
+
+
+def test_managed_local_profile_allows_cold_start_but_respects_explicit_budget(monkeypatch):
+    budgets = []
+    def result(adapter, provider, sentence, sources, deadline):
+        budgets.append(deadline)
+        return spm.Urteil('ja')
+    monkeypatch.setattr(spm, '_ein_urteil', result)
+    selected = tor_mit(Pruefer(model='kingfisher-qwen3.5:9b-32k'))
+    spm.urteilen([('Satz.', [beleg()])], selected, uhr=lambda: 0)
+    spm.urteilen([('Satz.', [beleg()])], selected, satz_budget=.1, gesamt_budget=.2, uhr=lambda: 0)
+    assert budgets == [8.0, .1]
 
 
 def test_die_zeit_steht_im_abschnitt_pruefung_modell():

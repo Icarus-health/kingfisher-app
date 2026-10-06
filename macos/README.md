@@ -35,8 +35,11 @@ Beim Öffnen, Schritt für Schritt (`App/Startup.swift`), jeweils mit einem Satz
    `ghcr.io/icarus-health/kingfisher-app:` beginnt, sein Tag die Fassung ist und `app_mindestens` erfüllt ist;
    sonst das Bild mit der Fassung der App), `docker compose -p kingfisher -f <Resources/compose.yaml>
    --env-file <Env-Datei> pull`, Bild in die Env-Datei, `up -d`. Später nur `up -d`, wenn `/health` nicht
-   ohnehin antwortet.
-5. **Warten** auf `http://127.0.0.1:8890/health`, dann die Seite `/today` laden.
+   ohnehin antwortet. Eine vorhandene Installation aus einer Arbeitskopie wird nicht automatisch umgestellt:
+   zusätzliche Ordnerfreigaben und ein Bestand ohne passende Bildkonfiguration brauchen einen gesonderten Umzug.
+5. **Prüfen**: Das laufende Bild muss zur Konfiguration passen; `/api/v1/fassung` muss mit dem eigenen Token
+   die passende Fassung bestätigen. Nach einer Wiederherstellung ist stattdessen der authentifizierte Prüfmodus
+   zulässig. Erst danach die Seite `/today` laden.
 6. **Ollama** fehlt (weder erreichbar noch in Programme): ein Satz mit Link unter der Seite, kein Hindernis.
 
 Ein Protokoll der Docker-Aufrufe (ohne Geheimnisse) liegt in `~/Library/Logs/Kingfisher/kingfisher.log`.
@@ -48,14 +51,22 @@ Die App hört unter `window.webkit.messageHandlers.kingfisher` nur auf Nachricht
 davon geschieht ohne diese Nachricht, also ohne Klick in der Oberfläche. Ablauf (`App/Updater.swift`,
 Zustandsfolge in `App/Logic/UpdateFlow.swift`), währenddessen „Kingfisher wird aktualisiert …“ mit Schritt:
 
-1. Sicherung: `POST /backups` mit Kopf `x-icarus-token` (Antwort 201). Scheitert sie, wird nichts verändert.
+Vorher: laufende Fassung, Bildkennung und Ordnerfreigaben prüfen und das bisherige Bild lokal festhalten.
+Eine Installation mit zusätzlichen Freigaben wird durch diesen App-Weg nicht aktualisiert.
+
+1. Sicherung: `POST /backups?vor_update=true` mit Kopf `x-icarus-token` (Antwort 201 und gültiger
+   Sicherungsname `vor-update-YYYYMMDDTHHMMSSZ`). Scheitert sie, wird nichts verändert.
 2. `compose pull` mit `KINGFISHER_IMAGE=<image>`.
 3. `KINGFISHER_IMAGE` dauerhaft in die Env-Datei.
 4. `up -d`.
-5. Auf `/health` warten, dann die Seite neu laden.
+5. Authentifizierte neue Fassung und tatsächlich laufendes Bild prüfen, dann die Seite neu laden.
 
-Scheitert 2 bis 5: alte Env-Datei zurück, `up -d`, warten, und der Satz „Das Update hat nicht geklappt.
-Deine Daten sind gesichert; Kingfisher läuft weiter mit Fassung X.“
+Scheitert das Laden oder Schreiben der Konfiguration, bleibt der laufende Dienst unverändert. Scheitert der
+Neustart oder die Prüfung danach: Dienst stoppen, mit dem **neuen** Bild über `icarus_memory.update_restore`
+den gesicherten Datenstand offline wiederherstellen, dann das festgehaltene alte Bild starten. Erfolg wird erst
+nach Prüfung seiner unveränderlichen Bildkennung und des authentifizierten Prüfmodus gemeldet. Der Prüfmodus
+bleibt aktiv; historische Daten werden nicht automatisch zu aktuellem Arbeitswissen. Scheitert die
+Wiederherstellung, bleibt der Dienst angehalten, Sicherung und neueres Bild bleiben erhalten.
 
 ## Aufbau
 

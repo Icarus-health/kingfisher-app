@@ -11,7 +11,7 @@ import { displayLabel } from "./displayIdentity";
 import { PersonDigest } from "./PersonDigest";
 import { Chronik, MappeDetails } from "./MappeDetails";
 import { AkteAnsicht } from "./AkteAbschnitte";
-import { GeburtstagKarte, KreisKarte } from "./Kreis";
+import { GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { kontakteText, kreisSache } from "./kreis";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";

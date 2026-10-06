@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { FassungEinstellung } from "../Fassung";
 import { useEinrichtung } from "../Einrichtung/useEinrichtung";
-import { KreisStandAnzeige } from "../Kreis";
+import { KreisStandAnzeige } from "../KreisKarten";
 import { WorkingProfileSettings } from "../WorkingProfileSettings";
 import { Aufklapp } from "./Aufklapp";
 import { ICH } from "./gliederung";

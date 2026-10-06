@@ -114,9 +114,9 @@ def test_32_gb_nimmt_fuer_die_antwort_die_kleinere_alternative_mit_begruendung()
     assert "qwen3.6:35b" in satz and "tagsüber" in satz and "gemma4:12b" in satz
     assert alle["antwort"].passt_vermutlich is True
     assert "qwen3.6:35b" in {a.name for a in alle["antwort"].alternativen}  # die große Wahl bleibt wählbar
-    # Nachts passt das große Hintergrundmodell mit der Suche zusammen nicht (29 von 27,2 GB): auch dort kleiner.
-    assert alle["hintergrund"].modell.name == "nemotron-3.5-lightning:30b"
-    assert "nachts" in alle["hintergrund"].orchester_hinweis and "qwen3.6:35b" in alle["hintergrund"].orchester_hinweis
+    # Das Hintergrundmodell bleibt auf 32 GB bei der gemessenen 9B-Familie.
+    assert alle["hintergrund"].modell.name == "qwen3.5:9b"
+    assert alle["hintergrund"].orchester_hinweis == ""
     # Rollen, die nicht getauscht werden mussten, tragen keinen Hinweis.
     assert alle["einbettung"].orchester_hinweis == "" and alle["frage"].orchester_hinweis == ""
 
@@ -142,7 +142,7 @@ def test_reicht_die_pruefung_allein_nicht_wird_zuerst_die_antwort_kleiner():
     alle = empfehle_alle(mac(32, 500))
     assert alle["antwort"].modell.name == "gemma4:12b"
     assert alle["pruefung"].modell.name == "tev1:4b"
-    assert orchester_bedarf(alle, mac(32, 500))["tag_gb"] == 26
+    assert orchester_bedarf(alle, mac(32, 500))["tag_gb"] == pytest.approx(26.7)
 
 
 def test_64_gb_braucht_keinen_tausch():

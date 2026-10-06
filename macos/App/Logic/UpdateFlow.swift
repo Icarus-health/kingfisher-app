@@ -29,7 +29,28 @@ enum UpdateStep: String, CaseIterable {
     case pull          // (b) neues Bild laden
     case switchImage   // (c) KINGFISHER_IMAGE in der Env-Datei setzen
     case restart       // (d) up -d
-    case waitForHealth // (e) auf /health warten
+    case waitForHealth // (e) Fassung und Bild nach dem Start prüfen
+}
+
+enum UpdateSnapshotName {
+    static func isValid(_ name: String) -> Bool {
+        guard name.range(of: #"\Avor-update-[0-9]{8}T[0-9]{6}Z\z"#, options: .regularExpression) != nil,
+              let stamp = DateFormatter.updateSnapshot.date(from: String(name.dropFirst("vor-update-".count))) else {
+            return false
+        }
+        return DateFormatter.updateSnapshot.string(from: stamp) == String(name.dropFirst("vor-update-".count))
+    }
+}
+
+private extension DateFormatter {
+    static var updateSnapshot: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+        formatter.isLenient = false
+        return formatter
+    }
 }
 
 enum UpdatePhase: Equatable {
@@ -65,7 +86,7 @@ struct UpdateMachine {
                 let index = steps.firstIndex(of: step)!
                 phase = index + 1 < steps.count ? .running(steps[index + 1]) : .finished
             } else {
-                phase = step == .backup ? .notStarted : .rollingBack
+                phase = [.backup, .pull, .switchImage].contains(step) ? .notStarted : .rollingBack
             }
         case .rollingBack:
             phase = success ? .rolledBack : .broken

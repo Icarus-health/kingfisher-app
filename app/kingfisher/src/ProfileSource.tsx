@@ -4,7 +4,7 @@ import { SourceCorrection } from "./SourceCorrection";
 import { SourceCategories } from "./SourceCategories";
 import { SourceBezuege } from "./SourceBezuege";
 import { SourceProject } from "./SourceProject";
-import { Herkunft } from "./Herkunft";
+import { Herkunft } from "./HerkunftAnzeige";
 
 type Source = Awaited<ReturnType<typeof api.profileSource>>;
 /**

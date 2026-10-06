@@ -7,7 +7,7 @@ import {useGoogleKonfiguration} from "../useAnbieter";
 import {KalenderMitAdresse} from "../KalenderMitAdresse";
 import {MacCalendarSettings} from "../MacCalendarSettings";
 import {useSystem} from "../useSystem";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 import {SchrittFuss, type SchrittProps} from "./SchrittFuss";
 
 type Weg = "adresse" | "google" | "mac";

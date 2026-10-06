@@ -3,7 +3,7 @@ import type {AutostartStand} from "../api";
 import {AUTOSTART_WARUM, autostartBeantwortet} from "./autostart";
 import {AutostartWahl} from "./AutostartWahl";
 import {SchrittFuss, type SchrittProps} from "./SchrittFuss";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 
 /** „Kingfisher beim Anmelden starten?“ Eine Frage, keine Vorgabe: Der Schalter ist aus, bis man ihn einschaltet. */
 export function AutostartSchritt({weiter, ueberspringen, zurueck}: SchrittProps) {

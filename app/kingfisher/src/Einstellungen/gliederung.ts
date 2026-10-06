@@ -124,8 +124,8 @@ export function vordereTexte(): string[] {
 /** Die Dateien, deren sichtbare Texte vorne stehen (für den Wortlistentest). Ausnahmen stehen in AUSNAHMEN. */
 export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/Zugaenge.tsx", "Einstellungen/Darf.tsx", "Einstellungen/Ich.tsx", "Einstellungen/CloudSchalter.tsx",
-  "Einstellungen/Seite.tsx", "GoogleSignIn.tsx", "MicrosoftAnmeldung.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
-  "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "Kreis.tsx",
+  "Einstellungen/Seite.tsx", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
+  "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "KreisKarten.tsx",
   // Google ohne Cloud-Projekt (Fremdprobe, Befund 2): Post und Kalender vorne, in Alltagsworten.
   "GoogleKalenderAdresse.tsx", "googleWeg.ts", "KalenderMitAdresse.tsx", "Einrichtung/MailSchritt.tsx", "Einrichtung/KalenderSchritt.tsx",
   // Eigene Domain ohne Servereingabe (Fremdprobe 2, Befund 2): im Assistenten und unter Zugänge.

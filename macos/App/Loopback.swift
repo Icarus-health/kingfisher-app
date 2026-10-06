@@ -31,12 +31,40 @@ enum Loopback {
     /// Vollständige Sicherung über den Sidecar: `POST /backups?vor_update=true` (server.py, „Sicherung“), Token im
     /// Kopf `x-icarus-token` wie bei `make backups`. Dieselbe Sicherung wie bei `make aktualisieren`, damit
     /// `make zurueck-vor-update` sie findet. Erfolg ist 201; 409 heißt, die Sicherung ist gescheitert.
-    static func backup(token: String) -> Bool {
+    static func backupName(token: String) -> String? {
         let url = URL(string: "backups?vor_update=true", relativeTo: AppPaths.origin)!.absoluteURL
         var request = URLRequest(url: url, timeoutInterval: 900)
         request.httpMethod = "POST"
         request.setValue(token, forHTTPHeaderField: "x-icarus-token")
-        return status(of: request, session: session) == 201
+        guard let response = perform(request, session: session), response.status == 201,
+              let body = try? JSONSerialization.jsonObject(with: response.data) as? [String: Any],
+              let name = body["name"] as? String, UpdateSnapshotName.isValid(name) else { return nil }
+        return name
+    }
+
+    static func authenticatedVersion(token: String) -> String? {
+        json(path: "/api/v1/fassung", token: token)?["fassung"] as? String
+    }
+
+    static func waitForVersion(_ expected: String, token: String, seconds: Int = 180) -> Bool {
+        let deadline = Date().addingTimeInterval(TimeInterval(seconds))
+        while Date() < deadline {
+            if healthy(), authenticatedVersion(token: token) == expected { return true }
+            Thread.sleep(forTimeInterval: 1)
+        }
+        return false
+    }
+
+    static func inspectionMode(token: String) -> Bool {
+        guard healthy(), let response = json(path: "/api/v1/recovery/status", token: token) else { return false }
+        return response["mode"] as? String == "inspection" && response["operational"] as? Bool == false
+    }
+
+    private static func json(path: String, token: String) -> [String: Any]? {
+        var request = URLRequest(url: AppPaths.origin.appendingPathComponent(String(path.dropFirst())), timeoutInterval: 3)
+        request.setValue(token, forHTTPHeaderField: "x-icarus-token")
+        guard let response = perform(request, session: session), response.status == 200 else { return nil }
+        return try? JSONSerialization.jsonObject(with: response.data) as? [String: Any]
     }
 
     /// Läuft Ollama auf diesem Mac (wie der Starter: `/api/tags`)?

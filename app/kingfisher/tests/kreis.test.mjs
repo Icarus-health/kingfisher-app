@@ -82,7 +82,7 @@ test("ohne Vorschlag: du legst den Kreis selbst fest, ohne „vorgeschlagen“ (
     vorschlag: { kreis: "kontakte", kreis_text: "Kontakte", begruendung: "Kein Mailwechsel." }, neuer_vorschlag: false, wahlen: [], ohne_vorschlag: true };
   assert.equal(kreisSatz(ohne), "Noch kein Vorschlag; du kannst den Kreis selbst festlegen.");
   assert.match(kreisSatz({ ...ohne, bestaetigt: true, kreis: "innerer_kreis", kreis_text: "Innerer Kreis" }), /^Bestätigt: Innerer Kreis\.$/);
-  const karte = readFileSync(new URL("../src/Kreis.tsx", import.meta.url), "utf8");
+  const karte = readFileSync(new URL("../src/KreisKarten.tsx", import.meta.url), "utf8");
   assert.match(karte, /stand\.ohne_vorschlag \? null : <p className="kreis-warum">/);
   assert.match(karte, /!stand\.bestaetigt && !stand\.ohne_vorschlag && stand\.vorschlag\.kreis === w\.kreis/);
 });
