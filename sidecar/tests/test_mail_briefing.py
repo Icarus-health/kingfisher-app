@@ -197,3 +197,19 @@ def test_unverified_weights_are_never_called(setup, monkeypatch):
     monkeypatch.setattr(local_model_guard, 'verify_local_model', unavailable)
     assert post(setup).json()['status'] == 'unavailable'
     assert not setup[1].calls
+
+
+def test_cached_result_rechecks_source_after_initial_read(setup):
+    post(setup)
+    original = setup[2].current
+    calls = 0
+    def read(uid):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            setup[2].current = replace(original, body='Geänderte Nachricht ohne alte Bitte.')
+            return original
+        return setup[2].current
+    setup[2].message = read
+    assert post(setup).status_code == 409
+    assert len(setup[1].calls) == 1

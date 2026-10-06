@@ -165,8 +165,12 @@ def register(app, guard, read_mail):
             if not permitted():
                 raise HTTPException(409, 'Mailkonto oder Modell wurde geändert.')
             if not body.refresh and key in state.cache:
-                state.cache.move_to_end(key)
-                return deepcopy(state.cache[key])
+                current = read_mail(uid)
+                with app.state.conversation_lock:
+                    if not permitted() or _fingerprint(current) != fingerprint:
+                        raise HTTPException(409, 'Die Grundlage der Nachricht wurde geändert.')
+                    state.cache.move_to_end(key)
+                    return deepcopy(state.cache[key])
             try:
                 provider = local_model_guard.VerifiedLocalProvider(selected, permitted=permitted)
                 reply = provider.complete_json([
