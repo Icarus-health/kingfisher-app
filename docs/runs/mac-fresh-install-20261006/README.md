@@ -66,5 +66,20 @@ Fenstertest ausdrücklich auf später verschoben. Einrichtung, Kontenanmeldung
 und Bedienung im neuen App-Fenster sind deshalb noch nicht visuell abgenommen.
 Die Prüfung belegt keine fehlerfreie Antwortqualität mit echten Mails.
 
+Nachtrag nach dem Entsperren, ebenfalls am 6. Oktober: Das installierte native
+Fenster öffnet `/willkommen` ohne Browserleisten. Alle sechs Seiten lassen sich
+über die Schrittnavigation öffnen und wieder zur Namenseingabe zurückstellen.
+Mail und Kalender sind unverbunden, die optionalen Freigaben ausgeschaltet;
+Einrichtung abschließen, Kontenanmeldung, Modelldownload, Import und
+Sicherungsdownload wurden dabei nicht ausgeführt.
+
+Der Modellschritt verwendete zunächst die Container-Untergrenze statt der
+Mac-Ausstattung. Über den vorhandenen `scripts/report_device.py` wurde die
+echte Hardware ausschließlich dem lokalen Sidecar gemeldet. Die Oberfläche
+zeigt danach die Host-Ausstattung und passt die Modellempfehlung an. Die
+automatische Hardwaremeldung beim Start der ladbaren Mac-App bleibt offen;
+dieser Nachtrag belegt eine lokale Einrichtungskorrektur, keinen neuen
+automatischen App-Startpfad.
+
 GitHub Actions wurden für diese Lieferung nicht gestartet. Die Commits tragen
 `[skip ci]`; keine Workflow-Datei wurde deaktiviert oder verändert.
