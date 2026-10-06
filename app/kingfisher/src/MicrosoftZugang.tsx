@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, type MicrosoftKonten } from "./api";
-import { MicrosoftAnmeldung } from "./MicrosoftAnmeldung";
+import { MicrosoftAnmeldung } from "./MicrosoftAnmeldungKarte";
 import { SAETZE } from "./microsoftAnmeldung";
 
 const datum = (wert: string | null) => {

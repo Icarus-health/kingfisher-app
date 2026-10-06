@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteLage, type AkteZeile } from "./api";
 import { displayLabel } from "./displayIdentity";
-import { ArtKarte, GeburtstagKarte, KreisKarte } from "./Kreis";
-import { WiederkehrendKarte } from "./Wiederkehrendes";
+import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
+import { WiederkehrendKarte } from "./WiederkehrendKarte";
 import { ProfileSource } from "./ProfileSource";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";

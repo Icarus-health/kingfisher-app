@@ -1,5 +1,5 @@
 // Mit Microsoft anmelden (docs/50-microsoft-365.md): Sätze, Restzeit und Nachfragen, ohne React, damit `node --test`
-// sie prüfen kann. Die Karte dazu steht in MicrosoftAnmeldung.tsx. Kein Token und kein Gerätecode kommen hier je an:
+// sie prüfen kann. Die Karte dazu steht in MicrosoftAnmeldungKarte.tsx. Kein Token und kein Gerätecode kommen hier je an:
 // Der Sidecar gibt nur den kurzen Code, den Link und den Stand heraus.
 import type { AnbieterErkennung, MicrosoftAnmeldung } from "./api";
 

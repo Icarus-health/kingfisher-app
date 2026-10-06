@@ -4,7 +4,7 @@ import {PAUSIEREN_AUF_HEUTE, automatikAngebote, fertigLeerText, liestSatz, ordne
 import {KingfisherLernt} from "./KingfisherLernt";
 import {SchrittFuss, type SchrittProps} from "./SchrittFuss";
 import {usePostfaecher} from "./usePostfaecher";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 
 const zahl = (wert: number) => wert.toLocaleString("de-DE");
 

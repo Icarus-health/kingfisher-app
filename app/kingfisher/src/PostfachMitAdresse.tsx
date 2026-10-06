@@ -2,7 +2,7 @@ import {useEffect, useState, type FormEvent} from "react";
 import {api, ApiError, type MailProvider} from "./api";
 import {adresseLesen, adresseMerken} from "./adresseEntwurf";
 import {hilfeText} from "./googleWeg";
-import {MicrosoftAnmeldung} from "./MicrosoftAnmeldung";
+import {MicrosoftAnmeldung} from "./MicrosoftAnmeldungKarte";
 import {microsoftZuerst, standSatz} from "./microsoftAnmeldung";
 import {EIGENER_SERVER, SERVER_SATZ, STANDARD_PORT, adresseFertig as istFertig, anmeldeName, eigenerServer, erkanntText,
   nachsehenSatz, postfachName} from "./postfachWeg";

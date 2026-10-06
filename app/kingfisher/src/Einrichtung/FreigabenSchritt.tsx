@@ -4,7 +4,7 @@ import {TranscriptSettings} from "../TranscriptSettings";
 import {WegezeitSettings} from "../WegezeitSettings";
 import {Wetter} from "../WeltSettings";
 import {SchrittFuss, type SchrittProps} from "./SchrittFuss";
-import {Verweis} from "../Verweis";
+import {Verweis} from "../VerweisLink";
 import {FREIGABEN_START, freigabenErledigt, freigabenWeiter, wetterHinweis, type FreigabeId} from "./freigaben";
 
 type Zeile = {id: FreigabeId; titel: string; satz: string; inhalt: ReactNode; hinweis?: string | null};

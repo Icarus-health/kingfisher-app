@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, ApiError, type WegezeitStand } from "./api";
-import { Verweis } from "./Verweis";
+import { Verweis } from "./VerweisLink";
 import { wegezeitSchalter } from "./wegezeitSchalter";
 import { SCHALTER } from "./Einstellungen/gliederung";
 

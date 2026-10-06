@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { AntwortZeitenProtokoll } from "../AntwortZeiten";
 import { AktenOrdnerSettings } from "../AktenOrdnerSettings";
-import { WasAufgefallenIst } from "../Befunde";
+import { WasAufgefallenIst } from "../BefundeAnsicht";
 import { DeviceModelHelp } from "../DeviceModelHelp";
 import { GoogleVorbereiten } from "../GoogleVorbereiten";
 import { LocalModelSettings } from "../LocalModelSettings";
@@ -11,7 +11,7 @@ import { MemoryAutomationSettings } from "../MemoryAutomationSettings";
 import { MicrosoftVorbereiten } from "../MicrosoftVorbereiten";
 import { ModelRecommendation } from "../ModelRecommendation";
 import { RoutingControls } from "../RoutingControls";
-import { RueckmeldungenListe } from "../Rueckmeldung";
+import { RueckmeldungenListe } from "../RueckmeldungAnsicht";
 import { SetupOverview } from "../SetupOverview";
 import { SuchindexSettings } from "../SuchindexSettings";
 import { WegezeitKartendienst } from "../WegezeitSettings";

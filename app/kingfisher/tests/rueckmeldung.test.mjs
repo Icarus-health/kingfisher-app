@@ -45,5 +45,5 @@ test("Die Oberfläche nennt keinen Befehl, sondern was aus einer Meldung wird", 
     return befehl.test(code);
   });
   assert.deepEqual(funde, []);
-  assert.match(readFileSync(new URL("Rueckmeldung.tsx", src), "utf8"), /Was daraus wird: Jede Meldung wird eine Prüffrage\./);
+  assert.match(readFileSync(new URL("RueckmeldungAnsicht.tsx", src), "utf8"), /Was daraus wird: Jede Meldung wird eine Prüffrage\./);
 });

@@ -3,7 +3,7 @@ import { api, type CalendarOverview, type CalendarPreparation as Preparation, ty
 import { displayLabel } from "./displayIdentity";
 import { ProfileSource } from "./ProfileSource";
 import { navigate } from "./ui";
-import { Herkunft } from "./Herkunft";
+import { Herkunft } from "./HerkunftAnzeige";
 
 const WORKING_KIND_LABELS: Record<string, string> = {
   request: "Bitte", commitment: "Zusage", conditional: "Bedingte Aussage",
