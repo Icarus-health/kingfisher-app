@@ -76,8 +76,11 @@ Download-Seite.
 3. `docker pull` des Bildes. Scheitert es, ändert sich nichts.
 4. `KINGFISHER_IMAGE=<bild>` in `.kingfisher.env`, dann `make start` (mit dem freigegebenen Notizordner wie bisher;
    mit fertigem Bild ohne `--build`).
-5. Antwortet danach nicht die neue Fassung, kommt die Zeile von vorher zurück, `make start` noch einmal, und der Satz
-   nennt die Sicherung und `make zurueck-vor-update`.
+5. Antwortet danach nicht die neue Fassung, wird zuerst der Dienst gestoppt. Mit dem neuen Bild wird die
+   Update-Sicherung offline zurückgespielt; erst danach startet das zuvor festgehaltene alte Bild ohne Neubau.
+   Seine unveränderliche Bildkennung und der authentifizierte Prüfmodus müssen bestätigt sein. Die Sicherung
+   bleibt erhalten. Scheitert Stoppen oder Wiederherstellen, wird alter Code nicht auf neueren Daten gestartet.
+   Nach erfolgreichem Rückweg bleiben historische Daten im Prüfmodus, bis der Bestand geprüft wurde.
 
 Wer danach wieder aus dem Quelltext bauen will, löscht die Zeile `KINGFISHER_IMAGE` aus `.kingfisher.env`. `make
 start` und der Doppelklick-Starter sagen das, solange ein fertiges Bild eingetragen ist.

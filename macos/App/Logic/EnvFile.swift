@@ -106,8 +106,16 @@ struct EnvStore {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true,
                                                 attributes: [.posixPermissions: 0o700])
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path)
-        // Atomar ersetzen: Ein Absturz mitten im Schreiben hinterlässt die alte Datei, keine halbe.
-        try Data(env.text.utf8).write(to: file, options: .atomic)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+        // Die neue Datei erst vollständig schreiben und auf 0600 setzen; erst
+        // danach die alte ersetzen. Ein Fehler lässt ihre Bildwahl unverändert.
+        let temporary = folder.appendingPathComponent(".kingfisher-\(UUID().uuidString).env")
+        defer { try? FileManager.default.removeItem(at: temporary) }
+        try Data(env.text.utf8).write(to: temporary, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: temporary.path)
+        if FileManager.default.fileExists(atPath: file.path) {
+            _ = try FileManager.default.replaceItemAt(file, withItemAt: temporary)
+        } else {
+            try FileManager.default.moveItem(at: temporary, to: file)
+        }
     }
 }

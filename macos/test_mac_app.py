@@ -207,7 +207,30 @@ def test_sicherung_ueber_die_vorhandene_route():
     assert 'URL(string: "backups?vor_update=true", relativeTo: AppPaths.origin)' in loopback
     assert 'request.httpMethod = "POST"' in loopback
     assert 'forHTTPHeaderField: "x-icarus-token"' in loopback
-    assert 'status(of: request, session: session) == 201' in loopback
+    assert 'response.status == 201' in loopback
+    assert 'UpdateSnapshotName.isValid(name)' in loopback
+    assert 'return name' in loopback
+
+
+def test_update_checks_target_version_and_restores_snapshot_before_old_image():
+    updater = swift('App', 'Updater.swift')
+    loopback = swift('App', 'Loopback.swift')
+    assert 'Loopback.waitForVersion(request.fassung, token: token)' in updater
+    assert 'authenticatedVersion(token: token) == expected' in loopback
+    assert 'docker.compose(["stop", "kingfisher"]' in updater
+    assert '"-m", "icarus_memory.update_restore", snapshotName' in updater
+    assert updater.index('"-m", "icarus_memory.update_restore"') < updater.index('restored.set(EnvKey.image, pinnedTag)')
+    assert 'docker.runningImage(paths: paths)?.id == previous.id' in updater
+    assert 'Loopback.inspectionMode(token: token)' in updater
+
+
+def test_first_launch_does_not_convert_existing_local_installation():
+    startup = swift('App', 'Startup.swift')
+    assert 'docker.projectContainer() != nil || docker.volumeExists(Installation.dataVolume)' in startup
+    assert 'return .failed(Satz.bestehendeInstallation)' in startup
+    assert startup.index('return .failed(Satz.bestehendeInstallation)') < startup.index('let image = firstImage(')
+    assert 'docker.installedImage(paths: paths)' in startup
+    assert 'Loopback.authenticatedVersion(token: token) == expectedVersion' in startup
 
 
 def test_logik_braucht_nur_foundation():

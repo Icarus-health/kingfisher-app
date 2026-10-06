@@ -63,6 +63,12 @@ do {
     let folderMode = (try FileManager.default.attributesOfItem(atPath: store.file.deletingLastPathComponent().path)[.posixPermissions] as? NSNumber)?.intValue
     expect(fileMode == 0o600, "Datei nur für den Benutzer (0600), ist \(String(fileMode ?? -1, radix: 8))")
     expect(folderMode == 0o700, "Ordner nur für den Benutzer (0700), ist \(String(folderMode ?? -1, radix: 8))")
+    var updated = env
+    updated.set(EnvKey.image, "ghcr.io/icarus-health/kingfisher-app:1.0.1")
+    try store.write(updated)
+    expect(store.read() == updated, "vorhandene Datei atomar ersetzen, Schlüssel erhalten")
+    let replacedMode = (try FileManager.default.attributesOfItem(atPath: store.file.path)[.posixPermissions] as? NSNumber)?.intValue
+    expect(replacedMode == 0o600, "ersetzte Datei bleibt privat (0600)")
 } catch {
     expect(false, "Env-Datei schreiben: \(error)")
 }
@@ -149,12 +155,13 @@ do {
     expect(alles.ende == .finished, "fertig")
     let keineSicherung = ablauf([false])
     expect(keineSicherung.ende == .notStarted && keineSicherung.schritte == ["backup"], "ohne Sicherung nichts weiter")
-    let ladenScheitert = ablauf([true, false, true])
-    expect(ladenScheitert.schritte == ["backup", "pull", "zurueck"], "nach dem Laden zurück \(ladenScheitert.schritte)")
-    expect(ladenScheitert.ende == .rolledBack, "alte Fassung läuft wieder")
+    let ladenScheitert = ablauf([true, false])
+    expect(ladenScheitert.schritte == ["backup", "pull"], "beim Laden kein Rückfall \(ladenScheitert.schritte)")
+    expect(ladenScheitert.ende == .notStarted, "altes Bild bleibt beim Ladefehler unberührt")
+    expect(ablauf([true, true, false]).ende == .notStarted, "Schreibfehler lässt den Container unberührt")
     let startScheitert = ablauf([true, true, true, true, false, false])
     expect(startScheitert.ende == .broken, "auch der Rückweg scheitert")
-    for fehler in 1...4 {
+    for fehler in 3...4 {
         let ergebnisse = Array(repeating: true, count: fehler) + [false, true]
         expect(ablauf(ergebnisse).ende == .rolledBack, "Fehler in Schritt \(fehler + 1) führt zurück")
     }
@@ -162,6 +169,15 @@ do {
     for _ in 0..<5 { fertig.report(success: true) }
     fertig.report(success: false)
     expect(fertig.phase == .finished, "nach dem Ende ändert nichts mehr den Zustand")
+}
+
+// MARK: Name der Offline-Sicherung
+do {
+    expect(UpdateSnapshotName.isValid("vor-update-20261006T120000Z"), "gültiger Snapshotname")
+    for unsafe in ["../vor-update-20261006T120000Z", "vor-update-20261006T120000Z/extra",
+                   "vor-update-20261306T120000Z", "vor-update-latest", "vor-update-20261006T120000Z\n"] {
+        expect(!UpdateSnapshotName.isValid(unsafe), "unsicherer Snapshotname abgewiesen")
+    }
 }
 
 // MARK: Vorhandene Installation
@@ -186,7 +202,7 @@ do {
 
 do {
     expect(Satz.updateGescheitert(alteFassung: "1.0.0") ==
-           "Das Update hat nicht geklappt. Deine Daten sind gesichert; Kingfisher läuft weiter mit Fassung 1.0.0.",
+           "Das Update hat nicht geklappt. Der gesicherte Stand ist mit dem bisherigen Bild im Prüfmodus geöffnet. Prüfe die historischen Daten; frühere Freigaben sind ausgeschaltet.",
            "Satz nach gescheitertem Update")
     expect(Satz.laden == "Kingfisher wird geladen. Beim ersten Mal dauert das einige Minuten.", "Satz beim Laden")
     for step in UpdateStep.allCases { expect(!Satz.schritt(step).isEmpty, "Satz für \(step)") }

@@ -16,6 +16,8 @@ skript = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(skript)
 
 BILD = 'ghcr.io/icarus-health/kingfisher-app:1.2.0'
+OLD_ID = 'sha256:' + '1' * 64
+PINNED_IMAGE = 'kingfisher:rollback-' + '1' * 16
 MANIFEST = {'fassung': '1.2.0', 'image': BILD, 'datum': '2026-10-02', 'hinweise': [], 'app_mindestens': '1.0.0',
             'dmg': 'https://github.com/Icarus-health/kingfisher-app/releases/download/v1.2.0/Kingfisher.dmg'}
 
@@ -24,9 +26,12 @@ class Rechner:
     """Docker, make und der laufende Sidecar in einem: merkt Befehle, `laeuft` wechselt mit `make start`."""
 
     def __init__(self, env: Path, *, sichern_ok=True, pull_ok=True, neu_startet=True, alt_startet=True,
+                 stop_ok=True, restore_ok=True,
                  neueste=MANIFEST, erreicht=True, laeuft='1.0.0') -> None:
         self.env, self.befehle, self.anfragen = env, [], []
         self.sichern_ok, self.pull_ok, self.neu_startet, self.alt_startet = sichern_ok, pull_ok, neu_startet, alt_startet
+        self.stop_ok, self.restore_ok = stop_ok, restore_ok
+        self.restored = False
         self.neueste, self.erreicht, self.laeuft = neueste, erreicht, laeuft
         self.bild_beim_start: list[str | None] = []
 
@@ -37,6 +42,16 @@ class Rechner:
             code, aus = (0, 'Hinweis\nvor-update-20261002T080000Z\n') if self.sichern_ok else (1, '')
         elif befehl[:2] == ('docker', 'pull'):
             code = 0 if self.pull_ok else 1
+        elif 'stop' in befehl:
+            code = 0 if self.stop_ok else 1
+            self.laeuft = None
+        elif 'run' in befehl:
+            code = 0 if self.restore_ok else 1
+            self.restored = code == 0
+        elif 'ps' in befehl:
+            aus = 'old-container\n' if self.laeuft else ''
+        elif befehl[:2] == ('docker', 'inspect'):
+            aus = OLD_ID + '|' + (skript.env_lesen(self.env).get('KINGFISHER_IMAGE') or skript.VORGABE_BILD) + '\n'
         elif befehl[0] == 'make':
             bild = skript.env_lesen(self.env).get('KINGFISHER_IMAGE')
             self.bild_beim_start.append(bild)
@@ -50,6 +65,8 @@ class Rechner:
         self.anfragen.append((methode, pfad, token))
         if self.laeuft is None:
             return None
+        if pfad == '/api/v1/recovery/status':
+            return {'mode': 'inspection', 'operational': False} if self.restored else None
         if pfad == '/api/v1/fassung/pruefen':
             verfuegbar = bool(self.neueste) and self.neueste['fassung'] != self.laeuft
             return {'fassung': self.laeuft, 'neueste': self.neueste, 'update_verfuegbar': verfuegbar,
@@ -80,7 +97,7 @@ def test_der_ganze_weg_in_der_richtigen_reihenfolge(env):
     ergebnis, gesagt = los(env, r)
     assert ergebnis == '1.2.0'
     arten = [('sichern' if 'exec' in b else 'pull' if b[:2] == ('docker', 'pull') else b[0]) for b in r.befehle]
-    assert arten == ['sichern', 'pull', 'make']
+    assert arten == ['docker', 'docker', 'docker', 'sichern', 'pull', 'make', 'docker', 'docker']
     sichern = next(b for b in r.befehle if 'exec' in b)
     assert sichern[:4] == ('docker', 'compose', '-p', 'kingfisher') and 'UPDATE_SET_PREFIX' in sichern[-1]
     assert ('docker', 'pull', BILD) in r.befehle
@@ -139,28 +156,60 @@ def test_bild_laedt_nicht_nichts_veraendert(env):
     assert 'KINGFISHER_IMAGE' not in skript.env_lesen(env)
 
 
-def test_neue_fassung_startet_nicht_dann_zurueck_auf_vorher(env):
+def test_neue_fassung_startet_nicht_dann_snapshot_vor_altem_bild_wiederherstellen(env):
     r = Rechner(env, neu_startet=False)
     fehler, _ = los(env, r)
     assert isinstance(fehler, skript.Abbruch)
-    assert fehler.satz.startswith('Das Update hat nicht geklappt; Kingfisher läuft wieder mit der Fassung von vorher.')
-    assert 'make zurueck-vor-update' in fehler.satz and 'vor-update-20261002T080000Z' in fehler.satz
-    assert r.bild_beim_start == [BILD, None]          # zurück auf genau den Stand von vorher (ohne Zeile: bauen)
-    assert 'KINGFISHER_IMAGE' not in skript.env_lesen(env)
+    assert 'Prüfmodus' in fehler.satz and 'vor-update-20261002T080000Z' in fehler.satz
+    assert r.bild_beim_start == [BILD, PINNED_IMAGE]
+    assert skript.env_lesen(env)['KINGFISHER_IMAGE'] == PINNED_IMAGE
+    kinds = ['stop' if 'stop' in b else 'restore' if 'run' in b else 'make' if b[0] == 'make' else '' for b in r.befehle]
+    assert kinds.index('stop') < kinds.index('restore') < kinds.index('make', kinds.index('restore'))
 
 
 def test_zurueck_auf_ein_frueheres_fertiges_bild(env):
     skript.env_setzen(env, 'KINGFISHER_IMAGE', 'ghcr.io/icarus-health/kingfisher-app:1.0.0')
     r = Rechner(env, neu_startet=False)
     los(env, r)
-    assert r.bild_beim_start == [BILD, 'ghcr.io/icarus-health/kingfisher-app:1.0.0']
-    assert skript.env_lesen(env)['KINGFISHER_IMAGE'] == 'ghcr.io/icarus-health/kingfisher-app:1.0.0'
+    assert r.bild_beim_start == [BILD, PINNED_IMAGE]
+    assert skript.env_lesen(env)['KINGFISHER_IMAGE'] == PINNED_IMAGE
 
 
 def test_auch_vorher_startet_nicht_sagt_was_zu_tun_ist(env):
     r = Rechner(env, neu_startet=False, alt_startet=False)
     fehler, _ = los(env, r)
-    assert 'make start' in fehler.satz and 'make zurueck-vor-update' in fehler.satz
+    assert 'startet nicht geprüft' in fehler.satz
+
+
+@pytest.mark.parametrize('failure', ['stop', 'restore'])
+def test_kein_altes_bild_auf_migrierten_daten_wenn_offline_restore_scheitert(env, failure):
+    r = Rechner(env, neu_startet=False, stop_ok=failure != 'stop', restore_ok=failure != 'restore')
+    fehler, _ = los(env, r)
+    assert 'nicht gestartet' in fehler.satz
+    assert r.bild_beim_start == [BILD]
+    assert skript.env_lesen(env)['KINGFISHER_IMAGE'] == BILD
+
+
+def test_rollback_uses_pinned_image_if_old_tag_changes_during_pull(env):
+    r = Rechner(env, neu_startet=False)
+    tags = {skript.VORGABE_BILD: OLD_ID}
+
+    original = r.lauf
+    # Use the original implementation inside the wrapper, without recursion.
+    def changing_tags(*command, **options):
+        if command[:3] == ('docker', 'image', 'tag'):
+            tags[command[4]] = command[3]
+        if command[:2] == ('docker', 'pull'):
+            tags[skript.VORGABE_BILD] = 'sha256:' + '2' * 64
+        result = original(*command, **options)
+        if command[:2] == ('docker', 'inspect'):
+            name = skript.env_lesen(env).get('KINGFISHER_IMAGE') or skript.VORGABE_BILD
+            return subprocess.CompletedProcess(command, 0, stdout=tags.get(name, OLD_ID) + '|' + name + '\n')
+        return result
+    r.lauf = changing_tags
+    error, _ = los(env, r)
+    assert 'läuft mit dem vorherigen Bild im Prüfmodus' in error.satz
+    assert r.bild_beim_start == [BILD, PINNED_IMAGE]
 
 
 def test_nicht_eingerichtet(tmp_path):
