@@ -18,7 +18,7 @@
 | Mac-Code | 26 Tests bestanden, 1 übersprungen; arm64-Testfenster erfolgreich gebaut und ad hoc signiert. Native Produktionsdateien unverändert. |
 | Unabhängige Gegenprüfung | Veraltete Auswertungen waren teilweise fälschlich als fertig gezählt und nicht priorisiert. Korrigiert, inklusive Wiederholungsabstand. Abschließende Cachekorrektur ohne weitere konkrete Beanstandung. |
 | Echtes lokales Modell | Installiertes `kingfisher-qwen3.5:9b-32k`, ausschließlich erfundene Mail. Finaler Überblick 2,72 Sekunden, identischer Cachetreffer, keine Aufgabe geschrieben. |
-| Lokaler Dockerkandidat | Eigener Port 8893, flüchtige Beispieldaten, keine produktiven Konten oder Datenvolumes. Mail-API und lokales Modell erfolgreich geprüft. |
+| Lokaler Dockerkandidat auf Code `73f5478` | Eigener Port 8893, flüchtige Beispieldaten, keine produktiven Konten oder Datenvolumes. Finale Mail-API-Antwort in 3,85 Sekunden mit beiden relevanten Originalpassagen; weiterhin null Aufgaben. |
 | Gerenderter Nutzerfluss | Noch offen. Eigene Test-App nicht für Computersteuerung aktiviert; Browserzugriff auf den Testport wurde abgelehnt. Nutzer kündigte Freigabe an, technischer Zugriff beim letzten Versuch weiterhin gesperrt. |
 | Produktive Mac-Installation / Updater | Nicht durchgeführt; bisheriger Kingfisher und Daten unverändert. Kein öffentlicher Release oder neues Updateangebot veröffentlicht. |
 
@@ -35,3 +35,5 @@ Modellbeispiel: Die Auszüge enthalten „Bitte sende mir den Atlas-Bericht bis 
 Alle Prüfungen liefen lokal, ohne GitHub-Actions-Neustart. Commitnachrichten tragen `[skip ci]`; keine Workflowabschaltung und keine neuen Modell-Downloads. Die getrennte Testversion verwendet keine produktiven Gmail-/Kalenderzugänge. Private Testkonfiguration und Rohlogs stehen nicht im Repository.
 
 Entwurf und weitere Reihenfolge: `docs/superpowers/specs/2026-10-06-mail-workflow-memory-care.md`; ausführbarer Plan: `docs/superpowers/plans/2026-10-06-mail-workflow-memory-care.md`.
+
+**Draft PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Nicht gemergt oder als öffentliches Update veröffentlicht.

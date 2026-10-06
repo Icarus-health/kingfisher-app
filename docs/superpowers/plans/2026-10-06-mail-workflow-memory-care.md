@@ -45,7 +45,8 @@ Interface: briefing loads once on mail open, with visible local-analysis progres
 
 - [x] Add contract tests before UI changes.
 - [x] Implement load/abort/stale generation guards and task prefill, retain original and sender/date visible.
-- [ ] Typecheck, frontend tests/build and a real rendered interaction test: selection opens form without saving; mail switch cannot show previous briefing.
+- [x] Typecheck and frontend tests/build.
+- [ ] Real rendered interaction test: selection opens form without saving; mail switch cannot show previous briefing.
 
 ## Task 3: Versioned memory upkeep
 
@@ -60,10 +61,10 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 ## Task 4: Review and Mac acceptance
 
 - [x] Inspect final diff independently; fix actionable findings and run affected tests.
-- [ ] Run full backend and UI suites, frontend production build and Mac launcher checks once on final code.
-- [ ] Build versioned candidate; preserve current volume/settings before any local installation.
+- [x] Run full backend regression on the main implementation, full UI suite/build and Mac launcher checks; rerun affected mail tests after isolated final corrections. Exact commit and scope recorded below.
+- [x] Build versioned isolated candidate. No production installation performed; production backup remains a prerequisite for that later step.
 - [ ] Verify rendered briefing, original disclosure and task prefill on a fictional source; verify real read-only mail overview on the Mac if permitted and available.
-- [ ] Record actual results and open limits, commit/push a reviewable PR and attach it. Prepare normal release/updater path without claiming an unpublished candidate is downloadable.
+- [x] Record actual results and open limits, commit/push a reviewable PR and attach it. Prepare normal release/updater path without claiming an unpublished candidate is downloadable.
 
 ## Execution ledger
 
@@ -82,3 +83,5 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 - Analysis-version migration stamps existing entries at version 1. No immediate blanket reprocessing, timer-based full rescan or changes to confirmed claims. Future interpretation-rule changes must intentionally advance the version and use existing bounded background processing.
 
 **Run record:** `docs/runs/mail-workflow-memory-care-20261006/README.md`. Open checkboxes are intentionally not presented as completed.
+
+**Draft PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Final Docker candidate on code `73f5478`: fictional-mail API response in 3.85 seconds, both meaningful original passages, zero created tasks. Native UI acceptance and public release remain open.
