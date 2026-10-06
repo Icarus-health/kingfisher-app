@@ -13,13 +13,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import json
 
 import pytest
 
 from icarus_memory import personenfrage, working_memory_answers
+from icarus_memory.claims import ClaimStore
 from icarus_memory.bedeutungen import bedeutungen
 from icarus_memory.episodes import EpisodeKind, EpisodeStore
 from icarus_memory.model import Provenance, SourceType
+from icarus_memory.providers import Reply
 from icarus_memory.working_memory_store import WorkingMemoryStore
 
 AT = datetime(2026, 9, 29, 10, 0, tzinfo=timezone.utc)
@@ -164,3 +167,66 @@ def test_mit_zeitraum_zaehlen_nur_die_quellen_der_person_aus_dem_zeitraum(episod
     refs, _ = working_memory_answers._ordered_refs("Was wollte sie?", episodes, [], None, None,
                                                    person_ids=[alt.id, neu.id])
     assert {r["episode_id"] for r in refs} == {alt.id, neu.id}
+
+
+def test_neue_mail_nur_mit_adresse_macht_personenantwort_veraltet(episodes, tmp_path):
+    """Eine neue Quelle derselben Person darf keine gespeicherte Antwort aktuell lassen."""
+    class Auswahl:
+        is_local = True
+
+        def complete_json(self, messages, **_):
+            quellen = json.loads(messages[-1]['content'])['sources']
+            return Reply(text=json.dumps({'status': 'source_reports',
+                                          'ids': [q['id'] for q in quellen if q['id'].startswith('S')]}))
+
+    memory = WorkingMemoryStore(episodes)
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    _quelle(episodes, 'Projektstatus', 'Der Plan ist fertig.',
+            ['Claudia Reinhardt <c.r@hospital.example>'])
+    for snapshot in memory.pending():
+        assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}], model='t')
+    frage = 'Was gibt es Neues von Claudia Reinhardt?'
+    answer = working_memory_answers.prepare(
+        frage, episodes, claims, Auswahl(),
+        person_ids=personenfrage.kandidatenquellen(frage, episodes))
+    assert answer is not None
+    assert working_memory_answers.render(answer, episodes, claims)[2] == 'working_reports'
+
+    neu = _quelle(episodes, 'Kurze Nachricht', 'Die Arbeit beginnt.', ['c.r@hospital.example'])
+    for snapshot in memory.pending():
+        assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}], model='t')
+    assert neu.id in personenfrage.kandidatenquellen(frage, episodes)
+    assert working_memory_answers.render(answer, episodes, claims)[2] == 'working_unavailable'
+    claims.close()
+
+
+def test_neue_personenmail_waehrend_modellaufruf_verwirft_alte_auswahl(episodes, tmp_path):
+    """Eine Quelle während der Auswahl darf nicht erst beim nächsten Öffnen auffallen."""
+    memory = WorkingMemoryStore(episodes)
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    _quelle(episodes, 'Projektstatus', 'Der Plan ist fertig.',
+            ['Claudia Reinhardt <c.r@hospital.example>'])
+    for snapshot in memory.pending():
+        assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}], model='t')
+
+    class AuswahlMitNeuerMail:
+        is_local = True
+
+        def complete_json(self, messages, **_):
+            neu = _quelle(episodes, 'Kurze Nachricht', 'Die Arbeit beginnt.', ['c.r@hospital.example'])
+            for snapshot in memory.pending():
+                assert memory.commit(snapshot, [{'start': 0, 'end': len(snapshot.episode.body), 'kind': 'fact'}], model='t')
+            self.neue_id = neu.id
+            quellen = json.loads(messages[-1]['content'])['sources']
+            return Reply(text=json.dumps({'status': 'source_reports',
+                                          'ids': [q['id'] for q in quellen if q['id'].startswith('S')]}))
+
+    frage = 'Was gibt es Neues von Claudia Reinhardt?'
+    modell = AuswahlMitNeuerMail()
+    answer = working_memory_answers.prepare(
+        frage, episodes, claims, modell,
+        person_ids=personenfrage.kandidatenquellen(frage, episodes))
+    assert modell.neue_id in personenfrage.kandidatenquellen(frage, episodes)
+    assert answer['status'] == 'unavailable'
+    assert working_memory_answers.render(answer, episodes, claims)[2] == 'working_unavailable'
+    claims.close()
