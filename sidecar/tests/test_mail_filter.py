@@ -46,6 +46,40 @@ def test_policy_validation_and_persistence():
         assert client.get('/api/v1/mail-filter').json()['blocked']==['@example.org']
 
 
+def test_intake_review_keeps_folder_identity_and_reads_the_exact_original():
+    from icarus_memory import config, mail_filter
+    from icarus_memory.server import _data_dir
+    class Reader:
+        seen = []
+        def message_in_folder(self, folder, uid):
+            self.seen.append((folder, uid))
+            return message(uid=uid, body='Original ' + folder)
+        def message(self, uid):
+            pytest.fail('Folder sources must not be read from the inbox')
+    reader = Reader()
+    app = create_app()
+    with TestClient(app) as client:
+        app.state.mail = SimpleNamespace(reader_for=lambda account: reader)
+        from icarus_memory.mail_intake import Intake
+        intake = Intake(app.state.episodes)
+        intake.start('work', ['Archive'])
+        with app.state.episodes.transaction():
+            intake.db.execute("INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status) VALUES('work','Archive','1',1,'history','filtered:unclear')")
+        for folder in ('INBOX', 'Archive'):
+            m = message(account_id='work', uid='work:1.1', body='Original ' + folder)
+            mail_filter.hold(app, m, mail_filter.Decision(False, 'unclear'),
+                             lambda: config.save(_data_dir(), app.state.settings), folder=folder)
+        pending = client.get('/api/v1/mail-filter').json()['pending']
+        assert len(pending) == 2 and len({p['id'] for p in pending}) == 2
+        item = next(p for p in pending if p['folder'] == 'Archive')
+        shown = client.get('/api/v1/mail-filter/review/' + item['id'])
+        assert shown.status_code == 200 and shown.json()['body'] == 'Original Archive'
+        assert client.post('/api/v1/mail-filter/review/' + item['id'], json={'action': 'include'}).status_code == 200
+        assert reader.seen == [('Archive', '1.1'), ('Archive', '1.1')]
+        row = intake.db.execute("SELECT status,episode_id FROM mail_intake_items WHERE account='work'").fetchone()
+        assert row['status'] == 'captured' and row['episode_id']
+
+
 def test_filter_holds_before_memory_and_cursor_advances(tmp_path):
     from icarus_memory.mail_filter import classify
     from icarus_memory.mail_ingestion import sync_account

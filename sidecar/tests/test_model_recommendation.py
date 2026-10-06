@@ -38,13 +38,29 @@ def test_32_gb_mac_bekommt_moe_allrounder_und_kleines_fragemodell():
     # Die Tabelle je Rolle; ob alle zusammen passen, prüft `empfehle_alle` (tests/test_orchester.py).
     alle = {rolle: empfehle(mac(32), rolle) for rolle in ROLLEN}
     assert alle["antwort"].modell.art == "moe" and alle["antwort"].modell.name.startswith("qwen3.6:35b")
-    assert alle["hintergrund"].modell.art == "moe"
+    assert alle["hintergrund"].modell.name == "qwen3.5:9b"
     # Ausweichmöglichkeiten: dichtes ~27B und ein kleineres dichtes Modell, das tagsüber Speicher freilässt
     assert [a.art for a in alle["antwort"].alternativen] == ["dicht", "dicht"]
     assert any(a.name == "gemma4:12b" for a in alle["antwort"].alternativen)
-    assert any(a.name.startswith("nemotron") for a in alle["hintergrund"].alternativen)
+    assert any(a.name == "qwen3.5:27b" for a in alle["hintergrund"].alternativen)
     assert alle["frage"].modell.art == "klein" and alle["frage"].modell.groesse_gb <= 8
     assert alle["einbettung"].modell.name == "bge-m3"
+
+
+def test_32gb_mac_background_default_stays_within_the_qwen35_9b_family():
+    for gb in (16, 24, 32):
+        assert empfehle(mac(gb), "hintergrund").modell.name == "qwen3.5:9b"
+    at_32 = empfehle(mac(32), "hintergrund")
+    assert "qwen3.5:27b" in {a.name for a in at_32.alternativen}
+    assert empfehle(mac(64), "hintergrund").modell.name == "qwen3.6:35b"
+
+
+def test_measured_nemotron_and_tev1_sizes_are_reflected_conservatively():
+    nemotron = eintrag_fuer("hintergrund", "nemotron-3.5-lightning:30b")
+    tev1 = eintrag_fuer("pruefung", "tev1:4b")
+    assert nemotron.groesse_gb >= 25.43 and nemotron.speicher_gb >= 26.7
+    assert 32 not in nemotron.stufen and nemotron.alternative
+    assert tev1.groesse_gb >= 4.48 and tev1.speicher_gb >= 4.686
 
 
 def test_kleine_geraete_bekommen_keine_grossen_modelle():

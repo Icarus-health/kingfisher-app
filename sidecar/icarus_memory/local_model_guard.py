@@ -57,10 +57,10 @@ def _local_row(tags, name):
     return LocalModelIdentity(name, digest)
 
 
-def verify_local_model(provider) -> LocalModelIdentity:
+def verify_local_model(provider, *, capability='completion') -> LocalModelIdentity:
     """Verify an exact installed text model; unsupported/unavailable fails closed."""
     try:
-        if type(provider) is not OpenAICompatible or not provider.is_local:
+        if capability not in {'completion', 'decision'} or type(provider) is not OpenAICompatible or not provider.is_local:
             raise ValueError('Unsupported provider')
         base = urlsplit(provider.base_url)
         if (base.scheme not in {'http', 'https'} or base.username or base.password
@@ -83,7 +83,7 @@ def verify_local_model(provider) -> LocalModelIdentity:
                     or not isinstance(info, dict) or not info.get('general.architecture')
                     or type(info.get('general.parameter_count')) is not int
                     or info['general.parameter_count'] <= 0
-                    or not isinstance(capabilities, list) or 'completion' not in capabilities):
+                    or not isinstance(capabilities, list) or capability not in capabilities):
                 raise ValueError('No verified local text model')
             # Catch an ordinary model replacement during the metadata check.
             if _local_row(_json(client, 'GET', origin + '/api/tags'), name) != first:
@@ -106,10 +106,11 @@ class VerifiedLocalProvider:
         self.base_url = getattr(provider, 'base_url', '')
         self.is_local = bool(getattr(provider, 'is_local', False))
 
-    def _verify(self):
+    def _verify(self, *, capability='completion'):
         if not self._permitted():
             raise ProviderError(_UNAVAILABLE)
-        identity = verify_local_model(self._provider)
+        identity = (verify_local_model(self._provider) if capability == 'completion'
+                    else verify_local_model(self._provider, capability=capability))
         if not self._permitted():
             raise ProviderError(_UNAVAILABLE)
         if self._identity is not None and identity != self._identity:
@@ -129,3 +130,10 @@ class VerifiedLocalProvider:
         if not self._permitted():
             raise ProviderError(_UNAVAILABLE)
         return reply
+
+    def decide(self, state, questions, **kwargs):
+        self._verify(capability='decision')
+        result = self._provider.decide(state, questions, **kwargs)
+        if not self._permitted():
+            raise ProviderError(_UNAVAILABLE)
+        return result

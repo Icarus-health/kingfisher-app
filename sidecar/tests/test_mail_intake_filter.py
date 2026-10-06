@@ -95,10 +95,31 @@ def test_erneut_versuchen_prueft_nach_geaenderten_regeln_neu(tmp_path):
     ep.close()
 
 
-def test_modell_wird_in_der_aufnahme_nie_gefragt(tmp_path):
-    """`ai_enabled` ohne Anbieter würde in `classify` alles zurückhalten; die Aufnahme lässt Unklares durch."""
+def test_eingeschaltete_ki_ohne_anbieter_haelt_zur_pruefung_zurueck(tmp_path):
     ep, intake, _ = aufnehmen(tmp_path, {'ai_enabled': True})
-    assert intake.status('a')['folders'][0]['captured'] == 4  # nur Spam-Kopf und Newsletter fallen heraus
+    assert intake.status('a')['folders'][0]['captured'] == 0
+    assert intake.status('a')['folders'][0]['filtered_by'] == {'spam': 1, 'newsletter': 1, 'unclear': 4}
+    ep.close()
+
+
+def test_screening_holds_no_permission_lock_and_rechecks_revocation(tmp_path):
+    from threading import Lock
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX'])
+    reader = Reader()
+    reader.count = 1
+    lock = Lock()
+    seen = []
+    allowed = [True]
+    def screen(message):
+        seen.append(lock.locked())
+        allowed[0] = False
+        return mail_filter.Decision(True)
+    intake.step('a', reader, screen=screen, permitted=lambda: allowed[0], permission_lock=lock)
+    assert seen == [False]
+    assert sum(ep.counts().values()) == 0
+    assert intake.status('a')['folders'][0]['pending'] == 1
     ep.close()
 
 

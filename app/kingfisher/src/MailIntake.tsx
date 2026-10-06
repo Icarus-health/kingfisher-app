@@ -159,6 +159,7 @@ export function MailIntake({accounts, active, onChanged}: {
     {status?.accounts.filter(account => accounts.some(configured => configured.id === account.account_id)).map(account => {
       const progress = deriveIntakeProgress(account);
       const checked = previews[account.account_id];
+      const retryFailed = progress.failed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
       return <article className="mail-intake-account" key={account.account_id}>
         <div className="mail-intake-heading"><h3>{account.label}</h3><span>{stageLabels[progress.stage]}</span></div>
         <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
@@ -171,8 +172,13 @@ export function MailIntake({accounts, active, onChanged}: {
           onClick={() => {void change(account);}}>
           {busyAccount === account.account_id && !checkingScope ? "Wird gespeichert …" : !account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}
         </button>
-        {account.started && (progress.failed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error) && <button className="text-action" type="button"
-          disabled={!account.connected || busyAccount !== null} onClick={() => {void change(account, true);}}>Fehlgeschlagenes noch einmal versuchen</button>}
+        {account.started && (retryFailed || progress.filtered > 0) && <>
+          <button className="text-action" type="button" disabled={!account.connected || busyAccount !== null}
+            onClick={() => {void change(account, true);}}>{progress.filtered > 0
+              ? retryFailed ? "Ausgefilterte Mails und Fehler erneut prüfen" : "Ausgefilterte Mails erneut prüfen"
+              : "Fehlgeschlagenes noch einmal versuchen"}</button>
+          {progress.filtered > 0 && <p>Nur auf deinen Klick: {number(progress.filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
+        </>}
         {!account.connected && <p>Für dieses Postfach fehlen gültige Zugangsdaten. Verbinde es unter Zugänge neu.</p>}
         {account.error && <p role="alert">{errorLabel(account.error)}</p>}
         {account.started && !account.folders.length && <p>Kingfisher schaut nach, welche Ordner es gibt.</p>}

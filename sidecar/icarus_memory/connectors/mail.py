@@ -584,6 +584,8 @@ class MailConnector:
             raise MailError(f"IMAP-Zugriff fehlgeschlagen: {exc}") from exc
 
     def inbox(self, limit: int = 10, unread_only: bool = False) -> list[Message]:
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError('Pro Abruf sind 1 bis 100 Nachrichten zulässig.')
         criteria = "UNSEEN" if unread_only else "ALL"
         try:
             with imaplib.IMAP4_SSL(
@@ -597,23 +599,64 @@ class MailConnector:
                 if status != "OK":
                     raise MailError(f"Suche fehlgeschlagen: {status}")
 
-                uids = (data[0].split() if data and data[0] else [])[-limit:]
+                found = data[0].split() if data and data[0] else []
+                valid_uids = set()
+                for raw_uid in found:
+                    if not raw_uid.isdigit() or len(raw_uid) > len(str(MAX_UID)):
+                        continue
+                    uid_number = int(raw_uid)
+                    if 0 < uid_number <= MAX_UID:
+                        valid_uids.add(uid_number)
+                uids = [str(uid).encode("ascii") for uid in sorted(valid_uids)[-limit:]]
+                if not uids:
+                    return []
+
+                status, fetched = imap.uid("fetch", b",".join(uids), "(UID FLAGS BODY.PEEK[])")
+                if status != "OK":
+                    raise MailError(f"Abruf fehlgeschlagen: {status}")
+                requested = {int(uid) for uid in uids}
+                by_uid: dict[int, tuple[bytes, bytes]] = {}
+                duplicate_uids: set[int] = set()
+                for part in fetched or []:
+                    if not isinstance(part, tuple) or len(part) < 2 or not isinstance(part[1], bytes):
+                        continue
+                    header = part[0]
+                    if isinstance(header, bytes):
+                        header_bytes = header
+                    elif isinstance(header, str):
+                        header_bytes = header.encode("ascii", errors="replace")
+                    else:
+                        continue
+                    matches = list(re.finditer(
+                        rb"(?:^|[\t (])UID[\t ]+([0-9]+)(?=[\t )])",
+                        header_bytes,
+                        re.IGNORECASE,
+                    ))
+                    if len(matches) != 1:
+                        continue
+                    uid_bytes = matches[0].group(1)
+                    if len(uid_bytes) > len(str(MAX_UID)):
+                        continue
+                    uid_number = int(uid_bytes)
+                    if uid_number not in requested or uid_number in duplicate_uids:
+                        continue
+                    if uid_number in by_uid:
+                        by_uid.pop(uid_number, None)
+                        duplicate_uids.add(uid_number)
+                        continue
+                    by_uid[uid_number] = (header_bytes, part[1])
+
                 messages = []
                 for uid in reversed(uids):
-                    status, fetched = imap.uid("fetch", uid, "(FLAGS BODY.PEEK[])")
-                    if status != "OK" or not fetched:
+                    uid_number = int(uid)
+                    fetched_message = by_uid.get(uid_number)
+                    if fetched_message is None:
                         continue
-                    raw = next(
-                        (part[1] for part in fetched
-                         if isinstance(part, tuple) and isinstance(part[1], bytes)),
-                        None,
-                    )
-                    if raw is None:
-                        continue
+                    flags_header, raw = fetched_message
                     parsed = email.message_from_bytes(raw)
-                    flags = str(fetched[0][0]) if isinstance(fetched[0], tuple) else ""
+                    flags = flags_header.decode("ascii", errors="replace")
                     messages.append(Message(
-                        uid=f"{validity}.{uid.decode()}",
+                        uid=f"{validity}.{uid_number}",
                         subject=_decode(parsed.get("Subject")),
                         sender=_decode(parsed.get("From")),
                         date=self._parse_date(parsed.get("Date")),

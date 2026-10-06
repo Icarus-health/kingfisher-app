@@ -134,17 +134,19 @@ class Intake:
         self.db.execute("UPDATE mail_intake_items SET status=?,episode_id=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         ('captured' if created else 'duplicate',episode_id,item['account'],item['folder'],item['generation'],item['uid']))
 
-    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims):
+    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None):
         """Ein Hintergrundtakt mit den Filterregeln der Einstellungen (`mail_filter.intake_screen`)."""
-        return self.step(account,reader,batch=BACKGROUND_BATCH,permitted=permitted,permission_lock=permission_lock,
-                         claims=claims,screen=intake_screen(settings))
+        # AI screening is bounded to two messages; the ordinary no-model fetch stays fast.
+        batch = 2 if settings.mail_filter.get('ai_enabled') else BACKGROUND_BATCH
+        return self.step(account,reader,batch=batch,permitted=permitted,permission_lock=permission_lock,
+                         claims=claims,screen=intake_screen(settings,provider),hold=hold)
 
     def _filtered(self, item, category):
         # Kein Fakt im Bestand: Nur der Vermerk, warum. „Erneut versuchen“ prüft es noch einmal.
         self.db.execute("UPDATE mail_intake_items SET status=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         (FILTERED+category,item['account'],item['folder'],item['generation'],item['uid']))
 
-    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None):
+    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None, hold=None):
         """Ein begrenzter Durchgang; Bestandsaufnahme und Abrufe teilen sich eine Verbindung.
 
         `screen(message)` liefert eine `mail_filter.Decision`. Ausgefilterte Nachrichten werden
@@ -153,9 +155,9 @@ class Intake:
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
         sitzung=getattr(reader,'session',None)
         with (sitzung() if sitzung is not None else nullcontext()):
-            return self._step(account,reader,batch,permitted,permission_lock,claims,screen)
+            return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold)
 
-    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen):
+    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen, hold):
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
@@ -207,8 +209,13 @@ class Intake:
                 with gate:
                     if not self._active(account,permitted):break
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
-                    decision=screen(message) if screen is not None else None
+                # Model/network calls must not hold the conversation/permission lock.
+                decision=screen(message) if screen is not None else None
+                with gate:
+                    if not self._active(account,permitted):break
                     if decision is not None and not decision.include:
+                        if hold is not None:
+                            hold(replace(message,account_id=account,uid=f'{account}:{message.uid}'),decision,item['folder'])
                         with self.episodes.transaction():self._filtered(item,decision.category)
                         continue
                     provider_id=getattr(message,'provider_id','')

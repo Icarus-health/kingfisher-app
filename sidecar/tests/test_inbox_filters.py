@@ -59,7 +59,8 @@ def test_inbox_wire_flags_and_readonly_fetch(monkeypatch):
   def uid(self,action,*args):
    if action=='search':return 'OK',[b'1']
    assert action=='fetch' and 'BODY.PEEK[]' in args[-1]
-   return 'OK',[(b'FLAGS ()',raw)]
+   assert args[0]==b'1'  # batch fetch; the inbox has one matching UID
+   return 'OK',[(b'1 (UID 1 FLAGS ())',raw)]
  monkeypatch.setattr(imaplib,'IMAP4_SSL',IMAP)
  m=MailConnector(MailConfig('host','user','pass')).inbox()[0]
  assert m.spam_flag and m.list_mail and not m.body

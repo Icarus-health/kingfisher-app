@@ -15,14 +15,15 @@ def test_die_empfehlung_liefert_den_bedarf_mit(app_und_client):
     geraet(client, 32, frei_gb=210)
     bereit(app, FakeOllama())
     o = karte(client)["orchester"]
-    # Tag: gemma4:12b + qwen3.5:9b + tev1:4b (Prüfung) + bge-m3; Nacht: nemotron + bge-m3
-    assert o["tag_gb"] == 26 and o["nacht_gb"] == 25
+    # Tag: gemma4:12b + qwen3.5:9b + tev1:4b (Prüfung) + bge-m3; Nacht: qwen3.5:9b + bge-m3
+    assert o["tag_gb"] == pytest.approx(26.7) and o["nacht_gb"] == 12
     assert o["festplatte_frei_gb"] == 210 and o["nutzbar_gb"] == pytest.approx(27.2)
     assert (o["passt_tag"], o["passt_nacht"], o["passt_festplatte"]) == (True, True, True)
     assert o["hinweise"] == []  # die Vorauswahl selbst passt, es gibt nichts zu warnen
     zeilen = {z["rolle"]: z for z in karte(client)["rollen"]}
     assert zeilen["antwort"]["empfohlen"]["name"] == "gemma4:12b" and "tagsüber" in zeilen["antwort"]["orchester_hinweis"]
-    assert "nachts" in zeilen["hintergrund"]["orchester_hinweis"]
+    assert zeilen["hintergrund"]["empfohlen"]["name"] == "qwen3.5:9b"
+    assert zeilen["hintergrund"]["orchester_hinweis"] == ""
     # Die Prüfung gibt zuerst Speicher her, sobald das allein reicht; die Frage bleibt, wie sie war.
     assert zeilen["pruefung"]["empfohlen"]["name"] == "tev1:4b" and "bespoke-minicheck:7b" in zeilen["pruefung"]["orchester_hinweis"]
     assert zeilen["frage"]["orchester_hinweis"] == ""
@@ -51,7 +52,7 @@ def test_was_schon_da_ist_braucht_keinen_neuen_platz(app_und_client):
     geraet(client, 32, frei_gb=5)
     bereit(app, FakeOllama(installiert=["gemma4:12b", "qwen3.5:9b", "tev1:4b", "nemotron-3.5-lightning:30b", "bge-m3"]))
     o = karte(client)["orchester"]
-    assert o["festplatte_gb"] > 30 and o["festplatte_noch_gb"] == 0
+    assert o["festplatte_gb"] == pytest.approx(20.3) and o["festplatte_noch_gb"] == 0
     assert o["passt_festplatte"] is True
 
 

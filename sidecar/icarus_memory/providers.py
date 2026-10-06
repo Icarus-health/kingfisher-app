@@ -14,8 +14,9 @@ Nach außen sehen beide gleich aus. Der Rest des Systems kennt nur `Provider`,
 from __future__ import annotations
 
 import json
-from contextlib import nullcontext
+from contextlib import contextmanager
 import ipaddress
+import math
 import os
 from dataclasses import dataclass, field
 from collections.abc import Collection
@@ -127,13 +128,17 @@ class OpenAICompatible:
         """
         return self._base
 
+    @contextmanager
     def _ampel(self):
         """Lokale Modelle teilen sich den Speicher dieses Rechners: höchstens ein Aufruf zugleich,
         die Antwort vor dem Hintergrund (`hintergrund.ModellAmpel`). Entfernte Anbieter warten nicht."""
         if not self.is_local:
-            return nullcontext()
+            yield
+            return
         from .hintergrund import AMPEL
-        return AMPEL.aufruf()
+        from .ollama_memory import managed_model
+        with AMPEL.aufruf(), managed_model(self):
+            yield
 
     def _client(self, timeout: float):
         # Local-only automation must not inherit a process-wide HTTP proxy.
@@ -225,6 +230,112 @@ class OpenAICompatible:
         if choice.get('finish_reason') not in (None, 'stop'):
             raise ProviderError("JSON screening stopped before completion")
         return Reply(text=message.get("content") or "", model=self.model)
+
+    def decide(
+        self,
+        state: dict[str, Any] | str,
+        questions: dict[str, dict[str, Any]],
+        *,
+        timeout: float = 30.0,
+    ) -> dict[str, Any]:
+        """Ask a local Ollama decision model using its native /v1/systemone API."""
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+        ):
+            raise ProviderError("Decision timeout must be finite and between 0 and 30 seconds")
+        try:
+            timeout_is_finite = math.isfinite(timeout)
+        except (OverflowError, TypeError):
+            timeout_is_finite = False
+        if not timeout_is_finite or not 0 < timeout <= 30:
+            raise ProviderError("Decision timeout must be finite and between 0 and 30 seconds")
+        if not is_local_endpoint(self._base, self._trusted_local_hosts):
+            raise ProviderError("Decision requests require a local Ollama provider")
+        try:
+            parsed = urlparse(self._base)
+            port = parsed.port
+        except ValueError as exc:
+            raise ProviderError("Invalid Ollama decision endpoint") from exc
+        if (
+            parsed.scheme != "http"
+            or port != 11434
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+            or parsed.path not in ("", "/", "/v1")
+        ):
+            raise ProviderError("Decision requests require a local Ollama endpoint on port 11434 with a root or /v1 path")
+
+        if not isinstance(state, (dict, str)):
+            raise ProviderError("Decision state must be an object or string")
+        if not isinstance(questions, dict) or not questions or len(questions) > 16:
+            raise ProviderError("Decision questions must be a nonempty object with at most 16 entries")
+        for name, question in questions.items():
+            if (
+                not isinstance(name, str)
+                or not name
+                or not isinstance(question, dict)
+                or question.get("type") != "choice"
+                or not isinstance(question.get("instructions"), str)
+                or not question["instructions"].strip()
+                or not isinstance(question.get("criteria"), dict)
+                or not question["criteria"]
+                or any(
+                    not isinstance(label, str)
+                    or not label
+                    or not isinstance(description, str)
+                    or not description
+                    for label, description in question["criteria"].items()
+                )
+            ):
+                raise ProviderError("Each decision question must define choice instructions and criteria")
+
+        payload = {"model": self.model, "state": state, "questions": questions}
+        try:
+            encoded = json.dumps(
+                payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+            ).encode("utf-8")
+        except (TypeError, ValueError, UnicodeError) as exc:
+            raise ProviderError("Decision input must be JSON serializable") from exc
+        if len(encoded) > 64 * 1024:
+            raise ProviderError("Decision input exceeds the 64 KiB limit")
+
+        path = parsed.path.rstrip("/")
+        if not path.endswith("/v1"):
+            path += "/v1"
+        endpoint = f"{parsed.scheme}://{parsed.netloc}{path}/systemone"
+        try:
+            # Decision state can contain private local data. Never inherit a
+            # process proxy or follow a redirect to another destination.
+            with self._ampel(), httpx.Client(
+                timeout=timeout, trust_env=False, follow_redirects=False
+            ) as client:
+                with client.stream(
+                    "POST",
+                    endpoint,
+                    content=encoded,
+                    headers={"Content-Type": "application/json"},
+                ) as response:
+                    response.raise_for_status()
+                    length = response.headers.get("content-length")
+                    if length is not None and length.isdigit() and int(length) > 64 * 1024:
+                        raise ProviderError("Ollama decision response exceeds the 64 KiB limit")
+                    body = bytearray()
+                    for chunk in response.iter_bytes(chunk_size=8192):
+                        if len(body) + len(chunk) > 64 * 1024:
+                            raise ProviderError("Ollama decision response exceeds the 64 KiB limit")
+                        body.extend(chunk)
+                    data = json.loads(body)
+        except httpx.HTTPError as exc:
+            raise ProviderError(f"Anfrage an {endpoint} fehlgeschlagen: {exc}") from exc
+        except (ValueError, UnicodeError) as exc:
+            raise ProviderError("Ollama returned invalid decision JSON") from exc
+        if not isinstance(data, dict) or not isinstance(data.get("answers"), dict):
+            raise ProviderError("Ollama returned a malformed decision response")
+        return data
 
 
 class Anthropic:
