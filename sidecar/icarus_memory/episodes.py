@@ -555,7 +555,7 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 
 
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
-                woerter=False, kreis=False, intake_grund=False) -> None:
+                woerter=False, kreis=False, intake_grund=False, analysis_version=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -587,7 +587,8 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         expected_tables={**extra_tables,"episodes": _LEGACY_SCHEMA["episodes"] | {"source_key", "metadata_digest", "support_generation"},
                          "mail_progress": {"account_id", "cursor"},
                          "source_heads": {"source_key", "episode_id"}, **support_schema.EPISODE_TABLES,
-                         "working_memory_sources": {"episode_id", "fingerprint", "status", "model", "retry_after"},
+                         "working_memory_sources": ({"episode_id", "fingerprint", "status", "model", "retry_after"}
+                                                    | ({"analysis_version"} if analysis_version else set())),
                          "working_memory_items": {"id", "episode_id", "fingerprint", "start", "end", "kind", "key"},
                          "working_memory_terms": {"term", "item"},
                          "working_memory_scan": {"id", "cursor", "revision"}},
@@ -708,6 +709,23 @@ def _verify_v17(connection):
     lage.verify(connection)
 
 
+def _migrate_v18(connection):
+    # Versionierte Einordnung, ohne bestehende aktuelle Referenzen neu zu berechnen.
+    connection.execute(
+        "ALTER TABLE working_memory_sources ADD COLUMN analysis_version INTEGER NOT NULL DEFAULT 1")
+
+
+def _verify_v18(connection):
+    _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
+                intake_grund=True, analysis_version=True)
+    from . import bezuege, lage
+    from .memory_categories import verify
+    verify(connection)
+    source_index.verify(connection, woerter=True)
+    bezuege.verify(connection)
+    lage.verify(connection)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -726,6 +744,7 @@ _MIGRATIONS = (
     Migration(15, "source_index_woerter", _migrate_v15, _verify_v15),
     Migration(16, "kreis_und_akten_arten", _migrate_v16, _verify_v16),
     Migration(17, "mail_intake_grund", _migrate_v17, _verify_v17),
+    Migration(18, "working_memory_analysis_version", _migrate_v18, _verify_v18),
 )
 
 

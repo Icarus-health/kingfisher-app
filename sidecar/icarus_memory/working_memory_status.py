@@ -4,7 +4,7 @@ from .working_memory_store import WorkingMemoryStore
 LABELS = {
     'complete': 'Automatisch eingeordnet',
     'empty': 'Eingeordnet · keine verwertbaren Angaben erkannt',
-    'pending': 'Gespeichert · noch nicht eingeordnet',
+    'pending': 'Gespeichert · Einordnung ausstehend oder wird aktualisiert',
     'queued': 'Gespeichert · zur Einordnung vorgemerkt',
     'processing': 'Wird gerade automatisch eingeordnet',
     'paused': 'Gespeichert · automatische Einordnung pausiert',

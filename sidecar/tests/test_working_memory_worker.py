@@ -152,3 +152,73 @@ def test_complete_source_survives_restart_and_model_swap_without_reclassificatio
 
     assert swapped_provider.calls == []
     assert refs(WorkingMemoryStore(reopened), "already")[0]["episode_id"] == episode.id
+
+
+def test_outdated_refresh_failure_keeps_old_reference_and_obeys_retry_backoff(tmp_path, monkeypatch):
+    import icarus_memory.working_memory_store as store_module
+
+    episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
+    episode = add_source(episodes, "Orion needs review")
+    memory = WorkingMemoryStore(episodes)
+    old = memory.pending()[0]
+    assert memory.commit(old, [{"start": 0, "end": len(episode.body), "kind": "request"}], model="local-v0")
+    old_ref = refs(memory, "Orion")[0]
+    revision_before_refresh = memory.revision()
+    confirmed, _ = episodes.record(
+        EpisodeKind.SUMMARY, "Confirmed claim", "Unrelated confirmed claim",
+        Provenance(SourceType.USER_STATED, source_ref="user:confirmed"), at=AT)
+    episodes.mark_consolidated(confirmed.id, produced=["confirmed-claim-1"])
+    with episodes.transaction():
+        claims_before = episodes._conn.execute(
+            "SELECT assertion_id,episode_id FROM episode_produced_assertions ORDER BY assertion_id").fetchall()
+    with episodes.transaction():
+        episodes._conn.execute(
+            "UPDATE working_memory_sources SET analysis_version=0 WHERE episode_id=?", (episode.id,))
+    saved_selection_signature = memory.candidate_signature("Orion")
+
+    def fail(_payload):
+        raise RuntimeError("temporary local model failure")
+
+    failed_provider = FakeLocalProvider(on_call=fail)
+    run(episodes, failed_provider, threading.RLock())
+    assert len(failed_provider.calls) == 1
+    assert memory.source_state(episode.id) == "pending"
+    assert memory.pending() == []
+    assert memory.resolve(old_ref).episode.body == episode.body
+    assert refs(memory, "Orion")[0]["kind"] == "request"
+    assert memory.progress()["done"] == 0
+    assert memory.progress()["remaining"] == 1
+    assert memory.coverage()["pending"] == 1
+    assert memory.revision() == revision_before_refresh
+
+    real_time = store_module.time.time
+    monkeypatch.setattr(store_module.time, "time", lambda: real_time() + 301)
+    refreshed_provider = FakeLocalProvider()
+    run(episodes, refreshed_provider, threading.RLock())
+    assert len(refreshed_provider.calls) == 1
+    assert memory.progress()["done"] == 1
+    assert memory.progress()["remaining"] == 0
+    assert refs(memory, "Orion")[0]["kind"] == "fact"
+    assert memory.resolve(old_ref) is None
+    assert memory.revision() == revision_before_refresh + 1
+    assert memory.candidate_signature("Orion") != saved_selection_signature
+    assert episodes.get(episode.id).body == "Orion needs review"
+    claims_after = episodes._conn.execute(
+        "SELECT assertion_id,episode_id FROM episode_produced_assertions ORDER BY assertion_id").fetchall()
+    assert [tuple(row) for row in claims_after] == [tuple(row) for row in claims_before]
+
+
+def test_outdated_dismissal_is_sticky_and_source_changes_still_withdraw_old_refs(tmp_path):
+    episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
+    episode = add_source(episodes, "Orion source")
+    memory = WorkingMemoryStore(episodes)
+    snapshot = memory.pending()[0]
+    assert memory.commit(snapshot, [{"start": 0, "end": len(episode.body), "kind": "fact"}], model="local-v1")
+    old_ref = refs(memory, "Orion")[0]
+    with episodes.transaction():
+        episodes._conn.execute(
+            "UPDATE working_memory_sources SET analysis_version=0 WHERE episode_id=?", (episode.id,))
+    assert memory.dismiss(episode.id)
+    assert memory.source_state(episode.id) == "dismissed"
+    assert memory.pending() == []
+    assert memory.resolve(old_ref) is None

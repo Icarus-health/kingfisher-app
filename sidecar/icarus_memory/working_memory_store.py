@@ -41,6 +41,7 @@ MAX_QUERY_TERMS = 16
 MAX_RESULTS = 64
 REPORT_SCAN_BUDGET = 500
 RETRY_SECONDS = 300
+ANALYSIS_VERSION = 1
 KINDS = frozenset({"request", "commitment", "conditional", "change", "status",
                    "fact", "uncertain", "historical"})
 
@@ -192,7 +193,7 @@ class WorkingMemoryStore:
 
     def _status(self, episode_id: str):
         return self.episodes._conn.execute(
-            "SELECT fingerprint,status,retry_after FROM working_memory_sources WHERE episode_id=?",
+            "SELECT fingerprint,status,retry_after,analysis_version FROM working_memory_sources WHERE episode_id=?",
             (episode_id,)).fetchone()
 
     def source_state(self, episode_id: str) -> str:
@@ -213,6 +214,8 @@ class WorkingMemoryStore:
                 return 'dismissed'
             if row and row[0] == source_fingerprint(snapshot):
                 if row[1] == 'complete':
+                    if row[3] != ANALYSIS_VERSION:
+                        return 'pending'
                     found = self.episodes._conn.execute(
                         'SELECT 1 FROM working_memory_items WHERE episode_id=? AND fingerprint=? LIMIT 1',
                         (episode_id, row[0])).fetchone()
@@ -276,11 +279,23 @@ class WorkingMemoryStore:
                     continue
                 fingerprint = source_fingerprint(snapshot)
                 if row and row[0] == fingerprint:
-                    if row[1] in ("complete", "deferred"):
+                    if row[1] == "complete" and row[3] == ANALYSIS_VERSION:
+                        continue
+                    if row[1] == "deferred":
                         continue
                     if row[1] == "failed" and (row[2] or 0) > now:
                         continue
+                    if row[1] == "complete" and (row[2] or 0) > now:
+                        continue
                 if len(snapshot.episode.body) > MAX_SOURCE_CHARS:
+                    if (row and row[1] == "complete" and row[0] == fingerprint
+                            and row[3] != ANALYSIS_VERSION):
+                        # Preserve the prior searchable interpretation while the
+                        # oversized stale source waits for its next bounded attempt.
+                        self.episodes._conn.execute(
+                            "UPDATE working_memory_sources SET retry_after=? WHERE episode_id=?",
+                            (now + RETRY_SECONDS, episode_id))
+                        continue
                     # Nicht still übergehen: einmal je Fassung der Quelle steht es im Logbuch (siehe oben: `continue`).
                     self._set_status(snapshot.episode.id, fingerprint, "deferred", "")
                     logbuch.vermerke("zu_lang", sorte="quelle", anzahl=1)
@@ -294,13 +309,16 @@ class WorkingMemoryStore:
         return result
 
     def _set_status(self, episode_id: str, fingerprint: str, status: str,
-                    model: str, retry_after: float | None = None) -> None:
+                    model: str, retry_after: float | None = None,
+                    analysis_version: int | None = None) -> None:
+        if analysis_version is None:
+            analysis_version = ANALYSIS_VERSION
         self.episodes._conn.execute(
-            "INSERT INTO working_memory_sources(episode_id,fingerprint,status,model,retry_after) "
-            "VALUES(?,?,?,?,?) ON CONFLICT(episode_id) DO UPDATE SET "
+            "INSERT INTO working_memory_sources(episode_id,fingerprint,status,model,retry_after,analysis_version) "
+            "VALUES(?,?,?,?,?,?) ON CONFLICT(episode_id) DO UPDATE SET "
             "fingerprint=excluded.fingerprint,status=excluded.status,model=excluded.model,"
-            "retry_after=excluded.retry_after",
-            (episode_id, fingerprint, status, model, retry_after))
+            "retry_after=excluded.retry_after,analysis_version=excluded.analysis_version",
+            (episode_id, fingerprint, status, model, retry_after, analysis_version))
         self.episodes._conn.execute(
             "INSERT INTO mail_intake_analysis(episode_id,generation,status) "
             "SELECT id,support_generation,? FROM episodes WHERE id=? "
@@ -347,7 +365,8 @@ class WorkingMemoryStore:
             if (not self._eligible(current) or source_fingerprint(current) != fingerprint or
                     (row and row[1] == "dismissed")):
                 return False
-            if row and row[1] == "complete" and row[0] == fingerprint:
+            if (row and row[1] == "complete" and row[0] == fingerprint
+                    and row[3] == ANALYSIS_VERSION):
                 return False
             self._delete_items(snapshot.episode.id)
             self._set_status(snapshot.episode.id, fingerprint, "complete", model)
@@ -377,8 +396,15 @@ class WorkingMemoryStore:
             if (not self._eligible(current) or
                     source_fingerprint(current) != source_fingerprint(snapshot) or
                     (row and (row[1] == "dismissed" or
-                              (row[1] == "complete" and row[0] == source_fingerprint(current))))):
+                              (row[1] == "complete" and row[0] == source_fingerprint(current)
+                               and row[3] == ANALYSIS_VERSION)))):
                 return False
+            if row and row[1] == "complete" and row[0] == source_fingerprint(current):
+                # Keep the prior version visible; only delay the failed refresh.
+                self.episodes._conn.execute(
+                    "UPDATE working_memory_sources SET retry_after=? WHERE episode_id=?",
+                    (time.time() + RETRY_SECONDS, snapshot.episode.id))
+                return True
             self._delete_items(snapshot.episode.id)
             self._set_status(snapshot.episode.id, source_fingerprint(current),
                              "failed", "", time.time() + RETRY_SECONDS)
@@ -394,8 +420,17 @@ class WorkingMemoryStore:
             row = self._status(snapshot.episode.id)
             if row and (row[1] == "dismissed" or
                         (row[0] == source_fingerprint(current) and
-                         row[1] in ("complete", "deferred"))):
+                         (row[1] == "deferred" or
+                          (row[1] == "complete" and row[3] == ANALYSIS_VERSION)))):
                 return False
+            if (row and row[1] == "complete" and
+                    row[0] == source_fingerprint(current)):
+                # Deterministic inability to refresh is still not permission to
+                # discard the old reference; recheck after the normal cooldown.
+                self.episodes._conn.execute(
+                    "UPDATE working_memory_sources SET retry_after=? WHERE episode_id=?",
+                    (time.time() + RETRY_SECONDS, snapshot.episode.id))
+                return True
             self._delete_items(snapshot.episode.id)
             self._set_status(snapshot.episode.id, source_fingerprint(current),
                              "deferred", "")
@@ -551,18 +586,21 @@ class WorkingMemoryStore:
         """
         ids = list(dict.fromkeys(value for value in episode_ids if isinstance(value, str)))
         state = {"eingeordnet": 0, "offen": 0, "ausgeschlossen": 0}
+        analysis_version = ANALYSIS_VERSION
         with self.episodes._lock:
             for start in range(0, len(ids), 500):
                 chunk = ids[start:start + 500]
                 rows = self.episodes._conn.execute(
-                    "SELECT COALESCE(s.status, '') AS status, COUNT(*) AS n FROM episodes e "
+                    "SELECT COALESCE(s.status, '') AS status, s.analysis_version, COUNT(*) AS n FROM episodes e "
                     "LEFT JOIN working_memory_sources s ON s.episode_id=e.id "
                     f"WHERE {sql_sichtbar('e')} AND {sql_aktuelle_fassung('e')} "
                     "AND NOT EXISTS (SELECT 1 FROM json_each(e.document, '$.tags') AS tag WHERE tag.value = ?) "
-                    f"AND e.id IN ({','.join('?' for _ in chunk)}) GROUP BY COALESCE(s.status, '')",
+                    f"AND e.id IN ({','.join('?' for _ in chunk)}) "
+                    "GROUP BY COALESCE(s.status, ''), s.analysis_version",
                     (CHAT_LOOKUP_TAG, *chunk)).fetchall()
                 for row in rows:
-                    key = ("eingeordnet" if row["status"] == "complete" else
+                    key = ("eingeordnet" if row["status"] == "complete"
+                           and row["analysis_version"] == analysis_version else
                            "ausgeschlossen" if row["status"] in ("deferred", "dismissed") else "offen")
                     state[key] += row["n"]
         return state
@@ -658,13 +696,15 @@ class WorkingMemoryStore:
             for start in range(0, len(ids), 500):
                 chunk = ids[start:start + 500]
                 for row in self.episodes._conn.execute(
-                        "SELECT s.episode_id, s.status, s.fingerprint, s.model, "
+                        "SELECT s.episode_id, s.status, s.fingerprint, s.model, s.analysis_version, "
                         "(SELECT group_concat(kind || start || '-' || end) FROM (SELECT i.kind, i.start, i.end "
                         "FROM working_memory_items i WHERE i.episode_id=s.episode_id "
                         "AND i.fingerprint=s.fingerprint ORDER BY i.start, i.end, i.kind)) AS n "
                         "FROM working_memory_sources s "
                         f"WHERE s.episode_id IN ({','.join('?' for _ in chunk)})", chunk):
-                    stand[row["episode_id"]] = f"{row['status']}:{row['fingerprint']}:{row['model']}:{row['n']}"
+                    stand[row["episode_id"]] = (
+                        f"{row['status']}:{row['fingerprint']}:{row['model']}:"
+                        f"{row['analysis_version']}:{row['n']}")
         return stand
 
     def inventory(self, limit: int = 2048) -> dict[str, Any]:
@@ -794,7 +834,7 @@ class WorkingMemoryStore:
                 hashes = sorted({_term_key(word) for word in words})
                 placeholders = ",".join("?" for _ in hashes)
                 rows = self.episodes._conn.execute(
-                    "SELECT i.id,i.fingerprint,i.kind FROM working_memory_terms t "
+                    "SELECT i.id,i.fingerprint,i.kind,s.analysis_version FROM working_memory_terms t "
                     "JOIN working_memory_items i ON i.key=t.item "
                     "JOIN working_memory_sources s ON s.episode_id=i.episode_id "
                     "JOIN episodes e ON e.id=i.episode_id "
@@ -804,7 +844,7 @@ class WorkingMemoryStore:
                     (*hashes, *scoped)).fetchall()
             if len(rows) > 500:
                 overflow_revision = self.revision()
-        payload = ["working-memory-candidates-v2", terms, sorted(expanded),
+        payload = ["working-memory-candidates-v3", terms, sorted(expanded),
                    query_truncated, [tuple(row) for row in rows[:500]], overflow_revision]
         return hashlib.sha256(json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
                               .encode("utf-8")).hexdigest()
@@ -814,9 +854,9 @@ class WorkingMemoryStore:
 
         Zählt aktuelle Nachrichten und Dokumente (ohne ausgeschlossene, ohne
         überholte Fassungen und ohne Gesprächs-Nachschlagequellen) und deren
-        gespeicherten Einordnungsstand. Eine seither geänderte Quelle zählt bis
-        zur erneuten Einordnung noch als erledigt; das korrigiert der nächste
-        Durchlauf.
+        gespeicherten Einordnungsstand. Eine ältere Analyseversion bleibt bis
+        zur erneuten Einordnung offen; Quellenänderungen prüft der begrenzte
+        Quellenscan.
         """
         eligible = (f"{sql_geltend('e')} "
                     "AND e.document NOT LIKE ?")
@@ -825,9 +865,13 @@ class WorkingMemoryStore:
             total = self.episodes._conn.execute(
                 f"SELECT COUNT(*) FROM episodes e WHERE {eligible}", (lookup,)).fetchone()[0]
             rows = self.episodes._conn.execute(
-                f"SELECT s.status, COUNT(*) FROM working_memory_sources s JOIN episodes e "
-                f"ON e.id=s.episode_id WHERE {eligible} GROUP BY s.status", (lookup,)).fetchall()
-        counts = {status: count for status, count in rows}
+                f"SELECT s.status, s.analysis_version, COUNT(*) FROM working_memory_sources s JOIN episodes e "
+                f"ON e.id=s.episode_id WHERE {eligible} GROUP BY s.status,s.analysis_version", (lookup,)).fetchall()
+        counts = {"complete": 0, "failed": 0, "deferred": 0, "dismissed": 0}
+        for status, version, count in rows:
+            if status == "complete" and version != ANALYSIS_VERSION:
+                continue
+            counts[status] += count
         done = counts.get("complete", 0)
         skipped = counts.get("deferred", 0) + counts.get("dismissed", 0)
         return {"total": total, "done": done, "skipped": skipped,
@@ -853,7 +897,9 @@ class WorkingMemoryStore:
                     if not self._eligible(snapshot):
                         continue
                     if row and row[0] == source_fingerprint(snapshot):
-                        counts[row[1]] += 1
+                        status = ("pending" if row[1] == "complete" and
+                                  row[3] != ANALYSIS_VERSION else row[1])
+                        counts[status] += 1
                     elif len(snapshot.episode.body) > MAX_SOURCE_CHARS:
                         counts["deferred"] += 1
                     else:

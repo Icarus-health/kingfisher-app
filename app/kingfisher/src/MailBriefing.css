@@ -1,0 +1,19 @@
+.mail-briefing { display: grid; gap: 12px; margin-top: 20px; padding: 22px 24px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-f7f5ef); }
+.mail-briefing-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mail-briefing-heading h2 { margin: 0; color: var(--kf-schrift-062b3a); font-family: "Cormorant Garamond", Georgia, serif; font-size: 28px; line-height: 31px; font-weight: 600; }
+.mail-briefing-source { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; font-weight: 700; }
+.mail-briefing-quotes { display: grid; gap: 9px; margin: 0; padding-left: 20px; color: var(--kf-schrift-062b3a); font-size: 13px; line-height: 20px; }
+.mail-briefing-tasks { display: grid; gap: 10px; margin-top: 4px; }
+.mail-briefing-task { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); }
+.mail-briefing-task-title, .mail-briefing-task-quote { margin: 0; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; }
+.mail-briefing-task-title { font-weight: 700; }
+.mail-briefing-task-quote { margin-top: 4px; color: var(--kf-schrift-31535f); }
+.mail-briefing-state { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mail-briefing-state p { margin: 0; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 18px; }
+.mail-reader-original { margin-top: 20px; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.mail-reader-original summary { padding: 14px 0; color: var(--kf-schrift-31535f); font-size: 12px; font-weight: 700; cursor: pointer; }
+.mail-reader-original .mail-reader-body { padding-top: 14px; }
+@media (max-width: 680px) {
+  .mail-briefing { padding: 18px 20px; }
+  .mail-briefing-task, .mail-briefing-state { align-items: stretch; flex-direction: column; }
+}

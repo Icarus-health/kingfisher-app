@@ -366,7 +366,7 @@ def test_migration_baut_orte_ein_und_hebt_die_taxonomie_nur_bei_vorhandenem_best
     episodes = EpisodeStore(pfad)
     # Frische Installation: Taxonomie bleibt bei Version 1.
     assert episodes._conn.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()[:] == (1, 1)
-    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 17
+    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 18
     # Orte sind als Art zulässig, unbekannte nicht.
     episodes._conn.execute("INSERT INTO memory_category_entities VALUES ('e','f','place',0,1,'mentioned')")
     with pytest.raises(Exception):

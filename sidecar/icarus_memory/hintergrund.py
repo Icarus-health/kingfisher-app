@@ -331,12 +331,16 @@ def ordnen(episodes: Any, jetzt: datetime) -> list[Eintrag]:
     auch ohne Einordnung (`docs/46-hintergrund.md`).
     """
     from .episodes import sql_rohquelle
+    from .working_memory_store import ANALYSIS_VERSION
     offen_sql = ("NOT EXISTS (SELECT 1 FROM working_memory_sources w WHERE w.episode_id=e.id AND "
-                 "(w.status IN ('complete','deferred','dismissed') OR (w.status='failed' AND w.retry_after>?)))")
+                 "((w.status='complete' AND (w.analysis_version=? OR w.retry_after>?)) "
+                 "OR w.status IN ('deferred','dismissed') "
+                 "OR (w.status='failed' AND w.retry_after>?)))")
     with episodes._lock:
         zeilen = episodes._conn.execute(
             f"SELECT e.id, e.kind, COALESCE(e.occurred_at, e.recorded_at) FROM episodes e "
-            f"WHERE {sql_rohquelle('e')} AND {offen_sql}", (time.time(),)).fetchall()
+            f"WHERE {sql_rohquelle('e')} AND {offen_sql}",
+            (ANALYSIS_VERSION, time.time(), time.time())).fetchall()
     heute = jetzt.astimezone().date()
     tagesbeginn = datetime.combine(heute, datetime.min.time()).astimezone()
     gestern = tagesbeginn - timedelta(days=1)
@@ -418,11 +422,13 @@ def _mit_offener_frist(episodes: Any, heute: date, neu_ab: datetime,
 def zaehlen(episodes: Any) -> dict[str, int]:
     """Fortschritt der Einordnung: erledigt (auch zurückgestellt oder ausgeschlossen) und gesamt."""
     from .episodes import sql_rohquelle
+    from .working_memory_store import ANALYSIS_VERSION
     with episodes._lock:
         gesamt, fertig = episodes._conn.execute(
-            f"SELECT COUNT(*), SUM(CASE WHEN w.status IN ('complete','deferred','dismissed') THEN 1 ELSE 0 END) "
-            f"FROM episodes e LEFT JOIN working_memory_sources w ON w.episode_id=e.id WHERE {sql_rohquelle('e')}"
-        ).fetchone()
+            f"SELECT COUNT(*), SUM(CASE WHEN (w.status='complete' AND w.analysis_version=?) "
+            f"OR w.status IN ('deferred','dismissed') THEN 1 ELSE 0 END) "
+            f"FROM episodes e LEFT JOIN working_memory_sources w ON w.episode_id=e.id WHERE {sql_rohquelle('e')}",
+            (ANALYSIS_VERSION,)).fetchone()
     return {'gesamt': int(gesamt or 0), 'fertig': int(fertig or 0)}
 
 

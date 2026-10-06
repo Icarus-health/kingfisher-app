@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, type ConversationPayload, type MailDetail } from "./api";
 import { navigate } from "./ui";
 import { MailTaskForm } from "./MailTaskForm";
+import { MailBriefing, type MailTaskSuggestion } from "./MailBriefing";
 import { MailReplySuggestion, type Suggestion } from "./MailReplySuggestion";
 import { ProfileSource } from "./ProfileSource";
 import { MailStyle } from "./MailStyle";
@@ -38,8 +39,15 @@ export function MailReader({ uid, onClose }: MailReaderProps) {
   const [preparing, setPreparing] = useState(false);
   const [replyNotice, setReplyNotice] = useState<string | null>(null);
   const [lastSuggestion, setLastSuggestion] = useState<string | null>(null);
+  const [taskSuggestion, setTaskSuggestion] = useState<MailTaskSuggestion | null>(null);
+  const [taskSuggestionProtected, setTaskSuggestionProtected] = useState(false);
   const requestVersion = useRef(0);
   const validationVersion = useRef(0);
+  const originalMessageRef = useRef<HTMLDetailsElement | null>(null);
+
+  const openOriginalMessage = useCallback(() => {
+    if (originalMessageRef.current) originalMessageRef.current.open = true;
+  }, []);
 
   async function load() {
     const version = ++requestVersion.current;
@@ -66,6 +74,8 @@ export function MailReader({ uid, onClose }: MailReaderProps) {
     setDraftNotice(null);
     setReplyNotice(null);
     setLastSuggestion(null);
+    setTaskSuggestion(null);
+    setTaskSuggestionProtected(false);
     setDraft("");
     setDraftVisible(true);
     setDraftContext(null);
@@ -230,13 +240,17 @@ export function MailReader({ uid, onClose }: MailReaderProps) {
           {detail.account_label ? <div><dt>Postfach</dt><dd>{detail.account_label}</dd></div> : null}
         </dl>
       </section>
-      <section className="mail-reader-body" aria-label="Nachrichtentext"><pre>{detail.body || detail.preview}</pre></section>
-      {detail.truncated ? <p className="mail-reader-status">Die Nachricht ist sehr lang. Hier werden die ersten 20.000 Zeichen angezeigt.</p> : null}
+      <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={setTaskSuggestion} />
+      <details className="mail-reader-original" ref={originalMessageRef}>
+        <summary>Aus der Originalnachricht</summary>
+        <section className="mail-reader-body" aria-label="Originaltext der Nachricht"><pre>{detail.body || detail.preview}</pre></section>
+        {detail.truncated ? <p className="mail-reader-status">Die Nachricht ist sehr lang. Hier werden die ersten 20.000 Zeichen angezeigt.</p> : null}
+      </details>
       <section className="mail-reader-actions" aria-label="Nachrichtenaktionen">
         <button className="mail-reader-secondary" disabled={remembering || remembered} onClick={remember} type="button">{remembering ? "Wird gemerkt …" : remembered ? "Als Quelle gemerkt" : "Als Quelle merken"}</button>
         {rememberNotice ? <p className="mail-reader-status" role="status">{rememberNotice}</p> : null}
       </section>
-      <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} />
+      <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
       <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} />
       <MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} />
       {<form className="mail-reader-reply" onSubmit={prepareReply}>

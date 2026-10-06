@@ -19,6 +19,8 @@ def drop_intake_extensions(connection):
 
 
 def downgrade_terms(connection, version):
+    if 'analysis_version' in {row[1] for row in connection.execute('PRAGMA table_info(working_memory_sources)')}:
+        connection.execute('ALTER TABLE working_memory_sources DROP COLUMN analysis_version')
     drop_intake_extensions(connection)
     connection.execute("""CREATE TABLE working_memory_tokens (
         item_id TEXT NOT NULL, token_hash TEXT NOT NULL,

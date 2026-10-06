@@ -1,8 +1,13 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, type Project, type Task } from "./api";
 import { navigate } from "./ui";
 
-type MailTaskFormProps = { uid: string; subject: string };
+type MailTaskFormProps = {
+  uid: string;
+  subject: string;
+  initialSuggestion?: { title: string; quote: string; source_digest: string };
+  onTaskFormProtected?: (protectedState: boolean) => void;
+};
 
 function localDateAsIso(value: string) {
   if (!value) return null;
@@ -10,7 +15,7 @@ function localDateAsIso(value: string) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
+export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(subject || "(Ohne Betreff)");
   const [projectId, setProjectId] = useState("");
@@ -28,6 +33,21 @@ export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
   const [suggestionsUnavailable, setSuggestionsUnavailable] = useState(false);
   const [saved, setSaved] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const userChanged = useRef(false);
+
+  function protectSuggestion() {
+    if (userChanged.current) return;
+    userChanged.current = true;
+    onTaskFormProtected?.(true);
+  }
+
+  useEffect(() => {
+    if (!initialSuggestion || userChanged.current || saved) return;
+    setOpen(true);
+    setTitle(initialSuggestion.title);
+    setSourceQuote(initialSuggestion.quote);
+    setSourceDigest(initialSuggestion.source_digest);
+  }, [initialSuggestion, saved]);
 
   useEffect(() => {
     let active = true;
@@ -43,6 +63,7 @@ export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
     event.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle || saving || saved) return;
+    protectSuggestion();
     setSaving(true);
     setError(null);
     try {
@@ -86,6 +107,7 @@ export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
   }
 
   function useSuggestion(suggestion: { title: string; quote: string }) {
+    protectSuggestion();
     setTitle(suggestion.title);
     setSourceQuote(suggestion.quote);
     setSourceDigest(suggestionsSourceDigest);
@@ -105,7 +127,7 @@ export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
     </div>
     <form onSubmit={submit}>
       <label htmlFor="mail-task-title">Aufgabe</label>
-      <input disabled={saving || Boolean(saved)} id="mail-task-title" onChange={(event) => setTitle(event.target.value)} value={title} />
+      <input disabled={saving || Boolean(saved)} id="mail-task-title" onChange={(event) => { protectSuggestion(); setTitle(event.target.value); }} value={title} />
       {sourceQuote && <p className="mail-reader-status">Übernommene Textstelle: „{sourceQuote}“</p>}
       <div className="mail-task-suggestions">
         <button className="mail-reader-secondary" disabled={suggesting || saving || Boolean(saved)} onClick={suggestTasks} type="button">
@@ -124,12 +146,12 @@ export function MailTaskForm({ uid, subject }: MailTaskFormProps) {
         </div> : null}
       </div>
       <div className="mail-task-form-fields">
-        <label htmlFor="mail-task-project">Projekt <select disabled={saving || Boolean(saved)} id="mail-task-project" aria-label="Projekt" onChange={(event) => setProjectId(event.target.value)} value={projectId}>
+        <label htmlFor="mail-task-project">Projekt <select disabled={saving || Boolean(saved)} id="mail-task-project" aria-label="Projekt" onChange={(event) => { protectSuggestion(); setProjectId(event.target.value); }} value={projectId}>
           <option value="">Keinem Projekt zuordnen</option>
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select></label>
-        <label htmlFor="mail-task-due">Fällig am <input disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>
-        <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => setWaitingFor(event.target.value)} placeholder="Optional, z. B. Anna Müller" value={waitingFor} /></label>
+        <label htmlFor="mail-task-due">Fällig am <input disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} /></label>
+        <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="Optional, z. B. Anna Müller" value={waitingFor} /></label>
       </div>
       <div className="mail-task-form-footer">
         <span className="mail-reader-status">{projectsError ? "Projekte konnten gerade nicht geladen werden." : "Nur lokal in Kingfisher festgehalten."}</span>
