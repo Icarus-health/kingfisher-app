@@ -33,9 +33,9 @@ Files: new `sidecar/icarus_memory/mail_briefing.py`, `sidecar/tests/test_mail_br
 
 Interface: `POST /api/v1/messages/{uid}/briefing` with optional `{refresh: bool}` returns `{uid, available, status, detail, source_digest, quotes: string[], tasks: {title, quote}[], truncated}`. `source_digest` comes from `mail_task_suggestions.source_digest`; exact-message fingerprint additionally guards cached output. Status is `ready`, `empty`, `unavailable` or `incomplete`. Cache maximum 64 messages in memory, no new stored episodes. Selected local `frage` provider; bounded structured output and exact original validation. Re-read current message and confirm mail/provider identity before returning an inferred result. No silent remote fallback.
 
-- [ ] Add meaningful route/parser tests; run them red before implementation.
-- [ ] Implement native structured completion, source guards, bounded process cache and duplicate-request protection.
-- [ ] Pass tests for valid/empty/truncated/malformed/forged quotes, cache invalidation, model/account change and concurrent requests.
+- [x] Add meaningful route/parser tests; run them red before implementation.
+- [x] Implement native structured completion, source guards, bounded process cache and duplicate-request protection.
+- [x] Pass tests for valid/empty/truncated/malformed/forged quotes, cache invalidation, model/account change and concurrent requests.
 
 ## Task 2: Compact mail workflow
 
@@ -43,8 +43,8 @@ Files: new `MailBriefing.tsx/.css`; existing `MailReader.tsx`, `MailTaskForm.tsx
 
 Interface: briefing loads once on mail open, with visible local-analysis progress, cancellation and retry. Selecting a task calls parent with `{title,quote,source_digest}`; existing form opens and prefills that evidence. No inferred deadline/person/project fields. Original mail displayed in a disclosure that can be opened immediately. Existing own drafts and reply approvals preserved.
 
-- [ ] Add contract tests before UI changes.
-- [ ] Implement load/abort/stale generation guards and task prefill, retain original and sender/date visible.
+- [x] Add contract tests before UI changes.
+- [x] Implement load/abort/stale generation guards and task prefill, retain original and sender/date visible.
 - [ ] Typecheck, frontend tests/build and a real rendered interaction test: selection opens form without saving; mail switch cannot show previous briefing.
 
 ## Task 3: Versioned memory upkeep
@@ -53,14 +53,32 @@ Files: `working_memory_store.py`, `working_memory_worker.py` if required, `episo
 
 Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation status. Migration stamps existing entries with version 1. Same-source older-version complete results are eligible for existing bounded `pending()`/`commit()` refresh. Original excerpts stay readable until successful atomic replacement. Fingerprint changes retain existing source-withdrawal semantics; dismissed results stay dismissed; failed refresh observes retry backoff. Progress/source status must reflect outdated interpretation rather than claim current completion.
 
-- [ ] Write red tests for old-version selection/replacement/failure and unchanged-version no-op.
-- [ ] Add migration and bounded refresh logic without changing original episodes or confirmed claims.
-- [ ] Pass lifecycle, backoff, withdrawal, migration, progress and candidate-signature tests.
+- [x] Write red tests for old-version selection/replacement/failure and unchanged-version no-op.
+- [x] Add migration and bounded refresh logic without changing original episodes or confirmed claims.
+- [x] Pass lifecycle, backoff, withdrawal, migration, progress and candidate-signature tests.
 
 ## Task 4: Review and Mac acceptance
 
-- [ ] Inspect final diff independently; fix actionable findings and run affected tests.
+- [x] Inspect final diff independently; fix actionable findings and run affected tests.
 - [ ] Run full backend and UI suites, frontend production build and Mac launcher checks once on final code.
 - [ ] Build versioned candidate; preserve current volume/settings before any local installation.
 - [ ] Verify rendered briefing, original disclosure and task prefill on a fictional source; verify real read-only mail overview on the Mac if permitted and available.
 - [ ] Record actual results and open limits, commit/push a reviewable PR and attach it. Prepare normal release/updater path without claiming an unpublished candidate is downloadable.
+
+## Execution ledger
+
+- Code baseline: `1791565`; complete backend regression: 4,788 passed, 1 skipped. Final cache race correction: `7a86237`, reproduced red then green. Later prompt clarification excludes pure greetings/signatures; final affected mail tests: 47 passed. The complete suite was not repeated after these isolated mail changes.
+- Frontend: 282 passed; typecheck and production build passed. Known large-bundle warning remains. These are source-contract tests, not a rendered DOM acceptance result.
+- Mac launcher: 26 passed, 1 skipped; arm64 native test window built and signed. No new native production code in this patch.
+- Independent review found stale analyses counted as complete and excluded from background priority. Corrected classification, prioritization, retry handling and completion counts; targeted regression tests passed. The final cache-only delta also received independent review with no further actionable finding.
+- Local Qwen 9B/32k probe on fictional text preserved both the Friday request and the complete hotel approval condition; final response 2.72 seconds, identical cached response, zero tasks written. An isolated Docker candidate also answered correctly. Neither check proves comprehensive real-mail accuracy.
+- Rendered Mac acceptance remains pending: the new unique test-app identity was not enabled for computer use, and the local-browser request was denied. The user said they would enable it; the technical grant had not arrived at the latest retry. No alternate browser bypass was attempted.
+- Production container, originals and credentials were not changed. Release publication, manifest/version update and normal updater installation remain separate delivery steps after acceptance.
+
+### Decisions
+
+- Select numeric IDs of full source paragraphs instead of asking the model to invent quote text. The code supplies the original excerpts. At most 8,000 input characters and 1,200 characters per complete paragraph; skipped material produces an explicit incomplete state.
+- Partial overviews can display valid excerpts with a warning; task proposals are actionable only for a ready, digest-matching response. Retry explicitly bypasses the cache. Edited/saved task forms cannot be overwritten by another overview proposal.
+- Analysis-version migration stamps existing entries at version 1. No immediate blanket reprocessing, timer-based full rescan or changes to confirmed claims. Future interpretation-rule changes must intentionally advance the version and use existing bounded background processing.
+
+**Run record:** `docs/runs/mail-workflow-memory-care-20261006/README.md`. Open checkboxes are intentionally not presented as completed.
