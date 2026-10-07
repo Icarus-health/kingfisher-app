@@ -24,10 +24,15 @@ class Model:
         self.calls = []
         self.payload = {'passages': [1, 2], 'tasks': [{'title': 'Bericht an Tom senden', 'passage': 1}]}
         self.effect = None
+        self.review = None
     def complete_json(self, messages, **kwargs):
         self.calls.append((messages, kwargs))
         if self.effect:
             self.effect()
+        if 'reviews' in kwargs.get('schema', {}).get('properties', {}):
+            candidates = json.loads(messages[1]['content'])['candidates']
+            return Reply(text=json.dumps({'reviews': self.review if self.review is not None else [
+                {'id': item['id'], 'kind': 'request_to_recipient', 'title_supported': True} for item in candidates]}))
         return Reply(text=json.dumps(self.payload))
 
 
@@ -63,6 +68,31 @@ def test_literal_complete_passages_and_task_digest(setup):
     assert sum(setup[0].state.episodes.counts().values()) == 0
 
 
+@pytest.mark.parametrize('kind,supported', [('information', True), ('marketing', True),
+    ('other_person', True), ('request_to_recipient', False)])
+def test_source_equality_alone_does_not_offer_news_or_unsupported_tasks(setup, kind, supported):
+    setup[1].review = [{'id': 0, 'kind': kind, 'title_supported': supported}]
+    data = post(setup).json()
+    assert data['quotes']
+    assert data['tasks'] == []
+    assert data['task_review'] == 'completed'
+
+
+def test_failed_task_screening_keeps_original_overview_and_shows_gap(setup):
+    setup[1].review = []
+    data = post(setup).json()
+    assert data['quotes'] and data['available']
+    assert data['tasks'] == []
+    assert data['task_review'] == 'unavailable'
+    assert 'Aufgabenprüfung' in data['detail']
+
+
+def test_truncated_mail_never_gets_tasks_from_incomplete_context(setup):
+    setup[2].current = replace(setup[2].current, truncated=True)
+    data = post(setup).json()
+    assert data['quotes'] and not data['tasks']
+
+
 def test_short_quote_stays_visible_but_only_saveable_tasks_are_proposed(setup):
     setup[2].current = replace(setup[2].current, body='Ruf an.\n\nBitte sende Tom den Bericht bis Freitag.')
     setup[1].payload = {'passages': [0, 1], 'tasks': [
@@ -93,16 +123,16 @@ def test_task_evidence_matches_seven_eight_character_save_boundary(setup, quote,
 def test_cache_reuses_model_only_for_unchanged_mail(setup):
     first = post(setup).json()
     assert post(setup).json() == first
-    assert len(setup[1].calls) == 1
+    assert len(setup[1].calls) == 2
     setup[2].current = replace(setup[2].current, body=BODY.replace('Freitag', 'Montag'))
     assert post(setup).json()['source_digest'] != first['source_digest']
-    assert len(setup[1].calls) == 2
+    assert len(setup[1].calls) == 4
 
 
 def test_refresh_is_explicit_and_does_not_create_tasks(setup):
     post(setup)
     post(setup, refresh=True)
-    assert len(setup[1].calls) == 2
+    assert len(setup[1].calls) == 4
     assert sum(setup[0].state.episodes.counts().values()) == 0
 
 
@@ -239,4 +269,4 @@ def test_cached_result_rechecks_source_after_initial_read(setup):
         return setup[2].current
     setup[2].message = read
     assert post(setup).status_code == 409
-    assert len(setup[1].calls) == 1
+    assert len(setup[1].calls) == 2

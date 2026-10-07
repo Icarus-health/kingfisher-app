@@ -85,6 +85,90 @@ def test_cloud_and_disabled_model_never_receive_source(env):
     assert env.provider.calls == 0
 
 
+def test_mail_newsletter_candidates_are_screened_before_persisting(env):
+    episode = env.episodes.record(EpisodeKind.MESSAGE, 'Newsletter', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), source_key='mail:newsletter')[0]
+    original = env.provider.complete
+    def complete(messages, tools):
+        payload = json.loads(messages[1]['content'])
+        if 'candidates' in payload:
+            return Reply(text=json.dumps({'reviews': [{'id': 0, 'kind': 'marketing', 'title_supported': True}]}))
+        return original(messages, tools)
+    env.provider.complete = complete
+    report = env.detector.run(with_model=True)
+    assert (report.analyzed, report.proposed, report.failed) == (1, 0, 0)
+    assert env.proposals.pending(ProposalKind.TASK) == []
+    assert env.proposals.task_analysis_done(episode.id, episode.digest)
+
+
+def test_mail_screening_failure_does_not_checkpoint_false_success(env):
+    episode = env.episodes.record(EpisodeKind.MESSAGE, 'Bitte', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), source_key='mail:request')[0]
+    # The extraction-only model cannot produce a review. Keep this retryable.
+    report = env.detector.run(with_model=True)
+    assert (report.analyzed, report.proposed, report.failed) == (0, 0, 1)
+    assert not env.proposals.task_analysis_done(episode.id, episode.digest)
+    assert env.proposals.pending(ProposalKind.TASK) == []
+
+
+def test_truncated_mail_is_never_checkpointed_as_fully_screened(env):
+    episode = env.episodes.record(EpisodeKind.MESSAGE, 'Bitte', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), tags=['source:truncated'], source_key='mail:cut')[0]
+    env.provider.items = []
+    report = env.detector.run(with_model=True)
+    assert report.analyzed == 0
+    assert not env.proposals.task_analysis_done(episode.id, episode.digest)
+    assert env.provider.calls == 0
+
+
+def test_revocation_between_extraction_and_review_prevents_second_disclosure(env):
+    episode = env.episodes.record(EpisodeKind.MESSAGE, 'Bitte', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), source_key='mail:revoke')[0]
+    env.provider.hook = lambda: env.episodes.ignore(episode.id)
+    env.detector.run(with_model=True)
+    assert env.provider.calls == 1
+
+
+def test_known_own_sender_identity_is_passed_to_commitment_review(env):
+    env.episodes.record(EpisodeKind.MESSAGE, 'Eigene Zusage', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), source_key='mail:own',
+        contacts=[{'rolle': 'von', 'ich': True, 'adresse': 'own@example.test'}])
+    original = env.provider.complete
+    def complete(messages, tools):
+        payload = json.loads(messages[1]['content'])
+        if 'candidates' in payload:
+            assert payload['own_source'] is True
+            return Reply(text='{"reviews":[{"id":0,"kind":"own_commitment","title_supported":true}]}')
+        return original(messages, tools)
+    env.provider.complete = complete
+    report = env.detector.run(with_model=True)
+    assert report.proposed == 1 and report.failed == 0
+
+
+@pytest.mark.parametrize('change', ['contacts', 'tags'])
+def test_metadata_changed_during_review_cannot_commit_candidate(env, change):
+    contact = {'rolle': 'von', 'ich': True, 'adresse': 'own@example.test'}
+    episode = env.episodes.record(EpisodeKind.MESSAGE, 'Eigene Zusage', QUOTE,
+        Provenance(source_type=SourceType.EMAIL), source_key='mail:changing', contacts=[contact])[0]
+    original = env.provider.complete
+    def complete(messages, tools):
+        payload = json.loads(messages[1]['content'])
+        if 'candidates' in payload:
+            if change == 'contacts':
+                env.episodes.remove_contacts(episode.id, [contact], [])
+            else:
+                fresh = env.episodes.get(episode.id)
+                fresh.tags.append('source:truncated')
+                env.episodes._put(fresh)
+            return Reply(text='{"reviews":[{"id":0,"kind":"own_commitment","title_supported":true}]}')
+        return original(messages, tools)
+    env.provider.complete = complete
+    report = env.detector.run(with_model=True)
+    assert report.proposed == 0 and report.analyzed == 0 and report.failed == 0
+    assert not env.proposals.task_analysis_done(episode.id, episode.digest)
+    assert env.proposals.pending(ProposalKind.TASK) == []
+
+
 def test_revocation_during_model_call_discards_result(env):
     episode = source(env)
     env.provider.hook = lambda: env.episodes.ignore(episode.id)

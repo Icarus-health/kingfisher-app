@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict
 from . import local_model_guard
 from .mail_task_suggestions import source_digest
 from .providers import ProviderError
+from .task_review import review_tasks
 
 MAX_INPUT = 8000
 MAX_PASSAGE = 1200
@@ -23,6 +24,8 @@ numerischen ids. Lass reine Anreden, Grußformeln und Signaturen aus. Keine erfu
 Finde höchstens drei konkrete Bitten oder Zusagen
 als Aufgabenvorschläge mit kurzem deutschem Titel. Der Titel ist nur ein Vorschlag zur Prüfung; die Passage muss die Bitte
 oder Zusage tatsächlich tragen. Ergänze keine Personen, Fristen, Projekte oder Buchungen.
+Formuliere Titel als konkrete Tätigkeit mit Verb im Infinitiv, möglichst nah am Wortlaut der Bitte.
+Übernimm ausdrücklich genannte Adressaten. Vermeide abstrakte Themenüberschriften und Nominalisierungen.
 Antworte ausschließlich als JSON mit passages (ids) und tasks (title, passage).'''
 SCHEMA = {
     'type': 'object', 'additionalProperties': False, 'required': ['passages', 'tasks'],
@@ -67,7 +70,7 @@ def _provider(app):
 
 def _fingerprint(message):
     values = {key: getattr(message, key, None) for key in
-              ('uid', 'account_id', 'message_id', 'sender', 'reply_to', 'subject', 'body', 'preview', 'date', 'truncated')}
+              ('uid', 'account_id', 'message_id', 'sender', 'reply_to', 'subject', 'body', 'preview', 'date', 'truncated', 'own_addresses', 'recipients', 'list_mail')}
     return hashlib.sha256(json.dumps(values, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
@@ -141,7 +144,7 @@ def register(app, guard, read_mail):
         passages, incomplete = _passages(text)
         incomplete = incomplete or bool(message.truncated)
         base = {'uid': uid, 'available': False, 'status': 'unavailable', 'source_digest': digest,
-                'quotes': [], 'tasks': [], 'truncated': incomplete,
+                'quotes': [], 'tasks': [], 'truncated': incomplete, 'task_review': 'not_needed',
                 'detail': 'Für den Kurzüberblick wird ein installiertes lokales Modell benötigt.'}
         if not passages:
             return {**base, 'available': True, 'status': 'incomplete' if text else 'empty',
@@ -184,6 +187,18 @@ def register(app, guard, read_mail):
                         'passages': [{'id': i, 'text': passage} for i, passage in enumerate(passages)]}, ensure_ascii=False)}],
                     max_tokens=768, schema=SCHEMA)
                 quotes, tasks, invalid = _selected(reply, passages)
+                task_review = 'not_needed'
+                if tasks and (incomplete or invalid):
+                    tasks, task_review = [], 'incomplete'
+                elif tasks:
+                    from email.utils import parseaddr
+                    own_source = parseaddr(message.sender)[1].casefold() in {
+                        address.casefold() for address in message.own_addresses if address}
+                    try:
+                        tasks = review_tasks(provider, message.subject, text, tasks, own_source=own_source)
+                        task_review = 'completed'
+                    except ProviderError:
+                        tasks, task_review = [], 'unavailable'
                 if local_model_guard.verify_local_model(selected) != identity:
                     raise HTTPException(409, 'Das lokale Modell wurde geändert.')
             except ProviderError:
@@ -192,7 +207,7 @@ def register(app, guard, read_mail):
                 return {**base, 'detail': 'Der lokale Kurzüberblick konnte nicht erstellt werden. Bitte erneut versuchen.'}
             current = read_mail(uid)
             partial = incomplete or invalid
-            result = {**base, 'available': True, 'quotes': quotes, 'tasks': tasks,
+            result = {**base, 'available': True, 'quotes': quotes, 'tasks': tasks, 'task_review': task_review,
                       'status': 'incomplete' if partial else 'ready' if quotes or tasks else 'empty',
                       'detail': 'Überblick über einen Teil der Nachricht. Weitere Angaben können im Original stehen.'
                                 if partial else 'Ausgewählte Originalpassagen · Aufgabenvorschläge bitte prüfen.'
@@ -200,7 +215,10 @@ def register(app, guard, read_mail):
             with app.state.conversation_lock:
                 if not permitted() or _fingerprint(current) != fingerprint:
                     raise HTTPException(409, 'Die Grundlage der Nachricht wurde geändert.')
-                state.put(key, result)
+                if task_review == 'unavailable':
+                    result['detail'] = 'Originalauszüge verfügbar. Die Aufgabenprüfung konnte nicht abgeschlossen werden; bitte erneut versuchen.'
+                else:
+                    state.put(key, result)
                 return result
         finally:
             state.lock.release()

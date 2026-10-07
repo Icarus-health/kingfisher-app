@@ -390,6 +390,7 @@ class TaskIn(BaseModel):
 
 
 class MailTaskIn(BaseModel):
+    quick_accept: bool = False
     source_quote: str | None = Field(default=None, min_length=8, max_length=4000)
     source_digest: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
     title: str = Field(min_length=1, max_length=4096)
@@ -2429,6 +2430,9 @@ def create_app(
         waiting_for = body.waiting_for.strip() if body.waiting_for else None
         if not title or (body.waiting_for is not None and not waiting_for):
             raise HTTPException(status_code=422, detail="Aufgabe und gegebenenfalls wartende Person dürfen nicht leer sein.")
+        if body.quick_accept and (not body.source_digest or not body.source_quote
+                                  or body.project_id or body.due or body.waiting_for):
+            raise HTTPException(status_code=422, detail="Die direkte Übernahme benötigt eine aktuelle Textstelle und enthält keine weiteren Zuordnungen.")
         _validate_task_project(body.project_id)
         # Erst die aktuelle Mail lesen; bei Quellenentzug entsteht keine Aufgabe.
         source = _mail_or_404()
@@ -2439,9 +2443,16 @@ def create_app(
             raise HTTPException(status_code=409, detail="Die Textstelle ist nicht in der aktuellen Nachricht belegt. Bitte erneut prüfen.")
         with app.state.conversation_lock:
             episode = _remember_mail_message(message, source, uid)["episode"]
+            provenance = Provenance(source_type=SourceType.USER_STATED, source_ref=f"episode:{episode['id']}",
+                                    verbatim=body.source_quote, captured_at=datetime.now().astimezone())
+            if body.quick_accept:
+                # The same explicit suggestion remains once-only after a lost
+                # response or reopening the mail. A source change still fails
+                # the checks above, even if an earlier task already exists.
+                key = hashlib.sha256(json.dumps([uid, body.source_digest, title, body.source_quote]).encode()).hexdigest()
+                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
             task = app.state.tasks.add(title,
-                Provenance(source_type=SourceType.USER_STATED, source_ref=f"episode:{episode['id']}", verbatim=body.source_quote,
-                           captured_at=datetime.now().astimezone()),
+                provenance,
                 due=body.due, project_id=body.project_id)
             if waiting_for:
                 task = app.state.tasks.warten_auf(task.id, waiting_for)

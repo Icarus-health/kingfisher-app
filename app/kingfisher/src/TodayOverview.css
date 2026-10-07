@@ -127,3 +127,13 @@
   .today-flight { display: none; }
   .heute-naechster-schritt { margin-bottom: 14px; }
 }
+/* Existing surfaces and type scale, with source gaps visible before the cards. */
+.today-source-status { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 22px; margin-bottom: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: 400 13px/20px Inter, sans-serif; }
+.today-source-status p { margin: 3px 0 0; }
+.today-source-status .today-context-note { margin: 3px 0 0; }
+.today-source-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
+button.today-text-link { border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left; padding: 0; }
+button.today-text-link:disabled { cursor: default; opacity: .6; }
+.today-mail-dialog { width: min(900px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border: 1px solid var(--kf-rand-d7e1df); border-radius: 16px; padding: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
+.today-mail-dialog::backdrop { background: rgba(6, 43, 58, .45); }
+@media (max-width: 700px) { .today-source-status { align-items: stretch; flex-direction: column; } .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, type MailBriefing as MailBriefingResult } from "./api";
 import { mailBriefingFailure } from "./mailBriefingState";
 import "./MailBriefing.css";
+import { MailQuickTask } from "./MailQuickTask";
 
 export type MailTaskSuggestion = { title: string; quote: string; source_digest: string };
 
@@ -11,6 +12,7 @@ type MailBriefingProps = {
   taskSelectionDisabled?: boolean;
   onNeedsOriginal: () => void;
   onPrepareTask: (suggestion: MailTaskSuggestion) => void;
+  onTaskSaved?: () => void;
 };
 
 type ViewState =
@@ -20,10 +22,11 @@ type ViewState =
   | { kind: "stale" }
   | { kind: "result"; value: MailBriefingResult };
 
-export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled = false, onNeedsOriginal, onPrepareTask }: MailBriefingProps) {
+export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled = false, onNeedsOriginal, onPrepareTask, onTaskSaved }: MailBriefingProps) {
   const [state, setState] = useState<ViewState>({ kind: "loading" });
   const requestVersion = useRef(0);
   const controller = useRef<AbortController | null>(null);
+  const [accepted, setAccepted] = useState<Set<string>>(() => new Set());
 
   const load = useCallback((refresh = false) => {
     controller.current?.abort();
@@ -98,6 +101,7 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
       {result.status === "unavailable" || result.status === "incomplete" ? <button className="mail-reader-secondary" onClick={() => load(true)} type="button">Wiederholen</button> : null}
     </div> : null}
     {result && showsQuotes ? <>
+      {result.task_review === "unavailable" && <p className="mail-reader-status" role="status">{result.detail} <button className="mail-reader-secondary" type="button" onClick={() => load(true)}>Aufgabenprüfung wiederholen</button></p>}
       <p className="mail-briefing-source">Auszüge aus der Originalnachricht</p>
       {result.quotes.slice(0, 3).length ? <ul className="mail-briefing-quotes">
         {result.quotes.slice(0, 3).map((quote, index) => <li key={`${index}:${quote}`}>„{quote}“</li>)}
@@ -105,10 +109,13 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
       {result.status === "incomplete" || result.truncated ? <p className="mail-reader-status">Die Auswertung ist unvollständig. Es werden nur übernommene Originalauszüge gezeigt.</p> : null}
       {tasks.length ? <div className="mail-briefing-tasks">
         <p className="mail-briefing-source">Mögliche nächste Schritte</p>
-        {tasks.map((task, index) => <article className="mail-briefing-task" key={`${index}:${task.title}`}>
+        {tasks.map((task) => { const taskKey = JSON.stringify([uid, result.source_digest, task.title, task.quote]); return <article className="mail-briefing-task" key={taskKey}>
           <div><p className="mail-briefing-task-title">{task.title}</p><p className="mail-briefing-task-quote">„{task.quote}“</p></div>
-          <button className="mail-reader-secondary" disabled={taskSelectionDisabled} onClick={() => onPrepareTask({ ...task, source_digest: result.source_digest! })} type="button">Als Aufgabe vorbereiten</button>
-        </article>)}
+          <div className="mail-briefing-task-actions">
+            <MailQuickTask uid={uid} title={task.title} quote={task.quote} sourceDigest={result.source_digest!} disabled={taskSelectionDisabled || accepted.has(taskKey)} onSaved={() => { setAccepted(previous => new Set(previous).add(taskKey)); onTaskSaved?.(); }} />
+            <button className="mail-reader-secondary" disabled={taskSelectionDisabled || accepted.has(taskKey)} onClick={() => onPrepareTask({ ...task, source_digest: result.source_digest! })} type="button">Als Aufgabe vorbereiten</button>
+          </div>
+        </article>; })}
         {taskSelectionDisabled ? <p className="mail-reader-status">Die Aufgabe wurde bearbeitet oder gespeichert. Weitere Vorschläge überschreiben deine Eingaben nicht.</p> : null}
       </div> : null}
     </> : null}
