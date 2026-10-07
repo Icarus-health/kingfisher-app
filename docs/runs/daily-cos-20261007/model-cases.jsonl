@@ -1,0 +1,9 @@
+{"case": 1, "http": 200, "status": "ready", "review": "completed", "tasks": [{"title": "Atlas-Bericht bis Freitag senden", "quote": "Bitte sende mir den Atlas-Bericht bis Freitag."}], "seconds": 0.07}
+{"case": 2, "http": 200, "status": "ready", "review": "completed", "tasks": [{"title": "Ersatztermin für Boreal ermitteln", "quote": "Bitte frage Tom nach einem Ersatztermin."}], "seconds": 35.68}
+{"case": 3, "http": 200, "status": "ready", "review": "completed", "tasks": [], "seconds": 27.65}
+{"case": 4, "http": 200, "status": "ready", "review": "completed", "tasks": [], "seconds": 8.36}
+{"case": 5, "http": 200, "status": "ready", "review": "completed", "tasks": [], "seconds": 6.58}
+{"case": 6, "http": 200, "status": "ready", "review": "completed", "tasks": [{"title": "Rechnung übermitteln", "quote": "könntest du mir bitte die freigegebene Rechnung schicken?"}], "seconds": 7.08}
+{"case": 7, "http": 200, "status": "ready", "review": "completed", "tasks": [], "seconds": 6.51}
+{"case": 8, "http": 200, "status": "ready", "review": "completed", "tasks": [], "seconds": 17.19}
+{"negative_cases_clean": true, "positive_cases_found": true}

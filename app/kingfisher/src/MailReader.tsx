@@ -8,7 +8,7 @@ import { ProfileSource } from "./ProfileSource";
 import { MailStyle } from "./MailStyle";
 import "./MailReader.css";
 
-type MailReaderProps = { uid: string; onClose: () => void };
+type MailReaderProps = { uid: string; onClose: () => void; onTaskSaved?: () => void };
 
 const draftKey = (uid: string) => `kingfisher-mail-draft:${uid}`;
 const draftFormat = 1;
@@ -23,7 +23,7 @@ function readableDate(value: string | null) {
   }).format(date);
 }
 
-export function MailReader({ uid, onClose }: MailReaderProps) {
+export function MailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
   const [detail, setDetail] = useState<MailDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -240,7 +240,7 @@ export function MailReader({ uid, onClose }: MailReaderProps) {
           {detail.account_label ? <div><dt>Postfach</dt><dd>{detail.account_label}</dd></div> : null}
         </dl>
       </section>
-      <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={setTaskSuggestion} />
+      <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={setTaskSuggestion} onTaskSaved={onTaskSaved} />
       <details className="mail-reader-original" ref={originalMessageRef}>
         <summary>Aus der Originalnachricht</summary>
         <section className="mail-reader-body" aria-label="Originaltext der Nachricht"><pre>{detail.body || detail.preview}</pre></section>

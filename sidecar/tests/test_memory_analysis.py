@@ -22,7 +22,12 @@ class Reader:
 
     def complete(self, messages, tools):
         assert tools == []
-        body = json.loads(messages[1]["content"])["body"]
+        payload = json.loads(messages[1]["content"])
+        body = payload["body"]
+        if 'candidates' in payload:
+            return Reply(text=json.dumps({'reviews': [
+                {'id': item['id'], 'kind': 'request_to_recipient', 'title_supported': True}
+                for item in payload['candidates']]}))
         self.inputs.append(body)
         self.hook()
         return Reply(text=json.dumps({"items": [
@@ -55,7 +60,8 @@ def test_fourth_request_is_not_silently_dropped(memory):
 
 def test_source_beyond_old_cutoff_resumes_after_restart(memory, tmp_path):
     episodes, proposals, reader = memory
-    body = "Hintergrund ohne Auftrag.\n" * 1000 + "Bitte den letzten Entwurf prüfen."
+    # Still exceeds the extraction window, while fitting the complete-mail review budget.
+    body = "Hintergrund ohne Auftrag.\n" * 600 + "Bitte den letzten Entwurf prüfen."
     episode = put(episodes, body)
     detector = TaskDetector(episodes, proposals, reader, RLock())
     report = detector.run(with_model=True, limit=1)
@@ -72,6 +78,16 @@ def test_source_beyond_old_cutoff_resumes_after_restart(memory, tmp_path):
         assert max(map(len, reader.inputs)) <= 8000
     finally:
         other.close()
+
+
+def test_mail_over_complete_review_budget_is_not_certified(memory):
+    episodes, proposals, reader = memory
+    episode = put(episodes, 'Hintergrund ohne Auftrag.\n' * 1000 + 'Bitte den letzten Entwurf prüfen.')
+    detector = TaskDetector(episodes, proposals, reader, RLock())
+    for _ in range(10):
+        detector.run(with_model=True, limit=1)
+    assert not proposals.task_analysis_done(episode.id, episode.digest)
+    assert proposals.pending(ProposalKind.TASK) == []
 
 
 def test_unknown_authority_field_rejects_entire_output(memory):

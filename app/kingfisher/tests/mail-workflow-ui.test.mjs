@@ -75,7 +75,7 @@ test("choosing a suggested task opens the existing form with only title and sour
   assert.equal(contract(form, /setWaitingFor\(initialSuggestion/), false);
   const briefing = quelle("MailBriefing.tsx");
   assert.equal(contract(briefing, /taskSelectionDisabled\?:\s*boolean/), true);
-  assert.equal(contract(briefing, /disabled=\{taskSelectionDisabled\}/), true);
+  assert.equal(contract(briefing, /disabled=\{taskSelectionDisabled \|\| accepted\.has\(taskKey\)\}/), true);
   assert.equal(contract(briefing, /onPrepareTask\(\{ \.\.\.task, source_digest: result\.source_digest! \}\)/), true);
   assert.equal(contract(quelle("MailReader.tsx"), /taskSelectionDisabled=\{taskSuggestionProtected\}/), true);
 });

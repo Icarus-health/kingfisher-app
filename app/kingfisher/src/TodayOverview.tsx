@@ -5,6 +5,7 @@ import { BriefingSuggestion } from "./BriefingSuggestion";
 import { ProfileSource } from "./ProfileSource";
 import { TagesLage } from "./TagesLage";
 import { ASSET } from "./ui";
+import { activityAction } from "./dailyFlow";
 
 // A calendar reminder already shown with its preparation belongs with the
 // day's appointments. Keep unmatched reminders visible in the attention list.
@@ -28,16 +29,18 @@ function kindLabel(item: Attention) {
   return ({ nachbereitung: "Nach dem Termin", termin: "Termin", aufgabe: "Aufgabe", wartet: "Wartet auf Antwort", entscheidung: "Entscheidung", zusage: "Vorschlag aus einer Quelle" } as Record<string, string>)[item.source ?? ""] ?? "Offener Punkt";
 }
 
-export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, correctionSaved }: {
+export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, correctionSaved, onOpenMail }: {
   briefing: MorningBriefing;
   onChange: (change?: "correction") => void;
   taskNotice: string;
   onTaskDone: (message: string) => void;
   correctionSaved: boolean;
+  onOpenMail: (uid: string) => void;
 }) {
   const attention = todayAttention(briefing);
+  const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   return <div className="today-overview">
-    <TagesLage />
+    <TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} />
     <section className="today-panel today-attention" aria-labelledby="today-attention-title">
       <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2><img className="today-flight" src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />{zaehlerText(attention.length) ? <span className="today-count">{zaehlerText(attention.length)}</span> : null}</header>
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
@@ -60,7 +63,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
           {(preparation?.reason || item.detail) && <p>{preparation?.reason || item.detail}</p>}
           {item.source_ref && <a className="today-text-link" href={`/calendar?prepare=${encodeURIComponent(item.source_ref)}`}>Vorbereitung öffnen <span aria-hidden="true">→</span></a>}
         </div></li>;
-      })}</ul> : <div className="today-empty"><h3>Keine weiteren Termine angezeigt.</h3><p>Heute sind keine weiteren Termine in diesem Überblick aufgeführt.</p></div>}
+      })}</ul> : <div className="today-empty"><h3>{calendarUnavailable ? "Deine Termine fehlen noch." : "Keine weiteren Termine angezeigt."}</h3><p>{calendarUnavailable ? "Der Kalender konnte nicht gelesen werden. Das bedeutet nicht, dass du keine Termine hast." : "Heute sind keine weiteren Termine in diesem Überblick aufgeführt."}</p>{calendarUnavailable && <a className="today-text-link" href="/settings#zugaenge">Kalender verbinden oder prüfen →</a>}</div>}
       <a className="today-text-link today-calendar-open" href="/calendar">Kalender öffnen <span aria-hidden="true">→</span></a>
     </section>
 
@@ -68,6 +71,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       <header className="today-panel-heading"><h2 id="today-memory-title">Neu im Blick</h2><a className="today-text-link" href="/memory">Gedächtnis öffnen <span aria-hidden="true">→</span></a></header>
       {briefing.happening_now.length ? <div className="today-source-grid">{briefing.happening_now.map(item => <article className="today-source" key={item.id}>
         <div className="today-source-heading"><h3>{item.title}</h3><p>{item.detail}</p></div>
+        {activityAction(item) && <button className="today-text-link" type="button" onClick={() => onOpenMail(item.source_ref!)}>Nachricht öffnen →</button>}
         {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss onChange={onChange} /> : null}
       </article>)}</div> : <p className="today-notice">Gerade gibt es keine neuen Hinweise aus deinen Quellen.</p>}
       {briefing.working_memory_more && <p className="today-context-note">Dieser Überblick zeigt eine Auswahl. Weitere Quellen können noch aufs Sortieren warten.</p>}

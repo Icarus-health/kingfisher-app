@@ -5,13 +5,14 @@ import { Logbuch } from "./Logbuch";
 import { navigate } from "./ui";
 import { TerminVorbereitung } from "./TerminVorbereitung";
 import "./TagesLage.css";
+import { dailyIntroduction } from "./dailyFlow";
 
 // Das Morgenbriefing in drei bis fünf Zeilen: ein Urteil, keine Liste. Jede Zeile hat ihre Aktion
 // (Vorbereitung öffnen, Quelle öffnen); was fehlt oder nicht belegt ist, steht nicht da. Die Vorbereitung
 // der Termine entsteht ohne Klick im Sidecar (tag_routes.py); hier wird nur gezeigt und gefragt.
 const KOPF: Record<string, string> = { termin: "Wohin", leute: "Wer kommt", einpacken: "Einpacken", fristen: "Fristen", wetter: "Wetter", geburtstag: "Geburtstag", welt: "Welt" };
 
-export function TagesLage() {
+export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: boolean}) {
   const [daten, setDaten] = useState<TagBriefing | null>(null);
   const [fehler, setFehler] = useState(false);
   const [offen, setOffen] = useState<string | null>(null);
@@ -92,7 +93,7 @@ export function TagesLage() {
         onClick={() => setVerlaufOffen(!verlaufOffen)}>{verlaufOffen ? "Verlauf schließen" : "Verlauf"}<span aria-hidden="true">→</span></button>
       {verlaufOffen && <Logbuch />}
     </div>}
-    <h2 id="tageslage-titel">{lage.einleitung}</h2>
+    <h2 id="tageslage-titel">{dailyIntroduction(lage.einleitung, lage.zeilen.length > 0, sourcesIncomplete || Object.keys(daten.fehler).length > 0)}</h2>
     {lage.zeilen.length > 0 && <ol className="tageslage-zeilen">{lage.zeilen.map(z => <li key={z.art} className={`tageslage-zeile tageslage-${z.art}`}>
       <span className="tageslage-kopf">{KOPF[z.art] ?? ""}</span>
       <p>{z.text}</p>

@@ -463,12 +463,40 @@ def test_mail_task_is_explicit_sourced_and_waiting(tmp_path):
     assert len(app.state.tasks.all_tasks()) == 1
 
 
+def test_quick_mail_task_is_idempotent_and_never_invents_due_or_person():
+    from icarus_memory.mail_task_suggestions import source_digest
+    app, first, second = mail_app()
+    second.item.body = 'Bitte das Angebot prüfen.'
+    client = TestClient(app)
+    payload = {'title': 'Angebot prüfen', 'source_quote': second.item.body,
+               'source_digest': source_digest(app.state.mail.message('work:1')), 'quick_accept': True}
+    first_result = client.post('/api/v1/messages/work:1/task', json=payload)
+    retry = client.post('/api/v1/messages/work:1/task', json=payload)
+    assert first_result.status_code == retry.status_code == 201
+    assert retry.json()['id'] == first_result.json()['id']
+    assert len(app.state.tasks.all_tasks()) == 1
+    assert first_result.json()['due'] is None
+    assert first_result.json()['wartet_auf'] is None
+    assert not first.sent and not second.sent
+    second.item.body = 'Nicht mehr prüfen.'
+    assert client.post('/api/v1/messages/work:1/task', json=payload).status_code == 409
+
+
+def test_quick_accept_requires_current_evidence_and_no_hidden_assignment():
+    app, _, _ = mail_app()
+    client = TestClient(app)
+    assert client.post('/api/v1/messages/work:1/task', json={'title': 'Prüfen', 'quick_accept': True}).status_code == 422
+    assert app.state.tasks.all_tasks() == []
+
+
 def test_local_suggestions_are_read_only_and_bound_to_current_mail():
     from icarus_memory.providers import Reply
     class Local:
         is_local = True
         def complete(self, messages, tools):
             assert tools == [] and messages[0]['role'] == 'system'
+            if 'candidates' in json.loads(messages[1]['content']):
+                return Reply(text='{"reviews":[{"id":0,"kind":"request_to_recipient","title_supported":true}]}')
             return Reply(text='{"items":[{"title":"Angebot prüfen","quote":"Bitte das Angebot prüfen."},{"title":"Erfunden","quote":"Das steht nicht in der Mail."}]}')
     app, first, second = mail_app()
     second.item.body = 'Bitte das Angebot prüfen.'

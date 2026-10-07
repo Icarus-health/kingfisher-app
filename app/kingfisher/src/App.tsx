@@ -49,6 +49,9 @@ import { tastenHinweis } from "./system";
 import { useEingabegeraet } from "./useSystem";
 import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
+import { TodaySourceStatus } from "./TodaySourceStatus";
+import { createDailyRefresh } from "./dailyFlow";
+import { MailReader } from "./MailReader";
 
 
 
@@ -274,24 +277,57 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   const [pendingConversation, setPendingConversation] = useState<string | null>(null);
   const [correctionSaved, setCorrectionSaved] = useState(false);
   const [taskNotice, setTaskNotice] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState(false);
+  const refresher = useRef<ReturnType<typeof createDailyRefresh<MorningBriefing>> | null>(null);
+  const [mailUid, setMailUid] = useState<string | null>(null);
+  const mailDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (mailUid && !mailDialog.current?.open) mailDialog.current?.showModal(); }, [mailUid]);
 
   function load(change?: "correction") {
     if (change === "correction") setCorrectionSaved(true);
-    setError(false);
-    api.morning().then(setBriefing).catch(() => setError(true));
+    void refresher.current?.run(true);
   }
 
   // Der Gruß kommt sofort, die Post danach (Fremdprobe, Befund 22): erst ohne Posteingang, dann vollständig. Ein
   // schweigendes Postfach hält so nie die ganze Startseite auf; scheitert nur der zweite Abruf, bleibt der erste stehen.
   useEffect(() => {
     let active = true;
-    let vollstaendig = false;
-    let fehler = 0;
-    const gescheitert = () => { fehler += 1; if (active && fehler === 2) setError(true); };
-    api.morning(false).then((result) => { if (active && !vollstaendig) setBriefing(result); }).catch(gescheitert);
-    api.morning().then((result) => { vollstaendig = true; if (active) setBriefing(result); })
-      .catch(() => { if (active) setBriefing(current => current && { ...current, post_ausstehend: false }); gescheitert(); });
-    return () => { active = false; };
+    let fullReceived = false;
+    let fullFailed = false;
+    let quickFailed = false;
+    const lastKnown = (result: MorningBriefing) => fullFailed ? {...result, post_ausstehend: false,
+      partial_failures: [...result.partial_failures, {section: "mail", message: "Posteingang konnte nicht vollständig geladen werden."}]} : result;
+    const refresh = createDailyRefresh(async () => {
+      if (active) setRefreshing(true);
+      try { return await api.morning(); }
+      catch (problem) {
+        fullFailed = true;
+        if (active) {
+          setRefreshError(true);
+          setBriefing(current => current ? lastKnown(current) : current);
+          if (quickFailed && !fullReceived) setError(true);
+        }
+        throw problem;
+      } finally { if (active) setRefreshing(false); }
+    }, result => {
+      fullReceived = true; fullFailed = false;
+      setBriefing(result); setError(false); setRefreshError(false);
+    });
+    refresher.current = refresh;
+    api.morning(false).then(result => {
+      if (active && !fullReceived) { setBriefing(lastKnown(result)); setError(false); }
+    }).catch(() => { quickFailed = true; if (active && fullFailed && !fullReceived) setError(true); });
+    void refresh.run(true);
+    const automatic = () => { if (document.visibilityState === "visible") void refresh.run(); };
+    const timer = window.setInterval(automatic, 300000);
+    window.addEventListener("focus", automatic);
+    document.addEventListener("visibilitychange", automatic);
+    return () => {
+      active = false; refresh.dispose(); refresher.current = null;
+      window.clearInterval(timer); window.removeEventListener("focus", automatic);
+      document.removeEventListener("visibilitychange", automatic);
+    };
   }, []);
 
   async function begin(message: string) {
@@ -340,12 +376,13 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
         </section>
 
         <section className="briefing-area">
+          <TodaySourceStatus briefing={briefing} refreshing={refreshing} refreshError={refreshError} onRefresh={() => load()} />
           <div className="today-command">
             <CommandBar busy={sending} disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
             {sendError ? <p className="partial-error command-error">Die Frage konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
           </div>
           <HeuteLeer leer={!briefing.needs_you.length && !briefing.later_today.length && !briefing.happening_now.length}>
-            <TodayOverview briefing={briefing} onChange={load} taskNotice={taskNotice} correctionSaved={correctionSaved} onTaskDone={message => { setTaskNotice(message); load(); }} />
+            <TodayOverview briefing={briefing} onChange={load} taskNotice={taskNotice} correctionSaved={correctionSaved} onOpenMail={setMailUid} onTaskDone={message => { setTaskNotice(message); load(); }} />
             <WorldRadar />
           </HeuteLeer>
           <FassungHeute />
@@ -357,6 +394,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
         </section>
       </main>
       <BriefingDrawer briefing={briefing} onClose={() => setBriefingOpen(false)} onChange={load} open={briefingOpen} />
+      {mailUid && <dialog ref={mailDialog} className="today-mail-dialog" aria-label="Nachricht bearbeiten" onCancel={() => setMailUid(null)} onClose={() => setMailUid(null)}>
+        <MailReader key={mailUid} uid={mailUid} onClose={() => setMailUid(null)} onTaskSaved={() => load()} />
+      </dialog>}
     </div>
   );
 }

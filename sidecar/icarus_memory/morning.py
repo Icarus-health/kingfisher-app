@@ -258,9 +258,15 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             received = _time(candidate.get("received_at"))
             origin = f"Vorschlag aus einer Mail von {sender}" if sender else "Vorschlag aus einer Quelle"
             if received is not None:
-                origin += f" · {received.day}.{received.month}."
+                origin += f" · {received.day}.{received.month}.{received.year}"
             attention[item_id]["detail"] = origin
             attention[item_id]["episode_id"] = candidate.get("episode_id")
+            attention[item_id]["priority"] = ''
+            attention[item_id]["reason"] = origin + f': „{attention[item_id]["title"]}“. Modellvorschlag, bitte prüfen.'
+            attention[item_id]["review_required"] = bool(candidate.get('review_required', True))
+            if attention[item_id]["review_required"]:
+                attention[item_id]["reason"] = origin + '. Noch ohne zusätzliche Aufgabenprüfung. Bitte zuerst das Original prüfen.'
+                attention[item_id]["action"] = 'Prüfen'
 
     # Eine offene Klärung ist kein Fakt und niemals Modellkontext. Sie ist
     # allerdings eine echte, zeitnahe Entscheidung für den Menschen. Der

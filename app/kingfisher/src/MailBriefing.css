@@ -17,3 +17,5 @@
   .mail-briefing { padding: 18px 20px; }
   .mail-briefing-task, .mail-briefing-state { align-items: stretch; flex-direction: column; }
 }
+.mail-briefing-task-actions { display: grid; gap: 8px; min-width: 190px; }
+.mail-quick-task { display: grid; gap: 6px; }

@@ -129,7 +129,7 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
       <label htmlFor="mail-task-title">Aufgabe</label>
       <input disabled={saving || Boolean(saved)} id="mail-task-title" onChange={(event) => { protectSuggestion(); setTitle(event.target.value); }} value={title} />
       {sourceQuote && <p className="mail-reader-status">Übernommene Textstelle: „{sourceQuote}“</p>}
-      <div className="mail-task-suggestions">
+      {!initialSuggestion && <div className="mail-task-suggestions">
         <button className="mail-reader-secondary" disabled={suggesting || saving || Boolean(saved)} onClick={suggestTasks} type="button">
           {suggesting ? "Aufgaben werden vorgeschlagen …" : "Aufgaben vorschlagen"}
         </button>
@@ -144,7 +144,7 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
             <button className="mail-reader-secondary" disabled={saving || Boolean(saved)} onClick={() => useSuggestion(suggestion)} type="button">In Aufgabe übernehmen</button>
           </article>)}
         </div> : null}
-      </div>
+      </div>}
       <div className="mail-task-form-fields">
         <label htmlFor="mail-task-project">Projekt <select disabled={saving || Boolean(saved)} id="mail-task-project" aria-label="Projekt" onChange={(event) => { protectSuggestion(); setProjectId(event.target.value); }} value={projectId}>
           <option value="">Keinem Projekt zuordnen</option>
