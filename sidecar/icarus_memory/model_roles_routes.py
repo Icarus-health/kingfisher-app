@@ -45,7 +45,7 @@ from .ollama_inventar import CLOUD, HINWEIS_CLOUD, LOKAL, inventar_von
 from .providers import OpenAICompatible
 
 _MODELLNAME = re.compile(r"[A-Za-z0-9._:/-]{1,128}")
-_ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI"}
+_ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mistral (EU-Endpunkt)", "openrouter": "OpenRouter (EU-Endpunkt)"}
 
 
 class RolleIn(BaseModel):
@@ -165,7 +165,7 @@ def register(app, guard, data_dir, rebuild):
 
     def anbieter_liste() -> list[dict[str, Any]]:
         return [{"id": k, "label": _ANBIETER_LABEL[k], "schluessel_da": _schluessel_da(k),
-                 "standardmodell": v[1]} for k, v in CLOUD_ANBIETER.items() if k != OLLAMA_CLOUD]
+                 "standardmodell": app.state.settings.cloud_models.get(k, v[1])} for k, v in CLOUD_ANBIETER.items() if k != OLLAMA_CLOUD]
 
     def saetze_stand() -> str:
         return "aus" if getattr(app.state.settings, "antwort_saetze", "an") == "aus" else "an"
@@ -237,11 +237,18 @@ def register(app, guard, data_dir, rebuild):
                 einwilligung = datetime.now(timezone.utc).isoformat(timespec="seconds")
             if body.cloud is True and body.modell is None and not aktuell.cloud:
                 modell = ""  # ein lokaler Modellname passt nicht zum Cloudanbieter
+            if anbieter in {'mistral', 'openrouter'}:
+                modell = body.modell if body.modell is not None else settings.cloud_models.get(anbieter, '')
+                if not modell or not _MODELLNAME.fullmatch(modell):
+                    raise HTTPException(422, 'Bitte unter KI & Modelle zuerst einen Modellnamen hinterlegen.')
+                if not _schluessel_da(anbieter):
+                    raise HTTPException(422, 'Bitte unter KI & Modelle zuerst einen API-Schlüssel hinterlegen.')
         else:
             anbieter, einwilligung = "", ""  # Cloud aus: Einwilligung erlischt
             if aktuell.cloud and body.modell is None:
                 modell = ""
-        neu = RollenWahl(modell=modell, cloud=bool(cloud), anbieter=anbieter, cloud_einwilligung=einwilligung)
+        neu = RollenWahl(modell=modell, cloud=bool(cloud), anbieter=anbieter, cloud_einwilligung=einwilligung,
+                        local_only=not bool(cloud) and (aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
         with app.state.conversation_lock:
             if neu.ist_leer:
                 settings.model_roles.pop(rolle, None)

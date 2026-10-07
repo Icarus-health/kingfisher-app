@@ -1,0 +1,9 @@
+.cloud-access { display: grid; gap: 14px; }
+.cloud-access > p { margin: 0; }
+.cloud-access-provider { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; }
+.cloud-access-provider legend { padding: 0 6px; color: var(--kf-schrift-062b3a); font-weight: 700; }
+.cloud-access-provider label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.cloud-access-provider label small { color: var(--kf-schrift-31535f); font-weight: 400; }
+.cloud-access-provider input { width: 100%; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); font: inherit; }
+.cloud-access-provider input:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; }
+.cloud-access-provider code { overflow-wrap: anywhere; }

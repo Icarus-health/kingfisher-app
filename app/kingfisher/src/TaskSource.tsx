@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { api, type TaskSource as Source } from "./api";
 import { Herkunft } from "./HerkunftAnzeige";
 
+function timestamp(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleString("de-DE");
+}
+
 export function TaskSource({taskId}: {taskId: string}) {
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<Source | null>(null);
@@ -23,7 +29,8 @@ export function TaskSource({taskId}: {taskId: string}) {
       {source && <><h3>{source.title}</h3><p>Gespeicherter Stand · Rohmaterial, keine bestätigte Aussage</p>
         {source.state === "ignored" && <p role="status">Diese Quelle wurde ausgeschlossen und darf nicht als Wissensbeleg verwendet werden.</p>}
         {source.quote && <div><p>Übernommene Textstelle</p><blockquote>{source.quote}</blockquote></div>}
-        <p>Aufgenommen: {new Date(source.recorded_at).toLocaleString("de-DE")}</p>
+        <p>Quelldatum: {timestamp(source.occurred_at) ?? "unbekannt"}</p>
+        <p>Erfasst: {timestamp(source.recorded_at) ?? "Zeitpunkt unbekannt"}</p>
         {source.participants.length > 0 && <p>In der Quelle genannt: {source.participants.join(", ")}</p>}
         <Herkunft provenance={source.provenance} />
         <div className="task-source-body">{source.body}</div>

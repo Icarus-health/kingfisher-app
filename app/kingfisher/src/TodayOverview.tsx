@@ -29,6 +29,22 @@ function kindLabel(item: Attention) {
   return ({ nachbereitung: "Nach dem Termin", termin: "Termin", aufgabe: "Aufgabe", wartet: "Wartet auf Antwort", entscheidung: "Entscheidung", zusage: "Vorschlag aus einer Quelle" } as Record<string, string>)[item.source ?? ""] ?? "Offener Punkt";
 }
 
+function activityTimestamp(value: string | null | undefined, timezone: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  try { return new Intl.DateTimeFormat("de-DE", {dateStyle: "medium", timeStyle: "short", timeZone: timezone}).format(date); }
+  catch { return date.toLocaleString("de-DE"); }
+}
+
+function activityDates(item: Attention, timezone: string) {
+  const occurred = activityTimestamp(item.occurred_at, timezone);
+  const recorded = activityTimestamp(item.recorded_at, timezone);
+  const sameMoment = item.occurred_at && item.recorded_at
+    && new Date(item.occurred_at).getTime() === new Date(item.recorded_at).getTime();
+  return <p>Quelldatum: {occurred ?? "unbekannt"}{recorded && !sameMoment ? <> · Erfasst: {recorded}</> : null}</p>;
+}
+
 export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, correctionSaved, onOpenMail }: {
   briefing: MorningBriefing;
   onChange: (change?: "correction") => void;
@@ -70,7 +86,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
     <section className="today-panel today-memory" aria-labelledby="today-memory-title">
       <header className="today-panel-heading"><h2 id="today-memory-title">Neu im Blick</h2><a className="today-text-link" href="/memory">Gedächtnis öffnen <span aria-hidden="true">→</span></a></header>
       {briefing.happening_now.length ? <div className="today-source-grid">{briefing.happening_now.map(item => <article className="today-source" key={item.id}>
-        <div className="today-source-heading"><h3>{item.title}</h3><p>{item.detail}</p></div>
+        <div className="today-source-heading"><h3>{item.title}</h3><p>{item.detail}</p>{(item.source === "mail" || item.source === "working_memory") && activityDates(item, briefing.timezone)}</div>
         {activityAction(item) && <button className="today-text-link" type="button" onClick={() => onOpenMail(item.source_ref!)}>Nachricht öffnen →</button>}
         {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss onChange={onChange} /> : null}
       </article>)}</div> : <p className="today-notice">Gerade gibt es keine neuen Hinweise aus deinen Quellen.</p>}

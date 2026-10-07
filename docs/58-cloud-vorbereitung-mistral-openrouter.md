@@ -28,9 +28,11 @@ Region und Aufbewahrung sind getrennte Eigenschaften. Für OpenRouter ZDR zusät
 - Die Rollenverwaltung erlaubt Cloud bisher für Frage/Antwort, aber nicht für Hintergrund-Einordnung, Prüfung und Einbettung.
 - Der neue Mailüberblick verlangt ein nachweislich lokales Modell. Ein Wechsel des Standardanbieters würde diesen Schutz nicht umgehen, sondern die Funktion gegebenenfalls sperren.
 
-**Noch nicht eingebaut:** eigenständige Mistral-/OpenRouter-Auswahl mit getrennten Schlüsseln und EU-Regeln in der Rollenoberfläche. Diese Datei schaltet keine dieser Funktionen frei. Der vorhandene generische Anschluss teilt sich einen Schlüsselplatz mit OpenAI; ihn für den Parallelbetrieb umzuwidmen wäre ungeeignet.
+**Im aktuellen Entwicklungsstand eingebaut:** Einstellungen → KI & Modelle bietet getrennte, nur schreibbare Schlüsselplätze für Mistral und OpenRouter samt Modell-ID. Speicherung erfolgt über die bestehende verschlüsselte Geheimnisablage. Speichern ruft keinen Anbieter auf und aktiviert keine Rolle. Die Rollenverwaltung verwendet feste regionale Endpunkte, ohne Proxy-Übernahme, Weiterleitung oder globale Ersatzadresse. OpenRouter-Anfragen verlangen zusätzlich ZDR, untersagen Datensammlung und schalten Anbieter-Fallbacks aus. Ohne regional verfügbares Modell oder berechtigtes Konto scheitert der spätere Aufruf.
 
-## Konkreter nächster Umsetzungsschritt
+Die Eingabe wurde nur mit künstlichen Schlüsseln geprüft. Echte Zugänge, Modellverfügbarkeit, Kostenlimit und ein Cloud-Vergleich bleiben offen. Hintergrund-Einordnung, Prüfung und Einbettung bleiben lokal. Ein Schlüssel-/Modellwechsel sowie das Entfernen des Zugangs widerrufen dessen Rollenfreigaben; ein anderer Cloud-Standard darf diese Freigabe nicht ersetzen.
+
+## Anschluss und noch offene Schritte
 
 Den bestehenden Rollenanschluss um zwei eigene Anbieter erweitern, ohne die App oder das Gedächtnis neu aufzubauen:
 

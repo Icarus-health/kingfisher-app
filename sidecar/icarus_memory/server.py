@@ -1425,6 +1425,8 @@ def create_app(
     from .device_profile import load_device_profile, save_device_profile
     from .model_roles_routes import register as register_model_roles
     register_model_roles(app, guard, _data_dir, lambda: _build_agent(app))
+    from .cloud_access_routes import register as register_cloud_access
+    register_cloud_access(app, guard, _data_dir, lambda: _build_agent(app))
 
     @app.get("/api/v1/device/profile", dependencies=guard)
     def device_profile():
@@ -4519,6 +4521,42 @@ def create_app(
     def task_candidate_service():
         return TaskCandidates(app.state.episodes, app.state.proposals, app.state.tasks,
                               app.state.workspace, app.state.conversation_lock)
+
+    @app.get("/api/v1/task-candidates/page", dependencies=guard)
+    def task_candidates_page(
+        limit: int = Query(default=25, ge=1, le=100),
+        offset: int = Query(default=0, ge=0, le=250000),
+        temporal: Literal["all", "recent", "review"] = Query(default="all"),
+        generation: str | None = Query(default=None, min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$"),
+    ) -> dict[str, Any]:
+        items: list[dict[str, Any]] = []
+        total = 0
+        digest = hashlib.sha256()
+        # Offset pagination scans the full pending set to compute its total and generation (O(N)).
+        with app.state.conversation_lock:
+            for batch in candidate_batches(app.state.proposals, app.state.episodes):
+                for proposal, _, timing in batch:
+                    status = timing.get("temporal_status")
+                    if temporal == "recent" and status != "recent":
+                        continue
+                    if temporal == "review" and status == "recent":
+                        continue
+                    # A task write can succeed immediately before the proposal is marked accepted.
+                    # Do not show that already-created task as a still-pending suggestion.
+                    if app.state.tasks.get(f"t-suggestion-{proposal.id}") is not None:
+                        continue
+                    digest.update(proposal.id.encode("utf-8"))
+                    digest.update(b"\0")
+                    digest.update(str(status or "").encode("utf-8"))
+                    digest.update(b"\n")
+                    if offset <= total < offset + limit:
+                        items.append({**proposal.to_dict(), **timing})
+                    total += 1
+            current_generation = digest.hexdigest()
+            if generation is not None and generation != current_generation:
+                raise HTTPException(409, "Die Prüfliste hat sich geändert. Bitte die erste Seite neu laden.")
+        return {"items": items, "total": total, "offset": offset, "limit": limit,
+                "has_more": offset + len(items) < total, "generation": current_generation}
 
     @app.get("/api/v1/task-candidates", dependencies=guard)
     def task_candidates():

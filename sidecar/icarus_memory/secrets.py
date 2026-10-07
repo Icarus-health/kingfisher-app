@@ -54,6 +54,8 @@ PASSPHRASE_ENV = "ICARUS_SECRETS_PASSPHRASE"
 KNOWN = (
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
+    "MISTRAL_API_KEY",
+    "OPENROUTER_API_KEY",
     "LLM_API_KEY",
     "ICARUS_BACKUP_PASSPHRASE",
     # Konnektor-Zugangsdaten gehören genauso wenig in eine Klartextdatei.
@@ -210,7 +212,7 @@ class Keychain:
             path = self._windows_path(name)
             Path(path).parent.mkdir(parents=True, exist_ok=True)
             result = _run(["powershell", "-NoProfile", "-Command",
-                           _WIN_SET.format(path=path, value=value)])
+                           _WIN_SET.format(path=path.replace("'", "''"))], stdin=value)
 
         if result.returncode != 0:
             raise KeychainError(result.stderr.strip() or "Schreiben fehlgeschlagen.")
@@ -223,11 +225,38 @@ class Keychain:
             return
 
         if self._backend == "macos":
-            _run(["security", "delete-generic-password", "-s", self._service, "-a", name])
+            command = ["security", "delete-generic-password", "-s", self._service, "-a", name]
         elif self._backend == "secret-tool":
-            _run(["secret-tool", "clear", "service", self._service, "account", name])
+            command = ["secret-tool", "clear", "service", self._service, "account", name]
         elif self._backend == "windows":
-            Path(self._windows_path(name)).unlink(missing_ok=True)
+            try:
+                Path(self._windows_path(name)).unlink(missing_ok=True)
+            except FileNotFoundError:
+                pass
+            except OSError as exc:
+                raise KeychainError(str(exc) or "Löschen fehlgeschlagen.") from None
+            return
+        else:
+            return
+
+        try:
+            result = _run(command)
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise KeychainError(str(exc) or "Löschen fehlgeschlagen.") from None
+
+        if result.returncode == 0:
+            return
+        detail = (result.stderr or result.stdout or "").strip()
+        normalized = detail.casefold()
+        # Errors can include both an item lookup failure and an authorization
+        # failure. Treat access failures as errors even if they mention absence.
+        denied = ("denied", "permission", "not authorized", "authorization", "locked", "access is denied")
+        if any(marker in normalized for marker in denied):
+            raise KeychainError(detail or "Löschen fehlgeschlagen.")
+        missing = ("item could not be found", "no such item", "no such secret", "not found", "no matching secret")
+        if any(marker in normalized for marker in missing):
+            return
+        raise KeychainError(detail or "Löschen fehlgeschlagen.")
 
     def _windows_path(self, name: str) -> str:
         base = os.environ.get("APPDATA", str(Path.home()))
@@ -237,7 +266,7 @@ class Keychain:
 # DPAPI bindet die Verschlüsselung an das Windows-Benutzerkonto.
 _WIN_SET = (
     "Add-Type -AssemblyName System.Security; "
-    "$b=[Text.Encoding]::UTF8.GetBytes('{value}'); "
+    "$b=[Text.Encoding]::UTF8.GetBytes([Console]::In.ReadToEnd()); "
     "$e=[Security.Cryptography.ProtectedData]::Protect($b,$null,'CurrentUser'); "
     "[IO.File]::WriteAllBytes('{path}',$e)"
 )

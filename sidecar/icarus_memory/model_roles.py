@@ -53,6 +53,8 @@ OLLAMA_CLOUD_SATZ = "Die Daten gehen an Ollama (USA), nicht an den Modellherstel
 CLOUD_ANBIETER = {
     "anthropic": ("ANTHROPIC_API_KEY", "claude-sonnet-5"),
     "openai": ("OPENAI_API_KEY", "gpt-4.1-mini"),
+    "mistral": ("MISTRAL_API_KEY", ""),
+    "openrouter": ("OPENROUTER_API_KEY", ""),
     OLLAMA_CLOUD: ("", ""),
 }
 
@@ -93,14 +95,16 @@ class RollenWahl:
     cloud: bool = False
     anbieter: str = ""  # Cloudanbieter, nur bei cloud=True
     cloud_einwilligung: str = ""  # ISO-Zeitstempel der ausdrücklichen Einwilligung
+    local_only: bool = False  # explicit revocation must never fall through to a remote default
 
     def als_dict(self) -> dict[str, Any]:
         return {"modell": self.modell, "cloud": self.cloud, "anbieter": self.anbieter,
-                "cloud_einwilligung": self.cloud_einwilligung}
+                "cloud_einwilligung": self.cloud_einwilligung,
+                **({"local_only": True} if self.local_only else {})}
 
     @property
     def ist_leer(self) -> bool:
-        return not self.modell and not self.cloud
+        return not self.modell and not self.cloud and not self.local_only
 
 
 def lese_wahlen(roh: Any) -> dict[str, RollenWahl]:
@@ -117,6 +121,7 @@ def lese_wahlen(roh: Any) -> dict[str, RollenWahl]:
         wahl = RollenWahl(
             modell=modell.strip() if isinstance(modell, str) else "",
             cloud=eintrag.get("cloud") is True,
+            local_only=eintrag.get("local_only") is True,
             anbieter=anbieter if isinstance(anbieter, str) and anbieter in CLOUD_ANBIETER else "",
             cloud_einwilligung=einwilligung if isinstance(einwilligung, str) else "",
         )
@@ -185,6 +190,11 @@ def _cloud(wahl: RollenWahl, umgebung: Mapping[str, str]) -> Provider | None:
     if not schluessel:
         return None
     modell = wahl.modell or standardmodell
+    if not modell:
+        return None
+    if wahl.anbieter in {'mistral', 'openrouter'}:
+        from .regional_cloud import RegionalCloud
+        return RegionalCloud(wahl.anbieter, modell, schluessel)
     return Anthropic(modell, schluessel) if wahl.anbieter == "anthropic" else OpenAICompatible(modell, schluessel)
 
 
@@ -241,7 +251,10 @@ def provider_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, Ro
     die Anwendung übergibt es immer (`Rollen`).
     """
     anbieter = _anbieter_fuer(rolle, standard, wahlen, umgebung, inventar)
-    if anbieter is not None and not ROLLEN[rolle].cloud_moeglich and not getattr(anbieter, "is_local", False):
+    local_only = bool(wahlen.get(rolle) and wahlen[rolle].local_only)
+    if anbieter is not None and (local_only or not ROLLEN[rolle].cloud_moeglich) and not getattr(anbieter, "is_local", False):
+        return None
+    if local_only and _ollama_lokal(anbieter) and (inventar is None or _art(anbieter, anbieter.model, inventar) != LOKAL):
         return None
     return anbieter
 
@@ -253,6 +266,14 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
     wahl = wahlen.get(rolle)
     if wahl is None or wahl.ist_leer:
         return _standard_geprueft(rolle, standard, inventar)
+    def fallback():
+        candidate = _standard_geprueft(rolle, standard, inventar)
+        if wahl.anbieter in {'mistral', 'openrouter'}:
+            if not getattr(candidate, 'is_local', False):
+                return None
+            if _ollama_lokal(candidate) and (inventar is None or _art(candidate, candidate.model, inventar) != LOKAL):
+                return None
+        return candidate
     umgebung = os.environ if umgebung is None else umgebung
     if wahl.cloud and einwilligung_gueltig(rolle, wahl):
         if wahl.anbieter == OLLAMA_CLOUD:
@@ -260,19 +281,19 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
         cloud = _cloud(wahl, umgebung)
         if cloud is not None:
             return cloud
-        return _standard_geprueft(rolle, standard, inventar)  # kein Schlüssel: lieber der Standard als ein Fehler beim ersten Satz
+        return fallback()  # kein Schlüssel: lieber der Standard als ein Fehler beim ersten Satz
     if wahl.cloud:
         # Cloud angefordert, aber ohne gültige Einwilligung: die Wahl wird
         # ignoriert. Der Standard gilt, nie die Cloud.
-        return _standard_geprueft(rolle, standard, inventar)
+        return fallback()
     if wahl.modell:
         lokal = _lokal(standard, wahl.modell, umgebung)
         if inventar is None or _art(lokal, wahl.modell, inventar) == LOKAL:
             return lokal
         # Cloud über Ollama (oder nicht belegt lokal) ohne Einwilligung: nie stillschweigend.
         # Rollen ohne Cloud bleiben ohne Modell; Frage und Antwort fallen auf den geprüften Standard zurück.
-        return _standard_geprueft(rolle, standard, inventar) if ROLLEN[rolle].cloud_moeglich else None
-    return _standard_geprueft(rolle, standard, inventar)
+        return fallback() if ROLLEN[rolle].cloud_moeglich else None
+    return fallback()
 
 
 def _cloud_ueber_ollama(rolle: str, wahl: RollenWahl, standard: Provider | None, umgebung: Mapping[str, str],

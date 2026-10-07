@@ -5,6 +5,8 @@ import type { SystemAngabe } from "./system";
 import type { BelegQuelle } from "./quellenWeg";
 import type { FassungStand } from "./fassungsAngebot";
 export type Attention = {
+  occurred_at?: string | null;
+  recorded_at?: string | null;
   project_id?: string | null;
   id: string;
   title: string;
@@ -410,6 +412,7 @@ export type MailDetail = {
 
 /** `valid_until`: vorgeschlagene Fälligkeit (bei Fristen aus privaten Mails, sidecar: akten_arten.py), sonst null. */
 export type TaskCandidate = { received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
+export type TaskCandidatePage = {items: TaskCandidate[]; total: number; offset: number; limit: number; has_more: boolean; generation: string};
 
 export type MailTaskSuggestions = {
   available: boolean;
@@ -867,6 +870,7 @@ export type RecoveryJob = {id: string; status: "queued" | "running" | "completed
 export type RecoveryStatus = {online: boolean; job: RecoveryJob | null};
 
 export type MemoryCoverage = {
+  source_dates?: {earliest: string | null; latest: string | null; undated: number};
   working_memory?: {complete: number; pending: number; failed: number; deferred: number; dismissed: number; truncated: boolean};
   working_memory_enabled?: boolean;
   working_memory_progress?: {total: number; done: number; skipped: number; retry: number; remaining: number; estimate_seconds: number | null};
@@ -880,6 +884,7 @@ export type PostfachErreichbar = {account_id: string; label: string; erreichbar:
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
 export type MemoryAutomation = {state: "active" | "legacy_active" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null};
 export type MemoryTimeline = {
+  basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;
   items: Array<{id: string; kind: string; title: string; recorded_at: string; occurred_at: string | null; episode_id: string | null; claim_id: string | null}>;
   truncated: boolean; detail: string;
@@ -930,6 +935,8 @@ export type ModelRoleState = {
 };
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
   ollama_cloud?: {modelle: string[]; hinweis: string}};
+export type CloudProviderAccess = {id: "mistral" | "openrouter"; label: string; endpoint: string; key_present: boolean; model: string};
+export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ModelPullState = {
   id: string; modell: string; rolle: string; phase: "wartet" | "laedt" | "prueft" | "fertig" | "fehler";
   fortschritt: number | null; text: string; fehler: {grund: string; naechster_schritt: string; art?: string} | null;
@@ -991,6 +998,11 @@ export const api = {
     request<SatzpruefungStand>("/api/v1/models/satzpruefung", {method: "PUT", body: JSON.stringify({satzpruefung})}),
   saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; anbieter?: string; einwilligung?: boolean}) =>
     request<ModelRoles>(`/api/v1/models/roles/${encodeURIComponent(rolle)}`, {method: "PUT", body: JSON.stringify(body)}),
+  cloudAccess: () => request<CloudAccessState>("/api/v1/models/cloud-access"),
+  saveCloudAccess: (provider: CloudProviderAccess["id"], body: {api_key?: string; model: string}) =>
+    request<CloudAccessState>(`/api/v1/models/cloud-access/${encodeURIComponent(provider)}`, {method: "PUT", body: JSON.stringify(body)}),
+  removeCloudAccess: (provider: CloudProviderAccess["id"]) =>
+    request<CloudAccessState>(`/api/v1/models/cloud-access/${encodeURIComponent(provider)}`, {method: "DELETE"}),
   startModelPull: (rolle: string, modell?: string) =>
     request<ModelPullState>("/api/v1/models/pull", {method: "POST", body: JSON.stringify({rolle, modell, bestaetigt: true})}),
   modelPull: (id: string) => request<ModelPullState>(`/api/v1/models/pull/${encodeURIComponent(id)}`),
@@ -1019,7 +1031,7 @@ export const api = {
   memoryCoverage: () => request<MemoryCoverage>("/api/v1/memory/coverage"),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),
-  memoryTimeline: (start: string, end: string, cursor?: string) => request<MemoryTimeline>(`/api/v1/memory/timeline?${new URLSearchParams({start, end, ...(cursor ? {cursor} : {})})}`),
+  memoryTimeline: (start: string, end: string, cursor?: string, basis: "source" | "recorded" = "recorded") => request<MemoryTimeline>(`/api/v1/memory/timeline?${new URLSearchParams({start, end, basis, ...(cursor ? {cursor} : {})})}`),
   recoveryStatus: () => request<RecoveryStatus>("/api/v1/recovery"),
   startRecovery: (password: string) => request<RecoveryJob>("/api/v1/recovery", {method:"POST", body:JSON.stringify({password})}),
   // Sicherung ohne Helfer (Befund 8): das verschlüsselte, geprüfte Archiv als Datei für den Browser.
@@ -1175,6 +1187,7 @@ export const api = {
   mailMessage: (uid: string) => request<MailDetail>(`/api/v1/messages/${encodeURIComponent(uid)}`),
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),
+  taskCandidatePage: (limit: number, offset: number, temporal: "all" | "recent" | "review", generation?: string) => request<TaskCandidatePage>(`/api/v1/task-candidates/page?${new URLSearchParams({limit: String(limit), offset: String(offset), temporal, ...(generation ? {generation} : {})})}`),
   acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),

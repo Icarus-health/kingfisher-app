@@ -21,8 +21,8 @@ export function sichtbareTexte(code) {
   return treffer.map(t => t.trim()).filter(t => t.length > 1 && (/\s/.test(t) || /^[A-ZÄÖÜ]/.test(t)));
 }
 
-test("vorne stehen vier Bereiche in Alltagssprache, „Für Techniker“ steht hinten und als einziger abgesetzt", () => {
-  assert.deepEqual(BEREICHE.map(b => b.label), ["Zugänge", "Was Kingfisher darf", "Kingfisher und du", "Sicherung", "Für Techniker"]);
+test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und als einziger abgesetzt", () => {
+  assert.deepEqual(BEREICHE.map(b => b.label), ["Zugänge", "KI & Modelle", "Was Kingfisher darf", "Kingfisher und du", "Sicherung", "Für Techniker"]);
   assert.deepEqual(BEREICHE.filter(b => b.hinten).map(b => b.id), ["technik"]);
   assert.equal(BEREICHE.at(-1).id, "technik");
   assert.match(BEREICHE.at(-1).satz, /nichts geändert werden/);
@@ -43,7 +43,7 @@ test("es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verläs
 });
 
 test("die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet", () => {
-  const erwartet = ["modelle", "routing", "antwortzeiten", "suchindex", "akten", "rueckmeldungen", "befunde", "hintergrund", "filter", "quellen", "kartendienst", "google", "microsoft", "stand", "speicherorte", "fassung"];
+  const erwartet = ["routing", "antwortzeiten", "suchindex", "akten", "rueckmeldungen", "befunde", "hintergrund", "filter", "quellen", "kartendienst", "google", "microsoft", "stand", "speicherorte", "fassung"];
   assert.deepEqual(TECHNIK.map(t => t.id), erwartet);
   const technik = quelle("Einstellungen/Technik.tsx");
   for (const { id, titel, satz } of TECHNIK) {
@@ -54,9 +54,10 @@ test("die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx ver
 
 test("jede alte Kennung und jede neue führt an einen Ort, der existiert", () => {
   const alt = { setup: "zugaenge", mail: "zugaenge", calendar: "zugaenge", documents: "zugaenge", world: "darf", profile: "ich",
-    recovery: "sicherung", model: "technik", memory: "technik", automation: "technik", rueckmeldungen: "technik", advanced: "technik" };
+    recovery: "sicherung", model: "ki", "technik-modelle": "ki", memory: "technik", automation: "technik", rueckmeldungen: "technik", advanced: "technik" };
   for (const [kennung, bereich] of Object.entries(alt)) assert.equal(zielAus(`#${kennung}`).bereich, bereich, kennung);
-  assert.deepEqual(zielAus("#model"), { bereich: "technik", technik: "modelle" });
+  assert.deepEqual(zielAus("#model"), { bereich: "ki", technik: null });
+  assert.deepEqual(zielAus("#technik-modelle"), { bereich: "ki", technik: null });
   assert.deepEqual(zielAus("#memory"), { bereich: "technik", technik: "suchindex" });
   assert.deepEqual(zielAus("#technik-akten"), { bereich: "technik", technik: "akten" });
   assert.deepEqual(zielAus("#technik-gibtesnicht"), { bereich: "technik", technik: null });

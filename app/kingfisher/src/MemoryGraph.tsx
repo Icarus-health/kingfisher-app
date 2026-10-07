@@ -171,7 +171,8 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   const [graph, setGraph] = useState<MemoryGraph | null>(null);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<FilterId>("people");
-  const [section, setSection] = useState<"browse" | "status" | "support">("browse");
+  const [section, setSection] = useState<"browse" | "status" | "support">(() =>
+    new URLSearchParams(window.location.search).get("view") === "status" ? "status" : "browse");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const reviewSubmittingRef = useRef(false);
   const [personFilter, setPersonFilter] = useState<PersonFilter>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
@@ -195,7 +196,9 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
       if (reviewSubmittingRef.current) return;
       setSection("browse");
       setFilter("people");
-      setPersonFilter(new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
+      const query = new URLSearchParams(window.location.search);
+      setPersonFilter(query.get("people") === "review" ? "review" : "people");
+      if (query.get("view") === "status") setSection("status");
     };
     window.addEventListener("popstate", applyPeopleQuery);
     return () => window.removeEventListener("popstate", applyPeopleQuery);

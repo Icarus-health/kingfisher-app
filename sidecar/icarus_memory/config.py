@@ -277,6 +277,8 @@ class Settings:
     Form und Regeln: `model_roles.py`. Leer heißt: ein Modell für alles, wie
     bisher. Cloud steht nur mit dem Einwilligungszeitstempel der Rolle darin.
     """
+    cloud_models: dict[str, str] = field(default_factory=dict)
+    """Prepared regional model identifiers only; credentials live in the encrypted key store."""
     antwort_saetze: str = "an"
     """Formuliert das Modell der Rolle `antwort` belegte Sätze (zweiter Modellaufruf)? `an` (Vorgabe) oder `aus`.
 
@@ -424,6 +426,9 @@ class Settings:
             routing_profiles=[dict(x) for x in data.get("routing_profiles", []) if isinstance(x, dict)],
             model_roles={str(k): dict(v) for k, v in (data.get("model_roles") or {}).items()
                          if isinstance(v, dict)} if isinstance(data.get("model_roles"), dict) else {},
+            cloud_models={k: v for k, v in data.get('cloud_models', {}).items()
+                          if k in {'mistral', 'openrouter'} and isinstance(v, str)}
+                         if isinstance(data.get('cloud_models'), dict) else {},
             antwort_saetze="aus" if data.get("antwort_saetze") == "aus" else "an",
             satzpruefung_modell="aus" if data.get("satzpruefung_modell") == "aus" else "an",
             world_sources=[dict(x) for x in data.get("world_sources", []) if isinstance(x, dict)],

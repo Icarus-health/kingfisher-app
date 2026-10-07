@@ -4,11 +4,13 @@
 // (tests/einstellungen-gliederung.test.mjs) sucht darin nach Fachwörtern. `{Rechner}` wird „Mac“ oder „Rechner“, je nachdem,
 // wo Kingfisher läuft (`fuerSystem` in system.ts, Fremdprobe Befund 18).
 
-export type Bereich = "zugaenge" | "darf" | "ich" | "sicherung" | "technik";
+export type Bereich = "zugaenge" | "ki" | "darf" | "ich" | "sicherung" | "technik";
 
 export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string; hinten?: boolean }> = [
   { id: "zugaenge", label: "Zugänge",
     satz: "Woher Kingfisher seine Informationen holt: deine Post, deine Kalender und deine Ordner. Du verbindest, was du willst, und trennst es jederzeit wieder." },
+  { id: "ki", label: "KI & Modelle",
+    satz: "Richte ein Modell auf diesem Rechner ein oder speichere Zugangsdaten für einen optionalen Cloudanbieter." },
   { id: "darf", label: "Was Kingfisher darf",
     satz: "Fünf Schalter, alle aus, bis du sie einschaltest. Bei jedem steht, was dabei deinen Rechner verlässt." },
   { id: "ich", label: "Kingfisher und du",
@@ -52,7 +54,6 @@ export const ZUGAENGE = {
 
 /** Die Abschnitte hinter „Für Techniker“, in der Reihenfolge, in der sie eingeklappt erscheinen. */
 export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }> = [
-  { id: "modelle", titel: "Modelle je Aufgabe und Speicherbedarf", satz: "Welches Sprachmodell welche Aufgabe übernimmt, was alle zusammen an Speicher brauchen, lokale Modelle einrichten." },
   { id: "routing", titel: "Modellauswahl (Routing)", satz: "Automatische Wahl unter den eingerichteten Modellen nach einer Bereitschaftsprüfung." },
   { id: "antwortzeiten", titel: "Antwortzeiten, Sätze und Prüfmodell", satz: "Wie lange Antworten dauern und welche zusätzlichen Modellaufrufe dabei mitlaufen." },
   { id: "suchindex", titel: "Suchindex", satz: "Wie genau und wie platzsparend alte Quellen durchsucht werden." },
@@ -74,7 +75,7 @@ export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }>
 const ALT: Record<string, string> = {
   setup: "zugaenge", mail: "zugaenge", calendar: "zugaenge", documents: "zugaenge",
   world: "darf", profile: "ich", recovery: "sicherung",
-  model: "technik-modelle", memory: "technik-suchindex", automation: "technik-hintergrund",
+  model: "ki", "technik-modelle": "ki", memory: "technik-suchindex", automation: "technik-hintergrund",
   rueckmeldungen: "technik-rueckmeldungen", advanced: "technik",
 };
 

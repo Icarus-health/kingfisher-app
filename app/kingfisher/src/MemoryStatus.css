@@ -1,6 +1,9 @@
 .memory-status { padding: 32px; overflow: auto; min-width: 0; color: var(--kf-schrift-dbe8e9); }
 html:has(.memory-page-status), body:has(.memory-page-status), #root:has(.memory-page-status) { min-width: 0; }
 .memory-status > header, .memory-status-timeline-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.memory-status-timeline-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.memory-status-timeline-controls button[aria-pressed="true"] { border-color: var(--kf-rand-00a7c4); background: var(--kf-flaeche-153b4a); }
+.memory-status-error { color: var(--kf-schrift-adc5ca); }
 .memory-status h1 { font-size: 25px; margin: 8px 0 24px; }
 .memory-status h2 { font-size: 18px; margin-top: 0; }
 .memory-status button, .memory-status input { padding: 8px 12px; border: 1px solid var(--kf-rand-45606a); border-radius: 8px; background: var(--kf-flaeche-153b4a); color: inherit; font: inherit; }

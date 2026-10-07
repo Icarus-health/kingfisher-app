@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type ModelRoles, type ModelRoleState } from "../api";
+import { listenForCloudAccessChange } from "../cloudAccessEvents";
 import { SCHALTER } from "./gliederung";
 
 // „Cloud für Fragen und Antworten nutzen“: ein Schalter für die zwei Aufgaben, die ein Cloudanbieter übernehmen darf
@@ -19,40 +20,66 @@ export function CloudSchalter() {
   const [arbeitet, setArbeitet] = useState(false);
   const [fehler, setFehler] = useState("");
   const [hinweis, setHinweis] = useState("");
+  const loadVersion = useRef(0);
 
   useEffect(() => {
     let aktiv = true;
-    api.modelRoles().then(daten => { if (aktiv) setRollen(daten); }).catch(() => { if (aktiv) setGeladenFehler(true); });
-    return () => { aktiv = false; };
+    async function load() {
+      const version = ++loadVersion.current;
+      try {
+        const daten = await api.modelRoles();
+        if (aktiv && version === loadVersion.current) { setRollen(daten); setGeladenFehler(false); }
+      } catch {
+        if (aktiv && version === loadVersion.current) setGeladenFehler(true);
+      }
+    }
+    const cloudAccessChanged = () => {
+      setFrage(false); setAnbieter(""); setZugestimmt(false);
+      setFehler(""); setHinweis(""); setRollen(null); setGeladenFehler(false);
+      void load();
+    };
+    void load();
+    const unsubscribe = listenForCloudAccessChange(cloudAccessChanged);
+    return () => { aktiv = false; loadVersion.current++; unsubscribe(); };
   }, []);
 
   const aufgaben: ModelRoleState[] = rollen ? rollen.rollen.filter(r => r.rolle in AUFGABEN && r.cloud_moeglich) : [];
   const inCloud = aufgaben.filter(r => r.wirksam.quelle === "cloud");
   const an = inCloud.length > 0;
-  const mitSchluessel = rollen ? rollen.anbieter.filter(a => a.schluessel_da) : [];
+  const mitSchluessel = rollen ? rollen.anbieter.filter(a => a.schluessel_da && a.standardmodell.trim()) : [];
   const gewaehlt = anbieter || (mitSchluessel.length === 1 ? mitSchluessel[0].id : "");
   const anbieterName = (id: string) => rollen?.anbieter.find(a => a.id === id)?.label ?? id;
 
   async function ausschalten() {
     setArbeitet(true); setFehler(""); setHinweis(""); setFrage(false);
+    const version = loadVersion.current;
     try {
       let stand = rollen as ModelRoles;
-      for (const aufgabe of inCloud) stand = await api.saveModelRole(aufgabe.rolle, { cloud: false });
+      for (const aufgabe of inCloud) {
+        if (version !== loadVersion.current) return;
+        stand = await api.saveModelRole(aufgabe.rolle, { cloud: false });
+      }
+      if (version !== loadVersion.current) return;
       setRollen(stand);
       setHinweis("Fragen und Antworten bleiben wieder auf diesem Rechner.");
-    } catch (e) { setFehler(fehlerText(e)); }
+    } catch (e) { if (version === loadVersion.current) setFehler(fehlerText(e)); }
     finally { setArbeitet(false); }
   }
 
   async function einschalten() {
     if (!gewaehlt || !zugestimmt) return;
     setArbeitet(true); setFehler(""); setHinweis("");
+    const version = loadVersion.current;
     try {
       let stand = rollen as ModelRoles;
-      for (const aufgabe of aufgaben) stand = await api.saveModelRole(aufgabe.rolle, { cloud: true, anbieter: gewaehlt, einwilligung: true });
+      for (const aufgabe of aufgaben) {
+        if (version !== loadVersion.current) return;
+        stand = await api.saveModelRole(aufgabe.rolle, { cloud: true, anbieter: gewaehlt, einwilligung: true });
+      }
+      if (version !== loadVersion.current) return;
       setRollen(stand); setFrage(false); setZugestimmt(false);
       setHinweis(`Fragen und Antworten laufen jetzt über ${anbieterName(gewaehlt)}. Mit einem Klick auf den Schalter ist das wieder aus.`);
-    } catch (e) { setFehler(fehlerText(e)); }
+    } catch (e) { if (version === loadVersion.current) setFehler(fehlerText(e)); }
     finally { setArbeitet(false); }
   }
 
@@ -70,7 +97,7 @@ export function CloudSchalter() {
       {an && <p className="source-hint" role="status">Fragen und Antworten laufen über {anbieterName(inCloud[0].wahl.anbieter)}.</p>}
       {frage && !an && (mitSchluessel.length === 0
         ? <div className="darf-frage" role="group" aria-label="Cloud einschalten">
-          <p>Dafür braucht es einen Zugang bei einem Cloudanbieter. Den trägt ein Techniker unter <a href="#technik-modelle">Für Techniker</a> ein. Bis dahin bleibt alles auf diesem Rechner.</p>
+          <p>Dafür braucht es einen gespeicherten Zugang und ein Modell. Richte beides unter <a href="#ki">KI &amp; Modelle</a> ein. Bis dahin bleibt alles auf diesem Rechner.</p>
           <button type="button" className="secondary-action" onClick={() => setFrage(false)}>Verstanden</button>
         </div>
         : <div className="darf-frage" role="group" aria-label="Cloud einschalten">

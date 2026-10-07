@@ -137,7 +137,7 @@ export function LocalModelSettings() {
       <p>Soll Kingfisher deine Quellen jetzt lokal mit {configured} sortieren? Erst dann beantwortet das Gedächtnis Fragen aus Mails und Dokumenten und schlägt Aufgaben vor. Es wird nichts versendet und nichts automatisch bestätigt; pausieren kannst du jederzeit.{offer.pending === 1 ? " Eine Quelle wartet." : offer.pending > 1 ? ` ${offer.pending} Quellen warten.` : ""}</p>
       <button className="primary-action" disabled={offerBusy} type="button" onClick={() => void startClassification()}>{offerBusy ? "Wird gestartet …" : "Sortieren starten"}</button>
     </div>}
-    {offerNote && <p className="classification-offer-note" role={offerNote.ok ? "status" : "alert"}>{offerNote.text}{offerNote.ok ? <>{" "}<button className="secondary-action" type="button" onClick={() => navigate("/memory")}>Fortschritt ansehen</button></> : null}</p>}
+    {offerNote && <p className="classification-offer-note" role={offerNote.ok ? "status" : "alert"}>{offerNote.text}{offerNote.ok ? <>{" "}<button className="secondary-action" type="button" onClick={() => navigate("/memory?view=status")}>Fortschritt ansehen</button></> : null}</p>}
   </form>}
     {!expanded && loadError && <p role="alert">Die Modelleinrichtung konnte nicht geladen werden. Öffne „Modell verwalten“, um es erneut zu versuchen.</p>}
   </section>;

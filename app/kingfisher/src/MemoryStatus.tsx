@@ -3,6 +3,7 @@ import { api, type MemoryAutomation, type MemoryCoverage, type MemoryTimeline } 
 import { ProfileSource } from "./ProfileSource";
 import { navigate } from "./ui";
 import { FUNDE_SATZ, pruefSatz, sortiertGerade, sortierStand, sortierWirkung } from "./verarbeitung";
+import { newestSourceMonth, timelineDateValues, type TimelineBasis } from "./memoryStatusDates";
 import "./MemoryStatus.css";
 
 const labels: Record<string, string> = {source_received: "Quelle aufgenommen", accepted: "Aussage bestätigt", superseded: "Stand ersetzt", retracted: "Aussage widerrufen", disputed: "Grundlage entzogen"};
@@ -37,10 +38,13 @@ function WorkingMemoryProgress({progress, enabled, wartet}: {progress: NonNullab
 export function MemoryStatus() {
   const today = new Date();
   const [month, setMonth] = useState(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`);
+  const [basis, setBasis] = useState<TimelineBasis>("source");
   const [coverage, setCoverage] = useState<MemoryCoverage | null>(null);
   const [automation, setAutomation] = useState<MemoryAutomation | null>(null);
   const [timeline, setTimeline] = useState<MemoryTimeline | null>(null);
-  const [error, setError] = useState(false);
+  const [coverageError, setCoverageError] = useState(false);
+  const [coverageRefreshError, setCoverageRefreshError] = useState(false);
+  const [timelineError, setTimelineError] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const generation = useRef(0);
   const loadingMore = useRef(false);
@@ -48,27 +52,61 @@ export function MemoryStatus() {
   const [pageError, setPageError] = useState(false);
   const [automationBusy, setAutomationBusy] = useState(false);
   const [automationError, setAutomationError] = useState("");
+  const latestSourceMonth = newestSourceMonth(coverage?.source_dates?.latest);
+  const undatedSources = coverage?.source_dates?.undated ?? 0;
+  useEffect(() => {
+    let active = true;
+    let inFlight = false;
+    const loadCoverage = async () => {
+      if (!active || document.visibilityState !== "visible" || inFlight) return;
+      inFlight = true;
+      try {
+        const current = await api.memoryCoverage();
+        if (active) {
+          setCoverage(current);
+          setAutomation(current.automation ?? null);
+          setCoverageError(false);
+          setCoverageRefreshError(false);
+        }
+      } catch {
+        if (active) {
+          setCoverageError(true);
+          setCoverageRefreshError(true);
+        }
+      } finally { inFlight = false; }
+    };
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") void loadCoverage(); };
+    void loadCoverage();
+    const interval = window.setInterval(() => void loadCoverage(), 15000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [refresh]);
+
   useEffect(() => {
     generation.current += 1;
     loadingMore.current = false; setPaging(false); setPageError(false);
     let active = true;
-    setError(false); setTimeline(null);
+    setTimelineError(false); setTimeline(null);
     const [year, m] = month.split("-").map(Number);
-    if (!Number.isInteger(year) || year < 100 || year > 9999 || !m || m > 12) { setError(true); return; }
+    if (!Number.isInteger(year) || year < 100 || year > 9999 || !m || m > 12) { setTimelineError(true); return; }
     const start = new Date(year, m - 1, 1).toISOString();
     const end = new Date(year, m, 1).toISOString();
-    Promise.all([api.memoryCoverage(), api.memoryTimeline(start, end)])
-      .then(([c, t]) => { if (active) { setCoverage(c); setTimeline(t); setAutomation(c.automation ?? null); } })
-      .catch(() => { if (active) setError(true); });
+    api.memoryTimeline(start, end, undefined, basis)
+      .then(result => { if (active) setTimeline(result); })
+      .catch(() => { if (active) setTimelineError(true); });
     return () => { active = false; generation.current += 1; };
-  }, [month, refresh]);
+  }, [month, basis, refresh]);
 
   async function older() {
     if (!timeline?.next_cursor || loadingMore.current) return;
     const current = generation.current;
     loadingMore.current = true; setPaging(true); setPageError(false);
     try {
-      const next = await api.memoryTimeline(timeline.start, timeline.end, timeline.next_cursor);
+      const next = await api.memoryTimeline(timeline.start, timeline.end, timeline.next_cursor, basis);
       if (current === generation.current) setTimeline(next);
     } catch {
       if (current === generation.current) setPageError(true);
@@ -101,13 +139,14 @@ export function MemoryStatus() {
 
   return <section className="memory-status" aria-label="Verarbeitung und Verlauf">
     <header><div><p className="eyebrow">GEDÄCHTNIS</p><h1>Verarbeitung & Verlauf</h1></div><button type="button" onClick={() => setRefresh(x => x + 1)}>Aktualisieren</button></header>
-    {error ? <p role="alert">Der Gedächtnisstand konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !timeline || !coverage || !automation ? <p role="status">Gedächtnisstand wird geladen …</p> : <>
+    {coverageError && !coverage ? <p role="alert">Der Gedächtnisstand konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !coverage || !automation ? <p role="status">Gedächtnisstand wird geladen …</p> : <>
       <section className="memory-status-card"><h2>Was wurde geprüft?</h2>
         <p>{coverage.total_sources === 0 ? "Noch keine Nachrichten oder Dokumente aufgenommen." : `${coverage.total_sources} Nachrichten und Dokumente sind aufgenommen.`}</p>
         {/* Derselbe Stand wie „Automatisches Sortieren“ darunter, damit nach dem Klick nicht „pausiert“ neben „An“ steht (Befund 12). */}
         {coverage.working_memory_progress ? <WorkingMemoryProgress progress={coverage.working_memory_progress} enabled={sortiertGerade(automation)} wartet={automation.requested && !sortiertGerade(automation)} /> : null}
         <p className="memory-status-pruefung">{pruefSatz(coverage.counts)}</p>
         {coverage.truncated ? <p>Die Aufteilung zeigt die neuesten {coverage.sampled_sources} Quellen.</p> : null}
+        {coverageRefreshError ? <p className="memory-status-error" role="status">Der Fortschritt konnte gerade nicht aktualisiert werden. Angezeigt wird der letzte bekannte Stand.</p> : null}
         <section aria-label="Automatisches Sortieren">
           <h3>Automatisches Sortieren</h3>
           <p>{sortierStand(automation)}</p>
@@ -129,11 +168,31 @@ export function MemoryStatus() {
           <dl>{([["completed", "Prüflauf durchgeführt"], ["pending", "Noch zu prüfen"], ["partial", "Teilweise geprüft"], ["running", "In Bearbeitung"], ["failed", "Prüfung fehlgeschlagen"], ["excluded", "Von der Prüfung ausgeschlossen"]] as const).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{coverage.counts[key]}</dd></div>)}</dl>
         </details>
       </section>
-      <section className="memory-status-card"><div className="memory-status-timeline-heading"><h2>Verlauf</h2><label>Monat <input aria-label="Monat im Gedächtnisverlauf" type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }} /></label></div>
-        <p className="memory-status-note">Wann etwas aufgenommen oder entschieden wurde. Das Datum der Quelle kann älter sein.</p>
-        {timeline.items.length ? <ol>{timeline.items.map(item => <li key={item.id}><small>{date(item.recorded_at)} · {labels[item.kind] ?? "Gedächtnisänderung"}</small><p>{item.title}</p>{item.occurred_at && new Date(item.occurred_at).getTime() !== new Date(item.recorded_at).getTime() ? <small>Bezug der Quelle/Aussage: {date(item.occurred_at)}</small> : null}{item.episode_id ? <ProfileSource kind="episode" id={item.episode_id} onChange={() => setRefresh(x => x + 1)} /> : null}</li>)}</ol> : <p>Auf dieser Seite sind keine zugänglichen Einträge erfasst.</p>}
+      <section className="memory-status-card"><div className="memory-status-timeline-heading"><h2>{basis === "source" ? "Quellengeschichte" : "Änderungen am Gedächtnis"}</h2><label>Monat <input aria-label="Monat im Gedächtnisverlauf" type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }} /></label></div>
+        <div className="memory-status-timeline-controls" role="group" aria-label="Zeitachse auswählen">
+          <button type="button" aria-pressed={basis === "source"} onClick={() => setBasis("source")}>Quellengeschichte</button>
+          <button type="button" aria-pressed={basis === "recorded"} onClick={() => setBasis("recorded")}>Änderungen am Gedächtnis</button>
+          {basis === "source" && latestSourceMonth && month !== latestSourceMonth
+            ? <button type="button" onClick={() => setMonth(latestSourceMonth)}>Zum neuesten Quellmonat ({latestSourceMonth})</button>
+            : null}
+        </div>
+        {basis === "source" ? <>
+          <p className="memory-status-note">Hier stehen Originalquellen nach ihrem Quelldatum. Die Erfassungszeit bleibt separat sichtbar.</p>
+          {undatedSources > 0 ? <p className="memory-status-note">{undatedSources} {undatedSources === 1 ? "Quelle hat kein verlässliches Quelldatum und erscheint deshalb" : "Quellen haben kein verlässliches Quelldatum und erscheinen deshalb"} in keinem Quellmonat. Das Erfassungsdatum wird nicht als Quelldatum eingesetzt.</p> : null}
+        </> : <p className="memory-status-note">Wann Aussagen bestätigt, ersetzt oder widerrufen wurden. Das Datum der Quelle steht darunter, wenn es bekannt ist.</p>}
+        {timelineError ? <p role="alert">Die Zeitachse konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !timeline || timeline.basis !== basis ? <p role="status">Zeitachse wird geladen …</p> : timeline.items.length ? <ol>{timeline.items.map(item => {
+          const dates = timelineDateValues(item, basis);
+          const mainDate = dates.main ? date(dates.main) : "Quelldatum unbekannt";
+          return <li key={item.id}>
+            <small>{basis === "source" ? `Quelle vom ${mainDate}` : `${date(item.recorded_at)} · ${labels[item.kind] ?? "Gedächtnisänderung"}`}</small>
+            <p>{item.title}</p>
+            {basis === "source" ? <small>Erfasst am {date(item.recorded_at)}</small>
+              : dates.secondary && new Date(dates.secondary).getTime() !== new Date(dates.main ?? "").getTime() ? <small>Quelldatum: {date(dates.secondary)}</small> : null}
+            {item.episode_id ? <ProfileSource kind="episode" id={item.episode_id} onChange={() => setRefresh(x => x + 1)} /> : null}
+          </li>;
+        })}</ol> : <p>Für diesen Monat gibt es keine zugänglichen Einträge.</p>}
         {pageError ? <p role="alert">Weitere Einträge konnten nicht geladen werden. Bitte erneut versuchen.</p> : null}
-        {timeline.next_cursor ? <button type="button" disabled={paging} onClick={() => void older()}>{paging ? "Wird geladen …" : "Ältere Einträge anzeigen"}</button> : null}
+        {timeline?.basis === basis && timeline.next_cursor ? <button type="button" disabled={paging} onClick={() => void older()}>{paging ? "Wird geladen …" : "Ältere Einträge anzeigen"}</button> : null}
         <p className="memory-status-note">Je Seite bis zu 100 Einträge. „Aktualisieren“ zeigt wieder die neuesten.</p>
       </section>
     </>}
