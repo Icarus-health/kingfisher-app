@@ -16,6 +16,7 @@ export type Attention = {
   episode_id?: string | null;
   reason?: string;
   action?: string | null;
+  review_required?: boolean;
 };
 
 export type CalendarItem = Attention & { time: string };

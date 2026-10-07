@@ -11,7 +11,7 @@ Die nächste nutzbare Lieferung verbindet vorhandene Abläufe, statt weitere Kan
 - Keine Änderung oder Löschung persönlicher Bestände/Zugänge. Isolierte künstliche Daten für Bedienprüfung.
 - Keine Aussage, dass ein zweiter Modellaufruf Wahrheit garantiert; weiterhin Vorschläge.
 - Bestehende Quellen-/Modellwechsel-, Widerrufs- und Digest-Prüfungen erhalten.
-- Höchstens drei Kandidaten pro Prüfung; nur prüfen, wenn Kandidaten vorhanden sind; bestehender Cache verhindert wiederholte Arbeit.
+- Vordergrund höchstens drei Kandidaten; bestehende Hintergrundextraktion bis zu 31 Kandidaten gemeinsam in einer begrenzten Prüfung; nur prüfen, wenn Kandidaten vorhanden sind; bestehender Cache verhindert wiederholte Arbeit.
 - Vorhandene lokale Modellgewichte nacheinander verwenden; keine zusätzlichen großen Modelle laden.
 - Vorhandene freigegebene UI-Assets und Layouts verwenden.
 
@@ -21,7 +21,7 @@ Gemeinsame zweite Prüfung für Mailüberblick und Hintergrundvorschläge. Nur a
 
 ## Task 2: Heute als Einstieg in die tatsächliche Arbeit
 
-Sichtbarer Quellen-/Aktualitätsstreifen mit eindeutiger Kalender-/Mail-Lücke, direktem Reparaturlink und Aktualisierung. Keine Aussage „alles erledigt“, wenn Quellen fehlen. Neu-im-Blick-Mails direkt im vorhandenen Leser öffnen; Wissensklärungen direkt zur bestehenden Kläransicht. Begrenzte automatische Aktualisierung bei Rückkehr/Intervall ohne parallele Abruflawine; Antworten älterer Abrufe dürfen jüngere nicht überschreiben.
+Sichtbarer Quellen-/Aktualitätsstreifen mit eindeutiger Kalender-/Mail-Lücke, direktem Reparaturlink und Aktualisierung. Keine Aussage „alles erledigt“, wenn Quellen fehlen. Neu-im-Blick-Mails direkt im vorhandenen Leser öffnen; Bestehende Wissenshinweise führen zu ihren Quellenansichten; eine neue allgemeine Kläransicht gehört nicht zu dieser Lieferung. Begrenzte automatische Aktualisierung bei Rückkehr/Intervall ohne parallele Abruflawine; Antworten älterer Abrufe dürfen jüngere nicht überschreiben.
 
 ## Task 3: Weniger Klicks aus der Nachricht zur Aufgabe
 

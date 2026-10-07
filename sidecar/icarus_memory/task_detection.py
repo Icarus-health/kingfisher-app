@@ -9,6 +9,8 @@ from typing import Callable
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError
 from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
+from .task_review import REVIEW_MARKER
+from .model import SourceType
 
 
 @dataclass
@@ -118,7 +120,8 @@ class TaskDetector:
                             try:
                                 result = self.proposals.memory_analysis.finish(
                                     job, items, end,
-                                    proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}",
+                                    proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
+                                                + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL else ''),
                                 )
                             except Exception:
                                 self.proposals.memory_analysis.abandon(job)
@@ -177,5 +180,7 @@ def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS) -> dict:
                 'episode_id': episode.id,
                 'sender': _absender(episode),
                 'received_at': received.isoformat() if received else None,
+                'review_required': episode.provenance.source_type is SourceType.EMAIL
+                    and not proposal.proposed_by.endswith(REVIEW_MARKER),
             })
     return {'pending': pending, 'items': items, 'error': None}

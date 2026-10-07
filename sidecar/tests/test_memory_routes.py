@@ -9,7 +9,7 @@ from icarus_memory.model import Provenance, SourceType
 
 
 @pytest.mark.parametrize('truncated', [False, True])
-def test_completed_mail_analysis_keeps_capture_gap_visible_without_retry(tmp_path, truncated):
+def test_incomplete_capture_never_claims_a_completed_analysis(tmp_path, truncated):
     from icarus_memory.connectors.mail import Message
     from icarus_memory.episodes import EpisodeStore
     from icarus_memory.mail_ingestion import remember
@@ -21,8 +21,10 @@ def test_completed_mail_analysis_keeps_capture_gap_visible_without_retry(tmp_pat
     class Reader:
         name = model = 'synthetic-coverage'
         is_local = True
+        calls = 0
 
         def complete(self, messages, tools):
+            self.calls += 1
             return Reply(text='{"items": []}')
 
     episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
@@ -33,20 +35,24 @@ def test_completed_mail_analysis_keeps_capture_gap_visible_without_retry(tmp_pat
             date=None, preview='', unread=True, account_id='work',
             body='Technisch empfangener Text.', truncated=truncated))
         episode_id = result['episode']['id']
-        detector = TaskDetector(episodes, proposals, Reader(), RLock())
-        assert detector.run(with_model=True).analyzed == 1
+        reader = Reader()
+        detector = TaskDetector(episodes, proposals, reader, RLock())
+        assert detector.run(with_model=True).analyzed == (0 if truncated else 1)
 
         data = coverage(episodes, proposals)
 
         assert data['counts']['completed'] == (0 if truncated else 1)
-        assert data['counts']['partial'] == (1 if truncated else 0)
+        assert data['counts']['pending'] == (1 if truncated else 0)
         assert data['truncated_sources'] == (1 if truncated else 0)
         if truncated:
             assert 'gekürzt' in data['detail']
         assert data['semantic_completeness'] is False
-        assert proposals.memory_analysis.snapshot(episode_id)['state'] == 'completed'
         assert detector.run(with_model=True).analyzed == 0
-        assert proposals.memory_analysis.snapshot(episode_id)['attempts'] == 1
+        job = proposals.memory_analysis.snapshot(episode_id)
+        if truncated:
+            assert job is None and reader.calls == 0
+        else:
+            assert job['state'] == 'completed' and job['attempts'] == 1 and reader.calls == 1
     finally:
         proposals.close()
         episodes.close()

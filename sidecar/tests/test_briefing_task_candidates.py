@@ -92,9 +92,10 @@ def test_morning_briefing_offers_candidate_and_forgets_it_after_acceptance(env):
     app, client, episode, candidate = env
     [item] = _zusagen(client)
     assert item['title'] == 'Orion-Rechnung an Anna senden'
-    assert item['detail'] == 'Vorschlag aus einer Mail von Anna Keller · 22.9.'
+    assert item['detail'] == 'Vorschlag aus einer Mail von Anna Keller · 22.9.2026'
     assert item['source_ref'] == candidate.id and item['episode_id'] == episode.id
-    assert item['action'] == 'Als Aufgabe übernehmen'
+    assert item['action'] == 'Prüfen' and item['review_required'] is True
+    assert item['priority'] == '' and 'zusätzliche Aufgabenprüfung' in item['reason']
     # Ansehen legt nichts an.
     assert app.state.tasks.all_tasks() == []
 
@@ -103,6 +104,28 @@ def test_morning_briefing_offers_candidate_and_forgets_it_after_acceptance(env):
     assert response.status_code == 200
     assert response.json()['provenance']['source_ref'] == f'episode:{episode.id}'
     assert _zusagen(client) == []
+
+
+def test_new_semantic_screen_is_identified_without_certifying_existing_records(env):
+    app, client, episode, _ = env
+    legacy = app.state.proposals.pending(ProposalKind.TASK)[0]
+    assert client.get('/dashboard').json()['task_candidates']['items'][0]['review_required'] is True
+    # Preserve the legacy record; the new marker is issued only by the checked worker.
+    assert app.state.proposals.get(legacy.id).proposed_by == 'test/local'
+
+
+def test_reviewed_historical_source_keeps_its_year_in_visible_reason(env):
+    app, client, _, legacy = env
+    app.state.proposals.reject(legacy.id)
+    episode, _ = app.state.episodes.record(EpisodeKind.MESSAGE, 'Historische Bitte',
+        'Bitte prüfe den alten Entwurf.', Provenance(source_type=SourceType.EMAIL),
+        participants=['Anna <anna@example.test>'], occurred_at=datetime(2020, 9, 22, tzinfo=timezone.utc))
+    app.state.proposals.record_task_analysis(episode.id, episode.digest,
+        [{'title': 'Entwurf prüfen', 'quote': episode.body}], proposed_by='test/local/task-review-v1')
+    [item] = _zusagen(client)
+    assert item['review_required'] is False
+    assert '22.9.2020' in item['reason']
+    assert item['priority'] == ''
 
 
 def test_ignored_source_takes_the_candidate_out_of_the_briefing(env):

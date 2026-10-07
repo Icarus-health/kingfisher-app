@@ -22,7 +22,7 @@ export function BriefingSuggestion({item, onDone}: {item: Attention; onDone: (me
     } finally { setBusy(false); }
   }
   return <span className="briefing-suggestion">
-    <button type="button" className="secondary-action" disabled={busy} onClick={() => void accept()}>{busy ? "Wird übernommen …" : "Als Aufgabe übernehmen"}</button>
+    {!item.review_required && <button type="button" className="secondary-action" disabled={busy} onClick={() => void accept()}>{busy ? "Wird übernommen …" : "Als Aufgabe übernehmen"}</button>}
     <a className="attention-task-link" href="/vorhaben?view=mine&pruefen=1">Prüfen</a>
     {error && <small role="alert">{error}</small>}
   </span>;

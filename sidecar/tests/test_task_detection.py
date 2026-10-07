@@ -143,6 +143,8 @@ def test_known_own_sender_identity_is_passed_to_commitment_review(env):
     env.provider.complete = complete
     report = env.detector.run(with_model=True)
     assert report.proposed == 1 and report.failed == 0
+    from icarus_memory.task_detection import for_briefing
+    assert for_briefing(env.proposals, env.episodes)['items'][0]['review_required'] is False
 
 
 @pytest.mark.parametrize('change', ['contacts', 'tags'])
