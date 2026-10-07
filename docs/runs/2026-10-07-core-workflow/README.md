@@ -2,6 +2,14 @@
 
 7. Oktober 2026. Ausgangspunkt `96e8f64` (1.0.5); Branch `feat/core-workflow-20261007`. Umfang und Grenzen: [Kernablauf](../../59-kernablauf-gedaechtnis-cos.md).
 
+## Ergänzung: Alltagsinventur und laufende Kalendertermine
+
+- Aufgaben, Kalender und Gedächtnis erneut im Code geprüft; bestätigte Bestands-/Zeitraumgrenzen und nächste Abnahmen im [Alltagsfunktionen- und Quellenplan](../../62-alltagsfunktionen-und-quellenplan.md). Kein visueller Audit und keine neue WhatsApp-Verbindung.
+- Fehler der Siebentageliste unmittelbar mit ihrem bisherigen Filter reproduziert: ein am Vortag beginnender, weiterhin laufender mehrtägiger Termin fehlte. Tagesansicht und Liste verwenden nun dieselbe Intervallauswahl mit exklusiver Endzeit.
+- Vier echte Logiktests prüfen laufende Termine, Zeitraumgrenzen, Jahreswechsel bei bereits gelieferten Daten, fehlende/ungültige Endzeiten und die wiederholte Stunde bei der Zeitumstellung. Eine temporäre Rückkehr zum fehlerhaften Beginnfilter lässt zwei Tests gezielt scheitern; anschließend korrekte Fassung wiederhergestellt und vier Tests bestanden.
+- Vollständiger UI-Testbefehl: 337 bestanden. TypeScript und Produktionsbuild bestanden; vorhandener Bündelgrößenhinweis bleibt. Diese Tests ersetzen keine native Bedienprüfung. Backend, Jahresabruf, Google-Schreibablauf und persönliche App wurden nicht verändert. Kein erneuter vollständiger Backendlauf für diese reine Filterkorrektur.
+- Zusätzliche begrenzte Codeprüfung durch einen separaten günstigeren Agenten: keine Korrektheitsbefunde am Filter oder seiner Einbindung; keine Tests oder Bedienprüfung durch diesen Reviewer. Die Einordnung nichtpositiver Endzeiten als Zeitpunkt ist ausdrücklich Teil des getesteten Fallbacks.
+
 ## Endstand geprüft
 
 - 155 gezielte Backendtests bestanden: Cloud-Vorbereitung/Regionalrouting/Schlüsselspeicher, Rollen, beide Zeitachsen, Quellenentzug, Zeitklassifikation, Aufgabenprüfung/Paginierung und gemeinsamer Pilotablauf einschließlich Neustart.

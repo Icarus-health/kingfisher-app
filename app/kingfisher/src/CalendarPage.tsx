@@ -4,6 +4,7 @@ import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
 import { CalendarPreparation } from "./CalendarPreparation";
 import { CalendarFollowup } from "./CalendarFollowup";
+import { eventsInRange } from "./calendarRange";
 
 type View = "Liste" | "Woche" | "Monat" | "Jahr";
 const dateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -65,11 +66,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     return () => window.clearInterval(timer);
   }, []);
   const items = data?.items || [];
-  const onDay = (day: Date) => items.filter(e => {
-    if (!e.start) return false;
-    const start = new Date(e.start), end = e.end ? new Date(e.end) : start;
-    return start < plusDays(day, 1) && (end > day || dateKey(start) === dateKey(day));
-  });
+  const onDay = (day: Date) => eventsInRange(items, midnight(day), plusDays(day, 1));
   const weekStart = plusDays(focus, -(focus.getDay() + 6) % 7);
   const time = (value: string) => new Date(value).toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
   function grid(month: number, small = false) {
@@ -86,7 +83,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       })}
     </div>;
   }
-  const shown = view === "Liste" ? items.filter(e => e.start && new Date(e.start) >= midnight(today) && new Date(e.start) < plusDays(today, 7)) : onDay(focus);
+  const shown = view === "Liste" ? eventsInRange(items, midnight(today), plusDays(today, 7)) : onDay(focus);
   function shift(direction: number) {
     const next = view === "Woche" ? plusDays(focus, direction * 7) : new Date(year, focus.getMonth() + direction, 1);
     if (next.getFullYear() === year) setFocus(next);

@@ -49,6 +49,8 @@ Der [anschließende Plan](plans/2026-10-07-gedaechtnisfragen-verlauf-wiedervorla
 
 ## Reihenfolge der nächsten Lieferungen
 
+Die erneute Prüfung von Aufgaben, Kalender und Gedächtnis samt konkreten Bestandsgrenzen und WhatsApp-Einstieg steht im [Alltagsfunktionen- und Quellenplan](62-alltagsfunktionen-und-quellenplan.md). Die kleine Kalenderkorrektur dort ist umgesetzt; die weiteren Lieferungen bleiben offen.
+
 ### 1. Einen verlässlichen Arbeitstag belegen
 
 Die zwölf Abnahmefälle durchlaufen, den tatsächlichen Quellenumfang feststellen und das echte Modell gegen vorher festgelegte Antworten prüfen. Jede falsche Person, Frist oder verlorene Bedingung wird als wiederholbarer Prüffall erfasst. Bedienhürden werden am Mac beobachtet. Konkrete Fehler korrigieren, bevor neue Quellenarten dazukommen.
