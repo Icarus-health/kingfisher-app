@@ -20,13 +20,13 @@
 | Echtes lokales Modell | Installiertes `kingfisher-qwen3.5:9b-32k`, ausschließlich erfundene Mail. Finaler Überblick 2,72 Sekunden, identischer Cachetreffer, keine Aufgabe geschrieben. |
 | Lokaler Dockerkandidat auf Code `73f5478` | Eigener Port 8893, flüchtige Beispieldaten, keine produktiven Konten oder Datenvolumes. Finale Mail-API-Antwort in 3,85 Sekunden mit beiden relevanten Originalpassagen; weiterhin null Aufgaben. |
 | Gerenderter Nutzerfluss | Am 7. Oktober in der freigegebenen nativen Test-App auf Port 8893 geprüft; Einzelheiten unten. Die vorherige Zugriffssperre ist für dieses Testfenster aufgehoben. |
-| Produktive Mac-Installation / Updater | Nicht durchgeführt; bisheriger Kingfisher und Daten unverändert. Kein öffentlicher Release oder neues Updateangebot veröffentlicht. |
+| Produktive Mac-Installation / Updater | Am 7. Oktober nach ausdrücklicher Freigabe mit Version 1.0.3 durchgeführt; siehe separates Auslieferungsprotokoll. |
 
 Modellbeispiel: Die Auszüge enthalten „Bitte sende mir den Atlas-Bericht bis Freitag.“ und den vollständigen Satz „Das Hotel ist noch nicht gebucht. Erst nach der Freigabe durch Nora dürfen wir buchen.“ Der abschließende Prompt lässt reine Anreden aus. Das ist ein einzelner Nützlichkeitsbeleg, keine Messung einer allgemeinen Fehlerrate. Generierte Aufgabentitel bleiben prüfpflichtige Vorschläge.
 
-## Noch offene Auslieferung
+## Auslieferung abgeschlossen · 7. Oktober
 
-Die native Abnahme der künstlichen Mailbeispiele ist erledigt. Integration und Veröffentlichung stehen weiterhin aus: Fassung/Notizen auf main, veröffentlichte GHCR-Version und Manifest, anschließend Mac-Updater mit Sicherung und Bestandsprüfung. Ein lokaler Kandidat ist kein herunterladbares Update. Reale Postfächer wurden in dieser Abnahme nicht verwendet.
+Nach ausdrücklicher Nutzerfreigabe gemergt, 1.0.3 veröffentlicht und den produktiven Mac über den Updater samt Sicherung/Bestandsvergleich aktualisiert. Danach auch den nativen Starter ersetzt. Der neue Mailüberblick wurde zusätzlich an einer echten Nachricht nur lesend geöffnet. Offene Qualitätsgrenzen bleiben dokumentiert: [Auslieferungsprotokoll](../release-1.0.3-20261007/README.md).
 
 ## Ausführung und Daten
 
@@ -34,7 +34,7 @@ Alle Prüfungen liefen lokal, ohne GitHub-Actions-Neustart. Commitnachrichten tr
 
 Entwurf und weitere Reihenfolge: `docs/superpowers/specs/2026-10-06-mail-workflow-memory-care.md`; ausführbarer Plan: `docs/superpowers/plans/2026-10-06-mail-workflow-memory-care.md`.
 
-**Draft PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Nicht gemergt oder als öffentliches Update veröffentlicht.
+**PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Am 7. Oktober gemergt und als Version 1.0.3 ausgeliefert.
 
 
 ## Ergänzende Abnahme · 7. Oktober 2026

@@ -89,3 +89,7 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 ### 2026-10-07 final corrections
 
 Short task evidence is kept as an overview passage but excluded from task proposals below the existing eight-character save minimum. Integration regression and exact boundary passed. Current affected backend set: 76 passed; frontend: 284 passed and production build passed. Independent review accepted the final fix. Cloud preparation requested for both Mistral and OpenRouter, without activation or paid calls; documented separately in `docs/58-cloud-vorbereitung-mistral-openrouter.md`.
+
+### Delivery completed 2026-10-07
+
+User explicitly authorized merge, release and Mac update. PR #3 merged; v1.0.3 release succeeded once; native updater completed against the production volume, original rows and credentials compared, launcher also replaced at the existing path. See `docs/runs/release-1.0.3-20261007/README.md` for exact evidence and remaining semantic task-suggestion/calendar limits. No cloud activation.
