@@ -92,6 +92,27 @@ def test_erledigte_quellen_fallen_aus_der_schlange_und_der_fortschritt_zaehlt_si
     assert zaehlen(ep) == {'gesamt': 8, 'fertig': 1}
 
 
+def test_veraltete_einordnung_bleibt_in_der_priorisierten_warteschlange(bestand):
+    ep, ids = bestand
+    ep._conn.execute("INSERT INTO working_memory_sources(episode_id,fingerprint,status) VALUES(?,?,?)",
+                     (ids['termin_uebermorgen'], 'f', 'complete'))
+    ep._conn.execute(
+        "UPDATE working_memory_sources SET analysis_version=0 WHERE episode_id=?",
+        (ids['termin_uebermorgen'],))
+    ep._conn.commit()
+
+    plan = [item.episode_id for item in ordnen(ep, JETZT)]
+    assert ids['termin_uebermorgen'] in plan
+    assert zaehlen(ep) == {'gesamt': 8, 'fertig': 0}
+
+    ep._conn.execute(
+        "UPDATE working_memory_sources SET retry_after=? WHERE episode_id=?",
+        (time.time() + 3600, ids['termin_uebermorgen']))
+    ep._conn.commit()
+    assert ids['termin_uebermorgen'] not in [item.episode_id for item in ordnen(ep, JETZT)]
+    assert zaehlen(ep) == {'gesamt': 8, 'fertig': 0}
+
+
 def test_steuerung_gibt_quellen_in_reihenfolge_aus_und_stellt_ausgegebene_zurueck(bestand):
     ep, ids = bestand
     steuerung = Steuerung(None, lambda: ep, uhr=Uhr(), wanduhr=lambda: JETZT)

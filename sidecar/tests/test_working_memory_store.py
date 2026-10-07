@@ -51,6 +51,46 @@ def test_empty_completion_and_restart_keep_source_out_of_pending(tmp_path):
     assert reopened.get(episode.id).body == "Nur eine beiläufige Nachricht"
 
 
+def test_analysis_version_is_explicit_and_current(tmp_path):
+    import icarus_memory.working_memory_store as module
+
+    assert module.ANALYSIS_VERSION == 1
+
+
+def test_outdated_interpretation_stays_readable_but_counts_as_pending(tmp_path):
+    episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
+    memory = WorkingMemoryStore(episodes)
+    episode = source(episodes, "Bitte prüfe den Orion Vertrag")
+    snapshot = memory.pending()[0]
+    assert memory.commit(snapshot, [{"start": 0, "end": len(episode.body), "kind": "request"}], model="local-v1")
+    ref = memory.search("Orion")["refs"][0]
+    with episodes.transaction():
+        episodes._conn.execute(
+            "UPDATE working_memory_sources SET analysis_version=0 WHERE episode_id=?",
+            (episode.id,))
+
+    assert memory.source_state(episode.id) == "pending"
+    assert memory.pending() == [snapshot]
+    assert memory.resolve(ref).episode.body == episode.body
+    assert memory.coverage()["pending"] == 1
+    assert memory.progress()["done"] == 0
+    assert memory.progress()["remaining"] == 1
+
+
+def test_outdated_interpretation_is_open_in_classification_state(tmp_path):
+    episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
+    memory = WorkingMemoryStore(episodes)
+    episode = source(episodes, "Orion has one useful detail")
+    snapshot = memory.pending()[0]
+    assert memory.commit(snapshot, [{"start": 0, "end": len(episode.body), "kind": "fact"}], model="local-v1")
+    with episodes.transaction():
+        episodes._conn.execute(
+            "UPDATE working_memory_sources SET analysis_version=0 WHERE episode_id=?", (episode.id,))
+
+    assert memory.classification_state([episode.id]) == {
+        "eingeordnet": 0, "offen": 1, "ausgeschlossen": 0}
+
+
 def test_ignore_reopen_and_dismiss_never_revive_old_refs(tmp_path):
     episodes = EpisodeStore(tmp_path / "episodes.sqlite3")
     memory = WorkingMemoryStore(episodes)

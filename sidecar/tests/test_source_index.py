@@ -214,6 +214,7 @@ def test_bereich_und_art_schraenken_ein(episodes):
 
 def downgrade(path, version=11):
     with sqlite3.connect(path) as connection:
+        connection.execute('ALTER TABLE working_memory_sources DROP COLUMN analysis_version')
         drop_intake_extensions(connection)  # entfernt auch den Suchindex
         from icarus_memory import mail_intake, memory_categories
         mail_intake.migrate(connection)
@@ -234,7 +235,7 @@ def test_migration_fuellt_den_index_aus_dem_bestand(tmp_path):
     downgrade(path)
 
     store = EpisodeStore(path)
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 17
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 18
     assert indexed(store) == {frisch.id, neu.id}
     assert alt.id not in indexed(store) and ignoriert.id not in indexed(store)
     assert set(ids(find(store, "Stromrechnung"))) == {frisch.id, neu.id}

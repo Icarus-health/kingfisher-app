@@ -402,6 +402,7 @@ export type Task = {
 export type MailDetail = {
   uid: string; subject: string; from: string; date: string | null;
   body: string; preview: string; answer_to: string; message_id: string;
+  source_digest?: string;
   account_label?: string; can_reply: boolean; sending_account: string; truncated: boolean;
 };
 
@@ -413,6 +414,17 @@ export type MailTaskSuggestions = {
   detail: string;
   source_digest: string | null;
   items: Array<{ title: string; quote: string }>;
+};
+
+export type MailBriefing = {
+  uid: string;
+  available: boolean;
+  status: "ready" | "empty" | "unavailable" | "incomplete";
+  detail: string;
+  source_digest: string | null;
+  quotes: string[];
+  tasks: Array<{ title: string; quote: string }>;
+  truncated: boolean;
 };
 
 export type InboxMessage = {
@@ -1162,6 +1174,7 @@ export const api = {
   acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
+  mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
   addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest?: string | null; source_quote?: string | null}) =>
     request<Task>(`/api/v1/messages/${encodeURIComponent(uid)}/task`, {method: "POST", body: JSON.stringify(data)}),
   prepareMailReply: (uid: string, data: {body: string; context_token?: string}) => request<ConversationPayload>(`/api/v1/messages/${encodeURIComponent(uid)}/reply`, {method: "POST", body: JSON.stringify(data)}),

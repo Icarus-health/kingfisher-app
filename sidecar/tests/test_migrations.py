@@ -116,8 +116,39 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (17 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+    assert _version(path) == (18 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
     assert _tables(path) == expected
+
+
+def test_v17_migration_stamps_existing_interpretations_without_reclassification(tmp_path):
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    path = tmp_path / "episodes.sqlite3"
+    episodes = EpisodeStore(path)
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, "Original", "Orion bleibt unverändert",
+        Provenance(SourceType.CHAT, source_ref="chat:local"), at=T0)
+    memory = WorkingMemoryStore(episodes)
+    assert memory.commit(episodes.support_snapshot(episode.id),
+                         [{"start": 0, "end": len(episode.body), "kind": "fact"}], model="local-v1")
+    before_ref = memory.search("Orion")["refs"][0]
+    episodes.close()
+
+    connection = sqlite3.connect(path)
+    connection.execute("ALTER TABLE working_memory_sources DROP COLUMN analysis_version")
+    connection.execute("PRAGMA user_version = 17")
+    connection.commit()
+    connection.close()
+
+    reopened = EpisodeStore(path)
+    refreshed = WorkingMemoryStore(reopened)
+    row = reopened._conn.execute(
+        "SELECT analysis_version FROM working_memory_sources WHERE episode_id=?", (episode.id,)).fetchone()
+    assert row[0] == 1
+    assert refreshed.pending() == []
+    assert refreshed.resolve(before_ref).episode.body == "Orion bleibt unverändert"
+    assert reopened.get(episode.id).body == "Orion bleibt unverändert"
+    reopened.close()
 
 
 @pytest.mark.parametrize(("name", "factory", "_expected"), STORE_SPECS)
@@ -450,7 +481,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (17 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+        assert _version(paths[name]) == (18 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]

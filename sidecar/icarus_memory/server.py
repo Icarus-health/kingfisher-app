@@ -2348,7 +2348,7 @@ def create_app(
     @app.get("/api/v1/messages/{uid}", dependencies=guard)
     def read_kingfisher_mail(uid: str) -> dict[str, Any]:
         message = _read_mail(uid)
-        return {**message.to_dict(), "can_reply": _can_reply(message),
+        return {**message.to_dict(), "source_digest": mail_source_digest(message), "can_reply": _can_reply(message),
                 "sending_account": getattr(_mail_or_404(), "sender_label", lambda _: "Standardkonto")(message.account_id)}
 
     @app.post("/api/v1/messages/{uid}/reply", dependencies=guard, status_code=201)
@@ -5866,6 +5866,8 @@ def create_app(
         }
 
     from .mail_reply_suggestions import register_reply_suggestions
+    from .mail_briefing import register as register_mail_briefing
+    register_mail_briefing(app, guard, _read_mail)
     register_reply_suggestions(app, guard)
     from .mail_style import register_mail_style
     register_mail_style(app, guard)
