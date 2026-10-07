@@ -65,8 +65,13 @@ def pruefen(tag: str, wurzel: Path = WURZEL) -> str:
     if tag != f'v{fassung}':
         raise Fehler(f'Der Tag {tag} passt nicht zu VERSION ({fassung}). Erwartet ist der Tag v{fassung}.')
     datei = notiz(fassung, wurzel)
-    if not datei.is_file() or not hinweise(datei.read_text(encoding='utf-8')):
+    if not datei.is_file():
         raise Fehler(f'Es fehlen die Neuerungen: docs/fassungen/{fassung}.md mit mindestens einem Spiegelstrich.')
+    text = datei.read_text(encoding='utf-8')
+    if not hinweise(text):
+        raise Fehler(f'Es fehlen die Neuerungen: docs/fassungen/{fassung}.md mit mindestens einem Spiegelstrich.')
+    # Tag creation must reject notes that the later manifest build cannot publish.
+    manifest(fassung, 'Icarus-health/kingfisher-app', date.today().isoformat(), text)
     return fassung
 
 
