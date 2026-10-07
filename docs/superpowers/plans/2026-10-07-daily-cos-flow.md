@@ -21,7 +21,7 @@ Gemeinsame zweite Prüfung für Mailüberblick und Hintergrundvorschläge. Nur a
 
 ## Task 2: Heute als Einstieg in die tatsächliche Arbeit
 
-Sichtbarer Quellen-/Aktualitätsstreifen mit eindeutiger Kalender-/Mail-Lücke, direktem Reparaturlink und Aktualisierung. Keine Aussage „alles erledigt“, wenn Quellen fehlen. Neu-im-Blick-Mails direkt im vorhandenen Leser öffnen; Bestehende Wissenshinweise führen zu ihren Quellenansichten; eine neue allgemeine Kläransicht gehört nicht zu dieser Lieferung. Begrenzte automatische Aktualisierung bei Rückkehr/Intervall ohne parallele Abruflawine; Antworten älterer Abrufe dürfen jüngere nicht überschreiben.
+Sichtbarer Quellen-/Aktualitätsstreifen mit eindeutiger Kalender-/Mail-Lücke, direktem Reparaturlink und Aktualisierung. Keine Aussage „alles erledigt“, wenn Quellen fehlen. Neu-im-Blick-Mails direkt im vorhandenen Leser öffnen. Bestehende Wissenshinweise führen zu ihren Quellenansichten; eine neue allgemeine Kläransicht gehört nicht zu dieser Lieferung. Begrenzte automatische Aktualisierung bei Rückkehr/Intervall ohne parallele Abruflawine; Antworten älterer Abrufe dürfen jüngere nicht überschreiben.
 
 ## Task 3: Weniger Klicks aus der Nachricht zur Aufgabe
 
