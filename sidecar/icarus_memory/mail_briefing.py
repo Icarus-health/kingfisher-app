@@ -70,7 +70,7 @@ def _provider(app):
 
 def _fingerprint(message):
     values = {key: getattr(message, key, None) for key in
-              ('uid', 'account_id', 'message_id', 'sender', 'reply_to', 'subject', 'body', 'preview', 'date', 'truncated', 'own_addresses', 'recipients', 'list_mail')}
+              ('uid', 'account_id', 'message_id', 'sender', 'reply_to', 'subject', 'body', 'preview', 'date', 'truncated', 'own_addresses', 'recipients', 'list_mail', 'in_reply_to', 'references')}
     return hashlib.sha256(json.dumps(values, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
@@ -143,7 +143,12 @@ def register(app, guard, read_mail):
         text = message.body or message.preview or ''
         passages, incomplete = _passages(text)
         incomplete = incomplete or bool(message.truncated)
-        base = {'uid': uid, 'available': False, 'status': 'unavailable', 'source_digest': digest,
+        from datetime import datetime, timezone
+        from .mail_timeline import message_timing
+        def timing():
+            return message_timing(app.state.episodes, message, now=datetime.now(timezone.utc))
+        time_info = timing()
+        base = {**time_info, 'uid': uid, 'available': False, 'status': 'unavailable', 'source_digest': digest,
                 'quotes': [], 'tasks': [], 'truncated': incomplete, 'task_review': 'not_needed',
                 'detail': 'Für den Kurzüberblick wird ein installiertes lokales Modell benötigt.'}
         if not passages:
@@ -178,7 +183,7 @@ def register(app, guard, read_mail):
                     if not permitted() or _fingerprint(current) != fingerprint:
                         raise HTTPException(409, 'Die Grundlage der Nachricht wurde geändert.')
                     state.cache.move_to_end(key)
-                    return deepcopy(state.cache[key])
+                    return {**deepcopy(state.cache[key]), **timing()}
             try:
                 provider = local_model_guard.VerifiedLocalProvider(selected, permitted=permitted)
                 reply = provider.complete_json([
@@ -219,6 +224,6 @@ def register(app, guard, read_mail):
                     result['detail'] = 'Originalauszüge verfügbar. Die Aufgabenprüfung konnte nicht abgeschlossen werden; bitte erneut versuchen.'
                 else:
                     state.put(key, result)
-                return result
+                return {**result, **timing()}
         finally:
             state.lock.release()

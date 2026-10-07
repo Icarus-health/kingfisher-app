@@ -10,7 +10,7 @@ from .model import Provenance, SourceType
 from .source_versions import track_source
 
 
-def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=None) -> dict:
+def source_key_for_message(message, source_identity=None):
     # Die serverseitige UID bindet eine Mail an ihr Konto. Message-ID ist ein
     # fremdes Headerfeld und darf keine andere Mail ersetzen können.
     uid = message.uid
@@ -20,7 +20,11 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
         raise ValueError("Die Nachricht hat keine verlässliche Kennung.")
     if source_identity is None and getattr(message, 'provider_id', ''):
         source_identity = 'gmail:' + message.provider_id
-    key = "mail:" + hashlib.sha256(json.dumps([message.account_id, source_identity if source_identity is not None else uid]).encode()).hexdigest()
+    return "mail:" + hashlib.sha256(json.dumps([message.account_id, source_identity if source_identity is not None else uid]).encode()).hexdigest()
+
+
+def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=None) -> dict:
+    key = source_key_for_message(message, source_identity)
     source_ref = message.message_id or f"imap:{message.uid}"
     if message.account_id:
         source_ref = f"{message.account_id}:{source_ref}"
@@ -31,6 +35,27 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
                                     eigene=getattr(message, "own_addresses", ()))
     teilnehmer = kontakte.teilnehmer_texte(beteiligte, absender_text=message.sender)
     text = message.body or message.preview
+    from .mail_timeline import thread_tags, SELF, REPLY
+    from .episodes import source_metadata_digest
+    headers = thread_tags(message)
+    tags = (["source:truncated"] if message.truncated else []) + headers
+    head = episodes.source_head(key)
+    if head:
+        existing = episodes.get(head)
+        # Header enrichment is advisory metadata, not a replacement source.
+        old = existing.to_dict()
+        old['tags'] = [t for t in existing.tags if not t.startswith((SELF, REPLY))]
+        incoming = {'kind': EpisodeKind.MESSAGE.value, 'title': message.subject or '(kein Betreff)',
+                    'occurred_at': message.date.isoformat() if message.date else None,
+                    'participants': teilnehmer, 'tags': [t for t in tags if not t.startswith((SELF, REPLY))]}
+        from .episodes import digest_of
+        if existing.digest == digest_of(text) and source_metadata_digest(old) == source_metadata_digest(incoming):
+            if existing.state is not EpisodeState.IGNORED:
+                if not existing.contacts and beteiligte:
+                    existing = episodes.add_contacts(existing.id, beteiligte, teilnehmer)
+                existing = episodes.add_mail_headers(existing.id, headers)
+            return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
+                                     {'episode': existing.to_dict(), 'new': False, 'changed': False})
     vorhanden = _ohne_beteiligte_gespeichert(episodes, key, text)
     if vorhanden is not None and beteiligte:
         # Dieselbe Mail, früher ohne Empfänger aufgenommen: ergänzen statt eine
@@ -38,21 +63,32 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
         # Nutzer ausgeschlossene Quelle bleibt unangetastet ausgeschlossen.
         if vorhanden.state is not EpisodeState.IGNORED:
             vorhanden = episodes.add_contacts(vorhanden.id, beteiligte, teilnehmer)
-        return {"episode": vorhanden.to_dict(), "new": False, "changed": False}
+            vorhanden = episodes.add_mail_headers(vorhanden.id, headers)
+        return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
+                                 {"episode": vorhanden.to_dict(), "new": False, "changed": False})
     episode, created = episodes.record(
         EpisodeKind.MESSAGE, message.subject or "(kein Betreff)",
         text,
         Provenance(source_type=SourceType.EMAIL, source_ref=source_ref, captured_at=message.date),
         occurred_at=message.date, participants=teilnehmer, contacts=beteiligte,
-        tags=["source:truncated"] if message.truncated else [],
+        tags=tags,
         source_key=key,
     )
     changed = track_source(episodes, claims, key, episode)
-    # Anhänge (PDF-Rechnungen, Verträge) werden je eine eigene Quelle mit denselben Beteiligten (`anhaenge.py`).
-    from .anhaenge import aufnehmen as anhaenge_aufnehmen
-    anhaenge = anhaenge_aufnehmen(episodes, message, schluessel=key, herkunft=source_ref, beteiligte=beteiligte,
-                                  teilnehmer=teilnehmer, claims=claims) if getattr(message, "anhaenge", ()) else []
-    return {"episode": episode.to_dict(), "new": created, "changed": changed, "anhaenge": anhaenge}
+    return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
+                             {"episode": episode.to_dict(), "new": created, "changed": changed})
+
+
+def _with_attachments(episodes, message, key, contacts, participants, claims, result):
+    # Exclusion of the original also prevents an unchanged capture from reviving its attachments.
+    from .anhaenge import aufnehmen
+    source_ref = message.message_id or f"imap:{message.uid}"
+    if message.account_id:
+        source_ref = f"{message.account_id}:{source_ref}"
+    result['anhaenge'] = (aufnehmen(episodes, message, schluessel=key, herkunft=source_ref,
+        beteiligte=contacts, teilnehmer=participants, claims=claims)
+        if getattr(message, 'anhaenge', ()) and result['episode']['state'] != 'ignored' else [])
+    return result
 
 
 def _ohne_beteiligte_gespeichert(episodes: EpisodeStore, key: str, text: str):

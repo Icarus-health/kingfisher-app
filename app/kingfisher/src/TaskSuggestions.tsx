@@ -36,7 +36,7 @@ function Suggestion({item, projects, onDone}: {item: TaskCandidate; projects: Pr
   const [title, setTitle] = useState(item.statement);
   const [project, setProject] = useState("");
   // Eine Frist aus einer privaten Mail bringt ihr Datum mit (akten_arten.py); geändert werden kann es trotzdem.
-  const [due, setDue] = useState(item.valid_until ? item.valid_until.slice(0, 10) : "");
+  const [due, setDue] = useState(item.temporal_status === "recent" && item.valid_until ? item.valid_until.slice(0, 10) : "");
   const [waiting, setWaiting] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -57,6 +57,10 @@ function Suggestion({item, projects, onDone}: {item: TaskCandidate; projects: Pr
   }
   return <article className="mail-task-form">
     <h3>{item.statement}</h3>
+    <p>{item.temporal_reason || 'Zeitliche Einordnung bitte prüfen.'}</p>
+    <p>Quelldatum: {item.received_at ? new Date(item.received_at).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}) : 'unbekannt'}
+      {item.recorded_at && <> · Erfasst: {new Date(item.recorded_at).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'})}</>}</p>
+    {item.followup_episode_id && <div><p>Weitere Nachricht im Verlauf:</p><ProfileSource kind="episode" id={item.followup_episode_id} allowIgnore={false} /></div>}
     {item.evidence.map(evidence => <div key={evidence.episode_id}><blockquote>{evidence.quote}</blockquote><ProfileSource kind="episode" id={evidence.episode_id} allowIgnore={false} /></div>)}
     {!open ? <div><button className="secondary-action" type="button" onClick={() => setOpen(true)}>Aufgabe prüfen</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void save(false)}>Verwerfen</button></div> :
       <form onSubmit={event => {event.preventDefault(); void save(true);}}>

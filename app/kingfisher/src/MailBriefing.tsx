@@ -102,6 +102,7 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
     </div> : null}
     {result && showsQuotes ? <>
       {result.task_review === "unavailable" && <p className="mail-reader-status" role="status">{result.detail} <button className="mail-reader-secondary" type="button" onClick={() => load(true)}>Aufgabenprüfung wiederholen</button></p>}
+      {result.temporal_status !== 'recent' && <p className="mail-reader-status" role="status">{result.temporal_reason || 'Zeitliche Einordnung unbekannt. Bitte zuerst prüfen.'}</p>}
       <p className="mail-briefing-source">Auszüge aus der Originalnachricht</p>
       {result.quotes.slice(0, 3).length ? <ul className="mail-briefing-quotes">
         {result.quotes.slice(0, 3).map((quote, index) => <li key={`${index}:${quote}`}>„{quote}“</li>)}
@@ -112,7 +113,7 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
         {tasks.map((task) => { const taskKey = JSON.stringify([uid, result.source_digest, task.title, task.quote]); return <article className="mail-briefing-task" key={taskKey}>
           <div><p className="mail-briefing-task-title">{task.title}</p><p className="mail-briefing-task-quote">„{task.quote}“</p></div>
           <div className="mail-briefing-task-actions">
-            <MailQuickTask uid={uid} title={task.title} quote={task.quote} sourceDigest={result.source_digest!} disabled={taskSelectionDisabled || accepted.has(taskKey)} onSaved={() => { setAccepted(previous => new Set(previous).add(taskKey)); onTaskSaved?.(); }} />
+            {result.temporal_status === 'recent' && <MailQuickTask uid={uid} title={task.title} quote={task.quote} sourceDigest={result.source_digest!} disabled={taskSelectionDisabled || accepted.has(taskKey)} onSaved={() => { setAccepted(previous => new Set(previous).add(taskKey)); onTaskSaved?.(); }} />}
             <button className="mail-reader-secondary" disabled={taskSelectionDisabled || accepted.has(taskKey)} onClick={() => onPrepareTask({ ...task, source_digest: result.source_digest! })} type="button">Als Aufgabe vorbereiten</button>
           </div>
         </article>; })}

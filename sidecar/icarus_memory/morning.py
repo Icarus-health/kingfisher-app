@@ -400,6 +400,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         # Die drei Zeilen des Logbuchs („Seit gestern Abend: …“), ganz oben im Briefing (`logbuch.py`).
         "verlauf": list(verlauf or []),
         "relevance_count": len(attention),
+        "historical_task_reviews": int((dashboard.get("task_candidates") or {}).get("review_pending") or 0),
         "needs_you": list(attention.values())[:3],
         "happening_now": happening[:3],
         "working_memory_more": bool(dashboard.get('working_memory', {}).get('truncated') or

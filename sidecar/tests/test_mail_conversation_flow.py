@@ -467,6 +467,8 @@ def test_quick_mail_task_is_idempotent_and_never_invents_due_or_person():
     from icarus_memory.mail_task_suggestions import source_digest
     app, first, second = mail_app()
     second.item.body = 'Bitte das Angebot prüfen.'
+    from datetime import datetime, timezone
+    second.item.date = datetime.now(timezone.utc)
     client = TestClient(app)
     payload = {'title': 'Angebot prüfen', 'source_quote': second.item.body,
                'source_digest': source_digest(app.state.mail.message('work:1')), 'quick_accept': True}
@@ -602,3 +604,18 @@ def test_task_source_revocation_during_fetch_prevents_partial_capture(tmp_path, 
     response = client.post('/api/v1/messages/work:1/task', json={'title':'Prüfen'})
     assert response.status_code == 409
     assert app.state.episodes.all_episodes() == []
+
+
+def test_quick_task_cannot_promote_historical_or_undated_mail():
+    from datetime import datetime, timezone
+    from icarus_memory.mail_task_suggestions import source_digest
+    for date in [None, datetime(2015,1,22,tzinfo=timezone.utc)]:
+        app, first, second = mail_app()
+        second.item.date = date
+        second.item.body = 'Bitte das Angebot prüfen.'
+        with TestClient(app) as client:
+            response = client.post('/api/v1/messages/work:1/task', json={
+                'title':'Angebot prüfen','source_quote':second.item.body,
+                'source_digest':source_digest(app.state.mail.message('work:1')),'quick_accept':True})
+            assert response.status_code == 409
+            assert app.state.tasks.all_tasks() == []

@@ -964,6 +964,22 @@ class EpisodeStore:
         self._put(episode, source_key=source_key)
         return episode, True
 
+    def add_mail_headers(self, episode_id: str, tags: list[str]) -> Episode:
+        """Append advisory header links without changing original, identity, date or exclusion."""
+        with self.transaction():
+            episode = self.get(episode_id)
+            if episode.state is EpisodeState.IGNORED:
+                return episode
+            added = [t for t in tags if t not in episode.tags]
+            if not added:
+                return episode
+            episode.tags.extend(added)
+            document = episode.to_dict()
+            self._conn.execute(
+                "UPDATE episodes SET document=?, metadata_digest=?, support_generation=support_generation+1 WHERE id=?",
+                (json.dumps(document, ensure_ascii=False), source_metadata_digest(document), episode_id))
+            return episode
+
     def add_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
                      participants: list[str]) -> Episode:
         """Ergänzt Beteiligte einer schon aufgenommenen Quelle (Nachtrag).

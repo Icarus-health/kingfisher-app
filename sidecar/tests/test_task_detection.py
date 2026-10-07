@@ -1,5 +1,6 @@
 """Zusagen bleiben Vorschläge: Neustart, Entzug und Ausfälle sind überprüfbar."""
 import json
+from datetime import datetime, timezone
 import sqlite3
 from threading import RLock
 from types import SimpleNamespace
@@ -132,7 +133,8 @@ def test_revocation_between_extraction_and_review_prevents_second_disclosure(env
 def test_known_own_sender_identity_is_passed_to_commitment_review(env):
     env.episodes.record(EpisodeKind.MESSAGE, 'Eigene Zusage', QUOTE,
         Provenance(source_type=SourceType.EMAIL), source_key='mail:own',
-        contacts=[{'rolle': 'von', 'ich': True, 'adresse': 'own@example.test'}])
+        contacts=[{'rolle': 'von', 'ich': True, 'adresse': 'own@example.test'}],
+        occurred_at=datetime.now(timezone.utc))
     original = env.provider.complete
     def complete(messages, tools):
         payload = json.loads(messages[1]['content'])

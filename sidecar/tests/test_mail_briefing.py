@@ -270,3 +270,21 @@ def test_cached_result_rechecks_source_after_initial_read(setup):
     setup[2].message = read
     assert post(setup).status_code == 409
     assert len(setup[1].calls) == 2
+
+
+def test_later_reply_updates_cached_overview_without_another_model_call(setup):
+    from datetime import datetime, timedelta, timezone
+    from icarus_memory.mail_ingestion import remember
+    app,model,mail,client=setup
+    mail.current.date=datetime.now(timezone.utc)-timedelta(hours=1)
+    mail.current.message_id='<first@example.test>'
+    assert post(setup).json()['temporal_status']=='recent'
+    later=Message(uid='work:1.43',account_id='work',subject='Re: Bericht',sender='Tom <tom@example.test>',
+        date=datetime.now(timezone.utc),preview='',unread=True,body='Bitte nichts mehr schicken.',
+        message_id='<later@example.test>',in_reply_to='<first@example.test>')
+    remember(app.state.episodes,later)
+    data=post(setup).json()
+    assert data['temporal_status']=='followup'
+    assert data['followup_episode_id']
+    assert len(model.calls)==2
+    assert data['recorded_at'] is None  # opening the first mail did not import it
