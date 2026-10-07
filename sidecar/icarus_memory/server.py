@@ -219,6 +219,7 @@ class ConversationIn(BaseModel):
 class CalendarAssignmentIn(BaseModel):
     uid: str = Field(min_length=1, max_length=2048)
     project_id: str | None = Field(default=None, max_length=200)
+    start: str | None = Field(default=None, max_length=64)
 
 
 class CalendarFollowupIn(BaseModel):
@@ -1461,6 +1462,8 @@ def create_app(
 
     from .google_routes import install_routes as install_google_routes
     install_google_routes(app, guard, _data_dir, lambda: _build_agent(app))
+    from .calendar_action_routes import install_routes as install_calendar_action_routes
+    install_calendar_action_routes(app, guard, _data_dir, lambda: _build_agent(app))
     from .microsoft_routes import install_routes as install_microsoft_routes
     install_microsoft_routes(app, guard, _data_dir, lambda: _build_agent(app))
     from .memory_routes import install_routes as install_memory_routes
@@ -2871,22 +2874,27 @@ def create_app(
 
     # -- Kingfisher Morning Briefing -------------------------------------
 
-    @app.get("/api/v1/calendar", dependencies=guard)
-    def kingfisher_calendar(days: int = Query(default=7, ge=1, le=31), year_view: bool = False) -> dict[str, Any]:
+    def _calendar_overview(days: int = 7, year_view: bool = False, *, start: datetime | None = None,
+                           finish: datetime | None = None, zone=None) -> dict[str, Any]:
         calendar = getattr(app.state, "calendar", None)
         result: dict[str, Any] = {"items": [], "errors": [], "configured": calendar is not None}
         # Bestätigte Geburtstage stehen jedes Jahr wieder im Kalender, auch ohne verbundenen Kalender; nur in dieser
         # Ansicht, in keinen Kalender eines Anbieters geschrieben (Fremdprobe 2, Befund 20).
         from .wiederkehrendes import kalender_eintraege
         heute = datetime.now().astimezone().date()
-        von, bis = ((heute.replace(month=1, day=1), heute.replace(year=heute.year + 1, month=1, day=1)) if year_view
+        von, bis = ((start.astimezone(zone).date(), finish.astimezone(zone).date()) if start and finish else
+                    (heute.replace(month=1, day=1), heute.replace(year=heute.year + 1, month=1, day=1)) if year_view
                     else (heute, heute + timedelta(days=days)))
+        if start and finish:
+            result.update(range_start=start.isoformat(), range_end=finish.isoformat())
         geburtstage = kalender_eintraege(app.state.claims, von, bis)
         if calendar is None:
             result["items"] = geburtstage
             return result
         try:
-            if year_view:
+            if start and finish:
+                events = calendar.events(days=(finish - start).total_seconds() / 86400, at=start)
+            elif year_view:
                 current = datetime.now().astimezone()
                 start = current.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
                 finish = start.replace(year=start.year + 1)
@@ -2899,6 +2907,22 @@ def create_app(
             result["errors"] = [str(exc)]
         result["items"] = sorted([*result["items"], *geburtstage], key=lambda e: str(e.get("start") or ""))
         return result
+
+    @app.get("/api/v1/calendar", dependencies=guard)
+    def kingfisher_calendar(days: int = Query(default=7, ge=1, le=31), year_view: bool = False,
+                           from_: str | None = Query(default=None, alias='from', max_length=100),
+                           until: str | None = Query(default=None, max_length=100),
+                           tz: str | None = Query(default=None, max_length=100)) -> dict[str, Any]:
+        from .calendar_window import parse_calendar_window
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+        if bool(from_) != bool(until):
+            raise HTTPException(status_code=422, detail='Beginn und Ende des Kalenderzeitraums sind gemeinsam erforderlich.')
+        try:
+            zone = ZoneInfo(tz) if tz else None
+            start, finish = parse_calendar_window(from_, until) if from_ is not None and until is not None else (None, None)
+        except (ValueError, ZoneInfoNotFoundError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
 
     def _vorbereiten(items: list[dict[str, Any]]) -> None:
         """Kommende Termine der nächsten 24 Stunden bekommen ihre Zuordnung mit.
@@ -2966,9 +2990,14 @@ def create_app(
     def _eigene_adressen() -> list[str]:
         return identitaet.eigene_adressen(getattr(app.state, "settings", None))
 
-    def _termin(uid: str) -> dict[str, Any]:
-        current = kingfisher_calendar(year_view=True)
-        event = next((item for item in current["items"] if item["uid"] == uid), None)
+    def _termin(uid: str, start: str | None = None) -> dict[str, Any]:
+        if start is not None:
+            return _vorkommen(uid, start)
+        current = _calendar_overview(year_view=True)
+        matches = [item for item in current["items"] if item["uid"] == uid]
+        if len(matches) > 1:
+            raise HTTPException(status_code=409, detail="Dieser Kalenderlink ist mehrdeutig. Bitte ein konkretes Vorkommen mit Beginn auswählen.")
+        event = matches[0] if matches else None
         if event is None:
             if current["errors"]:
                 raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
@@ -2976,17 +3005,17 @@ def create_app(
         return event
 
     @app.get("/api/v1/calendar/zuordnung", dependencies=guard)
-    def calendar_assignment(uid: str = Query(min_length=1, max_length=2048)) -> dict[str, Any]:
+    def calendar_assignment(uid: str = Query(min_length=1, max_length=2048), start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
         """Wer kommt, und welches Projekt gilt: festgelegt oder vorgeschlagen, mit Grund."""
         from .vorbereitung import zuordnung
-        return zuordnung(_termin(uid), episodes=app.state.episodes, workspace=app.state.workspace,
+        return zuordnung(_termin(uid, start), episodes=app.state.episodes, workspace=app.state.workspace,
                          eigene=_eigene_adressen())
 
     @app.put("/api/v1/calendar/zuordnung", dependencies=guard)
     def set_calendar_assignment(body: CalendarAssignmentIn) -> dict[str, Any]:
         """Berichtigung mit einem Klick; gilt dauerhaft für diesen Termin."""
         from .vorbereitung import zuordnung
-        event = _termin(body.uid)
+        event = _termin(body.uid, body.start)
         try:
             app.state.workspace.set_event_project(body.uid, body.project_id)
         except WorkspaceError as exc:
@@ -2997,23 +3026,19 @@ def create_app(
     def _vorkommen(uid: str, start: str) -> dict[str, Any]:
         """Ein bestimmter Termin einer Serie: Kennung und Beginn.
 
-        Zuerst im Jahr, dann in der letzten Woche, damit ein Termin vom
-        31. Dezember am 2. Januar noch nachzubereiten ist.
+        Der ausdrückliche Beginn bestimmt das Zeitfenster auch außerhalb des aktuellen Jahres.
         """
         from .nachbereitung import gleicher_beginn
-        current = kingfisher_calendar(year_view=True)
+        try:
+            at = datetime.fromisoformat(start.replace('Z', '+00:00'))
+            if at.utcoffset() is None:
+                raise ValueError()
+        except ValueError:
+            raise HTTPException(status_code=422, detail='Der Terminbeginn muss einen gültigen Zeitpunkt mit Zeitzone enthalten.') from None
+        current = _calendar_overview(start=at.replace(hour=0, minute=0, second=0, microsecond=0),
+                                     finish=at.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
         kandidaten = list(current["items"])
         fehler = list(current["errors"])
-        if not any(item["uid"] == uid and gleicher_beginn(item.get("start"), start) for item in kandidaten):
-            calendar = getattr(app.state, "calendar", None)
-            if calendar is not None:
-                try:
-                    kandidaten = [e.to_dict() for e in calendar.events(days=8, at=datetime.now(timezone.utc) - timedelta(days=7))]
-                    # Hat die letzte Woche geantwortet, gilt ihr Ergebnis:
-                    # Ein fehlender Termin ist dann weg, nicht unerreichbar.
-                    fehler = [str(e) for e in (getattr(calendar, "last_errors", {}) or {}).values()]
-                except Exception as exc:  # noqa: BLE001
-                    fehler.append(str(exc))
         event = next((item for item in kandidaten if item["uid"] == uid and gleicher_beginn(item.get("start"), start)), None)
         if event is None:
             if fehler:
@@ -3152,14 +3177,10 @@ def create_app(
     @app.get("/api/v1/calendar/preparation", dependencies=guard)
     def calendar_preparation(uid: str = Query(min_length=1, max_length=2048),
                              project_id: str | None = None,
-                             person_id: str | None = None) -> dict[str, Any]:
+                             person_id: str | None = None,
+                             start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
         """Lesender, ausdrücklich gewählter Kontext ohne neue Terminzuordnung."""
-        current = kingfisher_calendar(year_view=True)
-        event = next((item for item in current["items"] if item["uid"] == uid), None)
-        if event is None:
-            if current["errors"]:
-                raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
-            raise HTTPException(status_code=404, detail="Der Termin ist nicht mehr im verbundenen Kalender verfügbar.")
+        event = _termin(uid, start)
         result: dict[str, Any] = {"event": event, "project": None, "person": None, "tasks": [],
                                  "decisions": [], "claims": [], "notes": [], "sources": [],
                                  "sources_more": False, "working_memory_more": False}
@@ -4495,9 +4516,19 @@ def create_app(
         raise HTTPException(status_code=400, detail="Unbekannte Aufgabenansicht.")
 
     @app.get("/api/v1/tasks", dependencies=guard)
-    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None) -> dict[str, Any]:
+    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
+                              q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
+                              cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
-        return {"view": view, "tasks": _task_view(view, project_id)}
+        from .task_pages import TaskPageChanged
+        if project_id:
+            _validate_task_project(project_id)
+        try:
+            return {'view': view, **app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)}
+        except TaskPageChanged as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/v1/tasks/reminders", dependencies=guard)
     def task_reminders(limit: int = Query(default=100, ge=1, le=100)) -> dict[str, Any]:
@@ -6089,6 +6120,7 @@ def create_app(
             return ui_response()
 
         @app.get("/memory", include_in_schema=False)
+        @app.get("/review", include_in_schema=False)
         def memory_ui() -> FileResponse:
             return ui_response()
 

@@ -1,0 +1,37 @@
+# Produktabschluss: vom vorhandenen Kern zum verlässlichen persönlichen CoS
+
+Stand: 7. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
+
+## Abnahmematrix
+
+| Bereich | Bereits gebaut | Noch offen für den Produktnachweis | Abnahme im Alltag |
+|---|---|---|---|
+| Quellen | Mail- und Kalenderadapter, ausgewählte lokale Ordner, Google-/Apple- und Microsoft-Zugangswege, Outlook/Graph-Aufnahme sowie Transkript- und Mitschriftenbausteine | Tatsächlich gewünschte Konten, Ordner, Zeiträume, Anlagen und Kalender gegen den jeweiligen Ausgangsbestand abgleichen. „Verbunden“, „ausgewählt“, „aufgenommen“, „eingeordnet“ und „für Antworten verfügbar“ getrennt anzeigen. Hochschul-Tenant-Rechte und der echte Mac-Kalenderhelfer sind noch nicht als vollständig nutzbar abgenommen. | Für jedes gewünschte Konto und jeden Kalender einen nachvollziehbaren Bestand vergleichen; Lücken und Fehler sichtbar lassen. |
+| Gedächtnis | Originalquellen, Quellen- und Erfassungszeit, Personen/Projekte/Akten, belegte Aussagen, Verlauf, Konfliktfragen, Korrektur und Quellenentzug | Echte Antwortqualität und Suchvollständigkeit am vorgesehenen Bestand fehlen als unabhängiger Nachweis. Begrenzte Kandidatensuche und eine vorsichtige Antwort beweisen nicht, dass keine passende Quelle ausgelassen wurde. | Vorab festgelegte Fragen zu Person, Projekt, Quelldatum, Bedingung, Absage, Konflikt und fehlender Information beantworten; Beleg öffnen und Quellenentzug erneut prüfen. |
+| Entscheidungen | Heute, Aufgabenprüfung, Mail-Originale und Verläufe, Quellenbefunde, direkte Aufgabenaktionen, Aufgaben-Wiedervorlage, Bestätigungsschutz und normaler Prüfbereich `/review` mit verständlichen Rückfragen | Die unterschiedlichen fachlichen Entscheidungen sind verbunden, bleiben aber getrennt belegt. Am Mac prüfen, ob eine Person ohne technische Kennungen vom Hinweis zum Original und zur passenden Entscheidung kommt, den Stand versteht und danach zum Arbeitsschritt zurückfindet. | Einen Arbeitstag begleiten: Heute → Originalquelle → prüfen/korrigieren/übernehmen → Aufgabe oder Wiedervorlage → zurück zum Kontext. Keine ungeprüfte Aussage als bestätigtes Wissen behandeln. |
+| Aufgaben | Aufgaben anlegen/bearbeiten, Fristen, Projekt, Wartestatus, Verlauf, exakte Aufgabenlinks, terminierte Wiedervorlage sowie Bestandssuche und begrenzte Seiten mit Gesamtzahl und Änderungsstand | Suche und Seiten sind mit mehr als 200 offenen und mehr als 500 gemischten Aufgaben geprüft. Reale Bedienung, Geschwindigkeit am großen persönlichen Bestand und Serienaufgaben bleiben offen. Eine Wiedervorlage ist keine Fälligkeit und erzeugt bei geschlossener App keine Push-Benachrichtigung. | Aufgaben außerhalb der ersten Seite bleiben such- und erreichbar; eine Erinnerung ändert Frist und Wartestatus nicht; Zustand bleibt nach Neustart erhalten. |
+| Kalender | Mehrere lesende Quellen, Zeit-/Monatsansichten, Vorbereitung/Nachbereitung und Projektbezug; laufende mehrtägige Termine werden in der Siebentageliste berücksichtigt; sichtbare Zeiträume über Jahresgrenzen, konkrete Vorkommen und separate Google-Schreibentwürfe | Zeitbereiche, Ladezustände, Vorkommen und Google-Schreibschutz sind mit künstlichen Anbietern geprüft. Echte Kalenderabdeckung und Schreibaktionen sind noch nicht persönlich abgenommen. Schreiben verlangt zusätzliche OAuth-Rechte; Serientermine, neue Gäste und ganztägige Neuanlage werden im neuen Formular nicht angeboten. Unklare Ausgänge bleiben gesperrt und verlangen Prüfung beim Anbieter. | Dezember/Januar und Wochen über Jahreswechsel gegen den Originalkalender prüfen. Schreibaktionen nur mit sichtbarer Vorschau, ausdrücklicher Freigabe, Schutz vor Dopplung und bestätigtem Anbieterzustand abnehmen. |
+| Bedienung und Einrichtung | Bestehende Today-/Gedächtnis-/Nachrichten-/Aufgabenansichten und sichtbarer Verarbeitungsstand | Native Mac-Prüfung für Lesbarkeit, Fokus/Tastatur, schmale Fenster, tatsächliche Klickzahl, Einrichtungszeit und Rückkehrposition steht noch aus. Der gesperrte Mac und die nicht verfügbare Browserfreigabe sind kein UX-Nachweis. | Getrennter Testbestand und getrennte Sicherung verwenden; einen normalen Ablauf ohne Nachschlagen erledigen und unnötige Wege oder missverständliche Zustände dokumentieren. |
+
+## Lieferung vom 7. Oktober
+
+Die zuvor gefundenen Listen- und Jahresgrenzen sind im Entwicklungsbranch korrigiert. „Heute“ verlinkt direkt auf einen normalen Prüfbereich; technische Kennungen sind Zusatzdetails. Das neue Kalenderformular zeigt Konto, Kalender, vorherigen und geplanten Stand sowie bestehende Gäste und Benachrichtigungswahl. Eine bestätigte Vorschau wird persistent und gegen parallele Ausführung gesichert. Verlorene Antworten werden nicht als Erfolg behandelt. Das Ausführungsjournal wird mitgesichert.
+
+Mail → Aufgabe und Antwortentwurf nutzen weiterhin die vorhandenen quellengeschützten Wege. **Mail → Kalender mit automatischer Übernahme ist noch offen:** ohne Bindung an Originalfassung, Prüfung von Absagen und eindeutige Zeit-/Personenzuordnung wäre das ein neuer Fehlerrisikopfad. Der neue Terminentwurf ist deshalb manuell; er behauptet keine verifizierte Mailauswertung.
+
+## Reihenfolge
+
+1. Einen normalen Arbeitstag auf dem getrennten Testbestand durchlaufen und dabei die tatsächliche Quellenabdeckung sowie offene Aufgaben-/Kalendergrenzen messen.
+2. Nur die dabei beobachteten Blocker schließen: verlässliche Bestandsauswahl, verständlicher Eingang für Entscheidungen, Rückkehr zum Ausgangskontext und vollständige Kalenderzeiträume. Keine neue Datenbank oder Gedächtnisarchitektur ist dafür Voraussetzung.
+3. Das echte lokale Antwortmodell an vorab festgelegten Antworten und Originalbelegen beurteilen. Kritische Fehler sind falsche Person, Frist oder Bedingung, übersehene Absage und weiter nutzbare entzogene Quelle.
+4. Erst nach bestandenem Kernablauf gezielte neue Quellen ergänzen und jeweils ihre eigene Vollständigkeit und Rückverfolgbarkeit abnehmen.
+
+## Spätere Erweiterungen und Freigaben
+
+**WhatsApp:** Der Nutzer bevorzugt ausdrücklich die offizielle API, nach dem Kernablauf. Zuerst prüfen wir dafür den gewünschten Kanal und die verfügbaren Rechte. Meta beschreibt seine [Business Platform](https://whatsappbusiness.com/products/business-platform/) für geschäftliche Kundenkommunikation; daraus folgt kein belegter Zugriff auf den gesamten privaten Chatbestand. Lokale ausgewählte Exporte bleiben nur eine mögliche Alternative, kein festgelegter erster Pflichtschritt. Kein Live-Zugang oder inoffizieller Client wird eingerichtet.
+
+**Weltmeldungen:** eine optionale, einzelne Meldung passend zu einer bestehenden Akte ist bereits vorgesehen. Die Einstellung ist standardmäßig aus; ein Feedabruf setzt eine ausdrückliche Wahl voraus. Das ist noch kein breites Welt-Nachrichten-Morgenbriefing. Relevanz über eine echte Alltagswoche und reale Feedantworten wurden nicht abgenommen. Eine Ausweitung bleibt nachrangig.
+
+**Sprache:** lokale Audio-Wiedergabe des Briefings ist als Funktion vorhanden. Sie belegt keinen Sprachdialog oder verlässliche Spracheingabe. Gesprächssteuerung per Sprache bleibt später; sie ist keine Voraussetzung für den Kernnachweis.
+
+Keine neue Nachrichtenquelle, kein Cloudmodell und kein extern wirkender Vorgang wird durch diese Produktplanung aktiviert. Modell- oder Anbieterzugänge bleiben optional und gesondert freizugeben.

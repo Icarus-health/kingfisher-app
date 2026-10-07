@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {api, type MemoryQuestion} from "./api";
 import {ProfileSource} from './ProfileSource';
+import { questionRelationLabel, questionTitle } from "./questionLabels";
 
 const FIRST_PAGE = 5;
 const MAX_QUESTIONS = 50;
@@ -146,12 +147,17 @@ export function KnowledgeQuestions({active, onChanged}: {active: boolean; onChan
     {truncated && <p role="note">Die ersten 50 Klärungen werden angezeigt. Nach einer Entscheidung wird die Auswahl aktualisiert.</p>}
     {questions && total === 0 && !actionError && <p role="status">Keine offenen Wissensklärungen.</p>}
     {displayed.map(question => <article className="mail-task-form" key={question.id}>
-      <p><strong>Zuordnungsreferenz:</strong> {question.subject_ref}</p>
-      <p><strong>Beziehung:</strong> {question.predicate}{question.scope_ref ? ` · Kontext: ${question.scope_ref}` : ""}</p>
       {question.candidates.map(candidate => <section key={candidate.id} className="memory-question-candidate">
-        <h3>{candidate.statement}</h3>
-        <p>Wert: {candidate.value}</p>
+        <h3>{questionTitle(candidate.statement)}</h3>
+        <p><strong>{questionRelationLabel(question.predicate)} · vorgeschlagen, noch nicht bestätigt</strong></p>
+        <p>Vorgeschlagener Stand: {candidate.value}</p>
         {candidate.sources.map(source => <SourceEvidence key={`${source.episode_id}:${source.quote}`} source={source} />)}
+        <details>
+          <summary>Technische Zuordnung</summary>
+          <p>Beziehung: {question.predicate}</p>
+          <p>Zuordnung: {question.subject_ref}</p>
+          {question.scope_ref ? <p>Kontextkennung: {question.scope_ref}</p> : null}
+        </details>
         <button type="button" className="primary-action" disabled={pendingQuestion !== null || loading}
           onClick={() => void decide(question, candidate.id)}>
           {pendingQuestion === question.id ? "Wird gespeichert …" : "Diese Angabe bestätigen"}
@@ -160,7 +166,8 @@ export function KnowledgeQuestions({active, onChanged}: {active: boolean; onChan
       {question.active_claims.map(claim => <section key={claim.id} className="memory-question-current">
         <h3>Bestehende bestätigte Angabe</h3>
         <p>{claim.statement}</p>
-        <p>Wert: {claim.value}</p>
+        <p><strong>{questionRelationLabel(question.predicate)} · bestätigter bisheriger Stand</strong></p>
+        <p>Bisheriger Stand: {claim.value}</p>
         <p>Diese Angabe bleibt als bestätigtes Wissen bestehen; die neuen Vorschläge werden verworfen.</p>
         {claim.sources.map(source => <SourceEvidence key={`${source.episode_id}:${source.quote}`} source={source} />)}
       </section>)}

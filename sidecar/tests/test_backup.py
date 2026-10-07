@@ -413,3 +413,20 @@ def test_migration_uebernimmt_nur_bekannte_schluessel(tmp_path: Path) -> None:
     # Die Datei bleibt liegen — ungefragt Dateien des Nutzers zu verändern
     # wäre schlimmer als ein Schlüssel, der einen Tag zu lang dort steht.
     assert env.is_file()
+
+
+def test_calendar_action_journal_survives_backup_and_restore(tmp_path):
+    """A restored application must retain its external-action confirmations."""
+    data = tmp_path / 'data'
+    data.mkdir()
+    path = data / 'calendar-actions.sqlite3'
+    with sqlite3.connect(path) as db:
+        db.execute('CREATE TABLE actions (id TEXT PRIMARY KEY, status TEXT, record TEXT)')
+        db.execute('INSERT INTO actions VALUES (?, ?, ?)', ('draft-1', 'done', '{"provider_event_id":"event-1"}'))
+    saved = snapshot_all(data, tmp_path / 'snapshots')
+    assert 'calendar-actions.sqlite3' in {item['name'] for item in verify_snapshot_set(saved)}
+    with sqlite3.connect(path) as db:
+        db.execute('DELETE FROM actions')
+    restore_all(saved, data)
+    with sqlite3.connect(path) as db:
+        assert db.execute('SELECT id, status FROM actions').fetchall() == [('draft-1', 'done')]

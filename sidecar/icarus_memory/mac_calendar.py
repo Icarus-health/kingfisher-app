@@ -197,10 +197,13 @@ class MacCalendar:
             raise CalendarError('Mac-Kalender ist nicht aktuell. Bitte den Mac-Adapter starten oder erneut synchronisieren.')
         start = at or now()
         end = start + timedelta(days=days)
-        if days > 31 and (not state.get('range_from') or not state.get('range_to')
-                or _timestamp(state['range_from']) > start
-                or _timestamp(state['range_to']) < end):
-            raise CalendarError('Jahrestermine werden noch synchronisiert. Bitte gleich erneut aktualisieren.')
+        range_from, range_to = state.get('range_from'), state.get('range_to')
+        has_complete_range = bool(range_from and range_to)
+        outside_snapshot = has_complete_range and (
+            _timestamp(range_from) > start or _timestamp(range_to) < end
+        )
+        if ((at is not None or days > 31) and not has_complete_range) or outside_snapshot:
+            raise CalendarError('Kalendertermine für den angefragten Zeitraum werden noch synchronisiert. Bitte gleich erneut aktualisieren.')
         return [Event(**{**e, 'start': _timestamp(e['start']), 'end': _timestamp(e['end'])})
                 for e in state['events'] if _timestamp(e['end']) > start and _timestamp(e['start']) < end]
 

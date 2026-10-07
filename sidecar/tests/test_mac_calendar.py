@@ -98,11 +98,21 @@ def test_year_requires_complete_snapshot(tmp_path):
     start = datetime(datetime.now().year, 1, 1, tzinfo=timezone.utc)
     finish = start.replace(year=start.year + 1)
     days = (finish - start).days
-    with pytest.raises(CalendarError, match='Jahrestermine'):
+    with pytest.raises(CalendarError, match='angefragten Zeitraum'):
         cal.events(days=days, at=start)
     body = update(state['generation'], events=[event()], range_from=start, range_to=finish)
     cal.update(body)
     assert len(cal.events(days=days, at=start)) == 1
+
+
+def test_short_period_outside_known_snapshot_coverage_is_not_silently_empty(tmp_path):
+    cal, state = connected(tmp_path)
+    covered_from = datetime(2026, 10, 1, tzinfo=timezone.utc)
+    covered_to = datetime(2026, 11, 1, tzinfo=timezone.utc)
+    cal.update(update(state['generation'], events=[], range_from=covered_from, range_to=covered_to))
+
+    with pytest.raises(CalendarError, match='angefragten Zeitraum'):
+        cal.events(days=7, at=datetime(2026, 12, 1, tzinfo=timezone.utc))
 
 
 def test_participants_survive_snapshot_restart_and_disappear_on_disconnect(tmp_path):
@@ -132,6 +142,8 @@ def test_persisted_zulu_and_offset_times_are_readable(tmp_path):
     def persisted(s):
         s['seen_at'] = start.isoformat().replace('+00:00', 'Z')
         s['synced_at'] = s['seen_at']
+        s['range_from'] = (start - timedelta(days=1)).isoformat()
+        s['range_to'] = (start + timedelta(days=8)).isoformat()
         s['events'][0]['start'] = s['seen_at']
         s['events'][0]['end'] = end.astimezone(timezone(timedelta(hours=2))).isoformat()
     cal.change(persisted)
@@ -154,3 +166,9 @@ def test_changed_and_deleted_events_replace_snapshot_without_duplicates(tmp_path
     assert restored.events() == []
     cal.update(update(state['generation'], events=[]))
     assert MacCalendar(cal.path).events() == []
+
+
+def test_explicit_period_requires_known_snapshot_coverage(tmp_path):
+    cal, _ = connected(tmp_path)
+    with pytest.raises(CalendarError, match='angefragten Zeitraum'):
+        cal.events(days=7, at=datetime(1999, 1, 1, tzinfo=timezone.utc))

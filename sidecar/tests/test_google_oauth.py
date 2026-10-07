@@ -129,6 +129,34 @@ def test_guard_callback_selection_persistence_and_replay(routed):
     assert len(app.state.settings.calendar_sources) == 1
 
 
+def test_calendar_write_upgrades_only_same_account_and_selected_calendar(routed):
+    app, keys, client, _ = routed
+    oauth = app.state.google_oauth
+    oauth.request = Google('calendar')
+    first, _ = ready(oauth, 'calendar')
+    assert client.post('/api/v1/google/sessions/'+first['session_id']+'/connect',
+        json={'calendar_ids':['a@example.com']}).status_code == 200
+    source = app.state.settings.calendar_sources[0]
+    key = config.integration_secret_name('calendar', source.id)
+    old = keys.get(key)
+    oauth.request = Google('calendar_write', email='other@example.com')
+    foreign, _ = ready(oauth, 'calendar_write')
+    assert client.post('/api/v1/google/sessions/'+foreign['session_id']+'/connect',
+        json={'calendar_ids':['a@example.com']}).status_code == 409
+    assert keys.get(key) == old
+    oauth.request = Google('calendar_write')
+    unselected, _ = ready(oauth, 'calendar_write')
+    assert client.post('/api/v1/google/sessions/'+unselected['session_id']+'/connect',
+        json={'calendar_ids':['b@example.com']}).status_code == 422
+    assert keys.get(key) == old
+    upgrade, _ = ready(oauth, 'calendar_write')
+    result = client.post('/api/v1/google/sessions/'+upgrade['session_id']+'/connect',
+        json={'calendar_ids':['a@example.com']})
+    assert result.status_code == 200
+    assert len(app.state.settings.calendar_sources) == 1
+    assert 'https://www.googleapis.com/auth/calendar.events' in json.loads(keys.get(key))['scope']
+
+
 def test_two_mail_accounts_grants_survive_manager_restart_and_removal(routed):
     app, keys, client, path = routed
     oauth = app.state.google_oauth

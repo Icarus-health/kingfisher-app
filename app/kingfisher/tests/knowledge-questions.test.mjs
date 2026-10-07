@@ -15,9 +15,11 @@ test("persistente Wissensfragen laden nur aktiv, bleiben begrenzt und lassen wei
   assert.match(code, /addEventListener\("focus"/);
 });
 
-test("Fragen zeigen opaque Zuordnungsreferenz, Originalzitat und getrennte Quell- und Erfassungszeit", () => {
+test("Fragen zeigen verständliche Vorschläge; technische Referenzen bleiben aufklappbar", () => {
   const code = source();
-  assert.match(code, /Zuordnungsreferenz:[\s\S]*question\.subject_ref/);
+  assert.match(code, /questionRelationLabel\(question\.predicate\)/);
+  assert.match(code, /<summary>Technische Zuordnung<\/summary>[\s\S]*question\.subject_ref/);
+  assert.match(code, /Vorgeschlagener Stand: \{candidate\.value\}/);
   assert.match(code, /<blockquote>\{source\.quote\}<\/blockquote>/);
   assert.match(code, /Quelldatum: \{timeLabel\(source\.occurred_at\)\}/);
   assert.match(code, /shouldShowRecordedAt\(source\) && <p>Erfasst: \{timeLabel\(source\.recorded_at\)\}<\/p>/);

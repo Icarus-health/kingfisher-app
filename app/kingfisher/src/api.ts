@@ -859,10 +859,20 @@ export type MacCalendarState = {
 
 export type CalendarOverview = {
   configured: boolean; errors: string[];
+  range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
-    location: string; all_day: boolean; source_label?: string; attendees?: string[];
+    location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string}>;
+};
+
+export type CalendarActionSource = {id: string; label: string; user: string; calendar_id: string; can_write: boolean; reason: string | null};
+export type CalendarActionInput = {kind: 'create'|'edit'|'cancel'; source_id: string; title?: string; start?: string; end?: string; event_id?: string; send_updates: 'all'|'externalOnly'|'none'};
+export type CalendarActionDraft = {
+  id: string; status: string; kind: CalendarActionInput['kind']; source_id: string; stand: string; provider_event_id: string;
+  preview: {calendar: string; account: string; title: string | null; start: {dateTime: string} | null; end: {dateTime: string} | null;
+    attendees: string[]; send_updates: CalendarActionInput['send_updates']; etag: string | null;
+    current: {summary?: string; start?: {dateTime?: string; date?: string}; end?: {dateTime?: string; date?: string}; location?: string; description?: string} | null};
 };
 
 export type CalendarPreparation = {
@@ -1100,12 +1110,16 @@ export const api = {
   taskSource: (id: string) => request<TaskSource>(`/api/v1/tasks/${encodeURIComponent(id)}/source`),
   resolveAction: (conversationId: string, approvalId: string, granted: boolean, confirmation?: string) =>
     request<ConversationPayload>(`/api/v1/conversations/${conversationId}/approvals/${approvalId}`, {method: "POST", body: JSON.stringify({granted, confirmation})}),
-  calendar: () => request<CalendarOverview>("/api/v1/calendar?year_view=true"),
-  calendarPreparation: (uid: string, projectId = "", personId = "") => request<CalendarPreparation>(
-    `/api/v1/calendar/preparation?uid=${encodeURIComponent(uid)}${projectId ? `&project_id=${encodeURIComponent(projectId)}` : ""}${personId ? `&person_id=${encodeURIComponent(personId)}` : ""}`,
+  calendarActionSources: () => request<{sources: CalendarActionSource[]}>('/api/v1/calendar-actions/sources'),
+  calendarActionDraft: (body: CalendarActionInput) => request<CalendarActionDraft>('/api/v1/calendar-actions/drafts', {method:'POST', body:JSON.stringify(body)}),
+  calendarActionRead: (id: string) => request<CalendarActionDraft>(`/api/v1/calendar-actions/drafts/${encodeURIComponent(id)}`),
+  calendarActionExecute: (draft: CalendarActionDraft) => request<CalendarActionDraft>(`/api/v1/calendar-actions/drafts/${encodeURIComponent(draft.id)}/execute`, {method:'POST', body:JSON.stringify({confirmed:true, stand:draft.stand})}),
+  calendar: (from?: string, until?: string) => request<CalendarOverview>(`/api/v1/calendar?${from && until ? new URLSearchParams({from, until, tz: Intl.DateTimeFormat().resolvedOptions().timeZone}) : 'year_view=true'}`),
+  calendarPreparation: (uid: string, projectId = "", personId = "", start?: string | null) => request<CalendarPreparation>(
+    `/api/v1/calendar/preparation?uid=${encodeURIComponent(uid)}${projectId ? `&project_id=${encodeURIComponent(projectId)}` : ""}${personId ? `&person_id=${encodeURIComponent(personId)}` : ""}${start ? `&start=${encodeURIComponent(start)}` : ''}`,
   ),
-  calendarAssignment: (uid: string) => request<TerminZuordnung>(`/api/v1/calendar/zuordnung?uid=${encodeURIComponent(uid)}`),
-  setCalendarAssignment: (uid: string, projectId: string | null) => request<TerminZuordnung>("/api/v1/calendar/zuordnung", { method: "PUT", body: JSON.stringify({ uid, project_id: projectId }) }),
+  calendarAssignment: (uid: string, start?: string | null) => request<TerminZuordnung>(`/api/v1/calendar/zuordnung?${new URLSearchParams({uid, ...(start ? {start} : {})})}`),
+  setCalendarAssignment: (uid: string, projectId: string | null, start?: string | null) => request<TerminZuordnung>("/api/v1/calendar/zuordnung", { method: "PUT", body: JSON.stringify({ uid, project_id: projectId, ...(start ? {start} : {}) }) }),
   calendarFollowup: (uid: string, start: string) => request<TerminNachbereitung>(`/api/v1/calendar/nachbereitung?uid=${encodeURIComponent(uid)}&start=${encodeURIComponent(start)}`),
   recordCalendarFollowup: (body: { uid: string; start: string; text: string; format: "text" | "srt" | "vtt"; notiz?: string; project_id: string | null }) => request<NachbereitungGespeichert>("/api/v1/calendar/nachbereitung", { method: "POST", body: JSON.stringify(body) }),
   transkripte: () => request<TranskriptUebersicht>("/api/v1/transkripte"),
@@ -1191,7 +1205,7 @@ export const api = {
     request<KalenderAnmeldung>("/api/v1/integrations/calendar/anmelden", { method: "POST", body: JSON.stringify(data) }),
   removeIntegration: (kind: "mail" | "calendar", id: string) =>
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
-  tasks: (view: "mine" | "waiting" | "done", projectId = "") => request<{ view: string; tasks: Task[] }>(`/api/v1/tasks?view=${view}${projectId ? `&project_id=${encodeURIComponent(projectId)}` : ""}`),
+  tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),

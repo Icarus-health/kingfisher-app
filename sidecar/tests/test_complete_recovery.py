@@ -86,6 +86,10 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     Keychain(data_dir=data).set('ICARUS_MAIL_PASSWORD','synthetic-mail-password')
     config=tmp_path/'settings.env'
     config.write_text('ICARUS_SECRETS_PASSPHRASE=synthetic-key-passphrase\nICARUS_SIDECAR_TOKEN=synthetic-token\n')
+    from icarus_memory.calendar_actions import CalendarActions
+    CalendarActions(data/'calendar-actions.sqlite3', lambda: None, None)
+    with sqlite3.connect(data/'calendar-actions.sqlite3') as db:
+        db.execute('INSERT INTO actions VALUES (?, ?, ?)', ('completed-draft', 'done', json.dumps({'id':'completed-draft','status':'done','provider_event_id':'confirmed-event'})))
     assert all((data/name).is_file() for name in BACKUP_DATA_FILES)
     before={name:database_contents(data/name) for name in SQLITE_DATA_FILES}
     assert all(any(line.startswith('INSERT INTO') for line in content[1]) for content in before.values())
@@ -123,3 +127,7 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     restored_befunde=Befunde(result/'data/lint.sqlite3')
     assert [(b['id'],b['status']) for b in restored_befunde.liste()]==[(befund.schluessel,'abgewiesen')]
     restored_befunde.close()
+
+    journal = CalendarActions(result/'data/calendar-actions.sqlite3', lambda: None, None)
+    assert journal.get('completed-draft')['status'] == 'done'
+    assert journal.get('completed-draft')['provider_event_id'] == 'confirmed-event'

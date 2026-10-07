@@ -23,6 +23,8 @@ import { ProjectControls } from "./ProjectControls";
 import { DecisionControls } from "./DecisionControls";
 import { GoalControls } from "./GoalControls";
 import { TaskRow } from "./TaskRow";
+import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
+import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
 import { endOfTaskDay } from "./taskWorkflow";
 import { ProfileSource } from "./ProfileSource";
@@ -716,9 +718,16 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
-  const [tasks, setTasks] = useState<LocalTask[] | null>(null);
+  const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const currentSearch = useRef(search);
+  currentSearch.current = search;
+  const pager = useRef<TaskPager | null>(null);
+  if (!pager.current) pager.current = new TaskPager((selection, cursor) => api.tasks(selection.view, selection.projectId, {q: selection.q, cursor}), setTaskPage);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(() => new URLSearchParams(window.location.search).get("project") ?? "");
+  const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search}) ? taskPage.tasks : null;
   const [newTaskProject, setNewTaskProject] = useState("");
   const [projectError, setProjectError] = useState(false);
   const currentProject = useRef(projectId);
@@ -731,7 +740,6 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [submitting, setSubmitting] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
 
-  const requestVersion = useRef(0);
   const currentView = useRef(view);
   currentView.current = view;
 
@@ -747,15 +755,9 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
-    const version = ++requestVersion.current;
     setError("");
-    setTasks(null);
-    if (nextView === "decisions" || nextView === "goals") { setTasks([]); return; }
-    api.tasks(nextView, currentProject.current).then(({ tasks: items }) => {
-      if (version === requestVersion.current) setTasks(items);
-    }).catch(() => {
-      if (version === requestVersion.current) setError("Die Aufgaben sind gerade nicht erreichbar.");
-    });
+    if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
+    void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
   }
 
   useEffect(() => {
@@ -768,7 +770,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     window.history.replaceState(window.history.state, "", url);
   }, [view, projectId, selectedTask]);
 
-  useEffect(() => { load(view); return () => { requestVersion.current++; }; }, [view, projectId]);
+  useEffect(() => { load(view); return () => { pager.current!.cancel(); }; }, [view, projectId, search]);
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -850,12 +852,24 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
       {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
+      {(view === 'mine' || view === 'waiting' || view === 'done') && <>
+        <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
+          <label>Aufgaben durchsuchen<input type="search" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Titel, Notiz oder wartende Person" /></label>
+          <button type="submit" className="secondary-action">Suchen</button>
+          {search && <button type="button" className="text-action" onClick={() => {setSearchInput(''); setSearch('');}}>Suche löschen</button>}
+          <button type="button" className="text-action" disabled={taskPage.loading} onClick={() => load()}>Liste aktualisieren</button>
+        </form>
+        {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" onClick={() => load()}>Erneut laden</button></p>}
+        {taskPage.notice && <p role="status">{taskPage.notice}</p>}
+        {tasks && <p role="status">{taskPage.total} {search ? 'passende' : ''} Aufgaben · Seite {taskPage.page}{search ? ` · Suche: ${search}` : ''}</p>}
+      </>}
       {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading}>
         <header><span>Aufgabe</span><span>Fällig</span></header>
         {creating ? <form className="task-create" onSubmit={create}><label>Aufgabe<input autoFocus onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
-        {!tasks && !error ? <div className="task-loading"><i /><i /><i /></div> : null}
+        {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
         {visibleTasks?.map((task) => <TaskRow projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={(name) => wait(task.id, name)} onComplete={() => complete(task.id, task.status === "done")} task={task} view={view} />)}
-        {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{selectedTask ? "Keine weiteren Aufgaben in dieser Ansicht." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}
+        {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}
+        {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>
   </div>;
@@ -910,6 +924,7 @@ export function App() {
   if (path === "/willkommen") return <Erststart />;
   if (erstePruefung) return <div className="shell"><main className="state-page" aria-busy="true" /></div>;
   if (path === "/calendar") return <CalendarPage recentConversation={recentConversation} />;
+  if (path === '/review') return <ReviewPage recentConversation={recentConversation} />;
   if (path === "/settings") return <EinstellungenSeite recentConversation={recentConversation} />;
   if (path === "/vorhaben") return <Tasks recentConversation={recentConversation} />;
   if (path === "/nachrichten") return <Messages recentConversation={recentConversation} />;

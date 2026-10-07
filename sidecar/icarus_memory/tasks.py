@@ -473,6 +473,14 @@ class TaskStore:
             ).fetchall()
         return [self._from_row(row) for row in rows]
 
+    def page(self, view: str = 'mine', *, project_id: str | None = None,
+             q: str = '', limit: int = 200, cursor: str | None = None) -> dict[str, Any]:
+        from .task_pages import query_page
+        with self._lock:
+            page = query_page(self._conn, view, project_id=project_id, q=q, limit=limit, cursor=cursor)
+        page['tasks'] = [self._from_row(row).to_dict() for row in page.pop('rows')]
+        return page
+
     def open_tasks(self, limit: int | None = 200) -> list[Task]:
         """Offene Aufgaben, überfällige und bald fällige zuerst.
 

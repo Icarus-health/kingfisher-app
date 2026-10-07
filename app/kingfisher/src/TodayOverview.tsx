@@ -93,8 +93,10 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
     <div className="today-followups">
       <TaskReminders onChanged={onChange} />
       <div id="memory-questions">
+        <h2>Deine Rückfragen</h2>
+        <p>Prüfe widersprüchliche Angaben und wichtige Hinweise mit ihren Originalstellen. <a className="today-text-link" href="/review">Alle Rückfragen prüfen →</a></p>
         <KnowledgeQuestions active onChanged={onChange} />
-        <MemoryQuestions active onOpenAll={() => navigate('/settings#technik-befunde')} />
+        <MemoryQuestions active onOpenAll={() => navigate('/review')} />
       </div>
     </div>
 
