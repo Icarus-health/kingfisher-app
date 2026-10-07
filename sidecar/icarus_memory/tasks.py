@@ -39,6 +39,10 @@ from .migrations import (
 from .model import Provenance, SourceType, ensure_aware, now
 
 
+class TaskChangedError(ValueError):
+    """The displayed reminder no longer matches the stored task."""
+
+
 class TaskStatus(str, Enum):
     OPEN = "open"
     DONE = "done"
@@ -81,6 +85,9 @@ class Task:
     entsteht — das wäre dieselbe flache Liste mit mehr Schritten.
     """
 
+    remind_at: datetime | None = None
+    """Wiedervorlage unabhängig von der Fälligkeit und vom Wartestatus."""
+
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
 
@@ -113,6 +120,7 @@ class Task:
             "provenance": self.provenance.to_dict(),
             "created_at": iso(self.created_at),
             "due": iso(self.due),
+            "remind_at": iso(self.remind_at),
             "notes": self.notes,
             "done_at": iso(self.done_at),
             "tags": list(self.tags),
@@ -196,7 +204,7 @@ def _verify_v1(connection: sqlite3.Connection) -> None:
 
 # Deliberately only prerequisite state history, not a Matter/Obligation model.
 # No copied title, notes, source quote or claimed authenticated actor.
-_HISTORY_FIELDS = ("id", "created_at", "status", "due", "done_at", "project_id",
+_HISTORY_FIELDS = ("id", "created_at", "status", "due", "remind_at", "done_at", "project_id",
                    "wartet_auf", "wartet_seit")
 _HISTORY_SCHEMA = {"sequence", "task_id", "kind", "recorded_at", "business_at",
                    "before_state", "after_state"}
@@ -374,32 +382,40 @@ class TaskStore:
 
     def edit(self, task_id: str, *, title: str | None | object = _UNSET,
              due: datetime | None | object = _UNSET,
+             remind_at: datetime | None | object = _UNSET,
+             expected_remind_at: datetime | None | object = _UNSET,
              notes: str | None | object = _UNSET,
              at: datetime | None = None) -> Task:
         """Edit user-maintained details without changing task identity/state.
 
-        An omitted value is retained; explicit ``None`` clears due/notes.
+        An omitted value is retained; explicit ``None`` clears optional dates/notes.
         History records that an edit occurred but deliberately does not copy
         task titles or notes into the append-only event log.
         """
         if title is not _UNSET and (not isinstance(title, str) or not title.strip()):
             raise ValueError("Der Aufgabentitel darf nicht leer sein.")
-        if not any(value is not _UNSET for value in (title, due, notes)):
+        if not any(value is not _UNSET for value in (title, due, remind_at, notes)):
             raise ValueError("Bitte mindestens ein Aufgabenfeld ändern.")
         with self._transaction():
             row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task_id,)).fetchone()
             if row is None:
                 raise KeyError(f"Unbekannte Aufgabe: {task_id}")
             task = self._from_row(row)
+            if expected_remind_at is not _UNSET and task.remind_at != ensure_aware(expected_remind_at):
+                raise TaskChangedError('Die Wiedervorlage wurde inzwischen geändert. Bitte neu laden.')
+            if remind_at is not _UNSET and remind_at is not None and task.status is not TaskStatus.OPEN:
+                raise TaskChangedError('Die Aufgabe ist nicht mehr offen. Bitte ihren aktuellen Stand prüfen.')
             before = _state(task.to_dict())
-            old_values = (task.title, task.due, task.notes)
+            old_values = (task.title, task.due, task.remind_at, task.notes)
             if title is not _UNSET:
                 task.title = title.strip()
             if due is not _UNSET:
                 task.due = ensure_aware(due)
+            if remind_at is not _UNSET:
+                task.remind_at = ensure_aware(remind_at)
             if notes is not _UNSET:
                 task.notes = notes
-            if (task.title, task.due, task.notes) != old_values:
+            if (task.title, task.due, task.remind_at, task.notes) != old_values:
                 self._write(task)
                 self._append_event(task, "edited", before, at)
             return task
@@ -436,6 +452,26 @@ class TaskStore:
                 "SELECT document FROM tasks WHERE id = ?", (task_id,)
             ).fetchone()
         return self._from_row(row) if row else None
+
+    def reminders_due(self, at: datetime | None = None, limit: int = 100) -> list[Task]:
+        """Open tasks whose reminder time has arrived, oldest reminder first.
+
+        This intentionally scans every open task rather than reusing the
+        user-facing 200-task list, so an older/undated task cannot hide a
+        reminder. Reminder delivery is left to the caller; reading this list
+        never changes task or deadline state.
+        """
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("reminder limit must be between 1 and 200")
+        moment = ensure_aware(at) or now()
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM tasks WHERE status = ? "
+                "AND julianday(json_extract(document,'$.remind_at')) <= julianday(?) "
+                "ORDER BY julianday(json_extract(document,'$.remind_at')), created_at, id LIMIT ?",
+                (TaskStatus.OPEN.value, moment.isoformat(), limit),
+            ).fetchall()
+        return [self._from_row(row) for row in rows]
 
     def open_tasks(self, limit: int | None = 200) -> list[Task]:
         """Offene Aufgaben, überfällige und bald fällige zuerst.
@@ -561,6 +597,7 @@ class TaskStore:
             created_at=_parse(d["created_at"]),  # type: ignore[arg-type]
             status=TaskStatus(d["status"]),
             due=_parse(d.get("due")),
+            remind_at=_parse(d.get("remind_at")),
             notes=d.get("notes"),
             done_at=_parse(d.get("done_at")),
             tags=list(d.get("tags", [])),

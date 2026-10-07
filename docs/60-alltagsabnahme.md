@@ -29,6 +29,14 @@ Lokale Prüfungen verwenden künstliche Quellen und kontrollierte Modellausgaben
 4. **Echtes Verstehen messen:** Aus vorhandenen Quellen Fragen mit vorher festgelegten Sollantworten wählen. Quelle, Person, Projekt, Zeit, Bedingung und fehlende Information getrennt bewerten. Ausgelassene relevante Quellen zählen als Fehler, auch wenn die Antwort vorsichtig klingt.
 5. **Einen Arbeitstag begleiten:** Heute-Übersicht gegen Mail, Kalender und Aufgaben gegenprüfen. Wiederholte Bedienhürden und zusätzliche Kontrollarbeit notieren. Daraus die nächsten Verbesserungen ableiten.
 
+## Zusätzliche Bedienfälle für die drei Anschlussfunktionen
+
+- **Gedächtnisfrage auf Heute:** Beide Werte und Originalbelege verstehen, Quelle öffnen und bewusst entscheiden. In einem zweiten Fenster die Quelle ausschließen oder den Vorschlag ändern; die alte Entscheidung muss abgewiesen und die Ansicht aktualisiert werden. Unbekanntes Quelldatum darf nicht wie das Erfassungsdatum wirken.
+- **Mailüberblick:** Einen Verlauf mit ursprünglicher Bitte und späterer Absage öffnen, den Überblick ausdrücklich starten und die ausgewählten Originalstellen vergleichen. Kategorien bleiben ungeprüft. „Verlauf zur Prüfung vormerken“ darf nur einen Prüfauftrag vorbereiten, keine alte Bitte als aktuelle Verpflichtung übernehmen. Quellenwechsel während der Erstellung darf keinen alten Überblick ausliefern.
+- **Wiedervorlage:** Einer wartenden Aufgabe einen eigenen Erinnerungszeitpunkt geben, Anzeige auf Heute prüfen, auf morgen verschieben und abschließen. Fälligkeit und Wartestatus müssen unverändert bleiben. Mit zwei Fenstern eine überholte Änderung provozieren; die neuere Wiedervorlage darf nicht überschrieben werden. Aktualisierung bei erneutem Fokus und ein schmales Fenster mitprüfen.
+
+Die isolierte HTTP-Prüfung dieser Zustandswechsel ist bestanden. Verständlichkeit, Tastatur/Fokus, tatsächlicher Klickaufwand und die Darstellung im nativen Fenster sind noch offen. Die Wiedervorlage erzeugt keine Hintergrundbenachrichtigung bei geschlossener App.
+
 ## Freigabemaßstab
 
 Falsche Personenzuordnung, erfundene Frist, verlorene Bedingung, weiterhin zugängliche entzogene Quelle oder unerwartete Ausführung blockieren die Freigabe des betroffenen Ablaufs. Ein nicht belegter oder nicht vollständig geprüfter Fall bleibt ausdrücklich offen.

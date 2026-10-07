@@ -394,6 +394,7 @@ export type Task = {
   status: "open" | "done" | "dropped";
   created_at: string;
   due: string | null;
+  remind_at?: string | null;
   notes: string | null;
   tags: string[];
   project_id: string | null;
@@ -404,10 +405,19 @@ export type Task = {
 };
 
 export type MailThreadContext = {
+  context_fingerprint: string;
   uid: string; source_digest: string; scope: "stored_header_links"; status: "ready" | "excluded";
   limited: boolean; detail: string;
   items: Array<{episode_id: string | null; current: boolean; title: string; sender: string;
     occurred_at: string | null; recorded_at: string | null; text: string; truncated: boolean}>;
+};
+
+export type MailThreadSummary = {
+  uid: string; context_fingerprint: string; available: boolean; status: string;
+  limited: boolean; warnings: string[]; detail: string; selection_review: "proposed"; semantic_validation: false;
+  items: Array<{passage_id: string; kind: "agreement" | "change" | "cancellation" | "open_question";
+    label: string; quote: string; interpretation: "unconfirmed"; episode_id: string | null; current: boolean;
+    title: string; sender: string; occurred_at: string | null; recorded_at: string | null; truncated: boolean}>;
 };
 
 export type MailDetail = {
@@ -982,7 +992,8 @@ export type BefundStatus = "offen" | "erledigt" | "abgewiesen";
 export type Befund = {
   id: string; art: BefundArt; art_text: string; unterart: string; schwere: "wichtig" | "hinweis"; text: string;
   sachen: Array<{ sache: string; name: string; art_text: string }>;
-  belege: Array<{ episode_id: string; rolle: string; titel: string; datum: string }>;
+  belege: Array<{ episode_id: string; rolle: string; titel: string; datum: string | null; recorded_at: string; digest: string; zitat: string }>;
+  stand: string;
   werte: Record<string, string>;
   vorschlaege: Array<{ wahl: "alt" | "neu"; id: string; zustand: string; aussage: string; wert: string }>;
   status: BefundStatus; entschieden: string; gefunden_am: string;
@@ -991,6 +1002,11 @@ export type BefundZusammenfassung = {
   offen: number; wichtig: number; je_art: Record<BefundArt, number>; neu_seit_letztem_lauf: number; letzter_lauf: string | null;
 };
 export type BefundListe = { befunde: Befund[]; zusammenfassung: BefundZusammenfassung; laeuft: boolean };
+
+export type QuestionSource = {episode_id: string; title: string; quote: string; occurred_at: string | null; recorded_at: string};
+export type MemoryQuestion = {id: string; stand: string; subject_ref: string; predicate: string; scope_ref: string | null;
+  candidates: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>;
+  active_claims: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>};
 
 export const api = {
   deviceProfile: () => request<DeviceProfile>("/api/v1/device/profile"),
@@ -1184,7 +1200,8 @@ export const api = {
   addProject: (data: { name: string; description?: string }) => request<Project>("/api/v1/projects", {method: "POST", body: JSON.stringify(data)}),
   updateProject: (id: string, data: { status: Project["status"] }) => request<Project>(`/api/v1/projects/${id}`, {method: "PATCH", body: JSON.stringify(data)}),
   assignTaskProject: (id: string, project_id: string | null) => request<Task>(`/api/v1/tasks/${id}/project`, {method: "PATCH", body: JSON.stringify({project_id})}),
-  editTask: (id: string, data: {title?: string; due?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
+  editTask: (id: string, data: {title?: string; due?: string | null; remind_at?: string | null; expected_remind_at?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
+  taskReminders: (limit = 100) => request<{items: Task[]; truncated: boolean}>(`/api/v1/tasks/reminders?limit=${limit}`),
   addTask: (data: { title: string; due?: string | null; project_id?: string }) =>
     request<Task>("/api/v1/tasks", { method: "POST", body: JSON.stringify(data) }),
   waitTask: (id: string, name: string) => request<Task>(`/api/v1/tasks/${id}/warten`, {method: "POST", body: JSON.stringify({name})}),
@@ -1193,6 +1210,7 @@ export const api = {
   completeTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/done`, { method: "POST" }),
   messages: (accountId?: string) => request<InboxPayload>(`/api/v1/messages${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ""}`),
   mailThread: (uid: string, signal?: AbortSignal) => request<MailThreadContext>(`/api/v1/messages/${encodeURIComponent(uid)}/thread`, {signal}),
+  mailThreadSummary: (uid: string, context_fingerprint: string, signal?: AbortSignal) => request<MailThreadSummary>(`/api/v1/messages/${encodeURIComponent(uid)}/thread-summary`, {method: "POST", body: JSON.stringify({context_fingerprint}), signal}),
   mailMessage: (uid: string) => request<MailDetail>(`/api/v1/messages/${encodeURIComponent(uid)}`),
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),
@@ -1324,11 +1342,13 @@ export const api = {
   lintBefunde: (status: BefundStatus = "offen") => request<BefundListe>(`/api/v1/lint/befunde?status=${status}`),
   lintAnstossen: () =>
     request<{ lauf: { laeuft: boolean; befunde?: number; neu?: number }; zusammenfassung: BefundZusammenfassung }>("/api/v1/lint", { method: "POST" }),
-  lintStatus: (id: string, status: BefundStatus) =>
-    request<{ befund: Befund; zusammenfassung: BefundZusammenfassung }>(`/api/v1/lint/befunde/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ status }) }),
-  lintEntscheiden: (id: string, wahl: "alt" | "neu") =>
+  lintStatus: (id: string, status: BefundStatus, stand?: string) =>
+    request<{ befund: Befund; zusammenfassung: BefundZusammenfassung }>(`/api/v1/lint/befunde/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ status, stand }) }),
+  memoryQuestions: () => request<{items: MemoryQuestion[]; truncated: boolean}>("/api/v1/memory/questions"),
+  resolveMemoryQuestion: (id: string, body: {stand: string; proposal_id: string | null}) => request<unknown>(`/api/v1/memory/questions/${encodeURIComponent(id)}/resolve`, {method: "POST", body: JSON.stringify(body)}),
+  lintEntscheiden: (id: string, wahl: "alt" | "neu", stand?: string) =>
     request<{ befund: Befund; aussage: { id: string; statement: string } | null; zusammenfassung: BefundZusammenfassung }>(
-      `/api/v1/lint/befunde/${encodeURIComponent(id)}/entscheiden`, { method: "POST", body: JSON.stringify({ wahl }) }),
+      `/api/v1/lint/befunde/${encodeURIComponent(id)}/entscheiden`, { method: "POST", body: JSON.stringify({ wahl, stand }) }),
   rueckmeldungen: () => request<RueckmeldungenListe>("/api/v1/rueckmeldungen"),
   rueckmeldungMelden: (body: { conversation_id: string; message_id: string; art: RueckmeldungArt; richtig: string }) =>
     request<{ meldung: Rueckmeldung } & RueckmeldungZaehlung>("/api/v1/rueckmeldungen", { method: "POST", body: JSON.stringify(body) }),

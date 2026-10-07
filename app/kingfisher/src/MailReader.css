@@ -61,3 +61,6 @@
 .mail-thread-list { padding-left: 24px; }
 .mail-thread-list > li { padding: 12px 0; border-bottom: 1px solid var(--kf-rand-d7e1df); }
 .mail-thread-list pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }
+.mail-thread-summary { margin: 18px 0; }
+.mail-thread-summary article { padding: 12px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
+.mail-thread-summary blockquote { margin: 12px 0; padding-left: 12px; border-left: 2px solid var(--kf-rand-d7e1df); white-space: pre-wrap; overflow-wrap: anywhere; }

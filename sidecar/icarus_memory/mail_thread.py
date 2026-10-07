@@ -42,6 +42,7 @@ def thread_context(episodes, message, *, limit=20):
         return {**base, 'status': 'excluded', 'detail': 'Die geöffnete Quelle ist vom Gedächtnis ausgeschlossen.'}
     text = message.body or message.preview or ''
     current = {'episode_id': head_id if head and head.digest == digest_of(text) else None,
+               'support_generation': episodes.support_snapshot(head_id).generation if head else None,
                'current': True, 'title': message.subject or '(Ohne Betreff)', 'sender': message.sender,
                'occurred_at': _date(message.date), 'recorded_at': _date(head.recorded_at) if head else None,
                'text': text[:MAX_TEXT], 'truncated': bool(message.truncated) or len(text) > MAX_TEXT}
@@ -96,6 +97,7 @@ def thread_context(episodes, message, *, limit=20):
             cropped = len(episode.body) > MAX_TEXT or 'source:truncated' in episode.tags
             limited = limited or cropped
             items.append({'episode_id': episode.id, 'current': False, 'title': episode.title,
+                          'support_generation': episodes.support_snapshot(episode.id).generation,
                           'sender': episode.participants[0] if episode.participants else '',
                           'occurred_at': _date(episode.occurred_at), 'recorded_at': _date(episode.recorded_at),
                           'text': episode.body[:MAX_TEXT], 'truncated': cropped})

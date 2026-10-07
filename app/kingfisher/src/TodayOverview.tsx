@@ -8,6 +8,10 @@ import { ProfileSource } from "./ProfileSource";
 import { TagesLage } from "./TagesLage";
 import { ASSET } from "./ui";
 import { activityAction } from "./dailyFlow";
+import { MemoryQuestions } from "./MemoryQuestions";
+import { KnowledgeQuestions } from "./KnowledgeQuestions";
+import { TaskReminders } from "./TaskReminders";
+import { navigate } from "./ui";
 
 // A calendar reminder already shown with its preparation belongs with the
 // day's appointments. Keep unmatched reminders visible in the attention list.
@@ -24,6 +28,7 @@ function actionFor(item: Attention) {
   if (item.source === "aufgabe") return { label: "Aufgabe ansehen", href: item.source_ref ? taskHref({id: item.source_ref, project_id: item.project_id}) : `/vorhaben?view=mine${project}` };
   if (item.source === "wartet") return { label: "Offenen Punkt ansehen", href: item.source_ref ? taskHref({id: item.source_ref, wartet_auf: "waiting", project_id: item.project_id}) : `/vorhaben?view=waiting${project}` };
   if (item.source === "entscheidung") return { label: "Entscheidung ansehen", href: `/vorhaben?view=decisions${project}` };
+  if (item.source === "knowledge") return {label: "Angaben prüfen", href: "#memory-questions"};
   return null;
 }
 
@@ -84,6 +89,14 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       })}</ul> : <div className="today-empty"><h3>{calendarUnavailable ? "Deine Termine fehlen noch." : "Keine weiteren Termine angezeigt."}</h3><p>{calendarUnavailable ? "Der Kalender konnte nicht gelesen werden. Das bedeutet nicht, dass du keine Termine hast." : "Heute sind keine weiteren Termine in diesem Überblick aufgeführt."}</p>{calendarUnavailable && <a className="today-text-link" href="/settings#zugaenge">Kalender verbinden oder prüfen →</a>}</div>}
       <a className="today-text-link today-calendar-open" href="/calendar">Kalender öffnen <span aria-hidden="true">→</span></a>
     </section>
+
+    <div className="today-followups">
+      <TaskReminders onChanged={onChange} />
+      <div id="memory-questions">
+        <KnowledgeQuestions active onChanged={onChange} />
+        <MemoryQuestions active onOpenAll={() => navigate('/settings#technik-befunde')} />
+      </div>
+    </div>
 
     <section className="today-panel today-memory" aria-labelledby="today-memory-title">
       <header className="today-panel-heading"><h2 id="today-memory-title">Neu im Blick</h2><a className="today-text-link" href="/memory">Gedächtnis öffnen <span aria-hidden="true">→</span></a></header>

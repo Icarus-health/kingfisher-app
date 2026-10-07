@@ -1,8 +1,10 @@
 import {useEffect, useState} from 'react';
 import {api, type MailThreadContext} from './api';
 import {ProfileSource} from './ProfileSource';
+import {MailThreadSummary} from './MailThreadSummary';
 
-export function MailThread({uid, expectedDigest}: {uid: string; expectedDigest?: string}) {
+export function MailThread({uid, expectedDigest, onPrepareTask, taskDisabled}: {uid: string; expectedDigest?: string;
+  onPrepareTask?: (value: {title: string; quote: string; source_digest: string}) => void; taskDisabled?: boolean}) {
   const [result, setResult] = useState<MailThreadContext | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export function MailThread({uid, expectedDigest}: {uid: string; expectedDigest?:
     {result && <>
       <p className="mail-reader-status">{result.detail}</p>
       {result.limited && <p className="mail-reader-status" role="status">Begrenzter Ausschnitt: Weitere Nachrichten oder Textteile können fehlen. Daraus lässt sich kein abschließender Stand ableiten.</p>}
+      {result.status === 'ready' && <MailThreadSummary key={result.context_fingerprint} context={result} onPrepareTask={onPrepareTask} taskDisabled={taskDisabled} />}
       {result.items.length === 1 && <p>Keine weitere passende Nachricht im gespeicherten Ausschnitt gefunden. Im Postfach können weitere Nachrichten liegen.</p>}
       {result.items.length > 0 && <details><summary>Verlauf ansehen · {result.items.length} {result.items.length === 1 ? 'Nachricht' : 'Nachrichten'}</summary>
         <p className="mail-reader-status">Nach Originaldatum geordnet; undatierte Quellen stehen separat am Ende. Stand beim letzten Abruf. Änderungen und Absagen bitte im Wortlaut prüfen.</p>

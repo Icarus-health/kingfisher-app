@@ -104,7 +104,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
-from .tasks import TaskStore
+from .tasks import TaskStore, TaskChangedError
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
 from .workspace import (
@@ -301,6 +301,12 @@ class KnowledgeAcceptIn(BaseModel):
     supersedes: list[str] = Field(default_factory=list)
 
 
+class MemoryQuestionIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    stand: str = Field(min_length=64, max_length=64)
+    proposal_id: str | None
+
+
 class ConversationMemoryCandidateIn(BaseModel):
     """Ein ausdrücklich aus einer Nutzerzeile formulierter Wissensvorschlag.
 
@@ -411,6 +417,11 @@ class MailReplyIn(BaseModel):
     context_token: str | None = Field(default=None, min_length=20, max_length=200)
 
 
+class ThreadSummaryIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    context_fingerprint: str = Field(pattern='^[0-9a-f]{64}$')
+
+
 class TaskProjectIn(BaseModel):
     project_id: str | None
 
@@ -419,6 +430,8 @@ class TaskEditIn(BaseModel):
     title: str | None = Field(default=None, max_length=4096)
     due: datetime | None = None
     notes: str | None = None
+    remind_at: datetime | None = None
+    expected_remind_at: datetime | None = None
 
 
 class SourceProjectIn(BaseModel):
@@ -2357,12 +2370,47 @@ def create_app(
     @app.get("/api/v1/messages/{uid}/thread", dependencies=guard)
     def read_mail_thread(uid: str, limit: int = Query(default=20, ge=2, le=50)) -> dict[str, Any]:
         from .mail_thread import thread_context
+        from .mail_thread_summary import fingerprint
         reader = _mail_or_404()
         message = _read_mail(uid)
         with app.state.conversation_lock:
             if app.state.mail is not reader or message.uid != uid:
                 raise HTTPException(status_code=409, detail="Die Mailquelle hat sich geändert. Bitte erneut öffnen.")
-            return thread_context(app.state.episodes, message, limit=limit)
+            context = thread_context(app.state.episodes, message, limit=limit)
+            return {**context, 'context_fingerprint': fingerprint(context)}
+
+    thread_summary_lock = threading.Lock()
+
+    @app.post('/api/v1/messages/{uid}/thread-summary', dependencies=guard)
+    def summarize_mail_thread(uid: str, body: ThreadSummaryIn) -> dict[str, Any]:
+        from .mail_thread import thread_context
+        from .mail_thread_summary import fingerprint, summarize
+        if not thread_summary_lock.acquire(blocking=False):
+            raise HTTPException(status_code=429, detail='Ein Mailüberblick wird bereits erstellt. Bitte kurz warten.')
+        try:
+            reader = _mail_or_404()
+            episodes = app.state.episodes
+            message = _read_mail(uid)
+            with app.state.conversation_lock:
+                if app.state.mail is not reader or message.uid != uid or app.state.episodes is not episodes:
+                    raise HTTPException(status_code=409, detail='Die Mailquelle hat sich geändert. Bitte erneut öffnen.')
+                context = thread_context(episodes, message)
+                if context['status'] != 'ready' or fingerprint(context) != body.context_fingerprint:
+                    raise HTTPException(status_code=409, detail='Der Verlauf hat sich geändert. Bitte erneut laden.')
+
+            def still_current(latest=message) -> bool:
+                # Reuse the initial mail during cheap local guards; refetch it
+                # once before delivery, outside the source mutation lock.
+                with app.state.conversation_lock:
+                    return (app.state.mail is reader and app.state.episodes is episodes and latest.uid == uid
+                            and fingerprint(thread_context(episodes, latest)) == body.context_fingerprint)
+
+            result = summarize(app, context, still_current=still_current)
+            if not still_current(_read_mail(uid)) or result['status'] == 'changed':
+                raise HTTPException(status_code=409, detail='Eine Grundlage des Überblicks hat sich geändert. Bitte erneut laden.')
+            return result
+        finally:
+            thread_summary_lock.release()
 
     @app.post("/api/v1/messages/{uid}/reply", dependencies=guard, status_code=201)
     def prepare_mail_reply(uid: str, body: MailReplyIn) -> dict[str, Any]:
@@ -4451,6 +4499,11 @@ def create_app(
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
         return {"view": view, "tasks": _task_view(view, project_id)}
 
+    @app.get("/api/v1/tasks/reminders", dependencies=guard)
+    def task_reminders(limit: int = Query(default=100, ge=1, le=100)) -> dict[str, Any]:
+        tasks = app.state.tasks.reminders_due(limit=limit + 1)
+        return {"items": [task.to_dict() for task in tasks[:limit]], "truncated": len(tasks) > limit}
+
     @app.get("/api/v1/tasks/{task_id}", dependencies=guard)
     def read_kingfisher_task(task_id: str) -> dict[str, Any]:
         task = app.state.tasks.get(task_id)
@@ -4510,6 +4563,8 @@ def create_app(
             return app.state.tasks.edit(task_id, **changes).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.") from exc
+        except TaskChangedError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -5529,6 +5584,17 @@ def create_app(
     @app.get("/api/v1/memory/clarifications", dependencies=guard)
     def memory_clarifications() -> list[dict[str, Any]]:
         return app.state.knowledge_service.clarifications()
+
+    @app.get('/api/v1/memory/questions', dependencies=guard)
+    def memory_questions() -> dict[str, Any]:
+        from .memory_questions import list_questions
+        questions = list_questions(app)
+        return {'items': questions[:50], 'truncated': len(questions) > 50}
+
+    @app.post('/api/v1/memory/questions/{question_id}/resolve', dependencies=guard)
+    def resolve_memory_question(question_id: str, body: MemoryQuestionIn) -> dict[str, Any]:
+        from .memory_questions import resolve_question
+        return resolve_question(app, question_id, stand=body.stand, proposal_id=body.proposal_id)
 
     @app.post(
         "/api/v1/memory/candidates/{proposal_id}/accept",

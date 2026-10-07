@@ -825,7 +825,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     finally { setCompleting(null); }
   }
 
-  async function editTask(taskId: string, data: {title?: string; due?: string | null; notes?: string | null}) {
+  async function editTask(taskId: string, data: {title?: string; due?: string | null; remind_at?: string | null; expected_remind_at?: string | null; notes?: string | null}) {
     if (completing) return false;
     setCompleting(taskId); setError("");
     try { await api.editTask(taskId, data); load(); return true; }
