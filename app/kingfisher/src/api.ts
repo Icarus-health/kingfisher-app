@@ -403,6 +403,13 @@ export type Task = {
   overdue: boolean;
 };
 
+export type MailThreadContext = {
+  uid: string; source_digest: string; scope: "stored_header_links"; status: "ready" | "excluded";
+  limited: boolean; detail: string;
+  items: Array<{episode_id: string | null; current: boolean; title: string; sender: string;
+    occurred_at: string | null; recorded_at: string | null; text: string; truncated: boolean}>;
+};
+
 export type MailDetail = {
   uid: string; subject: string; from: string; date: string | null;
   body: string; preview: string; answer_to: string; message_id: string;
@@ -1027,6 +1034,7 @@ export const api = {
   supportReview: (cursor?: string | null) => request<SupportReviewPage>(`/api/v1/assertions/support-review?${new URLSearchParams({limit: "25", ...(cursor ? {cursor} : {})})}`),
   previewSupportReassessment: (id: string) => request<SupportReassessmentPreview>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment/preview`, {method: "POST"}),
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
+  task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
   taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
   memoryCoverage: () => request<MemoryCoverage>("/api/v1/memory/coverage"),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
@@ -1177,13 +1185,14 @@ export const api = {
   updateProject: (id: string, data: { status: Project["status"] }) => request<Project>(`/api/v1/projects/${id}`, {method: "PATCH", body: JSON.stringify(data)}),
   assignTaskProject: (id: string, project_id: string | null) => request<Task>(`/api/v1/tasks/${id}/project`, {method: "PATCH", body: JSON.stringify({project_id})}),
   editTask: (id: string, data: {title?: string; due?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
-  addTask: (data: { title: string; due?: string; project_id?: string }) =>
+  addTask: (data: { title: string; due?: string | null; project_id?: string }) =>
     request<Task>("/api/v1/tasks", { method: "POST", body: JSON.stringify(data) }),
   waitTask: (id: string, name: string) => request<Task>(`/api/v1/tasks/${id}/warten`, {method: "POST", body: JSON.stringify({name})}),
   unwaitTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/zurueckholen`, {method: "POST"}),
   reopenTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/reopen`, { method: "POST" }),
   completeTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/done`, { method: "POST" }),
   messages: (accountId?: string) => request<InboxPayload>(`/api/v1/messages${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ""}`),
+  mailThread: (uid: string, signal?: AbortSignal) => request<MailThreadContext>(`/api/v1/messages/${encodeURIComponent(uid)}/thread`, {signal}),
   mailMessage: (uid: string) => request<MailDetail>(`/api/v1/messages/${encodeURIComponent(uid)}`),
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),

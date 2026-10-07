@@ -1,4 +1,6 @@
 import "./TodayOverview.css";
+import { TodayTaskActions } from "./TodayTaskActions";
+import { taskHref } from "./taskWorkflow";
 import { zaehlerText } from "./heute";
 import { type Attention, type MorningBriefing } from "./api";
 import { BriefingSuggestion } from "./BriefingSuggestion";
@@ -19,8 +21,8 @@ function actionFor(item: Attention) {
   const project = item.project_id ? `&project=${encodeURIComponent(item.project_id)}` : "";
   if (item.source === "nachbereitung" && item.source_ref) return { label: "Ergebnis festhalten", href: `/calendar?nachbereiten=${encodeURIComponent(item.source_ref)}` };
   if (item.source === "termin" && item.source_ref) return { label: "Termin vorbereiten", href: `/calendar?prepare=${encodeURIComponent(item.source_ref)}` };
-  if (item.source === "aufgabe") return { label: "Aufgabe ansehen", href: `/vorhaben?view=mine${project}` };
-  if (item.source === "wartet") return { label: "Offenen Punkt ansehen", href: `/vorhaben?view=waiting${project}` };
+  if (item.source === "aufgabe") return { label: "Aufgabe ansehen", href: item.source_ref ? taskHref({id: item.source_ref, project_id: item.project_id}) : `/vorhaben?view=mine${project}` };
+  if (item.source === "wartet") return { label: "Offenen Punkt ansehen", href: item.source_ref ? taskHref({id: item.source_ref, wartet_auf: "waiting", project_id: item.project_id}) : `/vorhaben?view=waiting${project}` };
   if (item.source === "entscheidung") return { label: "Entscheidung ansehen", href: `/vorhaben?view=decisions${project}` };
   return null;
 }
@@ -64,7 +66,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
         return <li className="today-attention-item" key={item.id}>
           <div className="today-item-meta"><span>{kindLabel(item)}</span>{item.priority && <span>{item.priority}</span>}</div>
           <h3>{item.title}</h3><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p>
-          {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : action ? <a className="today-action" href={action.href}>{action.label}<span aria-hidden="true">→</span></a> : null}
+          {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : (item.source === "aufgabe" || item.source === "wartet") && item.source_ref ? <TodayTaskActions key={item.source_ref} item={item} onChanged={onChange} /> : action ? <a className="today-action" href={action.href}>{action.label}<span aria-hidden="true">→</span></a> : null}
         </li>;
       })}</ul> : <div className="today-empty"><h3>{briefing.partial_failures.length ? "Noch kein offener Punkt sichtbar." : "Gerade braucht dich nichts."}</h3><p>In den verfügbaren Quellen sind keine offenen Punkte für dich aufgeführt.</p></div>}
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}

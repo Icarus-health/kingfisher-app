@@ -378,6 +378,8 @@ class MicrosoftPost:
             preview=' '.join(text.split())[:300], unread=not inhalt.get('isRead', False), body=text[:FULL_BODY_LIMIT],
             truncated=len(text) > FULL_BODY_LIMIT, message_id=str(inhalt.get('internetMessageId') or ''),
             reply_to=antwort_an,
+            in_reply_to=koepfe.get('in-reply-to', '')[:16000],
+            references=tuple(re.findall(r'<[^<>\s]{1,500}>', koepfe.get('references', '')[:16000])[:64]),
             spam_flag=any(koepfe.get(k, '').strip().lower().startswith(('yes', 'true')) for k in ('x-spam-flag', 'x-spam-status')),
             list_mail=bool(koepfe.get('list-id') or koepfe.get('list-unsubscribe')
                            or koepfe.get('precedence', '').lower() in ('bulk', 'list')),

@@ -1,12 +1,21 @@
 # Funktionsprüfung und nächste Verbesserungen
 
-Stand: 7. Oktober 2026, Arbeitsstand `ec2e9e9` für das noch nicht installierte Update 1.0.6. Ziel: Kingfisher nimmt Such-, Erinnerungs- und Koordinationsarbeit ab. Bezug: [Zielbild](41-zielbild.md), [Kernablauf](59-kernablauf-gedaechtnis-cos.md) und [Alltagsabnahme](60-alltagsabnahme.md).
+Stand: 7. Oktober 2026, Inventur ab `ec2e9e9` und erster anschließender Ausbau für das noch nicht installierte Update 1.0.6. Ziel: Kingfisher nimmt Such-, Erinnerungs- und Koordinationsarbeit ab. Bezug: [Zielbild](41-zielbild.md), [Kernablauf](59-kernablauf-gedaechtnis-cos.md) und [Alltagsabnahme](60-alltagsabnahme.md).
 
 ## Nachweisgrenze
 
-Dies ist eine Prüfung der vorhandenen Implementierung und ihrer technischen Tests, **kein abgeschlossener visueller UX-Audit**. Der Mac steht für die Bedienprüfung noch nicht zur Verfügung. Lesbarkeit, tatsächlicher Klickaufwand, Tastaturbedienung, Fokus, schmale Fenster und Verständlichkeit werden erst am laufenden Produkt beurteilt. Die Vorschläge unten sind aus dem Code und dem freigegebenen Ziel abgeleitete Prioritäten. Sie sind noch nicht umgesetzt.
+Dies ist eine Prüfung der vorhandenen Implementierung und ihrer technischen Tests, **kein abgeschlossener visueller UX-Audit**. Der Mac steht für die Bedienprüfung noch nicht zur Verfügung. Lesbarkeit, tatsächlicher Klickaufwand, Tastaturbedienung, Fokus, schmale Fenster und Verständlichkeit werden erst am laufenden Produkt beurteilt. Die Tabelle hält die Ausgangslücken fest; der folgende Abschnitt benennt die inzwischen umgesetzte erste Teillieferung.
 
 Auch der erfolgreiche breite Testlauf ist kein Nachweis für vollständige Aufnahme echter Konten oder die Qualität eines tatsächlich angeschlossenen Modells. Prüfstand und Grenzen stehen im [Laufbericht](runs/2026-10-07-core-workflow/README.md).
+
+## Erste Teillieferung umgesetzt
+
+- Bestätigte Aufgaben auf „Heute“ direkt erledigen, zurückholen oder mit den vorhandenen Aufgabenfeldern bearbeiten. Quelle und Änderungsverlauf bleiben erreichbar.
+- Konkrete Aufgabenlinks laden die gespeicherte Kennung unabhängig von Listenbegrenzung oder Filter. Neu angelegte und angenommene Aufgaben sowie Mail-Aufgaben sind direkt erreichbar.
+- Fälligkeitstage einheitlich bis 23:59 Ortszeit; unveränderte vorgeschlagene genaue Zeitpunkte bleiben erhalten. Das Datumsfeld und der angezeigte Zeitpunkt verwenden dieselbe lokale Zeitzone. Ein enger Datumshelfer bietet eindeutige absolute „bis“-Angaben aus der Originalstelle zur ausdrücklichen Wahl an. Er ersetzt keine semantische Fristenprüfung und ordnet kein Projekt automatisch zu.
+- Mailverlauf mit Originaldatum, Originaltext und gespeicherter Quelle. Zuordnung über exakte, kontogebundene Antwortheader; keine Gruppierung allein nach Betreff. Nur aktuelle, nicht ausgeschlossene Fassungen; begrenzte Nachrichtenzahl, Textlänge, Beziehungstiefe und SQL-Arbeit. Neue Outlook-Aufnahmen behalten hierfür auch Antwortbezüge.
+
+Das ist ein quellengestützter Verlauf, **noch keine verständliche KI-Zusammenfassung des gesamten Gesprächs**. Ältere Aufnahmen ohne Antwortheader und noch nicht aufgenommene Nachrichten können fehlen. Absagen erledigen keine bestätigte Aufgabe automatisch. Google-OAuth-Schreiben, terminierte Wiedervorlagen, Serienaufgaben und die priorisierte Darstellung aller Gedächtnisfragen bleiben offen. Der [Umsetzungsplan](plans/2026-10-07-direkte-alltagsablaeufe.md) begrenzt diesen ersten Ausbau; Tests und unabhängiges Review stehen im Laufbericht.
 
 ## Vorhandene Funktionen und ihre praktische Grenze
 

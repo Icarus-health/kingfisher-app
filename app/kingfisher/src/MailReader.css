@@ -55,3 +55,9 @@
 
 .task-suggestion-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 14px; }
 .task-suggestion-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.mail-thread { margin: 24px 0; padding: 20px 0; border-block: 1px solid var(--kf-rand-d7e1df); }
+.mail-thread summary { cursor: pointer; padding: 8px 0; }
+.mail-thread-list { padding-left: 24px; }
+.mail-thread-list > li { padding: 12px 0; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.mail-thread-list pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }

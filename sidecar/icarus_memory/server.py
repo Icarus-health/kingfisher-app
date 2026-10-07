@@ -2354,6 +2354,16 @@ def create_app(
         return {**message.to_dict(), "source_digest": mail_source_digest(message), "can_reply": _can_reply(message),
                 "sending_account": getattr(_mail_or_404(), "sender_label", lambda _: "Standardkonto")(message.account_id)}
 
+    @app.get("/api/v1/messages/{uid}/thread", dependencies=guard)
+    def read_mail_thread(uid: str, limit: int = Query(default=20, ge=2, le=50)) -> dict[str, Any]:
+        from .mail_thread import thread_context
+        reader = _mail_or_404()
+        message = _read_mail(uid)
+        with app.state.conversation_lock:
+            if app.state.mail is not reader or message.uid != uid:
+                raise HTTPException(status_code=409, detail="Die Mailquelle hat sich geändert. Bitte erneut öffnen.")
+            return thread_context(app.state.episodes, message, limit=limit)
+
     @app.post("/api/v1/messages/{uid}/reply", dependencies=guard, status_code=201)
     def prepare_mail_reply(uid: str, body: MailReplyIn) -> dict[str, Any]:
         if not body.body.strip():
@@ -4440,6 +4450,13 @@ def create_app(
     def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None) -> dict[str, Any]:
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
         return {"view": view, "tasks": _task_view(view, project_id)}
+
+    @app.get("/api/v1/tasks/{task_id}", dependencies=guard)
+    def read_kingfisher_task(task_id: str) -> dict[str, Any]:
+        task = app.state.tasks.get(task_id)
+        if task is None:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+        return task.to_dict()
 
     @app.get("/api/v1/tasks/{task_id}/history", dependencies=guard)
     def task_history(task_id: str) -> dict[str, Any]:

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type Project, type Task, type TaskCandidate, type TaskCandidatePage } from "./api";
+import { candidateDeadline, localTaskDay } from "./taskWorkflow";
 import { ProfileSource } from "./ProfileSource";
 import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } from "./taskSuggestionsView";
 
@@ -10,7 +11,7 @@ type SuggestionDraft = {open: boolean; title: string; project: string; due: stri
 
 function initialDraft(item: TaskCandidate): SuggestionDraft {
   return {open: false, title: item.statement, project: "",
-    due: item.temporal_status === "recent" && item.valid_until ? item.valid_until.slice(0, 10) : "", waiting: ""};
+    due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : "", waiting: ""};
 }
 
 export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false}: {projects: Project[]; onAccepted: (task: Task) => void; initiallyExpanded?: boolean}) {
@@ -105,7 +106,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskC
     try {
       if (accept) {
         const task = await api.acceptTaskCandidate(item.id, {title: draft.title.trim(), project_id: draft.project || null,
-          due: draft.due ? new Date(`${draft.due}T00:00:00`).toISOString() : null, waiting_for: draft.waiting.trim() || null});
+          due: candidateDeadline(item, draft.due), waiting_for: draft.waiting.trim() || null});
         onDone(task);
       } else { await api.rejectTaskCandidate(item.id); onDone(); }
     } catch (failure) {
@@ -125,7 +126,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskC
       <form onSubmit={event => {event.preventDefault(); void save(true);}}>
         <fieldset className="task-suggestion-fields" disabled={busy}><label>Aufgabe<input value={draft.title} onChange={event => onDraftChange({title: event.target.value})} required maxLength={4096} /></label>
           <div className="mail-task-form-fields"><label>Projekt<select value={draft.project} onChange={event => onDraftChange({project: event.target.value})}><option value="">Ohne Projekt</option>{projects.filter(value => value.open).map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
-          <label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /></label>
+          <label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
           <label>Warte auf (optional)<input value={draft.waiting} onChange={event => onDraftChange({waiting: event.target.value})} maxLength={1024} /></label></div>
           <div className="task-suggestion-actions"><button className="primary-action" type="submit" disabled={!draft.title.trim()}>Aufgabe festhalten</button>
           <button className="secondary-action" type="button" onClick={() => onDraftChange({open: false})}>Abbrechen</button></div>

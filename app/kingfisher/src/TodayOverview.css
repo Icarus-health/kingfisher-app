@@ -137,3 +137,11 @@ button.today-text-link:disabled { cursor: default; opacity: .6; }
 .today-mail-dialog { width: min(900px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border: 1px solid var(--kf-rand-d7e1df); border-radius: 16px; padding: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
 .today-mail-dialog::backdrop { background: rgba(6, 43, 58, .45); }
 @media (max-width: 700px) { .today-source-status { align-items: stretch; flex-direction: column; } .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }
+
+/* Reuse the task controls inside the existing Today card, with room for narrow columns. */
+.today-task-actions { margin-top: 12px; }
+.today-task-actions .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.today-task-actions .task-detail .task-row { grid-template-columns: 30px minmax(0, 1fr); padding: 16px 0; }
+.today-task-actions .task-detail .task-row > time { grid-column: 2; grid-row: 3; text-align: left; }
+.task-selected { margin: 20px 0; padding: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
+.task-selected h2 { margin-top: 0; }
