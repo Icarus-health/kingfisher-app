@@ -36,3 +36,5 @@ Die Verarbeitungskarte zeigt bei mehr als 2.000 Quellen eine ausdrücklich begre
 Vor der Freigabe: fokussierte Regressionen, breitere Tests, UI-Build und unabhängiges Review. Danach Bedienprüfung auf dem entsperrten Mac mit getrennten künstlichen Daten; Installation erst mit Sicherung und anschließendem Erhaltungsnachweis. Bestehende Quellen, bestätigte Aufgaben und Zugangsdaten werden nicht als Testbereinigung gelöscht.
 
 Der persönliche Pilot ist erst dann alltagstauglich belegt, wenn die tatsächlich gewünschten Postfächer und Kalender angebunden sind und die unabhängige Prüfung besteht. Weder die Anzahl grüner Tests noch ein stärkerer Modellname beweist ein fehlerfreies Gedächtnis.
+
+Die konkreten Alltagssituationen, die Trennung von technischen und echten Modellprüfungen sowie die noch offene Mac-Abnahme stehen in der [Alltagsabnahme](60-alltagsabnahme.md). Zeitraumfragen verwenden auch bei der Kandidatenpriorisierung und Kennzeichnung nur das Quelldatum; undatierte Quellen bleiben als Kontext verfügbar, ohne aus dem Importdatum ein Ereignisdatum abzuleiten.

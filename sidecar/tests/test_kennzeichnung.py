@@ -130,6 +130,16 @@ def test_der_rahmen_wird_gespeichert_und_ungueltiges_gilt_nicht():
     assert Rahmen.aus_dict(None) is None
 
 
+@pytest.mark.parametrize('captured', [datetime(2026, 9, 24, tzinfo=timezone.utc),
+                                    datetime(2026, 10, 7, tzinfo=timezone.utc)])
+def test_undated_source_is_not_assigned_inside_or_outside_period_from_import(welt, captured):
+    from icarus_memory.model import Provenance, SourceType
+    episodes, _, _ = welt
+    episode, _ = episodes.record(EpisodeKind.DOCUMENT, 'Undated original',
+                                 'Orion: Die Freigabe ist offen.', Provenance(SourceType.DOCUMENT), at=captured)
+    assert kennzeichnung.kennzeichen(episode, Rahmen(zeitraum=LETZTE_WOCHE)) == ()
+
+
 # -- 3. Kontext des Modells ----------------------------------------------------------------------------------------
 
 

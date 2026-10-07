@@ -27,3 +27,13 @@ Read-only Review fand und bestätigte Korrekturen für falsche Quellendatums-Fal
 Der Mac war beim Bedienversuch gesperrt; die Bitte um Entsperren ist offen. Deshalb keine native Bedienprüfung, kein Screenshotnachweis, keine Änderung des persönlichen Piloten, kein Produktionsbackup/-update und keine Behauptung eines installierten Updates. Die getrennte Testinstanz ist bereit für diese Prüfung. Kalenderanbindung, kompletter gewünschter Mailumfang und unabhängiger echter Nutzwerttest bleiben eigenständige Abschlusskriterien.
 
 Keine GitHub-CI-Neustarts, keine Abonnements und keine Check-ins angelegt. Ein GitHub-Push verwendet `[skip ci]`, um das leere Minutenkontingent nicht zusätzlich zu belasten; die lokale Prüfung ist oben ausdrücklich begrenzt beschrieben.
+
+## Nachprüfung der Zeitraumfragen vor dem Mac-Test
+
+Die vorhandenen 74 gezielt ausgewählten Prüfungen für den Pilotablauf, Personen, Quellenentzug, zeitliche Aufgabenprüfung und Antwortzustände bestanden. Eine anschließende Codeprüfung fand trotzdem eine konkrete Lücke: Kandidatenpriorisierung, Personen-Zeitraumfilter und Kontextkennzeichnung verwendeten `reference_time()`, das bei fehlendem Quelldatum auf den Import zurückfällt. Ein undatiertes Dokument konnte deshalb zugleich „Quellenzeit: unbekannt“ und „Außerhalb des gefragten Zeitraums: Quelle vom 26.09.2026“ anzeigen; das angebliche Quelldatum war der Import.
+
+Die Korrektur verwendet an diesen Stellen ausschließlich `occurred_at`. Undatierte Personenquellen bleiben als Kontext erhalten, hinter datierten Treffern im gefragten Zeitraum. Es gibt keine Änderung gespeicherter Originalquellen, keine Migration und keine globale Änderung von `Episode.reference_time()` oder Rangfusion. Die allgemeine technische Rangfolge und begrenzte Kandidatenzahl sind weiterhin kein Vollständigkeitsnachweis.
+
+Sechs neue Testfälle decken Priorisierung, Filter, zwei Importzeitpunkte, tatsächliche Antwortdarstellung und den Erhalt undatierten Personenkontexts ab. Die fünf Fehlerfälle wurden vor ihrer jeweiligen Korrektur fehlschlagend beobachtet; der sechste ist eine zusätzliche Kontrolle. Der gezielte Endlauf bestand mit **105 Tests**, einschließlich datierter Mail-/Terminlogik, Personenfragen, Quellenentzug und gespeicherter Antworten. Eine rein lesende Gegenprüfung bestätigte die begrenzte Korrektur; sie startete keine weiteren Tests oder Scans.
+
+Die [Alltagsabnahme](../../60-alltagsabnahme.md) definiert zwölf Situationen und trennt technische Schutzregeln von noch offenen Tests mit echtem Modell und tatsächlichem Quellenbestand. Kein bezahlter Modellaufruf, kein echtes Postfach, kein Produktionsupdate und keine native Bedienprüfung wurden in dieser Nachprüfung ausgeführt.

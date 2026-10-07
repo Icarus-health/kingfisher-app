@@ -140,12 +140,12 @@ def _period(value):
 
 
 def _period_first(refs, episodes, period):
-    """Quellen aus dem Zeitraum zuerst; die übrigen folgen in ihrer Reihenfolge."""
+    """Quellen mit eigenem Datum im Zeitraum zuerst; Importzeit ist kein Quelldatum."""
     start, end = period
     inside = []
     for ref in refs:
         try:
-            moment = episodes.get(ref['episode_id']).reference_time()
+            moment = episodes.get(ref['episode_id']).occurred_at
         except Exception:  # noqa: BLE001 - nicht auflösbare Quellen prüft _candidates
             moment = None
         inside.append(moment is not None and start <= moment < end)
@@ -153,18 +153,20 @@ def _period_first(refs, episodes, period):
             + [ref for ref, hit in zip(refs, inside) if not hit])
 
 
-def _within(identifiers, episodes, period):
-    """Die Quellen, deren Zeitpunkt im Zeitraum [Beginn, Ende) liegt."""
+def _within(identifiers, episodes, period, *, keep_unknown=False):
+    """Datierte Quellen im Zeitraum; optional undatierten Kontext hinten erhalten."""
     start, end = period
-    kept = []
+    kept, undated = [], []
     for identifier in identifiers:
         try:
-            moment = episodes.get(identifier).reference_time()
+            moment = episodes.get(identifier).occurred_at
         except Exception:  # noqa: BLE001 - nicht auflösbare Quellen prüft _candidates
             continue
-        if start <= moment < end:
+        if moment is None and keep_unknown:
+            undated.append(identifier)
+        elif moment is not None and start <= moment < end:
             kept.append(identifier)
-    return kept
+    return kept + undated
 
 
 def _ordered_refs(question, episodes, project_ids, scope_ids=None, period=None, strict=False,
@@ -193,8 +195,9 @@ def _ordered_refs(question, episodes, project_ids, scope_ids=None, period=None, 
         people = [identifier for identifier in people if identifier in set(scope_ids)]
     if period and people:
         # Nennt die Frage einen Zeitraum („letzte Woche“), zählen von der Person
-        # nur die Quellen aus diesem Zeitraum; ältere verdrängen sonst Treffer.
-        people = _within(people, episodes, period)
+        # die datierten Quellen aus diesem Zeitraum; ältere verdrängen sonst Treffer.
+        # Undatierte bleiben möglicher Kontext, ohne als zeitlicher Treffer zu gelten.
+        people = _within(people, episodes, period, keep_unknown=True)
     if strict:
         # Gewählte Bedeutung: deren Quellen sind der ganze Rahmen, auch die,
         # in denen das Wort selbst nicht steht.
@@ -219,6 +222,8 @@ def _ordered_refs(question, episodes, project_ids, scope_ids=None, period=None, 
     if people:
         ordered, cut = _with_people(ordered, question, store, people)
         truncated = truncated or cut
+        if period:
+            ordered = _period_first(ordered, episodes, period)
     if len(ordered) > MAX_REFS:
         truncated = True
     return ordered[:MAX_REFS], truncated
