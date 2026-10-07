@@ -63,6 +63,33 @@ def test_literal_complete_passages_and_task_digest(setup):
     assert sum(setup[0].state.episodes.counts().values()) == 0
 
 
+def test_short_quote_stays_visible_but_only_saveable_tasks_are_proposed(setup):
+    setup[2].current = replace(setup[2].current, body='Ruf an.\n\nBitte sende Tom den Bericht bis Freitag.')
+    setup[1].payload = {'passages': [0, 1], 'tasks': [
+        {'title': 'Anrufen', 'passage': 0}, {'title': 'Bericht senden', 'passage': 1}]}
+    data = post(setup).json()
+    assert data['status'] == 'ready'
+    assert data['quotes'] == ['Ruf an.', 'Bitte sende Tom den Bericht bis Freitag.']
+    assert data['tasks'] == [{'title': 'Bericht senden', 'quote': 'Bitte sende Tom den Bericht bis Freitag.'}]
+    for task in data['tasks']:
+        saved = setup[3].post('/api/v1/messages/work:1.42/task', json={
+            'title': task['title'], 'source_quote': task['quote'], 'source_digest': data['source_digest']})
+        assert saved.status_code == 201, saved.text
+
+
+@pytest.mark.parametrize('quote, saveable', [('Ruf an.', False), ('Ruf an.!', True)])
+def test_task_evidence_matches_seven_eight_character_save_boundary(setup, quote, saveable):
+    setup[2].current = replace(setup[2].current, body=quote)
+    setup[1].payload = {'passages': [0], 'tasks': [{'title': 'Anrufen', 'passage': 0}]}
+    data = post(setup).json()
+    assert data['quotes'] == [quote]
+    assert data['tasks'] == ([{'title': 'Anrufen', 'quote': quote}] if saveable else [])
+    if saveable:
+        result = setup[3].post('/api/v1/messages/work:1.42/task', json={
+            'title': data['tasks'][0]['title'], 'source_quote': quote, 'source_digest': data['source_digest']})
+        assert result.status_code == 201, result.text
+
+
 def test_cache_reuses_model_only_for_unchanged_mail(setup):
     first = post(setup).json()
     assert post(setup).json() == first

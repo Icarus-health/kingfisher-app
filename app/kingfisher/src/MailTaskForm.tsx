@@ -150,7 +150,9 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
           <option value="">Keinem Projekt zuordnen</option>
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select></label>
-        <label htmlFor="mail-task-due">Fällig am <input disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} /></label>
+        <label htmlFor="mail-task-due">Fällig am (optional) <input aria-describedby="mail-task-due-hint" disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} />
+          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieses Datum wird für die Aufgabe gespeichert." : "Kein Datum festgelegt. Die Aufgabe wird ohne Termin gespeichert."}</span>
+        </label>
         <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="Optional, z. B. Anna Müller" value={waitingFor} /></label>
       </div>
       <div className="mail-task-form-footer">

@@ -46,7 +46,7 @@ Interface: briefing loads once on mail open, with visible local-analysis progres
 - [x] Add contract tests before UI changes.
 - [x] Implement load/abort/stale generation guards and task prefill, retain original and sender/date visible.
 - [x] Typecheck and frontend tests/build.
-- [ ] Real rendered interaction test: selection opens form without saving; mail switch cannot show previous briefing.
+- [x] Real rendered interaction test: selection opens form without saving; mail switch cannot show previous briefing.
 
 ## Task 3: Versioned memory upkeep
 
@@ -63,7 +63,7 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 - [x] Inspect final diff independently; fix actionable findings and run affected tests.
 - [x] Run full backend regression on the main implementation, full UI suite/build and Mac launcher checks; rerun affected mail tests after isolated final corrections. Exact commit and scope recorded below.
 - [x] Build versioned isolated candidate. No production installation performed; production backup remains a prerequisite for that later step.
-- [ ] Verify rendered briefing, original disclosure and task prefill on a fictional source; verify real read-only mail overview on the Mac if permitted and available.
+- [x] Verify rendered briefing, original disclosure and task prefill on fictional sources in the native Mac app. Real-mail checks deferred: no production accounts used.
 - [x] Record actual results and open limits, commit/push a reviewable PR and attach it. Prepare normal release/updater path without claiming an unpublished candidate is downloadable.
 
 ## Execution ledger
@@ -73,7 +73,7 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 - Mac launcher: 26 passed, 1 skipped; arm64 native test window built and signed. No new native production code in this patch.
 - Independent review found stale analyses counted as complete and excluded from background priority. Corrected classification, prioritization, retry handling and completion counts; targeted regression tests passed. The final cache-only delta also received independent review with no further actionable finding.
 - Local Qwen 9B/32k probe on fictional text preserved both the Friday request and the complete hotel approval condition; final response 2.72 seconds, identical cached response, zero tasks written. An isolated Docker candidate also answered correctly. Neither check proves comprehensive real-mail accuracy.
-- Rendered Mac acceptance remains pending: the new unique test-app identity was not enabled for computer use, and the local-browser request was denied. The user said they would enable it; the technical grant had not arrived at the latest retry. No alternate browser bypass was attempted.
+- Native Mac acceptance completed on 2026-10-07 after the test-app grant: original disclosure, task prefill/edit protection, explicit save with null deadline/project/waiting, cancellation and mail switch verified on fictional sources. Empty-date hint verified in the actual window. Earlier access denial was not bypassed.
 - Production container, originals and credentials were not changed. Release publication, manifest/version update and normal updater installation remain separate delivery steps after acceptance.
 
 ### Decisions
@@ -84,4 +84,8 @@ Interface: explicit `ANALYSIS_VERSION=1` recorded with current interpretation st
 
 **Run record:** `docs/runs/mail-workflow-memory-care-20261006/README.md`. Open checkboxes are intentionally not presented as completed.
 
-**Draft PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Final Docker candidate on code `73f5478`: fictional-mail API response in 3.85 seconds, both meaningful original passages, zero created tasks. Native UI acceptance and public release remain open.
+**Draft PR:** https://github.com/Icarus-health/kingfisher-app/pull/3. Final Docker candidate on code `73f5478`: fictional-mail API response in 3.85 seconds, both meaningful original passages, zero created tasks. Native UI acceptance completed on 2026-10-07; public release remains open.
+
+### 2026-10-07 final corrections
+
+Short task evidence is kept as an overview passage but excluded from task proposals below the existing eight-character save minimum. Integration regression and exact boundary passed. Current affected backend set: 76 passed; frontend: 284 passed and production build passed. Independent review accepted the final fix. Cloud preparation requested for both Mistral and OpenRouter, without activation or paid calls; documented separately in `docs/58-cloud-vorbereitung-mistral-openrouter.md`.

@@ -120,6 +120,10 @@ def _selected(reply, passages):
             invalid = True
             continue
         candidate = {'title': item['title'].strip(), 'quote': passages[item['passage']]}
+        # The existing task API requires at least eight characters of evidence.
+        # Keep shorter original passages visible without offering an unsaveable task.
+        if len(candidate['quote']) < 8:
+            continue
         if candidate not in tasks:
             tasks.append(candidate)
     return quotes, tasks, invalid

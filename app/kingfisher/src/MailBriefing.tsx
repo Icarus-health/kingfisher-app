@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, type MailBriefing as MailBriefingResult } from "./api";
+import { api, ApiError, type MailBriefing as MailBriefingResult } from "./api";
+import { mailBriefingFailure } from "./mailBriefingState";
 import "./MailBriefing.css";
 
 export type MailTaskSuggestion = { title: string; quote: string; source_digest: string };
@@ -15,7 +16,7 @@ type MailBriefingProps = {
 type ViewState =
   | { kind: "loading" }
   | { kind: "cancelled" }
-  | { kind: "failed" }
+  | { kind: "failed"; detail: string }
   | { kind: "stale" }
   | { kind: "result"; value: MailBriefingResult };
 
@@ -42,10 +43,10 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
         && value.quotes.slice(0, 3).length > 0;
       if (!showsOriginalQuote) onNeedsOriginal();
       setState({ kind: "result", value });
-    }).catch(() => {
+    }).catch((error: unknown) => {
       if (version !== requestVersion.current || currentController.signal.aborted) return;
       onNeedsOriginal();
-      setState({ kind: "failed" });
+      setState({ kind: "failed", detail: mailBriefingFailure(error instanceof ApiError ? error.status : undefined) });
     });
   }, [expectedSourceDigest, onNeedsOriginal, uid]);
 
@@ -87,7 +88,7 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
     </div>
     {state.kind === "loading" ? <p className="mail-reader-status" role="status">Originalstellen werden lokal ausgewählt …</p> : null}
     {state.kind === "cancelled" ? <div className="mail-briefing-state" role="status"><p>Die Auswertung wurde abgebrochen.</p><button className="mail-reader-secondary" onClick={() => load(true)} type="button">Wiederholen</button></div> : null}
-    {state.kind === "failed" ? <div className="mail-briefing-state" role="status"><p>Die Auszüge konnten gerade nicht ausgewählt werden.</p><button className="mail-reader-secondary" onClick={() => load(true)} type="button">Wiederholen</button></div> : null}
+    {state.kind === "failed" ? <div className="mail-briefing-state" role="status"><p>{state.detail}</p><button className="mail-reader-secondary" onClick={() => load(true)} type="button">Wiederholen</button></div> : null}
     {state.kind === "stale" ? <p className="mail-reader-status" role="status">Die Nachricht hat sich geändert. Bitte neu öffnen oder aktualisieren.</p> : null}
     {result && result.status !== "ready" ? <div className="mail-briefing-state" role="status">
       <p>{result.detail || (result.status === "empty"
