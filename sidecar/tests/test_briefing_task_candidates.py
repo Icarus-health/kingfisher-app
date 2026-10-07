@@ -72,7 +72,7 @@ def env(tmp_path, monkeypatch):
     episode, _ = app.state.episodes.record(
         EpisodeKind.MESSAGE, 'Rechnung', BODY, Provenance(source_type=SourceType.EMAIL),
         participants=['Anna Keller <anna@example.test>'],
-        occurred_at=datetime(2026, 9, 22, 9, tzinfo=timezone.utc))
+        occurred_at=datetime.now(timezone.utc) - timedelta(hours=1))
     app.state.proposals.record_task_analysis(episode.id, episode.digest,
         [{'title': 'Orion-Rechnung an Anna senden', 'quote': 'bitte sende mir die Orion-Rechnung'}],
         proposed_by='test/local')
@@ -92,7 +92,7 @@ def test_morning_briefing_offers_candidate_and_forgets_it_after_acceptance(env):
     app, client, episode, candidate = env
     [item] = _zusagen(client)
     assert item['title'] == 'Orion-Rechnung an Anna senden'
-    assert item['detail'] == 'Vorschlag aus einer Mail von Anna Keller · 22.9.2026'
+    assert item['detail'] == f'Vorschlag aus einer Mail von Anna Keller · {episode.occurred_at.day}.{episode.occurred_at.month}.{episode.occurred_at.year}'
     assert item['source_ref'] == candidate.id and item['episode_id'] == episode.id
     assert item['action'] == 'Prüfen' and item['review_required'] is True
     assert item['priority'] == '' and 'zusätzliche Aufgabenprüfung' in item['reason']
@@ -122,10 +122,10 @@ def test_reviewed_historical_source_keeps_its_year_in_visible_reason(env):
         participants=['Anna <anna@example.test>'], occurred_at=datetime(2020, 9, 22, tzinfo=timezone.utc))
     app.state.proposals.record_task_analysis(episode.id, episode.digest,
         [{'title': 'Entwurf prüfen', 'quote': episode.body}], proposed_by='test/local/task-review-v1')
-    [item] = _zusagen(client)
-    assert item['review_required'] is False
-    assert '22.9.2020' in item['reason']
-    assert item['priority'] == ''
+    assert _zusagen(client) == []
+    [item] = client.get('/api/v1/task-candidates').json()
+    assert item['received_at'].startswith('2020-09-22')
+    assert item['temporal_status'] == 'old'
 
 
 def test_ignored_source_takes_the_candidate_out_of_the_briefing(env):

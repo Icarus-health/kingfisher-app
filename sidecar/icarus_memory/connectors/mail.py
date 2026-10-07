@@ -104,6 +104,9 @@ class Message:
     """Für `In-Reply-To`. Ohne den Kopf hängt eine Antwort nicht am Verlauf,
     sondern erscheint beim Empfänger als neue Nachricht."""
 
+    in_reply_to: str = ""
+    references: tuple[str, ...] = ()
+
     reply_to: str = ""
     """`Reply-To`, wo gesetzt. Sonst ist der Absender gemeint."""
 
@@ -780,6 +783,8 @@ class MailConnector:
                 list_mail=bool(parsed.get('List-Id') or parsed.get('List-Unsubscribe') or str(parsed.get('Precedence','')).lower() in ('bulk','list')),
                 message_id=(parsed.get("Message-ID") or "").strip(),
                 reply_to=_decode(parsed.get("Reply-To")),
+                in_reply_to=(parsed.get("In-Reply-To") or "")[:16000],
+                references=tuple(re.findall(r"<[^<>\s]{1,500}>", (parsed.get("References") or "")[:16000])[:64]),
                 provider_id=_fetch_number(fetched, "X-GM-MSGID", 2**64 - 1) if gmail else "",
                 recipients=_empfaenger(parsed),
                 own_addresses=self._own_addresses(),

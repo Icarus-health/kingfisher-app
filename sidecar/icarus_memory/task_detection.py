@@ -150,37 +150,50 @@ def _absender(episode) -> str | None:
     return (name or address or '').strip() or None
 
 
-def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS) -> dict:
-    """Offene Aufgabenvorschläge mit Herkunft, nur lesend.
+def candidate_batches(proposals, episodes, *, now=None):
+    """Valid evidence plus separate source/import time; no persisted record is rewritten."""
+    from datetime import datetime, timezone
+    from .mail_timeline import timings, ReplyIndex
+    now = now or datetime.now(timezone.utc)
+    relations = ReplyIndex(episodes)
+    for batch in proposals.pending_batches(ProposalKind.TASK):
+        valid = []
+        for proposal in batch:
+            if len(proposal.evidence) != 1:
+                continue
+            evidence = proposal.evidence[0]
+            try:
+                episode = episodes.get(evidence.episode_id)
+            except EpisodeError:
+                continue
+            if (episode.state in AUSGEBLENDETE_ZUSTAENDE or episode.digest != evidence.digest
+                    or not evidence.quote or evidence.quote not in episode.body):
+                continue
+            valid.append((proposal, episode))
+        temporal = timings(episodes, [e for _, e in valid], now=now, relations=relations)
+        yield [(p, e, temporal[e.id]) for p, e in valid]
 
-    Wer schreibt und wann, steht nicht im Vorschlag, sondern in der Quelle.
-    Ein Vorschlag, dessen Quelle ausgeschlossen oder verändert ist, wird hier
-    nur übersprungen; außer Kraft setzt ihn weiterhin `expire_sources`.
-    Die Ältesten zuerst: Sie warten am längsten.
+
+def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS, now=None) -> dict:
+    """Only recent non-inventory suggestions compete for today's attention.
+
+    Historical, undated and followed-up requests stay in the explicit review queue.
+    Even a recent source is a suggestion, never proof of an outstanding obligation.
     """
-    items, pending = [], 0
-    for proposal in proposals.pending(ProposalKind.TASK, limit=200):
-        evidence = proposal.evidence[0] if proposal.evidence else None
-        if evidence is None:
-            continue
-        try:
-            episode = episodes.get(evidence.episode_id)
-        except EpisodeError:
-            continue
-        if (episode.state in AUSGEBLENDETE_ZUSTAENDE
-                or episode.digest != evidence.digest or evidence.quote not in episode.body):
-            continue
-        pending += 1
-        if len(items) < limit:
-            received = episode.occurred_at or episode.recorded_at
+    items, pending, review_pending = [], 0, 0
+    for batch in candidate_batches(proposals, episodes, now=now):
+        for proposal, episode, timing in batch:
+            if timing['temporal_status'] != 'recent':
+                review_pending += 1
+                continue
+            pending += 1
             items.append({
-                'id': proposal.id,
-                'statement': proposal.statement,
-                'quote': evidence.quote,
-                'episode_id': episode.id,
-                'sender': _absender(episode),
-                'received_at': received.isoformat() if received else None,
+                'id': proposal.id, 'statement': proposal.statement, 'quote': proposal.evidence[0].quote,
+                'episode_id': episode.id, 'sender': _absender(episode), **timing,
                 'review_required': episode.provenance.source_type is SourceType.EMAIL
                     and not proposal.proposed_by.endswith(REVIEW_MARKER),
             })
-    return {'pending': pending, 'items': items, 'error': None}
+            # Keep memory bounded even when a large inventory produced many candidates.
+            items.sort(key=lambda item: item['received_at'] or '', reverse=True)
+            items = items[:max(0, limit)]
+    return {'pending': pending, 'review_pending': review_pending, 'items': items, 'error': None}

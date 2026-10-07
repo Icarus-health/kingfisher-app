@@ -63,7 +63,7 @@ from .agent_verdrahtung import (
 from .consolidation import Consolidator
 from dataclasses import asdict
 from .task_candidates import TaskCandidates
-from .task_detection import TaskDetector, for_briefing as task_candidates_for_briefing
+from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
 from .entities import EntityError
 from .conversations import ConversationStore
@@ -2441,11 +2441,18 @@ def create_app(
             raise HTTPException(status_code=409, detail="Die Nachricht hat sich geändert. Bitte erneut lesen und prüfen.")
         if body.source_quote is not None and (not body.source_digest or body.source_quote not in (message.body or message.preview)):
             raise HTTPException(status_code=409, detail="Die Textstelle ist nicht in der aktuellen Nachricht belegt. Bitte erneut prüfen.")
+        if body.quick_accept:
+            from .mail_timeline import date_status
+            if date_status(message.date, now=datetime.now().astimezone()) != 'recent':
+                raise HTTPException(409, 'Historische oder undatierte Mail. Bitte zuerst die Aufgabe ausdrücklich prüfen und vorbereiten.')
         with app.state.conversation_lock:
             episode = _remember_mail_message(message, source, uid)["episode"]
             provenance = Provenance(source_type=SourceType.USER_STATED, source_ref=f"episode:{episode['id']}",
                                     verbatim=body.source_quote, captured_at=datetime.now().astimezone())
             if body.quick_accept:
+                from .mail_timeline import message_timing
+                if message_timing(app.state.episodes, message, now=datetime.now().astimezone())['temporal_status'] != 'recent':
+                    raise HTTPException(409, 'Bitte zuerst den zeitlichen Verlauf prüfen und die Aufgabe ausdrücklich vorbereiten.')
                 # The same explicit suggestion remains once-only after a lost
                 # response or reopening the mail. A source change still fails
                 # the checks above, even if an earlier task already exists.
@@ -4516,7 +4523,10 @@ def create_app(
     @app.get("/api/v1/task-candidates", dependencies=guard)
     def task_candidates():
         TaskDetector(app.state.episodes, app.state.proposals, None, app.state.conversation_lock, tasks=app.state.tasks).expire_sources()
-        return [item.to_dict() for item in app.state.proposals.pending(ProposalKind.TASK)]
+        from itertools import islice
+        cards = ({**p.to_dict(), **timing} for batch in candidate_batches(app.state.proposals, app.state.episodes)
+                 for p, _, timing in batch)
+        return list(islice(cards, 100))
 
     @app.post("/api/v1/task-candidates/{proposal_id}/accept", dependencies=guard)
     def accept_task_candidate(proposal_id: str, body: TaskCandidateIn):

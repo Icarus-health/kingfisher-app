@@ -637,6 +637,19 @@ class ProposalStore:
             rows = self._conn.execute(sql, params).fetchall()
         return [self._from_row(r) for r in rows]
 
+    def pending_batches(self, kind: ProposalKind, *, batch_size: int = 200):
+        """Read pending records without loading the entire import or truncating at 200."""
+        after = 0
+        while True:
+            with self._lock:
+                rows = self._conn.execute(
+                    "SELECT rowid,document FROM proposals WHERE rowid>? AND state=? AND kind=? ORDER BY rowid LIMIT ?",
+                    (after, ProposalState.PENDING.value, kind.value, batch_size)).fetchall()
+            if not rows:
+                return
+            after = rows[-1][0]
+            yield [self._from_row(row) for row in rows]
+
     def pending_knowledge_for_subject(
         self, subject_ref: str, scope_ref: str | None, *, limit: int = 500,
         scan_guard: Callable[[], bool] | None = None,

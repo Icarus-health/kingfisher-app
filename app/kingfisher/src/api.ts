@@ -30,6 +30,7 @@ export type MorningBriefing = {
   greeting: string;
   verlauf?: string[];
   relevance_count: number;
+  historical_task_reviews?: number;
   needs_you: Attention[];
   happening_now: Attention[];
   working_memory_more?: boolean;
@@ -408,7 +409,7 @@ export type MailDetail = {
 };
 
 /** `valid_until`: vorgeschlagene Fälligkeit (bei Fristen aus privaten Mails, sidecar: akten_arten.py), sonst null. */
-export type TaskCandidate = { id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
+export type TaskCandidate = { received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
 
 export type MailTaskSuggestions = {
   available: boolean;
@@ -418,6 +419,7 @@ export type MailTaskSuggestions = {
 };
 
 export type MailBriefing = {
+  received_at?: string | null; temporal_status?: string; temporal_reason?: string;
   uid: string;
   available: boolean;
   status: "ready" | "empty" | "unavailable" | "incomplete";
