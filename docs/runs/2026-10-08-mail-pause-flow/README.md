@@ -18,7 +18,7 @@ Auf Heute und im Einrichtungsbereich bleibt eine gesetzte globale Pause auch ohn
 
 ## Gerenderter Bedienungstest
 
-Getrennte Testinstanz auf `http://127.0.0.1:8894`, ausschließlich künstliches Postfach mit 20 von 100 Mails, keine privaten Quellen, kein Modell und kein laufender Scheduler. Der Scheduler ist bewusst stillgelegt; der Test belegt Steuerung und Anzeige, keinen echten Abruf oder steigende Zähler. Reguläres Browser-Plugin/Skill ist nicht vorhanden; die verfügbare Computersteuerung mit In-App-Browser wurde verwendet, kein Shell-Browser und keine Umgehung einer verweigerten Freigabe.
+Getrennte Testinstanz auf `http://127.0.0.1:8894`, ausschließlich künstliches Postfach mit 20 von 100 Mails, keine privaten Quellen, kein Modell und kein laufender Scheduler. Ein künstlicher Scheduler liefert ausschließlich den Status; der Test belegt Steuerung und Anzeige, keinen echten Abruf oder steigende Zähler. Reguläres Browser-Plugin/Skill ist nicht vorhanden; die verfügbare Computersteuerung mit In-App-Browser wurde verwendet, kein Shell-Browser und keine Umgehung einer verweigerten Freigabe.
 
 | Prüfung | Ergebnis |
 | --- | --- |
@@ -30,8 +30,15 @@ Getrennte Testinstanz auf `http://127.0.0.1:8894`, ausschließlich künstliches 
 | Tastatur | Enter auf Weiter führt zum fortgesetzten Zustand |
 | Fensterbreite | Standard 1280×720 und schmales Fenster 800×700, Pausensatz/Weiter lesbar ohne Überlagerung; temporäre Größe zurückgesetzt |
 
-Bilder liegen ausschließlich im lokalen Testlaufordner `Kingfisher-Testlaeufe/2026-10-08-mail-pause`: `today-paused.jpg`, `today-paused-narrow.jpg`, `today-resumed-narrow.jpg`. Die separate Vorschau meldet außerhalb des geprüften Ablaufs erwartungsgemäß fehlende echte Kalender-/Mailboxdienste; das ist kein Live-Kontentest. Testtab und Testserver wurden anschließend geschlossen.
+Bilder liegen ausschließlich im lokalen Testlaufordner `Kingfisher-Testlaeufe/2026-10-08-mail-pause`: `today-paused.jpg`, `today-paused-narrow.jpg`, `today-resumed-narrow.jpg`. Die separate Vorschau meldet außerhalb des geprüften Ablaufs erwartungsgemäß fehlende echte Kalender-/Mailboxdienste; das ist kein Live-Kontentest. Beim ersten technischen Seitenaufruf fehlte im künstlichen Testaufbau der Scheduler-Status und verursachte einen 500-Fehler. Der Testaufbau wurde korrigiert; der wiederholte Ablauf einschließlich Zeitplan und globaler Fortsetzung verlief ohne diesen Fehler und ohne Konsolenwarnungen. Testtabs und Testserver wurden anschließend geschlossen.
 
 ## Liefergrenze
 
 Noch keine native Mac-Abnahme oder neue Gesamt-Antwortqualifikation. Der Mac ist gesperrt; die persönliche Hintergrundpause wird bei einer Installation erhalten. Es werden weder der private Import fortgesetzt noch Modelle gestartet. Der umfassende Backendlauf des direkten Basisstands (5343 bestanden, 1 übersprungen) bleibt historischer Nachweis; für diesen begrenzten Diff wurde die betroffene Testsammlung ausgeführt. Kein CI-Neustart, Cloudaufruf oder neuer Datenimport.
+
+
+## Installierte Lieferung
+
+Produktcode `722adebc966a66e423ba61e199348d87c7f0a9f4`, lokal **1.0.6-local.722adeb**. Das netzlos gebaute Image `sha256:84587a5915d27673890d96f54f2ee76661b2c28708ae9fa15c4b97a5143d107a` enthält die byteweise geprüften 264 Paketdateien und 112 gebauten UI-Dateien. Die enthaltene sqlite-vec-MIT-Lizenz stimmt mit dem offiziellen v0.1.9-Quellstand überein. Ein netzloser Test des fertigen Images bestätigt zusätzlich den bestehenden Datumsgrenzen-Schutz mit künstlichen Quellen.
+
+Vor Installation wurde die App samt Einstellungen und stillgelegtem Datenbestand unter `Kingfisher-Rueckweg/2026-10-08-vor-722adeb` gesichert. Nach Installation: gesundes Backend, richtige Versionskennung, gleicher Datenbestand, 344 Original-IDs/Inhaltsprüfsummen und 17 SQLite-Dateien geprüft, Konten und Modell-/Zeitplaneinstellungen unverändert. Die globale Pause bleibt gesetzt; der echte Mailstatus zeigt `pausiert`. Der aktivierte dauerhafte Suchindex meldet weiterhin `unavailable`, weil Ollama ausgeschaltet bleibt. Keine privaten Inhalte an Modelle geschickt; keine native Fensterabnahme und kein öffentlicher Release oder Registry-Upload.
