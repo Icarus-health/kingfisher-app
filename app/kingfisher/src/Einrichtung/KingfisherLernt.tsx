@@ -4,7 +4,7 @@ import {abfrageAbstandMs, lerntFuss, lerntZeilen, prozent, type LerntZeile} from
 import {MailErneut} from "./MailErneut";
 import "./Einrichtung.css";
 
-/** Ruhige Karte „Kingfisher lernt gerade“: nur, was jetzt läuft; läuft nichts, ist sie gar nicht da. */
+/** Current work, plus an explicit pause that must remain possible to release. */
 export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   kompakt?: boolean;
   /** Wird gerufen, wenn sich ändert, ob etwas läuft (die Startseite entscheidet damit über ihren Hinweis). */
@@ -17,6 +17,7 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   const [arbeitet, setArbeitet] = useState(false);
   const [fehler, setFehler] = useState("");
   const [erneut, setErneut] = useState(false);
+  const [abgleich, setAbgleich] = useState(0);
   const meldung = useRef(beiAenderung);
   meldung.current = beiAenderung;
   // Was außer den Mails zuletzt gelesen wurde, damit ein „Erneut versuchen“ die Zeilen sofort neu bilden kann.
@@ -43,7 +44,7 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
     }
     void lesen();
     return () => { lebt = false; clearTimeout(timer); };
-  }, []);
+  }, [abgleich]);
 
   async function umschalten(pause: boolean) {
     setArbeitet(true); setFehler("");
@@ -51,6 +52,8 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
       const neu = await api.hintergrundPausieren(pause);
       setHintergrund(neu);
       setZeilen(vorher => (vorher ?? []).map(zeile => zeile.id === "einordnen" ? lerntZeilen(null, null, neu).find(z => z.id === "einordnen") ?? zeile : zeile));
+      // Invalidate pending old reads and reload all progress, including mail.
+      setAbgleich(wert => wert + 1);
     } catch {
       setFehler("Das hat gerade nicht geklappt. Bitte versuche es noch einmal.");
     } finally {
@@ -66,8 +69,8 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
 
   if (zeilen === null) return null;
   const fuss = lerntFuss(hintergrund, zeilen.some(zeile => zeile.id === "mail"));
-  if (zeilen.length === 0) return leerText ? <p className="lernt-leer" role="status">{leerText}</p> : null;
-  const titel = fuss.grund ? "Verarbeitung wartet" : "Kingfisher lernt gerade";
+  if (zeilen.length === 0 && !hintergrund?.pausiert) return leerText ? <p className="lernt-leer" role="status">{leerText}</p> : null;
+  const titel = hintergrund?.pausiert ? "Verarbeitung pausiert" : fuss.grund ? "Verarbeitung wartet" : "Kingfisher lernt gerade";
   return <section className={`lernt${kompakt ? " lernt-kompakt" : ""}`} aria-label={titel} aria-live="polite">
     <h2>{titel}</h2>
     <ul>{zeilen.map(zeile => {

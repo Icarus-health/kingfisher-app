@@ -75,6 +75,7 @@ export function MailIntake({accounts, active, onChanged}: {
   const [message, setMessage] = useState("");
   const messageKind = useRef<"status" | "action" | null>(null);
   const [busyAccount, setBusyAccount] = useState<string | null>(null);
+  const [backgroundBusy, setBackgroundBusy] = useState(false);
   const [checkingScope, setCheckingScope] = useState(false);
   const [previews, setPreviews] = useState<Record<string, MailIntakePreview>>({});
   const watcher = useRef<ReturnType<typeof watchMailIntake> | null>(null);
@@ -84,10 +85,12 @@ export function MailIntake({accounts, active, onChanged}: {
   const changedRef = useRef(onChanged);
   changedRef.current = onChanged;
   const accountsKey = accounts.map(account => `${account.id}:${account.configured}:${account.secret_present}`).join("|");
+  const busy = busyAccount !== null || backgroundBusy;
 
   useEffect(() => {
     let mounted = true;
     setBusyAccount(null);
+    setBackgroundBusy(false);
     setCheckingScope(false);
     actionBusy.current = false;
     setPreviews({});
@@ -151,8 +154,29 @@ export function MailIntake({accounts, active, onChanged}: {
     if (result) setPreviews(values => ({...values, [account.account_id]: result}));
   }
 
+  async function resumeBackground() {
+    const current = watcher.current;
+    if (!current || actionBusy.current) return;
+    actionBusy.current = true;
+    setBackgroundBusy(true); setMessage(""); messageKind.current = null;
+    const success = await current.run(async signal => {
+      await api.hintergrundPausieren(false);
+      return api.mailIntake(signal);
+    });
+    if (watcher.current !== current) return;
+    actionBusy.current = false;
+    setBackgroundBusy(false);
+    if (success) changedRef.current();
+  }
+
   return <section className="mail-intake" aria-label="Ältere Mails einlesen">
     <p>Kingfisher liest auf Wunsch auch die Mails, die schon in deinem Postfach liegen: Zuerst schaut es nach, welche Ordner es gibt, dann liest es sie ein und hält sie aktuell. Spam, Papierkorb und Anhänge bleiben außen vor; was eingelesen ist, gilt noch nicht als bestätigt.</p>
+    {status?.background_paused && <div role="status">
+      <p>Die gesamte Hintergrundarbeit ist pausiert. Bereits gespeicherte Inhalte bleiben verfügbar. Setze sie hier fort; einzeln pausierte Postfächer behalten ihre eigene Pause.</p>
+      <button className="secondary-action" type="button" disabled={busy} onClick={() => {void resumeBackground();}}>
+        {backgroundBusy ? "Wird fortgesetzt …" : "Verarbeitung fortsetzen"}
+      </button>
+    </div>}
     {status?.analysis_active === false && <p role="status">Das Sortieren ist pausiert oder es ist keine lokale KI da. Eingelesene Mails bleiben gespeichert; ausgewertet werden sie, sobald das Sortieren läuft (oben unter „Quellen automatisch sortieren“).</p>}
     {!status && !message && <p role="status">Wird geladen …</p>}
     {status && !status.accounts.length && <p>Verbinde zuerst ein Postfach unter Zugänge.</p>}
@@ -161,19 +185,21 @@ export function MailIntake({accounts, active, onChanged}: {
       const checked = previews[account.account_id];
       const retryFailed = progress.failed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
       return <article className="mail-intake-account" key={account.account_id}>
-        <div className="mail-intake-heading"><h3>{account.label}</h3><span>{stageLabels[progress.stage]}</span></div>
+        <div className="mail-intake-heading"><h3>{account.label}</h3><span>{status.background_paused && ["inventory", "capture", "analysis"].includes(progress.stage)
+          ? "Verarbeitung pausiert" : stageLabels[progress.stage]}</span></div>
+        {account.stand && <p>{account.stand.satz}</p>}
         <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
         {!account.started && checked && <p>Gefunden: {checked.folders.map(ordnerName).join(", ")}. Diese Ordner liest Kingfisher ein, und neue Mails daraus kommen laufend dazu.</p>}
         {account.paused && <p>Das Einlesen pausiert. Was schon gespeichert ist, bleibt, und es geht dort weiter, wo es aufgehört hat.</p>}
-        {!account.started && <button className="secondary-action" type="button" disabled={!account.connected || busyAccount !== null}
+        {!account.started && <button className="secondary-action" type="button" disabled={!account.connected || busy}
           aria-label={`Ordner ansehen: ${account.label}`} onClick={() => {void preview(account);}}>{busyAccount === account.account_id && checkingScope ? "Kingfisher schaut nach …" : checked ? "Ordner noch einmal ansehen" : "Ordner ansehen"}</button>}
-        <button className="secondary-action" type="button" disabled={!account.connected || busyAccount !== null || (!account.started && !checked?.folders.length)}
+        <button className="secondary-action" type="button" disabled={!account.connected || busy || Boolean(status.background_paused && account.started) || (!account.started && !checked?.folders.length)}
           aria-label={`${!account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}: ${account.label}`}
           onClick={() => {void change(account);}}>
           {busyAccount === account.account_id && !checkingScope ? "Wird gespeichert …" : !account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}
         </button>
         {account.started && (retryFailed || progress.filtered > 0) && <>
-          <button className="text-action" type="button" disabled={!account.connected || busyAccount !== null}
+          <button className="text-action" type="button" disabled={!account.connected || busy}
             onClick={() => {void change(account, true);}}>{progress.filtered > 0
               ? retryFailed ? "Ausgefilterte Mails und Fehler erneut prüfen" : "Ausgefilterte Mails erneut prüfen"
               : "Fehlgeschlagenes noch einmal versuchen"}</button>
@@ -186,6 +212,6 @@ export function MailIntake({accounts, active, onChanged}: {
       </article>;
     })}
     {message && <p role="alert">{message}</p>}
-    <button className="text-action" type="button" disabled={busyAccount !== null} onClick={() => {void watcher.current?.refresh();}}>Stand neu laden</button>
+    <button className="text-action" type="button" disabled={busy} onClick={() => {void watcher.current?.refresh();}}>Stand neu laden</button>
   </section>;
 }

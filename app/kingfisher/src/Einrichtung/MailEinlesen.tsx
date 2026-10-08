@@ -57,7 +57,7 @@ export function MailEinlesen({beiGestartet}: {beiGestartet?: () => void}) {
   return <div className="erststart-einlesen" aria-label="Mails einlesen">
     {verbunden.map(konto => konto.started
       ? <div key={konto.account_id}>
-        <p role="status" className={konto.stand?.zustand === "gescheitert" ? undefined : "erststart-ok"}>{einlesenStand(konto)}{einlesenVerweis(konto) ? <> <Verweis ziel={einlesenVerweis(konto)!} />.</> : null}</p>
+        <p role="status" className={["gescheitert", "pausiert"].includes(konto.stand?.zustand ?? "") ? undefined : "erststart-ok"}>{einlesenStand(konto)}{einlesenVerweis(konto) ? <> <Verweis ziel={einlesenVerweis(konto)!} />.</> : null}</p>
         {konto.stand?.zustand === "gescheitert"
           ? <MailErneut konto={konto.account_id} technik={konto.stand.technik} beiErgebnis={stand => setKonten(stand.accounts)} /> : null}
       </div>

@@ -254,6 +254,8 @@ export type MailIntakeAccount = {
 
 export type MailIntakeStatus = {
   analysis_active?: boolean;
+  /** Explicit global pause, independent of a mailbox's own paused flag. */
+  background_paused?: boolean;
   accounts: MailIntakeAccount[];
   attachments_supported: boolean;
 };

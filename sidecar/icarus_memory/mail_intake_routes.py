@@ -54,6 +54,9 @@ def register(app, guard, data_dir, wire):
         plan=app.state.settings.schedule
         from .model_roles import rollen_von
         return {'accounts':result,'attachments_supported':False,
+                # Separate from each mailbox's pause: its resume route cannot
+                # release the explicit global background pause.
+                'background_paused':bool(getattr(getattr(app.state,'hintergrund',None),'pausiert',False)),
                 'analysis_active':bool(plan.enabled and getattr(plan,'with_model',False) and getattr(provider,'is_local',False)),
                 # Getrennt gemeldet: Das gewählte Modell läuft in Ollamas Cloud und wird deshalb nicht genutzt.
                 'analysis_blocked':'cloud_ueber_ollama' if rollen_von(app).cloud_modell_im_weg('hintergrund') else None}

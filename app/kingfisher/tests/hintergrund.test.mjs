@@ -82,3 +82,29 @@ test("Autostart: ohne Antwort offen, ohne Helfer „noch nicht verfügbar“", (
   assert.match(autostartMeldung({gewuenscht: true, verfuegbar: true, eingerichtet: true, plattform: "macos"}), /Eingerichtet/);
   assert.equal(autostartBeantwortet({gewuenscht: false, verfuegbar: true, eingerichtet: false, plattform: "macos"}), true);
 });
+
+test("Die ausdrückliche Pause bleibt auch ohne Modell oder offene Quellen auflösbar", () => {
+  const stand = hintergrund({zustand: "fertig", pausiert: true, grund: null,
+    fortschritt: {gesamt: 0, fertig: 0, offen: 0}});
+  assert.equal(lerntFuss(stand).knopf, "Weiter");
+  assert.match(lerntFuss(stand).grund, /pausiert/i);
+});
+
+test("Nur offene Mailaufnahme: globale Pause erhält die Zeile und den richtigen Weiter-Knopf", () => {
+  const stand = hintergrund({zustand: "ohne_modell", pausiert: true,
+    fortschritt: {gesamt: 0, fertig: 0, offen: 0}});
+  const mail = {...konto, folders: [folder({captured: 20, pending: 80})],
+    stand: {zustand: "pausiert", satz: "Postfach Probe: Einlesen pausiert. Bereits 20 von 100 Mails gelesen.", gelesen: 20, gesamt: 100, zuletzt: null}};
+  const zeilen = lerntZeilen({accounts: [mail], analysis_active: false, background_paused: true}, null, stand);
+  assert.equal(zeilen.find(z => z.id === "mail")?.fertig, 20);
+  assert.equal(zeilen.find(z => z.id === "mail")?.gesamt, 100);
+  assert.match(zeilen.find(z => z.id === "mail")?.text ?? "", /pausiert/);
+  assert.equal(lerntFuss(stand, zeilen.some(z => z.id === "mail")).knopf, "Weiter");
+});
+
+test("Pausierte Arbeit behauptet kein laufendes Sortieren oder Zusammenstellen", () => {
+  const stand = hintergrund({zustand: "ohne_modell", pausiert: true});
+  const zeilen = lerntZeilen({accounts: [konto], analysis_active: true, background_paused: true}, {offen: 2, gesamt: 10}, stand);
+  for (const zeile of zeilen) assert.doesNotMatch(zeile.text, /werden.*sortiert|werden.*zusammengestellt/);
+  assert.ok(zeilen.some(z => z.id === "sortieren" && /pausiert/.test(z.text)));
+});
