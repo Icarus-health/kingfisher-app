@@ -83,6 +83,15 @@ def test_uncited_source_cannot_support_a_changed_condition():
     assert not satz_pruefen(Satz(belege['2'].text, ('1',)), belege).bestanden
 
 
+def test_descriptive_event_does_not_become_an_invented_permission():
+    source = 'Nach der Kontrolle wird die Klappe geöffnet.'
+    candidate = 'Nach der Kontrolle darf die Klappe geöffnet werden.'
+    assert not satz_pruefen(Satz(candidate, ('1',)), {'1': Beleg('1', source)}).bestanden
+    result = sa.formulieren('Was gilt?', [evidence(source)], Selector({'status': 'antwort', 'saetze': [
+        {'text': candidate, 'belege': [1]}]}), jetzt=NOW)
+    assert result.status == 'zitate'
+
+
 @pytest.mark.parametrize('case_id', ['N02', 'N06'])
 def test_incorrect_yes_from_second_model_cannot_override_original_binding(case_id):
     from icarus_memory import satzpruefung_modell as spm

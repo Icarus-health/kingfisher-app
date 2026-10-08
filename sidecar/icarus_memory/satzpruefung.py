@@ -729,7 +729,7 @@ def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str
     with quotation delimiters cannot establish an affirmative rule here. The
     caller keeps the full source in the quote fallback instead.
     """
-    if not any(originalregeln(t) for t in quellen):
+    if not originalregeln(satz) and not any(originalregeln(t) for t in quellen):
         return True
     if sichtbar is not None and len(sichtbar) != len(quellen):
         return False
