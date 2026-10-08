@@ -1,0 +1,34 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____ test_history_wait_is_reported_at_the_same_boundary_that_stops_capture _____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-640/test_history_wait_is_reported_0')
+
+    def test_history_wait_is_reported_at_the_same_boundary_that_stops_capture(tmp_path):
+        with closing(EpisodeStore(tmp_path / 'episodes.sqlite3')) as episodes:
+            intake = Intake(episodes); reader = Reader(); reader.count = 260
+            intake.start('a', ['INBOX'])
+            for _ in range(4): intake.step('a', reader, batch=50)
+>           assert not intake.status('a')['history_waiting_for_analysis']
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'history_waiting_for_analysis'
+
+sidecar/tests/test_mail_intake_wait.py:16: KeyError
+____ test_live_mail_continues_during_history_wait_but_pause_keeps_priority _____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-640/test_live_mail_continues_durin0')
+
+    def test_live_mail_continues_during_history_wait_but_pause_keeps_priority(tmp_path):
+        with closing(EpisodeStore(tmp_path / 'episodes.sqlite3')) as episodes:
+            intake = Intake(episodes); reader = Reader(); reader.count = 260
+            intake.start('a', ['INBOX'])
+            for _ in range(5): intake.step('a', reader, batch=50)
+>           assert intake.status('a')['history_waiting_for_analysis']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'history_waiting_for_analysis'
+
+sidecar/tests/test_mail_intake_wait.py:38: KeyError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_mail_intake_wait.py::test_history_wait_is_reported_at_the_same_boundary_that_stops_capture
+FAILED sidecar/tests/test_mail_intake_wait.py::test_live_mail_continues_during_history_wait_but_pause_keeps_priority
+2 failed in 0.75s
