@@ -47,6 +47,16 @@ KINDS = frozenset({"request", "commitment", "conditional", "change", "status",
                    "fact", "uncertain", "historical"})
 
 
+def analysis_marker_matches_sql(source='e', analysis='s', marker='a') -> str:
+    """Structural freshness of the existing, derived generation/status marker.
+
+    Only fixed internal SQL aliases are passed. This does not replace fingerprint
+    resolution before returning evidence; missing legacy markers are unverified.
+    """
+    return (f'{marker}.generation={source}.support_generation '
+            f'AND {marker}.status={analysis}.status')
+
+
 def _fingerprint_payload(snapshot: EpisodeSupportSnapshot) -> dict[str, Any]:
     episode = snapshot.episode
     return {
@@ -269,17 +279,27 @@ class WorkingMemoryStore:
                     last_seen = episode_id
                 row = self._status(episode_id)
                 if row and row[1] == "dismissed":
+                    # Explicit exclusion is sticky, so a missing legacy marker
+                    # may be repaired without promoting evidence or calling a model.
+                    self._mark_analysis(episode_id, 'dismissed')
                     continue
                 if candidate["document_bytes"] > MAX_SNAPSHOT_BYTES:
                     if not row or row[1] != "deferred" or row[0] != "":
                         self._set_status(episode_id, "", "deferred", "")
                         logbuch.vermerke("zu_lang", sorte="quelle", anzahl=1)
+                    else:
+                        # Size is freshly checked, so this deterministic gap
+                        # still applies even if metadata has changed.
+                        self._mark_analysis(episode_id, 'deferred')
                     continue
                 snapshot = self._snapshot(episode_id)
                 if not self._eligible(snapshot):
                     continue
                 fingerprint = source_fingerprint(snapshot)
                 if row and row[0] == fingerprint:
+                    # Older databases may lack the advisory marker. Only this
+                    # bounded scan's actual fingerprint check may repair it.
+                    self._mark_analysis(episode_id, row[1])
                     if row[1] == "complete" and row[3] == ANALYSIS_VERSION:
                         continue
                     if row[1] == "deferred":
@@ -320,10 +340,15 @@ class WorkingMemoryStore:
             "fingerprint=excluded.fingerprint,status=excluded.status,model=excluded.model,"
             "retry_after=excluded.retry_after,analysis_version=excluded.analysis_version",
             (episode_id, fingerprint, status, model, retry_after, analysis_version))
+        self._mark_analysis(episode_id, status)
+
+    def _mark_analysis(self, episode_id: str, status: str) -> None:
+        """Called inside a source transaction, after validation or explicit dismissal."""
         self.episodes._conn.execute(
             "INSERT INTO mail_intake_analysis(episode_id,generation,status) "
             "SELECT id,support_generation,? FROM episodes WHERE id=? "
-            "ON CONFLICT(episode_id) DO UPDATE SET generation=excluded.generation,status=excluded.status",
+            "ON CONFLICT(episode_id) DO UPDATE SET generation=excluded.generation,status=excluded.status "
+            "WHERE mail_intake_analysis.generation!=excluded.generation OR mail_intake_analysis.status!=excluded.status",
             (status, episode_id))
 
     def _delete_items(self, episode_id: str) -> None:
@@ -912,20 +937,24 @@ class WorkingMemoryStore:
         Zählt aktuelle Nachrichten und Dokumente (ohne ausgeschlossene, ohne
         überholte Fassungen und ohne Gesprächs-Nachschlagequellen) und deren
         gespeicherten Einordnungsstand. Eine ältere Analyseversion bleibt bis
-        zur erneuten Einordnung offen; Quellenänderungen prüft der begrenzte
-        Quellenscan.
+        zur erneuten Einordnung offen. Änderungen der Stützgeneration öffnen
+        den Fortschritt unmittelbar. Fehlende Altmarker prüft und ergänzt nur
+        der begrenzte Quellenscan nach tatsächlichem Fingerabdruckvergleich.
         """
         eligible = (f"{sql_geltend('e')} "
-                    "AND e.document NOT LIKE ?")
-        lookup = f'%"{CHAT_LOOKUP_TAG}"%'
+                    "AND NOT EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') t WHERE t.value=?)")
         with self.episodes._lock:
             total = self.episodes._conn.execute(
-                f"SELECT COUNT(*) FROM episodes e WHERE {eligible}", (lookup,)).fetchone()[0]
+                f"SELECT COUNT(*) FROM episodes e WHERE {eligible}", (CHAT_LOOKUP_TAG,)).fetchone()[0]
             rows = self.episodes._conn.execute(
-                f"SELECT s.status, s.analysis_version, COUNT(*) FROM working_memory_sources s JOIN episodes e "
-                f"ON e.id=s.episode_id WHERE {eligible} GROUP BY s.status,s.analysis_version", (lookup,)).fetchall()
+                f"SELECT s.status, s.analysis_version, ({analysis_marker_matches_sql()}) AS current, COUNT(*) "
+                "FROM working_memory_sources s JOIN episodes e ON e.id=s.episode_id "
+                "LEFT JOIN mail_intake_analysis a ON a.episode_id=e.id "
+                f"WHERE {eligible} GROUP BY s.status,s.analysis_version,current", (CHAT_LOOKUP_TAG,)).fetchall()
         counts = {"complete": 0, "failed": 0, "deferred": 0, "dismissed": 0}
-        for status, version, count in rows:
+        for status, version, current, count in rows:
+            if status != 'dismissed' and not current:
+                continue
             if status == "complete" and version != ANALYSIS_VERSION:
                 continue
             counts[status] += count

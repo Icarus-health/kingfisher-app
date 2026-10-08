@@ -19,7 +19,7 @@ from pathlib import Path
 
 from .episodes import CHAT_LOOKUP_TAG, sql_sichtbar
 from .working_memory_semantic import SemanticSearchResult
-from .working_memory_store import ANALYSIS_VERSION, WorkingMemoryStore, _item_id
+from .working_memory_store import ANALYSIS_VERSION, WorkingMemoryStore, _item_id, analysis_marker_matches_sql
 
 FORMAT = 1
 MAX_BATCH = 64
@@ -137,9 +137,11 @@ class DurableSemanticIndex:
             FROM originals.working_memory_items i
             JOIN originals.working_memory_sources s ON s.episode_id=i.episode_id
             JOIN originals.episodes e ON e.id=i.episode_id
+            JOIN originals.mail_intake_analysis a ON a.episode_id=e.id
             LEFT JOIN originals.source_heads h ON h.source_key=e.source_key
             WHERE s.status='complete' AND s.fingerprint=i.fingerprint
               AND s.analysis_version={ANALYSIS_VERSION} AND {sql_sichtbar('e')}
+              AND {analysis_marker_matches_sql()}
               AND (e.source_key='' OR h.episode_id=e.id)
               AND NOT EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') t WHERE t.value='{tag}')''')
 

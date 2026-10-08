@@ -11,7 +11,7 @@ from .hintergrund import AMPEL
 from .scheduler import JobResult
 from .working_memory_semantic import SemanticSearchResult, TEXT_BYTES, _text
 from .working_memory_semantic_index import DurableSemanticIndex
-from .working_memory_store import ANALYSIS_VERSION, WorkingMemoryStore
+from .working_memory_store import ANALYSIS_VERSION, WorkingMemoryStore, analysis_marker_matches_sql
 
 BATCH_SOURCES = 8
 BATCH_BYTES = 16384
@@ -115,10 +115,12 @@ class SemanticService:
         with self.episodes._lock:
             return self.episodes._conn.execute(f'''SELECT COUNT(*) FROM episodes e
                 LEFT JOIN working_memory_sources s ON s.episode_id=e.id
+                LEFT JOIN mail_intake_analysis a ON a.episode_id=e.id
                 WHERE {sql_geltend('e')} AND {sql_nicht_ausgeblendet('e')}
                   AND NOT EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') t WHERE t.value=?)
                   AND (s.status IS NULL OR (s.status!='dismissed'
-                       AND (s.status!='complete' OR s.analysis_version!=?)))''',
+                       AND (s.status!='complete' OR s.analysis_version!=?
+                            OR NOT COALESCE(({analysis_marker_matches_sql()}),0))))''',
                 (CHAT_LOOKUP_TAG, ANALYSIS_VERSION)).fetchone()[0]
 
     def coverage(self):
