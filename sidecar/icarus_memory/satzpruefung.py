@@ -47,6 +47,10 @@ Uhrzeitbereiche verglichen; das ist keine
 allgemeine Bedeutungs- oder Satzklammerprüfung. Wenn mehrere Ereignisse dieselbe
 Uhrzeit mit verschiedenen Grenzen verbinden, kann der Vergleich eine Aussage
 vorsichtshalber zurückweisen. Was der Beleg selbst behauptet, prüft sie nicht.
+Erkannte explizite Grenzen an einzelnen Kalenderdaten werden ebenfalls auf vertauschte
+Relationen geprüft. Bei ausdrücklich genannter Gültigkeit bleiben die Grenzen
+des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollständige
+Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
 """
 from __future__ import annotations
 
@@ -154,16 +158,16 @@ def _jahr(wert: str | None) -> int | None:
     return 2000 + zahl if len(wert) == 2 else zahl
 
 
-def daten_in(text: str) -> tuple[list[Datum], str]:
-    """Alle Datumsangaben eines Textes (ohne Auflösung relativer Angaben) und der Text ohne sie."""
-    gefunden: list[Datum] = []
+def _datumstellen(text: str) -> tuple[list[tuple[re.Match, tuple[Datum, ...]]], str]:
+    """Existing date parser with positions retained for calendar-bound checks."""
+    gefunden: list[tuple[re.Match, tuple[Datum, ...]]] = []
     rest = text
 
     def nehmen(treffer: re.Match, *daten: Datum) -> bool:
         nonlocal rest
         if not all(d.gueltig() for d in daten):
             return False
-        gefunden.extend(daten)
+        gefunden.append((treffer, daten))
         rest = _maske(rest, treffer)
         return True
 
@@ -180,6 +184,81 @@ def daten_in(text: str) -> tuple[list[Datum], str]:
     for t in list(_NAME.finditer(rest)):
         nehmen(t, Datum(int(t[1]), MONATE[t[2].lower()], _jahr(t[3])))
     return gefunden, rest
+
+
+def daten_in(text: str) -> tuple[list[Datum], str]:
+    """Alle Datumsangaben eines Textes (ohne Auflösung relativer Angaben) und der Text ohne sie."""
+    stellen, rest = _datumstellen(text)
+    return [datum for _, daten in stellen for datum in daten], rest
+
+
+_DATUM_GRENZE = re.compile(
+    r'(?<!\w)(?P<zusatz>(?:(?:erst|nur|frühestens|spätestens|nicht)\s+)*)'
+    r'(?P<operator>ab|bis|vor|nach|seit|am)\s+(?:(?:dem|zum)\s+)?$', re.I)
+_GELTUNG = re.compile(r'\b(?:gilt|gelten|gültig\w*|gueltig\w*)\b', re.I)
+_GELTUNG_QUELLE = re.compile(r'\b(?:gilt|gelten|galt|galten|gültig\w*|gueltig\w*)\b', re.I)
+
+
+def _datumsgrenzen(text: str) -> list[tuple[Datum, str]]:
+    grenzen = []
+    for stelle, daten in _datumstellen(text)[0]:
+        if len(daten) != 1:
+            continue  # Compact date ranges need a separate paired-range contract.
+        davor = _DATUM_GRENZE.search(text[:stelle.start()])
+        if davor is None:
+            continue
+        operator = davor['operator'].casefold()
+        modifier = ':'.join(falten(davor['zusatz']).split())
+        relation = {('erst', 'nach'): 'nach', ('nur', 'nach'): 'nach',
+                    ('fruhestens', 'ab'): 'ab', ('spatestens', 'bis'): 'bis',
+                    ('nur', 'bis'): 'bis', ('erst', 'ab'): 'ab'}.get(
+                        (modifier, operator), f'{modifier}:{operator}' if modifier else operator)
+        grenzen.append((daten[0], relation))
+    return grenzen
+
+
+def _gleicher_tag(a: Datum, b: Datum) -> bool:
+    return (a.tag, a.monat) == (b.tag, b.monat) and (a.jahr is None or b.jahr is None or a.jahr == b.jahr)
+
+
+def _pruefe_datumsgrenzen(text: str, belege: Sequence[Beleg]) -> list[str]:
+    """Preserve recognized explicit calendar relations, never from source headers.
+
+    This is not event attribution or general temporal entailment. Only clauses
+    explicitly asserting validity must also retain their matching dated bounds.
+    Unrelated clauses and imperative summaries remain independent.
+    """
+    grenzen = _datumsgrenzen(text)
+    beleg_grenzen = [grenze for beleg in belege for grenze in _datumsgrenzen(beleg.text)]
+    gruende = []
+    for datum, relation in grenzen:
+        passend = [r for d, r in beleg_grenzen if _gleicher_tag(datum, d)]
+        if passend and relation not in passend:
+            gruende.append(f'Datumsgrenze an {datum.tag:02d}.{datum.monat:02d}. stimmt nicht mit dem Beleg überein')
+    for klausel in _klauseln(text):
+        if not _GELTUNG.search(klausel):
+            continue
+        _, ohne_datum = _datumstellen(klausel)
+        anker = _inhaltswoerter(_GELTUNG.sub('', ohne_datum))
+        eigene_grenzen = _datumsgrenzen(klausel)
+        kandidaten = []
+        for beleg in belege:
+            for quelle in _klauseln(beleg.text):
+                if not _GELTUNG_QUELLE.search(quelle):
+                    continue
+                _, quelle_ohne_datum = _datumstellen(quelle)
+                gemeinsam = anker.intersection(_inhaltswoerter(_GELTUNG_QUELLE.sub('', quelle_ohne_datum)))
+                if gemeinsam:
+                    kandidaten.append((len(gemeinsam), _datumsgrenzen(quelle)))
+        # Separate applicability clauses are alternatives, not a conjunction of
+        # every bound sharing one noun. Prefer the strongest substantive overlap.
+        bester = max((rang for rang, _ in kandidaten), default=0)
+        passende = [bedingungen for rang, bedingungen in kandidaten if rang == bester]
+        if passende and not any(all(any(_gleicher_tag(datum, d) and r == relation
+                                        for d, r in eigene_grenzen)
+                                    for datum, relation in bedingungen) for bedingungen in passende):
+            gruende.append('Datumsgrenze einer Gültigkeitsaussage wurde weggelassen oder verändert')
+    return gruende
 
 
 # -- Uhrzeiten, Adressen, Kennungen, Zahlen ------------------------------------
@@ -656,6 +735,7 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     daten, rest = daten_in(text)
     datum_gruende, belegte_daten = _pruefe_daten(daten, pool)
     gruende += datum_gruende
+    gruende += _pruefe_datumsgrenzen(text, zitiert)
     zeiten, rest = zeiten_in(rest)
     for stunde, minute in sorted(zeiten):
         if (stunde, minute) not in pool.zeiten:

@@ -1,0 +1,36 @@
+# Kalendergrenzen in belegten Antworten
+
+## Reproduzierter Fehler
+
+Aus der einzigen künstlichen Quelle „Die Zusage gilt nur bis 30.09.2026.“ akzeptierte die gemeinsame Satzprüfung sowohl „Die Zusage gilt ab 30.09.2026.“ als auch „Die Zusage gilt aktuell.“. Werteprüfung des Datums allein erkannte weder die umgedrehte Richtung noch die weggefallene Gültigkeitsgrenze. Der unabhängige Prüfer reproduzierte zusätzlich den Satz-/Verlässlichkeitsweg ohne zugewiesenes Prüfmodell. Ein aktives Modelltor ist eine zusätzliche Prüfung; sein mögliches Verhalten wurde dadurch nicht gemessen.
+
+## Korrektur
+
+Der vorhandene Datumsparser erhält seine Zeichenpositionen, ohne Datumserkennung oder Jahresauflösung zu verändern. Erkannte explizite Operatoren an einem einzelnen Kalenderdatum werden mit dem Quellentext verglichen; Titel, Import- und Anzeigedaten liefern keine Grenze. Bei einer ausdrücklich formulierten Gültigkeit (`gilt`, `gültig` und erkannte Varianten) müssen die datierten Grenzen des über Inhaltswörter zugeordneten Quellsatzteils erhalten bleiben. Stärkere inhaltliche Übereinstimmung hat Vorrang; gleich gut passende Satzteile sind Alternativen. Historische Formulierungen („galt“) werden dadurch nicht pauschal zur vollständigen Datumswiederholung gezwungen. Unbekannte Modifier bleiben an ihren Wortlaut gebunden. Nur geprüfte gleichwertige Formen werden normalisiert.
+
+Der vorhandene Antwortweg verwirft solche Sätze und fällt auf das Originalzitat zurück. Gespeicherte alte Satzantworten werden beim Wiederöffnen mit derselben gemeinsamen Prüfung erneut geprüft; dafür wird kein Modell gestartet. Originale, Modellrollen und Datenbankschemata bleiben unverändert.
+
+## Prüfstand
+
+- Erste 9 Fehlerfälle RED; 11 positive Kontrollen bereits bestanden. Danach 131 gemeinsame Guardtests bestanden.
+- Echter `prepare`-/Render-Weg und gespeicherte Wiederöffnung ergänzt. Sabotage mit ursprünglichem Produktcode: 12 erwartete Fehler, 11 positive Kontrollen bestanden. Änderung anschließend wiederhergestellt.
+- Zwei zusätzliche Normalisierungs-Kontrollen („nur bis“/„bis“, „erst ab“/„ab“) zunächst RED, dann korrigiert. 25 neue Fälle bestanden.
+- Frühere 17 tatsächlich erzeugte Einzelsätze mit künstlichen Quellen erneut geprüft: keine Änderung der bisherigen Urteile. `historical-replay.json` ist ausdrücklich kein neuer Modell- oder Abruflauf.
+
+Das unabhängige Review fand einen echten Fehlalarm: Der unbefristete Betriebsbereich einer Lizenz wurde wegen eines anderen befristeten Testbereichs verworfen; außerdem fiel eine korrekt kopierte zweite Gültigkeitsaussage durch. Drei zusätzliche Kontrollen zunächst RED, anschließend korrigiert. 174 Guard-/Antworttests bestanden. Der ursprüngliche vollständige Backendlauf wurde gezielt unterbrochen, weil der Reviewbefund eine Codekorrektur verlangte; er ist kein Abschlussnachweis. Erneute unabhängige Reproduktion bestätigt die ursprünglichen Fehler als verworfen, beide Review-Gegenbeispiele und historische/imperative/Frist-Kontrollen als bestanden. 139 fokussierte Tests unabhängig bestanden; keine weiteren wichtigen Befunde im begrenzten Diff. Der abschließende vollständige Backend-Lauf ist mit Exit-Code 0 abgeschlossen: **5343 bestanden, 1 übersprungen, 2 Warnungen**, 751,72 Sekunden. Die Warnungen betreffen den bestehenden Starlette/httpx-Adapter und eine Escape-Sequenz im Repository-Prüftest. Kein CI-Neustart. Der früh unterbrochene Lauf zählt weiterhin nicht als Nachweis.
+
+## Grenzen
+
+Keine allgemeine Wahrheits-, Aktualitäts- oder Ereigniszuordnungsprüfung. Unerkannte relative Ausdrücke und kompakte Datumsbereiche haben hier keinen neuen Vertrag. Inhaltswörter können in komplizierten Satzklammern mehrere Ereignisse verbinden; bei Zweifeln bleibt das Original maßgeblich. Ein korrekt erhaltenes altes Datum beweist weder eine heute noch offene Aufgabe noch eine aktuelle Berechtigung. Reale Modellqualität und native Alltagsbedienung bleiben getrennte Abnahmen.
+
+## Fertiges App-Paket
+
+Produktcode `6052d41e567419c8f944e4f4adce09a39dd0f4b5`, lokale Version `1.0.6-local.6052d41`. Das Paket wurde ohne Netzabruf gebaut. 264 Paketdateien und 112 unveränderte Oberflächendateien sind im fertigen Image gegen den Quellstand geprüft; die bestehende sqlite-vec-Version 0.1.9 und Lizenz sind unverändert enthalten.
+
+Ein separater, netzloser Container hat den echten Vorbereitungs-, Render-, Speicher- und Wiederöffnungsweg mit ausschließlich künstlichen Quellen durchlaufen: vertauschte Datumsrichtung verworfen, neue unbefristete Antwort auf Original zurückgeführt, alte gespeicherte unbefristete Antwort verworfen. Kein echtes Modell und keine privaten Quellen wurden dafür verwendet. Belege: `image-check.json`, `image-smoke.json`. 34 betroffene Diagnoseprüfungen bestanden zusätzlich zum Backend-Lauf.
+
+## Lokale Installation
+
+Version **1.0.6-local.6052d41** ist nach kalter Sicherung auf dem Mac installiert. Alle 344 bisherigen Original-IDs samt Inhaltsprüfsummen sind erhalten; 17 SQLite-Dateien vor und nach dem Austausch bestehen die Integritätsprüfung. Konten, Kalender-, Modell- und Zeitplaneinstellungen sind erhalten, das Datenvolume bleibt identisch. Die ausdrückliche Hintergrundpause wurde vor und nach dem Austausch geprüft und bleibt gesetzt. Der native Launcher ist binär unverändert; Versionsangabe und lokale Signatur sind aktualisiert. Authentifizierte Versions-, Abdeckungs- und Weltwissen-Schnittstellen sowie der Gesundheitsendpunkt antworten. `mac-installation.json` enthält nur bereinigte Metadaten.
+
+Die native Fensterprüfung scheitert weiterhin am gesperrten Mac. Ollama läuft nicht; die Bedeutungssuche meldet folgerichtig `unavailable`, keine erfundene Bereitschaft. Der Mailbestand ist noch nicht vollständig aufgenommen oder eingeordnet; es wurde kein großer Import fortgesetzt und kein Modell gestartet. Eine lokale Installation ist keine öffentliche Registry-/Updater-Veröffentlichung.
