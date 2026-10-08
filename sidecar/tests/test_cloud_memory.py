@@ -236,6 +236,7 @@ def test_pilot_runs_both_derived_layers_and_keeps_original_and_correction(tmp_pa
     episodes, jobs, _, provider = setup(tmp_path)
     original = add_email(episodes, "Synthetic mail about the Atlas project.")
     original_dict = episodes.get(original.id).to_dict()
+    taxonomy_before = Categories(episodes).taxonomy()["version"]
     preview = jobs.preview()
     started = jobs.start(preview["preview_id"], "subscription-test", True)
     result = finish(jobs, started["job"]["id"])
@@ -255,7 +256,7 @@ def test_pilot_runs_both_derived_layers_and_keeps_original_and_correction(tmp_pa
     assert episodes.get(original.id).to_dict() == original_dict
     assert [item["id"] for item in categories.list_for(original.id)["categories"]] == ["personal"]
     assert categories.list_for(original.id)["correction"]["stale"] is False
-    assert categories.taxonomy()["version"] == 1
+    assert categories.taxonomy()["version"] == taxonomy_before
 
 def test_changed_source_is_rejected_before_any_provider_call(tmp_path):
     episodes, jobs, _, provider = setup(tmp_path)

@@ -8,7 +8,9 @@ const read = (name) => readFileSync(new URL(name, src), "utf8");
 test("the status page can be opened directly without removing people review", () => {
   const graph = read("MemoryGraph.tsx");
   assert.match(graph, /get\("view"\) === "status" \? "status" : "browse"/);
-  assert.match(graph, /query\.get\("people"\) === "review" \? "review" : "people"/);
+  assert.match(graph, /const isReview = query\.get\("people"\) === "review"/);
+  assert.match(graph, /setFilter\(isReview \? "people" : "areas"\)/);
+  assert.match(graph, /setPersonFilter\(isReview \? "review" : "people"\)/);
   assert.match(graph, /if \(query\.get\("view"\) === "status"\) setSection\("status"\)/);
 });
 

@@ -726,6 +726,19 @@ def _verify_v18(connection):
     lage.verify(connection)
 
 
+def _migrate_v19(connection):
+    # Die Gesundheitsansicht erhält eine Taxonomieoption, aber keine alten
+    # Quellen werden allein deshalb erneut ausgewertet oder umgeschrieben.
+    from .memory_areas import ensure_health_taxonomy
+    ensure_health_taxonomy(connection)
+
+
+def _verify_v19(connection):
+    _verify_v18(connection)
+    from .memory_areas import verify_health_taxonomy
+    verify_health_taxonomy(connection)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -745,6 +758,7 @@ _MIGRATIONS = (
     Migration(16, "kreis_und_akten_arten", _migrate_v16, _verify_v16),
     Migration(17, "mail_intake_grund", _migrate_v17, _verify_v17),
     Migration(18, "working_memory_analysis_version", _migrate_v18, _verify_v18),
+    Migration(19, "memory_area_health_taxonomy", _migrate_v19, _verify_v19),
 )
 
 

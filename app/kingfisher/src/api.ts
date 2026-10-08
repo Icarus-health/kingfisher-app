@@ -271,6 +271,29 @@ export type SourceCategoriesResult = {
   automatic: boolean;
 };
 
+export type MemoryAreaCategory = {
+  id: string;
+  label: string;
+  origin: "automatic" | "user";
+  evidence: Array<{start: number; end: number; quote: string; quote_truncated: boolean}>;
+};
+export type MemoryAreaSource = {
+  episode_id: string;
+  title: string;
+  occurred_at: string | null;
+  status: string;
+  categories: MemoryAreaCategory[];
+};
+export type MemoryAreasPage = {
+  areas: Array<{id: "work" | "personal" | "health" | "finance"; label: string; available: boolean}>;
+  sources: MemoryAreaSource[];
+  taxonomy_version: number;
+  scanned_count: number;
+  counts_scope: "page";
+  next_cursor: number | null;
+  truncated: boolean;
+};
+
 export type CalendarSource = {
   id: string;
   label: string;
@@ -1200,6 +1223,7 @@ export const api = {
   pauseMailIntake: (accountId: string, paused: boolean, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/pause`, {method: "POST", body: JSON.stringify({paused}), signal}),
   retryMailIntake: (accountId: string, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/retry`, {method: "POST", body: JSON.stringify({}), signal}),
   categoryTaxonomy: () => request<{version: number; items: CategoryTaxonomyEntry[]}>("/api/v1/memory/categories"),
+  memoryAreas: (limit = 50, cursor?: number) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
   sourceCategories: (id: string) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`),
   correctSourceCategories: (id: string, categories: string[]) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories})}),

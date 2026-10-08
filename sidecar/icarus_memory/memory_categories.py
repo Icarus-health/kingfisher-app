@@ -206,6 +206,9 @@ def _mailbox_names(episode):
     labels = [(_decoded_header(value), bool(sender) and
                _normal(_decoded_header(value)) == _normal(sender))
               for value in episode.participants]
+    if sender and not any(is_sender for _label, is_sender in labels):
+        # Explizite Kontakte können den Absender auch ohne participants tragen.
+        labels.append((sender, True))
     lines = [line for line in episode.body.splitlines() if line.strip()]
     for index, line in enumerate(lines):
         if "@" in line and len(line) <= MAX_BLOCK_CHARS:
@@ -247,7 +250,9 @@ def _schema(taxonomy, entity_anchor_mode="absolute"):
     entity_properties = {"kind": {"type": "string", "enum": list(ENTITY_KINDS)},
                          "name": {"type": "string", "minLength": 1, "maxLength": 200},
                          **entity_anchor,
-                         "role": {"type": "string", "enum": ["sender", "mentioned"]}}
+                         "role": ({"type": "string", "const": "mentioned"}
+                                  if entity_anchor_mode == "block_quote" else
+                                  {"type": "string", "enum": ["sender", "mentioned"]})}
     return {"type": "object", "additionalProperties": False,
             "required": ["categories", "entities"], "properties": {
         "categories": {"type": "array", "maxItems": MAX_TOPICS, "items": {
@@ -314,11 +319,13 @@ Orientierung, keine Fakten, Aufgaben oder Suchfilter. Nutze nur gelieferte Block
 Personen, Organisationen, Projekte und Orte brauchen exakt den Namen aus einem
 Originalblock. Gib bei Entitäten block_id, name und die 1-basierte occurrence dieses
 exakten Namens im Block an. Wenn er fehlt oder mehrdeutig ist, lass die Entität weg;
-rate niemals. role sender nur bei belegtem Absender, sonst mentioned. Allgemeine
+rate niemals. Gib role immer als mentioned aus; der tatsächliche Absender wird
+getrennt aus dem Mailkopf angezeigt, nicht mit Text-Erwähnungen verschmolzen. Auch bei Signaturen oder zitierten Von-Zeilen
+bleibt deine Ausgabe mentioned. Allgemeine
 oder automatische Postfächer sind keine Personen. Keine Ergänzung, Normalisierung,
 Namensauflösung oder Identitätsverschmelzung."""
     all_topics, all_entities = [], []
-    banned, senders = _mailbox_names(episode)
+    banned, _senders = _mailbox_names(episode)
     for section in sections:
         block_map = {f"B{i}": span for i, span in enumerate(section, 1)}
         payload = {"source": context, "taxonomy": taxonomy, "blocks": [
@@ -388,10 +395,12 @@ Namensauflösung oder Identitätsverschmelzung."""
             kind, role = item["kind"], item["role"]
             if type(kind) is not str or kind not in ENTITY_KINDS or type(role) is not str or role not in ("sender", "mentioned"):
                 raise SourceValidationError("invalid_entity_evidence", "Ungültige Entitätsbelege.", reason="entity_format")
+            if role != "mentioned":
+                raise SourceValidationError("invalid_entity_evidence", "Unerlaubte Modell-Absenderrolle.", reason="entity_sender")
             if kind == "person" and _not_person(name, banned):
                 continue
-            if role == "sender" and _normal(name) not in senders:
-                raise SourceValidationError("invalid_entity_evidence", "Unbelegte Absenderzuordnung.", reason="entity_sender")
+            # Gleicher Name beweist keine Identität der erwähnten Person.
+            # Der tatsächliche Absender bleibt separat in den Mailkopfdaten.
             span = (kind, start, end, role)
             if span in all_entities:
                 raise SourceValidationError("invalid_entity_evidence", "Doppelter Entitätsbeleg.", reason="entity_duplicate")

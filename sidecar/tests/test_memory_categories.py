@@ -132,8 +132,9 @@ def test_new_taxonomy_targets_only_selected_existing_sources_and_survives_restar
     second = source(episodes, "Zweite Arbeitsquelle.")
     categories.run(Local(), limit=2)
     original = episodes.get(first.id).to_dict()
+    next_version = categories.taxonomy()["version"] + 1
     entry = categories.add_category("health", "Gesundheit", "Belegte Gesundheitsthemen", episode_ids=[first.id])
-    assert entry["version"] == 2
+    assert entry["version"] == next_version
     provider = Local(result={"categories": [{"category_id": "health", "block_id": "B1"}], "entities": []})
     categories.run(provider)
     assert len(provider.calls) == 1
@@ -142,7 +143,7 @@ def test_new_taxonomy_targets_only_selected_existing_sources_and_survives_restar
     assert episodes.get(first.id).to_dict() == original
     episodes.close()
     episodes, categories = setup(tmp_path)
-    assert categories.taxonomy()["version"] == 2
+    assert categories.taxonomy()["version"] == next_version
     assert categories.list_for(first.id)["categories"][0]["id"] == "health"
     assert categories.run(provider).ok
     assert len(provider.calls) == 1
@@ -274,12 +275,13 @@ def test_actual_email_sender_and_same_named_other_source_remain_separate(tmp_pat
 def test_new_category_during_model_call_does_not_claim_latest_taxonomy_was_used(tmp_path):
     episodes, categories = setup(tmp_path)
     item = source(episodes)
+    next_version = categories.taxonomy()["version"] + 1
     provider = Local(on_call=lambda _: categories.add_category("health", "Gesundheit"))
     categories.run(provider)
     assert categories.list_for(item.id)["status"] == "pending"
     assert categories.list_for(item.id)["categories"] == []
     categories.run(Local())
-    assert categories.list_for(item.id)["categories"][0]["taxonomy_version"] == 2
+    assert categories.list_for(item.id)["categories"][0]["taxonomy_version"] == next_version
 
 
 def test_status_counts_are_explicitly_a_bounded_sample(tmp_path, monkeypatch):
@@ -585,17 +587,17 @@ def test_chatgpt_repeated_exact_name_requires_and_uses_explicit_occurrence(tmp_p
     assert entity["start"] == item.body.rindex("Ada")
 
 
-def test_chatgpt_sender_role_accepts_decoded_rfc2047_mailbox_display_name(tmp_path):
+def test_chatgpt_encoded_sender_name_remains_a_separate_mention(tmp_path):
     episodes, categories = setup(tmp_path)
     item, _ = episodes.record(EpisodeKind.MESSAGE, "Arbeit", "Jörg prüft Atlas.",
         Provenance(SourceType.EMAIL, source_ref="synthetic-rfc2047"),
         participants=["=?UTF-8?Q?J=C3=B6rg?= <joerg@example.org>"])
     provider = RemoteQuoteProvider(lambda _payload, _number: {
         "categories": [], "entities": [{"kind": "person", "name": "Jörg", "block_id": "B1",
-                                         "occurrence": 1, "role": "sender"}]})
+                                         "occurrence": 1, "role": "mentioned"}]})
 
     assert run_remote(categories, item, provider).ok
-    assert categories.list_for(item.id)["entities"][0]["role"] == "sender"
+    assert categories.list_for(item.id)["entities"][0]["role"] == "mentioned"
 
 
 def test_chatgpt_duplicate_name_without_occurrence_is_a_safe_validation_gap(tmp_path):

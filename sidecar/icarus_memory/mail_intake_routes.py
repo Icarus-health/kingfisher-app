@@ -188,6 +188,15 @@ def register(app, guard, data_dir, wire):
         from .memory_categories import Categories
         return Categories(app.state.episodes).taxonomy()
 
+    @app.get('/api/v1/memory/areas',dependencies=guard)
+    def memory_areas(limit: int = Query(default=50, ge=1, le=100),
+                     cursor: int | None = Query(default=None, ge=1)):
+        from .memory_areas import MemoryAreas
+        try:
+            return MemoryAreas(app.state.episodes).page(limit=limit, cursor=cursor)
+        except ValueError:
+            raise HTTPException(422, 'Die Quellenansicht ist ungültig.') from None
+
     @app.get('/api/v1/memory/people/mentions',dependencies=guard)
     def person_mentions(limit: int = Query(default=100, ge=1, le=200)):
         from .memory_categories import Categories
