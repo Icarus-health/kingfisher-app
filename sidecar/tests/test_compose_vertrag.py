@@ -71,6 +71,8 @@ def test_beide_dateien_stimmen_ueberein_ausser_build():
 def _aufgeloest(pfad: Path, bild: str | None) -> dict:
     umgebung = {**os.environ, 'ICARUS_SIDECAR_TOKEN': 't', 'ICARUS_SECRETS_PASSPHRASE': 'p'}
     umgebung.pop('KINGFISHER_IMAGE', None)
+    umgebung['KINGFISHER_DURABLE_MEMORY_SEARCH'] = '1'
+    umgebung['ICARUS_MEMORY_SEMANTIC'] = ''
     if bild:
         umgebung['KINGFISHER_IMAGE'] = bild
     try:
@@ -91,6 +93,8 @@ def test_docker_loest_beide_gleich_auf():
     assert dienst['image'] == app['services']['kingfisher']['image'] == 'ghcr.io/icarus-health/kingfisher-app:1.2.0'
     assert quelle['volumes']['kingfisher-data']['name'] == 'kingfisher_kingfisher-data'
     assert [(p['host_ip'], p['published'], p['target']) for p in dienst['ports']] == [('127.0.0.1', '8890', 8890)]
+    assert dienst['environment']['KINGFISHER_DURABLE_MEMORY_SEARCH'] == '1'
+    assert dienst['environment']['ICARUS_MEMORY_SEMANTIC'] == ''
     dienst.pop('build')
     assert quelle == app
     assert _aufgeloest(QUELLE, None)['services']['kingfisher']['image'] == 'kingfisher:local'
