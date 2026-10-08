@@ -122,7 +122,15 @@ def test_jeder_zitierte_satz_traegt_einen_belegverweis(api):
     assert geprueft >= 8
 
 
-def test_die_lage_zeigt_nur_geprueftes_mit_belegnummer_titel_und_datum(api):
+def test_die_lage_zeigt_nur_geprueftes_mit_belegnummer_titel_und_datum(api, monkeypatch):
+    from tests import test_mappe
+
+    class FixtureClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return JETZT.astimezone(tz) if tz else JETZT.replace(tzinfo=None)
+
+    monkeypatch.setattr(test_mappe, 'datetime', FixtureClock)
     app, client = api
     _, bitte, *_ = bestand(app, client)
     lage = {'saetze': [{'text': 'Die Druckdaten sind angefragt.',
@@ -134,9 +142,9 @@ def test_die_lage_zeigt_nur_geprueftes_mit_belegnummer_titel_und_datum(api):
     info, _ = am.quellen_lieferant(app.state.episodes)
     akte = am.bauen(liste, stand=STAND, version='9.9.9', info=info)['Projekte/Mainz.md']
     assert 'Nur geprüfte Sätze' in akte and 'Stand der Lage: 29.09.2026' in akte and 'wird aktualisiert' in akte
-    # Die Bitte liegt drei Tage zurück (Fixture `bestand`); das Datum darf nicht fest stehen, sonst kippt der Test täglich.
-    vor_drei_tagen = (datetime.now(timezone.utc) - timedelta(days=3)).strftime('%d.%m.%Y')
-    assert f'- Die Druckdaten sind angefragt.\n  - [1] Quelle: Druckdaten, {vor_drei_tagen} · [kingfisher://quelle/{bitte.id}]' in akte
+    # Fixed source time: a UTC/Berlin midnight difference must not make this
+    # export-content test fail depending on when the suite runs.
+    assert f'- Die Druckdaten sind angefragt.\n  - [1] Quelle: Druckdaten, 27.09.2026 · [kingfisher://quelle/{bitte.id}]' in akte
 
 
 # -- Quellen mitschreiben --
