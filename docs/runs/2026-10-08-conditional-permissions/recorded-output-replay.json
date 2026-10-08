@@ -1,0 +1,34 @@
+{
+  "method": "Recorded native Q5 unchanged model outputs and original source; offline replay only. Not a new model/retrieval/ingestion evaluation. Original rendering and JSON-restoration separately tested.",
+  "before_commit": "ae3e695c32aa910e18fa611b2064447690fd7b82",
+  "native_raw_sha256": "2eddbcec1e570a297b6fdd21317c7af21bc78454741c3a554a7a6c56a94070ce",
+  "question": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+  "source": "RCS03",
+  "before": {
+    "status": "saetze",
+    "surviving_sentences": [
+      "Die Freigabe liegt noch nicht vor."
+    ],
+    "rejected": 1,
+    "reasons": [
+      [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    ],
+    "fallback_reason": "",
+    "replayed_calls": 2
+  },
+  "after": {
+    "status": "zitate",
+    "surviving_sentences": [],
+    "rejected": 1,
+    "reasons": [
+      [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    ],
+    "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+    "replayed_calls": 2
+  }
+}
