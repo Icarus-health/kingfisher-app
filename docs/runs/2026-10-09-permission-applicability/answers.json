@@ -1,0 +1,426 @@
+{
+  "synthetic_only": true,
+  "stage": "answer generation and verification only; no retrieval/intake qualification",
+  "catalog_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "code": {
+    "icarus_memory.satzantwort": "1b40fd1ce144848efaf7fda9792413ef07c31027506311588634084df9cbbf3f",
+    "icarus_memory.satzpruefung": "bc4291b637894584c0cf09c83ac2b67ba9fe848b89636367c24ec35f1f473a17"
+  },
+  "cases": [
+    {
+      "id": "IA01",
+      "status": "zitate",
+      "accepted": [],
+      "rejected": [
+        {
+          "roh": "Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.",
+          "text": "Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": false,
+          "gruende": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "",
+          "verlaesslichkeit": "",
+          "hinweis": ""
+        },
+        {
+          "roh": "Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden.",
+          "text": "Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": false,
+          "gruende": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "",
+          "verlaesslichkeit": "",
+          "hinweis": ""
+        }
+      ],
+      "reason": "kein Satz bestand die Prüfung",
+      "seconds": 5.072,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.\",\"belege\":[1]},{\"text\":\"Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA02",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+          "text": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+          "belege": [
+            2
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        },
+        {
+          "roh": "Dies gilt auch für die Schutzschicht aus P-18.",
+          "text": "Dies gilt auch für die Schutzschicht aus P-18.",
+          "belege": [
+            2
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        },
+        {
+          "roh": "Die Arbeitskarte P-18 besagt, dass die Schutzschicht aufgetragen wird.",
+          "text": "Die Arbeitskarte P-18 besagt, dass die Schutzschicht aufgetragen wird.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [],
+      "reason": "",
+      "seconds": 3.136,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.\",\"belege\":[2]},{\"text\":\"Dies gilt auch für die Schutzschicht aus P-18.\",\"belege\":[2]},{\"text\":\"Die Arbeitskarte P-18 besagt, dass die Schutzschicht aufgetragen wird.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA03",
+      "status": "zitate",
+      "accepted": [],
+      "rejected": [
+        {
+          "roh": "Die Abdeckung darf vor der Abnahme nicht entfernt werden.",
+          "text": "Die Abdeckung darf vor der Abnahme nicht entfernt werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": false,
+          "gruende": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "",
+          "verlaesslichkeit": "",
+          "hinweis": ""
+        }
+      ],
+      "reason": "kein Satz bestand die Prüfung",
+      "seconds": 1.04,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Abdeckung darf vor der Abnahme nicht entfernt werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA04",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [],
+      "reason": "",
+      "seconds": 1.694,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA05",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "text": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [],
+      "reason": "",
+      "seconds": 1.793,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA06",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "text": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [],
+      "reason": "",
+      "seconds": 1.874,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA07",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "text": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "belege": [
+            2
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        },
+        {
+          "roh": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+          "text": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+          "belege": [
+            2
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        },
+        {
+          "roh": "Das Gerät darf nach der Kalibrierung gestartet werden.",
+          "text": "Das Gerät darf nach der Kalibrierung gestartet werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [],
+      "reason": "",
+      "seconds": 3.848,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die frühere Startregel nach Kalibrierung reicht nicht aus.\", \"belege\":[2]},{\"text\":\"Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.\", \"belege\":[2]},{\"text\":\"Das Gerät darf nach der Kalibrierung gestartet werden.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA08",
+      "status": "saetze",
+      "accepted": [
+        {
+          "roh": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+          "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+          "belege": [
+            1
+          ],
+          "bestanden": true,
+          "gruende": [],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "ja",
+          "verlaesslichkeit": "einfach",
+          "hinweis": "nur eine Quelle"
+        }
+      ],
+      "rejected": [
+        {
+          "roh": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "text": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "belege": [
+            1
+          ],
+          "bestanden": false,
+          "gruende": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ],
+          "relativ": false,
+          "vom_programm": false,
+          "nur_kopf": false,
+          "pruefmodell": "",
+          "verlaesslichkeit": "",
+          "hinweis": ""
+        }
+      ],
+      "reason": "",
+      "seconds": 2.818,
+      "model_events": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\": \"antwort\", \"saetze\": [{\"text\": \"Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.\", \"belege\": [1]}, {\"text\": \"Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.\", \"belege\": [1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ]
+}

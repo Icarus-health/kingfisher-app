@@ -1,0 +1,113 @@
+{
+  "title": "Independent temporal-applicability holdouts",
+  "version": 1,
+  "scope": "Synthetic answer-content controls; designed to test whether a condition applies to the requested action, object, and time, rather than merely sharing lexical terms or a case identifier.",
+  "cases": [
+    {
+      "id": "IA01",
+      "focus": "unrelated_clause_same_case_id",
+      "sources": [
+        {"id": "IA01-S1", "text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen."}
+      ],
+      "question": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "gold_answer": "Die Dichtung darf vor dem Aushärten ausschließlich trocken abgewischt werden. Die Freigaberegel für Lösungsmittel betrifft die Rückgabe, nicht diese Reinigung.",
+      "expected_source_ids": ["IA01-S1"],
+      "gold_requirements": ["Keep the dry-only rule attached to cleaning the seal before curing.", "Do not transfer the return/solvent rule to the cleaning action."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "The same case identifier and solvent vocabulary occur in separate action clauses; overlap cannot establish clause scope."
+    },
+    {
+      "id": "IA02",
+      "focus": "qualifier_in_another_cited_source",
+      "sources": [
+        {"id": "IA02-S1", "text": "Arbeitskarte P-18: Die Schutzschicht wird aufgetragen."},
+        {"id": "IA02-S2", "text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18."}
+      ],
+      "question": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "gold_answer": "Die Fläche muss vorher vollständig staubfrei sein.",
+      "expected_source_ids": ["IA02-S1", "IA02-S2"],
+      "gold_requirements": ["Combine the action in S1 with its explicit prerequisite in S2.", "Preserve that dust-free condition is required before application."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "The answer requires binding a condition in a second cited source to the named action; source selection or term overlap alone is insufficient."
+    },
+    {
+      "id": "IA03",
+      "focus": "reversed_qualifier",
+      "sources": [
+        {"id": "IA03-S1", "text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."}
+      ],
+      "question": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "gold_answer": "Nein. Sie darf erst nach der Abnahme entfernt werden.",
+      "expected_source_ids": ["IA03-S1"],
+      "gold_requirements": ["Answer no for the before-acceptance interval.", "Do not reverse the before/after relation."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "Both temporal directions and the action terms appear in one source; lexical presence does not establish which polarity applies to the asked interval."
+    },
+    {
+      "id": "IA04",
+      "focus": "maintained_qualifier_minor_inflection",
+      "sources": [
+        {"id": "IA04-S1", "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden."}
+      ],
+      "question": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "gold_answer": "Ja, aber ausschließlich während des laufenden Spülvorgangs.",
+      "expected_source_ids": ["IA04-S1"],
+      "gold_requirements": ["Answer yes for the asked interval.", "Retain the exclusive temporal limit; do not generalize permission beyond the flushing process."],
+      "ordinary_lexical_gate_can_establish_truth": true,
+      "why": "The single explicit bounded permission directly entails the asked paraphrase, provided the answer repeats the exclusive limit."
+    },
+    {
+      "id": "IA05",
+      "focus": "temporal_modifier_of_unrelated_action",
+      "sources": [
+        {"id": "IA05-S1", "text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden."}
+      ],
+      "question": "Wann darf der Akku ausgetauscht werden?",
+      "gold_answer": "Ausschließlich nach der technischen Prüfung.",
+      "expected_source_ids": ["IA05-S1"],
+      "gold_requirements": ["Attach the post-inspection qualifier to battery replacement.", "Do not answer with the pre-shipment time, which modifies photographing the seal."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "The source contains a salient unrelated temporal phrase; matching a time word cannot identify its grammatical action."
+    },
+    {
+      "id": "IA06",
+      "focus": "qualifier_limited_to_different_object",
+      "sources": [
+        {"id": "IA06-S1", "text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden."}
+      ],
+      "question": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "gold_answer": "Ja. Für Raum B ist das Öffnen während der Arbeitszeit zur Lüftung erlaubt; die Beschränkung nach Dienstschluss gilt für Raum A.",
+      "expected_source_ids": ["IA06-S1"],
+      "gold_requirements": ["Answer yes for room B.", "Do not transfer room A's after-hours restriction to room B."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "The same action and temporal terms are repeated for different objects with different permissions; lexical matching cannot safely resolve object scope."
+    },
+    {
+      "id": "IA07",
+      "focus": "later_qualification_changes_temporal_rule",
+      "sources": [
+        {"id": "IA07-S1", "text": "Arbeitsnotiz vom 3. März: Das Gerät darf nach der Kalibrierung gestartet werden."},
+        {"id": "IA07-S2", "text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus."}
+      ],
+      "question": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "gold_answer": "Nein. Nach der neueren Korrektur muss zusätzlich eine dokumentierte Freigabe vorliegen; bis dahin bleibt das Gerät ausgeschaltet.",
+      "expected_source_ids": ["IA07-S2"],
+      "gold_requirements": ["Use the later correction as the current rule.", "Preserve the additional documented-approval condition and until-then prohibition."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "Both sources contain calibration/start language, but the later source explicitly supersedes the earlier condition."
+    },
+    {
+      "id": "IA08",
+      "focus": "until_condition_and_unrelated_post_event_action",
+      "sources": [
+        {"id": "IA08-S1", "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."}
+      ],
+      "question": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "gold_answer": "Nein. Auch nach der Abnahme ist das Zurücksetzen nur mit schriftlicher Anordnung der diensthabenden Technikerin zulässig.",
+      "expected_source_ids": ["IA08-S1"],
+      "gold_requirements": ["Do not infer permission merely from the end of the pre-acceptance prohibition.", "Retain the explicit post-acceptance written-order condition."],
+      "ordinary_lexical_gate_can_establish_truth": false,
+      "why": "A temporal prohibition ending does not imply permission; the separate post-event condition controls the requested action."
+    }
+  ]
+}

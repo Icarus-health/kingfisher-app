@@ -1,0 +1,34 @@
+{
+  "checks": [
+    {
+      "version": "1.0.6-local.3cf769f",
+      "python_sources_verified": 264,
+      "ui_files_verified": 112,
+      "pending_source_invalidation": true,
+      "sentence_coverage_notice": true,
+      "unrelated_intake_preserves_answer": true,
+      "source_version_change_invalidates_answer": true,
+      "network": "none",
+      "private_sources_used": false,
+      "real_model_quality_test": false
+    },
+    {
+      "local_exact_name_and_unicode_offset": true,
+      "withdrawal_of_person_mention": true,
+      "network": "none"
+    },
+    {
+      "explicit_case_excludes_wrong_original": true,
+      "correct_case_retained": true,
+      "saved_wrong_case_blocked": true,
+      "withdrawal_preserved": true,
+      "network": "none"
+    },
+    {
+      "permission_qualifier_guard": true,
+      "independent_ban_preserved": true,
+      "network": "none"
+    }
+  ],
+  "exit_code": 0
+}

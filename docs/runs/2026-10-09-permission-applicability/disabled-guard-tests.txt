@@ -1,0 +1,184 @@
+F....FF.FFF..FFF.FFF                                                     [100%]
+=================================== FAILURES ===================================
+_______ test_permission_paraphrase_cannot_drop_precleaning_applicability _______
+
+    def test_permission_paraphrase_cannot_drop_precleaning_applicability():
+>       assert not _check(UNSCOPED_TOWELS).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Für Auftrag R-508 sind nur trockene Tücher erlaubt.')
+
+sidecar/tests/test_permission_applicability.py:28: AssertionError
+______ test_temporal_relation_cannot_be_reversed_for_the_same_permission _______
+
+    def test_temporal_relation_cannot_be_reversed_for_the_same_permission():
+        sentence = 'Nach der Reinigung von Auftrag R-508 darf nur ein trockenes Tuch verwendet werden.'
+>       assert not _check(sentence).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Nach der Reinigung von Auftrag R-508 darf nur ein trockenes Tuch verwendet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Nach der Reinigung von Auftrag R-508 darf nur ein trockenes Tuch verwendet werden.', belege=('1',)), bestanden=True, gruende=()) = _check('Nach der Reinigung von Auftrag R-508 darf nur ein trockenes Tuch verwendet werden.')
+
+sidecar/tests/test_permission_applicability.py:53: AssertionError
+____________ test_while_scope_is_preserved_as_a_temporal_qualifier _____________
+
+    def test_while_scope_is_preserved_as_a_temporal_qualifier():
+        source = 'Für Auftrag R-508 ist ein trockenes Tuch während der Reinigung erlaubt.'
+>       assert not _check(UNSCOPED_TOWELS, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Für Auftrag R-508 sind nur trockene Tücher erlaubt.', 'Für Auftrag R-508 ist ein trockenes Tuch während der Reinigung erlaubt.')
+
+sidecar/tests/test_permission_applicability.py:58: AssertionError
+__ test_scope_from_an_unrelated_action_in_the_same_source_cannot_be_borrowed ___
+
+    def test_scope_from_an_unrelated_action_in_the_same_source_cannot_be_borrowed():
+        source = R508_RULE + ' Für Auftrag R-508 sind Lösungsmittel während der Wartung erlaubt.'
+        sentence = 'Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.'
+>       assert not _check(sentence, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', 'Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Für Auftrag R-508 sind Lösungsmittel während der Wartung erlaubt.')
+
+sidecar/tests/test_permission_applicability.py:71: AssertionError
+______ test_scope_in_a_separate_answer_clause_cannot_qualify_a_permission ______
+
+    def test_scope_in_a_separate_answer_clause_cannot_qualify_a_permission():
+        source = R508_RULE + ' Vor der Reinigung werden die Lösungsmittel getrennt gelagert.'
+        sentence = ('Vor der Reinigung werden die Lösungsmittel getrennt gelagert und '
+                    'für Auftrag R-508 sind nur trockene Tücher erlaubt.')
+>       assert not _check(sentence, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Vor der Reinigung werden die Lösungsmittel getrennt gelagert und für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Vor der Reinigung werden die Lösungsmittel getrennt gelagert und für Auftrag R-508 sind nur trockene Tücher erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Vor der Reinigung werden die Lösungsmittel getrennt gelagert und für Auftrag R-508 sind nur trockene Tücher erlaubt.', 'Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Vor der Reinigung werden die Lösungsmittel getrennt gelagert.')
+
+sidecar/tests/test_permission_applicability.py:78: AssertionError
+_____ test_permission_does_not_borrow_scope_from_following_inverted_clause _____
+
+    def test_permission_does_not_borrow_scope_from_following_inverted_clause():
+        source = R508_RULE + ' Vor der Reinigung werden die Lösungsmittel getrennt gelagert.'
+        sentence = ('Für Auftrag R-508 sind nur trockene Tücher erlaubt und '
+                    'vor der Reinigung werden die Lösungsmittel getrennt gelagert.')
+>       assert not _check(sentence, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt und vor der Reinigung werden die Lösungsmittel getrennt gelagert.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Für Auftrag R-508 sind nur trockene Tücher erlaubt und vor der Reinigung werden die Lösungsmittel getrennt gelagert.', belege=('1',)), bestanden=True, gruende=()) = _check('Für Auftrag R-508 sind nur trockene Tücher erlaubt und vor der Reinigung werden die Lösungsmittel getrennt gelagert.', 'Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Vor der Reinigung werden die Lösungsmittel getrennt gelagert.')
+
+sidecar/tests/test_permission_applicability.py:85: AssertionError
+______ test_forbidden_clause_does_not_support_positive_alternative_scope _______
+
+    def test_forbidden_clause_does_not_support_positive_alternative_scope():
+        source = ('Vor der Reinigung ist ein trockenes Tuch erlaubt. '
+                  'Nach der Reinigung ist ein trockenes Tuch verboten.')
+>       assert not _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Nach der Reinigung ist ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Nach der Reinigung ist ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', 'Vor der Reinigung ist ein trockenes Tuch erlaubt. Nach der Reinigung ist ein trockenes Tuch verboten.')
+
+sidecar/tests/test_permission_applicability.py:103: AssertionError
+________ test_a_prohibition_alone_cannot_support_an_unscoped_allowance _________
+
+    def test_a_prohibition_alone_cannot_support_an_unscoped_allowance():
+        source = 'Vor der Reinigung ist ein trockenes Tuch verboten.'
+>       assert not _check('Ein trockenes Tuch ist erlaubt.', source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Ein trockenes Tuch ist erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Ein trockenes Tuch ist erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Ein trockenes Tuch ist erlaubt.', 'Vor der Reinigung ist ein trockenes Tuch verboten.')
+
+sidecar/tests/test_permission_applicability.py:108: AssertionError
+_______ test_a_prohibition_alone_cannot_support_another_scoped_allowance _______
+
+    def test_a_prohibition_alone_cannot_support_another_scoped_allowance():
+        source = 'Vor der Reinigung ist ein trockenes Tuch verboten.'
+>       assert not _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Nach der Reinigung ist ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Nach der Reinigung ist ein trockenes Tuch erlaubt.', belege=('1',)), bestanden=True, gruende=()) = _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', 'Vor der Reinigung ist ein trockenes Tuch verboten.')
+
+sidecar/tests/test_permission_applicability.py:113: AssertionError
+__ test_other_case_condition_cannot_be_borrowed_for_the_requested_permission ___
+
+    def test_other_case_condition_cannot_be_borrowed_for_the_requested_permission():
+        other_case = 'Für Auftrag R-509 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.'
+        borrowed_scope = 'Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.'
+>       assert not _check(borrowed_scope, R508_RULE, other_case).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', belege=('1', '2')), bestanden=True, gruende=()) = _check('Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.', 'Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt.', 'Für Auftrag R-509 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.')
+
+sidecar/tests/test_permission_applicability.py:125: AssertionError
+______ test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission ______
+
+    def test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission():
+        checker = _AlwaysYesChecker()
+        source = AntwortBeleg(
+            nummer=1,
+            ref={'episode_id': 'episode-r508', 'fingerprint': 'fingerprint', 'start': 0, 'end': len(R508_SOURCE),
+                 'kind': 'fact'},
+            rolle='Quelle',
+            episode_id='episode-r508',
+            titel='Reinigung R-508',
+            kopf='Reinigung R-508.txt',
+            text=R508_SOURCE,
+            zeit=None,
+            pruef_text=R508_SOURCE,
+        )
+        attempt = formulieren(
+            'Darf man R-508 mit Lösungsmittel reinigen?',
+            [source],
+            _SentenceModel(),
+            jetzt=datetime(2026, 10, 8, tzinfo=timezone.utc),
+            pruefung=satzpruefung_modell.tor('an', checker),
+        )
+    
+        assert attempt.status == 'saetze'
+>       assert [sentence.text for sentence in attempt.saetze] == [SOLVENT_BAN]
+E       AssertionError: assert ['Für Auftrag...etzt werden.'] == ['Lösungsmitt...etzt werden.']
+E         
+E         At index 0 diff: 'Für Auftrag R-508 sind nur trockene Tücher erlaubt.' != 'Lösungsmittel dürfen nicht eingesetzt werden.'
+E         Left contains one more item: 'Lösungsmittel dürfen nicht eingesetzt werden.'
+E         Use -v to get more diff
+
+sidecar/tests/test_permission_applicability.py:175: AssertionError
+______ test_saved_answer_rechecks_applicability_and_keeps_independent_ban ______
+
+raum = (<icarus_memory.episodes.EpisodeStore object at 0x109f356a0>, <icarus_memory.claims.ClaimStore object at 0x109f80590>, <icarus_memory.akten.Akten object at 0x10a019d60>)
+
+    def test_saved_answer_rechecks_applicability_and_keeps_independent_ban(raum):
+        episodes, claims, _ = raum
+        stored_mail(episodes, 'Reinigung R-508', [(R508_SOURCE, 'fact')], tage=1)
+        saved = make_answer(
+            raum,
+            Skript({'status': 'antwort', 'saetze': [
+                {'text': R508_RULE, 'belege': [1]},
+                {'text': SOLVENT_BAN, 'belege': [1]},
+            ]}),
+            frage='Darf man R-508 mit Lösungsmittel reinigen?',
+        )['satzantwort']
+    
+        restored = satzantwort.wiederherstellen(saved, episodes, claims)
+        assert restored is not None
+        assert [sentence.text for sentence in restored.saetze] == [R508_RULE, SOLVENT_BAN]
+    
+        broadened = copy.deepcopy(saved)
+        broadened['saetze'][0]['roh'] = UNSCOPED_TOWELS
+        broadened['saetze'][0]['text'] = UNSCOPED_TOWELS
+>       assert satzantwort.wiederherstellen(broadened, episodes, claims) is None
+E       AssertionError: assert Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', text='Für...', stichtag='2026-09-29T08:00:00+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is None
+E        +  where Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Für Auftrag R-508 sind nur trockene Tücher erlaubt.', text='Für...', stichtag='2026-09-29T08:00:00+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) = <function wiederherstellen at 0x109e649a0>({'version': 1, 'status': 'saetze', 'modell': 'skript skript-1', 'stichtag': '2026-09-29T08:00:00+00:00', ...}, <icarus_memory.episodes.EpisodeStore object at 0x109f356a0>, <icarus_memory.claims.ClaimStore object at 0x109f80590>)
+E        +    where <function wiederherstellen at 0x109e649a0> = satzantwort.wiederherstellen
+
+sidecar/tests/test_permission_applicability.py:199: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_permission_applicability.py::test_permission_paraphrase_cannot_drop_precleaning_applicability
+FAILED sidecar/tests/test_permission_applicability.py::test_temporal_relation_cannot_be_reversed_for_the_same_permission
+FAILED sidecar/tests/test_permission_applicability.py::test_while_scope_is_preserved_as_a_temporal_qualifier
+FAILED sidecar/tests/test_permission_applicability.py::test_scope_from_an_unrelated_action_in_the_same_source_cannot_be_borrowed
+FAILED sidecar/tests/test_permission_applicability.py::test_scope_in_a_separate_answer_clause_cannot_qualify_a_permission
+FAILED sidecar/tests/test_permission_applicability.py::test_permission_does_not_borrow_scope_from_following_inverted_clause
+FAILED sidecar/tests/test_permission_applicability.py::test_forbidden_clause_does_not_support_positive_alternative_scope
+FAILED sidecar/tests/test_permission_applicability.py::test_a_prohibition_alone_cannot_support_an_unscoped_allowance
+FAILED sidecar/tests/test_permission_applicability.py::test_a_prohibition_alone_cannot_support_another_scoped_allowance
+FAILED sidecar/tests/test_permission_applicability.py::test_other_case_condition_cannot_be_borrowed_for_the_requested_permission
+FAILED sidecar/tests/test_permission_applicability.py::test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission
+FAILED sidecar/tests/test_permission_applicability.py::test_saved_answer_rechecks_applicability_and_keeps_independent_ban
+12 failed, 8 passed in 0.31s

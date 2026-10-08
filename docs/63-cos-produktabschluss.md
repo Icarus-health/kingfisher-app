@@ -2,6 +2,16 @@
 
 Stand: 8. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
 
+## Aktueller Stand auf einen Blick (9. Oktober)
+
+- **Auf dem Mac installiert:** Backend `1.0.6-local.3cf769f`. Vorgangsbindung und der neue begrenzte Schutz zeitlicher Erlaubnisbedingungen wirken auch im alten Verlauf. 344 Originale und 17 Datenbanken erhalten; Rückweg vollständig gesichert.
+- **GitHub:** Vorgangsbindung und Satzprüfung sind über [PR 23](https://github.com/Icarus-health/kingfisher-app/pull/23) und [PR 24](https://github.com/Icarus-health/kingfisher-app/pull/24) samt unabhängigen Nachweisen nachvollziehbar.
+- **Qualität bleibt offen:** Der bekannte RQ20-Fehler ist als Regression abgesichert. Acht neue unabhängige Fragen allein an Formulierung/Prüfung ergeben aber nur vier vollständige Antworten, zwei Zitat-Rückfälle und zwei unzureichende Antworten. Das ist weder eine allgemeine Gedächtnisabnahme noch ein Nachweis des vollständigen vorgeschalteten Akten-/Suchwegs.
+- **Weiterhin angehalten:** persönlicher Import und produktives Ollama. Keine neue Cloudfreigabe oder Ausgabe. Verbundene Konten beweisen keine vollständige Aufnahme.
+- **Nächster Kernschritt:** alte/neue Erlaubnis und quelleninterne Verneinung aus IA07/IA08 über den vollständigen Gedächtnisweg prüfen; danach gewünschte Quellenbestände und native Tages-/Akkuqualität abnehmen. Die Fensterprüfung bleibt wegen des gesperrten Macs offen.
+
+Aktuelle Nachweise: [zeitliche Anwendbarkeit](runs/2026-10-09-permission-applicability/README.md). Die folgenden Liefernotizen dokumentieren die Entwicklung; ältere Versionsangaben sind historische Zwischenstände.
+
 ## Abnahmematrix
 
 | Bereich | Bereits gebaut | Noch offen für den Produktnachweis | Abnahme im Alltag |
