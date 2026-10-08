@@ -139,6 +139,9 @@ class OpenAICompatible:
         self._base = base_url.rstrip("/")
         self._trusted_local_hosts = tuple(trusted_local_hosts)
         self.is_local = is_local_endpoint(base_url, trusted_local_hosts)
+        # Let code resolve exact original names; small local models cannot
+        # reliably count Unicode character positions.
+        self.entity_anchor_mode = 'block_quote' if self.is_local else 'absolute'
         try:
             self._uses_ollama_default_port = urlparse(base_url).port == 11434
         except ValueError:

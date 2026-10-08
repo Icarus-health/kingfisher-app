@@ -38,6 +38,7 @@ class Meter:
         self.inner = inner
         self.name, self.model = inner.name, inner.model
         self.is_local = inner.is_local
+        self.entity_anchor_mode = getattr(inner, 'entity_anchor_mode', 'absolute')
         self.base_url = getattr(inner, 'base_url', '')
         self.calls = 0
         self.events = []

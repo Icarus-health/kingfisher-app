@@ -111,6 +111,7 @@ class VerifiedLocalProvider:
         self.model = getattr(provider, 'model', '')
         self.base_url = getattr(provider, 'base_url', '')
         self.is_local = bool(getattr(provider, 'is_local', False))
+        self.entity_anchor_mode = getattr(provider, 'entity_anchor_mode', 'absolute')
 
     def _verify(self, *, capability='completion'):
         if not self._permitted():
