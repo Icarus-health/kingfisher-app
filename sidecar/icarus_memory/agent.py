@@ -922,6 +922,19 @@ class Agent:
         # Die erste Suchstufe und die Mappe brauchen kein Modell: Sie stehen
         # auch ohne eingerichteten lokalen Anbieter bereit.
         zeiten = zeitmessung.Zeiten()
+        # Eine ausdrücklich wörtliche Quellenanzeige hat Vorrang vor
+        # Fragenverständnis und Modellauswahl, auch bei eingeordneten Quellen.
+        # Der lokale Zugriffsschutz und die erneute Quellenprüfung gelten weiter.
+        if (retrieval_query is None and meaning_scope is None and self._provider is not None
+                and getattr(self._provider, 'is_local', False)):
+            from . import source_answers
+            source_answer = source_answers.prepare(question, self._episodes, self._knowledge)
+            if source_answer is not None:
+                turn.context.update(query=question, generated_at=now().isoformat(), withheld_count=0)
+                turn.context['source_answer'] = source_answer
+                turn.reply, _, contract['status'] = source_answers.render(
+                    source_answer, self._episodes, self._knowledge)
+                return turn
         if retrieval_query is None and meaning_scope is None:
             anfrage = anfrage or self.frage_verstehen(question)
             zeiten.vorlauf('frage', getattr(anfrage, 'dauer_s', 0.0))

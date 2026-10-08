@@ -4091,10 +4091,14 @@ def create_app(
                 previous_context = (last.metadata.get('context') if last is not None
                     and last.role == 'assistant' and last.status == 'complete' else None)
                 from .working_memory_store import WorkingMemoryStore
+                from .source_answers import literal_query
+                from .frage import rueckfall
+                literal_lookup = (literal_query(body.message) is not None and
+                    route(body.message, previous_context, new_question=body.new_question) == 'memory_evidence')
                 # Die Frage in eine strukturierte Anfrage übersetzen (Modell der Rolle
                 # „frage“, sonst Rückfall); sie gilt für Weg und Antwort dieser Nachricht.
                 # Die Umschreibungen gehören zur Suche: „Catering“ findet „Verpflegung“.
-                anfrage = _frage_verstehen(app, body.message)
+                anfrage = rueckfall(body.message) if literal_lookup else _frage_verstehen(app, body.message)
                 working_available = bool(WorkingMemoryStore(app.state.episodes).search(
                     anfrage.suchanfrage(body.message), limit=1)['refs'])
                 if not working_available:
@@ -4108,7 +4112,7 @@ def create_app(
                     # Quellen bleiben beim Chat mit Werkzeugen, wie bisher.
                     from .frage_weg import bezug_im_bestand
                     working_available = bezug_im_bestand(anfrage, app.state.episodes, _project_directory(app)())
-                if not working_available:
+                if not working_available and not literal_lookup:
                     # Umschriebene Fragen haben keine gemeinsamen Wörter mit der Quelle.
                     from .working_memory_answers import is_question
                     from . import working_memory_semantic
