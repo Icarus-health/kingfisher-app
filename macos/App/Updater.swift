@@ -6,6 +6,7 @@ import Foundation
 
 enum UpdateResult {
     case updated
+    case storageBlocked(oldFassung: String?, issue: UpdateStorageIssue)
     case notStarted(oldFassung: String?)
     case rolledBack(oldFassung: String?)
     case broken
@@ -26,16 +27,21 @@ final class Updater {
         guard let oldFassung = oldFassung, let previous = docker.runningImage(paths: paths),
               docker.hasAdditionalMounts(paths: paths) == false,
               previous.name == original.value(EnvKey.image),
-              Loopback.authenticatedVersion(token: token) == oldFassung,
-              let pinnedTag = docker.pin(previous) else {
+              Loopback.authenticatedVersion(token: token) == oldFassung else {
             return .notStarted(oldFassung: oldFassung)
         }
+        say(Satz.platzPruefen)
+        if let issue = storageIssue(docker, beforeBackup: true) {
+            return .storageBlocked(oldFassung: oldFassung, issue: issue)
+        }
+        guard let pinnedTag = docker.pin(previous) else { return .notStarted(oldFassung: oldFassung) }
+        var blockedIssue: UpdateStorageIssue?
         var snapshotName: String?
         var machine = UpdateMachine()
         while case .running(let step) = machine.phase {
-            say(Satz.schritt(step))
+            say(step == .switchImage ? Satz.platzPruefen : Satz.schritt(step))
             machine.report(success: execute(step, request: request, original: original, token: token,
-                                            docker: docker, snapshotName: &snapshotName))
+                                            docker: docker, snapshotName: &snapshotName, blockedIssue: &blockedIssue))
         }
         if machine.phase == .rollingBack {
             say(Satz.zurueckRollen)
@@ -44,14 +50,21 @@ final class Updater {
         }
         switch machine.phase {
         case .finished: return .updated
-        case .notStarted: return .notStarted(oldFassung: oldFassung)
+        case .notStarted:
+            if let issue = blockedIssue { return .storageBlocked(oldFassung: oldFassung, issue: issue) }
+            return .notStarted(oldFassung: oldFassung)
         case .rolledBack: return .rolledBack(oldFassung: oldFassung)
         default: return .broken
         }
     }
 
+    private func storageIssue(_ docker: Docker, beforeBackup: Bool) -> UpdateStorageIssue? {
+        guard let status = docker.updateStorage(paths: paths) else { return .unavailable }
+        return status.issue(beforeBackup: beforeBackup)
+    }
+
     private func execute(_ step: UpdateStep, request: UpdateRequest, original: EnvFile, token: String,
-                         docker: Docker, snapshotName: inout String?) -> Bool {
+                         docker: Docker, snapshotName: inout String?, blockedIssue: inout UpdateStorageIssue?) -> Bool {
         switch step {
         case .backup:
             snapshotName = Loopback.backupName(token: token)
@@ -59,6 +72,8 @@ final class Updater {
         case .pull:
             return docker.compose(["pull"], paths: paths, image: request.image, timeout: 3600).ok
         case .switchImage:
+            blockedIssue = storageIssue(docker, beforeBackup: false)
+            guard blockedIssue == nil else { return false }
             var updated = original
             guard updated.set(EnvKey.image, request.image) else { return false }
             return (try? store.write(updated)) != nil

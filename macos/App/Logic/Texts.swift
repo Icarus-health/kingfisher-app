@@ -20,6 +20,8 @@ enum Satz {
     static let falscheInstallation = "Die antwortende Kingfisher-Installation passt nicht zu diesem App-Bild und Schlüssel. Prüfe die vorhandene Installation, bevor du fortfährst."
     static let ollamaFehlt = "Installiere außerdem Ollama (kostenlos), damit Kingfisher deine Fragen beantworten kann – bis dahin kommen Mails, Termine und dein Briefing trotzdem."
 
+    static let platzPruefen = "Speicher für das Update wird geprüft."
+
     static let aktualisieren = "Kingfisher wird aktualisiert …"
     static let updateLaeuft = "Kingfisher wird gerade aktualisiert. Bitte warte, bis es fertig ist."
 
@@ -42,6 +44,16 @@ enum Satz {
     /// Die Sicherung vorab ist gescheitert; deshalb wurde nichts verändert.
     static func updateNichtBegonnen(alteFassung: String?) -> String {
         "Das Update wurde nicht umgeschaltet. \(fassungsText(alteFassung)) bleibt unverändert; prüfe Docker und die Sicherung."
+    }
+
+    static func updateSpeicherBlockiert(_ issue: UpdateStorageIssue) -> String {
+        let reason: String
+        switch issue {
+        case .lowSpace: reason = "In Kingfishers Speicherbereich ist zu wenig Platz für ein sicheres Update."
+        case .lowInodes: reason = "Kingfishers Speicherbereich kann zu wenige weitere Dateien aufnehmen."
+        case .unavailable: reason = "Kingfisher konnte den verfügbaren Speicher nicht zuverlässig prüfen."
+        }
+        return reason + " Die bisherige Fassung läuft weiter. Es wurde nicht umgeschaltet. Freier Platz auf dem Mac allein reicht dafür nicht aus."
     }
 
     static let updateKaputt = "Das Update hat nicht geklappt. Der alte Code wurde nicht auf ungeprüften Daten gestartet. Die Sicherung bleibt erhalten; die Wiederherstellung braucht eine technische Prüfung."

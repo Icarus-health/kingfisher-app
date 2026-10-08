@@ -186,7 +186,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         busy = true
         updating = true
         hint.isHidden = true
-        status.show(.working(Satz.schritt(.backup), title: Satz.aktualisieren))
+        status.show(.working(Satz.platzPruefen, title: Satz.aktualisieren))
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = updater.perform(request) { sentence in
                 DispatchQueue.main.async { self?.status.show(.working(sentence, title: Satz.aktualisieren)) }
@@ -207,6 +207,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .updated:
             status.show(.working(Satz.starten))
             surface.reload(fallbackPath: AppPaths.startPage)
+        case .storageBlocked(_, let issue):
+            status.show(StatusContent(title: nil, sentence: Satz.updateSpeicherBlockiert(issue), busy: false,
+                                      actions: [reload]))
         case .notStarted(let old):
             status.show(StatusContent(title: nil, sentence: Satz.updateNichtBegonnen(alteFassung: old), busy: false,
                                       actions: [reload]))

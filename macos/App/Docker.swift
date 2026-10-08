@@ -94,6 +94,15 @@ struct Docker {
         return RunningImage(id: String(fields[0]), name: String(fields[1]))
     }
 
+    /// Measure inside the existing running container, never on the host or a new image.
+    func updateStorage(paths: AppPaths) -> UpdateStorageStatus? {
+        guard let probe = try? String(contentsOf: paths.updateStorageProbeFile, encoding: .utf8),
+              !probe.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let container = serviceContainer(paths: paths, includeStopped: false) else { return nil }
+        let result = run(["exec", container, "python", "-c", probe], timeout: 30)
+        return result.ok ? UpdateStorageStatus.parse(result.output) : nil
+    }
+
     func pin(_ image: RunningImage) -> String? {
         let tag = "kingfisher:rollback-" + image.id.dropFirst(7).prefix(16)
         return run(["image", "tag", image.id, tag]).ok ? tag : nil

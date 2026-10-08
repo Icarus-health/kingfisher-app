@@ -16,6 +16,7 @@ on:
   pull_request:
     paths:
       - "macos/**"
+      - "scripts/kingfisher_update_storage.py"
       - ".github/workflows/mac-app.yml"
 
 permissions:
