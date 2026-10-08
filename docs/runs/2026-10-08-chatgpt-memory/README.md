@@ -41,7 +41,7 @@ aktuelles Ereignis ausgegeben.
 
 ## Prüfung
 
-- 291 betroffene Backendtests bestanden: OAuth/Provider/Cloudjobs, Kategorien,
+- Abschließender Lauf: 308 betroffene Backendtests bestanden: OAuth/Provider/Cloudjobs, Kategorien,
   Arbeitsgedächtnis, Personen, Mailintake, Sicherung und vollständige getrennte
   Wiederherstellung. Eine vorhandene Starlette-Abkündigungswarnung.
 - Frontend-Build und 358 Frontendtests bestanden. Vorhandener Hinweis auf große
@@ -63,10 +63,81 @@ aktuelles Ereignis ausgegeben.
   betroffene vollständige Wiederherstellungstest wurde ergänzt und besteht im
   oben genannten Abschlusslauf. Keine GitHub-CI-Wiederholung.
 
-Eine echte Anmeldung, Kontoberechtigung und Verarbeitung persönlicher Mails
-bleiben getrennte Prüfungen. Dieser technische Stand belegt keine fehlerfreie
-Extraktion, Identitätsauflösung oder Antwortqualität im persönlichen Bestand.
-Die 100-Mail-Probe muss diese Qualität erstmals sichtbar prüfen.
+Dieser technische Stand belegt keine fehlerfreie Extraktion, Identitätsauflösung
+oder Antwortqualität im persönlichen Bestand. Die echte Anmeldung und die
+begrenzte Mailprobe sind unten von den künstlichen Tests getrennt dokumentiert.
+
+## Installierter Mac und echte Probe
+
+Installiert ist **1.0.6-local.e882740**, Code
+`e8827400bf211152dff8b7ec98a1dd7a315cb308`. Das unveränderte native ausführbare
+Programm wurde mit aktualisierten Versionsangaben wiederverwendet und das Bündel
+erneut lokal signiert; kein neuer universeller Mac-Build wird behauptet. Der
+Container wurde aus einem sauberen Git-Archiv gebaut, ohne private Daten im
+Buildkontext. Datenvolume und ausschließlich lokale Portbindung bleiben gleich.
+
+Vor dem Austausch sind App, private Konfiguration und vollständiges kaltes
+Datenvolume außerhalb des Repositorys gesichert. Die 340 Originalquellen haben
+unveränderte Digests; 0 Aufgaben und 2 Gespräche blieben erhalten. 17 SQLite-Dateien
+bestanden `quick_check`. Private Einstellungen blieben bis auf die Bildfassung
+gleich. Die lokale Modellauswertung war und bleibt ausgeschaltet; der Mailabruf
+selbst ist **nicht** pausiert. Eine bestehende Importpause wird daher nicht
+behauptet.
+
+Im echten nativen Fenster geprüft: KI-Einstellungen, nicht vorangekreuzte
+Datenfreigabe, Metadatenvorschau ohne Übertragung, Modellwahl und Arbeitsstand.
+Die ChatGPT-Anmeldung wurde im Browser abgeschlossen; die App bestätigt
+Abo-Nutzung und lädt den tatsächlichen Modellkatalog. Ein Ausleseversuch einer
+unbeteiligten Safari-Sitzung wurde von der Freigabeprüfung abgewiesen und nicht
+umgangen. Die Verbindung ist durch den App-/API-Status und echte Modellantworten
+nachgewiesen, nicht durch Auslesen dieser Sitzung.
+
+Die native Menschenansicht zeigte zunächst noch zusammengesetzte Serviceadressen.
+Eine gemeinsame, begrenzte Regel nimmt diese aus Personen und Duplikatvorschlägen
+heraus; persönliche Namenbestandteile und ausdrücklich bestätigte Gruppen bleiben
+erhalten. Die Standardansicht änderte sich im bestehenden Bestand von 119 auf 112
+Einträge, ohne Originale zu löschen. Das bereinigt bekannte Postfachmuster, nicht
+alle möglichen Organisationen oder falsch beschrifteten Absender.
+
+Der erste echte 100-Mail-Lauf stoppte nach zwei Modellaufrufen bei Quelle 1:
+Arbeitsgedächtnis vollständig, Kategorienphase fehlgeschlagen. Der ursprüngliche
+Fehler wurde nicht gespeichert, daher ist seine genaue Ursache nicht nachgewiesen.
+Eine zusätzliche, ausdrücklich begrenzte Diagnoseanfrage für dieselbe freigegebene
+Quelle bestand (zwei Themen- und zwei Entitätsbelege); sie schrieb keine Ableitungen.
+
+Die Korrektur verlangt bei ChatGPT keine berechneten Zeichenpositionen mehr:
+Modell liefert Block-ID und exakten Namen, Code bestimmt nur bei eindeutigem
+Originalvorkommen die Position. Fehlende, erfundene oder mehrdeutige Belege werden
+verworfen. Einzelne ungültige Kategorienantworten und zu umfangreiche Quellen
+erzeugen dauerhafte, begrenzte Prüfhinweise mit Originalquellenzugriff; sie stoppen
+nicht alle weiteren Quellen. Konto-, Kontingent- und Transportfehler bleiben davon
+getrennt. Auch Überschneidungen, Unicode-Positionen, Wiederherstellung und die
+Begrenzung auf zehn ausgegebene Hinweise sind geprüft. Vorhandene gültige
+Kategorieergebnisse werden bei einem Fehlversuch nicht überschrieben.
+
+Der korrigierte 100-Mail-Lauf mit `gpt-6.1-sol` wurde am 08.10.2026 um 10:57 Uhr
+Ortszeit ausdrücklich über den geprüften Freigabefluss gestartet. Die erste Quelle
+bestand beide Einordnungsschritte. Eine Momentaufnahme währenddessen zeigte
+135,9 MiB für den Kingfisher-Container und 0,37 % CPU; das misst weder Docker-VM
+noch andere Anwendungen und ist kein ganztägiger Akkuvergleich. Der größere
+Cloudlauf ist nicht freigegeben oder gestartet.
+
+Zwischenstand vor Übergabe: **16/100 durchgesehen, 10 vollständig, 6 offene
+Prüffälle, 35/400 Modellaufrufe**. Der Arbeitsgang läuft auf dem Mac weiter und
+endet am Paket-/Anfragebudget oder pausiert bei einem Kontingentproblem. Kein
+vollständiger oder inhaltlich bestandener 100-Mail-Test wird behauptet. Eine
+Kontrolle der ersten acht vollständig eingeordneten Quellen fand 28 Entitäts-
+und 13 Themenbelege im jeweiligen Original wieder. Auch dieser Belegabgleich
+prüft nicht, ob das Modell jede Aussage semantisch richtig verstanden hat.
+Die offene Liste einschließlich Originalquellen-Schaltflächen ist im nativen
+Fenster sichtbar geprüft. Der temporäre Agent-Monitor wurde beendet; es gibt
+keine neue Codex-Automation oder spätere automatische Qualitätsabnahme.
+
+Vor einem großen Lauf fehlen die vollständige Auswertung dieser Probe und die
+Prüfung der offenen Fälle. Regelmäßige unbeaufsichtigte Gedächtnispflege und
+ChatGPT als allgemeiner Gesprächsanbieter sind durch diesen Ausbau nicht
+aktiviert. Die neue Cloudanbindung ist auf ausdrücklich gestartete
+Gedächtnisarbeit begrenzt; Ollama war bei der Prüfung nicht erreichbar.
 
 ## Referenzen
 

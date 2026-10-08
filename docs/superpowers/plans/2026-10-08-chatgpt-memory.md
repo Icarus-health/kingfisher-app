@@ -55,7 +55,7 @@
 - [x] `ChatGPTAccess.tsx`, `api.ts`, Einstellungen: Anmeldung, Kontostatus, Modellkatalog, sichtbare Datenfreigabe und Kontingenthinweis.
 - [x] `CloudMemory.tsx`: 100-Mail-Probe mit Vorschau/Arbeitsstand, Ergebnisgrenzen, getrennte Fortsetzung und Nachprüfung.
 - [x] Backend/Frontend verbinden, TypeScript/Build, betroffene Tests, unabhängiges Review.
-- [ ] Bediencheck des installierten App-Fensters; künstliche Integration ist separat geprüft. Reale Nutzeranmeldung und 100-Mail-Qualitätsprobe bleiben getrennt.
+- [x] Bediencheck des installierten App-Fensters: Anmeldung, Modellwahl, getrennte Vorschau/Freigabe, Fortschritt und Personenprüfung. Die reale Anmeldung ist verbunden; der begrenzte 100-Mail-Lauf und die inhaltliche Qualitätsabnahme werden separat dokumentiert.
 
 ## Offizielle Referenzen
 
