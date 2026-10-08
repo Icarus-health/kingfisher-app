@@ -1,0 +1,5062 @@
+{
+  "synthetic_only": true,
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "code_version": "c30eab9",
+  "scope": "actual document upload HTTP; actual model worker and topic/entity suggestions; actual persisted semantic index; actual memory_evidence conversation HTTP; no automatic UI routing or screen test",
+  "model": "qwen3.5:4b",
+  "rows": [
+    {
+      "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "type": "direct",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS01"
+      ],
+      "selected_sources": [
+        "RCS01"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS01"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42. [1] (nur eine Quelle)\n\nBelege\n[1] Sichtprüfung KL-42.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Sichtprüfung",
+          "KL-42"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "person",
+        "suchworte": [
+          "Wer",
+          "übernimmt",
+          "Sichtprüfung",
+          "bei",
+          "KL-42"
+        ],
+        "umschreibungen": [
+          "Prüfung",
+          "Übernahme",
+          "Verantwortung",
+          "Person"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "person",
+          "sichtprufung",
+          "ubernahme",
+          "ubernimmt",
+          "verantwortung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "2ccfa6676dbd7a623b85f55ba833c300c96a963d72ed9c9b3987bf0bd49cc9a7",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-68a552db0d7a",
+                "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+                "start": 0,
+                "end": 70,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:00.501193+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-68a552db0d7a",
+              "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+              "start": 0,
+              "end": 70,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42.",
+            "text": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wer übernimmt die Sichtprüfung bei KL-42? Übernahme Verantwortung Person",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.618,
+        "suche": 0.119,
+        "antwort_modell": 2.19,
+        "saetze_modell": 2.774,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.559,
+        "gesamt": 10.901
+      },
+      "id": "RQ01",
+      "conversation_id": "c-4dae65c785f4",
+      "seconds": 8.317,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Sichtprüfung\",\n    \"KL-42\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"person\",\n  \"suchworte\": [\n    \"Wer\",\n    \"übernimmt\",\n    \"Sichtprüfung\",\n    \"bei\",\n    \"KL-42\"\n  ],\n  \"umschreibungen\": [\n    \"Prüfung\",\n    \"Übernahme\",\n    \"Verantwortung\",\n    \"Person\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"status\": \"antwort\",\n  \"saetze\": [\n    {\n      \"text\": \"Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42.\",\n      \"belege\": [1]\n    }\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS01",
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS01"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS01"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Sichtprüfung KL-42.txt\nNora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "KL-42",
+          "Halterungen"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "person",
+        "suchworte": [
+          "Person",
+          "schaut",
+          "sich",
+          "Vorgang",
+          "KL-42",
+          "Halterungen"
+        ],
+        "umschreibungen": [
+          "Anseher",
+          "Beobachter",
+          "Prüfer",
+          "Überwacher"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anseher",
+          "beobachter",
+          "halterungen",
+          "person",
+          "prufer",
+          "schaut",
+          "uberwacher",
+          "vorgang"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "9f1f125bf231046a8325ada785ca53bb74571692b30fe77096bb083107aac113",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-68a552db0d7a",
+                "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+                "start": 0,
+                "end": 70,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:08.687605+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Nora Voss schaut sich im Vorgang KL-42 die Halterungen an.: „Vorgang“ steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.309,
+        "suche": 0.195,
+        "antwort_modell": 1.303,
+        "saetze_modell": 2.228,
+        "satzpruefung": 0.001,
+        "gesamt": 10.357
+      },
+      "id": "RQ02",
+      "conversation_id": "c-6da6452e930f",
+      "seconds": 7.081,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"KL-42\",\n    \"Halterungen\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"person\",\n  \"suchworte\": [\n    \"Person\",\n    \"schaut\",\n    \"sich\",\n    \"Vorgang\",\n    \"KL-42\",\n    \"Halterungen\"\n  ],\n  \"umschreibungen\": [\n    \"Anseher\",\n    \"Beobachter\",\n    \"Prüfer\",\n    \"Überwacher\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S2\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"status\": \"antwort\",\n  \"saetze\": [\n    {\n      \"text\": \"Nora Voss schaut sich im Vorgang KL-42 die Halterungen an.\",\n      \"belege\": [1]\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer liefert die Befestigungssätze für KL-24?",
+      "type": "direct",
+      "expect": [
+        "RCS02"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS02"
+      ],
+      "selected_sources": [
+        "RCS02"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS02"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24. [1] (nur eine Quelle)\n\nBelege\n[1] Lieferung KL-24.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Befestigungssätze",
+          "KL-24"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "person",
+        "suchworte": [
+          "Wer",
+          "liefert",
+          "Befestigungssätze",
+          "KL-24"
+        ],
+        "umschreibungen": [
+          "Lieferant",
+          "Versender",
+          "Anbieter",
+          "Händler"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anbieter",
+          "befestigungssatze",
+          "handler",
+          "lieferant",
+          "liefert",
+          "versender"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "90d4e45ddc464326317953e538fdd977a53d2d3f776b27fcd45418bff05a98c8",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-0af31bc6ed97",
+                "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:15.094086+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-0af31bc6ed97",
+              "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+              "start": 0,
+              "end": 58,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24.",
+            "text": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wer liefert die Befestigungssätze für KL-24? Lieferant Versender Anbieter Händler",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.142,
+        "suche": 0.189,
+        "antwort_modell": 0.795,
+        "saetze_modell": 1.353,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.616,
+        "gesamt": 9.247
+      },
+      "id": "RQ03",
+      "conversation_id": "c-4d367facc2bf",
+      "seconds": 6.137,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Befestigungssätze\",\n    \"KL-24\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"person\",\n  \"suchworte\": [\n    \"Wer\",\n    \"liefert\",\n    \"Befestigungssätze\",\n    \"KL-24\"\n  ],\n  \"umschreibungen\": [\n    \"Lieferant\",\n    \"Versender\",\n    \"Anbieter\",\n    \"Händler\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Nola Voss liefert die Befestigungssätze für Auftrag KL-24.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer prüft die Ware im Auftrag KL-24?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "RCS01",
+        "RCS02",
+        "RCS11",
+        "RCS12",
+        "RCS13"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Ware",
+          "KL-24"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "person",
+        "suchworte": [
+          "Wer",
+          "prüft",
+          "Ware",
+          "Auftrag",
+          "KL-24"
+        ],
+        "umschreibungen": [],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 4,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 5,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "auftrag",
+          "pruft",
+          "ware"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "c760d3efde4fba18f275cdb8ebd471ba439c61a877029bd8bdbb967088d797a8",
+        "quellen_geliefert": 5,
+        "geprueft": 5,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-0af31bc6ed97",
+                "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-68a552db0d7a",
+                "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+                "start": 0,
+                "end": 70,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 2.016,
+        "suche": 0.096,
+        "antwort_modell": 1.702,
+        "gesamt": 5.836
+      },
+      "id": "RQ04",
+      "conversation_id": "c-b236367e8d85",
+      "seconds": 3.834,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"Ware\", \"KL-24\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"person\",\n  \"suchworte\": [\"Wer\", \"prüft\", \"Ware\", \"Auftrag\", \"KL-24\"],\n  \"umschreibungen\": []\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS03",
+        "RCS04",
+        "RCS12"
+      ],
+      "selected_sources": [
+        "RCS03"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS03"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Versand M-731.txt\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Material",
+          "M-731"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Material",
+          "M-731",
+          "versandt",
+          "darf"
+        ],
+        "umschreibungen": [
+          "Versandbedingungen",
+          "Freigabe",
+          "Voraussetzungen",
+          "Abgabe"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "731",
+          "abgabe",
+          "bevor",
+          "fehlt",
+          "freigabe",
+          "material",
+          "versandbedingungen",
+          "versandt",
+          "voraussetzungen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "04f4aff440b30b34c6665cda0f9a71c520acd946ca370ba46758f1434baf0eb1",
+        "quellen_geliefert": 3,
+        "geprueft": 3,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-d504e60cf905",
+                "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+                "start": 0,
+                "end": 131,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-b7286cd20118",
+                "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+                "start": 0,
+                "end": 120,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-a367ebf2654f",
+                "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+                "start": 0,
+                "end": 122,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:25.801174+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Material aus M-731 darf erst nach schriftlicher Freigabe durch die Lagerleitung : Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort"
+      },
+      "times": {
+        "frage": 3.148,
+        "suche": 0.176,
+        "antwort_modell": 1.529,
+        "saetze_modell": 1.978,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.548,
+        "gesamt": 10.542
+      },
+      "id": "RQ05",
+      "conversation_id": "c-c4f53efe35a7",
+      "seconds": 7.422,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Material\",\n    \"M-731\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Material\",\n    \"M-731\",\n    \"versandt\",\n    \"darf\"\n  ],\n  \"umschreibungen\": [\n    \"Versandbedingungen\",\n    \"Freigabe\",\n    \"Voraussetzungen\",\n    \"Abgabe\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Material aus M-731 darf erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden.\",\"belege\":[1]},{\"text\":\"Die Freigabe liegt noch nicht vor.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "type": "direct",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "selected_sources": [
+        "RCS03"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS03"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Versand M-731.txt\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Freigabe",
+          "Versand",
+          "M-731"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "wartet_auf",
+        "suchworte": [
+          "Freigabe",
+          "Versand",
+          "M-731"
+        ],
+        "umschreibungen": [
+          "Genehmigung",
+          "Zustimmung",
+          "Sendung",
+          "Projekt"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "731",
+          "eingegangen",
+          "freigabe",
+          "genehmigung",
+          "projekt",
+          "sendung",
+          "versand",
+          "zustimmung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "58ad9c6a833afd61cb178294c523d9edfc87fd27134829495fca49946d868610",
+        "quellen_geliefert": 1,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-d504e60cf905",
+                "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+                "start": 0,
+                "end": 131,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-b7286cd20118",
+                "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+                "start": 0,
+                "end": 120,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:32.122425+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Freigabe für den Versand von M-731 liegt noch nicht vor.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.431,
+        "suche": 0.104,
+        "antwort_modell": 1.212,
+        "saetze_modell": 1.45,
+        "satzpruefung": 0.002,
+        "gesamt": 7.648
+      },
+      "id": "RQ06",
+      "conversation_id": "c-d012e0e1473d",
+      "seconds": 5.272,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"Freigabe\", \"Versand\", \"M-731\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"wartet_auf\",\n  \"suchworte\": [\"Freigabe\", \"Versand\", \"M-731\"],\n  \"umschreibungen\": [\"Genehmigung\", \"Zustimmung\", \"Sendung\", \"Projekt\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Freigabe für den Versand von M-731 liegt noch nicht vor.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "selected_sources": [
+        "RCS04"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS04"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Prüfprotokoll M-713.txt\nDas Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Protokoll",
+          "M-713"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Voraussetzung",
+          "Protokoll",
+          "M-713",
+          "rausgehen"
+        ],
+        "umschreibungen": [
+          "Bedingung",
+          "Voraussetzung",
+          "Anforderung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "713",
+          "anforderung",
+          "bedingung",
+          "protokoll",
+          "rausgehen",
+          "voraussetzung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "999944b69aa88e595ec4a8f0ddd3f5ddc590ef8f6162840f76baf8d925976991",
+        "quellen_geliefert": 1,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-b7286cd20118",
+                "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+                "start": 0,
+                "end": 120,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-d504e60cf905",
+                "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+                "start": 0,
+                "end": 131,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:38.231234+00:00",
+        "verworfen": 2,
+        "gruende": [
+          "Das Protokoll M-713 darf nur rausgehen, wenn beide Messreihen unterschrieben sin: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+          "Eine Unterschrift fehlt derzeit.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.312,
+        "suche": 0.196,
+        "antwort_modell": 1.063,
+        "saetze_modell": 2.002,
+        "satzpruefung": 0.003,
+        "gesamt": 9.897
+      },
+      "id": "RQ07",
+      "conversation_id": "c-a21bffb0d4a3",
+      "seconds": 6.617,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Protokoll\",\n    \"M-713\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Voraussetzung\",\n    \"Protokoll\",\n    \"M-713\",\n    \"rausgehen\"\n  ],\n  \"umschreibungen\": [\n    \"Bedingung\",\n    \"Voraussetzung\",\n    \"Anforderung\",\n    \"Bedingung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Das Protokoll M-713 darf nur rausgehen, wenn beide Messreihen unterschrieben sind.\", \"belege\":[1]},{\"text\":\"Eine Unterschrift fehlt derzeit.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03",
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "selected_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Prüfprotokoll M-713.txt\nDas Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr\n\nStatusmeldung · Versand M-731.txt\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Freigabebedingung",
+          "M-731",
+          "M-713"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Freigabebedingung",
+          "gilt",
+          "M-731",
+          "M-713"
+        ],
+        "umschreibungen": [
+          "Bedingung",
+          "Regel",
+          "Voraussetzung",
+          "Anforderung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "713",
+          "731",
+          "anforderung",
+          "freigabebedingung",
+          "gilt",
+          "regel",
+          "voraussetzung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "263f78e0ffd68101092e74663ca9274af6f92775025984f3aa3c644212771432",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-d504e60cf905",
+                "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+                "start": 0,
+                "end": 131,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-b7286cd20118",
+                "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+                "start": 0,
+                "end": 120,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:45.081469+00:00",
+        "verworfen": 2,
+        "gruende": [
+          "Für M-713 gilt, dass das Prüfprotokoll erst verschickt werden darf, wenn beide M: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+          "Für M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung : Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.467,
+        "suche": 0.118,
+        "antwort_modell": 1.214,
+        "saetze_modell": 2.59,
+        "satzpruefung": 0.005,
+        "gesamt": 10.876
+      },
+      "id": "RQ08",
+      "conversation_id": "c-b056b794a6af",
+      "seconds": 7.446,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Freigabebedingung\",\n    \"M-731\",\n    \"M-713\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Freigabebedingung\",\n    \"gilt\",\n    \"M-731\",\n    \"M-713\"\n  ],\n  \"umschreibungen\": [\n    \"Bedingung\",\n    \"Regel\",\n    \"Voraussetzung\",\n    \"Anforderung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\",\"S2\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Für M-713 gilt, dass das Prüfprotokoll erst verschickt werden darf, wenn beide Messreihen unterschrieben sind.\", \"belege\":[1]},{\"text\":\"Für M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden.\", \"belege\":[2]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "type": "direct",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS04",
+        "RCS12"
+      ],
+      "selected_sources": [
+        "RCS04"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS04"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Prüfprotokoll M-713.txt\nDas Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Prüfprotokoll",
+          "M-713"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "ueberblick",
+        "suchworte": [
+          "Prüfprotokoll",
+          "M-713",
+          "offen"
+        ],
+        "umschreibungen": [
+          "Ausstand",
+          "Nicht erledigt",
+          "Offene Punkte",
+          "Herausforderungen"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "713",
+          "ausstand",
+          "erledigt",
+          "herausforderungen",
+          "offen",
+          "offene",
+          "prufprotokoll",
+          "punkte"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "03f57efe4c3c0a52eb2619d87bb384544251b5a0aba7f0f6bf5073b842f9ff91",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-b7286cd20118",
+                "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+                "start": 0,
+                "end": 120,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:52.147312+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Eine Unterschrift fehlt für das Prüfprotokoll M-713.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.176,
+        "suche": 0.112,
+        "antwort_modell": 1.121,
+        "saetze_modell": 1.442,
+        "satzpruefung": 0.002,
+        "gesamt": 9.046
+      },
+      "id": "RQ09",
+      "conversation_id": "c-53beba19662e",
+      "seconds": 5.919,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Prüfprotokoll\",\n    \"M-713\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"ueberblick\",\n  \"suchworte\": [\n    \"Prüfprotokoll\",\n    \"M-713\",\n    \"offen\"\n  ],\n  \"umschreibungen\": [\n    \"Ausstand\",\n    \"Nicht erledigt\",\n    \"Offene Punkte\",\n    \"Herausforderungen\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Eine Unterschrift fehlt für das Prüfprotokoll M-713.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS05",
+        "RCS06",
+        "RCS07",
+        "RCS08"
+      ],
+      "selected_sources": [
+        "RCS06"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS06"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Terminänderung Werkhalle Epsilon.txt\nAktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Abnahme",
+          "Werkhalle Epsilon"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Wann",
+          "Abnahme",
+          "Werkhalle Epsilon",
+          "jetzt"
+        ],
+        "umschreibungen": [
+          "Termin",
+          "Zeitpunkt",
+          "Veranstaltung",
+          "Ereignis"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 4,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 4,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abnahme",
+          "epsilon",
+          "ereignis",
+          "findet",
+          "statt",
+          "termin",
+          "veranstaltung",
+          "werkhalle",
+          "zeitpunkt"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "af4829492197eaeaf94dcabe26c4ba4b20143937f3f349baf85b1f780dee1549",
+        "quellen_geliefert": 4,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-5f1465332fed",
+                "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+                "start": 0,
+                "end": 85,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-608a1759deb7",
+                "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+                "start": 0,
+                "end": 156,
+                "kind": "change"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:09:58.925317+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Abnahme in Werkhalle Epsilon findet am 19.05.2026 um 14:30 Uhr statt.: Jahr 2026 von 19.05. steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.421,
+        "suche": 0.15,
+        "antwort_modell": 1.69,
+        "saetze_modell": 1.79,
+        "satzpruefung": 0.002,
+        "gesamt": 10.491
+      },
+      "id": "RQ10",
+      "conversation_id": "c-96656ed27b23",
+      "seconds": 7.118,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Abnahme\",\n    \"Werkhalle Epsilon\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Wann\",\n    \"Abnahme\",\n    \"Werkhalle Epsilon\",\n    \"jetzt\"\n  ],\n  \"umschreibungen\": [\n    \"Termin\",\n    \"Zeitpunkt\",\n    \"Veranstaltung\",\n    \"Ereignis\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Abnahme in Werkhalle Epsilon findet am 19.05.2026 um 14:30 Uhr statt.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS05",
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS05",
+        "RCS06",
+        "RCS07",
+        "RCS09"
+      ],
+      "selected_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Terminänderung Werkhalle Epsilon.txt\nAktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr\n\nAngabe · Erste Planung Werkhalle Epsilon.txt\nDie Vor-Ort-Abnahme in Werkhalle Epsilon ist für den 12. Mai um 09:00 Uhr eingeplant.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Planung",
+          "Änderungsnotiz",
+          "Epsilon-Abnahme"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "termine",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 3,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abnahme",
+          "anderungsnotiz",
+          "epsilon",
+          "erste",
+          "jeweils",
+          "nennen",
+          "planung",
+          "spatere",
+          "termine"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "fa3d03548ae2bd8fbc015d59b70b3faf4cc74596f20fd2ec76fe74ab66e979e2",
+        "quellen_geliefert": 4,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-5f1465332fed",
+                "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+                "start": 0,
+                "end": 85,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-608a1759deb7",
+                "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+                "start": 0,
+                "end": 156,
+                "kind": "change"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:06.156939+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die spätere Änderungsnotiz nennt den 19. Mai um 14:30 Uhr.: „Änderungsnotiz“ steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort"
+      },
+      "times": {
+        "frage": 3.511,
+        "suche": 0.21,
+        "antwort_modell": 1.643,
+        "saetze_modell": 2.371,
+        "satzpruefung": 0.005,
+        "pruefung_modell": 0.609,
+        "gesamt": 11.875
+      },
+      "id": "RQ11",
+      "conversation_id": "c-cef6fab654e4",
+      "seconds": 8.397,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"erste Planung\",\n    \"spätere Änderungsnotiz\",\n    \"Epsilon-Abnahme\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"termine\",\n  \"suchworte\": [\n    \"Terminen\",\n    \"erste Planung\",\n    \"spätere Änderungsnotiz\",\n    \"Epsilon-Abnahme\"\n  ],\n  \"umschreibungen\": [\n    \"Planung\",\n    \"Änderung\",\n    \"Notiz\",\n    \"Abnahme\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\",\"S2\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die erste Planung nennt den 12. Mai um 09:00 Uhr.\", \"belege\":[1]},{\"text\":\"Die spätere Änderungsnotiz nennt den 19. Mai um 14:30 Uhr.\", \"belege\":[2]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "type": "direct",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "selected_sources": [
+        "RCS06"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS06"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Der Termin für die Vor-Ort-Abnahme in Werkhalle Epsilon wurde vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. [1] (nur eine Quelle)\n\nBelege\n[1] Terminänderung Werkhalle Epsilon.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Epsilon-Abnahme"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abnahme",
+          "epsilon",
+          "gilt",
+          "mai",
+          "uhr"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "7420b7cfba23f5f6e66a3aa9c5d328ceb56ef873d9c2c3fe56eb61a54677ba85",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-5f1465332fed",
+                "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+                "start": 0,
+                "end": 85,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-608a1759deb7",
+                "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+                "start": 0,
+                "end": 156,
+                "kind": "change"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:13.991908+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-608a1759deb7",
+              "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+              "start": 0,
+              "end": 156,
+              "kind": "change"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Der Termin für die Vor-Ort-Abnahme in Werkhalle Epsilon wurde vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben.",
+            "text": "Der Termin für die Vor-Ort-Abnahme in Werkhalle Epsilon wurde vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.484,
+        "suche": 0.181,
+        "antwort_modell": 1.132,
+        "saetze_modell": 2.391,
+        "satzpruefung": 0.006,
+        "pruefung_modell": 0.691,
+        "gesamt": 11.377
+      },
+      "id": "RQ12",
+      "conversation_id": "c-cc378e9264de",
+      "seconds": 7.923,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Epsilon-Abnahme\",\n    \"12. Mai\",\n    \"09:00 Uhr\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Gilt\",\n    \"Epsilon-Abnahme\",\n    \"12. Mai\",\n    \"09:00 Uhr\"\n  ],\n  \"umschreibungen\": [\n    \"Termin\",\n    \"Zeitpunkt\",\n    \"Veranstaltung\",\n    \"Treffen\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\": \"antwort\", \"saetze\": [{\"text\": \"Der Termin für die Vor-Ort-Abnahme in Werkhalle Epsilon wurde vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben.\", \"belege\": [1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Findet der Rundgang im Depot Süd noch statt?",
+      "type": "direct",
+      "expect": [
+        "RCS07"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS07",
+        "RCS08"
+      ],
+      "selected_sources": [
+        "RCS07"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS07"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Der Rundgang im Depot Süd am 8. Juni wurde abgesagt. [1] (nur eine Quelle)\n\nBelege\n[1] Rundgang Depot Süd.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Rundgang",
+          "Depot Süd"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "ueberblick",
+        "suchworte": [
+          "Rundgang",
+          "Depot Süd",
+          "noch",
+          "statt"
+        ],
+        "umschreibungen": [
+          "Tour",
+          "Besichtigung",
+          "Ausflug",
+          "Veranstaltung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "ausflug",
+          "besichtigung",
+          "depot",
+          "findet",
+          "rundgang",
+          "statt",
+          "sud",
+          "tour",
+          "veranstaltung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "12c414e90c8a9ab272f807be1f93d6da1b7cf0546b4ec131ba80a08a7387588f",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-cdec43430126",
+                "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+                "start": 0,
+                "end": 79,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-f6de97ef24f4",
+                "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+                "start": 0,
+                "end": 89,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:21.177972+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-cdec43430126",
+              "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+              "start": 0,
+              "end": 79,
+              "kind": "status"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Der Rundgang im Depot Süd am 8. Juni wurde abgesagt.",
+            "text": "Der Rundgang im Depot Süd am 8. Juni wurde abgesagt.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Findet der Rundgang im Depot Süd noch statt? Tour Besichtigung Ausflug Veranstaltung",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.016,
+        "suche": 0.149,
+        "antwort_modell": 0.889,
+        "saetze_modell": 1.21,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.614,
+        "gesamt": 8.906
+      },
+      "id": "RQ13",
+      "conversation_id": "c-7ed872c7af64",
+      "seconds": 5.92,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Rundgang\",\n    \"Depot Süd\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"ueberblick\",\n  \"suchworte\": [\n    \"Rundgang\",\n    \"Depot Süd\",\n    \"noch\",\n    \"statt\"\n  ],\n  \"umschreibungen\": [\n    \"Tour\",\n    \"Besichtigung\",\n    \"Ausflug\",\n    \"Veranstaltung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S2\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Der Rundgang im Depot Süd am 8. Juni wurde abgesagt.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS07",
+        "RCS08"
+      ],
+      "selected_sources": [
+        "RCS08"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS08"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Einweisung Depot Nord.txt\nDie Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Einweisung",
+          "Depot Nord"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "depot",
+          "einweisung",
+          "gestrichen",
+          "nord"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "12c414e90c8a9ab272f807be1f93d6da1b7cf0546b4ec131ba80a08a7387588f",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-f6de97ef24f4",
+                "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+                "start": 0,
+                "end": 89,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:27.261764+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Einweisung im Depot Nord findet am 08.06.2026 wie geplant statt.: Jahr 2026 von 08.06. steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.124,
+        "suche": 0.163,
+        "antwort_modell": 0.926,
+        "saetze_modell": 1.482,
+        "satzpruefung": 0.002,
+        "gesamt": 8.836
+      },
+      "id": "RQ14",
+      "conversation_id": "c-7ce0d67a63a1",
+      "seconds": 5.763,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Einweisung\",\n    \"Depot Nord\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"ueberblick\",\n  \"suchworte\": [\n    \"Einweisung\",\n    \"Depot Nord\",\n    \"gestrichen\",\n    \"geworden\"\n  ],\n  \"umschreibungen\": [\n    \"Abmeldung\",\n    \"Aufhebung\",\n    \"Kündigung\",\n    \"Entfall\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Einweisung im Depot Nord findet am 08.06.2026 wie geplant statt.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS06",
+        "RCS07",
+        "RCS08"
+      ],
+      "selected_sources": [
+        "RCS08"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS08"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Einweisung Depot Nord.txt\nDie Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 23:08 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Schulung",
+          "Depot"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 3,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "bleibt",
+          "depot",
+          "nordlichen",
+          "schulung",
+          "termin",
+          "vorgesehenen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "1585188530a427141ab63fc7389ff6f0bc70fa90c52a620de17e15e67f1914d8",
+        "quellen_geliefert": 3,
+        "geprueft": 3,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-f6de97ef24f4",
+                "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+                "start": 0,
+                "end": 89,
+                "kind": "status"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:33.650399+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Schulung am nördlichen Depot bleibt am 08.06.2026 wie geplant.: Jahr 2026 von 08.06. steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.334,
+        "suche": 0.225,
+        "antwort_modell": 1.264,
+        "saetze_modell": 1.666,
+        "satzpruefung": 0.002,
+        "gesamt": 9.841
+      },
+      "id": "RQ15",
+      "conversation_id": "c-d42c5ec367c7",
+      "seconds": 6.554,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Schulung\",\n    \"nördliches Depot\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"termine\",\n  \"suchworte\": [\n    \"Schulung\",\n    \"nördliches Depot\",\n    \"vorgesehener Termin\"\n  ],\n  \"umschreibungen\": [\n    \"Training\",\n    \"Ausbildung\",\n    \"Lehrgang\",\n    \"Ereignis\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Schulung am nördlichen Depot bleibt am 08.06.2026 wie geplant.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Diagnose hat Noa Jansen?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "RCS09"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Noa Jansen",
+          "Diagnose"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Welche",
+          "Diagnose",
+          "hat",
+          "Noa",
+          "Jansen"
+        ],
+        "umschreibungen": [],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "diagnose",
+          "jansen",
+          "noa"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "4f8d82d9af0eafb2ad1bb4563b1c5af0f9117313380a43404b4ca9d2c6740f19",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": []
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 2.868,
+        "suche": 0.132,
+        "antwort_modell": 0.677,
+        "gesamt": 6.552
+      },
+      "id": "RQ16",
+      "conversation_id": "c-3b7f7399309a",
+      "seconds": 3.702,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Noa Jansen\",\n    \"Diagnose\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Welche\",\n    \"Diagnose\",\n    \"hat\",\n    \"Noa\",\n    \"Jansen\"\n  ],\n  \"umschreibungen\": []\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wie lautet Nola Voss' private Anschrift?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "RCS01",
+        "RCS02",
+        "RCS10",
+        "RCS14"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Nola Voss"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Nola Voss",
+          "private Anschrift"
+        ],
+        "umschreibungen": [
+          "Adresse",
+          "Hausnummer",
+          "Straße",
+          "Postleitzahl"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 4,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 4,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "adresse",
+          "anschrift",
+          "hausnummer",
+          "lautet",
+          "nola",
+          "postleitzahl",
+          "private",
+          "strasse",
+          "voss"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "f79dcbf398b639da0e4ccba4514826bd579d4c1463d46d35f9935372aaaed880",
+        "quellen_geliefert": 4,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": []
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 2.298,
+        "suche": 0.087,
+        "antwort_modell": 1.424,
+        "gesamt": 6.116
+      },
+      "id": "RQ17",
+      "conversation_id": "c-c130cf2bd9f4",
+      "seconds": 3.838,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"Nola Voss\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\"Nola Voss\", \"private Anschrift\"],\n  \"umschreibungen\": [\"Adresse\", \"Hausnummer\", \"Straße\", \"Postleitzahl\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Medikamente nimmt Emi Tanaka?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "RCS01",
+        "RCS14"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Emi Tanaka",
+          "Medikamente"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "person",
+        "suchworte": [
+          "Emi Tanaka",
+          "Medikamente",
+          "nimmt"
+        ],
+        "umschreibungen": [
+          "Arzneimittel",
+          "Drogen",
+          "Prescription",
+          "Behandlung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "arzneimittel",
+          "behandlung",
+          "drogen",
+          "emi",
+          "medikamente",
+          "nimmt",
+          "prescription",
+          "tanaka"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "35a16216492f265ca96c0782d5c7228801b32f2923f41ac4dd46426c68f9636f",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": []
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 2.441,
+        "suche": 0.102,
+        "antwort_modell": 0.97,
+        "gesamt": 5.959
+      },
+      "id": "RQ18",
+      "conversation_id": "c-d68efae62e54",
+      "seconds": 3.532,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"Emi Tanaka\", \"Medikamente\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"person\",\n  \"suchworte\": [\"Emi Tanaka\", \"Medikamente\", \"nimmt\"],\n  \"umschreibungen\": [\"Arzneimittel\", \"Drogen\", \"Prescription\", \"Behandlung\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"no_relevant_sources\",\"ids\":[]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS03",
+        "RCS11",
+        "RCS12",
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS11"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS11"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Vor der Reinigung von R-508 darf nur ein trockenes Tuch verwendet werden. [1] (nur eine Quelle)\n\nBelege\n[1] Reinigung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "R-508",
+          "Reinigung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Was",
+          "darf",
+          "vor",
+          "der",
+          "Reinigung",
+          "von"
+        ],
+        "umschreibungen": [
+          "Material",
+          "Chemikalien",
+          "Zubereitungen",
+          "Erlaubnis"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 4,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 4,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "508",
+          "chemikalien",
+          "erlaubnis",
+          "material",
+          "reinigung",
+          "verwendet",
+          "zubereitungen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "8935087f140c870cb4ff252bcf24de1db3fa864dceab5d58db6d5bc8eb49eeed",
+        "quellen_geliefert": 4,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-1e8ed61535bc",
+                "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-a367ebf2654f",
+                "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+                "start": 0,
+                "end": 122,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-844a244aff99",
+                "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+                "start": 0,
+                "end": 135,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:51.556080+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-1e8ed61535bc",
+              "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+              "start": 0,
+              "end": 128,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Vor der Reinigung von R-508 darf nur ein trockenes Tuch verwendet werden.",
+            "text": "Vor der Reinigung von R-508 darf nur ein trockenes Tuch verwendet werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Was darf vor der Reinigung von R-508 verwendet werden? Material Chemikalien Zubereitungen Erlaubnis",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.389,
+        "suche": 0.126,
+        "antwort_modell": 1.553,
+        "saetze_modell": 1.285,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.701,
+        "gesamt": 10.457
+      },
+      "id": "RQ19",
+      "conversation_id": "c-7d2dd2c70674",
+      "seconds": 7.102,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"R-508\",\n    \"Reinigung\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Was\",\n    \"darf\",\n    \"vor\",\n    \"der\",\n    \"Reinigung\",\n    \"von\"\n  ],\n  \"umschreibungen\": [\n    \"Material\",\n    \"Chemikalien\",\n    \"Zubereitungen\",\n    \"Erlaubnis\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Vor der Reinigung von R-508 darf nur ein trockenes Tuch verwendet werden.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS11",
+        "RCS12",
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS11"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS11"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Für Auftrag R-508 sind nur trockene Tücher erlaubt. [1] (nur eine Quelle)\nLösungsmittel dürfen nicht eingesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] Reinigung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "R-508"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "R-508",
+          "Lösungsmittel",
+          "reinigen"
+        ],
+        "umschreibungen": [
+          "Reinigung",
+          "Waschen",
+          "Putzen",
+          "Auflösen"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 3,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "508",
+          "auflosen",
+          "losungsmittel",
+          "putzen",
+          "reinigen",
+          "reinigung",
+          "waschen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "c4b3b8e41545198742e5009ec50523f322757caaa7db887b6940925e2db2781e",
+        "quellen_geliefert": 3,
+        "geprueft": 3,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-1e8ed61535bc",
+                "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-844a244aff99",
+                "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+                "start": 0,
+                "end": 135,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:10:57.427193+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-1e8ed61535bc",
+              "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+              "start": 0,
+              "end": 128,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Für Auftrag R-508 sind nur trockene Tücher erlaubt.",
+            "text": "Für Auftrag R-508 sind nur trockene Tücher erlaubt.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          },
+          {
+            "roh": "Lösungsmittel dürfen nicht eingesetzt werden.",
+            "text": "Lösungsmittel dürfen nicht eingesetzt werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Darf man R-508 mit Lösungsmittel reinigen? Reinigung Waschen Putzen Auflösen",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.432,
+        "suche": 0.155,
+        "antwort_modell": 1.243,
+        "saetze_modell": 1.741,
+        "satzpruefung": 0.005,
+        "pruefung_modell": 1.031,
+        "gesamt": 9.048
+      },
+      "id": "RQ20",
+      "conversation_id": "c-c1927ddd1e30",
+      "seconds": 6.65,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"R-508\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\"R-508\", \"Lösungsmittel\", \"reinigen\"],\n  \"umschreibungen\": [\"Reinigung\", \"Waschen\", \"Putzen\", \"Auflösen\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Für Auftrag R-508 sind nur trockene Tücher erlaubt.\",\"belege\":[1]},{\"text\":\"Lösungsmittel dürfen nicht eingesetzt werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 5,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS12"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS10",
+        "RCS11",
+        "RCS12",
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS12"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS12"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben. [1] (nur eine Quelle)\nDie Prüfung ist noch offen. [1] (nur eine Quelle)\n\nBelege\n[1] Materialrechnung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "R-508",
+          "Rechnung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "erledigt",
+          "Rechnung",
+          "R-508",
+          "freigegeben"
+        ],
+        "umschreibungen": [
+          "Abwicklung",
+          "Bearbeitung",
+          "Vollendung",
+          "Abschluss"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "508",
+          "abschluss",
+          "abwicklung",
+          "bearbeitung",
+          "ehe",
+          "erledigt",
+          "freigegeben",
+          "rechnung",
+          "vollendung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "291afcc2bc5887197466809b3d55ca8f70a5451a34cce9bb74b41df63c3ee9bb",
+        "quellen_geliefert": 3,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-a367ebf2654f",
+                "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+                "start": 0,
+                "end": 122,
+                "kind": "status"
+              },
+              {
+                "episode_id": "e-1e8ed61535bc",
+                "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-844a244aff99",
+                "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+                "start": 0,
+                "end": 135,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:11:05.113659+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-a367ebf2654f",
+              "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+              "start": 0,
+              "end": 122,
+              "kind": "status"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben.",
+            "text": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          },
+          {
+            "roh": "Die Prüfung ist noch offen.",
+            "text": "Die Prüfung ist noch offen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird? Abwicklung Bearbeitung Vollendung Abschluss",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.039,
+        "suche": 0.2,
+        "antwort_modell": 1.623,
+        "saetze_modell": 1.891,
+        "satzpruefung": 0.006,
+        "pruefung_modell": 0.98,
+        "gesamt": 10.786
+      },
+      "id": "RQ21",
+      "conversation_id": "c-16787270aedb",
+      "seconds": 7.79,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"R-508\",\n    \"Rechnung\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"erledigt\",\n    \"Rechnung\",\n    \"R-508\",\n    \"freigegeben\"\n  ],\n  \"umschreibungen\": [\n    \"Abwicklung\",\n    \"Bearbeitung\",\n    \"Vollendung\",\n    \"Abschluss\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben.\",\"belege\":[1]},{\"text\":\"Die Prüfung ist noch offen.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 5,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS13"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS13"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Die Oberflächenprobe im Vorgang R-580 wird nur nach trockener Reinigung genommen. [1] (nur eine Quelle)\n\nBelege\n[1] Oberflächenprobe R-580.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Bedingung",
+          "Vorgang R-580",
+          "Oberflächenprobe"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "580",
+          "bedingung",
+          "genommen",
+          "oberflachenprobe",
+          "vorgang"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "2ad77c3e1b27ee9a7c2a1c9a10bbb13151d1f5d7956dc8693d69734c6f12dafc",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-844a244aff99",
+                "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+                "start": 0,
+                "end": 135,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:11:12.095191+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-844a244aff99",
+              "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+              "start": 0,
+              "end": 135,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Oberflächenprobe im Vorgang R-580 wird nur nach trockener Reinigung genommen.",
+            "text": "Die Oberflächenprobe im Vorgang R-580 wird nur nach trockener Reinigung genommen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.198,
+        "suche": 0.135,
+        "antwort_modell": 0.71,
+        "saetze_modell": 1.281,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.655,
+        "gesamt": 9.188
+      },
+      "id": "RQ22",
+      "conversation_id": "c-b9b10e8e00fe",
+      "seconds": 6.024,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"R-580\",\n    \"Oberflächenprobe\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Bedingung\",\n    \"Vorgang\",\n    \"R-580\",\n    \"Oberflächenprobe\",\n    \"genommen\"\n  ],\n  \"umschreibungen\": [\n    \"Wann\",\n    \"Wenn\",\n    \"Unter welchen Umständen\",\n    \"Bei welcher Voraussetzung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Oberflächenprobe im Vorgang R-580 wird nur nach trockener Reinigung genommen.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "RCS11",
+        "RCS13"
+      ],
+      "selected_sources": [
+        "RCS13"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "RCS13"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Lösungsmittel sind für den Vorgang R-580 ausgeschlossen. [1] (nur eine Quelle)\n\nBelege\n[1] Oberflächenprobe R-580.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "R-580"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "R-580",
+          "Lösungsmittel",
+          "gereinigt",
+          "werden"
+        ],
+        "umschreibungen": [
+          "Reinigung",
+          "Waschen",
+          "Auflösen",
+          "Behandlung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "580",
+          "auflosen",
+          "behandlung",
+          "gereinigt",
+          "losungsmittel",
+          "reinigung",
+          "waschen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "f590892f254f690baddeb201ec978fd7190cf9e8311e8cd57d96cd74b945010b",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-1e8ed61535bc",
+                "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-844a244aff99",
+                "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+                "start": 0,
+                "end": 135,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T21:11:17.786987+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-844a244aff99",
+              "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+              "start": 0,
+              "end": 135,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Lösungsmittel sind für den Vorgang R-580 ausgeschlossen.",
+            "text": "Lösungsmittel sind für den Vorgang R-580 ausgeschlossen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Kann R-580 mit einem Lösungsmittel gereinigt werden? Reinigung Waschen Auflösen Behandlung",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.473,
+        "suche": 0.09,
+        "antwort_modell": 1.143,
+        "saetze_modell": 1.996,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.555,
+        "gesamt": 8.74
+      },
+      "id": "RQ23",
+      "conversation_id": "c-dc26752a98de",
+      "seconds": 6.3,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"R-580\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\"R-580\", \"Lösungsmittel\", \"gereinigt\", \"werden\"],\n  \"umschreibungen\": [\"Reinigung\", \"Waschen\", \"Auflösen\", \"Behandlung\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"status\": \"antwort\",\n  \"saetze\": [\n    {\n      \"text\": \"Lösungsmittel sind für den Vorgang R-580 ausgeschlossen.\",\n      \"belege\": [1]\n    }\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    }
+  ],
+  "intake": [
+    {
+      "id": "RCS01",
+      "episode_id": "e-68a552db0d7a",
+      "digest": "sha256:e2be217b6febd137fe0b917e65e5ce1813fd79d506f61a6ad0a7e63f71b00e61",
+      "original_sha256": "e2be217b6febd137fe0b917e65e5ce1813fd79d506f61a6ad0a7e63f71b00e61",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS02",
+      "episode_id": "e-0af31bc6ed97",
+      "digest": "sha256:067c7495803d5b16412f93ff0f7e15efdc4e61116c5473e7cd927d3d93d709f6",
+      "original_sha256": "067c7495803d5b16412f93ff0f7e15efdc4e61116c5473e7cd927d3d93d709f6",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS03",
+      "episode_id": "e-d504e60cf905",
+      "digest": "sha256:577d6c10bbe03825bd193e6b2cfb5d11c94829dbb92de6cfc6a2cc5c688d5d1b",
+      "original_sha256": "577d6c10bbe03825bd193e6b2cfb5d11c94829dbb92de6cfc6a2cc5c688d5d1b",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS04",
+      "episode_id": "e-b7286cd20118",
+      "digest": "sha256:672bab17a32a9e22370ad4d2f838b394afc20d2a6877f871f7a1c109d54faf7e",
+      "original_sha256": "672bab17a32a9e22370ad4d2f838b394afc20d2a6877f871f7a1c109d54faf7e",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS05",
+      "episode_id": "e-5f1465332fed",
+      "digest": "sha256:25039b7ba92dda6b046572d710df25d62720d162ea8f1a412f0cd36be21c7b49",
+      "original_sha256": "25039b7ba92dda6b046572d710df25d62720d162ea8f1a412f0cd36be21c7b49",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS06",
+      "episode_id": "e-608a1759deb7",
+      "digest": "sha256:9ed433e33f0af8003c7853073ae9ae87da3b6a07bacb42a61579ec41c25c4598",
+      "original_sha256": "9ed433e33f0af8003c7853073ae9ae87da3b6a07bacb42a61579ec41c25c4598",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS07",
+      "episode_id": "e-cdec43430126",
+      "digest": "sha256:4717e924ec25d68d2d5f4526c947d814c5dda9163e349fe4597b16317493f61d",
+      "original_sha256": "4717e924ec25d68d2d5f4526c947d814c5dda9163e349fe4597b16317493f61d",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS08",
+      "episode_id": "e-f6de97ef24f4",
+      "digest": "sha256:9e8f438d9ed9e91ef3f049ec15a036483792c25e7f801fbe7933980c40cd0fb0",
+      "original_sha256": "9e8f438d9ed9e91ef3f049ec15a036483792c25e7f801fbe7933980c40cd0fb0",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS09",
+      "episode_id": "e-ae37d1f73d85",
+      "digest": "sha256:9ee1e5ce4ee159031183ba3ba13982e27c9218b7ef6eb2904dca55d7c928a08b",
+      "original_sha256": "9ee1e5ce4ee159031183ba3ba13982e27c9218b7ef6eb2904dca55d7c928a08b",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS10",
+      "episode_id": "e-41442553a48f",
+      "digest": "sha256:a44aec4ebdce6bf4d09d6e30422662e6c7507521f2ac6ed495a0dd1d7b2fb9fe",
+      "original_sha256": "a44aec4ebdce6bf4d09d6e30422662e6c7507521f2ac6ed495a0dd1d7b2fb9fe",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS11",
+      "episode_id": "e-1e8ed61535bc",
+      "digest": "sha256:f353c7fc6bb112de7d15b8f4e9727c3da85301eb076f9b66fa57f89840ed7078",
+      "original_sha256": "f353c7fc6bb112de7d15b8f4e9727c3da85301eb076f9b66fa57f89840ed7078",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS12",
+      "episode_id": "e-a367ebf2654f",
+      "digest": "sha256:cb12e2629d3f62f6ef4cde28f270ffaee4371fdf786afe75e171902f022d0865",
+      "original_sha256": "cb12e2629d3f62f6ef4cde28f270ffaee4371fdf786afe75e171902f022d0865",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS13",
+      "episode_id": "e-844a244aff99",
+      "digest": "sha256:55c637094fa084116a02c948ffbaeb72724057743bee360bd643ce42295141b5",
+      "original_sha256": "55c637094fa084116a02c948ffbaeb72724057743bee360bd643ce42295141b5",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS14",
+      "episode_id": "e-d809f6c25a0a",
+      "digest": "sha256:d6ce7423bd4bf212746046cb01e49f56b53c88a536f73759c3d5507b7323e4ef",
+      "original_sha256": "d6ce7423bd4bf212746046cb01e49f56b53c88a536f73759c3d5507b7323e4ef",
+      "occurred_at": "None",
+      "http_status": 200
+    }
+  ],
+  "classification": [
+    {
+      "id": "RCS01",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 4.377,
+      "items": [
+        {
+          "id": "58ed792d871368f706ee4f1a8dbcdbb9a7df8105c0edc511667c36d37c95d7b2",
+          "episode_id": "e-68a552db0d7a",
+          "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+          "start": 0,
+          "end": 70,
+          "kind": "fact",
+          "key": 6407911081264769271
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-68a552db0d7a",
+          "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.849,
+      "items": [
+        {
+          "id": "69bbe84d66dfcd52264051ffd886b59f7e80281578e976e34517566f95d62288",
+          "episode_id": "e-0af31bc6ed97",
+          "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+          "start": 0,
+          "end": 58,
+          "kind": "fact",
+          "key": 7618938613763394898
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-0af31bc6ed97",
+          "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.903,
+      "items": [
+        {
+          "id": "018e4967249341f44f301555921cd3df0e25ef5e23ddde86fced8a3aefb9d787",
+          "episode_id": "e-d504e60cf905",
+          "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+          "start": 0,
+          "end": 131,
+          "kind": "status",
+          "key": 112107748074930676
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d504e60cf905",
+          "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.911,
+      "items": [
+        {
+          "id": "505362df63b6fe3d71cab897827ce040311af7ff43e1d183d2765b356de0d280",
+          "episode_id": "e-b7286cd20118",
+          "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+          "start": 0,
+          "end": 120,
+          "kind": "status",
+          "key": 5788078657691385405
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-b7286cd20118",
+          "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.842,
+      "items": [
+        {
+          "id": "4fd1bfcc69ee59b6071a408401ce073d077bc07c9f14945adc7c4e4cca232fda",
+          "episode_id": "e-5f1465332fed",
+          "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+          "start": 0,
+          "end": 85,
+          "kind": "fact",
+          "key": 5751589083800295862
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-5f1465332fed",
+          "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.912,
+      "items": [
+        {
+          "id": "4a8b89a5b1eb87d9bc7d562cd91c4a056025349375901872cb10a1dde2d1e71f",
+          "episode_id": "e-608a1759deb7",
+          "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+          "start": 0,
+          "end": 156,
+          "kind": "change",
+          "key": 5371538325317060569
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-608a1759deb7",
+          "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"change\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.062,
+      "items": [
+        {
+          "id": "e6adc4fa329134fd5ef55697eb623e275b7ee52ffaa7fa83196f8437aedfe975",
+          "episode_id": "e-cdec43430126",
+          "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+          "start": 0,
+          "end": 79,
+          "kind": "status",
+          "key": -1824585695145937667
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-cdec43430126",
+          "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.985,
+      "items": [
+        {
+          "id": "8a942a62512264de3fafd46407810d7671cf9b610c7a9cfd7cba200bfe64a8e1",
+          "episode_id": "e-f6de97ef24f4",
+          "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+          "start": 0,
+          "end": 89,
+          "kind": "status",
+          "key": -8461091198165949218
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-f6de97ef24f4",
+          "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.954,
+      "items": [
+        {
+          "id": "60dfaa4dab68f81ebeede00e440d2f8953650d0d160037f2b39644df8e195bdc",
+          "episode_id": "e-ae37d1f73d85",
+          "fingerprint": "8022414061f94f0821629ce805c5ece435529a67d453f3793d2898114e4d8589",
+          "start": 0,
+          "end": 82,
+          "kind": "request",
+          "key": 6980485198012545054
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-ae37d1f73d85",
+          "fingerprint": "8022414061f94f0821629ce805c5ece435529a67d453f3793d2898114e4d8589",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.994,
+      "items": [
+        {
+          "id": "104cd6125edc87921bead08acb557f89012bea41f2dba47a36edb098cbba9526",
+          "episode_id": "e-41442553a48f",
+          "fingerprint": "d3ef0b5825786cd2c29b785ae9e2d407483df1a41488155bb94bf38910c9d416",
+          "start": 0,
+          "end": 109,
+          "kind": "fact",
+          "key": 1174548977226123154
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-41442553a48f",
+          "fingerprint": "d3ef0b5825786cd2c29b785ae9e2d407483df1a41488155bb94bf38910c9d416",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS11",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.104,
+      "items": [
+        {
+          "id": "a0c9514134bc8ec9475d2bf46580b5bb6ba8707ed149e48eafd316ceff81ce2c",
+          "episode_id": "e-1e8ed61535bc",
+          "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+          "start": 0,
+          "end": 128,
+          "kind": "fact",
+          "key": -6860863216822743351
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-1e8ed61535bc",
+          "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS12",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.095,
+      "items": [
+        {
+          "id": "dd42525c457e3793d65ae61e16056256f9932fae47b79a51a3ed5b72d68f7ecb",
+          "episode_id": "e-a367ebf2654f",
+          "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+          "start": 0,
+          "end": 122,
+          "kind": "status",
+          "key": -2503347886608205933
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-a367ebf2654f",
+          "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS13",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.038,
+      "items": [
+        {
+          "id": "336db13105b84ab6b1c13b6305590d7a28a3eb5c4dfc5be6143f666b2bec40ef",
+          "episode_id": "e-844a244aff99",
+          "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+          "start": 0,
+          "end": 135,
+          "kind": "fact",
+          "key": 3705812892503263926
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-844a244aff99",
+          "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS14",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.104,
+      "items": [
+        {
+          "id": "eba5fe08519b3cd1c1cbe93bc39ad449cd6e250e84f4c636743ae06495d3b779",
+          "episode_id": "e-d809f6c25a0a",
+          "fingerprint": "eb4f983ab5b25c4eeabc3453198d95211082a7125ad8263be5e65e650f694c54",
+          "start": 0,
+          "end": 115,
+          "kind": "status",
+          "key": -1466486791956906799
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d809f6c25a0a",
+          "fingerprint": "eb4f983ab5b25c4eeabc3453198d95211082a7125ad8263be5e65e650f694c54",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "content_review": "pending independent review",
+  "code_files": {
+    "Agent": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/agent.py",
+      "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+    },
+    "run": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_worker.py",
+      "sha256": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e"
+    },
+    "SemanticService": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_semantic_service.py",
+      "sha256": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df"
+    },
+    "create_app": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/server.py",
+      "sha256": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661"
+    }
+  },
+  "classification_progress": {
+    "total": 14,
+    "done": 14,
+    "skipped": 0,
+    "retry": 0,
+    "remaining": 0
+  },
+  "topic_entity_suggestions": [
+    {
+      "id": "RCS01",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.074,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-68a552db0d7a",
+          "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 70
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-68a552db0d7a",
+          "fingerprint": "6113844cf4a9ea2bfb073c006b15c86ae0be757a4cbae59f03fc9c38df5980fc",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.743,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-0af31bc6ed97",
+          "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 58
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-0af31bc6ed97",
+          "fingerprint": "99195b89a4a0238a9779afabfb10775daacdf6cb4ed74c2ff500b7baf19949c7",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.011,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-d504e60cf905",
+          "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 131
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d504e60cf905",
+          "fingerprint": "2a7234102b0b0abeeff0e93a0ace45fff59fc29ed94ee4d370d82b4e09d8aa6f",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.704,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-b7286cd20118",
+          "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 120
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-b7286cd20118",
+          "fingerprint": "ee5140bb97937c0d3ae66864f6ae8f50cf5c68dd6dd5c00c10e54f93055e6032",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.74,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-5f1465332fed",
+          "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 85
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-5f1465332fed",
+          "fingerprint": "cd89d1d4622316e60f7cb35757ab211cc5b34904668723d28b500e00447018eb",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.403,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-608a1759deb7",
+          "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+          "category_id": "appointments",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 156
+        },
+        {
+          "episode_id": "e-608a1759deb7",
+          "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 156
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-608a1759deb7",
+          "fingerprint": "ee36867ba269f4d8428d8eb5fe9685c15c9f1e50be91506252e075b9e6375b0e",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.764,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-cdec43430126",
+          "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+          "category_id": "appointments",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 79
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-cdec43430126",
+          "fingerprint": "0f6e85a59e5d8ec3f499c96b9f017adcc86504b11dd09a72524b1633202f4891",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.605,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-f6de97ef24f4",
+          "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 89
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-f6de97ef24f4",
+          "fingerprint": "ec1f6957a7bc1e159e23211eea5500ac1bbf71b9347d2ad7e591dd29d5379777",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.835,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-ae37d1f73d85",
+          "fingerprint": "8022414061f94f0821629ce805c5ece435529a67d453f3793d2898114e4d8589",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 82
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-ae37d1f73d85",
+          "fingerprint": "8022414061f94f0821629ce805c5ece435529a67d453f3793d2898114e4d8589",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.083,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-41442553a48f",
+          "fingerprint": "d3ef0b5825786cd2c29b785ae9e2d407483df1a41488155bb94bf38910c9d416",
+          "category_id": "personal",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 109
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-41442553a48f",
+          "fingerprint": "d3ef0b5825786cd2c29b785ae9e2d407483df1a41488155bb94bf38910c9d416",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS11",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.735,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-1e8ed61535bc",
+          "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 128
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-1e8ed61535bc",
+          "fingerprint": "3ed9f3c6813a05337fecc6daad42cff6ed5e13488f9a56b404e686fedde8e2c5",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS12",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.664,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-a367ebf2654f",
+          "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+          "category_id": "finance",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 122
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-a367ebf2654f",
+          "fingerprint": "f8b87145a72be6f9a512038a4c60375ec3a2bcd283d610cc8c496ec88bd46323",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"finance\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS13",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.732,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-844a244aff99",
+          "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 135
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-844a244aff99",
+          "fingerprint": "6c390aecb04442b19d4bc725bdaf164c4022b4ed86d8518c720f86246fb4882b",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS14",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.501,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-d809f6c25a0a",
+          "fingerprint": "eb4f983ab5b25c4eeabc3453198d95211082a7125ad8263be5e65e650f694c54",
+          "category_id": "appointments",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 115
+        },
+        {
+          "episode_id": "e-d809f6c25a0a",
+          "fingerprint": "eb4f983ab5b25c4eeabc3453198d95211082a7125ad8263be5e65e650f694c54",
+          "category_id": "personal",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 115
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d809f6c25a0a",
+          "fingerprint": "eb4f983ab5b25c4eeabc3453198d95211082a7125ad8263be5e65e650f694c54",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "person_gold": {
+    "RCS01": [
+      "Nora Voss"
+    ],
+    "RCS02": [
+      "Nola Voss"
+    ],
+    "RCS09": [
+      "Noa Jansen"
+    ],
+    "RCS10": [
+      "Nora Voss"
+    ],
+    "RCS14": [
+      "Emi Tanaka"
+    ]
+  },
+  "index_coverage": {
+    "status": "indexed",
+    "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "identity_checked_at": 1791493735.092839,
+    "total": 14,
+    "indexed": 14,
+    "pending": 0,
+    "failed": 0,
+    "updated_at": 1791493735.2099571,
+    "source_pending": 0
+  },
+  "reopened_before_questions": true,
+  "originals_preserved_before_withdrawal": true,
+  "withdrawal_after_restart": {
+    "status": "working_unavailable",
+    "pass": true,
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "provider_calls": 0,
+    "original_text_retained": true
+  }
+}

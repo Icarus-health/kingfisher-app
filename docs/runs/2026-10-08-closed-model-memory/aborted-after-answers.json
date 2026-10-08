@@ -1,0 +1,1292 @@
+{
+  "synthetic_only": true,
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "code_version": "worktree-local-unique-quotes-20261008",
+  "scope": "actual document upload HTTP; actual model worker and topic/entity suggestions; actual persisted semantic index; actual memory_evidence conversation HTTP; no automatic UI routing or screen test",
+  "model": "qwen3.5:4b",
+  "rows": [],
+  "intake": [
+    {
+      "id": "RCS01",
+      "episode_id": "e-68b600b269cc",
+      "digest": "sha256:e2be217b6febd137fe0b917e65e5ce1813fd79d506f61a6ad0a7e63f71b00e61",
+      "original_sha256": "e2be217b6febd137fe0b917e65e5ce1813fd79d506f61a6ad0a7e63f71b00e61",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS02",
+      "episode_id": "e-c4769f688ca5",
+      "digest": "sha256:067c7495803d5b16412f93ff0f7e15efdc4e61116c5473e7cd927d3d93d709f6",
+      "original_sha256": "067c7495803d5b16412f93ff0f7e15efdc4e61116c5473e7cd927d3d93d709f6",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS03",
+      "episode_id": "e-0ad83d9845f6",
+      "digest": "sha256:577d6c10bbe03825bd193e6b2cfb5d11c94829dbb92de6cfc6a2cc5c688d5d1b",
+      "original_sha256": "577d6c10bbe03825bd193e6b2cfb5d11c94829dbb92de6cfc6a2cc5c688d5d1b",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS04",
+      "episode_id": "e-393e7389d49c",
+      "digest": "sha256:672bab17a32a9e22370ad4d2f838b394afc20d2a6877f871f7a1c109d54faf7e",
+      "original_sha256": "672bab17a32a9e22370ad4d2f838b394afc20d2a6877f871f7a1c109d54faf7e",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS05",
+      "episode_id": "e-b9ba589921fb",
+      "digest": "sha256:25039b7ba92dda6b046572d710df25d62720d162ea8f1a412f0cd36be21c7b49",
+      "original_sha256": "25039b7ba92dda6b046572d710df25d62720d162ea8f1a412f0cd36be21c7b49",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS06",
+      "episode_id": "e-a949cedb61db",
+      "digest": "sha256:9ed433e33f0af8003c7853073ae9ae87da3b6a07bacb42a61579ec41c25c4598",
+      "original_sha256": "9ed433e33f0af8003c7853073ae9ae87da3b6a07bacb42a61579ec41c25c4598",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS07",
+      "episode_id": "e-97f77ffd263c",
+      "digest": "sha256:4717e924ec25d68d2d5f4526c947d814c5dda9163e349fe4597b16317493f61d",
+      "original_sha256": "4717e924ec25d68d2d5f4526c947d814c5dda9163e349fe4597b16317493f61d",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS08",
+      "episode_id": "e-c67cdcd92bb2",
+      "digest": "sha256:9e8f438d9ed9e91ef3f049ec15a036483792c25e7f801fbe7933980c40cd0fb0",
+      "original_sha256": "9e8f438d9ed9e91ef3f049ec15a036483792c25e7f801fbe7933980c40cd0fb0",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS09",
+      "episode_id": "e-42e75fced0aa",
+      "digest": "sha256:9ee1e5ce4ee159031183ba3ba13982e27c9218b7ef6eb2904dca55d7c928a08b",
+      "original_sha256": "9ee1e5ce4ee159031183ba3ba13982e27c9218b7ef6eb2904dca55d7c928a08b",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS10",
+      "episode_id": "e-4d9d6d963cce",
+      "digest": "sha256:a44aec4ebdce6bf4d09d6e30422662e6c7507521f2ac6ed495a0dd1d7b2fb9fe",
+      "original_sha256": "a44aec4ebdce6bf4d09d6e30422662e6c7507521f2ac6ed495a0dd1d7b2fb9fe",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS11",
+      "episode_id": "e-f7c0835c2077",
+      "digest": "sha256:f353c7fc6bb112de7d15b8f4e9727c3da85301eb076f9b66fa57f89840ed7078",
+      "original_sha256": "f353c7fc6bb112de7d15b8f4e9727c3da85301eb076f9b66fa57f89840ed7078",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS12",
+      "episode_id": "e-7369d7cccfde",
+      "digest": "sha256:cb12e2629d3f62f6ef4cde28f270ffaee4371fdf786afe75e171902f022d0865",
+      "original_sha256": "cb12e2629d3f62f6ef4cde28f270ffaee4371fdf786afe75e171902f022d0865",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS13",
+      "episode_id": "e-6cf105a7608d",
+      "digest": "sha256:55c637094fa084116a02c948ffbaeb72724057743bee360bd643ce42295141b5",
+      "original_sha256": "55c637094fa084116a02c948ffbaeb72724057743bee360bd643ce42295141b5",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "RCS14",
+      "episode_id": "e-ca6f61a1320b",
+      "digest": "sha256:d6ce7423bd4bf212746046cb01e49f56b53c88a536f73759c3d5507b7323e4ef",
+      "original_sha256": "d6ce7423bd4bf212746046cb01e49f56b53c88a536f73759c3d5507b7323e4ef",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "H01",
+      "episode_id": "e-c9258982e3ce",
+      "digest": "sha256:a55d100dca1b848122cbac1520e1c47e0106e2bb842b3b2cf463e2b4aef65d9a",
+      "original_sha256": "a55d100dca1b848122cbac1520e1c47e0106e2bb842b3b2cf463e2b4aef65d9a",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "H02",
+      "episode_id": "e-0cf55202d129",
+      "digest": "sha256:5b83aa8b52ff9f2e3a43a7f0a40f00817e1cd5bebdaf8696836498a2ea63f8e6",
+      "original_sha256": "5b83aa8b52ff9f2e3a43a7f0a40f00817e1cd5bebdaf8696836498a2ea63f8e6",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "H03",
+      "episode_id": "e-ef933fef337a",
+      "digest": "sha256:dc2d93eeba8165051c6726ab703dc960605f59a22937887c3b04fc4911d716de",
+      "original_sha256": "dc2d93eeba8165051c6726ab703dc960605f59a22937887c3b04fc4911d716de",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "H04",
+      "episode_id": "e-9b662adc2921",
+      "digest": "sha256:bc60e322525320d8fe69098a32fc210c0df6bd2e552b48fbbc1fe21878506d27",
+      "original_sha256": "bc60e322525320d8fe69098a32fc210c0df6bd2e552b48fbbc1fe21878506d27",
+      "occurred_at": "None",
+      "http_status": 200
+    }
+  ],
+  "classification": [
+    {
+      "id": "RCS01",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 3.552,
+      "items": [
+        {
+          "id": "89220488a8b03ce3f080e375f7158bee277c201a0e6dda993a8b52c558923e34",
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "start": 0,
+          "end": 70,
+          "kind": "fact",
+          "key": -8565278556313076509
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.846,
+      "items": [
+        {
+          "id": "68b7974356581c0efd96ae97e728f65a49c9d855c41a040d8b8e547a33f745f9",
+          "episode_id": "e-c4769f688ca5",
+          "fingerprint": "6c6baeaac4d4ad3762336263a50fe93aba1256deef03b8e198b30a8cb4774734",
+          "start": 0,
+          "end": 58,
+          "kind": "fact",
+          "key": 7545666016149773326
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c4769f688ca5",
+          "fingerprint": "6c6baeaac4d4ad3762336263a50fe93aba1256deef03b8e198b30a8cb4774734",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.914,
+      "items": [
+        {
+          "id": "c83cccc8fee041e00e30bd5494a520e16e3ee8d23eef57b4eef81fa4c7ca5c35",
+          "episode_id": "e-0ad83d9845f6",
+          "fingerprint": "410ca2059a96262b4e33c3d2e14e876ac21eca1d826d988f00d1495652605e65",
+          "start": 0,
+          "end": 131,
+          "kind": "status",
+          "key": -4018111603879689760
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-0ad83d9845f6",
+          "fingerprint": "410ca2059a96262b4e33c3d2e14e876ac21eca1d826d988f00d1495652605e65",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.908,
+      "items": [
+        {
+          "id": "8170e6d2d3ce578de28e2a22ca25ec829746b81292d56db7be0209dbb6563510",
+          "episode_id": "e-393e7389d49c",
+          "fingerprint": "32f70b35142d52dad6e2dad760bc7e6d07a13f72b928cf0fa482283c159c03dd",
+          "start": 0,
+          "end": 120,
+          "kind": "status",
+          "key": -9119535452254218355
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-393e7389d49c",
+          "fingerprint": "32f70b35142d52dad6e2dad760bc7e6d07a13f72b928cf0fa482283c159c03dd",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.848,
+      "items": [
+        {
+          "id": "b9c2036a2daaf78f4ac118965f3403c74c4080f64fa38df380c607509ee0b14b",
+          "episode_id": "e-b9ba589921fb",
+          "fingerprint": "18a92ce8cb65155d473eee5b166b321152c6a8c7165219b30aaaac19b5b877ef",
+          "start": 0,
+          "end": 85,
+          "kind": "fact",
+          "key": -5061479276643420273
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-b9ba589921fb",
+          "fingerprint": "18a92ce8cb65155d473eee5b166b321152c6a8c7165219b30aaaac19b5b877ef",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.905,
+      "items": [
+        {
+          "id": "7cbb9e452ee6ce44ced801f3513d7665ee1a43a5a78a2b60b6aa975e029f5400",
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "start": 0,
+          "end": 156,
+          "kind": "change",
+          "key": 8987951501324766788
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"change\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.137,
+      "items": [
+        {
+          "id": "39375414eb78c25718c6ebb4f24b6076769beff2bfb10ea4981f862118fd7e3f",
+          "episode_id": "e-97f77ffd263c",
+          "fingerprint": "571a13e102593c64d33c8703457e4593c4629f8e3d3f18130e694f5e4cec3587",
+          "start": 0,
+          "end": 79,
+          "kind": "status",
+          "key": 4122856432707617367
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-97f77ffd263c",
+          "fingerprint": "571a13e102593c64d33c8703457e4593c4629f8e3d3f18130e694f5e4cec3587",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.061,
+      "items": [
+        {
+          "id": "3bbfc5f832e90f4b1df6d8e25b71fd201268ffc10c82e2838373fe57babf7411",
+          "episode_id": "e-c67cdcd92bb2",
+          "fingerprint": "3e320703e4c970f26aab5ec601e47f7a0de5f863eb0e0e355d3a20dde570cb05",
+          "start": 0,
+          "end": 89,
+          "kind": "status",
+          "key": 4305377438586179403
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c67cdcd92bb2",
+          "fingerprint": "3e320703e4c970f26aab5ec601e47f7a0de5f863eb0e0e355d3a20dde570cb05",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.067,
+      "items": [
+        {
+          "id": "9a6416009f81ba8a6bf7d4a6327be3d15fd5a71caae9dcb2eb97ef91754c38e6",
+          "episode_id": "e-42e75fced0aa",
+          "fingerprint": "e78c35152f3031971668810d70f5d67a18c7e29d2387e5ece165249cd68f0e2c",
+          "start": 0,
+          "end": 82,
+          "kind": "request",
+          "key": -7321702902265693558
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-42e75fced0aa",
+          "fingerprint": "e78c35152f3031971668810d70f5d67a18c7e29d2387e5ece165249cd68f0e2c",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"request\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.071,
+      "items": [
+        {
+          "id": "33a5757e95ed397fbd682619d8315b8bad5b298d9e070ba0e4681ee498943141",
+          "episode_id": "e-4d9d6d963cce",
+          "fingerprint": "c22d485393f68817ded32b929d5825d1577a306cb6952ec4f1be8e6e59b44bd1",
+          "start": 0,
+          "end": 109,
+          "kind": "fact",
+          "key": 3721509853633263999
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-4d9d6d963cce",
+          "fingerprint": "c22d485393f68817ded32b929d5825d1577a306cb6952ec4f1be8e6e59b44bd1",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS11",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.068,
+      "items": [
+        {
+          "id": "c59b479f2c22586c6578451b1d3cb12d599e7c3ce0bb460a243d6ec6c4465441",
+          "episode_id": "e-f7c0835c2077",
+          "fingerprint": "11485aa43f000cc5038274e57eea1e877bcc07b5d92ada0ef163625dad65ad46",
+          "start": 0,
+          "end": 128,
+          "kind": "fact",
+          "key": -4207690677881776020
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-f7c0835c2077",
+          "fingerprint": "11485aa43f000cc5038274e57eea1e877bcc07b5d92ada0ef163625dad65ad46",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS12",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.043,
+      "items": [
+        {
+          "id": "f79218360736b082736414f2577ff79158b7d860b25ee3ff798338aea4e11d7b",
+          "episode_id": "e-7369d7cccfde",
+          "fingerprint": "051ba5ef3d31a5d99260ddec470742db93fe611363d92162313cf731a307d5ca",
+          "start": 0,
+          "end": 122,
+          "kind": "status",
+          "key": -607396379413270398
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-7369d7cccfde",
+          "fingerprint": "051ba5ef3d31a5d99260ddec470742db93fe611363d92162313cf731a307d5ca",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS13",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.123,
+      "items": [
+        {
+          "id": "f93191222c68bf71b475fa9615e0003b90cbae9617ab13f1fdfeacea74244de8",
+          "episode_id": "e-6cf105a7608d",
+          "fingerprint": "e6c8be1dea896f71ebafa7e54545f4932a98cb30bf6c5cc3b287084e22505afd",
+          "start": 0,
+          "end": 135,
+          "kind": "fact",
+          "key": -490451308446695567
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-6cf105a7608d",
+          "fingerprint": "e6c8be1dea896f71ebafa7e54545f4932a98cb30bf6c5cc3b287084e22505afd",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS14",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.086,
+      "items": [
+        {
+          "id": "32ccac99d323d7ac81312ad0049a42cf6ba86ee0c0727310aa34542a25e5898e",
+          "episode_id": "e-ca6f61a1320b",
+          "fingerprint": "19a21ef89ee49a05470fbb90004f8a620bd135f3512a2117d2c9717c40db857c",
+          "start": 0,
+          "end": 115,
+          "kind": "status",
+          "key": 3660490373817685932
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-ca6f61a1320b",
+          "fingerprint": "19a21ef89ee49a05470fbb90004f8a620bd135f3512a2117d2c9717c40db857c",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.076,
+      "items": [
+        {
+          "id": "eb0adc90f8281a0f7e78a06489c2f86908574bc5f328886a2004de6539566d5a",
+          "episode_id": "e-c9258982e3ce",
+          "fingerprint": "b7d25875adccd4589906bd58517329b113137fed6b7f4587d4bcd951472f0152",
+          "start": 0,
+          "end": 37,
+          "kind": "uncertain",
+          "key": -1510152209832601073
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c9258982e3ce",
+          "fingerprint": "b7d25875adccd4589906bd58517329b113137fed6b7f4587d4bcd951472f0152",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H02",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.059,
+      "items": [
+        {
+          "id": "e8c6a59af5cc3dc56341a684b4415c1f2d18bad0df89bdcf31d0c5e64ef60ab1",
+          "episode_id": "e-0cf55202d129",
+          "fingerprint": "74d4b93bfe933a70c026bc46424d9136c358df817a753aa641dbe8ae1d5b6b42",
+          "start": 0,
+          "end": 46,
+          "kind": "fact",
+          "key": -1673468126554210875
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-0cf55202d129",
+          "fingerprint": "74d4b93bfe933a70c026bc46424d9136c358df817a753aa641dbe8ae1d5b6b42",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H03",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.995,
+      "items": [
+        {
+          "id": "dbc62a71091026f1b8deab308172713391f26224704ace549a3f0b789c94ba71",
+          "episode_id": "e-ef933fef337a",
+          "fingerprint": "5352f1fb4bbb781023875c1006896cf62470d757c6d315a0cc98f748a551347f",
+          "start": 0,
+          "end": 60,
+          "kind": "status",
+          "key": -2610352269042899215
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-ef933fef337a",
+          "fingerprint": "5352f1fb4bbb781023875c1006896cf62470d757c6d315a0cc98f748a551347f",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"status\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H04",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 1.09,
+      "items": [
+        {
+          "id": "1977cb3c8c8abd7293dc9df265142d3a8b60b44dac03c098ed19b6aa5532b535",
+          "episode_id": "e-9b662adc2921",
+          "fingerprint": "e15006e95bdf51adcc0153354a01251d078146a02f83804f1cad7c36fe0563b4",
+          "start": 0,
+          "end": 69,
+          "kind": "uncertain",
+          "key": 1835158834093145458
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-9b662adc2921",
+          "fingerprint": "e15006e95bdf51adcc0153354a01251d078146a02f83804f1cad7c36fe0563b4",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"uncertain\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "completed": false,
+  "content_review": "pending independent review",
+  "code_files": {
+    "Agent": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/agent.py",
+      "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+    },
+    "run": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_worker.py",
+      "sha256": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e"
+    },
+    "SemanticService": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_semantic_service.py",
+      "sha256": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df"
+    },
+    "create_app": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/server.py",
+      "sha256": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661"
+    },
+    "_interpret": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/memory_categories.py",
+      "sha256": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546"
+    },
+    "_interpret_quotes": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/memory_categories.py",
+      "sha256": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546"
+    },
+    "OpenAICompatible": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/providers.py",
+      "sha256": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f"
+    },
+    "VerifiedLocalProvider": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/local_model_guard.py",
+      "sha256": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe"
+    },
+    "Meter": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/scripts/probe_working_memory_end_to_end.py",
+      "sha256": "5713aa3455751ec67dd13bb01c49e96111f73337be67ba8649cc484feb5b63fe"
+    }
+  },
+  "holdout_sha256": "34c2880b1bce144af3486c4b4971f8b42dfa2cc8c2b034c651efcbbafabfa594",
+  "classification_progress": {
+    "total": 18,
+    "done": 18,
+    "skipped": 0,
+    "retry": 0,
+    "remaining": 0
+  },
+  "topic_entity_suggestions": [
+    {
+      "id": "RCS01",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 3.788,
+      "entities": [
+        {
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "kind": "person",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned",
+          "quote": "Nora Voss"
+        },
+        {
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "kind": "project",
+          "start": 64,
+          "end": 69,
+          "role": "mentioned",
+          "quote": "KL-42"
+        }
+      ],
+      "topics": [
+        {
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 70
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-68b600b269cc",
+          "fingerprint": "aa288fe7a0ef4393ef9e93e02c5cab4caf6116ebbdd618495812f46e048d132c",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nora Voss\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"project\",\n      \"name\": \"KL-42\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.704,
+      "entities": [
+        {
+          "episode_id": "e-c4769f688ca5",
+          "fingerprint": "6c6baeaac4d4ad3762336263a50fe93aba1256deef03b8e198b30a8cb4774734",
+          "kind": "person",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned",
+          "quote": "Nola Voss"
+        }
+      ],
+      "topics": [
+        {
+          "episode_id": "e-c4769f688ca5",
+          "fingerprint": "6c6baeaac4d4ad3762336263a50fe93aba1256deef03b8e198b30a8cb4774734",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 58
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c4769f688ca5",
+          "fingerprint": "6c6baeaac4d4ad3762336263a50fe93aba1256deef03b8e198b30a8cb4774734",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nola Voss\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.854,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-0ad83d9845f6",
+          "fingerprint": "410ca2059a96262b4e33c3d2e14e876ac21eca1d826d988f00d1495652605e65",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 131
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-0ad83d9845f6",
+          "fingerprint": "410ca2059a96262b4e33c3d2e14e876ac21eca1d826d988f00d1495652605e65",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.961,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-393e7389d49c",
+          "fingerprint": "32f70b35142d52dad6e2dad760bc7e6d07a13f72b928cf0fa482283c159c03dd",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 120
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-393e7389d49c",
+          "fingerprint": "32f70b35142d52dad6e2dad760bc7e6d07a13f72b928cf0fa482283c159c03dd",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.848,
+      "entities": [
+        {
+          "episode_id": "e-b9ba589921fb",
+          "fingerprint": "18a92ce8cb65155d473eee5b166b321152c6a8c7165219b30aaaac19b5b877ef",
+          "kind": "place",
+          "start": 23,
+          "end": 40,
+          "role": "mentioned",
+          "quote": "Werkhalle Epsilon"
+        }
+      ],
+      "topics": [
+        {
+          "episode_id": "e-b9ba589921fb",
+          "fingerprint": "18a92ce8cb65155d473eee5b166b321152c6a8c7165219b30aaaac19b5b877ef",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 85
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-b9ba589921fb",
+          "fingerprint": "18a92ce8cb65155d473eee5b166b321152c6a8c7165219b30aaaac19b5b877ef",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"place\",\n      \"name\": \"Werkhalle Epsilon\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 3.358,
+      "entities": [
+        {
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "kind": "organization",
+          "start": 39,
+          "end": 56,
+          "role": "mentioned",
+          "quote": "Werkhalle Epsilon"
+        }
+      ],
+      "topics": [
+        {
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "category_id": "appointments",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 156
+        },
+        {
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 156
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-a949cedb61db",
+          "fingerprint": "c346ac2e29cdc6898e08fee36e371fc2f06d0864216f7d5a24eeb043e5e118fc",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"organization\",\n      \"name\": \"Werkhalle Epsilon\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.814,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-97f77ffd263c",
+          "fingerprint": "571a13e102593c64d33c8703457e4593c4629f8e3d3f18130e694f5e4cec3587",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 79
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-97f77ffd263c",
+          "fingerprint": "571a13e102593c64d33c8703457e4593c4629f8e3d3f18130e694f5e4cec3587",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.882,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-c67cdcd92bb2",
+          "fingerprint": "3e320703e4c970f26aab5ec601e47f7a0de5f863eb0e0e355d3a20dde570cb05",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 89
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c67cdcd92bb2",
+          "fingerprint": "3e320703e4c970f26aab5ec601e47f7a0de5f863eb0e0e355d3a20dde570cb05",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.692,
+      "entities": [
+        {
+          "episode_id": "e-42e75fced0aa",
+          "fingerprint": "e78c35152f3031971668810d70f5d67a18c7e29d2387e5ece165249cd68f0e2c",
+          "kind": "person",
+          "start": 0,
+          "end": 10,
+          "role": "mentioned",
+          "quote": "Noa Jansen"
+        }
+      ],
+      "topics": [
+        {
+          "episode_id": "e-42e75fced0aa",
+          "fingerprint": "e78c35152f3031971668810d70f5d67a18c7e29d2387e5ece165249cd68f0e2c",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 82
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-42e75fced0aa",
+          "fingerprint": "e78c35152f3031971668810d70f5d67a18c7e29d2387e5ece165249cd68f0e2c",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Noa Jansen\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 2.073,
+      "entities": [
+        {
+          "episode_id": "e-4d9d6d963cce",
+          "fingerprint": "c22d485393f68817ded32b929d5825d1577a306cb6952ec4f1be8e6e59b44bd1",
+          "kind": "person",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned",
+          "quote": "Nora Voss"
+        }
+      ],
+      "topics": [],
+      "state": [
+        {
+          "episode_id": "e-4d9d6d963cce",
+          "fingerprint": "c22d485393f68817ded32b929d5825d1577a306cb6952ec4f1be8e6e59b44bd1",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nora Voss\",\n      \"block_id\": \"B1\",\"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "person_gold": {
+    "RCS01": [
+      "Nora Voss"
+    ],
+    "RCS02": [
+      "Nola Voss"
+    ],
+    "RCS09": [
+      "Noa Jansen"
+    ],
+    "RCS10": [
+      "Nora Voss"
+    ],
+    "RCS14": [
+      "Emi Tanaka"
+    ],
+    "H01": [
+      "Lene Kühn"
+    ],
+    "H02": [
+      "Vera Noll",
+      "Veit Noll"
+    ],
+    "H03": [],
+    "H04": [
+      "Vera Noll"
+    ]
+  }
+}

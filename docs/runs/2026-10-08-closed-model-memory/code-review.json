@@ -1,0 +1,15 @@
+{
+  "revision": "ddc10fa1bd508e5cb7868e6dd8c605237ea60d71",
+  "reviewer": "independent audit_core_pipeline",
+  "blocking_findings": 0,
+  "reviewer_scoped_tests_passed": 105,
+  "root_affected_tests_passed": 230,
+  "limits_preserved": [
+    "64k document bytes",
+    "12k body chars",
+    "24 blocks",
+    "4k chars per block"
+  ],
+  "remote_quote_permission_and_occurrence_format_preserved": true,
+  "model_quality_report": "after-independent-content-review.json"
+}

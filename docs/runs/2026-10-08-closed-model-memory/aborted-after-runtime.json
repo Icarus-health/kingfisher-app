@@ -1,0 +1,168 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791494329.670183,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 35024
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 812256
+    },
+    {
+      "elapsed": 4.1,
+      "owned_rss_kib": 5101600
+    },
+    {
+      "elapsed": 6.12,
+      "owned_rss_kib": 5155872
+    },
+    {
+      "elapsed": 8.15,
+      "owned_rss_kib": 5261200
+    },
+    {
+      "elapsed": 10.18,
+      "owned_rss_kib": 5262064
+    },
+    {
+      "elapsed": 12.22,
+      "owned_rss_kib": 5262128
+    },
+    {
+      "elapsed": 14.26,
+      "owned_rss_kib": 5262128
+    },
+    {
+      "elapsed": 16.29,
+      "owned_rss_kib": 5262208
+    },
+    {
+      "elapsed": 18.32,
+      "owned_rss_kib": 5262240
+    },
+    {
+      "elapsed": 20.34,
+      "owned_rss_kib": 5263104
+    },
+    {
+      "elapsed": 22.37,
+      "owned_rss_kib": 5599728
+    },
+    {
+      "elapsed": 24.44,
+      "owned_rss_kib": 5631088
+    },
+    {
+      "elapsed": 26.47,
+      "owned_rss_kib": 5787504
+    },
+    {
+      "elapsed": 28.51,
+      "owned_rss_kib": 5988432
+    },
+    {
+      "elapsed": 30.54,
+      "owned_rss_kib": 6269680
+    },
+    {
+      "elapsed": 32.58,
+      "owned_rss_kib": 6557648
+    },
+    {
+      "elapsed": 34.68,
+      "owned_rss_kib": 6557648
+    },
+    {
+      "elapsed": 36.75,
+      "owned_rss_kib": 6893136
+    },
+    {
+      "elapsed": 38.78,
+      "owned_rss_kib": 7228736
+    },
+    {
+      "elapsed": 40.81,
+      "owned_rss_kib": 7567376
+    },
+    {
+      "elapsed": 42.84,
+      "owned_rss_kib": 7900032
+    },
+    {
+      "elapsed": 44.86,
+      "owned_rss_kib": 8233600
+    },
+    {
+      "elapsed": 46.89,
+      "owned_rss_kib": 8566496
+    }
+  ],
+  "completed": false,
+  "server_pid": 6851,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 6854,
+  "watchdog_stop": "sampled RSS or runtime limit exceeded",
+  "client_exit": -15,
+  "server_exit": 0,
+  "stopped_at": 1791494376.864296
+}

@@ -1,0 +1,183 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791494008.7478158,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 36048
+    },
+    {
+      "elapsed": 2.04,
+      "owned_rss_kib": 4454784
+    },
+    {
+      "elapsed": 4.07,
+      "owned_rss_kib": 5265376
+    },
+    {
+      "elapsed": 6.1,
+      "owned_rss_kib": 5498544
+    },
+    {
+      "elapsed": 8.14,
+      "owned_rss_kib": 5964608
+    },
+    {
+      "elapsed": 10.19,
+      "owned_rss_kib": 6248528
+    },
+    {
+      "elapsed": 12.21,
+      "owned_rss_kib": 6606736
+    },
+    {
+      "elapsed": 14.25,
+      "owned_rss_kib": 6609664
+    },
+    {
+      "elapsed": 16.29,
+      "owned_rss_kib": 6714784
+    },
+    {
+      "elapsed": 18.34,
+      "owned_rss_kib": 6943568
+    },
+    {
+      "elapsed": 20.36,
+      "owned_rss_kib": 7172640
+    },
+    {
+      "elapsed": 22.41,
+      "owned_rss_kib": 7402192
+    },
+    {
+      "elapsed": 24.45,
+      "owned_rss_kib": 7683456
+    },
+    {
+      "elapsed": 26.48,
+      "owned_rss_kib": 6793280
+    },
+    {
+      "elapsed": 28.51,
+      "owned_rss_kib": 5670688
+    },
+    {
+      "elapsed": 30.57,
+      "owned_rss_kib": 5471488
+    },
+    {
+      "elapsed": 32.62,
+      "owned_rss_kib": 5388928
+    },
+    {
+      "elapsed": 34.66,
+      "owned_rss_kib": 5399616
+    },
+    {
+      "elapsed": 36.68,
+      "owned_rss_kib": 5787696
+    },
+    {
+      "elapsed": 38.72,
+      "owned_rss_kib": 5787728
+    },
+    {
+      "elapsed": 40.75,
+      "owned_rss_kib": 6017568
+    },
+    {
+      "elapsed": 42.8,
+      "owned_rss_kib": 6219184
+    },
+    {
+      "elapsed": 44.84,
+      "owned_rss_kib": 6219216
+    },
+    {
+      "elapsed": 46.86,
+      "owned_rss_kib": 6399168
+    },
+    {
+      "elapsed": 48.89,
+      "owned_rss_kib": 6400560
+    },
+    {
+      "elapsed": 50.95,
+      "owned_rss_kib": 6400688
+    },
+    {
+      "elapsed": 52.98,
+      "owned_rss_kib": 6397888
+    },
+    {
+      "elapsed": 55.03,
+      "owned_rss_kib": 6379968
+    }
+  ],
+  "completed": true,
+  "server_pid": 5808,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 5811,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791494066.2953
+}

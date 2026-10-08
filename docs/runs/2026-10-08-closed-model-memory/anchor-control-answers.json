@@ -1,0 +1,626 @@
+{
+  "synthetic_only": true,
+  "scope": "scratch prompt/schema controls; not product dispatch",
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "rows": [
+    {
+      "id": "RCS01",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 5.205,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nora Voss\",\n      \"start\": 13,\n      \"end\": 24,\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"project\",\n      \"name\": \"KL-42\",\n      \"start\": 58,\n      \"end\": 63,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 3.225,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nola Voss\",\n      \"start\": 0,\n      \"end\": 12,\n      \"role\": \"sender\"\n    },\n    {\n      \"kind\": \"project\",\n      \"name\": \"Auftrag KL-24\",\n      \"start\": 38,\n      \"end\": 47,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.761,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.706,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 2.881,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"place\",\n      \"name\": \"Werkhalle Epsilon\",\n      \"start\": 29,\n      \"end\": 46,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 3.409,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"place\",\n      \"name\": \"Werkhalle Epsilon\",\n      \"start\": 32,\n      \"end\": 47,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.6,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.645,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 2.872,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Noa Jansen\",\n      \"start\": 4,\n      \"end\": 17,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.777,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS11",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.723,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS12",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.794,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"finance\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS13",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.729,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS14",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 3.36,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Emi Tanaka\",\n      \"start\": 4,\n      \"end\": 16,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 2.86,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Lene Kühn\",\n      \"start\": 12,\n      \"end\": 24,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H02",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 3.82,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Vera Noll\",\n      \"start\": 12,\n      \"end\": 23,\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"person\",\n      \"name\": \"Veit Noll\",\n      \"start\": 25,\n      \"end\": 34,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H03",
+      "arm": "reordered_absolute",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.724,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"information\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H04",
+      "arm": "reordered_absolute",
+      "ok": false,
+      "error": "ProviderError: Unbelegte Entität.",
+      "seconds": 3.808,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Vera Noll\",\n      \"start\": 4,\n      \"end\": 13,\n      \"role\": \"sender\"\n    },\n    {\n      \"kind\": \"organization\",\n      \"name\": \"support@example.invalid\",\n      \"start\": 20,\n      \"end\": 45,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"information\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS01",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Nora Voss",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned"
+        },
+        {
+          "kind": "project",
+          "quote": "KL-42",
+          "start": 64,
+          "end": 69,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 4.344,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nora Voss\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"project\",\n      \"name\": \"KL-42\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS02",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Nola Voss",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.266,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nola Voss\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS03",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.778,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS04",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.876,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS05",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.794,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS06",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.957,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS07",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.864,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS08",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.784,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS09",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Noa Jansen",
+          "start": 0,
+          "end": 10,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.376,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Noa Jansen\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS10",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Nora Voss",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.459,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Nora Voss\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS11",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.701,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS12",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.751,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"finance\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS13",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [],
+      "seconds": 1.847,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "RCS14",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Emi Tanaka",
+          "start": 0,
+          "end": 10,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.51,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Emi Tanaka\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Lene Kühn",
+          "start": 9,
+          "end": 18,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.305,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Lene Kühn\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H02",
+      "arm": "reordered",
+      "ok": false,
+      "error": "SourceValidationError: Entitätsstelle ist ungültig.",
+      "seconds": 3.5,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Vera Noll\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"person\",\n      \"name\": \"Veit Noll\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 2,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H03",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "organization",
+          "quote": "Kundenservice",
+          "start": 0,
+          "end": 13,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 2.334,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"organization\",\n      \"name\": \"Kundenservice\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "H04",
+      "arm": "reordered",
+      "ok": true,
+      "entities": [
+        {
+          "kind": "person",
+          "quote": "Vera Noll",
+          "start": 0,
+          "end": 9,
+          "role": "mentioned"
+        },
+        {
+          "kind": "organization",
+          "quote": "support@example.invalid",
+          "start": 24,
+          "end": 47,
+          "role": "mentioned"
+        }
+      ],
+      "seconds": 4.494,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Vera Noll\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"organization\",\n      \"name\": \"support@example.invalid\",\n      \"block_id\": \"B1\",\n      \"occurrence\": 1,\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "completed": true
+}
