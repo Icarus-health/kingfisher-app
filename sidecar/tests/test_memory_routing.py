@@ -256,6 +256,51 @@ def test_personal_recall_without_evidence_cannot_use_free_chat_answer(core, api,
     assert calls == []
 
 
+@pytest.mark.parametrize('question', [
+    'Welche Blutgruppe habe ich?',
+    'Welche Blutgruppe habe ich eigentlich?',
+    'Welche Blutgruppe habe ich denn?',
+    'Welche Versicherungsnummer hatten wir damals?',
+    'Wie lautet die PIN meiner Bankkarte?',
+    'Was ist meine Versicherungsnummer?',
+    'Wie hoch ist unser Restguthaben?',
+])
+def test_persoenliche_fakten_bleiben_ohne_treffer_beleggebunden(core, api, monkeypatch, question):
+    from icarus_memory.providers import Reply
+    calls = []
+
+    def erfindet_persoenliche_angabe(messages, tools):
+        calls.append((messages, tools))
+        return Reply(text='ERFUNDENE-PERSOENLICHE-ANGABE')
+
+    monkeypatch.setattr(core[1], 'complete', erfindet_persoenliche_angabe)
+    _, client = api
+    response = client.post(f'/api/v1/conversations/{conversation(client)}/messages',
+        json={'message': question})
+    assert response.status_code == 201
+    result = response.json()['messages'][-1]
+    context = result['metadata']['context']
+    assert context['answer_mode'] == 'memory_evidence'
+    assert context['answer_contract']['status'] == 'unknown'
+    assert 'ERFUNDENE-PERSOENLICHE-ANGABE' not in result['content']
+    assert calls == []
+
+
+@pytest.mark.parametrize('question', [
+    'Welche Blutgruppen gibt es?',
+    'Wie lautet die Formel für den Kreisumfang?',
+    'Wie hoch ist der Mount Everest?',
+    'Wie kann ich meine Versicherungsnummer herausfinden?',
+    'Was ist eine Versicherungsnummer?',
+    'Wie bereite ich mich auf mein Audit vor?',
+    'Welche Übungen kann ich morgens machen?',
+    'Welche Blutgruppe habe ich? Schick sie mir per Mail.',
+])
+def test_allgemeine_erklaerungen_und_auftraege_bleiben_im_chat(question):
+    from icarus_memory.memory_routing import route
+    assert route(question, working_available=False) == 'chat'
+
+
 @pytest.mark.parametrize('message', ['Was ist 17 plus 25?', 'Schreib einen Entwurf an Alex.',
     'Merke: Ich bevorzuge kurze Antworten.', 'Einkauf und schick ihm eine Mail'])
 def test_unrelated_questions_or_commands_leave_pending_selection(core, api, message):

@@ -3037,8 +3037,9 @@ def create_app(
         Der ausdrückliche Beginn bestimmt das Zeitfenster auch außerhalb des aktuellen Jahres.
         """
         from .nachbereitung import gleicher_beginn
+        from .datumstext import iso_lesen_streng
         try:
-            at = datetime.fromisoformat(start.replace('Z', '+00:00'))
+            at = iso_lesen_streng(start)
             if at.utcoffset() is None:
                 raise ValueError()
         except ValueError:

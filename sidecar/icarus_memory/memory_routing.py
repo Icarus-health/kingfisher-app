@@ -34,6 +34,14 @@ _PERSONAL_RECALL = re.compile(
     r'|(?:erinnerst du dich|kannst du dich (?:noch )?erinnern|wei(?:ß|ss)t du noch|kennst du)\b'
     r'.*\b(?:ich|mich|mir|mein\w*|wir|uns|unser\w*)\b'
     r')', re.I)
+# Direkte Fragen nach eigenen Angaben bleiben auch ohne Suchtreffer im
+# beleggebundenen Weg. „Wie kann ich …?“ und allgemeine Erklärungen sind
+# nicht gemeint; ausdrückliche Aktionen werden weiterhin vorher erkannt.
+_PERSONAL_FACT = re.compile(
+    r'^(?:welch\w*\s+[^.!?\n]{1,160}\s+(?:habe|haben|hatte|hatten)\s+(?:ich|wir)\b[^.!?\n]{0,160}\??$'
+    r'|(?:was|wer|wo|welch\w*|wie(?:\s+(?:hoch|groß|gross|teuer|alt|lang))?)\s+'
+    r'(?:ist|sind|war|waren|lautet|lauten|heißt|heisst|heißen|heissen|hat|haben)\b'
+    r'[^.!?\n]{0,160}\b(?:mein(?:e|en|er|es|em)?|unser(?:e|en|er|es|em)?)\b)', re.I)
 _DELIVERY_QUESTION = re.compile(
     r'^(?:wann|bis wann|wer|was) (?:schickt|sendet|verschickt|versendet|liefert)\b'
     r'(?P<rest>[^.!?\n]*)\??$', re.I)
@@ -124,7 +132,7 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     # continue through the ordinary chat route.
     if _RECORD_EXISTENCE.fullmatch(text):
         return 'memory_evidence'
-    if _PERSONAL_RECALL.search(text):
+    if _PERSONAL_RECALL.search(text) or _PERSONAL_FACT.search(text):
         return 'memory_evidence'
     if working_available and _gedaechtnisfrage(text, anfrage):
         return 'memory_evidence'

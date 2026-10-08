@@ -17,6 +17,7 @@ from .episodes import (CHAT_LOOKUP_TAG, IGNORIERTE_ZUSTAENDE, QUELLEN_ARTEN, Epi
                        sql_rohquelle, sql_sichtbar)
 from . import logbuch
 from .lexical import terms_v1
+from .source_index import FUNKTIONSWOERTER
 from .source_snapshot import EpisodeSupportSnapshot, canonical_instant, read_snapshot
 from .word_forms import alternatives, synonym_alternatives
 from .working_memory_words import candidate_words, query_words
@@ -804,7 +805,10 @@ class WorkingMemoryStore:
     def _query_terms(query: str) -> tuple[list[str], set[str], bool]:
         if type(query) is not str:
             raise ValueError("query must be text")
-        all_terms = sorted(terms_v1(query))
+        # Beide Suchstufen verwenden dieselben Sachwörter. Sonst verdrängen
+        # „habe“ oder „war“ echte Wortformtreffer und liefern Scheinbelege.
+        # Nur die Anfrage ändern; gespeicherte Tokens und Originale bleiben gleich.
+        all_terms = sorted(terms_v1(query) - FUNKTIONSWOERTER)
         terms = all_terms[:MAX_QUERY_TERMS]
         forms = set().union(*(alternatives(term) for term in terms)) - set(terms)
         synonyms = set().union(*(synonym_alternatives(term) for term in terms)) - set(terms) - forms

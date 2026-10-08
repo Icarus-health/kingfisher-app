@@ -1,6 +1,7 @@
 """Validation for explicitly bounded calendar API requests."""
 
 from datetime import datetime, timedelta
+from .datumstext import iso_lesen_streng
 
 MAX_CALENDAR_WINDOW = timedelta(days=400)
 
@@ -8,8 +9,8 @@ MAX_CALENDAR_WINDOW = timedelta(days=400)
 def parse_calendar_window(from_value: str, until_value: str) -> tuple[datetime, datetime]:
     """Parse an ISO timestamp range and require aware, increasing bounds of at most 400 days."""
     try:
-        start = datetime.fromisoformat(from_value.strip().replace("Z", "+00:00"))
-        end = datetime.fromisoformat(until_value.strip().replace("Z", "+00:00"))
+        start = iso_lesen_streng(from_value.strip())
+        end = iso_lesen_streng(until_value.strip())
     except (AttributeError, TypeError, ValueError) as exc:
         raise ValueError("Kalendergrenzen müssen ISO-Zeitstempel sein.") from exc
 

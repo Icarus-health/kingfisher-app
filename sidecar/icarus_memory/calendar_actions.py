@@ -18,6 +18,7 @@ from urllib.parse import quote
 import httpx
 
 from . import config
+from .datumstext import iso_lesen_streng
 from .google_oauth import CALENDAR_URL, SCOPES, GoogleError
 
 UPDATES = {'all', 'externalOnly', 'none'}
@@ -91,7 +92,7 @@ def _event_time(value):
     if not isinstance(value, str):
         raise ActionError('Beginn und Ende müssen eine Zeitzone enthalten.')
     try:
-        stamp = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        stamp = iso_lesen_streng(value)
     except ValueError:
         raise ActionError('Ungültige Terminzeit.') from None
     if stamp.tzinfo is None or stamp.utcoffset() is None:
