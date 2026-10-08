@@ -65,3 +65,37 @@ Quellenhelfer und bewusst ausgelöste Modellanfragen bleiben außerhalb dieses
 automatischen Zeitplan-Schutzes. Das Schließen des Fensters stoppt diese Prozesse
 nicht. Die Messung im echten Alltag nach vollständiger Aktualisierung bleibt
 offen.
+
+## Lokale Installation nach ausdrücklichem Auftrag
+
+Am 8. Oktober wurde anschließend der geprüfte Code `43da62e` auf dem Mac als
+`1.0.6-local.43da62e` installiert. Das ist ein lokal gebauter Entwicklungsstand,
+kein veröffentlichter Release und kein Merge. Native App und Container tragen
+dieselbe Fassung; das Containerbild hat zusätzlich die vollständige Git-Revision
+als Label. Der Buildkontext war ein sauberer Git-Export ohne lokale Daten.
+
+Vor dem Austausch wurden altes App-Bündel, private Konfiguration und das
+vollständige Datenvolume bei gestopptem Dienst gesichert. Vorher und direkt
+nachher identische Bestandszahlen und erfolgreiche SQLite-Integritätsprüfungen.
+Dasselbe Datenvolume und dieselben Zugänge wurden weiterverwendet. Private
+Rückwegdateien und die genauen Bestandszahlen liegen außerhalb des Repositorys.
+
+Beide Architekturen ließen sich typprüfen; beim vollständigen Linken scheiterte
+der Intel-Zusatzbuild an fehlenden x86_64-Kompatibilitätsbibliotheken der lokalen
+Command Line Tools. Installiert wurde das erfolgreich übersetzte und ad hoc
+signierte Apple-Silicon-Bündel für dieses Gerät. Ein universelles DMG wurde
+hierbei nicht fertiggestellt.
+
+Live geprüft: native Startseite, Aufgabenansicht und seitenübergreifende Uhr;
+authentifizierte Fassung und gesundes Containerbild; simulierte Akkumeldung mit
+sichtbarem Wartegrund ohne Fertigstellungstermin; anschließend selbsttätige
+echte Netzteilmeldung der App. Nach Beenden der App lief deren Meldung ab und
+der Dienst wartete, ohne eine manuelle Pause zu setzen. Erneuter App-Start
+lieferte wieder die echte Netzteilmeldung. Die zusätzliche alte Testinstanz
+wurde angehalten, ihre Daten bleiben erhalten. Andere Dienste wurden nicht
+verändert. Der persönliche Kingfisher bleibt zum Schluss geöffnet.
+
+Die Startseite meldete weiterhin einen nicht verbundenen Kalender und zeitweise
+eine nicht antwortende Gmail-Anbindung. Diese Quellenprobleme sind keine
+bestätigte erfolgreiche Integration. Auch ein messbar geringerer Akkuverbrauch
+über einen normalen Arbeitstag bleibt nach dieser Funktionsprüfung offen.
