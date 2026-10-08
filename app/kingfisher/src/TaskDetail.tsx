@@ -5,6 +5,7 @@ import {TaskRow} from './TaskRow';
 /** Exact lookup also works when a task is outside the current list/filter. */
 export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () => void}) {
   const [task, setTask] = useState<Task | null>(null);
+  const [goalStatement, setGoalStatement] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsFailed, setProjectsFailed] = useState(false);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -26,6 +27,17 @@ export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () =
     });
     return () => {active = false; alive.current = false; lifecycle.current++;};
   }, [taskId, revision]);
+  useEffect(() => {
+    let active = true;
+    if (!task?.goal_id) {setGoalStatement(null); return () => {active = false;};}
+    setGoalStatement(null);
+    api.goalHistory(task.goal_id).then(history => {
+      if (active) setGoalStatement(history.find(item => item.id === task.goal_id)?.statement ?? "Zielangabe nicht mehr verfügbar");
+    }).catch(() => {
+      if (active) setGoalStatement("Zielangabe nicht verfügbar");
+    });
+    return () => {active = false;};
+  }, [task?.goal_id]);
   useEffect(() => {
     let active = true;
     setProjectsLoading(true); setProjectsFailed(false);
@@ -50,6 +62,7 @@ export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () =
   return <div className="task-detail">
     {!task && !error && <p role="status">Aufgabe wird geladen …</p>}
     {error && <p role="alert">{error}{!task && <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut laden</button>}</p>}
+    {task?.goal_id && <p className="task-goal-link"><strong>Zielbezug:</strong> {goalStatement ?? "Ziel wird geladen …"}</p>}
     {projectsFailed && <p role="status">Projekte konnten nicht geladen werden. Die Projektzuordnung bleibt erhalten. <button type="button" disabled={busy} onClick={() => setProjectRevision(value => value + 1)}>Projekte erneut laden</button></p>}
     {task?.status === "dropped" && <p>Diese Aufgabe wurde verworfen: {task.title}</p>}
     {task && task.status !== "dropped" && <TaskRow task={task} view={task.status === 'done' ? 'done' : task.wartet_auf ? 'waiting' : 'mine'} completing={busy}

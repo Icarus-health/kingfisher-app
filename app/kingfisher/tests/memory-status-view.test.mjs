@@ -1,17 +1,19 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { memorySectionFromSearch } from "../src/MemoryAreaModel.ts";
 
 const src = new URL("../src/", import.meta.url);
 const read = (name) => readFileSync(new URL(name, src), "utf8");
 
 test("the status page can be opened directly without removing people review", () => {
   const graph = read("MemoryGraph.tsx");
-  assert.match(graph, /get\("view"\) === "status" \? "status" : "browse"/);
+  assert.equal(memorySectionFromSearch('?view=status'), 'status');
+  assert.match(graph, /memorySectionFromSearch\(window.location.search\)/);
   assert.match(graph, /const isReview = query\.get\("people"\) === "review"/);
   assert.match(graph, /setFilter\(isReview \? "people" : "areas"\)/);
   assert.match(graph, /setPersonFilter\(isReview \? "review" : "people"\)/);
-  assert.match(graph, /if \(query\.get\("view"\) === "status"\) setSection\("status"\)/);
+  assert.match(graph, /setSection\(memorySectionFromSearch\(window.location.search\)\)/);
 });
 
 test("coverage refreshes every 15 seconds while visible and cleans up after leaving status", () => {

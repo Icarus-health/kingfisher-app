@@ -14,6 +14,11 @@ export function ReviewPage({recentConversation}: {recentConversation: string | n
       <p>Hier stehen offene Fragen zu gespeicherten Angaben und Hinweise aus den Akten. Jede Entscheidung bleibt an den sichtbaren Quellenstand gebunden.</p>
       <p><a className="today-text-link" href="/today">Zurück zu Heute →</a> · <a className="today-text-link" href="/memory?people=review">Unklare Personen prüfen →</a> · <a className="today-text-link" href="/vorhaben?pruefen=1">Aufgabenvorschläge prüfen →</a></p>
       <KnowledgeQuestions active />
+      <section className="drawer-card">
+        <h2>Bestehende Angaben nachprüfen</h2>
+        <p>Prüfe, ob die Belege gespeicherter Angaben noch verfügbar sind. Ein erneut geprüfter Beleg bestätigt nicht automatisch, dass die Aussage heute noch gilt.</p>
+        <a className="today-text-link" href="/memory?view=support">Gespeicherte Angaben prüfen →</a>
+      </section>
       <WasAufgefallenIst active />
     </main>
   </div>;

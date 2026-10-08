@@ -1,4 +1,5 @@
 import threading
+from hashlib import sha256
 from types import SimpleNamespace
 
 from fastapi import FastAPI
@@ -13,10 +14,15 @@ class Store:
 
 
 class Episodes:
-    def __init__(self): self.head = None; self.n = 0
+    def __init__(self): self.head = None; self.n = 0; self.items = {}
     def source_head(self, _key): return None
-    def record(self, *args, **kwargs):
-        self.n += 1; return SimpleNamespace(id=f"e{self.n}"), True
+    def record(self, kind, title, body, provenance, **kwargs):
+        self.n += 1
+        episode = SimpleNamespace(id=f"e{self.n}", kind=kind, title=title, body=body,
+                                  provenance=provenance, digest="sha256:" + sha256(body.encode()).hexdigest())
+        self.items[episode.id] = episode
+        return episode, True
+    def get(self, episode_id): return self.items[episode_id]
     def advance_source_head(self, *args): pass
     def ignore(self, _episode_id): pass
 
@@ -45,13 +51,56 @@ def test_get_is_empty_and_does_not_fetch(monkeypatch):
 
 def test_consent_then_refresh_and_disable(monkeypatch):
     app, monitor = make(monkeypatch)
-    monitor.fetch = lambda _url: {"text": "public", "captured_at": "2026-01-01T00:00:00Z"}
+    monitor.fetch = lambda _url: {
+        "url": "https://final.example.test/public",
+        "text": "public excerpt",
+        "captured_at": "2026-01-01T00:00:00Z",
+        "source_sha256": "raw-response-hash",
+    }
     client = TestClient(app)
     added = client.post("/api/v1/world", json={"url": "https://example.test", "label": "Example", "topics": []})
     assert added.status_code == 201
     source_id = added.json()["id"]
     assert client.post(f"/api/v1/world/{source_id}/refresh").status_code == 200
+    listed = client.get("/api/v1/world").json()["items"][0]
+    assert listed["url"] == "https://example.test"
+    assert listed["fetched_url"] == "https://final.example.test/public"
+    assert listed["source_sha256"] == "sha256:" + sha256(b"public excerpt").hexdigest()
+    episode = app.state.episodes.get(listed["episode_id"])
+    assert episode.provenance.source_ref == "https://final.example.test/public"
+    assert episode.provenance.captured_at.isoformat().startswith("2026-01-01T00:00:00")
     assert client.post(f"/api/v1/world/{source_id}/disable").status_code == 200
+
+
+def test_legacy_source_without_fetch_metadata_remains_visible(monkeypatch):
+    app, monitor = make(monkeypatch)
+    app.state.settings.world_sources.append({
+        "id": "legacy", "url": "https://example.test", "label": "Legacy", "topics": [],
+        "enabled": True, "episode_id": None, "last_success": None,
+    })
+    response = TestClient(app).get("/api/v1/world")
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["url"] == "https://example.test"
+    assert item["fetched_url"] is None
+    assert item["source_sha256"] is None
+
+
+def test_legacy_episode_supplies_provenance_metadata_without_settings_migration(monkeypatch):
+    app, _monitor = make(monkeypatch)
+    episode = SimpleNamespace(
+        id="legacy-episode", provenance=SimpleNamespace(source_ref="https://example.test/final"),
+        digest="sha256:legacy-content-hash", state=SimpleNamespace(value="new"),
+    )
+    app.state.episodes.items[episode.id] = episode
+    app.state.settings.world_sources.append({
+        "id": "legacy", "url": "https://example.test", "label": "Legacy", "topics": [],
+        "enabled": True, "episode_id": episode.id, "last_success": "2026-01-01T00:00:00Z",
+    })
+    item = TestClient(app).get("/api/v1/world").json()["items"][0]
+    assert item["url"] == "https://example.test"
+    assert item["fetched_url"] == "https://example.test/final"
+    assert item["source_sha256"] == "sha256:legacy-content-hash"
 
 
 def test_topics_are_bounded(monkeypatch):

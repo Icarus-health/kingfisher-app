@@ -63,6 +63,11 @@ export function currentAreaNavigation(pager: MemoryAreaPager): MemoryAreaNavigat
   return {cursor: pager.history[pager.index], history: pager.history, index: pager.index};
 }
 
+export function memorySectionFromSearch(search: string): "browse" | "status" | "support" {
+  const view = new URLSearchParams(search).get("view");
+  return view === "support" || view === "status" ? view : "browse";
+}
+
 export function receiveAreaPage(navigation: MemoryAreaNavigation, page: MemoryAreasPage): MemoryAreaPager {
   return {page, history: navigation.history, index: navigation.index};
 }

@@ -35,6 +35,7 @@ import { SachenAkte } from "./AkteAbschnitte";
 import { CalendarPage } from "./CalendarPage";
 import { HabitControls } from "./HabitControls";
 import { WorldRadar } from "./WorldControls";
+import { WorldPage } from "./WorldPage";
 import { Messages } from "./Messages";
 import { SatzAntwort } from "./SatzAntwort";
 import { BelegQuellen } from "./BelegQuellen";
@@ -929,6 +930,7 @@ export function App() {
   if (path === '/review') return <ReviewPage recentConversation={recentConversation} />;
   if (path === '/development') return <DevelopmentPage recentConversation={recentConversation} />;
   if (path === "/settings") return <EinstellungenSeite recentConversation={recentConversation} />;
+  if (path === "/world") return <WorldPage recentConversation={recentConversation} />;
   if (path === "/vorhaben") return <Tasks recentConversation={recentConversation} />;
   if (path === "/nachrichten") return <Messages recentConversation={recentConversation} />;
   if (path === "/conversations") return <ConversationHistory recentConversation={recentConversation} rememberConversation={rememberConversation} />;

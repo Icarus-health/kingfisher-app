@@ -11,6 +11,7 @@ import { SachenListe } from "./SachenListe";
 import { SelfModelSupportReview } from "./SelfModelSupportReview";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
+import { memorySectionFromSearch } from "./MemoryAreaModel";
 
 type FilterId = "areas" | "people" | "projects" | "topics" | "decisions" | "documents" | "organizations" | "places" | "topic-files";
 
@@ -174,7 +175,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<FilterId>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "people" : "areas");
   const [section, setSection] = useState<"browse" | "status" | "support">(() =>
-    new URLSearchParams(window.location.search).get("view") === "status" ? "status" : "browse");
+    memorySectionFromSearch(window.location.search));
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const reviewSubmittingRef = useRef(false);
   const [personFilter, setPersonFilter] = useState<PersonFilter>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
@@ -196,12 +197,11 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
       // Ein History-Wechsel innerhalb von /memory darf die wirksame
       // Bestätigung nicht aushängen und ihre Auditwarnung verschlucken.
       if (reviewSubmittingRef.current) return;
-      setSection("browse");
+      setSection(memorySectionFromSearch(window.location.search));
       const query = new URLSearchParams(window.location.search);
       const isReview = query.get("people") === "review";
       setFilter(isReview ? "people" : "areas");
       setPersonFilter(isReview ? "review" : "people");
-      if (query.get("view") === "status") setSection("status");
     };
     window.addEventListener("popstate", applyPeopleQuery);
     return () => window.removeEventListener("popstate", applyPeopleQuery);

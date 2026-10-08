@@ -248,6 +248,14 @@ def test_personal_development_deep_link_serves_the_packaged_ui(tmp_path, ui) -> 
     assert response.text == client.get('/today').text
 
 
+def test_world_knowledge_deep_link_serves_the_packaged_ui(tmp_path, ui) -> None:
+    client = TestClient(_app(tmp_path, ui))
+    response = client.get('/world')
+    assert response.status_code == 200
+    assert 'text/html' in response.headers['content-type']
+    assert response.text == client.get('/today').text
+
+
 def test_browser_ui_erhaelt_lokale_httponly_sitzung(tmp_path, ui) -> None:
     """Die Kernfrage des Containerbetriebs.
 

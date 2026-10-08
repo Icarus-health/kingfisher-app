@@ -17,6 +17,14 @@ const sources = [
   { episode_id: "pending", status: "pending", categories: [] },
 ];
 
+test('saved-claim review has a stable direct entry without changing area defaults', async () => {
+  const { memorySectionFromSearch } = await import('../src/MemoryAreaModel.ts');
+  assert.equal(memorySectionFromSearch('?view=support'), 'support');
+  assert.equal(memorySectionFromSearch('?view=status'), 'status');
+  assert.equal(memorySectionFromSearch('?area=health'), 'browse');
+  assert.equal(memorySectionFromSearch('?view=unknown'), 'browse');
+});
+
 test("the four agreed views are present even without health hints", () => {
   assert.deepEqual(MEMORY_AREAS.map(area => area.label), [
     "Arbeit & Projekte", "Privat & Familie", "Gesundheit", "Finanzen & Verträge",

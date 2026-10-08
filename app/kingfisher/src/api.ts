@@ -425,6 +425,7 @@ export type Task = {
   notes: string | null;
   tags: string[];
   project_id: string | null;
+  goal_id?: string | null;
   wartet_auf: string | null;
   wartet_seit: string | null;
   wartet_tage: number | null;
@@ -1268,7 +1269,7 @@ export const api = {
   assignTaskProject: (id: string, project_id: string | null) => request<Task>(`/api/v1/tasks/${id}/project`, {method: "PATCH", body: JSON.stringify({project_id})}),
   editTask: (id: string, data: {title?: string; due?: string | null; remind_at?: string | null; expected_remind_at?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
   taskReminders: (limit = 100) => request<{items: Task[]; truncated: boolean}>(`/api/v1/tasks/reminders?limit=${limit}`),
-  addTask: (data: { title: string; due?: string | null; project_id?: string }) =>
+  addTask: (data: { title: string; due?: string | null; project_id?: string; goal_id?: string | null }) =>
     request<Task>("/api/v1/tasks", { method: "POST", body: JSON.stringify(data) }),
   waitTask: (id: string, name: string) => request<Task>(`/api/v1/tasks/${id}/warten`, {method: "POST", body: JSON.stringify({name})}),
   unwaitTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/zurueckholen`, {method: "POST"}),

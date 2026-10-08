@@ -85,6 +85,13 @@ class Task:
     entsteht — das wäre dieselbe flache Liste mit mehr Schritten.
     """
 
+    goal_id: str | None = None
+    """Welches ausdrücklich festgehaltene Ziel diese Aufgabe voranbringt.
+
+    Die Beziehung ist dauerhaft: Ein späterer Abschluss des Ziels ändert
+    nicht, warum die Aufgabe angelegt wurde.
+    """
+
     remind_at: datetime | None = None
     """Wiedervorlage unabhängig von der Fälligkeit und vom Wartestatus."""
 
@@ -125,6 +132,7 @@ class Task:
             "done_at": iso(self.done_at),
             "tags": list(self.tags),
             "project_id": self.project_id,
+            "goal_id": self.goal_id,
             "wartet_auf": self.wartet_auf,
             "wartet_seit": iso(self.wartet_seit),
             "wartet_tage": self.wartet_tage(),
@@ -204,7 +212,7 @@ def _verify_v1(connection: sqlite3.Connection) -> None:
 
 # Deliberately only prerequisite state history, not a Matter/Obligation model.
 # No copied title, notes, source quote or claimed authenticated actor.
-_HISTORY_FIELDS = ("id", "created_at", "status", "due", "remind_at", "done_at", "project_id",
+_HISTORY_FIELDS = ("id", "created_at", "status", "due", "remind_at", "done_at", "project_id", "goal_id",
                    "wartet_auf", "wartet_seit")
 _HISTORY_SCHEMA = {"sequence", "task_id", "kind", "recorded_at", "business_at",
                    "before_state", "after_state"}
@@ -302,6 +310,7 @@ class TaskStore:
         notes: str | None = None,
         tags: list[str] | None = None,
         project_id: str | None = None,
+        goal_id: str | None = None,
         at: datetime | None = None,
     ) -> Task:
         task = Task(
@@ -314,6 +323,7 @@ class TaskStore:
             notes=notes,
             tags=list(tags or []),
             project_id=project_id,
+            goal_id=goal_id,
         )
         with self._transaction():
             self._write(task)
@@ -610,6 +620,7 @@ class TaskStore:
             done_at=_parse(d.get("done_at")),
             tags=list(d.get("tags", [])),
             project_id=d.get("project_id"),
+            goal_id=d.get("goal_id"),
             wartet_auf=d.get("wartet_auf"),
             wartet_seit=_parse(d.get("wartet_seit")),
         )

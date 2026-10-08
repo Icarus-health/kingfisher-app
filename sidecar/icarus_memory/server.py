@@ -394,6 +394,7 @@ class TaskIn(BaseModel):
     notes: str | None = None
     tags: list[str] = Field(default_factory=list)
     project_id: str | None = None
+    goal_id: str | None = Field(default=None, max_length=200)
 
 
 class MailTaskIn(BaseModel):
@@ -4582,14 +4583,16 @@ def create_app(
     @app.post("/api/v1/tasks", dependencies=guard, status_code=201)
     def add_kingfisher_task(body: TaskIn) -> dict[str, Any]:
         """Legt eine ausdrücklich eingegebene Aufgabe mit Nutzerherkunft an."""
-        _validate_task_project(body.project_id)
-        return app.state.tasks.add(
-            body.title,
-            Provenance(source_type=SourceType.USER_STATED,
-                       captured_at=datetime.now().astimezone()),
-            due=body.due, notes=body.notes, tags=body.tags,
-            project_id=body.project_id,
-        ).to_dict()
+        with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
+            _validate_task_goal(body.goal_id)
+            return app.state.tasks.add(
+                body.title,
+                Provenance(source_type=SourceType.USER_STATED,
+                           captured_at=datetime.now().astimezone()),
+                due=body.due, notes=body.notes, tags=body.tags,
+                project_id=body.project_id, goal_id=body.goal_id,
+            ).to_dict()
 
     def _validate_task_project(project_id: str | None) -> None:
         if project_id is not None:
@@ -4597,6 +4600,15 @@ def create_app(
                 app.state.workspace.project(project_id)
             except WorkspaceError as exc:
                 raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    def _validate_task_goal(goal_id: str | None) -> None:
+        if goal_id is None:
+            return
+        goal = app.state.store.get(goal_id)
+        if (goal is None or goal.kind is not Kind.GOAL
+                or (goal.structured or {}).get("domain") == "habit"
+                or not any(item.id == goal_id for item in app.state.store.usable())):
+            raise HTTPException(status_code=409, detail="Das Ziel ist nicht mehr offen. Bitte neu laden.")
 
     @app.patch("/api/v1/tasks/{task_id}", dependencies=guard)
     def edit_kingfisher_task(task_id: str, body: TaskEditIn) -> dict[str, Any]:
@@ -4706,15 +4718,17 @@ def create_app(
 
     @app.post("/tasks", dependencies=guard, status_code=201)
     def add_task(body: TaskIn) -> dict[str, Any]:
-        _validate_task_project(body.project_id)
-        task = app.state.tasks.add(
-            body.title,
-            Provenance(source_type=SourceType.USER_STATED,
-                       captured_at=datetime.now().astimezone()),
-            due=body.due, notes=body.notes, tags=body.tags,
-            project_id=body.project_id,
-        )
-        return task.to_dict()
+        with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
+            _validate_task_goal(body.goal_id)
+            task = app.state.tasks.add(
+                body.title,
+                Provenance(source_type=SourceType.USER_STATED,
+                           captured_at=datetime.now().astimezone()),
+                due=body.due, notes=body.notes, tags=body.tags,
+                project_id=body.project_id, goal_id=body.goal_id,
+            )
+            return task.to_dict()
 
     @app.post("/tasks/{task_id}/done", dependencies=guard)
     def complete_task(task_id: str) -> dict[str, Any]:
@@ -6132,6 +6146,10 @@ def create_app(
 
         @app.get("/today", include_in_schema=False)
         def today_ui() -> FileResponse:
+            return ui_response()
+
+        @app.get("/world", include_in_schema=False)
+        def world_ui() -> FileResponse:
             return ui_response()
 
         @app.get("/memory", include_in_schema=False)
