@@ -113,6 +113,27 @@ SCHEMA = {
                 'belege': {'type': 'array', 'minItems': 1, 'maxItems': MAX_BELEGE_JE_SATZ,
                            'items': {'type': 'integer', 'minimum': 1, 'maximum': MAX_BELEGE}}}}}}}
 
+# Bei Bedingungsregeln wählt das Modell nur Stellen. Das Programm kopiert deren
+# Wortlaut; auch diese Sätze müssen anschließend durch dieselben Prüftore.
+ORIGINAL_SCHEMA = {
+    'type': 'object', 'additionalProperties': False, 'required': ['originalstellen', 'status'],
+    'properties': {
+        'status': {'type': 'string', 'enum': list(STATI)},
+        'originalstellen': {'type': 'array', 'maxItems': MAX_SAETZE, 'items': {
+            'type': 'object', 'additionalProperties': False, 'required': ['beleg', 'satz'],
+            'properties': {'beleg': {'type': 'integer', 'minimum': 1, 'maximum': MAX_BELEGE},
+                           'satz': {'type': 'integer', 'minimum': 1}}}}}}
+
+ORIGINAL_ANWEISUNG = (ANWEISUNG.replace(
+    'Antworte ausschließlich mit JSON: {"saetze":[{"text":"…","belege":[1]}],"status":"antwort|nichts_vorliegend|unklar"}.',
+    'Antworte ausschließlich mit JSON: {"originalstellen":[{"beleg":1,"satz":1}],"status":"antwort|nichts_vorliegend|unklar"}.')
+    + '\nIn diesem Modus schreibst du KEINEN Antworttext. Wähle höchstens fünf passende Originalstellen aus '
+      '„originalsaetze“ der Belege. „beleg“ ist die Belegnummer, „satz“ die Nummer der Stelle in diesem Beleg. '
+      'Kingfisher übernimmt ihren vollständigen Wortlaut. Wähle nur Stellen, die die Frage beantworten. '
+      'Eine Regel belegt nicht, dass ihre Voraussetzung erfüllt ist. Fehlt eine Antwort, wähle keine Stellen '
+      'und status nichts_vorliegend; bei Widersprüchen oder Unklarheit status unklar. '
+      'Erfinde keine Nummern und gib keine zusätzlichen Felder aus.')
+
 #: Was den Wandel einer Angabe benennt; ein Satz mit überholter Angabe braucht eines dieser Wörter.
 _WANDEL = re.compile(
     r'verschob|verlaenger|verl(?:ä|ae)nger|ge(?:ä|ae)ndert|ersetzt|vorher|bisher|fr(?:ü|ue)her|zuvor|ursprünglich|'
@@ -488,6 +509,68 @@ def nachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: datetime) -> 
     return [{'role': 'system', 'content': ANWEISUNG}, {'role': 'user', 'content': json.dumps(nutzer, ensure_ascii=False)}]
 
 
+def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], str]:
+    """Nur vollständige, sichtbare Originalabschnitte; niemals versteckten Volltext anbieten.
+
+    Die Grenzen entsprechen der groben Satzprüfung (Doppelpunkte bleiben erhalten).
+    Bei einem gekürzten Auszug beweist der Volltext die Abschnittsgrenzen. Ein
+    abgeschnittenes Stück wird weder vervollständigt noch als ganzer Satz angeboten.
+    """
+    stellen = {}
+    for beleg in belege:
+        if beleg.gekuerzt and not beleg.pruef_text:
+            continue
+        nummer = 0
+        for match in re.finditer(r'.+?(?:[!?]|(?<!\d)\.(?!\d)|\n|$)',
+                                 beleg.pruef_text or beleg.text, re.S):
+            text = match.group().strip()
+            if (not text or len(text) > MAX_SATZ_ZEICHEN or text not in beleg.text
+                    or '[…]' in text or '[gekürzt,' in text):
+                continue
+            nummer += 1
+            stellen[beleg.nummer, nummer] = text
+    return stellen
+
+
+def _originalnachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: datetime,
+                         stellen: dict[tuple[int, int], str]) -> list[dict[str, str]]:
+    messages = nachrichten(frage, belege, jetzt)
+    nutzer = json.loads(messages[-1]['content'])
+    for beleg in nutzer['belege']:
+        beleg.pop('text')
+        beleg['originalsaetze'] = [{'nr': satz, 'text': text}
+                                   for (nr, satz), text in stellen.items() if nr == beleg['nr']]
+    return [{'role': 'system', 'content': ORIGINAL_ANWEISUNG},
+            {'role': 'user', 'content': json.dumps(nutzer, ensure_ascii=False)}]
+
+
+def _original_lesen(antwort: Any, stellen: dict[tuple[int, int], str]) -> tuple[str, list[Satz]]:
+    """Resolve only server-issued IDs; legacy text still goes through all old gates."""
+    if getattr(antwort, 'tool_calls', None):
+        raise ValueError('Werkzeugaufruf')
+    text = getattr(antwort, 'text', None)
+    if not isinstance(text, str) or len(text) > MAX_ANTWORT_ZEICHEN:
+        raise ValueError('Antwortgröße')
+    roh = json.loads(text)
+    if type(roh) is dict and set(roh) == {'saetze', 'status'}:
+        return _lesen(antwort)
+    if (type(roh) is not dict or set(roh) != {'originalstellen', 'status'}
+            or roh['status'] not in STATI or type(roh['originalstellen']) is not list
+            or len(roh['originalstellen']) > MAX_SAETZE):
+        raise ValueError('Format')
+    saetze, gesehen = [], set()
+    for stelle in roh['originalstellen']:
+        if (type(stelle) is not dict or set(stelle) != {'beleg', 'satz'}
+                or type(stelle['beleg']) is not int or type(stelle['satz']) is not int):
+            raise ValueError('Originalstelle')
+        key = stelle['beleg'], stelle['satz']
+        if key not in stellen or key in gesehen:
+            raise ValueError('Originalstelle unbekannt oder doppelt')
+        gesehen.add(key)
+        saetze.append(Satz(stellen[key], (str(key[0]),)))
+    return roh['status'], saetze
+
+
 def _lesen(antwort: Any) -> tuple[str, list[Satz]]:
     """Liest die Ausgabe des Modells streng; wirft ValueError bei allem, was nicht genau dem Schema folgt."""
     if getattr(antwort, 'tool_calls', None):
@@ -524,9 +607,13 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         return Versuch('zitate', grund='kein lokales Modell', tor=tor)
     modell = f'{getattr(anbieter, "name", "")} {getattr(anbieter, "model", "")}'.strip()
     try:
+        originalmodus = any(bedingte_regeln_fuer_antwort(b.pruef_text or b.text) for b in belege)
+        stellen = _originalstellen(belege) if originalmodus else {}
+        messages = (_originalnachrichten(frage, belege, jetzt, stellen) if originalmodus
+                    else nachrichten(frage, belege, jetzt))
         with zeitmessung.messen(zeiten, 'saetze_modell'):
-            antwort = anbieter.complete_json(nachrichten(frage, belege, jetzt), max_tokens=700, schema=SCHEMA)
-        status, saetze = _lesen(antwort)
+            antwort = anbieter.complete_json(messages, max_tokens=700, schema=ORIGINAL_SCHEMA if originalmodus else SCHEMA)
+        status, saetze = _original_lesen(antwort, stellen) if originalmodus else _lesen(antwort)
     except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells führt zu den Zitaten, nie zu einer Antwort ohne Beleg
         return Versuch('zitate', grund=f'Modell ohne brauchbare Ausgabe ({type(fehler).__name__})', modell=modell, tor=tor)
     versuch = _urteilen(status, saetze, belege, jetzt, zusatz_woerter, modell, tor, zeiten)

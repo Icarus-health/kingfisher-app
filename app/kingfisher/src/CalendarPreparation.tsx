@@ -8,7 +8,7 @@ import { Herkunft } from "./HerkunftAnzeige";
 const WORKING_KIND_LABELS: Record<string, string> = {
   request: "Bitte", commitment: "Zusage", conditional: "Bedingte Aussage",
   change: "Änderung", status: "Statusmeldung", fact: "Angabe",
-  uncertain: "Unklar zugeordnet", historical: "Frühere Aussage",
+  uncertain: "Unklar zugeordnet", historical: "Zeitbezug ungeklärt",
 };
 
 type Props = {
