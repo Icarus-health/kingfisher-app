@@ -39,7 +39,7 @@ nicht automatisch mit Identitäten verschmolzen. Der Ausschnitt ist auf 500
 Quellen und höchstens 200 Hinweise begrenzt; fehlendes Quelldatum wird nicht als
 aktuelles Ereignis ausgegeben.
 
-## Prüfung
+## Ursprüngliche Funktionsprüfung
 
 - Abschließender Lauf: 308 betroffene Backendtests bestanden: OAuth/Provider/Cloudjobs, Kategorien,
   Arbeitsgedächtnis, Personen, Mailintake, Sicherung und vollständige getrennte
@@ -57,7 +57,7 @@ aktuelles Ereignis ausgegeben.
   unvollständige/zu große Streams einschließlich fehlendem Zeilenende,
   Kontingentende auch bei der zweiten Einordnung, kein doppelter Worker nach
   Pause, Quellenänderung, manuelle Korrektur und Paging ohne ausgelassene Quellen.
-- Keine vollständige grüne Gesamtsuite behauptet: ein abgebrochener breiter
+- Damaliger Prüfstand ohne vollständige grüne Gesamtsuite: ein abgebrochener breiter
   Zusatzlauf traf Sandbox-Socket-/Gerätemessungsfehler sowie einen bereits in
   HEAD vorhandenen Datumsparser-Vertrag. Der durch die neue Sicherungsdatei
   betroffene vollständige Wiederherstellungstest wurde ergänzt und besteht im
@@ -74,9 +74,12 @@ begrenzte Mailprobe sind unten von den künstlichen Tests getrennt dokumentiert.
 Entitätsantworten und 15 Verarbeitungsgrenzen. Das Arbeitsgedächtnis ist bei
 99 Quellen vollständig. Der große Lauf bleibt gesperrt. Die abschließende,
 auch inhaltliche Prüfung steht in [pilot100-pruefung.md](pilot100-pruefung.md).
-Die aktuelle Mac-Fassung ist **1.0.6-local.160cfd7** mit vier Gedächtnisbereichen
-und getrennter Absenderidentität. Die erneute Nachprüfung derselben sieben Mails
-besteht jetzt beide Schichten bei allen sieben Quellen, mit 22 Modellanfragen
+Die aktuelle Mac-Fassung ist **1.0.6-local.83da66f** mit vier Gedächtnisbereichen,
+getrennter Absenderidentität, weniger Suchrauschen und modellfreier wörtlicher
+Quellenanzeige. Die Offline-Abrufprüfung, ihre offenen Umschreibungsschwächen
+und die tatsächlichen Mac-Bedienproben stehen in [abrufpruefung.md](abrufpruefung.md).
+Die erneute Nachprüfung derselben sieben Mails mit der zuvor installierten
+Fassung `160cfd7` bestand beide Schichten bei allen sieben Quellen, mit 22 Modellanfragen
 und 145 geprüften Originalbereichen. Das ersetzt keine erfolgreiche 100-Mail-
 Qualitätsprobe; der große Lauf bleibt gesperrt. Verhalten, Migration, Sicherung,
 Bedienprüfung und Tests stehen in [bereiche-und-absender.md](bereiche-und-absender.md).

@@ -3,8 +3,9 @@
 ## Umfang
 
 Eine getrennte lokale Kopie des gesicherten Bestands mit 340 Originalquellen
-wurde geprüft. Kein großer Import, keine Neueinordnung, keine Modellinferenz
-und keine Änderung des laufenden Bestands für die Prüfversuche. Private Fragen,
+wurde geprüft. Diese Offlineprüfung erfolgte ohne großen Import, Neueinordnung,
+Modellinferenz oder Änderung des laufenden Bestands. Die anschließenden
+Bedienproben sind unten separat dokumentiert. Private Fragen,
 Originaltexte, Kennungen und vollständige Ergebnisse bleiben außerhalb des
 Repositorys. Dieser Bericht enthält ausschließlich aggregierte Befunde;
 Regressionstests verwenden künstliche Daten.
@@ -50,6 +51,19 @@ Kalenderfenstern und Terminnachbereitung den vorhandenen zentralen strengen
 Parser. Dieselbe Konvertierung und Fehlerbehandlung bleiben erhalten. Der schon
 vor diesem Nachtrag rote zentrale Datumsvertrag besteht damit wieder; die
 Ausnahmeliste wurde nicht erweitert.
+
+Die anschließende positive Bedienprobe fand einen weiteren echten Fehler:
+Eine ausdrücklich wörtliche Quellenfrage wurde bei bereits eingeordneten
+Quellen zuerst an die Modellauswahl gegeben. War das lokale Modell aus,
+scheiterte die Anzeige trotz vorhandener Originalstelle. Ein neuer HTTP-Test
+reproduzierte `working_selection_failed`. Nun hat diese eng begrenzte Anzeige
+Vorrang vor Fragenmodell, Bedeutungssuche und Auswahlmodell. Der Test verlangt
+null Aufrufe von `complete` und `complete_json` und prüft anschließend den
+Quellenentzug im alten Gespräch. Lokaler Zugriffsschutz, Quellenfingerabdruck,
+Prüfung revidierter Ableitungen und die Abgrenzung zu Anschlussfragen bleiben
+erhalten. Zehn Quellenantwort-HTTP-Tests und 183 betroffene Abruf-/Verlaufs-/
+Routingtests bestehen; das unabhängige Review fand keine weiteren konkreten
+Blocker in diesem Nachtrag.
 
 ## Gemessener Abruf
 
@@ -102,8 +116,72 @@ als Kandidaten erscheinen; Kandidaten sind niemals schon Antworten.
 - 80 Routing-/Suchrauschtests einschließlich Reviewgegenfällen bestanden.
 - 57 Datums-, Kalenderaktions-, Kalenderfenster- und Nachbereitungstests
   bestanden, einschließlich des zuvor roten zentralen Parservertrags.
-- Vollständiger abschließender Backendlauf und Mac-Installation werden erst
-  nach tatsächlichem Abschluss nachgetragen; hier nicht vorweggenommen.
+- 17 Diagnoseskripttests bestanden. Die bestehende 22-Fragen-Probe für den
+  separaten vorbereiteten Claim-Abruf bleibt bei 13/22 exakten Ergebnissen;
+  dafür wurde kein Embedder oder Modell initialisiert.
+- Der breite Lauf vor dem letzten Quellenanzeige-Nachtrag bestand mit 5.174
+  Tests, einem übersprungenen Test und zwei vorhandenen Warnungen. Der
+  abschließende Gesamtlauf von `83da66f` bestand mit **5.178 Tests, einem
+  übersprungenen Test und zwei vorhandenen Warnungen** in 13:51 Minuten.
+  Ein zunächst ohne lokale Socketfreigabe gestarteter Zusatzlauf
+  wurde nach reproduzierten Sandboxfehlern der künstlichen DNS-/HTTP-Server
+  abgebrochen und mit Freigabe neu gestartet; keine Produktionskorrektur an
+  diesen Tests.
+
+## Mac-Installation und tatsächliche Bedienung
+
+Installiert ist **1.0.6-local.83da66f**, Code
+`83da66f82b840d7c875d9e595b93cbfffb7e8151`. Der Container wurde aus einem
+sauberen Git-Archiv ohne private Daten gebaut; die bestehende native Hülle
+wurde mit aktualisierter Fassung erneut lokal signiert. Kein neuer universeller
+Mac-Build wird behauptet. Datenvolume und ausschließlich lokale Portbindung
+bleiben erhalten.
+
+Vor jedem Austausch wurden App, private Einstellungen und das gesamte kalte
+Datenvolume außerhalb des Repositorys gesichert. Der abschließende Rückweg
+liegt unter `Kingfisher-Rueckweg/2026-10-08-83da66f-installed` im Codex-
+Dokumentenordner. Die separate Bestandskopie behält Schema 19, alle Originale
+und alle geprüften Ableitungstabellen unverändert. Die 342 unmittelbar vor
+diesem Austausch vorhandenen Episoden behalten ihre Digests; darunter sind
+die 340 ursprünglichen Quellen und zwei vorherige Bedienprüfungsfragen.
+17 SQLite-Dateien bestehen `quick_check`. ChatGPT-Anmeldung und Intake-
+Einstellungen bleiben erhalten. Die lokale Modellauswertung bleibt aus;
+der Mailabruf selbst ist nicht pausiert.
+
+Im tatsächlichen nativen App-Fenster wurden nach Installation geprüft:
+
+- Eine ausdrücklich wörtliche Suche zeigt eine vorhandene historische
+  Absage als „Quelle berichtet · nicht bestätigt“, mit ihrem ursprünglichen
+  Quelldatum aus 2021 und getrenntem Erfassungsdatum aus 2026. Antwortvertrag:
+  `source_report`, ein Originalverweis, kein Aufruf des Antwortmodells.
+- Die unbelegte persönliche Faktenfrage wird als nicht beantwortbar angezeigt.
+  Antwortvertrag: `unknown`, kein Aufruf des Antwortmodells.
+- Beide Prüfungsfragen sind reine Abrufe und werden nicht als neue
+  persönliche Tatsachen gelernt. Das Fenster steht anschließend wieder in
+  **Gedächtnis → Bereiche**.
+
+Diese zwei Bedienproben belegen die geprüften Fälle, keine generelle richtige
+Interpretation aller Mails. Es wurden weder Ollama-Modelle gestartet noch
+weitere Cloudanfragen oder Neu-Einordnungen ausgeführt.
+
+## Nächster Qualitätsnachweis
+
+Der nächste Schritt ist ein begrenzter Vergleich des bereits vorhandenen
+vollständigen Abrufwegs – Fragenverständnis, kombinierte Suche und beleggebundene
+Auswahl – auf vorab festgelegten, nicht zum Nachbessern benutzten Fragen. Dazu
+gehören Umschreibungen, gleichnamige Personen, historische und abgesagte Termine,
+Zitate sowie Fragen ohne belegbare Antwort. Erwartet werden Originalquelle,
+entscheidender Wortlaut, Person, Zeitbezug und Aussagevorbehalt; bloße Wort-
+oder Namensübereinstimmung zählt nicht als richtige Antwort.
+
+Quellenabruf und fertige Antwort werden getrennt bewertet, ebenso falsche
+Antworten und ehrliche Nichtantworten. Laufzeit, Modellaufrufe und Speicherbedarf
+gehören zur Prüfung. Weitere Synonymlisten oder ein Modellwechsel gelten erst
+nach diesem Vergleich als Verbesserung. Ein kostenpflichtiger oder privater
+Cloudvergleich wird durch diesen Plan nicht aktiviert. Danach folgt die
+vollständige 100-Mail-Qualitätsprobe; der große Import bleibt bis zur technischen
+und inhaltlichen Freigabe geschlossen. Bestehende Daten müssen dafür nicht
+gelöscht oder neu aufgebaut werden.
 
 Keine GitHub-CI-Wiederholung. Keine neue Cloudfreigabe, kein weiterer bezahlter
 Auftrag und kein freigegebener Bulk-Import. Die ursprüngliche 100-Mail-Probe
