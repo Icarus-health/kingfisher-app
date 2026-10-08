@@ -26,16 +26,28 @@ Nutze keine Werkzeuge. Antworte ausschließlich mit JSON: {"items":[{"block_id":
 Jede Block-ID muss genau einmal vorkommen. Erzeuge keine eigenen Texte, Zitate, Aktionen,
 Personen-Zuordnungen oder Datumsauflösungen. Bewahre Bedingungen in ihrer ursprünglichen Form:
 - request: eine tatsächlich ausgesprochene Bitte oder Aufforderung, keine Zusage.
-- commitment: eine ausdrückliche eigene Zusage, keine Bitte, Absicht oder Möglichkeit.
+- commitment: eine ausdrückliche Zusage des Sprechers dieses Quellenblocks, keine Bitte, Absicht oder Möglichkeit.
 - conditional: eine Bedingung, ein Vorbehalt oder nur hypothetische Bitte/Zusage.
 - change: eine ausdrücklich mitgeteilte Änderung oder Korrektur eines früheren Stands.
 - status: aktueller Stand, einschließlich ausdrücklicher Absage, Negation oder Ablehnung.
 - fact: konkrete, unbedingte Quellenaussage ohne Auftrag oder Zusage.
 - uncertain: unklare Zuordnung, Gerücht oder unsicherer Sachverhalt.
-- historical: zitierte oder alte Nachricht; nicht als neue Bitte oder Zusage behandeln.
+- historical: klar als frühere Nachricht erkennbarer oder wörtlich zitierter Inhalt; nicht als neue Bitte oder Zusage behandeln.
 - irrelevant: ohne verwertbare Aussage für das Arbeitsgedächtnis.
-Beachte den gesamten Quellenkontext: Eine zitierte alte Bitte ist historical, eine aktuelle
-Absage ist status; eine Bitte ist niemals automatisch eine commitment. Im Zweifel uncertain."""
+Beachte diese Abgrenzungen:
+- `request` gilt nur für ein konkretes persönliches Anliegen an den Empfänger, etwa eine Bitte um Antwort,
+  Entscheidung, Prüfung, Versand oder Zahlung. Werbung sowie allgemeine Aufforderungen zum Klicken, Anmelden,
+  Bewerten, Weiterempfehlen oder zur Bedienung eines Dienstes sind `irrelevant`, auch wenn sie grammatisch
+  imperativ sind. Automatische Produkt- und Servicehinweise sind nicht automatisch persönliche Bitten.
+- `commitment` beschreibt ausschließlich, was der Sprecher des Quellenblocks selbst ausdrücklich zusagt.
+  In einer Mail ist das grundsätzlich der Absender der Aussage. Schreibe diese Zusage niemals automatisch dem
+  Empfänger oder Nutzer zu; die Art `commitment` beweist nicht, wer Kingfisher-Nutzer ist oder wem eine Aufgabe
+  gehört. Wenn der Sprecher nicht erkennbar ist, behandle die Zuordnung als `uncertain`.
+- Grußformeln, Signaturdaten, Kontaktangaben, rechtliche Fußzeilen und automatische Disclaimer sind `irrelevant`,
+  nicht `historical`. `historical` ist wirklicher früherer Nachrichteninhalt, nicht bloß Material am Nachrichtenende.
+- Eine zitierte alte Bitte ist `historical`, eine aktuelle Absage ist `status`; eine Bitte ist niemals automatisch
+  eine `commitment`. Beurteile jeden nummerierten Block einzeln und ordne keine ganze Nachricht nach nur einem Satz.
+Im Zweifel `uncertain`."""
 
 _SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["items"],

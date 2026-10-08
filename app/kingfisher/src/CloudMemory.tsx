@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {api, type CloudMemoryJob, type CloudMemoryPreview, type CloudMemoryPurpose} from "./api";
 import {prepareCloudPreview} from "./cloud-preview";
 import {ProfileSource} from "./ProfileSource";
+import {cloudIssueText} from "./cloud-issues";
 
 export function CloudMemory({model, connected}:{model:string;connected:boolean}) {
   const [job,setJob] = useState<CloudMemoryJob|null>(null);
@@ -84,7 +85,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
         <summary>{job.issue_count??job.issues.length} Mails brauchen eine Nachprüfung</summary>
         <p>Die betroffene Einordnung wurde nicht übernommen. Hier siehst du höchstens zehn offene Quellen; ihre Originale bleiben erhalten.</p>
         <ul>{job.issues.map((issue,index)=><li key={`${issue.episode_id}:${index}`}>
-          <span>{issue.code === "unsupported_source" ? "Diese Mail überschreitet die Auswertungsgrenze." : "Die Modellantwort ließ sich nicht vollständig an der Originalmail belegen."}</span>
+          <span>{cloudIssueText(issue)}</span>
           <ProfileSource kind="episode" id={issue.episode_id} label="Originalmail öffnen" readOnly allowIgnore={false}/>
         </li>)}</ul>
       </details>:null}

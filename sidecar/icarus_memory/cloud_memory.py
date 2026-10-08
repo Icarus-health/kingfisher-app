@@ -88,6 +88,9 @@ class CloudMemoryJobs:
                     'invalid_category_evidence', 'invalid_output_format', 'unsupported_source')),
                 PRIMARY KEY(job_id,episode_id))"""
             db.execute(issue_schema)
+            issue_columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_issues)")}
+            if "reason" not in issue_columns:
+                db.execute("ALTER TABLE cloud_memory_issues ADD COLUMN reason TEXT NOT NULL DEFAULT 'unspecified'")
             columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_jobs)")}
             if "source_limit" not in columns:
                 db.execute("ALTER TABLE cloud_memory_jobs ADD COLUMN source_limit INTEGER NOT NULL DEFAULT 100")
@@ -293,7 +296,7 @@ class CloudMemoryJobs:
         with self._connect() as db:
             issue_count = db.execute("SELECT COUNT(*) FROM cloud_memory_issues WHERE job_id=?",
                                      (job["id"],)).fetchone()[0]
-            issue_rows = db.execute("SELECT episode_id,stage,code FROM cloud_memory_issues "
+            issue_rows = db.execute("SELECT episode_id,stage,code,reason FROM cloud_memory_issues "
                                     "WHERE job_id=? ORDER BY rowid LIMIT 10", (job["id"],)).fetchall()
         return {"job": {"id": job["id"], "purpose": job["purpose"], "model": job["model"],
                          "state": job["state"], "selected": len(ids), "position": job["position"],
@@ -303,7 +306,11 @@ class CloudMemoryJobs:
                          "source_limit": job["source_limit"], "stop_reason": job["stop_reason"],
                          "issue_count": issue_count,
                          "issues": [{"episode_id": row["episode_id"], "stage": row["stage"],
-                                     "code": row["code"]} for row in issue_rows],
+                                     "code": row["code"],
+                                     **({"reason": row["reason"]} if row["reason"] in
+                                        getattr(SourceValidationError, "REASONS", ())
+                                        and row["reason"] != "unspecified" else {})}
+                                    for row in issue_rows],
                          "updated_at": job["updated_at"]}}
 
     def _permitted(self, job_id, provider, snapshot):
@@ -337,10 +344,12 @@ class CloudMemoryJobs:
                                            stop_reason="Eine Quelle wurde geändert oder zurückgezogen.")
                         return
                     successful = True
+                    stage = "source"
                     try:
                         # Every cloud run is an explicit user-approved re-evaluation,
                         # including pilot upgrades of sources previously handled locally.
                         self._analyze_one(job_id, provider, snapshot, explicit_recheck=True)
+                        stage = "categories"
                         self._categories_one(job_id, provider, snapshot)
                     except SourceValidationError as exc:
                         with self.permission_lock:
@@ -351,10 +360,13 @@ class CloudMemoryJobs:
                                                stop_reason="Freigabe oder Quelle wurde während des Auftrags geändert.")
                                 return
                             job = self._job(job_id)
+                            reason = getattr(exc, "reason", "unspecified")
+                            if not isinstance(reason, str) or reason not in getattr(SourceValidationError, "REASONS", ()):
+                                reason = "unspecified"
                             with self._connect() as db:
                                 db.execute("INSERT OR REPLACE INTO cloud_memory_issues "
-                                           "(job_id,episode_id,stage,code) VALUES(?,?,?,?)",
-                                           (job_id, episode_id, "categories", exc.code))
+                                           "(job_id,episode_id,stage,code,reason) VALUES(?,?,?,?,?)",
+                                           (job_id, episode_id, stage, exc.code, reason))
                             self._save(job_id, position=index + 1, failed=job["failed"] + 1)
                         continue
                     except UnsupportedSource:
@@ -365,8 +377,9 @@ class CloudMemoryJobs:
                             with self._connect() as db:
                                 db.execute("INSERT OR REPLACE INTO cloud_memory_issues "
                                            "(job_id,episode_id,stage,code) VALUES(?,?,?,?)",
-                                           (job_id, episode_id, "source", "unsupported_source"))
-                            self.memory.defer(snapshot)
+                                           (job_id, episode_id, stage, "unsupported_source"))
+                            if stage == "source":
+                                self.memory.defer(snapshot)
                             job = self._job(job_id)
                             self._save(job_id, failed=job["failed"] + 1)
                     with self.permission_lock:

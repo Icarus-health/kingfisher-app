@@ -63,6 +63,76 @@ def finish(jobs, job_id):
     assert not jobs._threads[job_id].is_alive()
     return jobs.status(job_id)["job"]
 
+
+def test_category_size_gap_keeps_completed_working_memory_and_reports_stage(tmp_path, monkeypatch):
+    from icarus_memory.working_memory_analysis import UnsupportedSource
+    episodes, jobs, _, _ = setup(tmp_path)
+    episode = add_email(episodes)
+
+    def unsupported(*args):
+        raise UnsupportedSource("Private source detail must never enter job status")
+
+    monkeypatch.setattr(jobs, "_categories_one", unsupported)
+    preview = jobs.preview("pilot", source_ids=[episode.id])
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+    assert result["state"] == "complete_with_gaps"
+    assert result["issues"] == [{"episode_id": episode.id, "stage": "categories",
+                                 "code": "unsupported_source"}]
+    assert WorkingMemoryStore(episodes).source_state(episode.id) == "complete"
+    assert "Private source" not in json.dumps(result)
+
+
+def test_safe_validation_subreason_is_durable_without_private_exception(tmp_path, monkeypatch):
+    episodes, jobs, grant, provider = setup(tmp_path)
+    episode = add_email(episodes)
+
+    def invalid(*args):
+        exc = SourceValidationError("invalid_entity_evidence", "private model reply or credential")
+        exc.reason = "entity_missing"
+        raise exc
+
+    monkeypatch.setattr(jobs, "_categories_one", invalid)
+    preview = jobs.preview("pilot", source_ids=[episode.id])
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+    assert result["issues"][0]["reason"] == "entity_missing"
+    recovered = CloudMemoryJobs(episodes, jobs.path, lambda _model: provider, lambda: grant)
+    assert recovered.status(result["id"])["job"]["issues"] == result["issues"]
+    assert "private model" not in json.dumps(result)
+    assert b"private model" not in jobs.path.read_bytes()
+
+
+def test_legacy_issue_table_gains_unspecified_reason_without_losing_rows(tmp_path):
+    import sqlite3
+    path = tmp_path / "cloud-jobs.sqlite3"
+    with sqlite3.connect(path) as db:
+        db.execute("CREATE TABLE cloud_memory_issues (job_id TEXT NOT NULL,episode_id TEXT NOT NULL,"
+                   "stage TEXT NOT NULL,code TEXT NOT NULL,PRIMARY KEY(job_id,episode_id))")
+        db.execute("INSERT INTO cloud_memory_issues VALUES('job','source','categories','invalid_entity_evidence')")
+    _, jobs, _, _ = setup(tmp_path)
+    with jobs._connect() as db:
+        row = db.execute("SELECT * FROM cloud_memory_issues").fetchone()
+    assert row["reason"] == "unspecified"
+    assert row["code"] == "invalid_entity_evidence"
+
+
+def test_arbitrary_exception_reason_is_not_persisted_or_exposed(tmp_path, monkeypatch):
+    episodes, jobs, _, _ = setup(tmp_path)
+    episode = add_email(episodes)
+
+    def invalid(*args):
+        exc = SourceValidationError("invalid_entity_evidence", "private text")
+        exc.reason = "secret credential from model"
+        raise exc
+
+    monkeypatch.setattr(jobs, "_categories_one", invalid)
+    preview = jobs.preview("pilot", source_ids=[episode.id])
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+    assert "reason" not in result["issues"][0]
+    assert b"secret credential" not in jobs.path.read_bytes()
+
 def test_preview_is_metadata_only_and_can_be_created_before_sign_in(tmp_path):
     episodes, jobs, _, provider = setup(tmp_path, connected=False)
     original = add_email(episodes)
@@ -275,7 +345,7 @@ def test_remote_entity_quotes_resolve_unique_offsets_and_reject_ambiguity(tmp_pa
             self.calls.append(payload)
             assert all("start" not in block and "end" not in block for block in payload["blocks"])
             required = schema["properties"]["entities"]["items"]["required"]
-            assert required == ["kind", "name", "block_id", "role"]
+            assert required == ["kind", "name", "block_id", "occurrence", "role"]
             return type("Reply", (), {"text": json.dumps(self.result), "tool_calls": []})()
 
     episodes, _, _, _ = setup(tmp_path)
@@ -327,7 +397,7 @@ def test_category_validation_gap_is_durable_and_later_source_continues(tmp_path)
     assert result["failed"] == 1
     assert result["issue_count"] == 1
     assert result["issues"] == [{"episode_id": bad.id, "stage": "categories",
-                                  "code": "invalid_entity_evidence"}]
+                                  "code": "invalid_entity_evidence", "reason": "entity_missing"}]
     categories = Categories(episodes)
     assert categories.list_for(bad.id)["categories"] == []
     assert categories.list_for(good.id)["status"] == "empty"

@@ -1,5 +1,6 @@
 """Topic suggestions stay tied to current originals and explicit corrections."""
 import json
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -412,3 +413,246 @@ def test_category_analysis_uses_real_provider_json_budget_without_network(tmp_pa
     assert schema["properties"]["categories"]["maxItems"] == 12
     assert schema["properties"]["entities"]["maxItems"] == 8
     assert categories.list_for(item.id)["status"] == "complete"
+
+
+class RemoteQuoteProvider:
+    is_local = False
+    is_remote = True
+    entity_anchor_mode = "block_quote"
+    name = "chatgpt"
+    model = "synthetic-chatgpt"
+
+    def __init__(self, result_for_call):
+        self.result_for_call = result_for_call
+        self.calls = []
+
+    def available(self):
+        return True
+
+    def complete_json(self, messages, *, max_tokens, schema):
+        payload = json.loads(messages[-1]["content"])
+        self.calls.append((payload, schema))
+        result = self.result_for_call(payload, len(self.calls))
+        return Reply(text=json.dumps(result))
+
+
+def run_remote(categories, item, provider, permitted=lambda: True):
+    from icarus_memory.source_processing_policy import ExplicitSourcePolicy
+    policy = ExplicitSourcePolicy(provider, item.id, lambda _episode: permitted())
+    return categories.run(provider, source_ids=[item.id], permitted=permitted,
+                          processing_policy=lambda _snapshot: policy)
+
+
+def test_chatgpt_categories_split_more_than_twenty_four_blocks_and_resolve_global_offsets(tmp_path):
+    episodes, categories = setup(tmp_path)
+    body = "Erster Abschnitt 🐦.\n\n" + "\n\n".join(
+        f"Person{i:02d} arbeitet an Projekt{i:02d}." for i in range(25))
+    item = source(episodes, body)
+
+    def answer(payload, _number):
+        entity = next(block for block in payload["blocks"] if "Person23" in block["text"] or "Person00" in block["text"])
+        name = "Person23" if "Person23" in entity["text"] else "Person00"
+        return {"categories": [], "entities": [
+            {"kind": "person", "name": name, "block_id": entity["block_id"],
+             "occurrence": 1, "role": "mentioned"}]}
+
+    provider = RemoteQuoteProvider(answer)
+    result = run_remote(categories, item, provider)
+
+    assert result.ok
+    assert len(provider.calls) == 2
+    assert all(len(payload["blocks"]) <= 24 for payload, _schema in provider.calls)
+    assert all(sum(len(block["text"]) for block in payload["blocks"]) <= 12_000
+               for payload, _schema in provider.calls)
+    assert all("start" not in block and "end" not in block
+               for payload, _schema in provider.calls for block in payload["blocks"])
+    entities = categories.list_for(item.id)["entities"]
+    expected = {"Person00": body.index("Person00"), "Person23": body.index("Person23")}
+    assert {entity["name"]: entity["start"] for entity in entities} == expected
+
+
+def test_chatgpt_categories_split_long_single_paragraph_without_losing_global_offset(tmp_path):
+    episodes, categories = setup(tmp_path)
+    body = "🐦 " + ("ein synthetisches Wort " * 260) + "Ada arbeitet an Atlas."
+    item = source(episodes, body)
+
+    def answer(payload, _number):
+        for block in payload["blocks"]:
+            if "Ada" in block["text"]:
+                return {"categories": [], "entities": [{
+                    "kind": "person", "name": "Ada", "block_id": block["block_id"],
+                    "occurrence": 1, "role": "mentioned"}]}
+        return {"categories": [], "entities": []}
+
+    provider = RemoteQuoteProvider(answer)
+    result = run_remote(categories, item, provider)
+
+    assert result.ok
+    assert len(provider.calls) == 1
+    payload, schema = provider.calls[0]
+    assert len(payload["blocks"]) >= 2
+    assert all(len(block["text"]) <= 4_000 for block in payload["blocks"])
+    assert schema["properties"]["entities"]["items"]["properties"]["occurrence"] == {
+        "type": "integer", "minimum": 1}
+    ada = categories.list_for(item.id)["entities"]
+    assert [(entity["name"], entity["start"]) for entity in ada] == [("Ada", body.index("Ada"))]
+
+
+def test_chatgpt_remote_fragment_never_exceeds_exact_four_thousand_character_limit(tmp_path):
+    episodes, categories = setup(tmp_path)
+    body = ("x" * 3_999) + " Ada"
+    item = source(episodes, body)
+    provider = RemoteQuoteProvider(lambda payload, _number: {
+        "categories": [], "entities": [{"kind": "person", "name": "Ada",
+            "block_id": next(block["block_id"] for block in payload["blocks"] if "Ada" in block["text"]),
+            "occurrence": 1, "role": "mentioned"}]})
+
+    assert run_remote(categories, item, provider).ok
+    assert all(len(block["text"]) <= 4_000 for payload, _schema in provider.calls
+               for block in payload["blocks"])
+    assert categories.list_for(item.id)["entities"][0]["start"] == body.index("Ada")
+
+
+def test_chatgpt_entity_aggregation_across_sections_exceeds_per_call_limit(tmp_path):
+    from icarus_memory.memory_categories import MAX_REMOTE_ENTITIES, MAX_REMOTE_TOPICS
+
+    episodes, categories = setup(tmp_path)
+    body = "\n\n".join(f"Person{i:02d} arbeitet an Atlas{i:02d}." for i in range(25))
+    item = source(episodes, body)
+
+    def answer(payload, _number):
+        entities = []
+        for block in payload["blocks"]:
+            match = re.search(r"Person\d+", block["text"])
+            if match and len(entities) < 8:
+                entities.append({"kind": "person", "name": match[0], "block_id": block["block_id"],
+                                 "occurrence": 1, "role": "mentioned"})
+        return {"categories": [], "entities": entities}
+
+    provider = RemoteQuoteProvider(answer)
+    assert run_remote(categories, item, provider).ok
+    assert len(categories.list_for(item.id)["entities"]) > 8
+    assert MAX_REMOTE_ENTITIES == 128 and MAX_REMOTE_TOPICS == 192
+
+
+def test_chatgpt_aggregate_entity_cap_fails_atomically(monkeypatch, tmp_path):
+    import icarus_memory.memory_categories as category_module
+
+    episodes, categories = setup(tmp_path)
+    body = "\n\n".join(f"Person{i:02d} arbeitet an Atlas{i:02d}." for i in range(25))
+    item = source(episodes, body)
+
+    def answer(payload, _number):
+        entities = []
+        for block in payload["blocks"]:
+            match = re.search(r"Person\d+", block["text"])
+            if match and len(entities) < 8:
+                entities.append({"kind": "person", "name": match[0], "block_id": block["block_id"],
+                                 "occurrence": 1, "role": "mentioned"})
+        return {"categories": [], "entities": entities}
+
+    monkeypatch.setattr(category_module, "MAX_REMOTE_ENTITIES", 8)
+    provider = RemoteQuoteProvider(answer)
+    assert not run_remote(categories, item, provider).ok
+    assert categories.list_for(item.id)["entities"] == []
+
+
+@pytest.mark.parametrize("body,tags", [
+    ("x" * 60_001, []),
+    ("\n\n".join(f"Absatz {i}" for i in range(121)), []),
+    ("Kurzer Originaltext", ["source:truncated"]),
+])
+def test_chatgpt_hard_source_caps_defer_without_request(tmp_path, body, tags):
+    episodes, categories = setup(tmp_path)
+    item = source(episodes, body, tags=tags)
+    provider = RemoteQuoteProvider(lambda _payload, _number: {"categories": [], "entities": []})
+
+    run_remote(categories, item, provider)
+
+    assert provider.calls == []
+    assert categories.list_for(item.id)["status"] == "deferred"
+
+
+def test_chatgpt_repeated_exact_name_requires_and_uses_explicit_occurrence(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item = source(episodes, "Ada sagte Hallo. Ada sagte Auf Wiedersehen.")
+    provider = RemoteQuoteProvider(lambda _payload, _number: {
+        "categories": [], "entities": [{"kind": "person", "name": "Ada", "block_id": "B1",
+                                         "occurrence": 2, "role": "mentioned"}]})
+
+    assert run_remote(categories, item, provider).ok
+    entity = categories.list_for(item.id)["entities"][0]
+    assert entity["start"] == item.body.rindex("Ada")
+
+
+def test_chatgpt_sender_role_accepts_decoded_rfc2047_mailbox_display_name(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item, _ = episodes.record(EpisodeKind.MESSAGE, "Arbeit", "Jörg prüft Atlas.",
+        Provenance(SourceType.EMAIL, source_ref="synthetic-rfc2047"),
+        participants=["=?UTF-8?Q?J=C3=B6rg?= <joerg@example.org>"])
+    provider = RemoteQuoteProvider(lambda _payload, _number: {
+        "categories": [], "entities": [{"kind": "person", "name": "Jörg", "block_id": "B1",
+                                         "occurrence": 1, "role": "sender"}]})
+
+    assert run_remote(categories, item, provider).ok
+    assert categories.list_for(item.id)["entities"][0]["role"] == "sender"
+
+
+def test_chatgpt_duplicate_name_without_occurrence_is_a_safe_validation_gap(tmp_path):
+    from icarus_memory.memory_categories import SourceValidationError
+    from icarus_memory.memory_categories import _interpret, _DEFAULTS
+    from icarus_memory.source_processing_policy import ExplicitSourcePolicy
+
+    episodes, _categories = setup(tmp_path)
+    item = source(episodes, "Ada sagte Hallo. Ada sagte Auf Wiedersehen.")
+    provider = RemoteQuoteProvider(lambda _payload, _number: {
+        "categories": [], "entities": [{"kind": "person", "name": "Ada", "block_id": "B1",
+                                         "role": "mentioned"}]})
+    policy = ExplicitSourcePolicy(provider, item.id, lambda _episode: True)
+    taxonomy = [{"id": row[0], "label": row[1], "description": row[2]} for row in _DEFAULTS]
+
+    with pytest.raises(SourceValidationError) as exc:
+        _interpret(provider, item, taxonomy, policy=policy)
+    assert exc.value.reason == "entity_ambiguous"
+
+
+def test_later_chatgpt_section_validation_failure_commits_no_partial_topics_or_entities(tmp_path):
+    episodes, categories = setup(tmp_path)
+    body = "\n\n".join(["Ada works on Atlas."] + [f"Block {i} is synthetic." for i in range(24)])
+    item = source(episodes, body)
+
+    def answer(payload, call):
+        if call == 1:
+            return {"categories": [{"category_id": "work", "block_id": "B1"}], "entities": [{
+                "kind": "person", "name": "Ada", "block_id": "B1", "occurrence": 1,
+                "role": "mentioned"}]}
+        return {"categories": [{"category_id": "work", "block_id": "B1"}], "entities": [{
+            "kind": "person", "name": "Missing Name", "block_id": "B1", "occurrence": 1,
+            "role": "mentioned"}]}
+
+    provider = RemoteQuoteProvider(answer)
+    result = run_remote(categories, item, provider)
+
+    assert not result.ok
+    assert len(provider.calls) == 2
+    assert categories.list_for(item.id)["categories"] == []
+    assert categories.list_for(item.id)["entities"] == []
+    assert provider.calls[0][0]["blocks"][0]["text"] == "Ada works on Atlas."
+
+
+def test_chatgpt_rechecks_permission_before_each_category_section(tmp_path):
+    episodes, categories = setup(tmp_path)
+    body = "\n\n".join(f"Block {i} is synthetic." for i in range(25))
+    item = source(episodes, body)
+    permission = {"granted": True}
+
+    def answer(payload, _number):
+        permission["granted"] = False
+        return {"categories": [], "entities": []}
+
+    provider = RemoteQuoteProvider(answer)
+    run_remote(categories, item, provider, permitted=lambda: permission["granted"])
+
+    assert len(provider.calls) == 1
+    assert categories.list_for(item.id)["categories"] == []
+    assert categories.list_for(item.id)["entities"] == []

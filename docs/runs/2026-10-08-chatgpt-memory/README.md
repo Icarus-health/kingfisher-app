@@ -69,6 +69,13 @@ begrenzte Mailprobe sind unten von den künstlichen Tests getrennt dokumentiert.
 
 ## Installierter Mac und echte Probe
 
+**Aktueller Prüfstand:** Der unten beschriebene Lauf ist inzwischen beendet:
+100 Quellen durchgesehen, 48 in beiden Schichten vollständig, 37 ungültige
+Entitätsantworten und 15 Verarbeitungsgrenzen. Das Arbeitsgedächtnis ist bei
+99 Quellen vollständig. Der große Lauf bleibt gesperrt. Die abschließende,
+auch inhaltliche Prüfung steht in [pilot100-pruefung.md](pilot100-pruefung.md).
+Die folgenden Momentaufnahmen dokumentieren den früheren Zwischenstand.
+
 Installiert ist **1.0.6-local.e882740**, Code
 `e8827400bf211152dff8b7ec98a1dd7a315cb308`. Das unveränderte native ausführbare
 Programm wurde mit aktualisierten Versionsangaben wiederverwendet und das Bündel

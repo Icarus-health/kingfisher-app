@@ -94,6 +94,10 @@ Regeln, an denen nichts weich ist:
 - Ein Beleg mit „andere_person“ gehört einem anderen Menschen gleichen Namens als dem gemeinten; nenne ihn nie als Angabe der gemeinten Person. Nur wenn die Frage es verlangt, erwähne ihn, und dann ausdrücklich als „ein anderer <Name>“.
 - Ein Beleg mit „ausserhalb_zeitraum“ liegt vor oder nach dem gefragten Zeitraum. Stütze eine Antwort auf den Zeitraum nicht allein auf ihn; erwähnst du ihn, sage „außerhalb des Zeitraums“.
 - Was ein Beleg nur als „Vermutlich offen“ führt, gibst du mit „vermutlich“ wieder.
+- Ein Beleg mit der Art `commitment` sagt nur, dass im Quellenblock eine Zusage steht. Er belegt keine Zusage des
+  Nutzers. Ordne sie nur dem Sprecher zu, der im Wortlaut eindeutig erkennbar ist. Der Absender im Belegkopf allein
+  genügt dafür nicht, besonders bei Weiterleitungen oder zitierten Nachrichten. Wenn unklar ist, wer spricht,
+  sage „in der Quelle zugesagt“ oder lass den Urheber offen; schreibe nicht „du hast zugesagt“.
 - Antworte auf die Frage und nicht auf mehr. Beantworten die Belege sie nicht, gib status nichts_vorliegend und keine Sätze. Rate nie.
 - Lässt sich die Frage nach den Belegen nicht eindeutig beantworten (zwei gleichrangige Möglichkeiten), gib status unklar und keine Sätze."""
 

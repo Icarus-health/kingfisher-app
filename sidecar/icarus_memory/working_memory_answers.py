@@ -1022,7 +1022,12 @@ def _zitate(answer, episodes, fallback):
             continue
         shown.add(episode.id)
         source_time = readable_time(episode.occurred_at)
-        kinds = ' · '.join(sorted({KINDS[r['kind']] for r in displayed if r['episode_id'] == episode.id}))
+        source_kinds = {r['kind'] for r in displayed if r['episode_id'] == episode.id}
+        kinds = ' · '.join(sorted(KINDS[kind] for kind in source_kinds))
+        if 'commitment' in source_kinds:
+            # Der äußere Mailabsender kann fremden Text nur weiterleiten. Den
+            # Quellentitel deshalb mit einem Hinweis auf den ungeklärten Urheber zeigen.
+            kinds += ' · Urheber in Quelle prüfen'
         heading = f'{kinds} · {episode.title[:200]}' + (' · neueste Quelle' if newest_marked and number == 1 else '')
         # Ohne eigenen Zeitpunkt bleibt die Quellenzeit unbekannt, damit „bis
         # Freitag“ an kein falsches Datum gebunden wird. Wann Kingfisher die
