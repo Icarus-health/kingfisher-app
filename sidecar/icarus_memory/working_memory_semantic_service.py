@@ -111,10 +111,10 @@ class SemanticService:
             return self.episodes._conn.execute(f'''SELECT COUNT(*) FROM episodes e
                 LEFT JOIN working_memory_sources s ON s.episode_id=e.id
                 WHERE {sql_geltend('e')} AND {sql_nicht_ausgeblendet('e')}
-                  AND e.document NOT LIKE ?
+                  AND NOT EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') t WHERE t.value=?)
                   AND (s.status IS NULL OR (s.status!='dismissed'
                        AND (s.status!='complete' OR s.analysis_version!=?)))''',
-                (f'%"{CHAT_LOOKUP_TAG}"%', ANALYSIS_VERSION)).fetchone()[0]
+                (CHAT_LOOKUP_TAG, ANALYSIS_VERSION)).fetchone()[0]
 
     def coverage(self):
         with self._lock:

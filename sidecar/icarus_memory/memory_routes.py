@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 import time
+import json
+from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
@@ -202,6 +204,7 @@ def timeline(episodes, claims, start, end, limit, cursor=None, basis="recorded")
 
 def install_routes(app, guard):
     router = APIRouter(prefix='/api/v1/memory', dependencies=guard)
+    automation_observation = None
 
     @router.get('/coverage')
     def read_coverage():
@@ -213,15 +216,28 @@ def install_routes(app, guard):
             from .server import _working_memory_pace
             progress['estimate_seconds'] = _working_memory_pace(app).estimate(progress['remaining'])
             result['working_memory_progress'] = progress
-            result['automation'] = automation_status(pending=result['working_memory']['pending'])
-            plan = app.state.settings.schedule
-            provider = hintergrund_anbieter(app)
-            result['working_memory_enabled'] = bool(
-                plan.enabled and plan.with_model and getattr(provider, 'is_local', False))
+            from .working_memory_semantic_runtime import coverage as semantic_coverage
+            result['semantic_index'] = semantic_coverage(app)
+            result['automation'] = automation_status(pending=result['working_memory']['pending'], probe=False)
+            result['working_memory_enabled'] = result['automation']['state'] in {'active', 'legacy_active'}
             return result
 
-    def automation_status(*, verified=None, pending=None):
+    def automation_status(*, verified=None, pending=None, probe=True):
+        nonlocal automation_observation
         plan = app.state.settings.schedule
+        observation_key = (id(app.state.agent), json.dumps(app.state.settings.model_roles, sort_keys=True),
+                           json.dumps(asdict(plan), sort_keys=True))
+        if not probe:
+            # Automatic progress polling never contacts model endpoints.
+            # A previous explicit model check remains an observation, not a
+            # new verification; changed settings discard it immediately.
+            if automation_observation is not None and automation_observation[0] == observation_key:
+                return dict(automation_observation[1], pending=pending)
+            requested = bool(plan.enabled and plan.with_model and plan.local_model_only)
+            legacy = bool(plan.enabled and plan.with_model and not plan.local_model_only)
+            return {'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
+                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None}
+
         rollen = rollen_von(app)
         # Die Hintergrundarbeit läuft mit dem Anbieter der Rolle `hintergrund`, und der ist immer lokal.
         # Ohne ihn zeigt der Standard nur, warum nichts läuft („nicht lokal“ oder „kein Modell“).
@@ -253,9 +269,11 @@ def install_routes(app, guard):
         if pending is None:
             from .working_memory_store import WorkingMemoryStore
             pending = WorkingMemoryStore(app.state.episodes).coverage()['pending']
-        return {'state': state, 'requested': requested, 'pending': pending,
-                'model': model if local and model and not cloud_modell else None,
-                'cloud_modell': cloud_modell}
+        result = {'state': state, 'requested': requested, 'pending': pending,
+                  'model': model if local and model and not cloud_modell else None,
+                  'cloud_modell': cloud_modell}
+        automation_observation = (observation_key, result)
+        return result
 
     @router.get('/automation')
     def read_automation():

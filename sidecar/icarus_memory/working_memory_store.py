@@ -708,6 +708,59 @@ class WorkingMemoryStore:
                         f"{row['analysis_version']}:{row['n']}")
         return stand
 
+    def semantic_signature(self) -> str:
+        """Hash the full semantic source/version frame without transferring bodies.
+
+        One SQLite statement supplies a consistent snapshot. Python consumes
+        one metadata/reference row at a time, with no result cap or count/sum
+        substitute. Unclassified current sources participate too: adding one
+        changes the coverage on which a saved selection depended.
+
+        SQLite removes body text and checks document/column consistency before
+        crossing into Python. Normal content writes carry their content digest;
+        legacy document-only changes are noticed by the consistency flags.
+        Deliberately rewriting both body copies while retaining a false digest
+        is outside the source-version contract; resolve still rejects it.
+        """
+        eligible = (f"{sql_sichtbar('e')} AND {sql_aktuelle_fassung('e')} "
+                    "AND NOT EXISTS (SELECT 1 FROM json_each(e.document,'$.tags') t WHERE t.value=?)")
+        statement = f"""
+            SELECT 'source' AS row_kind,e.id AS row_key,
+                json_array(e.id,e.digest,e.kind,e.title,e.recorded_at,e.occurred_at,
+                    e.source_key,e.metadata_digest,e.support_generation,h.episode_id,
+                    (SELECT COUNT(*) FROM source_heads r WHERE r.episode_id=e.id),
+                    (SELECT MIN(source_key) FROM source_heads r WHERE r.episode_id=e.id),
+                    s.fingerprint,s.status,s.analysis_version,
+                    json_remove(e.document,'$.body','$.project_id','$.state',
+                        '$.produced','$.consolidated_at'),
+                    json_extract(e.document,'$.body') IS e.body,
+                    json_extract(e.document,'$.state') IS e.state,
+                    json_extract(e.document,'$.project_id') IS e.project_id)
+                AS payload
+            FROM episodes e LEFT JOIN source_heads h ON h.source_key=e.source_key
+            LEFT JOIN working_memory_sources s ON s.episode_id=e.id
+            WHERE {eligible}
+            UNION ALL
+            SELECT 'item' AS row_kind,i.id AS row_key,
+                json_array(i.id,i.episode_id,i.fingerprint,i.start,i.end,i.kind) AS payload
+            FROM working_memory_items i
+            JOIN working_memory_sources s ON s.episode_id=i.episode_id
+            JOIN episodes e ON e.id=i.episode_id
+            WHERE s.status='complete' AND s.fingerprint=i.fingerprint
+                AND s.analysis_version=? AND {eligible}
+            ORDER BY row_kind,row_key
+        """
+        digest = hashlib.sha256(b"working-memory-semantic-inventory-v2\n")
+        with self.episodes._lock:
+            for row in self.episodes._conn.execute(
+                    statement, (CHAT_LOOKUP_TAG, ANALYSIS_VERSION, CHAT_LOOKUP_TAG)):
+                # JSON escapes embedded newlines, so the separator is unambiguous.
+                digest.update(row['row_kind'].encode('ascii'))
+                digest.update(b":")
+                digest.update(row['payload'].encode('utf-8'))
+                digest.update(b"\n")
+        return digest.hexdigest()
+
     def inventory(self, limit: int = 2048) -> dict[str, Any]:
         """Aktuelle eingeordnete Abschnitte, neueste zuerst, ohne Suchbegriffe.
 

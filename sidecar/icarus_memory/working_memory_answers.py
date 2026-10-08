@@ -23,6 +23,7 @@ REFRESHED = ('Die Quellen haben sich seit der Rückfrage geändert. '
 # Was davon ins Modell geht, bestimmt die zweite Stufe (`absatzauswahl.py`: nur die passenden Absätze langer Quellen)
 # und das Zeichenbudget.
 MAX_REFS = 16
+DEFAULT_SEMANTIC_SEARCH = object()  # standalone diagnostics only
 MAX_CONTEXT = 32000
 MAX_CHOICES = 6
 # Projektnamen aus der Frage: höchstens so viele Projekte und je Projekt so
@@ -85,10 +86,7 @@ def _semantic_refs(value):
 
 def _semantic_inventory(episodes):
     """Aktueller semantischer Quellenrahmen ohne Einbettungsmodell oder Quelltext."""
-    store = WorkingMemoryStore(episodes)
-    found = store.inventory()
-    payload = [found['refs'], store.revision() if found['truncated'] else None]
-    return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    return WorkingMemoryStore(episodes).semantic_signature()
 
 
 def mentioned_projects(question, projects):
@@ -453,7 +451,8 @@ def lookup_of(answer):
 
 def prepare(question, episodes, claims, provider, *, conflict_status=None, retrieval_query=None,
             projects=None, sender_scope=None, meaning_scope=None, also_found=None, person_ids=None,
-            anfrage=None, saetze=False, zeiten=None, namensvettern=(), pruefung=None, search_state=None):
+            anfrage=None, saetze=False, zeiten=None, namensvettern=(), pruefung=None, search_state=None,
+            semantic_search=DEFAULT_SEMANTIC_SEARCH):
     """Quellen zur Frage auswählen.
 
     ``sender_scope`` ({'account', 'address'}) begrenzt die Suche auf Mails genau
@@ -491,7 +490,8 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
         found_period = mentioned_period(anfrage.zeitraum_text())
     period = found_period[:2] if found_period else None
     from . import working_memory_semantic
-    meaning = working_memory_semantic.for_provider(provider)
+    meaning = (working_memory_semantic.for_provider(provider)
+               if semantic_search is DEFAULT_SEMANTIC_SEARCH else semantic_search)
     semantic_inventory = _semantic_inventory(episodes) if meaning is not None else None
     semantic_status = 'unobserved'
     semantic = []

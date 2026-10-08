@@ -17,6 +17,9 @@ html:has(.memory-page-status), body:has(.memory-page-status), #root:has(.memory-
 .memory-progress progress::-webkit-progress-bar { background: var(--kf-flaeche-153b4a); }
 .memory-progress progress::-webkit-progress-value { background: var(--kf-rand-00a7c4); border-radius: 4px; }
 .memory-progress progress::-moz-progress-bar { background: var(--kf-rand-00a7c4); }
+.memory-semantic-progress { border-top: 1px solid var(--kf-rand-35535e); margin-top: 20px; padding-top: 16px; overflow-wrap: anywhere; }
+.memory-semantic-progress h3 { margin: 0 0 8px; font-size: 16px; }
+.memory-semantic-progress p { margin: 8px 0; }
 .memory-status-automation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .memory-status ol { list-style: none; padding: 0 0 0 20px; border-left: 1px solid var(--kf-rand-45606a); }
 .memory-status li { padding: 16px 0; border-bottom: 1px solid var(--kf-rand-284956); overflow-wrap: anywhere; }

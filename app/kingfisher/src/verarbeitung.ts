@@ -13,6 +13,7 @@ export function sortierStand(a: Pick<MemoryAutomation, "state" | "cloud_modell">
   if (a.requested && (a.state === "model_missing" || a.state === "local_model_unavailable"))
     return "An: Kingfisher sortiert deine Quellen selbst, sobald das Sprachmodell auf diesem Rechner bereit ist.";
   switch (a.state) {
+    case "unverified": return "An: Die automatische Verarbeitung ist eingeschaltet. Ob das lokale Modell bereit ist, wird beim nächsten Arbeitsschritt geprüft.";
     case "active": return "An: Kingfisher sortiert deine Quellen selbst, auf diesem Rechner.";
     case "legacy_active": return "An, aber noch nach der alten Einstellung: Ob es nur auf diesem Rechner läuft, ist nicht abgesichert.";
     case "model_missing": return "Pausiert: Es fehlt noch ein Modell auf diesem Rechner.";

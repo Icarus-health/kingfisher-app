@@ -615,7 +615,9 @@ class Agent:
                                                 person_ids=quellen,
                                                 anfrage=anfrage if retrieval_query is None else None,
                                                 saetze=self._saetze_an(), zeiten=zeiten, pruefung=self._pruef_tor(),
-                                                namensvettern=vettern, search_state=search_state)
+                                                namensvettern=vettern, search_state=search_state,
+                                                semantic_search=getattr(self, '_working_memory_search',
+                                                    working_memory_answers.DEFAULT_SEMANTIC_SEARCH))
         if answer is None:
             return None
         return self._working_turn(question, self._mit_zeiten(answer, zeiten), model_called=True)
@@ -767,7 +769,8 @@ class Agent:
             question, self._episodes, self._knowledge, self._provider,
             conflict_status=self._knowledge_conflict_status, projects=self._project_directory(),
             meaning_scope=scope, also_found=also_found, anfrage=anfrage, saetze=self._saetze_an(), zeiten=zeiten,
-            pruefung=self._pruef_tor(), search_state=search_state)
+            pruefung=self._pruef_tor(), search_state=search_state,
+            semantic_search=getattr(self, '_working_memory_search', working_memory_answers.DEFAULT_SEMANTIC_SEARCH))
         if answer is None:
             return None
         return self._working_turn(question, self._mit_zeiten(answer, zeiten), model_called=True)

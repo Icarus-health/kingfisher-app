@@ -8,7 +8,7 @@ class LocalEmbedder:
     model = 'bge-m3:latest'
 
     def __init__(self, *, transport=None, base_url="http://127.0.0.1:11434", trusted_local_hosts=(), timeout=30,
-                 model=None):
+                 model=None, keep_alive=None):
         if not is_local_endpoint(base_url, trusted_local_hosts):
             raise ValueError("Embedding endpoint must be explicitly local")
         if model:
@@ -17,6 +17,7 @@ class LocalEmbedder:
         self.client = httpx.Client(base_url=base_url.rstrip("/"), trust_env=False,
                                    follow_redirects=False, timeout=timeout, transport=transport)
         self.model_key = ''
+        self.keep_alive = keep_alive
 
     def __enter__(self):
         try:
@@ -48,7 +49,10 @@ class LocalEmbedder:
         try:
             if self.identity() != self.model_key:
                 raise RuntimeError('Installed embedding weights changed')
-            response = self.client.post('/api/embed', json={'model': self.model, 'input': texts, 'truncate': False})
+            payload = {'model': self.model, 'input': texts, 'truncate': False}
+            if self.keep_alive is not None:
+                payload['keep_alive'] = self.keep_alive
+            response = self.client.post('/api/embed', json=payload)
             response.raise_for_status()
             data = response.json()
             if data.get('model') != self.model or self.identity() != self.model_key:
