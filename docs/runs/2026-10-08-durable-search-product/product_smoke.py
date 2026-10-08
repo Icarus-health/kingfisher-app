@@ -52,7 +52,8 @@ def factory():
 with tempfile.TemporaryDirectory() as folder:
     root = Path(folder)
     os.environ['ICARUS_DATA_DIR'] = folder
-    os.environ['ICARUS_MEMORY_SEMANTIC'] = '1'
+    os.environ['ICARUS_MEMORY_SEMANTIC'] = ''
+    os.environ['KINGFISHER_DURABLE_MEMORY_SEARCH'] = '1'
     os.environ['ICARUS_SIDECAR_TOKEN'] = 'synthetic-only-owner'
     episodes = EpisodeStore(root/'episodes.sqlite3')
     claims = ClaimStore(root/'knowledge.sqlite3')

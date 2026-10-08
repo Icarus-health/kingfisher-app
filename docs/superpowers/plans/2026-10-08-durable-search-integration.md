@@ -44,10 +44,10 @@ Files: `memory_routes.py` `/api/v1/memory/coverage`; `app/kingfisher/src/api.ts`
 
 ## Task 4: end-to-end review, GitHub and Mac
 
-- [ ] Run meaningful affected backend, saved-answer, restore, scheduler, API, UI build and actual synthetic query flows; record command/result and remaining real-model quality limitations. Frozen original and independent catalogs remain unchanged. A failed model runtime is a failed attempt, not an accuracy score.
-- [ ] One independent whole-feature review; important findings RED/GREEN; inspect final diff and clean committed tree. Complete draft feature PR, merge with skip ci after gates; no paid CI retry.
-- [ ] Build offline derivative from installed image using pinned local sqlite-vec Linux wheel and clean archive; rebuild changed UI from existing locked dependencies. Check package/module/license/UI hashes in finished image and exact database/query path netlessly.
-- [ ] Cold backup app/private env/data, verify original IDs/digests and SQLite integrity before/after, preserve integrations/roles/volume/port. Update local Mac build only after feature path works. Existing preview installer needs dependency/UI update rather than old code-only replacement.
+- [x] Run meaningful affected backend, saved-answer, restore, scheduler, API, UI build and actual synthetic query flows; record command/result and remaining real-model quality limitations. Frozen original and independent catalogs remain unchanged. A failed model runtime is a failed attempt, not an accuracy score.
+- [x] One independent whole-feature review; important findings RED/GREEN; inspect final diff and clean committed tree. Complete draft feature PR, merge with skip ci after gates; no paid CI retry.
+- [x] Build offline derivative from installed image using pinned local sqlite-vec Linux wheel and clean archive; rebuild changed UI from existing locked dependencies. Check package/module/license/UI hashes in finished image and exact database/query path netlessly.
+- [x] Cold backup app/private env/data, verify original IDs/digests and SQLite integrity before/after, preserve integrations/roles/volume/port. Update local Mac build only after feature path works. Existing preview installer needs dependency/UI update rather than old code-only replacement.
 - [ ] Native user flow when access available; report any unverified gate plainly. Public updater remains separate until release packaging/signing/publishing is actually completed.
 
 ## Review Focus

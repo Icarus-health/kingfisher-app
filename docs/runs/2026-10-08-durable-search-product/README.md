@@ -1,6 +1,6 @@
 # Dauerhafte Bedeutungssuche im Produkt — 8. Oktober 2026
 
-Code: `44a9fb559bf48e449bf53d633a1a0666c748ea1c`, Draft-PR9. Lokaler App-Baustein: `1.0.6-local.44a9fb5`; dies ist keine öffentliche Stable-Veröffentlichung.
+Code: `54e8689f74ddb6c48fb97c881b339e02b6a7db48`, PR9. Lokaler App-Baustein: `1.0.6-local.54e8689`; dies ist keine öffentliche Stable-Veröffentlichung.
 
 ## Verhalten
 
@@ -9,6 +9,8 @@ Die App bindet einen Suchdienst je Originalbestand. Bereits eingeordnete Abschni
 Gesprächsrouting und Antwortvorbereitung nutzen denselben dauerhaften Suchbestand. Nur der Fragevektor wird innerhalb einer HTTP-Nachricht wiederverwendet; Treffer und Quellenprüfung werden jedes Mal frisch berechnet. Geänderte Suchtexte bekommen eigene Vektoren. Produktive Arbeitsgedächtnissuche fällt nie auf den alten Diagnoseadapter zurück, der Quellen während einer Frage einbettet. Dieser bleibt für explizite Standalone-Diagnosen kompatibel. Bestätigtes Wissen besitzt daneben weiterhin seinen bisherigen separaten Suchweg; dieser Baustein ersetzt nicht automatisch jede andere Modellverwendung.
 
 Der Status unterscheidet Quellen-Einordnung von vorbereiteten Suchabschnitten. Regelmäßige Coverage-Abfragen starten weder Modell noch Tags-Abfrage. Ungeprüfte Hintergrundbereitschaft wird als `unverified` statt frisch bestätigt angezeigt; frühere ausdrückliche Prüfungen gelten nur bei unveränderter Konfiguration. Vorbereitete Abschnitte und noch nicht sortierte Quellen bleiben getrennt sichtbar. Keine erfundene Restzeit oder Zusage perfekter Treffer.
+
+Die Aktivierung `KINGFISHER_DURABLE_MEMORY_SEARCH=1` bleibt getrennt vom bisherigen `ICARUS_MEMORY_SEMANTIC`; beide Startkonfigurationen reichen die eigene Einstellung weiter. Rückwärtskompatible Vorgabe folgt dem alten Flag. Eine ausdrückliche Produktaktivierung schaltet den alten Diagnose-/Wissenspfad nicht zusätzlich ein.32 fokussierte Tests nach dieser Trennung sowie5 Compose-Vertragstests bestanden. Der Linux-Produkttest verwendet ausschließlich das neue Flag.
 
 ## Gegenprüfungen
 
@@ -38,4 +40,6 @@ Das Python-Paket, vollständige Lizenz, sqlite-vec0.1.9 und112 Oberflächen-Date
 
 Synthetische Vektoren/Modellantworten prüfen Verdrahtung und Quellenschutz, keine echte LLM-Trefferqualität. Vorherige100000-Vektoren-Messung ist kein vollständiger Ende-zu-Ende-Benchmark. Die vollständige Signatur streamt Metadaten, liest aber alle aktuellen Quellen strukturell; ihre Laufzeit bei sehr großen echten Mailbeständen ist noch zu messen. Normale Inhaltsänderungen müssen den Inhaltsdigest/Quellenstand aktualisieren; eine absichtliche direkte SQL-Fälschung beider Textkopien bei unverändert falschem Digest liegt außerhalb dieses Vertrags und wird beim Auflösen verworfen.
 
-Native Mac-Bedienprüfung bleibt offen:Computersteuerung meldete gesperrten Mac. Der Browser-Test ersetzt diesen Nachweis nicht. Mac-Installation und Datenprüfung werden gesondert dokumentiert, sobald tatsächlich durchgeführt.
+Mac-Aktualisierung tatsächlich durchgeführt: Version `1.0.6-local.54e8689`, App-Signatur geprüft, unverändertes natives Programm, aktualisierte Startkonfiguration und Backend/Oberfläche im lokalen Abbild. Kalte Sicherung von App, privater Konfiguration und Daten vor dem Austausch. Alle344 Original-IDs/Inhaltsdigests,17 SQLite-Datenbanken und Konten-/Kalender-/Modellrollen-/Zeitplan-Einstellungen geprüft erhalten; dasselbe Datenvolume und derselbe Loopback-Port. Gesundheit, Versionsroute, World-Route und Coverage erfolgreich. Aktivierung im laufenden Container bestätigt. Nachweis:`mac-installation-check.json`.
+
+Ollama läuft auf diesem Mac derzeit nicht; lokale Metadatenverbindung meldete Verbindungsablehnung. Deshalb Bedeutungssuchstatus nach Installation ehrlich `unavailable`; kein echter Modell- oder Qualitätsnachweis, keine Downloads, keine Cloudkosten und keine privaten Quellenübertragungen in diesen Prüfungen. Native Mac-Bedienprüfung bleibt offen:Computersteuerung meldete weiterhin gesperrten Mac. Der Browser-Test ersetzt diesen Nachweis nicht.
