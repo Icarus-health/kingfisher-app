@@ -11,7 +11,7 @@ from .providers import ProviderError
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_identity import adjust_selection
 from . import (absatzauswahl, akten_kontext, kennzeichnung, satzantwort, source_candidates, working_memory_projects,
-               working_memory_focus, zeitmessung)
+               working_memory_focus, working_memory_references, zeitmessung)
 from .knowledge_render import KnowledgeInputBuild
 from . import knowledge_history
 
@@ -543,6 +543,11 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     rahmen = _rahmen(namensvettern, lookup, found_period)
     rows = _kennzeichnen(rows, refs, kontext, rahmen, episodes)
     volltext = absatzauswahl.volltext_zeilen(rows)  # Prüfungen lesen den Text der Quelle, nie den Ausschnitt
+    references = working_memory_references.wanted(question)
+    allowed = {row['id'] for row in volltext if working_memory_references.permits(row, references)}
+    # Keep the complete basis/coverage, but do not present unrelated case records
+    # as eligible answer evidence. Matching the ID does not prove answerability.
+    rows = [row for row in rows if row['id'] in allowed]
     lineage, confirmed_rows, confirmed_limited, confirmed_signature = _confirmed(lookup, episodes, claims)
     rows += confirmed_rows
     answer = {'version': 1, 'query': question, 'basis': refs, 'refs': [],
@@ -671,6 +676,11 @@ automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend 
     if not _fresh(answer, episodes, claims):
         answer.update(status='unavailable')
         return answer
+    if not rows:
+        answer.update(status='unknown')
+        if suche_zeit is not None:
+            suche_zeit.ende()
+        return answer
     if suche_zeit is not None:
         suche_zeit.ende()
     try:
@@ -712,6 +722,13 @@ automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend 
             lookup, volltext, selection['ids'], selection['status'])
         selection['ids'], selection['status'] = working_memory_focus.adjust(
             question, volltext, selection['ids'], selection['status'])
+        # Project/person helpers can restore peers. Recheck the final selection.
+        unbound = any(identifier.startswith('S') and identifier not in allowed
+                      for identifier in selection['ids'])
+        selection['ids'] = [identifier for identifier in selection['ids']
+                            if not identifier.startswith('S') or identifier in allowed]
+        if unbound and not selection['ids']:
+            selection['status'] = 'unknown'
         by_id = {f'S{i}': ref for i, ref in enumerate(refs, 1)}
         selected = [by_id[i] for i in selection['ids'] if i in by_id]
         if (selection['status'] == 'unknown') != (not selection['ids']):
@@ -961,6 +978,22 @@ def _fresh(answer, episodes, claims):
         current_projects = {ref['episode_id']: episodes.get(ref['episode_id']).project_id for ref in refs}
         if answer['project_assignment_basis'] != current_projects:
             return False
+    references = working_memory_references.wanted(answer['query'])
+    for ref in answer['refs'] if references else ():
+        episode = episodes.get(ref['episode_id'])
+        row = {'id': 'S', 'context': episode.body, 'title': episode.title}
+        if not working_memory_references.permits(row, references):
+            # A saved caption alone cannot authorize a case binding. Re-read
+            # the current trusted project directory, including after rename.
+            project_name = getattr(episodes, '_working_project_name', None)
+            if not episode.project_id or not callable(project_name):
+                return False
+            try:
+                row['project'] = project_name(episode.project_id)
+                if not working_memory_references.permits(row, references):
+                    return False
+            except Exception:  # noqa: BLE001 - unknown project means stale binding
+                return False
     lineage, _, confirmed_limited, confirmed_signature = _confirmed(lookup, episodes, claims)
     signature = WorkingMemoryStore(episodes).candidate_signature(lookup, episode_ids=scope_ids)
     if ('semantic_inventory' in answer

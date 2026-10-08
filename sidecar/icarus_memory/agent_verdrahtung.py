@@ -141,6 +141,7 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     """Die spät gebundenen Zusatzobjekte des Agenten, alle aus dem aktuellen Stand der Anwendung."""
     agent._runtime_boundary = app.state.runtime_boundary
     agent._projects = _project_directory(app)
+    app.state.episodes._working_project_name = lambda identifier: app.state.workspace.project(identifier).name
     agent._termine = _search_calendar(app)
     agent._mappe = lambda project_id: _projekt_mappe(app, project_id)
     agent._eigene = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
