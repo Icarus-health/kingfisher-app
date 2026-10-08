@@ -14,6 +14,10 @@ struct AppPaths {
     /// `deploy/compose.app.yaml`, beim Bauen als `Contents/Resources/compose.yaml` ins Bündel gelegt.
     let composeFile: URL
 
+    var updateStorageProbeFile: URL {
+        composeFile.deletingLastPathComponent().appendingPathComponent("update-storage-probe.py")
+    }
+
     static func standard() -> AppPaths? {
         guard let library = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first,
               let compose = Bundle.main.url(forResource: "compose", withExtension: "yaml") else { return nil }

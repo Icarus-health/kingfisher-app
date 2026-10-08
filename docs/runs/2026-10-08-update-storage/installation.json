@@ -1,0 +1,19 @@
+{
+  "native_version": "1.0.6-local.a209ba8",
+  "backend_version": "1.0.6-local.3483436",
+  "native_architectures": [
+    "arm64"
+  ],
+  "native_binary_sha256": "b294220f1588fa8a7282caec6cf02ede0939440d51c238335dafaf7f15c22778",
+  "probe_sha256": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+  "native_real_probe": "before=ok; after=ok",
+  "signature_verified": true,
+  "env_unchanged": true,
+  "container_unchanged_and_not_restarted": true,
+  "originals_and_settings_unchanged": true,
+  "original_count": 344,
+  "background_paused": true,
+  "native_window_tested": false,
+  "backend_healthy": true,
+  "rollback_bundle_saved_outside_repository": true
+}

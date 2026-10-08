@@ -10,7 +10,7 @@ Tag veröffentlicht wird und wie sie beim Menschen ankommt: als Angebot, das er 
    Öffnen an Gatekeeper vorbei (macOS 15+: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“;
    älter: Rechtsklick → Öffnen); Ollama installieren für Antworten in eigenen Worten.
 3. Später: Auf Heute erscheint ein ruhiger Hinweis „Neue Fassung 1.2.0 ist da: …“ mit „Jetzt aktualisieren“. Die
-   App sichert, lädt das neue Bild, startet neu und lädt die Seite; danach steht einmal „Kingfisher ist jetzt auf
+   App prüft Speicher, sichert, lädt das neue Bild, prüft Speicher erneut, startet neu und lädt die Seite; danach steht einmal „Kingfisher ist jetzt auf
    Fassung 1.2.0.“ oder „Das Update hat nicht geklappt; deine Daten sind gesichert.“
 
 Die Starter-Datei (`Kingfisher starten.command`) und `make start` bleiben der Weg für Entwickler, die aus dem
@@ -68,12 +68,14 @@ mit der laufenden Fassung, sagt es einmal und löscht den Merker. Ohne Brücke (
 Kingfisher über die App, um zu aktualisieren.“; braucht die Fassung eine neue App, ein Satz mit dem Weg zur
 Download-Seite.
 
+Die [Speicherregeln der Mac-App](../macos/README.md#speicherprüfung-vor-updates) gelten ebenso für den Entwickler-Starter. Es wird nichts automatisch aufgeräumt.
+
 ### Update ohne App: `make aktualisieren`
 
 1. Ziel: `FASSUNG=1.2.0` oder die Antwort von `POST /api/v1/fassung/pruefen` des laufenden Kingfisher.
-2. Sicherung im Container wie `make backup`, aber mit dem Präfix `vor-update-` (3 werden aufbewahrt), damit
+2. Speicher im laufenden Container prüfen; bei unklarer oder zu geringer Reserve vor Sicherung und Bildmarkierung abbrechen. Danach Sicherung im Container wie `make backup`, aber mit dem Präfix `vor-update-` (3 werden aufbewahrt), damit
    `make zurueck-vor-update` sie findet. Scheitert sie, ändert sich nichts.
-3. `docker pull` des Bildes. Scheitert es, ändert sich nichts.
+3. `docker pull` des Bildes und erneute Speicherprüfung. Scheitert eines, bleiben Bildwahl und laufender Dienst unverändert; Sicherung und Download können bereits vorliegen.
 4. `KINGFISHER_IMAGE=<bild>` in `.kingfisher.env`, dann `make start` (mit dem freigegebenen Notizordner wie bisher;
    mit fertigem Bild ohne `--build`).
 5. Antwortet danach nicht die neue Fassung, wird zuerst der Dienst gestoppt. Mit dem neuen Bild wird die

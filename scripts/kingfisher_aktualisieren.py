@@ -7,9 +7,10 @@ Der Weg für alle, die Kingfisher aus einer Arbeitskopie mit `make start` betrei
 1. **Welche Fassung?** `FASSUNG=1.2.0` nennt sie; sonst fragt das Programm den laufenden Kingfisher, der die
    Download-Seite einmal abfragt und das Manifest streng prüft (`POST /api/v1/fassung/pruefen`). Ist nichts Neueres
    da, sagt es das und hört auf.
-2. **Sichern** wie `make backup`, aber als Sicherung vor einem Update (`vor-update-…`), die `make zurueck-vor-update`
-   findet. Scheitert das, wird nichts verändert.
-3. **Bild laden** (`docker pull`). Scheitert das, wird nichts verändert.
+2. **Speicher prüfen und sichern** wie `make backup`, aber als Sicherung vor einem Update (`vor-update-…`), die
+   `make zurueck-vor-update` findet. Reicht der sichere Speicher nicht, bleibt die laufende Fassung unangetastet.
+3. **Bild laden und Speicher erneut prüfen** (`docker pull`). Reicht der Speicher danach nicht mehr, bleiben die
+   bisherige Fassung und `.kingfisher.env` aktiv.
 4. **Umschalten:** `KINGFISHER_IMAGE` in `.kingfisher.env` auf das neue Bild, dann `make start` (dort `docker compose
    up -d` ohne Bauen, mit dem freigegebenen Notizordner wie bisher).
 5. **Nachsehen**, ob die neue Fassung antwortet. Wenn nicht: neuen Container anhalten, Sicherung mit dem neuen Bild
@@ -21,6 +22,7 @@ Nur die Standardbibliothek; Befehle und Anfragen sind austauschbar, damit die Te
 from __future__ import annotations
 
 import json
+import importlib.util
 import os
 import re
 import subprocess
@@ -38,6 +40,15 @@ VORGABE_BILD = 'kingfisher:local'
 SEMVER = re.compile(r'(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})')
 SICHERN = ("from pathlib import Path; from icarus_memory.backup import UPDATE_SET_PREFIX, snapshot_all; "
            "print(snapshot_all(Path('/data'), Path('/data/sicherungen'), keep=3, prefix=UPDATE_SET_PREFIX).name)")
+_SPEICHER_SPEZ = importlib.util.spec_from_file_location(
+    'kingfisher_update_storage', Path(__file__).with_name('kingfisher_update_storage.py')
+)
+if _SPEICHER_SPEZ is None or _SPEICHER_SPEZ.loader is None:
+    raise RuntimeError('Speicherprüfung fehlt')
+_SPEICHER_MODUL = importlib.util.module_from_spec(_SPEICHER_SPEZ)
+_SPEICHER_SPEZ.loader.exec_module(_SPEICHER_MODUL)
+PROBE_SOURCE = _SPEICHER_MODUL.PROBE_SOURCE
+evaluate_status = _SPEICHER_MODUL.evaluate_status
 
 SATZ_NICHT_EINGERICHTET = 'Kingfisher ist hier noch nicht eingerichtet. Zuerst: make start'
 SATZ_NICHT_ERREICHBAR = ('Kingfisher antwortet gerade nicht, also kann es weder nachsehen noch sichern. Zuerst: '
@@ -47,6 +58,8 @@ SATZ_KEIN_MANIFEST = ('Kingfisher konnte gerade nicht nachsehen, ob es eine neue
 SATZ_AKTUELL = 'Kingfisher ist auf dem neuesten Stand (Fassung {fassung}). Es wurde nichts verändert.'
 SATZ_FASSUNG_FALSCH = '„{fassung}“ ist keine Fassungsnummer. Gemeint ist etwa: make aktualisieren FASSUNG=1.2.0'
 SATZ_SICHERUNG = 'Die Sicherung ist nicht gelungen. Es wurde nichts verändert.'
+SATZ_SPEICHER = ('Der Speicherstatus ist für das Update nicht sicher ({grund}). Die laufende Fassung bleibt erhalten; '
+                 'es wurde nicht umgeschaltet.')
 SATZ_LADEN = ('Die Fassung {fassung} ließ sich nicht laden ({bild}). Es wurde nichts verändert; Kingfisher läuft '
               'weiter wie bisher.')
 SATZ_FERTIG = 'Kingfisher ist jetzt auf Fassung {fassung}. Die Sicherung von vorher heißt {sicherung}.'
@@ -162,6 +175,18 @@ def laufendes_bild(compose: tuple[str, ...], lauf: Lauf) -> tuple[str, str] | No
     return felder[0], felder[1]
 
 
+def speicher_pruefen(compose: tuple[str, ...], lauf: Lauf, *, vor_sicherung: bool) -> None:
+    """Read the active container and fail closed if either filesystem reserve is uncertain or too small."""
+    try:
+        probe = lauf(*compose, 'exec', '-T', 'kingfisher', 'python', '-c', PROBE_SOURCE, timeout=60)
+        status = json.loads(probe.stdout or '') if probe.returncode == 0 else None
+        problem = evaluate_status(status, before_backup=vor_sicherung)
+    except (OSError, subprocess.SubprocessError, TypeError, ValueError):
+        problem = 'unavailable'
+    if problem is not None:
+        raise Abbruch(SATZ_SPEICHER.format(grund=problem))
+
+
 def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausfuehren, anfrage: Anfrage = anfragen,
                   sagen: Callable[[str], None] = print, warten: Callable[[float], None] = time.sleep) -> str | None:
     """Der ganze Weg. Gibt die neue Fassung zurück (None: schon aktuell); wirft `Abbruch` mit einem Satz."""
@@ -183,6 +208,7 @@ def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausf
     altes_bild = laufendes_bild(compose, lauf)
     if altes_bild is None or altes_bild[1] != (vorher or VORGABE_BILD):
         raise Abbruch(SATZ_ALTES_BILD_FEHLT)
+    speicher_pruefen(compose, lauf, vor_sicherung=True)
     rueckweg_bild = 'kingfisher:rollback-' + altes_bild[0][7:23]
     if lauf('docker', 'image', 'tag', altes_bild[0], rueckweg_bild, timeout=30).returncode != 0:
         raise Abbruch(SATZ_ALTES_BILD_FEHLT)
@@ -196,6 +222,7 @@ def aktualisieren(fassung: str = '', *, wurzel: Path = WURZEL, lauf: Lauf = ausf
     sagen(f'Gesichert: {sicherung_name}. Lade Fassung {neue_fassung} …')
     if lauf('docker', 'pull', bild, timeout=1800, ausgabe=True).returncode != 0:
         raise Abbruch(SATZ_LADEN.format(fassung=neue_fassung, bild=bild))
+    speicher_pruefen(compose, lauf, vor_sicherung=False)
 
     env_setzen(env, 'KINGFISHER_IMAGE', bild)
     neuer_start = lauf('make', '--no-print-directory', 'start', timeout=600, ausgabe=True)

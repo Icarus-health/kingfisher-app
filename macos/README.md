@@ -51,12 +51,12 @@ Die App hört unter `window.webkit.messageHandlers.kingfisher` nur auf Nachricht
 davon geschieht ohne diese Nachricht, also ohne Klick in der Oberfläche. Ablauf (`App/Updater.swift`,
 Zustandsfolge in `App/Logic/UpdateFlow.swift`), währenddessen „Kingfisher wird aktualisiert …“ mit Schritt:
 
-Vorher: laufende Fassung, Bildkennung und Ordnerfreigaben prüfen und das bisherige Bild lokal festhalten.
+Vorher: laufende Fassung, Bildkennung und Ordnerfreigaben prüfen, Speicher im laufenden Container messen und erst danach das bisherige Bild lokal festhalten.
 Eine Installation mit zusätzlichen Freigaben wird durch diesen App-Weg nicht aktualisiert.
 
 1. Sicherung: `POST /backups?vor_update=true` mit Kopf `x-icarus-token` (Antwort 201 und gültiger
    Sicherungsname `vor-update-YYYYMMDDTHHMMSSZ`). Scheitert sie, wird nichts verändert.
-2. `compose pull` mit `KINGFISHER_IMAGE=<image>`.
+2. `compose pull` mit `KINGFISHER_IMAGE=<image>`, danach Speicher erneut messen.
 3. `KINGFISHER_IMAGE` dauerhaft in die Env-Datei.
 4. `up -d`.
 5. Authentifizierte neue Fassung und tatsächlich laufendes Bild prüfen, dann die Seite neu laden.
@@ -67,6 +67,24 @@ den gesicherten Datenstand offline wiederherstellen, dann das festgehaltene alte
 nach Prüfung seiner unveränderlichen Bildkennung und des authentifizierten Prüfmodus gemeldet. Der Prüfmodus
 bleibt aktiv; historische Daten werden nicht automatisch zu aktuellem Arbeitswissen. Scheitert die
 Wiederherstellung, bleibt der Dienst angehalten, Sicherung und neueres Bild bleiben erhalten.
+
+### Speicherprüfung vor Updates
+
+Mac-App und Entwickler-Starter verwenden dieselbe lesende Python-Messung. Die App liefert
+`scripts/kingfisher_update_storage.py` als `Resources/update-storage-probe.py` mit und führt sie im
+**bereits laufenden** Container aus. Weder ein neues Bild noch ein Host-Speicherwert ist dafür nötig.
+Gemessen werden freie Bytes und Dateiplätze am Container-Wurzelverzeichnis und Datenvolume. Vor der
+Sicherung bleiben mindestens 512 MiB plus drei Kopien der aktuellen obersten regulären Datendateien,
+nach dem Download 512 MiB plus zwei Kopien; entsprechend 64 freie Dateiplätze plus die Kopienzahl.
+Am Container-Wurzelverzeichnis gelten mindestens 512 MiB und 64 Dateiplätze. Unterordner werden nicht
+rekursiv gelesen; die Größenabschätzung ist bewusst konservativer als die Sicherungs-Dateiliste.
+
+Zu wenig Kapazität, unbekannte Dateiplätze, unlesbare Messwerte oder eine fehlende Probe sperren das
+Update. Vor der ersten Prüfung werden weder Bildmarkierung noch Sicherung angelegt; scheitert erst die
+zweite, können Sicherung und Download existieren, aber Bildwahl und laufender Dienst bleiben unberührt.
+Die App erklärt den Grund und bietet „Weiter“ zur bisherigen Oberfläche. Sie löscht nichts automatisch.
+Diese Reserven sind ein Schutzpuffer, keine Garantie gegen konkurrierende Schreibzugriffe oder besonders
+große künftige Migrationen und keine Kapazitätsfreigabe für große persönliche Importe.
 
 ## Aufbau
 

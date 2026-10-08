@@ -1,0 +1,12 @@
+{
+  "native_version": "1.0.6-local.a209ba8",
+  "native_architectures": [
+    "arm64"
+  ],
+  "intel_typecheck": true,
+  "universal_link": false,
+  "universal_link_limitation": "Existing local Command Line Tools compatibility libraries contain no x86_64 slice",
+  "signature_verified": true,
+  "probe_sha256": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+  "binary_sha256": "b294220f1588fa8a7282caec6cf02ede0939440d51c238335dafaf7f15c22778"
+}

@@ -1,0 +1,27 @@
+{
+  "native-before.log.gz": {
+    "original_sha256": "343ce0a97822d0d308bca24b52b6e4a0bd8971d82a211c809213936b04ff0fd1",
+    "original_bytes": 21318,
+    "archive_sha256": "745f4574e28d856f5697ced15166bd07a71bb5896cb7040c963bdbf71757932f"
+  },
+  "python-before.log.gz": {
+    "original_sha256": "80e99f3375e4a07f5e20b4c3feb579d0275789f2ea74403be465a920bfadfd1f",
+    "original_bytes": 2321,
+    "archive_sha256": "ba0530f620bedaf44ad21c34633eda4f13b7f39b6e2045d8e23b54dd5fd70e7b"
+  },
+  "focused-final.log.gz": {
+    "original_sha256": "ccd9e45fa4c3cdef3ef5d9cfdbde8eeec664db3605671a60544b9e9617b53e11",
+    "original_bytes": 180,
+    "archive_sha256": "b934e282ff623fc748af1f525ba8b2ccb6d7e8e0513aa3603926329a3e0c0e36"
+  },
+  "mac-contracts.log.gz": {
+    "original_sha256": "826a4971b9d715a350c1e8723d266a354149943e6c7c68f62f2ed5e4124646be",
+    "original_bytes": 110,
+    "archive_sha256": "2a749e1e24031e79dca390f4bcf58252a4ba9e28511f24bbf0af56c3c15e71a7"
+  },
+  "universal-build-limitation.log.gz": {
+    "original_sha256": "fb7f58ef6998dadb72fc3b74426240cb708544744c26105304e47e234f4c3cad",
+    "original_bytes": 1908,
+    "archive_sha256": "ad43ab41cc651195fc3f9d9402ec5bda59ea0fcd4f53a37c0a8cf18bf9826a2f"
+  }
+}

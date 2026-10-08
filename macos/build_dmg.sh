@@ -42,6 +42,8 @@ fi
 [ "$(uname -s)" = "Darwin" ] || fehler "Die Mac-App lässt sich nur auf macOS bauen."
 command -v xcrun >/dev/null || fehler "Es fehlen die Xcode Command Line Tools (xcode-select --install)."
 
+[ -f scripts/kingfisher_update_storage.py ] || fehler "Es fehlt scripts/kingfisher_update_storage.py (Speicherprüfung für Updates)."
+
 BAU="build/mac-app"
 APP="$BAU/Kingfisher.app"
 rm -rf "$BAU"
@@ -63,6 +65,7 @@ sed -e "s/__FASSUNG__/$FASSUNG/g" -e "s/__BUNDLE_VERSION__/$BUNDLE_VERSION/g" \
     macos/App/Info.plist > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 cp "$COMPOSE_APP" "$APP/Contents/Resources/compose.yaml"
+cp scripts/kingfisher_update_storage.py "$APP/Contents/Resources/update-storage-probe.py"
 
 ICON="$ICON_QUELLE"
 [ -f "$ICON" ] || ICON="$ICON_RUECKFALL"
