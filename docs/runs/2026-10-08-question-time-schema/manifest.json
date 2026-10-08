@@ -1,0 +1,342 @@
+{
+  "product_commit": "064a4d9ae3f24112bef92045bc975d9e675d24e7",
+  "baseline_product_commit": "f5af412867f379689db1f6c097171785c59c5008",
+  "runs": {
+    "original-before": {
+      "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+      "report_sha256": "329e355527e5641b256d83f283b4184b7762a59119fd152db4752f0ac792ffa6",
+      "rows": 36,
+      "scores": {
+        "direct": {
+          "n": 16,
+          "selection_pass": 15
+        },
+        "paraphrase": {
+          "n": 16,
+          "selection_pass": 9
+        },
+        "unanswerable": {
+          "n": 4,
+          "selection_pass": 4
+        }
+      },
+      "median_seconds": 3.2969999999999997,
+      "model_json_accepted": 1,
+      "provider_errors": 0,
+      "degraded_searches": 0,
+      "withdrawal_pass": true,
+      "runtime_elapsed_seconds": 126.23811197280884,
+      "sampled_owned_peak_rss_gib": 5.7887420654296875,
+      "ollama_version": {
+        "version": "0.35.1"
+      },
+      "models": [
+        {
+          "name": "bge-m3:latest",
+          "model": "bge-m3:latest",
+          "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+          "size": 1157672605,
+          "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "bert",
+            "families": [
+              "bert"
+            ],
+            "parameter_size": "566.70M",
+            "quantization_level": "F16",
+            "context_length": 8192,
+            "embedding_length": 1024
+          },
+          "capabilities": [
+            "embedding"
+          ]
+        },
+        {
+          "name": "qwen3.5:4b",
+          "model": "qwen3.5:4b",
+          "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+          "size": 3389983735,
+          "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "4.7B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 2560
+          },
+          "capabilities": [
+            "completion",
+            "vision",
+            "tools",
+            "thinking"
+          ]
+        }
+      ],
+      "server_exit": 0,
+      "client_exit": 0,
+      "metal_confirmed": true,
+      "raw_report_file": "original-before.json.gz",
+      "compression": "gzip; SHA-256 describes decompressed original bytes"
+    },
+    "original-after": {
+      "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+      "report_sha256": "810fc85b42d1e0a3b9792ebeb3b94b59f046532709fef637177160b49b8c02f4",
+      "rows": 36,
+      "scores": {
+        "direct": {
+          "n": 16,
+          "selection_pass": 15
+        },
+        "paraphrase": {
+          "n": 16,
+          "selection_pass": 11
+        },
+        "unanswerable": {
+          "n": 4,
+          "selection_pass": 4
+        }
+      },
+      "median_seconds": 3.6405,
+      "model_json_accepted": 32,
+      "provider_errors": 0,
+      "degraded_searches": 0,
+      "withdrawal_pass": true,
+      "runtime_elapsed_seconds": 136.61999988555908,
+      "sampled_owned_peak_rss_gib": 5.726531982421875,
+      "ollama_version": {
+        "version": "0.35.1"
+      },
+      "models": [
+        {
+          "name": "bge-m3:latest",
+          "model": "bge-m3:latest",
+          "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+          "size": 1157672605,
+          "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "bert",
+            "families": [
+              "bert"
+            ],
+            "parameter_size": "566.70M",
+            "quantization_level": "F16",
+            "context_length": 8192,
+            "embedding_length": 1024
+          },
+          "capabilities": [
+            "embedding"
+          ]
+        },
+        {
+          "name": "qwen3.5:4b",
+          "model": "qwen3.5:4b",
+          "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+          "size": 3389983735,
+          "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "4.7B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 2560
+          },
+          "capabilities": [
+            "completion",
+            "vision",
+            "tools",
+            "thinking"
+          ]
+        }
+      ],
+      "server_exit": 0,
+      "client_exit": 0,
+      "metal_confirmed": true,
+      "raw_report_file": "original-after.json.gz",
+      "compression": "gzip; SHA-256 describes decompressed original bytes"
+    },
+    "independent-before": {
+      "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+      "report_sha256": "f4f563b77e70deb3fd8d241c308f8a0c460321906e350836b592d567ecc3b1e6",
+      "rows": 23,
+      "scores": {
+        "direct": {
+          "n": 10,
+          "selection_pass": 10
+        },
+        "paraphrase": {
+          "n": 9,
+          "selection_pass": 8
+        },
+        "unanswerable": {
+          "n": 4,
+          "selection_pass": 4
+        }
+      },
+      "median_seconds": 4.16,
+      "model_json_accepted": 1,
+      "provider_errors": 0,
+      "degraded_searches": 0,
+      "withdrawal_pass": true,
+      "runtime_elapsed_seconds": 105.58685898780823,
+      "sampled_owned_peak_rss_gib": 5.5603179931640625,
+      "ollama_version": {
+        "version": "0.35.1"
+      },
+      "models": [
+        {
+          "name": "bge-m3:latest",
+          "model": "bge-m3:latest",
+          "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+          "size": 1157672605,
+          "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "bert",
+            "families": [
+              "bert"
+            ],
+            "parameter_size": "566.70M",
+            "quantization_level": "F16",
+            "context_length": 8192,
+            "embedding_length": 1024
+          },
+          "capabilities": [
+            "embedding"
+          ]
+        },
+        {
+          "name": "qwen3.5:4b",
+          "model": "qwen3.5:4b",
+          "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+          "size": 3389983735,
+          "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "4.7B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 2560
+          },
+          "capabilities": [
+            "completion",
+            "vision",
+            "tools",
+            "thinking"
+          ]
+        }
+      ],
+      "server_exit": 0,
+      "client_exit": 0,
+      "metal_confirmed": true,
+      "raw_report_file": "independent-before.json.gz",
+      "compression": "gzip; SHA-256 describes decompressed original bytes"
+    },
+    "independent-after": {
+      "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+      "report_sha256": "02bcff6d5389c4b1f5b8bf2311199b7a3f759451ff8f5396b3d8a0d19e9127a4",
+      "rows": 23,
+      "scores": {
+        "direct": {
+          "n": 10,
+          "selection_pass": 10
+        },
+        "paraphrase": {
+          "n": 9,
+          "selection_pass": 8
+        },
+        "unanswerable": {
+          "n": 4,
+          "selection_pass": 4
+        }
+      },
+      "median_seconds": 4.105,
+      "model_json_accepted": 18,
+      "provider_errors": 0,
+      "degraded_searches": 0,
+      "withdrawal_pass": true,
+      "runtime_elapsed_seconds": 103.2798228263855,
+      "sampled_owned_peak_rss_gib": 5.6900177001953125,
+      "ollama_version": {
+        "version": "0.35.1"
+      },
+      "models": [
+        {
+          "name": "bge-m3:latest",
+          "model": "bge-m3:latest",
+          "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+          "size": 1157672605,
+          "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "bert",
+            "families": [
+              "bert"
+            ],
+            "parameter_size": "566.70M",
+            "quantization_level": "F16",
+            "context_length": 8192,
+            "embedding_length": 1024
+          },
+          "capabilities": [
+            "embedding"
+          ]
+        },
+        {
+          "name": "qwen3.5:4b",
+          "model": "qwen3.5:4b",
+          "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+          "size": 3389983735,
+          "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "4.7B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 2560
+          },
+          "capabilities": [
+            "completion",
+            "vision",
+            "tools",
+            "thinking"
+          ]
+        }
+      ],
+      "server_exit": 0,
+      "client_exit": 0,
+      "metal_confirmed": true,
+      "raw_report_file": "independent-after.json.gz",
+      "compression": "gzip; SHA-256 describes decompressed original bytes"
+    }
+  },
+  "question_source_hashes": {
+    "before": "f24f5f8334606019fb7869e2f06a667ef0f663e7fa6e98a34e1685bd6d902ab8",
+    "after": "bb3ae5ef4ba9c4108e0518a7b5af00540b88b32073728f977c90241ad60274d1"
+  }
+}

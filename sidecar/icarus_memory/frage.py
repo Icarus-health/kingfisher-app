@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import re
 import time
+from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as ZeitUeberschritten
 from dataclasses import dataclass, field
 from typing import Any
@@ -213,7 +214,13 @@ def _aufruf(anbieter: Any, frage: str) -> Any:
     nachrichten = [{"role": "system", "content": ANWEISUNG},
                    {"role": "user", "content": json.dumps({"frage": frage}, ensure_ascii=False)}]
     if getattr(anbieter, "is_local", False) and callable(getattr(anbieter, "complete_json", None)):
-        return anbieter.complete_json(nachrichten, max_tokens=220, schema=SCHEMA)
+        # The validator already knows which named period the question permits.
+        # Exclude invented periods in the generation grammar as well, rather
+        # than discarding useful search expansions together with that mistake.
+        schema = deepcopy(SCHEMA)
+        zeitraum = _zeitraum(frage)
+        schema['properties']['zeitraum']['enum'] = [KEIN_ZEITRAUM] + ([zeitraum] if zeitraum else [])
+        return anbieter.complete_json(nachrichten, max_tokens=220, schema=schema)
     return anbieter.complete(nachrichten, [])
 
 
