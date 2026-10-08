@@ -62,7 +62,7 @@ from .akten_kontext import Kontext, Ueberholt
 from .kennzeichnung import Kennzeichen, Rahmen
 from .kontakte import absender_text
 from .lage import verdaechtig
-from .satzpruefung import Beleg, Satz
+from .satzpruefung import Beleg, Satz, bedingte_regeln
 from .satzpruefung_modell import Tor
 from .working_memory_store import WorkingMemoryStore
 from .zeitmessung import Zeiten
@@ -562,15 +562,26 @@ def _eingestuft(satz: GeprueftSatz, nach_nummer: dict[str, AntwortBeleg], jetzt:
 
 
 def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg], verworfen: int) -> bool:
-    """Nach Verwerfung keine Quelle ganz verdecken; keine semantische Vollständigkeitsprüfung.
+    """Nach Verwerfung keine Quelle oder erkannte Erlaubnisregel verdecken.
 
     Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
+    Erkannte passive Regeln bleiben nur bei vollständiger wörtlicher Wiedergabe;
+    sonst zeigt der Zitatmodus auch die innerhalb derselben Quelle verlorene Bedingung.
+    Das ist keine allgemeine semantische Vollständigkeitsprüfung.
     """
     if verworfen <= 0:
         return False
     nummern = {n for satz in saetze for n in satz.belege}
     vertreten = {beleg.episode_id for beleg in belege if beleg.nummer in nummern}
-    return bool({beleg.episode_id for beleg in belege} - vertreten)
+    if {beleg.episode_id for beleg in belege} - vertreten:
+        return True
+    for beleg in belege:
+        regeln = set(bedingte_regeln(beleg.pruef_text or beleg.text))
+        erhalten = {regel for satz in saetze if beleg.nummer in satz.belege
+                    for regel in bedingte_regeln(satz.text)}
+        if regeln - erhalten:
+            return True
+    return False
 
 
 def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], jetzt: datetime,
@@ -614,7 +625,7 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
     durch = (durch + ergaenzt)[:MAX_SAETZE + 2]
     if _quelle_fehlt(durch, belege, len(verworfen)):
         return Versuch('zitate', verworfen=verworfen, modell=modell,
-                       grund='Nach der Satzprüfung fehlt eine vorgelegte Quelle in der Teilantwort')
+                       grund='Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort')
     return Versuch('saetze', [_eingestuft(satz, nach_nummer, jetzt) for satz in durch], verworfen,
                    modell=modell)
 
