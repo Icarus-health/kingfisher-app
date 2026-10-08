@@ -1,0 +1,563 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791495794.819649,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 36304
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 298368
+    },
+    {
+      "elapsed": 4.1,
+      "owned_rss_kib": 4829232
+    },
+    {
+      "elapsed": 6.14,
+      "owned_rss_kib": 4991760
+    },
+    {
+      "elapsed": 8.18,
+      "owned_rss_kib": 5099632
+    },
+    {
+      "elapsed": 10.21,
+      "owned_rss_kib": 4696896
+    },
+    {
+      "elapsed": 12.25,
+      "owned_rss_kib": 5102512
+    },
+    {
+      "elapsed": 14.29,
+      "owned_rss_kib": 81520
+    },
+    {
+      "elapsed": 16.32,
+      "owned_rss_kib": 4937328
+    },
+    {
+      "elapsed": 18.35,
+      "owned_rss_kib": 5105872
+    },
+    {
+      "elapsed": 20.38,
+      "owned_rss_kib": 84640
+    },
+    {
+      "elapsed": 22.41,
+      "owned_rss_kib": 4959616
+    },
+    {
+      "elapsed": 24.44,
+      "owned_rss_kib": 5101712
+    },
+    {
+      "elapsed": 26.49,
+      "owned_rss_kib": 154992
+    },
+    {
+      "elapsed": 28.53,
+      "owned_rss_kib": 4999248
+    },
+    {
+      "elapsed": 30.57,
+      "owned_rss_kib": 5271456
+    },
+    {
+      "elapsed": 32.66,
+      "owned_rss_kib": 5373584
+    },
+    {
+      "elapsed": 34.71,
+      "owned_rss_kib": 5578704
+    },
+    {
+      "elapsed": 36.74,
+      "owned_rss_kib": 5782032
+    },
+    {
+      "elapsed": 38.78,
+      "owned_rss_kib": 6101168
+    },
+    {
+      "elapsed": 40.81,
+      "owned_rss_kib": 170224
+    },
+    {
+      "elapsed": 42.84,
+      "owned_rss_kib": 4939136
+    },
+    {
+      "elapsed": 44.86,
+      "owned_rss_kib": 5094368
+    },
+    {
+      "elapsed": 46.9,
+      "owned_rss_kib": 5396848
+    },
+    {
+      "elapsed": 48.95,
+      "owned_rss_kib": 5650048
+    },
+    {
+      "elapsed": 51.0,
+      "owned_rss_kib": 5885648
+    },
+    {
+      "elapsed": 53.04,
+      "owned_rss_kib": 768352
+    },
+    {
+      "elapsed": 55.07,
+      "owned_rss_kib": 5085920
+    },
+    {
+      "elapsed": 57.11,
+      "owned_rss_kib": 5316448
+    },
+    {
+      "elapsed": 59.14,
+      "owned_rss_kib": 5598080
+    },
+    {
+      "elapsed": 61.18,
+      "owned_rss_kib": 5930560
+    },
+    {
+      "elapsed": 63.2,
+      "owned_rss_kib": 767072
+    },
+    {
+      "elapsed": 65.24,
+      "owned_rss_kib": 5087296
+    },
+    {
+      "elapsed": 67.38,
+      "owned_rss_kib": 5394576
+    },
+    {
+      "elapsed": 69.41,
+      "owned_rss_kib": 5656896
+    },
+    {
+      "elapsed": 71.44,
+      "owned_rss_kib": 5886288
+    },
+    {
+      "elapsed": 73.49,
+      "owned_rss_kib": 5886288
+    },
+    {
+      "elapsed": 75.52,
+      "owned_rss_kib": 4094800
+    },
+    {
+      "elapsed": 77.56,
+      "owned_rss_kib": 5310432
+    },
+    {
+      "elapsed": 79.63,
+      "owned_rss_kib": 5310208
+    },
+    {
+      "elapsed": 81.66,
+      "owned_rss_kib": 5813072
+    },
+    {
+      "elapsed": 83.69,
+      "owned_rss_kib": 6403024
+    },
+    {
+      "elapsed": 85.72,
+      "owned_rss_kib": 5734128
+    },
+    {
+      "elapsed": 87.76,
+      "owned_rss_kib": 5737888
+    },
+    {
+      "elapsed": 89.78,
+      "owned_rss_kib": 5893504
+    },
+    {
+      "elapsed": 91.83,
+      "owned_rss_kib": 6018640
+    },
+    {
+      "elapsed": 93.86,
+      "owned_rss_kib": 5977040
+    },
+    {
+      "elapsed": 95.91,
+      "owned_rss_kib": 6131760
+    },
+    {
+      "elapsed": 97.94,
+      "owned_rss_kib": 6266224
+    },
+    {
+      "elapsed": 100.0,
+      "owned_rss_kib": 6266256
+    },
+    {
+      "elapsed": 102.04,
+      "owned_rss_kib": 6134480
+    },
+    {
+      "elapsed": 104.08,
+      "owned_rss_kib": 6191392
+    },
+    {
+      "elapsed": 106.19,
+      "owned_rss_kib": 6182832
+    },
+    {
+      "elapsed": 108.23,
+      "owned_rss_kib": 1516400
+    },
+    {
+      "elapsed": 110.27,
+      "owned_rss_kib": 5954096
+    },
+    {
+      "elapsed": 112.41,
+      "owned_rss_kib": 5684896
+    },
+    {
+      "elapsed": 114.45,
+      "owned_rss_kib": 5494576
+    },
+    {
+      "elapsed": 116.48,
+      "owned_rss_kib": 5522480
+    },
+    {
+      "elapsed": 118.51,
+      "owned_rss_kib": 5548576
+    },
+    {
+      "elapsed": 120.57,
+      "owned_rss_kib": 5588624
+    },
+    {
+      "elapsed": 122.62,
+      "owned_rss_kib": 5574416
+    },
+    {
+      "elapsed": 124.68,
+      "owned_rss_kib": 5621632
+    },
+    {
+      "elapsed": 126.72,
+      "owned_rss_kib": 5701456
+    },
+    {
+      "elapsed": 128.77,
+      "owned_rss_kib": 5681424
+    },
+    {
+      "elapsed": 130.81,
+      "owned_rss_kib": 5563392
+    },
+    {
+      "elapsed": 132.85,
+      "owned_rss_kib": 5564656
+    },
+    {
+      "elapsed": 134.92,
+      "owned_rss_kib": 5564416
+    },
+    {
+      "elapsed": 136.97,
+      "owned_rss_kib": 5611184
+    },
+    {
+      "elapsed": 139.04,
+      "owned_rss_kib": 5611200
+    },
+    {
+      "elapsed": 141.06,
+      "owned_rss_kib": 3424208
+    },
+    {
+      "elapsed": 143.1,
+      "owned_rss_kib": 5686800
+    },
+    {
+      "elapsed": 145.13,
+      "owned_rss_kib": 5814016
+    },
+    {
+      "elapsed": 147.17,
+      "owned_rss_kib": 6074288
+    },
+    {
+      "elapsed": 149.24,
+      "owned_rss_kib": 6233424
+    },
+    {
+      "elapsed": 151.32,
+      "owned_rss_kib": 6005232
+    },
+    {
+      "elapsed": 153.36,
+      "owned_rss_kib": 5012576
+    },
+    {
+      "elapsed": 155.4,
+      "owned_rss_kib": 5249120
+    },
+    {
+      "elapsed": 157.49,
+      "owned_rss_kib": 5295120
+    },
+    {
+      "elapsed": 159.55,
+      "owned_rss_kib": 5295232
+    },
+    {
+      "elapsed": 161.6,
+      "owned_rss_kib": 5475920
+    },
+    {
+      "elapsed": 163.66,
+      "owned_rss_kib": 5473536
+    },
+    {
+      "elapsed": 165.77,
+      "owned_rss_kib": 5530256
+    },
+    {
+      "elapsed": 167.83,
+      "owned_rss_kib": 5530272
+    },
+    {
+      "elapsed": 169.86,
+      "owned_rss_kib": 5598816
+    },
+    {
+      "elapsed": 171.9,
+      "owned_rss_kib": 5598880
+    },
+    {
+      "elapsed": 173.93,
+      "owned_rss_kib": 4791264
+    },
+    {
+      "elapsed": 175.96,
+      "owned_rss_kib": 5677616
+    },
+    {
+      "elapsed": 177.99,
+      "owned_rss_kib": 5803104
+    },
+    {
+      "elapsed": 180.04,
+      "owned_rss_kib": 6059136
+    },
+    {
+      "elapsed": 182.07,
+      "owned_rss_kib": 6298752
+    },
+    {
+      "elapsed": 184.13,
+      "owned_rss_kib": 6298688
+    },
+    {
+      "elapsed": 186.16,
+      "owned_rss_kib": 6515920
+    },
+    {
+      "elapsed": 188.18,
+      "owned_rss_kib": 6554768
+    },
+    {
+      "elapsed": 190.24,
+      "owned_rss_kib": 6540112
+    },
+    {
+      "elapsed": 192.28,
+      "owned_rss_kib": 6470288
+    },
+    {
+      "elapsed": 194.33,
+      "owned_rss_kib": 6226832
+    },
+    {
+      "elapsed": 196.39,
+      "owned_rss_kib": 6103936
+    },
+    {
+      "elapsed": 198.43,
+      "owned_rss_kib": 894080
+    },
+    {
+      "elapsed": 200.46,
+      "owned_rss_kib": 5649600
+    },
+    {
+      "elapsed": 202.5,
+      "owned_rss_kib": 5805136
+    },
+    {
+      "elapsed": 204.55,
+      "owned_rss_kib": 5858960
+    },
+    {
+      "elapsed": 206.64,
+      "owned_rss_kib": 6073152
+    },
+    {
+      "elapsed": 208.66,
+      "owned_rss_kib": 6139408
+    },
+    {
+      "elapsed": 210.79,
+      "owned_rss_kib": 6137616
+    },
+    {
+      "elapsed": 212.85,
+      "owned_rss_kib": 6213424
+    },
+    {
+      "elapsed": 214.88,
+      "owned_rss_kib": 6397232
+    },
+    {
+      "elapsed": 216.93,
+      "owned_rss_kib": 6443856
+    },
+    {
+      "elapsed": 219.0,
+      "owned_rss_kib": 6484528
+    },
+    {
+      "elapsed": 221.04,
+      "owned_rss_kib": 6296592
+    },
+    {
+      "elapsed": 223.08,
+      "owned_rss_kib": 6389072
+    },
+    {
+      "elapsed": 225.12,
+      "owned_rss_kib": 907040
+    },
+    {
+      "elapsed": 227.16,
+      "owned_rss_kib": 5651168
+    },
+    {
+      "elapsed": 229.21,
+      "owned_rss_kib": 5681872
+    },
+    {
+      "elapsed": 231.26,
+      "owned_rss_kib": 5808368
+    },
+    {
+      "elapsed": 233.28,
+      "owned_rss_kib": 6077520
+    },
+    {
+      "elapsed": 235.31,
+      "owned_rss_kib": 6272336
+    },
+    {
+      "elapsed": 237.37,
+      "owned_rss_kib": 6330256
+    },
+    {
+      "elapsed": 239.4,
+      "owned_rss_kib": 6396160
+    },
+    {
+      "elapsed": 241.43,
+      "owned_rss_kib": 6396208
+    },
+    {
+      "elapsed": 243.47,
+      "owned_rss_kib": 6396240
+    },
+    {
+      "elapsed": 245.52,
+      "owned_rss_kib": 6190320
+    },
+    {
+      "elapsed": 247.56,
+      "owned_rss_kib": 6188608
+    },
+    {
+      "elapsed": 249.6,
+      "owned_rss_kib": 6188640
+    }
+  ],
+  "completed": true,
+  "server_pid": 12010,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 12023,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791496046.9703429
+}
