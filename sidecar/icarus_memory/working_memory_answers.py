@@ -950,8 +950,10 @@ def _fresh(answer, episodes, claims):
     if 'index_signatur' in saved_search:
         if saved_search['index_signatur'] != search_stats.get('index_signatur'):
             return False
-    elif search_stats.get('ohne_einordnung'):
+    elif search_stats.get('ohne_einordnung') and 'index_inventory' not in saved_search:
         # Ältere Antworten kennen diese Lücke nicht: keine scheinbar aktuelle Antwort zeigen.
+        return False
+    if saved_search.get('index_inventory') != search_stats.get('index_inventory'):
         return False
     if 'akten' in answer and not _akten_frisch(answer, refs, sachen, episodes, claims):
         return False
@@ -1109,6 +1111,13 @@ def _search_notices(answer):
     if coverage:
         notices.append(coverage)
     search = answer.get('search')
+    if isinstance(search, dict) and search.get('index') == 'nicht verfügbar':
+        notices.append('Die Volltextsuche war nicht verfügbar; passende Originalquellen können fehlen.')
+    unindexed = search.get('index_nicht_erfasst', 0) if isinstance(search, dict) else 0
+    if type(unindexed) is int and unindexed > 0:
+        notices.append((f'{unindexed} Originalquellen sind wegen ihrer Größe nicht im Volltextindex erfasst; '
+                        if unindexed != 1 else '1 Originalquelle ist wegen ihrer Größe nicht im Volltextindex erfasst; ')
+                       + 'passende Informationen können fehlen.')
     missing = search.get('ohne_einordnung', 0) if isinstance(search, dict) else 0
     if type(missing) is int and missing > 0:
         notices.append((f'Zu {missing} passenden Originalquellen fehlen nutzbare Belegabschnitte; '

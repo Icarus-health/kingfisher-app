@@ -177,6 +177,40 @@ def test_deliberately_dismissed_matching_source_is_not_reported_as_unprocessed(r
     assert wma.satz_struktur(answer, episodes, claims)['hinweise'] == []
 
 
+def test_unavailable_index_discloses_gap_and_invalidates_after_new_intake(raum, monkeypatch):
+    import sqlite3
+    from icarus_memory import source_index
+
+    episodes, claims, _ = raum
+    wandel(episodes)
+    def unavailable(*args, **kwargs):
+        raise sqlite3.OperationalError('synthetic index outage')
+    monkeypatch.setattr(source_index, 'suchen', unavailable)
+    saved = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
+    text, _, status = wma.render(saved, episodes, claims)
+    assert status == 'working_reports'
+    assert saved['limited'] is True
+    assert 'Volltextsuche war nicht verfügbar' in text
+    assert any('Volltextsuche' in notice for notice in wma.satz_struktur(saved, episodes, claims)['hinweise'])
+    quelle(episodes, 'Absage', 'Die Einreichfrist wurde aufgehoben.', [STIFTUNG], tage=1)
+    assert wma.render(saved, episodes, claims)[2] == 'working_unavailable'
+
+
+def test_source_outside_size_limit_discloses_gap_and_invalidates_saved_answer(raum, monkeypatch):
+    from icarus_memory import source_index
+
+    monkeypatch.setattr(source_index, 'MAX_TEXT_BYTES', 400)
+    episodes, claims, _ = raum
+    wandel(episodes)
+    saved = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
+    assert saved['limited'] is False
+    quelle(episodes, 'Lange Absage', 'Die Einreichfrist wurde aufgehoben. ' + 'Weiterer Text. ' * 100, [STIFTUNG], tage=1)
+    assert wma.render(saved, episodes, claims)[2] == 'working_unavailable'
+    refreshed = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
+    assert refreshed['limited'] is True
+    assert any('nicht im Volltextindex erfasst' in notice for notice in wma.satz_struktur(refreshed, episodes, claims)['hinweise'])
+
+
 def test_aus_der_akte_steht_der_aktuelle_stand_der_genannten_sache_mit_dem_wortlaut(raum):
     episodes, claims, _ = raum
     wandel(episodes)
