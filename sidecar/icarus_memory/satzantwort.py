@@ -559,7 +559,16 @@ def _original_lesen(antwort: Any, stellen: dict[tuple[int, int], str]) -> tuple[
         raise ValueError('Antwortgröße')
     roh = json.loads(text)
     if type(roh) is dict and set(roh) == {'saetze', 'status'}:
-        return _lesen(antwort)
+        status, alte_saetze = _lesen(antwort)
+        saetze = []
+        for satz in alte_saetze:
+            original = next((text for (nr, _), text in stellen.items()
+                             if str(nr) in satz.belege
+                             and text.rstrip('.!?') == satz.text.strip().rstrip('.!?')), None)
+            # Nicht passende Alt-Ausgaben bleiben Kandidaten für dieselben
+            # Prüftore, damit Verwerfungs- und Vollständigkeitsausweis erhalten bleiben.
+            saetze.append(Satz(original, satz.belege) if original is not None else satz)
+        return status, saetze
     if (type(roh) is not dict or set(roh) != {'originalstellen', 'status'}
             or roh['status'] not in STATI or type(roh['originalstellen']) is not list
             or len(roh['originalstellen']) > MAX_SAETZE):

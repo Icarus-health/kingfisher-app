@@ -123,3 +123,50 @@ def test_sentence_size_limit_cannot_create_a_false_absence_report(extra):
     result = sa.formulieren('Wann darf die Pumpe verwendet werden?', [evidence(long_rule + extra)], provider, jetzt=NOW)
     assert result.status == 'zitate'
     assert not provider.messages, 'Do not ask about a context made incomplete by the offering limit'
+
+
+def test_legacy_free_text_cannot_restore_a_wrapped_unconditional_fragment():
+    fragment = 'Die Steuerung darf zurückgesetzt werden'
+    wrapped = fragment + '\nwenn die diensthabende Technikerin es schriftlich anordnet.'
+    provider = Selector({'status': 'antwort', 'saetze': [{'text': fragment, 'belege': [1]}]})
+    result = sa.formulieren('Ist ein Zurücksetzen automatisch erlaubt?', [evidence(RULE + '\n' + wrapped)],
+                            provider, jetzt=NOW)
+    assert result.status == 'zitate'
+
+
+def test_legacy_complete_original_remains_compatible_and_uses_server_wording():
+    provider = Selector({'status': 'antwort', 'saetze': [{'text': RULE.rstrip('.'), 'belege': [1]}]})
+    result = sa.formulieren('Wann?', [evidence()], provider, jetzt=NOW)
+    assert result.status == 'saetze'
+    assert [s.text for s in result.saetze] == [RULE]
+
+
+def test_saved_legacy_fragment_is_rejected_after_stores_reopen(tmp_path):
+    from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+    from icarus_memory.claims import ClaimStore
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    from tests.test_satzantwort import Skript
+
+    fragment = 'Die Steuerung darf zurückgesetzt werden'
+    body = RULE + '\n' + fragment + '\nwenn die Technikerin es schriftlich anordnet.'
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    try:
+        source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Steuerung', body, Provenance(SourceType.DOCUMENT))
+        assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+            [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+        provider = Skript({'status': 'antwort', 'saetze': [{'text': RULE, 'belege': [1]}]})
+        answer = working_memory_answers.prepare('Was steht zur Steuerung?', episodes, claims, provider, saetze=True)
+        saved = answer['satzantwort']
+        assert saved['status'] == 'saetze'
+        saved['saetze'][0].update(roh=fragment, text=fragment)
+    finally:
+        claims.close()
+        episodes.close()
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    claims = ClaimStore(tmp_path / 'claims.sqlite3')
+    try:
+        assert sa.wiederherstellen(saved, episodes, claims) is None
+    finally:
+        claims.close()
+        episodes.close()
