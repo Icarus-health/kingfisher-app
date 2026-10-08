@@ -19,6 +19,9 @@ dependencies = [
     # Zeitzonen ohne Betriebssystem-Datenbank: Das schlanke Python-Abbild im Container bringt sie nicht
     # sicher mit; ohne sie stünden Uhrzeiten in UTC mit Versatz statt in der Zeit des Nutzers.
     "tzdata>=2024.1",
+    # Kleiner, abgeleiteter lokaler Vektorcache; erst bei Nutzung geladen.
+    # Geprüfte API und Plattform-Wheels, siehe docs/runs/2026-10-08-vector-store-fitness.
+    "sqlite-vec==0.1.9",
 ]
 
 [project.optional-dependencies]
