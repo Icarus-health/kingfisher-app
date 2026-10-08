@@ -62,7 +62,7 @@ from .akten_kontext import Kontext, Ueberholt
 from .kennzeichnung import Kennzeichen, Rahmen
 from .kontakte import absender_text
 from .lage import verdaechtig
-from .satzpruefung import Beleg, Satz, bedingte_regeln
+from .satzpruefung import Beleg, Satz, bedingte_regeln_fuer_antwort
 from .satzpruefung_modell import Tor
 from .working_memory_store import WorkingMemoryStore
 from .zeitmessung import Zeiten
@@ -576,9 +576,9 @@ def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]
     if {beleg.episode_id for beleg in belege} - vertreten:
         return True
     for beleg in belege:
-        regeln = set(bedingte_regeln(beleg.pruef_text or beleg.text))
+        regeln = set(bedingte_regeln_fuer_antwort(beleg.pruef_text or beleg.text))
         erhalten = {regel for satz in saetze if beleg.nummer in satz.belege
-                    for regel in bedingte_regeln(satz.text)}
+                    for regel in bedingte_regeln_fuer_antwort(satz.text)}
         if regeln - erhalten:
             return True
     return False

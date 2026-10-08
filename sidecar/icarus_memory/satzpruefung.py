@@ -630,6 +630,8 @@ def _inhaltswoerter(text: str) -> set[str]:
 # condition paraphrases. Keep commas/conjunctions and the complete word order.
 _ERLAUBNIS = re.compile(r'\b(?:darf|dürfen|duerfen)\b')
 _REGEL_BEDINGUNG = re.compile(r'\b(?:(?:erst|nur)\s+nach|wenn|sofern|sobald|falls)\b')
+_ZULAESSIGKEIT_WENN = re.compile(
+    r'\b(?:ist|sind)\s+(?:nur\s+)?(?:zulässig|zulaessig|gestattet|erlaubt)\s*,?\s+wenn\b', re.I)
 _PASSIV = re.compile(r'\b([a-zäöüß]+)\s+werden\b')
 _FEHLT = re.compile(r'(?:(?:die|der|das|eine|ein)\s+)?([a-zäöüß]+)\s+(?:liegt|liegen)\s+(?:noch\s+)?nicht\s+vor')
 _ZEITRAHMEN = re.compile(
@@ -639,6 +641,16 @@ _ZEITRAHMEN = re.compile(
     r'(?!(?:darf|dürfen|duerfen|ist|sind|war|waren|wird|werden|wurde|wurden|hat|haben|'
     r'kann|können|muss|müssen|soll|sollen|nicht|nie|kein|keine|keiner|keinem|keinen)\b)'
     r'(?P<ereignis>[a-zäöüß]+)\b', re.I)
+# Narrow boundary form used only to keep an exact post-boundary clause from
+# inheriting a prohibition that explicitly ends at that boundary.
+_BIS_GRENZE = re.compile(
+    r'\bbis\s+(?:(?:zu(?:r|m)?|der|dem|den|die|das|des|einer|einem|eines)\s+)?'
+    r'(?:(?P<adjektiv>[a-zäöüß]+(?:e|en|em|er|es))\s+)?'
+    r'(?P<ereignis>[a-zäöüß]+)\b', re.I)
+_GRENZEN_PRAEDIKAT = re.compile(
+    r'^(?:[.!?;]\s*|(?:nicht|kein\w*|nie|niemals|ohne|weder|darf|dürfen|duerfen|ist|sind|'
+    r'war|waren|wird|werden|wurde|wurden|bleibt|bleiben|kann|können|muss|müssen|soll|sollen|'
+    r'hat|haben|liegt|liegen|steht|stehen|erfolgt|erfolgte|wenn|sofern|sobald|falls|und|oder)\b)', re.I)
 _NORMATIVE_AUSSAGE = re.compile(
     r'\b(?:darf|dürfen|duerfen|erlaubt\w*|zulässig\w*|zulaessig\w*|gestattet\w*|verboten\w*)\b', re.I)
 # A matching prohibition can describe the same object but cannot support an allowance (or vice versa).
@@ -671,6 +683,21 @@ def bedingte_regeln(text: str) -> tuple[str, ...]:
     """
     return tuple(t for teil in _abschnitte(text, False) if (t := _regeltext(teil))
                  and _ERLAUBNIS.search(t) and _REGEL_BEDINGUNG.search(t) and _PASSIV.search(t))
+
+
+def bedingte_regeln_fuer_antwort(text: str) -> tuple[str, ...]:
+    """Existing passive rules plus a literal bounded `zulässig/erlaubt, wenn` clause."""
+    regeln = list(bedingte_regeln(text))
+    for regel in _bedingte_zulaessigkeitsregeln(text):
+        if regel not in regeln:
+            regeln.append(regel)
+    return tuple(regeln)
+
+
+def _bedingte_zulaessigkeitsregeln(text: str) -> tuple[str, ...]:
+    return tuple(regel for teil in _abschnitte(text, False)
+                 if (regel := _regeltext(teil)) and _NORMATIVE_AUSSAGE.search(regel)
+                 and _ZULAESSIGKEIT_WENN.search(regel))
 
 
 def _anwendbarkeitsklauseln(text: str) -> list[str]:
@@ -788,15 +815,15 @@ def _anwendbarkeit_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
 
 
 def _bedingung_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
-    if not any(bedingte_regeln(b.text) for b in belege):
-        return None
     original = {_regeltext(t) for b in belege for t in _abschnitte(b.text, False)}
-    for teil in _abschnitte(satz, False):
-        # Do not decide relatedness through shared words: “darf raus” and even
-        # “es ist raus” can change the rule without sharing its action/subject.
-        # Separately stated actual events still have their own literal evidence.
-        if _regeltext(teil) not in original:
-            return 'Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege'
+    bedingte_regeln_vorhanden = any(bedingte_regeln_fuer_antwort(b.text) for b in belege)
+    if bedingte_regeln_vorhanden:
+        for teil in _abschnitte(satz, False):
+            # Preserve the existing fail-closed behavior for recognized
+            # conditional permissions: every answer sentence must remain an
+            # exact source clause. The quote fallback keeps the source visible.
+            if _regeltext(teil) not in original:
+                return 'Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege'
     return None
 
 
@@ -817,6 +844,60 @@ def _regel_mit_fehlendem_nachweis(satz: str, klausel: str, beleg: Beleg) -> bool
     return False
 
 
+def _exakte_nachgrenzenregel(satz: str, klausel: str, beleg: Beleg) -> bool:
+    """A literal conditional permission after a boundary is outside a prior `bis` prohibition."""
+    if not _NORMATIVE_AUSSAGE.search(satz) or not _ZULAESSIGKEIT_WENN.search(satz):
+        return False
+    if _regeltext(satz) not in {_regeltext(teil) for teil in _abschnitte(beleg.text, False)}:
+        return False
+    nach_satz = [rahmen for rahmen in _ZEITRAHMEN.finditer(satz)
+                 if rahmen['relation'].casefold() == 'nach']
+
+    def gleiches_adjektiv(links, rechts):
+        # Keep ß distinct from ss: boundary identity is intentionally literal.
+        links, rechts = links.lower(), rechts.lower()
+        if links == rechts:
+            return True
+        return any(links == rechts + endung or rechts == links + endung
+                   for endung in _ENDUNGEN if endung)
+
+    def gleiches_ereignis(links, rechts):
+        if links['ereignis'].lower() != rechts['ereignis'].lower():
+            return False
+        adj_links, adj_rechts = links['adjektiv'], rechts['adjektiv']
+        return not (adj_links and adj_rechts and not gleiches_adjektiv(adj_links, adj_rechts))
+
+    def grenze_unqualifiziert(text, rahmen):
+        """Only an unqualified event boundary is supported by this exception."""
+        rest = text[rahmen.end():].lstrip()
+        return not rest or bool(_GRENZEN_PRAEDIKAT.match(rest))
+
+    # The exception is only supported for one parsed negative proposition.
+    # Multiple negative propositions can otherwise lend each other a boundary.
+    negative_clauses = [teil for teil in _anwendbarkeitsklauseln(klausel)
+                        if _VERNEINUNG.search(falten(teil))]
+    if len(negative_clauses) != 1:
+        return False
+    negativ_klausel = negative_clauses[0]
+    grenze = _BIS_GRENZE.search(negativ_klausel)
+    if grenze is None:
+        return False
+    # A prohibition that itself begins after the same event can still apply in
+    # the post-boundary window (for example, `nach Abnahme bis Prüfende`).
+    nach_klausel = [rahmen for rahmen in _ZEITRAHMEN.finditer(negativ_klausel)
+                    if rahmen['relation'].casefold() == 'nach']
+    if any(gleiches_ereignis(rahmen, kandidat)
+           for rahmen in nach_klausel for kandidat in nach_satz):
+        return False
+    if not any(gleiches_ereignis(grenze, rahmen) for rahmen in nach_satz):
+        return False
+    # Additional genitive, prepositional, or relative qualification is not
+    # parsed. Fail closed instead of treating the event noun alone as identity.
+    return grenze_unqualifiziert(negativ_klausel, grenze) and any(
+               grenze_unqualifiziert(satz, rahmen)
+               for rahmen in nach_satz if gleiches_ereignis(grenze, rahmen))
+
+
 def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str | None:
     """Grund, falls Beleg und Satz sich in der Verneinung widersprechen; sonst None."""
     satz_verneint = bool(_VERNEINUNG.search(falten(satz)))
@@ -835,6 +916,8 @@ def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str |
             klausel_daten, _ = daten_in(klausel)
             teilt = (satz_woerter & _inhaltswoerter(klausel)) or (satz_kurz & {(d.monat, d.tag) for d in klausel_daten})
             if teilt:
+                if _exakte_nachgrenzenregel(satz, klausel, beleg):
+                    continue
                 if _regel_mit_fehlendem_nachweis(satz, klausel, beleg):
                     continue
                 return f'Der Beleg verneint („{treffer.group(0)}“), der Satz nicht'
