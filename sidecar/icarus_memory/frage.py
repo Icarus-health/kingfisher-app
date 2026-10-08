@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as ZeitUeberschritten
 from dataclasses import dataclass, field
 from typing import Any
@@ -218,10 +219,17 @@ def _aufruf(anbieter: Any, frage: str) -> Any:
 
 def _mit_modell(frage: str, anbieter: Any, zeitlimit: float) -> Anfrage:
     """Modellaufruf mit Zeitlimit; wirft `ValueError` mit dem Grund, wenn nichts Gültiges entsteht."""
+    from .providers import json_request_deadline
+    deadline = time.monotonic() + zeitlimit
+
+    def aufrufen():
+        with json_request_deadline(deadline):
+            return _aufruf(anbieter, frage)
+
     ausfuehrung = ThreadPoolExecutor(max_workers=1, thread_name_prefix="frage")
     try:
         try:
-            antwort = ausfuehrung.submit(_aufruf, anbieter, frage).result(timeout=zeitlimit)
+            antwort = ausfuehrung.submit(aufrufen).result(timeout=zeitlimit)
         except ZeitUeberschritten as fehler:
             raise ValueError("Zeitlimit") from fehler
         except Exception as fehler:  # noqa: BLE001 - jeder Anbieterfehler führt zum Rückfall

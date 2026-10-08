@@ -14,6 +14,8 @@ Nach außen sehen beide gleich aus. Der Rest des Systems kennt nur `Provider`,
 from __future__ import annotations
 
 import json
+import time
+from contextvars import ContextVar
 from contextlib import contextmanager
 import ipaddress
 import math
@@ -42,6 +44,30 @@ class Reply:
 
 class ProviderError(Exception):
     pass
+
+
+_JSON_DEADLINE = ContextVar('kingfisher_json_deadline', default=None)
+
+
+@contextmanager
+def json_request_deadline(deadline: float):
+    """Carry a question's deadline through local provider wrappers in its worker."""
+    previous = _JSON_DEADLINE.get()
+    token = _JSON_DEADLINE.set(min(previous, deadline) if previous is not None else deadline)
+    try:
+        yield
+    finally:
+        _JSON_DEADLINE.reset(token)
+
+
+def _json_transport_timeout(default: float) -> float:
+    deadline = _JSON_DEADLINE.get()
+    if deadline is None:
+        return default
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise ProviderError('Question JSON request deadline expired')
+    return min(default, remaining)
 
 
 class Provider(Protocol):
@@ -215,15 +241,20 @@ class OpenAICompatible:
             payload["response_format"] = {"type": "json_schema", "json_schema": {
                 "name": "local_result", "strict": True, "schema": schema}}
             payload["temperature"] = 0
+        timeout = 30.0 if max_tokens <= 256 else 60.0
+        _json_transport_timeout(timeout)  # An expired worker must not prepare a model.
         try:
-            with self._ampel(), self._client(30.0 if max_tokens <= 256 else 60.0) as client:
-                response = client.post(
-                    f"{self._base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._key}"},
-                    json=payload,
-                )
-                response.raise_for_status()
-                data = response.json()
+            with self._ampel():
+                # Time spent waiting for a model or preparing its memory consumes
+                # the same budget; do not start a late request after fallback.
+                with self._client(_json_transport_timeout(timeout)) as client:
+                    response = client.post(
+                        f"{self._base}/chat/completions",
+                        headers={"Authorization": f"Bearer {self._key}"},
+                        json=payload,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Anfrage an {self._base} fehlgeschlagen: {exc}") from exc
         choice = (data.get("choices") or [{}])[0]

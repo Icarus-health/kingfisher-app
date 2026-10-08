@@ -1,0 +1,866 @@
+{
+  "synthetic_only": true,
+  "model": "gemma3:1b-it-qat",
+  "code_version": "1.0.6-local.722adeb",
+  "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+  "import_evidence": {
+    "Agent": {
+      "path": "/usr/local/lib/python3.12/site-packages/icarus_memory/agent.py",
+      "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+    },
+    "SemanticService": {
+      "path": "/usr/local/lib/python3.12/site-packages/icarus_memory/working_memory_semantic_service.py",
+      "sha256": "21a3d40b4a958530b59c121029abd1160632712a13386d3108176f126b7cabdc"
+    }
+  },
+  "retrieval": "installed SemanticService / DurableSemanticIndex; real local bge-m3",
+  "quotes": true,
+  "ingestion": "deterministic synthetic indexing; not real ingestion quality",
+  "rows": [
+    {
+      "q": "Wann beginnt das Wartungsfenster für den Server?",
+      "type": "direct",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S1"
+      ],
+      "selected_sources": [
+        "S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Serverwartung\nDas Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr und dauert zwei Stunden.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 19:46 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Wartungsfenster",
+          "Server"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "Zeitlimit",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "beginnt",
+          "server",
+          "wartungsfenster"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "Wartungsfenster",
+            "Server"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "Zeitlimit",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 1,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 1,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "beginnt",
+                "server",
+                "wartungsfenster"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 1,
+              "geprueft": 1,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          }
+        ],
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-443954edf302",
+                "fingerprint": "cd72b322fc4a40648c4d8d95991b9eb97cd2833d7ed459f8c51238da0c546e14",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ]
+          }
+        ]
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 6.004,
+        "suche": 4.314,
+        "antwort_modell": 25.724,
+        "gesamt": 42.057
+      },
+      "seconds": 36.057,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"sachen\": [\"Server\"], \"zeitraum\": \"dieser_monat\", \"absicht\": \"wartet_auf\", \"suchworte\": [\"Wartungsfenster\", \"Server\"] , \"umschreibungen\": [\"dieser_monat\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "q": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expect": [
+        "S1"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": "retrieval",
+      "search_degraded": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "System",
+          "Abend"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "Zeitlimit",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abend",
+          "erreichbar",
+          "system"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 0,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "System",
+            "Abend"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "Zeitlimit",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Ab wann ist das System am Abend nicht erreichbar?",
+            "refs": [],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 0,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 0,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "abend",
+                "erreichbar",
+                "system"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 0,
+              "geprueft": 0,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          }
+        ],
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": []
+          }
+        ]
+      },
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 8.754,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"sachen\": [\"System\", \"Ab wann\", \"Erreichbarkeit\"], \"zeitraum\": \"gestern\", \"absicht\": \"frist\", \"suchworte\": [\"System\", \"Erreichbarkeit\", \"Ab wann\"] , \"umschreibungen\": [\"Ab wann\"] }",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+      "type": "direct",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S2"
+      ],
+      "selected_sources": [
+        "S2"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S2"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Dachreparatur\nDie Rechnung für die Dachreparatur wurde am 10. September überwiesen.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 19:46 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Rechnung",
+          "Dachreparatur"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "Zeitlimit",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "dachreparatur",
+          "rechnung",
+          "uberwiesen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "Rechnung",
+            "Dachreparatur"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "Zeitlimit",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 1,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 1,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "dachreparatur",
+                "rechnung",
+                "uberwiesen"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 1,
+              "geprueft": 1,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          },
+          {
+            "query": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          }
+        ],
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ]
+          }
+        ]
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 6.003,
+        "suche": 3.847,
+        "antwort_modell": 25.629,
+        "gesamt": 41.485
+      },
+      "seconds": 35.484,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"sachen\": [\"Dachreparatur\", \"Rechnung\"], \"zeitraum\": \"vorgestern\", \"absicht\": \"wartet_auf\", \"suchworte\": [\"Rechnung\", \"Rechnung\"] , \"umschreibungen\": [\"Rechnung\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S2",
+        "S7"
+      ],
+      "selected_sources": [
+        "S7"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S7"
+      ],
+      "exact_sources": false,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": "selection",
+      "search_degraded": false,
+      "selection_pass": false,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Dresden\nDie Veranstaltung in Dresden wurde auf Freitag verschoben.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 19:46 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Handwerkerleistung",
+          "Haus"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "Zeitlimit",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "beglichen",
+          "handwerkerleistung",
+          "haus",
+          "oben"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "Handwerkerleistung",
+            "Haus"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "Zeitlimit",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+            "refs": [
+              {
+                "episode_id": "e-b2d454d0b097",
+                "fingerprint": "1a2841d396255ec75cac27b79e65347b297631c91afa309a7bd85ed7a03e0ad6",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 0,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 1,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "beglichen",
+                "handwerkerleistung",
+                "haus",
+                "oben"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 1,
+              "geprueft": 2,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          },
+          {
+            "query": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+            "refs": [
+              {
+                "episode_id": "e-b2d454d0b097",
+                "fingerprint": "1a2841d396255ec75cac27b79e65347b297631c91afa309a7bd85ed7a03e0ad6",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+            "refs": [
+              {
+                "episode_id": "e-b2d454d0b097",
+                "fingerprint": "1a2841d396255ec75cac27b79e65347b297631c91afa309a7bd85ed7a03e0ad6",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+            "refs": [
+              {
+                "episode_id": "e-b2d454d0b097",
+                "fingerprint": "1a2841d396255ec75cac27b79e65347b297631c91afa309a7bd85ed7a03e0ad6",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+            "refs": [
+              {
+                "episode_id": "e-b2d454d0b097",
+                "fingerprint": "1a2841d396255ec75cac27b79e65347b297631c91afa309a7bd85ed7a03e0ad6",
+                "start": 0,
+                "end": 58,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          }
+        ],
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-beb8dbc66e64",
+                "fingerprint": "aab743f9d7c832bea7bf0be5cbbdd25c998e7149fea05a6d4ceba5810bffdf0c",
+                "start": 0,
+                "end": 69,
+                "kind": "fact"
+              }
+            ]
+          }
+        ]
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 6.001,
+        "suche": 2.962,
+        "antwort_modell": 27.788,
+        "gesamt": 42.756
+      },
+      "seconds": 36.757,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"sachen\": [\"Handwerker\", \"Leistung\", \"Haus\"], \"zeitraum\": \"vorgestern\", \"absicht\": \"frist\", \"suchworte\": [\"Handwerker\", \"Leistung\", \"Haus\"], \"umschreibungen\": [\"beglichen\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "prose_review": "required",
+  "index_coverage": {
+    "status": "indexed",
+    "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "identity_checked_at": 1791481620.4909003,
+    "total": 16,
+    "indexed": 16,
+    "pending": 0,
+    "failed": 0,
+    "updated_at": 1791481621.411335,
+    "source_pending": 0
+  },
+  "withdrawal": {
+    "checked": true,
+    "pass": true,
+    "status": "working_unavailable",
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut."
+  },
+  "partial_catalog": true
+}
