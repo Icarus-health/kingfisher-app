@@ -30,6 +30,7 @@ class ChatGPTProvider:
     name = 'chatgpt'
     is_local = False
     is_remote = True
+    entity_anchor_mode = 'block_quote'
 
     def __init__(self, oauth, model, grant_id, client_factory=None):
         self.oauth, self.model, self.grant_id = oauth, model, grant_id

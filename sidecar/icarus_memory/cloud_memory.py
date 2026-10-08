@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import abschnitte
 from .memory_categories import Categories
+from .memory_categories import SourceValidationError
 from .model import SourceType
 from .providers import ProviderError
 from .restore_boundary import guarded
@@ -41,6 +42,7 @@ class _ScopedProvider:
         self.name = getattr(provider, "name", "chatgpt")
         self.model = getattr(provider, "model", "")
         self.grant_id = getattr(provider, "grant_id", None)
+        self.entity_anchor_mode = getattr(provider, "entity_anchor_mode", "absolute")
 
     def complete_json(self, messages, *, max_tokens, schema):
         guarded_call = getattr(self._provider, "complete_json_guarded", None)
@@ -79,6 +81,13 @@ class CloudMemoryJobs:
                 state TEXT NOT NULL, consent INTEGER NOT NULL, position INTEGER NOT NULL,
                 requests INTEGER NOT NULL, completed INTEGER NOT NULL, failed INTEGER NOT NULL,
                 stop_reason TEXT NOT NULL, created_at REAL NOT NULL, updated_at REAL NOT NULL)""")
+            issue_schema = """CREATE TABLE IF NOT EXISTS cloud_memory_issues (
+                job_id TEXT NOT NULL, episode_id TEXT NOT NULL,
+                stage TEXT NOT NULL CHECK(stage IN ('source','categories')),
+                code TEXT NOT NULL CHECK(code IN ('invalid_entity_evidence',
+                    'invalid_category_evidence', 'invalid_output_format', 'unsupported_source')),
+                PRIMARY KEY(job_id,episode_id))"""
+            db.execute(issue_schema)
             columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_jobs)")}
             if "source_limit" not in columns:
                 db.execute("ALTER TABLE cloud_memory_jobs ADD COLUMN source_limit INTEGER NOT NULL DEFAULT 100")
@@ -196,9 +205,9 @@ class CloudMemoryJobs:
                 "scanned_count": len(ids),
                 "next_cursor": next_cursor,
                 "sampling": "consecutive eligible sources in bounded storage-order pages" if source_ids is None else "selected source IDs",
-                "sampling_note": (f"Es werden höchstens {MAX_CANDIDATES} Quellen pro Seite geprüft; "
-                                  "bei weiteren Treffern können Sie mit dem Seitenzeiger fortfahren. "
-                                  "Neue Quellen bleiben außerhalb dieser Seitenfolge."
+                "sampling_note": (f"Es werden höchstens {MAX_CANDIDATES} Quellen pro Seite geprüft. "
+                                  "Bei weiteren Treffern kannst du den nächsten Quellenabschnitt prüfen. "
+                                  "Neu eingehende Mails werden in einer neuen Vorschau berücksichtigt."
                                   if source_ids is None else "Es werden nur die ausdrücklich ausgewählten Quellen geprüft."),
                 "expires_at": expires}
 
@@ -281,12 +290,20 @@ class CloudMemoryJobs:
         if not job:
             return {"job": None}
         ids = json.loads(job["source_ids"])
+        with self._connect() as db:
+            issue_count = db.execute("SELECT COUNT(*) FROM cloud_memory_issues WHERE job_id=?",
+                                     (job["id"],)).fetchone()[0]
+            issue_rows = db.execute("SELECT episode_id,stage,code FROM cloud_memory_issues "
+                                    "WHERE job_id=? ORDER BY rowid LIMIT 10", (job["id"],)).fetchall()
         return {"job": {"id": job["id"], "purpose": job["purpose"], "model": job["model"],
                          "state": job["state"], "selected": len(ids), "position": job["position"],
                          "completed": job["completed"], "failed": job["failed"],
                          "requests": job["requests"],
                          "request_limit": job["source_limit"] * REQUESTS_PER_SOURCE,
                          "source_limit": job["source_limit"], "stop_reason": job["stop_reason"],
+                         "issue_count": issue_count,
+                         "issues": [{"episode_id": row["episode_id"], "stage": row["stage"],
+                                     "code": row["code"]} for row in issue_rows],
                          "updated_at": job["updated_at"]}}
 
     def _permitted(self, job_id, provider, snapshot):
@@ -325,11 +342,30 @@ class CloudMemoryJobs:
                         # including pilot upgrades of sources previously handled locally.
                         self._analyze_one(job_id, provider, snapshot, explicit_recheck=True)
                         self._categories_one(job_id, provider, snapshot)
+                    except SourceValidationError as exc:
+                        with self.permission_lock:
+                            if not self._permitted(job_id, provider, snapshot):
+                                current = self._job(job_id)
+                                if current and current["state"] == "running":
+                                    self._save(job_id, state="stopped",
+                                               stop_reason="Freigabe oder Quelle wurde während des Auftrags geändert.")
+                                return
+                            job = self._job(job_id)
+                            with self._connect() as db:
+                                db.execute("INSERT OR REPLACE INTO cloud_memory_issues "
+                                           "(job_id,episode_id,stage,code) VALUES(?,?,?,?)",
+                                           (job_id, episode_id, "categories", exc.code))
+                            self._save(job_id, position=index + 1, failed=job["failed"] + 1)
+                        continue
                     except UnsupportedSource:
                         successful = False
                         with self.permission_lock:
                             if not self._permitted(job_id, provider, snapshot):
                                 return
+                            with self._connect() as db:
+                                db.execute("INSERT OR REPLACE INTO cloud_memory_issues "
+                                           "(job_id,episode_id,stage,code) VALUES(?,?,?,?)",
+                                           (job_id, episode_id, "source", "unsupported_source"))
                             self.memory.defer(snapshot)
                             job = self._job(job_id)
                             self._save(job_id, failed=job["failed"] + 1)

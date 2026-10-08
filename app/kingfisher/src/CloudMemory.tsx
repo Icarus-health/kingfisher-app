@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {api, type CloudMemoryJob, type CloudMemoryPreview, type CloudMemoryPurpose} from "./api";
 import {prepareCloudPreview} from "./cloud-preview";
+import {ProfileSource} from "./ProfileSource";
 
 export function CloudMemory({model, connected}:{model:string;connected:boolean}) {
   const [job,setJob] = useState<CloudMemoryJob|null>(null);
@@ -79,6 +80,14 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
       <p className="source-hint">{job.requests} von höchstens {job.request_limit} Modellaufrufen · ChatGPT-Abo · Modell {job.model}</p>
       {job.stop_reason ? <p role="status">{job.stop_reason}</p>:null}
       {job.state === "complete_with_gaps" ? <p>Einige Quellen konnten nicht vollständig eingeordnet werden. Diese Probe gibt den größeren Lauf noch nicht frei.</p>:null}
+      {job.issues?.length ? <details>
+        <summary>{job.issue_count??job.issues.length} Mails brauchen eine Nachprüfung</summary>
+        <p>Die betroffene Einordnung wurde nicht übernommen. Hier siehst du höchstens zehn offene Quellen; ihre Originale bleiben erhalten.</p>
+        <ul>{job.issues.map((issue,index)=><li key={`${issue.episode_id}:${index}`}>
+          <span>{issue.code === "unsupported_source" ? "Diese Mail überschreitet die Auswertungsgrenze." : "Die Modellantwort ließ sich nicht vollständig an der Originalmail belegen."}</span>
+          <ProfileSource kind="episode" id={issue.episode_id} label="Originalmail öffnen" readOnly allowIgnore={false}/>
+        </li>)}</ul>
+      </details>:null}
       {job.state === "paused"&&/Kontingent|Anfragelimit/i.test(job.stop_reason) ? <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Nutzung in ChatGPT verwalten</a>:null}
       {job.state === "complete" && job.purpose === "pilot" ? <p>Die Probe ist verarbeitet. Prüfe jetzt Menschen, Themen und einige Antworten gegen die Originalmails. Erst danach den größeren Bestand freigeben.</p>:null}
       {job.state === "paused"&&ready&&model!==job.model ? <p>Wähle oben das Modell {job.model}, um dieses Paket fortzusetzen. Für einen anderen Zugang oder ein anderes Modell widerrufe zuerst die bisherige Freigabe und bereite ein neues Paket vor.</p>:null}

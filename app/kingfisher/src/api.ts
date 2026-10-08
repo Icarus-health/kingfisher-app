@@ -973,7 +973,8 @@ export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose;
   scanned_count:number;next_cursor:number|null};
 export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
-  stop_reason:string;updated_at:number};
+  stop_reason:string;updated_at:number;issue_count?:number;
+  issues?:Array<{episode_id:string;stage:string;code:string}>};
 export type ModelPullState = {
   id: string; modell: string; rolle: string; phase: "wartet" | "laedt" | "prueft" | "fertig" | "fehler";
   fortschritt: number | null; text: string; fehler: {grund: string; naechster_schritt: string; art?: string} | null;

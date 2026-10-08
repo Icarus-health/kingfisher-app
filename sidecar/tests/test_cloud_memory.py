@@ -9,7 +9,7 @@ import pytest
 
 from icarus_memory import EpisodeKind, EpisodeStore, Provenance, SourceType
 from icarus_memory.cloud_memory import CloudMemoryError, CloudMemoryJobs
-from icarus_memory.memory_categories import Categories, verify
+from icarus_memory.memory_categories import Categories, SourceValidationError, _interpret, verify
 from icarus_memory.working_memory_store import WorkingMemoryStore, source_fingerprint
 
 AT = datetime(2026, 9, 23, tzinfo=timezone.utc)
@@ -143,6 +143,25 @@ def test_cursor_advances_after_selected_prefix_without_skipping_unselected_sourc
     assert set(selected) == expected
     assert len(selected) == len(expected)
 
+
+def test_unsupported_truncated_source_is_visible_and_never_sent(tmp_path):
+    episodes, jobs, _, provider = setup(tmp_path)
+    episode = add_email(episodes)
+    episode.tags.append("source:truncated")
+    episodes._put(episode)
+    preview = jobs.preview("pilot", source_ids=[episode.id])
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+
+    assert result["state"] == "complete_with_gaps"
+    assert result["completed"] == 0
+    assert result["failed"] == 1
+    assert result["issue_count"] == 1
+    assert result["issues"] == [{"episode_id": episode.id, "stage": "source",
+                                  "code": "unsupported_source"}]
+    assert provider.calls == []
+    assert WorkingMemoryStore(episodes).source_state(episode.id) == "deferred"
+
 def test_pilot_runs_both_derived_layers_and_keeps_original_and_correction(tmp_path):
     episodes, jobs, _, provider = setup(tmp_path)
     original = add_email(episodes, "Synthetic mail about the Atlas project.")
@@ -219,6 +238,7 @@ def test_quota_error_pauses_job_without_second_provider_or_fallback(tmp_path):
 def test_quota_on_category_call_propagates_and_resumes_same_cloud_job(tmp_path):
     episodes, jobs, _, provider = setup(tmp_path)
     add_email(episodes)
+    add_email(episodes, "Another synthetic source.")
     provider.on_call = lambda payload: (
         (_ for _ in ()).throw(RuntimeError("subscription quota reached"))
         if "taxonomy" in payload else None
@@ -229,13 +249,118 @@ def test_quota_on_category_call_propagates_and_resumes_same_cloud_job(tmp_path):
 
     assert paused["state"] == "paused"
     assert paused["requests"] == 2
+    assert paused["position"] == 0
     assert paused["completed"] == 0
     assert paused["failed"] == 0
     provider.on_call = None
     jobs.resume(paused["id"])
     finished = finish(jobs, paused["id"])
     assert finished["state"] == "complete"
-    assert finished["requests"] == 4
+    assert finished["requests"] == 6
+    assert finished["completed"] == 2
+
+
+def test_remote_entity_quotes_resolve_unique_offsets_and_reject_ambiguity(tmp_path):
+    from icarus_memory.memory_categories import _DEFAULTS
+
+    class QuoteProvider(SubscriptionProvider):
+        entity_anchor_mode = "block_quote"
+
+        def __init__(self, result):
+            super().__init__()
+            self.result = result
+
+        def complete_json(self, messages, *, max_tokens, schema):
+            payload = json.loads(messages[-1]["content"])
+            self.calls.append(payload)
+            assert all("start" not in block and "end" not in block for block in payload["blocks"])
+            required = schema["properties"]["entities"]["items"]["required"]
+            assert required == ["kind", "name", "block_id", "role"]
+            return type("Reply", (), {"text": json.dumps(self.result), "tool_calls": []})()
+
+    episodes, _, _, _ = setup(tmp_path)
+    episode = add_email(episodes, "Erster Abschnitt 🐦.\n\nAda works on Atlas.")
+    taxonomy = [{"id": row[0], "label": row[1], "description": row[2]} for row in _DEFAULTS]
+    policy = type("Policy", (), {"permits": lambda self, provider, source: True})()
+    exact = QuoteProvider({"categories": [], "entities": [
+        {"kind": "person", "name": "Ada", "block_id": "B2", "role": "mentioned"}]})
+
+    _, entities = _interpret(exact, episode, taxonomy, policy=policy)
+    assert entities == [("person", episode.body.index("Ada"), episode.body.index("Ada") + 3, "mentioned")]
+
+    ambiguous = QuoteProvider({"categories": [], "entities": [
+        {"kind": "person", "name": "ana", "block_id": "B1", "role": "mentioned"}]})
+    episode.body = "anana"
+    with pytest.raises(SourceValidationError) as exc:
+        _interpret(ambiguous, episode, taxonomy, policy=policy)
+    assert exc.value.code == "invalid_entity_evidence"
+
+
+def test_category_validation_gap_is_durable_and_later_source_continues(tmp_path):
+    class ValidationThenPass(SubscriptionProvider):
+        entity_anchor_mode = "block_quote"
+
+        def complete_json(self, messages, *, max_tokens, schema):
+            payload = json.loads(messages[-1]["content"])
+            self.calls.append(payload)
+            if "items" in schema["properties"]:
+                result = {"items": [{"block_id": item["block_id"], "kind": "fact"}
+                          for item in payload["blocks"]]}
+            elif "Ada" in " ".join(block["text"] for block in payload["blocks"]):
+                result = {"categories": [], "entities": [
+                    {"kind": "person", "name": "Not in source", "block_id": "B1", "role": "mentioned"}]}
+            else:
+                result = {"categories": [], "entities": []}
+            return type("Reply", (), {"text": json.dumps(result), "tool_calls": []})()
+
+    provider = ValidationThenPass()
+    episodes, jobs, _, _ = setup(tmp_path, provider=provider)
+    bad = add_email(episodes, "Ada works on Atlas.")
+    good = add_email(episodes, "A second synthetic source.")
+    preview = jobs.preview("pilot", source_ids=[bad.id, good.id])
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+
+    assert result["state"] == "complete_with_gaps"
+    assert result["position"] == 2
+    assert result["completed"] == 1
+    assert result["failed"] == 1
+    assert result["issue_count"] == 1
+    assert result["issues"] == [{"episode_id": bad.id, "stage": "categories",
+                                  "code": "invalid_entity_evidence"}]
+    categories = Categories(episodes)
+    assert categories.list_for(bad.id)["categories"] == []
+    assert categories.list_for(good.id)["status"] == "empty"
+    recovered = CloudMemoryJobs(episodes, jobs.path, lambda _model: provider,
+                                lambda: {"available": True, "grant_id": "grant-one"}, threading.RLock())
+    assert recovered.status(result["id"])["job"]["issues"] == result["issues"]
+
+
+def test_job_issue_status_is_bounded_to_first_ten(tmp_path):
+    class InvalidQuoteProvider(SubscriptionProvider):
+        entity_anchor_mode = "block_quote"
+
+        def complete_json(self, messages, *, max_tokens, schema):
+            payload = json.loads(messages[-1]["content"])
+            self.calls.append(payload)
+            if "items" in schema["properties"]:
+                result = {"items": [{"block_id": item["block_id"], "kind": "fact"}
+                          for item in payload["blocks"]]}
+            else:
+                result = {"categories": [], "entities": [
+                    {"kind": "person", "name": "Absent Name", "block_id": "B1", "role": "mentioned"}]}
+            return type("Reply", (), {"text": json.dumps(result), "tool_calls": []})()
+
+    provider = InvalidQuoteProvider()
+    episodes, jobs, _, _ = setup(tmp_path, provider=provider)
+    ids = [add_email(episodes, f"Synthetic source {number}").id for number in range(11)]
+    preview = jobs.preview("pilot", source_ids=ids)
+    started = jobs.start(preview["preview_id"], "subscription-test", True)
+    result = finish(jobs, started["job"]["id"])
+
+    assert result["failed"] == 11
+    assert result["issue_count"] == 11
+    assert len(result["issues"]) == 10
 
 def _assert_lock_available(lock):
     assert lock.acquire(blocking=False)
