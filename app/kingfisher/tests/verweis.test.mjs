@@ -43,3 +43,14 @@ test("Einrichtung und Briefing nennen Einstellungen nur als Verweis", () => {
     assert.doesNotMatch(code, /unter Einstellungen\b(?!\s*<)/, `${datei}: „unter Einstellungen“ ohne Verweis`);
   }
 });
+
+test("Globale Pause wird im Assistenten auch bei unbekanntem Umfang nicht als Lesen ausgegeben", () => {
+  for (const total of [100, null]) {
+    const satz = "Postfach Probe: Einlesen pausiert. Bisher 20 Mails gelesen. Auf Heute geht es mit „Weiter“ weiter.";
+    const konto = {account_id: "a", label: "Probe", connected: true, started: true, paused: false, step: "capture", error: null,
+      folders: [{folder: "INBOX", inventory_complete: total !== null, total, captured: 20, duplicates: 0, failed: 0, pending: 80}],
+      stand: {zustand: "pausiert", satz, gelesen: 20, gesamt: total, zuletzt: null}};
+    assert.equal(einlesenStand(konto), satz);
+    assert.equal(einlesenVerweis(konto), null, "globale Pause führt nicht zur Konto-Pause");
+  }
+});

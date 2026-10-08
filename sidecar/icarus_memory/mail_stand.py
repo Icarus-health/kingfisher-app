@@ -209,6 +209,7 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
     """Der Stand aller eingerichteten Postfächer, je mit `account_id`, `label` und der einen Aussage."""
     from .mail_intake import Intake
     settings = app.state.settings
+    global_pause = bool(getattr(getattr(app.state, 'hintergrund', None), 'pausiert', False))
     ergebnis = []
     store = None
     for eintrag in settings.mail_accounts:
@@ -221,10 +222,19 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
             if intake.get('started') and (not settings.schedule.enabled
                                           or eintrag.id not in settings.schedule.mail_accounts):
                 intake = {**intake, 'paused': True}
-        ergebnis.append({'account_id': eintrag.id, 'label': eintrag.label,
-                         **konto_stand(eintrag.label, intake=intake,
+        aussage = konto_stand(eintrag.label, intake=intake,
                                        abruf=(getattr(settings, 'mail_sync_status', None) or {}).get(eintrag.id),
-                                       blick=gelesen(app, eintrag.id), verbunden=_verbunden(app, eintrag.id))})
+                                       blick=gelesen(app, eintrag.id), verbunden=_verbunden(app, eintrag.id))
+        # Only explicit global pause changes active intake. Do not overwrite
+        # completion/errors or conflate temporary resource waits with user intent.
+        if global_pause and aussage['zustand'] == 'liest':
+            gelesen_n, gesamt = aussage['gelesen'], aussage['gesamt']
+            zahlen = (f'Bereits {zahl(gelesen_n)} von {_mails(gesamt)} gelesen.' if gesamt is not None
+                      else f'Bisher {_mails(gelesen_n)} gelesen.')
+            aussage = {**aussage, 'zustand': 'pausiert',
+                       'satz': f'Postfach {eintrag.label}: Einlesen pausiert. {zahlen} '
+                               'Auf Heute geht es mit „Weiter“ weiter.'}
+        ergebnis.append({'account_id': eintrag.id, 'label': eintrag.label, **aussage})
     return ergebnis
 
 

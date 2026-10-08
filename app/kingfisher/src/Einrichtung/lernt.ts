@@ -27,6 +27,7 @@ export function fertigText(stand: HintergrundStand): string {
 export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: number; gesamt: number} | null,
   hintergrund: HintergrundStand | null = null, laden: Pick<ModellLaden, "laeuft" | "prozent"> | null = null): LerntZeile[] {
   const zeilen: LerntZeile[] = [];
+  const pausiert = hintergrund?.pausiert ?? intake?.background_paused ?? false;
 
   // Das Sprachmodell lädt im Hintergrund (Fremdprobe 2, Befund 6): zuerst, mit Prozent, bis es fertig ist.
   if (laden?.laeuft) zeilen.push({id: "modell", fertig: laden.prozent, gesamt: 100, text: `Kingfisher lädt sein Sprachmodell: ${laden.prozent} %`});
@@ -42,17 +43,18 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
 
   // Mails lesen: solange die Aufnahme des Bestands nicht durch ist. Der Satz ist die eine Aussage des Sidecars über das
   // Postfach (mail_stand.py, Fremdprobe 2, Befund 17): dieselbe wie unter „Für Techniker“; ein leeres Postfach liest nicht.
-  const liest = konten.filter((konto, i) => konto.stand ? konto.stand.zustand === "liest"
+  const liest = konten.filter((konto, i) => konto.stand ? ["liest", "pausiert"].includes(konto.stand.zustand)
     : fortschritt[i].stage === "inventory" || fortschritt[i].stage === "capture");
   if (liest.length) {
     const stand = liest.map(konto => fortschritt[konten.indexOf(konto)]);
     const fertig = liest.reduce((summe, konto, i) => summe + (konto.stand?.gelesen ?? stand[i].processed), 0);
     const gesamtJe = liest.map((konto, i) => konto.stand ? konto.stand.gesamt : stand[i].total);
     const alle = gesamtJe.every(wert => wert !== null) ? gesamtJe.reduce((summe: number, wert) => summe + (wert ?? 0), 0) : null;
-    const saetze = liest.map(konto => konto.stand?.satz).filter((satz): satz is string => Boolean(satz));
+    const saetze = liest.map(konto => pausiert && konto.stand?.zustand === "liest" ? null : konto.stand?.satz).filter((satz): satz is string => Boolean(satz));
     zeilen.push({
       id: "mail", fertig, gesamt: alle,
       text: saetze.length === liest.length ? saetze.join(" ")
+        : pausiert ? `Einlesen pausiert: ${zahl(fertig)}${alle === null ? " Mails bisher gelesen" : ` von ${zahl(alle)} Mails gelesen`}`
         : alle === null ? `Deine Mails werden gelesen: bisher ${zahl(fertig)} gefunden`
         : `Deine Mails werden gelesen: ${zahl(fertig)} von ${zahl(alle)}`,
     });
@@ -71,7 +73,9 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
     return summe + (nachtrag && !nachtrag.fertig ? nachtrag.offen : 0);
   }, 0);
   if (offenNachtrag > 0) {
-    zeilen.push({id: "nachtrag", fertig: null, gesamt: null, text: `Bei älteren Mails werden Absender und Empfänger ergänzt: noch ${zahl(offenNachtrag)}`});
+    zeilen.push({id: "nachtrag", fertig: null, gesamt: null, text: pausiert
+      ? `Ergänzen von Absendern und Empfängern pausiert: noch ${zahl(offenNachtrag)}`
+      : `Bei älteren Mails werden Absender und Empfänger ergänzt: noch ${zahl(offenNachtrag)}`});
   }
 
   // Nach Themen sortieren, nur wenn das auch geschieht (lokale Sortierung eingeschaltet) und etwas übrig ist.
@@ -81,14 +85,18 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
     if (sortiert.length) {
       const fertig = sortiert.reduce((summe, stand) => summe + stand.analyzed, 0);
       const alle = sortiert.reduce((summe, stand) => summe + stand.analysisSources, 0);
-      zeilen.push({id: "sortieren", fertig, gesamt: alle, text: `Deine Mails werden nach Themen sortiert: ${zahl(fertig)} von ${zahl(alle)}`});
+      zeilen.push({id: "sortieren", fertig, gesamt: alle, text: pausiert
+        ? `Sortieren pausiert: ${zahl(fertig)} von ${zahl(alle)} Mails`
+        : `Deine Mails werden nach Themen sortiert: ${zahl(fertig)} von ${zahl(alle)}`});
     }
   }
 
   // Akten zusammenstellen: Personen, Projekte, Orte.
   if (akten && akten.offen > 0) {
     const fertig = Math.max(0, akten.gesamt - akten.offen);
-    zeilen.push({id: "akten", fertig, gesamt: akten.gesamt, text: `Personen, Projekte und Orte werden zusammengestellt: noch ${zahl(akten.offen)} Quellen`});
+    zeilen.push({id: "akten", fertig, gesamt: akten.gesamt, text: pausiert
+      ? `Zusammenstellen von Personen, Projekten und Orten pausiert: noch ${zahl(akten.offen)} Quellen`
+      : `Personen, Projekte und Orte werden zusammengestellt: noch ${zahl(akten.offen)} Quellen`});
   }
   return zeilen;
 }
@@ -98,6 +106,7 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
  * Knopf ebenfalls hierher, denn Assistent und Fertig-Seite verweisen fürs Anhalten auf Heute (Fremdprobe 3, Befund 5). */
 export function lerntFuss(stand: HintergrundStand | null, liestMails = false): {satz: string | null; grund: string | null; knopf: "Pausieren" | "Weiter" | null} {
   if (!stand) return {satz: null, grund: null, knopf: null};
+  if (stand.pausiert) return {satz: null, grund: stand.grund ?? "Die Hintergrundarbeit ist pausiert.", knopf: "Weiter"};
   if (!IM_GANG.has(stand.zustand) || stand.fortschritt.offen <= 0) {
     return liestMails ? {satz: null, grund: stand.grund, knopf: stand.pausiert ? "Weiter" : "Pausieren"} : {satz: null, grund: null, knopf: null};
   }
