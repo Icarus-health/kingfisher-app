@@ -103,6 +103,16 @@ def test_forbidden_clause_does_not_support_positive_alternative_scope():
     assert not _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
 
 
+def test_a_prohibition_alone_cannot_support_an_unscoped_allowance():
+    source = 'Vor der Reinigung ist ein trockenes Tuch verboten.'
+    assert not _check('Ein trockenes Tuch ist erlaubt.', source).bestanden
+
+
+def test_a_prohibition_alone_cannot_support_another_scoped_allowance():
+    source = 'Vor der Reinigung ist ein trockenes Tuch verboten.'
+    assert not _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
+
+
 def test_positive_alternative_still_passes_alongside_a_forbidden_clause():
     source = ('Vor der Reinigung ist ein trockenes Tuch erlaubt. '
               'Nach der Reinigung ist ein trockenes Tuch verboten.')

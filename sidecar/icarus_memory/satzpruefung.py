@@ -771,15 +771,18 @@ def _anwendbarkeit_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
     # validators remain responsible for contradictory claims across sources.
     regeln = [regel for beleg in belege for regel in _anwendbarkeitsregeln(beleg.text)]
     for kandidat_scopes, kandidat_anker, kandidat_kennungen, kandidat_negativ in kandidaten:
-        passende = [regel_scopes for regel_scopes, regel_anker, regel_kennungen, regel_negativ in regeln
-                    if not (regel_kennungen and kandidat_kennungen
-                            and regel_kennungen.isdisjoint(kandidat_kennungen))
-                    # A prohibition is never an alternative source for an allowance.
-                    and regel_negativ == kandidat_negativ
-                    and _gemeinsame_anker(regel_anker, kandidat_anker) >= 2]
-        # Separate source clauses are alternative permitted contexts; a
+        related = [(regel_scopes, regel_negativ)
+                   for regel_scopes, regel_anker, regel_kennungen, regel_negativ in regeln
+                   if not (regel_kennungen and kandidat_kennungen
+                           and regel_kennungen.isdisjoint(kandidat_kennungen))
+                   and _gemeinsame_anker(regel_anker, kandidat_anker) >= 2]
+        # A prohibition is never an alternative source for an allowance. Keep
+        # it related, though, so opposite polarity cannot make the guard fail open.
+        passende = [regel_scopes for regel_scopes, regel_negativ in related
+                    if regel_negativ == kandidat_negativ]
+        # Separate same-polarity source clauses are alternative contexts; a
         # conjunction of scopes inside one clause remains cumulative.
-        if passende and not any(scopes <= kandidat_scopes for scopes in passende):
+        if related and (not passende or not any(scopes <= kandidat_scopes for scopes in passende)):
             return 'Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab'
     return None
 
