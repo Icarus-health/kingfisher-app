@@ -5,7 +5,10 @@ from contextlib import nullcontext
 
 
 def enabled():
-    return os.environ.get('ICARUS_MEMORY_SEMANTIC') == '1'
+    # Product activation can stay separate from the older optional claim /
+    # diagnostic search, which still embeds its own sources during queries.
+    value = os.environ.get('KINGFISHER_DURABLE_MEMORY_SEARCH')
+    return (value if value is not None else os.environ.get('ICARUS_MEMORY_SEMANTIC')) == '1'
 
 
 def bind(app, agent, *, ampel=None):

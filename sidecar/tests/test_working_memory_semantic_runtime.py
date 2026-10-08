@@ -15,6 +15,17 @@ def runtime():
         pytest.fail('Product semantic runtime is missing')
 
 
+def test_product_activation_does_not_enable_legacy_query_time_claim_index(monkeypatch):
+    from icarus_memory.working_memory_semantic import for_provider
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    monkeypatch.setenv('KINGFISHER_DURABLE_MEMORY_SEARCH', '1')
+    assert runtime().enabled()
+    assert for_provider(SimpleNamespace(is_local=True)) is None
+    monkeypatch.setenv('ICARUS_MEMORY_SEMANTIC', '1')
+    monkeypatch.setenv('KINGFISHER_DURABLE_MEMORY_SEARCH', '0')
+    assert not runtime().enabled()
+
+
 def test_binding_uses_local_embedding_role_and_closes_replaced_service(tmp_path, monkeypatch):
     import threading
     from icarus_memory import EpisodeStore
