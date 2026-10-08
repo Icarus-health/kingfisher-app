@@ -1,0 +1,143 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_________ test_sentence_timeout_also_closes_slow_local_json_transport __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bda7440>
+
+    def test_sentence_timeout_also_closes_slow_local_json_transport(monkeypatch):
+        received, release, closed = threading.Event(), threading.Event(), threading.Event()
+    
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args): pass
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get('Content-Length', '0')))
+                received.set()
+                release.wait(3)
+                try:
+                    self.send_response(200); self.end_headers()
+                    self.wfile.write(b'{"choices":[{"message":{"content":"{\\"urteil\\":\\"ja\\"}"}}]}')
+                except (BrokenPipeError, ConnectionResetError): pass
+    
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        server.daemon_threads = True
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        provider = OpenAICompatible('synthetic-local', base_url=f'http://127.0.0.1:{server.server_port}/v1')
+        timeouts = []
+    
+        @contextmanager
+        def client(timeout):
+            timeouts.append(timeout)
+            try:
+                with httpx.Client(timeout=timeout, trust_env=False) as connection:
+                    yield connection
+            finally:
+                closed.set()
+    
+        monkeypatch.setattr(provider, '_client', client)
+        try:
+            result = verification._ein_urteil(verification.STANDARD, provider, 'Mira prüft.', 'Mira prüft.', .15)
+            assert result.wert == verification.UNKLAR
+            assert received.wait(.3)
+>           assert closed.wait(.5), 'sentence fallback left its JSON transport running'
+E           AssertionError: sentence fallback left its JSON transport running
+E           assert False
+E            +  where False = wait(0.5)
+E            +    where wait = <threading.Event at 0x10bdea150: unset>.wait
+
+sidecar/tests/test_verifier_transport_deadline.py:48: AssertionError
+__________ test_expired_sentence_does_not_start_json_after_model_wait __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bda7ef0>
+
+    def test_expired_sentence_does_not_start_json_after_model_wait(monkeypatch):
+        import time
+        finished = threading.Event()
+        opened = []
+        provider = OpenAICompatible('synthetic-local', base_url='http://127.0.0.1:11439/v1')
+    
+        @contextmanager
+        def waiting_gate():
+            try:
+                time.sleep(.04)
+                yield
+            finally:
+                finished.set()
+    
+        @contextmanager
+        def client(timeout):
+            opened.append(timeout)
+            with httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200, json={
+                    'choices': [{'message': {'content': '{"urteil":"ja"}'}}]}))) as connection:
+                yield connection
+    
+        monkeypatch.setattr(provider, '_ampel', waiting_gate)
+        monkeypatch.setattr(provider, '_client', client)
+        result = verification._ein_urteil(verification.STANDARD, provider, 'Mira prüft.', 'Mira prüft.', .01)
+>       assert result.wert == verification.UNKLAR
+E       AssertionError: assert 'ja' == 'unklar'
+E         
+E         - unklar
+E         + ja
+
+sidecar/tests/test_verifier_transport_deadline.py:79: AssertionError
+________________ test_no_sentence_budget_starts_no_model_job[0] ________________
+
+budget = 0
+
+    @pytest.mark.parametrize('budget', [0, -.01])
+    def test_no_sentence_budget_starts_no_model_job(budget):
+        called = threading.Event()
+    
+        def ask(*args):
+            called.set()
+            return None
+    
+        adapter = verification.Adapter('synthetic', (), ask, lambda reply: verification.Urteil(verification.JA))
+        result = verification._ein_urteil(adapter, object(), 'Mira prüft.', 'Mira prüft.', budget)
+>       assert result == verification.Urteil(verification.UNKLAR, 'zeit')
+E       AssertionError: assert Urteil(wert='ja', anlass='') == Urteil(wert='...anlass='zeit')
+E         
+E         Differing attributes:
+E         ['wert', 'anlass']
+E         
+E         Drill down into differing attribute wert:
+E           wert: 'ja' != 'unklar'
+E           - unklar...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+sidecar/tests/test_verifier_transport_deadline.py:94: AssertionError
+______________ test_no_sentence_budget_starts_no_model_job[-0.01] ______________
+
+budget = -0.01
+
+    @pytest.mark.parametrize('budget', [0, -.01])
+    def test_no_sentence_budget_starts_no_model_job(budget):
+        called = threading.Event()
+    
+        def ask(*args):
+            called.set()
+            return None
+    
+        adapter = verification.Adapter('synthetic', (), ask, lambda reply: verification.Urteil(verification.JA))
+        result = verification._ein_urteil(adapter, object(), 'Mira prüft.', 'Mira prüft.', budget)
+>       assert result == verification.Urteil(verification.UNKLAR, 'zeit')
+E       AssertionError: assert Urteil(wert='ja', anlass='') == Urteil(wert='...anlass='zeit')
+E         
+E         Differing attributes:
+E         ['wert', 'anlass']
+E         
+E         Drill down into differing attribute wert:
+E           wert: 'ja' != 'unklar'
+E           - unklar...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+sidecar/tests/test_verifier_transport_deadline.py:94: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_verifier_transport_deadline.py::test_sentence_timeout_also_closes_slow_local_json_transport
+FAILED sidecar/tests/test_verifier_transport_deadline.py::test_expired_sentence_does_not_start_json_after_model_wait
+FAILED sidecar/tests/test_verifier_transport_deadline.py::test_no_sentence_budget_starts_no_model_job[0]
+FAILED sidecar/tests/test_verifier_transport_deadline.py::test_no_sentence_budget_starts_no_model_job[-0.01]
+4 failed in 1.43s

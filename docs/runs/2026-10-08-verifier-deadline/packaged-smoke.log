@@ -1,0 +1,3 @@
+test_sentence_timeout_also_closes_slow_local_json_transport: passed
+test_expired_sentence_does_not_start_json_after_model_wait: passed
+Packaged local transport deadline smoke: 2 passed
