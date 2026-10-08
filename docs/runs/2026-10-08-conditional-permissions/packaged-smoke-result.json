@@ -1,0 +1,16 @@
+{
+  "version": "1.0.6-local.32d5a12",
+  "exit_code": 0,
+  "network": "none",
+  "memory_limit": "128m",
+  "read_only_container": true,
+  "synthetic_data_only": true,
+  "model_inference": false,
+  "passed": [
+    "complete literal rule plus absence prose",
+    "new rejected-rule answer shows full original",
+    "JSON-restored partial answer shows full original",
+    "unconditional permission/completion/colloquial/pronoun claims rejected",
+    "source withdrawal blocks saved answer"
+  ]
+}

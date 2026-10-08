@@ -51,6 +51,12 @@ Erkannte explizite Grenzen an einzelnen Kalenderdaten werden ebenfalls auf verta
 Relationen geprüft. Bei ausdrücklich genannter Gültigkeit bleiben die Grenzen
 des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollständige
 Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
+Bei Belegen mit erkannten passiven Erlaubnissen mit „erst/nur nach“ oder
+„wenn/sofern/sobald/falls“ müssen Antwortsätze vollständig wörtlich in einem
+zitierten Quellkörper stehen. Ein eigener Ereignissatz kann diesen separat belegen.
+Das ist ein konservativer Zusatzschutz, keine allgemeine Grammatikprüfung. Nur bei
+einer unverändert wiedergegebenen Regel darf der eigenständige Status „Freigabe
+liegt noch nicht vor“ derselben Quelle daneben stehen, ohne ihr zu widersprechen.
 """
 from __future__ import annotations
 
@@ -620,6 +626,59 @@ def _inhaltswoerter(text: str) -> set[str]:
     return {w[:5] for w in _woerter(text) if len(w) >= 4 and w not in _FUNKTION and not _VERNEINUNG.fullmatch(w)}
 
 
+# Intentionally literal: this is not a parser for arbitrary permission or
+# condition paraphrases. Keep commas/conjunctions and the complete word order.
+_ERLAUBNIS = re.compile(r'\b(?:darf|dürfen|duerfen)\b')
+_REGEL_BEDINGUNG = re.compile(r'\b(?:(?:erst|nur)\s+nach|wenn|sofern|sobald|falls)\b')
+_PASSIV = re.compile(r'\b([a-zäöüß]+)\s+werden\b')
+_FEHLT = re.compile(r'(?:(?:die|der|das|eine|ein)\s+)?([a-zäöüß]+)\s+(?:liegt|liegen)\s+(?:noch\s+)?nicht\s+vor')
+
+
+def _regeltext(text: str) -> str:
+    # casefold/falten would identify “Maße” with “Masse”; lower preserves ß/umlauts.
+    return ' '.join(text.lower().strip().strip('.!?').split())
+
+
+def bedingte_regeln(text: str) -> tuple[str, ...]:
+    """Recognized passive permission rules, complete and normalized only for spacing/case.
+
+    A comma belongs to the rule; splitting at it would lose a trailing condition.
+    Headers do not establish permissions. Other grammar remains outside this guard.
+    """
+    return tuple(t for teil in _abschnitte(text, False) if (t := _regeltext(teil))
+                 and _ERLAUBNIS.search(t) and _REGEL_BEDINGUNG.search(t) and _PASSIV.search(t))
+
+
+def _bedingung_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
+    if not any(bedingte_regeln(b.text) for b in belege):
+        return None
+    original = {_regeltext(t) for b in belege for t in _abschnitte(b.text, False)}
+    for teil in _abschnitte(satz, False):
+        # Do not decide relatedness through shared words: “darf raus” and even
+        # “es ist raus” can change the rule without sharing its action/subject.
+        # Separately stated actual events still have their own literal evidence.
+        if _regeltext(teil) not in original:
+            return 'Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege'
+    return None
+
+
+def _regel_mit_fehlendem_nachweis(satz: str, klausel: str, beleg: Beleg) -> bool:
+    """Only an unchanged rule can coexist with its same-source standalone absence status."""
+    fehlt = _FEHLT.fullmatch(_regeltext(klausel))
+    if fehlt is None:
+        return False
+    for regel in bedingte_regeln(beleg.text):
+        if _regeltext(satz) != regel:
+            continue
+        bedingung = _REGEL_BEDINGUNG.search(regel)
+        ende = len(regel)
+        if bedingung.group(0).endswith('nach'):
+            ende = next((p.start() for p in _PASSIV.finditer(regel) if p.start() >= bedingung.end()), len(regel))
+        if re.search(r'\b' + re.escape(fehlt[1]) + r'\b', regel[bedingung.end():ende]):
+            return True
+    return False
+
+
 def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str | None:
     """Grund, falls Beleg und Satz sich in der Verneinung widersprechen; sonst None."""
     satz_verneint = bool(_VERNEINUNG.search(falten(satz)))
@@ -638,6 +697,8 @@ def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str |
             klausel_daten, _ = daten_in(klausel)
             teilt = (satz_woerter & _inhaltswoerter(klausel)) or (satz_kurz & {(d.monat, d.tag) for d in klausel_daten})
             if teilt:
+                if _regel_mit_fehlendem_nachweis(satz, klausel, beleg):
+                    continue
                 return f'Der Beleg verneint („{treffer.group(0)}“), der Satz nicht'
     return None
 
@@ -789,6 +850,9 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     for gruppe in sorted(_status_woerter(text) - _status_woerter(pool.text)):
         gruende.append(f'Aussage „{gruppe}“ steht nicht im Beleg')
 
+    bedingung = _bedingung_verloren(text, zitiert)
+    if bedingung:
+        gruende.append(bedingung)
     umkehr = _verneinungsumkehr(text, zitiert, pool)
     if umkehr:
         gruende.append(umkehr)
@@ -814,4 +878,4 @@ def pruefen(saetze: Iterable[Satz], belege: Mapping[str, Beleg], *, zusatz_woert
     return [satz_pruefen(s, belege, zusatz_woerter=zusatz, relative_zeit_erlaubt=relative_zeit_erlaubt) for s in saetze]
 
 
-__all__ = ['Beleg', 'Datum', 'Satz', 'Urteil', 'belegte_daten', 'daten_in', 'falten', 'pruefen', 'satz_pruefen', 'zahlen_in', 'zeiten_in']
+__all__ = ['Beleg', 'Datum', 'Satz', 'Urteil', 'bedingte_regeln', 'belegte_daten', 'daten_in', 'falten', 'pruefen', 'satz_pruefen', 'zahlen_in', 'zeiten_in']

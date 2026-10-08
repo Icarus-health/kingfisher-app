@@ -1,0 +1,14 @@
+{
+  "reviewer": "verifier_deadline_review",
+  "model": "gpt-6-luna",
+  "read_only": true,
+  "method": "Current diff plus independent isolated synthetic counterexamples and final focused pytest file",
+  "findings_fixed_before_delivery": [
+    "Unconditioned colloquial/pronoun claims bypassed action matching; replaced with exact full-sentence grounding for recognized permission sources",
+    "Folded plural dürfen not recognized; literal dürfen and duerfen recognized",
+    "falten/casefold collided Maße/Masse and Lager/Läger; dedicated lower+whitespace comparison preserves lexical characters"
+  ],
+  "final_focused_tests_passed": 33,
+  "final_diff_check_clean": true,
+  "remaining_scope": "Recognized passive grammar only; no general semantic completeness, live ingestion or native UI acceptance claimed"
+}
