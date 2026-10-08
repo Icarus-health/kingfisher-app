@@ -1,0 +1,29 @@
+{
+  "version": "1.0.6-local.6052d41",
+  "code_commit": "6052d41",
+  "new_image_id": "sha256:f38f4b04e83274986868f447f7b8fe10a108034f298b59a16e0e6a82cd846b0c",
+  "old_image_id": "sha256:da1fedbca8f26795b9d357445da2c687664cc60008cf1e2b477cec9119e50d12",
+  "root_sqlite_before": 17,
+  "root_sqlite_after": 17,
+  "episode_ids_and_digests_preserved": 344,
+  "native_binary_unchanged": true,
+  "settings_groups_preserved": [
+    "mail",
+    "mail_accounts",
+    "calendar",
+    "calendar_sources",
+    "cloud_models",
+    "provider",
+    "model",
+    "endpoint",
+    "model_roles",
+    "schedule"
+  ],
+  "same_data_volume": true,
+  "operational": true,
+  "semantic_search_activated": true,
+  "semantic_status": "unavailable",
+  "native_ui_verified": false,
+  "background_pause_preserved": true,
+  "cold_backup_created": true
+}
