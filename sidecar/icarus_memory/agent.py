@@ -504,15 +504,23 @@ class Agent:
 
     def _conflicted_turn(self, turn, status):
         from .knowledge_conflicts import MESSAGES
-        called = turn.context.get('answer_contract', {}).get('model_called', False)
+        prior_contract = turn.context.get('answer_contract', {})
+        called = prior_contract.get('model_called', False)
+        semantic_status = prior_contract.get('semantic_search_status')
         turn.reply = MESSAGES[status]
+        if semantic_status in {'partial', 'unavailable'}:
+            from .working_memory_answers import _semantic_coverage_message
+            turn.reply += '\n\n' + _semantic_coverage_message(semantic_status)
+        answer_contract = {'version': 1, 'presentation_version': 2,
+                           'status': 'conflict' if status == 'conflict' else 'conflict_unchecked',
+                           'selected_assertion_ids': [], 'semantic_validation': False, 'model_called': called}
+        if semantic_status in {'partial', 'unavailable'}:
+            answer_contract['semantic_search_status'] = semantic_status
         turn.context = {
             'items': [], 'memory_revision': self._knowledge.revision if self._knowledge else 0,
             'answer_mode': 'memory_evidence', 'history_egress': 'local_only',
             **knowledge_history.metadata({}), **self_model_history.metadata({}),
-            'answer_contract': {'version': 1, 'presentation_version': 2,
-                'status': 'conflict' if status == 'conflict' else 'conflict_unchecked',
-                'selected_assertion_ids': [], 'semantic_validation': False, 'model_called': called},
+            'answer_contract': answer_contract,
         }
         return turn
 
@@ -595,7 +603,8 @@ class Agent:
             tor = None
         return tor if isinstance(tor, satzpruefung_modell.Tor) else satzpruefung_modell.OHNE
 
-    def _working_memory_turn(self, question, *, retrieval_query=None, meaning_scope=None, anfrage=None, zeiten=None):
+    def _working_memory_turn(self, question, *, retrieval_query=None, meaning_scope=None, anfrage=None, zeiten=None,
+                             search_state=None):
         from . import working_memory_answers
         quellen, vettern = self._personen_der_frage(retrieval_query or question)
         answer = working_memory_answers.prepare(question, self._episodes, self._knowledge, self._provider,
@@ -606,7 +615,7 @@ class Agent:
                                                 person_ids=quellen,
                                                 anfrage=anfrage if retrieval_query is None else None,
                                                 saetze=self._saetze_an(), zeiten=zeiten, pruefung=self._pruef_tor(),
-                                                namensvettern=vettern)
+                                                namensvettern=vettern, search_state=search_state)
         if answer is None:
             return None
         return self._working_turn(question, self._mit_zeiten(answer, zeiten), model_called=True)
@@ -751,14 +760,14 @@ class Agent:
         return self._working_memory_turn_with(question, self._meaning_scope(begriff, meaning),
                                               [self._also_entry(m) for m in others], anfrage=anfrage, zeiten=zeiten)
 
-    def _working_memory_turn_with(self, question, scope, also_found, anfrage=None, zeiten=None):
+    def _working_memory_turn_with(self, question, scope, also_found, anfrage=None, zeiten=None, search_state=None):
         from . import working_memory_answers
         zeiten = zeiten or zeitmessung.Zeiten()
         answer = working_memory_answers.prepare(
             question, self._episodes, self._knowledge, self._provider,
             conflict_status=self._knowledge_conflict_status, projects=self._project_directory(),
             meaning_scope=scope, also_found=also_found, anfrage=anfrage, saetze=self._saetze_an(), zeiten=zeiten,
-            pruefung=self._pruef_tor())
+            pruefung=self._pruef_tor(), search_state=search_state)
         if answer is None:
             return None
         return self._working_turn(question, self._mit_zeiten(answer, zeiten), model_called=True)
@@ -844,10 +853,23 @@ class Agent:
                    'ids': list(o.get('ids') or [])} for number, o in enumerate(options) if number != index]
         others += [note for note in pending.get('notes') or () if isinstance(note, dict)]
         local = self._provider is not None and getattr(self._provider, 'is_local', False)
-        turn = self._working_memory_turn_with(pending['query'], scope, others) if local else None
+        search_state = {}
+        turn = self._working_memory_turn_with(pending['query'], scope, others, search_state=search_state) if local else None
         if turn is not None:
             return turn
         revision = self._knowledge.revision if self._knowledge is not None else 0
+        semantic_status = search_state.get('semantic_status')
+        if semantic_status in {'partial', 'unavailable'}:
+            from .working_memory_answers import _semantic_coverage_message
+            return Turn(reply='Im gewählten Quellenrahmen habe ich keine belegte Antwort gefunden. '
+                              + _semantic_coverage_message(semantic_status),
+                        context={'query': pending['query'], 'items': [], 'memory_revision': revision,
+                                 'answer_mode': 'memory_evidence', 'history_egress': 'local_only',
+                                 'answer_contract': {'version': 1, 'status': 'working_unavailable',
+                                                     'semantic_search_status': semantic_status,
+                                                     'semantic_validation': False, 'model_called': False,
+                                                     'selected_assertion_ids': []},
+                                 **knowledge_history.metadata({}), **self_model_history.metadata({})})
         return Turn(reply=(f"Zu „{chosen['label']}“ ist noch keine Quelle eingeordnet. "
                            'Sobald die Einordnung durch ist, einfach noch einmal fragen.') if local else
                           'Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell.',
@@ -887,12 +909,15 @@ class Agent:
                                                          conflict_status=self._knowledge_conflict_status)
         satz = working_memory_answers.satz_struktur(answer, self._episodes, self._knowledge) if status == 'working_reports' else None
         zeiten = zeitmessung.gueltig(answer.get('zeiten'))
+        answer_contract = {'version': 1, 'status': status, 'semantic_validation': False,
+                           'model_called': model_called, 'selected_assertion_ids': []}
+        if answer.get('semantic_search_status') in {'ok', 'empty', 'partial', 'unavailable', 'unobserved'}:
+            answer_contract['semantic_search_status'] = answer['semantic_search_status']
         return Turn(reply=text, context={
             'query': question, 'generated_at': now().isoformat(), 'items': [], 'withheld_count': 0,
             'memory_revision': self._knowledge.revision, 'answer_mode': 'memory_evidence',
             'history_egress': 'local_only', 'working_answer': answer, 'source_links': links,
-            'answer_contract': {'version': 1, 'status': status, 'semantic_validation': False,
-                                'model_called': model_called, 'selected_assertion_ids': []},
+            'answer_contract': answer_contract,
             **({'satzantwort': satz} if satz is not None else {}),
             **({'zeiten': zeiten} if zeiten is not None else {}),
             **knowledge_history.metadata({}), **self_model_history.metadata({})})
@@ -951,13 +976,23 @@ class Agent:
             return self._answer_memory_calendar(question, turn)
 
         # Eine Anschlussfrage bleibt im gewählten Rahmen.
+        search_state = {}
         working = self._working_memory_turn(question, retrieval_query=retrieval_query,
-                                            meaning_scope=meaning_scope, anfrage=anfrage, zeiten=zeiten)
+                                            meaning_scope=meaning_scope, anfrage=anfrage, zeiten=zeiten,
+                                            search_state=search_state)
         if working is not None:
             return working
+        semantic_status = search_state.get('semantic_status')
+        if semantic_status in {'partial', 'unavailable'}:
+            contract['semantic_search_status'] = semantic_status
         if retrieval_query is not None:
             contract['status'] = 'working_unavailable'
-            turn.reply = 'Die zuvor verwendete Quelle ist nicht mehr verfügbar. Bitte frage erneut.'
+            if semantic_status in {'partial', 'unavailable'}:
+                from .working_memory_answers import _semantic_coverage_message
+                turn.reply = 'Im bisherigen Quellenrahmen habe ich keine belegte Antwort gefunden. '
+                turn.reply += _semantic_coverage_message(semantic_status)
+            else:
+                turn.reply = 'Die zuvor verwendete Quelle ist nicht mehr verfügbar. Bitte frage erneut.'
             turn.context.update(query=question, retrieval_query=retrieval_query)
             return turn
 
@@ -971,7 +1006,16 @@ class Agent:
                 turn.context['source_answer'] = source_answer
                 turn.reply, _, contract['status'] = source_answers.render(
                     source_answer, self._episodes, self._knowledge)
+                if semantic_status in {'partial', 'unavailable'}:
+                    from .working_memory_answers import _semantic_coverage_message
+                    turn.reply += '\n\n' + _semantic_coverage_message(semantic_status)
                 return turn
+        if not items and semantic_status in {'partial', 'unavailable'}:
+            contract.update(status='unknown', semantic_search_status=semantic_status)
+            turn.context.update(query=question, generated_at=now().isoformat(), withheld_count=0)
+            from .working_memory_answers import _semantic_coverage_message
+            turn.reply = 'Ich habe keine belegte Antwort gefunden. ' + _semantic_coverage_message(semantic_status)
+            return turn
         packet = ContextPacket(question, now(), items, 0,
                                knowledge_retrieval=copy.deepcopy(self._knowledge_retrieval))
         try:
@@ -992,6 +1036,7 @@ class Agent:
         def invalidated() -> Turn:
             # No stale originals or selected IDs survive an invalidation, even on errors.
             contract.update(status="invalidated", selected_assertion_ids=[])
+            contract.pop('semantic_search_status', None)
             turn.context.update(items=[], invalidated=True, **knowledge_history.metadata({}))
             turn.context.pop("knowledge_retrieval", None)
             turn.context.pop("quellen", None)
@@ -1053,6 +1098,9 @@ class Agent:
         contract["selected_assertion_ids"] = [rows[alias]["assertion_id"] for alias in selected]
         if (turn.context.get("knowledge_retrieval") or {}).get("truncated"):
             turn.reply += "\n\nDie Belegauswahl ist begrenzt; weitere passende Belege können fehlen."
+        if semantic_status in {'partial', 'unavailable'}:
+            from .working_memory_answers import _semantic_coverage_message
+            turn.reply += '\n\n' + _semantic_coverage_message(semantic_status)
         if not fresh():
             return invalidated()
         conflict_status = self._knowledge_conflict_status(selected_claims)

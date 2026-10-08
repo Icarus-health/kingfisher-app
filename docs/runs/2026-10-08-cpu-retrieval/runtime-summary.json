@@ -1,0 +1,23 @@
+{
+  "synthetic_only": true,
+  "measurement_kind": "semantic_rankings_successful_answer_runtime_failed",
+  "baseline_code_commit": "fc5f33ea7cc7a1d4344eec2906d2cb80386332e9",
+  "embedding_image": "ollama/ollama:latest",
+  "embedding_image_id": "sha256:a6149234667efc71d37766d61c1a16f24c33e4cd7a0bf4125c44a7e47e2419c4",
+  "answer_client_image": "ghcr.io/icarus-health/kingfisher-app:1.0.6-local.fc5f33e",
+  "answer_client_image_id": "sha256:69d4712466e011f8207ef39e662fe42bd159ea5f1969a87c4a99d9b333a57413",
+  "model_server_cpu_limit": 2,
+  "model_server_memory_limit_bytes": 6442450944,
+  "docker_vm_total_memory_bytes": 8309010432,
+  "end_cgroup_oom_kill_count": 13,
+  "container_oom_killed_flag": true,
+  "answer_model_requests_failed": 13,
+  "embedding_benchmark_passed": true,
+  "answer_quality_qualified": false,
+  "gpu_used": false,
+  "cloud_enabled": false,
+  "test_container_stopped_and_removed": true,
+  "test_network_removed": true,
+  "model_cache_mounted_readonly": true,
+  "driver_sha256": "16d4f7778c2986a34dc37596f28baf4eaae8db6628b0194632bac687cd1c6a88"
+}

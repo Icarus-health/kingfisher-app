@@ -215,6 +215,174 @@ def test_embedder_failure_keeps_word_search_working(core, tmp_path, monkeypatch,
         _close_app(app)
 
 
+def test_status_result_is_bound_to_search_call_and_list_api_stays_compatible(core):
+    from types import SimpleNamespace
+    embedder = ConceptEmbedder()
+    search = WorkingMemorySemantic(embedder, threshold=0.6, limit=1)
+    refs = [
+        {'episode_id': 'old', 'fingerprint': 'a', 'start': 0, 'end': 32, 'kind': 'fact'},
+        {'episode_id': 'new', 'fingerprint': 'b', 'start': 0, 'end': 42, 'kind': 'fact'},
+    ]
+    class Store:
+        def __init__(self, episodes): pass
+        def inventory(self, limit): return {'refs': refs[:limit], 'truncated': True}
+        def resolve(self, ref):
+            body = 'Die Zugangskarte liegt im Schrank.' if ref['episode_id'] == 'old' else 'Der Sitzungskalender wurde aktualisiert.'
+            return SimpleNamespace(episode=SimpleNamespace(title='Hinweis', body=body))
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(working_memory_semantic, 'WorkingMemoryStore', Store)
+        episodes = object()
+        original_search = search.search
+        def interleaved(*args, **kwargs):
+            refs = original_search(*args, **kwargs)
+            search.status = 'ok'  # Simulates another caller changing the legacy global view.
+            return refs
+        search.search = interleaved
+        result = search.search_with_status(episodes, PARAPHRASE)
+        assert result.status == 'partial'
+        assert search.status == 'ok'
+        assert isinstance(result.refs, tuple)
+        assert search.search(episodes, PARAPHRASE) == list(result.refs)
+
+
+def test_http_source_answer_discloses_partial_semantic_inventory(core, tmp_path, monkeypatch, meaning):
+    embedder, _ = meaning
+    search = WorkingMemorySemantic(embedder, threshold=0.6, limit=1)
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: search)
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    _selector_all(provider)
+    try:
+        _upload(client, 'Die Sitzung wurde im Kalender dokumentiert.')
+        _upload(client, SOURCE)
+        run_working(app)
+        answer = _ask(client, _conversation(client), PARAPHRASE)
+        working = answer['metadata']['context']['working_answer']
+        assert SOURCE in answer['content']
+        assert working['semantic_search_status'] == 'partial'
+        assert working['limited'] is True
+        assert answer['metadata']['context']['answer_contract']['semantic_search_status'] == 'partial'
+        assert 'semantische' in answer['content'].casefold()
+        embedder.fail = True
+        before = embedder.calls
+        reopened = client.get(f"/api/v1/conversations/{answer['conversation_id']}").json()['messages'][-1]
+        assert SOURCE in reopened['content']
+        assert reopened['metadata']['context']['answer_contract']['semantic_search_status'] == 'partial'
+        assert embedder.calls == before
+        from types import SimpleNamespace
+        from icarus_memory import satzantwort, working_memory_answers
+        monkeypatch.setattr(satzantwort, 'wiederherstellen', lambda *args: SimpleNamespace(status='nichts'))
+        text, _, status = working_memory_answers.render(working, app.state.episodes, app.state.claims)
+        assert status == 'working_unknown'
+        assert 'keine Information vor' not in text
+        assert 'begrenzt' in text
+    finally:
+        client.close()
+        _close_app(app)
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_http_selector_unknown_does_not_claim_no_information_on_incomplete_search(core, tmp_path, monkeypatch, meaning, coverage):
+    embedder, _ = meaning
+    if coverage == 'unavailable':
+        embedder.fail = True
+        question = 'Wo liegt die Zugangskarte?'
+    else:
+        search = WorkingMemorySemantic(embedder, threshold=0.6, limit=1)
+        monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: search)
+        question = PARAPHRASE
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    classify = provider.complete_json
+    def unknown_when_selecting(messages, **kwargs):
+        data = json.loads(messages[-1]['content'])
+        if 'sources' in data:
+            return Reply(text=json.dumps({'status': 'no_relevant_sources', 'ids': []}))
+        return classify(messages, **kwargs)
+    provider.complete_json = unknown_when_selecting
+    try:
+        _upload(client, 'Die Sitzung wurde im Kalender dokumentiert.')
+        _upload(client, SOURCE)
+        run_working(app)
+        answer = _ask(client, _conversation(client), question)
+        working = answer['metadata']['context']['working_answer']
+        assert working['status'] == 'unknown'
+        assert working['semantic_search_status'] == coverage
+        assert 'keine Information vor' not in answer['content']
+        assert 'begrenzt' in answer['content'] if coverage == 'partial' else 'Bedeutungssuche' in answer['content']
+    finally:
+        client.close()
+        _close_app(app)
+
+
+def test_legacy_search_fake_status_is_unobserved(core, tmp_path, monkeypatch):
+    class LegacySearch:
+        status = 'partial'
+        def search(self, episodes, query, limit=12):
+            return []
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: LegacySearch())
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    _selector_all(provider)
+    try:
+        _upload(client, SOURCE)
+        run_working(app)
+        from icarus_memory.working_memory_answers import prepare
+        answer = prepare('Wo liegt die Zugangskarte?', app.state.episodes, app.state.claims, provider)
+        assert answer['semantic_search_status'] == 'unobserved'
+        assert answer['limited'] is False
+    finally:
+        client.close()
+        _close_app(app)
+
+
+def test_confirmed_knowledge_fallback_keeps_answer_and_discloses_incomplete_search(core, monkeypatch):
+    agent, _, _, _, accept = core
+    accept('project:aurora', 'Aurora Lieferort: Basel.')
+    from icarus_memory.working_memory_semantic import SemanticSearchResult
+    class UnavailableSearch:
+        def search_with_status(self, episodes, query, limit=12):
+            return SemanticSearchResult((), 'unavailable')
+        def search(self, episodes, query, limit=12):
+            return []
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: UnavailableSearch())
+    monkeypatch.setattr(agent, '_meaning_turn', lambda *args, **kwargs: None)
+    turn = agent.answer_memory('Welche Lieferortangabe gilt für Aurora?')
+    assert turn.context['items']
+    assert turn.context['answer_contract']['semantic_search_status'] == 'unavailable'
+    assert 'Bedeutungssuche' in turn.reply
+    assert 'keine belegte Antwort gefunden' not in turn.reply
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_http_empty_fallback_discloses_incomplete_semantic_search(core, tmp_path, monkeypatch, meaning, coverage):
+    embedder, _ = meaning
+    if coverage == 'unavailable':
+        embedder.fail = True
+    else:
+        monkeypatch.setattr(working_memory_semantic, 'for_provider',
+                            lambda provider: WorkingMemorySemantic(embedder, threshold=0.99, limit=1))
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    try:
+        _upload(client, 'Die Zugangskarte liegt im Schrank neben dem Empfang.')
+        if coverage == 'partial':
+            _upload(client, 'Die Lieferung verzögert sich später.')
+        run_working(app)
+        response = client.post(f"/api/v1/conversations/{_conversation(client)}/messages",
+                               json={'message': 'Nenne die Anzahl der Kometen über Island.',
+                                     'answer_mode': 'memory_evidence'})
+        assert response.status_code == 201
+        answer = response.json()['messages'][-1]
+        context = answer['metadata']['context']
+        assert context.get('answer_contract', {}).get('semantic_search_status') == coverage, answer
+        assert ('begrenzt' in answer['content']) if coverage == 'partial' else ('Bedeutungssuche' in answer['content'])
+        assert 'keine Information' not in answer['content'].casefold()
+    finally:
+        client.close()
+        _close_app(app)
+
+
 def test_corrected_source_replaces_original_in_meaning_search(core, tmp_path, monkeypatch, meaning):
     app, client, provider = _api(core, tmp_path, monkeypatch)
     classifier(provider)
@@ -247,3 +415,82 @@ def test_opt_in_requires_flag_and_local_model(monkeypatch):
     assert working_memory_semantic.for_provider(Local()) is not None
     with pytest.raises(ValueError):
         WorkingMemorySemantic(Cloud())
+
+
+@pytest.mark.parametrize('failure', ['raises', 'malformed'])
+def test_status_capable_adapter_failure_is_unavailable(core, tmp_path, monkeypatch, failure):
+    class BrokenSearch:
+        def search_with_status(self, *args, **kwargs):
+            if failure == 'raises':
+                raise RuntimeError('synthetic adapter failure')
+            return object()
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: BrokenSearch())
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    _selector_all(provider)
+    try:
+        _upload(client, SOURCE)
+        run_working(app)
+        answer = _ask(client, _conversation(client), 'Wo liegt die Zugangskarte?')
+        working = answer['metadata']['context']['working_answer']
+        assert SOURCE in answer['content']
+        assert working['semantic_search_status'] == 'unavailable'
+        assert working['limited'] is True
+        assert 'Bedeutungssuche' in answer['content']
+    finally:
+        client.close()
+        _close_app(app)
+
+
+def _empty_coverage_search(monkeypatch, coverage):
+    from icarus_memory.working_memory_semantic import SemanticSearchResult
+    class Search:
+        def search_with_status(self, *args, **kwargs):
+            return SemanticSearchResult((), coverage)
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda provider: Search())
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_scoped_followup_keeps_search_coverage_on_no_hit(core, monkeypatch, coverage):
+    agent, *_ = core
+    _empty_coverage_search(monkeypatch, coverage)
+    turn = agent.answer_memory('Und wo?', retrieval_query='Synthetischer Komet')
+    assert turn.context['answer_contract']['semantic_search_status'] == coverage
+    assert 'begrenzt' in turn.reply if coverage == 'partial' else 'Bedeutungssuche' in turn.reply
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_post_search_source_fallback_keeps_coverage(core, monkeypatch, coverage):
+    from icarus_memory import source_answers
+    agent, *_ = core
+    _empty_coverage_search(monkeypatch, coverage)
+    monkeypatch.setattr(agent, '_meaning_turn', lambda *args, **kwargs: None)
+    calls = []
+    def prepared(*args):
+        calls.append(args)
+        return None if len(calls) == 1 else {'synthetic': True}
+    monkeypatch.setattr(source_answers, 'prepare', prepared)
+    monkeypatch.setattr(source_answers, 'render', lambda *args: ('Synthetischer Originalbeleg.', [], 'source_reports'))
+    turn = agent.answer_memory('Was berichtet der synthetische Komet?')
+    assert len(calls) == 2
+    assert turn.reply.startswith('Synthetischer Originalbeleg.')
+    assert turn.context['answer_contract']['semantic_search_status'] == coverage
+    assert 'begrenzt' in turn.reply if coverage == 'partial' else 'Bedeutungssuche' in turn.reply
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_clicked_meaning_no_hit_keeps_search_coverage(core, monkeypatch, coverage):
+    from icarus_memory import bedeutungen
+    agent, *_ = core
+    _empty_coverage_search(monkeypatch, coverage)
+    monkeypatch.setattr(bedeutungen, 'meaning_choice_current', lambda *args: True)
+    scope = {'begriff': 'Komet', 'art': 'absender', 'ref': 'comet@example.invalid',
+             'label': 'Komet', 'ids': ['synthetic-source'], 'truncated': False, 'chosen': False}
+    monkeypatch.setattr(agent, '_meaning_scope', lambda *args: dict(scope))
+    pending = {'query': 'Was ist mit Komet?', 'begriff': 'Komet',
+               'options': [{'art': 'absender', 'ref': 'comet@example.invalid', 'label': 'Komet',
+                            'ids': ['synthetic-source']}]}
+    turn = agent.answer_meaning_choice(pending, 0)
+    assert turn.context['answer_contract'].get('semantic_search_status') == coverage
+    assert 'noch keine Quelle eingeordnet' not in turn.reply
+    assert 'begrenzt' in turn.reply if coverage == 'partial' else 'Bedeutungssuche' in turn.reply

@@ -202,6 +202,11 @@ def project_message(message, episodes, claims, *, resolve=True):
     text, links, status = render(context['source_answer'], episodes, claims) if resolve else (
         'Ältere Quellenantwort: Die Anzeige ist begrenzt. Bitte erneut nach der Originalstelle fragen.',
         [], 'source_not_resolved')
+    if resolve and status != 'source_unavailable':
+        from .working_memory_answers import _semantic_coverage_message
+        coverage = _semantic_coverage_message((context.get('answer_contract') or {}).get('semantic_search_status'))
+        if coverage:
+            text += '\n\n' + coverage
     result['content'] = text
     context = result['metadata']['context']
     context['source_links'] = links

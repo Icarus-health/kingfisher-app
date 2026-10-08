@@ -143,13 +143,20 @@ def answer_with_trace(agent, question):
         class ObservedMeaning:
             def search(self, *search_args, **search_kwargs):
                 refs = original.search(*search_args, **search_kwargs)
-                inner = getattr(original, '_search', None)
-                status = getattr(inner if inner is not None else original, 'status', None)
-                trace['semantic_calls'].append({'status': status or 'not_observed',
+                trace['semantic_calls'].append({'status': 'not_observed',
                                                'refs': [dict(ref) for ref in refs]})
                 return refs
 
-        return ObservedMeaning()
+        observed = ObservedMeaning()
+        search_with_status = getattr(original, 'search_with_status', None)
+        if callable(search_with_status):
+            def diagnosed(*search_args, **search_kwargs):
+                result = search_with_status(*search_args, **search_kwargs)
+                trace['semantic_calls'].append({'status': result.status,
+                                               'refs': [dict(ref) for ref in result.refs]})
+                return result
+            observed.search_with_status = diagnosed
+        return observed
 
     with patch.object(agent, 'frage_verstehen', understood), \
             patch.object(agent, '_working_memory_turn', attempted), \
@@ -194,6 +201,10 @@ def evaluate(item, turn, alias, trace=None):
     missing_stage = (None if not expected else 'unobserved' if not trace_available
                      else 'retrieval' if not in_candidates else 'selection' if not in_selection
                      else 'display' if not in_display else None)
+    semantic_calls = (trace or {}).get('semantic_calls', [])
+    search_degraded = bool((trace or {}).get('semantic_enabled') is True
+                           and (not semantic_calls or any(call['status'] not in {'ok', 'empty'}
+                                                          for call in semantic_calls)))
     return {'q': item['q'], 'type': item['type'], 'expect': expected, 'status': status,
             'candidate_sources': candidates, 'selected_sources': selected, 'references_valid': valid,
             'shown_sources': shown, 'exact_sources': exact, 'status_ok': status_ok,
@@ -202,7 +213,8 @@ def evaluate(item, turn, alias, trace=None):
             'candidate_trace_available': trace_available, 'expected_in_candidates': in_candidates,
             'expected_in_selection': in_selection, 'expected_in_display': in_display,
             'first_missing_stage': missing_stage,
-            'selection_pass': exact and status_ok and valid, 'answer': turn.reply,
+            'search_degraded': search_degraded,
+            'selection_pass': exact and status_ok and valid and not search_degraded, 'answer': turn.reply,
             'question_understanding': working.get('anfrage', (trace or {}).get('question_understanding')),
             'search': working.get('search', candidate_calls[-1]['search'] if candidate_calls else None),
             'execution_trace': trace,
@@ -265,7 +277,8 @@ def run(provider, *, sentences=True, limit=None):
             'sentence_verifier': 'same_model_local' if sentences else 'not_used_quote_mode',
             'prose_correctness': 'not_automatically_scored_requires_independent_review',
             'status_criterion': 'answerable_rows_require_reports; safe_clarifications_count_separately_in_statuses; '
-                                'catalog_has_source_gold_only_not_semantic_status_gold',
+                                'catalog_has_source_gold_only_not_semantic_status_gold; '
+                                'enabled_but_partial_unavailable_or_unobserved_search_cannot_earn_full_success',
             'ingestion': 'deterministic_indexing_not_model_ingestion',
             'score': scores, 'rows': rows, 'withdrawal': withdrawal}
 

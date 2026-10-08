@@ -453,7 +453,7 @@ def lookup_of(answer):
 
 def prepare(question, episodes, claims, provider, *, conflict_status=None, retrieval_query=None,
             projects=None, sender_scope=None, meaning_scope=None, also_found=None, person_ids=None,
-            anfrage=None, saetze=False, zeiten=None, namensvettern=(), pruefung=None):
+            anfrage=None, saetze=False, zeiten=None, namensvettern=(), pruefung=None, search_state=None):
     """Quellen zur Frage auswählen.
 
     ``sender_scope`` ({'account', 'address'}) begrenzt die Suche auf Mails genau
@@ -493,7 +493,30 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     from . import working_memory_semantic
     meaning = working_memory_semantic.for_provider(provider)
     semantic_inventory = _semantic_inventory(episodes) if meaning is not None else None
-    semantic = meaning.search(episodes, lookup, MAX_REFS) if meaning is not None else []
+    semantic_status = 'unobserved'
+    semantic = []
+    if meaning is not None:
+        search_with_status = getattr(meaning, 'search_with_status', None)
+        if callable(search_with_status):
+            semantic_status = 'unavailable'
+            try:
+                result = search_with_status(episodes, lookup, MAX_REFS)
+            except Exception:  # noqa: BLE001 - die Wortsuche bleibt der sichere Rückfall
+                result = None
+            status = getattr(result, 'status', None)
+            refs = getattr(result, 'refs', None)
+            if (status in {'ok', 'empty', 'partial', 'unavailable', 'unobserved'}
+                    and isinstance(refs, (list, tuple))):
+                semantic_status, semantic = status, list(refs)
+        else:
+            # Ältere Fakes und Integrationen bleiben nutzbar, aber ein globaler
+            # status könnte zu einem anderen Thread/Suchaufruf gehören.
+            try:
+                semantic = meaning.search(episodes, lookup, MAX_REFS)
+            except Exception:  # noqa: BLE001 - die Wortsuche bleibt der sichere Rückfall
+                semantic_status, semantic = 'unavailable', []
+    if isinstance(search_state, dict):
+        search_state['semantic_status'] = semantic_status
     if semantic_inventory is not None and semantic_inventory != _semantic_inventory(episodes):
         return None
     if meaning_scope is not None:
@@ -527,7 +550,8 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
               'claim_candidate_signature': confirmed_signature,
               'candidate_signature': WorkingMemoryStore(episodes).candidate_signature(
                   lookup, episode_ids=_scope_ids(episodes, claims, sender_scope, meaning_scope)[0]),
-              'status': 'reports', 'uncertainty': 'none', 'limited': limited or confirmed_limited}
+              'status': 'reports', 'uncertainty': 'none',
+              'limited': limited or confirmed_limited or semantic_status in {'partial', 'unavailable'}}
     answer['project_assignment_basis'] = {ref['episode_id']: episodes.get(ref['episode_id']).project_id
                                           for ref in refs}
     if search_stats:
@@ -571,6 +595,7 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
         answer['semantic_basis'] = added
     if meaning is not None:
         answer['semantic_inventory'] = semantic_inventory
+        answer['semantic_search_status'] = semantic_status
     if scope:
         answer['project_scope'] = scope
     if persons:
@@ -869,6 +894,13 @@ def _fresh(answer, episodes, claims):
             or not isinstance(answer.get('refs'), list)
             or any(ref not in answer['basis'] for ref in answer['refs'])):
         return False
+    semantic_status = answer.get('semantic_search_status')
+    if semantic_status is not None:
+        if (semantic_status not in {'ok', 'empty', 'partial', 'unavailable', 'unobserved'}
+                or 'semantic_inventory' not in answer):
+            return False
+        if semantic_status in {'partial', 'unavailable'} and answer.get('limited') is not True:
+            return False
     lookup = lookup_of(answer)
     if not isinstance(lookup, str) or not lookup.strip() or len(lookup) > 20000:
         return False
@@ -925,7 +957,8 @@ def _fresh(answer, episodes, claims):
     if ('open_signature' in answer
             and answer['open_signature'] != WorkingMemoryStore(episodes).candidate_signature(lookup)):
         return False
-    return (refs == answer['basis'] and (working_limited or confirmed_limited) == answer.get('limited')
+    coverage_limited = semantic_status in {'partial', 'unavailable'}
+    return (refs == answer['basis'] and (working_limited or confirmed_limited or coverage_limited) == answer.get('limited')
             and signature == answer.get('candidate_signature')
             and confirmed_signature == answer.get('claim_candidate_signature')
             and lineage == answer.get('claim_basis')
@@ -1051,6 +1084,14 @@ def _zitate(answer, episodes, fallback):
     return lines, links
 
 
+def _semantic_coverage_message(status):
+    if status == 'partial':
+        return 'Der semantische Suchbestand war begrenzt; weitere passende Quellen können fehlen.'
+    if status == 'unavailable':
+        return 'Die Bedeutungssuche war nicht verfügbar; passende Quellen können fehlen.'
+    return None
+
+
 def render(answer, episodes, claims, *, conflict_status=None):
     if not _fresh(answer, episodes, claims) or answer.get('status') == 'unavailable':
         return UNAVAILABLE, [], 'working_unavailable'
@@ -1058,6 +1099,9 @@ def render(answer, episodes, claims, *, conflict_status=None):
     if answer.get('status') == 'selection_failed' and not fallback:
         return 'Die passenden Quellen konnten gerade nicht zuverlässig ausgewählt werden. Bitte erneut fragen.', [], 'working_selection_failed'
     if answer.get('status') == 'unknown' and not fallback:
+        coverage = _semantic_coverage_message(answer.get('semantic_search_status'))
+        if coverage:
+            return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
         return 'Dazu liegt in den bisher eingeordneten Quellen keine Information vor.', [], 'working_unknown'
     claim_basis = answer.get('claim_basis', {})
     if claim_basis and (conflict_status is None or conflict_status(list(claim_basis)) != 'clear'):
@@ -1066,6 +1110,9 @@ def render(answer, episodes, claims, *, conflict_status=None):
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
     if satz is not None and satz.status == 'nichts':
+        coverage = _semantic_coverage_message(answer.get('semantic_search_status'))
+        if coverage:
+            return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
         return satzantwort.nichts_text(answer, episodes), [], 'working_unknown'
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
@@ -1104,7 +1151,11 @@ def render(answer, episodes, claims, *, conflict_status=None):
             return UNAVAILABLE, [], 'working_unavailable'
         lines.extend(['', 'Bestätigter Eintrag zum Suchbegriff:', captured[0].statement])
         links.append({'episode_id': captured[2]['primary_episode_id'], 'label': 'Beleg zum bestätigten Eintrag öffnen'})
-    if answer.get('limited') and isinstance(answer.get('meaning_scope'), dict):
+    semantic_status = answer.get('semantic_search_status')
+    coverage = _semantic_coverage_message(semantic_status)
+    if coverage:
+        lines.extend(['', coverage])
+    elif answer.get('limited') and isinstance(answer.get('meaning_scope'), dict):
         lines.extend(['', 'Gezeigt sind die neuesten passenden Quellen; es gibt dazu mehr. '
                       'Mit Person oder Zeitraum in der Frage wird die Auswahl genauer.'])
     elif answer.get('limited'):

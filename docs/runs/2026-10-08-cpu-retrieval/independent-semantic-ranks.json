@@ -1,0 +1,1634 @@
+{
+  "synthetic_only": true,
+  "runtime": "isolated Linux arm64 CPU;2 cores;6GiB;read-only installed weights;no cloud",
+  "ollama_version": "0.24.0",
+  "model": "bge-m3:latest",
+  "model_digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "inputs": 37,
+  "seconds": 4.267,
+  "rows": [
+    {
+      "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "type": "direct",
+      "expect": [
+        "RCS01"
+      ],
+      "ranked_sources": [
+        [
+          "RCS01",
+          0.711433
+        ],
+        [
+          "RCS02",
+          0.428497
+        ],
+        [
+          "RCS10",
+          0.329571
+        ],
+        [
+          "RCS12",
+          0.306586
+        ],
+        [
+          "RCS04",
+          0.289936
+        ],
+        [
+          "RCS13",
+          0.289522
+        ],
+        [
+          "RCS03",
+          0.286561
+        ],
+        [
+          "RCS11",
+          0.275632
+        ],
+        [
+          "RCS06",
+          0.244799
+        ],
+        [
+          "RCS05",
+          0.241018
+        ],
+        [
+          "RCS14",
+          0.236145
+        ],
+        [
+          "RCS09",
+          0.228432
+        ],
+        [
+          "RCS08",
+          0.220887
+        ],
+        [
+          "RCS07",
+          0.173767
+        ]
+      ],
+      "expected_ranks": {
+        "RCS01": 1
+      },
+      "threshold_hits": [
+        "RCS01"
+      ]
+    },
+    {
+      "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS01"
+      ],
+      "ranked_sources": [
+        [
+          "RCS01",
+          0.663108
+        ],
+        [
+          "RCS02",
+          0.431374
+        ],
+        [
+          "RCS09",
+          0.35238
+        ],
+        [
+          "RCS10",
+          0.350503
+        ],
+        [
+          "RCS12",
+          0.322738
+        ],
+        [
+          "RCS14",
+          0.321268
+        ],
+        [
+          "RCS03",
+          0.314734
+        ],
+        [
+          "RCS05",
+          0.281294
+        ],
+        [
+          "RCS06",
+          0.280828
+        ],
+        [
+          "RCS13",
+          0.279124
+        ],
+        [
+          "RCS11",
+          0.266505
+        ],
+        [
+          "RCS04",
+          0.265955
+        ],
+        [
+          "RCS08",
+          0.240269
+        ],
+        [
+          "RCS07",
+          0.173459
+        ]
+      ],
+      "expected_ranks": {
+        "RCS01": 1
+      },
+      "threshold_hits": [
+        "RCS01"
+      ]
+    },
+    {
+      "q": "Wer liefert die Befestigungssätze für KL-24?",
+      "type": "direct",
+      "expect": [
+        "RCS02"
+      ],
+      "ranked_sources": [
+        [
+          "RCS02",
+          0.7302
+        ],
+        [
+          "RCS01",
+          0.405992
+        ],
+        [
+          "RCS10",
+          0.293764
+        ],
+        [
+          "RCS03",
+          0.269152
+        ],
+        [
+          "RCS11",
+          0.252725
+        ],
+        [
+          "RCS04",
+          0.248061
+        ],
+        [
+          "RCS09",
+          0.222921
+        ],
+        [
+          "RCS08",
+          0.220907
+        ],
+        [
+          "RCS12",
+          0.218556
+        ],
+        [
+          "RCS06",
+          0.205924
+        ],
+        [
+          "RCS13",
+          0.203989
+        ],
+        [
+          "RCS05",
+          0.193891
+        ],
+        [
+          "RCS14",
+          0.165771
+        ],
+        [
+          "RCS07",
+          0.156768
+        ]
+      ],
+      "expected_ranks": {
+        "RCS02": 1
+      },
+      "threshold_hits": [
+        "RCS02"
+      ]
+    },
+    {
+      "q": "Wer prüft die Ware im Auftrag KL-24?",
+      "type": "unanswerable",
+      "expect": [],
+      "ranked_sources": [
+        [
+          "RCS02",
+          0.587457
+        ],
+        [
+          "RCS01",
+          0.544617
+        ],
+        [
+          "RCS03",
+          0.357855
+        ],
+        [
+          "RCS12",
+          0.354077
+        ],
+        [
+          "RCS11",
+          0.351203
+        ],
+        [
+          "RCS04",
+          0.324102
+        ],
+        [
+          "RCS13",
+          0.314484
+        ],
+        [
+          "RCS10",
+          0.310226
+        ],
+        [
+          "RCS14",
+          0.264355
+        ],
+        [
+          "RCS09",
+          0.248576
+        ],
+        [
+          "RCS05",
+          0.237097
+        ],
+        [
+          "RCS06",
+          0.236656
+        ],
+        [
+          "RCS08",
+          0.220458
+        ],
+        [
+          "RCS07",
+          0.170792
+        ]
+      ],
+      "expected_ranks": {},
+      "threshold_hits": [
+        "RCS02"
+      ]
+    },
+    {
+      "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03"
+      ],
+      "ranked_sources": [
+        [
+          "RCS03",
+          0.702553
+        ],
+        [
+          "RCS04",
+          0.602194
+        ],
+        [
+          "RCS12",
+          0.439622
+        ],
+        [
+          "RCS11",
+          0.358512
+        ],
+        [
+          "RCS02",
+          0.352014
+        ],
+        [
+          "RCS13",
+          0.33213
+        ],
+        [
+          "RCS10",
+          0.290159
+        ],
+        [
+          "RCS01",
+          0.289434
+        ],
+        [
+          "RCS08",
+          0.272759
+        ],
+        [
+          "RCS09",
+          0.269148
+        ],
+        [
+          "RCS06",
+          0.268279
+        ],
+        [
+          "RCS05",
+          0.261864
+        ],
+        [
+          "RCS14",
+          0.247137
+        ],
+        [
+          "RCS07",
+          0.23101
+        ]
+      ],
+      "expected_ranks": {
+        "RCS03": 1
+      },
+      "threshold_hits": [
+        "RCS03",
+        "RCS04"
+      ]
+    },
+    {
+      "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "type": "direct",
+      "expect": [
+        "RCS03"
+      ],
+      "ranked_sources": [
+        [
+          "RCS03",
+          0.682864
+        ],
+        [
+          "RCS04",
+          0.519484
+        ],
+        [
+          "RCS12",
+          0.419104
+        ],
+        [
+          "RCS02",
+          0.365588
+        ],
+        [
+          "RCS08",
+          0.347411
+        ],
+        [
+          "RCS14",
+          0.338481
+        ],
+        [
+          "RCS07",
+          0.33112
+        ],
+        [
+          "RCS06",
+          0.317293
+        ],
+        [
+          "RCS05",
+          0.311783
+        ],
+        [
+          "RCS13",
+          0.308762
+        ],
+        [
+          "RCS11",
+          0.302204
+        ],
+        [
+          "RCS01",
+          0.296889
+        ],
+        [
+          "RCS10",
+          0.287999
+        ],
+        [
+          "RCS09",
+          0.287404
+        ]
+      ],
+      "expected_ranks": {
+        "RCS03": 1
+      },
+      "threshold_hits": [
+        "RCS03"
+      ]
+    },
+    {
+      "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS04"
+      ],
+      "ranked_sources": [
+        [
+          "RCS04",
+          0.618475
+        ],
+        [
+          "RCS03",
+          0.50546
+        ],
+        [
+          "RCS13",
+          0.389108
+        ],
+        [
+          "RCS12",
+          0.346002
+        ],
+        [
+          "RCS11",
+          0.302632
+        ],
+        [
+          "RCS05",
+          0.300923
+        ],
+        [
+          "RCS06",
+          0.267488
+        ],
+        [
+          "RCS02",
+          0.26041
+        ],
+        [
+          "RCS08",
+          0.246727
+        ],
+        [
+          "RCS09",
+          0.246718
+        ],
+        [
+          "RCS01",
+          0.242947
+        ],
+        [
+          "RCS07",
+          0.228741
+        ],
+        [
+          "RCS14",
+          0.227802
+        ],
+        [
+          "RCS10",
+          0.200762
+        ]
+      ],
+      "expected_ranks": {
+        "RCS04": 1
+      },
+      "threshold_hits": [
+        "RCS04"
+      ]
+    },
+    {
+      "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03",
+        "RCS04"
+      ],
+      "ranked_sources": [
+        [
+          "RCS03",
+          0.612798
+        ],
+        [
+          "RCS04",
+          0.538938
+        ],
+        [
+          "RCS12",
+          0.355029
+        ],
+        [
+          "RCS13",
+          0.315498
+        ],
+        [
+          "RCS11",
+          0.28635
+        ],
+        [
+          "RCS05",
+          0.266423
+        ],
+        [
+          "RCS06",
+          0.261409
+        ],
+        [
+          "RCS02",
+          0.251865
+        ],
+        [
+          "RCS08",
+          0.237021
+        ],
+        [
+          "RCS07",
+          0.231038
+        ],
+        [
+          "RCS14",
+          0.221329
+        ],
+        [
+          "RCS01",
+          0.216219
+        ],
+        [
+          "RCS09",
+          0.210531
+        ],
+        [
+          "RCS10",
+          0.178135
+        ]
+      ],
+      "expected_ranks": {
+        "RCS04": 2,
+        "RCS03": 1
+      },
+      "threshold_hits": [
+        "RCS03"
+      ]
+    },
+    {
+      "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "type": "direct",
+      "expect": [
+        "RCS04"
+      ],
+      "ranked_sources": [
+        [
+          "RCS04",
+          0.646838
+        ],
+        [
+          "RCS03",
+          0.48395
+        ],
+        [
+          "RCS12",
+          0.46383
+        ],
+        [
+          "RCS13",
+          0.377055
+        ],
+        [
+          "RCS11",
+          0.314129
+        ],
+        [
+          "RCS01",
+          0.296401
+        ],
+        [
+          "RCS10",
+          0.293271
+        ],
+        [
+          "RCS02",
+          0.266893
+        ],
+        [
+          "RCS06",
+          0.264398
+        ],
+        [
+          "RCS05",
+          0.254865
+        ],
+        [
+          "RCS14",
+          0.251152
+        ],
+        [
+          "RCS08",
+          0.244688
+        ],
+        [
+          "RCS09",
+          0.238535
+        ],
+        [
+          "RCS07",
+          0.196196
+        ]
+      ],
+      "expected_ranks": {
+        "RCS04": 1
+      },
+      "threshold_hits": [
+        "RCS04"
+      ]
+    },
+    {
+      "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS06"
+      ],
+      "ranked_sources": [
+        [
+          "RCS06",
+          0.718236
+        ],
+        [
+          "RCS05",
+          0.708777
+        ],
+        [
+          "RCS08",
+          0.375905
+        ],
+        [
+          "RCS07",
+          0.326918
+        ],
+        [
+          "RCS13",
+          0.320922
+        ],
+        [
+          "RCS14",
+          0.296934
+        ],
+        [
+          "RCS12",
+          0.294226
+        ],
+        [
+          "RCS03",
+          0.267295
+        ],
+        [
+          "RCS01",
+          0.252936
+        ],
+        [
+          "RCS04",
+          0.239023
+        ],
+        [
+          "RCS02",
+          0.236345
+        ],
+        [
+          "RCS11",
+          0.231646
+        ],
+        [
+          "RCS09",
+          0.214696
+        ],
+        [
+          "RCS10",
+          0.191613
+        ]
+      ],
+      "expected_ranks": {
+        "RCS06": 1
+      },
+      "threshold_hits": [
+        "RCS06",
+        "RCS05"
+      ]
+    },
+    {
+      "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS05",
+        "RCS06"
+      ],
+      "ranked_sources": [
+        [
+          "RCS05",
+          0.615112
+        ],
+        [
+          "RCS06",
+          0.612363
+        ],
+        [
+          "RCS08",
+          0.364248
+        ],
+        [
+          "RCS14",
+          0.298136
+        ],
+        [
+          "RCS07",
+          0.283559
+        ],
+        [
+          "RCS09",
+          0.261145
+        ],
+        [
+          "RCS12",
+          0.258459
+        ],
+        [
+          "RCS13",
+          0.241459
+        ],
+        [
+          "RCS04",
+          0.240852
+        ],
+        [
+          "RCS10",
+          0.233925
+        ],
+        [
+          "RCS01",
+          0.218828
+        ],
+        [
+          "RCS02",
+          0.216726
+        ],
+        [
+          "RCS03",
+          0.21407
+        ],
+        [
+          "RCS11",
+          0.159883
+        ]
+      ],
+      "expected_ranks": {
+        "RCS06": 2,
+        "RCS05": 1
+      },
+      "threshold_hits": [
+        "RCS05",
+        "RCS06"
+      ]
+    },
+    {
+      "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "type": "direct",
+      "expect": [
+        "RCS06"
+      ],
+      "ranked_sources": [
+        [
+          "RCS06",
+          0.697246
+        ],
+        [
+          "RCS05",
+          0.693231
+        ],
+        [
+          "RCS08",
+          0.389336
+        ],
+        [
+          "RCS07",
+          0.359122
+        ],
+        [
+          "RCS12",
+          0.345551
+        ],
+        [
+          "RCS13",
+          0.321978
+        ],
+        [
+          "RCS04",
+          0.31375
+        ],
+        [
+          "RCS03",
+          0.306004
+        ],
+        [
+          "RCS11",
+          0.279964
+        ],
+        [
+          "RCS14",
+          0.267471
+        ],
+        [
+          "RCS01",
+          0.258311
+        ],
+        [
+          "RCS10",
+          0.23004
+        ],
+        [
+          "RCS09",
+          0.228002
+        ],
+        [
+          "RCS02",
+          0.212472
+        ]
+      ],
+      "expected_ranks": {
+        "RCS06": 1
+      },
+      "threshold_hits": [
+        "RCS06",
+        "RCS05"
+      ]
+    },
+    {
+      "q": "Findet der Rundgang im Depot Süd noch statt?",
+      "type": "direct",
+      "expect": [
+        "RCS07"
+      ],
+      "ranked_sources": [
+        [
+          "RCS07",
+          0.706488
+        ],
+        [
+          "RCS08",
+          0.468207
+        ],
+        [
+          "RCS06",
+          0.339982
+        ],
+        [
+          "RCS03",
+          0.319081
+        ],
+        [
+          "RCS14",
+          0.299911
+        ],
+        [
+          "RCS05",
+          0.298447
+        ],
+        [
+          "RCS12",
+          0.27925
+        ],
+        [
+          "RCS13",
+          0.248677
+        ],
+        [
+          "RCS10",
+          0.242593
+        ],
+        [
+          "RCS04",
+          0.236625
+        ],
+        [
+          "RCS11",
+          0.235406
+        ],
+        [
+          "RCS02",
+          0.233791
+        ],
+        [
+          "RCS01",
+          0.224046
+        ],
+        [
+          "RCS09",
+          0.206068
+        ]
+      ],
+      "expected_ranks": {
+        "RCS07": 1
+      },
+      "threshold_hits": [
+        "RCS07"
+      ]
+    },
+    {
+      "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "ranked_sources": [
+        [
+          "RCS08",
+          0.655922
+        ],
+        [
+          "RCS07",
+          0.514431
+        ],
+        [
+          "RCS06",
+          0.403073
+        ],
+        [
+          "RCS10",
+          0.381503
+        ],
+        [
+          "RCS01",
+          0.365508
+        ],
+        [
+          "RCS02",
+          0.357729
+        ],
+        [
+          "RCS05",
+          0.354378
+        ],
+        [
+          "RCS03",
+          0.347055
+        ],
+        [
+          "RCS14",
+          0.327101
+        ],
+        [
+          "RCS12",
+          0.302908
+        ],
+        [
+          "RCS04",
+          0.300075
+        ],
+        [
+          "RCS13",
+          0.292755
+        ],
+        [
+          "RCS09",
+          0.276157
+        ],
+        [
+          "RCS11",
+          0.274673
+        ]
+      ],
+      "expected_ranks": {
+        "RCS08": 1
+      },
+      "threshold_hits": [
+        "RCS08"
+      ]
+    },
+    {
+      "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "ranked_sources": [
+        [
+          "RCS08",
+          0.624737
+        ],
+        [
+          "RCS07",
+          0.509591
+        ],
+        [
+          "RCS06",
+          0.41523
+        ],
+        [
+          "RCS05",
+          0.373129
+        ],
+        [
+          "RCS12",
+          0.360484
+        ],
+        [
+          "RCS14",
+          0.343658
+        ],
+        [
+          "RCS01",
+          0.33191
+        ],
+        [
+          "RCS03",
+          0.327724
+        ],
+        [
+          "RCS10",
+          0.319466
+        ],
+        [
+          "RCS02",
+          0.316633
+        ],
+        [
+          "RCS13",
+          0.292994
+        ],
+        [
+          "RCS04",
+          0.283733
+        ],
+        [
+          "RCS11",
+          0.26927
+        ],
+        [
+          "RCS09",
+          0.234306
+        ]
+      ],
+      "expected_ranks": {
+        "RCS08": 1
+      },
+      "threshold_hits": [
+        "RCS08"
+      ]
+    },
+    {
+      "q": "Welche Diagnose hat Noa Jansen?",
+      "type": "unanswerable",
+      "expect": [],
+      "ranked_sources": [
+        [
+          "RCS09",
+          0.510657
+        ],
+        [
+          "RCS01",
+          0.282144
+        ],
+        [
+          "RCS02",
+          0.280547
+        ],
+        [
+          "RCS10",
+          0.254653
+        ],
+        [
+          "RCS14",
+          0.212867
+        ],
+        [
+          "RCS06",
+          0.212641
+        ],
+        [
+          "RCS08",
+          0.207527
+        ],
+        [
+          "RCS12",
+          0.202169
+        ],
+        [
+          "RCS04",
+          0.197019
+        ],
+        [
+          "RCS05",
+          0.184935
+        ],
+        [
+          "RCS03",
+          0.183861
+        ],
+        [
+          "RCS11",
+          0.180648
+        ],
+        [
+          "RCS13",
+          0.173919
+        ],
+        [
+          "RCS07",
+          0.15279
+        ]
+      ],
+      "expected_ranks": {},
+      "threshold_hits": []
+    },
+    {
+      "q": "Wie lautet Nola Voss' private Anschrift?",
+      "type": "unanswerable",
+      "expect": [],
+      "ranked_sources": [
+        [
+          "RCS10",
+          0.439696
+        ],
+        [
+          "RCS02",
+          0.414876
+        ],
+        [
+          "RCS01",
+          0.368565
+        ],
+        [
+          "RCS14",
+          0.326384
+        ],
+        [
+          "RCS09",
+          0.310679
+        ],
+        [
+          "RCS08",
+          0.188638
+        ],
+        [
+          "RCS11",
+          0.168812
+        ],
+        [
+          "RCS04",
+          0.168114
+        ],
+        [
+          "RCS06",
+          0.164279
+        ],
+        [
+          "RCS03",
+          0.163366
+        ],
+        [
+          "RCS05",
+          0.145942
+        ],
+        [
+          "RCS13",
+          0.145059
+        ],
+        [
+          "RCS07",
+          0.125992
+        ],
+        [
+          "RCS12",
+          0.115931
+        ]
+      ],
+      "expected_ranks": {},
+      "threshold_hits": []
+    },
+    {
+      "q": "Welche Medikamente nimmt Emi Tanaka?",
+      "type": "unanswerable",
+      "expect": [],
+      "ranked_sources": [
+        [
+          "RCS14",
+          0.427814
+        ],
+        [
+          "RCS09",
+          0.282949
+        ],
+        [
+          "RCS06",
+          0.26531
+        ],
+        [
+          "RCS03",
+          0.244682
+        ],
+        [
+          "RCS05",
+          0.240279
+        ],
+        [
+          "RCS08",
+          0.233607
+        ],
+        [
+          "RCS01",
+          0.228896
+        ],
+        [
+          "RCS10",
+          0.220295
+        ],
+        [
+          "RCS04",
+          0.216374
+        ],
+        [
+          "RCS13",
+          0.211095
+        ],
+        [
+          "RCS11",
+          0.210119
+        ],
+        [
+          "RCS02",
+          0.188581
+        ],
+        [
+          "RCS12",
+          0.183062
+        ],
+        [
+          "RCS07",
+          0.181591
+        ]
+      ],
+      "expected_ranks": {},
+      "threshold_hits": []
+    },
+    {
+      "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "ranked_sources": [
+        [
+          "RCS11",
+          0.730549
+        ],
+        [
+          "RCS13",
+          0.569076
+        ],
+        [
+          "RCS12",
+          0.52392
+        ],
+        [
+          "RCS03",
+          0.368592
+        ],
+        [
+          "RCS04",
+          0.320998
+        ],
+        [
+          "RCS05",
+          0.313072
+        ],
+        [
+          "RCS06",
+          0.312289
+        ],
+        [
+          "RCS01",
+          0.253679
+        ],
+        [
+          "RCS09",
+          0.253106
+        ],
+        [
+          "RCS02",
+          0.248339
+        ],
+        [
+          "RCS07",
+          0.235215
+        ],
+        [
+          "RCS10",
+          0.233932
+        ],
+        [
+          "RCS08",
+          0.2293
+        ],
+        [
+          "RCS14",
+          0.186672
+        ]
+      ],
+      "expected_ranks": {
+        "RCS11": 1
+      },
+      "threshold_hits": [
+        "RCS11",
+        "RCS13"
+      ]
+    },
+    {
+      "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "ranked_sources": [
+        [
+          "RCS11",
+          0.639329
+        ],
+        [
+          "RCS13",
+          0.544234
+        ],
+        [
+          "RCS12",
+          0.482161
+        ],
+        [
+          "RCS03",
+          0.316234
+        ],
+        [
+          "RCS04",
+          0.291379
+        ],
+        [
+          "RCS02",
+          0.273997
+        ],
+        [
+          "RCS01",
+          0.262774
+        ],
+        [
+          "RCS09",
+          0.24131
+        ],
+        [
+          "RCS10",
+          0.229376
+        ],
+        [
+          "RCS06",
+          0.222346
+        ],
+        [
+          "RCS07",
+          0.215274
+        ],
+        [
+          "RCS05",
+          0.209761
+        ],
+        [
+          "RCS08",
+          0.187646
+        ],
+        [
+          "RCS14",
+          0.170252
+        ]
+      ],
+      "expected_ranks": {
+        "RCS11": 1
+      },
+      "threshold_hits": [
+        "RCS11"
+      ]
+    },
+    {
+      "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS12"
+      ],
+      "ranked_sources": [
+        [
+          "RCS12",
+          0.712102
+        ],
+        [
+          "RCS11",
+          0.55523
+        ],
+        [
+          "RCS13",
+          0.481665
+        ],
+        [
+          "RCS03",
+          0.455899
+        ],
+        [
+          "RCS04",
+          0.408399
+        ],
+        [
+          "RCS05",
+          0.301692
+        ],
+        [
+          "RCS10",
+          0.294245
+        ],
+        [
+          "RCS06",
+          0.292926
+        ],
+        [
+          "RCS01",
+          0.285358
+        ],
+        [
+          "RCS02",
+          0.274697
+        ],
+        [
+          "RCS08",
+          0.263568
+        ],
+        [
+          "RCS09",
+          0.262677
+        ],
+        [
+          "RCS07",
+          0.24867
+        ],
+        [
+          "RCS14",
+          0.22569
+        ]
+      ],
+      "expected_ranks": {
+        "RCS12": 1
+      },
+      "threshold_hits": [
+        "RCS12",
+        "RCS11"
+      ]
+    },
+    {
+      "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "ranked_sources": [
+        [
+          "RCS13",
+          0.737853
+        ],
+        [
+          "RCS11",
+          0.486146
+        ],
+        [
+          "RCS12",
+          0.47477
+        ],
+        [
+          "RCS04",
+          0.396182
+        ],
+        [
+          "RCS05",
+          0.3626
+        ],
+        [
+          "RCS06",
+          0.348184
+        ],
+        [
+          "RCS03",
+          0.34698
+        ],
+        [
+          "RCS01",
+          0.292434
+        ],
+        [
+          "RCS09",
+          0.276974
+        ],
+        [
+          "RCS10",
+          0.241078
+        ],
+        [
+          "RCS02",
+          0.239
+        ],
+        [
+          "RCS08",
+          0.221263
+        ],
+        [
+          "RCS14",
+          0.214384
+        ],
+        [
+          "RCS07",
+          0.186881
+        ]
+      ],
+      "expected_ranks": {
+        "RCS13": 1
+      },
+      "threshold_hits": [
+        "RCS13"
+      ]
+    },
+    {
+      "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "ranked_sources": [
+        [
+          "RCS13",
+          0.604836
+        ],
+        [
+          "RCS11",
+          0.565754
+        ],
+        [
+          "RCS12",
+          0.399652
+        ],
+        [
+          "RCS04",
+          0.299194
+        ],
+        [
+          "RCS03",
+          0.293121
+        ],
+        [
+          "RCS02",
+          0.267816
+        ],
+        [
+          "RCS06",
+          0.256205
+        ],
+        [
+          "RCS09",
+          0.247439
+        ],
+        [
+          "RCS01",
+          0.246495
+        ],
+        [
+          "RCS05",
+          0.237443
+        ],
+        [
+          "RCS10",
+          0.234837
+        ],
+        [
+          "RCS07",
+          0.194241
+        ],
+        [
+          "RCS08",
+          0.167713
+        ],
+        [
+          "RCS14",
+          0.166136
+        ]
+      ],
+      "expected_ranks": {
+        "RCS13": 1
+      },
+      "threshold_hits": [
+        "RCS13",
+        "RCS11"
+      ]
+    }
+  ]
+}
