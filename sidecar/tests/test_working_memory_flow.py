@@ -90,6 +90,58 @@ def test_new_related_source_invalidates_old_current_state(core, tmp_path, monkey
         _close_app(app)
 
 
+@pytest.mark.parametrize('already_incomplete', [False, True])
+def test_pending_related_source_invalidates_saved_nonsemantic_answer(core, tmp_path, monkeypatch, already_incomplete):
+    """Raw intake must count before classification, even if coverage was already incomplete."""
+    from icarus_memory import working_memory_answers
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    agent = app.state.agent
+    agent._working_memory_search = None
+    try:
+        _upload(client, TEXT)
+        run_working(app)
+        if already_incomplete:
+            _upload(client, 'Mainz: Anna wartet auf die Freigabe für den Entwurf.')
+        turn = agent.answer_memory(QUESTION, retrieval_query=QUESTION)
+        assert turn.context['answer_contract']['status'] == 'working_reports'
+        saved = {'role': 'assistant', 'content': turn.reply, 'metadata': {'context': turn.context}}
+        pending = _upload(client, 'Mainz: Anna hat den 25. September abgesagt. Der Entwurf bleibt offen.')
+        assert WorkingMemoryStore(app.state.episodes).source_state(pending) == 'pending'
+        reopened = working_memory_answers.project_message(saved, app.state.episodes, app.state.claims)
+        assert reopened['metadata']['context']['answer_contract']['status'] == 'working_unavailable'
+        assert TEXT not in reopened['content']
+        assert not reopened['metadata']['context']['source_links']
+        refreshed = agent.answer_memory(QUESTION, retrieval_query=QUESTION)
+        assert refreshed.context['working_answer']['limited'] is True
+        assert 'Belegabschnitt' in refreshed.reply and 'Antwort kann unvollständig sein' in refreshed.reply
+    finally:
+        client.close()
+        _close_app(app)
+
+
+def test_pending_unrelated_source_keeps_nonsemantic_answer_readable(core, tmp_path, monkeypatch):
+    from icarus_memory import working_memory_answers
+
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    classifier(provider)
+    app.state.agent._working_memory_search = None
+    try:
+        _upload(client, TEXT)
+        run_working(app)
+        turn = app.state.agent.answer_memory(QUESTION, retrieval_query=QUESTION)
+        saved = {'role': 'assistant', 'content': turn.reply, 'metadata': {'context': turn.context}}
+        _upload(client, 'Rostock: Ben hat die Wand gestrichen.')
+        reopened = working_memory_answers.project_message(saved, app.state.episodes, app.state.claims)
+        assert reopened['metadata']['context']['answer_contract']['status'] == 'working_reports'
+        assert TEXT in reopened['content']
+    finally:
+        client.close()
+        _close_app(app)
+
+
 def test_second_analysis_does_not_repeat_model_call(core, tmp_path, monkeypatch):
     app, client, provider = _api(core, tmp_path, monkeypatch)
     classifier(provider)

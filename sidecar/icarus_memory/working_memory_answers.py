@@ -936,12 +936,22 @@ def _fresh(answer, episodes, claims):
         return False
     try:
         scope_ids = _scope_ids(episodes, claims, answer.get('sender_scope'), answer.get('meaning_scope'))[0]
+        search_stats = {}
         refs, _, working_limited, _ = _candidates(lookup, episodes, claims, scope, semantic=semantic,
                                                   sender_scope=answer.get('sender_scope'),
                                                   period=_period(answer.get('time_scope')),
                                                   meaning_scope=answer.get('meaning_scope'),
-                                                  person_ids=persons, sachen=sachen)
+                                                  person_ids=persons, sachen=sachen, stats=search_stats)
     except ValueError:
+        return False
+    saved_search = answer.get('search', {})
+    if not isinstance(saved_search, dict):
+        return False
+    if 'index_signatur' in saved_search:
+        if saved_search['index_signatur'] != search_stats.get('index_signatur'):
+            return False
+    elif search_stats.get('ohne_einordnung'):
+        # Ältere Antworten kennen diese Lücke nicht: keine scheinbar aktuelle Antwort zeigen.
         return False
     if 'akten' in answer and not _akten_frisch(answer, refs, sachen, episodes, claims):
         return False
@@ -1092,6 +1102,28 @@ def _semantic_coverage_message(status):
     return None
 
 
+def _search_notices(answer):
+    """Programmgenerierte Abdeckungshinweise für Text- und Satzansicht gleichermaßen."""
+    notices = []
+    coverage = _semantic_coverage_message(answer.get('semantic_search_status'))
+    if coverage:
+        notices.append(coverage)
+    search = answer.get('search')
+    missing = search.get('ohne_einordnung', 0) if isinstance(search, dict) else 0
+    if type(missing) is int and missing > 0:
+        notices.append((f'Zu {missing} passenden Originalquellen fehlen nutzbare Belegabschnitte; '
+                        if missing != 1 else 'Zu 1 passenden Originalquelle fehlt ein nutzbarer Belegabschnitt; ')
+                       + 'die Antwort kann unvollständig sein.')
+    if not notices and answer.get('limited'):
+        if isinstance(answer.get('meaning_scope'), dict):
+            notices.append('Gezeigt sind die neuesten passenden Quellen; es gibt dazu mehr. '
+                           'Mit Person oder Zeitraum in der Frage wird die Auswahl genauer.')
+        else:
+            notices.append('Die Auswahl ist begrenzt: ' + _limit_count(answer) +
+                           'Mit Person, Projekt oder Zeitraum in der Frage wird sie genauer.')
+    return notices
+
+
 def render(answer, episodes, claims, *, conflict_status=None):
     if not _fresh(answer, episodes, claims) or answer.get('status') == 'unavailable':
         return UNAVAILABLE, [], 'working_unavailable'
@@ -1099,7 +1131,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
     if answer.get('status') == 'selection_failed' and not fallback:
         return 'Die passenden Quellen konnten gerade nicht zuverlässig ausgewählt werden. Bitte erneut fragen.', [], 'working_selection_failed'
     if answer.get('status') == 'unknown' and not fallback:
-        coverage = _semantic_coverage_message(answer.get('semantic_search_status'))
+        coverage = ' '.join(_search_notices(answer))
         if coverage:
             return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
         return 'Dazu liegt in den bisher eingeordneten Quellen keine Information vor.', [], 'working_unknown'
@@ -1110,7 +1142,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
     if satz is not None and satz.status == 'nichts':
-        coverage = _semantic_coverage_message(answer.get('semantic_search_status'))
+        coverage = ' '.join(_search_notices(answer))
         if coverage:
             return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
         return satzantwort.nichts_text(answer, episodes), [], 'working_unknown'
@@ -1151,16 +1183,8 @@ def render(answer, episodes, claims, *, conflict_status=None):
             return UNAVAILABLE, [], 'working_unavailable'
         lines.extend(['', 'Bestätigter Eintrag zum Suchbegriff:', captured[0].statement])
         links.append({'episode_id': captured[2]['primary_episode_id'], 'label': 'Beleg zum bestätigten Eintrag öffnen'})
-    semantic_status = answer.get('semantic_search_status')
-    coverage = _semantic_coverage_message(semantic_status)
-    if coverage:
-        lines.extend(['', coverage])
-    elif answer.get('limited') and isinstance(answer.get('meaning_scope'), dict):
-        lines.extend(['', 'Gezeigt sind die neuesten passenden Quellen; es gibt dazu mehr. '
-                      'Mit Person oder Zeitraum in der Frage wird die Auswahl genauer.'])
-    elif answer.get('limited'):
-        lines.extend(['', 'Die Auswahl ist begrenzt: ' + _limit_count(answer) +
-                      'Mit Person, Projekt oder Zeitraum in der Frage wird sie genauer.'])
+    for notice in _search_notices(answer):
+        lines.extend(['', notice])
     also = _also_found(answer.get('also_found'), episodes)
     if also:
         lines.extend(['', 'Auch gefunden: ' + ' · '.join(also)])
@@ -1178,7 +1202,7 @@ def satz_struktur(answer, episodes, claims):
     satz = satzantwort.wiederherstellen(answer['satzantwort'], episodes, claims)
     if satz is None or satz.status != 'saetze':
         return None
-    return satzantwort.struktur(satz, episodes, claims)
+    return {**satzantwort.struktur(satz, episodes, claims), 'hinweise': _search_notices(answer)}
 
 
 def original_question(answer):

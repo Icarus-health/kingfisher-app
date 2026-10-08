@@ -23,6 +23,8 @@ und ``WorkingMemoryStore.resolve`` (Beleg, Aktualität) für jeden Abschnitt.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import sqlite3
 from dataclasses import dataclass, field
 
@@ -74,6 +76,17 @@ def _nach_quelle(refs) -> dict:
     return ergebnis
 
 
+def _index_signatur(connection, gefunden):
+    """Begrenzter Suchbestand mit Quellenversionen, ohne Originaltexte zu lesen."""
+    ids = gefunden.episoden
+    rows = connection.execute(
+        'SELECT e.id,e.metadata_digest,e.support_generation,e.state,s.fingerprint,s.status,s.analysis_version '
+        'FROM episodes e LEFT JOIN working_memory_sources s ON s.episode_id=e.id '
+        'WHERE e.id IN (' + ','.join('?' for _ in ids) + ') ORDER BY e.id', ids).fetchall() if ids else []
+    payload = [gefunden.gesamt, gefunden.begrenzt, [list(row) for row in rows]]
+    return hashlib.sha256(json.dumps(payload, separators=(',', ':')).encode()).hexdigest()
+
+
 def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=()) -> Kandidaten:
     """Abschnitte zur Frage aus Wortsuche und Volltextindex, höchstens ``limit``.
 
@@ -103,6 +116,7 @@ def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=())
     try:
         with store.episodes._lock:
             gefunden = source_index.suchen(store.episodes._conn, frage, limit=POOL, episode_ids=episode_ids)
+            zaehlung['index_signatur'] = _index_signatur(store.episodes._conn, gefunden)
     except sqlite3.Error:
         gefunden = None
         zaehlung["index"] = "nicht verfügbar"
@@ -128,7 +142,8 @@ def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=())
         if not abschnitte:
             ref = store.best_reference(episode_id, suchwoerter)
             if ref is None:
-                zaehlung["ohne_einordnung"] += 1
+                if store.source_state(episode_id) not in {'dismissed', 'excluded'}:
+                    zaehlung["ohne_einordnung"] += 1
                 continue
             abschnitte = [ref]
         if len(abschnitte) > limit - len(refs):
@@ -137,5 +152,6 @@ def zusammenfuehren(store, frage: str, *, limit: int, episode_ids=None, oben=())
         refs.extend(abschnitte)
         quellen += 1
     zaehlung["quellen_geliefert"] = quellen
-    begrenzt = uebrig or zaehlung["wortsuche_begrenzt"] or zaehlung["index_begrenzt"]
+    begrenzt = bool(uebrig or zaehlung["wortsuche_begrenzt"] or zaehlung["index_begrenzt"]
+                    or zaehlung['ohne_einordnung'])
     return Kandidaten(refs, begrenzt, zaehlung)

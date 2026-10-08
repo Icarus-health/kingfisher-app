@@ -127,6 +127,56 @@ def test_ein_satz_mit_wandel_und_beiden_belegen_besteht_und_die_akte_wird_ausgew
     assert struktur['saetze'][0]['belege'] == [1, 2] and struktur['verworfen'] == 0
 
 
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable', 'unclassified'])
+def test_sentence_projection_preserves_search_coverage_notices(raum, coverage):
+    from types import SimpleNamespace
+
+    episodes, claims, _ = raum
+    wandel(episodes)
+    if coverage == 'unclassified':
+        quelle(episodes, 'Noch offen', 'Die Einreichfrist wird erneut geprüft.', [STIFTUNG], tage=1)
+        search = None
+        expected = 'fehlt ein nutzbarer Belegabschnitt'
+    else:
+        search = SimpleNamespace(search_with_status=lambda *args: SimpleNamespace(refs=(), status=coverage))
+        expected = 'semantische Suchbestand war begrenzt' if coverage == 'partial' else 'Bedeutungssuche war nicht verfügbar'
+    answer = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=search)
+    text, _, status = wma.render(answer, episodes, claims)
+    assert status == 'working_reports'
+    assert expected in text
+    projected = wma.project_message({'role': 'assistant', 'content': '', 'metadata': {
+        'context': {'working_answer': answer}}}, episodes, claims)
+    structure = projected['metadata']['context']['satzantwort']
+    assert any(expected in notice for notice in structure['hinweise'])
+
+
+def test_pending_source_metadata_change_invalidates_already_limited_answer(raum):
+    from tests.test_working_memory_store import source
+
+    episodes, claims, _ = raum
+    wandel(episodes)
+    pending = source(episodes, 'Die Einreichfrist wird erneut geprüft.')
+    saved = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
+    assert saved['limited'] is True
+    assert wma.render(saved, episodes, claims)[2] == 'working_reports'
+    episodes.enrich_chat_source(pending.id, pending.provenance.source_ref, participants=['Andere Person'])
+    text, links, status = wma.render(saved, episodes, claims)
+    assert status == 'working_unavailable'
+    assert links == [] and '12. November' not in text
+
+
+def test_deliberately_dismissed_matching_source_is_not_reported_as_unprocessed(raum):
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    episodes, claims, _ = raum
+    wandel(episodes)
+    dismissed = quelle(episodes, 'Werbung', 'Die Einreichfrist wird beworben.', [STIFTUNG], tage=1)
+    assert WorkingMemoryStore(episodes).dismiss(dismissed.id)
+    answer = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
+    assert answer['limited'] is False
+    assert wma.satz_struktur(answer, episodes, claims)['hinweise'] == []
+
+
 def test_aus_der_akte_steht_der_aktuelle_stand_der_genannten_sache_mit_dem_wortlaut(raum):
     episodes, claims, _ = raum
     wandel(episodes)

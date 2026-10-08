@@ -56,6 +56,8 @@ export type SatzBeleg = { nummer: number; episode_id: string; titel: string; kop
 /** Eine belegte Antwort in Sätzen (E3): Sätze mit Belegnummern, die Belege im Wortlaut, „Aus der Akte“. */
 export type SatzAntwortDaten = {
   version: number;
+  /** Vom Programm geprüfte Hinweise zur Suchabdeckung, auch bei geschlossenen Belegen sichtbar. */
+  hinweise?: string[];
   /** `verlaesslichkeit` (gut, einfach, duenn) und `hinweis` (Nebensatz) kommen aus verlaesslichkeit.py. */
   saetze: Array<{ text: string; belege: number[]; vom_programm: boolean; verlaesslichkeit?: "gut" | "einfach" | "duenn"; hinweis?: string }>;
   belege: SatzBeleg[];
