@@ -54,7 +54,7 @@ from .backup import (
 from .update_backup import backup_before_update
 from . import (
     briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client, personen,
-    providers, suche, urteil,
+    providers, suche, urteil, working_memory_semantic_runtime,
 )
 from .agent_verdrahtung import (
     _projekt_mappe, _project_directory, _search_calendar, baue_hintergrund, verdrahte_speicher,
@@ -924,6 +924,7 @@ def _build_agent(app: FastAPI) -> Agent:
     verdrahte_zusaetze(app, agent)
     from .knowledge_search import configured_search
     app.state.agent = agent
+    working_memory_semantic_runtime.bind(app, agent)
     rollen = rollen_von(app)
     agent._knowledge_search = (configured_search(rollen.provider("einbettung"), rollen.einbettung_modell())
                                if "einbettung" in rollen.wahlen else configured_search(rollen.provider("einbettung")))
@@ -1096,6 +1097,17 @@ def _wire_scheduler(app: FastAPI) -> None:
             permitted=lambda: (app.state.agent is agent
                 and asdict(app.state.settings.schedule) == plan_at_start
                 and (not prompt or scheduler.prompt_allowed())))
+        semantic = working_memory_semantic_runtime.search(app)
+        if semantic is not None and plan_at_start['enabled'] and plan_at_start['with_model']:
+            # Always take one global batch: a stream of newly uploaded IDs
+            # must not starve older already-classified sources.
+            indexed = semantic.index_batch(permitted=lambda: (
+                app.state.local_model_automation_generation == generation
+                and app.state.agent is agent
+                and getattr(app.state, 'semantic_search', None) is semantic
+                and asdict(app.state.settings.schedule) == plan_at_start
+                and (not prompt or scheduler.prompt_allowed())))
+            return JobResult(result.name, result.ok and indexed.ok, result.detail + ' ' + indexed.detail)
         return result
 
     def run_lage(with_model):
@@ -1202,7 +1214,7 @@ def _close_persistent_state(app: FastAPI) -> None:
         cloud_jobs.pause(revoke=True)
         app.state.cloud_memory_jobs = None
     for name in (
-        "backend", "audit", "tasks", "workspace", "episodes", "proposals",
+        "semantic_search", "backend", "audit", "tasks", "workspace", "episodes", "proposals",
         "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde",
     ):
         close = getattr(getattr(app.state, name, None), "close", None)
@@ -1281,6 +1293,8 @@ def _reopen_persistent_state(app: FastAPI) -> None:
         verdrahte_speicher(app, agent)
         verdrahte_zusaetze(app, agent)
         agent.reset()
+        if getattr(app.state, "semantic_search", None) is not None:
+            working_memory_semantic_runtime.bind(app, agent)
         baue_hintergrund(app)
 
 
@@ -1394,6 +1408,8 @@ def create_app(
         app.state.agent = agent
         baue_hintergrund(app)
         app.state.settings = getattr(app.state, "settings", config.Settings())
+        if working_memory_semantic_runtime.enabled():
+            working_memory_semantic_runtime.bind(app, agent)
 
     expected = os.environ.get(TOKEN_ENV)
 
@@ -4046,7 +4062,7 @@ def create_app(
         # Der bestehende Agent verwaltet genau einen Verlauf. Dieser Lock lädt
         # für jeden Aufruf den zugehörigen SQLite-Verlauf und verhindert, dass
         # zwei Gespräche ihre Kontexte im Threadpool vermischen.
-        with app.state.conversation_lock:
+        with app.state.conversation_lock, working_memory_semantic_runtime.request(app):
             history = _current_conversation_history(conversation_id)
             previous = app.state.conversations.messages(conversation_id)
             previous_lineages = _conversation_lineages(previous)
@@ -4117,11 +4133,14 @@ def create_app(
                     # Umschriebene Fragen haben keine gemeinsamen Wörter mit der Quelle.
                     from .working_memory_answers import is_question
                     from . import working_memory_semantic
-                    _rollen = rollen_von(app)
-                    meaning = (working_memory_semantic.for_provider(
-                        _rollen.provider('einbettung'), _rollen.einbettung_modell())
-                        if 'einbettung' in _rollen.wahlen
-                        else working_memory_semantic.for_provider(_rollen.provider('einbettung')))
+                    if hasattr(app.state, 'semantic_search'):
+                        meaning = working_memory_semantic_runtime.search(app)
+                    else:  # explicit standalone diagnostic compatibility
+                        _rollen = rollen_von(app)
+                        meaning = (working_memory_semantic.for_provider(
+                            _rollen.provider('einbettung'), _rollen.einbettung_modell())
+                            if 'einbettung' in _rollen.wahlen
+                            else working_memory_semantic.for_provider(_rollen.provider('einbettung')))
                     working_available = bool(meaning is not None and is_question(body.message)
                                              and meaning.search(app.state.episodes, body.message, 1))
                 decision = route(body.message, previous_context, new_question=body.new_question,

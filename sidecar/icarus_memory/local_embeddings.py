@@ -8,7 +8,7 @@ class LocalEmbedder:
     model = 'bge-m3:latest'
 
     def __init__(self, *, transport=None, base_url="http://127.0.0.1:11434", trusted_local_hosts=(), timeout=30,
-                 model=None):
+                 model=None, keep_alive=None, verify_weights=False):
         if not is_local_endpoint(base_url, trusted_local_hosts):
             raise ValueError("Embedding endpoint must be explicitly local")
         if model:
@@ -17,6 +17,11 @@ class LocalEmbedder:
         self.client = httpx.Client(base_url=base_url.rstrip("/"), trust_env=False,
                                    follow_redirects=False, timeout=timeout, transport=transport)
         self.model_key = ''
+        self.keep_alive = keep_alive
+        self.verify_weights = verify_weights
+        self._base_url = base_url
+        self._trusted_local_hosts = tuple(trusted_local_hosts)
+        self.permission_check = lambda: None
 
     def __enter__(self):
         try:
@@ -30,6 +35,13 @@ class LocalEmbedder:
         self.client.close()
 
     def identity(self):
+        if self.verify_weights:
+            from .local_model_guard import verify_local_model
+            from .providers import OpenAICompatible
+            provider = OpenAICompatible(self.model, base_url=self._base_url,
+                                        trusted_local_hosts=self._trusted_local_hosts)
+            identity = verify_local_model(provider, capability='embedding', client=self.client)
+            return identity.name + ':' + identity.digest
         response = self.client.get('/api/tags')
         response.raise_for_status()
         for row in response.json()['models']:
@@ -48,12 +60,16 @@ class LocalEmbedder:
         try:
             if self.identity() != self.model_key:
                 raise RuntimeError('Installed embedding weights changed')
-            response = self.client.post('/api/embed', json={'model': self.model, 'input': texts, 'truncate': False})
+            self.permission_check()
+            payload = {'model': self.model, 'input': texts, 'truncate': False}
+            if self.keep_alive is not None:
+                payload['keep_alive'] = self.keep_alive
+            response = self.client.post('/api/embed', json=payload)
             response.raise_for_status()
             data = response.json()
             if data.get('model') != self.model or self.identity() != self.model_key:
                 raise RuntimeError('Embedding model identity mismatch')
+            self.permission_check()
             return data['embeddings']
         except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
             raise RuntimeError('Local embedding failed') from exc
-

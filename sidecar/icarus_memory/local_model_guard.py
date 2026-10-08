@@ -6,6 +6,7 @@ until installed local weights have been verified. It trusts the local Ollama
 service, not arbitrary endpoints claiming `is_local`.
 """
 from copy import copy
+from contextlib import nullcontext
 from dataclasses import dataclass
 import json
 import re
@@ -57,10 +58,14 @@ def _local_row(tags, name):
     return LocalModelIdentity(name, digest)
 
 
-def verify_local_model(provider, *, capability='completion') -> LocalModelIdentity:
-    """Verify an exact installed text model; unsupported/unavailable fails closed."""
+def verify_local_model(provider, *, capability='completion', client=None) -> LocalModelIdentity:
+    """Verify exact installed weights/capability; unsupported fails closed.
+
+    An embedding adapter can supply its own bounded, local-only client so the
+    same metadata gate also applies immediately before its source submission.
+    """
     try:
-        if capability not in {'completion', 'decision'} or type(provider) is not OpenAICompatible or not provider.is_local:
+        if capability not in {'completion', 'decision', 'embedding'} or type(provider) is not OpenAICompatible or not provider.is_local:
             raise ValueError('Unsupported provider')
         base = urlsplit(provider.base_url)
         if (base.scheme not in {'http', 'https'} or base.username or base.password
@@ -73,7 +78,8 @@ def verify_local_model(provider, *, capability='completion') -> LocalModelIdenti
         # Namespace and optional registry port are not the model tag.
         name = model if ':' in model.rsplit('/', 1)[-1] else model + ':latest'
         origin = urlunsplit((base.scheme, base.netloc, '', '', ''))
-        with httpx.Client(timeout=5.0, trust_env=False, follow_redirects=False) as client:
+        with (nullcontext(client) if client is not None else
+              httpx.Client(timeout=5.0, trust_env=False, follow_redirects=False)) as client:
             first = _local_row(_json(client, 'GET', origin + '/api/tags'), name)
             show = _json(client, 'POST', origin + '/api/show', json={'model': name})
             details, info = show.get('details'), show.get('model_info')

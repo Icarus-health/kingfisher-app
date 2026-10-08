@@ -925,6 +925,13 @@ export type RecoveryJob = {id: string; status: "queued" | "running" | "completed
 export type RecoveryStatus = {online: boolean; job: RecoveryJob | null};
 
 export type MemoryCoverage = {
+  semantic_index?: {
+    status: "disabled" | "unavailable" | "partial" | "indexed";
+    model_key: string | null; model_name?: string | null;
+    identity_checked_at: number | null;
+    total: number | null; indexed: number | null; pending: number | null; failed: number | null;
+    updated_at: number | null; source_pending: number | null; pause_reason?: string | null;
+  };
   source_dates?: {earliest: string | null; latest: string | null; undated: number};
   working_memory?: {complete: number; pending: number; failed: number; deferred: number; dismissed: number; truncated: boolean};
   working_memory_enabled?: boolean;
@@ -937,7 +944,7 @@ export type MemoryCoverage = {
 };
 export type PostfachErreichbar = {account_id: string; label: string; erreichbar: boolean;
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
-export type MemoryAutomation = {state: "active" | "legacy_active" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null};
+export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null};
 export type MemoryTimeline = {
   basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;

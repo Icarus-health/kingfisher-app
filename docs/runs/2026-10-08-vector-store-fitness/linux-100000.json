@@ -1,0 +1,73 @@
+{
+  "synthetic_only": true,
+  "version": "0.1.9",
+  "sqlite_version": "3.46.1",
+  "platform": "linux",
+  "vectors": 100000,
+  "dimension": 1024,
+  "k": 12,
+  "reference_checks": [
+    {
+      "query_seed": 3,
+      "max_distance_error": 1.235648824371438e-07,
+      "exact_top_k": true
+    },
+    {
+      "query_seed": 173,
+      "max_distance_error": 1.0414038009720628e-07,
+      "exact_top_k": true
+    },
+    {
+      "query_seed": 100001,
+      "max_distance_error": 1.660878801157395e-07,
+      "exact_top_k": true
+    },
+    {
+      "query_seed": 100003,
+      "max_distance_error": 1.454559964697566e-07,
+      "exact_top_k": true
+    }
+  ],
+  "insert_seconds": 52.916400290996535,
+  "queries": [
+    {
+      "query_seed": 0,
+      "seconds": 0.2861396429943852,
+      "self_match_first": true
+    },
+    {
+      "query_seed": 173,
+      "seconds": 0.17964127601590008,
+      "self_match_first": true
+    },
+    {
+      "query_seed": 99999,
+      "seconds": 0.17080630600685254,
+      "self_match_first": true
+    },
+    {
+      "query_seed": 50000,
+      "seconds": 0.1684325409878511,
+      "self_match_first": true
+    },
+    {
+      "query_seed": 173,
+      "seconds": 0.1722592730075121,
+      "self_match_first": true
+    },
+    {
+      "query_seed": 99999,
+      "seconds": 0.17243248299928382,
+      "self_match_first": true
+    }
+  ],
+  "max_query_seconds": 0.2861396429943852,
+  "peak_rss_bytes": 34820096,
+  "database_bytes": 426405888,
+  "durable_reopen": true,
+  "model_partition_isolation": true,
+  "durable_delete": true,
+  "quick_check": true,
+  "extension_loading_disabled": true,
+  "os_cache_evicted": false
+}
