@@ -1,0 +1,131 @@
+{
+  "parent_ignored": {
+    "parent_state": "ignored",
+    "child_state": "new",
+    "child_current": true,
+    "claim_status": "active",
+    "claim_still_available_for_context": true,
+    "child_body_still_contains_marker": true
+  },
+  "parent_replaced_attachment_removed": {
+    "parent_state": "ignored",
+    "child_state": "new",
+    "child_current": true,
+    "claim_status": "active",
+    "claim_still_available_for_context": true,
+    "child_body_still_contains_marker": true
+  },
+  "mixed_text_scan_pdf": {
+    "status": "gelesen",
+    "reported_read": true,
+    "empty_pages_internal": [
+      2
+    ],
+    "public_metadata": {
+      "dateiname": "Vertrag.pdf",
+      "art": "pdf",
+      "status": "gelesen",
+      "seiten": 2,
+      "gesamt": 2,
+      "hinweis": ""
+    },
+    "body": "Anhang „Vertrag.pdf“ der Mail „Synthetic mixed PDF“ vom 08.10.2026.\n\nSeite 1\nReadable cover page",
+    "persisted": {
+      "tags": [
+        "anhang",
+        "anhang:gelesen"
+      ],
+      "current": true,
+      "body_length": 103,
+      "has_capture_truncation_tag": false
+    }
+  },
+  "attachment_count_limit": {
+    "input_attachments": 6,
+    "output_attachments": 5,
+    "metadata": [
+      {
+        "dateiname": "Rechnung-0.pdf",
+        "art": "pdf",
+        "status": "gelesen",
+        "seiten": 1,
+        "gesamt": 1,
+        "hinweis": ""
+      },
+      {
+        "dateiname": "Rechnung-1.pdf",
+        "art": "pdf",
+        "status": "gelesen",
+        "seiten": 1,
+        "gesamt": 1,
+        "hinweis": ""
+      },
+      {
+        "dateiname": "Rechnung-2.pdf",
+        "art": "pdf",
+        "status": "gelesen",
+        "seiten": 1,
+        "gesamt": 1,
+        "hinweis": ""
+      },
+      {
+        "dateiname": "Rechnung-3.pdf",
+        "art": "pdf",
+        "status": "gelesen",
+        "seiten": 1,
+        "gesamt": 1,
+        "hinweis": ""
+      },
+      {
+        "dateiname": "Rechnung-4.pdf",
+        "art": "pdf",
+        "status": "gelesen",
+        "seiten": 1,
+        "gesamt": 1,
+        "hinweis": ""
+      }
+    ]
+  },
+  "character_limit": {
+    "input_text_length": 60021,
+    "status": "gelesen",
+    "public_metadata": {
+      "dateiname": "Vertrag-lang.pdf",
+      "art": "pdf",
+      "status": "gelesen",
+      "seiten": 1,
+      "gesamt": 1,
+      "hinweis": ""
+    },
+    "retained_start_marker": false,
+    "rendered_body": "Anhang „Vertrag-lang.pdf“ der Mail „Synthetic long paragraph“ vom 08.10.2026.\n\nSeite 1\n\n(Gekürzt: Der Anhang ist länger, als Kingfisher je Anhang liest.)",
+    "persisted": {
+      "tags": [
+        "anhang",
+        "anhang:gelesen"
+      ],
+      "current": true,
+      "body_length": 155,
+      "has_capture_truncation_tag": false
+    }
+  },
+  "page_limit": {
+    "public_metadata": {
+      "dateiname": "Vertrag-viele-Seiten.pdf",
+      "art": "pdf",
+      "status": "gelesen",
+      "seiten": 30,
+      "gesamt": 31,
+      "hinweis": "Gelesen sind die ersten 30 von 31 Seiten."
+    },
+    "persisted": {
+      "tags": [
+        "anhang",
+        "anhang:gelesen"
+      ],
+      "current": true,
+      "body_length": 951,
+      "has_capture_truncation_tag": false
+    }
+  }
+}

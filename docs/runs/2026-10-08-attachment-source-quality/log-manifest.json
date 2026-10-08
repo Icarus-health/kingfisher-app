@@ -1,0 +1,34 @@
+{
+  "attachment-depth-green-20261008.log.gz": {
+    "uncompressed_sha256": "3b04b00e065e298ead539eee033daceb213e984a6d624b4bcff99bbc9fc361d1",
+    "uncompressed_bytes": 749
+  },
+  "ui-build.log.gz": {
+    "uncompressed_sha256": "8ede947c715ad53d1e8b97282a712acdb60d2c25903c954e4a40ef69c818ea8c",
+    "uncompressed_bytes": 774
+  },
+  "focused-tests.log.gz": {
+    "uncompressed_sha256": "f5b20050b53c4425806194b4e2b892401fd37073292720d6e14e20d80460f2e1",
+    "uncompressed_bytes": 110
+  },
+  "attachment-depth-red-20261008.log.gz": {
+    "uncompressed_sha256": "728bf121d419074b0a189c004510b873796e58650b1c679d2b54ee1ed30ad5c3",
+    "uncompressed_bytes": 6404
+  },
+  "ui-tests.log.gz": {
+    "uncompressed_sha256": "840e8cddebabd8af5dccf39c19b3c1ae9d5e361fab94fe30d147b1372175bc8c",
+    "uncompressed_bytes": 82880
+  },
+  "world-fake-contract-green.log.gz": {
+    "uncompressed_sha256": "8c22e482651531bb6a327cf9271789ac3b895f2e9947bce9bf8d539977ecebc3",
+    "uncompressed_bytes": 110
+  },
+  "backend-tests.log.gz": {
+    "uncompressed_sha256": "6093cc4bf88aeede4e7bc9180738a98d90a24853d39d35242ab854c900a8451d",
+    "uncompressed_bytes": 6136
+  },
+  "world-fake-contract-red.log.gz": {
+    "uncompressed_sha256": "4f9182fb4514321ae3fd51f037ea9aa674b2595a1c8e2ce351c7500e823294e3",
+    "uncompressed_bytes": 15360
+  }
+}

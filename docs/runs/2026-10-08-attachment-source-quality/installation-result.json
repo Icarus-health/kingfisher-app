@@ -1,0 +1,33 @@
+{
+  "version": "1.0.6-local.3483436",
+  "code_commit": "3483436",
+  "new_image_id": "sha256:98a89d5f680584d77d7ebac3b9ff18daf6194b10c737520a19dc2e69e1f4e0f8",
+  "old_image_id": "sha256:23a2e9d818a3fdeab0f2c6071fb20ebad36c0cc0a1144c2188d6df165adeebc4",
+  "backup": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-08-vor-3483436-wiederholung",
+  "root_sqlite_before": 17,
+  "root_sqlite_after": 17,
+  "episode_ids_and_digests_preserved": 344,
+  "native_binary_unchanged": true,
+  "settings_groups_preserved": [
+    "mail",
+    "mail_accounts",
+    "calendar",
+    "calendar_sources",
+    "cloud_models",
+    "provider",
+    "model",
+    "endpoint",
+    "model_roles",
+    "schedule"
+  ],
+  "same_data_volume": true,
+  "operational": true,
+  "semantic_search_activated": true,
+  "semantic_status": "unavailable",
+  "native_ui_verified": false,
+  "background_pause_preserved": true,
+  "mail_global_pause_visible": true,
+  "mail_account_states": [
+    "pausiert"
+  ]
+}
