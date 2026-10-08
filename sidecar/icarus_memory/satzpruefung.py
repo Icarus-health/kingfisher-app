@@ -911,11 +911,11 @@ def _exakte_nach_vor_regel(satz: str, klausel: str, beleg: Beleg) -> bool:
     """
     # A sentence inside a multi-sentence quotation may contain neither quote
     # delimiter itself. This narrow exception does not parse reported speech.
-    if re.search(r'[„“»«\"\u2018\u2019]', beleg.text):
+    if re.search(r'''[„“»«"'`‘’‚‛‟”‹›]''', beleg.text):
         return False
-    teile = re.split(r'([!?]|(?<!\d)\.(?!\d))', beleg.text)
+    teile = re.split(r'([!?]+|(?<!\d)\.(?!\d)[.!?]*)', beleg.text)
     original = [_regeltext(teile[i]) for i in range(0, len(teile), 2)
-                if teile[i].strip() and (i + 1 == len(teile) or teile[i + 1] != '?')]
+                if teile[i].strip() and (i + 1 == len(teile) or '?' not in teile[i + 1])]
     positiv = _regeltext(satz)
     if positiv not in original:
         return False
