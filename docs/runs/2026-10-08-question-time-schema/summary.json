@@ -1,0 +1,1818 @@
+{
+  "original-before": [
+    {
+      "q": "Wann beginnt das Wartungsfenster für den Server?",
+      "type": "direct",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S1"
+      ],
+      "selection_pass": true,
+      "seconds": 7.96,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expect": [
+        "S1"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 2.445,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+      "type": "direct",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S2"
+      ],
+      "selection_pass": true,
+      "seconds": 3.33,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 4.016,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wo liegt die Zugangskarte?",
+      "type": "direct",
+      "expect": [
+        "S3"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S3"
+      ],
+      "selection_pass": true,
+      "seconds": 3.326,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wo finde ich den Ausweis zum Reinkommen?",
+      "type": "paraphrase",
+      "expect": [
+        "S3"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 2.563,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer betreut die Lieferantenverträge?",
+      "type": "direct",
+      "expect": [
+        "S4"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S4"
+      ],
+      "selection_pass": true,
+      "seconds": 3.142,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+      "type": "paraphrase",
+      "expect": [
+        "S4"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 3.085,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann endet die Anmeldung zum Workshop?",
+      "type": "direct",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S5"
+      ],
+      "selection_pass": true,
+      "seconds": 3.109,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Bis wann kann ich mich fürs Seminar registrieren?",
+      "type": "paraphrase",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S5"
+      ],
+      "selection_pass": true,
+      "seconds": 3.017,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann muss das Auto zur Hauptuntersuchung?",
+      "type": "direct",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S6"
+      ],
+      "selection_pass": true,
+      "seconds": 3.57,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist beim Wagen der TÜV fällig?",
+      "type": "paraphrase",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S6"
+      ],
+      "selection_pass": true,
+      "seconds": 3.969,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist die Veranstaltung in Dresden?",
+      "type": "direct",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_unclear",
+      "shown_sources": [
+        "S7"
+      ],
+      "selection_pass": false,
+      "seconds": 3.807,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Auf welchen Tag wurde das Treffen in Sachsen verlegt?",
+      "type": "paraphrase",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S7"
+      ],
+      "selection_pass": true,
+      "seconds": 3.748,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was erlaubt die Lizenz für das Foto?",
+      "type": "direct",
+      "expect": [
+        "S8"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S8"
+      ],
+      "selection_pass": true,
+      "seconds": 3.853,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Dürfen wir die Grafik öffentlich nutzen?",
+      "type": "paraphrase",
+      "expect": [
+        "S8"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 2.979,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist der Quartalsbericht freigegeben?",
+      "type": "direct",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S9"
+      ],
+      "selection_pass": true,
+      "seconds": 3.253,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Darf der Report schon raus?",
+      "type": "paraphrase",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 3.404,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Warum verzögert sich die Lieferung?",
+      "type": "direct",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S10"
+      ],
+      "selection_pass": true,
+      "seconds": 3.7,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Weshalb kommt die Ware später an?",
+      "type": "paraphrase",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S10"
+      ],
+      "selection_pass": true,
+      "seconds": 3.79,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann kann man mich wegen des Keramiktests anrufen?",
+      "type": "direct",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S11"
+      ],
+      "selection_pass": true,
+      "seconds": 3.629,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S11"
+      ],
+      "selection_pass": true,
+      "seconds": 3.268,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist der Umzug des Büros?",
+      "type": "direct",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S12"
+      ],
+      "selection_pass": true,
+      "seconds": 3.856,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ziehen wir mit der Firma in die neuen Räume?",
+      "type": "paraphrase",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S12"
+      ],
+      "selection_pass": true,
+      "seconds": 3.26,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was verträgt Jonas nicht?",
+      "type": "direct",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.115,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.86,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+      "type": "direct",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S14"
+      ],
+      "selection_pass": true,
+      "seconds": 3.042,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Frist gilt für das Handy-Abo?",
+      "type": "paraphrase",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S14"
+      ],
+      "selection_pass": true,
+      "seconds": 3.913,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie viel Euro stehen für die Messe zur Verfügung?",
+      "type": "direct",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S15"
+      ],
+      "selection_pass": true,
+      "seconds": 3.483,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welches Geld haben wir für den Stand auf der Ausstellung?",
+      "type": "paraphrase",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S15"
+      ],
+      "selection_pass": true,
+      "seconds": 3.189,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+      "type": "direct",
+      "expect": [
+        "S16"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S16"
+      ],
+      "selection_pass": true,
+      "seconds": 4.342,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S16"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 2.412,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie lautet die PIN meiner Bankkarte?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.179,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Blutgruppe habe ich?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.084,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann hat meine Schwester Geburtstag?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.337,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welches Passwort hat das WLAN?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.661,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    }
+  ],
+  "original-after": [
+    {
+      "q": "Wann beginnt das Wartungsfenster für den Server?",
+      "type": "direct",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S1"
+      ],
+      "selection_pass": true,
+      "seconds": 6.939,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S1"
+      ],
+      "selection_pass": true,
+      "seconds": 4.098,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+      "type": "direct",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S2"
+      ],
+      "selection_pass": true,
+      "seconds": 3.296,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 4.245,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wo liegt die Zugangskarte?",
+      "type": "direct",
+      "expect": [
+        "S3"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S3"
+      ],
+      "selection_pass": true,
+      "seconds": 3.414,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wo finde ich den Ausweis zum Reinkommen?",
+      "type": "paraphrase",
+      "expect": [
+        "S3"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S3"
+      ],
+      "selection_pass": true,
+      "seconds": 3.779,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer betreut die Lieferantenverträge?",
+      "type": "direct",
+      "expect": [
+        "S4"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S4"
+      ],
+      "selection_pass": true,
+      "seconds": 3.305,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+      "type": "paraphrase",
+      "expect": [
+        "S4"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 3.466,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann endet die Anmeldung zum Workshop?",
+      "type": "direct",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S5"
+      ],
+      "selection_pass": true,
+      "seconds": 3.384,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Bis wann kann ich mich fürs Seminar registrieren?",
+      "type": "paraphrase",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S5"
+      ],
+      "selection_pass": true,
+      "seconds": 3.332,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann muss das Auto zur Hauptuntersuchung?",
+      "type": "direct",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S6"
+      ],
+      "selection_pass": true,
+      "seconds": 3.791,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist beim Wagen der TÜV fällig?",
+      "type": "paraphrase",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S6"
+      ],
+      "selection_pass": true,
+      "seconds": 4.224,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist die Veranstaltung in Dresden?",
+      "type": "direct",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_unclear",
+      "shown_sources": [
+        "S7"
+      ],
+      "selection_pass": false,
+      "seconds": 4.156,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Auf welchen Tag wurde das Treffen in Sachsen verlegt?",
+      "type": "paraphrase",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S7"
+      ],
+      "selection_pass": true,
+      "seconds": 4.008,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was erlaubt die Lizenz für das Foto?",
+      "type": "direct",
+      "expect": [
+        "S8"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S8"
+      ],
+      "selection_pass": true,
+      "seconds": 4.191,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Dürfen wir die Grafik öffentlich nutzen?",
+      "type": "paraphrase",
+      "expect": [
+        "S8"
+      ],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 4.749,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist der Quartalsbericht freigegeben?",
+      "type": "direct",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S9"
+      ],
+      "selection_pass": true,
+      "seconds": 3.33,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Darf der Report schon raus?",
+      "type": "paraphrase",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 3.867,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Warum verzögert sich die Lieferung?",
+      "type": "direct",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S10"
+      ],
+      "selection_pass": true,
+      "seconds": 4.07,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Weshalb kommt die Ware später an?",
+      "type": "paraphrase",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S10"
+      ],
+      "selection_pass": true,
+      "seconds": 4.31,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann kann man mich wegen des Keramiktests anrufen?",
+      "type": "direct",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S11"
+      ],
+      "selection_pass": true,
+      "seconds": 4.258,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S11"
+      ],
+      "selection_pass": true,
+      "seconds": 3.461,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ist der Umzug des Büros?",
+      "type": "direct",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S12"
+      ],
+      "selection_pass": true,
+      "seconds": 4.424,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann ziehen wir mit der Firma in die neuen Räume?",
+      "type": "paraphrase",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S12"
+      ],
+      "selection_pass": true,
+      "seconds": 3.494,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was verträgt Jonas nicht?",
+      "type": "direct",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.402,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S13"
+      ],
+      "selection_pass": true,
+      "seconds": 4.05,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+      "type": "direct",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S14"
+      ],
+      "selection_pass": true,
+      "seconds": 3.226,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Frist gilt für das Handy-Abo?",
+      "type": "paraphrase",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S14"
+      ],
+      "selection_pass": true,
+      "seconds": 3.999,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie viel Euro stehen für die Messe zur Verfügung?",
+      "type": "direct",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S15"
+      ],
+      "selection_pass": true,
+      "seconds": 3.502,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welches Geld haben wir für den Stand auf der Ausstellung?",
+      "type": "paraphrase",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S15"
+      ],
+      "selection_pass": true,
+      "seconds": 3.283,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+      "type": "direct",
+      "expect": [
+        "S16"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "S16"
+      ],
+      "selection_pass": true,
+      "seconds": 4.267,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S16"
+      ],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": false,
+      "seconds": 2.252,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie lautet die PIN meiner Bankkarte?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.069,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Blutgruppe habe ich?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.042,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann hat meine Schwester Geburtstag?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.32,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welches Passwort hat das WLAN?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 2.67,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    }
+  ],
+  "independent-before": [
+    {
+      "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "type": "direct",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS01"
+      ],
+      "selection_pass": true,
+      "seconds": 8.089,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_unclear",
+      "shown_sources": [
+        "RCS01"
+      ],
+      "selection_pass": false,
+      "seconds": 4.16,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer liefert die Befestigungssätze für KL-24?",
+      "type": "direct",
+      "expect": [
+        "RCS02"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS02"
+      ],
+      "selection_pass": true,
+      "seconds": 3.906,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer prüft die Ware im Auftrag KL-24?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 4.109,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03"
+      ],
+      "selection_pass": true,
+      "seconds": 5.336,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "type": "direct",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03"
+      ],
+      "selection_pass": true,
+      "seconds": 3.643,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 4.405,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03",
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 5.134,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "type": "direct",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 4.619,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 4.841,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS05",
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 5.454,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "type": "direct",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 4.688,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Findet der Rundgang im Depot Süd noch statt?",
+      "type": "direct",
+      "expect": [
+        "RCS07"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS07"
+      ],
+      "selection_pass": true,
+      "seconds": 3.91,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS08"
+      ],
+      "selection_pass": true,
+      "seconds": 4.083,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS08"
+      ],
+      "selection_pass": true,
+      "seconds": 4.594,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Diagnose hat Noa Jansen?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 4.122,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie lautet Nola Voss' private Anschrift?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.533,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Medikamente nimmt Emi Tanaka?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.418,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS11"
+      ],
+      "selection_pass": true,
+      "seconds": 4.522,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS11"
+      ],
+      "selection_pass": true,
+      "seconds": 3.663,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS12"
+      ],
+      "selection_pass": true,
+      "seconds": 4.377,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS13"
+      ],
+      "selection_pass": true,
+      "seconds": 4.011,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.44,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    }
+  ],
+  "independent-after": [
+    {
+      "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "type": "direct",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS01"
+      ],
+      "selection_pass": true,
+      "seconds": 7.567,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS01"
+      ],
+      "status": "working_unclear",
+      "shown_sources": [
+        "RCS01"
+      ],
+      "selection_pass": false,
+      "seconds": 5.192,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer liefert die Befestigungssätze für KL-24?",
+      "type": "direct",
+      "expect": [
+        "RCS02"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS02"
+      ],
+      "selection_pass": true,
+      "seconds": 4.105,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wer prüft die Ware im Auftrag KL-24?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.752,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03"
+      ],
+      "selection_pass": true,
+      "seconds": 4.572,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "type": "direct",
+      "expect": [
+        "RCS03"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03"
+      ],
+      "selection_pass": true,
+      "seconds": 3.648,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 3.878,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS03",
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 4.551,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "type": "direct",
+      "expect": [
+        "RCS04"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS04"
+      ],
+      "selection_pass": true,
+      "seconds": 4.296,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 5.159,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS05",
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 5.755,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "type": "direct",
+      "expect": [
+        "RCS06"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS06"
+      ],
+      "selection_pass": true,
+      "seconds": 5.184,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Findet der Rundgang im Depot Süd noch statt?",
+      "type": "direct",
+      "expect": [
+        "RCS07"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS07"
+      ],
+      "selection_pass": true,
+      "seconds": 4.023,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS08"
+      ],
+      "selection_pass": true,
+      "seconds": 3.887,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS08"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS08"
+      ],
+      "selection_pass": true,
+      "seconds": 4.351,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Diagnose hat Noa Jansen?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.262,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Wie lautet Nola Voss' private Anschrift?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.61,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Welche Medikamente nimmt Emi Tanaka?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "working_unknown",
+      "shown_sources": [],
+      "selection_pass": true,
+      "seconds": 3.254,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS11"
+      ],
+      "selection_pass": true,
+      "seconds": 4.665,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "type": "direct",
+      "expect": [
+        "RCS11"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS11"
+      ],
+      "selection_pass": true,
+      "seconds": 3.565,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "type": "paraphrase",
+      "expect": [
+        "RCS12"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS12"
+      ],
+      "selection_pass": true,
+      "seconds": 4.552,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.935,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    },
+    {
+      "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "type": "direct",
+      "expect": [
+        "RCS13"
+      ],
+      "status": "working_reports",
+      "shown_sources": [
+        "RCS13"
+      ],
+      "selection_pass": true,
+      "seconds": 3.324,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "search_degraded": false
+    }
+  ]
+}
