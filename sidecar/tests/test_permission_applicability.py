@@ -1,11 +1,15 @@
 """Applicability qualifiers belong to the permission clause they qualify."""
+import copy
 import json
 from datetime import datetime, timezone
 
-from icarus_memory import satzpruefung_modell
+from icarus_memory import satzantwort, satzpruefung_modell
 from icarus_memory.providers import Reply
 from icarus_memory.satzantwort import AntwortBeleg, formulieren
 from icarus_memory.satzpruefung import Beleg, Satz, satz_pruefen
+from tests.test_akten import mail as stored_mail
+from tests.test_bezuege import welt
+from tests.test_satzantwort import Skript, antwort as make_answer, raum
 
 
 R508_RULE = 'Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt.'
@@ -74,6 +78,37 @@ def test_scope_in_a_separate_answer_clause_cannot_qualify_a_permission():
     assert not _check(sentence, source).bestanden
 
 
+def test_permission_does_not_borrow_scope_from_following_inverted_clause():
+    source = R508_RULE + ' Vor der Reinigung werden die Lösungsmittel getrennt gelagert.'
+    sentence = ('Für Auftrag R-508 sind nur trockene Tücher erlaubt und '
+                'vor der Reinigung werden die Lösungsmittel getrennt gelagert.')
+    assert not _check(sentence, source).bestanden
+
+
+def test_separate_cited_sources_are_alternative_contexts_for_same_permission():
+    first = 'Vor der Reinigung ist ein trockenes Tuch erlaubt.'
+    second = 'Nach der Wartung ist ein trockenes Tuch erlaubt.'
+    assert _check(second, first, second).bestanden
+
+
+def test_reordered_qualified_permission_matches_noun_after_modal_verb():
+    source = 'Vor der Abnahme darf die Abdeckung nicht entfernt werden.'
+    answer = 'Die Abdeckung darf vor der Abnahme nicht entfernt werden.'
+    assert _check(answer, source).bestanden
+
+
+def test_forbidden_clause_does_not_support_positive_alternative_scope():
+    source = ('Vor der Reinigung ist ein trockenes Tuch erlaubt. '
+              'Nach der Reinigung ist ein trockenes Tuch verboten.')
+    assert not _check('Nach der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
+
+
+def test_positive_alternative_still_passes_alongside_a_forbidden_clause():
+    source = ('Vor der Reinigung ist ein trockenes Tuch erlaubt. '
+              'Nach der Reinigung ist ein trockenes Tuch verboten.')
+    assert _check('Vor der Reinigung ist ein trockenes Tuch erlaubt.', source).bestanden
+
+
 def test_other_case_condition_cannot_be_borrowed_for_the_requested_permission():
     other_case = 'Für Auftrag R-509 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.'
     borrowed_scope = 'Für Auftrag R-508 ist während der Wartung ausschließlich ein trockenes Tuch erlaubt.'
@@ -130,3 +165,25 @@ def test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission():
     assert [sentence.text for sentence in attempt.saetze] == [SOLVENT_BAN]
     assert [sentence.roh for sentence in attempt.verworfen] == [UNSCOPED_TOWELS]
     assert checker.checked == [SOLVENT_BAN]
+
+
+def test_saved_answer_rechecks_applicability_and_keeps_independent_ban(raum):
+    episodes, claims, _ = raum
+    stored_mail(episodes, 'Reinigung R-508', [(R508_SOURCE, 'fact')], tage=1)
+    saved = make_answer(
+        raum,
+        Skript({'status': 'antwort', 'saetze': [
+            {'text': R508_RULE, 'belege': [1]},
+            {'text': SOLVENT_BAN, 'belege': [1]},
+        ]}),
+        frage='Darf man R-508 mit Lösungsmittel reinigen?',
+    )['satzantwort']
+
+    restored = satzantwort.wiederherstellen(saved, episodes, claims)
+    assert restored is not None
+    assert [sentence.text for sentence in restored.saetze] == [R508_RULE, SOLVENT_BAN]
+
+    broadened = copy.deepcopy(saved)
+    broadened['saetze'][0]['roh'] = UNSCOPED_TOWELS
+    broadened['saetze'][0]['text'] = UNSCOPED_TOWELS
+    assert satzantwort.wiederherstellen(broadened, episodes, claims) is None
