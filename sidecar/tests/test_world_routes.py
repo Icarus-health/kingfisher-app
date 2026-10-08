@@ -16,6 +16,7 @@ class Store:
 class Episodes:
     def __init__(self): self.head = None; self.n = 0; self.items = {}
     def source_head(self, _key): return None
+    def _mail_attachment_descendants(self, _episode_id): return []
     def record(self, kind, title, body, provenance, **kwargs):
         self.n += 1
         episode = SimpleNamespace(id=f"e{self.n}", kind=kind, title=title, body=body,
