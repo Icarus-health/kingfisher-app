@@ -4,12 +4,13 @@ Stand: 8. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nach
 
 ## Aktueller Stand auf einen Blick (9. Oktober)
 
-- **Installiert und auf GitHub zusammengeführt:** Backend `1.0.6-local.c351090`, PR 23. Ausdrücklich erfragte alphanumerische Vorgänge begrenzen die Originalbelege auch im alten Verlauf. 344 Originale und 17 Datenbanken erhalten; vollständige Rückwegsicherung vorhanden.
-- **Nachgewiesen am kleinen künstlichen Bestand:** 23/23 richtige Quellen-/Statusentscheidungen; Quellenentzug nach Neustart wirksam. Eine Antwort lässt trotzdem „vor der Reinigung“ weg, deshalb nur 22/23 ohne zu weite Zusatzbehauptung. Das nächste begrenzte Update schützt diese Anwendungsbedingung.
-- **Weiterhin angehalten:** persönlicher Import und produktives Ollama. Keine neue Cloudfreigabe, keine neue Ausgabe. Verbundene Konten sind kein Nachweis vollständiger Aufnahme.
-- **Für den persönlichen Pilot noch erforderlich:** korrigierte Antwortbedingungen, unabhängige neue Kontrollfragen, Bestandsabgleich der gewünschten Mail-/Kalenderquellen und native Tages-/Akkuprüfung. Die native Fensterprüfung ist auch nach diesem Update wegen des gesperrten Macs offen.
+- **Auf dem Mac installiert:** Backend `1.0.6-local.3cf769f`. Vorgangsbindung und der neue begrenzte Schutz zeitlicher Erlaubnisbedingungen wirken auch im alten Verlauf. 344 Originale und 17 Datenbanken erhalten; Rückweg vollständig gesichert.
+- **GitHub:** PR 23 ist zusammengeführt; die folgende Satzprüfung ist unabhängig geprüft und wird mit ihren Nachweisen übernommen.
+- **Qualität bleibt offen:** Der bekannte RQ20-Fehler ist als Regression abgesichert. Acht neue unabhängige Fragen allein an Formulierung/Prüfung ergeben aber nur vier vollständige Antworten, zwei Zitat-Rückfälle und zwei unzureichende Antworten. Das ist weder eine allgemeine Gedächtnisabnahme noch ein Nachweis des vollständigen vorgeschalteten Akten-/Suchwegs.
+- **Weiterhin angehalten:** persönlicher Import und produktives Ollama. Keine neue Cloudfreigabe oder Ausgabe. Verbundene Konten beweisen keine vollständige Aufnahme.
+- **Nächster Kernschritt:** alte/neue Erlaubnis und quelleninterne Verneinung aus IA07/IA08 über den vollständigen Gedächtnisweg prüfen; danach gewünschte Quellenbestände und native Tages-/Akkuqualität abnehmen. Die Fensterprüfung bleibt wegen des gesperrten Macs offen.
 
-Die folgenden Liefernotizen dokumentieren die Entwicklung; ältere Versionsangaben sind historische Zwischenstände. Maßgeblich sind dieser aktuelle Stand und die zugehörigen Nachweise.
+Aktuelle Nachweise: [zeitliche Anwendbarkeit](runs/2026-10-09-permission-applicability/README.md). Die folgenden Liefernotizen dokumentieren die Entwicklung; ältere Versionsangaben sind historische Zwischenstände.
 
 ## Abnahmematrix
 

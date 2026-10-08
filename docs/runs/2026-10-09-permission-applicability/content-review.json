@@ -1,0 +1,99 @@
+{
+  "title": "Independent content review: temporal applicability holdouts",
+  "reviewer": "audit_answer_selection",
+  "scope": "All 8 frozen generated/verified cases reviewed sentence-by-sentence against catalog originals. Answer generation and verification only; no retrieval/intake qualification.",
+  "catalog_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "answers_sha256": "0364b1c6830a35c6b7df688e8ddac35ae020fda8bfd4d661ac487afc0aab0a34",
+  "runtime_sha256": "cbc6362c8827f9ce7cc1362586dd6c5655de9302d9697abcfe409713b7c4c62d",
+  "answers_embedded_catalog_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "code_digests": {
+    "icarus_memory.satzantwort": "1b40fd1ce144848efaf7fda9792413ef07c31027506311588634084df9cbbf3f",
+    "icarus_memory.satzpruefung": "bc4291b637894584c0cf09c83ac2b67ba9fe848b89636367c24ec35f1f473a17"
+  },
+  "runtime_completed": true,
+  "runtime_production_endpoint_touched": false,
+  "same_as_prior_run_in_status_and_sentence_texts": true,
+  "comparison_note": "Statuses and accepted/rejected sentence texts plus cited source indices match the previously reviewed 4481 run. IA03 rejection metadata differs: the final run omits the earlier temporal-applicability rejection reason, but remains zitate with no accepted sentence; the content verdict is unchanged.",
+  "counts": {
+    "cases": 8,
+    "complete_correct_answers": 4,
+    "safe_source_fallbacks_not_counted_as_answers": 2,
+    "incorrect_or_incomplete_answer_outcomes": 2
+  },
+  "case_reviews": [
+    {
+      "id": "IA01",
+      "verdict": "safe_source_fallback_only",
+      "accepted_sentence_count": 0,
+      "content_ok": false,
+      "visible_direct_answer": false,
+      "evidence": "Both generated sentences were rejected; status is zitate. The dry-only cleaning rule and solvent return rule are in the source, but no candidate answer passed. Source access may be useful, but this is not a successful prose answer.",
+      "issue": "fallback does not count as answering the question"
+    },
+    {
+      "id": "IA02",
+      "verdict": "sufficient_with_redundancy",
+      "accepted_sentence_count": 3,
+      "content_ok": true,
+      "visible_direct_answer": true,
+      "evidence": "The accepted first sentence correctly binds the dust-free prerequisite in S2 to the P-18 coating. The second correctly states that this applies to that coating; the third repeats the action from S1. All are source-supported, though redundant."
+    },
+    {
+      "id": "IA03",
+      "verdict": "safe_source_fallback_only",
+      "accepted_sentence_count": 0,
+      "content_ok": false,
+      "visible_direct_answer": false,
+      "evidence": "The generated paraphrase was rejected and status is zitate. It states the before-acceptance prohibition, but no passed answer is recorded; source access is not direct-answer success.",
+      "issue": "fallback does not count as answering the question"
+    },
+    {
+      "id": "IA04",
+      "verdict": "correct_complete",
+      "accepted_sentence_count": 1,
+      "content_ok": true,
+      "visible_direct_answer": true,
+      "evidence": "Accepted sentence preserves the exclusive limit: only while the flushing process is running."
+    },
+    {
+      "id": "IA05",
+      "verdict": "correct_complete",
+      "accepted_sentence_count": 1,
+      "content_ok": true,
+      "visible_direct_answer": true,
+      "evidence": "Accepted sentence attaches the after-inspection restriction to battery replacement and does not import the unrelated before-shipment modifier."
+    },
+    {
+      "id": "IA06",
+      "verdict": "correct_complete",
+      "accepted_sentence_count": 1,
+      "content_ok": true,
+      "visible_direct_answer": true,
+      "evidence": "Accepted sentence identifies room B and its during-work-hours ventilation permission; it does not transfer room A's restriction."
+    },
+    {
+      "id": "IA07",
+      "verdict": "contradictory_stale_claim_accepted",
+      "accepted_sentence_count": 3,
+      "content_ok": false,
+      "visible_direct_answer": false,
+      "evidence": "Two accepted sentences from the 5 March correction correctly say the earlier rule is insufficient and the device stays off until documented approval. The third accepted sentence cites the 3 March rule and says the device may start after calibration, which the newer correction explicitly supersedes. The accepted answer is internally contradictory and gives the wrong current rule.",
+      "issue": "freshness/supersession is not enforced across jointly accepted cited sentences"
+    },
+    {
+      "id": "IA08",
+      "verdict": "incomplete_answer_and_false_rejection",
+      "accepted_sentence_count": 1,
+      "content_ok": false,
+      "visible_direct_answer": false,
+      "evidence": "The accepted sentence is true but only states the ban up to acceptance; it does not answer whether reset is automatically allowed afterward. The rejected sentence accurately gives the post-acceptance written-order condition and would answer the question, but the rejection reason says the source denies it because it contains 'nicht'—that negation occurs in a different sentence of the same source.",
+      "issue": "answer completeness is not enforced; source-level negation appears to contaminate sentence-level polarity checking"
+    }
+  ],
+  "overall": "Not an 8/8 pass. Four answers are sufficient; IA01 and IA03 fall back to source access but do not directly answer; IA07 contains a stale contradicted claim; IA08 omits the controlling post-acceptance condition and rejects a relevant answer sentence with a sentence-scope polarity error.",
+  "limits": [
+    "Synthetic small holdout only.",
+    "The JSON records generated/verified sentences and status, not a captured end-user rendered screen; fallback safety is assessed as source-access status, not independently verified UI presentation.",
+    "No assessment of retrieval/intake qualification, automatic history marking, or broader model quality."
+  ]
+}

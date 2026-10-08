@@ -1,0 +1,19 @@
+{
+  "frozen_commit": "3cf769f35c4542206a4cc5cdc629e308348e283c",
+  "independent_reviewer": "audit_answer_validity",
+  "blocking_findings_remaining_in_supported_scope": 0,
+  "focused_review_tests": 6,
+  "saved_answer_counterprobes": 4,
+  "fixed_review_findings": [
+    "inverted coordinated clause lending scope",
+    "supported alternative in another cited source rejected",
+    "event noun consumed as adjective before modal/negation",
+    "forbidden interval lending scope to an allowance",
+    "opposite-polarity-only matching rules incorrectly treated as no constraint"
+  ],
+  "limitations": [
+    "Literal temporal event wording; paraphrases can fall back to originals",
+    "Two proposition anchors are a necessary heuristic, not semantic entailment",
+    "No general object identity, temporal-currentness, negation, or conflict parser"
+  ]
+}
