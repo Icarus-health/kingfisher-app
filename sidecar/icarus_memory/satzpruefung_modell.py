@@ -255,14 +255,20 @@ def satz_der_anfrage(nachrichten: Sequence[dict[str, Any]]) -> str | None:
 def _ein_urteil(adapter: Adapter, anbieter: Any, satz: str, belege: str, frist: float) -> Urteil:
     """Eine Frage mit Frist. Der Aufruf läuft in einem eigenen Faden; wer die Frist überschreitet, ist unklar.
 
-    Der Faden wird nicht abgebrochen (das kann Python nicht), sein Ergebnis aber nie mehr gelesen; er endet mit der
-    Zeitgrenze des Anbieters. Er hält den Prozess nicht auf (Daemon).
+    Der Faden wird nicht abgebrochen (das kann Python nicht), sein Ergebnis aber nie mehr gelesen.
+    Der lokale JSON-Transport erhält dieselbe Frist; andere Adapter behalten ihre eigene Zeitgrenze.
+    Er hält den Prozess nicht auf (Daemon).
     """
+    from .providers import json_request_deadline
+    if frist <= 0:
+        return Urteil(UNKLAR, 'zeit')
+    deadline = time.monotonic() + frist
     ergebnis: dict[str, Any] = {}
 
     def fragen() -> None:
         try:
-            ergebnis['antwort'] = adapter.fragen(anbieter, satz, belege)
+            with json_request_deadline(deadline):
+                ergebnis['antwort'] = adapter.fragen(anbieter, satz, belege)
         except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells ist ein unklares Urteil
             ergebnis['fehler'] = fehler
 

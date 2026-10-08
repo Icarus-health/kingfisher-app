@@ -1,0 +1,8 @@
+{
+  "indexing": "zero-based question indices, unlike Q-number labels in README",
+  "observation": {
+    "original[28]": "Displayed free sentence gives the 12,000 Euro total without the source caveat Reisekosten eingeschlossen. The total is true for the exact question, but the missing caveat matters if used to plan stand spending.",
+    "original[29]": "Displayed quote preserves Reisekosten eingeschlossen; the reviewer addition about this row is correct but not the omitted-caveat case originally requested."
+  },
+  "stage_claims": "Primary agent checked reduced-review stage claims against full raw trace before archiving. Question selection, retrieval and display are distinct."
+}
