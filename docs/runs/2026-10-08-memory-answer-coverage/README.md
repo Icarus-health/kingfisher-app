@@ -1,0 +1,21 @@
+# Suchlücken in aktuellen und gespeicherten Gedächtnisantworten
+
+Produktcode: `c30eab90de7c50e3ba6d9e262fe903f6bd5e2136`, auf `4f1f512`.
+
+Ohne Bedeutungssuche blieb eine gespeicherte Antwort aktuell, obwohl eine passende widersprechende Originalquelle neu erfasst, aber noch nicht eingeordnet war. Reproduktion über echten Agenten und die Verlaufsprojektion, ausschließlich künstliche Quellen. Auch eine bereits begrenzte Antwort muss neue passende Quellen bemerken. Neue fremde Quellen lassen eine normale indexierte Antwort lesbar.
+
+Die Kandidatensuche markiert passende Quellen ohne nutzbaren Belegabschnitt als unvollständig. Ein Fingerabdruck über höchstens 64 rohe Suchtreffer, Metadaten, Stützgeneration und Einordnungszustand sowie Trefferzahl/Begrenzung schützt gespeicherte Antworten. Absichtlich aus der Einordnung ausgeblendete normale Suchtreffer werden nicht als offene Einordnungslücke gezählt. Keine Originaltexte im Fingerabdruck oder in der Meldung.
+
+Unabhängiges Review fand zwei zusätzliche Fälle, jeweils zunächst rot nachgestellt: ausgefallene Volltextsuche und Originale außerhalb der Indexgrößengrenze. Beide werden als Suchlücke offengelegt. Weil ihre Relevanz nicht sicher abgrenzbar ist, verwendet nur dieser Rückfall zusätzlich den bestehenden corpusweiten Metadaten-Fingerabdruck; neue Quellen können dort auch fremde Antworten veralten lassen. Die globale Größenmeldung zählt erhaltene Originale einschließlich aus der Einordnung ausgeblendeter großer Quellen: eine konservative Indexabdeckungsanzeige, keine Behauptung ausstehender Modellarbeit. Keine Erweiterung der Indexgrößengrenze.
+
+Die Satzansicht ersetzte den Antworttext und verlor dabei Abdeckungshinweise. Backend und Satzansicht erhalten jetzt dieselben programmgenerierten Hinweise außerhalb der eingeklappten Belege; Modelltext bestimmt diese Hinweise nicht. Bestehende Satzantworten ohne das optionale Feld bleiben darstellbar.
+
+Nachweise: zuerst 5 Backendfehler + 1 erfolgreiche Negativkontrolle und 2 fehlgeschlagene reale Komponentenrenderings; anschließend 2 zusätzliche Reviewfälle vor Korrektur rot. Final 340 betroffene Backendprüfungen und 394 UI-Prüfungen bestanden; Produktionsbuild bestanden. Bekannte Starlette-Testwarnung und bestehende Bundlegrößenwarnung unverändert. Unabhängiges Review des eingefrorenen Codes und der Korrektur abgeschlossen.
+
+Das netzlose, auf 1 CPU/512 MiB begrenzte finale Paket prüft 263 Pythonquellen und 112 UI-Dateien bytegenau und führt Aufnahme, Belegauswahl, neue passende Quelle, gespeicherte Antwort, erneute Anfrage, Satzwarnung, fremde Aufnahme und Metadatenänderung mit künstlichem Modell aus. Das ist ein Integrationsnachweis, ausdrücklich kein Nachweis echter Modellqualität oder visueller Bedienung. Persönliche Daten wurden nicht verwendet.
+
+Lokal installiert: **1.0.6-local.c30eab9**, nach kalter Sicherung unter `Kingfisher-Rueckweg/2026-10-08-vor-c30eab9-geprueft`. 344 Original-IDs/Inhaltsdigests und 17 SQLite-Dateien erhalten/geprüft, gleicher Datenvolume, Konten/Kalender/Anbieter/Modellrollen/Zeitplan erhalten. Mail-/Hintergrundpause bleibt ausdrücklich gesetzt. Produktives Ollama bleibt aus; Bedeutungssuche meldet `unavailable`. Das bereits signierte native Programm aus a209ba8 bleibt bytegleich; App-Fensterversion und Backendversion sind deshalb getrennte Nachweise.
+
+Ein erster Installerlauf rollte wegen eines zu strengen Binärhashvergleichs nach Neusignierung vollständig auf 3483436 zurück. Wiederhergestellter Backendstand, Originalbinaryhash und strenge App-Signatur wurden geprüft. Der korrigierte Installer erhält die native App einschließlich Info.plist unverändert und aktualisiert nur das Backend samt Oberfläche; erneute Sicherung und Endprüfung bestanden. Der Gesamt-CoS bleibt unabgenommen: realer geschlossener Aufnahme-/Modell-/Antwortablauf, große persönliche Quellenabdeckung sowie native Tages-/Akku-/Bedienprüfung fehlen weiterhin. Kleines CPU-Ersatzmodell ist nach falscher Quellenauswahl nicht freigegeben. Kein neuer Modelllauf, Download, privater Cloudtransfer, GitHub-CI-Neustart oder Importstart.
+
+Installierter Dateiabgleich: 263 Pythonquellen, 112 UI-Dateien und mitgelieferte sqlite-vec-Lizenz stimmen mit dem geprüften Paket überein. Strenge native Signatur und reale native Update-Speicherprobe bestehen (`before=ok`, `after=ok`).

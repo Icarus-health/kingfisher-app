@@ -163,3 +163,8 @@ bestehender Mac-/Browsergrenzen offen. Rund973 MiB Docker-Freiplatz sind keine K
 umfangreichen persönlichen Import. Der geschlossene Aufnahme-/Einordnungs-/Index-/Fragenablauf,
 Quellenabdeckung, echte Antwortqualität und Tages-/Akkuabnahme bleiben die Kernabnahmen; der gesamte CoS
 ist weiterhin nicht fertig abgenommen.
+
+
+### Aktueller Lieferstand: Suchlücken in Gedächtnisantworten sichtbar halten
+
+Die [Abdeckungskorrektur](runs/2026-10-08-memory-answer-coverage/README.md) verhindert aktuelle alte Antworten trotz neu erfasster passender, noch nicht eingeordneter Originale auch ohne Bedeutungssuche. Bereits begrenzte Antworten prüfen Änderungen weiter. Suchindexausfälle und Größenlücken werden ausdrücklich offengelegt; die Satzansicht zeigt dieselben Hinweise außerhalb der eingeklappten Belege. 340 betroffene Backendprüfungen, 394 UI-Prüfungen, Produktionsbuild, unabhängiger Review und isolierter netzloser Paketnachweis bestehen. Lokal **1.0.6-local.c30eab9**, 344 Originale/17 SQLite-Dateien und Konten erhalten, Import pausiert, produktives Ollama aus. Native App unverändert signiert; Fensterprüfung weiterhin offen. Kein Nachweis verbesserter echter Modellqualität oder des vollständigen persönlichen Gedächtnisses.
