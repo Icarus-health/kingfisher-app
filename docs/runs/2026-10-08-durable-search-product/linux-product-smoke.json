@@ -1,0 +1,9 @@
+{
+  "synthetic_only": true,
+  "background_vectors": 1,
+  "query_embedding_inputs": 1,
+  "history_and_status_embedding_inputs": 0,
+  "withdrawal_passed": true,
+  "original_sqlite_extension_free": true,
+  "version": "1.0.6-local.44a9fb5"
+}

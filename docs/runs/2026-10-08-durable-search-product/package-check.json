@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-local.44a9fb5",
+  "revision": "44a9fb559bf48e449bf53d633a1a0666c748ea1c",
+  "wheel_sha256": "1df942ed88f5f56dec3ebdfcb41b4057d12cb93d251320531066228bb1150c8c",
+  "python_sources_checked": 259,
+  "license_included": true,
+  "dependency_pinned": true,
+  "native_wheel_sha256": "4e921e592f24a5f9a18f590b6ddd530eb637e2d474e3b1972f9bbeb773aa3cb9",
+  "ui_files_count": 112
+}
