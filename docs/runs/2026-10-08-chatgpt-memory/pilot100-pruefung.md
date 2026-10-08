@@ -1,5 +1,10 @@
 # Abschlussprüfung der echten 100-Quellen-Probe
 
+Historischer Bericht der ursprünglichen Probe und des ersten Nachtrags.
+Der aktuelle Stand mit vier Bereichen und sieben erfolgreichen Nachprüfungen
+steht in [bereiche-und-absender.md](bereiche-und-absender.md); die ursprüngliche
+100-Mail-Probe wird dadurch nicht nachträglich als bestanden gezählt.
+
 Geprüft am 08.10.2026 auf dem installierten Mac, Code `e882740`, Modell
 `gpt-6.1-sol`. Ausschließlich vorhandene Ergebnisse gelesen: keine zusätzlichen
 Modellanfragen, keine Änderungen am persönlichen Gedächtnis, kein großer Lauf.
@@ -141,7 +146,7 @@ Dabei wurde kein Modell befragt. Die ursprüngliche 48/100-Probe bleibt ein
 datierter Befund und wird durch diese Tests nicht nachträglich als bestanden
 bezeichnet.
 
-## Übersichtliche Bereiche
+## Damals empfohlene Bereichsansichten
 
 Empfohlene Bereichsansichten: Arbeit & Projekte, Privat & Familie, Gesundheit
 sowie Finanzen & Verträge. Menschen, Organisationen, Orte und Zeitverlauf bleiben
@@ -151,7 +156,7 @@ Kategorien werden in dieser Korrektur nicht stillschweigend umbenannt oder
 migriert. Neue Kategorien ändern keine Originale; eine rückwirkende Zuordnung
 braucht aber eine gezielte Neuauswertung der betroffenen Ableitungen.
 
-## Installation und begrenzte echte Nachprüfung
+## Erster Nachtrag: Installation und begrenzte echte Nachprüfung
 
 Auf dem Mac ist `1.0.6-local.0b56993` installiert. Der erste Start scheiterte
 am vollen 60-GiB-Datenträger der lokalen Docker-Umgebung, nicht an einer

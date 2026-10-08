@@ -235,7 +235,7 @@ def test_migration_fuellt_den_index_aus_dem_bestand(tmp_path):
     downgrade(path)
 
     store = EpisodeStore(path)
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 18
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 19
     assert indexed(store) == {frisch.id, neu.id}
     assert alt.id not in indexed(store) and ignoriert.id not in indexed(store)
     assert set(ids(find(store, "Stromrechnung"))) == {frisch.id, neu.id}

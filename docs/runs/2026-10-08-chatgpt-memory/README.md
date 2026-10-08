@@ -74,13 +74,14 @@ begrenzte Mailprobe sind unten von den künstlichen Tests getrennt dokumentiert.
 Entitätsantworten und 15 Verarbeitungsgrenzen. Das Arbeitsgedächtnis ist bei
 99 Quellen vollständig. Der große Lauf bleibt gesperrt. Die abschließende,
 auch inhaltliche Prüfung steht in [pilot100-pruefung.md](pilot100-pruefung.md).
-Die gezielte Korrektur ist inzwischen als **1.0.6-local.0b56993** installiert:
-325 betroffene Backendtests, 362 Frontendtests und Produktionsbuild bestanden.
-Die echte Nachprüfung von sieben bereits freigegebenen Quellen ergibt sieben
-vollständige Grundeinordnungen, drei vollständige Kategorienauswertungen und
-vier abgewiesene Absenderrollen bei 21 Modellanfragen. Die große Verarbeitung
-bleibt gesperrt. Installation, Speicherbereinigung mit Rückweg und Inhaltsprüfung
-sind ebenfalls im Abschlussbericht dokumentiert.
+Die aktuelle Mac-Fassung ist **1.0.6-local.160cfd7** mit vier Gedächtnisbereichen
+und getrennter Absenderidentität. Die erneute Nachprüfung derselben sieben Mails
+besteht jetzt beide Schichten bei allen sieben Quellen, mit 22 Modellanfragen
+und 145 geprüften Originalbereichen. Das ersetzt keine erfolgreiche 100-Mail-
+Qualitätsprobe; der große Lauf bleibt gesperrt. Verhalten, Migration, Sicherung,
+Bedienprüfung und Tests stehen in [bereiche-und-absender.md](bereiche-und-absender.md).
+Die vorherige Fassung `0b56993` hatte bei sieben Quellen drei vollständige
+Kategorienauswertungen und vier abgewiesene Absenderrollen bei 21 Anfragen.
 Die folgenden Momentaufnahmen dokumentieren den früheren Zwischenstand.
 
 Zuvor installiert war **1.0.6-local.e882740**, Code

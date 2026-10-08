@@ -85,7 +85,7 @@ def test_migration_rekeys_legacy_fingerprints_without_reinterpretation(tmp_path)
     ref = memory.search('Rechnung')['refs'][0]
     assert ref['fingerprint'] == current and memory.resolve(ref).episode.id == episode.id
     assert [s.episode.id for s in memory.pending()] == [stale.id]
-    assert reopened._conn.execute('PRAGMA user_version').fetchone()[0] == 18
+    assert reopened._conn.execute('PRAGMA user_version').fetchone()[0] == 19
 
 
 def test_api_links_source_to_project_and_back(partial):

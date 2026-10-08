@@ -116,7 +116,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (18 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+    assert _version(path) == (19 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
     assert _tables(path) == expected
 
 
@@ -481,7 +481,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (18 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+        assert _version(paths[name]) == (19 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -494,9 +494,10 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             for table in EXTENSION_TABLES:
                 values = actual_snapshot.pop(table)
                 if table == 'memory_category_taxonomy':
-                    assert len(values) == 6
+                    assert len(values) == 7
+                    assert {row[0] for row in values} == {'work', 'appointments', 'finance', 'personal', 'information', 'unclear', 'health'}
                 elif table == 'memory_category_scan':
-                    assert values == [(1, '', 1, 1)]
+                    assert values == [(1, '', 2, 1)]
                 elif table == 'source_index_docs':
                     # Die Migration nimmt die vorhandene Quelle in den Suchindex auf.
                     assert len(values) == len(before[name]['episodes'])
