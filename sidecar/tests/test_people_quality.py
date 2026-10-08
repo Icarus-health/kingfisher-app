@@ -60,6 +60,32 @@ def test_tagged_technical_addresses_are_not_people():
     assert [n.attributes['quality_category'] for n in result]==['automated','automated','review']
 
 
+def test_composed_german_and_platform_mailboxes_are_review_not_people():
+    from icarus_memory.people_quality import annotate_people
+    labels = [
+        '1&1 Kundenservice <versand-service@1und1.de>',
+        '1&1 Rechnungsstelle <rechnungsstelle@1und1.de>',
+        'Payments <payments-update@example.org>',
+        'Orders <order-update@example.org>',
+        'Shipping <shipment-tracking@example.org>',
+        'Marketplace <marketplace-messages@example.org>',
+    ]
+    result = annotate_people([person(str(index), label) for index, label in enumerate(labels)])
+    assert [node.attributes['quality_category'] for node in result] == ['review'] * len(labels)
+    assert all(node.attributes['duplicate_ids'] == [] for node in result)
+
+
+def test_personal_mailbox_is_preserved_but_marketplace_relay_needs_confirmation():
+    from icarus_memory.people_quality import annotate_people
+    result = annotate_people([
+        person('address', 'Anna Service <anna.service@example.org>'),
+        person('relay', 'Jane Doe <marketplace-messages@example.org>'),
+        person('explicit', 'Marketplace <marketplace-messages@example.org>', True),
+    ])
+    assert [node.attributes['quality_category'] for node in result] == ['person', 'review', 'person']
+    assert all(node.attributes['duplicate_ids'] == [] for node in result)
+
+
 def test_duplicate_groups_are_symmetric_without_transitive_identity_guess():
     from icarus_memory.people_quality import annotate_people
     result=annotate_people([person('a','Alex <a@example.org>'),person('b','Alex <b@example.org>'),person('c','Other <b@example.org>')])

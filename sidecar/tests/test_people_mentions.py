@@ -15,7 +15,7 @@ class Local:
 
     def complete_json(self, messages, *, max_tokens, schema):
         body = "".join(block["text"] for block in json.loads(messages[-1]["content"])["blocks"])
-        names = ["Acme Team", "Anna Kranz"]
+        names = ["Acme Team", "Anna Kranz", "Jane Doe"]
         entities = []
         for name in names:
             start = body.find(name)
@@ -37,12 +37,12 @@ def setup(tmp_path):
     return episodes, Categories(episodes)
 
 
-def email(episodes, body="Acme Team wrote. Anna Kranz replies.", source_key="mail:test:1"):
+def email(episodes, body="Acme Team wrote. Anna Kranz replies.", source_key="mail:test:1", participants=None):
     episode, _ = episodes.record(
         EpisodeKind.MESSAGE, "Synthetic message", body,
         Provenance(SourceType.EMAIL, source_ref="synthetic-mail"),
         occurred_at=datetime(2026, 10, 7, tzinfo=timezone.utc),
-        participants=["Acme Team <info@example.org>"], source_key=source_key,
+        participants=participants or ["Acme Team <info@example.org>"], source_key=source_key,
     )
     episodes.advance_source_head(source_key, None, episode.id)
     return episode
@@ -92,6 +92,15 @@ def test_people_mentions_hide_changed_and_withdrawn_sources(tmp_path):
     result = categories.person_mentions()
     assert result["items"] == []
     assert result["scanned_sources"] == 0
+
+
+def test_named_human_in_marketplace_mail_body_remains_a_source_hint(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item = email(episodes, body="Jane Doe sent a message through the marketplace.",
+                 participants=["Marketplace <marketplace-messages@market.example>"])
+    assert categories.run(Local(), source_ids=[item.id]).ok
+
+    assert [entry["name"] for entry in categories.person_mentions()["items"]] == ["Jane Doe"]
 
 
 def test_people_mentions_reports_bounded_scan_and_rejects_unbounded_limit(tmp_path):
