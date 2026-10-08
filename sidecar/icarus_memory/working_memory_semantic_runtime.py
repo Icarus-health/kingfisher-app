@@ -34,7 +34,7 @@ def bind(app, agent, *, ampel=None):
             'ICARUS_TRUSTED_LOCAL_MODEL_HOSTS', '').split(',') if host.strip())
         return LocalEmbedder(base_url=ollama_wurzel(getattr(provider, 'base_url', 'http://127.0.0.1:11434/v1')),
                              trusted_local_hosts=trusted, model=roles.einbettung_modell(),
-                             timeout=30, keep_alive='15s')
+                             timeout=30, keep_alive='15s', verify_weights=True)
 
     service = SemanticService(app.state.episodes, factory, configuration=configuration,
                               enabled=enabled, permission_lock=app.state.conversation_lock, ampel=ampel)

@@ -42,7 +42,7 @@ export function SemanticMemoryProgress({progress, stale = false}: {progress: Non
   const complete = !stale && status === "indexed" && knownCounts && total > 0 && indexed === total && pending === 0 && failed === 0 && sources === 0 && !paused;
   const explanation = stale ? "Der aktuelle Stand ist gerade nicht erreichbar. Die Zahlen zeigen den letzten bekannten Stand."
     : status === "disabled" ? "Die Bedeutungssuche ist ausgeschaltet."
-    : paused ? `Die Vorbereitung ist pausiert: ${paused} Sie wird automatisch fortgesetzt, sobald sie wieder möglich ist.`
+    : paused ? paused
     : status === "unavailable" ? progress.identity_checked_at === null ? "Das lokale Suchmodell und der Suchindex wurden noch nicht geprüft. Der Stand wird automatisch erneut geprüft." : "Die Bedeutungssuche ist gerade nicht bereit. Der Stand wird automatisch erneut geprüft."
     : complete ? "Die bisher sortierten Abschnitte sind für die Bedeutungssuche vorbereitet."
     : total === 0 ? "Sobald sortierte Abschnitte vorliegen, werden sie für die Bedeutungssuche vorbereitet."
@@ -51,13 +51,13 @@ export function SemanticMemoryProgress({progress, stale = false}: {progress: Non
     : "Der Vorbereitungsstand wird automatisch erneut geprüft.";
   return <section className="memory-progress memory-semantic-progress" aria-label="Vorbereitung der Bedeutungssuche">
     <h3>Für Bedeutungssuche vorbereitet</h3>
-    <p><strong>{knownCounts ? `${indexed} von ${total} Abschnitten` : "Abschnittszahl noch nicht verfügbar"}</strong>{stale ? " · letzter bekannter Stand" : ""}</p>
+    <p><strong>{knownCounts ? `${indexed} von ${total} ${total === 1 ? "Abschnitt" : "Abschnitten"}` : "Abschnittszahl noch nicht verfügbar"}</strong>{stale ? " · letzter bekannter Stand" : ""}</p>
     {knownCounts && total > 0 && status !== "disabled" ? <progress max={total} value={indexed} aria-label={stale ? "Letzter bekannter Fortschritt der Bedeutungssuche" : "Fortschritt der Vorbereitung zur Bedeutungssuche"}>{Math.round(indexed / total * 100)} %</progress> : null}
     <p role="status">{explanation}</p>
     {status !== "disabled" ? <>
       {pending !== null && pending > 0 ? <p className="memory-status-note">{pending} Abschnitte stehen noch aus.{failed ? ` Bei ${failed} Abschnitten ist ein Versuch fehlgeschlagen; sie werden erneut versucht.` : ""}</p>
         : failed !== null && failed > 0 ? <p className="memory-status-note">Bei {failed} Abschnitten ist ein Versuch fehlgeschlagen; sie werden erneut versucht.</p> : null}
-      {sources !== null && sources > 0 ? <p className="memory-status-note">{sources} Quellen werden noch sortiert; daraus können weitere Abschnitte entstehen.</p> : null}
+      {sources !== null && sources > 0 ? <p className="memory-status-note">{sources} {sources === 1 ? "Quelle wird" : "Quellen werden"} noch sortiert; daraus können weitere Abschnitte entstehen.</p> : null}
     </> : null}
     <p className="memory-status-note">Die Bedeutungssuche findet auch inhaltlich ähnliche Stellen. Das Sortieren der Quellen ist ein eigener Schritt.{model ? ` Suchmodell: ${model}.` : ""}</p>
     {progress.updated_at !== null ? <p className="memory-status-note">Vorbereitungsstand vom {date(new Date(progress.updated_at * 1000).toISOString())}.</p> : null}

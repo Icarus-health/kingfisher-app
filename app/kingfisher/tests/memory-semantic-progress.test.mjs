@@ -65,8 +65,8 @@ test("stale and unavailable coverage never announces current completion", () => 
 });
 
 test("pause explanation, retry count, and Unix-second timestamp render without ETA", () => {
-  const html = render({ failed: 2, pause_reason: "Dein Rechner läuft auf Akku." });
-  assert.match(html, /Vorbereitung ist pausiert: Dein Rechner läuft auf Akku/);
+  const html = render({ failed: 2, pause_reason: "Die Vorbereitung pausiert, solange dein Rechner auf Akku läuft." });
+  assert.match(html, /Die Vorbereitung pausiert, solange dein Rechner auf Akku läuft/);
   assert.match(html, /Bei 2 Abschnitten ist ein Versuch fehlgeschlagen; sie werden erneut versucht/);
   assert.match(html, /2026/);
   assert.doesNotMatch(html, /1970|Noch etwa/);

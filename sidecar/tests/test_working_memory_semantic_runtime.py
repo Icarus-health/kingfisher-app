@@ -42,6 +42,7 @@ def test_binding_uses_local_embedding_role_and_closes_replaced_service(tmp_path,
     assert created[0]['model'] == 'embedding:test'
     assert created[0]['base_url'] == 'http://localhost:11434'
     assert created[0]['keep_alive'] == '15s'
+    assert created[0]['verify_weights'] is True
     assert runtime().coverage(app)['indexed'] == 1
     before = len(created)
     runtime().coverage(app)

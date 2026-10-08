@@ -309,3 +309,26 @@ def test_background_releases_model_slot_before_waiting_for_conversation_commit(t
     assert not background.is_alive() and not question.is_alive(), 'model/permission lock inversion'
     assert service.coverage()['indexed'] == 1
     service.close(); episodes.close()
+
+
+def test_cooldown_polls_do_not_postpone_recovery_forever(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from icarus_memory import working_memory_semantic_service as module
+    clock = [100.]
+    actual_time = module.time.time
+    monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], time=actual_time))
+    episodes, embedder, service = setup(tmp_path)
+    add(episodes); service.index_batch()
+    embedder.fail = True
+    assert service.search_with_status(episodes, 'Wo ist mein Ausweis?').status == 'unavailable'
+    assert service._retry_at == 130.
+    embedder.fail = False
+    for moment in (105., 115., 125.):
+        clock[0] = moment
+        service.index_batch()
+        assert service.search_with_status(episodes, 'Wo ist mein Ausweis?').status == 'unavailable'
+        assert service._retry_at == 130.
+    clock[0] = 130.
+    assert service.search_with_status(episodes, 'Wo ist mein Ausweis?').refs
+    assert service._retry_at == 0.
+    service.close(); episodes.close()

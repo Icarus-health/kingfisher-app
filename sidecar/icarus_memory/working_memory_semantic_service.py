@@ -22,6 +22,10 @@ class _Changed(Exception):
     """Permission/configuration changed; never a source processing failure."""
 
 
+class _CoolingDown(Exception):
+    """Waiting is not a new failure and must not extend the retry deadline."""
+
+
 class SemanticService:
     def __init__(self, episodes, factory, *, configuration=lambda: (), enabled=lambda: True,
                  permission_lock=None, ampel=None):
@@ -70,10 +74,11 @@ class SemanticService:
             self._check(expected, permitted)
             with self._lock:
                 if time.monotonic() < self._retry_at:
-                    raise RuntimeError('embedding temporarily unavailable')
+                    raise _CoolingDown()
             adapter = self._factory()
             if getattr(adapter, 'is_local', False) is not True:
                 raise ValueError('local embedding adapter required')
+            adapter.permission_check = lambda: self._check(expected, permitted)
             with adapter as embedder:
                 if getattr(embedder, 'is_local', False) is not True:
                     raise ValueError('local embedding adapter required')
@@ -169,7 +174,7 @@ class SemanticService:
                     result = SemanticSearchResult(result.refs, 'partial')
             self._success()
             return result
-        except _Changed:
+        except (_Changed, _CoolingDown):
             return SemanticSearchResult((), 'unavailable')
         except Exception:
             self._failure()
@@ -220,6 +225,8 @@ class SemanticService:
             return JobResult('bedeutungssuche', True, f'{completed} Quellenabschnitte für die Bedeutungssuche vorbereitet.')
         except _Changed:
             return JobResult('bedeutungssuche', True, 'Bedeutungssuche nach geänderter Freigabe pausiert.')
+        except _CoolingDown:
+            return JobResult('bedeutungssuche', True, 'Bedeutungssuche wartet auf den nächsten Wiederholungsversuch.')
         except Exception:
             if batch is not None and index is not None:
                 try:
