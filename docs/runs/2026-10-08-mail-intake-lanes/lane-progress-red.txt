@@ -1,0 +1,103 @@
+FFF.FF                                                                   [100%]
+=================================== FAILURES ===================================
+____________ test_live_filters_do_not_fill_unread_history_progress _____________
+
+intake = <icarus_memory.mail_intake.Intake object at 0x109f71fd0>
+
+    def test_live_filters_do_not_fill_unread_history_progress(intake):
+        live_newsletters_with_open_history(intake)
+        folder = intake.status("qa")["folders"][0]
+        assert (folder["total"], folder["captured"], folder["pending"]) == (10, 6, 4)
+        assert sum(intake.episodes.counts().values()) == 6
+>       assert folder["filtered"] == 0
+E       assert 4 == 0
+
+sidecar/tests/test_mail_intake_lane_progress.py:68: AssertionError
+______ test_mailbox_sentence_does_not_report_current_with_unread_history _______
+
+intake = <icarus_memory.mail_intake.Intake object at 0x10a053710>
+
+    def test_mailbox_sentence_does_not_report_current_with_unread_history(intake):
+        live_newsletters_with_open_history(intake)
+        state = intake.status("qa")
+        assert state["folders"][0]["pending"] == 4
+        sentence = konto_stand("QA", intake=state)
+>       assert sentence["zustand"] == "liest"
+E       AssertionError: assert 'aktuell' == 'liest'
+E         
+E         - liest
+E         + aktuell
+
+sidecar/tests/test_mail_intake_lane_progress.py:79: AssertionError
+_______ test_live_filter_does_not_overflow_finished_history_denominator ________
+
+intake = <icarus_memory.mail_intake.Intake object at 0x10a0b5ca0>
+
+    def test_live_filter_does_not_overflow_finished_history_denominator(intake):
+        reader = Mailbox(1)
+        intake.step("qa", reader, batch=2)
+        reader.count = 2
+        intake.step("qa", reader, batch=2,
+                    screen=lambda message: Decision(False, "newsletter"))
+        folder = intake.status("qa")["folders"][0]
+        assert (folder["total"], folder["captured"], folder["pending"]) == (1, 1, 0)
+>       assert folder["filtered"] == 0
+E       assert 1 == 0
+
+sidecar/tests/test_mail_intake_lane_progress.py:90: AssertionError
+________ test_retry_of_failed_live_mail_stays_unfinished_until_captured ________
+
+intake = <icarus_memory.mail_intake.Intake object at 0x10a0c6e10>
+
+    def test_retry_of_failed_live_mail_stays_unfinished_until_captured(intake):
+        reader = Mailbox(1)
+        intake.step("qa", reader, batch=2)
+        reader.count = 2
+        reader.failed = {"7.2"}
+        intake.step("qa", reader, batch=2)
+        failed = intake.status("qa")
+        assert failed["folders"][0]["live_pending"] == 1
+        assert sum(failed["folders"][0]["failed_by"].values()) == 1
+        assert "synthetic private" not in str(failed)
+        assert konto_stand("QA", intake=failed)["zustand"] == "gescheitert"
+    
+        intake.retry("qa")
+        retrying = intake.status("qa")
+        assert retrying["folders"][0]["live_pending"] == 1
+        assert retrying["folders"][0]["failed_by"] == {}
+>       assert konto_stand("QA", intake=retrying)["zustand"] == "liest"
+E       AssertionError: assert 'aktuell' == 'liest'
+E         
+E         - liest
+E         + aktuell
+
+sidecar/tests/test_mail_intake_lane_progress.py:125: AssertionError
+______ test_retry_of_filtered_live_mail_does_not_claim_history_is_pending ______
+
+intake = <icarus_memory.mail_intake.Intake object at 0x10a051490>
+
+    def test_retry_of_filtered_live_mail_does_not_claim_history_is_pending(intake):
+        reader = Mailbox(1)
+        intake.step("qa", reader, batch=2)
+        reader.count = 2
+        intake.step("qa", reader, batch=2,
+                    screen=lambda message: Decision(False, "newsletter"))
+        intake.retry("qa")
+        retrying = intake.status("qa")
+        folder = retrying["folders"][0]
+        assert (folder["total"], folder["captured"], folder["pending"],
+                folder["live_pending"]) == (1, 1, 0, 1)
+>       assert konto_stand("QA", intake=retrying)["zustand"] == "liest"
+E       AssertionError: assert 'aktuell' == 'liest'
+E         
+E         - liest
+E         + aktuell
+
+sidecar/tests/test_mail_intake_lane_progress.py:146: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_mail_intake_lane_progress.py::test_live_filters_do_not_fill_unread_history_progress
+FAILED sidecar/tests/test_mail_intake_lane_progress.py::test_mailbox_sentence_does_not_report_current_with_unread_history
+FAILED sidecar/tests/test_mail_intake_lane_progress.py::test_live_filter_does_not_overflow_finished_history_denominator
+FAILED sidecar/tests/test_mail_intake_lane_progress.py::test_retry_of_failed_live_mail_stays_unfinished_until_captured
+FAILED sidecar/tests/test_mail_intake_lane_progress.py::test_retry_of_filtered_live_mail_does_not_claim_history_is_pending
+5 failed, 1 passed in 0.46s

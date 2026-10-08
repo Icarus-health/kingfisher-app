@@ -157,9 +157,19 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
             return _ergebnis('liest', f'{postfach} wird durchgesehen: bisher '
                                       + ('keine Mails' if gefunden == 0 else _mails(gefunden)) + ' gefunden.',
                              gelesen_n=gefunden)
+        if intake.get('history_waiting_for_analysis'):
+            return _ergebnis('wartet', f'{postfach}: Ältere Mails warten auf die Einordnung bereits gespeicherter Quellen. '
+                             f'Bereits {zahl(gefunden)} von {_mails(gesamt)} gelesen. '
+                             'Prüfe das automatische Sortieren unter Gedächtnis → Verarbeitung & Verlauf. '
+                             'Neue Mails können parallel dazukommen.',
+                             gelesen_n=gefunden, gesamt=gesamt, technik=technik)
         if gefunden < gesamt:
             return _ergebnis('liest', f'{postfach} wird gelesen: {zahl(gefunden)} von {_mails(gesamt)}.'
                                       + (f' {_nicht_ins_gedaechtnis(gescheitert)}' if gescheitert else ''),
+                             gelesen_n=gefunden, gesamt=gesamt, technik=technik)
+        if offen:
+            return _ergebnis('liest', f'{postfach}: Der bisherige Verlauf ist gelesen. '
+                             f'Noch {_mails(offen)} neu einzulesen.',
                              gelesen_n=gefunden, gesamt=gesamt, technik=technik)
         if gesamt == 0:
             return _ergebnis('leer', f'{postfach} ist verbunden und leer' + (f', abgerufen {wann}' if wann else '') + '.',
@@ -227,7 +237,7 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
                                        blick=gelesen(app, eintrag.id), verbunden=_verbunden(app, eintrag.id))
         # Only explicit global pause changes active intake. Do not overwrite
         # completion/errors or conflate temporary resource waits with user intent.
-        if global_pause and aussage['zustand'] == 'liest':
+        if global_pause and aussage['zustand'] in {'liest','wartet'}:
             gelesen_n, gesamt = aussage['gelesen'], aussage['gesamt']
             zahlen = (f'Bereits {zahl(gelesen_n)} von {_mails(gesamt)} gelesen.' if gesamt is not None
                       else f'Bisher {_mails(gelesen_n)} gelesen.')

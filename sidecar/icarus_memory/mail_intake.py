@@ -179,11 +179,7 @@ class Intake:
                     self.db.execute("UPDATE mail_intake_folders SET error='inventory_unavailable',updated=? WHERE account=? AND folder=?",(time.time(),account,row['folder']))
         with self.episodes._lock:
             # Reserve at least half for history; a single bad UID never blocks either lane.
-            backlog=self.db.execute(f"""SELECT COUNT(*) FROM (SELECT DISTINCT i.episode_id
-                FROM mail_intake_items i JOIN episodes e ON e.id=i.episode_id
-                LEFT JOIN working_memory_sources w ON w.episode_id=i.episode_id
-                WHERE {sql_nicht_ignoriert('e')} AND i.account=? AND i.episode_id IS NOT NULL AND w.episode_id IS NULL LIMIT 201)""",(account,)).fetchone()[0]
-            history_quota = 0 if backlog > 200 else batch
+            history_quota = 0 if self._history_backlog(account) > 200 else batch
             selected=[]
             lanes=[('live',max(1,batch//2)),('history',history_quota)]
             # Nur bei Einzelschritten wechselt die Reihenfolge; den Zähler über alle Erledigten sonst nicht bilden (O(Bestand) je Schritt).
@@ -237,6 +233,14 @@ class Intake:
         if neu:logbuch.vermerke('quellen',sorte='mail',anzahl=neu)
         return captured
 
+    def _history_backlog(self, account):
+        """Same bounded, content-free backlog check for capture and its status."""
+        with self.episodes._lock:
+            return self.db.execute(f"""SELECT COUNT(*) FROM (SELECT DISTINCT i.episode_id
+                FROM mail_intake_items i JOIN episodes e ON e.id=i.episode_id
+                LEFT JOIN working_memory_sources w ON w.episode_id=i.episode_id
+                WHERE {sql_nicht_ignoriert('e')} AND i.account=? AND i.episode_id IS NOT NULL AND w.episode_id IS NULL LIMIT 201)""", (account,)).fetchone()[0]
+
     def _windows(self, account, row):
         """UID-Fenster von je `STATUS_WINDOW` Einträgen des Verlaufs; jedes wird unter eigener kurzer Sperre gelesen."""
         after=0
@@ -277,9 +281,11 @@ class Intake:
             for total,rows in zip((counts,analysis,category_counts),self._window_counts(account,row,after,end)):
                 for key,number in rows:total[key]+=number
         with self.episodes._lock:
-            live=self.db.execute("SELECT COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND lane='live' AND status IN ('pending','failed')",(account,row['folder'],row['generation'])).fetchone()[0]
-            filtered=dict(self.db.execute("SELECT status,COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND status>=? AND status<? GROUP BY status",
-                (account,row['folder'],row['generation'],FILTERED,FILTERED[:-1]+';')).fetchall())
+            live_counts=dict(self.db.execute("SELECT status,COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND lane='live' AND status IN ('pending','failed') GROUP BY status",(account,row['folder'],row['generation'])).fetchall())
+            filtered_rows=self.db.execute("SELECT lane,status,COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND status>=? AND status<? GROUP BY lane,status",
+                (account,row['folder'],row['generation'],FILTERED,FILTERED[:-1]+';')).fetchall()
+            filtered={status:number for lane,status,number in filtered_rows if lane=='history'}
+            live_filtered={status:number for lane,status,number in filtered_rows if lane=='live'}
             # Gescheiterte beider Wege (Verlauf und neue Post) je Grund, dazu die jüngste technische Angabe.
             gescheitert=dict(self.db.execute("SELECT COALESCE(grund,'unbekannt'),COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND status='failed' GROUP BY 1",
                 (account,row['folder'],row['generation'])).fetchall())
@@ -287,7 +293,9 @@ class Intake:
                 (account,row['folder'],row['generation'])).fetchone()
         return dict(folder=row['folder'],inventory_complete=bool(row['inventory_complete']),total=sum(counts.values()),
             filtered=sum(filtered.values()),filtered_by={k[len(FILTERED):]:v for k,v in filtered.items()},
-            captured=counts['captured'],duplicates=counts['duplicate'],failed=counts['failed'],pending=counts['pending'],live_pending=live,
+            captured=counts['captured'],duplicates=counts['duplicate'],failed=counts['failed'],pending=counts['pending'],
+            live_pending=sum(live_counts.values()),live_failed=live_counts.get('failed',0),
+            live_filtered=sum(live_filtered.values()),live_filtered_by={k[len(FILTERED):]:v for k,v in live_filtered.items()},
             failed_by=gescheitert,failed_technik=technik[0] if technik else None,
             analyzed=analysis['complete'],deferred=analysis['deferred'],excluded=analysis['dismissed']+analysis['excluded'],analysis_failed=analysis['failed'],categorized=category_counts['complete'],
             categories_pending=category_counts['pending'],categories_failed=category_counts['failed'],
@@ -308,8 +316,9 @@ class Intake:
         folders=[self._folder_status(account,row) for row in rows]
         error=next((r['error'] for r in rows if r['error']),None)
         paused=bool(rows) and all(r['paused'] for r in rows)
-        step='paused' if paused else 'inventory' if any(not f['inventory_complete'] for f in folders) else 'capture' if any(f['pending'] or f['live_pending'] for f in folders) else 'analysis'
+        history_waiting=any(f['pending'] or f['failed'] for f in folders) and self._history_backlog(account)>200
+        step='paused' if paused else 'inventory' if any(not f['inventory_complete'] for f in folders) else 'waiting_analysis' if history_waiting else 'capture' if any(f['pending'] or f['live_pending'] for f in folders) else 'analysis'
         # Wann das Einlesen zuletzt im Postfach war (für „abgerufen um 14:43“, mail_stand.py).
         aktualisiert=max((r['updated'] for r in rows if r.get('updated')),default=None)
         return dict(account_id=account,started=bool(rows),paused=paused,folders=folders,step=step,error=error,
-                    scope=', '.join(r['folder'] for r in rows),aktualisiert=aktualisiert)
+                    scope=', '.join(r['folder'] for r in rows),aktualisiert=aktualisiert,history_waiting_for_analysis=history_waiting)

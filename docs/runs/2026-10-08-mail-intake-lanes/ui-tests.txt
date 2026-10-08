@@ -1,0 +1,2364 @@
+
+> kingfisher-ui@0.1.0 test
+> node --experimental-strip-types --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: gemeinsame Quellen werden nicht als Beteiligte bezeichnet
+ok 1 - gemeinsame Quellen werden nicht als Beteiligte bezeichnet
+  ---
+  duration_ms: 1.031083
+  type: 'test'
+  ...
+# Subtest: Ohne Ordner sagt die Karte nichts zum Stand und fragt nicht nach
+ok 2 - Ohne Ordner sagt die Karte nichts zum Stand und fragt nicht nach
+  ---
+  duration_ms: 0.753125
+  type: 'test'
+  ...
+# Subtest: Angekommen: letzter Stand mit Dateizahl, ruhig
+ok 3 - Angekommen: letzter Stand mit Dateizahl, ruhig
+  ---
+  duration_ms: 23.958291
+  type: 'test'
+  ...
+# Subtest: Unterwegs: der Helfer fehlt, der Helfer schreibt, der Lauf läuft
+ok 4 - Unterwegs: der Helfer fehlt, der Helfer schreibt, der Lauf läuft
+  ---
+  duration_ms: 0.385875
+  type: 'test'
+  ...
+# Subtest: Ein Grund wird als Grund gezeigt und löst keine Dauerabfrage aus
+ok 5 - Ein Grund wird als Grund gezeigt und löst keine Dauerabfrage aus
+  ---
+  duration_ms: 0.286708
+  type: 'test'
+  ...
+# Subtest: Ausgeschaltet heißt: es wird nichts geschrieben
+ok 6 - Ausgeschaltet heißt: es wird nichts geschrieben
+  ---
+  duration_ms: 0.467792
+  type: 'test'
+  ...
+# Subtest: Nicht geschriebene Akten werden genannt, nie verschwiegen
+ok 7 - Nicht geschriebene Akten werden genannt, nie verschwiegen
+  ---
+  duration_ms: 0.295375
+  type: 'test'
+  ...
+# Subtest: Pfade ohne Benutzerverzeichnis und Dateizahl im Singular
+ok 8 - Pfade ohne Benutzerverzeichnis und Dateizahl im Singular
+  ---
+  duration_ms: 0.275542
+  type: 'test'
+  ...
+# Subtest: Sekunden: unter zehn mit Komma und einer Stelle, darüber ganz
+ok 9 - Sekunden: unter zehn mit Komma und einer Stelle, darüber ganz
+  ---
+  duration_ms: 14.516583
+  type: 'test'
+  ...
+# Subtest: Die Zeile nennt die Gesamtzeit und die Teile ab einer Zehntelsekunde
+ok 10 - Die Zeile nennt die Gesamtzeit und die Teile ab einer Zehntelsekunde
+  ---
+  duration_ms: 0.511459
+  type: 'test'
+  ...
+# Subtest: Ohne gemessene Zeiten gibt es nichts zu zeigen
+ok 11 - Ohne gemessene Zeiten gibt es nichts zu zeigen
+  ---
+  duration_ms: 0.746875
+  type: 'test'
+  ...
+# Subtest: Bis zur Grenze gibt es keinen Satz zur Ursache
+ok 12 - Bis zur Grenze gibt es keinen Satz zur Ursache
+  ---
+  duration_ms: 0.085542
+  type: 'test'
+  ...
+# Subtest: Über der Grenze nennt ein Satz den größten Teil
+ok 13 - Über der Grenze nennt ein Satz den größten Teil
+  ---
+  duration_ms: 0.273667
+  type: 'test'
+  ...
+# Subtest: Prägt kein einzelner Teil die Zeit, sagt der Satz das
+ok 14 - Prägt kein einzelner Teil die Zeit, sagt der Satz das
+  ---
+  duration_ms: 0.051833
+  type: 'test'
+  ...
+# Subtest: Das Protokoll zeigt nur gemessene Abschnitte, die Gesamtzeit zuletzt
+ok 15 - Das Protokoll zeigt nur gemessene Abschnitte, die Gesamtzeit zuletzt
+  ---
+  duration_ms: 0.293209
+  type: 'test'
+  ...
+# Subtest: Der Satz über dem Protokoll sagt im Ziel oder darüber, ohne Technik
+ok 16 - Der Satz über dem Protokoll sagt im Ziel oder darüber, ohne Technik
+  ---
+  duration_ms: 0.269417
+  type: 'test'
+  ...
+# Subtest: Zählsatz ohne Prozent und ohne Fachwort
+ok 17 - Zählsatz ohne Prozent und ohne Fachwort
+  ---
+  duration_ms: 1.118667
+  type: 'test'
+  ...
+# Subtest: Zwei Klicks nur bei Widersprüchen mit offenem Vorschlag; auf dem Knopf steht der Wert
+ok 18 - Zwei Klicks nur bei Widersprüchen mit offenem Vorschlag; auf dem Knopf steht der Wert
+  ---
+  duration_ms: 1.030042
+  type: 'test'
+  ...
+# Subtest: Entscheidungen zuerst, ruhende Akten gesammelt unten
+ok 19 - Entscheidungen zuerst, ruhende Akten gesammelt unten
+  ---
+  duration_ms: 0.112125
+  type: 'test'
+  ...
+# Subtest: Nach jedem Klick ein Satz, was passiert ist
+ok 20 - Nach jedem Klick ein Satz, was passiert ist
+  ---
+  duration_ms: 0.1325
+  type: 'test'
+  ...
+# Subtest: Ein Beleg ohne Kennzeichnung hat keinen Hinweis
+ok 21 - Ein Beleg ohne Kennzeichnung hat keinen Hinweis
+  ---
+  duration_ms: 2.919375
+  type: 'test'
+  ...
+# Subtest: Namensvetter und Zeitraum erscheinen als Hinweis mit Adresse und Datum
+ok 22 - Namensvetter und Zeitraum erscheinen als Hinweis mit Adresse und Datum
+  ---
+  duration_ms: 0.352708
+  type: 'test'
+  ...
+# Subtest: Überholt steht vor den Kennzeichen, nichts doppelt
+ok 23 - Überholt steht vor den Kennzeichen, nichts doppelt
+  ---
+  duration_ms: 0.184042
+  type: 'test'
+  ...
+# Subtest: jede Antwort sagt, worauf sie sich stützt, oder deutlich, dass sie ohne Beleg ist
+ok 24 - jede Antwort sagt, worauf sie sich stützt, oder deutlich, dass sie ohne Beleg ist
+  ---
+  duration_ms: 2.012792
+  type: 'test'
+  ...
+# Subtest: Fragen, Fehler, Rückfragen und Hinweise des Programms tragen keine Belegzeile
+ok 25 - Fragen, Fehler, Rückfragen und Hinweise des Programms tragen keine Belegzeile
+  ---
+  duration_ms: 0.084333
+  type: 'test'
+  ...
+# Subtest: „Stimmt nicht?“ nur unter Antworten, nicht unter dem Gedächtnisvorschlag oder anderen Hinweisen (Befund 14)
+ok 26 - „Stimmt nicht?“ nur unter Antworten, nicht unter dem Gedächtnisvorschlag oder anderen Hinweisen (Befund 14)
+  ---
+  duration_ms: 0.112458
+  type: 'test'
+  ...
+# Subtest: nach „Melden“ steht, was mit der Meldung geschieht (Befund 12)
+ok 27 - nach „Melden“ steht, was mit der Meldung geschieht (Befund 12)
+  ---
+  duration_ms: 0.549625
+  type: 'test'
+  ...
+# Subtest: die linke Spalte widerspricht keiner belegten Antwort
+ok 28 - die linke Spalte widerspricht keiner belegten Antwort
+  ---
+  duration_ms: 0.364833
+  type: 'test'
+  ...
+# Subtest: keine englischen Beschriftungen im Briefing, Zurück heißt „Zurück zu Heute“
+ok 29 - keine englischen Beschriftungen im Briefing, Zurück heißt „Zurück zu Heute“
+  ---
+  duration_ms: 5.7025
+  type: 'test'
+  ...
+# Subtest: ohne lokales Audio kein Spieler
+ok 30 - ohne lokales Audio kein Spieler
+  ---
+  duration_ms: 3.11025
+  type: 'test'
+  ...
+# Subtest: Datum und Überschrift liegen auf einer Fläche über dem Bild
+ok 31 - Datum und Überschrift liegen auf einer Fläche über dem Bild
+  ---
+  duration_ms: 2.832917
+  type: 'test'
+  ...
+# Subtest: only a prepared draft can be executed; an unknown result requires checking
+ok 32 - only a prepared draft can be executed; an unknown result requires checking
+  ---
+  duration_ms: 1.563125
+  type: 'test'
+  ...
+# Subtest: datetime inputs preserve the device-local instant and reject all-day/invalid values
+ok 33 - datetime inputs preserve the device-local instant and reject all-day/invalid values
+  ---
+  duration_ms: 3.328958
+  type: 'test'
+  ...
+# Subtest: provider IDs are extracted only from the exact named source namespace
+ok 34 - provider IDs are extracted only from the exact named source namespace
+  ---
+  duration_ms: 2.202458
+  type: 'test'
+  ...
+# Subtest: editing a title preserves an unchanged original instant including seconds and DST offset
+ok 35 - editing a title preserves an unchanged original instant including seconds and DST offset
+  ---
+  duration_ms: 0.321833
+  type: 'test'
+  ...
+# Subtest: new ambiguous or nonexistent local times are rejected instead of silently shifted
+ok 36 - new ambiguous or nonexistent local times are rejected instead of silently shifted
+  ---
+  duration_ms: 129.717042
+  type: 'test'
+  ...
+# Subtest: preparation selects an exact series occurrence and rejects an ambiguous UID-only link
+ok 37 - preparation selects an exact series occurrence and rejects an ambiguous UID-only link
+  ---
+  duration_ms: 0.752667
+  type: 'test'
+  ...
+# Subtest: calendar windows use exact visible local day boundaries
+ok 38 - calendar windows use exact visible local day boundaries
+  ---
+  duration_ms: 2.50225
+  type: 'test'
+  ...
+# Subtest: calendar windows navigate across years, including a week crossing New Year
+ok 39 - calendar windows navigate across years, including a week crossing New Year
+  ---
+  duration_ms: 0.137667
+  type: 'test'
+  ...
+# Subtest: local calendar windows retain 23-hour days across spring clock change
+ok 40 - local calendar windows retain 23-hour days across spring clock change
+  ---
+  duration_ms: 0.065959
+  type: 'test'
+  ...
+# Subtest: seven-day agenda includes a running multiday event and excludes events outside the period
+ok 41 - seven-day agenda includes a running multiday event and excludes events outside the period
+  ---
+  duration_ms: 0.157292
+  type: 'test'
+  ...
+# Subtest: all-day event has an exclusive end, including across the year boundary
+ok 42 - all-day event has an exclusive end, including across the year boundary
+  ---
+  duration_ms: 0.054
+  type: 'test'
+  ...
+# Subtest: missing or unusable end timestamps are point events on their actual start day
+ok 43 - missing or unusable end timestamps are point events on their actual start day
+  ---
+  duration_ms: 0.1325
+  type: 'test'
+  ...
+# Subtest: a local day spanning the autumn clock change includes both repeated clock hours
+ok 44 - a local day spanning the autumn clock change includes both repeated clock hours
+  ---
+  duration_ms: 0.052667
+  type: 'test'
+  ...
+# Subtest: dated preparation links leave the current seven-day list when necessary
+ok 45 - dated preparation links leave the current seven-day list when necessary
+  ---
+  duration_ms: 0.397416
+  type: 'test'
+  ...
+# Subtest: cloud access change notifies mounted settings listeners and unsubscribe detaches them
+ok 46 - cloud access change notifies mounted settings listeners and unsubscribe detaches them
+  ---
+  duration_ms: 0.783708
+  type: 'test'
+  ...
+# Subtest: cloud access save omits an empty key so changing a model keeps the saved secret
+ok 47 - cloud access save omits an empty key so changing a model keeps the saved secret
+  ---
+  duration_ms: 1.253958
+  type: 'test'
+  ...
+# Subtest: cloud access save only sends the key that was typed and permits an empty model
+ok 48 - cloud access save only sends the key that was typed and permits an empty model
+  ---
+  duration_ms: 0.06525
+  type: 'test'
+  ...
+# Subtest: category failure distinguishes the completed basic classification
+ok 49 - category failure distinguishes the completed basic classification
+  ---
+  duration_ms: 1.529458
+  type: 'test'
+  ...
+# Subtest: missing or repeated entity evidence has specific readable explanation
+ok 50 - missing or repeated entity evidence has specific readable explanation
+  ---
+  duration_ms: 0.15325
+  type: 'test'
+  ...
+# Subtest: unknown codes and reasons never echo arbitrary provider content
+ok 51 - unknown codes and reasons never echo arbitrary provider content
+  ---
+  duration_ms: 0.130791
+  type: 'test'
+  ...
+# Subtest: source limit does not claim all rejected sources are too long
+ok 52 - source limit does not claim all rejected sources are too long
+  ---
+  duration_ms: 0.112958
+  type: 'test'
+  ...
+# Subtest: Remaining candidates keep their page even when older pages exist
+ok 53 - Remaining candidates keep their page even when older pages exist
+  ---
+  duration_ms: 1.265333
+  type: 'test'
+  ...
+# Subtest: Only exhausted bulk pages advance, with at most four metadata requests
+ok 54 - Only exhausted bulk pages advance, with at most four metadata requests
+  ---
+  duration_ms: 0.088333
+  type: 'test'
+  ...
+# Subtest: Stop at first eligible page and never skip a manual quality sample
+ok 55 - Stop at first eligible page and never skip a manual quality sample
+  ---
+  duration_ms: 0.084667
+  type: 'test'
+  ...
+# Subtest: an empty day with missing sources never claims nothing needs preparing
+ok 56 - an empty day with missing sources never claims nothing needs preparing
+  ---
+  duration_ms: 0.7335
+  type: 'test'
+  ...
+# Subtest: unconnected calendar is visible and never presented as an empty successful agenda
+ok 57 - unconnected calendar is visible and never presented as an empty successful agenda
+  ---
+  duration_ms: 0.125125
+  type: 'test'
+  ...
+# Subtest: pending mail remains an explicit incomplete overview
+ok 58 - pending mail remains an explicit incomplete overview
+  ---
+  duration_ms: 0.052541
+  type: 'test'
+  ...
+# Subtest: source success wording describes an overview, not verified source synchronization
+ok 59 - source success wording describes an overview, not verified source synchronization
+  ---
+  duration_ms: 0.043167
+  type: 'test'
+  ...
+# Subtest: mail activity goes straight to its exact mail while raw source remains separately addressable
+ok 60 - mail activity goes straight to its exact mail while raw source remains separately addressable
+  ---
+  duration_ms: 0.653208
+  type: 'test'
+  ...
+# Subtest: refresh coalesces concurrent requests, throttles automatic refresh, and allows explicit retry
+ok 61 - refresh coalesces concurrent requests, throttles automatic refresh, and allows explicit retry
+  ---
+  duration_ms: 0.137875
+  type: 'test'
+  ...
+# Subtest: failed refresh reports failure and can be explicitly retried without losing previous value
+ok 62 - failed refresh reports failure and can be explicitly retried without losing previous value
+  ---
+  duration_ms: 0.202917
+  type: 'test'
+  ...
+# Subtest: an explicit change during an old request queues one fresh snapshot afterwards
+ok 63 - an explicit change during an old request queues one fresh snapshot afterwards
+  ---
+  duration_ms: 5.438583
+  type: 'test'
+  ...
+# Subtest: TypeScript-Dateinamen sind auf Macs eindeutig auflösbar
+ok 64 - TypeScript-Dateinamen sind auf Macs eindeutig auflösbar
+  ---
+  duration_ms: 4.464625
+  type: 'test'
+  ...
+# Subtest: Nach dem Start steht der Fortschritt da, nicht nur „gestartet“
+ok 65 - Nach dem Start steht der Fortschritt da, nicht nur „gestartet“
+  ---
+  duration_ms: 14.235
+  type: 'test'
+  ...
+# Subtest: Während gezählt wird, sagt der Satz das
+ok 66 - Während gezählt wird, sagt der Satz das
+  ---
+  duration_ms: 0.08975
+  type: 'test'
+  ...
+# Subtest: Ein Fehler und eine Pause werden genannt
+ok 67 - Ein Fehler und eine Pause werden genannt
+  ---
+  duration_ms: 0.118291
+  type: 'test'
+  ...
+# Subtest: Fertig heißt: alle gelesen
+ok 68 - Fertig heißt: alle gelesen
+  ---
+  duration_ms: 0.086542
+  type: 'test'
+  ...
+# Subtest: Gescheiterte Mails: der Satz mit Grund statt „0 von 5 Mails gelesen“ (Fremdprobe 3, Befund 2)
+ok 69 - Gescheiterte Mails: der Satz mit Grund statt „0 von 5 Mails gelesen“ (Fremdprobe 3, Befund 2)
+  ---
+  duration_ms: 0.127291
+  type: 'test'
+  ...
+# Subtest: Ein ausgefilterter Newsletter zählt als gelesen; das Postfach bleibt nicht bei „4 von 5“ stehen
+ok 70 - Ein ausgefilterter Newsletter zählt als gelesen; das Postfach bleibt nicht bei „4 von 5“ stehen
+  ---
+  duration_ms: 0.062
+  type: 'test'
+  ...
+# Subtest: Die Reihenfolge ist Name, Mail, Kalender, Rechner, Freigaben, Anmelden, Fertig
+ok 71 - Die Reihenfolge ist Name, Mail, Kalender, Rechner, Freigaben, Anmelden, Fertig
+  ---
+  duration_ms: 1.786334
+  type: 'test'
+  ...
+# Subtest: Frischer Bestand beginnt beim Namen
+ok 72 - Frischer Bestand beginnt beim Namen
+  ---
+  duration_ms: 0.134792
+  type: 'test'
+  ...
+# Subtest: Überspringen zählt als Fortschritt: der nächste offene Schritt ist dran
+ok 73 - Überspringen zählt als Fortschritt: der nächste offene Schritt ist dran
+  ---
+  duration_ms: 0.0575
+  type: 'test'
+  ...
+# Subtest: Wiederaufnahme: dort weitermachen, wo man aufgehört hat
+ok 74 - Wiederaufnahme: dort weitermachen, wo man aufgehört hat
+  ---
+  duration_ms: 0.056917
+  type: 'test'
+  ...
+# Subtest: Ein ausdrücklich gewünschter Schritt geht vor (Link „Mail verbinden“ auf der Startseite)
+ok 75 - Ein ausdrücklich gewünschter Schritt geht vor (Link „Mail verbinden“ auf der Startseite)
+  ---
+  duration_ms: 0.114459
+  type: 'test'
+  ...
+# Subtest: Was schon da ist, zählt als erledigt, auch ohne Assistenten
+ok 76 - Was schon da ist, zählt als erledigt, auch ohne Assistenten
+  ---
+  duration_ms: 0.050916
+  type: 'test'
+  ...
+# Subtest: Sind alle Schritte getan oder übersprungen, ist „fertig“ dran
+ok 77 - Sind alle Schritte getan oder übersprungen, ist „fertig“ dran
+  ---
+  duration_ms: 0.108209
+  type: 'test'
+  ...
+# Subtest: Ein wieder geöffneter Schritt ist wieder offen
+ok 78 - Ein wieder geöffneter Schritt ist wieder offen
+  ---
+  duration_ms: 0.051959
+  type: 'test'
+  ...
+# Subtest: Weiter und Zurück bleiben in den Grenzen
+ok 79 - Weiter und Zurück bleiben in den Grenzen
+  ---
+  duration_ms: 0.280916
+  type: 'test'
+  ...
+# Subtest: Schrittzähler zählt, was die Schrittleiste zeigt (Befund 27)
+ok 80 - Schrittzähler zählt, was die Schrittleiste zeigt (Befund 27)
+  ---
+  duration_ms: 0.8845
+  type: 'test'
+  ...
+# Subtest: Später weitermachen nimmt den getippten Namen mit (Befund 21)
+ok 81 - Später weitermachen nimmt den getippten Namen mit (Befund 21)
+  ---
+  duration_ms: 0.130916
+  type: 'test'
+  ...
+# Subtest: Der Assistent geht nur auf, wenn der Sidecar es sagt
+ok 82 - Der Assistent geht nur auf, wenn der Sidecar es sagt
+  ---
+  duration_ms: 0.052459
+  type: 'test'
+  ...
+# Subtest: Leere Startseite: genau ein nächster Schritt, Mail zuerst
+ok 83 - Leere Startseite: genau ein nächster Schritt, Mail zuerst
+  ---
+  duration_ms: 0.057209
+  type: 'test'
+  ...
+# Subtest: Während die Mails gelesen werden, zeigt die Startseite den Fortschritt statt eines weiteren Hinweises
+ok 84 - Während die Mails gelesen werden, zeigt die Startseite den Fortschritt statt eines weiteren Hinweises
+  ---
+  duration_ms: 0.029209
+  type: 'test'
+  ...
+# Subtest: Der Anbieter wird an der Adresse erkannt, nie nach einem Server gefragt
+ok 85 - Der Anbieter wird an der Adresse erkannt, nie nach einem Server gefragt
+  ---
+  duration_ms: 0.065125
+  type: 'test'
+  ...
+# Subtest: Ohne Autostart-Helfer entfällt „Beim Anmelden“, und die Zählung bleibt stimmig (Befund 26)
+ok 86 - Ohne Autostart-Helfer entfällt „Beim Anmelden“, und die Zählung bleibt stimmig (Befund 26)
+  ---
+  duration_ms: 0.144791
+  type: 'test'
+  ...
+# Subtest: KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und als einziger abgesetzt
+ok 87 - KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und als einziger abgesetzt
+  ---
+  duration_ms: 1.400625
+  type: 'test'
+  ...
+# Subtest: es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verlässt
+ok 88 - es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verlässt
+  ---
+  duration_ms: 0.182291
+  type: 'test'
+  ...
+# Subtest: die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet
+ok 89 - die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet
+  ---
+  duration_ms: 0.832834
+  type: 'test'
+  ...
+# Subtest: jede alte Kennung und jede neue führt an einen Ort, der existiert
+ok 90 - jede alte Kennung und jede neue führt an einen Ort, der existiert
+  ---
+  duration_ms: 0.336917
+  type: 'test'
+  ...
+# Subtest: der Fachwort-Erkenner findet ganze Wörter und lässt Alltagswörter in Ruhe
+ok 91 - der Fachwort-Erkenner findet ganze Wörter und lässt Alltagswörter in Ruhe
+  ---
+  duration_ms: 43.027458
+  type: 'test'
+  ...
+# Subtest: vorne steht kein Fachwort: nicht in den Texten der Gliederung
+ok 92 - vorne steht kein Fachwort: nicht in den Texten der Gliederung
+  ---
+  duration_ms: 30.370208
+  type: 'test'
+  ...
+# Subtest: vorne steht kein Fachwort: auch nicht in den Dateien, die vorne angezeigt werden
+ok 93 - vorne steht kein Fachwort: auch nicht in den Dateien, die vorne angezeigt werden
+  ---
+  duration_ms: 12.889584
+  type: 'test'
+  ...
+# Subtest: die Texterkennung sieht Zeichenketten und Text zwischen Tags, aber keine Kommentare
+ok 94 - die Texterkennung sieht Zeichenketten und Text zwischen Tags, aber keine Kommentare
+  ---
+  duration_ms: 0.173459
+  type: 'test'
+  ...
+# Subtest: die Seite ist nicht mehr 1280 px breit: Mindestbreite aufgehoben, Karten stapeln, Seitenleiste wird ein Streifen
+ok 95 - die Seite ist nicht mehr 1280 px breit: Mindestbreite aufgehoben, Karten stapeln, Seitenleiste wird ein Streifen
+  ---
+  duration_ms: 3.050875
+  type: 'test'
+  ...
+# Subtest: ohne neue Fassung kein Hinweis
+ok 96 - ohne neue Fassung kein Hinweis
+  ---
+  duration_ms: 0.822584
+  type: 'test'
+  ...
+# Subtest: in der App: erste Neuerung, ein Satz vorher, der Knopf
+ok 97 - in der App: erste Neuerung, ein Satz vorher, der Knopf
+  ---
+  duration_ms: 0.78375
+  type: 'test'
+  ...
+# Subtest: im Browser statt des Knopfs der Satz zur App
+ok 98 - im Browser statt des Knopfs der Satz zur App
+  ---
+  duration_ms: 0.063291
+  type: 'test'
+  ...
+# Subtest: braucht die Fassung eine neue App, gibt es keinen Knopf, sondern den Weg zur Download-Seite
+ok 99 - braucht die Fassung eine neue App, gibt es keinen Knopf, sondern den Weg zur Download-Seite
+  ---
+  duration_ms: 0.10625
+  type: 'test'
+  ...
+# Subtest: über die Brücke gehen genau Aktion, Fassung und Bild
+ok 100 - über die Brücke gehen genau Aktion, Fassung und Bild
+  ---
+  duration_ms: 0.131042
+  type: 'test'
+  ...
+# Subtest: die Brücke wird nur im Fenster der App gefunden
+ok 101 - die Brücke wird nur im Fenster der App gefunden
+  ---
+  duration_ms: 0.101875
+  type: 'test'
+  ...
+# Subtest: Rückmeldung nach dem Neuladen: einmal, und je nachdem, welche Fassung läuft
+ok 102 - Rückmeldung nach dem Neuladen: einmal, und je nachdem, welche Fassung läuft
+  ---
+  duration_ms: 0.176458
+  type: 'test'
+  ...
+# Subtest: ohne Ablage (privates Fenster) wirft nichts
+ok 103 - ohne Ablage (privates Fenster) wirft nichts
+  ---
+  duration_ms: 0.11125
+  type: 'test'
+  ...
+# Subtest: „Jetzt nachsehen“ antwortet immer mit einem Satz
+ok 104 - „Jetzt nachsehen“ antwortet immer mit einem Satz
+  ---
+  duration_ms: 0.270541
+  type: 'test'
+  ...
+# Subtest: Fassung und Zeitpunkt für Menschen
+ok 105 - Fassung und Zeitpunkt für Menschen
+  ---
+  duration_ms: 17.442542
+  type: 'test'
+  ...
+# Subtest: der Satz zur täglichen Prüfung sagt, wen Kingfisher fragt und dass über dich nichts hinausgeht
+ok 106 - der Satz zur täglichen Prüfung sagt, wen Kingfisher fragt und dass über dich nichts hinausgeht
+  ---
+  duration_ms: 0.115333
+  type: 'test'
+  ...
+# Subtest: Heute zeigt den Hinweis, Kingfisher und du die Einstellung, Für Techniker den Befehl
+ok 107 - Heute zeigt den Hinweis, Kingfisher und du die Einstellung, Für Techniker den Befehl
+  ---
+  duration_ms: 1.070042
+  type: 'test'
+  ...
+# Subtest: „Dein Briefing ist bereit“ nur, wenn das Postfach antwortet (Befund 5)
+ok 108 - „Dein Briefing ist bereit“ nur, wenn das Postfach antwortet (Befund 5)
+  ---
+  duration_ms: 0.9755
+  type: 'test'
+  ...
+# Subtest: Die Automatik wird einmal angeboten, nur wo sie laufen kann (Befund 17)
+ok 109 - Die Automatik wird einmal angeboten, nur wo sie laufen kann (Befund 17)
+  ---
+  duration_ms: 1.680709
+  type: 'test'
+  ...
+# Subtest: Lädt das Sprachmodell noch, wird das Sortieren vorgemerkt: die Fertig-Seite verspricht die Einordnung (Fremdprobe 3, Befund 3)
+ok 110 - Lädt das Sprachmodell noch, wird das Sortieren vorgemerkt: die Fertig-Seite verspricht die Einordnung (Fremdprobe 3, Befund 3)
+  ---
+  duration_ms: 0.706042
+  type: 'test'
+  ...
+# Subtest: „Verbindungen prüfen“ führt in den betroffenen Bereich (Befund 30)
+ok 111 - „Verbindungen prüfen“ führt in den betroffenen Bereich (Befund 30)
+  ---
+  duration_ms: 0.18425
+  type: 'test'
+  ...
+# Subtest: Die Fertig-Seite nennt nur, was verbunden ist (Fremdprobe 2, Befund 8)
+ok 112 - Die Fertig-Seite nennt nur, was verbunden ist (Fremdprobe 2, Befund 8)
+  ---
+  duration_ms: 0.162458
+  type: 'test'
+  ...
+# Subtest: „Schon da“ zeigt nur Zahlen, die stimmen
+ok 113 - „Schon da“ zeigt nur Zahlen, die stimmen
+  ---
+  duration_ms: 0.640041
+  type: 'test'
+  ...
+# Subtest: Gezählt werden die Termine erst nach dem Abgleich
+ok 114 - Gezählt werden die Termine erst nach dem Abgleich
+  ---
+  duration_ms: 0.644625
+  type: 'test'
+  ...
+# Subtest: Unberührt und alles aus: „Überspringen“
+ok 115 - Unberührt und alles aus: „Überspringen“
+  ---
+  duration_ms: 0.812625
+  type: 'test'
+  ...
+# Subtest: Was schon an ist, zählt als erledigt
+ok 116 - Was schon an ist, zählt als erledigt
+  ---
+  duration_ms: 0.062
+  type: 'test'
+  ...
+# Subtest: Wer das Wetter einschaltet, bekommt „Weiter“, auch wenn noch kein Ort gewählt ist
+ok 117 - Wer das Wetter einschaltet, bekommt „Weiter“, auch wenn noch kein Ort gewählt ist
+  ---
+  duration_ms: 0.107542
+  type: 'test'
+  ...
+# Subtest: Wieder ausgeschaltet: kein Satz, aber angefasst bleibt angefasst
+ok 118 - Wieder ausgeschaltet: kein Satz, aber angefasst bleibt angefasst
+  ---
+  duration_ms: 0.049667
+  type: 'test'
+  ...
+# Subtest: Eine Änderung an Meetings oder Fahrzeiten macht den Schritt erledigt, auch wenn danach alles aus ist
+ok 119 - Eine Änderung an Meetings oder Fahrzeiten macht den Schritt erledigt, auch wenn danach alles aus ist
+  ---
+  duration_ms: 0.110167
+  type: 'test'
+  ...
+# Subtest: Der Schritt hört auf alle drei Einstellungen und zeigt den Satz zum Wetter
+ok 120 - Der Schritt hört auf alle drei Einstellungen und zeigt den Satz zum Wetter
+  ---
+  duration_ms: 1.421208
+  type: 'test'
+  ...
+# Subtest: unter der eigenen Frage steht vorne kein Fachwort; alles Technische liegt im Aufklapper
+ok 121 - unter der eigenen Frage steht vorne kein Fachwort; alles Technische liegt im Aufklapper
+  ---
+  duration_ms: 1.394167
+  type: 'test'
+  ...
+# Subtest: nur die eigene Frage im Gespräch bekommt die schlichte Ansicht
+ok 122 - nur die eigene Frage im Gespräch bekommt die schlichte Ansicht
+  ---
+  duration_ms: 0.574791
+  type: 'test'
+  ...
+# Subtest: each open goal offers explicit next-step creation with a structured goal link
+ok 123 - each open goal offers explicit next-step creation with a structured goal link
+  ---
+  duration_ms: 0.794083
+  type: 'test'
+  ...
+# Subtest: task detail resolves and displays the linked goal after its lifecycle changes
+ok 124 - task detail resolves and displays the linked goal after its lifecycle changes
+  ---
+  duration_ms: 0.119333
+  type: 'test'
+  ...
+# (node:77510) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: waiting and processing automatically advance to ready, then stop
+ok 125 - waiting and processing automatically advance to ready, then stop
+  ---
+  duration_ms: 2.114042
+  type: 'test'
+  ...
+# Subtest: expired stops polling and the deadline
+ok 126 - expired stops polling and the deadline
+  ---
+  duration_ms: 0.280375
+  type: 'test'
+  ...
+# Subtest: failed stops polling and the deadline
+ok 127 - failed stops polling and the deadline
+  ---
+  duration_ms: 0.245708
+  type: 'test'
+  ...
+# Subtest: connected stops polling and the deadline
+ok 128 - connected stops polling and the deadline
+  ---
+  duration_ms: 0.485333
+  type: 'test'
+  ...
+# Subtest: manual and focus refresh cannot overlap a pending request
+ok 129 - manual and focus refresh cannot overlap a pending request
+  ---
+  duration_ms: 0.63275
+  type: 'test'
+  ...
+# Subtest: temporary errors retry and do not erase a successful account
+ok 130 - temporary errors retry and do not erase a successful account
+  ---
+  duration_ms: 0.426125
+  type: 'test'
+  ...
+# Subtest: ten-minute limit stops a hung request and ignores its late response
+ok 131 - ten-minute limit stops a hung request and ignores its late response
+  ---
+  duration_ms: 0.198375
+  type: 'test'
+  ...
+# Subtest: cleanup ignores a previous flow response and cancels timers
+ok 132 - cleanup ignores a previous flow response and cancels timers
+  ---
+  duration_ms: 0.33
+  type: 'test'
+  ...
+# Subtest: Ohne Einrichtung steht „Mit Google anmelden“ nicht vorne
+ok 133 - Ohne Einrichtung steht „Mit Google anmelden“ nicht vorne
+  ---
+  duration_ms: 0.662083
+  type: 'test'
+  ...
+# Subtest: Jede Stelle mit „Mit Google anmelden“ fragt vorher, ob es eingerichtet ist
+ok 134 - Jede Stelle mit „Mit Google anmelden“ fragt vorher, ob es eingerichtet ist
+  ---
+  duration_ms: 0.584708
+  type: 'test'
+  ...
+# Subtest: Der Kalender-Weg mit Google zeigt das Feld für die geheime Adresse, auch ohne Einrichtung
+ok 135 - Der Kalender-Weg mit Google zeigt das Feld für die geheime Adresse, auch ohne Einrichtung
+  ---
+  duration_ms: 0.143334
+  type: 'test'
+  ...
+# Subtest: Die Karte sagt in zwei Sätzen, wo die Adresse steht und was hinausgeht
+ok 136 - Die Karte sagt in zwei Sätzen, wo die Adresse steht und was hinausgeht
+  ---
+  duration_ms: 0.086917
+  type: 'test'
+  ...
+# Subtest: Adresse und Ergebnis
+ok 137 - Adresse und Ergebnis
+  ---
+  duration_ms: 17.71525
+  type: 'test'
+  ...
+# Subtest: Der Verweis zur Google-Seite heißt, wohin er führt
+ok 138 - Der Verweis zur Google-Seite heißt, wohin er führt
+  ---
+  duration_ms: 0.072666
+  type: 'test'
+  ...
+# Subtest: Technische Kennungen stehen nie vorne, nur für Techniker (Fremdprobe 3, Befund 9)
+ok 139 - Technische Kennungen stehen nie vorne, nur für Techniker (Fremdprobe 3, Befund 9)
+  ---
+  duration_ms: 1.16875
+  type: 'test'
+  ...
+# Subtest: Was ein Mensch lesen kann, steht vorne, und dann nichts doppelt unter „Für Techniker“
+ok 140 - Was ein Mensch lesen kann, steht vorne, und dann nichts doppelt unter „Für Techniker“
+  ---
+  duration_ms: 0.078416
+  type: 'test'
+  ...
+# Subtest: ein Zähler steht nur da, wenn es etwas zu zählen gibt
+ok 141 - ein Zähler steht nur da, wenn es etwas zu zählen gibt
+  ---
+  duration_ms: 0.670625
+  type: 'test'
+  ...
+# Subtest: die Kacheln zeigen ihre Zahl nur über zaehlerText, und Heute hat nur die Uhr der Seitenleiste
+ok 142 - die Kacheln zeigen ihre Zahl nur über zaehlerText, und Heute hat nur die Uhr der Seitenleiste
+  ---
+  duration_ms: 0.663083
+  type: 'test'
+  ...
+# Subtest: nach „Aktualisieren“ steht, was dabei herauskam (Fremdprobe 2, Befund 18)
+ok 143 - nach „Aktualisieren“ steht, was dabei herauskam (Fremdprobe 2, Befund 18)
+  ---
+  duration_ms: 0.441917
+  type: 'test'
+  ...
+# Subtest: Heute zeigt den Stand eines Postfachs, der erklärt, warum keine Mails dastehen (Befund 17)
+ok 144 - Heute zeigt den Stand eines Postfachs, der erklärt, warum keine Mails dastehen (Befund 17)
+  ---
+  duration_ms: 0.083666
+  type: 'test'
+  ...
+# Subtest: Heute und Aufgabenquelle unterscheiden Quelldatum und Erfassungszeit
+ok 145 - Heute und Aufgabenquelle unterscheiden Quelldatum und Erfassungszeit
+  ---
+  duration_ms: 0.467209
+  type: 'test'
+  ...
+# Subtest: Die Gesamtzeile nennt Quellen und Schätzung
+ok 146 - Die Gesamtzeile nennt Quellen und Schätzung
+  ---
+  duration_ms: 21.744875
+  type: 'test'
+  ...
+# Subtest: Dieselbe Arbeit erscheint nicht zweimal: mit Gesamtzeile kein Sortieren der Mails
+ok 147 - Dieselbe Arbeit erscheint nicht zweimal: mit Gesamtzeile kein Sortieren der Mails
+  ---
+  duration_ms: 0.947333
+  type: 'test'
+  ...
+# Subtest: Ohne Freigabe, ohne Modell oder fertig: keine Zeile, kein Satz, kein Knopf
+ok 148 - Ohne Freigabe, ohne Modell oder fertig: keine Zeile, kein Satz, kein Knopf
+  ---
+  duration_ms: 0.108083
+  type: 'test'
+  ...
+# Subtest: Pausiert: die Zeile bleibt mit Knopf „Weiter“, ohne Satz zum Anbleiben
+ok 149 - Pausiert: die Zeile bleibt mit Knopf „Weiter“, ohne Satz zum Anbleiben
+  ---
+  duration_ms: 0.113167
+  type: 'test'
+  ...
+# Subtest: Ohne Modell, aber Mails werden gelesen: „Pausieren“ steht auf Heute (Fremdprobe 3, Befund 5)
+ok 150 - Ohne Modell, aber Mails werden gelesen: „Pausieren“ steht auf Heute (Fremdprobe 3, Befund 5)
+  ---
+  duration_ms: 0.119042
+  type: 'test'
+  ...
+# Subtest: Eine Akku-Pause erklärt auch den wartenden Mailimport ohne Modell
+ok 151 - Eine Akku-Pause erklärt auch den wartenden Mailimport ohne Modell
+  ---
+  duration_ms: 0.048417
+  type: 'test'
+  ...
+# Subtest: Eingaben werden gedrosselt gemeldet
+ok 152 - Eingaben werden gedrosselt gemeldet
+  ---
+  duration_ms: 0.178666
+  type: 'test'
+  ...
+# Subtest: Autostart: ohne Antwort offen, ohne Helfer „noch nicht verfügbar“
+ok 153 - Autostart: ohne Antwort offen, ohne Helfer „noch nicht verfügbar“
+  ---
+  duration_ms: 0.100042
+  type: 'test'
+  ...
+# Subtest: Die ausdrückliche Pause bleibt auch ohne Modell oder offene Quellen auflösbar
+ok 154 - Die ausdrückliche Pause bleibt auch ohne Modell oder offene Quellen auflösbar
+  ---
+  duration_ms: 0.287208
+  type: 'test'
+  ...
+# Subtest: Nur offene Mailaufnahme: globale Pause erhält die Zeile und den richtigen Weiter-Knopf
+ok 155 - Nur offene Mailaufnahme: globale Pause erhält die Zeile und den richtigen Weiter-Knopf
+  ---
+  duration_ms: 0.493209
+  type: 'test'
+  ...
+# Subtest: Pausierte Arbeit behauptet kein laufendes Sortieren oder Zusammenstellen
+ok 156 - Pausierte Arbeit behauptet kein laufendes Sortieren oder Zusammenstellen
+  ---
+  duration_ms: 0.198417
+  type: 'test'
+  ...
+# (node:77515) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: incomplete inventory keeps all percentages unknown even when enumerated counts exist
+ok 157 - incomplete inventory keeps all percentages unknown even when enumerated counts exist
+  ---
+  duration_ms: 1.008792
+  type: 'test'
+  ...
+# Subtest: unique folder work counts known sources separately from newly captured sources
+ok 158 - unique folder work counts known sources separately from newly captured sources
+  ---
+  duration_ms: 0.092334
+  type: 'test'
+  ...
+# Subtest: captured and duplicate source counts are summed across folders
+ok 159 - captured and duplicate source counts are summed across folders
+  ---
+  duration_ms: 0.084875
+  type: 'test'
+  ...
+# Subtest: unfinished pending never reports overall completion
+ok 160 - unfinished pending never reports overall completion
+  ---
+  duration_ms: 0.09025
+  type: 'test'
+  ...
+# Subtest: unfinished live_pending never reports overall completion
+ok 161 - unfinished live_pending never reports overall completion
+  ---
+  duration_ms: 0.157708
+  type: 'test'
+  ...
+# Subtest: unfinished failed never reports overall completion
+ok 162 - unfinished failed never reports overall completion
+  ---
+  duration_ms: 0.052625
+  type: 'test'
+  ...
+# Subtest: unfinished deferred never reports overall completion
+ok 163 - unfinished deferred never reports overall completion
+  ---
+  duration_ms: 0.096375
+  type: 'test'
+  ...
+# Subtest: unfinished analyzed never reports overall completion
+ok 164 - unfinished analyzed never reports overall completion
+  ---
+  duration_ms: 0.09375
+  type: 'test'
+  ...
+# Subtest: unfinished categories_pending never reports overall completion
+ok 165 - unfinished categories_pending never reports overall completion
+  ---
+  duration_ms: 0.307209
+  type: 'test'
+  ...
+# Subtest: unfinished categories_failed never reports overall completion
+ok 166 - unfinished categories_failed never reports overall completion
+  ---
+  duration_ms: 0.318667
+  type: 'test'
+  ...
+# Subtest: unfinished categorized never reports overall completion
+ok 167 - unfinished categorized never reports overall completion
+  ---
+  duration_ms: 0.093208
+  type: 'test'
+  ...
+# Subtest: paused and error states preserve real counters without implying completion
+ok 168 - paused and error states preserve real counters without implying completion
+  ---
+  duration_ms: 0.073542
+  type: 'test'
+  ...
+# Subtest: an empty inventory can complete without invented analysis percentage
+ok 169 - an empty inventory can complete without invented analysis percentage
+  ---
+  duration_ms: 0.044334
+  type: 'test'
+  ...
+# Subtest: unknown categories cannot imply fully interpreted sources
+ok 170 - unknown categories cannot imply fully interpreted sources
+  ---
+  duration_ms: 0.046833
+  type: 'test'
+  ...
+# Subtest: excluded sources overlap capture counts and do not double-count finished work
+ok 171 - excluded sources overlap capture counts and do not double-count finished work
+  ---
+  duration_ms: 0.036584
+  type: 'test'
+  ...
+# Subtest: preview requests share the queue without replacing status
+ok 172 - preview requests share the queue without replacing status
+  ---
+  duration_ms: 2.431125
+  type: 'test'
+  ...
+# Subtest: connection and explicit start remain distinct
+ok 173 - connection and explicit start remain distinct
+  ---
+  duration_ms: 0.060958
+  type: 'test'
+  ...
+# Subtest: polling waits three seconds after completion and never overlaps
+ok 174 - polling waits three seconds after completion and never overlaps
+  ---
+  duration_ms: 0.271083
+  type: 'test'
+  ...
+# Subtest: hiding aborts pending status and ignores stale results; showing resumes
+ok 175 - hiding aborts pending status and ignores stale results; showing resumes
+  ---
+  duration_ms: 0.184875
+  type: 'test'
+  ...
+# Subtest: status errors preserve prior results and retry automatically
+ok 176 - status errors preserve prior results and retry automatically
+  ---
+  duration_ms: 0.342458
+  type: 'test'
+  ...
+# Subtest: mutations wait for an aborted read and cannot publish its old result
+ok 177 - mutations wait for an aborted read and cannot publish its old result
+  ---
+  duration_ms: 1.399333
+  type: 'test'
+  ...
+# Subtest: cleanup aborts a pending action and rejects late updates
+ok 178 - cleanup aborts a pending action and rejects late updates
+  ---
+  duration_ms: 0.871834
+  type: 'test'
+  ...
+# Subtest: history wait preserves counters and never becomes active capture
+ok 179 - history wait preserves counters and never becomes active capture
+  ---
+  duration_ms: 0.998
+  type: 'test'
+  ...
+# Subtest: mailbox pause and inventory retain precedence over history wait
+ok 180 - mailbox pause and inventory retain precedence over history wait
+  ---
+  duration_ms: 0.124833
+  type: 'test'
+  ...
+# Subtest: new mail pending cannot look current after the entire history is read
+ok 181 - new mail pending cannot look current after the entire history is read
+  ---
+  duration_ms: 0.110666
+  type: 'test'
+  ...
+# Subtest: new-mail filters and failures remain separate from historical progress
+ok 182 - new-mail filters and failures remain separate from historical progress
+  ---
+  duration_ms: 0.059916
+  type: 'test'
+  ...
+# Subtest: setup keeps pending new mail visible after its retry
+ok 183 - setup keeps pending new mail visible after its retry
+  ---
+  duration_ms: 0.164833
+  type: 'test'
+  ...
+# Subtest: Erst mit vollständiger Adresse gibt es einen Weg
+ok 184 - Erst mit vollständiger Adresse gibt es einen Weg
+  ---
+  duration_ms: 0.813167
+  type: 'test'
+  ...
+# Subtest: Bekannter Anbieter: nur das Passwort, App-Passwort wo nötig
+ok 185 - Bekannter Anbieter: nur das Passwort, App-Passwort wo nötig
+  ---
+  duration_ms: 0.110083
+  type: 'test'
+  ...
+# Subtest: Google: der Kalender geht über seine geheime iCal-Adresse, ohne Passwort (Befund 2)
+ok 186 - Google: der Kalender geht über seine geheime iCal-Adresse, ohne Passwort (Befund 2)
+  ---
+  duration_ms: 0.06575
+  type: 'test'
+  ...
+# Subtest: Microsoft sagt ehrlich, dass es mit Passwort nicht geht
+ok 187 - Microsoft sagt ehrlich, dass es mit Passwort nicht geht
+  ---
+  duration_ms: 0.10375
+  type: 'test'
+  ...
+# Subtest: Ohne bekannte Adresse fragt die Karte nach ihr, statt zu raten
+ok 188 - Ohne bekannte Adresse fragt die Karte nach ihr, statt zu raten
+  ---
+  duration_ms: 0.131208
+  type: 'test'
+  ...
+# Subtest: Eigene Domain: erst selbst suchen, dann nach der Adresse fragen (Fremdprobe 2, Befund 5)
+ok 189 - Eigene Domain: erst selbst suchen, dann nach der Adresse fragen (Fremdprobe 2, Befund 5)
+  ---
+  duration_ms: 0.136333
+  type: 'test'
+  ...
+# Subtest: Das Passwort des Postfachs gilt nur für dieselbe Adresse und nur, wenn eines hinterlegt ist
+ok 190 - Das Passwort des Postfachs gilt nur für dieselbe Adresse und nur, wenn eines hinterlegt ist
+  ---
+  duration_ms: 0.065083
+  type: 'test'
+  ...
+# Subtest: Nach dem Verbinden ein Satz, was gefunden wurde
+ok 191 - Nach dem Verbinden ein Satz, was gefunden wurde
+  ---
+  duration_ms: 0.060584
+  type: 'test'
+  ...
+# Subtest: persistente Wissensfragen laden nur aktiv, bleiben begrenzt und lassen weitere sichtbar werden
+ok 192 - persistente Wissensfragen laden nur aktiv, bleiben begrenzt und lassen weitere sichtbar werden
+  ---
+  duration_ms: 1.155708
+  type: 'test'
+  ...
+# Subtest: Fragen zeigen verständliche Vorschläge; technische Referenzen bleiben aufklappbar
+ok 193 - Fragen zeigen verständliche Vorschläge; technische Referenzen bleiben aufklappbar
+  ---
+  duration_ms: 0.2595
+  type: 'test'
+  ...
+# Subtest: eine Kandidatenwahl ist explizit; Beibehalten gibt es nur bei aktiver bestätigter Angabe
+ok 194 - eine Kandidatenwahl ist explizit; Beibehalten gibt es nur bei aktiver bestätigter Angabe
+  ---
+  duration_ms: 0.169958
+  type: 'test'
+  ...
+# Subtest: veraltete Fehlerstände werden nicht als leere Fragenliste gezeigt und Doppelklicks sind gesperrt
+ok 195 - veraltete Fehlerstände werden nicht als leere Fragenliste gezeigt und Doppelklicks sind gesperrt
+  ---
+  duration_ms: 0.621958
+  type: 'test'
+  ...
+# Subtest: ohne Bestätigung ist es ein Vorschlag, der mit einem Klick fest wird
+ok 196 - ohne Bestätigung ist es ein Vorschlag, der mit einem Klick fest wird
+  ---
+  duration_ms: 0.833042
+  type: 'test'
+  ...
+# Subtest: bestätigt bleibt bestätigt; ein neuer Vorschlag steht nur daneben
+ok 197 - bestätigt bleibt bestätigt; ein neuer Vorschlag steht nur daneben
+  ---
+  duration_ms: 0.137167
+  type: 'test'
+  ...
+# Subtest: nach dem Klick steht, was gespeichert ist und was es bewirkt
+ok 198 - nach dem Klick steht, was gespeichert ist und was es bewirkt
+  ---
+  duration_ms: 0.079166
+  type: 'test'
+  ...
+# Subtest: die Übersicht zählt bestätigt, offen je Kreis und geändert in Alltagssprache
+ok 199 - die Übersicht zählt bestätigt, offen je Kreis und geändert in Alltagssprache
+  ---
+  duration_ms: 0.104417
+  type: 'test'
+  ...
+# Subtest: die Art der Akte zeigt sich nur mit Vorschlag oder Wahl
+ok 200 - die Art der Akte zeigt sich nur mit Vorschlag oder Wahl
+  ---
+  duration_ms: 0.125417
+  type: 'test'
+  ...
+# Subtest: der Weg zur Akte ist die Seite der Akte, sicher kodiert
+ok 201 - der Weg zur Akte ist die Seite der Akte, sicher kodiert
+  ---
+  duration_ms: 0.050792
+  type: 'test'
+  ...
+# Subtest: kein Fachwort in den Sätzen
+ok 202 - kein Fachwort in den Sätzen
+  ---
+  duration_ms: 49.682459
+  type: 'test'
+  ...
+# Subtest: Sammelbestätigung: Rückfrage in einem Satz, nur Kollegen, alle offenen gezählt
+ok 203 - Sammelbestätigung: Rückfrage in einem Satz, nur Kollegen, alle offenen gezählt
+  ---
+  duration_ms: 0.155083
+  type: 'test'
+  ...
+# Subtest: ohne Vorschlag: du legst den Kreis selbst fest, ohne „vorgeschlagen“ (Fremdprobe 2, Befund 19)
+ok 204 - ohne Vorschlag: du legst den Kreis selbst fest, ohne „vorgeschlagen“ (Fremdprobe 2, Befund 19)
+  ---
+  duration_ms: 0.567833
+  type: 'test'
+  ...
+# Subtest: jede Personenakte hat eine Kreis-Sache: Adresse, sonst Name; eine offene Nennung keine
+ok 205 - jede Personenakte hat eine Kreis-Sache: Adresse, sonst Name; eine offene Nennung keine
+  ---
+  duration_ms: 1.818125
+  type: 'test'
+  ...
+# Subtest: „Kingfisher und du“ sagt dasselbe wie die Akte, und Kingfisher ist „es“ (Befunde 19 und 26)
+ok 206 - „Kingfisher und du“ sagt dasselbe wie die Akte, und Kingfisher ist „es“ (Befunde 19 und 26)
+  ---
+  duration_ms: 0.51725
+  type: 'test'
+  ...
+# Subtest: belegte Kontakte zählen nur Quellen mit Beteiligung (Befund 21)
+ok 207 - belegte Kontakte zählen nur Quellen mit Beteiligung (Befund 21)
+  ---
+  duration_ms: 0.077958
+  type: 'test'
+  ...
+# Subtest: Läuft nichts, gibt es keine Zeile
+ok 208 - Läuft nichts, gibt es keine Zeile
+  ---
+  duration_ms: 2.078625
+  type: 'test'
+  ...
+# Subtest: Mailaufnahme zeigt x von y
+ok 209 - Mailaufnahme zeigt x von y
+  ---
+  duration_ms: 18.910125
+  type: 'test'
+  ...
+# Subtest: Ist der Gesamtumfang unbekannt, steht „bisher“ und es gibt keinen Prozentbalken
+ok 210 - Ist der Gesamtumfang unbekannt, steht „bisher“ und es gibt keinen Prozentbalken
+  ---
+  duration_ms: 0.224625
+  type: 'test'
+  ...
+# Subtest: Ein pausiertes oder getrenntes Konto läuft nicht
+ok 211 - Ein pausiertes oder getrenntes Konto läuft nicht
+  ---
+  duration_ms: 0.42775
+  type: 'test'
+  ...
+# Subtest: Der Nachtrag der Empfänger erscheint nur, solange er offen ist
+ok 212 - Der Nachtrag der Empfänger erscheint nur, solange er offen ist
+  ---
+  duration_ms: 0.378667
+  type: 'test'
+  ...
+# Subtest: Das Sortieren nach Themen zeigt sich nur, wenn es auch läuft
+ok 213 - Das Sortieren nach Themen zeigt sich nur, wenn es auch läuft
+  ---
+  duration_ms: 1.0805
+  type: 'test'
+  ...
+# Subtest: Die Berechnung der Akten zeigt die offenen Quellen und verschwindet, wenn nichts offen ist
+ok 214 - Die Berechnung der Akten zeigt die offenen Quellen und verschwindet, wenn nichts offen ist
+  ---
+  duration_ms: 0.274083
+  type: 'test'
+  ...
+# Subtest: Die Alltagssprache der Zeilen enthält keine Fachwörter
+ok 215 - Die Alltagssprache der Zeilen enthält keine Fachwörter
+  ---
+  duration_ms: 0.220792
+  type: 'test'
+  ...
+# Subtest: Es wird zügig nachgesehen, solange etwas läuft, sonst gemächlich
+ok 216 - Es wird zügig nachgesehen, solange etwas läuft, sonst gemächlich
+  ---
+  duration_ms: 0.309084
+  type: 'test'
+  ...
+# Subtest: Mit dem Stand des Sidecars steht dessen Satz da, und ein leeres Postfach liest nicht (Fremdprobe 2, Befund 17)
+ok 217 - Mit dem Stand des Sidecars steht dessen Satz da, und ein leeres Postfach liest nicht (Fremdprobe 2, Befund 17)
+  ---
+  duration_ms: 0.58375
+  type: 'test'
+  ...
+# Subtest: Das Sprachmodell lädt im Hintergrund: eine Zeile mit Prozent, zuerst, bis es fertig ist (Fremdprobe 2, Befund 6)
+ok 218 - Das Sprachmodell lädt im Hintergrund: eine Zeile mit Prozent, zuerst, bis es fertig ist (Fremdprobe 2, Befund 6)
+  ---
+  duration_ms: 0.124791
+  type: 'test'
+  ...
+# Subtest: Gescheiterte Mails stehen als Satz mit Grund da, nie als „wird gelesen“ (Fremdprobe 3, Befund 2)
+ok 219 - Gescheiterte Mails stehen als Satz mit Grund da, nie als „wird gelesen“ (Fremdprobe 3, Befund 2)
+  ---
+  duration_ms: 0.111125
+  type: 'test'
+  ...
+# Subtest: vier Abstände zur Wahl, Vorgabe alle 30 Minuten (Fremdprobe 3, Befund 13); ein früherer Wert bleibt sichtbar
+ok 220 - vier Abstände zur Wahl, Vorgabe alle 30 Minuten (Fremdprobe 3, Befund 13); ein früherer Wert bleibt sichtbar
+  ---
+  duration_ms: 1.74675
+  type: 'test'
+  ...
+# Subtest: ein Satz sagt, was gilt
+ok 221 - ein Satz sagt, was gilt
+  ---
+  duration_ms: 0.158375
+  type: 'test'
+  ...
+# Subtest: ein Schalter und eine Auswahl, kein Zahlenfeld und keines der alten Fachwörter
+ok 222 - ein Schalter und eine Auswahl, kein Zahlenfeld und keines der alten Fachwörter
+  ---
+  duration_ms: 2.065209
+  type: 'test'
+  ...
+# Subtest: ausgefilterte Mails können ausdrücklich und manuell erneut geprüft werden
+ok 223 - ausgefilterte Mails können ausdrücklich und manuell erneut geprüft werden
+  ---
+  duration_ms: 1.809209
+  type: 'test'
+  ...
+# Subtest: a busy local model gives a wait-and-retry explanation
+ok 224 - a busy local model gives a wait-and-retry explanation
+  ---
+  duration_ms: 1.32575
+  type: 'test'
+  ...
+# Subtest: other failures do not pretend a model is busy or expose server details
+ok 225 - other failures do not pretend a model is busy or expose server details
+  ---
+  duration_ms: 0.096333
+  type: 'test'
+  ...
+# Subtest: briefing API encodes the UID and retries with an explicit refresh while forwarding cancellation
+ok 226 - briefing API encodes the UID and retries with an explicit refresh while forwarding cancellation
+  ---
+  duration_ms: 2.081834
+  type: 'test'
+  ...
+# Subtest: mail overview keeps original mail immediately expandable and shows sender and date
+ok 227 - mail overview keeps original mail immediately expandable and shows sender and date
+  ---
+  duration_ms: 0.72225
+  type: 'test'
+  ...
+# Subtest: briefing discards results for a different UID or changed source and aborts on cancel or unmount
+ok 228 - briefing discards results for a different UID or changed source and aborts on cancel or unmount
+  ---
+  duration_ms: 2.144541
+  type: 'test'
+  ...
+# Subtest: briefing has explicit progress, cancellation, retry and non-verified source wording
+ok 229 - briefing has explicit progress, cancellation, retry and non-verified source wording
+  ---
+  duration_ms: 0.5845
+  type: 'test'
+  ...
+# Subtest: choosing a suggested task opens the existing form with only title and source evidence prefilled
+ok 230 - choosing a suggested task opens the existing form with only title and source evidence prefilled
+  ---
+  duration_ms: 1.023666
+  type: 'test'
+  ...
+# Subtest: saved-claim review has a stable direct entry without changing area defaults
+ok 231 - saved-claim review has a stable direct entry without changing area defaults
+  ---
+  duration_ms: 1.018875
+  type: 'test'
+  ...
+# Subtest: the four agreed views are present even without health hints
+ok 232 - the four agreed views are present even without health hints
+  ---
+  duration_ms: 0.69125
+  type: 'test'
+  ...
+# Subtest: a source can appear in each explicitly suggested area without changing its labels
+ok 233 - a source can appear in each explicitly suggested area without changing its labels
+  ---
+  duration_ms: 0.086458
+  type: 'test'
+  ...
+# Subtest: other topics and sources without hints remain accessible
+ok 234 - other topics and sources without hints remain accessible
+  ---
+  duration_ms: 0.124708
+  type: 'test'
+  ...
+# Subtest: area pagination retains only cursor positions and can move backward or branch
+ok 235 - area pagination retains only cursor positions and can move backward or branch
+  ---
+  duration_ms: 0.196875
+  type: 'test'
+  ...
+# Subtest: the overview reads bounded pages only and retains the established memory views
+ok 236 - the overview reads bounded pages only and retains the established memory views
+  ---
+  duration_ms: 1.487833
+  type: 'test'
+  ...
+# Subtest: direct health entry and bounded empty states cannot claim an empty whole memory
+ok 237 - direct health entry and bounded empty states cannot claim an empty whole memory
+  ---
+  duration_ms: 0.258375
+  type: 'test'
+  ...
+# Subtest: choosing an area removes people and status flags from reloadable links
+ok 238 - choosing an area removes people and status flags from reloadable links
+  ---
+  duration_ms: 0.089625
+  type: 'test'
+  ...
+# Subtest: Heute lädt offene Gedächtnisfragen nur im aktiven Bereich und zeigt eine begrenzte Auswahl
+ok 239 - Heute lädt offene Gedächtnisfragen nur im aktiven Bereich und zeigt eine begrenzte Auswahl
+  ---
+  duration_ms: 0.666417
+  type: 'test'
+  ...
+# Subtest: Heute priorisiert wichtige und verwaiste Punkte vor übrigen Befunden
+ok 240 - Heute priorisiert wichtige und verwaiste Punkte vor übrigen Befunden
+  ---
+  duration_ms: 0.060458
+  type: 'test'
+  ...
+# Subtest: Quellen zeigen Originalzitat, unbekannte Quellenzeit und Erfassungszeit
+ok 241 - Quellen zeigen Originalzitat, unbekannte Quellenzeit und Erfassungszeit
+  ---
+  duration_ms: 0.15075
+  type: 'test'
+  ...
+# Subtest: Entscheidungen übergeben den gespeicherten Stand und blockieren synchrone Doppelklicks
+ok 242 - Entscheidungen übergeben den gespeicherten Stand und blockieren synchrone Doppelklicks
+  ---
+  duration_ms: 0.05225
+  type: 'test'
+  ...
+# Subtest: Lade- und Entscheidungsfehler bleiben sichtbar und lassen einen erneuten Versuch zu
+ok 243 - Lade- und Entscheidungsfehler bleiben sichtbar und lassen einen erneuten Versuch zu
+  ---
+  duration_ms: 0.051833
+  type: 'test'
+  ...
+# Subtest: renders prepared sections independently from sources and hides model digests
+ok 244 - renders prepared sections independently from sources and hides model digests
+  ---
+  duration_ms: 9.478
+  type: 'test'
+  ...
+# Subtest: initial unavailable state preserves unknown counts and explains pending identity check
+ok 245 - initial unavailable state preserves unknown counts and explains pending identity check
+  ---
+  duration_ms: 0.446083
+  type: 'test'
+  ...
+# Subtest: disabled state is neutral even with historical failures
+ok 246 - disabled state is neutral even with historical failures
+  ---
+  duration_ms: 0.446375
+  type: 'test'
+  ...
+# Subtest: finished current sections keep remaining source sorting visible
+ok 247 - finished current sections keep remaining source sorting visible
+  ---
+  duration_ms: 0.376083
+  type: 'test'
+  ...
+# Subtest: stale and unavailable coverage never announces current completion
+ok 248 - stale and unavailable coverage never announces current completion
+  ---
+  duration_ms: 0.883833
+  type: 'test'
+  ...
+# Subtest: pause explanation, retry count, and Unix-second timestamp render without ETA
+ok 249 - pause explanation, retry count, and Unix-second timestamp render without ETA
+  ---
+  duration_ms: 0.319542
+  type: 'test'
+  ...
+# Subtest: completion is scoped to known prepared sections, including empty index
+ok 250 - completion is scoped to known prepared sections, including empty index
+  ---
+  duration_ms: 1.116
+  type: 'test'
+  ...
+# Subtest: the newest source month follows the local month of the latest source date
+ok 251 - the newest source month follows the local month of the latest source date
+  ---
+  duration_ms: 0.710542
+  type: 'test'
+  ...
+# Subtest: a missing latest source date has no jump target
+ok 252 - a missing latest source date has no jump target
+  ---
+  duration_ms: 0.076375
+  type: 'test'
+  ...
+# Subtest: source history leads with source time and keeps capture time separate
+ok 253 - source history leads with source time and keeps capture time separate
+  ---
+  duration_ms: 0.701333
+  type: 'test'
+  ...
+# Subtest: unknown source dates remain unknown in source history
+ok 254 - unknown source dates remain unknown in source history
+  ---
+  duration_ms: 0.05875
+  type: 'test'
+  ...
+# Subtest: the status page can be opened directly without removing people review
+ok 255 - the status page can be opened directly without removing people review
+  ---
+  duration_ms: 1.022458
+  type: 'test'
+  ...
+# Subtest: coverage refreshes every 15 seconds while visible and cleans up after leaving status
+ok 256 - coverage refreshes every 15 seconds while visible and cleans up after leaving status
+  ---
+  duration_ms: 0.716458
+  type: 'test'
+  ...
+# Subtest: both timeline page requests carry the selected source or recorded basis
+ok 257 - both timeline page requests carry the selected source or recorded basis
+  ---
+  duration_ms: 0.177583
+  type: 'test'
+  ...
+# Subtest: local model progress opens the direct memory status view
+ok 258 - local model progress opens the direct memory status view
+  ---
+  duration_ms: 0.392958
+  type: 'test'
+  ...
+# Subtest: die Restzeit des Codes in Alltagswörtern
+ok 259 - die Restzeit des Codes in Alltagswörtern
+  ---
+  duration_ms: 1.691167
+  type: 'test'
+  ...
+# Subtest: jeder Stand hat einen Satz, und der Satz des Sidecars gewinnt bei Fehlern
+ok 260 - jeder Stand hat einen Satz, und der Satz des Sidecars gewinnt bei Fehlern
+  ---
+  duration_ms: 0.405458
+  type: 'test'
+  ...
+# Subtest: Microsoft zuerst nur bei Hochschule oder Firma, nicht bei privaten Konten
+ok 261 - Microsoft zuerst nur bei Hochschule oder Firma, nicht bei privaten Konten
+  ---
+  duration_ms: 0.221667
+  type: 'test'
+  ...
+# Subtest: die Sätze vorne tragen kein Fachwort und versprechen nur Lesen
+ok 262 - die Sätze vorne tragen kein Fachwort und versprechen nur Lesen
+  ---
+  duration_ms: 92.943834
+  type: 'test'
+  ...
+# Subtest: Nachfragen hört nach dem Ende auf und meldet danach nichts mehr
+ok 263 - Nachfragen hört nach dem Ende auf und meldet danach nichts mehr
+  ---
+  duration_ms: 39.433708
+  type: 'test'
+  ...
+# Subtest: Nach stop() kommt keine späte Antwort mehr an
+ok 264 - Nach stop() kommt keine späte Antwort mehr an
+  ---
+  duration_ms: 22.054875
+  type: 'test'
+  ...
+# Subtest: Die Bestätigung kommt auch aus dem gespeicherten Konto, falls die Anmeldekarte beim Neulesen verschwand
+ok 265 - Die Bestätigung kommt auch aus dem gespeicherten Konto, falls die Anmeldekarte beim Neulesen verschwand
+  ---
+  duration_ms: 0.401583
+  type: 'test'
+  ...
+# Subtest: Status und Knopf je Zeile
+ok 266 - Status und Knopf je Zeile
+  ---
+  duration_ms: 0.83775
+  type: 'test'
+  ...
+# Subtest: Alles einrichten überspringt Eingerichtetes und zählt jedes Modell nur einmal
+ok 267 - Alles einrichten überspringt Eingerichtetes und zählt jedes Modell nur einmal
+  ---
+  duration_ms: 18.665875
+  type: 'test'
+  ...
+# Subtest: Schon installierte Modelle zählen nicht zur Ladegröße
+ok 268 - Schon installierte Modelle zählen nicht zur Ladegröße
+  ---
+  duration_ms: 0.130416
+  type: 'test'
+  ...
+# Subtest: Fortschritt in Prozent, unbekannt bleibt unbekannt
+ok 269 - Fortschritt in Prozent, unbekannt bleibt unbekannt
+  ---
+  duration_ms: 0.19475
+  type: 'test'
+  ...
+# Subtest: Beschreibung des Ladevorgangs nennt Prozent, Prüfung, Ergebnis und Fehlergrund mit nächstem Schritt
+ok 270 - Beschreibung des Ladevorgangs nennt Prozent, Prüfung, Ergebnis und Fehlergrund mit nächstem Schritt
+  ---
+  duration_ms: 0.491334
+  type: 'test'
+  ...
+# Subtest: Cloud nur mit Anbieter, Schlüssel und Einwilligung
+ok 271 - Cloud nur mit Anbieter, Schlüssel und Einwilligung
+  ---
+  duration_ms: 0.103834
+  type: 'test'
+  ...
+# Subtest: watchPull meldet jeden Stand und endet mit dem Endstand
+ok 272 - watchPull meldet jeden Stand und endet mit dem Endstand
+  ---
+  duration_ms: 0.285208
+  type: 'test'
+  ...
+# Subtest: watchPull hält bei einem Fehlerstand an und gibt ihn zurück
+ok 273 - watchPull hält bei einem Fehlerstand an und gibt ihn zurück
+  ---
+  duration_ms: 0.149
+  type: 'test'
+  ...
+# Subtest: watchPull übersteht kurze Aussetzer, gibt aber nach mehreren in Folge auf
+ok 274 - watchPull übersteht kurze Aussetzer, gibt aber nach mehreren in Folge auf
+  ---
+  duration_ms: 0.5115
+  type: 'test'
+  ...
+# Subtest: watchPull hört auf, wenn die Ansicht verschwindet
+ok 275 - watchPull hört auf, wenn die Ansicht verschwindet
+  ---
+  duration_ms: 0.51575
+  type: 'test'
+  ...
+# Subtest: Die Zeile nennt Tag, Nacht, Festplatte und freien Platz in Alltagssprache
+ok 276 - Die Zeile nennt Tag, Nacht, Festplatte und freien Platz in Alltagssprache
+  ---
+  duration_ms: 0.265834
+  type: 'test'
+  ...
+# Subtest: Unbekannter Platz und unbekannte Modelle werden gesagt, nicht geraten
+ok 277 - Unbekannter Platz und unbekannte Modelle werden gesagt, nicht geraten
+  ---
+  duration_ms: 0.081542
+  type: 'test'
+  ...
+# Subtest: Cloud-Ordner tragen ihren Namen und sagen, dass sie abgeglichen sind
+ok 278 - Cloud-Ordner tragen ihren Namen und sagen, dass sie abgeglichen sind
+  ---
+  duration_ms: 2.527709
+  type: 'test'
+  ...
+# Subtest: Ohne Helfer am Mac wird im Browser gewählt
+ok 279 - Ohne Helfer am Mac wird im Browser gewählt
+  ---
+  duration_ms: 0.082584
+  type: 'test'
+  ...
+# Subtest: Der Vorgabeordner verspricht kein Fenster
+ok 280 - Der Vorgabeordner verspricht kein Fenster
+  ---
+  duration_ms: 0.122792
+  type: 'test'
+  ...
+# Subtest: Orte sagen, was ein Klick tut und was darin liegt
+ok 281 - Orte sagen, was ein Klick tut und was darin liegt
+  ---
+  duration_ms: 0.090791
+  type: 'test'
+  ...
+# Subtest: Nicht mehr zuordenbare Mitglieder einer Zusammenführung werden genannt
+ok 282 - Nicht mehr zuordenbare Mitglieder einer Zusammenführung werden genannt
+  ---
+  duration_ms: 2.070584
+  type: 'test'
+  ...
+# Subtest: Ohne solche Mitglieder oder bei unbekannter Zusammenführung bleibt die Liste leer
+ok 283 - Ohne solche Mitglieder oder bei unbekannter Zusammenführung bleibt die Liste leer
+  ---
+  duration_ms: 0.241
+  type: 'test'
+  ...
+# Subtest: Ein selbst gefundener Server heißt nach seinem Namen, ein Katalogeintrag nach dem Anbieter
+ok 284 - Ein selbst gefundener Server heißt nach seinem Namen, ein Katalogeintrag nach dem Anbieter
+  ---
+  duration_ms: 1.49275
+  type: 'test'
+  ...
+# Subtest: Was hinausgeht: nur die Domain, ein Satz
+ok 285 - Was hinausgeht: nur die Domain, ein Satz
+  ---
+  duration_ms: 0.240625
+  type: 'test'
+  ...
+# Subtest: Letzte Möglichkeit: Servername und Port, Vorgabe 993
+ok 286 - Letzte Möglichkeit: Servername und Port, Vorgabe 993
+  ---
+  duration_ms: 1.389416
+  type: 'test'
+  ...
+# Subtest: Angemeldet wird mit der Adresse, wo die Domain es sagt mit dem Namensteil
+ok 287 - Angemeldet wird mit der Adresse, wo die Domain es sagt mit dem Namensteil
+  ---
+  duration_ms: 0.086125
+  type: 'test'
+  ...
+# Subtest: Das Postfach heißt nach seiner Adresse
+ok 288 - Das Postfach heißt nach seiner Adresse
+  ---
+  duration_ms: 0.655167
+  type: 'test'
+  ...
+# Subtest: Die Frage nennt das Postfach und Pausieren auf Heute
+ok 289 - Die Frage nennt das Postfach und Pausieren auf Heute
+  ---
+  duration_ms: 0.142167
+  type: 'test'
+  ...
+# Subtest: Kein Verweis unter „Für Techniker“ fürs Pausieren im Assistenten
+ok 290 - Kein Verweis unter „Für Techniker“ fürs Pausieren im Assistenten
+  ---
+  duration_ms: 1.267042
+  type: 'test'
+  ...
+# Subtest: Ein Nebensatz steht nur bei einfach und dünn, und nur mit Anlass
+ok 291 - Ein Nebensatz steht nur bei einfach und dünn, und nur mit Anlass
+  ---
+  duration_ms: 0.697416
+  type: 'test'
+  ...
+# Subtest: Vom Prüfmodell verworfene Sätze werden gezählt, nicht versteckt
+ok 292 - Vom Prüfmodell verworfene Sätze werden gezählt, nicht versteckt
+  ---
+  duration_ms: 0.064291
+  type: 'test'
+  ...
+# Subtest: Der Fuß sagt, ob das Prüfmodell lief
+ok 293 - Der Fuß sagt, ob das Prüfmodell lief
+  ---
+  duration_ms: 0.1375
+  type: 'test'
+  ...
+# Subtest: Der Schalter sagt in einem Satz, was er tut, und wenn kein Modell da ist
+ok 294 - Der Schalter sagt in einem Satz, was er tut, und wenn kein Modell da ist
+  ---
+  duration_ms: 0.077958
+  type: 'test'
+  ...
+# Subtest: Die Modellkarte nennt die fehlende Prüfung
+ok 295 - Die Modellkarte nennt die fehlende Prüfung
+  ---
+  duration_ms: 0.057666
+  type: 'test'
+  ...
+# Subtest: Eine Nachricht aus diesem Gespräch wird angesprungen
+ok 296 - Eine Nachricht aus diesem Gespräch wird angesprungen
+  ---
+  duration_ms: 1.301625
+  type: 'test'
+  ...
+# Subtest: Eine Nachricht aus einem anderen Gespräch öffnet dieses Gespräch an der Nachricht
+ok 297 - Eine Nachricht aus einem anderen Gespräch öffnet dieses Gespräch an der Nachricht
+  ---
+  duration_ms: 0.128
+  type: 'test'
+  ...
+# Subtest: Mail, Termin und Dokument öffnen die Quellenansicht
+ok 298 - Mail, Termin und Dokument öffnen die Quellenansicht
+  ---
+  duration_ms: 0.060417
+  type: 'test'
+  ...
+# Subtest: Kennungen nur in der Zeile für Techniker
+ok 299 - Kennungen nur in der Zeile für Techniker
+  ---
+  duration_ms: 0.055666
+  type: 'test'
+  ...
+# Subtest: Ein beschädigtes Datenfeld zeigt keinen Knopf
+ok 300 - Ein beschädigtes Datenfeld zeigt keinen Knopf
+  ---
+  duration_ms: 0.0785
+  type: 'test'
+  ...
+# Subtest: Die Gesprächsseite zeigt die Quellen unter jeder belegten Antwort
+ok 301 - Die Gesprächsseite zeigt die Quellen unter jeder belegten Antwort
+  ---
+  duration_ms: 0.396041
+  type: 'test'
+  ...
+# Subtest: known relation names use ordinary language without resolving the subject
+ok 302 - known relation names use ordinary language without resolving the subject
+  ---
+  duration_ms: 1.105208
+  type: 'test'
+  ...
+# Subtest: unknown relations use a neutral fallback and never expose an opaque identifier
+ok 303 - unknown relations use a neutral fallback and never expose an opaque identifier
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: untrusted relation names cannot resolve inherited Object members
+ok 304 - untrusted relation names cannot resolve inherited Object members
+  ---
+  duration_ms: 0.097042
+  type: 'test'
+  ...
+# Subtest: Drei Fähigkeiten decken alle Aufgaben genau einmal ab
+ok 305 - Drei Fähigkeiten decken alle Aufgaben genau einmal ab
+  ---
+  duration_ms: 1.440958
+  type: 'test'
+  ...
+# Subtest: Nicht bestanden heißt nicht „Fehlt“, und Laden zeigt den Fortschritt
+ok 306 - Nicht bestanden heißt nicht „Fehlt“, und Laden zeigt den Fortschritt
+  ---
+  duration_ms: 0.278791
+  type: 'test'
+  ...
+# Subtest: Antworten ist erst bereit, wenn alle drei Aufgaben dazu bereit sind
+ok 307 - Antworten ist erst bereit, wenn alle drei Aufgaben dazu bereit sind
+  ---
+  duration_ms: 0.080917
+  type: 'test'
+  ...
+# Subtest: Die Ausstattung in einem Satz, ohne Chip und ohne Frage an den Menschen
+ok 308 - Die Ausstattung in einem Satz, ohne Chip und ohne Frage an den Menschen
+  ---
+  duration_ms: 13.311125
+  type: 'test'
+  ...
+# Subtest: Größe und Dauer des Ladens aus einer Quelle; nichts zu laden heißt leer (Fremdprobe 2, Befund 6)
+ok 309 - Größe und Dauer des Ladens aus einer Quelle; nichts zu laden heißt leer (Fremdprobe 2, Befund 6)
+  ---
+  duration_ms: 0.342917
+  type: 'test'
+  ...
+# Subtest: Am Ende genau ein Satz: alles, teilweise oder nichts; nie „Fast alles“ (Fremdprobe 2, Befund 7)
+ok 310 - Am Ende genau ein Satz: alles, teilweise oder nichts; nie „Fast alles“ (Fremdprobe 2, Befund 7)
+  ---
+  duration_ms: 0.2475
+  type: 'test'
+  ...
+# Subtest: Jedes Problem steht einmal, nicht je Aufgabe einer Fähigkeit (Befund 7)
+ok 311 - Jedes Problem steht einmal, nicht je Aufgabe einer Fähigkeit (Befund 7)
+  ---
+  duration_ms: 0.134041
+  type: 'test'
+  ...
+# Subtest: Anderes Modell nehmen versucht jedes Modell höchstens einmal
+ok 312 - Anderes Modell nehmen versucht jedes Modell höchstens einmal
+  ---
+  duration_ms: 0.06425
+  type: 'test'
+  ...
+# Subtest: Vorne keine Modellnamen: der Schritt nutzt die Karte mit Fähigkeiten, Namen nur im Aufklapper
+ok 313 - Vorne keine Modellnamen: der Schritt nutzt die Karte mit Fähigkeiten, Namen nur im Aufklapper
+  ---
+  duration_ms: 1.230834
+  type: 'test'
+  ...
+# Subtest: Die Arten sind die des Sidecars, in der Reihenfolge der Auswahl
+ok 314 - Die Arten sind die des Sidecars, in der Reihenfolge der Auswahl
+  ---
+  duration_ms: 1.267333
+  type: 'test'
+  ...
+# Subtest: Zählsatz nennt Anzahl und offene, ohne Prozent
+ok 315 - Zählsatz nennt Anzahl und offene, ohne Prozent
+  ---
+  duration_ms: 0.28825
+  type: 'test'
+  ...
+# Subtest: Kürzen schneidet am Wortende und lässt Kurzes stehen
+ok 316 - Kürzen schneidet am Wortende und lässt Kurzes stehen
+  ---
+  duration_ms: 0.372209
+  type: 'test'
+  ...
+# Subtest: Gemeldet werden nur fertige Antworten, keine Rückfragen
+ok 317 - Gemeldet werden nur fertige Antworten, keine Rückfragen
+  ---
+  duration_ms: 0.125292
+  type: 'test'
+  ...
+# Subtest: Die Oberfläche nennt keinen Befehl, sondern was aus einer Meldung wird
+ok 318 - Die Oberfläche nennt keinen Befehl, sondern was aus einer Meldung wird
+  ---
+  duration_ms: 36.780542
+  type: 'test'
+  ...
+# Subtest: keine Seite hat eine Mindestbreite: weder global noch in einer einzelnen Regel
+ok 319 - keine Seite hat eine Mindestbreite: weder global noch in einer einzelnen Regel
+  ---
+  duration_ms: 18.0175
+  type: 'test'
+  ...
+# Subtest: die Breitenregeln gelten für alle Seiten und werden zuletzt geladen
+ok 320 - die Breitenregeln gelten für alle Seiten und werden zuletzt geladen
+  ---
+  duration_ms: 0.4525
+  type: 'test'
+  ...
+# Subtest: der leere Zustand im Gedächtnis sagt in einem Satz, woher Einträge kommen, und verweist dorthin
+ok 321 - der leere Zustand im Gedächtnis sagt in einem Satz, woher Einträge kommen, und verweist dorthin
+  ---
+  duration_ms: 0.772292
+  type: 'test'
+  ...
+# Subtest: die Navigation als Streifen rollt nicht und steht nur in Seitenbreite.css
+ok 322 - die Navigation als Streifen rollt nicht und steht nur in Seitenbreite.css
+  ---
+  duration_ms: 5.933958
+  type: 'test'
+  ...
+# Subtest: Ohne Helfer der Download, mit Helfer dessen Weg
+ok 323 - Ohne Helfer der Download, mit Helfer dessen Weg
+  ---
+  duration_ms: 0.919084
+  type: 'test'
+  ...
+# Subtest: Kein Satz mehr, der auf einen fehlenden Helfer verweist
+ok 324 - Kein Satz mehr, der auf einen fehlenden Helfer verweist
+  ---
+  duration_ms: 0.658625
+  type: 'test'
+  ...
+# Subtest: ein Passwortfeld, das sich anzeigen lässt; keine Wiederholung
+ok 325 - ein Passwortfeld, das sich anzeigen lässt; keine Wiederholung
+  ---
+  duration_ms: 0.212708
+  type: 'test'
+  ...
+# Subtest: Gewählt wird aus einer Liste, nicht getippt; ein früherer Wert außerhalb der Liste bleibt sichtbar
+ok 326 - Gewählt wird aus einer Liste, nicht getippt; ein früherer Wert außerhalb der Liste bleibt sichtbar
+  ---
+  duration_ms: 21.768458
+  type: 'test'
+  ...
+# Subtest: Eine Quelle steht im Singular, nie „Alle 1 Quellen“
+ok 327 - Eine Quelle steht im Singular, nie „Alle 1 Quellen“
+  ---
+  duration_ms: 0.240875
+  type: 'test'
+  ...
+# Subtest: Größen stehen für Menschen da: unbekannt, klein, MB, GB
+ok 328 - Größen stehen für Menschen da: unbekannt, klein, MB, GB
+  ---
+  duration_ms: 0.687583
+  type: 'test'
+  ...
+# Subtest: Der Stand nennt bei 0 alle Quellen, sonst die Aufteilung, und immer die Größe
+ok 329 - Der Stand nennt bei 0 alle Quellen, sonst die Aufteilung, und immer die Größe
+  ---
+  duration_ms: 0.187292
+  type: 'test'
+  ...
+# Subtest: Nach dem Umbau steht, was geschah
+ok 330 - Nach dem Umbau steht, was geschah
+  ---
+  duration_ms: 0.325916
+  type: 'test'
+  ...
+# Subtest: {Rechner} wird auf dem Mac „Mac“, sonst „Rechner“; bis die Angabe da ist, gilt „Rechner“
+ok 331 - {Rechner} wird auf dem Mac „Mac“, sonst „Rechner“; bis die Angabe da ist, gilt „Rechner“
+  ---
+  duration_ms: 0.662875
+  type: 'test'
+  ...
+# Subtest: was nur ein Mac-Helfer kann, sagt auf dem Mac, was zu tun ist, und sonst ehrlich, dass es das hier nicht gibt
+ok 332 - was nur ein Mac-Helfer kann, sagt auf dem Mac, was zu tun ist, und sonst ehrlich, dass es das hier nicht gibt
+  ---
+  duration_ms: 0.262667
+  type: 'test'
+  ...
+# Subtest: kein fester Mac-Satz in der Oberfläche: Texte gehen durch fuerSystem oder nurAufDemMac
+ok 333 - kein fester Mac-Satz in der Oberfläche: Texte gehen durch fuerSystem oder nurAufDemMac
+  ---
+  duration_ms: 21.563833
+  type: 'test'
+  ...
+# Subtest: Tastenhinweis am Suchfeld: ⌘ K auf dem Mac, Strg K sonst, keiner auf Touchgeräten (Fremdprobe 2, Befund 11)
+ok 334 - Tastenhinweis am Suchfeld: ⌘ K auf dem Mac, Strg K sonst, keiner auf Touchgeräten (Fremdprobe 2, Befund 11)
+  ---
+  duration_ms: 0.40625
+  type: 'test'
+  ...
+# Subtest: next/back preserve selection and search; refresh starts a fresh complete list
+ok 335 - next/back preserve selection and search; refresh starts a fresh complete list
+  ---
+  duration_ms: 1.433042
+  type: 'test'
+  ...
+# Subtest: late responses cannot overwrite a newer view or a disposed screen
+ok 336 - late responses cannot overwrite a newer view or a disposed screen
+  ---
+  duration_ms: 0.1215
+  type: 'test'
+  ...
+# Subtest: a changed snapshot recovers at the first page with a visible notice
+ok 337 - a changed snapshot recovers at the first page with a visible notice
+  ---
+  duration_ms: 0.266958
+  type: 'test'
+  ...
+# Subtest: failed loads clear the old list and block navigation until a fresh result
+ok 338 - failed loads clear the old list and block navigation until a fresh result
+  ---
+  duration_ms: 0.109834
+  type: 'test'
+  ...
+# Subtest: datetime-local roundtrip keeps the local wall time and rejects invalid calendar or DST gap values
+ok 339 - datetime-local roundtrip keeps the local wall time and rejects invalid calendar or DST gap values
+  ---
+  duration_ms: 3.66825
+  type: 'test'
+  ...
+# Subtest: tomorrow at nine uses local calendar arithmetic across both DST changes
+ok 340 - tomorrow at nine uses local calendar arithmetic across both DST changes
+  ---
+  duration_ms: 0.474416
+  type: 'test'
+  ...
+# Subtest: displaying a saved reminder uses the machine local time
+ok 341 - displaying a saved reminder uses the machine local time
+  ---
+  duration_ms: 14.291458
+  type: 'test'
+  ...
+# Subtest: task edit keeps reminder independent from due date and saves only a changed reminder
+ok 342 - task edit keeps reminder independent from due date and saves only a changed reminder
+  ---
+  duration_ms: 0.126083
+  type: 'test'
+  ...
+# Subtest: an unchanged form retains the exact original instant; an edit or clear guards that original
+ok 343 - an unchanged form retains the exact original instant; an edit or clear guards that original
+  ---
+  duration_ms: 0.814792
+  type: 'test'
+  ...
+# Subtest: task history includes the reminder in its reload revision and reports reminder changes
+ok 344 - task history includes the reminder in its reload revision and reports reminder changes
+  ---
+  duration_ms: 0.061583
+  type: 'test'
+  ...
+# Subtest: Today reminders fetch bounded data, open exact tasks, do not confuse reminder with completion, and guard updates
+ok 345 - Today reminders fetch bounded data, open exact tasks, do not confuse reminder with completion, and guard updates
+  ---
+  duration_ms: 0.155
+  type: 'test'
+  ...
+# Subtest: Today reminders distinguish an empty result from a failed refresh and expose the cap
+ok 346 - Today reminders distinguish an empty result from a failed refresh and expose the cap
+  ---
+  duration_ms: 0.052042
+  type: 'test'
+  ...
+# Subtest: task review uses bounded pages and offers all, recent, and review filters
+ok 347 - task review uses bounded pages and offers all, recent, and review filters
+  ---
+  duration_ms: 0.715083
+  type: 'test'
+  ...
+# Subtest: task review keeps per-candidate edits when navigating and clamps after removals
+ok 348 - task review keeps per-candidate edits when navigating and clamps after removals
+  ---
+  duration_ms: 0.119083
+  type: 'test'
+  ...
+# Subtest: task review hides a page while loading or when its offset/filter is stale
+ok 349 - task review hides a page while loading or when its offset/filter is stale
+  ---
+  duration_ms: 51.547209
+  type: 'test'
+  ...
+# Subtest: only later task pages send their filter generation
+ok 350 - only later task pages send their filter generation
+  ---
+  duration_ms: 0.182834
+  type: 'test'
+  ...
+# Subtest: pagination carries a generation token and handles stale queues without retry loops
+ok 351 - pagination carries a generation token and handles stale queues without retry loops
+  ---
+  duration_ms: 0.1175
+  type: 'test'
+  ...
+# Subtest: task links retain exact identity even for waiting or completed tasks
+ok 352 - task links retain exact identity even for waiting or completed tasks
+  ---
+  duration_ms: 0.676084
+  type: 'test'
+  ...
+# Subtest: a selected task day is due at its local end, including DST changes
+ok 353 - a selected task day is due at its local end, including DST changes
+  ---
+  duration_ms: 1.50775
+  type: 'test'
+  ...
+# Subtest: only a single unconditional absolute deadline is offered, never an import-relative guess
+ok 354 - only a single unconditional absolute deadline is offered, never an import-relative guess
+  ---
+  duration_ms: 1.405333
+  type: 'test'
+  ...
+# Subtest: an unchanged source deadline retains its exact time; a newly chosen day is explicit
+ok 355 - an unchanged source deadline retains its exact time; a newly chosen day is explicit
+  ---
+  duration_ms: 0.225875
+  type: 'test'
+  ...
+# Subtest: deadline field and unchanged-time comparison use the same local calendar day
+ok 356 - deadline field and unchanged-time comparison use the same local calendar day
+  ---
+  duration_ms: 0.840084
+  type: 'test'
+  ...
+# Subtest: Ausstattung: eine Aussage, selbst gemessen oder gemeldet, nie „Chip unbekannt“ und „noch unbekannt“ zugleich
+ok 357 - Ausstattung: eine Aussage, selbst gemessen oder gemeldet, nie „Chip unbekannt“ und „noch unbekannt“ zugleich
+  ---
+  duration_ms: 13.679458
+  type: 'test'
+  ...
+# Subtest: richtige Einzahl bei Dokumenten
+ok 358 - richtige Einzahl bei Dokumenten
+  ---
+  duration_ms: 0.074958
+  type: 'test'
+  ...
+# Subtest: Kostenwarnung nur bei einem Modell außerhalb dieses Rechners, und dann welches (Befund 28)
+ok 359 - Kostenwarnung nur bei einem Modell außerhalb dieses Rechners, und dann welches (Befund 28)
+  ---
+  duration_ms: 0.08675
+  type: 'test'
+  ...
+# Subtest: Was zuletzt lief: entweder Fehler mit Grund oder „nichts zu tun“, nie beides (Befund 29)
+ok 360 - Was zuletzt lief: entweder Fehler mit Grund oder „nichts zu tun“, nie beides (Befund 29)
+  ---
+  duration_ms: 0.268125
+  type: 'test'
+  ...
+# Subtest: exact source excerpts remain visibly proposed and belong to the displayed chronology
+ok 361 - exact source excerpts remain visibly proposed and belong to the displayed chronology
+  ---
+  duration_ms: 2.2105
+  type: 'test'
+  ...
+# Subtest: invented quotes, wrong source identities and inferred source dates are rejected
+ok 362 - invented quotes, wrong source identities and inferred source dates are rejected
+  ---
+  duration_ms: 0.164208
+  type: 'test'
+  ...
+# Subtest: Übernehmen gibt es nur unter einer fertigen Antwort in Sätzen
+ok 363 - Übernehmen gibt es nur unter einer fertigen Antwort in Sätzen
+  ---
+  duration_ms: 0.678666
+  type: 'test'
+  ...
+# Subtest: Vorgabe: alle Sätze ohne Hinweis, ohne Dopplung und ohne früheren Vorschlag
+ok 364 - Vorgabe: alle Sätze ohne Hinweis, ohne Dopplung und ohne früheren Vorschlag
+  ---
+  duration_ms: 0.693334
+  type: 'test'
+  ...
+# Subtest: Texte: Zählung, Ergebnis je Satz und Satz über den Vorschlägen
+ok 365 - Texte: Zählung, Ergebnis je Satz und Satz über den Vorschlägen
+  ---
+  duration_ms: 0.140625
+  type: 'test'
+  ...
+# Subtest: läuft das Sortieren, steht kein „wenn du es einschaltest“ und kein Modellname da
+ok 366 - läuft das Sortieren, steht kein „wenn du es einschaltest“ und kein Modellname da
+  ---
+  duration_ms: 1.506667
+  type: 'test'
+  ...
+# Subtest: statt der Kacheln ein Satz zur Prüfung, mit „du musst nichts tun“ bei Fehlschlägen
+ok 367 - statt der Kacheln ein Satz zur Prüfung, mit „du musst nichts tun“ bei Fehlschlägen
+  ---
+  duration_ms: 0.162292
+  type: 'test'
+  ...
+# Subtest: vorne keine Kacheln mit „Prüflauf“; sie stehen nur hinter „Für Techniker“
+ok 368 - vorne keine Kacheln mit „Prüflauf“; sie stehen nur hinter „Für Techniker“
+  ---
+  duration_ms: 0.375792
+  type: 'test'
+  ...
+# Subtest: Vorgemerkt, während das Sprachmodell lädt: „An“, nicht „Pausiert“, und kein „wenn du es einschaltest“ (Fremdprobe 3, Befund 3)
+ok 369 - Vorgemerkt, während das Sprachmodell lädt: „An“, nicht „Pausiert“, und kein „wenn du es einschaltest“ (Fremdprobe 3, Befund 3)
+  ---
+  duration_ms: 0.097208
+  type: 'test'
+  ...
+# Subtest: Fortschritt und Stand sagen dasselbe (Fremdprobe 3, Befund 12)
+ok 370 - Fortschritt und Stand sagen dasselbe (Fremdprobe 3, Befund 12)
+  ---
+  duration_ms: 0.138084
+  type: 'test'
+  ...
+# Subtest: Ein Verweis nennt den Weg und springt genau dorthin
+ok 371 - Ein Verweis nennt den Weg und springt genau dorthin
+  ---
+  duration_ms: 1.562583
+  type: 'test'
+  ...
+# Subtest: Ein Ziel, das es nicht gibt, ist ein Fehler im Code und kein stiller Sprung woandershin
+ok 372 - Ein Ziel, das es nicht gibt, ist ein Fehler im Code und kein stiller Sprung woandershin
+  ---
+  duration_ms: 0.274667
+  type: 'test'
+  ...
+# Subtest: Das pausierte Einlesen verweist auf den Zeitplan
+ok 373 - Das pausierte Einlesen verweist auf den Zeitplan
+  ---
+  duration_ms: 0.373833
+  type: 'test'
+  ...
+# Subtest: Einrichtung und Briefing nennen Einstellungen nur als Verweis
+ok 374 - Einrichtung und Briefing nennen Einstellungen nur als Verweis
+  ---
+  duration_ms: 2.387208
+  type: 'test'
+  ...
+# Subtest: Globale Pause wird im Assistenten auch bei unbekanntem Umfang nicht als Lesen ausgegeben
+ok 375 - Globale Pause wird im Assistenten auch bei unbekanntem Umfang nicht als Lesen ausgegeben
+  ---
+  duration_ms: 0.1685
+  type: 'test'
+  ...
+# Subtest: Ohne Startort gesperrt, und es fehlt der Startort
+ok 376 - Ohne Startort gesperrt, und es fehlt der Startort
+  ---
+  duration_ms: 1.253584
+  type: 'test'
+  ...
+# Subtest: Ohne Kartendienst gesperrt, und es fehlt der Dienst
+ok 377 - Ohne Kartendienst gesperrt, und es fehlt der Dienst
+  ---
+  duration_ms: 0.065458
+  type: 'test'
+  ...
+# Subtest: Kann es rechnen, ist der Schalter frei
+ok 378 - Kann es rechnen, ist der Schalter frei
+  ---
+  duration_ms: 0.050125
+  type: 'test'
+  ...
+# Subtest: Ausschalten ist nie gesperrt, auch wenn inzwischen etwas fehlt
+ok 379 - Ausschalten ist nie gesperrt, auch wenn inzwischen etwas fehlt
+  ---
+  duration_ms: 0.058292
+  type: 'test'
+  ...
+# Subtest: Die Marke im Assistenten folgt dem Schalter ohne Neuladen
+ok 380 - Die Marke im Assistenten folgt dem Schalter ohne Neuladen
+  ---
+  duration_ms: 0.302083
+  type: 'test'
+  ...
+# Subtest: eine Vorgabe ist an, abbestellt oder aus, je nachdem, ob und wie sie hinzugefügt wurde
+ok 381 - eine Vorgabe ist an, abbestellt oder aus, je nachdem, ob und wie sie hinzugefügt wurde
+  ---
+  duration_ms: 1.434708
+  type: 'test'
+  ...
+# Subtest: eigene Quellen sind die Feeds, die nicht aus der Vorgabeliste stammen
+ok 382 - eigene Quellen sind die Feeds, die nicht aus der Vorgabeliste stammen
+  ---
+  duration_ms: 0.091459
+  type: 'test'
+  ...
+# Subtest: die Adresse: ohne Schema kommt https davor, Leerzeichen und Namen ohne Punkt sind keine Adresse
+ok 383 - die Adresse: ohne Schema kommt https davor, Leerzeichen und Namen ohne Punkt sind keine Adresse
+  ---
+  duration_ms: 0.312291
+  type: 'test'
+  ...
+# Subtest: unter den Vorgaben steht, von wann die Liste ist und dass die Adressen nicht abgerufen wurden
+ok 384 - unter den Vorgaben steht, von wann die Liste ist und dass die Adressen nicht abgerufen wurden
+  ---
+  duration_ms: 13.879084
+  type: 'test'
+  ...
+# Subtest: die Oberfläche schaltet mit einem Klick ein und mit dem zweiten aus, und legt nichts ohne Klick an
+ok 385 - die Oberfläche schaltet mit einem Klick ein und mit dem zweiten aus, und legt nichts ohne Klick an
+  ---
+  duration_ms: 0.477959
+  type: 'test'
+  ...
+# Subtest: ohne Vorschlag und ohne Aussage keine Karte
+ok 386 - ohne Vorschlag und ohne Aussage keine Karte
+  ---
+  duration_ms: 0.653959
+  type: 'test'
+  ...
+# Subtest: ein Vorschlag heißt Vorschlag, eine angenommene Aussage steht fest
+ok 387 - ein Vorschlag heißt Vorschlag, eine angenommene Aussage steht fest
+  ---
+  duration_ms: 0.063459
+  type: 'test'
+  ...
+# Subtest: Titel nach Inhalt, Antwort in einem Satz
+ok 388 - Titel nach Inhalt, Antwort in einem Satz
+  ---
+  duration_ms: 0.13225
+  type: 'test'
+  ...
+# Subtest: /world öffnet die eigene Quellenansicht und Today verlinkt sie außerhalb des leeren Tagesbereichs
+ok 389 - /world öffnet die eigene Quellenansicht und Today verlinkt sie außerhalb des leeren Tagesbereichs
+  ---
+  duration_ms: 1.192458
+  type: 'test'
+  ...
+# Subtest: die Quellenansicht zeigt alle registrierten Quellen auch ohne Zielüberschneidung
+ok 390 - die Quellenansicht zeigt alle registrierten Quellen auch ohne Zielüberschneidung
+  ---
+  duration_ms: 0.278958
+  type: 'test'
+  ...
+# Subtest: Quellenkarten zeigen Weiterleitungsziel und gespeicherten Text-Hash mit klarer Abrufzeit
+ok 391 - Quellenkarten zeigen Weiterleitungsziel und gespeicherten Text-Hash mit klarer Abrufzeit
+  ---
+  duration_ms: 0.158208
+  type: 'test'
+  ...
+1..391
+# tests 391
+# suites 0
+# pass 391
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1199.138625

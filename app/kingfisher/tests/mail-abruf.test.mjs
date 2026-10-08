@@ -49,7 +49,8 @@ test("ein Schalter und eine Auswahl, kein Zahlenfeld und keines der alten Fachw�
 
 test("ausgefilterte Mails können ausdrücklich und manuell erneut geprüft werden", () => {
   const intake = quelle("MailIntake.tsx");
-  assert.match(intake, /progress\.filtered\s*>\s*0/);
+  assert.match(intake, /const filtered = progress\.filtered \+ progress\.liveFiltered/);
+  assert.match(intake, /filtered\s*>\s*0/);
   assert.match(sichtbar(intake), /Ausgefilterte Mails(?: und Fehler)? erneut prüfen/);
   assert.match(intake, /mit den aktuellen Regeln erneut geprüft/);
   assert.match(intake, /nicht automatisch/);
