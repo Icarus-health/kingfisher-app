@@ -214,6 +214,30 @@ def test_ordinary_source_correction_remains_available_through_sql_reads(stores):
     assert all(correction_id in ids for ids in retrieved(episodes))
 
 
+@pytest.mark.parametrize("is_attachment,edges,usable", [
+    (True, 6, True), (True, 7, False), (True, 8, False),
+    (False, 7, True), (False, 8, False),
+])
+def test_correction_depth_matches_snapshot_and_all_sql_read_gates(stores, is_attachment, edges, usable):
+    episodes, _, _ = stores
+    if is_attachment:
+        source = attachment(stores, mail(stores))
+    else:
+        source, _ = episodes.record(EpisodeKind.DOCUMENT, "Original", MARKER, Provenance(SourceType.DOCUMENT))
+    # Build stored historical chains directly, including depths which today's
+    # correction service would reject. Every link has the real target fingerprint.
+    for level in range(edges):
+        episodes.ignore(source.id)
+        target = episodes.support_snapshot(source.id)
+        key = "source-correction:" + source.id
+        source, _ = episodes.record(EpisodeKind.MESSAGE, "Correction", f"{MARKER} correction {level}",
+            Provenance(SourceType.MANUAL_CORRECTION, source_ref=f"{key}:{target.support_fingerprint()}"),
+            source_key=key, tags=["source:correction"])
+        episodes.advance_source_head(key, None, source.id)
+    assert episodes.support_snapshot(source.id).current() is usable
+    assert [source.id in ids for ids in retrieved(episodes)] == [usable, usable, usable]
+
+
 def test_mail_attachment_report_is_advisory_idempotent_and_ignored_source_safe(stores):
     episodes, _, _ = stores
     parent = mail(stores)

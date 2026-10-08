@@ -218,16 +218,21 @@ def mail_attachment_parent(connection, source_key, tags):
     return True, rows[0][0] if len(rows) == 1 and rows[0][1] == 'message' else None
 
 
+def _sql_is_mail_attachment(alias: str) -> str:
+    return (f"({alias}.source_key GLOB 'mail:*:anhang:*' OR EXISTS "
+            f"(SELECT 1 FROM json_each({alias}.document, '$.tags') mt "
+            "WHERE mt.value='anhang' OR mt.value LIKE 'mail-parent:%'))")
+
+
 def _sql_direct_mail_parent_valid(alias: str) -> str:
     """Mirror snapshot parent binding before source text reaches SQL consumers."""
     key = f"{alias}.source_key"
     links = f"json_each({alias}.document, '$.tags')"
     tagged = f"(SELECT COUNT(*) FROM {links} mt WHERE mt.value LIKE 'mail-parent:%')"
-    attachment = f"({key} GLOB 'mail:*:anhang:*' OR EXISTS (SELECT 1 FROM {links} mt WHERE mt.value='anhang' OR mt.value LIKE 'mail-parent:%'))"
     key_valid = (f"substr({key},1,5)='mail:' AND length(substr({key},6,64))=64 "
                  f"AND substr({key},6,64) NOT GLOB '*[^0-9a-f]*' AND substr({key},70,8)=':anhang:' "
                  f"AND substr({key},78) GLOB '[1-9]*' AND substr({key},78) NOT GLOB '*[^0-9]*'")
-    return (f"(CASE WHEN {attachment} THEN ({key_valid} AND EXISTS (SELECT 1 FROM episodes mp "
+    return (f"(CASE WHEN {_sql_is_mail_attachment(alias)} THEN ({key_valid} AND EXISTS (SELECT 1 FROM episodes mp "
             f"WHERE mp.source_key=substr({key},1,69) AND mp.kind='message' AND mp.state!='ignored' "
             "AND EXISTS (SELECT 1 FROM source_heads mh WHERE mh.source_key=mp.source_key AND mh.episode_id=mp.id) "
             f"AND (({tagged}=1 AND EXISTS (SELECT 1 FROM {links} mt WHERE mt.value='mail-parent:'||mp.id)) "
@@ -237,17 +242,19 @@ def _sql_direct_mail_parent_valid(alias: str) -> str:
 def sql_mail_parent_valid(alias: str = "episodes") -> str:
     """Include attachment ancestry of corrections without reopening their targets.
 
-    Missing targets, cycles and overlong chains fail closed. Ordinary sources
-    use the direct predicate; only corrections require the bounded traversal.
+    Missing targets, cycles and overlong chains fail closed. The snapshot allows
+    eight reads including the source; an attachment also needs its parent read.
+    Ordinary sources use the direct predicate; only corrections traverse.
     """
     return (f"(CASE WHEN {alias}.source_key GLOB 'source-correction:*' THEN ("
             "WITH RECURSIVE attachment_lineage(id,source_key,document,depth) AS ("
             f"SELECT {alias}.id,{alias}.source_key,{alias}.document,0 UNION ALL "
             "SELECT t.id,t.source_key,t.document,l.depth+1 FROM attachment_lineage l "
             "JOIN episodes t ON t.id=substr(l.source_key,19) "
-            "WHERE l.source_key GLOB 'source-correction:*' AND l.depth<8) "
+            "WHERE l.source_key GLOB 'source-correction:*' AND l.depth<7) "
             "SELECT EXISTS (SELECT 1 FROM attachment_lineage l WHERE l.source_key NOT GLOB 'source-correction:*') "
             f"AND NOT EXISTS (SELECT 1 FROM attachment_lineage l WHERE NOT {_sql_direct_mail_parent_valid('l')})"
+            f" AND NOT EXISTS (SELECT 1 FROM attachment_lineage l WHERE l.depth>=7 AND {_sql_is_mail_attachment('l')})"
             f") ELSE {_sql_direct_mail_parent_valid(alias)} END)")
 
 
