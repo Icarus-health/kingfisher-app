@@ -51,3 +51,8 @@ Der [Liefernachweis](runs/2026-10-08-cos-delivery/README.md) dokumentiert Ziele 
 Der echte lokale Antwortweg findet bei 16 direkten Fragen die erwarteten Quellen, aber nur bei 8 von 16 Umschreibungen. Die unabhängige Inhaltsprüfung fand außerdem erfundene Datumspräzision; Import- und Anzeigedaten dürfen jetzt keine fehlenden Quelldaten ersetzen. Zeitliche Anwendbarkeit und eine abgeschwächte Uhrzeitbedingung bleiben offen. Die Abnahme des gesamten Gedächtnisses und des täglichen CoS ist dadurch **nicht erreicht**.
 
 Nächste Kernarbeit: Kandidatenfund und Modellauswahl getrennt prüfen, Umschreibungen mit unabhängigen Kontrollen verbessern, danach Bedingungen und aktuelle Gültigkeit am Original absichern. Reale Quellenabdeckung und Alltags-/Akkutest bleiben gesonderte Nachweise. Mehr Module oder größere Modelle ersetzen diese Abnahme nicht.
+
+
+### Ergänzung: Abrufstufen und Uhrzeitbedingungen
+
+Der [getrennte Nachweis](runs/2026-10-08-retrieval-stages/README.md) ergänzt echte Aufrufspuren für Kandidatenfund, Modellauswahl und Anzeige. Die nachgewiesene Abschwächung „erst nach 10 Uhr“ → „ab 10 Uhr“ wird nun von der gemeinsamen Satzprüfung verworfen; erkannte Zeitfenster bleiben gepaart, gespeicherte Antworten fallen bei dieser Abweichung auf Originalzitate zurück. 519 betroffene Tests und ein unabhängiges Review sind abgeschlossen. Dies schließt den konkret beobachteten Uhrzeitfehler, keine allgemeine Bedeutungsprüfung. Zeitliche Anwendbarkeit, der frische echte Modellvergleich, Quellenvollständigkeit und native Alltagsbedienung bleiben offen. Die frühere Quote von 8/16 umformulierten Fragen ist dadurch nicht verbessert nachgewiesen.

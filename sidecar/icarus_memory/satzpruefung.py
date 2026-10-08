@@ -41,7 +41,12 @@ Grenzen (bewusst): Die Prüfung erkennt keine falsche Zuordnung von Zahlen zu
 Sachverhalten („12 Personen“ statt „12 Euro“ bei beiden im Beleg) und keine
 sinnverdrehende Umstellung ohne Verneinungswort. Sie ist ein Sieb gegen
 Erfundenes, keine Wahrheitsprüfung; deshalb steht neben jedem Satz sein Beleg.
-Was der Beleg selbst behauptet, prüft sie nicht.
+Explizite Uhrzeitgrenzen werden nur für erkannte Formen wie „erst nach 10 Uhr“,
+„ab 10 Uhr“, „nicht vor 10 Uhr“, „bis 10 Uhr“ sowie erkannte gepaarte
+Uhrzeitbereiche verglichen; das ist keine
+allgemeine Bedeutungs- oder Satzklammerprüfung. Wenn mehrere Ereignisse dieselbe
+Uhrzeit mit verschiedenen Grenzen verbinden, kann der Vergleich eine Aussage
+vorsichtshalber zurückweisen. Was der Beleg selbst behauptet, prüft sie nicht.
 """
 from __future__ import annotations
 
@@ -179,10 +184,24 @@ def daten_in(text: str) -> tuple[list[Datum], str]:
 
 # -- Uhrzeiten, Adressen, Kennungen, Zahlen ------------------------------------
 
-_ZEIT_BEREICH = re.compile(r'(?<![\d.:])(\d{1,2})(?::([0-5]\d))?\s*(?:[-–]|bis)\s*(\d{1,2})(?::([0-5]\d))?\s*Uhr\b', re.I)
+# Both patterns keep four groups: start hour/minute, end hour/minute.
+# A bare end hour requires Uhr/h; colon minutes are independently recognizable.
+_BEREICH_ANFANG = r'(\d{1,2})(?:[.:]([0-5]\d))?\s*(?:(?:Uhr|h)\s*)?'
+_ZEIT_BEREICHE = tuple(re.compile(prefix + _BEREICH_ANFANG + separator + ende, re.I)
+    for prefix, separator in ((r'\bzwischen\s+', r'und\s*'), (r'(?<![\d.:])', r'(?:[-–]|bis)\s*'))
+    for ende in (r'(\d{1,2})(?:[.:]([0-5]\d))?\s*(?:Uhr|h)\b',
+                 r'(\d{1,2}):([0-5]\d)(?!\d)(?:\s*(?:Uhr|h)\b)?'))
+_BEREICH_ZUSATZ = re.compile(r'\b((?:(?:erst|nur|nicht|frühestens|spätestens)\s+){1,2})(?:(?:von|zwischen)\s+)?$', re.I)
 _ZEIT_DOPPELPUNKT = re.compile(r'(?<![\d:.])([01]?\d|2[0-3]):([0-5]\d)(?!\d)(?:\s*(?:Uhr|h)\b)?', re.I)
 _ZEIT_PUNKT = re.compile(r'(?<![\d.])([01]?\d|2[0-3])\.([0-5]\d)\s*(?:Uhr|h)\b', re.I)
 _ZEIT_UHR = re.compile(r'(?<![\d.:])([01]?\d|2[0-3])\s*(?:Uhr|h)\b(?:\s*([0-5]\d)(?!\d))?', re.I)
+_ZEITBEDINGUNG = re.compile(
+    r'\b(?P<zusatz>(?:(?:erst|nur|nicht|frühestens|spätestens)\s+){0,2})'
+    r'(?P<operator>nach|vor|ab|bis|um)\s*'
+    r'(?P<stunde>[01]?\d|2[0-3])'
+    r'(?:(?::(?P<doppel>[0-5]\d)(?:\s*(?:Uhr|h)\b)?|'
+    r'\.(?P<punkt>[0-5]\d)\s*(?:Uhr|h)\b|'
+    r'\s*(?:Uhr|h)\b(?:\s*(?P<uhr>[0-5]\d))?))', re.I)
 _MAIL = re.compile(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+')
 _LINK = re.compile(r'(?:https?://|www\.)[^\s<>"\')]+', re.I)
 _KENNUNG = re.compile(r'\b(?=[\w./-]*\d)(?=[\w./-]*[A-Za-z])[\w./-]+\b|\b\d+(?:[-/]\d+)+\b')
@@ -197,10 +216,11 @@ def zeiten_in(text: str) -> tuple[set[tuple[int, int]], str]:
     """Uhrzeiten als (Stunde, Minute) und der Text ohne sie."""
     zeiten: set[tuple[int, int]] = set()
     rest = text
-    for t in list(_ZEIT_BEREICH.finditer(rest)):
-        if int(t[1]) <= 23 and int(t[3]) <= 24:
-            zeiten |= {(int(t[1]), int(t[2] or 0)), (int(t[3]) % 24, int(t[4] or 0))}
-            rest = _maske(rest, t)
+    for muster in _ZEIT_BEREICHE:
+        for t in list(muster.finditer(rest)):
+            if int(t[1]) <= 23 and int(t[3]) <= 24:
+                zeiten |= {(int(t[1]), int(t[2] or 0)), (int(t[3]) % 24, int(t[4] or 0))}
+                rest = _maske(rest, t)
     for muster in (_ZEIT_DOPPELPUNKT, _ZEIT_PUNKT):
         for t in list(muster.finditer(rest)):
             zeiten.add((int(t[1]), int(t[2])))
@@ -209,6 +229,52 @@ def zeiten_in(text: str) -> tuple[set[tuple[int, int]], str]:
         zeiten.add((int(t[1]), int(t[2] or 0)))
         rest = _maske(rest, t)
     return zeiten, rest
+
+
+def _zeitbedingungen_in(text: str) -> set[tuple[tuple[int, int], str]]:
+    """Erkannte Uhrzeitgrenzen samt Relation; ungebundene Uhrzeiten gelten als genaue Uhrzeit.
+
+    Modifier werden nur in den expliziten, üblichen Formen normalisiert. Unbekannte Kombinationen bleiben an ihre
+    wörtliche Form gebunden, damit sie nicht durch eine anders formulierte Grenze gestützt werden.
+    """
+    ergebnis: set[tuple[tuple[int, int], str]] = set()
+    bedingt: set[tuple[int, int]] = set()
+    rest = text
+    # Keep the two endpoints paired: a time window is neither two exact slots nor
+    # interchangeable endpoints from several windows. Mask before operator parsing.
+    for muster in _ZEIT_BEREICHE:
+        for treffer in list(muster.finditer(rest)):
+            if int(treffer[1]) > 23 or int(treffer[3]) > 24:
+                continue
+            anfang = (int(treffer[1]), int(treffer[2] or 0))
+            ende = (int(treffer[3]) % 24, int(treffer[4] or 0))
+            zusatz = _BEREICH_ZUSATZ.search(rest[:treffer.start()])
+            modifier = ':'.join(falten(zusatz[1]).split()) if zusatz else ''
+            relation = f'bereich:{anfang}:{ende}:{modifier}'
+            ergebnis.update(((anfang, relation), (ende, relation)))
+            bedingt.update((anfang, ende))
+            rest = _maske(rest, treffer)
+    for treffer in _ZEITBEDINGUNG.finditer(rest):
+        stunde = int(treffer['stunde'])
+        minute = int(treffer['doppel'] or treffer['punkt'] or treffer['uhr'] or 0)
+        uhrzeit = (stunde, minute)
+        bedingt.add(uhrzeit)
+        operator = falten(treffer['operator'])
+        zusatz = falten(treffer['zusatz']).split()
+        relation = {'nach': 'nach', 'vor': 'vor', 'ab': 'ab', 'bis': 'bis', 'um': 'um'}[operator]
+        if zusatz:
+            modifier = ':'.join(zusatz)
+            relation = {
+                ('erst', 'nach'): 'nach',
+                ('nur', 'nach'): 'nach',
+                ('fruhestens', 'ab'): 'ab',
+                ('spatestens', 'bis'): 'bis',
+            }.get((modifier, operator), f'wortlaut:{modifier}:{operator}')
+        ergebnis.add((uhrzeit, relation))
+    # A bare clock value still denotes an exact time (e.g. „Vortrag 11 Uhr“), but only from source text.
+    for uhrzeit in zeiten_in(text)[0] - bedingt:
+        ergebnis.add((uhrzeit, 'um'))
+    return ergebnis
 
 
 def _dezimal(roh: str) -> Decimal | None:
@@ -395,6 +461,7 @@ class _Pool:
     daten_voll: set[date] = field(default_factory=set)
     daten_kurz: set[tuple[int, int]] = field(default_factory=set)
     zeiten: set[tuple[int, int]] = field(default_factory=set)
+    zeitbedingungen: set[tuple[tuple[int, int], str]] = field(default_factory=set)
     zahlen: dict[Decimal, set[str]] = field(default_factory=dict)
     jahre: set[int] = field(default_factory=set)
     kennungen: set[str] = field(default_factory=set)
@@ -429,6 +496,7 @@ def _pool(belege: Sequence[Beleg], zusatz: Iterable[str]) -> _Pool:
                 pool.monate.add(f.datum.month)
         zeiten, rest = zeiten_in(rest)
         pool.zeiten |= zeiten
+        pool.zeitbedingungen |= _zeitbedingungen_in(beleg.text)
         rest, tokens = _ohne(rest, _MAIL, _LINK, _KENNUNG)
         pool.kennungen.update(tokens)
         for wert, waehrung in zahlen_in(rest):
@@ -592,6 +660,16 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     for stunde, minute in sorted(zeiten):
         if (stunde, minute) not in pool.zeiten:
             gruende.append(f'Uhrzeit {stunde}:{minute:02d} steht nicht im Beleg')
+    bedingungen = _zeitbedingungen_in(text)
+    bedingungen_nach_zeit: dict[tuple[int, int], set[str]] = {}
+    for uhrzeit, relation in bedingungen:
+        bedingungen_nach_zeit.setdefault(uhrzeit, set()).add(relation)
+    belegbedingungen_nach_zeit: dict[tuple[int, int], set[str]] = {}
+    for uhrzeit, relation in pool.zeitbedingungen:
+        belegbedingungen_nach_zeit.setdefault(uhrzeit, set()).add(relation)
+    for uhrzeit in bedingungen_nach_zeit:
+        if bedingungen_nach_zeit[uhrzeit] != belegbedingungen_nach_zeit.get(uhrzeit, set()):
+            gruende.append(f'Zeitbedingung an {uhrzeit[0]}:{uhrzeit[1]:02d} stimmt nicht mit dem Beleg überein')
     rest, kennungen = _ohne(rest, _MAIL, _LINK, _KENNUNG)
     for kennung in kennungen:
         if kennung not in pool.kennungen:

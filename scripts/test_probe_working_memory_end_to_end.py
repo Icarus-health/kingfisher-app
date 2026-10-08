@@ -23,6 +23,101 @@ def test_extra_source_is_not_exact_success():
     assert row['retrieved_expected'] and not row['exact_sources'] and not row['selection_pass']
 
 
+def test_candidate_selection_and_display_are_measured_separately():
+    result = turn('working_unknown', [])
+    result.context['working_answer']['basis'] = [{'episode_id': 'e1'}]
+    row = probe.evaluate({'q': 'q', 'expect': ['S1'], 'type': 'paraphrase'}, result, {'e1': 'S1'})
+    assert row['candidate_trace_available'] is True
+    assert row['expected_in_candidates'] is True
+    assert row['expected_in_selection'] is False
+    assert row['expected_in_display'] is False
+    assert row['first_missing_stage'] == 'selection'
+
+
+def test_selected_source_rejected_by_sentence_step_is_a_display_loss():
+    result = turn('working_unknown', ['e1'])
+    result.context['source_links'] = []
+    result.context['working_answer']['basis'] = [{'episode_id': 'e1'}]
+    row = probe.evaluate({'q': 'q', 'expect': ['S1'], 'type': 'paraphrase'}, result, {'e1': 'S1'})
+    assert row['expected_in_candidates'] is True and row['expected_in_selection'] is True
+    assert row['expected_in_display'] is False and row['first_missing_stage'] == 'display'
+
+
+def test_missing_candidate_trace_does_not_claim_measured_retrieval_loss():
+    result = SimpleNamespace(reply='unknown', context={'answer_contract': {'status': 'unknown'}})
+    row = probe.evaluate({'q': 'q', 'expect': ['S1'], 'type': 'paraphrase'}, result, {'e1': 'S1'})
+    assert row['candidate_trace_available'] is False
+    assert row['expected_in_candidates'] is None
+    assert row['first_missing_stage'] == 'unobserved'
+
+
+def test_observed_empty_candidates_are_a_retrieval_loss():
+    result = turn('working_unknown', [])
+    result.context['working_answer']['basis'] = []
+    row = probe.evaluate({'q': 'q', 'expect': ['S1'], 'type': 'paraphrase'}, result, {'e1': 'S1'})
+    assert row['candidate_trace_available'] is True
+    assert row['expected_in_candidates'] is False and row['first_missing_stage'] == 'retrieval'
+
+
+def test_early_unknown_retains_actual_candidate_trace_without_changing_turn(monkeypatch):
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    report = probe.run(AllSources(), sentences=False, limit=2)
+    row = report['rows'][1]
+    assert row['status'] == 'unknown' and row['shown_sources'] == []
+    assert row['candidate_trace_available'] is True
+    assert row['expected_in_candidates'] is False and row['first_missing_stage'] == 'retrieval'
+    assert row['execution_trace']['working_attempted'] is True
+    assert row['execution_trace']['question_understanding']['herkunft'] == 'rueckfall'
+    assert row['execution_trace']['candidate_calls'][-1]['refs'] == []
+
+
+def test_trace_does_not_replace_product_functions_after_diagnostic_run(monkeypatch):
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    original = probe.working_memory_answers._candidates
+    report = probe.run(AllSources(), sentences=False, limit=1)
+    assert probe.working_memory_answers._candidates is original
+    assert report['rows'][0]['execution_trace']['candidate_calls']
+
+
+def test_semantic_failure_is_visible_without_altering_lexical_results(monkeypatch):
+    from icarus_memory import working_memory_semantic
+
+    class FailedMeaning:
+        status = 'unavailable'
+
+        def search(self, episodes, query, limit):
+            return []
+
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda *args, **kwargs: FailedMeaning())
+    report = probe.run(AllSources(), sentences=False, limit=1)
+    row = report['rows'][0]
+    assert row['shown_sources'] == ['S1']
+    assert row['execution_trace']['semantic_calls'][0]['status'] == 'unavailable'
+    assert row['execution_trace']['semantic_calls'][0]['refs'] == []
+
+
+def test_trace_restores_wrappers_even_when_agent_raises():
+    original = probe.working_memory_answers._candidates
+    original_semantic = probe.working_memory_semantic.for_provider
+
+    class FailingAgent:
+        def frage_verstehen(self, question):
+            raise AssertionError('Should not be called')
+
+        def _working_memory_turn(self, question):
+            raise AssertionError('Should not be called')
+
+        def answer_memory(self, question):
+            raise RuntimeError('synthetic path failure')
+
+    agent = FailingAgent()
+    with pytest.raises(RuntimeError, match='synthetic path failure'):
+        probe.answer_with_trace(agent, 'synthetic question')
+    assert probe.working_memory_answers._candidates is original
+    assert probe.working_memory_semantic.for_provider is original_semantic
+    assert 'frage_verstehen' not in vars(agent) and '_working_memory_turn' not in vars(agent)
+
+
 @pytest.mark.parametrize('status', ['working_selection_failed', 'working_unavailable', 'local_only'])
 def test_error_with_no_sources_is_not_successful_unknown(status):
     row = probe.evaluate({'q': 'q', 'expect': [], 'type': 'unanswerable'}, turn(status, []), {})
@@ -51,6 +146,41 @@ class Unavailable:
     def complete_json(self, *args, **kwargs):
         from icarus_memory.providers import ProviderError
         raise ProviderError('synthetic outage')
+
+
+def test_meter_retains_synthetic_model_output_for_stage_diagnosis():
+    class Synthetic:
+        name = model = 'synthetic'
+        is_local = True
+
+        def complete_json(self, *args, **kwargs):
+            return Reply(text='{"status":"unknown"}')
+
+    meter = probe.Meter(Synthetic())
+    meter.complete_json([{'role': 'system', 'content': 'Synthetic selection'}])
+    assert meter.outputs(0) == [{'state': 'ok', 'call_kind': 'json',
+                                 'reply': '{"status":"unknown"}', 'reply_truncated': False}]
+
+
+def test_meter_failure_is_recorded_without_invented_reply():
+    meter = probe.Meter(Unavailable())
+    with pytest.raises(Exception, match='synthetic outage'):
+        meter.complete_json([])
+    assert meter.outputs(0) == [{'state': 'failed', 'call_kind': 'json'}]
+
+
+def test_meter_bounds_output_and_marks_truncation():
+    class LongSynthetic:
+        name = model = 'synthetic'
+        is_local = True
+
+        def complete(self, *args, **kwargs):
+            return Reply(text='x' * 4100)
+
+    meter = probe.Meter(LongSynthetic())
+    meter.complete([])
+    output = meter.outputs(0)[0]
+    assert len(output['reply']) == 4000 and output['reply_truncated'] is True
 
 
 def test_model_outage_does_not_earn_successful_unknowns(monkeypatch):
@@ -97,3 +227,8 @@ def test_run_exercises_agent_and_withdrawal_offline(monkeypatch):
     assert row['answer'] and row['calls'] >= 2
     assert report['withdrawal']['checked'] and report['withdrawal']['pass']
     assert report['sentence_verifier'] == 'not_used_quote_mode'
+    assert report['diagnostic_version'] == 2
+    assert row['candidate_trace_available'] is True
+    assert row['expected_in_candidates'] and row['expected_in_selection'] and row['expected_in_display']
+    assert row['first_missing_stage'] is None
+    assert len(row['model_outputs']) == row['calls']

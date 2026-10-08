@@ -1,0 +1,377 @@
+{
+  "suite": "working-memory-end-to-end-v1",
+  "diagnostic_version": 2,
+  "legacy_retrieved_expected_means": "expected_in_display",
+  "synthetic_only": true,
+  "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+  "partial_catalog": true,
+  "model": "synthetic-offline",
+  "endpoint": "",
+  "calls": 3,
+  "sentence_verifier": "not_used_quote_mode",
+  "prose_correctness": "not_automatically_scored_requires_independent_review",
+  "status_criterion": "answerable_rows_require_reports; safe_clarifications_count_separately_in_statuses; catalog_has_source_gold_only_not_semantic_status_gold",
+  "ingestion": "deterministic_indexing_not_model_ingestion",
+  "score": {
+    "direct": {
+      "n": 1,
+      "exact_displayed_sources": 1,
+      "exact_source_and_status": 1,
+      "statuses": {
+        "working_reports": 1
+      }
+    },
+    "paraphrase": {
+      "n": 1,
+      "exact_displayed_sources": 0,
+      "exact_source_and_status": 0,
+      "statuses": {
+        "unknown": 1
+      }
+    },
+    "unanswerable": {
+      "n": 0,
+      "exact_displayed_sources": 0,
+      "exact_source_and_status": 0,
+      "statuses": {}
+    }
+  },
+  "rows": [
+    {
+      "q": "Wann beginnt das Wartungsfenster für den Server?",
+      "type": "direct",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S1"
+      ],
+      "selected_sources": [
+        "S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Serverwartung\nDas Wartungsfenster für den Server beginnt am Donnerstag um 18 Uhr und dauert zwei Stunden.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:57 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Wartungsfenster",
+          "Server"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "beginnt",
+          "server",
+          "wartungsfenster"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "Wartungsfenster",
+            "Server"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "ungültige Ausgabe",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-d8f3b499893a",
+                "fingerprint": "7f36d435fe599d0ca948eb2533a892c320b711f1aff3c76c09e9a1038c6464eb",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 1,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 1,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "beginnt",
+                "server",
+                "wartungsfenster"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 1,
+              "geprueft": 1,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-d8f3b499893a",
+                "fingerprint": "7f36d435fe599d0ca948eb2533a892c320b711f1aff3c76c09e9a1038c6464eb",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-d8f3b499893a",
+                "fingerprint": "7f36d435fe599d0ca948eb2533a892c320b711f1aff3c76c09e9a1038c6464eb",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-d8f3b499893a",
+                "fingerprint": "7f36d435fe599d0ca948eb2533a892c320b711f1aff3c76c09e9a1038c6464eb",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          },
+          {
+            "query": "Wann beginnt das Wartungsfenster für den Server?",
+            "refs": [
+              {
+                "episode_id": "e-d8f3b499893a",
+                "fingerprint": "7f36d435fe599d0ca948eb2533a892c320b711f1aff3c76c09e9a1038c6464eb",
+                "start": 0,
+                "end": 91,
+                "kind": "fact"
+              }
+            ],
+            "limited": false,
+            "search": {}
+          }
+        ],
+        "semantic_enabled": false,
+        "semantic_calls": []
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 0.004,
+        "suche": 0.003,
+        "antwort_modell": 0.0,
+        "gesamt": 0.02
+      },
+      "seconds": 0.019,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\": \"source_reports\", \"ids\": [\"S1\"]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "q": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expect": [
+        "S1"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": false,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": "retrieval",
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "System",
+          "Abend"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abend",
+          "erreichbar",
+          "system"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 0,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "question_understanding": {
+          "version": 1,
+          "sachen": [
+            "System",
+            "Abend"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "ungültige Ausgabe",
+          "modell": ""
+        },
+        "working_attempted": true,
+        "candidate_calls": [
+          {
+            "query": "Ab wann ist das System am Abend nicht erreichbar?",
+            "refs": [],
+            "limited": false,
+            "search": {
+              "wortsuche_quellen": 0,
+              "oben_quellen": 0,
+              "wortsuche_begrenzt": false,
+              "index": "ok",
+              "index_treffer": 0,
+              "index_begrenzt": false,
+              "index_woerter": [
+                "abend",
+                "erreichbar",
+                "system"
+              ],
+              "ohne_einordnung": 0,
+              "index_nicht_erfasst": 0,
+              "quellen_geliefert": 0,
+              "geprueft": 0,
+              "verworfen": 0,
+              "abgeschnitten": [],
+              "kuerzung": {
+                "gekuerzt": 0,
+                "absaetze_gezeigt": 0,
+                "absaetze_gesamt": 0
+              }
+            }
+          }
+        ],
+        "semantic_enabled": false,
+        "semantic_calls": []
+      },
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 0.001,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "withdrawal": {
+    "checked": true,
+    "pass": true,
+    "status": "working_unavailable",
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut."
+  },
+  "purpose": "Instrumentation proof only; deterministic fake model, not answer-quality evidence"
+}
