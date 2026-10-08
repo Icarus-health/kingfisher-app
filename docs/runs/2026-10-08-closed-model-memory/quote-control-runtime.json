@@ -1,0 +1,123 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791493908.5286982,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 35888
+    },
+    {
+      "elapsed": 2.04,
+      "owned_rss_kib": 3363616
+    },
+    {
+      "elapsed": 4.07,
+      "owned_rss_kib": 5083232
+    },
+    {
+      "elapsed": 6.11,
+      "owned_rss_kib": 5489232
+    },
+    {
+      "elapsed": 8.14,
+      "owned_rss_kib": 5770192
+    },
+    {
+      "elapsed": 10.23,
+      "owned_rss_kib": 6132112
+    },
+    {
+      "elapsed": 12.27,
+      "owned_rss_kib": 6822432
+    },
+    {
+      "elapsed": 14.3,
+      "owned_rss_kib": 7158304
+    },
+    {
+      "elapsed": 16.34,
+      "owned_rss_kib": 7491904
+    },
+    {
+      "elapsed": 18.37,
+      "owned_rss_kib": 7658576
+    },
+    {
+      "elapsed": 20.47,
+      "owned_rss_kib": 7808848
+    },
+    {
+      "elapsed": 22.52,
+      "owned_rss_kib": 7365664
+    },
+    {
+      "elapsed": 24.56,
+      "owned_rss_kib": 6990016
+    }
+  ],
+  "completed": true,
+  "server_pid": 5402,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 5405,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791493935.7177842
+}

@@ -1,0 +1,35 @@
+{
+  "report_sha256": "4c036f24b9aa3122315385ee5e4daade94057eb5d0c98ab505840bed0c464467",
+  "reviewer": "independent audit_answer_selection; requirements fixed from originals before reading outputs",
+  "answers_reviewed": 23,
+  "content_sufficient_and_supported": 21,
+  "unnecessary_clarification": [
+    "RQ02"
+  ],
+  "wrong_source_selection": [
+    "RQ04"
+  ],
+  "gold_unknown_questions": 4,
+  "correct_unknown_answers": 3,
+  "source_selection_not_proven_by_quote_validity": true,
+  "person_mentions_expected": 9,
+  "person_mentions_found_correctly": 9,
+  "false_persons": 0,
+  "entity_spans_checked": 13,
+  "all_entity_spans_exact": true,
+  "type_false_alarms": [
+    {
+      "source": "RCS06",
+      "name": "Werkhalle Epsilon",
+      "proposed": "organization",
+      "source_meaning": "place"
+    },
+    {
+      "source": "H04",
+      "name": "support@example.invalid",
+      "proposed": "organization",
+      "source_meaning": "generic service address"
+    }
+  ],
+  "scope_limit": "synthetic small-corpus evidence; no everyday, production memory, full categorization or personal-corpus qualification"
+}

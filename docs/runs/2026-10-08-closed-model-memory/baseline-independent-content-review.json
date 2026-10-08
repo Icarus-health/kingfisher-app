@@ -1,0 +1,17 @@
+{
+  "report_sha256": "3559495f0ea73bd0c2cc24101b80ff8225235faaddf2f7fb8b75049bf62d9655",
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "reviewer": "independent audit_answer_selection; source-only requirements recorded before reading model outputs",
+  "reviewed_rows": 23,
+  "content_correct_and_sufficient": 23,
+  "free_sentence_answers": 9,
+  "original_quote_answers": 10,
+  "unknown_answers": 4,
+  "wrong_person_case_condition_negation_date_or_invented_year": 0,
+  "notes": [
+    "Each displayed answer was read against frozen synthetic originals, not judged only by chosen reference IDs.",
+    "RQ22 sufficiently preserves the requested dry-cleaning condition; the solvent ban is separately asked in RQ23.",
+    "The qwen formulation/verifier combination is not an independent truth check; this source review is a separate agent review.",
+    "One synthetic run is not an everyday personal-corpus reliability guarantee."
+  ]
+}

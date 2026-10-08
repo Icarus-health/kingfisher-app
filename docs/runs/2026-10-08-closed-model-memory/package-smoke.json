@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "stdout": "{\"version\": \"1.0.6-local.ddc10fa\", \"python_sources_verified\": 263, \"ui_files_verified\": 112, \"pending_source_invalidation\": true, \"sentence_coverage_notice\": true, \"unrelated_intake_preserves_answer\": true, \"source_version_change_invalidates_answer\": true, \"network\": \"none\", \"private_sources_used\": false, \"real_model_quality_test\": false}\n{\"local_exact_name_and_unicode_offset\": true, \"withdrawal_of_person_mention\": true, \"network\": \"none\"}\n",
+  "stderr": ""
+}

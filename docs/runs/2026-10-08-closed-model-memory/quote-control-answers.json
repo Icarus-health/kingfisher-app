@@ -1,0 +1,302 @@
+{
+  "synthetic_only": true,
+  "scope": "direct existing quote interpreter; not normal product dispatch",
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "rows": [
+    {
+      "id": "RCS01",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          70
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 4.099
+    },
+    {
+      "id": "RCS02",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          58
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.318
+    },
+    {
+      "id": "RCS03",
+      "ok": true,
+      "topics": [
+        [
+          "unclear",
+          0,
+          131
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.406
+    },
+    {
+      "id": "RCS04",
+      "ok": true,
+      "topics": [
+        [
+          "unclear",
+          0,
+          120
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.406
+    },
+    {
+      "id": "RCS05",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          85
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.645
+    },
+    {
+      "id": "RCS06",
+      "ok": true,
+      "topics": [
+        [
+          "appointments",
+          0,
+          156
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.806
+    },
+    {
+      "id": "RCS07",
+      "ok": true,
+      "topics": [
+        [
+          "appointments",
+          0,
+          79
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.658
+    },
+    {
+      "id": "RCS08",
+      "ok": true,
+      "topics": [
+        [
+          "appointments",
+          0,
+          89
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.77
+    },
+    {
+      "id": "RCS09",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          82
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.627
+    },
+    {
+      "id": "RCS10",
+      "ok": true,
+      "topics": [
+        [
+          "personal",
+          0,
+          109
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"personal\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.651
+    },
+    {
+      "id": "RCS11",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          128
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.647
+    },
+    {
+      "id": "RCS12",
+      "ok": true,
+      "topics": [
+        [
+          "finance",
+          0,
+          122
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"finance\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.779
+    },
+    {
+      "id": "RCS13",
+      "ok": true,
+      "topics": [
+        [
+          "work",
+          0,
+          135
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.691
+    },
+    {
+      "id": "RCS14",
+      "ok": true,
+      "topics": [
+        [
+          "appointments",
+          0,
+          115
+        ]
+      ],
+      "entities": [],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"categories\": [\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ],\n  \"entities\": []\n}",
+          "reply_truncated": false
+        }
+      ],
+      "seconds": 1.753
+    }
+  ],
+  "completed": true
+}
