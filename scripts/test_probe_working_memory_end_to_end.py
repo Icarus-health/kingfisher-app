@@ -36,6 +36,31 @@ def test_unknown_reference_cannot_be_silently_dropped():
     assert not row['selection_pass']
 
 
+@pytest.mark.parametrize('invalid', [{}, 'broken', {'episode_id': None}])
+def test_malformed_displayed_reference_blocks_a_successful_score(invalid):
+    result = turn('working_reports', ['e1'])
+    result.context['source_links'].append(invalid)
+    row = probe.evaluate({'q': 'q', 'expect': ['S1'], 'type': 'direct'}, result, {'e1': 'S1'})
+    assert not row['references_valid'] and not row['selection_pass']
+
+
+class Unavailable:
+    name = model = 'unavailable'
+    is_local = True
+
+    def complete_json(self, *args, **kwargs):
+        from icarus_memory.providers import ProviderError
+        raise ProviderError('synthetic outage')
+
+
+def test_model_outage_does_not_earn_successful_unknowns(monkeypatch):
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    report = probe.run(Unavailable(), sentences=False)
+    assert report['score']['unanswerable']['exact_source_and_status'] == 0
+    rows = [r for r in report['rows'] if r['type'] == 'unanswerable']
+    assert all(r['provider_errors'] > 0 and not r['selection_pass'] for r in rows)
+
+
 def test_cloud_address_rejected_before_any_request(monkeypatch):
     monkeypatch.setattr(probe.httpx, 'Client', lambda **kw: pytest.fail('Network before address check'))
     with pytest.raises(ValueError, match='loopback'):

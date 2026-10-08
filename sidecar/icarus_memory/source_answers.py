@@ -21,7 +21,7 @@ MAX_REFS = 3
 
 
 def literal_query(question):
-    if not isinstance(question, str) or not re.search(r'\b(?:quellen|originaltext|dokumenten)\b', question, re.I):
+    if not isinstance(question, str) or not re.search(r'\b(?:quellen|originaltext|originalstellen?|dokumenten)\b', question, re.I):
         return None
     matches = re.findall(r'"([^"\n]+)"|„([^“\n]+)“', question)
     if len(matches) != 1:

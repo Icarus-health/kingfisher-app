@@ -463,6 +463,11 @@ def source_metadata_digest(document: dict[str, Any]) -> str:
         "participants": sorted(set(document.get("participants") or [])),
         "tags": sorted(set(document.get("tags") or [])),
     }
+    # Another final public URL is another provenance version of the same text.
+    # Capture time alone does not create a new version.
+    provenance = document.get("provenance") or {}
+    if provenance.get("source_type") == SourceType.WEB.value and provenance.get("source_ref"):
+        metadata["web_source_ref"] = provenance["source_ref"]
     return hashlib.sha256(json.dumps(metadata, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
@@ -941,6 +946,7 @@ class EpisodeStore:
             "kind": kind.value, "title": title,
             "occurred_at": occurred_at.isoformat() if occurred_at else None,
             "participants": participants, "tags": tags,
+            "provenance": provenance.to_dict(),
         }) if source_key else ""
         # Mehrdeutige Altzuordnungen nicht durch Neuaufnahme umdeuten.
         # Ihre konservative Sperre bleibt bis zur expliziten Klärung erhalten.

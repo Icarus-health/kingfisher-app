@@ -60,7 +60,7 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
   }
   return <details className="profile-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>Aktuelle Quellen</summary>
-    <p>Du wählst öffentliche Quellen aus. Automatische Abrufe laufen nur mit aktiviertem Zeitplan, solange Kingfisher läuft. Ohne Zeitplan kannst du hier manuell abrufen.</p><p>Der Abrufzeitpunkt zeigt, wann Kingfisher die Seite gelesen hat. Ein Veröffentlichungsdatum wird nicht übernommen, wenn die Quelle keines eindeutig ausweist. Der Auszug bleibt ein Quellenbericht und bestätigt keine persönliche Angabe.</p>
+    <p>Du wählst öffentliche Quellen aus. Automatische Abrufe laufen nur mit aktiviertem Zeitplan, solange Kingfisher läuft. Ohne Zeitplan kannst du hier manuell abrufen.</p><p>Der Abrufzeitpunkt zeigt, wann Kingfisher die Seite gelesen hat. Ein Veröffentlichungsdatum wird nicht übernommen; angezeigt wird ausschließlich der Abrufzeitpunkt. Der Auszug bleibt ein Quellenbericht und bestätigt keine persönliche Angabe.</p>
     <form className="decision-create-form" onSubmit={add} aria-label="Öffentliche Quelle hinzufügen">
       <label>Bezeichnung<input value={label} onChange={event => setLabel(event.target.value)} required maxLength={200} /></label>
       <label>HTTPS-Adresse<input type="url" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://…" required /></label>

@@ -144,10 +144,31 @@ class WorldMonitor:
                 source_type=SourceType.WEB, source_ref=final_url,
                 captured_at=self._captured_at(captured), verbatim=fetched["text"],
             )
-            episode, _created = self.episodes.record(
-                EpisodeKind.DOCUMENT, source.get("label", requested_url), fetched["text"], provenance,
-                tags=list(source.get("topics", [])), source_key=f"world:{source_id}",
-            )
+            # An unchanged legacy original predates URL-aware metadata hashes.
+            # Rechecking it must not replace it or invalidate existing claims.
+            episode = None
+            if source.get("episode_id"):
+                try:
+                    current = self.episodes.get(source["episode_id"])
+                    if (getattr(getattr(current, "state", None), "value", None) != "ignored"
+                            and current.body == fetched["text"]
+                            and getattr(current, "title", None) == source.get("label", requested_url)
+                            and current.provenance.source_ref == final_url
+                            and set(getattr(current, "tags", [])) == set(source.get("topics", []))):
+                        episode = current
+                except KeyError:
+                    pass
+            if episode is None:
+                episode, _created = self.episodes.record(
+                    EpisodeKind.DOCUMENT, source.get("label", requested_url), fetched["text"], provenance,
+                    tags=list(source.get("topics", [])), source_key=f"world:{source_id}",
+                )
+            # A former version remains withdrawn even when the remote page
+            # cycles back to its old text. Never advertise it as a new success.
+            if getattr(getattr(episode, "state", None), "value", None) == "ignored":
+                source["error"] = "withdrawn_version"
+                self._persist()
+                raise ValueError("Diese Quellenfassung wurde zurückgezogen; der bisherige Stand bleibt erhalten.")
             track_source(self.episodes, self.claims, f"world:{source_id}", episode)
             source.update({
                 "episode_id": episode.id, "last_success": captured,

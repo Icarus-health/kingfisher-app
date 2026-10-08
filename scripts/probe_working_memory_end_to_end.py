@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import threading
 import time
 from urllib.parse import urlsplit, urlunsplit
 
@@ -38,16 +39,35 @@ class Meter:
         self.is_local = inner.is_local
         self.base_url = getattr(inner, 'base_url', '')
         self.calls = 0
+        self.events = []
+        self._lock = threading.Lock()
         if callable(getattr(inner, 'complete_json', None)):
             self.complete_json = self._json
 
     def _json(self, *args, **kwargs):
-        self.calls += 1
-        return self.inner.complete_json(*args, **kwargs)
+        return self._call(lambda: self.inner.complete_json(*args, **kwargs))
 
     def complete(self, *args, **kwargs):
-        self.calls += 1
-        return self.inner.complete(*args, **kwargs)
+        return self._call(lambda: self.inner.complete(*args, **kwargs))
+
+    def _call(self, operation):
+        event = {'state': 'pending'}
+        with self._lock:
+            self.calls += 1
+            self.events.append(event)
+        try:
+            result = operation()
+        except Exception:
+            with self._lock:
+                event['state'] = 'failed'
+            raise
+        with self._lock:
+            event['state'] = 'ok'
+        return result
+
+    def outcomes(self, start):
+        with self._lock:
+            return Counter(event['state'] for event in self.events[start:])
 
 
 def local_provider(model, base_url):
@@ -80,20 +100,33 @@ def evaluate(item, turn, alias):
     context = turn.context
     working = context.get('working_answer', {})
     status = context.get('answer_contract', {}).get('status', 'missing_contract')
+    valid = True
     def names(refs):
-        return sorted({alias.get(r['episode_id'], 'unmapped:' + r['episode_id'])
-                       for r in refs if isinstance(r, dict) and isinstance(r.get('episode_id'), str)})
+        nonlocal valid
+        if not isinstance(refs, list):
+            valid = False
+            return ['invalid_reference_container']
+        found = set()
+        for index, ref in enumerate(refs):
+            if (not isinstance(ref, dict) or not isinstance(ref.get('episode_id'), str)
+                    or not ref['episode_id']):
+                valid = False
+                found.add(f'invalid_reference:{index}')
+            else:
+                found.add(alias.get(ref['episode_id'], 'unmapped:' + ref['episode_id']))
+        return sorted(found)
     selected = names(working.get('refs', []))
     shown = names(context.get('source_links', []))
     expected = sorted(item['expect'])
     unknown = status in {'unknown', 'working_unknown'}
     status_ok = unknown if not expected else status == 'working_reports'
     exact = shown == expected
+    candidates = names(working.get('basis', []))
     return {'q': item['q'], 'type': item['type'], 'expect': expected, 'status': status,
-            'candidate_sources': names(working.get('basis', [])), 'selected_sources': selected,
+            'candidate_sources': candidates, 'selected_sources': selected, 'references_valid': valid,
             'shown_sources': shown, 'exact_sources': exact, 'status_ok': status_ok,
             'retrieved_expected': bool(expected) and set(expected) <= set(shown),
-            'selection_pass': exact and status_ok, 'answer': turn.reply,
+            'selection_pass': exact and status_ok and valid, 'answer': turn.reply,
             'question_understanding': working.get('anfrage'), 'search': working.get('search'),
             'sentence_answer': working.get('satzantwort'), 'times': context.get('zeiten')}
 
@@ -120,6 +153,9 @@ def run(provider, *, sentences=True, limit=None):
                 turn = agent.answer_memory(item['q'])
                 row = evaluate(item, turn, alias)
                 row.update(seconds=round(time.perf_counter() - started, 3), calls=metered.calls - calls)
+                outcomes = metered.outcomes(calls)
+                row.update(provider_errors=outcomes['failed'], provider_pending=outcomes['pending'])
+                row['selection_pass'] &= not (row['provider_errors'] or row['provider_pending'])
                 rows.append(row)
                 print(f"{len(rows)}/{min(limit or 36, 36)} {item['type']} {row['status']} "
                       f"sources={row['shown_sources']} {row['seconds']}s", file=sys.stderr, flush=True)
