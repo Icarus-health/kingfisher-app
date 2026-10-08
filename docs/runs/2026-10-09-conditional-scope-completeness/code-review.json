@@ -1,0 +1,362 @@
+{
+  "reviewed_at_utc": "2026-10-08T22:35:08.023661+00:00",
+  "repository": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923",
+  "branch": "fix/current-conditions-answer-flow-20261009",
+  "base_commit": "ae1e2ec20f7eb963a85989ab6d637b79929dabfa",
+  "source_sha256": {
+    "sidecar/icarus_memory/satzpruefung.py": "ed85883b9aa4bda21fa8b8bb03ee6a0842abc523df7324423092e022ba57cca5",
+    "sidecar/icarus_memory/satzantwort.py": "6993b4735602231c47aeea2b24912a75b8f2ea91f8521267630658ba0042b3af"
+  },
+  "test_sha256": {
+    "sidecar/tests/test_conditional_scope_completeness.py": "aead3d1bf390b05f52dc0988f8e107f148391c51a12e993517ba478151f5e39b"
+  },
+  "source_hashes_unchanged_during_review": true,
+  "scope": "IA08 known conditional-completeness and post-boundary-negation exceptions; bounded review requested by parent",
+  "counterprobes": [
+    {
+      "name": "IA08_exact_post_rule",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": true,
+      "actual_accepted": true,
+      "passed": true,
+      "reasons": []
+    },
+    {
+      "name": "IA08_exact_pre_ban",
+      "sentence": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": true,
+      "actual_accepted": true,
+      "passed": true,
+      "reasons": []
+    },
+    {
+      "name": "unrelated_boundary_und",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf nicht zurückgesetzt werden und das Messprotokoll bleibt gesperrt bis zur formellen Abnahme. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "unrelated_boundary_oder",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf nicht zurückgesetzt werden oder das Messprotokoll bleibt gesperrt bis zur formellen Abnahme. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "unrelated_boundary_während",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf nicht zurückgesetzt werden während das Messprotokoll bleibt gesperrt bis zur formellen Abnahme. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "unrelated_boundary_after_other_start",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf nach der Freigabe nicht zurückgesetzt werden und das Messprotokoll bleibt gesperrt bis zur formellen Abnahme. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "two_negative_actions_cannot_share_boundary",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf nicht zurückgesetzt werden und das Messprotokoll darf bis zur formellen Abnahme nicht archiviert werden. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "different_explicit_event_objects",
+      "sentence": "Ein Zurücksetzen nach der formellen Abnahme der Steuerung ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme des Messprotokolls nicht zurückgesetzt werden. Ein Zurücksetzen nach der formellen Abnahme der Steuerung ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "positive_relative_qualifier_Abnahme",
+      "sentence": "Ein Zurücksetzen nach der Abnahme, die nur das Messprotokoll betrifft, ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Ein Zurücksetzen nach der Abnahme, die nur das Messprotokoll betrifft, ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "positive_relative_qualifier_formellen Abnahme",
+      "sentence": "Ein Zurücksetzen nach der formellen Abnahme, die nur das Messprotokoll betrifft, ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Ein Zurücksetzen nach der formellen Abnahme, die nur das Messprotokoll betrifft, ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "same_post_boundary_ban",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Nach der Abnahme darf die Steuerung nicht zurückgesetzt werden. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "cross_source_exception_not_lent",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+        "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "embedded_quoted_post_rule",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Der Bericht zitiert: „Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.“."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "different_explicit_boundary_adjectives",
+      "sentence": "Ein Zurücksetzen nach der vorläufigen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Ein Zurücksetzen nach der vorläufigen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "matching_explicit_boundary_adjectives",
+      "sentence": "Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": true,
+      "actual_accepted": true,
+      "passed": true,
+      "reasons": []
+    },
+    {
+      "name": "unconditional_short_full_IA08_Es ist erlaubt.",
+      "sentence": "Es ist erlaubt.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "name": "unconditional_short_full_IA08_Es ist zulässig.",
+      "sentence": "Es ist zulässig.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "name": "unconditional_short_post_rule_Es darf zurückgesetzt werden.",
+      "sentence": "Es darf zurückgesetzt werden.",
+      "sources": [
+        "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "name": "unconditional_short_post_rule_Es ist zurückgesetzt.",
+      "sentence": "Es ist zurückgesetzt.",
+      "sources": [
+        "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "name": "unconditional_short_post_rule_Ein Zurücksetzen ist erfolgt.",
+      "sentence": "Ein Zurücksetzen ist erfolgt.",
+      "sources": [
+        "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "name": "condition_removed",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist erlaubt.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "condition_changed",
+      "sentence": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es mündlich anordnet.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "name": "nonpermission_does_not_get_exception",
+      "sentence": "Nach der Abnahme wird das Messprotokoll archiviert.",
+      "sources": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "expected_accepted": false,
+      "actual_accepted": false,
+      "passed": true,
+      "reasons": [
+        "Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    }
+  ],
+  "blocking_findings": [],
+  "result": "no_blocker_in_reviewed_scope",
+  "limits": [
+    "No general semantic entailment or unsupported grammar claim.",
+    "Qualified or ambiguous event boundaries deliberately fall back to source quotations.",
+    "No actual model invocation, cloud call, private state, installation, full suite, merge or repository edit.",
+    "Model-dependent response flow is tested with deterministic test doubles; HTTP/reopen coverage comes from the focused test file.",
+    "Parent broader-suite results are not counted as independent reviewer executions."
+  ],
+  "test_runs": [
+    {
+      "command": [
+        "/Users/sorenkube/Documents/Codex/2026-09-07/teilgespr-ch-f-higkeiten-erkl-ren-2/work/Kingfisher-memory-core/.venv/bin/python",
+        "-m",
+        "pytest",
+        "sidecar/tests/test_conditional_scope_completeness.py",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "returncode": 1,
+      "stdout": "......................F                                                  [100%]\n=================================== FAILURES ===================================\n_ test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition _\n\ncore = (<icarus_memory.agent.Agent object at 0x107f15280>, <tests.test_context_identity.Provider object at 0x107f6bf50>, <ica... 0x107f09040>, <icarus_memory.claims.ClaimStore object at 0x107f69a30>, <function core.<locals>.accept at 0x107f74f40>)\ntmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-793/test_uploaded_http_answer_and_0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107f14da0>\n\n    def test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition(\n            core, tmp_path, monkeypatch):\n>       app, client, provider = _api(core, tmp_path, monkeypatch)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nsidecar/tests/test_conditional_scope_completeness.py:242: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nsidecar/tests/test_source_answers_http.py:52: in _api\n    app = create_app(agent._store, agent=agent)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsidecar/icarus_memory/server.py:1465: in create_app\n    from .chatgpt_routes import register as register_chatgpt\nsidecar/icarus_memory/chatgpt_routes.py:6: in <module>\n    from .chatgpt_oauth import ChatGPTOAuth, ChatGPTError\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    \"\"\"Optional ChatGPT plan usage through the documented public OAuth flow.\n    \n    Credentials live only in the protected Keychain; signing in never processes a\n    source. Each renewed authorization invalidates previously created providers.\n    \"\"\"\n    from __future__ import annotations\n    \n    import base64\n    import hashlib\n    import json\n    import re\n    import secrets\n    import threading\n    import time\n    import uuid\n    from urllib.parse import urlencode, urlparse\n    \n    import httpx\n>   import jwt\nE   ModuleNotFoundError: No module named 'jwt'\n\nsidecar/icarus_memory/chatgpt_oauth.py:19: ModuleNotFoundError\n=============================== warnings summary ===============================\n../../../../2026-09-07/teilgespr-ch-f-higkeiten-erkl-ren-2/work/Kingfisher-memory-core/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1\n  /Users/sorenkube/Documents/Codex/2026-09-07/teilgespr-ch-f-higkeiten-erkl-ren-2/work/Kingfisher-memory-core/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n../../../../2026-09-07/teilgespr-ch-f-higkeiten-erkl-ren-2/work/Kingfisher-memory-core/.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  /Users/sorenkube/Documents/Codex/2026-09-07/teilgespr-ch-f-higkeiten-erkl-ren-2/work/Kingfisher-memory-core/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED sidecar/tests/test_conditional_scope_completeness.py::test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition\n1 failed, 22 passed, 2 warnings in 1.13s\n",
+      "stderr": "",
+      "environment_limitation": "The older reviewer Python lacked jwt, so the HTTP test failed during import before its assertions. The other 22 tests passed."
+    },
+    {
+      "command": [
+        "/private/tmp/kingfisher-review-20261006-venv/bin/python",
+        "-m",
+        "pytest",
+        "sidecar/tests/test_conditional_scope_completeness.py::test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "returncode": 0,
+      "stdout": ".                                                                        [100%]\n=============================== warnings summary ===============================\n../../../../../../../../private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1\n  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 1.48s\n",
+      "stderr": "",
+      "environment": "Existing parent-supplied isolated Python, no installation"
+    }
+  ],
+  "product_commit": "ae1e2ec20f7eb963a85989ab6d637b79929dabfa",
+  "validation_summary": {
+    "counterprobes_passed": 23,
+    "counterprobes_total": 23,
+    "focused_tests_passed": 23,
+    "http_upload_answer_and_saved_projection": "passed"
+  }
+}

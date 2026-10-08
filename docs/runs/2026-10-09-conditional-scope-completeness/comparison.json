@@ -1,0 +1,57 @@
+{
+  "catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "same_catalog": true,
+  "before_product": "3cf769f35c4542206a4cc5cdc629e308348e283c",
+  "after_product": "ae1e2ec20f7eb963a85989ab6d637b79929dabfa",
+  "normalization": "Only actual intake timestamps in source quote footer; originals and substantive visible text compared unchanged",
+  "rows": [
+    {
+      "id": "IA01",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA02",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA03",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA04",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA05",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA06",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA07",
+      "same_visible_content_ignoring_actual_intake_time": true,
+      "same_source_selection": true
+    },
+    {
+      "id": "IA08",
+      "same_visible_content_ignoring_actual_intake_time": false,
+      "same_source_selection": true
+    }
+  ],
+  "saved_answers_unchanged": true,
+  "withdrawal_after_restart": {
+    "status": "working_unavailable",
+    "pass": true,
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "provider_calls": 0,
+    "original_text_retained": true
+  }
+}

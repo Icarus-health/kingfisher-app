@@ -1,0 +1,191 @@
+{
+  "title": "Independent full-pipeline after-run content review: temporal applicability holdouts",
+  "reviewer": "audit_answer_selection",
+  "synthetic_only": true,
+  "catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "answers_sha256": "895ed83d340b400c99c59b6ccacbd7772938e00b79aa769d69d341124d7b54b6",
+  "runtime_sha256": "8d71da387255d07669bb67e0c073f9bb31b2a82b396f2142184a6919a2b4ea08",
+  "embedded_catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "code_version": "ae1e2ec-full-applicability",
+  "code_file_hashes": {
+    "Agent": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588",
+    "run": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e",
+    "SemanticService": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df",
+    "create_app": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661",
+    "_interpret": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+    "_interpret_quotes": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+    "OpenAICompatible": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f",
+    "VerifiedLocalProvider": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe",
+    "Meter": "5713aa3455751ec67dd13bb01c49e96111f73337be67ba8649cc484feb5b63fe",
+    "prepare": "9d4268eacd1192071cfeb4b9afdab5cdc9a5e9645a598855ca265625179090fa",
+    "wanted": "cc5b8dab0c2282829df3292176ddb43624c489c3d9cfbc4d4025607ecef20c53",
+    "satz_pruefen": "ed85883b9aa4bda21fa8b8bb03ee6a0842abc523df7324423092e022ba57cca5",
+    "formulieren": "6993b4735602231c47aeea2b24912a75b8f2ea91f8521267630658ba0042b3af",
+    "aufbauen": "2e274d47cf036471d42af0fc52e2094b394d92eacdf43cb8fd6457f0e86b6355"
+  },
+  "scope": "Independent comparison of all 8 visible answers against frozen originals and the before run; includes saved-answer-after-restart and first-source withdrawal checks. No exact-selected-source metric used as a content score.",
+  "counts": {
+    "cases": 8,
+    "adequate": 6,
+    "incomplete": 2,
+    "unsupported": 0,
+    "abstained_without_source_access": 0,
+    "source_quote_fallbacks_not_counted_as_direct_answers": 2
+  },
+  "case_reviews": [
+    {
+      "id": "IA01",
+      "grade": "incomplete",
+      "mode": "source_quote_fallback",
+      "answer_content": "The displayed source quote includes the exact dry-only-before-curing rule but also the separate return/solvent clause; it gives no direct sentence answer.",
+      "support": "No unsupported claim. The original text is shown and the rule is separable under its heading.",
+      "change_from_before": "No semantic change; only capture timestamp differs.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA01-S1"
+      ],
+      "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA01-S1.txt\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:34 Uhr",
+      "before_visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA01-S1.txt\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:21 Uhr",
+      "visible_sentence_status": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "IA02",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The sentence answers that application occurs when the surface is fully dust-free.",
+      "support": "IA02-S2 explicitly requires a fully dust-free surface before application and binds this prerequisite to the P-18 coating.",
+      "selection_note": "IA02-S1 is not selected/shown even though the exact source-list metric expects it; IA02-S2 alone supports the visible condition. This is not counted as a content error.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA02-S2"
+      ],
+      "visible_answer": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA03",
+      "grade": "incomplete",
+      "mode": "source_quote_fallback",
+      "answer_content": "The displayed quote contains both the before-acceptance prohibition and after-acceptance permission, so the original can be read to answer yes/no; no direct answer sentence passed.",
+      "support": "No unsupported claim; both temporal directions are preserved.",
+      "change_from_before": "No semantic change; only capture timestamp differs.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA03-S1"
+      ],
+      "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA03-S1.txt\nVor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:34 Uhr",
+      "before_visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA03-S1.txt\nVor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:21 Uhr",
+      "visible_sentence_status": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "IA04",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "Opening is limited to the ongoing flushing process.",
+      "support": "Correct exclusive temporal condition; unchanged from before.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA04-S1"
+      ],
+      "visible_answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA05",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "Battery replacement is allowed only after technical inspection; the unrelated pre-shipment photograph is not confused with it.",
+      "support": "Correct action/time binding; unchanged from before.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA05-S1"
+      ],
+      "visible_answer": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA06",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "Room B may be opened during work hours for ventilation; room A's restriction is not transferred.",
+      "support": "Correct object and time scope; unchanged from before.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA06-S1"
+      ],
+      "visible_answer": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA07",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The earlier calibration-only start rule is insufficient; the device remains off until documented approval.",
+      "support": "Correctly relies on the later correction only; the superseded 3 March permission is absent. Unchanged from before.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA07-S2"
+      ],
+      "visible_answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 2
+    },
+    {
+      "id": "IA08",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The answer states the pre-acceptance ban and that after acceptance reset is only allowed with a written order from the duty technician.",
+      "support": "Complete answer to whether reset is automatically allowed; both temporal rule and post-acceptance condition are preserved.",
+      "change_from_before": "Fixed: before showed only the pre-acceptance ban and rejected this written-order sentence; after accepts and displays both.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA08-S1"
+      ],
+      "visible_answer": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\nEin Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "before_visible_answer": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\n\n1 Satz wurde verworfen, weil die Belege ihn nicht getragen haben.\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "visible_sentence_status": "saetze",
+      "accepted_sentence_count": 2
+    }
+  ],
+  "before_after": {
+    "semantic_answer_changes": [
+      "IA08: written-order condition is now accepted and displayed."
+    ],
+    "timestamp_only_visible_changes": [
+      "IA01",
+      "IA03"
+    ],
+    "other_answer_texts_unchanged": true
+  },
+  "persistence_and_withdrawal": {
+    "saved_answers_count": 8,
+    "all_8_unchanged_after_restart": true,
+    "provider_calls_for_saved_reads": 0,
+    "withdrawal_result": {
+      "status": "working_unavailable",
+      "pass": true,
+      "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+      "provider_calls": 0,
+      "original_text_retained": true
+    },
+    "originals_preserved_before_withdrawal": true,
+    "reopened_before_questions": true
+  },
+  "overall": "6/8 visible answers are adequate. IA01 and IA03 remain safe source-quote fallbacks, not direct prose answers. IA07 remains correctly current. IA08 is repaired and now answers its post-acceptance condition. No content regression was found in the other answers.",
+  "limits": [
+    "Synthetic eight-question control set only.",
+    "The run is a local actual full pipeline, but production_memory_policy_verified is false and automatic UI routing/screen behavior is outside scope.",
+    "No conclusion about broader personal-corpus reliability or general model quality."
+  ]
+}
