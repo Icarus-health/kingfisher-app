@@ -1,0 +1,36 @@
+{
+  "catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "sources_with_verified_original_hash": 19,
+  "questions": 16,
+  "saved_reopen_unchanged": 16,
+  "saved_reopen_provider_calls": 0,
+  "withdrawal_blocked_and_original_retained": true,
+  "strict_automated_source_match_before": 14,
+  "strict_automated_source_match_after": 14,
+  "strict_automated_source_mismatches": [
+    "IA02",
+    "W02"
+  ],
+  "strict_metric_is_not_independent_content_rating": true,
+  "product_satzpruefung_sha256": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d",
+  "full_regression_passed": 5917,
+  "full_regression_skipped": 2,
+  "full_regression_exit": 0,
+  "current_original_body_digests_valid": 344,
+  "native_storage_reserve_after_install": true,
+  "post_install_available_bytes": 721842176,
+  "installed_version": "1.0.6-local.3ff842f",
+  "installed_image": "sha256:3dd2946e347f5d560f24157c4710ea3badbbeb70104430c99883d3a5f448a5f1",
+  "native_window_verified": false,
+  "artifact_sha256": {
+    "catalog.json": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+    "before-answers.json": "0a4df21af6a806bd46838a47fc0405ed6a3a5b58d9fb99d52994149ca0d04103",
+    "after-answers.json": "9af3d071de9ca278d84ebae6242d706e9e501b6d539137aac1000ffaf6bbc925",
+    "code-review.json": "a89876850fcbedeec18e7713c36390265639c6a560c9fb07f856bb11af041821",
+    "content-review.json": "a535fe850b8406e114a53d3f185c532b23d85eacf1120adf68d70ad6c3a3cbf6",
+    "full-tests.txt": "c0f0f6e631024ff60f1c3111136d5e1e7622bb974506422e57e3a9d702fc27f5",
+    "installation.json": "bb3833824a18830e3715c0a711d9ebfa0956cad2f4d24c2e71e2fe5b36336af3",
+    "installed-files.txt": "603e42ccbf8185c4f22b5a350a5d4a7311f544c22d2640764fca3c819a482dd7",
+    "real-verifier/report.json": "7f0d9e4850419b5ee0961d87c51bd05fe145a78e39517f94bffdb6ba5f96c82c"
+  }
+}
