@@ -423,7 +423,7 @@ def _pool(belege: Sequence[Beleg], zusatz: Iterable[str]) -> _Pool:
                     pool.daten_voll.add(aufgeloest)
         if beleg.zeit:
             # Relative Angaben („bis Freitag“, „in zwei Wochen“) mit dem Zeitpunkt der Quelle.
-            for f in fristen_in(gesamt, beleg.zeit).fristen:
+            for f in fristen_in(beleg.text, beleg.zeit).fristen:
                 pool.daten_voll.add(f.datum)
                 pool.daten_kurz.add((f.datum.month, f.datum.day))
                 pool.monate.add(f.datum.month)
