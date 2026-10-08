@@ -1,0 +1,1190 @@
+{
+  "original": {
+    "questions": 36,
+    "source_status_points": 29,
+    "median_seconds": 5.1365,
+    "sentence_modes": {
+      "zitate": 11,
+      "saetze": 14,
+      "none": 10,
+      "nichts": 1
+    },
+    "provider_errors": 0,
+    "provider_pending": 0,
+    "withdrawal": {
+      "checked": true,
+      "pass": true,
+      "status": "working_unavailable",
+      "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut."
+    },
+    "rows": [
+      {
+        "q": "Wann beginnt das Wartungsfenster für den Server?",
+        "type": "direct",
+        "expect": [
+          "S1"
+        ],
+        "candidate_sources": [
+          "S1"
+        ],
+        "selected_sources": [
+          "S1"
+        ],
+        "shown_sources": [
+          "S1"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 9.187
+      },
+      {
+        "q": "Ab wann ist das System am Abend nicht erreichbar?",
+        "type": "paraphrase",
+        "expect": [
+          "S1"
+        ],
+        "candidate_sources": [
+          "S1",
+          "S10"
+        ],
+        "selected_sources": [
+          "S1"
+        ],
+        "shown_sources": [
+          "S1"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.819
+      },
+      {
+        "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+        "type": "direct",
+        "expect": [
+          "S2"
+        ],
+        "candidate_sources": [
+          "S2"
+        ],
+        "selected_sources": [
+          "S2"
+        ],
+        "shown_sources": [
+          "S2"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.144
+      },
+      {
+        "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+        "type": "paraphrase",
+        "expect": [
+          "S2"
+        ],
+        "candidate_sources": [
+          "S2",
+          "S7"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": "selection",
+        "selection_pass": false,
+        "seconds": 3.943
+      },
+      {
+        "q": "Wo liegt die Zugangskarte?",
+        "type": "direct",
+        "expect": [
+          "S3"
+        ],
+        "candidate_sources": [
+          "S3",
+          "S9"
+        ],
+        "selected_sources": [
+          "S3"
+        ],
+        "shown_sources": [
+          "S3"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 4.98
+      },
+      {
+        "q": "Wo finde ich den Ausweis zum Reinkommen?",
+        "type": "paraphrase",
+        "expect": [
+          "S3"
+        ],
+        "candidate_sources": [
+          "S3"
+        ],
+        "selected_sources": [
+          "S3"
+        ],
+        "shown_sources": [
+          "S3"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 4.977
+      },
+      {
+        "q": "Wer betreut die Lieferantenverträge?",
+        "type": "direct",
+        "expect": [
+          "S4"
+        ],
+        "candidate_sources": [
+          "S4"
+        ],
+        "selected_sources": [
+          "S4"
+        ],
+        "shown_sources": [
+          "S4"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.104
+      },
+      {
+        "q": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+        "type": "paraphrase",
+        "expect": [
+          "S4"
+        ],
+        "candidate_sources": [],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "unknown",
+        "first_missing_stage": "retrieval",
+        "selection_pass": false,
+        "seconds": 3.363
+      },
+      {
+        "q": "Wann endet die Anmeldung zum Workshop?",
+        "type": "direct",
+        "expect": [
+          "S5"
+        ],
+        "candidate_sources": [
+          "S5"
+        ],
+        "selected_sources": [
+          "S5"
+        ],
+        "shown_sources": [
+          "S5"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 4.701
+      },
+      {
+        "q": "Bis wann kann ich mich fürs Seminar registrieren?",
+        "type": "paraphrase",
+        "expect": [
+          "S5"
+        ],
+        "candidate_sources": [
+          "S5"
+        ],
+        "selected_sources": [
+          "S5"
+        ],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": "display",
+        "selection_pass": false,
+        "seconds": 4.212
+      },
+      {
+        "q": "Wann muss das Auto zur Hauptuntersuchung?",
+        "type": "direct",
+        "expect": [
+          "S6"
+        ],
+        "candidate_sources": [
+          "S6"
+        ],
+        "selected_sources": [
+          "S6"
+        ],
+        "shown_sources": [
+          "S6"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.384
+      },
+      {
+        "q": "Wann ist beim Wagen der TÜV fällig?",
+        "type": "paraphrase",
+        "expect": [
+          "S6"
+        ],
+        "candidate_sources": [
+          "S6"
+        ],
+        "selected_sources": [
+          "S6"
+        ],
+        "shown_sources": [
+          "S6"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.516
+      },
+      {
+        "q": "Wann ist die Veranstaltung in Dresden?",
+        "type": "direct",
+        "expect": [
+          "S7"
+        ],
+        "candidate_sources": [
+          "S5",
+          "S7"
+        ],
+        "selected_sources": [
+          "S7"
+        ],
+        "shown_sources": [
+          "S7"
+        ],
+        "status": "working_unclear",
+        "first_missing_stage": null,
+        "selection_pass": false,
+        "seconds": 3.822
+      },
+      {
+        "q": "Auf welchen Tag wurde das Treffen in Sachsen verlegt?",
+        "type": "paraphrase",
+        "expect": [
+          "S7"
+        ],
+        "candidate_sources": [
+          "S1",
+          "S7"
+        ],
+        "selected_sources": [
+          "S7"
+        ],
+        "shown_sources": [
+          "S7"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.352
+      },
+      {
+        "q": "Was erlaubt die Lizenz für das Foto?",
+        "type": "direct",
+        "expect": [
+          "S8"
+        ],
+        "candidate_sources": [
+          "S8"
+        ],
+        "selected_sources": [
+          "S8"
+        ],
+        "shown_sources": [
+          "S8"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.128
+      },
+      {
+        "q": "Dürfen wir die Grafik öffentlich nutzen?",
+        "type": "paraphrase",
+        "expect": [
+          "S8"
+        ],
+        "candidate_sources": [
+          "S8",
+          "S9"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": "selection",
+        "selection_pass": false,
+        "seconds": 4.465
+      },
+      {
+        "q": "Ist der Quartalsbericht freigegeben?",
+        "type": "direct",
+        "expect": [
+          "S9"
+        ],
+        "candidate_sources": [
+          "S9"
+        ],
+        "selected_sources": [
+          "S9"
+        ],
+        "shown_sources": [
+          "S9"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.609
+      },
+      {
+        "q": "Darf der Report schon raus?",
+        "type": "paraphrase",
+        "expect": [
+          "S9"
+        ],
+        "candidate_sources": [
+          "S9"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": "selection",
+        "selection_pass": false,
+        "seconds": 3.651
+      },
+      {
+        "q": "Warum verzögert sich die Lieferung?",
+        "type": "direct",
+        "expect": [
+          "S10"
+        ],
+        "candidate_sources": [
+          "S10"
+        ],
+        "selected_sources": [
+          "S10"
+        ],
+        "shown_sources": [
+          "S10"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.438
+      },
+      {
+        "q": "Weshalb kommt die Ware später an?",
+        "type": "paraphrase",
+        "expect": [
+          "S10"
+        ],
+        "candidate_sources": [
+          "S10"
+        ],
+        "selected_sources": [
+          "S10"
+        ],
+        "shown_sources": [
+          "S10"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.247
+      },
+      {
+        "q": "Wann kann man mich wegen des Keramiktests anrufen?",
+        "type": "direct",
+        "expect": [
+          "S11"
+        ],
+        "candidate_sources": [
+          "S11"
+        ],
+        "selected_sources": [
+          "S11"
+        ],
+        "shown_sources": [
+          "S11"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.286
+      },
+      {
+        "q": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+        "type": "paraphrase",
+        "expect": [
+          "S11"
+        ],
+        "candidate_sources": [
+          "S11"
+        ],
+        "selected_sources": [
+          "S11"
+        ],
+        "shown_sources": [
+          "S11"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.062
+      },
+      {
+        "q": "Wann ist der Umzug des Büros?",
+        "type": "direct",
+        "expect": [
+          "S12"
+        ],
+        "candidate_sources": [
+          "S12",
+          "S3"
+        ],
+        "selected_sources": [
+          "S12"
+        ],
+        "shown_sources": [
+          "S12"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.765
+      },
+      {
+        "q": "Wann ziehen wir mit der Firma in die neuen Räume?",
+        "type": "paraphrase",
+        "expect": [
+          "S12"
+        ],
+        "candidate_sources": [
+          "S12"
+        ],
+        "selected_sources": [
+          "S12"
+        ],
+        "shown_sources": [
+          "S12"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.129
+      },
+      {
+        "q": "Was verträgt Jonas nicht?",
+        "type": "direct",
+        "expect": [
+          "S13"
+        ],
+        "candidate_sources": [
+          "S13"
+        ],
+        "selected_sources": [
+          "S13"
+        ],
+        "shown_sources": [
+          "S13"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.155
+      },
+      {
+        "q": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+        "type": "paraphrase",
+        "expect": [
+          "S13"
+        ],
+        "candidate_sources": [
+          "S13"
+        ],
+        "selected_sources": [
+          "S13"
+        ],
+        "shown_sources": [
+          "S13"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.635
+      },
+      {
+        "q": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+        "type": "direct",
+        "expect": [
+          "S14"
+        ],
+        "candidate_sources": [
+          "S14"
+        ],
+        "selected_sources": [
+          "S14"
+        ],
+        "shown_sources": [
+          "S14"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.074
+      },
+      {
+        "q": "Welche Frist gilt für das Handy-Abo?",
+        "type": "paraphrase",
+        "expect": [
+          "S14"
+        ],
+        "candidate_sources": [
+          "S14"
+        ],
+        "selected_sources": [
+          "S14"
+        ],
+        "shown_sources": [
+          "S14"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.975
+      },
+      {
+        "q": "Wie viel Euro stehen für die Messe zur Verfügung?",
+        "type": "direct",
+        "expect": [
+          "S15"
+        ],
+        "candidate_sources": [
+          "S13",
+          "S15"
+        ],
+        "selected_sources": [
+          "S15"
+        ],
+        "shown_sources": [
+          "S15"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.65
+      },
+      {
+        "q": "Welches Geld haben wir für den Stand auf der Ausstellung?",
+        "type": "paraphrase",
+        "expect": [
+          "S15"
+        ],
+        "candidate_sources": [
+          "S15"
+        ],
+        "selected_sources": [
+          "S15"
+        ],
+        "shown_sources": [
+          "S15"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.318
+      },
+      {
+        "q": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+        "type": "direct",
+        "expect": [
+          "S16"
+        ],
+        "candidate_sources": [
+          "S10",
+          "S16"
+        ],
+        "selected_sources": [
+          "S16"
+        ],
+        "shown_sources": [
+          "S16"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.811
+      },
+      {
+        "q": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+        "type": "paraphrase",
+        "expect": [
+          "S16"
+        ],
+        "candidate_sources": [],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "unknown",
+        "first_missing_stage": "retrieval",
+        "selection_pass": false,
+        "seconds": 2.374
+      },
+      {
+        "q": "Wie lautet die PIN meiner Bankkarte?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [
+          "S3"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.257
+      },
+      {
+        "q": "Welche Blutgruppe habe ich?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 2.186
+      },
+      {
+        "q": "Wann hat meine Schwester Geburtstag?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 2.974
+      },
+      {
+        "q": "Welches Passwort hat das WLAN?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.211
+      }
+    ]
+  },
+  "independent": {
+    "questions": 23,
+    "source_status_points": 20,
+    "median_seconds": 6.219,
+    "sentence_modes": {
+      "saetze": 16,
+      "none": 5,
+      "zitate": 2
+    },
+    "provider_errors": 0,
+    "provider_pending": 0,
+    "withdrawal": {
+      "checked": true,
+      "pass": true,
+      "status": "working_unavailable",
+      "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut."
+    },
+    "rows": [
+      {
+        "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+        "type": "direct",
+        "expect": [
+          "RCS01"
+        ],
+        "candidate_sources": [
+          "RCS01"
+        ],
+        "selected_sources": [
+          "RCS01"
+        ],
+        "shown_sources": [
+          "RCS01"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 10.469
+      },
+      {
+        "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS01"
+        ],
+        "candidate_sources": [
+          "RCS01",
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS01"
+        ],
+        "shown_sources": [
+          "RCS01"
+        ],
+        "status": "working_unclear",
+        "first_missing_stage": null,
+        "selection_pass": false,
+        "seconds": 4.957
+      },
+      {
+        "q": "Wer liefert die Befestigungssätze für KL-24?",
+        "type": "direct",
+        "expect": [
+          "RCS02"
+        ],
+        "candidate_sources": [
+          "RCS02"
+        ],
+        "selected_sources": [
+          "RCS02"
+        ],
+        "shown_sources": [
+          "RCS02"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.11
+      },
+      {
+        "q": "Wer prüft die Ware im Auftrag KL-24?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [
+          "RCS01",
+          "RCS02",
+          "RCS11",
+          "RCS12",
+          "RCS13"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.99
+      },
+      {
+        "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS03"
+        ],
+        "candidate_sources": [
+          "RCS03",
+          "RCS04",
+          "RCS12"
+        ],
+        "selected_sources": [
+          "RCS03"
+        ],
+        "shown_sources": [
+          "RCS03"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 7.363
+      },
+      {
+        "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+        "type": "direct",
+        "expect": [
+          "RCS03"
+        ],
+        "candidate_sources": [
+          "RCS03",
+          "RCS04"
+        ],
+        "selected_sources": [
+          "RCS03"
+        ],
+        "shown_sources": [
+          "RCS03"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.988
+      },
+      {
+        "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS04"
+        ],
+        "candidate_sources": [
+          "RCS04"
+        ],
+        "selected_sources": [
+          "RCS04"
+        ],
+        "shown_sources": [
+          "RCS04"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 7.343
+      },
+      {
+        "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS03",
+          "RCS04"
+        ],
+        "candidate_sources": [
+          "RCS03",
+          "RCS04"
+        ],
+        "selected_sources": [
+          "RCS03",
+          "RCS04"
+        ],
+        "shown_sources": [
+          "RCS04"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": "display",
+        "selection_pass": false,
+        "seconds": 8.285
+      },
+      {
+        "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+        "type": "direct",
+        "expect": [
+          "RCS04"
+        ],
+        "candidate_sources": [
+          "RCS04",
+          "RCS12"
+        ],
+        "selected_sources": [
+          "RCS04"
+        ],
+        "shown_sources": [
+          "RCS04"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.483
+      },
+      {
+        "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS06"
+        ],
+        "candidate_sources": [
+          "RCS05",
+          "RCS06",
+          "RCS07",
+          "RCS08"
+        ],
+        "selected_sources": [
+          "RCS06"
+        ],
+        "shown_sources": [
+          "RCS06"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.786
+      },
+      {
+        "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS05",
+          "RCS06"
+        ],
+        "candidate_sources": [
+          "RCS05",
+          "RCS06",
+          "RCS07",
+          "RCS09"
+        ],
+        "selected_sources": [
+          "RCS05",
+          "RCS06"
+        ],
+        "shown_sources": [
+          "RCS05"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": "display",
+        "selection_pass": false,
+        "seconds": 8.524
+      },
+      {
+        "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+        "type": "direct",
+        "expect": [
+          "RCS06"
+        ],
+        "candidate_sources": [
+          "RCS05",
+          "RCS06"
+        ],
+        "selected_sources": [
+          "RCS06"
+        ],
+        "shown_sources": [
+          "RCS06"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 7.875
+      },
+      {
+        "q": "Findet der Rundgang im Depot Süd noch statt?",
+        "type": "direct",
+        "expect": [
+          "RCS07"
+        ],
+        "candidate_sources": [
+          "RCS07",
+          "RCS08"
+        ],
+        "selected_sources": [
+          "RCS07"
+        ],
+        "shown_sources": [
+          "RCS07"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.197
+      },
+      {
+        "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS08"
+        ],
+        "candidate_sources": [
+          "RCS07",
+          "RCS08"
+        ],
+        "selected_sources": [
+          "RCS08"
+        ],
+        "shown_sources": [
+          "RCS08"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.219
+      },
+      {
+        "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS08"
+        ],
+        "candidate_sources": [
+          "RCS06",
+          "RCS07",
+          "RCS08"
+        ],
+        "selected_sources": [
+          "RCS08"
+        ],
+        "shown_sources": [
+          "RCS08"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.852
+      },
+      {
+        "q": "Welche Diagnose hat Noa Jansen?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [
+          "RCS09"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.403
+      },
+      {
+        "q": "Wie lautet Nola Voss' private Anschrift?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [
+          "RCS01",
+          "RCS02",
+          "RCS10",
+          "RCS14"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.706
+      },
+      {
+        "q": "Welche Medikamente nimmt Emi Tanaka?",
+        "type": "unanswerable",
+        "expect": [],
+        "candidate_sources": [
+          "RCS01",
+          "RCS14"
+        ],
+        "selected_sources": [],
+        "shown_sources": [],
+        "status": "working_unknown",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 3.432
+      },
+      {
+        "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+        "type": "direct",
+        "expect": [
+          "RCS11"
+        ],
+        "candidate_sources": [
+          "RCS03",
+          "RCS11",
+          "RCS12",
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS11"
+        ],
+        "shown_sources": [
+          "RCS11"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.987
+      },
+      {
+        "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+        "type": "direct",
+        "expect": [
+          "RCS11"
+        ],
+        "candidate_sources": [
+          "RCS11",
+          "RCS12",
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS11"
+        ],
+        "shown_sources": [
+          "RCS11"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.314
+      },
+      {
+        "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+        "type": "paraphrase",
+        "expect": [
+          "RCS12"
+        ],
+        "candidate_sources": [
+          "RCS10",
+          "RCS11",
+          "RCS12",
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS12"
+        ],
+        "shown_sources": [
+          "RCS12"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 7.679
+      },
+      {
+        "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+        "type": "direct",
+        "expect": [
+          "RCS13"
+        ],
+        "candidate_sources": [
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS13"
+        ],
+        "shown_sources": [
+          "RCS13"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 6.155
+      },
+      {
+        "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+        "type": "direct",
+        "expect": [
+          "RCS13"
+        ],
+        "candidate_sources": [
+          "RCS11",
+          "RCS13"
+        ],
+        "selected_sources": [
+          "RCS13"
+        ],
+        "shown_sources": [
+          "RCS13"
+        ],
+        "status": "working_reports",
+        "first_missing_stage": null,
+        "selection_pass": true,
+        "seconds": 5.335
+      }
+    ]
+  }
+}

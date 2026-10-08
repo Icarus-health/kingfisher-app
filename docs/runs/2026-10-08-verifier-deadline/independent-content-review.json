@@ -1,0 +1,165 @@
+{
+  "review_scope": {
+    "inputs": [
+      "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/original/content-review-input.json",
+      "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/independent/content-review-input.json"
+    ],
+    "baseline": "product064a4d9",
+    "method": "Manuell gegen die mitgelieferten Originalquellen geprüft; Prüferurteile nicht als Wahrheitsbeleg gezählt.",
+    "warning": "Beide Läufe nutzten dasselbe qwen3.5:4b zum Antworten und Prüfen; das ist keine unabhängige Modellwahrheit.",
+    "indexing": "Alle Frageindizes sind nullbasiert und beziehen sich auf die Reihenfolge rows im jeweiligen JSON."
+  },
+  "counts": {
+    "original": {
+      "questions": 36,
+      "displayed_free_sentences": 16,
+      "source_supported_free_sentences": 16,
+      "unsupported_displayed_free_sentences": 0,
+      "source_quote_fallback_rows": 11,
+      "wrong_displayed_claims": 0,
+      "expected_source_answer_coverage_failures_by_stage": {
+        "selection_loss_candidates_existed_but_none_selected": [
+          3,
+          15,
+          17
+        ],
+        "retrieval_no_candidates": [
+          7,
+          31
+        ],
+        "selected_but_not_displayed": [
+          9
+        ]
+      }
+    },
+    "independent": {
+      "questions": 23,
+      "displayed_free_sentences": 19,
+      "source_supported_free_sentences": 19,
+      "unsupported_displayed_free_sentences": 0,
+      "source_quote_fallback_rows": 2,
+      "wrong_displayed_claims": 0,
+      "materially_incomplete_multi_part_answers": [
+        4,
+        7,
+        10
+      ],
+      "false_positive_rejections_of_supported_sentences": [
+        4,
+        7,
+        10
+      ]
+    },
+    "combined": {
+      "displayed_free_sentences": 35,
+      "source_supported_free_sentences": 35,
+      "unsupported_displayed_free_sentences": 0,
+      "wrong_displayed_claims": 0
+    }
+  },
+  "failure_cases": [
+    {
+      "question": "original[3]",
+      "text": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+      "source": "S2: Dachreparatur invoice was transferred on 10 September.",
+      "observation": "The raw trace had candidates S2 and S7, but selected no source; this is a selection loss, not a retrieval miss. The user-facing answer abstained despite S2 directly addressing the question.",
+      "stage": "selection_loss"
+    },
+    {
+      "question": "original[7]",
+      "text": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+      "source": "S4: Mira handles supplier contracts.",
+      "observation": "The raw trace had no candidates; this is a retrieval miss for a direct supplier-contract paraphrase.",
+      "stage": "retrieval_miss"
+    },
+    {
+      "question": "original[17]",
+      "text": "Darf der Report schon raus?",
+      "source": "S9: quarterly report is a draft and has no approval.",
+      "observation": "The raw trace had S9 as a candidate but selected no source; this is a selection loss. Report is a clear paraphrase of quarterly report and the source answers release readiness.",
+      "stage": "selection_loss"
+    },
+    {
+      "question": "original[31]",
+      "text": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+      "source": "S16: Ben handles Anna's customer inquiries during her vacation.",
+      "observation": "The raw trace had no candidates; this is a retrieval miss. The only relevant record answers with Ben.",
+      "stage": "retrieval_miss"
+    },
+    {
+      "question": "original[9]",
+      "text": "Bis wann kann ich mich fürs Seminar registrieren?",
+      "source": "S5 says Workshop registration ends 30 September.",
+      "observation": "The raw trace had and selected S5, but no source or answer was displayed; this is a display refusal, not retrieval or selection loss. Likely intended as a paraphrase, though Seminar and Workshop need not denote the same event.",
+      "stage": "display_refusal"
+    },
+    {
+      "question": "original[15]",
+      "text": "Dürfen wir die Grafik öffentlich nutzen?",
+      "source": "S8 says the photo license permits internal use only.",
+      "observation": "The raw trace had candidates S8 and S9, but selected no source; this is a selection loss. Likely intended to ask about the same image, but Grafik and Foto do not prove identical asset identity.",
+      "stage": "selection_loss"
+    },
+    {
+      "question": "independent[1]",
+      "text": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "source": "RCS01 names Nora Voss for KL-42; raw candidates were RCS01 and RCS13, with RCS01 selected and shown.",
+      "observation": "The UI asks which person is meant despite a single selected source naming Nora Voss for KL-42. This is an unnecessary clarification; the trace does not establish why it occurred.",
+      "stage": "unnecessary_clarification"
+    },
+    {
+      "question": "independent[4]",
+      "text": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "source": "RCS03 requires written warehouse-lead approval and says it has not arrived.",
+      "observation": "Displayed sentence that approval is missing is true, but omits the material requirement that approval be written and from the warehouse lead. The supported conditional rule was drafted then falsely rejected because the source also says approval has not arrived."
+    },
+    {
+      "question": "independent[7]",
+      "text": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "source": "RCS03 requires written warehouse-lead approval for M-731; RCS04 requires both measurement series signed for M-713.",
+      "observation": "Only the M-713 condition is displayed, so a requested half of the comparison is missing. The M-731 condition was present among source records and drafted, then falsely rejected on negation polarity."
+    },
+    {
+      "question": "independent[10]",
+      "text": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "source": "RCS05 gives May 12 at 09:00; RCS06 says it was moved to May 19 at 14:30 and replaced the old date.",
+      "observation": "Only the original May 12 date is displayed; the latest date and the fact that the old date is replaced are omitted. The correct later date was drafted but rejected because the candidate called the source's update a Änderungsnotiz, while the source says Aktualisierung and its title says Terminänderung. The surviving answer risks leaving a stale date salient."
+    }
+  ],
+  "rejected_but_supported_drafts": [
+    {
+      "question": "independent[4]",
+      "claim": "Material aus M-731 darf erst nach schriftlicher Freigabe durch die Lagerleitung ...",
+      "reason_recorded": "Verifier said source negates the sentence.",
+      "assessment": "Supported conditional rule; negation belongs to separate current-status clause."
+    },
+    {
+      "question": "independent[7]",
+      "claim": "Für M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung ...",
+      "reason_recorded": "Verifier said source negates the sentence.",
+      "assessment": "Supported conditional rule; its source was available, but the displayed multi-part answer omits it."
+    },
+    {
+      "question": "independent[10]",
+      "claim": "Die spätere Änderungsnotiz nennt den 19. Mai um 14:30 Uhr.",
+      "reason_recorded": "The word Änderungsnotiz was not in the source.",
+      "assessment": "Semantically supported by source RCS06, titled Terminänderung and beginning Aktualisierung; refusal was lexical overreach."
+    },
+    {
+      "question": "original[29]",
+      "claim": "Für den Stand auf der Ausstellung stehen 12.000 Euro zur Verfügung.",
+      "reason_recorded": "The term Ausstellung was not in the source.",
+      "assessment": "The short draft omits the source condition that the 12,000 euro Messe budget includes travel costs, a material planning caveat for a stand-only budget. The displayed quote fallback includes \"Reisekosten eingeschlossen\", so this is not an omission in the final displayed answer and not a false claim."
+    }
+  ],
+  "properly_rejected_or_cautioned": [
+    "original[0,1,13,21,22,23] and independent[9,14]: candidate added a calendar year/date absent from the source; the displayed source wording preserves only the supported relative or month/day time.",
+    "original[20]: 'ab 10 Uhr' is not equivalent to 'erst nach 10 Uhr'; the quote fallback preserves the stricter boundary.",
+    "original[12]: the weekday exists in the source but its source date is unknown; asking for the date anchor is appropriate."
+  ],
+  "displayed_quotes": {
+    "assessment": "All quote fallbacks inspected are source-faithful and none contains a materially unrelated quotation. Some include adjacent context, such as the move's box-delivery date, but it is from the same relevant source. In original[29], the displayed quote retains the travel-cost inclusion caveat omitted by the rejected short draft; no wrong displayed claim was identified.",
+    "caveat": "Quote fallbacks often still answer the question, so a rejected free-sentence draft is not automatically a user-facing refusal."
+  },
+  "practical_conclusion": "The accepted free sentences were accurate in these synthetic samples (35/35), but that does not validate the same-model verifier. The visible risk is answer coverage: the original trace shows retrieval misses, selection losses, and a selected-source display refusal on known facts; the independent run shows false verifier rejections of supported material conditions, leaving incomplete answers including one that foregrounds a superseded date. The rejected original[29] short draft also omitted travel-cost inclusion, although the displayed source quote retained it. This content review predates the transport-deadline change and says nothing about its effect on answer quality."
+}

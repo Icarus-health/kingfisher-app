@@ -1,0 +1,117 @@
+{
+  "product_commit": "0f0f5da022f0ae929c6c37cabc9ab18aee699e2a",
+  "quality_baseline_commit": "064a4d9ae3f24112bef92045bc975d9e675d24e7",
+  "raw_sha256_scope": "decompressed original bytes",
+  "files": {
+    "original-answers.json.gz": {
+      "sha256": "141965e75076b51d810a6bb834ffffeeddc2d62cd5045d3c3115068a35f97cab",
+      "bytes": 297859
+    },
+    "original-runtime.json.gz": {
+      "sha256": "65479c9ebebac85f9ad07d0db8a7d64be8747507a1974f44951d70333da33f75",
+      "bytes": 7925
+    },
+    "original-ollama.log.gz": {
+      "sha256": "f6a7f8ec244e609742e545e4317002f5a568f0c11e379c6562070e7309399cc9",
+      "bytes": 522924
+    },
+    "original-probe.log.gz": {
+      "sha256": "268c85c41e13afe9b87f1a9da804d0a1dffbfb2f4f558b88038f7b16ed7fbedd",
+      "bytes": 2044
+    },
+    "original-native_e2e.py": {
+      "sha256": "51e9d5aa08b138d21702d268c475085ba03b7e684d838339a9a9862c8d3b8416",
+      "bytes": 5549
+    },
+    "original-run_native.py": {
+      "sha256": "b3253569658855126e2fd242c65d086ec475f93495089a0cc068cf8c2d0529dc",
+      "bytes": 4472
+    },
+    "independent-answers.json.gz": {
+      "sha256": "2eddbcec1e570a297b6fdd21317c7af21bc78454741c3a554a7a6c56a94070ce",
+      "bytes": 253560
+    },
+    "independent-runtime.json.gz": {
+      "sha256": "10575a018830ed038c6dbdac422eb554eb3cfd46c80f8848255f213a1f31a975",
+      "bytes": 6824
+    },
+    "independent-ollama.log.gz": {
+      "sha256": "d4f116659cd135be90d3f752b58692e5fc73505dfd6f07b23ec05534a29ac4b3",
+      "bytes": 409778
+    },
+    "independent-probe.log.gz": {
+      "sha256": "8adfbec9eed04fa75818874fef8dea760163dbcbfdf1294cedf6abfa6c76ac59",
+      "bytes": 1592
+    },
+    "independent-native_e2e.py": {
+      "sha256": "dbf7a7819f1d429562c736778423a0f19248886eb58fb389561d9e188763eb49",
+      "bytes": 5530
+    },
+    "independent-run_native.py": {
+      "sha256": "3c9aaa9279fb1302d04cf78a548b8b6ce48f52d352e07649c887aef2e6f997bc",
+      "bytes": 4470
+    }
+  },
+  "native_runs": {
+    "original": {
+      "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+      "import_evidence": {
+        "Agent": {
+          "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/agent.py",
+          "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+        },
+        "SemanticService": {
+          "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_semantic_service.py",
+          "sha256": "21a3d40b4a958530b59c121029abd1160632712a13386d3108176f126b7cabdc"
+        },
+        "icarus_memory.frage": {
+          "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/frage.py",
+          "sha256": "bb3ae5ef4ba9c4108e0518a7b5af00540b88b32073728f977c90241ad60274d1"
+        },
+        "icarus_memory.satzantwort": {
+          "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/satzantwort.py",
+          "sha256": "f67379c12eead66a411ce4ebf5cc0edf30cbbfd430f80cdceb5446fc2e76ef6d"
+        },
+        "icarus_memory.satzpruefung_modell": {
+          "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/satzpruefung_modell.py",
+          "sha256": "3734f5c356ba5cafaa187ba18bf90f56d6dd6a9ac0705de3b8ced79d7f4ecc6c"
+        }
+      },
+      "completed": true,
+      "client_exit": 0,
+      "server_exit": 0,
+      "sampled_peak_owned_rss_gib": 5.9695587158203125,
+      "metal_confirmed": true
+    },
+    "independent": {
+      "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+      "import_evidence": {
+        "Agent": {
+          "path": "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/baseline-code/sidecar/icarus_memory/agent.py",
+          "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+        },
+        "SemanticService": {
+          "path": "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/baseline-code/sidecar/icarus_memory/working_memory_semantic_service.py",
+          "sha256": "21a3d40b4a958530b59c121029abd1160632712a13386d3108176f126b7cabdc"
+        },
+        "icarus_memory.frage": {
+          "path": "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/baseline-code/sidecar/icarus_memory/frage.py",
+          "sha256": "bb3ae5ef4ba9c4108e0518a7b5af00540b88b32073728f977c90241ad60274d1"
+        },
+        "icarus_memory.satzantwort": {
+          "path": "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/baseline-code/sidecar/icarus_memory/satzantwort.py",
+          "sha256": "f67379c12eead66a411ce4ebf5cc0edf30cbbfd430f80cdceb5446fc2e76ef6d"
+        },
+        "icarus_memory.satzpruefung_modell": {
+          "path": "/Users/sorenkube/Documents/Codex/Kingfisher-Testlaeufe/2026-10-08-native-sentence-probe/baseline-code/sidecar/icarus_memory/satzpruefung_modell.py",
+          "sha256": "3734f5c356ba5cafaa187ba18bf90f56d6dd6a9ac0705de3b8ced79d7f4ecc6c"
+        }
+      },
+      "completed": true,
+      "client_exit": 0,
+      "server_exit": 0,
+      "sampled_peak_owned_rss_gib": 6.284759521484375,
+      "metal_confirmed": true
+    }
+  }
+}
