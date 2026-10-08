@@ -556,7 +556,8 @@ def test_der_zusatzaufruf_kennt_die_belege_nur_als_daten_mit_stichtag(raum):
     anfrage = modell.satzanfragen[0]
     assert anfrage['anliegen'] == FRAGE and anfrage['stichtag'] == 'Dienstag, 29.09.2026'
     assert set(anfrage) == {'anliegen', 'stichtag', 'belege'}
-    assert all(set(b) <= {'nr', 'rolle', 'quelle', 'text', 'ueberholt'} for b in anfrage['belege'])
+    assert all(set(b) <= {'nr', 'rolle', 'quelle', 'text', 'ueberholt', 'wortlaut_erforderlich'}
+               for b in anfrage['belege'])
 
 
 def test_auch_im_zitatmodus_steht_das_ueberholte_hinten_und_sagt_es(raum):

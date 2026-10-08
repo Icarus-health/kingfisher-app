@@ -90,6 +90,7 @@ Regeln, an denen nichts weich ist:
 - Jede Zahl, jedes Datum, jede Uhrzeit, jeder Name und jeder Ort im Satz muss wörtlich in einem genannten Beleg stehen.
 - Nenne Daten als Kalenderdatum (zum Beispiel 14.10.2026). „heute“, „morgen“ oder „nächste Woche“ nur, wenn du den Tag aus dem Stichtag bestimmst und der Beleg diesen Tag trägt.
 - Nimm die Wörter der Belege. Verneinungen und Absagen müssen so bleiben, wie sie dort stehen.
+- Bei einem Beleg mit „wortlaut_erforderlich“ auf true übernimm nur zur Frage passende, vollständige Originalsätze unverändert, einschließlich Vorsätzen vor einem Doppelpunkt. Stelle keine Wörter um und verbinde keine Sätze. Lass keine Bedingung weg und behaupte nicht, dass sie erfüllt ist. Fehlt der notwendige vollständige Wortlaut im sichtbaren Auszug, gib status unklar und keine Sätze; ergänze nichts aus fehlenden Absätzen.
 - Erhalte Datumsgrenzen mit ihrer Richtung und Einschränkung („ab“, „bis“, „vor“, „nach“, „nicht vor“). Eine befristete Gültigkeit darf nicht zu „gilt aktuell“ oder einer unbefristeten Zusage werden. Ein Datum allein belegt keine heutige Gültigkeit.
 - Bei einem langen Beleg steht nur ein Auszug der Absätze, die zur Frage passen; der Vermerk „… [gekürzt, 3 von 12 Absätzen]“ sagt es, „[…]“ trennt Stellen. Was im Auszug fehlt, ist weder bestätigt noch verneint: Schreibe darüber nichts.
 - Ein Beleg mit „ueberholt“ nennt eine Angabe, die eine neuere Quelle überholt hat. Nenne für den aktuellen Stand die neuere Quelle. Die überholte Angabe nennst du nur, um den Wandel zu erklären („Die Frist wurde vom 15.10. auf den 12.11. verschoben“); dann nennst du beide Belege. Nie beide Werte gleichrangig.
@@ -168,6 +169,9 @@ class AntwortBeleg:
 
     def fuer_modell(self, nummern: dict[str, int]) -> dict[str, Any]:
         eintrag: dict[str, Any] = {'nr': self.nummer, 'rolle': self.rolle, 'quelle': self.kopf, 'text': self.text}
+        # Trusted generation guidance follows the same full-source policy as
+        # the literal validator; hidden paragraphs remain outside model context.
+        eintrag['wortlaut_erforderlich'] = bool(bedingte_regeln_fuer_antwort(self.pruef_text or self.text))
         if self.ueberholt:
             eintrag['ueberholt'] = [{'angabe': u.alt_wert or u.alt, 'neu': u.neu_wert or u.neu,
                                      'neue_quelle_nr': nummern.get(u.durch)} for u in self.ueberholt]
