@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from icarus_memory import EpisodeKind
+from icarus_memory import EpisodeKind, Provenance, SourceType
 from icarus_memory.akten import Akten, gleicher_gegenstand, stamm_menge
 from icarus_memory.working_memory_store import WorkingMemoryStore
 from tests.test_bezuege import ICH, JETZT, quelle, welt  # noqa: F401 - Fixture und Hilfen
@@ -203,6 +203,36 @@ def test_datum_in_einer_bloszen_angabe_ist_keine_frist(welt, akten):
     episodes, _, _ = welt
     mail(episodes, 'Info', [('Die Firma wurde am 3.4.1998 gegründet.', 'fact')], tage=2)
     assert neu_rechnen(akten).akte(SACHE, jetzt=JETZT)['fristen']['gesamt'] == {'kommend': 0, 'verstrichen': 0, 'ersetzt': 0}
+
+
+def test_undatierte_quelle_loest_keine_relative_frist_mit_importdatum_auf(welt, akten):
+    episodes, _, _ = welt
+    text = 'Bitte kündigen Sie das Handy-Abo bis Ende Oktober.'
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, 'Handy-Abo', text,
+        Provenance(SourceType.EMAIL, source_ref='test:undatiertes-handy-abo'),
+        participants=[STIFTUNG], occurred_at=None, at=JETZT)
+    einordnen(episodes, episode, [(text, 'request')])
+
+    daten = neu_rechnen(akten).akte(SACHE, jetzt=JETZT)['fristen']
+
+    assert daten['kommend'] == [] and daten['verstrichen'] == []
+    assert [e['ausdruck'] for e in daten['ohne_datum']['eintraege']] == ['Ende Oktober.']
+
+
+def test_undatierte_quelle_behaelt_ausgeschriebenes_absolutes_fristdatum(welt, akten):
+    episodes, _, _ = welt
+    text = 'Bitte kündigen Sie das Handy-Abo bis zum 31. Oktober 2026.'
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, 'Handy-Abo', text,
+        Provenance(SourceType.EMAIL, source_ref='test:absolutes-handy-abo'),
+        participants=[STIFTUNG], occurred_at=None, at=JETZT)
+    einordnen(episodes, episode, [(text, 'request')])
+
+    daten = neu_rechnen(akten).akte(SACHE, jetzt=JETZT)['fristen']
+
+    assert [(e['datum'], e['ausdruck']) for e in daten['kommend']] == [
+        ('2026-10-31', '31. Oktober 2026')]
 
 
 # -- Stand -------------------------------------------------------------------

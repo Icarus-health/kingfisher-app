@@ -63,7 +63,7 @@ from .fristen import bezugstag, fristen_in
 from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 
-AKTEN_VERSION = 2
+AKTEN_VERSION = 3
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -147,6 +147,7 @@ class Abschnitt:
     text: str
     stamm: frozenset[str] = frozenset()
     daten: frozenset[date] = frozenset()
+    bezug: datetime | None = None
 
     @property
     def art(self) -> str:
@@ -207,8 +208,9 @@ def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any) ->
         zeit = episode.reference_time()
         daten: frozenset[date] = frozenset()
         if ref['kind'] in FRIST_ARTEN or ref['kind'] in STAND_ARTEN:
-            daten = frozenset(f.datum for f in fristen_in(voll, zeit).fristen)
-        ergebnis.append(Abschnitt(ref, zeit, voll, stamm_menge(voll), daten))
+            # `zeit` bleibt Chronologie/Sortierschlüssel; nur das Vorkommnisdatum löst relative Fristen auf.
+            daten = frozenset(f.datum for f in fristen_in(voll, episode.occurred_at).fristen)
+        ergebnis.append(Abschnitt(ref, zeit, voll, stamm_menge(voll), daten, episode.occurred_at))
     return ergebnis, gefunden['truncated']
 
 
@@ -234,7 +236,7 @@ def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     alle: list[dict] = []
     ohne: list[dict] = []
     for a in (x for x in abschnitte if x.art in FRIST_ARTEN):
-        suche = fristen_in(a.text, a.zeit)
+        suche = fristen_in(a.text, a.bezug)
         for f in suche.fristen:
             umfeld = _umfeld(a.text, f.start, f.ende)
             alle.append({'ref': _ref(a), 'start': f.start, 'ende': f.ende, 'datum': f.datum.isoformat(),
@@ -247,7 +249,7 @@ def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     # Änderung denselben Gegenstand (dieselben Wortstämme, wie bei jeder Frist) mit einem anderen Datum nennt; sonst wäre jedes Datum in jeder Angabe eine „Frist“.
     fakten: list[dict] = []
     for a in (x for x in abschnitte if x.art in FAKT_ARTEN):
-        for f in fristen_in(a.text, a.zeit).fristen:
+        for f in fristen_in(a.text, a.bezug).fristen:
             umfeld = _umfeld(a.text, f.start, f.ende)
             wort = frozenset(m.group(0).casefold() for m in _FRISTWORT.finditer(umfeld))
             if wort:

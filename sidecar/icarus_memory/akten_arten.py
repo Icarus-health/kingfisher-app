@@ -195,18 +195,21 @@ def _saetze(text: str) -> list[str]:
     return ergebnis
 
 
-def fristen_finden(text: str, bezug: datetime | date) -> list[FristVorschlag]:
+def fristen_finden(text: str, bezug: datetime | date | None) -> list[FristVorschlag]:
     """Kündigungs- und Zahlungsfristen eines Textes. Rein, ohne Modell.
 
     Je Satz mit Kündigungs- oder Zahlungswort und ausgeschriebenem Kalenderdatum, das noch nicht verstrichen ist (weder
-    am Tag der Quelle noch heute), eine Frist; Sätze, die Erledigtes melden („eingegangen“, „gekündigt“), nicht. Der
+    am Tag der Quelle noch heute), eine Frist; fehlt das Quelldatum, gilt nur der heutige Stand. Sätze, die Erledigtes
+    melden („eingegangen“, „gekündigt“), nicht. Der
     Betrag kommt aus demselben Satz, sonst aus einer Zeile wie „Rechnungsbetrag: 86,40 €“ derselben Mail; fehlt er,
     bleibt er leer.
     """
     from .fristen import bezugstag, fristen_in
     from .model import now
 
-    heute = max(bezugstag(bezug), bezugstag(now()))
+    heute = bezugstag(now())
+    if bezug is not None:
+        heute = max(bezugstag(bezug), heute)
     betrag_der_mail = ''
     for zeile in text.splitlines():
         if _BETRAGSZEILE.search(zeile):
@@ -433,7 +436,7 @@ def fristen_vorlegen(bezuege: Any, proposals: Any, *, max_akten: int = 2000) -> 
             lauf.quellen += 1
             schon = {(p.evidence[0].quote if p.evidence else '', p.valid_until.date() if p.valid_until else None)
                      for p in proposals.von(VORGESCHLAGEN_VON + episode.id, limit=50)}
-            for frist in fristen_finden(episode.body, episode.reference_time()):
+            for frist in fristen_finden(episode.body, episode.occurred_at):
                 if frist.satz not in episode.body or zahlen_belegt(frist.aussage(''), episode.body):
                     continue
                 gleich = (frist.art, frist.datum, frist.betrag)

@@ -154,7 +154,15 @@ class AntwortBeleg:
 
     def als_beleg(self) -> Beleg:
         # Die Prüfung liest den Volltext der Quelle, nie den Ausschnitt, den das Modell sah.
-        return Beleg(str(self.nummer), self.pruef_text or self.text, self.zeit, self.kopf)
+        # Das angehängte Quellen-Datum ist ein Anzeigehinweis und kein Inhalt der Quelle.
+        kopf = self.kopf
+        zeitmarke = _tag(self.zeit)
+        if zeitmarke:
+            if kopf == zeitmarke:
+                kopf = ''
+            elif kopf.endswith('; ' + zeitmarke):
+                kopf = kopf[:-(len(zeitmarke) + 2)]
+        return Beleg(str(self.nummer), self.pruef_text or self.text, self.zeit, kopf)
 
     def fuer_modell(self, nummern: dict[str, int]) -> dict[str, Any]:
         eintrag: dict[str, Any] = {'nr': self.nummer, 'rolle': self.rolle, 'quelle': self.kopf, 'text': self.text}
@@ -244,7 +252,9 @@ def _beleg_aus(ref: dict[str, Any], rolle: str, nummer: int, store: WorkingMemor
     if not voll:
         return None
     pruef = '' if voll == text else voll
-    moment = episode.reference_time()
+    # Nur der wirkliche Quellenzeitpunkt darf relative Angaben auflösen. `recorded_at` bleibt
+    # für Sortierung und Erfassung erhalten, ist aber kein Datum der zugrunde liegenden Nachricht.
+    moment = episode.occurred_at
     absender = absender_text(episode.participants, episode.contacts)
     kopf = '; '.join(t for t in (episode.title[:200], f'von {absender}' if absender else '', _tag(moment)) if t)
     return AntwortBeleg(nummer, {k: ref[k] for k in ('episode_id', 'fingerprint', 'start', 'end', 'kind')}, rolle,

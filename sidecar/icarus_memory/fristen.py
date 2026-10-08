@@ -137,13 +137,14 @@ def _jahr(wert: str | None, *, zweistellig: bool = False) -> int | None:
     return 2000 + zahl_ if zweistellig and zahl_ < 100 else zahl_
 
 
-def fristen_in(text: str, bezug: datetime | date) -> Fristensuche:
+def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
     """Alle eindeutig auflösbaren Datumsangaben im Text, in Reihenfolge des Textes.
 
-    `bezug` ist der Zeitpunkt der Quelle. Gleiche Textstellen werden nicht
-    doppelt gezählt (ein „12. Oktober“ ist nicht zugleich „12.10.“).
+    `bezug` ist der Zeitpunkt der Quelle. Ohne ihn bleiben relative Angaben und Daten ohne Jahr offen;
+    ausgeschriebene absolute Daten mit Jahr gelten weiterhin. Gleiche Textstellen werden nicht doppelt gezählt
+    (ein „12. Oktober“ ist nicht zugleich „12.10.“).
     """
-    heute = bezugstag(bezug)
+    heute = bezugstag(bezug) if bezug is not None else None
     ergebnis = Fristensuche()
     belegt: list[tuple[int, int]] = []
 
@@ -167,16 +168,19 @@ def fristen_in(text: str, bezug: datetime | date) -> Fristensuche:
         if jahr:
             nehmen(_tag(_jahr(jahr, zweistellig=len(jahr) == 2), monat, tag), treffer, 'datum')
         else:
-            nehmen(_ohne_jahr(monat, tag, heute), treffer, 'datum')
+            nehmen(_ohne_jahr(monat, tag, heute) if heute else None, treffer, 'datum')
     for treffer in _MONATSNAME.finditer(text):
         tag, monat = int(treffer[1]), _MONATE[treffer[2].lower()]
         if not 1 <= tag <= 31:
             continue
         jahr = _jahr(treffer[3])
-        nehmen(_tag(jahr, monat, tag) if jahr else _ohne_jahr(monat, tag, heute), treffer, 'datum')
+        nehmen(_tag(jahr, monat, tag) if jahr else (_ohne_jahr(monat, tag, heute) if heute else None),
+               treffer, 'datum')
     for treffer in _MONATSENDE.finditer(text):
         monat, jahr = _MONATE[treffer[1].lower()], _jahr(treffer[2])
-        if jahr is None:
+        if jahr is None and heute is None:
+            letzter = None
+        elif jahr is None:
             letzter = _monatsletzter(heute.year, monat)
             if letzter < heute:
                 # Wie ein Datum ohne Jahr: nur eindeutig, wenn das Folgejahr die einzige Lesart ist.
@@ -187,17 +191,20 @@ def fristen_in(text: str, bezug: datetime | date) -> Fristensuche:
             letzter = _monatsletzter(jahr, monat)
         nehmen(letzter, treffer, 'monatsende')
     for treffer in _ENDE_MONAT.finditer(text):
-        nehmen(_monatsletzter(heute.year, heute.month), treffer, 'monatsende')
+        nehmen(_monatsletzter(heute.year, heute.month) if heute else None, treffer, 'monatsende')
     for treffer in _JAHRESENDE.finditer(text):
-        nehmen(date(heute.year, 12, 31), treffer, 'monatsende')
+        nehmen(date(heute.year, 12, 31) if heute else None, treffer, 'monatsende')
     for treffer in _WOCHENTAG.finditer(text):
         ziel = _WOCHENTAGE[treffer[2].lower()]
-        abstand = (ziel - heute.weekday()) % 7
+        abstand = (ziel - heute.weekday()) % 7 if heute else 0
         # Am selben Wochentag ist unklar, ob heute oder in einer Woche gemeint ist.
-        nehmen(heute + timedelta(days=abstand) if abstand else None, treffer, 'wochentag')
+        nehmen(heute + timedelta(days=abstand) if heute and abstand else None, treffer, 'wochentag')
     for treffer in _RELATIV.finditer(text):
         anzahl = zahl(treffer[1])
         if not anzahl or anzahl > 366:
+            continue
+        if heute is None:
+            nehmen(None, treffer, 'relativ')
             continue
         einheit = treffer[2].lower()
         if einheit.startswith('tag'):
@@ -208,7 +215,7 @@ def fristen_in(text: str, bezug: datetime | date) -> Fristensuche:
             datum = _plus_monate(heute, anzahl)
         nehmen(datum, treffer, 'relativ')
     for treffer in _TAGE_NAH.finditer(text):
-        nehmen(heute + timedelta(days={'heute': 0, 'morgen': 1, 'übermorgen': 2}[treffer[1].lower()]),
+        nehmen(heute + timedelta(days={'heute': 0, 'morgen': 1, 'übermorgen': 2}[treffer[1].lower()]) if heute else None,
                treffer, 'relativ')
     for treffer in _UNEINDEUTIG.finditer(text):
         nehmen(None, treffer, 'uneindeutig')
