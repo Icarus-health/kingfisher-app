@@ -1,0 +1,68 @@
+{
+  "completed": true,
+  "frozen_commit": "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a",
+  "model": {
+    "name": "qwen3.5:4b",
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd"
+  },
+  "counts": {
+    "negative_controls": 8,
+    "literal_positive_controls": 3,
+    "actual_model_calls": 11,
+    "successful_provider_calls": 11,
+    "provider_errors": 0,
+    "timeouts": 0,
+    "pending_calls": 0,
+    "maintenance_empty_preload_calls": 1
+  },
+  "lexical_false_accepts": [
+    "N01",
+    "N02",
+    "N05",
+    "N06",
+    "N07"
+  ],
+  "second_gate_caught_lexical_false_accepts": [
+    "N01",
+    "N05",
+    "N07"
+  ],
+  "combined_false_accepts": [
+    "N02",
+    "N06"
+  ],
+  "second_gate_false_accepts_all_negative_controls": [
+    "N02",
+    "N04",
+    "N06",
+    "N08"
+  ],
+  "central_guard_saved_model_false_accepts": [
+    "N04",
+    "N08"
+  ],
+  "positive_controls_combined_passed": [
+    "P01",
+    "P02",
+    "P03"
+  ],
+  "candidate_case_reruns": 0,
+  "bootstrap_note": "First sandboxed process stopped before server/model initialization at local socket bind with PermissionError. Automatically approved escalated launch executed the frozen runner once. No candidate was retried.",
+  "server_stopped": true,
+  "max_sampled_owned_rss_kib": 4363120,
+  "limitations": [
+    "One local run with preloaded existing weights; not a population accuracy estimate.",
+    "Gate-only direct candidate/source evaluation, not full intake/retrieval/source-selection/answer rendering or UI evidence.",
+    "Default real two-second per-sentence gate budget retained. Each case is a separate one-answer invocation.",
+    "Sampled process RSS watchdog is not a hard GPU/RAM cap.",
+    "No product edits, settings changes, role switches, downloads or real user data."
+  ],
+  "artifacts_sha256": {
+    "catalog.json": "fcd785f6aadb0e483188de418b24fa5bc9f67fe2d533d3fb06c3a630374f0311",
+    "freeze.json": "e511823fe9bdeb45ad95edce98700abf1a7acf4d98695eaeb28dae9afe0b6efe",
+    "gate_client.py": "6432fc145c1f5cfabb67eff2dfa1f7b6c830661685dd95307ededfbf5d17107c",
+    "run_native.py": "f0a0515e6796b69b355490f5e71d47921c4709c30c7ad155af6cf8b3907eeecf",
+    "report.json": "7f0d9e4850419b5ee0961d87c51bd05fe145a78e39517f94bffdb6ba5f96c82c",
+    "runtime.json": "67f0159a7d877f73969791152cce8234b078d0a6a0ede9eab45cda322d9c811d"
+  }
+}

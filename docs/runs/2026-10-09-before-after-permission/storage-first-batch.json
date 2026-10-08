@@ -1,0 +1,134 @@
+{
+  "observed_at_utc": "2026-10-08T23:18:09Z",
+  "status": "read-only inventory; no container, image, tag, volume, or bind mount was changed",
+  "scope": "Three oldest stopped Kingfisher review snapshots selected for a bounded archive/restore rehearsal. Compared image layer digests against all Kingfisher-tagged images and Kingfisher-prefixed container image references, including untagged container-referenced images. Did not inspect unrelated project images or env values, logs, or source data.",
+  "excluded_live_and_recent": {
+    "healthy_product": "kingfisher-kingfisher-1 / ghcr.io/icarus-health/kingfisher-app:1.0.6-local.dfd4e85",
+    "recent_product_and_rollback_candidates": "Not selected; candidate tags are Sep 8 historical tags task-candidates, transcript-import, and seventy-percent.",
+    "latest_installed_context": "Parent reports current product dfd4e85 and recent ae1/3cf images; none are in this batch."
+  },
+  "batch": {
+    "container_count": 3,
+    "images_referenced_by_only_these_candidate_containers": 3,
+    "unique_uncompressed_image_layers_bytes": 204524567,
+    "unique_uncompressed_image_layers_mib": 195.1,
+    "container_writable_layers_bytes": 12288,
+    "bounded_batch_reclaim_estimate": "About 195 MiB of uncompressed layers within the Kingfisher image set plus 12 KiB writable data. Actual Docker VM reclaim is unmeasured and may be lower due to external layer sharing.",
+    "members": [
+      {
+        "container_id": "a04fbea83946901da30f729ecf4a07a446a54c11f8730345b2622e44aa1848c0",
+        "name": "kingfisher-review-20260907-before-transcripts",
+        "created_at_utc": "2026-09-08T08:22:08.690885415Z",
+        "status": "exited",
+        "writable_layer_bytes": 4096,
+        "image_id": "sha256:bad18e55c9f267496840184e615a200e1476aadbce3760118fab133dad5e888c",
+        "repo_tag": "kingfisher:task-candidates",
+        "unique_image_layers": [
+          {
+            "digest": "sha256:6f12b54189e47721f323fc2b0fdb95152c7ed4115b5afe65c217649cd9e46b9f",
+            "history_size_bytes": 25200000
+          },
+          {
+            "digest": "sha256:04b4a6867d3bc059fa3bd20dfdb584715973c3613153dfa7242cc6b6ec32cbff",
+            "history_size_bytes": 42900000
+          },
+          {
+            "digest": "sha256:bebdaa53d8983be00583276dc01e64af5ce849183fbff7d276386d1506648053",
+            "history_size_bytes": 8189
+          }
+        ],
+        "unique_uncompressed_bytes": 68108189,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "kingfisher-review-20260907",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "container_id": "ad8cd76d06a53bcee3bb0c2db73b3df405ba012e4dcdc3b217960195bd82a20c",
+        "name": "kingfisher-review-20260907-before-seventy",
+        "created_at_utc": "2026-09-08T11:25:21.328541402Z",
+        "status": "exited",
+        "writable_layer_bytes": 4096,
+        "image_id": "sha256:957bf41f8eac72d22fd8b08e20002405560710688389e48597fd7ecf9fbd2528",
+        "repo_tag": "kingfisher:transcript-import",
+        "unique_image_layers": [
+          {
+            "digest": "sha256:e45e998dd043bec2c6b55814311bbc78fb8021d246a159ae13af6f21e6d7575e",
+            "history_size_bytes": 25200000
+          },
+          {
+            "digest": "sha256:3e7c1aecc1210a67fd1a36a6013e3c686898aac7b9bf00e792f6d703a1829814",
+            "history_size_bytes": 42900000
+          },
+          {
+            "digest": "sha256:6732d35fd40c4c7a77dca0c51477236225ffb85015dece9a2efa477ff62bb12f",
+            "history_size_bytes": 8189
+          }
+        ],
+        "unique_uncompressed_bytes": 68108189,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "kingfisher-review-20260907",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      },
+      {
+        "container_id": "88c248349298e505f0e8bf6688cb8eb48a8db7e4317e966057abdb8aeadb2a7f",
+        "name": "kingfisher-review-20260907-before-source-flow",
+        "created_at_utc": "2026-09-08T12:07:42.597963263Z",
+        "status": "exited",
+        "writable_layer_bytes": 4096,
+        "image_id": "sha256:b79865d86f4b60e796aa1ac8d0e2fb365e57033cb776abb8478d79daeba18c77",
+        "repo_tag": "kingfisher:seventy-percent",
+        "unique_image_layers": [
+          {
+            "digest": "sha256:120a6f3b95d0e0b0d8d30e8c69a6db301651082a47e9fd585de0395e96134dfb",
+            "history_size_bytes": 25400000
+          },
+          {
+            "digest": "sha256:30e1b4213c27d39b4fa2f0390c532294003d86f83b7bf8b432dfc51b786cdb2f",
+            "history_size_bytes": 42900000
+          },
+          {
+            "digest": "sha256:c5b228dd1e1d5f27d99d91773807f8ad28edd4b1635e909c7a38f72eaac8cf1d",
+            "history_size_bytes": 8189
+          }
+        ],
+        "unique_uncompressed_bytes": 68308189,
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "kingfisher-review-20260907",
+            "destination": "/data",
+            "read_write": true
+          }
+        ]
+      }
+    ],
+    "shared_volume": {
+      "name": "kingfisher-review-20260907",
+      "destination": "/data",
+      "candidate_members_using_it": 3,
+      "all_kingfisher_containers_referencing_it": 20,
+      "preservation_rule": "Keep this named volume untouched; do not remove it. For a restore rehearsal, use a read-only mount or an isolated clone, because the stopped snapshots shared a writable volume."
+    }
+  },
+  "batch_size_check": {
+    "largest_single_candidate_image_unique_layers_mib": 74.5,
+    "largest_three_candidate_images_unique_layers_total_mib": 222.9,
+    "result": "No 1–3 image candidate reaches 1 GiB. The oldest three above are about 195 MiB; even the three largest candidate image references are about 223 MiB uncompressed."
+  },
+  "restore_and_archive_guidance": {
+    "before_any_removal": "Save these exact image IDs to a host-side image archive; export each stopped container filesystem if its writable layer is needed; store recreation metadata privately with secrets redacted from audit reports.",
+    "restore": "Load the archived images and recreate the stopped containers under new names, attaching the existing named volume at /data. The source volume remains unchanged if the restore is only created; any started restore should use a read-only mount or a volume clone.",
+    "volume_handling": "Never remove the shared volume as part of container removal. No volume export or content inspection was performed in this audit.",
+    "limits": "Unique layer estimates are from Docker history uncompressed sizes, not measured Colima free-space deltas; uninspected non-Kingfisher images could share some layer data."
+  }
+}

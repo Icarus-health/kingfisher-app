@@ -1,0 +1,94 @@
+..........................F.FF..FFF...                                   [100%]
+=================================== FAILURES ===================================
+_ test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote2] _
+
+quote = ("'", "'")
+
+    @pytest.mark.parametrize('quote', [('„', '“'), ('"', '"'), ("'", "'"), ('‚', '‘'), ('‹', '›'), ('`', '`')])
+    def test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission(quote):
+        source = BEFORE + ' Der Bericht zitiert eine alte Anweisung: ' + quote[0] + (
+            'Zuerst wird das Datum notiert. ' + AFTER + ' Diese Anweisung ist nicht verbindlich.') + quote[1]
+>       assert not check(AFTER, source).bestanden
+E       assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: 'Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.'")
+
+sidecar/tests/test_before_after_permission.py:81: AssertionError
+_ test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote4] _
+
+quote = ('‹', '›')
+
+    @pytest.mark.parametrize('quote', [('„', '“'), ('"', '"'), ("'", "'"), ('‚', '‘'), ('‹', '›'), ('`', '`')])
+    def test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission(quote):
+        source = BEFORE + ' Der Bericht zitiert eine alte Anweisung: ' + quote[0] + (
+            'Zuerst wird das Datum notiert. ' + AFTER + ' Diese Anweisung ist nicht verbindlich.') + quote[1]
+>       assert not check(AFTER, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', 'Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: ‹Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.›')
+
+sidecar/tests/test_before_after_permission.py:81: AssertionError
+_ test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote5] _
+
+quote = ('`', '`')
+
+    @pytest.mark.parametrize('quote', [('„', '“'), ('"', '"'), ("'", "'"), ('‚', '‘'), ('‹', '›'), ('`', '`')])
+    def test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission(quote):
+        source = BEFORE + ' Der Bericht zitiert eine alte Anweisung: ' + quote[0] + (
+            'Zuerst wird das Datum notiert. ' + AFTER + ' Diese Anweisung ist nicht verbindlich.') + quote[1]
+>       assert not check(AFTER, source).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', 'Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: `Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.`')
+
+sidecar/tests/test_before_after_permission.py:81: AssertionError
+_________ test_permission_question_cannot_be_reused_as_a_statement[!?] _________
+
+ending = '!?'
+
+    @pytest.mark.parametrize('ending', ['?', '?!', '!?', '.?', '.!?'])
+    def test_permission_question_cannot_be_reused_as_a_statement(ending):
+>       assert not check(AFTER, BEFORE + ' ' + AFTER.rstrip('.') + ending).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', ((('Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der Abnahme darf sie entfernt werden') + '!?'))
+E        +      where 'Erst nach der Abnahme darf sie entfernt werden' = <built-in method rstrip of str object at 0x1096d6d90>('.')
+E        +        where <built-in method rstrip of str object at 0x1096d6d90> = 'Erst nach der Abnahme darf sie entfernt werden.'.rstrip
+
+sidecar/tests/test_before_after_permission.py:86: AssertionError
+_________ test_permission_question_cannot_be_reused_as_a_statement[.?] _________
+
+ending = '.?'
+
+    @pytest.mark.parametrize('ending', ['?', '?!', '!?', '.?', '.!?'])
+    def test_permission_question_cannot_be_reused_as_a_statement(ending):
+>       assert not check(AFTER, BEFORE + ' ' + AFTER.rstrip('.') + ending).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', ((('Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der Abnahme darf sie entfernt werden') + '.?'))
+E        +      where 'Erst nach der Abnahme darf sie entfernt werden' = <built-in method rstrip of str object at 0x1096d6d90>('.')
+E        +        where <built-in method rstrip of str object at 0x1096d6d90> = 'Erst nach der Abnahme darf sie entfernt werden.'.rstrip
+
+sidecar/tests/test_before_after_permission.py:86: AssertionError
+________ test_permission_question_cannot_be_reused_as_a_statement[.!?] _________
+
+ending = '.!?'
+
+    @pytest.mark.parametrize('ending', ['?', '?!', '!?', '.?', '.!?'])
+    def test_permission_question_cannot_be_reused_as_a_statement(ending):
+>       assert not check(AFTER, BEFORE + ' ' + AFTER.rstrip('.') + ending).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=True, gruende=()) = check('Erst nach der Abnahme darf sie entfernt werden.', ((('Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der Abnahme darf sie entfernt werden') + '.!?'))
+E        +      where 'Erst nach der Abnahme darf sie entfernt werden' = <built-in method rstrip of str object at 0x1096d6d90>('.')
+E        +        where <built-in method rstrip of str object at 0x1096d6d90> = 'Erst nach der Abnahme darf sie entfernt werden.'.rstrip
+
+sidecar/tests/test_before_after_permission.py:86: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_before_after_permission.py::test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote2]
+FAILED sidecar/tests/test_before_after_permission.py::test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote4]
+FAILED sidecar/tests/test_before_after_permission.py::test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission[quote5]
+FAILED sidecar/tests/test_before_after_permission.py::test_permission_question_cannot_be_reused_as_a_statement[!?]
+FAILED sidecar/tests/test_before_after_permission.py::test_permission_question_cannot_be_reused_as_a_statement[.?]
+FAILED sidecar/tests/test_before_after_permission.py::test_permission_question_cannot_be_reused_as_a_statement[.!?]
+6 failed, 32 passed in 0.46s

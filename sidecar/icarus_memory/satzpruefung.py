@@ -903,6 +903,74 @@ def _exakte_nachgrenzenregel(satz: str, klausel: str, beleg: Beleg) -> bool:
                for rahmen in nach_satz if gleiches_ereignis(grenze, rahmen))
 
 
+def _exakte_nach_vor_regel(satz: str, klausel: str, beleg: Beleg) -> bool:
+    """Keep a written after-event permission separate from a bounded before-event ban.
+
+    Only complete original clauses and simple modal/passive grammar qualify.
+    This does not infer that the event happened or that a condition is fulfilled.
+    """
+    # A sentence inside a multi-sentence quotation may contain neither quote
+    # delimiter itself. This narrow exception does not parse reported speech.
+    if re.search(r'''[„“»«"'`‘’‚‛‟”‹›]''', beleg.text):
+        return False
+    teile = re.split(r'([!?]+|(?<!\d)\.(?!\d)[.!?]*)', beleg.text)
+    original = [_regeltext(teile[i]) for i in range(0, len(teile), 2)
+                if teile[i].strip() and (i + 1 == len(teile) or '?' not in teile[i + 1])]
+    positiv = _regeltext(satz)
+    if positiv not in original:
+        return False
+    negativ = [t for t in original if _regeltext(klausel) in t]
+    if len(negativ) != 1:
+        return False
+
+    def phase(regel: str, relation: str, verneint: bool):
+        if re.search(r'[„“»«\"\u2018\u2019]', regel):
+            return None
+        modal, passiv = list(_ERLAUBNIS.finditer(regel)), list(_PASSIV.finditer(regel))
+        rahmen = list(_ZEITRAHMEN.finditer(regel))
+        if len(modal) != 1 or len(passiv) != 1 or len(rahmen) != 1:
+            return None
+        modal, passiv, rahmen = modal[0], passiv[0], rahmen[0]
+        if rahmen['relation'].lower() != relation or modal.end() > passiv.start():
+            return None
+        # A second predicate cannot lend its event boundary to this action.
+        hauptregel = regel[:passiv.end()]
+        if len(_ENDLICH.findall(hauptregel)) != 2:
+            return None
+        if verneint:
+            if re.search(r'[,;]|\b(?:und|oder|aber|sondern)\b', regel):
+                return None
+            negationen = list(_VERNEINUNG.finditer(falten(regel)))
+            if len(negationen) != 1 or negationen[0].group(0) != 'nicht':
+                return None
+            if not re.search(r'\bnicht\s+$', regel[:passiv.start()]) or regel[passiv.end():].strip():
+                return None
+        elif _VERNEINUNG.search(falten(regel)):
+            return None
+        if rahmen.start() < modal.start():
+            # Preserve one optional original header. No subject qualifier or
+            # genitive/relative event extension may hide before the modal.
+            prefix = regel[:rahmen.start()].strip()
+            if ':' in prefix:
+                header, prefix = prefix.split(':', 1)
+                if not re.fullmatch(r'[a-zäöüß][a-zäöüß\s-]*', header):
+                    return None
+                prefix = prefix.strip()
+            if prefix not in {'', 'erst', 'nur'} or regel[rahmen.end():modal.start()].strip():
+                return None
+        elif modal.end() <= rahmen.start() < passiv.start():
+            rest = regel[rahmen.end():passiv.start()].strip()
+            if rest != ('nicht' if verneint else ''):
+                return None
+        else:
+            return None
+        return (rahmen['adjektiv'] or '', rahmen['ereignis'], passiv[1])
+
+    vorher = phase(negativ[0], 'vor', True)
+    nachher = phase(positiv, 'nach', False)
+    return vorher is not None and vorher == nachher
+
+
 def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str | None:
     """Grund, falls Beleg und Satz sich in der Verneinung widersprechen; sonst None."""
     satz_verneint = bool(_VERNEINUNG.search(falten(satz)))
@@ -921,6 +989,8 @@ def _verneinungsumkehr(satz: str, belege: Sequence[Beleg], pool: _Pool) -> str |
             klausel_daten, _ = daten_in(klausel)
             teilt = (satz_woerter & _inhaltswoerter(klausel)) or (satz_kurz & {(d.monat, d.tag) for d in klausel_daten})
             if teilt:
+                if _exakte_nach_vor_regel(satz, klausel, beleg):
+                    continue
                 if _exakte_nachgrenzenregel(satz, klausel, beleg):
                     continue
                 if _regel_mit_fehlendem_nachweis(satz, klausel, beleg):

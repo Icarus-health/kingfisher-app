@@ -1,0 +1,66 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled owned process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "completed": true,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 34640
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 1156976
+    },
+    {
+      "elapsed": 4.09,
+      "owned_rss_kib": 4351856
+    },
+    {
+      "elapsed": 6.28,
+      "owned_rss_kib": 4363120
+    }
+  ],
+  "started_at": 1791502615.610799,
+  "model_manifest_sha256": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+  "prior_owner_stopped_at": 1791502445.8580768,
+  "server_pid": 41891,
+  "tags": {
+    "models": [
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 41894,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791502624.3747032
+}

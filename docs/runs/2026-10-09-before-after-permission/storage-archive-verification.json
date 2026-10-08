@@ -1,0 +1,58 @@
+{
+  "archive": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-09-drei-alte-kingfisher-tests",
+  "before": {
+    "available_bytes": 721444864,
+    "available_inodes": 3016685
+  },
+  "archives_verified": true,
+  "image_archive_loaded_exact_ids": true,
+  "restore_configuration_verified_without_start": true,
+  "restore_environment_and_process_argv_match": true,
+  "shared_volume_preserved": "kingfisher-review-20260907",
+  "image_restore_rehearsal_is_not_full_runtime_or_writable_layer_restore": true,
+  "files": {
+    "images.tar": {
+      "bytes": 186299392,
+      "sha256": "46060683248d05c113eabbcede49183e2b38a5a17524acbe7d407698f9027253"
+    },
+    "kingfisher-review-20260907-before-seventy.tar": {
+      "bytes": 210460160,
+      "sha256": "a9742648d61edc004f2eedea5aaa5ce8665653c28fce579b1a60f40bac1d5ad1"
+    },
+    "kingfisher-review-20260907-before-transcripts.tar": {
+      "bytes": 210435584,
+      "sha256": "abc0faeca1f3fa639358815972c4a9b6811082ac8b4298448ae1b3cdb4b7541d"
+    },
+    "kingfisher-review-20260907-before-source-flow.tar": {
+      "bytes": 210649600,
+      "sha256": "133992459c6d8c3ae0829fdbec495b0cff587a8fe097300a38513e51433030c6"
+    }
+  },
+  "removed_containers": [
+    "kingfisher-review-20260907-before-transcripts",
+    "kingfisher-review-20260907-before-seventy",
+    "kingfisher-review-20260907-before-source-flow"
+  ],
+  "image_removal": [
+    {
+      "tag": "kingfisher:task-candidates",
+      "exit_code": 0,
+      "deleted_id": "sha256:bad18e55c9f267496840184e615a200e1476aadbce3760118fab133dad5e888c"
+    },
+    {
+      "tag": "kingfisher:transcript-import",
+      "exit_code": 0,
+      "deleted_id": "sha256:957bf41f8eac72d22fd8b08e20002405560710688389e48597fd7ecf9fbd2528"
+    },
+    {
+      "tag": "kingfisher:seventy-percent",
+      "exit_code": 1,
+      "deleted_id": null
+    }
+  ],
+  "after": {
+    "available_bytes": 721743872,
+    "available_inodes": 3016772
+  },
+  "measured_free_bytes_delta": 299008
+}

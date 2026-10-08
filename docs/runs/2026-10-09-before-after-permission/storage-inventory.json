@@ -1,0 +1,41 @@
+{
+  "observed_at_utc": "2026-10-08T23:18:09Z",
+  "scope": "Read-only Docker inventory filtered to Kingfisher container names and Kingfisher-tagged images. No stop/start/remove/prune/save/export operations were run. No logs, bodies, env values, unrelated Icarus/Supabase/Javis containers or images were inspected.",
+  "daemon_access": "Docker CLI initially could not access the Colima socket in the sandbox; read-only Docker queries were then run with escalated access after approval.",
+  "live_state": {
+    "healthy_product_container": "kingfisher-kingfisher-1",
+    "product_image": "ghcr.io/icarus-health/kingfisher-app:1.0.6-local.dfd4e85",
+    "product_container_excluded_from_candidates": true,
+    "parent_reported_vm_free_space_bytes_approx": 689000000,
+    "parent_reported_host_free_space_gib_approx": 150
+  },
+  "candidate_inventory": {
+    "selection": "Exited containers with Kingfisher QA/review/acceptance/pilot/restored snapshot naming; the live app and the three noncandidate Kingfisher-prefixed container references were excluded.",
+    "stopped_snapshot_containers": 85,
+    "container_image_ids_referenced_only_by_selected_snapshots": 68,
+    "candidate_repo_tags_seen_for_these_images": 63,
+    "writable_layer_total_bytes": 51281920,
+    "writable_layer_total_mib": 48.9,
+    "largest_single_writable_layer_bytes": 50544640,
+    "distinct_named_volumes_mounted": 50,
+    "named_volumes_reused_by_multiple_selected_containers": 6,
+    "bind_mounts_seen": 5
+  },
+  "image_layer_estimate": {
+    "method": "Compared RootFS layer digests for selected snapshot-referenced image IDs against all other Kingfisher-tagged images and other Kingfisher-prefixed container image references, including untagged image IDs used by containers; mapped Docker image history non-zero layer sizes to those digests.",
+    "candidate_layer_digests": 175,
+    "candidate_layer_digests_not_referenced_by_other_Kingfisher_prefixed_containers": 171,
+    "estimated_uncompressed_unique_layer_mib": 3802.6,
+    "estimated_uncompressed_unique_layer_gib": 3.71,
+    "confidence": "This is an uncompressed-layer estimate, not a measured Docker-VM reclaim result. I did not inspect unrelated repositories, so cross-project sharing may reduce actual reclamation. Treat >1 GiB as plausible, not guaranteed.",
+    "estimated_uncompressed_unique_layer_bytes_approx": 3987315098,
+    "kingfisher_image_ids_in_comparison": 78,
+    "candidate_unique_layer_count_vs_all_other_kingfisher_images": 171
+  },
+  "safe_follow_up_if_parent_approves": {
+    "candidate_scope": "Archive the exited historical QA/review/acceptance/pilot snapshot set in bounded batches; begin with the oldest review/acceptance/pilot cohort, not the healthy product or recent rollback/candidate tags.",
+    "preservation_sequence": "Before any removal, export each stopped container writable filesystem, save referenced images to a host-side archive, and record a redacted recreation manifest (never include env values in reports). Keep all 50 named volumes and bind-mounted originals untouched; do not use volume-removal flags. Verify one restored container and its mount wiring before considering further batches.",
+    "restore": "Load the saved image archive, recreate containers under new names using the saved nonsecret config and existing volume names/mount destinations; restore the stopped-container writable layer from its export if needed. Volume contents remain available because volumes are retained.",
+    "current_task_action": "No candidate was changed. Container-only cleanup would reclaim at most about 49 MiB of measured writable layers and cannot meet the 1 GiB goal."
+  }
+}

@@ -1,0 +1,1454 @@
+{
+  "review": "Independent bounded phase-permission review",
+  "reviewed_commit": "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a",
+  "reviewed_production_file": "sidecar/icarus_memory/satzpruefung.py",
+  "production_sha256": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d",
+  "version_hashes": {
+    "470c09fe": "3e3256ac649c85f1226c1edd3ea5d6d42573da569826be838898421d60643e1e",
+    "916e4a0": "b1e9c03314566cfecdddfa754e78da799b6a8b41490bd558b0d7e58ae6832917",
+    "f31e813": "0cbf3a947cba2eb07928628337a1df0b6ac1b79fa2464d1f932b2904be1a96b6",
+    "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d"
+  },
+  "test_sha256": "786e926a29abf3db13c02394f9d609b5e9e23fe00b211e612b74a587c0ab2797",
+  "verdict": "no remaining blocking regression found within reviewed scope",
+  "scope": "New exact after/before temporal permission exception; source/action/condition/coordination/quotation boundaries and same central gate on durable restoration. No source edits. No real model/network/install/private data.",
+  "automated_tests": {
+    "command": "PYTHONPATH=sidecar:scripts python -m pytest -q -p no:cacheprovider sidecar/tests/test_before_after_permission.py",
+    "passed": 38
+  },
+  "adversarial_cases": [
+    {
+      "id": "exact_written_after",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": true,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "exact_event_not_claimed_complete",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Die Abnahme ist erfolgt.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "unconditional_removed_boundary",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Die Abdeckung darf entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_german",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: „Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.“"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_double",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: \"Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.\""
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_single",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: 'Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.'"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_curly",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: ‘Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.’"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_low_curly",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: ‚Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.‘"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_french",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: «Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.»"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_single_angle",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: ‹Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.›"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "old_quote_backtick",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Der Bericht zitiert eine alte Anweisung: `Zuerst wird das Datum notiert. Erst nach der Abnahme darf sie entfernt werden. Diese Anweisung ist nicht verbindlich.`"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_?",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden?"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_?!",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden?!"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_!?",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden!?"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_.?",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.?"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_.!?",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.!?"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_??",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden??"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "question_!!?",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden!!?"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "exact_exclamation",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden!"
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": true,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "separate_source_before",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden.",
+        "Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "additional_unbounded_ban",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Die Abdeckung darf nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "additional_after_ban",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Nach der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "different_event",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Wartung darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Wartung darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "qualified_before_event",
+      "sources": [
+        "Vor der Abnahme des Motors darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "qualified_after_event",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme des Motors darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme des Motors darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "condition_preserved",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin schriftlich zustimmt."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin schriftlich zustimmt.",
+      "expected_final": true,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "condition_removed",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin schriftlich zustimmt."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "condition_changed",
+      "sources": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin schriftlich zustimmt."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin mündlich zustimmt.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "coordinated_negative_unbounded_action",
+      "sources": [
+        "Vor der Abnahme bleibt das Protokoll gesperrt und die Abdeckung darf nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    },
+    {
+      "id": "coordinated_events",
+      "sources": [
+        "Vor der Abnahme und vor der Wartung darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "candidate": "Erst nach der Abnahme darf sie entfernt werden.",
+      "expected_final": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      },
+      "matches_expected_final": true
+    }
+  ],
+  "durable_close_reopen_cases": [
+    {
+      "id": "exact_written_after",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": true
+      },
+      "expected_final": true,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "old_quote_german",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": false,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "old_quote_double",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": false,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "old_quote_single",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "old_quote_single_angle",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "question_?",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": false,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "question_!?",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "question_.!?",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "condition_preserved",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": true,
+        "f31e813": true,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": true
+      },
+      "expected_final": true,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    },
+    {
+      "id": "condition_removed",
+      "restored": {
+        "470c09fe": false,
+        "916e4a0": false,
+        "f31e813": false,
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": false
+      },
+      "expected_final": false,
+      "matches_expected_final": true,
+      "restored_after_withdrawal": false,
+      "original_preserved": true
+    }
+  ],
+  "frozen_holdout_sha256": "c847655468d7a4e79fbb3ad02780d68758a8b60dc837c87ebc3a2c73bc3b5651",
+  "unchanged_direct_controls": [
+    {
+      "id": "N01",
+      "source_ids": [
+        "N01-S1"
+      ],
+      "candidate": "Nach dem Fotografieren des Etiketts darf das Originaletikett entsorgt werden.",
+      "factual_control": "Falsch: nur die Dublette darf entsorgt werden; das Originaletikett muss beim Herbarbeleg bleiben.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": true,
+          "reasons": []
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "preexisting_false_acceptance": true
+    },
+    {
+      "id": "N02",
+      "source_ids": [
+        "N02-S1"
+      ],
+      "candidate": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck eingestellt wurde.",
+      "factual_control": "Nicht belegt: Die Quelle nennt das Messen des Leitungsdrucks, nicht dessen Einstellen.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": true,
+          "reasons": []
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "preexisting_false_acceptance": true
+    },
+    {
+      "id": "N03",
+      "source_ids": [
+        "N03-S1"
+      ],
+      "candidate": "Die Proben dürfen entnommen werden, wenn die Temperatur unter 10 Grad Celsius liegt.",
+      "factual_control": "Unbelegte Ausweitung: Die festgelegte Grenze lautet unter 8 Grad Celsius.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "Zahl 10 steht nicht im Beleg",
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "Zahl 10 steht nicht im Beleg",
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "Zahl 10 steht nicht im Beleg",
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "Zahl 10 steht nicht im Beleg",
+            "Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ]
+        }
+      },
+      "preexisting_false_acceptance": false
+    },
+    {
+      "id": "N04",
+      "source_ids": [
+        "N04-S1"
+      ],
+      "candidate": "Nach schriftlicher Zustimmung des Intendanten darf der Orchestergraben betreten werden.",
+      "factual_control": "Unbelegter Austausch der Bedingung: Die Quelle verlangt Zustimmung der Intendantin.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "„Intendanten“ steht nicht im Beleg"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "„Intendanten“ steht nicht im Beleg"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "„Intendanten“ steht nicht im Beleg"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "„Intendanten“ steht nicht im Beleg"
+          ]
+        }
+      },
+      "preexisting_false_acceptance": false
+    },
+    {
+      "id": "N05",
+      "source_ids": [
+        "N05-S1"
+      ],
+      "candidate": "Nach der Inventur darf die mit rotem Faden markierte Münze aus der Ledermappe genommen werden.",
+      "factual_control": "Nicht belegt und durch die Quelle eingeschränkt: Die Erlaubnis betrifft das Öffnen der Mappe; die markierten Münzen müssen versiegelt bleiben.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": true,
+          "reasons": []
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "preexisting_false_acceptance": true
+    },
+    {
+      "id": "N06",
+      "source_ids": [
+        "N06-S1"
+      ],
+      "candidate": "Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.",
+      "factual_control": "Unbelegte Übertragung zwischen koordinierten Regeln: Nach dem Abkühlen darf die Ofentür geöffnet werden; für den Rohling gilt die Abdeckungspflicht bis zum Wiegen.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": true,
+          "reasons": []
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "preexisting_false_acceptance": true
+    },
+    {
+      "id": "N07",
+      "source_ids": [
+        "N07-S1"
+      ],
+      "candidate": "Nach dem Signal darf das Nordtor entriegelt werden.",
+      "factual_control": "Falsch: die Erlaubnis erscheint nur als nicht freigegebenes Zitat; die verbindliche Aussage verlangt, dass das Tor bis zur schriftlichen Freigabe verriegelt bleibt.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": true,
+          "reasons": []
+        },
+        "916e4a0": {
+          "passed": true,
+          "reasons": []
+        },
+        "f31e813": {
+          "passed": true,
+          "reasons": []
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": true,
+          "reasons": []
+        }
+      },
+      "preexisting_false_acceptance": true
+    },
+    {
+      "id": "N08",
+      "source_ids": [
+        "N08-S1",
+        "N08-S2"
+      ],
+      "candidate": "Nach dem Scannen und Eintragen der Lieferung darf das Paket geöffnet werden.",
+      "factual_control": "Unbelegte quellenübergreifende Bedingungsübertragung: Scannen erlaubt den Druck des Belegs; die Eintragung verlangt eine geschlossene Kühlraumtür; Öffnen des Pakets erfordert schriftliche Zustimmung der Absenderin.",
+      "expected_factual": false,
+      "versions": {
+        "470c09fe": {
+          "passed": false,
+          "reasons": [
+            "„Eintragen“ steht nicht im Beleg"
+          ]
+        },
+        "916e4a0": {
+          "passed": false,
+          "reasons": [
+            "„Eintragen“ steht nicht im Beleg"
+          ]
+        },
+        "f31e813": {
+          "passed": false,
+          "reasons": [
+            "„Eintragen“ steht nicht im Beleg"
+          ]
+        },
+        "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a": {
+          "passed": false,
+          "reasons": [
+            "„Eintragen“ steht nicht im Beleg"
+          ]
+        }
+      },
+      "preexisting_false_acceptance": false
+    }
+  ],
+  "preexisting_risks": {
+    "false_acceptances": [
+      "N01",
+      "N02",
+      "N05",
+      "N06",
+      "N07"
+    ],
+    "rejected_controls": [
+      "N03",
+      "N04",
+      "N08"
+    ],
+    "interpretation": "5/8 factually false direct controls pass both before and after. The lexical central gate is not semantic proof. This is existing product risk; these results do not test whether source selection or the real second model gate rejects them."
+  },
+  "resolved_regressions": [
+    {
+      "id": "multi_sentence_old_quote",
+      "introduced_in": "916e4a0",
+      "resolved_final": true,
+      "scope": "German, ASCII double/single, curly/low-curly, French/single-angle, backtick quotation delimiters."
+    },
+    {
+      "id": "question_to_statement",
+      "introduced_in": "916e4a0",
+      "resolved_final": true,
+      "scope": "Single question mark and contiguous mixed punctuation sequences containing question mark."
+    }
+  ],
+  "limits": [
+    "Bounded lexical review, not universal entailment or arbitrary natural-language/reporting-context coverage.",
+    "Conservative quoted-source fallback can reject an otherwise valid rule; this is deliberate.",
+    "No independent real model run, full application/HTTP/UI flow, or full suite performed.",
+    "Durable tests construct legacy answer payloads using real EpisodeStore refs, close/reopen the store, then invoke unchanged wiederherstellen with each frozen central gate."
+  ],
+  "failures": []
+}

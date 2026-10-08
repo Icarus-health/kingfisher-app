@@ -1,0 +1,7 @@
+{"version": "1.0.6-local.3ff842f", "python_sources_verified": 264, "ui_files_verified": 112, "pending_source_invalidation": true, "sentence_coverage_notice": true, "unrelated_intake_preserves_answer": true, "source_version_change_invalidates_answer": true, "network": "none", "private_sources_used": false, "real_model_quality_test": false}
+{"local_exact_name_and_unicode_offset": true, "withdrawal_of_person_mention": true, "network": "none"}
+{"explicit_case_excludes_wrong_original": true, "correct_case_retained": true, "saved_wrong_case_blocked": true, "withdrawal_preserved": true, "network": "none"}
+{"server_resolves_original_text": true, "neutral_historical_caption": true, "network": "none"}
+{"wrapped_condition_fragment_rejected": true, "whole_wrapped_clause_retained": true, "network": "none"}
+{"bounded_before_after_permission": true, "unbounded_ban_retained": true}
+{"quoted_old_instruction_blocked": true, "question_punctuation_variants_blocked": true}

@@ -1,0 +1,241 @@
+FFFFFFF..................FF                                              [100%]
+=================================== FAILURES ===================================
+_ test_exact_permission_after_same_event_keeps_its_own_window[Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der Abnahme darf sie entfernt werden.] _
+
+before = 'Vor der Abnahme darf die Abdeckung nicht entfernt werden.'
+after = 'Erst nach der Abnahme darf sie entfernt werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf sie entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Erst nach der Abnahme darf sie entfernt werden.', (('Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der Abnahme darf sie entfernt werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.-Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.] _
+
+before = 'Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.'
+after = 'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.', (('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.' + ' ') + 'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Vor der Wartung darf der Sensor nicht aktiviert werden.-Nach der Wartung darf der Sensor aktiviert werden.] _
+
+before = 'Vor der Wartung darf der Sensor nicht aktiviert werden.'
+after = 'Nach der Wartung darf der Sensor aktiviert werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Nach der Wartung darf der Sensor aktiviert werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Nach der Wartung darf der Sensor aktiviert werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Nach der Wartung darf der Sensor aktiviert werden.', (('Vor der Wartung darf der Sensor nicht aktiviert werden.' + ' ') + 'Nach der Wartung darf der Sensor aktiviert werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Die Pumpe darf vor der Dichtheitspr\xfcfung nicht eingeschaltet werden.-Die Pumpe darf erst nach der Dichtheitspr\xfcfung eingeschaltet werden.] _
+
+before = 'Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.'
+after = 'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.', (('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.' + ' ') + 'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.] _
+
+before = 'Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.'
+after = 'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.', (('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.] _
+
+before = 'Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.'
+after = 'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.', (('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_ test_exact_permission_after_same_event_keeps_its_own_window[Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.] _
+
+before = 'Vor der Abnahme darf die Abdeckung nicht entfernt werden.'
+after = 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'
+
+    @pytest.mark.parametrize(('before', 'after'), [
+        (BEFORE, AFTER),
+        ('Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.',
+         'Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.'),
+        ('Vor der Wartung darf der Sensor nicht aktiviert werden.',
+         'Nach der Wartung darf der Sensor aktiviert werden.'),
+        ('Die Pumpe darf vor der Dichtheitsprüfung nicht eingeschaltet werden.',
+         'Die Pumpe darf erst nach der Dichtheitsprüfung eingeschaltet werden.'),
+        ('Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.'),
+        ('Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.',
+         'Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.'),
+        (BEFORE, 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'),
+    ])
+    def test_exact_permission_after_same_event_keeps_its_own_window(before, after):
+>       assert check(after, before + ' ' + after).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = check('Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.', (('Vor der Abnahme darf die Abdeckung nicht entfernt werden.' + ' ') + 'Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.'))
+
+sidecar/tests/test_before_after_permission.py:37: AssertionError
+_____ test_source_selection_retains_both_windows_without_rejection_notice ______
+
+    def test_source_selection_retains_both_windows_without_rejection_notice():
+        body = BEFORE + ' ' + AFTER
+        evidence = AntwortBeleg(1, {}, 'conditional', 'synthetic', 'Abdeckung', '', body, None)
+        result = formulieren('Darf die Abdeckung vor der Abnahme entfernt werden?', [evidence], SelectBoth(), jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E         
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_before_after_permission.py:99: AssertionError
+_ test_source_supported_saved_permission_survives_store_reopen_and_withdrawal __
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-815/test_source_supported_saved_pe0')
+
+    def test_source_supported_saved_permission_survives_store_reopen_and_withdrawal(tmp_path):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+    
+        body = BEFORE + ' ' + AFTER
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Abdeckung', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': BEFORE, 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Was steht zur Abdeckung?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            saved['saetze'][0].update(roh=AFTER, text=AFTER)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = satzantwort.wiederherstellen(saved, episodes, claims)
+>           assert restored is not None
+E           assert None is not None
+
+sidecar/tests/test_before_after_permission.py:129: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der Abnahme darf sie entfernt werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden.-Erst nach dem Wiegen darf der Trichterdeckel abgenommen werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Vor der Wartung darf der Sensor nicht aktiviert werden.-Nach der Wartung darf der Sensor aktiviert werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Die Pumpe darf vor der Dichtheitspr\xfcfung nicht eingeschaltet werden.-Die Pumpe darf erst nach der Dichtheitspr\xfcfung eingeschaltet werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Vor der formellen Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der formellen Abnahme darf die Abdeckung entfernt werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Sicherheit: Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Freigabe: Erst nach der Abnahme darf die Abdeckung entfernt werden.]
+FAILED sidecar/tests/test_before_after_permission.py::test_exact_permission_after_same_event_keeps_its_own_window[Vor der Abnahme darf die Abdeckung nicht entfernt werden.-Erst nach der Abnahme darf die Abdeckung entfernt werden, wenn die Technikerin zustimmt.]
+FAILED sidecar/tests/test_before_after_permission.py::test_source_selection_retains_both_windows_without_rejection_notice
+FAILED sidecar/tests/test_before_after_permission.py::test_source_supported_saved_permission_survives_store_reopen_and_withdrawal
+9 failed, 18 passed in 0.35s

@@ -1,0 +1,402 @@
+{
+  "title": "Independent content review: phase applicability 16-question before/after",
+  "reviewer": "audit_answer_selection",
+  "synthetic_only": true,
+  "catalog_sha256_before": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "catalog_sha256_after": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "answers_sha256_before": "0a4df21af6a806bd46838a47fc0405ed6a3a5b58d9fb99d52994149ca0d04103",
+  "answers_sha256_after": "9af3d071de9ca278d84ebae6242d706e9e501b6d539137aac1000ffaf6bbc925",
+  "runtime_sha256_before": "b8594c3d039f994fd10040a4253f6846979b7267d231db21cb2c5afc62c3e3ba",
+  "runtime_sha256_after": "d595536f965be7cae6f6dd85bc3d04a22cbc04a318bb17ab36b0aa81892c9497",
+  "catalogs_identical": true,
+  "source_count": 19,
+  "question_count": 16,
+  "scope": "All 16 visible answers independently compared with the 19 frozen original source texts in both runs. Original 13-question cohort and three DE holdouts are counted separately. W06 is not part of this catalog. Scoring follows sources, not prepared gold wording, status, or exact-selected-source metrics.",
+  "code_hashes": {
+    "before": {
+      "Agent": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588",
+      "run": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e",
+      "SemanticService": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df",
+      "create_app": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661",
+      "_interpret": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+      "_interpret_quotes": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+      "OpenAICompatible": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f",
+      "VerifiedLocalProvider": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe",
+      "Meter": "5713aa3455751ec67dd13bb01c49e96111f73337be67ba8649cc484feb5b63fe",
+      "prepare": "bc530b955a7352475b02973544654a49858b4a29a9e41bc3303d19cd7072c926",
+      "wanted": "cc5b8dab0c2282829df3292176ddb43624c489c3d9cfbc4d4025607ecef20c53",
+      "satz_pruefen": "3e3256ac649c85f1226c1edd3ea5d6d42573da569826be838898421d60643e1e",
+      "formulieren": "bf695fd68bdbf919547e8d3fb9c46f9e6f16b740a5468855a08543331c68ea6b",
+      "aufbauen": "2e274d47cf036471d42af0fc52e2094b394d92eacdf43cb8fd6457f0e86b6355"
+    },
+    "after": {
+      "Agent": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588",
+      "run": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e",
+      "SemanticService": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df",
+      "create_app": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661",
+      "_interpret": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+      "_interpret_quotes": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546",
+      "OpenAICompatible": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f",
+      "VerifiedLocalProvider": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe",
+      "Meter": "5713aa3455751ec67dd13bb01c49e96111f73337be67ba8649cc484feb5b63fe",
+      "prepare": "bc530b955a7352475b02973544654a49858b4a29a9e41bc3303d19cd7072c926",
+      "wanted": "cc5b8dab0c2282829df3292176ddb43624c489c3d9cfbc4d4025607ecef20c53",
+      "satz_pruefen": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d",
+      "formulieren": "bf695fd68bdbf919547e8d3fb9c46f9e6f16b740a5468855a08543331c68ea6b",
+      "aufbauen": "2e274d47cf036471d42af0fc52e2094b394d92eacdf43cb8fd6457f0e86b6355"
+    },
+    "final_product_hash_claimed_by_parent": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d",
+    "after_sentence_checker_hash": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d"
+  },
+  "counts": {
+    "original_13_before": {
+      "adequate": 11,
+      "incomplete": 2,
+      "unsupported_answers": 0
+    },
+    "original_13_after": {
+      "adequate": 12,
+      "incomplete": 1,
+      "unsupported_answers": 0
+    },
+    "DE3_before": {
+      "adequate": 0,
+      "incomplete": 3,
+      "unsupported_answers": 0
+    },
+    "DE3_after": {
+      "adequate": 0,
+      "incomplete": 3,
+      "unsupported_answers": 0
+    },
+    "all16_before": {
+      "adequate": 11,
+      "incomplete": 5,
+      "unsupported_answers": 0
+    },
+    "all16_after": {
+      "adequate": 12,
+      "incomplete": 4,
+      "unsupported_answers": 0
+    },
+    "valid_unknowns": 1,
+    "valid_conflict_abstentions": 1,
+    "misleading_rejection_notices_before": 1,
+    "misleading_rejection_notices_after": 0
+  },
+  "case_reviews": [
+    {
+      "id": "IA01",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen. [1] (nur eine Quelle)\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "The first sentence directly answers dry-only before curing. The additional solvent rule is unnecessary but explicitly labeled Rückgabe, so it is accurate and not attached to cleaning."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen. [1] (nur eine Quelle)\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same content; extra solvent return rule remains separate and does not change the answer."
+      }
+    },
+    {
+      "id": "IA02",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "The dust-free prerequisite is explicit in IA02-S2 and expressly applies to P-18 coating. The visible wording does not invent another condition."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same supported condition; selected source alone explicitly binds the prerequisite to P-18."
+      }
+    },
+    {
+      "id": "IA03",
+      "before": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA03-S1.txt\nVor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr",
+        "assessment": "Visible output is a quote fallback containing both before-prohibition and after-permission; no direct answer sentence passed. Count as evidence access, not a direct answer."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. [1] (nur eine Quelle)\nErst nach der Abnahme darf sie entfernt werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA03-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Two accepted sentences directly state no removal before acceptance and permission only afterward. Directly answers the question."
+      }
+    },
+    {
+      "id": "IA04",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Exclusive allowance only during ongoing flushing is preserved."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same; time limit remains intact."
+      }
+    },
+    {
+      "id": "IA05",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Battery replacement is limited to after technical test; unrelated pre-shipment photo is not conflated."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same; correctly binds test timing to battery replacement."
+      }
+    },
+    {
+      "id": "IA06",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\nIm Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Room B permission during work hours is correct. The extra room A restriction is unnecessary but explicitly room-scoped and supported."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\nIm Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same answer plus same clearly room-scoped, source-supported room A rule."
+      }
+    },
+    {
+      "id": "IA07",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Uses the later correction: calibration alone is insufficient and device remains off until documented approval."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same current correction; no superseded permission is reintroduced."
+      }
+    },
+    {
+      "id": "IA08",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\nEin Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "States pre-acceptance prohibition and post-acceptance written-order condition; answers that reset is not automatic."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\nEin Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same complete temporal rule and written-order condition."
+      }
+    },
+    {
+      "id": "W01",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. [1] (nur eine Quelle)\n\nBelege\n[1] W01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Direct accepted sentence preserves the only-if-under-8°C condition; unrelated batch code is omitted."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. [1] (nur eine Quelle)\n\nBelege\n[1] W01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Same; exact prerequisite is directly answered."
+      }
+    },
+    {
+      "id": "W02",
+      "before": {
+        "grade": "adequate",
+        "status": "working_unknown",
+        "sentence_mode": null,
+        "visible_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+        "assessment": "Valid unknown: source describes storage location but gives no prerequisite or independent permission rule."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_unknown",
+        "sentence_mode": null,
+        "visible_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+        "assessment": "Same valid unknown; no condition is invented."
+      }
+    },
+    {
+      "id": "W03",
+      "before": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden. [1] (nur eine Quelle)\n\nBelege\n[1] W03-S1.txt\n\n1 Satz wurde verworfen, weil die Belege ihn nicht getragen haben.\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Direct before-weighing answer is correct, but UI also says one sentence was rejected because evidence did not support it. The rejected after-weighing permission is in fact source-supported, so that notice is misleading.",
+        "unsupported_or_misleading_notice": "A true after-weighing permission was rejected as unsupported because the source also has a separate before-weighing negation."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden. [1] (nur eine Quelle)\nNach dem Wiegen darf der Trichterdeckel abgenommen werden. [1] (nur eine Quelle)\n\nBelege\n[1] W03-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Both before-prohibition and after-permission are accepted and shown. False rejection notice is gone; condition and polarity are correct.",
+        "unsupported_or_misleading_notice": null
+      }
+    },
+    {
+      "id": "W04",
+      "before": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. [1] (nur eine Quelle)\nBeim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt. [1] (nur eine Quelle)\n\nBelege\n[1] W04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Quotes the only-after-test rule and the actual before-test use, but does not state the requested conclusion that the documented use was not permitted. Under the same direct-answer bar, useful juxtaposition alone is incomplete."
+      },
+      "after": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "saetze",
+        "visible_answer": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. [1] (nur eine Quelle)\nBeim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt. [1] (nur eine Quelle)\n\nBelege\n[1] W04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+        "assessment": "Still only juxtaposes the rule and actual use; no explicit “not permitted” conclusion. No false source fact, but answer remains incomplete."
+      }
+    },
+    {
+      "id": "W05",
+      "before": {
+        "grade": "adequate",
+        "status": "working_unclear",
+        "sentence_mode": null,
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZeitbezug ungeklärt · W05-S2.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr\n\nAngabe · W05-S1.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr",
+        "assessment": "Correctly surfaces conflict and uses neutral “Zeitbezug ungeklärt”; both same-dated contradictory instructions are visible. Valid conflict abstention."
+      },
+      "after": {
+        "grade": "adequate",
+        "status": "working_unclear",
+        "sentence_mode": null,
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZeitbezug ungeklärt · W05-S2.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:30 Uhr\n\nAngabe · W05-S1.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:30 Uhr",
+        "assessment": "Same valid conflict abstention; no priority or chronology is invented."
+      }
+    },
+    {
+      "id": "DE01",
+      "before": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Datenbergung.txt\nVor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr",
+        "assessment": "Quote fallback contains the before-archive ban and permits removal only after archive creation and checking, but no direct sentence answer was accepted. The quote is safe evidence access, not direct prose."
+      },
+      "after": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Datenbergung.txt\nVor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:30 Uhr",
+        "assessment": "Same source quote fallback and no direct answer sentence; content is visible but directness is still incomplete."
+      }
+    },
+    {
+      "id": "DE02",
+      "before": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Restaurierungsanweisung.txt\nVor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr",
+        "assessment": "Quote fallback directly exposes no editing before approval and soft-brush editing only after written approval, but no direct answer sentence was accepted. Original says bearbeitet, not berührt; do not treat missing “not touch” wording as an omission."
+      },
+      "after": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Restaurierungsanweisung.txt\nVor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:30 Uhr",
+        "assessment": "Same quote fallback, accurate to original wording. It does not claim no contact; gold’s “berührt” phrasing is stronger than the source and is not used as a criterion."
+      },
+      "gold_caveat": "The frozen gold's 'vorher darf er nicht berührt werden' overstates the original 'darf ... nicht bearbeitet werden'; review uses only the source-supported bearbeiten rule."
+    },
+    {
+      "id": "DE03",
+      "before": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Nachtbeobachtung.txt\nVor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:22 Uhr",
+        "assessment": "Quote fallback includes the no-before rule and after-end-plus-optics-covered permission, but no direct synthesized answer passed."
+      },
+      "after": {
+        "grade": "incomplete",
+        "status": "working_reports",
+        "sentence_mode": "zitate",
+        "visible_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Nachtbeobachtung.txt\nVor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 01:30 Uhr",
+        "assessment": "Same source quote fallback; conditions are present but there is no direct “No, and only after both conditions” answer."
+      }
+    }
+  ],
+  "deltas": {
+    "content_improvements": [
+      "IA03: direct two-sentence before/after answer replaces quote fallback.",
+      "W03: the supported after-weighing permission is now accepted and displayed; misleading rejection notice removed."
+    ],
+    "unchanged_incomplete": [
+      "W04 remains a norm-versus-actual-use juxtaposition without an explicit not-permitted judgment.",
+      "DE01, DE02, and DE03 remain source quote fallbacks; source evidence is visible, but no direct answer sentence passes."
+    ],
+    "W05": "Conflict response remains neutral and presents both same-dated conflicting instructions; no chronology claim is added.",
+    "other_rows": "No other semantic changes observed; capture timestamps may vary."
+  },
+  "restart_and_withdrawal": {
+    "saved_answer_count": 16,
+    "all_16_unchanged_after_restart": true,
+    "saved_read_provider_calls": 0,
+    "withdrawal_after_restart": {
+      "status": "working_unavailable",
+      "pass": true,
+      "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+      "provider_calls": 0,
+      "original_text_retained": true
+    },
+    "originals_preserved_before_withdrawal": true
+  },
+  "runtime": {
+    "before_completed": true,
+    "after_completed": true,
+    "after_client_exit": 0,
+    "after_server_exit": 0,
+    "production_endpoint_touched": false
+  },
+  "overall": "For the original 13, adequate answers rise from 10 to 12: IA03 and W03 are improved. W04 remains incomplete. The three DE quotes carry source-supported content but remain incomplete under the direct-answer criterion. DE02 is not penalized for omitting an unsupported 'not touched' claim. W03's misleading rejection notice is removed. W05 is a valid neutral conflict abstention in both runs.",
+  "limits": [
+    "19-source, 16-question synthetic corpus only; the three DE items are reported separately from the original 13.",
+    "A quote fallback may expose enough source evidence to infer the answer; it is still scored incomplete when the product did not provide the direct answer sentence, per this review's directness criterion.",
+    "Local pipeline results do not establish general personal-corpus accuracy, production policy, or native UI behavior."
+  ]
+}
