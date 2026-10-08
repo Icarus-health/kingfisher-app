@@ -150,3 +150,59 @@ keine Kopien oder weitere verpflichtende Ablagearbeit erzeugen. Bestehende
 Kategorien werden in dieser Korrektur nicht stillschweigend umbenannt oder
 migriert. Neue Kategorien ändern keine Originale; eine rückwirkende Zuordnung
 braucht aber eine gezielte Neuauswertung der betroffenen Ableitungen.
+
+## Installation und begrenzte echte Nachprüfung
+
+Auf dem Mac ist `1.0.6-local.0b56993` installiert. Der erste Start scheiterte
+am vollen 60-GiB-Datenträger der lokalen Docker-Umgebung, nicht an einer
+Quelleneinordnung. App, private Konfiguration und kaltes Datenvolume waren
+bereits gesichert. Ausschließlich unbenutzte alte Kingfisher-Programmbilder
+wurden zusätzlich in zwei überprüfte lokale Archive gesichert und danach aus
+Docker entfernt: 66 Bilder, rund 3,1 GB Archivdaten. Keine Container oder
+Datenvolumes wurden gelöscht. Danach waren rund 3,1 GiB wieder frei; die neue
+App läuft ohne Neustartschleife. Die Archive und die vorherige App bleiben als
+Rückweg außerhalb des Repositorys erhalten.
+
+Vor und nach der Nachprüfung: 340 Originalquellen mit unveränderten Digests,
+17 SQLite-Dateien mit erfolgreichem `quick_check`, ChatGPT-Zugang erhalten.
+Die lokale Modellauswertung bleibt ausgeschaltet, die bestehende Mailpause
+unverändert. Der Mailabruf ist weiterhin nicht pausiert.
+
+Sieben gezielt ausgewählte, bereits für ChatGPT freigegebene Quellen wurden
+mit `gpt-6.1-sol` als **Nachprüfung**, nicht als neuer Pilot, verarbeitet. Der
+lokale Abschnittsplan erlaubte höchstens 22 Anfragen; tatsächlich waren es 21.
+Keine neue Quelle, kein anderer Anbieter und kein großer Import. Das bestehende
+technische Auftragslimit der Nachprüfung wird im Fenster weiterhin als 4.000
+angezeigt; es ist nicht die Zahl der für dieses Paket geplanten Anfragen.
+
+| Messung | Ergebnis |
+| --- | ---: |
+| Quellen durchgesehen | 7 |
+| Grundeinordnung vollständig | 7 |
+| Beide Schichten vollständig | 3 |
+| Kategorienphase: unbelegte Absenderrolle | 4 |
+| Modellanfragen | 21 |
+| Gespeicherte Originalbereiche geprüft | 111 |
+
+Eine zuvor wegen vieler Absätze zurückgestellte automatische Mail kann jetzt
+in beiden Schichten verarbeitet werden. Vier Kategorienantworten scheitern
+weiterhin am geschlossenen Belegtest `entity_sender`. Die erfolgreichen
+Grundeinordnungen bleiben erhalten; die Kategorienphase wird deshalb nicht
+als bestanden gezählt. Die verworfenen Modellantworten werden nicht gespeichert,
+somit ist die jeweils betroffene behauptete Entität nicht nachträglich belegbar.
+
+Bei vier ausgewählten automatischen Nachrichten sind die früheren
+Bedien-/Serviceaufforderungen nicht mehr als `request` gespeichert. Zwei
+persönliche Bitten bleiben als solche erhalten. Das ist ein positiver
+Stichprobenbefund, keine Garantie für alle Benachrichtigungen oder Aufgaben.
+Die 111 gespeicherten Stellen passen zu den Originalbereichen. Die ursprüngliche
+100er-Probe und ihre Sperre bleiben unverändert; drei vollständige Nachprüfungen
+schalten den großen Lauf nicht frei.
+
+Im nativen Fenster wurden Fortschritt, gesperrte parallele Startaktionen und
+aufgeklappte Hinweise geprüft: „Themen und Personen offen. Die Zuordnung zum
+Absender ist nicht belegt. Die gespeicherte Grundeinordnung bleibt erhalten.“
+Die Quellenansicht bleibt erreichbar. Ein unabhängiges Code-Review der
+Korrektur fand keinen konkreten Blocker im geprüften Umfang. Die verbliebene
+Absenderrollen-Zuordnung ist der nächste gezielte Qualitätsfall; eine vollständig
+brauchbare Personenauflösung und Antwortqualität werden weiterhin nicht behauptet.
