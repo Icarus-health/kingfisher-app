@@ -101,3 +101,25 @@ def test_legacy_text_output_does_not_bypass_literal_condition_gate():
     provider = Selector({'status': 'antwort', 'saetze': [{'text': 'Lösungsmittel dürfen verwendet werden.', 'belege': [1]}]})
     result = sa.formulieren('Wann?', [evidence()], provider, jetzt=NOW)
     assert result.status == 'zitate'
+
+
+@pytest.mark.parametrize('separator', ['\n', ',\n'])
+def test_line_wrapping_cannot_offer_an_unconditional_fragment(separator):
+    wrapped = 'Die Steuerung darf zurückgesetzt werden' + separator
+    wrapped += 'wenn die diensthabende Technikerin es schriftlich anordnet.'
+    provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]})
+    result = sa.formulieren('Ist ein Zurücksetzen automatisch erlaubt?', [evidence(RULE + '\n' + wrapped)],
+                            provider, jetzt=NOW)
+    payload = json.loads(provider.messages[0][0][-1]['content'])
+    assert payload['belege'][0]['originalsaetze'][1]['text'] == wrapped
+    assert not any(s.text == 'Die Steuerung darf zurückgesetzt werden' for s in result.saetze)
+
+
+@pytest.mark.parametrize('extra', ['', ' Das Gehäuse besteht aus Stahl.'])
+def test_sentence_size_limit_cannot_create_a_false_absence_report(extra):
+    long_rule = 'Die Pumpe darf erst nach ' + 'vollständig dokumentierter ' * 17 + 'Freigabe verwendet werden.'
+    assert len(long_rule) > sa.MAX_SATZ_ZEICHEN
+    provider = Selector({'status': 'nichts_vorliegend', 'originalstellen': []})
+    result = sa.formulieren('Wann darf die Pumpe verwendet werden?', [evidence(long_rule + extra)], provider, jetzt=NOW)
+    assert result.status == 'zitate'
+    assert not provider.messages, 'Do not ask about a context made incomplete by the offering limit'

@@ -512,7 +512,8 @@ def nachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: datetime) -> 
 def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], str]:
     """Nur vollständige, sichtbare Originalabschnitte; niemals versteckten Volltext anbieten.
 
-    Die Grenzen entsprechen der groben Satzprüfung (Doppelpunkte bleiben erhalten).
+    Doppelpunkte und innere Zeilenumbrüche bleiben erhalten: Ein Umbruch darf
+    eine Bedingung nicht vom vorangehenden Satzteil abtrennen.
     Bei einem gekürzten Auszug beweist der Volltext die Abschnittsgrenzen. Ein
     abgeschnittenes Stück wird weder vervollständigt noch als ganzer Satz angeboten.
     """
@@ -521,12 +522,15 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
         if beleg.gekuerzt and not beleg.pruef_text:
             continue
         nummer = 0
-        for match in re.finditer(r'.+?(?:[!?]|(?<!\d)\.(?!\d)|\n|$)',
+        for match in re.finditer(r'.+?(?:[!?]|(?<!\d)\.(?!\d)|$)',
                                  beleg.pruef_text or beleg.text, re.S):
             text = match.group().strip()
-            if (not text or len(text) > MAX_SATZ_ZEICHEN or text not in beleg.text
+            if (not text or text not in beleg.text
                     or '[…]' in text or '[gekürzt,' in text):
                 continue
+            if len(text) > MAX_SATZ_ZEICHEN:
+                # Ein Angebotslimit ist kein Beleg für fehlende Information.
+                raise ValueError('Sichtbare Originalstelle überschreitet das Satzlimit')
             nummer += 1
             stellen[beleg.nummer, nummer] = text
     return stellen
@@ -538,6 +542,8 @@ def _originalnachrichten(frage: str, belege: Sequence[AntwortBeleg], jetzt: date
     nutzer = json.loads(messages[-1]['content'])
     for beleg in nutzer['belege']:
         beleg.pop('text')
+        if next(b for b in belege if b.nummer == beleg['nr']).gekuerzt:
+            beleg['gekuerzt'] = True
         beleg['originalsaetze'] = [{'nr': satz, 'text': text}
                                    for (nr, satz), text in stellen.items() if nr == beleg['nr']]
     return [{'role': 'system', 'content': ORIGINAL_ANWEISUNG},
@@ -609,6 +615,8 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
     try:
         originalmodus = any(bedingte_regeln_fuer_antwort(b.pruef_text or b.text) for b in belege)
         stellen = _originalstellen(belege) if originalmodus else {}
+        if originalmodus and not stellen:
+            return Versuch('zitate', grund='Keine vollständige sichtbare Originalstelle', modell=modell, tor=tor)
         messages = (_originalnachrichten(frage, belege, jetzt, stellen) if originalmodus
                     else nachrichten(frage, belege, jetzt))
         with zeitmessung.messen(zeiten, 'saetze_modell'):
