@@ -40,6 +40,7 @@ _DOKUMENT_NAME = re.compile(r'rechnung|beleg|quittung|scan|vertrag|police|besche
 _BILD = {'image/jpeg', 'image/png'}
 OCR_MODELLE = ('glm-ocr', 'deepseek-ocr')
 TAG = 'anhang'
+BERICHT_TAG = 'mail:attachments:'
 
 GELESEN, OCR, GESCANNT, ZU_GROSS, FEHLER = 'gelesen', 'ocr', 'gescannt', 'zu_gross', 'fehler'
 
@@ -60,6 +61,15 @@ class Anhang:
     @property
     def gelesen(self) -> bool:
         return self.status in (GELESEN, OCR)
+
+    @property
+    def ungelesene_seiten(self) -> list[int]:
+        return [n for n, seite in enumerate(self.seiten, 1) if not seite.strip()]
+
+    @property
+    def vollstaendig(self) -> bool:
+        return (self.gelesen and bool(self.seiten) and not self.ungelesene_seiten
+                and self.gesamt <= len(self.seiten) and not _inhalt(self)[1])
 
 
 Ocr = Callable[[bytes], str]
@@ -108,6 +118,9 @@ def _pdf(name: str, daten: bytes, ocr: Ocr | None) -> Anhang:
     hinweis = ''
     if gesamt > len(seiten):
         hinweis = f'Gelesen sind die ersten {len(seiten)} von {gesamt} Seiten.'
+    ungelesen = [str(n) for n, seite in enumerate(seiten, 1) if not seite.strip()]
+    if ungelesen:
+        hinweis = (hinweis + ' ' if hinweis else '') + ('Seite ' if len(ungelesen) == 1 else 'Seiten ') + ', '.join(ungelesen) + ' ohne lesbaren Text; der Inhalt ist nicht vollständig erfasst.'
     return Anhang(name, 'pdf', status, tuple(seiten), gesamt, hinweis, leer)
 
 
@@ -123,7 +136,8 @@ def _bild(name: str, daten: bytes, ocr: Ocr | None) -> Anhang:
     return Anhang(name, 'bild', OCR, (text,), 1)
 
 
-def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, ocr: Ocr | None = None) -> tuple[Anhang, ...]:
+def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, ocr: Ocr | None = None,
+             bericht: dict[str, Any] | None = None) -> tuple[Anhang, ...]:
     """Die Anhänge einer Mail: PDFs immer, Bilder nur mit Dokumentnamen („Rechnung.jpg“). Höchstens `MAX_ANHAENGE`.
 
     `abgeschnitten`: Die Mail kam über der Größengrenze der Aufnahme; ihre Anhänge sind unvollständig und werden nicht
@@ -131,15 +145,31 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
     """
     ergebnis: list[Anhang] = []
     gesehen: set[str] = set()
+    gefunden = ausgelassen = nicht_unterstuetzt = doppelt = unbenannt = 0
+    zuordnung_vollstaendig = True
     for part in nachricht.walk():
-        if part.is_multipart() or len(ergebnis) >= MAX_ANHAENGE:
-            continue
         name = _name(part)
-        if not name:
+        attachment = part.get_content_disposition() == 'attachment'
+        if part.is_multipart():
+            if attachment or name:
+                gefunden += 1
+                nicht_unterstuetzt += 1
+                zuordnung_vollstaendig = False
             continue
+        if not name:
+            if attachment or part.get_content_type() == 'application/pdf':
+                gefunden += 1
+                unbenannt += 1
+                zuordnung_vollstaendig = False
+            continue
+        gefunden += 1
         pdf = _ist_pdf(part, name)
         bild = part.get_content_type() in _BILD and bool(_DOKUMENT_NAME.search(name))
         if not (pdf or bild):
+            nicht_unterstuetzt += 1
+            continue
+        if len(ergebnis) >= MAX_ANHAENGE:
+            ausgelassen += 1
             continue
         if abgeschnitten:
             ergebnis.append(Anhang(name, 'pdf' if pdf else 'bild', ZU_GROSS,
@@ -147,7 +177,12 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
             continue
         daten = part.get_payload(decode=True) or b''
         fingerabdruck = hashlib.sha256(daten).hexdigest()
-        if not daten or fingerabdruck in gesehen:
+        if fingerabdruck in gesehen:
+            doppelt += 1
+            continue
+        if not daten:
+            ergebnis.append(Anhang(name, 'pdf' if pdf else 'bild', FEHLER,
+                                   hinweis=f'Anhang „{name}“ enthält keine lesbaren Dateidaten.'))
             continue
         gesehen.add(fingerabdruck)
         if len(daten) > MAX_BYTES:
@@ -155,30 +190,67 @@ def aus_mail(nachricht: email.message.Message, *, abgeschnitten: bool = False, o
                                    hinweis=f'Anhang „{name}“ ist größer als 5 MiB und wurde nicht gelesen.'))
             continue
         ergebnis.append(_pdf(name, daten, ocr) if pdf else _bild(name, daten, ocr))
+    if bericht is not None:
+        mime_fehler = sum(len(part.defects) for part in nachricht.walk())
+        if mime_fehler:
+            zuordnung_vollstaendig = False
+        voll = sum(item.vollstaendig for item in ergebnis)
+        teilweise = sum(item.gelesen and not item.vollstaendig for item in ergebnis)
+        ungelesen = len(ergebnis) - voll - teilweise
+        hinweise = []
+        if abgeschnitten:
+            hinweise.append('Die Mail wurde unvollständig abgerufen; weitere Anlagen können fehlen.')
+        if ausgelassen:
+            hinweise.append(f'{ausgelassen} weitere Anlagen wurden wegen der Grenze von {MAX_ANHAENGE} je Mail nicht gelesen.')
+        if nicht_unterstuetzt:
+            hinweise.append(f'{nicht_unterstuetzt} Dateien haben ein nicht unterstütztes Format oder sind Bilder ohne Dokumentnamen.')
+        if teilweise or ungelesen:
+            hinweise.append(f'{teilweise} Anlagen sind teilweise gelesen, {ungelesen} noch ungelesen.')
+        if unbenannt:
+            hinweise.append(f'{unbenannt} Anlagen ohne Dateinamen wurden nicht gelesen; ihre Zuordnung ist ungeklärt.')
+        if mime_fehler:
+            hinweise.append('Die Mailstruktur ist beschädigt; die Anlagen können nicht vollständig zugeordnet werden.')
+        komplett = not (abgeschnitten or ausgelassen or nicht_unterstuetzt or teilweise or ungelesen or unbenannt or mime_fehler)
+        bericht.update(geprueft=True, abruf_vollstaendig=not abgeschnitten, vollstaendig=komplett, gefunden=gefunden, gelesen=voll,
+                       zuordnung_vollstaendig=zuordnung_vollstaendig, unbenannt=unbenannt, mime_fehler=mime_fehler,
+                       teilweise=teilweise, ungelesen=ungelesen, ausgelassen=ausgelassen,
+                       nicht_unterstuetzt=nicht_unterstuetzt, doppelt=doppelt,
+                       dateien=[als_dict(item) for item in ergebnis],
+                       hinweis=('Anlagen nicht vollständig erfasst. ' + ' '.join(hinweise)) if not komplett
+                       else 'Text der erkannten unterstützten Anlagen erfasst. Texterkennung und eingebettete Bilder können Informationen auslassen.' if gefunden else 'Keine benannten Anlagen gefunden.')
     return tuple(ergebnis)
 
 
 # -- Die Quelle ---------------------------------------------------------------------------------------------------
 
 
-def text(anhang: Anhang, betreff: str, datum: datetime | None) -> str:
-    """Der Text der Quelle: Kopf mit Datei und Mail, dann „Seite N“ vor jeder gelesenen Seite, höchstens `MAX_ZEICHEN`."""
-    wann = f' vom {datum:%d.%m.%Y}' if datum else ''
-    kopf = f'Anhang „{anhang.dateiname}“ der Mail „{betreff or "(kein Betreff)"}“{wann}.'
-    if not anhang.gelesen:
-        return f'{kopf}\n\n{anhang.hinweis}'
+def _inhalt(anhang: Anhang) -> tuple[list[str], bool]:
+    """One shared, nonnegative character budget including page separators."""
     teile, rest = [], MAX_ZEICHEN
     for nummer, seite in enumerate(anhang.seiten, 1):
         if not seite.strip():
             continue
         stueck = f'Seite {nummer}' + (' (Texterkennung)' if anhang.status == OCR and nummer in anhang.leere_seiten or
                                        anhang.art == 'bild' else '') + f'\n{seite.strip()}'
+        rest = max(0, rest - (2 if teile else 0))
         if len(stueck) > rest:
-            teile.append(stueck[:rest].rsplit('\n', 1)[0])
-            teile.append('(Gekürzt: Der Anhang ist länger, als Kingfisher je Anhang liest.)')
-            break
+            if rest:
+                teile.append(stueck[:rest])
+            return teile, True
         teile.append(stueck)
-        rest -= len(stueck) + 2
+        rest -= len(stueck)
+    return teile, False
+
+
+def text(anhang: Anhang, betreff: str, datum: datetime | None) -> str:
+    """Source header, bounded readable pages and explicit missing-content warnings."""
+    wann = f' vom {datum:%d.%m.%Y}' if datum else ''
+    kopf = f'Anhang „{anhang.dateiname}“ der Mail „{betreff or "(kein Betreff)"}“{wann}.'
+    if not anhang.gelesen:
+        return f'{kopf}\n\n{anhang.hinweis}'
+    teile, gekuerzt = _inhalt(anhang)
+    if gekuerzt:
+        teile.append('(Gekürzt: Der Anhang ist länger, als Kingfisher je Anhang liest.)')
     if anhang.hinweis:
         teile.append(anhang.hinweis)
     return f'{kopf}\n\n' + '\n\n'.join(teile)
@@ -205,12 +277,13 @@ def ist_anhang(episode: Any) -> bool:
 
 
 def aufnehmen(episodes: Any, message: Any, *, schluessel: str, herkunft: str, beteiligte: list, teilnehmer: list,
-              claims: Any = None) -> list[str]:
+              parent_id: str, claims: Any = None) -> list[str]:
     """Legt je Anhang einer Mail eine Quelle an (Art `document`, Beteiligte wie die Mail). Gibt die neuen IDs zurück."""
     from .episodes import EpisodeKind
     from .model import Provenance, SourceType
     from .source_versions import track_source
     neu: list[str] = []
+    beobachtet: set[str] = set()
     for nummer, anhang in enumerate(getattr(message, 'anhaenge', ()) or (), 1):
         key = f'{schluessel}:anhang:{nummer}'
         episode, erstellt = episodes.record(
@@ -218,10 +291,24 @@ def aufnehmen(episodes: Any, message: Any, *, schluessel: str, herkunft: str, be
             Provenance(source_type=SourceType.EMAIL, source_ref=f'{herkunft}#anhang:{nummer}:{anhang.dateiname}',
                        captured_at=message.date),
             occurred_at=message.date, participants=teilnehmer, contacts=beteiligte,
-            tags=[TAG, f'{TAG}:{anhang.status}'], source_key=key)
+            tags=[TAG, f'{TAG}:{anhang.status}', f'mail-parent:{parent_id}']
+                 + ([] if anhang.vollstaendig else ['source:truncated']), source_key=key)
         track_source(episodes, claims, key, episode)
+        beobachtet.add(episode.id)
         if erstellt:
             neu.append(episode.id)
+    report = getattr(message, 'anhang_bericht', None)
+    # Only a complete MIME fetch without a count limit proves absence. Normal
+    # message views and truncated fetches must never withdraw unseen originals.
+    if (report and report.get('abruf_vollstaendig') is True and report.get('zuordnung_vollstaendig') is True
+            and report.get('ausgelassen') == 0):
+        from .source_versions import invalidate_with_corrections
+        for child_id in episodes.mail_attachment_children(parent_id):
+            if child_id not in beobachtet:
+                if claims is None:
+                    raise ValueError('Für Anlagenänderungen muss der Wissensspeicher verfügbar sein.')
+                invalidate_with_corrections(episodes, claims, child_id)
+                episodes.ignore(child_id, grund='mail-anlage-entfallen')
     return neu
 
 
@@ -267,7 +354,20 @@ def ocr_fuer(app: Any) -> Ocr | None:
 
 def als_dict(anhang: Anhang) -> dict[str, Any]:
     return {'dateiname': anhang.dateiname, 'art': anhang.art, 'status': anhang.status, 'seiten': len(anhang.seiten),
-            'gesamt': anhang.gesamt, 'hinweis': anhang.hinweis}
+            'gesamt': anhang.gesamt, 'hinweis': anhang.hinweis, 'vollstaendig': anhang.vollstaendig,
+            'ungelesene_seiten': anhang.ungelesene_seiten}
+
+
+def gespeicherter_bericht(episode: Any) -> dict[str, Any] | None:
+    import json
+    for tag in reversed(getattr(episode, 'tags', ())):
+        if tag.startswith(BERICHT_TAG):
+            try:
+                report = json.loads(tag[len(BERICHT_TAG):])
+            except (ValueError, TypeError):
+                return None
+            return report if isinstance(report, dict) and report.get('geprueft') is True else None
+    return None
 
 
 __all__ = ['Anhang', 'FEHLER', 'GELESEN', 'GESCANNT', 'MAX_ANHAENGE', 'MAX_SEITEN', 'MAX_ZEICHEN', 'OCR', 'OCR_MODELLE',

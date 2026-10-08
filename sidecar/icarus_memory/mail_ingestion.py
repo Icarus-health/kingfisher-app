@@ -42,9 +42,17 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
     head = episodes.source_head(key)
     if head:
         existing = episodes.get(head)
+        report = getattr(message, 'anhang_bericht', None)
+        incomplete = message.truncated or (report is not None and
+            (report.get('abruf_vollstaendig') is not True or report.get('zuordnung_vollstaendig') is not True))
+        if incomplete and 'source:truncated' not in existing.tags:
+            # A bounded/partial refresh cannot disprove a previously complete
+            # original. Preserve its version until a complete fetch succeeds.
+            return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
+                                     {'episode': existing.to_dict(), 'new': False, 'changed': False})
         # Header enrichment is advisory metadata, not a replacement source.
         old = existing.to_dict()
-        old['tags'] = [t for t in existing.tags if not t.startswith((SELF, REPLY))]
+        old['tags'] = [t for t in existing.tags if not t.startswith((SELF, REPLY, 'mail:attachments:'))]
         incoming = {'kind': EpisodeKind.MESSAGE.value, 'title': message.subject or '(kein Betreff)',
                     'occurred_at': message.date.isoformat() if message.date else None,
                     'participants': teilnehmer, 'tags': [t for t in tags if not t.startswith((SELF, REPLY))]}
@@ -82,12 +90,21 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
 def _with_attachments(episodes, message, key, contacts, participants, claims, result):
     # Exclusion of the original also prevents an unchanged capture from reviving its attachments.
     from .anhaenge import aufnehmen
+    report = getattr(message, 'anhang_bericht', None)
+    preserve = (report is not None and (report.get('abruf_vollstaendig') is not True or report.get('zuordnung_vollstaendig') is not True)
+                and bool(episodes.mail_attachment_children(result['episode']['id'])))
+    if preserve:
+        report = {**report, 'vollstaendig': False, 'vorherige_fassung_beibehalten': True,
+                  'hinweis': (report.get('hinweis', '') + ' Die gespeicherten Anlagen der vorherigen Aufnahme bleiben erhalten; der neue Abruf ist unvollständig.').strip()}
+    if report is not None and result['episode']['state'] != 'ignored':
+        result['episode'] = episodes.set_mail_attachment_report(result['episode']['id'], report).to_dict()
     source_ref = message.message_id or f"imap:{message.uid}"
     if message.account_id:
         source_ref = f"{message.account_id}:{source_ref}"
     result['anhaenge'] = (aufnehmen(episodes, message, schluessel=key, herkunft=source_ref,
-        beteiligte=contacts, teilnehmer=participants, claims=claims)
-        if getattr(message, 'anhaenge', ()) and result['episode']['state'] != 'ignored' else [])
+        beteiligte=contacts, teilnehmer=participants, parent_id=result['episode']['id'], claims=claims)
+        if not preserve and (getattr(message, 'anhaenge', ()) or report is not None)
+           and result['episode']['state'] != 'ignored' else [])
     return result
 
 

@@ -246,6 +246,8 @@ export type MailIntakeAccount = {
   label: string;
   connected: boolean;
   started: boolean;
+  attachments_supported?: boolean;
+  attachments_description?: string;
   paused: boolean;
   folders: MailIntakeFolder[];
   step: string;
@@ -265,7 +267,7 @@ export type MailIntakeStatus = {
   attachments_supported: boolean;
 };
 
-export type MailIntakePreview = {folders: string[]; description: string; attachments_supported: boolean};
+export type MailIntakePreview = {folders: string[]; description: string; attachments_supported: boolean; attachments_description?: string};
 
 export type CategoryTaxonomyEntry = {id: string; label: string; description: string; version: number};
 export type SourceCategoriesResult = {
@@ -1167,7 +1169,7 @@ export const api = {
   dismissWorkingMemory: (id: string) => request<{dismissed: boolean}>(`/api/v1/memory/working/${encodeURIComponent(id)}/dismiss`, {method: "POST"}),
   workingMemoryCorrection: (id: string) => request<WorkingMemoryCorrection>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`),
   saveWorkingMemoryCorrection: (id: string, body: {fingerprint: string; body: string}) => request<WorkingMemoryCorrectionResult>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`, {method: "POST", body: JSON.stringify(body)}),
-  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
+  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; source_current?: boolean; source_incomplete?: boolean; attachment_check_pending?: boolean; attachment_sources?: Array<{id: string; title: string}>; attachment_coverage?: {geprueft: boolean; vollstaendig: boolean; hinweis: string} | null; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
   identities: () => request<{entities: Array<{id: string; label: string; kind: string}>}>("/api/v1/memory/registry"),
   correctClaim: (id: string, body: {value: string; statement: string; reason: string; scope_ref: string | null; target_ref: string | null; valid_from: string | null; valid_until: string | null}) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/correct`, {method: "POST", body: JSON.stringify(body)}),
   retractClaim: (id: string, reason: string) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/retract`, {method: "POST", body: JSON.stringify({reason})}),

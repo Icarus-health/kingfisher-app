@@ -131,6 +131,14 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
       {data && eigeneFrage && schlicht ? schlicht : null}
       {data && !(eigeneFrage && schlicht) && <><h3>{data.title}</h3><p>{kind === "episode" ? "Gespeicherte Quelle · keine bestätigte Aussage" : `Arbeitsnotiz · Revision ${data.revision ?? "—"}`}</p>
         {kind === "episode" && data.memory_status && <p role="status">{data.memory_status.label}</p>}
+        {kind === "episode" && data.source_current === false && data.state !== "ignored" && <p role="status">Diese Fassung oder ihre zugehörige Mail ist nicht mehr zugelassen. Sie wird nicht als Wissensbeleg verwendet.</p>}
+        {data.source_incomplete && <p role="status">Nur teilweise erfasst. Im Original können weitere Informationen stehen; fehlender Text ist kein Beleg dafür, dass etwas nicht erwähnt wurde.</p>}
+        {data.attachment_coverage && <p role="status">{data.attachment_coverage.hinweis}</p>}
+        {data.attachment_check_pending && <p role="status">Die Anlagen wurden bei dieser Aufnahme nicht geprüft. Ihr Inhalt kann im Gedächtnis fehlen.</p>}
+        {data.attachment_sources && data.attachment_sources.length > 0 && <details>
+          <summary>Gespeicherte Anlagen ({data.attachment_sources.length})</summary>
+          {data.attachment_sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id} label={source.title} readOnly={readOnly} onChange={onChange} />)}
+        </details>}
         {kind === "episode" && data.state !== "ignored" && <SourceCategories key={id} id={id} readOnly={readOnly} />}
         {kind === "episode" && data.state !== "ignored" && <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} />}
         {data.state === "ignored" && <p role="status">Diese Quelle wurde ausgeschlossen und darf nicht als Wissensbeleg verwendet werden.</p>}

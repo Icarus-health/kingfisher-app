@@ -33,6 +33,27 @@ def test_preview_does_not_start_but_confirmed_scope_does(fixture):
     assert app.state.settings.schedule.enabled
 
 
+def test_attachment_capability_is_per_reader_without_fetching_mail(fixture):
+    app, client = fixture
+    reader = app.state.mail.reader_for('a')
+    assert client.get('/api/v1/mail/intake/a/preview').json()['attachments_supported'] is False
+    reader.message_mit_anhaengen = lambda *args: (_ for _ in ()).throw(AssertionError('Must not fetch'))
+    preview = client.get('/api/v1/mail/intake/a/preview').json()
+    status = client.get('/api/v1/mail/intake').json()
+    assert preview['attachments_supported'] is True
+    assert status['accounts'][0]['attachments_supported'] is True
+    assert 'höchstens 5' in preview['attachments_description']
+    assert 'keine Anlagen' not in preview['attachments_description']
+
+
+def test_attachment_capability_failure_is_not_reported_supported(fixture):
+    app, client = fixture
+    app.state.mail.reader_for = lambda _: (_ for _ in ()).throw(ValueError('No access'))
+    status = client.get('/api/v1/mail/intake').json()
+    assert status['attachments_supported'] is False
+    assert status['accounts'][0]['attachments_supported'] is False
+
+
 def test_pause_resume_and_save_failure(fixture,monkeypatch):
     app,client=fixture
     assert client.post('/api/v1/mail/intake/a/start',json={'folders':['All Mail']}).status_code==200

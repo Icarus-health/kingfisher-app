@@ -171,7 +171,7 @@ export function MailIntake({accounts, active, onChanged}: {
   }
 
   return <section className="mail-intake" aria-label="Ältere Mails einlesen">
-    <p>Kingfisher liest auf Wunsch auch die Mails, die schon in deinem Postfach liegen: Zuerst schaut es nach, welche Ordner es gibt, dann liest es sie ein und hält sie aktuell. Spam, Papierkorb und Anhänge bleiben außen vor; was eingelesen ist, gilt noch nicht als bestätigt.</p>
+    <p>Kingfisher liest auf Wunsch auch die Mails, die schon in deinem Postfach liegen: Zuerst schaut es nach, welche Ordner es gibt, dann liest es sie ein und hält sie aktuell. Spam und Papierkorb bleiben außen vor. Welche Anlagen mitgelesen werden, steht bei jedem Konto; was eingelesen ist, gilt noch nicht als bestätigt.</p>
     {status?.background_paused && <div role="status">
       <p>Die gesamte Hintergrundarbeit ist pausiert. Bereits gespeicherte Inhalte bleiben verfügbar. Setze sie hier fort; einzeln pausierte Postfächer behalten ihre eigene Pause.</p>
       <button className="secondary-action" type="button" disabled={busy} onClick={() => {void resumeBackground();}}>
@@ -192,6 +192,7 @@ export function MailIntake({accounts, active, onChanged}: {
         {account.stand && <p>{account.stand.satz}</p>}
         {progress.stage === "waiting_analysis" && !status.background_paused && <a className="text-action" href="/memory?view=status">Automatisches Sortieren prüfen →</a>}
         <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
+        {(checked?.attachments_description || account.attachments_description) && <p>{checked?.attachments_description || account.attachments_description}</p>}
         {!account.started && checked && <p>Gefunden: {checked.folders.map(ordnerName).join(", ")}. Diese Ordner liest Kingfisher ein, und neue Mails daraus kommen laufend dazu.</p>}
         {account.paused && <p>Das Einlesen pausiert. Was schon gespeichert ist, bleibt, und es geht dort weiter, wo es aufgehört hat.</p>}
         {!account.started && <button className="secondary-action" type="button" disabled={!account.connected || busy}
