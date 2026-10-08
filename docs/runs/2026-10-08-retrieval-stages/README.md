@@ -47,3 +47,12 @@ Die ursprünglichen Manipulations-, Versions- und Stichtagstests behalten ihren 
 - 146 Satz-/Antworttests bestanden; das gezielte unabhängige Review bestätigte beide Bereichskorrekturen und unveränderte Minuten. Die Suchwrapper zeigten im unabhängigen Diff-Review keinen konkreten Weitergabe- oder Wiederherstellungsfehler.
 - Alle 17 historischen Satzurteile wurden nach der letzten Bereichskorrektur erneut gegen den eingefrorenen Katalog geprüft und bleiben wie im Replay beschrieben.
 - Keine Frontendänderung, keine Änderung von Modellrollen, Importbeständen oder Datenbankschemata. Die Trefferquote des echten Modells wird durch diese Prüfung nicht neu gemessen. Der vollständige Gedächtnis-/CoS-Nachweis bleibt offen.
+
+
+## GitHub und Mac geliefert
+
+[PR 7](https://github.com/Icarus-health/kingfisher-app/pull/7) ist als `25afa58` zusammengeführt. Der geprüfte Quellstand `fc5f33e` ist inhaltsgleich zum Merge. Das aus sauberem Git-Archiv gebaute Bild `ghcr.io/icarus-health/kingfisher-app:1.0.6-local.fc5f33e` hat die Kennung `sha256:69d4712466e011f8207ef39e662fe42bd159ea5f1969a87c4a99d9b333a57413`. Ein netzloser Bildtest verwirft die beiden falschen Zeitformulierungen und akzeptiert die äquivalente Minutenspanne.
+
+Am Mac installiert: **1.0.6-local.fc5f33e**. Vor Austausch wurde die App samt privater Konfiguration und kaltem Datenbestand unter `Kingfisher-Rueckweg/2026-10-08-vor-fc5f33e-b` im lokalen Codex-Dokumentordner gesichert. Nach Neustart wurden alle 344 vorhandenen Eintragskennungen und Inhaltsprüfsummen erhalten; die 17 SQLite-Dateien bestehen vorher und nachher die Integritätsprüfung. Konfigurationsgruppen für Mailkonten, Kalender, Cloudanbieter, Modellrollen und Zeitplan sind unverändert. Der Container nutzt weiterhin dasselbe Datenvolume und den bestehenden Loopback-Port. Der native Starter ist bytegleich, seine Bundle-Fassung und Signatur wurden aktualisiert.
+
+Gesundheits-/Fassungs- und World-Endpunkte sind erreichbar. Dies belegt das Backend und die Datenübernahme, **keinen nativen Bedienablauf**: Der Mac war für die Computersteuerung weiterhin gesperrt, die bereits gestellte Entsperranfrage bleibt offen. Kein öffentliches Image/Release hochgeladen; der öffentliche Updater liefert diese lokale Vorschau nicht aus. Neue echte Modellmessungen waren weiterhin nicht erfolgreich; die vorherigen Metal-Startfehler sind kein gemessener Retrievalfehler.
