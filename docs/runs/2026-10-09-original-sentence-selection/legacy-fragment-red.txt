@@ -1,0 +1,20 @@
+................F                                                        [100%]
+=================================== FAILURES ===================================
+____ test_legacy_free_text_cannot_restore_a_wrapped_unconditional_fragment _____
+
+    def test_legacy_free_text_cannot_restore_a_wrapped_unconditional_fragment():
+        fragment = 'Die Steuerung darf zurückgesetzt werden'
+        wrapped = fragment + '\nwenn die diensthabende Technikerin es schriftlich anordnet.'
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': fragment, 'belege': [1]}]})
+        result = sa.formulieren('Ist ein Zurücksetzen automatisch erlaubt?', [evidence(RULE + '\n' + wrapped)],
+                                provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E         
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_original_sentence_selection.py:134: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_original_sentence_selection.py::test_legacy_free_text_cannot_restore_a_wrapped_unconditional_fragment
+1 failed, 16 passed in 0.18s

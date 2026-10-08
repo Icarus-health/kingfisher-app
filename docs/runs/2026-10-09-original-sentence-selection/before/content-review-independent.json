@@ -1,0 +1,222 @@
+{
+  "title": "Independent full-pipeline wording holdout content review",
+  "reviewer": "audit_answer_selection",
+  "synthetic_only": true,
+  "catalog_sha256": "ae4c60fb81eb7b14922d9b6ebcdd42a29f1915fc36caf819b98601116ca755be",
+  "answers_sha256": "02e89cc141f5c60fc90643975a957a96a8fae08413e24846ca983a286cec6854",
+  "runtime_sha256": "7d424a0aca18ec6c415fddbb141ab6eace7dc093f3332c54f0c0fbafed94de89",
+  "embedded_catalog_sha256": "ae4c60fb81eb7b14922d9b6ebcdd42a29f1915fc36caf819b98601116ca755be",
+  "holdout_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "code_version": "ae1e2ec-wording-before",
+  "scope": "All 13 actual visible answers independently compared with frozen original source texts. W06 was prepared but not run and is excluded. Grades concern visible answer content, not exact source-list metrics.",
+  "counts": {
+    "questions_reviewed": 13,
+    "adequate": 8,
+    "incomplete": 4,
+    "unsupported": 1,
+    "valid_unknowns": 1,
+    "valid_conflict_abstentions": 1,
+    "source_quote_fallbacks_not_counted_as_direct_answers": 4,
+    "unsupported_metadata_claims": 1
+  },
+  "case_reviews": [
+    {
+      "id": "IA01",
+      "grade": "incomplete",
+      "abstention_kind": "source_quote_fallback",
+      "visible_answer": "Full source quote includes dry-only-before-curing cleaning rule and separate solvent-return rule; no direct answer sentence was accepted.",
+      "original_comparison": "Safe evidence access, but quote fallback is not counted as direct answer prose.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA01-S1"
+      ],
+      "visible_answer_exact": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA01-S1.txt\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr",
+      "sentence_mode": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "IA02",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "The P-18 coating is applied when the surface is fully dust-free.",
+      "original_comparison": "IA02-S2 explicitly requires the surface to be fully dust-free before application and says this applies to the P-18 coating; visible claim is supported even though S1 is not displayed.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA02-S2"
+      ],
+      "visible_answer_exact": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA03",
+      "grade": "incomplete",
+      "abstention_kind": "source_quote_fallback",
+      "visible_answer": "Full source quote states no removal before acceptance and permission only after acceptance; no direct answer sentence was accepted.",
+      "original_comparison": "The quoted evidence is enough for a reader to infer 'no', but answer path fell back to citation rather than direct prose.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA03-S1"
+      ],
+      "visible_answer_exact": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA03-S1.txt\nVor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr",
+      "sentence_mode": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "IA04",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "Valve may be opened only while flushing is in progress.",
+      "original_comparison": "Exclusive temporal limit preserved.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA04-S1"
+      ],
+      "visible_answer_exact": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA05",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "Battery may be replaced exclusively after the technical test.",
+      "original_comparison": "Correctly attaches the temporal condition to replacement, not the unrelated pre-shipment photo action.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA05-S1"
+      ],
+      "visible_answer_exact": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA06",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "Window in room B may be opened during work hours for ventilation.",
+      "original_comparison": "Correct room and time; room A's after-hours restriction is not transferred.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA06-S1"
+      ],
+      "visible_answer_exact": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 1
+    },
+    {
+      "id": "IA07",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "The earlier calibration rule is insufficient; device remains off until documented approval.",
+      "original_comparison": "Correctly uses the 5 March correction. The superseded 3 March permission is not in the visible answer.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA07-S2"
+      ],
+      "visible_answer_exact": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 2
+    },
+    {
+      "id": "IA08",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "No reset before formal acceptance; after acceptance it is allowed only on written order from the duty technician.",
+      "original_comparison": "Both temporal rules and the after-acceptance condition are preserved; this answers that it is not automatic.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA08-S1"
+      ],
+      "visible_answer_exact": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\nEin Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 2
+    },
+    {
+      "id": "W01",
+      "grade": "incomplete",
+      "abstention_kind": "source_quote_fallback",
+      "visible_answer": "Full quote contains the under-8°C prerequisite and separate label code, but no direct answer sentence was accepted.",
+      "original_comparison": "No unsupported claim; the user can inspect the source, but this is not counted as direct answer prose.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "W01-S1"
+      ],
+      "visible_answer_exact": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · W01-S1.txt\nPrüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr",
+      "sentence_mode": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "W02",
+      "grade": "adequate",
+      "abstention_kind": "valid_unknown",
+      "visible_answer": "No information in the classified sources.",
+      "original_comparison": "Appropriate abstention: the source only describes storage in a metal cabinet; it supplies no prerequisite and no separate permission rule.",
+      "pipeline_status": "working_unknown",
+      "selected_sources": [],
+      "visible_answer_exact": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "sentence_mode": null,
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "W03",
+      "grade": "adequate",
+      "abstention_kind": null,
+      "visible_answer": "The funnel lid must not be removed before weighing.",
+      "original_comparison": "Direct, correct no for the asked interval. The post-weighing permission sentence is source-supported but was falsely rejected because the same source also contains 'nicht'; omission does not make this answer insufficient.",
+      "verifier_issue": "False rejection of a true positive-polarity sentence due to negation elsewhere in the source; rejected sentence was outside the direct question but useful context.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "W03-S1"
+      ],
+      "visible_answer_exact": "Der Trichterdeckel darf vor dem Wiegen nicht abgenommen werden. [1] (nur eine Quelle)\n\nBelege\n[1] W03-S1.txt\n\n1 Satz wurde verworfen, weil die Belege ihn nicht getragen haben.\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "sentence_mode": "saetze",
+      "accepted_sentence_count": 1,
+      "rejected_sentence_reasons": [
+        "Nach dem Wiegen darf der Trichterdeckel abgenommen werden.: Der Beleg verneint („nicht“), der Satz nicht"
+      ]
+    },
+    {
+      "id": "W04",
+      "grade": "incomplete",
+      "abstention_kind": "source_quote_fallback",
+      "visible_answer": "Quote shows the norm (only after pressure test) and actual use (before the test), but the answer does not state whether the documented use was permitted.",
+      "original_comparison": "The source permits the reader to infer 'no'; do not score this as a direct reasoned answer because the visible response is only the two literal source sentences.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "W04-S1"
+      ],
+      "visible_answer_exact": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · W04-S1.txt\nDer Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr",
+      "sentence_mode": "zitate",
+      "accepted_sentence_count": 0
+    },
+    {
+      "id": "W05",
+      "grade": "unsupported",
+      "abstention_kind": "valid_conflict_abstention_with_bad_attribution",
+      "visible_answer": "The answer correctly says the sources disagree and asks which applies, but labels W05-S2 'Frühere Aussage'.",
+      "original_comparison": "Both sources carry the same date (12 April), and neither declares an order or supersession. 'Frühere Aussage' invents chronology and could bias which contradictory rule appears older; the conflict itself is correctly surfaced.",
+      "unsupported_claim": "W05-S2 is earlier than W05-S1.",
+      "source_facts": [
+        "Both are Anweisung D-8 vom 12. April.",
+        "S1 says cleaning only after full cooling.",
+        "S2 says cleaning before full cooling is allowed."
+      ],
+      "pipeline_status": "working_unclear",
+      "selected_sources": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "visible_answer_exact": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nFrühere Aussage · W05-S2.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr\n\nAngabe · W05-S1.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:42 Uhr",
+      "sentence_mode": null,
+      "accepted_sentence_count": 0
+    }
+  ],
+  "overall": "Eight answers are adequate, four are incomplete source-quote fallbacks, and W05 contains an unsupported chronology label despite correctly recognizing the conflict. W02 is a valid unknown. W05's conflict abstention is directionally appropriate but not fully trustworthy because 'Frühere Aussage' has no source basis.",
+  "notable_verification_issue": "W03's true after-weighing sentence is rejected because its source also contains a separate pre-weighing negation; the visible answer remains correct for the asked before-weighing interval.",
+  "limits": [
+    "Synthetic small control set only.",
+    "Runtime indicates local synthetic HTTP pipeline completed; no general personal-corpus or production-readiness claim.",
+    "Independent review compares visible output with source text; it is not independent from the chosen test set's coverage limitations."
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "synthetic": true,
+  "frozen_before_model_run": true,
+  "sources": [
+    {
+      "id": "W01-S1",
+      "title": "W01-S1",
+      "text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731."
+    },
+    {
+      "id": "W02-S1",
+      "title": "W02-S1",
+      "text": "Lagerhinweis M-14: Das Ersatzteil wird im Metallschrank aufbewahrt."
+    },
+    {
+      "id": "W03-S1",
+      "title": "W03-S1",
+      "text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden."
+    },
+    {
+      "id": "W04-S1",
+      "title": "W04-S1",
+      "text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt."
+    },
+    {
+      "id": "W05-S1",
+      "title": "W05-S1",
+      "text": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden."
+    },
+    {
+      "id": "W05-S2",
+      "title": "W05-S2",
+      "text": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden."
+    }
+  ],
+  "questions": [
+    {
+      "id": "W01",
+      "q": "Unter welcher Voraussetzung darf die Gewebeprobe in den Kühlbehälter gelegt werden?",
+      "type": "wording-holdout",
+      "expect": ["W01-S1"],
+      "gold_answer": "Nur wenn die Temperatur unter 8 °C liegt. Der Chargencode 731 ist eine separate Etikettenangabe.",
+      "gold_requirements": [
+        "Keep the under-8-degrees condition attached to placing the sample in the cooler.",
+        "Do not treat the unrelated batch-code fact as a prerequisite."
+      ]
+    },
+    {
+      "id": "W02",
+      "q": "Welche Voraussetzung muss erfüllt sein, damit das Ersatzteil im Metallschrank aufbewahrt werden darf?",
+      "type": "wording-holdout",
+      "expect": ["W02-S1"],
+      "gold_answer": "Der Hinweis sagt nur, dass das Ersatzteil im Metallschrank aufbewahrt wird. Er nennt keine Voraussetzung und bestätigt auch keine gesonderte Erlaubnisregel.",
+      "gold_requirements": [
+        "State that the source supplies no prerequisite.",
+        "Do not invent a prerequisite or turn the descriptive storage statement into a permission claim."
+      ]
+    },
+    {
+      "id": "W03",
+      "q": "Darf der Trichterdeckel vor dem Wiegen abgenommen werden?",
+      "type": "wording-holdout",
+      "expect": ["W03-S1"],
+      "gold_answer": "Nein. Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden; erst danach ist es erlaubt.",
+      "gold_requirements": [
+        "Answer no for the interval before weighing.",
+        "Preserve the separate permission after weighing without reversing the temporal relation."
+      ]
+    },
+    {
+      "id": "W04",
+      "q": "War der Einsatz des Dosierkopfs im dokumentierten Versuch zulässig?",
+      "type": "wording-holdout",
+      "expect": ["W04-S1"],
+      "gold_answer": "Nein. Der Dosierkopf darf erst nach dem Drucktest eingesetzt werden; im Versuch wurde er davor eingesetzt.",
+      "gold_requirements": [
+        "Attach the after-pressure-test condition to using the dosing head.",
+        "Compare the reported before-test use with that condition and identify it as not permitted."
+      ]
+    },
+    {
+      "id": "W05",
+      "q": "Darf die Heizplatte vor vollständiger Abkühlung gereinigt werden?",
+      "type": "wording-holdout",
+      "expect": ["W05-S1", "W05-S2"],
+      "gold_answer": "Die beiden gleich datierten Anweisungen widersprechen sich: Eine erlaubt die Reinigung erst nach vollständiger Abkühlung, die andere erlaubt sie davor. Aus den vorliegenden Quellen lässt sich die geltende Regel nicht eindeutig bestimmen.",
+      "gold_requirements": [
+        "Surface the contradiction between the two sources.",
+        "Do not choose one rule as current without evidence that resolves the conflict."
+      ]
+    }
+  ],
+  "prepared_evidence": [
+    {
+      "id": "W06",
+      "source": {
+        "id": "W06-S1",
+        "title": "W06-S1",
+        "text": "Auszug aus Wartungsblatt Q-3, sichtbarer Absatz 6: Der Kompressor darf gestartet werden. Der vorausgehende Absatz ist in diesem Auszug nicht enthalten."
+      },
+      "q": "Welche Voraussetzung nennt der Auszug für den Start des Kompressors?",
+      "type": "excerpt-missing-context-prepared-evidence",
+      "gold_answer": "Der sichtbare Absatz sagt, dass der Kompressor gestartet werden darf, nennt aber keine Voraussetzung. Da der vorausgehende Absatz fehlt, lässt sich eine möglicherweise dort genannte Bedingung aus diesem Auszug nicht ergänzen.",
+      "gold_requirements": [
+        "Report only that the visible excerpt permits starting and gives no visible prerequisite.",
+        "Acknowledge the excerpt is incomplete and do not invent or infer an omitted condition."
+      ],
+      "metric_limits": "Prepared-evidence safety case only; not a full-pipeline control."
+    }
+  ],
+  "metric_limits": "Exact source lists are diagnostic only; independent original-vs-visible-answer review decides answer adequacy. W01-W05 are full-pipeline controls. W06 is prepared-evidence only and not a full-pipeline control. These synthetic cases do not relax deterministic validation, establish project facts, or inject confirmed claims or supersedes assignments."
+}

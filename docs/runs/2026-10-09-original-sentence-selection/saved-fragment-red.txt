@@ -1,0 +1,40 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_saved_legacy_fragment_is_rejected_after_stores_reopen __________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-812/test_saved_legacy_fragment_is_0')
+
+    def test_saved_legacy_fragment_is_rejected_after_stores_reopen(tmp_path):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+    
+        fragment = 'Die Steuerung darf zurückgesetzt werden'
+        body = RULE + '\n' + fragment + '\nwenn die Technikerin es schriftlich anordnet.'
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Steuerung', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': RULE, 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Was steht zur Steuerung?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            saved['saetze'][0].update(roh=fragment, text=fragment)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+>           assert sa.wiederherstellen(saved, episodes, claims) is None
+E           AssertionError: assert Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Die Steuerung darf zurückgesetzt werden', text='Die Steuerung d...htag='2026-10-08T23:01:23.463124+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is None
+E            +  where Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Die Steuerung darf zurückgesetzt werden', text='Die Steuerung d...htag='2026-10-08T23:01:23.463124+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) = <function wiederherstellen at 0x1079a2de0>({'version': 1, 'status': 'saetze', 'modell': 'skript skript-1', 'stichtag': '2026-10-08T23:01:23.463124+00:00', ...}, <icarus_memory.episodes.EpisodeStore object at 0x1076f0a10>, <icarus_memory.claims.ClaimStore object at 0x1076f0980>)
+E            +    where <function wiederherstellen at 0x1079a2de0> = sa.wiederherstellen
+
+sidecar/tests/test_original_sentence_selection.py:169: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_original_sentence_selection.py::test_saved_legacy_fragment_is_rejected_after_stores_reopen
+1 failed in 0.27s

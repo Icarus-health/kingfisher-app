@@ -1,0 +1,10 @@
+{
+  "container": "kingfisher-workflow-final-qa-20261006",
+  "filesystem_archive": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-09-archivierter-workflow-test/container-filesystem.tar",
+  "bytes": 224113664,
+  "sha256": "89b883bdc13c0652c04ca3c2f0975c604b220804a5278a60e8131a138be5b34c",
+  "image_preserved": "sha256:b389fdf02667be927cd6806579839aabbfbebb8ee348f8190128c9d544cc5d6e",
+  "mounts_preserved": true,
+  "removed_without_volume_deletion": true,
+  "was_stopped": true
+}
