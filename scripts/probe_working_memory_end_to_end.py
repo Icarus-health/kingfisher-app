@@ -45,13 +45,13 @@ class Meter:
             self.complete_json = self._json
 
     def _json(self, *args, **kwargs):
-        return self._call(lambda: self.inner.complete_json(*args, **kwargs))
+        return self._call(lambda: self.inner.complete_json(*args, **kwargs), 'json')
 
     def complete(self, *args, **kwargs):
-        return self._call(lambda: self.inner.complete(*args, **kwargs))
+        return self._call(lambda: self.inner.complete(*args, **kwargs), 'plain')
 
-    def _call(self, operation):
-        event = {'state': 'pending'}
+    def _call(self, operation, call_kind):
+        event = {'state': 'pending', 'call_kind': call_kind}
         with self._lock:
             self.calls += 1
             self.events.append(event)
@@ -63,11 +63,19 @@ class Meter:
             raise
         with self._lock:
             event['state'] = 'ok'
+            text = getattr(result, 'text', None)
+            if isinstance(text, str):
+                # The harness builds only the fixed synthetic catalog, never application data.
+                event.update(reply=text[:4000], reply_truncated=len(text) > 4000)
         return result
 
     def outcomes(self, start):
         with self._lock:
             return Counter(event['state'] for event in self.events[start:])
+
+    def outputs(self, start):
+        with self._lock:
+            return [dict(event) for event in self.events[start:]]
 
 
 def local_provider(model, base_url):
@@ -122,10 +130,21 @@ def evaluate(item, turn, alias):
     status_ok = unknown if not expected else status == 'working_reports'
     exact = shown == expected
     candidates = names(working.get('basis', []))
+    trace_available = 'basis' in working
+    in_candidates = (bool(expected) and set(expected) <= set(candidates)) if trace_available else None
+    in_selection = bool(expected) and set(expected) <= set(selected)
+    in_display = bool(expected) and set(expected) <= set(shown)
+    missing_stage = (None if not expected else 'unobserved' if not trace_available
+                     else 'retrieval' if not in_candidates else 'selection' if not in_selection
+                     else 'display' if not in_display else None)
     return {'q': item['q'], 'type': item['type'], 'expect': expected, 'status': status,
             'candidate_sources': candidates, 'selected_sources': selected, 'references_valid': valid,
             'shown_sources': shown, 'exact_sources': exact, 'status_ok': status_ok,
-            'retrieved_expected': bool(expected) and set(expected) <= set(shown),
+            # Preserve the v1 field for old consumers: it measures display, not candidate retrieval.
+            'retrieved_expected': in_display,
+            'candidate_trace_available': trace_available, 'expected_in_candidates': in_candidates,
+            'expected_in_selection': in_selection, 'expected_in_display': in_display,
+            'first_missing_stage': missing_stage,
             'selection_pass': exact and status_ok and valid, 'answer': turn.reply,
             'question_understanding': working.get('anfrage'), 'search': working.get('search'),
             'sentence_answer': working.get('satzantwort'), 'times': context.get('zeiten')}
@@ -155,6 +174,7 @@ def run(provider, *, sentences=True, limit=None):
                 row.update(seconds=round(time.perf_counter() - started, 3), calls=metered.calls - calls)
                 outcomes = metered.outcomes(calls)
                 row.update(provider_errors=outcomes['failed'], provider_pending=outcomes['pending'])
+                row['model_outputs'] = metered.outputs(calls)
                 row['selection_pass'] &= not (row['provider_errors'] or row['provider_pending'])
                 rows.append(row)
                 print(f"{len(rows)}/{min(limit or 36, 36)} {item['type']} {row['status']} "
@@ -179,7 +199,8 @@ def run(provider, *, sentences=True, limit=None):
         scores[kind] = {'n': len(part), 'exact_displayed_sources': sum(r['exact_sources'] for r in part),
                         'exact_source_and_status': sum(r['selection_pass'] for r in part),
                         'statuses': dict(Counter(r['status'] for r in part))}
-    return {'suite': 'working-memory-end-to-end-v1', 'synthetic_only': True,
+    return {'suite': 'working-memory-end-to-end-v1', 'diagnostic_version': 2,
+            'legacy_retrieved_expected_means': 'expected_in_display', 'synthetic_only': True,
             'catalog_sha256': catalog_digest(), 'partial_catalog': len(rows) != len(catalog['questions']),
             'model': metered.model, 'endpoint': metered.base_url, 'calls': metered.calls,
             'sentence_verifier': 'same_model_local' if sentences else 'not_used_quote_mode',
