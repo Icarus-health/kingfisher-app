@@ -38,3 +38,9 @@ Die Bedeutungssuche meldet in allen acht verglichenen Fragen `ok`, einschließli
 Das kleine Modell ist für diese Aufgabe nicht freigegeben: falsche Quellenwahl und Antwortzeiten über30s auf CPU. Die Korrektur verbessert den Transportvertrag; sie belegt weder verbesserte Trefferquote noch interaktive Nutzbarkeit oder vollständige CoS-Antwortqualität. Kein voller 36-Fragenlauf mit diesem bereits ungeeigneten Kandidaten, keine Änderung der persönlichen Modellrollen, keine blinde Schwellenabsenkung. Nächste Kernabnahme bleibt ein leistungsfähigerer freigegebener lokaler Modellweg oder konkret freigegebener Cloudvergleich, zusätzlich native Alltagsbedienung und Quellenabdeckung.
 
 Nach Abschluss wurden die eigenen Testcontainer beendet/entfernt. Die persönliche Hintergrundpause und das ausgeschaltete produktive Ollama bleiben erhalten.
+
+## Geprüfte lokale Lieferung
+
+Produktcode `f5af412867f379689db1f6c097171785c59c5008`, installiert **1.0.6-local.f5af412**, Image `sha256:9b0c2db264e60093ef0927f2a926b74ef807c0755d63daec004f157a1f8f3c79`. Die264 Paket- und112 UI-Dateien wurden im fertigen Image byteweise geprüft. Der echte langsame Loopback-Transporttest besteht auch darin, ohne Internet oder Modelle. Kein erneuter UI-Build nötig, da Oberfläche unverändert und bytegleich übernommen.
+
+Kalte Sicherung vor Austausch unter `Kingfisher-Rueckweg/2026-10-08-vor-f5af412`. Alle344 Original-IDs/Digests und17 SQLite-Dateien geprüft, Konten-/Kalender-/Modell-/Zeitplaneinstellungen erhalten, unverändertes natives Programm und gleicher Datenvolume. Backend gesund, richtige Version, globale Pause erhalten, echter Mailstatus pausiert. Der semantische Index bleibt bei ausgeschaltetem produktivem Ollama `unavailable`. Native Fensterprüfung erneut durch gesperrten Mac blockiert. Kein öffentlicher Release/Registry-Upload, kein CI-Neustart und keine neue private Verarbeitung.
