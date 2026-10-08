@@ -14,6 +14,7 @@ import math
 import os
 import threading
 import time
+from dataclasses import dataclass
 
 from .working_memory_store import WorkingMemoryStore
 
@@ -21,6 +22,14 @@ MIN_SIMILARITY = 0.55
 INVENTORY_LIMIT = 2048
 BATCH = 64
 TEXT_BYTES = 8000
+
+
+@dataclass(frozen=True)
+class SemanticSearchResult:
+    """Treffer und Abdeckungsstatus genau dieses Suchaufrufs."""
+
+    refs: tuple[dict, ...]
+    status: str
 
 
 def _key(ref):
@@ -55,7 +64,8 @@ class WorkingMemorySemantic:
         self._limit = limit
         self._model = getattr(embedder, 'model_key', None)
         self._cache = {}
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
+        self._call_result = threading.local()
         self.status = 'empty'
 
     def _refresh(self, store):
@@ -84,9 +94,43 @@ class WorkingMemorySemantic:
         return found['truncated']
 
     def search(self, episodes, query, limit=12):
-        """Referenzen über der Ähnlichkeitsschwelle, ähnlichste zuerst; [] bei Fehlern."""
+        """Kompatible Listen-Schnittstelle; Abdeckungsstatus gibt es per search_with_status."""
+        result = self._search_with_status(episodes, query, limit)
+        stack = getattr(self._call_result, 'stack', None)
+        if stack:
+            if stack[-1][0] is None:
+                stack[-1][0] = result
+        else:
+            self._call_result.value = result
+        return list(result.refs)
+
+    def search_with_status(self, episodes, query, limit=12):
+        """Treffer samt atomar gebundenem Abdeckungsstatus dieses Aufrufs.
+
+        Ruft absichtlich die öffentliche ``search``-Methode auf: bestehende
+        Instrumentierungen und Tests, die diese Methode umhüllen, bleiben aktiv.
+        Ein Wrapper, der selbst keine originale Suche ausführt, liefert
+        ``unobserved`` statt einen möglicherweise veralteten globalen Status.
+        """
+        stack = getattr(self._call_result, 'stack', None)
+        if stack is None:
+            stack = []
+            self._call_result.stack = stack
+        frame = [None]
+        stack.append(frame)
+        try:
+            refs = self.search(episodes, query, limit)
+        finally:
+            stack.pop()
+        result = frame[0]
+        if isinstance(result, SemanticSearchResult) and list(result.refs) == refs:
+            return result
+        return SemanticSearchResult(tuple(refs), 'unobserved')
+
+    def _search_with_status(self, episodes, query, limit=12):
+        """Interne Suche; Status wird vor Freigabe der Sperre lokal festgehalten."""
         if not isinstance(query, str) or not query.strip() or len(query.encode('utf-8')) > TEXT_BYTES:
-            return []
+            return SemanticSearchResult((), 'unobserved')
         store = WorkingMemoryStore(episodes)
         with self._lock:
             try:
@@ -95,8 +139,9 @@ class WorkingMemorySemantic:
                     self._model = getattr(self._embedder, 'model_key', None)
                 truncated = self._refresh(store)
                 if not self._cache:
-                    self.status = 'empty'
-                    return []
+                    status = 'partial' if truncated else 'empty'
+                    self.status = status
+                    return SemanticSearchResult((), status)
                 vectors = self._embedder.embed([query])
                 if not isinstance(vectors, (list, tuple)) or len(vectors) != 1:
                     raise ValueError('query embedding is incomplete')
@@ -107,10 +152,11 @@ class WorkingMemorySemantic:
                 # Transportfehler verschiedener Adapter; die Wortsuche bleibt.
                 self._cache.clear()
                 self.status = 'unavailable'
-                return []
+                return SemanticSearchResult((), 'unavailable')
             scored = sorted(((sum(a * b for a, b in zip(question, vector)), key)
                              for key, vector in self._cache.items()), reverse=True)
-            self.status = 'partial' if truncated else 'ok'
+            status = 'partial' if truncated else 'ok'
+            self.status = status
         refs = []
         for similarity, key in scored:
             if similarity < self._threshold or len(refs) >= limit:
@@ -118,7 +164,7 @@ class WorkingMemorySemantic:
             ref = dict(zip(('episode_id', 'fingerprint', 'start', 'end', 'kind'), key))
             if store.resolve(ref) is not None:
                 refs.append(ref)
-        return refs
+        return SemanticSearchResult(tuple(refs), status)
 
 
 class _Lazy:
@@ -129,8 +175,35 @@ class _Lazy:
         self._search = None
         self._next_attempt = 0.0
         self._lock = threading.Lock()
+        self._call_result = threading.local()
 
     def search(self, episodes, query, limit=12):
+        result = self._search_with_status(episodes, query, limit)
+        stack = getattr(self._call_result, 'stack', None)
+        if stack:
+            if stack[-1][0] is None:
+                stack[-1][0] = result
+        else:
+            self._call_result.value = result
+        return list(result.refs)
+
+    def search_with_status(self, episodes, query, limit=12):
+        stack = getattr(self._call_result, 'stack', None)
+        if stack is None:
+            stack = []
+            self._call_result.stack = stack
+        frame = [None]
+        stack.append(frame)
+        try:
+            refs = self.search(episodes, query, limit)
+        finally:
+            stack.pop()
+        result = frame[0]
+        if isinstance(result, SemanticSearchResult) and list(result.refs) == refs:
+            return result
+        return SemanticSearchResult(tuple(refs), 'unobserved')
+
+    def _search_with_status(self, episodes, query, limit=12):
         with self._lock:
             if self._search is None and time.monotonic() >= self._next_attempt:
                 try:
@@ -138,7 +211,10 @@ class _Lazy:
                 except Exception:
                     self._next_attempt = time.monotonic() + 30
             search = self._search
-        return search.search(episodes, query, limit) if search is not None else []
+            retrying = time.monotonic() < self._next_attempt
+        if search is not None:
+            return search.search_with_status(episodes, query, limit)
+        return SemanticSearchResult((), 'unavailable' if retrying else 'unobserved')
 
 
 _configured = {}

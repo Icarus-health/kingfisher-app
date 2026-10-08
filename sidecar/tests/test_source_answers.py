@@ -134,3 +134,25 @@ def test_grown_document_is_rejected_before_snapshot_parsing(core, monkeypatch):
     monkeypatch.setattr(episodes, '_from_row', lambda row: pytest.fail('oversize source parsed'))
     text, links, status = source_answers.render(answer, episodes, claims)
     assert status == 'source_unavailable' and links == [] and BODY not in text
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable'])
+def test_saved_source_fallback_preserves_search_coverage_without_embedding(core, monkeypatch, coverage):
+    from icarus_memory import working_memory_semantic
+    _, _, episodes, claims, _ = core
+    source = raw(episodes)
+    answer = source_answers.prepare(QUESTION, episodes, claims)
+    def no_embedding(*args, **kwargs):
+        pytest.fail('Reopening a saved answer must not start meaning search')
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', no_embedding)
+    message = {'role': 'assistant', 'content': 'neutral saved text',
+               'metadata': {'context': {'source_answer': answer,
+                            'answer_contract': {'semantic_search_status': coverage}}}}
+    shown = source_answers.project_message(message, episodes, claims)
+    assert BODY in shown['content']
+    assert 'begrenzt' in shown['content'] if coverage == 'partial' else 'Bedeutungssuche' in shown['content']
+    assert message['content'] == 'neutral saved text'
+    episodes.ignore(source.id)
+    withdrawn = source_answers.project_message(message, episodes, claims)
+    assert BODY not in withdrawn['content']
+    assert withdrawn['metadata']['context']['answer_contract']['status'] == 'source_unavailable'

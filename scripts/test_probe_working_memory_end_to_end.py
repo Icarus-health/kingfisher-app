@@ -92,7 +92,8 @@ def test_semantic_failure_is_visible_without_altering_lexical_results(monkeypatc
     report = probe.run(AllSources(), sentences=False, limit=1)
     row = report['rows'][0]
     assert row['shown_sources'] == ['S1']
-    assert row['execution_trace']['semantic_calls'][0]['status'] == 'unavailable'
+    # A legacy list-returning adapter cannot provide call-bound coverage.
+    assert row['execution_trace']['semantic_calls'][0]['status'] == 'not_observed'
     assert row['execution_trace']['semantic_calls'][0]['refs'] == []
 
 
@@ -116,6 +117,55 @@ def test_trace_restores_wrappers_even_when_agent_raises():
     assert probe.working_memory_answers._candidates is original
     assert probe.working_memory_semantic.for_provider is original_semantic
     assert 'frage_verstehen' not in vars(agent) and '_working_memory_turn' not in vars(agent)
+
+
+def test_trace_forwards_call_bound_semantic_result_without_reading_shared_status(monkeypatch):
+    from icarus_memory.working_memory_semantic import SemanticSearchResult
+    result = SemanticSearchResult((), 'partial')
+    calls = []
+
+    class Search:
+        status = 'ok'  # A later/concurrent search may have overwritten this.
+
+        def search_with_status(self, *args, **kwargs):
+            calls.append((args, kwargs))
+            return result
+
+        def search(self, *args, **kwargs):
+            pytest.fail('Diagnostic wrapper changed the invoked search API')
+
+    search = Search()
+    monkeypatch.setattr(probe.working_memory_semantic, 'for_provider', lambda *a, **kw: search)
+
+    class TraceAgent:
+        def frage_verstehen(self, question):
+            pytest.fail('Not used by this path')
+
+        def _working_memory_turn(self, question):
+            pytest.fail('Not used by this path')
+
+        def answer_memory(self, question):
+            observed = probe.working_memory_semantic.for_provider(None)
+            assert observed.search_with_status('episodes', question, limit=3) is result
+            return turn('unknown', [])
+
+    _, trace = probe.answer_with_trace(TraceAgent(), 'synthetic question')
+    assert calls == [(('episodes', 'synthetic question'), {'limit': 3})]
+    assert trace['semantic_calls'] == [{'status': 'partial', 'refs': []}]
+
+
+@pytest.mark.parametrize('coverage', ['partial', 'unavailable', 'not_observed'])
+def test_incomplete_enabled_search_does_not_earn_successful_unknown(coverage):
+    trace = {'semantic_enabled': True, 'semantic_calls': [{'status': coverage, 'refs': []}]}
+    row = probe.evaluate({'q': 'q', 'expect': [], 'type': 'unanswerable'}, turn('unknown', []), {}, trace)
+    assert row['search_degraded'] is True
+    assert row['exact_sources'] and row['status_ok'] and not row['selection_pass']
+
+
+def test_complete_enabled_search_can_earn_successful_unknown():
+    trace = {'semantic_enabled': True, 'semantic_calls': [{'status': 'ok', 'refs': []}]}
+    row = probe.evaluate({'q': 'q', 'expect': [], 'type': 'unanswerable'}, turn('unknown', []), {}, trace)
+    assert row['search_degraded'] is False and row['selection_pass']
 
 
 @pytest.mark.parametrize('status', ['working_selection_failed', 'working_unavailable', 'local_only'])

@@ -39,7 +39,7 @@
 
 **Files:** Scratch-Auswertung in `/private/tmp`, abschließender Bericht in `docs/runs/`.
 
-- [ ] Bge-m3-Scores auf unverändertem Katalog und unabhängigen Ablenkern messen.
+- [x] Bge-m3-Scores auf unverändertem Katalog und unabhängigen Ablenkern messen. Linux-CPU-Nachweis siehe docs/runs/2026-10-08-cpu-retrieval; echter Antwortlauf dort an RAM/Timeouts gescheitert.
 - [ ] Fehlende Suchspur anhand tatsächlichem Suchaufruf klären; Modellwahl und Satz-Abstention gesondert prüfen.
 - [ ] Erst danach engste allgemeine Korrektur mit unabhängigen Kontrollen festlegen. Keine blinde Schwellenabsenkung.
 
@@ -59,3 +59,19 @@
 - [x] Allgemeine Prüfung lokaler Uhrzeitbedingungen implementieren; Quellenkopf ist kein zusätzlicher Bedingungsbeleg.
 - [x] Unveränderte Zeiten, unterstützte Schreibweisen und Zeitbereiche erhalten; gespeicherte alte Satzantwort beim Rendern erneut prüfen.
 - [x] Relevante Satz-/Antwort-/Zeitprüfungen und unabhängiges Diff-Review abschließen.
+
+
+### Task 5: Unvollständige Bedeutungssuche sichtbar halten
+
+**Befund:** Synthetischer echter Antwortweg mit zwei Quellen und Inventarlimit 1: Bedeutungssuche meldet `partial`, `prepare()` und `render()` melden aber weder begrenzten Bestand noch fehlende Suchabdeckung. Bei leerem Ergebnis kann der Rückfall fälschlich suggerieren, es gebe keine Information.
+
+**Vertrag:** Treffer und Suchstatus werden pro tatsächlich ausgeführtem Suchaufruf gebunden, nicht nachträglich aus einem zwischen Threads veränderlichen globalen Status gelesen. Die alte Listen-Schnittstelle bleibt nutzbar. Teilbestand, Ausfall und unbeobachtete Adapter bleiben unterscheidbar. Gespeicherte Antworten brauchen beim erneuten Anzeigen keinen Embedder. Lexikalische und bestätigte Angaben bleiben nutzbar; unvollständige Suche wird dadurch nicht vollständig.
+
+- [x] RED für begrenzte Quellenantwort, leeren Rückfall, Modellauswahl ohne passenden Treffer und Satz-Abstention.
+- [x] Per-call-Status samt sichtbarer Kennzeichnung und Frischeprüfung implementieren; bestätigten Rückfall erhalten.
+- [x] Diagnosewrapper auf echte statusgebundene Schnittstelle erweitern (RED/GREEN); unvollständige eingeschaltete Suche erhält keinen vollen Erfolgsscore.
+- [ ] Betroffene Tests, unabhängiges Review und datenerhaltende Lieferung abschließen.
+
+### Noch erforderlicher Nachweis für große Bestände
+
+Die derzeitige semantische Suche ist weiterhin auf 2048 aktuelle Abschnitte begrenzt und hält ihre Vektoren nur flüchtig. Ein sichtbarer Begrenzungshinweis schließt diesen Funktionsabstand zum Ziel eines großen, langfristigen Gedächtnisses nicht. Vor Abnahme am vollständigen Mailbestand braucht es einen dauerhaft und inkrementell aufgebauten Suchindex über alle freigegebenen, eingeordneten Abschnitte mit Modell-/Quellenfingerabdruck, nachvollziehbarem Fortschritt, Entzug und Korrektur. Vorhandene Originalquellen und Arbeitsstand bleiben maßgeblich; ein solcher Index wäre lediglich abgeleiteter, wiederaufbaubarer Zustand. Keine blinde Erhöhung der Speichermenge, keine neue Wahrheitsdatenbank. Umsetzung und große Nutzbarkeitsmessung stehen noch aus.
