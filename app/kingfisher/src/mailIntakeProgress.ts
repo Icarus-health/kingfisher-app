@@ -14,6 +14,8 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
     filtered: result.filtered + count(folder.filtered),
     pending: result.pending + count(folder.pending),
     livePending: result.livePending + count(folder.live_pending),
+    liveFailed: result.liveFailed + count(folder.live_failed),
+    liveFiltered: result.liveFiltered + count(folder.live_filtered),
     analyzed: result.analyzed + count(folder.analyzed),
     analysisFailed: result.analysisFailed + count(folder.analysis_failed),
     deferred: result.deferred + count(folder.deferred),
@@ -21,7 +23,7 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
     categorized: result.categorized + count(folder.categorized),
     categoriesPending: result.categoriesPending + count(folder.categories_pending),
     categoriesFailed: result.categoriesFailed + count(folder.categories_failed),
-  }), {counted: 0, captured: 0, duplicates: 0, failed: 0, filtered: 0, pending: 0, livePending: 0,
+  }), {counted: 0, captured: 0, duplicates: 0, failed: 0, filtered: 0, pending: 0, livePending: 0, liveFailed: 0, liveFiltered: 0,
     analyzed: 0, analysisFailed: 0, deferred: 0, excluded: 0, categorized: 0, categoriesPending: 0, categoriesFailed: 0});
   const inventoryComplete = account.folders.length > 0 && account.folders.every(folder =>
     folder.inventory_complete && folder.total !== null && Number.isFinite(folder.total));
@@ -39,7 +41,8 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
   const complete = account.started && account.connected && !account.error && inventoryComplete &&
     !captureUnfinished && !analysisUnfinished && sums.livePending === 0;
   const stage = !account.connected ? "disconnected" : !account.started ? "ready" : account.paused ? "paused"
-    : account.error ? "error" : !inventoryComplete ? "inventory" : captureUnfinished ? "capture"
+    : account.error ? "error" : !inventoryComplete ? "inventory" : account.history_waiting_for_analysis ? "waiting_analysis"
+    : captureUnfinished || sums.livePending > 0 ? "capture"
     : analysisUnfinished ? "analysis" : "current";
   return {...sums, total, sources, analysisSources, categoriesKnown, processed, inventoryComplete, complete, stage,
     capturePercent: total === null ? null : percentage(processed, total, captureUnfinished),

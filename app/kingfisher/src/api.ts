@@ -200,7 +200,7 @@ export type Schedule = {
 
 /** Der Stand eines Postfachs in einem Satz (Fremdprobe 2, Befund 17). */
 export type MailStand = {
-  zustand: "liest" | "leer" | "aktuell" | "pausiert" | "nicht_abgerufen" | "fehler" | "gescheitert";
+  zustand: "liest" | "wartet" | "leer" | "aktuell" | "pausiert" | "nicht_abgerufen" | "fehler" | "gescheitert";
   satz: string; gelesen: number | null; gesamt: number | null; zuletzt: string | null;
   /** Nur für „Für Techniker“: Ordner, Grund je Anzahl und Fehlerklasse (Fremdprobe 3, Befund 2). */
   technik?: string | null;
@@ -229,6 +229,9 @@ export type MailIntakeFolder = {
   filtered?: number;
   pending: number;
   live_pending: number;
+  live_failed?: number;
+  live_filtered?: number;
+  live_filtered_by?: Record<string, number>;
   analyzed: number;
   analysis_failed: number;
   deferred: number;
@@ -246,6 +249,8 @@ export type MailIntakeAccount = {
   paused: boolean;
   folders: MailIntakeFolder[];
   step: string;
+  /** History capture yields to classification; new mail has a separate lane. */
+  history_waiting_for_analysis?: boolean;
   error: string | null;
   scope: string;
   empfaengernachtrag?: { offen: number; ergaenzt: number; ohne_kopfzeilen: number; gedrosselt: boolean; fertig: boolean } | null;

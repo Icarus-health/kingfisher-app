@@ -11,6 +11,7 @@ const number = (value: number) => value.toLocaleString("de-DE");
 const stageLabels: Record<string, string> = {
   disconnected: "Zugang fehlt", ready: "Verbunden · noch nicht eingelesen", paused: "Einlesen pausiert",
   error: "Einlesen braucht Aufmerksamkeit", inventory: "Mails werden gezählt", capture: "Mails werden eingelesen",
+  waiting_analysis: "Ältere Mails warten auf das Sortieren",
   analysis: "Inhalte sortieren · noch ausstehend", current: "Eingelesen · neue Mails kommen regelmäßig dazu",
 };
 
@@ -62,7 +63,7 @@ function FolderProgress({account, index}: {account: MailIntakeAccount; index: nu
       </li>
       <li><strong>Ergebnisse prüfen</strong><p>Automatische Kategorien und Hinweise bleiben Vorschläge. Prüfe sie mit den Originalstellen in der jeweiligen Quelle.</p></li>
     </ol>
-    <p className="mail-intake-current">Neue Mails in diesem Ordner: {number(progress.livePending)} warten noch. Sie kommen neben den älteren dazu.</p>
+    <p className="mail-intake-current">Neue Mails in diesem Ordner: {number(progress.livePending)} warten noch · {number(progress.liveFailed)} Abrufe fehlgeschlagen · {number(progress.liveFiltered)} ausgefiltert. Sie werden getrennt vom älteren Bestand gezählt.</p>
   </section>;
 }
 
@@ -183,11 +184,13 @@ export function MailIntake({accounts, active, onChanged}: {
     {status?.accounts.filter(account => accounts.some(configured => configured.id === account.account_id)).map(account => {
       const progress = deriveIntakeProgress(account);
       const checked = previews[account.account_id];
-      const retryFailed = progress.failed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
+      const filtered = progress.filtered + progress.liveFiltered;
+      const retryFailed = progress.failed > 0 || progress.liveFailed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
       return <article className="mail-intake-account" key={account.account_id}>
-        <div className="mail-intake-heading"><h3>{account.label}</h3><span>{status.background_paused && ["inventory", "capture", "analysis"].includes(progress.stage)
+        <div className="mail-intake-heading"><h3>{account.label}</h3><span>{status.background_paused && ["inventory", "capture", "analysis", "waiting_analysis"].includes(progress.stage)
           ? "Verarbeitung pausiert" : stageLabels[progress.stage]}</span></div>
         {account.stand && <p>{account.stand.satz}</p>}
+        {progress.stage === "waiting_analysis" && !status.background_paused && <a className="text-action" href="/memory?view=status">Automatisches Sortieren prüfen →</a>}
         <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
         {!account.started && checked && <p>Gefunden: {checked.folders.map(ordnerName).join(", ")}. Diese Ordner liest Kingfisher ein, und neue Mails daraus kommen laufend dazu.</p>}
         {account.paused && <p>Das Einlesen pausiert. Was schon gespeichert ist, bleibt, und es geht dort weiter, wo es aufgehört hat.</p>}
@@ -198,12 +201,12 @@ export function MailIntake({accounts, active, onChanged}: {
           onClick={() => {void change(account);}}>
           {busyAccount === account.account_id && !checkingScope ? "Wird gespeichert …" : !account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}
         </button>
-        {account.started && (retryFailed || progress.filtered > 0) && <>
+        {account.started && (retryFailed || filtered > 0) && <>
           <button className="text-action" type="button" disabled={!account.connected || busy}
-            onClick={() => {void change(account, true);}}>{progress.filtered > 0
+            onClick={() => {void change(account, true);}}>{filtered > 0
               ? retryFailed ? "Ausgefilterte Mails und Fehler erneut prüfen" : "Ausgefilterte Mails erneut prüfen"
               : "Fehlgeschlagenes noch einmal versuchen"}</button>
-          {progress.filtered > 0 && <p>Nur auf deinen Klick: {number(progress.filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
+          {filtered > 0 && <p>Nur auf deinen Klick: {number(filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
         </>}
         {!account.connected && <p>Für dieses Postfach fehlen gültige Zugangsdaten. Verbinde es unter Zugänge neu.</p>}
         {account.error && <p role="alert">{errorLabel(account.error)}</p>}

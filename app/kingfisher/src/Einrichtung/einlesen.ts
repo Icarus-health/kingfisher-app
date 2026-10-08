@@ -18,6 +18,7 @@ export function einlesenStand(konto: MailIntakeAccount): string {
   // counting or redirect it to the mailbox-specific pause control.
   if (konto.stand?.zustand === "pausiert" && !konto.paused) return konto.stand.satz;
   if (stand.stage === "paused") return `${konto.label}: Das Einlesen ist pausiert. Fortsetzen kannst du es unter`;
+  if (konto.stand?.zustand === "wartet" || (stand.livePending > 0 && konto.stand?.zustand === "liest")) return konto.stand.satz;
   if (stand.total === null) return `${konto.label}: Kingfisher liest deine Mails und zählt sie gerade${stand.processed ? `; ${zahl(stand.processed)} sind schon gelesen` : ""}.`;
   if (stand.processed < stand.total) return `${konto.label}: ${zahl(stand.processed)} von ${zahl(stand.total)} Mails gelesen.`;
   return `${konto.label}: Alle ${zahl(stand.total)} Mails sind gelesen.`;

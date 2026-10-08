@@ -43,14 +43,14 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
 
   // Mails lesen: solange die Aufnahme des Bestands nicht durch ist. Der Satz ist die eine Aussage des Sidecars über das
   // Postfach (mail_stand.py, Fremdprobe 2, Befund 17): dieselbe wie unter „Für Techniker“; ein leeres Postfach liest nicht.
-  const liest = konten.filter((konto, i) => konto.stand ? ["liest", "pausiert"].includes(konto.stand.zustand)
-    : fortschritt[i].stage === "inventory" || fortschritt[i].stage === "capture");
+  const liest = konten.filter((konto, i) => konto.stand ? ["liest", "pausiert", "wartet"].includes(konto.stand.zustand)
+    : fortschritt[i].stage === "inventory" || ["capture", "waiting_analysis"].includes(fortschritt[i].stage));
   if (liest.length) {
     const stand = liest.map(konto => fortschritt[konten.indexOf(konto)]);
     const fertig = liest.reduce((summe, konto, i) => summe + (konto.stand?.gelesen ?? stand[i].processed), 0);
     const gesamtJe = liest.map((konto, i) => konto.stand ? konto.stand.gesamt : stand[i].total);
     const alle = gesamtJe.every(wert => wert !== null) ? gesamtJe.reduce((summe: number, wert) => summe + (wert ?? 0), 0) : null;
-    const saetze = liest.map(konto => pausiert && konto.stand?.zustand === "liest" ? null : konto.stand?.satz).filter((satz): satz is string => Boolean(satz));
+    const saetze = liest.map(konto => pausiert && ["liest", "wartet"].includes(konto.stand?.zustand ?? "") ? null : konto.stand?.satz).filter((satz): satz is string => Boolean(satz));
     zeilen.push({
       id: "mail", fertig, gesamt: alle,
       text: saetze.length === liest.length ? saetze.join(" ")
