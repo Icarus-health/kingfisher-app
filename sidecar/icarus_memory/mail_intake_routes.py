@@ -190,10 +190,11 @@ def register(app, guard, data_dir, wire):
 
     @app.get('/api/v1/memory/areas',dependencies=guard)
     def memory_areas(limit: int = Query(default=50, ge=1, le=100),
-                     cursor: int | None = Query(default=None, ge=1)):
+                     cursor: int | None = Query(default=None, ge=1),
+                     area: str | None = Query(default=None, max_length=40)):
         from .memory_areas import MemoryAreas
         try:
-            return MemoryAreas(app.state.episodes).page(limit=limit, cursor=cursor)
+            return MemoryAreas(app.state.episodes).page(limit=limit, cursor=cursor, area=area)
         except ValueError:
             raise HTTPException(422, 'Die Quellenansicht ist ungültig.') from None
 

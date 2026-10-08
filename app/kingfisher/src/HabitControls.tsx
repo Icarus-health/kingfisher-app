@@ -14,14 +14,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function HabitControls() {
+export function HabitControls({initiallyOpen = false}: {initiallyOpen?: boolean}) {
   const [habits, setHabits] = useState<Habit[]>([]); const [learning, setLearning] = useState<Learning[]>([]);
   const [label, setLabel] = useState(""); const [target, setTarget] = useState(3); const [day, setDay] = useState(today());
-  const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
+  const [open, setOpen] = useState(initiallyOpen); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
   async function refresh() { const [h, l] = await Promise.all([request<{items: Habit[]}>("/api/v1/habits"), request<{items: Learning[]}>("/api/v1/learning")]); setHabits(h.items); setLearning(l.items); }
   useEffect(() => { void refresh().catch(() => setError("Gewohnheiten sind gerade nicht erreichbar.")); }, []);
   async function run(action: () => Promise<unknown>, message: string) { if (busy) return; setBusy(true); setError(""); try { await action(); await refresh(); setNotice(message); } catch { setError("Die Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."); } finally { setBusy(false); } }
-  return <section className="decision-controls" aria-label="Gewohnheiten und Lernen"><details open={open} onToggle={event => setOpen(event.currentTarget.open)}><summary>Gewohnheiten</summary>
+  return <section className="decision-controls" aria-label="Gewohnheiten und Lernen"><details open={open} onToggle={event => setOpen(event.currentTarget.open)}><summary>Gewohnheiten & Lernen</summary>
     <p>Von dir festgelegte Gewohnheiten. Fehlende Tage sind kein Beweis, dass etwas nicht stattgefunden hat.</p>
     <form className="decision-create-form" onSubmit={event => { event.preventDefault(); void run(() => request("/api/v1/habits", { method: "POST", body: JSON.stringify({ label: label.trim(), target_per_week: target }) }).then(() => setLabel("")), "Gewohnheit gespeichert."); }}>
       <label>Bezeichnung<input value={label} onChange={event => setLabel(event.target.value)} required maxLength={4000} /></label><label>Ziel pro Woche<select value={target} onChange={event => setTarget(Number(event.target.value))}>{[1,2,3,4,5,6,7].map(value => <option key={value} value={value}>{value}</option>)}</select></label><button className="primary-action" disabled={busy || !label.trim()}>Gewohnheit festhalten</button>

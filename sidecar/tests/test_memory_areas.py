@@ -228,3 +228,76 @@ def test_areas_hide_stale_categories_after_original_changes_and_explicit_withdra
         episodes.ignore(item.id)
         assert client.get('/api/v1/memory/areas').json()['sources'] == []
     episodes.close()
+
+
+def test_area_selection_finds_older_sources_before_pagination_without_analysis(tmp_path, monkeypatch):
+    app, episodes = _app(tmp_path)
+    categories = Categories(episodes)
+    older = _source(episodes, 'Gesundheitsbeleg', 'Eine datierte Untersuchung.')
+    _stored_topics(categories, older, ['health'])
+    for index in range(60):
+        item = _source(episodes, f'Projekt {index}', f'Projektinhalt Nummer {index}.')
+        _stored_topics(categories, item, ['work'])
+    before = episodes._conn.total_changes
+    monkeypatch.setattr(Categories, 'run', lambda *a, **k: (_ for _ in ()).throw(AssertionError('no model')))
+    with TestClient(app) as client:
+        result = client.get('/api/v1/memory/areas?area=health&limit=2').json()
+        assert [item['episode_id'] for item in result['sources']] == [older.id]
+        assert result['selection_scope'] == 'corpus'
+        assert result['area'] == 'health'
+        assert result['next_cursor'] is None
+        assert result['scan_limited'] is False
+        for invalid in ('unknown', 'HEALTH', 'health%27'):
+            assert client.get(f'/api/v1/memory/areas?area={invalid}').status_code == 422
+    assert episodes._conn.total_changes == before
+    episodes.close()
+
+
+def test_area_selection_respects_manual_override_current_fingerprint_and_withdrawal(tmp_path):
+    app, episodes = _app(tmp_path)
+    categories = Categories(episodes)
+    valid = _source(episodes, 'Gültig', 'Ein gültiger persönlicher Beleg.')
+    categories.correct(valid.id, ['health'])
+    overridden = _source(episodes, 'Beruflicher Gesundheitsbericht', 'Berufliche Quelle.')
+    _stored_topics(categories, overridden, ['health'])
+    categories.correct(overridden.id, ['work'])
+    stale = _source(episodes, 'Veralteter Hinweis', 'Ursprünglicher Inhalt.')
+    _stored_topics(categories, stale, ['health'])
+    changed = episodes.get(stale.id)
+    changed.body = 'Geänderter Inhalt.'
+    episodes._put(changed)
+    withdrawn = _source(episodes, 'Entzogen', 'Entziehbarer Beleg.')
+    categories.correct(withdrawn.id, ['health'])
+    episodes.ignore(withdrawn.id)
+    with TestClient(app) as client:
+        result = client.get('/api/v1/memory/areas?area=health&limit=1').json()
+        assert [item['episode_id'] for item in result['sources']] == [valid.id]
+        result = client.get('/api/v1/memory/areas?area=work').json()
+        assert [item['episode_id'] for item in result['sources']] == [overridden.id]
+        other = client.get('/api/v1/memory/areas?area=other').json()
+        assert stale.id in [item['episode_id'] for item in other['sources']]
+    episodes.close()
+
+
+def test_bounded_area_scan_has_a_continuation_even_without_current_matches(tmp_path, monkeypatch):
+    from icarus_memory import memory_areas
+    app, episodes = _app(tmp_path)
+    categories = Categories(episodes)
+    valid = _source(episodes, 'Älterer gültiger Hinweis', 'Ältester gültiger Inhalt.')
+    _stored_topics(categories, valid, ['health'])
+    for index in range(3):
+        stale = _source(episodes, f'Alter Hinweis {index}', f'Originalinhalt Nummer {index}.')
+        _stored_topics(categories, stale, ['health'])
+        changed = episodes.get(stale.id)
+        changed.body = 'Neue Fassung.'
+        episodes._put(changed)
+    monkeypatch.setattr(memory_areas, 'MAX_AREA_SCAN', 2, raising=False)
+    with TestClient(app) as client:
+        first = client.get('/api/v1/memory/areas?area=health&limit=1').json()
+        assert first['sources'] == []
+        assert first['scan_limited'] is True
+        assert first['next_cursor'] is not None
+        second = client.get(f"/api/v1/memory/areas?area=health&limit=1&cursor={first['next_cursor']}").json()
+        assert [item['episode_id'] for item in second['sources']] == [valid.id]
+        assert second['next_cursor'] is None
+    episodes.close()

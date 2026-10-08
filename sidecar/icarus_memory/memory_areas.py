@@ -16,6 +16,7 @@ AREA_VIEWS = (
     {"id": "finance", "label": "Finanzen & Verträge"},
 )
 MAX_AREAS_PAGE = 100
+MAX_AREA_SCAN = 500
 MAX_AREA_TITLE = 240
 MAX_AREA_EVIDENCE = 240
 MAX_CATEGORY_IDS = 64
@@ -72,31 +73,63 @@ class MemoryAreas:
     def __init__(self, episodes):
         self.episodes = episodes
 
-    def page(self, *, limit: int = 50, cursor: int | None = None) -> dict:
+    def page(self, *, limit: int = 50, cursor: int | None = None,
+             area: str | None = None) -> dict:
         if type(limit) is not int or not 1 <= limit <= MAX_AREAS_PAGE:
             raise ValueError("limit must be 1..100")
         if cursor is not None and (type(cursor) is not int or cursor < 1):
             raise ValueError("cursor must be a positive row ID")
+        area_ids = {item['id'] for item in AREA_VIEWS}
+        if area is not None and area not in area_ids | {'other'}:
+            raise ValueError('unknown memory area')
 
         from .memory_categories import Categories
 
         categories = Categories(self.episodes)
         with self.episodes._lock:
             where = f"{sql_geltend('episodes')} AND {sql_rohquelle('episodes')}"
-            params: list[int] = []
+            params = []
+            if area in area_ids:
+                # This is candidate selection, not evidence validation. Explicit
+                # corrections override automatic topics even when now stale.
+                where += """ AND (
+                    EXISTS (SELECT 1 FROM memory_category_corrections c,
+                        json_each(c.categories) j WHERE c.episode_id=episodes.id AND j.value=?)
+                    OR (NOT EXISTS (SELECT 1 FROM memory_category_corrections c
+                        WHERE c.episode_id=episodes.id) AND EXISTS (
+                        SELECT 1 FROM memory_category_topics t
+                        WHERE t.episode_id=episodes.id AND t.category_id=?)))"""
+                params.extend([area, area])
             if cursor is not None:
                 where += " AND episodes.rowid < ?"
                 params.append(cursor)
-            rows = self.episodes._conn.execute(
+            scan_limit = MAX_AREA_SCAN if area is not None else limit + 1
+            candidates = self.episodes._conn.execute(
                 "SELECT episodes.rowid AS source_rowid,episodes.id,episodes.title,episodes.occurred_at "
                 f"FROM episodes WHERE {where} ORDER BY episodes.rowid DESC LIMIT ?",
-                (*params, limit + 1),
+                (*params, scan_limit + 1),
             ).fetchall()
-            has_more = len(rows) > limit
+            rows = []
+            scanned = 0
+            last_scanned = None
+            for row in candidates[:scan_limit]:
+                projection = categories.list_for(row['id'])
+                scanned += 1
+                last_scanned = row['source_rowid']
+                ids = {item['id'] for item in projection['categories']}
+                if area in area_ids and area not in ids:
+                    continue
+                if area == 'other' and projection['status'] == 'complete' and ids and ids <= area_ids:
+                    continue
+                rows.append((row, projection))
+                if len(rows) > limit:
+                    break
+            scan_limited = len(rows) <= limit and len(candidates) > scan_limit
+            has_more = len(rows) > limit or scan_limited
             rows = rows[:limit]
+            next_cursor = (last_scanned if scan_limited else rows[-1][0]['source_rowid']) if has_more else None
             sources = []
-            for row in rows:
-                projection = categories.list_for(row["id"])
+            for row, projection in rows:
                 shaped_categories = []
                 for category in projection.get("categories", []):
                     evidence = []
@@ -135,6 +168,10 @@ class MemoryAreas:
             "taxonomy_version": taxonomy_version,
             "scanned_count": len(sources),
             "counts_scope": "page",
-            "next_cursor": rows[-1]["source_rowid"] if has_more and rows else None,
+            "area": area,
+            "selection_scope": "corpus" if area is not None else "page",
+            "scan_limited": scan_limited,
+            "candidates_checked": scanned,
+            "next_cursor": next_cursor,
             "truncated": has_more,
         }

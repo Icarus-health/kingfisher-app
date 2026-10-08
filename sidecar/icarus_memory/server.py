@@ -6151,6 +6151,10 @@ def create_app(
         def tasks_ui() -> FileResponse:
             return ui_response()
 
+        @app.get("/development", include_in_schema=False)
+        def development_ui() -> FileResponse:
+            return ui_response()
+
         @app.get("/nachrichten", include_in_schema=False)
         def messages_ui() -> FileResponse:
             return ui_response()

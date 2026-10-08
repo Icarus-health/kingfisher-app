@@ -57,7 +57,7 @@ test("area pagination retains only cursor positions and can move backward or bra
 test("the overview reads bounded pages only and retains the established memory views", () => {
   const component = readFileSync(new URL("../src/MemoryAreas.tsx", import.meta.url), "utf8");
   const graph = readFileSync(new URL("../src/MemoryGraph.tsx", import.meta.url), "utf8");
-  assert.match(component, /api\.memoryAreas\(PAGE_SIZE, navigation\.cursor\)/);
+  assert.match(component, /api\.memoryAreas\(PAGE_SIZE, navigation\.cursor, selected\)/);
   assert.match(component, /Vorherige Seite/);
   assert.match(component, /Nächste Seite/);
   assert.match(component, /setPager\(receiveAreaPage\(navigation, result\)\)/);
@@ -66,5 +66,21 @@ test("the overview reads bounded pages only and retains the established memory v
   assert.doesNotMatch(component, /api\.addCategory|correctSourceCategories|setInterval/);
   for (const view of ['"people"', '"projects"', '"organizations"', '"places"', '"topics"', '"decisions"', '"documents"']) {
     assert.ok(graph.includes(view), `existing view ${view} remains available`);
+  }
+});
+
+test('direct health entry and bounded empty states cannot claim an empty whole memory', async () => {
+  const { areaViewFromSearch, areaEmptyText } = await import('../src/MemoryAreaModel.ts');
+  assert.equal(areaViewFromSearch('?area=health'), 'health');
+  assert.equal(areaViewFromSearch('?area=unknown'), 'work');
+  assert.match(areaEmptyText({scan_limited: true, next_cursor: 42}), /Weiterprüfen/);
+  assert.match(areaEmptyText({scan_limited: false, next_cursor: null}), /zugeordnet/);
+  assert.doesNotMatch(areaEmptyText({scan_limited: false, next_cursor: null}), /keine.*Gesundheitsdaten/i);
+});
+
+test('choosing an area removes people and status flags from reloadable links', async () => {
+  const { areaLink } = await import('../src/MemoryAreaModel.ts');
+  for (const previous of ['?people=review', '?view=status', '?people=review&view=status&area=work']) {
+    assert.equal(areaLink('health', previous), '/memory?area=health');
   }
 });

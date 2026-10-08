@@ -52,6 +52,17 @@ function activityDates(item: Attention, timezone: string) {
   return <p>Quelldatum: {occurred ?? "unbekannt"}{recorded && !sameMoment ? <> · Erfasst: {recorded}</> : null}</p>;
 }
 
+export function TodayPersonal() {
+  return <section className="today-panel today-personal" aria-labelledby="today-personal-title">
+      <header className="today-panel-heading"><h2 id="today-personal-title">Für dich</h2></header>
+      <nav className="development-links" aria-label="Persönlicher Arbeitsbereich">
+        <a className="today-text-link" href="/development">Ziele, Gewohnheiten & Lernen →</a>
+        <a className="today-text-link" href="/memory?area=health">Gesundheit →</a>
+        <a className="today-text-link" href="/review">Gedächtnis prüfen →</a>
+      </nav>
+    </section>;
+}
+
 export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, correctionSaved, onOpenMail }: {
   briefing: MorningBriefing;
   onChange: (change?: "correction") => void;

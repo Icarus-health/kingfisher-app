@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { api, type MemoryAreaSource } from "./api";
 import { ProfileSource } from "./ProfileSource";
-import { firstAreaNavigation, initialAreaPager, MEMORY_AREAS,
-  nextAreaNavigation, otherHintSources, previousAreaNavigation, receiveAreaPage, sourcesForArea } from "./MemoryAreaModel";
+import { areaEmptyText, areaLink, areaViewFromSearch, firstAreaNavigation, initialAreaPager, MEMORY_AREAS,
+  nextAreaNavigation, previousAreaNavigation, receiveAreaPage, type MemoryAreaView } from "./MemoryAreaModel";
 import "./MemoryAreas.css";
 
 const PAGE_SIZE = 50;
-type ViewId = typeof MEMORY_AREAS[number]["id"] | "other";
 
 function datum(value: string | null) {
   if (!value) return null;
@@ -40,32 +39,43 @@ function SourceHints({ source }: { source: MemoryAreaSource }) {
 }
 
 export function MemoryAreas() {
-  const [view, setView] = useState<ViewId>("work");
+  const [view, setView] = useState<MemoryAreaView>(() => areaViewFromSearch(window.location.search));
   const [pager, setPager] = useState(initialAreaPager);
   const {page, index: pageIndex} = pager;
   const [retryNavigation, setRetryNavigation] = useState(firstAreaNavigation);
   const [loading, setLoading] = useState(false);
-  const loadingRef = useRef(false);
+  const requestVersion = useRef(0);
   const [error, setError] = useState(false);
-  const sources = useMemo(() => page?.sources ?? [], [page]);
-  const visible = useMemo(() => view === "other" ? otherHintSources(sources) : sourcesForArea(sources, view), [sources, view]);
+  const visible = page?.sources ?? [];
   const nextCursor = page?.next_cursor ?? null;
   const taxonomyVersion = page?.taxonomy_version;
   const unavailable = page?.areas.find(area => area.id === view)?.available === false;
 
-  async function load(navigation: ReturnType<typeof firstAreaNavigation>) {
-    if (loadingRef.current) return;
-    loadingRef.current = true;
+  async function load(navigation: ReturnType<typeof firstAreaNavigation>, selected: MemoryAreaView = view) {
+    const version = ++requestVersion.current;
+    setView(selected);
+    setPager(initialAreaPager());
     setRetryNavigation(navigation);
     setLoading(true); setError(false);
     try {
-      const result = await api.memoryAreas(PAGE_SIZE, navigation.cursor);
-      setPager(receiveAreaPage(navigation, result));
-    } catch { setError(true); }
-    finally { loadingRef.current = false; setLoading(false); }
+      const result = await api.memoryAreas(PAGE_SIZE, navigation.cursor, selected);
+      if (result.area !== selected) throw new Error('Bereichsauswahl fehlt');
+      if (version === requestVersion.current) setPager(receiveAreaPage(navigation, result));
+    } catch { if (version === requestVersion.current) setError(true); }
+    finally { if (version === requestVersion.current) setLoading(false); }
   }
 
-  useEffect(() => { void load(firstAreaNavigation()); }, []);
+  useEffect(() => {
+    const sync = () => { void load(firstAreaNavigation(), areaViewFromSearch(window.location.search)); };
+    sync();
+    window.addEventListener('popstate', sync);
+    return () => { ++requestVersion.current; window.removeEventListener('popstate', sync); };
+  }, []);
+
+  function select(selected: MemoryAreaView) {
+    window.history.replaceState({}, '', areaLink(selected, window.location.search));
+    void load(firstAreaNavigation(), selected);
+  }
 
   function olderSources() {
     const navigation = nextAreaNavigation(pager);
@@ -87,21 +97,22 @@ export function MemoryAreas() {
       <p>Deine Quellen nach Lebensbereichen. Eine Quelle kann zu mehreren Bereichen gehören. Automatische Zuordnungen sind ungeprüfte Vorschläge.</p>
     </header>
     <nav className="memory-area-tabs" aria-label="Bereichsansichten">
-      {MEMORY_AREAS.map(area => <button key={area.id} type="button" aria-pressed={view === area.id} className={view === area.id ? "active" : ""} onClick={() => setView(area.id)}>{area.label}</button>)}
-      <button type="button" aria-pressed={view === "other"} className={view === "other" ? "active" : ""} onClick={() => setView("other")}>Weitere Hinweise</button>
+      {MEMORY_AREAS.map(area => <button key={area.id} type="button" disabled={loading} aria-pressed={view === area.id} className={view === area.id ? "active" : ""} onClick={() => select(area.id)}>{area.label}</button>)}
+      <button type="button" disabled={loading} aria-pressed={view === "other"} className={view === "other" ? "active" : ""} onClick={() => select("other")}>Weitere Hinweise</button>
     </nav>
-    <div className="memory-areas-title"><h2>{heading}</h2><p>{page ? `${visible.length} passende Quellen auf dieser Seite` : "Quellenhinweise"}</p></div>
-    {page && <p className="memory-area-meta">Seite {pageIndex + 1} · {page.scanned_count} Quellen in diesem Ausschnitt · Zahlen gelten nur für diese Seite{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}</p>}
+    <div className="memory-areas-title"><h2>{heading}</h2><p>{page ? `${visible.length} Quellen angezeigt` : "Quellenhinweise"}</p></div>
+    {page && <p className="memory-area-meta">Bereichsauswahl im gesamten Bestand · Seite {pageIndex + 1}{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}. Angezeigt werden vorhandene Zuordnungen, keine neue Auswertung.</p>}
     {error && <p role="alert">Die Themenhinweise konnten nicht geladen werden. <button type="button" disabled={loading} onClick={() => void load(retryNavigation)}>Erneut versuchen</button></p>}
     {!page && !error && <p role="status">Bereiche werden geladen …</p>}
     {unavailable && <p role="status">Dieser Bereich ist im bestehenden Themenverzeichnis nicht verfügbar. Vorhandene Zuordnungen bleiben erhalten.</p>}
     {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} />)}</div>
-      : <p className="memory-area-empty">{view === "other" ? `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine weiteren Hinweise oder offenen Einordnungen.` : `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine Hinweise für diesen Bereich.`}{nextCursor !== null ? " Weitere Quellen findest du auf der nächsten Seite." : " Das ist nur die aktuelle Seite der Quellenansicht."}</p>)}
+      : <p className="memory-area-empty">{areaEmptyText(page)}</p>)}
+    {page?.scan_limited && <p role="status">Die Prüfung dieses Suchabschnitts ist begrenzt. Weitere aktuelle Hinweise können dahinter liegen.</p>}
     {page?.truncated && <p role="status">Die Seiten folgen der Aufnahme in den Bestand, nicht dem Quelldatum. Weitere Quellen findest du auf der nächsten Seite.</p>}
     {page && <nav className="memory-area-pagination" aria-label="Quellenseiten">
       <button className="memory-area-more" type="button" disabled={loading || pageIndex === 0} onClick={newerSources}>{loading ? "Wird geladen …" : "Vorherige Seite"}</button>
       <span aria-live="polite">Seite {pageIndex + 1}</span>
-      <button className="memory-area-more" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : "Nächste Seite"}</button>
+      <button className="memory-area-more" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : page.scan_limited ? "Weiterprüfen" : "Nächste Seite"}</button>
       <button className="memory-area-refresh" type="button" disabled={loading} onClick={refresh}>{loading ? "Wird aktualisiert …" : "Ansicht aktualisieren"}</button>
     </nav>}
   </section>;

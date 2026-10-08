@@ -9,6 +9,23 @@ export const MEMORY_AREAS = [
 
 const AREA_IDS = new Set<string>(MEMORY_AREAS.map(area => area.id));
 
+export type MemoryAreaView = typeof MEMORY_AREAS[number]['id'] | 'other';
+
+export function areaLink(area: MemoryAreaView, _previousSearch?: string): string {
+  // A chosen area is a complete view; people/status flags would override it on reload.
+  return `/memory?area=${area}`;
+}
+
+export function areaViewFromSearch(search: string): MemoryAreaView {
+  const area = new URLSearchParams(search).get('area');
+  return area === 'other' || (area !== null && AREA_IDS.has(area)) ? area as MemoryAreaView : 'work';
+}
+
+export function areaEmptyText(page: {scan_limited?: boolean; next_cursor: number | null}): string {
+  if (page.scan_limited || page.next_cursor !== null) return 'In diesem Suchabschnitt gibt es keine passenden aktuellen Hinweise. Weiterprüfen zeigt die nächsten Quellen.';
+  return 'Diesem Bereich sind noch keine aktuellen Themenhinweise zugeordnet. Noch nicht ausgewertete Quellen können weitere Informationen enthalten.';
+}
+
 export function sourcesForArea(sources: MemoryAreaSource[], areaId: string): MemoryAreaSource[] {
   return sources.filter(source => source.categories.some(category => category.id === areaId));
 }
