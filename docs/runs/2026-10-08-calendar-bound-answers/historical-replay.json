@@ -1,0 +1,129 @@
+{
+  "synthetic_only": true,
+  "not_a_new_model_run": true,
+  "total": 17,
+  "changed": 0,
+  "rows": [
+    {
+      "source": "S2",
+      "sentence": "Die Rechnung für die Dachreparatur wurde am 10. September überwiesen.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S3",
+      "sentence": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S4",
+      "sentence": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S5",
+      "sentence": "Die Anmeldung zum Workshop endet am 30. September.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S6",
+      "sentence": "Das Auto muss im November zur Hauptuntersuchung.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S8",
+      "sentence": "Die Lizenz für das Foto erlaubt nur interne Verwendung.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S9",
+      "sentence": "Der Quartalsbericht ist als Entwurf gespeichert.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S9",
+      "sentence": "Eine Freigabe liegt nicht vor.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S10",
+      "sentence": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S11",
+      "sentence": "Sie sind für den Keramiktest telefonisch ab 10.00 Uhr zu erreichen.",
+      "previous_pass": false,
+      "current_pass": false,
+      "reasons": [
+        "Zeitbedingung an 10:00 stimmt nicht mit dem Beleg überein"
+      ]
+    },
+    {
+      "source": "S12",
+      "sentence": "Der Umzug des Büros ist für den 3. November geplant.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S13",
+      "sentence": "Jonas verträgt keine Erdnüsse.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S13",
+      "sentence": "Jonas verträgt keine Erdnüsse.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S13",
+      "sentence": "Beim Teamessen muss man darauf achten, dass Jonas keine Erdnüsse bekommt.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S14",
+      "sentence": "Man muss den Mobilfunkvertrag bis Ende Oktober kündigen.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S15",
+      "sentence": "Für die Messe stehen 12.000 Euro zur Verfügung.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    },
+    {
+      "source": "S16",
+      "sentence": "Ben übernimmt während des Urlaubs von Anna die Kundenanfragen.",
+      "previous_pass": true,
+      "current_pass": true,
+      "reasons": []
+    }
+  ]
+}
