@@ -51,6 +51,72 @@ def test_uploaded_conditional_source_is_answered_without_acceptance(core, tmp_pa
         _close_app(app)
 
 
+def test_equal_date_conflicting_historical_sources_keep_neutral_caption_on_saved_read(
+    core, tmp_path, monkeypatch
+):
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    question = 'Was steht zu MINT-442 in meinen Quellen?'
+    sources = [
+        ('mint-442-a.txt', 'Vorgang MINT-442: Die Freigabe ist am 11. Oktober 2026.'),
+        ('mint-442-b.txt', 'Vorgang MINT-442: Die Freigabe ist am 19. Oktober 2026.'),
+    ]
+    try:
+        store = WorkingMemoryStore(app.state.episodes)
+        source_ids = []
+        for title, body in sources:
+            response = client.post('/episodes', json={
+                'title': title, 'body': body, 'occurred_at': '2026-10-02T10:00:00+02:00',
+            })
+            assert response.status_code == 201
+            source_id = response.json()['id']
+            source_ids.append(source_id)
+            snapshot = store.pending(episode_ids=[source_id])[0]
+            assert store.commit(snapshot, [{'start': 0, 'end': len(body), 'kind': 'historical'}],
+                                model='synthetic')
+
+        app.state.agent._working_memory_search = None
+        selection_calls = []
+
+        def select_conflicting_sources(messages, *, max_tokens, schema):
+            selection_calls.append(True)
+            data = json.loads(messages[-1]['content'])
+            rows = data['sources']
+            assert len(rows) == 2
+            return Reply(text=json.dumps({
+                'status': 'unresolved_conflicting_sources',
+                'ids': [row['id'] for row in rows],
+            }))
+
+        provider.complete_json = select_conflicting_sources
+        conversation = _conversation(client)
+        answer = _ask(client, conversation, question)
+        assert answer['metadata']['context']['answer_contract']['status'] == 'working_unclear'
+        assert 'Zeitbezug ungeklärt' in answer['content']
+        assert 'Frühere Aussage' not in answer['content']
+        for _, body in sources:
+            assert body in answer['content']
+        saved = app.state.conversations.messages(conversation)[-1]
+        assert saved.role == 'assistant'
+
+        calls_before_read = len(selection_calls)
+        reopened = client.get(f'/api/v1/conversations/{conversation}')
+        assert reopened.status_code == 200
+        projected = reopened.json()['messages'][-1]
+        assert projected['metadata']['context']['answer_contract']['status'] == 'working_unclear'
+        assert 'Zeitbezug ungeklärt' in projected['content']
+        assert 'Frühere Aussage' not in projected['content']
+        for _, body in sources:
+            assert body in projected['content']
+        assert len(selection_calls) == calls_before_read
+        assert len(projected['metadata']['context']['working_answer']['refs']) == 2
+        assert {ref['episode_id'] for ref in projected['metadata']['context']['working_answer']['refs']} == set(source_ids)
+    finally:
+        client.close()
+        _close_app(app)
+
+
 def test_source_withdrawal_removes_saved_answer_and_model_history(core, tmp_path, monkeypatch):
     app, client, provider = _api(core, tmp_path, monkeypatch)
     classifier(provider)

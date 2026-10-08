@@ -815,10 +815,15 @@ def _anwendbarkeit_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
 
 
 def _bedingung_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
-    original = {_regeltext(t) for b in belege for t in _abschnitte(b.text, False)}
+    # Zeilenumbrüche sind Layout, keine sichere Satzgrenze: Die Bedingung kann
+    # in der nächsten Zeile stehen. Gilt auch beim Lesen alter Antworten.
+    def ganze_abschnitte(text: str) -> list[str]:
+        return [t for t in re.split(r'[!?]|(?<!\d)\.(?!\d)', text) if t.strip()]
+
+    original = {_regeltext(t) for b in belege for t in ganze_abschnitte(b.text)}
     bedingte_regeln_vorhanden = any(bedingte_regeln_fuer_antwort(b.text) for b in belege)
     if bedingte_regeln_vorhanden:
-        for teil in _abschnitte(satz, False):
+        for teil in ganze_abschnitte(satz):
             # Preserve the existing fail-closed behavior for recognized
             # conditional permissions: every answer sentence must remain an
             # exact source clause. The quote fallback keeps the source visible.

@@ -1,0 +1,31 @@
+{
+  "review": "neutral historical-kind caption",
+  "scope": [
+    "sidecar/icarus_memory/working_memory_answers.py",
+    "app/kingfisher/src/CalendarPreparation.tsx",
+    "sidecar/tests/test_working_memory_flow.py",
+    "app/kingfisher/tests/calendar-preparation-kind-labels.test.mjs"
+  ],
+  "result": "no blocking issue found",
+  "findings": [
+    "Production diff changes only the historical display label in backend and calendar UI. It does not mutate classification rows, stored refs, timestamps, source text, or answer status.",
+    "Saved answer rendering calls render/project_message and derives the caption from saved reference kind through current KINDS. The equal-date conflict test GETs the saved conversation, retains both original refs and conflict status, and observes no extra provider selection call.",
+    "The integration test seeds the historical kind directly instead of exercising the classifier; appropriate for this presentation-only change, but it does not validate classification quality.",
+    "The UI source-string test is low value and brittle: it asserts source regexes, not rendered component behavior. Remove it or replace it with a component-level rendering test if such a harness is introduced."
+  ],
+  "verification": {
+    "sidecar/tests/test_working_memory_flow.py": "20 passed, 1 existing StarletteDeprecationWarning",
+    "app/kingfisher/tests/calendar-preparation-kind-labels.test.mjs": "1 passed",
+    "git_diff_check": "passed"
+  },
+  "sha256": {
+    "sidecar/icarus_memory/working_memory_answers.py": "bc530b955a7352475b02973544654a49858b4a29a9e41bc3303d19cd7072c926",
+    "app/kingfisher/src/CalendarPreparation.tsx": "ac2e6dbc8a360a33a3f69c7de00945f36e8824c0bf21b449051b38afff3a6d6e",
+    "sidecar/tests/test_working_memory_flow.py": "fdfd57844e0c611e7fc73b26c52f921ae7c39e60899a5e88c0eacea18f95f61b",
+    "app/kingfisher/tests/calendar-preparation-kind-labels.test.mjs": "6e33733750a2c639d86e8ceee91d7a1cda935088ee08ea6955c9f725e319ad5c"
+  },
+  "limits": [
+    "The GET projection test uses the current app/store process; source inspection confirms no model/provider call in project_message/render, but this test is not a process restart.",
+    "No broader suites, UI build, classifier, or model run was performed."
+  ]
+}

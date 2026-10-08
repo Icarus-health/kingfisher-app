@@ -1,0 +1,415 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791500544.800252,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 34832
+    },
+    {
+      "elapsed": 2.06,
+      "owned_rss_kib": 303120
+    },
+    {
+      "elapsed": 4.09,
+      "owned_rss_kib": 3925152
+    },
+    {
+      "elapsed": 6.11,
+      "owned_rss_kib": 3982160
+    },
+    {
+      "elapsed": 8.14,
+      "owned_rss_kib": 3981136
+    },
+    {
+      "elapsed": 10.17,
+      "owned_rss_kib": 4088048
+    },
+    {
+      "elapsed": 12.22,
+      "owned_rss_kib": 4147312
+    },
+    {
+      "elapsed": 14.25,
+      "owned_rss_kib": 4253504
+    },
+    {
+      "elapsed": 16.28,
+      "owned_rss_kib": 268400
+    },
+    {
+      "elapsed": 18.31,
+      "owned_rss_kib": 4686816
+    },
+    {
+      "elapsed": 20.33,
+      "owned_rss_kib": 4570848
+    },
+    {
+      "elapsed": 22.36,
+      "owned_rss_kib": 262592
+    },
+    {
+      "elapsed": 24.39,
+      "owned_rss_kib": 4984128
+    },
+    {
+      "elapsed": 26.42,
+      "owned_rss_kib": 5041504
+    },
+    {
+      "elapsed": 28.44,
+      "owned_rss_kib": 172064
+    },
+    {
+      "elapsed": 30.48,
+      "owned_rss_kib": 4931056
+    },
+    {
+      "elapsed": 32.51,
+      "owned_rss_kib": 5258096
+    },
+    {
+      "elapsed": 34.54,
+      "owned_rss_kib": 5347408
+    },
+    {
+      "elapsed": 36.57,
+      "owned_rss_kib": 4421824
+    },
+    {
+      "elapsed": 38.6,
+      "owned_rss_kib": 762000
+    },
+    {
+      "elapsed": 40.63,
+      "owned_rss_kib": 5053136
+    },
+    {
+      "elapsed": 42.67,
+      "owned_rss_kib": 5499824
+    },
+    {
+      "elapsed": 44.69,
+      "owned_rss_kib": 4931488
+    },
+    {
+      "elapsed": 46.72,
+      "owned_rss_kib": 237264
+    },
+    {
+      "elapsed": 48.76,
+      "owned_rss_kib": 5050672
+    },
+    {
+      "elapsed": 50.81,
+      "owned_rss_kib": 5007424
+    },
+    {
+      "elapsed": 52.84,
+      "owned_rss_kib": 4584320
+    },
+    {
+      "elapsed": 54.87,
+      "owned_rss_kib": 4663968
+    },
+    {
+      "elapsed": 56.9,
+      "owned_rss_kib": 2432912
+    },
+    {
+      "elapsed": 58.94,
+      "owned_rss_kib": 5073248
+    },
+    {
+      "elapsed": 60.96,
+      "owned_rss_kib": 4525792
+    },
+    {
+      "elapsed": 63.02,
+      "owned_rss_kib": 4728992
+    },
+    {
+      "elapsed": 65.05,
+      "owned_rss_kib": 690272
+    },
+    {
+      "elapsed": 67.08,
+      "owned_rss_kib": 1667504
+    },
+    {
+      "elapsed": 69.12,
+      "owned_rss_kib": 6289296
+    },
+    {
+      "elapsed": 71.14,
+      "owned_rss_kib": 5484448
+    },
+    {
+      "elapsed": 73.19,
+      "owned_rss_kib": 5508384
+    },
+    {
+      "elapsed": 75.22,
+      "owned_rss_kib": 5593984
+    },
+    {
+      "elapsed": 77.25,
+      "owned_rss_kib": 5700000
+    },
+    {
+      "elapsed": 79.31,
+      "owned_rss_kib": 5832752
+    },
+    {
+      "elapsed": 81.36,
+      "owned_rss_kib": 5985088
+    },
+    {
+      "elapsed": 83.4,
+      "owned_rss_kib": 5957184
+    },
+    {
+      "elapsed": 85.46,
+      "owned_rss_kib": 5958960
+    },
+    {
+      "elapsed": 87.48,
+      "owned_rss_kib": 5857552
+    },
+    {
+      "elapsed": 89.52,
+      "owned_rss_kib": 5869104
+    },
+    {
+      "elapsed": 91.61,
+      "owned_rss_kib": 5913200
+    },
+    {
+      "elapsed": 93.63,
+      "owned_rss_kib": 5912368
+    },
+    {
+      "elapsed": 95.67,
+      "owned_rss_kib": 6018960
+    },
+    {
+      "elapsed": 97.7,
+      "owned_rss_kib": 3389072
+    },
+    {
+      "elapsed": 99.74,
+      "owned_rss_kib": 4942272
+    },
+    {
+      "elapsed": 101.77,
+      "owned_rss_kib": 4716944
+    },
+    {
+      "elapsed": 103.8,
+      "owned_rss_kib": 4954864
+    },
+    {
+      "elapsed": 105.84,
+      "owned_rss_kib": 5096096
+    },
+    {
+      "elapsed": 107.89,
+      "owned_rss_kib": 5218960
+    },
+    {
+      "elapsed": 109.93,
+      "owned_rss_kib": 5298848
+    },
+    {
+      "elapsed": 111.97,
+      "owned_rss_kib": 5338416
+    },
+    {
+      "elapsed": 113.99,
+      "owned_rss_kib": 5462352
+    },
+    {
+      "elapsed": 116.05,
+      "owned_rss_kib": 5540288
+    },
+    {
+      "elapsed": 118.08,
+      "owned_rss_kib": 5565312
+    },
+    {
+      "elapsed": 120.11,
+      "owned_rss_kib": 5549632
+    },
+    {
+      "elapsed": 122.14,
+      "owned_rss_kib": 5540112
+    },
+    {
+      "elapsed": 124.2,
+      "owned_rss_kib": 5591856
+    },
+    {
+      "elapsed": 126.22,
+      "owned_rss_kib": 5648960
+    },
+    {
+      "elapsed": 128.27,
+      "owned_rss_kib": 5753744
+    },
+    {
+      "elapsed": 130.3,
+      "owned_rss_kib": 891104
+    },
+    {
+      "elapsed": 132.33,
+      "owned_rss_kib": 5621920
+    },
+    {
+      "elapsed": 134.38,
+      "owned_rss_kib": 5259744
+    },
+    {
+      "elapsed": 136.41,
+      "owned_rss_kib": 4773488
+    },
+    {
+      "elapsed": 138.44,
+      "owned_rss_kib": 4985520
+    },
+    {
+      "elapsed": 140.47,
+      "owned_rss_kib": 5193536
+    },
+    {
+      "elapsed": 142.53,
+      "owned_rss_kib": 5312544
+    },
+    {
+      "elapsed": 144.58,
+      "owned_rss_kib": 5187168
+    },
+    {
+      "elapsed": 146.63,
+      "owned_rss_kib": 5267872
+    },
+    {
+      "elapsed": 148.69,
+      "owned_rss_kib": 5273872
+    },
+    {
+      "elapsed": 150.74,
+      "owned_rss_kib": 5035008
+    },
+    {
+      "elapsed": 152.8,
+      "owned_rss_kib": 4988400
+    },
+    {
+      "elapsed": 154.89,
+      "owned_rss_kib": 4908816
+    },
+    {
+      "elapsed": 156.93,
+      "owned_rss_kib": 5134400
+    },
+    {
+      "elapsed": 159.05,
+      "owned_rss_kib": 5032720
+    },
+    {
+      "elapsed": 161.08,
+      "owned_rss_kib": 4929568
+    },
+    {
+      "elapsed": 163.1,
+      "owned_rss_kib": 5069504
+    },
+    {
+      "elapsed": 165.12,
+      "owned_rss_kib": 910688
+    },
+    {
+      "elapsed": 167.15,
+      "owned_rss_kib": 4968368
+    },
+    {
+      "elapsed": 169.19,
+      "owned_rss_kib": 4641472
+    },
+    {
+      "elapsed": 171.24,
+      "owned_rss_kib": 4793808
+    },
+    {
+      "elapsed": 173.27,
+      "owned_rss_kib": 4875552
+    }
+  ],
+  "completed": true,
+  "server_pid": 31556,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 31559,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791500720.57432
+}

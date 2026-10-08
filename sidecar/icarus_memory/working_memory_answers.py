@@ -59,7 +59,7 @@ RELATIVE_TIME = re.compile(
     r'(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b', re.I)
 KINDS = {'request': 'Bitte', 'commitment': 'Zusage', 'conditional': 'Bedingte Aussage',
          'change': 'Änderung', 'status': 'Statusmeldung', 'fact': 'Angabe',
-         'uncertain': 'Unklare Einordnung', 'historical': 'Frühere Aussage'}
+         'uncertain': 'Unklare Einordnung', 'historical': 'Zeitbezug ungeklärt'}
 
 
 def is_question(message):

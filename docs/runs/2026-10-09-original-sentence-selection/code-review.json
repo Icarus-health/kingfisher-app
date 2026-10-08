@@ -1,0 +1,173 @@
+{
+  "reviewed_at_utc": "2026-10-08T23:03:42.220817+00:00",
+  "repository": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923",
+  "product_commit": "dfd4e857072db5b731735cf995bd2812657c9527",
+  "source_sha256": {
+    "sidecar/icarus_memory/satzantwort.py": "bf695fd68bdbf919547e8d3fb9c46f9e6f16b740a5468855a08543331c68ea6b",
+    "sidecar/icarus_memory/satzpruefung.py": "3e3256ac649c85f1226c1edd3ea5d6d42573da569826be838898421d60643e1e"
+  },
+  "test_sha256": "8a38dd8bc7a10db6af72774d81b16168ef0aa43e9107d4b73ca26fba74bda5fa",
+  "source_unchanged_during_review": true,
+  "scope": "Conditional original-clause selection: complete visible text, ID validation, legacy gate compatibility, second model gate and saved reopen",
+  "closed_findings": [
+    "P1: newline could offer an unconditional fragment; complete original clauses now preserve internal newlines.",
+    "P2: offering limits could imply no information; oversized or empty offerings now fall back before calling the provider.",
+    "P1: legacy and saved wrapped fragments remained accepted; shared literal validation now uses punctuation boundaries on source and answer."
+  ],
+  "counterprobes": [
+    {
+      "name": "wrapped_condition_'\\n'",
+      "passed": true,
+      "outcome": {
+        "status": "saetze",
+        "accepted": [
+          "Die Steuerung darf zurückgesetzt werden\nwenn die diensthabende Technikerin es schriftlich anordnet."
+        ]
+      }
+    },
+    {
+      "name": "legacy_wrapped_fragment_'\\n'",
+      "passed": true,
+      "outcome": {
+        "status": "zitate"
+      }
+    },
+    {
+      "name": "wrapped_condition_',\\n'",
+      "passed": true,
+      "outcome": {
+        "status": "saetze",
+        "accepted": [
+          "Die Steuerung darf zurückgesetzt werden,\nwenn die diensthabende Technikerin es schriftlich anordnet."
+        ]
+      }
+    },
+    {
+      "name": "legacy_wrapped_fragment_',\\n'",
+      "passed": true,
+      "outcome": {
+        "status": "zitate"
+      }
+    },
+    {
+      "name": "long_clause_cannot_be_absence_False",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "model_calls": 0
+      }
+    },
+    {
+      "name": "long_clause_cannot_be_absence_True",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "model_calls": 0
+      }
+    },
+    {
+      "name": "partial_excerpt_False",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "model_calls": 0
+      }
+    },
+    {
+      "name": "partial_excerpt_True",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "model_calls": 1
+      }
+    },
+    {
+      "name": "second_gate_ja",
+      "passed": true,
+      "outcome": {
+        "status": "saetze",
+        "checked": [
+          "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen."
+        ]
+      }
+    },
+    {
+      "name": "second_gate_nein",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "checked": [
+          "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen."
+        ]
+      }
+    },
+    {
+      "name": "second_gate_unklar",
+      "passed": true,
+      "outcome": {
+        "status": "zitate",
+        "checked": [
+          "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen."
+        ]
+      }
+    },
+    {
+      "name": "legacy_complete_original_canonicalized",
+      "passed": true,
+      "outcome": {
+        "status": "saetze",
+        "accepted": [
+          "Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden."
+        ]
+      }
+    },
+    {
+      "name": "selected_original_saved_reopen",
+      "passed": true,
+      "outcome": {
+        "status": "saetze",
+        "reopened": true,
+        "second_gate_calls": 1
+      }
+    },
+    {
+      "name": "legacy_text_tamper_rejected_on_reopen",
+      "passed": true,
+      "outcome": {}
+    },
+    {
+      "name": "withdrawn_source_rejected_on_reopen",
+      "passed": true,
+      "outcome": {}
+    },
+    {
+      "name": "wrapped_legacy_fragment_rejected_after_real_store_reopen",
+      "passed": true,
+      "outcome": {}
+    }
+  ],
+  "test_run": {
+    "command": [
+      "/private/tmp/kingfisher-review-20261006-venv/bin/python",
+      "-m",
+      "pytest",
+      "sidecar/tests/test_original_sentence_selection.py",
+      "sidecar/tests/test_conditional_permission.py",
+      "sidecar/tests/test_conditional_scope_completeness.py",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "returncode": 0,
+    "stdout": "........................................................................ [ 96%]\n...                                                                      [100%]\n=============================== warnings summary ===============================\n../../../../../../../../private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1\n  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n75 passed, 1 warning in 2.05s\n",
+    "stderr": ""
+  },
+  "blocking_findings": [],
+  "result": "no_blocker_in_reviewed_scope",
+  "limits": [
+    "No general semantic entailment or universal natural-language sentence parsing claim.",
+    "No actual model/cloud calls, installation, private data, full suite, merge or product edits.",
+    "Second-model behavior uses deterministic test doubles; persistence checks use real isolated EpisodeStore files.",
+    "Concurrent historical-caption changes excluded; broader parent test results not counted as independently executed."
+  ]
+}
