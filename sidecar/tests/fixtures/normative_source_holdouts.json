@@ -1,0 +1,703 @@
+{
+  "title": "Independent frozen normative-source binding holdouts",
+  "synthetic": true,
+  "frozen_before_implementation": true,
+  "baseline_commit": "8394ff5169e28e0cc70bd48e818db123e2efb7f7",
+  "parent_catalog_sha256": "c847655468d7a4e79fbb3ad02780d68758a8b60dc837c87ebc3a2c73bc3b5651",
+  "design_scope": "Recognized normative sources require unchanged complete original sentence binding. This is not universal entailment, current validity, document authority or complete-answer proof.",
+  "expectation_semantics": {
+    "expected_binding": "Whether candidate satisfies planned complete-source-unit contract, not whether a literal quotation is a current truth.",
+    "expected_supported": "Independent synthetic factual gold for candidate as an affirmative permission/fact.",
+    "required_for_increment": "False marks optional detection vocabulary or documented limits, not release blockers for this bounded increment."
+  },
+  "sources": [
+    {
+      "id": "DE01-S1",
+      "title": "Datenbergung",
+      "text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden."
+    },
+    {
+      "id": "DE02-S1",
+      "title": "Restaurierungsanweisung",
+      "text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden."
+    },
+    {
+      "id": "DE03-S1",
+      "title": "Nachtbeobachtung",
+      "text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden."
+    },
+    {
+      "id": "N01-S1",
+      "title": "Herbarbeleg",
+      "text": "Nach dem Fotografieren des Etiketts darf die Dublette entsorgt werden. Das Originaletikett muss beim Herbarbeleg bleiben."
+    },
+    {
+      "id": "N02-S1",
+      "title": "Wasserwerk",
+      "text": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck gemessen wurde."
+    },
+    {
+      "id": "N03-S1",
+      "title": "Klimakammer",
+      "text": "Die Proben dürfen erst entnommen werden, wenn die Temperatur unter 8 Grad Celsius liegt."
+    },
+    {
+      "id": "N04-S1",
+      "title": "Bühnenzugang",
+      "text": "Nach schriftlicher Zustimmung der Intendantin darf der Orchestergraben betreten werden."
+    },
+    {
+      "id": "N05-S1",
+      "title": "Münzarchiv",
+      "text": "Nach der Inventur darf die Ledermappe geöffnet werden. Die Münzen, die mit rotem Faden markiert sind, müssen versiegelt bleiben."
+    },
+    {
+      "id": "N06-S1",
+      "title": "Glaswerkstatt",
+      "text": "Nach dem Abkühlen darf die Ofentür geöffnet werden. Vor dem Wiegen muss der Glasrohling abgedeckt bleiben."
+    },
+    {
+      "id": "N07-S1",
+      "title": "Betriebsprotokoll",
+      "text": "Protokollzitat: „Nach dem Signal darf das Nordtor entriegelt werden.“ Die Freigabe des Zitats ist nicht dokumentiert. Verbindliche Regel: Nach dem Signal muss das Tor bis zur schriftlichen Freigabe der Einsatzleitung verriegelt bleiben."
+    },
+    {
+      "id": "N08-S1",
+      "title": "Paketannahme",
+      "text": "Nach dem Scannen darf der Einlieferungsbeleg gedruckt werden. Das Paket darf nur mit schriftlicher Zustimmung der Absenderin geöffnet werden."
+    },
+    {
+      "id": "N08-S2",
+      "title": "Kühlraumregel",
+      "text": "Nach der Eintragung der Lieferung muss die Kühlraumtür bis zur Unterschrift der Schichtleitung geschlossen bleiben."
+    },
+    {
+      "id": "N09-S1",
+      "title": "Synthetische Regel N09",
+      "text": "Die Archivarin muss den Messbericht prüfen, bevor der Techniker die Anlage startet."
+    },
+    {
+      "id": "N10-S1",
+      "title": "Synthetische Regel N10",
+      "text": "Die Mappe muss geöffnet und das Siegel muss unversehrt aufbewahrt werden."
+    },
+    {
+      "id": "N11-S1",
+      "title": "Synthetische Regel N11",
+      "text": "Vor dem Transport muss die Batterie ausgebaut werden\nund die Kontaktfläche muss abgedeckt bleiben."
+    },
+    {
+      "id": "N12-S1",
+      "title": "Synthetische Regel N12",
+      "text": "Freigabe: Die Anlage darf nach Prüfung des Protokolls gestartet werden."
+    },
+    {
+      "id": "N13-S1",
+      "title": "Synthetische Regel N13",
+      "text": "Nach dem Wiegen darf die Dose geöffnet werden!?"
+    },
+    {
+      "id": "N14-S1",
+      "title": "Synthetische Regel N14",
+      "text": "Protokollzitat: „Nach dem Wiegen darf die Dose geöffnet werden.“"
+    },
+    {
+      "id": "N15-S1",
+      "title": "Synthetische Regel N15",
+      "text": "Das Sicherungsband muss angelegt bleiben; ausgenommen ist die Wartung im gesperrten Bereich."
+    },
+    {
+      "id": "N16-S1",
+      "title": "Synthetische Regel N16",
+      "text": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll und die Messkurve freigegeben hat."
+    },
+    {
+      "id": "N17-S1",
+      "title": "Synthetische Regel N17",
+      "text": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll oder die Messkurve freigegeben hat."
+    },
+    {
+      "id": "N18-S1",
+      "title": "Synthetische Regel N18",
+      "text": "Es ist erlaubt, die Ventilklappe nach der Kontrolle langsam zu öffnen."
+    },
+    {
+      "id": "N19-S1",
+      "title": "Synthetische Regel N19",
+      "text": "Es ist erforderlich, die Dichtung vor der Spülung zu wechseln."
+    },
+    {
+      "id": "N20-S1",
+      "title": "Synthetische Regel N20",
+      "text": "Die Messsonde darf z. B. nach der Kalibrierung eingesetzt werden."
+    },
+    {
+      "id": "N21-S1",
+      "title": "Synthetische Regel N21",
+      "text": "Der Techniker muss die Schraube Nr. 7 vor der Wartung entfernen."
+    },
+    {
+      "id": "N22-S1",
+      "title": "Synthetische Regel N22",
+      "text": "Alte Anweisung: „Zunächst wird das Datum notiert. Nach der Kontrolle darf die Klappe geöffnet werden. Diese Anweisung wurde verworfen.“"
+    },
+    {
+      "id": "L01-S1",
+      "title": "Synthetische Regel L01",
+      "text": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung."
+    },
+    {
+      "id": "L02-S1",
+      "title": "Synthetische Regel L02",
+      "text": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben."
+    },
+    {
+      "id": "P01-S1",
+      "title": "Synthetische Regel P01",
+      "text": "Nach dem Fotografieren des Etiketts darf die Dublette entsorgt werden. Das Originaletikett muss beim Herbarbeleg bleiben."
+    },
+    {
+      "id": "P02-S1",
+      "title": "Synthetische Regel P02",
+      "text": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck gemessen wurde."
+    },
+    {
+      "id": "P03-S1",
+      "title": "Synthetische Regel P03",
+      "text": "Die Archivarin muss den Messbericht prüfen, bevor der Techniker die Anlage startet."
+    },
+    {
+      "id": "P04-S1",
+      "title": "Synthetische Regel P04",
+      "text": "Vor dem Transport muss die Batterie ausgebaut werden\nund die Kontaktfläche muss abgedeckt bleiben."
+    },
+    {
+      "id": "P05-S1",
+      "title": "Synthetische Regel P05",
+      "text": "Freigabe: Die Anlage darf nach Prüfung des Protokolls gestartet werden."
+    },
+    {
+      "id": "P06-S1",
+      "title": "Synthetische Regel P06",
+      "text": "Das Sicherungsband muss angelegt bleiben; ausgenommen ist die Wartung im gesperrten Bereich."
+    },
+    {
+      "id": "P07-S1",
+      "title": "Synthetische Regel P07",
+      "text": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll oder die Messkurve freigegeben hat."
+    },
+    {
+      "id": "P08-S1",
+      "title": "Synthetische Regel P08",
+      "text": "Die Proben dürfen erst entnommen werden, wenn die Temperatur unter 8 Grad Celsius liegt."
+    },
+    {
+      "id": "P09-S1",
+      "title": "Synthetische Regel P09",
+      "text": "Der Bericht liegt im Tresor."
+    }
+  ],
+  "known_controls": [
+    {
+      "id": "N01",
+      "source_ids": [
+        "N01-S1"
+      ],
+      "candidate": "Nach dem Fotografieren des Etiketts darf das Originaletikett entsorgt werden.",
+      "factual_control": "Falsch: nur die Dublette darf entsorgt werden; das Originaletikett muss beim Herbarbeleg bleiben.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N02",
+      "source_ids": [
+        "N02-S1"
+      ],
+      "candidate": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck eingestellt wurde.",
+      "factual_control": "Nicht belegt: Die Quelle nennt das Messen des Leitungsdrucks, nicht dessen Einstellen.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N03",
+      "source_ids": [
+        "N03-S1"
+      ],
+      "candidate": "Die Proben dürfen entnommen werden, wenn die Temperatur unter 10 Grad Celsius liegt.",
+      "factual_control": "Unbelegte Ausweitung: Die festgelegte Grenze lautet unter 8 Grad Celsius.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N04",
+      "source_ids": [
+        "N04-S1"
+      ],
+      "candidate": "Nach schriftlicher Zustimmung des Intendanten darf der Orchestergraben betreten werden.",
+      "factual_control": "Unbelegter Austausch der Bedingung: Die Quelle verlangt Zustimmung der Intendantin.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N05",
+      "source_ids": [
+        "N05-S1"
+      ],
+      "candidate": "Nach der Inventur darf die mit rotem Faden markierte Münze aus der Ledermappe genommen werden.",
+      "factual_control": "Nicht belegt und durch die Quelle eingeschränkt: Die Erlaubnis betrifft das Öffnen der Mappe; die markierten Münzen müssen versiegelt bleiben.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N06",
+      "source_ids": [
+        "N06-S1"
+      ],
+      "candidate": "Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.",
+      "factual_control": "Unbelegte Übertragung zwischen koordinierten Regeln: Nach dem Abkühlen darf die Ofentür geöffnet werden; für den Rohling gilt die Abdeckungspflicht bis zum Wiegen.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N07",
+      "source_ids": [
+        "N07-S1"
+      ],
+      "candidate": "Nach dem Signal darf das Nordtor entriegelt werden.",
+      "factual_control": "Falsch: die Erlaubnis erscheint nur als nicht freigegebenes Zitat; die verbindliche Aussage verlangt, dass das Tor bis zur schriftlichen Freigabe verriegelt bleibt.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    },
+    {
+      "id": "N08",
+      "source_ids": [
+        "N08-S1",
+        "N08-S2"
+      ],
+      "candidate": "Nach dem Scannen und Eintragen der Lieferung darf das Paket geöffnet werden.",
+      "factual_control": "Unbelegte quellenübergreifende Bedingungsübertragung: Scannen erlaubt den Druck des Belegs; die Eintragung verlangt eine geschlossene Kühlraumtür; Öffnen des Pakets erfordert schriftliche Zustimmung der Absenderin.",
+      "kind": "known_false_candidate",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true
+    }
+  ],
+  "new_controls": [
+    {
+      "id": "N09",
+      "source_ids": [
+        "N09-S1"
+      ],
+      "candidate": "Der Techniker muss den Messbericht prüfen, bevor die Archivarin die Anlage startet.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Unbelegte Vertauschung der handelnden Personen in einer Pflicht."
+    },
+    {
+      "id": "N10",
+      "source_ids": [
+        "N10-S1"
+      ],
+      "candidate": "Das Siegel muss geöffnet und die Mappe muss unversehrt aufbewahrt werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Gleiche Wörter tragen keine Übertragung der Handlungen auf andere Gegenstände."
+    },
+    {
+      "id": "N11",
+      "source_ids": [
+        "N11-S1"
+      ],
+      "candidate": "Vor dem Transport muss die Batterie ausgebaut werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Innerer Zeilenumbruch darf die zusätzliche Pflicht nicht abtrennen."
+    },
+    {
+      "id": "N12",
+      "source_ids": [
+        "N12-S1"
+      ],
+      "candidate": "Die Anlage darf nach Prüfung des Protokolls gestartet werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Ein angebotener Originalabschnitt darf seinen Doppelpunkt-Kontext nicht verlieren."
+    },
+    {
+      "id": "N13",
+      "source_ids": [
+        "N13-S1"
+      ],
+      "candidate": "Nach dem Wiegen darf die Dose geöffnet werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Frage-/Ausrufezeichen-Cluster darf nicht zur Aussage werden."
+    },
+    {
+      "id": "N14",
+      "source_ids": [
+        "N14-S1"
+      ],
+      "candidate": "Nach dem Wiegen darf die Dose geöffnet werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Zitatzeichen und Kennzeichnung dürfen nicht aus dem vollständigen Originalabschnitt entfernt werden."
+    },
+    {
+      "id": "N15",
+      "source_ids": [
+        "N15-S1"
+      ],
+      "candidate": "Das Sicherungsband muss angelegt bleiben.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Semikolon darf die ausdrücklich zugehörige Ausnahme nicht abschneiden."
+    },
+    {
+      "id": "N16",
+      "source_ids": [
+        "N16-S1"
+      ],
+      "candidate": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll freigegeben hat.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Einzelne Bedingung aus einer Konjunktion ausgelassen."
+    },
+    {
+      "id": "N17",
+      "source_ids": [
+        "N17-S1"
+      ],
+      "candidate": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll und die Messkurve freigegeben hat.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Umformulierte Alternative ist kein unverändertes Original."
+    },
+    {
+      "id": "N18",
+      "source_ids": [
+        "N18-S1"
+      ],
+      "candidate": "Es ist erlaubt, die Ventilklappe nach der Kontrolle zu öffnen.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Erlaubnis ohne darf: Handlungsqualifikation langsam fehlt."
+    },
+    {
+      "id": "N19",
+      "source_ids": [
+        "N19-S1"
+      ],
+      "candidate": "Es ist erforderlich, die Dichtung nach der Spülung zu wechseln.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": false,
+      "category": "central",
+      "factual_control": "Pflicht ohne muss: geänderte Relation; nur bei explizit aufgenommenem erforderlich-Signal."
+    },
+    {
+      "id": "N20",
+      "source_ids": [
+        "N20-S1"
+      ],
+      "candidate": "Die Messsonde darf z.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "splitter",
+      "factual_control": "Abkürzungspunkt darf kein als vollständig ausgegebenes Originalfragment erzeugen."
+    },
+    {
+      "id": "N21",
+      "source_ids": [
+        "N21-S1"
+      ],
+      "candidate": "Der Techniker muss die Schraube Nr.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "splitter",
+      "factual_control": "Abkürzungspunkt darf das Objekt und seine Bedingung nicht vom Originalfragment abschneiden."
+    },
+    {
+      "id": "N22",
+      "source_ids": [
+        "N22-S1"
+      ],
+      "candidate": "Nach der Kontrolle darf die Klappe geöffnet werden.",
+      "expected_binding": false,
+      "expected_supported": false,
+      "required_for_increment": true,
+      "category": "quoted_context",
+      "factual_control": "Innerer Satz eines mehrsätzigen Zitats trägt keine eigenständige aktuelle Erlaubnis; vollständiges Zitat behalten oder konservativ zitieren."
+    },
+    {
+      "id": "L01",
+      "source_ids": [
+        "L01-S1"
+      ],
+      "candidate": "Die Klappe darf geöffnet werden.",
+      "expected_binding": true,
+      "expected_supported": false,
+      "required_for_increment": false,
+      "category": "documented_limit",
+      "factual_control": "Wörtlicher Einzelsatz verliert eine Einschränkung im Folgesatz. Bekannte Grenze vollständiger Einzelsatzbindung, keine NLP-Anforderung dieses Inkrements."
+    },
+    {
+      "id": "L02",
+      "source_ids": [
+        "L02-S1"
+      ],
+      "candidate": "Nach dem Signal darf das Tor geöffnet werden.",
+      "expected_binding": true,
+      "expected_supported": false,
+      "required_for_increment": false,
+      "category": "documented_limit",
+      "factual_control": "Wörtlicher Satz außerhalb von Anführungszeichen verliert Dokumentstatus. Außerhalb des engen Bindungsvertrags."
+    },
+    {
+      "id": "P01",
+      "source_ids": [
+        "P01-S1"
+      ],
+      "candidate": "Nach dem Fotografieren des Etiketts darf die Dublette entsorgt werden.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Unveränderte Erlaubnis mit korrektem Gegenstand."
+    },
+    {
+      "id": "P02",
+      "source_ids": [
+        "P02-S1"
+      ],
+      "candidate": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck gemessen wurde.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Unveränderte nachgestellte nachdem-Bedingung."
+    },
+    {
+      "id": "P03",
+      "source_ids": [
+        "P03-S1"
+      ],
+      "candidate": "Die Archivarin muss den Messbericht prüfen, bevor der Techniker die Anlage startet.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Pflicht mit unveränderten Rollen und Bedingung."
+    },
+    {
+      "id": "P04",
+      "source_ids": [
+        "P04-S1"
+      ],
+      "candidate": "Vor dem Transport muss die Batterie ausgebaut werden und die Kontaktfläche muss abgedeckt bleiben.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Reine Leerraum-Normalisierung lässt die zusätzliche Pflicht vollständig stehen."
+    },
+    {
+      "id": "P05",
+      "source_ids": [
+        "P05-S1"
+      ],
+      "candidate": "freigabe: die anlage darf nach prüfung des protokolls gestartet werden",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Nur Groß-/Kleinschreibung und optionaler abschließender Punkt ändern sich."
+    },
+    {
+      "id": "P06",
+      "source_ids": [
+        "P06-S1"
+      ],
+      "candidate": "Das Sicherungsband muss angelegt bleiben; ausgenommen ist die Wartung im gesperrten Bereich.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Die Semikolon-Ausnahme bleibt erhalten."
+    },
+    {
+      "id": "P07",
+      "source_ids": [
+        "P07-S1"
+      ],
+      "candidate": "Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll oder die Messkurve freigegeben hat.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Unveränderte Alternative."
+    },
+    {
+      "id": "P08",
+      "source_ids": [
+        "P08-S1"
+      ],
+      "candidate": "Die Proben dürfen erst entnommen werden, wenn die Temperatur unter 8 Grad Celsius liegt.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "central",
+      "factual_control": "Wörtliche Grenze unverändert."
+    },
+    {
+      "id": "P09",
+      "source_ids": [
+        "P09-S1"
+      ],
+      "candidate": "Im Tresor liegt der Bericht.",
+      "expected_binding": true,
+      "expected_supported": true,
+      "required_for_increment": true,
+      "category": "ordinary_compatibility",
+      "factual_control": "Gewöhnliche Tatsachenquelle darf den bestehenden Formulierungsweg behalten."
+    }
+  ],
+  "structural_controls": [
+    {
+      "id": "S01",
+      "kind": "uncited_original",
+      "source_texts": [
+        "Die Klappe darf nach der Kontrolle geöffnet werden.",
+        "Die Klappe darf nach der Wartung geöffnet werden."
+      ],
+      "cited_source_indexes": [
+        1
+      ],
+      "candidate": "Die Klappe darf nach der Wartung geöffnet werden.",
+      "expected": "reject; source 2 exists in pool but is not cited"
+    },
+    {
+      "id": "S02",
+      "kind": "hidden_fulltext",
+      "full_text": "Die Klappe darf nach der Kontrolle geöffnet werden. Der Bericht liegt im Tresor.",
+      "visible_text": "Der Bericht liegt im Tresor.",
+      "candidate": "Die Klappe darf nach der Kontrolle geöffnet werden.",
+      "expected": "ID offer must contain only visible complete originals; legacy text must not silently create an unissued hidden original"
+    },
+    {
+      "id": "S03",
+      "kind": "partial_visible_clause",
+      "full_text": "Die Klappe darf nach der Kontrolle geöffnet werden, wenn die Werkleitung schriftlich zustimmt.",
+      "visible_text": "Die Klappe darf nach der Kontrolle geöffnet werden",
+      "expected": "no permission fragment ID; quote fallback when no other complete visible originals"
+    },
+    {
+      "id": "S04",
+      "kind": "relative_date",
+      "source_text": "Die Probe muss morgen abgegeben werden.",
+      "source_time": "2026-10-09T08:00:00+00:00",
+      "answer_time": "2026-10-09T08:00:00+00:00",
+      "candidate": "Die Probe muss morgen abgegeben werden.",
+      "expected": "exact source quote stays intact; no unsafe literal exception for program-generated date substitution; conservative quote fallback acceptable and reported"
+    },
+    {
+      "id": "S05",
+      "kind": "legacy_schema",
+      "expected": "legacy saetze may map complete issued originals to server text; question/quote removal must not map; invalid/unmatched candidates still count as rejected and cannot bypass central guard"
+    },
+    {
+      "id": "S06",
+      "kind": "durable_reopen",
+      "case_ids": [
+        "N02",
+        "N06",
+        "N11",
+        "N13",
+        "N14",
+        "N22",
+        "P02",
+        "P03"
+      ],
+      "expected": "old raw/text payload is revalidated using current central gate after EpisodeStore close/reopen; unsupported legacy text falls back; valid original remains; source ignore revokes without deleting original"
+    },
+    {
+      "id": "S07",
+      "kind": "invalid_ID",
+      "selections": [
+        {
+          "beleg": true,
+          "satz": 1
+        },
+        {
+          "beleg": 1,
+          "satz": true
+        },
+        {
+          "beleg": 999,
+          "satz": 1
+        },
+        {
+          "beleg": 1,
+          "satz": 999
+        },
+        {
+          "beleg": 1,
+          "satz": 1,
+          "text": "Die Freigabe liegt vor."
+        }
+      ],
+      "expected": "strict key/type/existence checks and duplicate ID rejection remain unchanged"
+    },
+    {
+      "id": "S08",
+      "kind": "second_gate",
+      "expected": "exact ID materialization still enters the unchanged second model gate; nein/unklar/error rejects and saved active-verifier record still requires ja"
+    },
+    {
+      "id": "S09",
+      "kind": "oversized_clause",
+      "expected": "visible original exceeding MAX_SATZ_ZEICHEN causes quote fallback before model call; not false absence even if a shorter irrelevant original exists"
+    },
+    {
+      "id": "S10",
+      "kind": "mixed_sources",
+      "expected": "freeze whether any normative offered source switches whole request to IDs; normative trigger must use full current source, candidate binding only its cited sources; an all-ordinary request retains saetze/text schema"
+    }
+  ]
+}

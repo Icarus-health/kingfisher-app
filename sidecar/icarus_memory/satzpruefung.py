@@ -51,10 +51,13 @@ Erkannte explizite Grenzen an einzelnen Kalenderdaten werden ebenfalls auf verta
 Relationen geprüft. Bei ausdrücklich genannter Gültigkeit bleiben die Grenzen
 des über Inhaltswörter zugeordneten Satzteils erhalten. Das ist keine vollständige
 Prüfung von Ereigniszuordnung, Zeiträumen, Aktualität oder ausgelassenen Bedingungen.
-Bei Belegen mit erkannten passiven Erlaubnissen mit „erst/nur nach“ oder
-„wenn/sofern/sobald/falls“ müssen Antwortsätze vollständig wörtlich in einem
-zitierten Quellkörper stehen. Ein eigener Ereignissatz kann diesen separat belegen.
-Das ist ein konservativer Zusatzschutz, keine allgemeine Grammatikprüfung. Nur bei
+Bei Belegen mit erkannten Erlaubnissen oder Pflichten („darf“, „erlaubt“, „muss“,
+„soll“ usw.) müssen Antwortsätze vollständig wörtlich in einem zitierten
+Quellkörper stehen. Anführungszeichen im Quellkörper führen konservativ zum
+Zitatmodus. Leerraum, Groß-/Kleinschreibung und ein abschließender Punkt dürfen
+variieren; Fragezeichen und Zitierrahmen bleiben erhalten. Das beweist weder die
+Verbindlichkeit einer Quelle noch Bedingungen in einem Folgesatz. Das ist ein
+begrenzter Zusatzschutz, keine allgemeine Grammatikprüfung. Nur bei
 einer unverändert wiedergegebenen Regel darf der eigenständige Status „Freigabe
 liegt noch nicht vor“ derselben Quelle daneben stehen, ohne ihr zu widersprechen.
 """
@@ -675,6 +678,66 @@ def _regeltext(text: str) -> str:
     return ' '.join(text.lower().strip().strip('.!?').split())
 
 
+# This deliberately bounded source-unit contract is not a grammar/authority parser.
+# Preserve colons, semicolons, internal line wrapping and punctuation clusters.
+_REGELSIGNAL = re.compile(_NORMATIVE_AUSSAGE.pattern + r'|\b(?:muss|müssen|muessen|soll|sollen)\b', re.I)
+_ABKUERZUNG = re.compile(r'\b(?:z\s*\.\s*B\.|u\s*\.\s*a\.|d\s*\.\s*h\.|'
+                         r'Dr\.|Prof\.|Nr\.|bzw\.|ca\.|ggf\.|usw\.|etc\.)', re.I)
+_ZITATZEICHEN = re.compile(r'["\'„“”‚‘’«»‹›`]+')
+
+
+def originaltext(text: str) -> str:
+    """Only spacing/case and a final period may vary; questions/quotes never do."""
+    return ' '.join(text.strip().removesuffix('.').lower().split())
+
+
+def originalabschnitte(text: str) -> tuple[str, ...]:
+    """Complete bounded source units, keeping abbreviation/number punctuation intact.
+
+    Unknown grammar and inter-sentence document status are outside this contract.
+    A number's trailing period stays attached (ordinal/date ambiguity); merging
+    adjacent sentences conservatively is preferable to issuing a false fragment.
+    """
+    geschuetzt = {i for match in _ABKUERZUNG.finditer(text)
+                  for i in range(match.start(), match.end()) if text[i] == '.'}
+    teile, start = [], 0
+    for match in re.finditer(r'[.!?]+', text):
+        if all(text[i] == '.' and (i in geschuetzt or (i > 0 and text[i - 1].isdigit()))
+               for i in range(match.start(), match.end())):
+            continue
+        ende = match.end()
+        # A closing quote belongs to its sentence, never to the next one.
+        while ende < len(text) and text[ende] in '"\'“”‘’»›`':
+            ende += 1
+        if teil := text[start:ende].strip():
+            teile.append(teil)
+        start = ende
+    if teil := text[start:].strip():
+        teile.append(teil)
+    return tuple(teile)
+
+
+def originalregeln(text: str) -> tuple[str, ...]:
+    """Recognized permission/obligation units; literal binding, not truth proof."""
+    return tuple(originaltext(t) for t in originalabschnitte(text) if _REGELSIGNAL.search(t))
+
+
+def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str] | None = None) -> bool:
+    """If a cited source is normative, every clause needs an unquoted full original.
+
+    Quote context cannot safely be inferred from an inner sentence, so a source
+    with quotation delimiters cannot establish an affirmative rule here. The
+    caller keeps the full source in the quote fallback instead.
+    """
+    if not any(originalregeln(t) for t in quellen):
+        return True
+    if sichtbar is not None and len(sichtbar) != len(quellen):
+        return False
+    original = {originaltext(t) for n, quelle in enumerate(quellen) if not _ZITATZEICHEN.search(quelle)
+                for t in originalabschnitte(quelle) if sichtbar is None or t in sichtbar[n]}
+    return all(originaltext(t) in original for t in originalabschnitte(satz))
+
+
 def bedingte_regeln(text: str) -> tuple[str, ...]:
     """Recognized passive permission rules, complete and normalized only for spacing/case.
 
@@ -817,18 +880,8 @@ def _anwendbarkeit_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
 def _bedingung_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
     # Zeilenumbrüche sind Layout, keine sichere Satzgrenze: Die Bedingung kann
     # in der nächsten Zeile stehen. Gilt auch beim Lesen alter Antworten.
-    def ganze_abschnitte(text: str) -> list[str]:
-        return [t for t in re.split(r'[!?]|(?<!\d)\.(?!\d)', text) if t.strip()]
-
-    original = {_regeltext(t) for b in belege for t in ganze_abschnitte(b.text)}
-    bedingte_regeln_vorhanden = any(bedingte_regeln_fuer_antwort(b.text) for b in belege)
-    if bedingte_regeln_vorhanden:
-        for teil in ganze_abschnitte(satz):
-            # Preserve the existing fail-closed behavior for recognized
-            # conditional permissions: every answer sentence must remain an
-            # exact source clause. The quote fallback keeps the source visible.
-            if _regeltext(teil) not in original:
-                return 'Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege'
+    if not originalbindung(satz, [b.text for b in belege]):
+        return 'Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege'
     return None
 
 

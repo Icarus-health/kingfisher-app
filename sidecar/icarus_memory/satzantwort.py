@@ -62,7 +62,7 @@ from .akten_kontext import Kontext, Ueberholt
 from .kennzeichnung import Kennzeichen, Rahmen
 from .kontakte import absender_text
 from .lage import verdaechtig
-from .satzpruefung import Beleg, Satz, bedingte_regeln_fuer_antwort
+from .satzpruefung import Beleg, Satz
 from .satzpruefung_modell import Tor
 from .working_memory_store import WorkingMemoryStore
 from .zeitmessung import Zeiten
@@ -391,6 +391,9 @@ def pruefe_satz(satz: Satz, belege: dict[str, AntwortBeleg], jetzt: datetime, zu
     gruende: list[str] = []
     zitiert = [belege[str(n)] for n in dict.fromkeys(satz.belege) if str(n) in belege]
     text = satz.text.strip() if isinstance(satz.text, str) else ''
+    if not satzpruefung.originalbindung(text, [b.pruef_text or b.text for b in zitiert],
+                                      sichtbar=[b.text for b in zitiert]):
+        gruende.append('Regel steht nicht als vollständige sichtbare Originalstelle im Beleg')
     pruef_text, anzeige, relativ = text, text, False
     aufgeloest = relative_zeit.aufloesen(text, jetzt) if text and zitiert else []
     if aufgeloest:
@@ -522,9 +525,7 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
         if beleg.gekuerzt and not beleg.pruef_text:
             continue
         nummer = 0
-        for match in re.finditer(r'.+?(?:[!?]|(?<!\d)\.(?!\d)|$)',
-                                 beleg.pruef_text or beleg.text, re.S):
-            text = match.group().strip()
+        for text in satzpruefung.originalabschnitte(beleg.pruef_text or beleg.text):
             if (not text or text not in beleg.text
                     or '[…]' in text or '[gekürzt,' in text):
                 continue
@@ -564,7 +565,7 @@ def _original_lesen(antwort: Any, stellen: dict[tuple[int, int], str]) -> tuple[
         for satz in alte_saetze:
             original = next((text for (nr, _), text in stellen.items()
                              if str(nr) in satz.belege
-                             and text.rstrip('.!?') == satz.text.strip().rstrip('.!?')), None)
+                             and satzpruefung.originaltext(text) == satzpruefung.originaltext(satz.text)), None)
             # Nicht passende Alt-Ausgaben bleiben Kandidaten für dieselben
             # Prüftore, damit Verwerfungs- und Vollständigkeitsausweis erhalten bleiben.
             saetze.append(Satz(original, satz.belege) if original is not None else satz)
@@ -622,7 +623,7 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         return Versuch('zitate', grund='kein lokales Modell', tor=tor)
     modell = f'{getattr(anbieter, "name", "")} {getattr(anbieter, "model", "")}'.strip()
     try:
-        originalmodus = any(bedingte_regeln_fuer_antwort(b.pruef_text or b.text) for b in belege)
+        originalmodus = any(satzpruefung.originalregeln(b.pruef_text or b.text) for b in belege)
         stellen = _originalstellen(belege) if originalmodus else {}
         if originalmodus and not stellen:
             return Versuch('zitate', grund='Keine vollständige sichtbare Originalstelle', modell=modell, tor=tor)
@@ -666,10 +667,10 @@ def _eingestuft(satz: GeprueftSatz, nach_nummer: dict[str, AntwortBeleg], jetzt:
 
 
 def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg], verworfen: int) -> bool:
-    """Nach Verwerfung keine Quelle oder erkannte Erlaubnisregel verdecken.
+    """Nach Verwerfung keine Quelle oder erkannte Erlaubnis/Pflicht verdecken.
 
     Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
-    Erkannte passive Regeln bleiben nur bei vollständiger wörtlicher Wiedergabe;
+    Erkannte normative Regeln bleiben nur bei vollständiger wörtlicher Wiedergabe;
     sonst zeigt der Zitatmodus auch die innerhalb derselben Quelle verlorene Bedingung.
     Das ist keine allgemeine semantische Vollständigkeitsprüfung.
     """
@@ -680,9 +681,9 @@ def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]
     if {beleg.episode_id for beleg in belege} - vertreten:
         return True
     for beleg in belege:
-        regeln = set(bedingte_regeln_fuer_antwort(beleg.pruef_text or beleg.text))
+        regeln = set(satzpruefung.originalregeln(beleg.pruef_text or beleg.text))
         erhalten = {regel for satz in saetze if beleg.nummer in satz.belege
-                    for regel in bedingte_regeln_fuer_antwort(satz.text)}
+                    for regel in satzpruefung.originalregeln(satz.text)}
         if regeln - erhalten:
             return True
     return False
