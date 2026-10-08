@@ -119,3 +119,10 @@ Der [Bedingungsschutz](runs/2026-10-08-conditional-permissions/README.md) schlie
 33 neue und270 betroffene Prüfungen bestehen. Ein günstiger unabhängiger Reviewer fand echte Umgehungen im Zwischenstand (Umgangssprache/Pronomen, Plural, Zeichenkollisionen); sie sind vor Lieferung behoben und als Tests erhalten. Die aufgezeichnete native Q5-Ausgabe geht offline von Teilantwort auf Originalzitate; kein neuer Inferenz-/Abrufbenchmark. Netzloser Paket-Smoke und byteweiser Nachweis bestehen.
 
 Aktuell lokal **1.0.6-local.32d5a12** nach kalter Sicherung;344Originale,17SQLite-Dateien, Konten/Einstellungen und Importpause erhalten. Produktives Ollama aus. Bedingungsgrammatik außerhalb der erkannten passiven Formen, Auslassungen ohne Verwerfung, Abruf-/Auswahlverluste und echte Einordnungs-/Quellenabdeckung bleiben offen. Die native Fensterprüfung scheitert weiterhin am gesperrten Mac; Tages-/Akkuabnahme bleibt offen. Weiterhin kein insgesamt abgenommener CoS.
+
+
+### Aktueller Lieferstand: Quellenfrische und ehrlicher Fortschritt
+
+Die [Korrektur der Quellenfrische](runs/2026-10-08-source-coverage-freshness/README.md) öffnet Fortschritt und semantische Quellenlücke nach generationserhöhenden Metadatenänderungen sofort wieder. Veraltete Einordnungen werden nicht erneut eingebettet. Fehlende Altmarker werden nur nach vollständigem Fingerabdruckvergleich im nächsten autorisierten begrenzten Scan ergänzt; vorhandene passende Vektoren bleiben ohne erneute Inferenz nutzbar. Ausschluss und Entzug bleiben erhalten. 12 neue Regressionen, 170 betroffene Prüfungen, unabhängiges Review, byteweiser Paketnachweis und netzloser Smoke bestehen.
+
+Lokal **1.0.6-local.46aeef5** nach kalter Sicherung; 344 Originale, 17 SQLite-Dateien, Konten/Einstellungen und Importpause erhalten. Der reale Postfachverlauf ist noch weitgehend unaufgenommen: 304 von 122.399 inventarisierten Einträgen aufgenommen, 120.805 warten auf Abruf. Dies ist keine durchsuchbare Gesamtabdeckung. Bedeutungssuche bei ausgeschaltetem Ollama unavailable; native Tages-/Akkuabnahme und weitere Einordnungs-/Antwortqualität bleiben offen. Insgesamt kein fertiger CoS behauptet.

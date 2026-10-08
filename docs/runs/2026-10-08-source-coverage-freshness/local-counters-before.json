@@ -1,0 +1,34 @@
+{
+  "source_count": 333,
+  "classification_progress": {
+    "total": 329,
+    "done": 324,
+    "skipped": 4,
+    "retry": 1,
+    "remaining": 1,
+    "estimate_seconds": null
+  },
+  "semantic_status": "unavailable",
+  "semantic_source_pending": 0,
+  "background_paused": true,
+  "accounts": [
+    {
+      "started": true,
+      "paused": false,
+      "status": "pausiert",
+      "folders": [
+        {
+          "inventory_complete": true,
+          "total": 122399,
+          "captured": 304,
+          "duplicates": 0,
+          "pending": 120805,
+          "failed": 7,
+          "analyzed": 300,
+          "deferred": 4,
+          "excluded": 0
+        }
+      ]
+    }
+  ]
+}

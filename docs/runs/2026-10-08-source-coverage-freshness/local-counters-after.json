@@ -1,0 +1,14 @@
+{
+  "source_count": 333,
+  "classification_progress": {
+    "total": 329,
+    "done": 324,
+    "skipped": 4,
+    "retry": 1,
+    "remaining": 1,
+    "estimate_seconds": null
+  },
+  "semantic_status": "unavailable",
+  "semantic_source_pending": 0,
+  "background_paused": true
+}
