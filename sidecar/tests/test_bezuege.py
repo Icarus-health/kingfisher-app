@@ -364,9 +364,9 @@ def test_migration_baut_orte_ein_und_hebt_die_taxonomie_nur_bei_vorhandenem_best
     from tests.working_memory_legacy import downgrade_terms  # noqa: F401 - gleiche Hilfe wie die Nachbartests
     pfad = tmp_path / 'e.sqlite3'
     episodes = EpisodeStore(pfad)
-    # Frische Installation: Taxonomie bleibt bei Version 1.
-    assert episodes._conn.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()[:] == (1, 1)
-    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 18
+    # Frische Installation: Gesundheit ergänzt die Taxonomie, nicht den Bestand.
+    assert episodes._conn.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()[:] == (2, 1)
+    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 19
     # Orte sind als Art zulässig, unbekannte nicht.
     episodes._conn.execute("INSERT INTO memory_category_entities VALUES ('e','f','place',0,1,'mentioned')")
     with pytest.raises(Exception):
@@ -378,12 +378,13 @@ def test_migration_mit_vorhandenem_bestand_behaelt_zeilen_und_wertet_neu_aus(tmp
     from icarus_memory import memory_categories
     episodes = EpisodeStore(tmp_path / 'e.sqlite3')
     verbindung = episodes._conn
+    versionen_vorher = tuple(verbindung.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone())
     verbindung.execute("INSERT INTO memory_category_sources VALUES ('e-1','fp',1,'complete','m',NULL,0)")
     verbindung.execute("INSERT INTO memory_category_entities VALUES ('e-1','fp','person',0,5,'mentioned')")
     with episodes.transaction():
         memory_categories.migrate_ort(verbindung)
     # Zeilen bleiben, die Taxonomie wird angehoben, damit Orte auch im Bestand gefunden werden.
     assert verbindung.execute('SELECT kind FROM memory_category_entities').fetchall()[0][0] == 'person'
-    assert tuple(verbindung.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()) == (2, 2)
+    assert tuple(verbindung.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()) == (versionen_vorher[0] + 1, versionen_vorher[0] + 1)
     memory_categories.verify(verbindung)
     episodes.close()

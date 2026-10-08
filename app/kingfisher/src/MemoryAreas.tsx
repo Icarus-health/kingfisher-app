@@ -84,24 +84,24 @@ export function MemoryAreas() {
   const heading = view === "other" ? "Weitere Hinweise" : MEMORY_AREAS.find(area => area.id === view)?.label ?? "Gedächtnisbereich";
   return <section className="memory-areas" aria-label="Gedächtnisbereiche">
     <header className="memory-areas-heading"><p className="eyebrow">GEDÄCHTNIS</p><h1>Bereiche</h1>
-      <p>Themenhinweise aus vorhandenen Quellen. Automatische Hinweise sind ungeprüft und keine bestätigten Aussagen. Bereiche ändern weder Originale noch Suche. Menschen, Orte, Organisationen und Zeitverlauf bleiben in ihren eigenen Ansichten.</p>
+      <p>Deine Quellen nach Lebensbereichen. Eine Quelle kann zu mehreren Bereichen gehören. Automatische Zuordnungen sind ungeprüfte Vorschläge.</p>
     </header>
     <nav className="memory-area-tabs" aria-label="Bereichsansichten">
       {MEMORY_AREAS.map(area => <button key={area.id} type="button" aria-pressed={view === area.id} className={view === area.id ? "active" : ""} onClick={() => setView(area.id)}>{area.label}</button>)}
       <button type="button" aria-pressed={view === "other"} className={view === "other" ? "active" : ""} onClick={() => setView("other")}>Weitere Hinweise</button>
     </nav>
     <div className="memory-areas-title"><h2>{heading}</h2><p>{page ? `${visible.length} passende Quellen auf dieser Seite` : "Quellenhinweise"}</p></div>
-    {page && <p className="memory-area-meta">Seite {pageIndex + 1} · {page.scanned_count} Quellen in diesem Ausschnitt geprüft · Zahlen gelten nur für diese Seite{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}</p>}
+    {page && <p className="memory-area-meta">Seite {pageIndex + 1} · {page.scanned_count} Quellen in diesem Ausschnitt · Zahlen gelten nur für diese Seite{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}</p>}
     {error && <p role="alert">Die Themenhinweise konnten nicht geladen werden. <button type="button" disabled={loading} onClick={() => void load(retryNavigation)}>Erneut versuchen</button></p>}
     {!page && !error && <p role="status">Bereiche werden geladen …</p>}
     {unavailable && <p role="status">Dieser Bereich ist im bestehenden Themenverzeichnis nicht verfügbar. Vorhandene Zuordnungen bleiben erhalten.</p>}
     {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} />)}</div>
-      : <p className="memory-area-empty">{view === "other" ? `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine weiteren Hinweise oder offenen Einordnungen.` : `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine Hinweise für diesen Bereich.`}{nextCursor !== null ? " Ältere Quellen kannst du seitenweise ansehen." : " Das ist nur die aktuelle Seite der Quellenansicht."}</p>)}
-    {page?.truncated && <p role="status">Diese Seite zeigt einen Ausschnitt. Ältere Quellen bleiben über die Seitennavigation erreichbar.</p>}
+      : <p className="memory-area-empty">{view === "other" ? `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine weiteren Hinweise oder offenen Einordnungen.` : `In diesem Ausschnitt mit ${page.scanned_count} Quellen gibt es keine Hinweise für diesen Bereich.`}{nextCursor !== null ? " Weitere Quellen findest du auf der nächsten Seite." : " Das ist nur die aktuelle Seite der Quellenansicht."}</p>)}
+    {page?.truncated && <p role="status">Die Seiten folgen der Aufnahme in den Bestand, nicht dem Quelldatum. Weitere Quellen findest du auf der nächsten Seite.</p>}
     {page && <nav className="memory-area-pagination" aria-label="Quellenseiten">
-      <button className="memory-area-more" type="button" disabled={loading || pageIndex === 0} onClick={newerSources}>{loading ? "Wird geladen …" : "Neuere Quellen"}</button>
+      <button className="memory-area-more" type="button" disabled={loading || pageIndex === 0} onClick={newerSources}>{loading ? "Wird geladen …" : "Vorherige Seite"}</button>
       <span aria-live="polite">Seite {pageIndex + 1}</span>
-      <button className="memory-area-more" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : "Ältere Quellen"}</button>
+      <button className="memory-area-more" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : "Nächste Seite"}</button>
       <button className="memory-area-refresh" type="button" disabled={loading} onClick={refresh}>{loading ? "Wird aktualisiert …" : "Ansicht aktualisieren"}</button>
     </nav>}
   </section>;

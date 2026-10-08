@@ -58,8 +58,8 @@ test("the overview reads bounded pages only and retains the established memory v
   const component = readFileSync(new URL("../src/MemoryAreas.tsx", import.meta.url), "utf8");
   const graph = readFileSync(new URL("../src/MemoryGraph.tsx", import.meta.url), "utf8");
   assert.match(component, /api\.memoryAreas\(PAGE_SIZE, navigation\.cursor\)/);
-  assert.match(component, /Neuere Quellen/);
-  assert.match(component, /Ältere Quellen/);
+  assert.match(component, /Vorherige Seite/);
+  assert.match(component, /Nächste Seite/);
   assert.match(component, /setPager\(receiveAreaPage\(navigation, result\)\)/);
   assert.doesNotMatch(component, /setPages|flatMap\(page => page\.sources\)/, "only one source page is held in UI state");
   assert.match(component, /ProfileSource kind="episode"[\s\S]*readOnly allowIgnore=\{false\}/);
