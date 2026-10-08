@@ -42,3 +42,12 @@ nicht einem bestimmten Prozess zuzuordnen.
 **Sprache:** lokale Audio-Wiedergabe des Briefings ist als Funktion vorhanden. Sie belegt keinen Sprachdialog oder verlässliche Spracheingabe. Gesprächssteuerung per Sprache bleibt später; sie ist keine Voraussetzung für den Kernnachweis.
 
 Keine neue Nachrichtenquelle, kein Cloudmodell und kein extern wirkender Vorgang wird durch diese Produktplanung aktiviert. Modell- oder Anbieterzugänge bleiben optional und gesondert freizugeben.
+
+
+## Geprüfte Lieferung vom 8. Oktober
+
+Der [Liefernachweis](runs/2026-10-08-cos-delivery/README.md) dokumentiert Ziele → Aufgaben, Entwicklung, corpusweite Gedächtnisbereiche, öffentliche Quellen mit Herkunft, Belegprüfung und wörtliche Originalstellensuche. Der Code-Stand `da5b0e6` besteht 5245 Backend-/Diagnostik-/Mac-Tests (2 übersprungen), 375 Oberflächenprüfungen und den Produktionsbuild. Er ist nach kalter Sicherung lokal auf dem Mac installiert; native Bedienprüfung nach Austausch bleibt wegen des gesperrten Macs offen.
+
+Der echte lokale Antwortweg findet bei 16 direkten Fragen die erwarteten Quellen, aber nur bei 8 von 16 Umschreibungen. Die unabhängige Inhaltsprüfung fand außerdem erfundene Datumspräzision; Import- und Anzeigedaten dürfen jetzt keine fehlenden Quelldaten ersetzen. Zeitliche Anwendbarkeit und eine abgeschwächte Uhrzeitbedingung bleiben offen. Die Abnahme des gesamten Gedächtnisses und des täglichen CoS ist dadurch **nicht erreicht**.
+
+Nächste Kernarbeit: Kandidatenfund und Modellauswahl getrennt prüfen, Umschreibungen mit unabhängigen Kontrollen verbessern, danach Bedingungen und aktuelle Gültigkeit am Original absichern. Reale Quellenabdeckung und Alltags-/Akkutest bleiben gesonderte Nachweise. Mehr Module oder größere Modelle ersetzen diese Abnahme nicht.
