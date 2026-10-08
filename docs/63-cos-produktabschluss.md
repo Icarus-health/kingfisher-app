@@ -144,3 +144,22 @@ Die [Anhangskorrektur](runs/2026-10-08-attachment-source-quality/README.md) bind
 Lokal installiert **1.0.6-local.3483436** nach kalter Sicherung.344 Originale, 17 SQLite-Dateien, Konten/Einstellungen und explizite Importpause erhalten. Ein erster Updateversuch scheiterte am vollen Docker-Dateisystem; Rückweg und anschließend geprüfte Auslagerung ausschließlich eigener unbenutzter Buildpakete stellten den Start wieder her. Rund970 MiB sind frei; das ist noch keine Kapazitätsabnahme für große Importe. Der erfolgreiche erneute Installer prüfte vorher freien Platz. Native Fenster-/Tagesbedienung bleibt gesperrt bzw. nicht freigegeben, produktives Ollama aus und Bedeutungssuche unavailable.
 
 Nächster Produktnachweis ist der geschlossene Aufnahme-/Einordnungs-/Index-/Fragenablauf an einem begrenzten freigegebenen Quellenausschnitt. Der große persönliche Verlauf bleibt weitgehend unaufgenommen und ausdrücklich pausiert. Weitere Abruf-/Auswahlverluste sowie echte Alltags-/Akkuqualität bleiben offen; zusätzliche Funktionen oder weitere Sucharchitektur ersetzen diese Abnahme nicht. Der gesamte CoS bleibt noch unabgenommen.
+
+
+### Aktueller Lieferstand: Update-Speicher vor dem Umschalten prüfen
+
+Die [Update-Speicherprüfung](runs/2026-10-08-update-storage/README.md) schließt den beim vorherigen lokalen
+Update beobachteten Docker-ENOSPC-Fehlerweg: Vor Sicherung/Bildmarkierung sowie nach Download und vor
+Bildwahl/Neustart wird im laufenden Container lesend auf ausreichende Bytes, Dateiplätze und konservative
+Sicherungsreserve geprüft. Fehlende oder unzuverlässige Messwerte sperren das Update. Kein automatisches
+Löschen oder persönlicher Importstart.87 gezielte native/Python-Prüfungen und26 bestehende Mac-Prüfungen
+bestehen (1 Skip), unabhängiges Review ohne offenen Befund.
+
+Installiertes Fensterprogramm **1.0.6-local.a209ba8** (Apple Silicon), Backend unverändert
+**1.0.6-local.3483436**: Container ohne Neustart gesund,344 Originale und Einstellungen/Zugänge/Pause
+unverändert. Der kompilierte native Speicher-Adapter besteht beide Phasen am echten Bestand. Intel-Typprüfung
+besteht; universeller Link scheitert weiterhin an lokalen Werkzeugbibliotheken. Fensterbedienung wegen
+bestehender Mac-/Browsergrenzen offen. Rund973 MiB Docker-Freiplatz sind keine Kapazitätsabnahme für den
+umfangreichen persönlichen Import. Der geschlossene Aufnahme-/Einordnungs-/Index-/Fragenablauf,
+Quellenabdeckung, echte Antwortqualität und Tages-/Akkuabnahme bleiben die Kernabnahmen; der gesamte CoS
+ist weiterhin nicht fertig abgenommen.

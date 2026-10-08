@@ -27,6 +27,29 @@ Löschen, keine Importfreigabe, kein Modellstart und kein neues Backend-Bild.
 - Lesende Messung am echten Container:1.020.157.952 freie Bytes,3.018.992 freie Dateiplätze,
   51.750.967 Bytes in26 obersten regulären Datendateien. Keine Inhalte oder Geheimnisse im Bericht.
 
-Bau und Installation werden mit separatem Nachweis ergänzt. Native Fensterbedienung bleibt wegen
+## Bau und Installation
+
+Installiert ist die native Apple-Silicon-App **1.0.6-local.a209ba8**. Ihr signiertes Programm und die
+verpackte Probe sind durch SHA-256 in `installation.json` belegt. Die alte App und private Konfiguration
+liegen als Rückweg außerhalb des Repositorys. Der synchrone Dokumentordner ergänzte nach dem ersten
+Signieren Finder-Metadaten; die Prüfung brach vor jedem Austausch ab. Die saubere Signierung erfolgte
+anschließend außerhalb dieses Ordners, und die endgültig installierte App besteht die strenge Prüfung.
+
+Der native Docker-Adapter mit unverändertem Produkt-Shellcode prüft das installierte Probe-Paket am echten
+Container erfolgreich für beide Phasen (`before=ok`, `after=ok`). Der Container wurde **nicht neu gestartet**:
+Kennung, Startzeit, Bild,344 Original-IDs/Digests, Einstellungen und private Env-Datei sind unverändert;
+Dienst gesund und persönlicher Import weiterhin explizit pausiert. Der nächste normale App-Start verwendet
+das neue Fensterprogramm. Keine Fensterbedienung als bestanden behauptet.
+
+Ein universelles DMG wurde nicht fertiggestellt: Der lokale Intel-Link scheitert wie zuvor an fehlenden
+x86_64-Scheiben der Swift-Kompatibilitätsbibliotheken. Intel-Typprüfung besteht; installiert wurde nur der
+vollständig gebaute und signierte arm64-Stand für diesen Mac. Der universelle Release-Bau bleibt unverändert
+streng und fällt bei diesem Werkzeugfehler aus. `build.json` und das komprimierte Bauprotokoll dokumentieren
+die Grenze. Kein neuer öffentlicher Release, kein Docker-Image und keine GitHub-CI-Minuten verbraucht.
+
+Komprimierte Vorher-/Nachher-Protokolle und `log-manifest.json` halten die Nachweise prüfbar. Die gelaufenen
+Tests beziehen sich auf den Produktstand `a209ba8`; dieser Nachtrag verändert ausschließlich Dokumentation.
+
+ Native Fensterbedienung bleibt wegen
 Mac-/Browserfreigabe ungeprüft. Backend unverändert bei1.0.6-local.3483436, persönlicher Import pausiert,
 produktives Ollama aus. Dies ist kein fertiger CoS und keine Abnahme des großen persönlichen Datenbestands.
