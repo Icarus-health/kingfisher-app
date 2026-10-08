@@ -632,6 +632,25 @@ _ERLAUBNIS = re.compile(r'\b(?:darf|dürfen|duerfen)\b')
 _REGEL_BEDINGUNG = re.compile(r'\b(?:(?:erst|nur)\s+nach|wenn|sofern|sobald|falls)\b')
 _PASSIV = re.compile(r'\b([a-zäöüß]+)\s+werden\b')
 _FEHLT = re.compile(r'(?:(?:die|der|das|eine|ein)\s+)?([a-zäöüß]+)\s+(?:liegt|liegen)\s+(?:noch\s+)?nicht\s+vor')
+_ZEITRAHMEN = re.compile(
+    r'\b(?P<relation>vor|nach|während|waehrend|bevor|nachdem)\s+'
+    r'(?:(?:der|dem|den|die|das|des|einer|einem|eines)\s+)?'
+    r'(?:(?P<adjektiv>[a-zäöüß]+(?:e|en|em|er|es))\s+)?'
+    r'(?P<ereignis>[a-zäöüß]+)\b', re.I)
+_NORMATIVE_AUSSAGE = re.compile(
+    r'\b(?:darf|dürfen|duerfen|erlaubt\w*|zulässig\w*|zulaessig\w*|gestattet\w*|verboten\w*)\b', re.I)
+_ANWENDUNGS_STOP = frozenset(falten(w)[:5] for w in '''
+auftrag aufträge auftraegen vorgang vorgänge vorgaengen ticket tickets projekt projekte fall faelle
+rechnung rechnungen darf dürfen duerfen erlaubt erlauben zulässig zulaessig gestattet verboten verbot
+ausschliesslich ausschließlich
+'''.split())
+_RELATION_GLEICH = {'während': 'während', 'waehrend': 'während'}
+_ANWENDUNGS_KLAUSEL = re.compile(
+    r'[;:!?\n]|(?<!\d)\.|(?<=\d)\.(?=\s+(?!(?:' + _MONATSWORT + r')\b)[A-ZÄÖÜ])|,\s|'
+    r'\s(?:aber|sondern|jedoch)\s', re.I)
+_ANWENDUNGS_KOORDINATION = re.compile(r'\s+(?:und|oder)\s+', re.I)
+_ENDLICH = re.compile(r'\b(?:ist|sind|war|waren|wird|werden|wurde|wurden|hat|haben|kann|können|'
+                      r'muss|müssen|darf|dürfen|soll|sollen|liegt|liegen|steht|stehen|bleibt|bleiben)\b', re.I)
 
 
 def _regeltext(text: str) -> str:
@@ -647,6 +666,105 @@ def bedingte_regeln(text: str) -> tuple[str, ...]:
     """
     return tuple(t for teil in _abschnitte(text, False) if (t := _regeltext(teil))
                  and _ERLAUBNIS.search(t) and _REGEL_BEDINGUNG.search(t) and _PASSIV.search(t))
+
+
+def _anwendbarkeitsklauseln(text: str) -> list[str]:
+    """Split standalone conjuncts but preserve temporal 'während' as a scope marker."""
+    klauseln = []
+    for teil in _ANWENDUNGS_KLAUSEL.split(text):
+        if not teil.strip():
+            continue
+        start = 0
+        for koordination in _ANWENDUNGS_KOORDINATION.finditer(teil):
+            links, rechts = teil[start:koordination.start()], teil[koordination.end():]
+            finites_rechts = _ENDLICH.search(rechts)
+            if not _ENDLICH.search(links) or finites_rechts is None:
+                continue
+            subjekt = rechts[:finites_rechts.start()]
+            subjekt = _ZEITRAHMEN.sub(' ', subjekt)
+            if not _inhaltswoerter(subjekt):
+                continue
+            klauseln.append(links.strip())
+            start = koordination.end()
+        if teil[start:].strip():
+            klauseln.append(teil[start:].strip())
+    return klauseln
+
+
+def _anwendbarkeitsregeln(text: str) -> list[tuple[set[tuple[str, str, str]], set[str], set[str]]]:
+    """Explizit zeitlich begrenzte Erlaubnisse, je Klausel an ihrer Handlung verankert.
+
+    Die Anker lassen Vorgangskennung und Erlaubniswort absichtlich weg. Zwei
+    verbleibende Inhaltswörter sind nötig, damit eine Bedingung zu einem
+    anderen Gegenstand nicht wegen derselben Kennung oder desselben Modalverbs
+    an die Aussage geliehen wird.
+    """
+    regeln = []
+    for klausel in _anwendbarkeitsklauseln(text):
+        if not _NORMATIVE_AUSSAGE.search(klausel):
+            continue
+        zeitrahmen = list(_ZEITRAHMEN.finditer(klausel))
+        if not zeitrahmen:
+            continue
+        rest = klausel
+        for rahmen in reversed(zeitrahmen):
+            rest = rest[:rahmen.start()] + ' ' * (rahmen.end() - rahmen.start()) + rest[rahmen.end():]
+        rest, kennungen = _ohne(rest, _KENNUNG)
+        anker = _inhaltswoerter(rest) - _ANWENDUNGS_STOP
+        if len(anker) < 2:
+            continue
+        scopes = {
+            (_RELATION_GLEICH.get(rahmen['relation'].casefold(), rahmen['relation'].casefold()),
+             falten(rahmen['adjektiv'] or ''), falten(rahmen['ereignis']))
+            for rahmen in zeitrahmen
+        }
+        regeln.append((scopes, anker, {kennung.casefold() for kennung in kennungen}))
+    return regeln
+
+
+def _anwendbarkeitsanker(text: str) -> tuple[set[tuple[str, str, str]], set[str], set[str]] | None:
+    if not _NORMATIVE_AUSSAGE.search(text):
+        return None
+    zeitrahmen = list(_ZEITRAHMEN.finditer(text))
+    rest = text
+    for rahmen in reversed(zeitrahmen):
+        rest = rest[:rahmen.start()] + ' ' * (rahmen.end() - rahmen.start()) + rest[rahmen.end():]
+    rest, kennungen = _ohne(rest, _KENNUNG)
+    anker = _inhaltswoerter(rest) - _ANWENDUNGS_STOP
+    return (
+        {(_RELATION_GLEICH.get(rahmen['relation'].casefold(), rahmen['relation'].casefold()),
+          falten(rahmen['adjektiv'] or ''), falten(rahmen['ereignis'])) for rahmen in zeitrahmen},
+        anker,
+        {kennung.casefold() for kennung in kennungen},
+    )
+
+
+def _gemeinsame_anker(links: set[str], rechts: set[str]) -> int:
+    verwendet = set()
+    for linkswort in sorted(links):
+        rechtswort = next((wort for wort in sorted(rechts - verwendet)
+                           if _gleiches_wort(linkswort, wort)), None)
+        if rechtswort is not None:
+            verwendet.add(rechtswort)
+    return len(verwendet)
+
+
+def _anwendbarkeit_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
+    """Reject a paraphrased permission only when it restates that clause's action without its scope."""
+    kandidaten = [anker for klausel in _anwendbarkeitsklauseln(satz)
+                  if (anker := _anwendbarkeitsanker(klausel)) is not None]
+    for beleg in belege:
+        regeln = _anwendbarkeitsregeln(beleg.text)
+        for kandidat_scopes, kandidat_anker, kandidat_kennungen in kandidaten:
+            passende = [regel_scopes for regel_scopes, regel_anker, regel_kennungen in regeln
+                        if not (regel_kennungen and kandidat_kennungen
+                                and regel_kennungen.isdisjoint(kandidat_kennungen))
+                        and _gemeinsame_anker(regel_anker, kandidat_anker) >= 2]
+            # Separate source clauses are alternative permitted contexts; a
+            # conjunction of scopes inside one clause remains cumulative.
+            if passende and not any(scopes <= kandidat_scopes for scopes in passende):
+                return 'Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab'
+    return None
 
 
 def _bedingung_verloren(satz: str, belege: Sequence[Beleg]) -> str | None:
@@ -853,6 +971,9 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     bedingung = _bedingung_verloren(text, zitiert)
     if bedingung:
         gruende.append(bedingung)
+    anwendbarkeit = _anwendbarkeit_verloren(text, zitiert)
+    if anwendbarkeit:
+        gruende.append(anwendbarkeit)
     umkehr = _verneinungsumkehr(text, zitiert, pool)
     if umkehr:
         gruende.append(umkehr)

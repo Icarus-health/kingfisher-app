@@ -2,6 +2,15 @@
 
 Stand: 8. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
 
+## Aktueller Stand auf einen Blick (9. Oktober)
+
+- **Installiert und auf GitHub zusammengeführt:** Backend `1.0.6-local.c351090`, PR 23. Ausdrücklich erfragte alphanumerische Vorgänge begrenzen die Originalbelege auch im alten Verlauf. 344 Originale und 17 Datenbanken erhalten; vollständige Rückwegsicherung vorhanden.
+- **Nachgewiesen am kleinen künstlichen Bestand:** 23/23 richtige Quellen-/Statusentscheidungen; Quellenentzug nach Neustart wirksam. Eine Antwort lässt trotzdem „vor der Reinigung“ weg, deshalb nur 22/23 ohne zu weite Zusatzbehauptung. Das nächste begrenzte Update schützt diese Anwendungsbedingung.
+- **Weiterhin angehalten:** persönlicher Import und produktives Ollama. Keine neue Cloudfreigabe, keine neue Ausgabe. Verbundene Konten sind kein Nachweis vollständiger Aufnahme.
+- **Für den persönlichen Pilot noch erforderlich:** korrigierte Antwortbedingungen, unabhängige neue Kontrollfragen, Bestandsabgleich der gewünschten Mail-/Kalenderquellen und native Tages-/Akkuprüfung. Die native Fensterprüfung ist auch nach diesem Update wegen des gesperrten Macs offen.
+
+Die folgenden Liefernotizen dokumentieren die Entwicklung; ältere Versionsangaben sind historische Zwischenstände. Maßgeblich sind dieser aktuelle Stand und die zugehörigen Nachweise.
+
 ## Abnahmematrix
 
 | Bereich | Bereits gebaut | Noch offen für den Produktnachweis | Abnahme im Alltag |
