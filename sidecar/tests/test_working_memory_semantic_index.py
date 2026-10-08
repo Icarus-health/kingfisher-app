@@ -372,3 +372,35 @@ def test_cycle_horizon_excludes_new_insertions_inside_hash_key_range(tmp_path):
         assert accepted == 2
     assert target_id in seen
     cache.close(); episodes.close()
+
+
+@pytest.mark.parametrize('operation', ['search', 'commit'])
+def test_source_replacement_during_operation_fails_closed(tmp_path, monkeypatch, operation):
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    add(episodes)
+    cache = index_for(episodes)
+    batch = cache.pending(1)
+    if operation == 'search':
+        cache.commit(batch, [[1., 0.]])
+    replacement = EpisodeStore(tmp_path / 'replacement.sqlite3')
+    replacement.close()
+    original_guard = cache._guard
+    triggered = []
+    def replacing_guard():
+        result = original_guard()
+        if not triggered:
+            triggered.append(True)
+            (tmp_path / 'replacement.sqlite3').replace(tmp_path / 'episodes.sqlite3')
+        return result
+    monkeypatch.setattr(cache, '_guard', replacing_guard)
+    with pytest.raises(ValueError, match='source file|replaced'):
+        if operation == 'search':
+            cache.search([1., 0.])
+        else:
+            cache.commit(batch, [[1., 0.]])
+    cache.close()
+    with sqlite3.connect(cache.path) as db:
+        assert db.execute('SELECT COUNT(*) FROM entries').fetchone()[0] == (1 if operation == 'search' else 0)
+        if operation == 'commit':
+            assert db.execute('SELECT dimension FROM progress').fetchone()[0] is None
+    episodes.close()

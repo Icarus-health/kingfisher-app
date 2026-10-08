@@ -160,6 +160,11 @@ class DurableSemanticIndex:
             try:
                 row = self._guard() if guard else None
                 yield row
+                if guard:
+                    # An external restore can replace the path while both
+                    # SQLite handles still read its old inode. Abort before
+                    # returning evidence or publishing derived progress.
+                    self._guard()
                 self._conn.commit()
             except BaseException:
                 self._conn.rollback()

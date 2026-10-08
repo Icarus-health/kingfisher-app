@@ -20,23 +20,23 @@ Create `working_memory_semantic_index.py` and focused real-store tests. Pin sqli
 
 Produces `DurableSemanticIndex(episodes, model_key)` with `close()`, `pending(limit)` returning immutable `IndexBatch(refs, token, cursor, ceiling)`, `commit(batch, vectors)`, `coverage()` and `search(vector, limit, threshold)`. Cache is per database under `.search-cache`; sources attached read-only; reject in-memory store, symlink, source-file replacement, invalid model key. Model change atomically resets derived data and invalidates stale handles/batches. Dimension change with same model is an error, not a destructive reset.
 
-- [ ] Write failing tests for reopening/reuse, source DB extension-free integrity, model separation and batch rollback.
-- [ ] Run RED; implement minimal cache, exact native KNN, version/format guards and finite normalized vectors.
-- [ ] GREEN targeted new file plus existing store/semantic tests, commit with skip ci.
+- [x] Write failing tests for reopening/reuse, source DB extension-free integrity, model separation and batch rollback.
+- [x] Run RED; implement minimal cache, exact native KNN, version/format guards and finite normalized vectors.
+- [x] GREEN targeted new file plus existing store/semantic tests, commit with skip ci.
 
 ## Task 2: fair bounded backfill and withdrawal
 
 Stable SQL insertion-position keyset with persisted finite cycle ceiling, no OFFSET/newest window. One pending batch <=64, no cursor advancement until commit/failure; repeat after restart. Failures advance cursor with 300-second per-item cooldown. Before persisting, resolve against live store under source lock; no external/model call in this module. Revalidate hits after native search; stale rejected hits mark result partial. Counts join current eligible source items; ignored/archived/non-head/conversation-lookup rows are excluded. Old stale rows can be pruned in bounded groups. Successful progress survives a later error.
 
-- [ ] RED: old reference beyond2048, constant new arrivals, ignore/change during batch, stale concurrent batch/model handles, malformed embeddings and cooldown.
-- [ ] Implement fair cursor and atomic vector/reference/progress transaction; source generation/digest binding and bounded prune.
-- [ ] GREEN focused suites; commit.
+- [x] RED: old reference beyond2048, constant new arrivals, ignore/change during batch, stale concurrent batch/model handles, malformed embeddings and cooldown.
+- [x] Implement fair cursor and atomic vector/reference/progress transaction; source generation/digest binding and bounded prune.
+- [x] GREEN focused suites; commit.
 
 ## Task 3: failure boundaries and independent review
 
-- [ ] RED/GREEN: corrupt cache fails closed without changing originals, read-only attached DB, source replacement forces reopen, no plaintext source storage, no cross-store leakage, persisted delete and missed candidates report partial.
-- [ ] Inspect diff; run affected suites once, package and Linux arm64 smoke test. Record actual commands/results and remaining integration work.
-- [ ] Fresh independent review of storage branch; fix important findings with failing tests first. No automatic production activation, Mac replacement or claim of complete memory from this component.
+- [x] RED/GREEN: corrupt cache fails closed without changing originals, read-only attached DB, source replacement forces reopen, no plaintext source storage, no cross-store leakage, persisted delete and missed candidates report partial.
+- [x] Inspect diff; run affected suites once, package and Linux arm64 smoke test. Record actual commands/results and remaining integration work.
+- [x] Fresh independent review of storage branch; fix important findings with failing tests first. No automatic production activation, Mac replacement or claim of complete memory from this component.
 
 ## Review Focus
 
