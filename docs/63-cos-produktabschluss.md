@@ -103,3 +103,10 @@ Die [Satzprüfungs-Korrektur und die getrennte native Qualitätsmessung](runs/20
 Die59synthetischen freien Antworten messen ausdrücklich den vorherigen Produktcode064a4d9, nicht die Wirkung des Transportfixes. Alle35angezeigten freien Sätze werden im unabhängigen Quellenreview gestützt; elf bzw.zwei Fragen fallen auf Originalzitate zurück. Fehlender Abruf, verlorene Auswahl und vor allem drei materiell unvollständige Kontrollantworten bleiben: Die Prüfung verwirft belegte Bedingungen bzw.den zweiten Termin eines Vergleichs. Nächster Kernblocker ist deshalb ein allgemeiner Schutz gegen solche Teilantworten mit erhaltenen Originalen, einschließlich gespeichertem Verlauf. Keine gelockerte Faktenprüfung oder auf Testbegriffe zugeschnittene Suchliste.
 
 Lokal installiert **1.0.6-local.0f0f5da** nach kalter Sicherung;344Originale,17SQLite-Dateien, Konten/Einstellungen und Importpause erhalten. Produktives Ollama bleibt aus. Reale Einordnungs-/Quellenabdeckung und native Tages-/Akkuabnahme bleiben offen; kein fertiger CoS behauptet.
+
+
+### Aktueller Lieferstand: keine verschwundene Quelle nach Teilverwerfung
+
+Der [quellenbezogene Teilantwortschutz](runs/2026-10-08-partial-answer-source-loss/README.md) schließt jetzt zwei der unabhängig gefundenen Anzeigeverluste: Nach einer Satzverwerfung fällt eine Antwort auf Originalstellen zurück, sobald eine vorgelegte Quelle in den übrigen Sätzen ganz fehlt. Beide aufgezeichneten Problemfälle werden offline unverändert reproduziert und gehen nachher in den Zitatmodus. Auch alte gespeicherte Teilantworten sind geschützt; geprüfte Wandel-Sätze und Quellenentzug bleiben erhalten.73 enge und260 betroffene Prüfungen, unabhängiges Review und netzloser Paket-Smoke bestehen.
+
+Aktuell lokal **1.0.6-local.cde3129** nach kalter Sicherung;344Originale,17SQLite-Dateien, Konten/Einstellungen und Importpause erhalten. Noch offen sind verlorene Bedingungen innerhalb derselben Quelle, Auslassungen ohne Satzverwerfung, Abruf-/Auswahlverluste, echte Quellen-/Einordnungsabdeckung und native Tages-/Akkuabnahme. Der neue Guard ist keine semantische Vollständigkeitsgarantie und der gesamte CoS bleibt unabgenommen.

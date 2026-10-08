@@ -13,7 +13,8 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
 * **Jeder Satz läuft durch die Satzprüfung** (`satzpruefung.py`, ohne Modell): Zahlen,
   Daten, Uhrzeiten, Namen, Kennungen und Zusagen des Satzes müssen in den genannten
   Belegen stehen, eine Verneinung darf nicht umgekehrt sein. Ein Satz, der nicht besteht,
-  entfällt; die Zahl der verworfenen Sätze steht in der Antwort.
+  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt danach eine der
+  vorgelegten Quellen ganz in den übrigen Sätzen, gilt stattdessen der Zitatmodus.
 * **Überholtes wird nie als Stand genannt.** Trägt ein Beleg die Kennzeichnung „überholt“
   (`akten_kontext.py`), besteht ein Satz mit seiner überholten Angabe nur, wenn er
   zugleich die neuere Quelle nennt und den Wandel benennt („verschoben“, „vorher“,
@@ -560,6 +561,18 @@ def _eingestuft(satz: GeprueftSatz, nach_nummer: dict[str, AntwortBeleg], jetzt:
     return replace(satz, verlaesslichkeit=stufe.stufe, hinweis=stufe.hinweis)
 
 
+def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg], verworfen: int) -> bool:
+    """Nach Verwerfung keine Quelle ganz verdecken; keine semantische Vollständigkeitsprüfung.
+
+    Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
+    """
+    if verworfen <= 0:
+        return False
+    nummern = {n for satz in saetze for n in satz.belege}
+    vertreten = {beleg.episode_id for beleg in belege if beleg.nummer in nummern}
+    return bool({beleg.episode_id for beleg in belege} - vertreten)
+
+
 def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], jetzt: datetime,
               zusatz_woerter: Sequence[str], modell: str, tor: Tor = satzpruefung_modell.OHNE,
               zeiten: Zeiten | None = None) -> Versuch:
@@ -598,8 +611,11 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
     if am_tor:
         return Versuch('zitate', verworfen=verworfen + am_tor, modell=modell,
                        grund='Wandel einer überholten Quelle nicht belegbar: ' + am_tor[0].gruende[0])
-    durch += ergaenzt
-    return Versuch('saetze', [_eingestuft(satz, nach_nummer, jetzt) for satz in durch[:MAX_SAETZE + 2]], verworfen,
+    durch = (durch + ergaenzt)[:MAX_SAETZE + 2]
+    if _quelle_fehlt(durch, belege, len(verworfen)):
+        return Versuch('zitate', verworfen=verworfen, modell=modell,
+                       grund='Nach der Satzprüfung fehlt eine vorgelegte Quelle in der Teilantwort')
+    return Versuch('saetze', [_eingestuft(satz, nach_nummer, jetzt) for satz in durch], verworfen,
                    modell=modell)
 
 
@@ -726,7 +742,7 @@ def wiederherstellen(daten: Any, episodes: Any, claims: Any) -> Dargestellt | No
                 return None  # das zweite Tor lief, aber dieser Satz trägt sein Ja nicht: nicht zeigen
             saetze.append(_eingestuft(replace(neu, pruefmodell=urteil if urteil == satzpruefung_modell.JA else ''),
                                       nach_nummer, jetzt))
-        if not saetze:
+        if not saetze or _quelle_fehlt(saetze, belege, int(daten.get('verworfen', 0))):
             return None
         akte = [z.als_dict() for z in (akten_kontext.AktenZeile.aus_dict(x) for x in daten.get('akte', ())) if z is not None]
         return Dargestellt('saetze', saetze, belege, akte, int(daten.get('verworfen', 0)), str(daten.get('modell', '')),
