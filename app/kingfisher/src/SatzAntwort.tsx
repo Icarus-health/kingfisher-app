@@ -28,6 +28,7 @@ export function SatzAntwort({ daten, onChange }: { daten: SatzAntwortDaten; onCh
         </p>
       </li>)}
     </ol>
+    {daten.hinweise?.map((hinweis, index) => <p className="satz-abdeckung" key={index}>{hinweis}</p>)}
     {verworfenPruefmodell(daten.verworfen_pruefmodell) ? <p className="satz-hinweis">{verworfenPruefmodell(daten.verworfen_pruefmodell)}.</p> : null}
     {daten.verworfen ? <p className="satz-hinweis">{daten.verworfen === 1 ? "Ein Satz" : `${daten.verworfen} Sätze`} verworfen, weil die Belege {daten.verworfen === 1 ? "ihn" : "sie"} nicht getragen haben.</p> : null}
     <details className="satz-weg" open={offen} onToggle={event => setOffen(event.currentTarget.open)}>
