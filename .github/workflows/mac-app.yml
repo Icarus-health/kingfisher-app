@@ -30,7 +30,7 @@ jobs:
 
       - name: Logik prüfen
         run: |
-          xcrun swiftc macos/App/Logic/*.swift macos/tests/main.swift -o "$RUNNER_TEMP/kingfisher-logic"
+          xcrun swiftc macos/App/Logic/*.swift macos/Shared/PowerReporter.swift macos/tests/main.swift -o "$RUNNER_TEMP/kingfisher-logic"
           "$RUNNER_TEMP/kingfisher-logic"
 
       - name: Fenster des Bestands übersetzen

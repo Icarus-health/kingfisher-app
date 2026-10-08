@@ -1,5 +1,32 @@
 import Foundation
 
+// MARK: Native Energiebericht
+
+do {
+    expect(PowerSource.parse("Now drawing from 'AC Power'\n") == .ac, "pmset AC erkennen")
+    expect(PowerSource.parse("Now drawing from 'Battery Power'\n") == .battery, "pmset Batterie erkennen")
+    for unknown in ["", "Battery Power", "Now drawing from 'UPS Power'", "Now drawing from 'Battery Power'\nNow drawing from 'AC Power'"] {
+        expect(PowerSource.parse(unknown) == .unknown, "pmset-Fehler oder mehrdeutige Quelle bleibt unknown")
+    }
+    expect(PowerReportRequest.token(from: "# comment\nexport ICARUS_SIDECAR_TOKEN=secret\n") == "secret",
+           "genauen Token aus Env-Datei lesen")
+    expect(PowerReportRequest.token(from: "ICARUS_SIDECAR_TOKEN=\n") == nil, "leeren Token ablehnen")
+    expect(PowerReportRequest.token(from: "ICARUS_SIDECAR_TOKEN=secret\nICARUS_SIDECAR_TOKEN=\n") == nil,
+           "letzte Token-Zeile gilt")
+    let origin = URL(string: "http://127.0.0.1:8890")!
+    let request = PowerReportRequest.make(origin: origin, source: .battery, token: "secret")
+    expect(request?.url?.absoluteString == "http://127.0.0.1:8890/api/v1/device/power", "nur freigegebener Power-Endpunkt")
+    expect(request?.httpMethod == "POST" && request?.value(forHTTPHeaderField: "x-icarus-token") == "secret",
+           "authentifizierter POST")
+    expect(request?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } == ["source": "battery"],
+           "nur Quelle im Request senden")
+    expect(PowerReportRequest.make(origin: URL(string: "http://localhost:8890")!, source: .ac, token: "secret") == nil,
+           "localhost-Alias ablehnen")
+    expect(PowerReportRequest.make(origin: URL(string: "http://127.0.0.1:8890/andere")!, source: .ac, token: "secret") == nil,
+           "Origin mit Pfad ablehnen")
+    expect(PowerReportRequest.make(origin: origin, source: .ac, token: "\n") == nil, "ungültigen Token ablehnen")
+}
+
 // Prüfprogramm für die reine Logik der Mac-App (macos/App/Logic). Läuft überall, wo swiftc da ist, auch
 // unter Linux:
 //

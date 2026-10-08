@@ -1,11 +1,43 @@
 # Hintergrund ohne Nacht
 
-Stand: 30. September 2026. Gehört zu M2 aus [`41-zielbild.md`](41-zielbild.md)
+Stand: 8. Oktober 2026. Gehört zu M2 aus [`41-zielbild.md`](41-zielbild.md)
 (Abschnitt „Hintergrundarbeit ohne Nacht“).
 
 Viele Menschen schalten den Rechner nachts aus. „Nachts“ war nie die Bedingung
 der Hintergrundarbeit, nur der bequemste Fall. Dieses Dokument hält zuerst fest,
 was es heute an Hintergrundarbeit gibt, und dann die neue Regel.
+
+## Akku und geschlossene App
+
+Die Mac-App ab 1.0.6 meldet nach erfolgreichem Start und dann alle 30 Sekunden
+nur ihre Energiequelle an den eigenen lokalen Dienst. Auf Akku pausiert die
+automatische Arbeit des Zeitplans, einschließlich Mailaufnahme, Einordnung und
+geplanter Sicherungsdurchgänge.
+Am Netzteil läuft sie mit den bisherigen Ruhepausen weiter. Eine ausdrücklich
+gewählte Pause bleibt auch dann erhalten. Lesen, Aufgaben und direkte Anfragen
+bleiben erreichbar; bewusst ausgelöste Modellanfragen können weiterhin Energie
+verbrauchen. Bereits laufende Modellanfragen werden nicht mitten in ihrer
+Antwort abgebrochen.
+
+Die Messung muss höchstens 90 Sekunden alt sein. Fehlt sie, wartet der Zeitplan;
+eine alte Netzteilmeldung gilt nach einem Neustart nicht weiter. Die Pflicht zur
+Hostmessung bleibt nach dem ersten Bericht gespeichert. Ein eigenständiger
+Server ohne Mac-Geräteprofil und ohne bisherige Hostmeldung bleibt unverändert.
+Der Wartegrund erscheint in der Fortschrittsanzeige, ohne erfundenen
+Fertigstellungstermin. Eine Energiesperre ersetzt weder eine manuelle Pause noch
+eine Modellfreigabe.
+
+Fenster schließen beendet die App nicht zwingend; auch „Kingfisher beenden“
+beendet den Docker-Dienst und andere lokale Helfer nicht. Ohne neue Meldungen
+wartet der geschützte Zeitplan nach Ablauf der 90 Sekunden. Docker selbst,
+andere Container und separat laufende Quellenhelfer sind damit nicht angehalten.
+Die Regel ist daher kein Versprechen eines vollständig stromlosen Dienstes.
+
+Die neue Meldung braucht das neue native App-Bündel. Die Mindest-App-Version
+der Fassung 1.0.6 verhindert, dass der normale Updater nur den Backend-Teil in
+eine ältere App übernimmt. Die bisher installierte 1.0.5 erhält den Schutz erst
+durch eine spätere vollständige Aktualisierung. Der Batterieverbrauch muss danach
+noch in einem echten Arbeitsdurchgang verglichen werden.
 
 ## Bestandsaufnahme (vor dem Umbau)
 

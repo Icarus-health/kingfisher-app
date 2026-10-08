@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var configuration: AppConfiguration!
     var startup: Process?
     var starting = false
+    var powerReporter: PowerReporter?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         installMenu()
@@ -157,6 +158,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self.starting = false
                     self.retry.isEnabled = true
                     if result == 0 {
+                        if self.powerReporter == nil, let origin = config.origin {
+                            let reporter = PowerReporter(origin: origin, tokenFile: URL(fileURLWithPath: config.envFile))
+                            self.powerReporter = reporter
+                            reporter.start()
+                        }
                         surface.load(path: "today")
                     } else {
                         self.showStartupError("Kingfisher konnte nicht gestartet werden. Bitte prüfe Docker und den vorhandenen Projektordner und versuche es erneut.")
@@ -183,6 +189,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func applicationWillTerminate(_ notification: Notification) {
         startup?.terminate()
+        powerReporter?.stop()
         surface?.cancelDownloads()
     }
 }

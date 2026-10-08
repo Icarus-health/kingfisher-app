@@ -99,7 +99,7 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
 export function lerntFuss(stand: HintergrundStand | null, liestMails = false): {satz: string | null; grund: string | null; knopf: "Pausieren" | "Weiter" | null} {
   if (!stand) return {satz: null, grund: null, knopf: null};
   if (!IM_GANG.has(stand.zustand) || stand.fortschritt.offen <= 0) {
-    return liestMails ? {satz: null, grund: null, knopf: stand.pausiert ? "Weiter" : "Pausieren"} : {satz: null, grund: null, knopf: null};
+    return liestMails ? {satz: null, grund: stand.grund, knopf: stand.pausiert ? "Weiter" : "Pausieren"} : {satz: null, grund: null, knopf: null};
   }
   return {satz: stand.zustand === "pausiert" ? null : stand.satz, grund: stand.grund, knopf: stand.pausiert ? "Weiter" : "Pausieren"};
 }

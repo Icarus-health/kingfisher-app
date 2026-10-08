@@ -4,6 +4,7 @@ from . import abschnitte
 from .working_memory_analysis import UnsupportedSource, abschnitte_der, interpret_abschnitt
 from .working_memory_store import WorkingMemoryStore, source_fingerprint
 from .scheduler import JobResult
+from .hintergrund import BackgroundInterrupted
 from collections import OrderedDict, deque
 import threading
 import time
@@ -90,16 +91,20 @@ class Pace:
 
 
 def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitted, initial_model):
-    """Bearbeitet Abschnitte ab dem ersten offenen, höchstens `rest`. Gibt (Ergebnisse, verbraucht, gestoppt) zurück."""
+    """Gibt Ergebnisse, Verbrauch, gestoppt und ggf. den geordneten Abbruch zurück."""
     ergebnisse = list(bisher)
     verbraucht = 0
     while len(ergebnisse) < len(plan) and verbraucht < rest:
         with lock:
             if not permitted() or model_key(provider) != initial_model:
-                return ergebnisse, verbraucht, True
-        ergebnisse.append(interpret_abschnitt(provider, snapshot.episode, plan[len(ergebnisse)], len(plan)))
+                return ergebnisse, verbraucht, True, None
+        try:
+            ergebnisse.append(interpret_abschnitt(provider, snapshot.episode, plan[len(ergebnisse)], len(plan)))
+        except BackgroundInterrupted as interruption:
+            # Save completed sections in the caller before unwinding job locks.
+            return ergebnisse, verbraucht, True, interruption
         verbraucht += 1
-    return ergebnisse, verbraucht, False
+    return ergebnisse, verbraucht, False, None
 
 
 def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
@@ -149,7 +154,7 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
         try:
             plan = abschnitte_der(episode)
             bisher = stand.holen(episode.id, fingerprint, initial_model)
-            ergebnisse, verbraucht, gestoppt = _abschnitte_einordnen(
+            ergebnisse, verbraucht, gestoppt, interruption = _abschnitte_einordnen(
                 snapshot, provider, plan, bisher, rest, lock, permitted, initial_model)
         except UnsupportedSource:
             stand.verwerfen(episode.id)
@@ -169,6 +174,8 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
         rest -= verbraucht
         if gestoppt:
             stand.ablegen(episode.id, fingerprint, initial_model, ergebnisse)
+            if interruption is not None:
+                raise interruption
             break
         if len(ergebnisse) < len(plan):
             stand.ablegen(episode.id, fingerprint, initial_model, ergebnisse)

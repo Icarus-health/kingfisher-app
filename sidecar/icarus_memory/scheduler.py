@@ -417,9 +417,15 @@ class Scheduler:
         niedrige_prioritaet()
         def sperre():
             steuerung = self._steuerung
-            return steuerung.sperre() if steuerung is not None else None
+            if steuerung is None:
+                return None
+            # Manual pause keeps precedence in the UI, but must not hide an
+            # energy interruption that needs to release this job's locks.
+            external_gate = getattr(steuerung, 'external_gate', None)
+            external = external_gate() if callable(external_gate) else None
+            return external if external is not None else steuerung.sperre()
         try:
-            with als_hintergrund(sperre):
+            with als_hintergrund(sperre, stopped=self._stop.is_set):
                 self._loop()
         finally:
             with self._lifecycle_lock:
@@ -430,6 +436,18 @@ class Scheduler:
                         self._start_locked()
 
     def _loop(self) -> None:
+        from .hintergrund import BackgroundInterrupted
+        while not self._stop.is_set():
+            try:
+                self._loop_until_interrupted()
+            except BackgroundInterrupted:
+                # A pause must unwind job/restore locks, not become a failed
+                # source. Original sources remain pending for the next AC tick.
+                # Finished memory sections are kept in its bounded RAM cache;
+                # committed results and original sources remain intact.
+                continue
+
+    def _loop_until_interrupted(self) -> None:
         #: Pause, die die Steuerung nach einem Häppchen oder einer Sperre vorgibt (sonst der gewohnte Takt).
         pause: float | None = None
         while not self._stop.is_set():

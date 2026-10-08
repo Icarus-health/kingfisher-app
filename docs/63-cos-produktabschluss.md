@@ -1,6 +1,6 @@
 # Produktabschluss: vom vorhandenen Kern zum verlässlichen persönlichen CoS
 
-Stand: 7. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
+Stand: 8. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
 
 ## Abnahmematrix
 
@@ -20,6 +20,13 @@ Die zuvor gefundenen Listen- und Jahresgrenzen sind im Entwicklungsbranch korrig
 Mail → Aufgabe und Antwortentwurf nutzen weiterhin die vorhandenen quellengeschützten Wege. **Mail → Kalender mit automatischer Übernahme ist noch offen:** ohne Bindung an Originalfassung, Prüfung von Absagen und eindeutige Zeit-/Personenzuordnung wäre das ein neuer Fehlerrisikopfad. Der neue Terminentwurf ist deshalb manuell; er behauptet keine verifizierte Mailauswertung.
 
 ## Reihenfolge
+
+Vor dem nächsten persönlichen Dauerlauf gilt der Akkuschutz aus
+[`46-hintergrund.md`](46-hintergrund.md): automatische Zeitplanarbeit nur mit
+frischer Netzteilmeldung der neuen Mac-App. Der Schutz wird im Code geprüft;
+die Installation und ein vergleichbarer Akkutest im Alltag stehen noch aus.
+Der gemeldete hohe Verbrauch des Vortags ist durch eine spätere Einzelmessung
+nicht einem bestimmten Prozess zuzuordnen.
 
 1. Einen normalen Arbeitstag auf dem getrennten Testbestand durchlaufen und dabei die tatsächliche Quellenabdeckung sowie offene Aufgaben-/Kalendergrenzen messen.
 2. Nur die dabei beobachteten Blocker schließen: verlässliche Bestandsauswahl, verständlicher Eingang für Entscheidungen, Rückkehr zum Ausgangskontext und vollständige Kalenderzeiträume. Keine neue Datenbank oder Gedächtnisarchitektur ist dafür Voraussetzung.
