@@ -1,0 +1,27 @@
+{
+  "commit": "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a",
+  "archive_sha256": "c78af587a1b70bf8843f5eb39cb8e0a90e80b104d3ecc89a31e87729e6d3036e",
+  "catalog_sha256": "fcd785f6aadb0e483188de418b24fa5bc9f67fe2d533d3fb06c3a630374f0311",
+  "scope": "real second gate only; 11 once-only cases; original 8 negatives unchanged; no intake, search, UI or production settings",
+  "case_order": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "P01",
+    "P02",
+    "P03"
+  ],
+  "budget": "unchanged default tor: 2 seconds per sentence, 6 seconds per one-answer invocation; each case receives separate invocation",
+  "warmup": "one empty native model-load request, no inference prompt, counted separately",
+  "reruns": false,
+  "runner_files": {
+    "gate_client.py": "6432fc145c1f5cfabb67eff2dfa1f7b6c830661685dd95307ededfbf5d17107c",
+    "run_native.py": "f0a0515e6796b69b355490f5e71d47921c4709c30c7ad155af6cf8b3907eeecf"
+  },
+  "prior_owner_release": "Agent phase_permission_holdouts explicitly confirmed completed final run and stopped owned 11439 server before this run."
+}
