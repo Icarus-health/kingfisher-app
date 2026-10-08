@@ -188,6 +188,98 @@ def test_erfundene_uhrzeit_und_zeitbereich():
     faellt('Der Vortrag ist um 11:30 Uhr.', b, '11:30')
 
 
+def test_zeitbedingung_erst_nach_darf_nicht_zu_ab_abgeschwaecht_werden():
+    b = belege('Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.')
+
+    u = urteil('Für den Keramiktest kann man ab 10.00 Uhr anrufen.', b)
+
+    assert not u.bestanden
+
+
+@pytest.mark.parametrize('quelle', [
+    'Rufbereitschaft nur zwischen 10–12 Uhr.',
+    'Rufbereitschaft von 10 bis 12 Uhr.',
+    'Rufbereitschaft zwischen 10 und 12 Uhr.',
+    'Rufbereitschaft zwischen 10.00 und 12.00 Uhr.',
+    'Rufbereitschaft von 10.00–12.00 Uhr.',
+    'Rufbereitschaft von 10 Uhr bis 12 Uhr.',
+    'Rufbereitschaft von 10:00 bis 12:00.',
+])
+def test_zeitbereich_ist_keine_zwei_genauen_uhrzeiten(quelle):
+    faellt('Die Rufbereitschaft ist um 10 Uhr und 12 Uhr.', belege(quelle), 'Zeitbedingung')
+    faellt('Die Rufbereitschaft ist um 12 Uhr.', belege(quelle), 'Zeitbedingung')
+
+
+@pytest.mark.parametrize(('quelle', 'satz'), [
+    ('Rufbereitschaft nur zwischen 10–12 Uhr.', 'Rufbereitschaft nur zwischen 10 bis 12 Uhr.'),
+    ('Rufbereitschaft zwischen 10 und 12 Uhr.', 'Rufbereitschaft von 10 bis 12 Uhr.'),
+    ('Rufbereitschaft von 10 bis 12 Uhr.', 'Rufbereitschaft von 10:00 bis 12:00 Uhr.'),
+    ('Rufbereitschaft zwischen 10.15 und 12.30 Uhr.', 'Rufbereitschaft von 10:15 bis 12:30 Uhr.'),
+    ('Rufbereitschaft von 10.00–12.00 Uhr.', 'Rufbereitschaft von 10:00 bis 12:00.'),
+    ('Rufbereitschaft von 10 Uhr bis 12 Uhr.', 'Rufbereitschaft von 10:00 bis 12:00 Uhr.'),
+])
+def test_gleicher_zeitbereich_bleibt_erhalten(quelle, satz):
+    besteht(satz, belege(quelle))
+
+
+def test_verneinter_zeitbereich_ist_kein_bestaetigter_zeitbereich():
+    faellt('Rufbereitschaft von 10 bis 12 Uhr.',
+           belege('Rufbereitschaft nicht von 10 bis 12 Uhr.'), 'Zeitbedingung')
+
+
+def test_zeitbereiche_duerfen_nicht_neu_gepaart_werden():
+    faellt('Rufbereitschaft von 10 bis 14 Uhr.',
+           belege('Rufbereitschaft von 10 bis 12 Uhr und von 13 bis 14 Uhr.'), 'Zeitbedingung')
+
+
+@pytest.mark.parametrize(('quelle', 'satz'), [
+    ('Bitte nur nach 10 Uhr anrufen.', 'Bitte erst nach 10.00 Uhr anrufen.'),
+    ('Das Fenster frühestens ab 14 Uhr öffnen.', 'Das Fenster ab 14.00 Uhr öffnen.'),
+    ('Der Laden ist spätestens bis 17 Uhr erreichbar.', 'Der Laden ist bis 17.00 Uhr erreichbar.'),
+    ('Der Laden ist bis 17 Uhr erreichbar.', 'Der Laden ist bis 17.00 Uhr erreichbar.'),
+])
+def test_gleichwertige_zeitbedingungen_und_formatierung_bestehen(quelle, satz):
+    besteht(satz, belege(quelle))
+
+
+@pytest.mark.parametrize(('quelle', 'satz'), [
+    ('Das Fenster frühestens ab 14 Uhr öffnen.', 'Das Fenster vor 14 Uhr öffnen.'),
+    ('Der Laden ist bis 17 Uhr erreichbar.', 'Der Laden ist um 17 Uhr erreichbar.'),
+    ('Der Anruf ist um 10 Uhr möglich.', 'Der Anruf ist ab 10 Uhr möglich.'),
+])
+def test_geaenderte_zeitgrenze_wird_verworfen(quelle, satz):
+    u = urteil(satz, belege(quelle))
+
+    assert not u.bestanden
+
+
+def test_quellenkopf_fuegt_keine_zeitbedingung_zum_inhalt_hinzu():
+    b = {'1': Beleg('1', 'Der Anruf ist um 10 Uhr möglich.', MONTAG, 'Quelle: erst nach 11 Uhr')}
+
+    u = urteil('Der Anruf ist erst nach 11 Uhr möglich.', b)
+
+    assert not u.bestanden
+    assert any('Zeitbedingung' in grund for grund in u.gruende)
+
+
+def test_nicht_vor_und_vor_haben_verschiedene_uhrzeitbedingungen():
+    b = belege('Der Raum darf nicht vor 14 Uhr betreten werden.')
+
+    u = urteil('Der Raum darf vor 14 Uhr betreten werden.', b)
+
+    assert not u.bestanden
+    assert any('Zeitbedingung' in grund for grund in u.gruende)
+
+
+def test_gleiche_uhrzeit_in_mehreren_ereignissen_wird_vorsichtshalber_verworfen():
+    b = belege('Der Keramiktest ist um 10 Uhr. Der Rückruf ist erst nach 10 Uhr möglich.')
+
+    u = urteil('Der Keramiktest ist um 10 Uhr.', b)
+
+    assert not u.bestanden
+    assert any('Zeitbedingung' in grund for grund in u.gruende)
+
+
 # -- Zahlen und Beträge -----------------------------------------------------------------
 
 

@@ -1,0 +1,270 @@
+{
+  "source_report": "docs/evaluations/memory-quality/runs/2026-09-28-mac-acceptance/paraphrase.json",
+  "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+  "historical_only": true,
+  "not_a_fresh_model_run": true,
+  "rows": [
+    {
+      "question": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expected": [
+        "S1"
+      ],
+      "historical_top5": [
+        [
+          "S1",
+          0.5296
+        ],
+        [
+          "S11",
+          0.4779
+        ],
+        [
+          "S10",
+          0.4342
+        ],
+        [
+          "S5",
+          0.4302
+        ],
+        [
+          "S14",
+          0.4136
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Wo finde ich den Ausweis zum Reinkommen?",
+      "type": "paraphrase",
+      "expected": [
+        "S3"
+      ],
+      "historical_top5": [
+        [
+          "S3",
+          0.5179
+        ],
+        [
+          "S15",
+          0.4261
+        ],
+        [
+          "S6",
+          0.4244
+        ],
+        [
+          "S8",
+          0.4153
+        ],
+        [
+          "S2",
+          0.3931
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+      "type": "paraphrase",
+      "expected": [
+        "S4"
+      ],
+      "historical_top5": [
+        [
+          "S4",
+          0.5478
+        ],
+        [
+          "S10",
+          0.455
+        ],
+        [
+          "S16",
+          0.4219
+        ],
+        [
+          "S12",
+          0.3695
+        ],
+        [
+          "S2",
+          0.353
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Dürfen wir die Grafik öffentlich nutzen?",
+      "type": "paraphrase",
+      "expected": [
+        "S8"
+      ],
+      "historical_top5": [
+        [
+          "S8",
+          0.5398
+        ],
+        [
+          "S9",
+          0.4114
+        ],
+        [
+          "S3",
+          0.4059
+        ],
+        [
+          "S6",
+          0.384
+        ],
+        [
+          "S5",
+          0.3662
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+      "type": "paraphrase",
+      "expected": [
+        "S16"
+      ],
+      "historical_top5": [
+        [
+          "S16",
+          0.5473
+        ],
+        [
+          "S12",
+          0.4283
+        ],
+        [
+          "S15",
+          0.4229
+        ],
+        [
+          "S10",
+          0.399
+        ],
+        [
+          "S3",
+          0.3949
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Wie lautet die PIN meiner Bankkarte?",
+      "type": "unanswerable",
+      "expected": [],
+      "historical_top5": [
+        [
+          "S3",
+          0.541
+        ],
+        [
+          "S10",
+          0.4078
+        ],
+        [
+          "S2",
+          0.4001
+        ],
+        [
+          "S8",
+          0.3972
+        ],
+        [
+          "S11",
+          0.3941
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Welche Blutgruppe habe ich?",
+      "type": "unanswerable",
+      "expected": [],
+      "historical_top5": [
+        [
+          "S6",
+          0.4107
+        ],
+        [
+          "S13",
+          0.4084
+        ],
+        [
+          "S11",
+          0.3527
+        ],
+        [
+          "S3",
+          0.3418
+        ],
+        [
+          "S8",
+          0.3306
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Wann hat meine Schwester Geburtstag?",
+      "type": "unanswerable",
+      "expected": [],
+      "historical_top5": [
+        [
+          "S2",
+          0.3768
+        ],
+        [
+          "S12",
+          0.3497
+        ],
+        [
+          "S5",
+          0.3495
+        ],
+        [
+          "S15",
+          0.3365
+        ],
+        [
+          "S1",
+          0.3319
+        ]
+      ],
+      "above_055": []
+    },
+    {
+      "question": "Welches Passwort hat das WLAN?",
+      "type": "unanswerable",
+      "expected": [],
+      "historical_top5": [
+        [
+          "S3",
+          0.4593
+        ],
+        [
+          "S8",
+          0.3971
+        ],
+        [
+          "S1",
+          0.3887
+        ],
+        [
+          "S5",
+          0.3855
+        ],
+        [
+          "S10",
+          0.3629
+        ]
+      ],
+      "above_055": []
+    }
+  ]
+}

@@ -361,6 +361,25 @@ def test_gespeicherte_saetze_werden_beim_anzeigen_erneut_geprueft(raum):
     assert satzantwort.wiederherstellen({**gespeichert['satzantwort'], 'stichtag': '2026-09-29T08:00:00'}, episodes, claims) is None
 
 
+def test_gespeicherte_abgeschwaechte_uhrzeitbedingung_faellt_auf_quellenzitat_zurueck(raum):
+    episodes, claims, _ = raum
+    source = 'Für den Keramiktest bitte erst nach 10 Uhr anrufen; morgens bin ich in der Werkstatt.'
+    mail(episodes, 'Keramiktest', [(source, 'fact')], tage=1)
+    gespeichert = antwort(raum, Skript({'status': 'antwort', 'saetze': [
+        {'text': 'Für den Keramiktest bitte erst nach 10 Uhr anrufen.', 'belege': [1]}]}),
+        frage='Wann kann man für den Keramiktest anrufen?')
+    assert gespeichert['satzantwort']['status'] == 'saetze'
+
+    legacy = copy.deepcopy(gespeichert)
+    legacy['satzantwort']['saetze'][0]['roh'] = 'Für den Keramiktest kann man ab 10.00 Uhr anrufen.'
+    legacy['satzantwort']['saetze'][0]['text'] = legacy['satzantwort']['saetze'][0]['roh']
+    angezeigter_text, _, status = wma.render(legacy, episodes, claims)
+
+    assert status == 'working_reports'
+    assert source in angezeigter_text
+    assert 'kann man ab 10.00 Uhr' not in angezeigter_text
+
+
 def test_die_antwort_bleibt_frisch_bei_fremder_mail_und_wird_veraltet_bei_neuer_frist(raum):
     episodes, claims, akten = raum
     wandel(episodes)

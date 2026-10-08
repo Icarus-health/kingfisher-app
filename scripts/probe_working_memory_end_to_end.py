@@ -15,6 +15,7 @@ import sys
 import tempfile
 import threading
 import time
+from unittest.mock import patch
 from urllib.parse import urlsplit, urlunsplit
 
 import httpx
@@ -27,7 +28,7 @@ from icarus_memory.claims import ClaimStore
 from icarus_memory.policy import Policy
 from icarus_memory.providers import OpenAICompatible, is_local_endpoint
 from icarus_memory.satzpruefung_modell import tor
-from icarus_memory import working_memory_answers
+from icarus_memory import working_memory_answers, working_memory_semantic
 from probe_working_memory_paraphrase import build, catalog_digest
 
 
@@ -104,7 +105,61 @@ def local_provider(model, base_url):
     return provider
 
 
-def evaluate(item, turn, alias):
+def answer_with_trace(agent, question):
+    """Observe the genuine path, including candidates lost before a stored answer.
+
+    Only this standalone sequential synthetic harness installs these wrappers.
+    They forward every argument/result unchanged and are restored on all exits.
+    """
+    trace = {'question_understanding': None, 'working_attempted': False, 'candidate_calls': [],
+             'semantic_enabled': None, 'semantic_calls': []}
+    understand = agent.frage_verstehen
+    working = agent._working_memory_turn
+    find = working_memory_answers._candidates
+    get_meaning = working_memory_semantic.for_provider
+
+    def understood(*args, **kwargs):
+        result = understand(*args, **kwargs)
+        trace['question_understanding'] = result.als_dict()
+        return result
+
+    def attempted(*args, **kwargs):
+        trace['working_attempted'] = True
+        return working(*args, **kwargs)
+
+    def candidates(*args, **kwargs):
+        result = find(*args, **kwargs)
+        trace['candidate_calls'].append({'query': args[0],
+            'refs': [dict(ref) for ref in result[0]], 'limited': bool(result[2]),
+            'search': dict(kwargs.get('stats') or {})})
+        return result
+
+    def meaning(*args, **kwargs):
+        original = get_meaning(*args, **kwargs)
+        trace['semantic_enabled'] = original is not None
+        if original is None:
+            return None
+
+        class ObservedMeaning:
+            def search(self, *search_args, **search_kwargs):
+                refs = original.search(*search_args, **search_kwargs)
+                inner = getattr(original, '_search', None)
+                status = getattr(inner if inner is not None else original, 'status', None)
+                trace['semantic_calls'].append({'status': status or 'not_observed',
+                                               'refs': [dict(ref) for ref in refs]})
+                return refs
+
+        return ObservedMeaning()
+
+    with patch.object(agent, 'frage_verstehen', understood), \
+            patch.object(agent, '_working_memory_turn', attempted), \
+            patch.object(working_memory_answers, '_candidates', candidates), \
+            patch.object(working_memory_semantic, 'for_provider', meaning):
+        turn = agent.answer_memory(question)
+    return turn, trace
+
+
+def evaluate(item, turn, alias, trace=None):
     context = turn.context
     working = context.get('working_answer', {})
     status = context.get('answer_contract', {}).get('status', 'missing_contract')
@@ -129,8 +184,10 @@ def evaluate(item, turn, alias):
     unknown = status in {'unknown', 'working_unknown'}
     status_ok = unknown if not expected else status == 'working_reports'
     exact = shown == expected
-    candidates = names(working.get('basis', []))
-    trace_available = 'basis' in working
+    candidate_calls = (trace or {}).get('candidate_calls', [])
+    basis = working.get('basis', candidate_calls[-1]['refs'] if candidate_calls else [])
+    candidates = names(basis)
+    trace_available = 'basis' in working or bool(candidate_calls)
     in_candidates = (bool(expected) and set(expected) <= set(candidates)) if trace_available else None
     in_selection = bool(expected) and set(expected) <= set(selected)
     in_display = bool(expected) and set(expected) <= set(shown)
@@ -146,7 +203,9 @@ def evaluate(item, turn, alias):
             'expected_in_selection': in_selection, 'expected_in_display': in_display,
             'first_missing_stage': missing_stage,
             'selection_pass': exact and status_ok and valid, 'answer': turn.reply,
-            'question_understanding': working.get('anfrage'), 'search': working.get('search'),
+            'question_understanding': working.get('anfrage', (trace or {}).get('question_understanding')),
+            'search': working.get('search', candidate_calls[-1]['search'] if candidate_calls else None),
+            'execution_trace': trace,
             'sentence_answer': working.get('satzantwort'), 'times': context.get('zeiten')}
 
 
@@ -169,8 +228,8 @@ def run(provider, *, sentences=True, limit=None):
                 agent._saetze = sentences
                 agent._pruefung = lambda: tor('an', metered)
                 calls, started = metered.calls, time.perf_counter()
-                turn = agent.answer_memory(item['q'])
-                row = evaluate(item, turn, alias)
+                turn, trace = answer_with_trace(agent, item['q'])
+                row = evaluate(item, turn, alias, trace)
                 row.update(seconds=round(time.perf_counter() - started, 3), calls=metered.calls - calls)
                 outcomes = metered.outcomes(calls)
                 row.update(provider_errors=outcomes['failed'], provider_pending=outcomes['pending'])

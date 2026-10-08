@@ -48,3 +48,14 @@
 - [ ] Beobachteten allgemeinen Defekt reproduzieren und mit einem unabhängigen Kontrollsatz absichern.
 - [ ] Betroffene Prüfungen und echten eingefrorenen Vergleich ausführen, Grenzen offen dokumentieren.
 - [ ] Nach Review geprüften Stand auf GitHub und bei Produktänderung datenerhaltend am Mac aktualisieren.
+
+### Task 4: Beobachtete Uhrzeitbedingung bewahren
+
+**Files:** `sidecar/icarus_memory/satzpruefung.py`, `sidecar/tests/test_satzpruefung.py`, `sidecar/tests/test_satzantwort.py`.
+
+**Ruling:** Der echte Bericht enthält unabhängig vom Kandidatenabruf eine nachweisbare Bedeutungsänderung „erst nach 10 Uhr“ → „ab 10 Uhr“. Dieser konkrete Fehler wird parallel begrenzt korrigiert; ein blockierter neuer Modellstart ist dafür keine Voraussetzung. Zuständige Quellen und alte Antworten dürfen nicht verändert werden. Die gemeinsame Satzprüfung soll die Änderung verwerfen, der bestehende Renderweg auf das Originalzitat zurückfallen. Das ist eine begrenzte Prüfung von Uhrzeitgrenzen, keine allgemeine semantische Wahrheitsgarantie.
+
+- [x] Echte Fehlformulierung sowie unabhängige Zeit-/Themenfälle als RED reproduzieren.
+- [x] Allgemeine Prüfung lokaler Uhrzeitbedingungen implementieren; Quellenkopf ist kein zusätzlicher Bedingungsbeleg.
+- [x] Unveränderte Zeiten, unterstützte Schreibweisen und Zeitbereiche erhalten; gespeicherte alte Satzantwort beim Rendern erneut prüfen.
+- [x] Relevante Satz-/Antwort-/Zeitprüfungen und unabhängiges Diff-Review abschließen.

@@ -59,6 +59,65 @@ def test_observed_empty_candidates_are_a_retrieval_loss():
     assert row['expected_in_candidates'] is False and row['first_missing_stage'] == 'retrieval'
 
 
+def test_early_unknown_retains_actual_candidate_trace_without_changing_turn(monkeypatch):
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    report = probe.run(AllSources(), sentences=False, limit=2)
+    row = report['rows'][1]
+    assert row['status'] == 'unknown' and row['shown_sources'] == []
+    assert row['candidate_trace_available'] is True
+    assert row['expected_in_candidates'] is False and row['first_missing_stage'] == 'retrieval'
+    assert row['execution_trace']['working_attempted'] is True
+    assert row['execution_trace']['question_understanding']['herkunft'] == 'rueckfall'
+    assert row['execution_trace']['candidate_calls'][-1]['refs'] == []
+
+
+def test_trace_does_not_replace_product_functions_after_diagnostic_run(monkeypatch):
+    monkeypatch.delenv('ICARUS_MEMORY_SEMANTIC', raising=False)
+    original = probe.working_memory_answers._candidates
+    report = probe.run(AllSources(), sentences=False, limit=1)
+    assert probe.working_memory_answers._candidates is original
+    assert report['rows'][0]['execution_trace']['candidate_calls']
+
+
+def test_semantic_failure_is_visible_without_altering_lexical_results(monkeypatch):
+    from icarus_memory import working_memory_semantic
+
+    class FailedMeaning:
+        status = 'unavailable'
+
+        def search(self, episodes, query, limit):
+            return []
+
+    monkeypatch.setattr(working_memory_semantic, 'for_provider', lambda *args, **kwargs: FailedMeaning())
+    report = probe.run(AllSources(), sentences=False, limit=1)
+    row = report['rows'][0]
+    assert row['shown_sources'] == ['S1']
+    assert row['execution_trace']['semantic_calls'][0]['status'] == 'unavailable'
+    assert row['execution_trace']['semantic_calls'][0]['refs'] == []
+
+
+def test_trace_restores_wrappers_even_when_agent_raises():
+    original = probe.working_memory_answers._candidates
+    original_semantic = probe.working_memory_semantic.for_provider
+
+    class FailingAgent:
+        def frage_verstehen(self, question):
+            raise AssertionError('Should not be called')
+
+        def _working_memory_turn(self, question):
+            raise AssertionError('Should not be called')
+
+        def answer_memory(self, question):
+            raise RuntimeError('synthetic path failure')
+
+    agent = FailingAgent()
+    with pytest.raises(RuntimeError, match='synthetic path failure'):
+        probe.answer_with_trace(agent, 'synthetic question')
+    assert probe.working_memory_answers._candidates is original
+    assert probe.working_memory_semantic.for_provider is original_semantic
+    assert 'frage_verstehen' not in vars(agent) and '_working_memory_turn' not in vars(agent)
+
+
 @pytest.mark.parametrize('status', ['working_selection_failed', 'working_unavailable', 'local_only'])
 def test_error_with_no_sources_is_not_successful_unknown(status):
     row = probe.evaluate({'q': 'q', 'expect': [], 'type': 'unanswerable'}, turn(status, []), {})
