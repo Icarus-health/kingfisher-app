@@ -1,0 +1,24 @@
+{
+  "source_commit": "3ff842fe2db6be5b6fb9d31654759bbc9d3fa44a",
+  "satzpruefung_sha256": "465445284f2ec5abd2597583ccf1a713a13941d3a6f5a25348cf1e8b37ca481d",
+  "catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "catalog_source_count": 19,
+  "catalog_question_count": 16,
+  "german_holdout_sha256": "c847655468d7a4e79fbb3ad02780d68758a8b60dc837c87ebc3a2c73bc3b5651",
+  "runtime_completed": true,
+  "client_exit": 0,
+  "server_exit": 0,
+  "question_rows": 16,
+  "saved_answer_restart_rows": 16,
+  "index_coverage": {
+    "status": "indexed",
+    "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "identity_checked_at": 1791502311.41324,
+    "total": 19,
+    "indexed": 19,
+    "pending": 0,
+    "failed": 0,
+    "updated_at": 1791502311.4759932,
+    "source_pending": 0
+  }
+}

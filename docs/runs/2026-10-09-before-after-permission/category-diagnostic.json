@@ -1,0 +1,13 @@
+{
+  "readonly": true,
+  "failure_reason_stored": false,
+  "source": "memory_category_sources schema, live local readonly query",
+  "all_category_source_counts": {
+    "complete": 83,
+    "deferred": 51,
+    "failed": 193
+  },
+  "mail_only_failed": 187,
+  "reason_is_not_inferable_from_count": true,
+  "product_pointer": "sidecar/icarus_memory/memory_categories.py: Categories.run exception handling stores state and retry time only"
+}

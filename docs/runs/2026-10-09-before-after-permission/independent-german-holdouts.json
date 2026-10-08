@@ -1,0 +1,166 @@
+{
+  "title": "Eingefrorene deutschsprachige Quellenkontrollen zu phasenbezogener Erlaubnis",
+  "synthetic": true,
+  "frozen_before_change": true,
+  "sources": [
+    {
+      "id": "DE01-S1",
+      "title": "Datenbergung",
+      "text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden."
+    },
+    {
+      "id": "DE02-S1",
+      "title": "Restaurierungsanweisung",
+      "text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden."
+    },
+    {
+      "id": "DE03-S1",
+      "title": "Nachtbeobachtung",
+      "text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden."
+    },
+    {
+      "id": "N01-S1",
+      "title": "Herbarbeleg",
+      "text": "Nach dem Fotografieren des Etiketts darf die Dublette entsorgt werden. Das Originaletikett muss beim Herbarbeleg bleiben."
+    },
+    {
+      "id": "N02-S1",
+      "title": "Wasserwerk",
+      "text": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck gemessen wurde."
+    },
+    {
+      "id": "N03-S1",
+      "title": "Klimakammer",
+      "text": "Die Proben dürfen erst entnommen werden, wenn die Temperatur unter 8 Grad Celsius liegt."
+    },
+    {
+      "id": "N04-S1",
+      "title": "Bühnenzugang",
+      "text": "Nach schriftlicher Zustimmung der Intendantin darf der Orchestergraben betreten werden."
+    },
+    {
+      "id": "N05-S1",
+      "title": "Münzarchiv",
+      "text": "Nach der Inventur darf die Ledermappe geöffnet werden. Die Münzen, die mit rotem Faden markiert sind, müssen versiegelt bleiben."
+    },
+    {
+      "id": "N06-S1",
+      "title": "Glaswerkstatt",
+      "text": "Nach dem Abkühlen darf die Ofentür geöffnet werden. Vor dem Wiegen muss der Glasrohling abgedeckt bleiben."
+    },
+    {
+      "id": "N07-S1",
+      "title": "Betriebsprotokoll",
+      "text": "Protokollzitat: „Nach dem Signal darf das Nordtor entriegelt werden.“ Die Freigabe des Zitats ist nicht dokumentiert. Verbindliche Regel: Nach dem Signal muss das Tor bis zur schriftlichen Freigabe der Einsatzleitung verriegelt bleiben."
+    },
+    {
+      "id": "N08-S1",
+      "title": "Paketannahme",
+      "text": "Nach dem Scannen darf der Einlieferungsbeleg gedruckt werden. Das Paket darf nur mit schriftlicher Zustimmung der Absenderin geöffnet werden."
+    },
+    {
+      "id": "N08-S2",
+      "title": "Kühlraumregel",
+      "text": "Nach der Eintragung der Lieferung muss die Kühlraumtür bis zur Unterschrift der Schichtleitung geschlossen bleiben."
+    }
+  ],
+  "questions": [
+    {
+      "id": "DE01",
+      "q": "Wann darf der Speicherchip entnommen werden?",
+      "expect": {
+        "source_ids": [
+          "DE01-S1"
+        ],
+        "answer": "Vor Abschluss des Rohdatenarchivs darf der Chip nicht entnommen werden. Er darf erst entnommen werden, nachdem das Archiv erstellt und geprüft wurde."
+      }
+    },
+    {
+      "id": "DE02",
+      "q": "Wann und wie darf der Lack bearbeitet werden?",
+      "expect": {
+        "source_ids": [
+          "DE02-S1"
+        ],
+        "answer": "Erst nach schriftlicher Freigabe durch die Restauratorin darf der Lack mit einem weichen Pinsel bearbeitet werden; vorher darf er nicht berührt werden."
+      }
+    },
+    {
+      "id": "DE03",
+      "q": "Darf das Teleskop vor Ende der Nachtaufnahme aus der Halterung genommen werden, und wann ist es danach erlaubt?",
+      "expect": {
+        "source_ids": [
+          "DE03-S1"
+        ],
+        "answer": "Nein. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf das Teleskop aus der Halterung genommen werden."
+      }
+    }
+  ],
+  "direct_controls": [
+    {
+      "id": "N01",
+      "source_ids": [
+        "N01-S1"
+      ],
+      "candidate": "Nach dem Fotografieren des Etiketts darf das Originaletikett entsorgt werden.",
+      "factual_control": "Falsch: nur die Dublette darf entsorgt werden; das Originaletikett muss beim Herbarbeleg bleiben."
+    },
+    {
+      "id": "N02",
+      "source_ids": [
+        "N02-S1"
+      ],
+      "candidate": "Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck eingestellt wurde.",
+      "factual_control": "Nicht belegt: Die Quelle nennt das Messen des Leitungsdrucks, nicht dessen Einstellen."
+    },
+    {
+      "id": "N03",
+      "source_ids": [
+        "N03-S1"
+      ],
+      "candidate": "Die Proben dürfen entnommen werden, wenn die Temperatur unter 10 Grad Celsius liegt.",
+      "factual_control": "Unbelegte Ausweitung: Die festgelegte Grenze lautet unter 8 Grad Celsius."
+    },
+    {
+      "id": "N04",
+      "source_ids": [
+        "N04-S1"
+      ],
+      "candidate": "Nach schriftlicher Zustimmung des Intendanten darf der Orchestergraben betreten werden.",
+      "factual_control": "Unbelegter Austausch der Bedingung: Die Quelle verlangt Zustimmung der Intendantin."
+    },
+    {
+      "id": "N05",
+      "source_ids": [
+        "N05-S1"
+      ],
+      "candidate": "Nach der Inventur darf die mit rotem Faden markierte Münze aus der Ledermappe genommen werden.",
+      "factual_control": "Nicht belegt und durch die Quelle eingeschränkt: Die Erlaubnis betrifft das Öffnen der Mappe; die markierten Münzen müssen versiegelt bleiben."
+    },
+    {
+      "id": "N06",
+      "source_ids": [
+        "N06-S1"
+      ],
+      "candidate": "Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.",
+      "factual_control": "Unbelegte Übertragung zwischen koordinierten Regeln: Nach dem Abkühlen darf die Ofentür geöffnet werden; für den Rohling gilt die Abdeckungspflicht bis zum Wiegen."
+    },
+    {
+      "id": "N07",
+      "source_ids": [
+        "N07-S1"
+      ],
+      "candidate": "Nach dem Signal darf das Nordtor entriegelt werden.",
+      "factual_control": "Falsch: die Erlaubnis erscheint nur als nicht freigegebenes Zitat; die verbindliche Aussage verlangt, dass das Tor bis zur schriftlichen Freigabe verriegelt bleibt."
+    },
+    {
+      "id": "N08",
+      "source_ids": [
+        "N08-S1",
+        "N08-S2"
+      ],
+      "candidate": "Nach dem Scannen und Eintragen der Lieferung darf das Paket geöffnet werden.",
+      "factual_control": "Unbelegte quellenübergreifende Bedingungsübertragung: Scannen erlaubt den Druck des Belegs; die Eintragung verlangt eine geschlossene Kühlraumtür; Öffnen des Pakets erfordert schriftliche Zustimmung der Absenderin."
+    }
+  ]
+}

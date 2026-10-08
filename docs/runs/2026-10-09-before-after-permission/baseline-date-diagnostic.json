@@ -1,0 +1,25 @@
+{
+  "status": "reproduced scoped test failure on frozen baseline only",
+  "baseline": "/private/tmp/kingfisher-phase-baseline-code-20261009/repo",
+  "test": "sidecar/tests/test_akten_markdown.py::test_die_lage_zeigt_nur_geprueftes_mit_belegnummer_titel_und_datum",
+  "source_selection": "The test imported tests.test_mappe._quelle; that helper sets source occurred_at=datetime.now(timezone.utc)-timedelta(days=tage), with tage=3 for Druckdaten. The renderer formats that source timestamp using akten_markdown._zone() and converts aware timestamps into the user timezone.",
+  "reproduction": {
+    "command": "cd /private/tmp/kingfisher-phase-baseline-code-20261009/repo && PYTHONPATH=/private/tmp/kingfisher-phase-baseline-code-20261009/repo/sidecar /private/tmp/kingfisher-review-20261006-venv/bin/python -m pytest sidecar/tests/test_akten_markdown.py::test_die_lage_zeigt_nur_geprueftes_mit_belegnummer_titel_und_datum -q",
+    "result": "1 failed; reproduced the date assertion on baseline",
+    "separate_full_run_evidence": "/private/tmp/kingfisher-phase-full-tests-local-20261009.txt reports 199 passed, then this same failure under -x."
+  },
+  "exact_observation_from_reproduced_failure": {
+    "source_occurred_at_utc": "2026-10-05T23:26:12.823194+00:00",
+    "source_recorded_at_utc": "2026-10-08T23:26:12.823322+00:00",
+    "test_expected_utc_date": "05.10.2026",
+    "actual_rendered_source_date": "06.10.2026",
+    "reason": "The configured rendering zone is Europe/Berlin (UTC+02 on Oct 5); occurred_at 23:26 UTC is 01:26 on Oct 6 locally. The renderer is consistent with the product timezone; the assertion computes the expected calendar date in UTC."
+  },
+  "classification": "Test fixture/assertion timezone mismatch, not a product date bug. The source occurrence timestamp is intentionally current-time-relative, but the expected text formats the UTC date while production rendering uses the user timezone.",
+  "minimum_fix_recommendation": {
+    "preferred": "For this test only, freeze tests.test_mappe.datetime.now to the existing JETZT (2026-09-30T09:00:00Z) so _quelle records the request at 2026-09-27T09:00:00Z; assert literal 27.09.2026. Keep akten_markdown._zone and the actual exporter timezone unchanged.",
+    "why": "At the fixed 09:00 UTC fixture instant, UTC and Europe/Berlin both remain on Sep 27, eliminating day-boundary flakiness without mocking product timezone conversion. This keeps source storage and rendering real.",
+    "avoid": "Do not change product timezone/date semantics. Patching am._zone to UTC is unnecessary for this deterministic fixture and would remove the existing integration path through the configured user timezone. Do not derive expected date via am.tag, which would make the assertion circular."
+  },
+  "safety": "No product files were edited; the only extra diagnostic artifact was a temporary pytest plugin under /private/tmp used to read only the synthetic fixture episode timestamp and rendered source line."
+}

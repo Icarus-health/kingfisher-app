@@ -1,0 +1,100 @@
+{
+  "coverage": {
+    "source_dates": {
+      "undated": 0
+    },
+    "total_sources": 333,
+    "sampled_sources": 333,
+    "counts": {
+      "pending": 5,
+      "running": 0,
+      "partial": 0,
+      "completed": 6,
+      "failed": 0,
+      "excluded": 322
+    },
+    "truncated": false,
+    "truncated_sources": 0,
+    "semantic_completeness": false,
+    "working_memory": {
+      "complete": 324,
+      "failed": 1,
+      "deferred": 4,
+      "dismissed": 0,
+      "pending": 0,
+      "truncated": false
+    },
+    "working_memory_progress": {
+      "total": 329,
+      "done": 324,
+      "skipped": 4,
+      "retry": 1,
+      "remaining": 1
+    },
+    "semantic_index": {
+      "status": "unavailable",
+      "source_pending": 0
+    },
+    "automation": {
+      "requested": true,
+      "pending": 0
+    },
+    "working_memory_enabled": false
+  },
+  "mail": {
+    "accounts": [
+      {
+        "started": true,
+        "paused": false,
+        "folders": [
+          {
+            "inventory_complete": true,
+            "total": 122399,
+            "filtered": 1283,
+            "filtered_by": {
+              "newsletter": 1095,
+              "spam": 21,
+              "unclear": 167
+            },
+            "captured": 304,
+            "duplicates": 0,
+            "failed": 7,
+            "pending": 120805,
+            "live_pending": 0,
+            "live_failed": 0,
+            "live_filtered": 32,
+            "live_filtered_by": {
+              "newsletter": 26,
+              "spam": 1,
+              "unclear": 5
+            },
+            "failed_by": {
+              "postfach_schweigt": 4,
+              "unlesbar": 3
+            },
+            "analyzed": 300,
+            "deferred": 4,
+            "excluded": 0,
+            "analysis_failed": 0,
+            "categorized": 70,
+            "categories_pending": 1,
+            "categories_failed": 187,
+            "categories_deferred": 46
+          }
+        ],
+        "aktualisiert": 1791444815.0196886,
+        "history_waiting_for_analysis": false,
+        "connected": true,
+        "attachments_supported": true,
+        "stand": {
+          "zustand": "pausiert",
+          "gelesen": 1587,
+          "gesamt": 122399
+        }
+      }
+    ],
+    "attachments_supported": true,
+    "background_paused": true,
+    "analysis_active": false
+  }
+}
