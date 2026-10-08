@@ -1,0 +1,75 @@
+{
+  "method": "Offline replay of recorded native qwen3.5:4b outputs with frozen source originals; no new inference, no retrieval rerun. Existing validator behavior reproduced, then only source-loss fallback changes. Original rendering and saved-answer coverage separately tested.",
+  "native_raw_sha256": "2eddbcec1e570a297b6fdd21317c7af21bc78454741c3a554a7a6c56a94070ce",
+  "before_commit": "f3794ebb6041c8c1b214c527be2a30ad397debce",
+  "rows": [
+    {
+      "question_number_one_based": 8,
+      "question": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "selected_sources": [
+        "RCS03",
+        "RCS04"
+      ],
+      "before": {
+        "status": "saetze",
+        "surviving_sentences": [
+          "Für M-713 gilt, dass das Prüfprotokoll erst verschickt werden darf, wenn beide Messreihen unterschrieben sind."
+        ],
+        "rejected": 1,
+        "reasons": [
+          [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        ],
+        "fallback_reason": "",
+        "replayed_calls": 2
+      },
+      "after": {
+        "status": "zitate",
+        "surviving_sentences": [],
+        "rejected": 1,
+        "reasons": [
+          [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        ],
+        "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle in der Teilantwort",
+        "replayed_calls": 2
+      }
+    },
+    {
+      "question_number_one_based": 11,
+      "question": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "selected_sources": [
+        "RCS05",
+        "RCS06"
+      ],
+      "before": {
+        "status": "saetze",
+        "surviving_sentences": [
+          "Die erste Planung nennt den 12. Mai um 09:00 Uhr."
+        ],
+        "rejected": 1,
+        "reasons": [
+          [
+            "„Änderungsnotiz“ steht nicht im Beleg"
+          ]
+        ],
+        "fallback_reason": "",
+        "replayed_calls": 2
+      },
+      "after": {
+        "status": "zitate",
+        "surviving_sentences": [],
+        "rejected": 1,
+        "reasons": [
+          [
+            "„Änderungsnotiz“ steht nicht im Beleg"
+          ]
+        ],
+        "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle in der Teilantwort",
+        "replayed_calls": 2
+      }
+    }
+  ]
+}
