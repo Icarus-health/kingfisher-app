@@ -1,0 +1,29 @@
+{
+  "revision": "c3510908bb3d7522c5f9ab0ea2f5ec0599eb372a",
+  "reviewer": "independent audit_core_pipeline",
+  "blocking_findings": 0,
+  "initial_review_findings_fixed": [
+    "untyped mail identifier cannot replace typed requested case",
+    "saved project caption cannot grant binding after rename"
+  ],
+  "regression_cases": 24,
+  "initial_red": {
+    "failed": 5,
+    "safety_passed": 5
+  },
+  "sabotage_guard_disabled_in_memory": {
+    "failed": 13,
+    "safety_passed": 11
+  },
+  "affected_tests_passed_distinct": 371,
+  "test_runs": {
+    "working_memory_sources_sentences_http": 313,
+    "agent_diagnostic_project": 64,
+    "overlap_project_names": 6
+  },
+  "uncovered_syntax": [
+    "numeric-only identifiers",
+    "compound labels such as Auftragsnummer and Ticket-ID"
+  ],
+  "not_a_general_relevance_proof": true
+}

@@ -1,0 +1,30 @@
+{
+  "selected_and_displayed_sources": 23,
+  "questions": 23,
+  "unknowns": [
+    "RQ04",
+    "RQ16",
+    "RQ17",
+    "RQ18"
+  ],
+  "withdrawal_after_restart": {
+    "status": "working_unavailable",
+    "pass": true,
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "provider_calls": 0,
+    "original_text_retained": true
+  },
+  "max_sampled_own_rss_gib": 6.2511138916015625,
+  "runtime_seconds": 252.15069389343262,
+  "index_coverage": {
+    "status": "indexed",
+    "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "identity_checked_at": 1791495877.756151,
+    "total": 18,
+    "indexed": 18,
+    "pending": 0,
+    "failed": 0,
+    "updated_at": 1791495877.794399,
+    "source_pending": 0
+  }
+}

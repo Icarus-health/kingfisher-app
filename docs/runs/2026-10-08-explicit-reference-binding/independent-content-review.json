@@ -1,0 +1,42 @@
+{
+  "report_sha256": "05fd3186bb79f23d9d71e328b7eb82f0c3a46be22c90335c4c77c3edecda077e",
+  "revision": "c3510908bb3d7522c5f9ab0ea2f5ec0599eb372a",
+  "reviewer": "independent audit_answer_selection",
+  "answers_reviewed": 23,
+  "questions_answered_sufficiently": 23,
+  "answers_without_overscoped_additional_claim": 22,
+  "wrong_source_selection": [],
+  "unnecessary_clarification": [],
+  "gold_unknown_questions": 4,
+  "correct_unknown_answers": 4,
+  "overscoped_additional_claim": [
+    {
+      "question": "RQ20",
+      "sentence": "Für Auftrag R-508 sind nur trockene Tücher erlaubt",
+      "missing_source_limit": "vor der Reinigung",
+      "other_sentence_correctly_answers_question": true,
+      "overall_error_free_acceptance": false
+    }
+  ],
+  "person_mentions_expected": 9,
+  "person_mentions_found_correctly": 9,
+  "false_persons": 0,
+  "entity_spans_checked": 13,
+  "all_entity_spans_exact": true,
+  "type_false_alarms": [
+    {
+      "source": "RCS06",
+      "name": "Werkhalle Epsilon",
+      "proposed": "organization",
+      "source_meaning": "place"
+    },
+    {
+      "source": "H04",
+      "name": "support@example.invalid",
+      "proposed": "organization",
+      "source_meaning": "generic service address"
+    }
+  ],
+  "non_person_recall_fully_scored": false,
+  "scope_limit": "small known synthetic corpus; no personal corpus, production memory/battery or general reliability qualification"
+}

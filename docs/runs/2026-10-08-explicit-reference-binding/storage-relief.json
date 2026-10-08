@@ -1,0 +1,24 @@
+{
+  "image": "ghcr.io/icarus-health/kingfisher-app:1.0.6-local.bf396eb",
+  "id": "sha256:60d467a4edd9098fb78bd79618131c81f7e97a4fd9297fd09205104b38b9ee3b",
+  "archive": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-08-archiv-bf396eb.tar",
+  "archive_sha256": "6fd387afa5f5ec8f63afb695d744949d58b8978893d14be1c74ef5fd08d3cbf8",
+  "archive_size": 183888384,
+  "oci_manifest_and_all_compressed_and_uncompressed_layers_verified": true,
+  "container_references": 0,
+  "current_and_immediate_rollback_images_untouched": true,
+  "archived_build_intermediates_removed": [
+    "af440ad6a941",
+    "3ebaa66876a8",
+    "3e8ddb71df13",
+    "b02f97c36106",
+    "6d778dfb4ffa",
+    "da5984e4e434"
+  ],
+  "removed_without_force": true,
+  "kept_current_and_immediate_rollback": true,
+  "native_storage_probe": {
+    "before": "ok",
+    "after": "ok"
+  }
+}

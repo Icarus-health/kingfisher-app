@@ -1,0 +1,34 @@
+{
+  "native_binary_sha256": "b294220f1588fa8a7282caec6cf02ede0939440d51c238335dafaf7f15c22778",
+  "version": "1.0.6-local.c351090",
+  "code_commit": "c351090",
+  "new_image_id": "sha256:9dcab0485312d5d267d3140309bc6e4cbcf9b54e0ac1ddc7dab5f9710f9ac874",
+  "old_image_id": "sha256:a55f7c1f68063010c9824197778d8181251480201da7f834ee3058b85b6ca918",
+  "backup": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-08-vor-c351090-geprueft",
+  "root_sqlite_before": 17,
+  "root_sqlite_after": 17,
+  "episode_ids_and_digests_preserved": 344,
+  "native_binary_unchanged": true,
+  "settings_groups_preserved": [
+    "mail",
+    "mail_accounts",
+    "calendar",
+    "calendar_sources",
+    "cloud_models",
+    "provider",
+    "model",
+    "endpoint",
+    "model_roles",
+    "schedule"
+  ],
+  "same_data_volume": true,
+  "operational": true,
+  "semantic_search_activated": true,
+  "semantic_status": "unavailable",
+  "native_ui_verified": false,
+  "background_pause_preserved": true,
+  "mail_global_pause_visible": true,
+  "mail_account_states": [
+    "pausiert"
+  ]
+}
