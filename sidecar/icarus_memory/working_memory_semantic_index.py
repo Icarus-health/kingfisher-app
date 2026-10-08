@@ -290,6 +290,12 @@ class DurableSemanticIndex:
             for row in rows:
                 self._conn.execute('DELETE FROM vectors WHERE rowid=?', (row[0],))
                 self._conn.execute('DELETE FROM entries WHERE vector_id=?', (row[0],))
+            # Failure keys are derived too. Keep withdrawal/reclassification
+            # from leaving an ever-growing tail of unreachable retry rows.
+            self._conn.execute('''DELETE FROM failures WHERE item_key IN (
+                SELECT f.item_key FROM failures f
+                WHERE NOT EXISTS (SELECT 1 FROM eligible i WHERE i.id=f.item_key)
+                ORDER BY f.item_key LIMIT ?)''', (limit,))
             return len(rows)
 
     def search(self, vector, *, limit=12, threshold=0.55):
