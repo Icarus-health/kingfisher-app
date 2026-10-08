@@ -1196,6 +1196,10 @@ def _wire_scheduler(app: FastAPI) -> None:
 
 def _close_persistent_state(app: FastAPI) -> None:
     """Schließt alle offenen SQLite-Verbindungen vor einer Wiederherstellung."""
+    cloud_jobs = getattr(app.state, "cloud_memory_jobs", None)
+    if cloud_jobs is not None:
+        cloud_jobs.pause(revoke=True)
+        app.state.cloud_memory_jobs = None
     for name in (
         "backend", "audit", "tasks", "workspace", "episodes", "proposals",
         "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde",
@@ -1441,6 +1445,10 @@ def create_app(
     register_model_roles(app, guard, _data_dir, lambda: _build_agent(app))
     from .cloud_access_routes import register as register_cloud_access
     register_cloud_access(app, guard, _data_dir, lambda: _build_agent(app))
+    from .chatgpt_routes import register as register_chatgpt
+    register_chatgpt(app, guard, _data_dir)
+    from .cloud_memory_routes import register as register_cloud_memory
+    register_cloud_memory(app, guard, _data_dir, lambda model: app.state.chatgpt_oauth.provider(model))
 
     @app.get("/api/v1/device/profile", dependencies=guard)
     def device_profile():
@@ -5305,6 +5313,7 @@ def create_app(
                 workspace=app.state.workspace,
                 jetzt=datetime.now().astimezone(),
                 eigene=_eigene_adressen(),
+                confirmed_merges=app.state.claims.person_merges.list(),
             )
         ]
 
@@ -5327,6 +5336,7 @@ def create_app(
                 workspace=app.state.workspace,
                 jetzt=datetime.now().astimezone(),
                 eigene=_eigene_adressen(),
+                confirmed_merges=app.state.claims.person_merges.list(),
             )
         except personen.Mehrdeutig as fehler:
             raise _mehrdeutig_melden(fehler) from fehler

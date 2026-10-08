@@ -9,7 +9,10 @@ from email.utils import getaddresses
 import re
 
 AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|notifications?|mailer[._-]?daemon|postmaster)(?:$|[._-])', re.I)
-GENERIC = {'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello'}
+GENERIC = {
+    'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
+    'billing', 'invoice', 'invoices', 'payments', 'accounting',
+}
 
 
 def lokalteil(adresse):
@@ -45,7 +48,7 @@ def annotate_people(nodes):
         label = node.label.strip()
         name, address = _mailbox(label)
         local = lokalteil(address) if address else ''
-        explicit = node.attributes.get('identity_resolution') == 'explicit_registry'
+        explicit = node.attributes.get('identity_resolution') in {'explicit_registry', 'confirmed_group'}
         category, reason = 'person', ''
         if re.search(r'\(Integrationstest\)', label, re.I):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
@@ -61,7 +64,7 @@ def annotate_people(nodes):
         }
         # Shared notification accounts and generic inboxes must never suggest
         # collapsing all of the humans named by that service into one person.
-        if category == 'person':
+        if category == 'person' and not explicit:
             if address and not AUTOMATED.search(local) and local not in GENERIC:
                 addresses[address].append(node.id)
             normalized = ' '.join((name if address else label).casefold().split())

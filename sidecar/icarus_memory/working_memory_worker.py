@@ -90,7 +90,8 @@ class Pace:
         return None if pace is None or remaining <= 0 else int(round(remaining * pace))
 
 
-def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitted, initial_model):
+def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitted, initial_model,
+                          processing_policy=None):
     """Gibt Ergebnisse, Verbrauch, gestoppt und ggf. den geordneten Abbruch zurück."""
     ergebnisse = list(bisher)
     verbraucht = 0
@@ -99,7 +100,8 @@ def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitte
             if not permitted() or model_key(provider) != initial_model:
                 return ergebnisse, verbraucht, True, None
         try:
-            ergebnisse.append(interpret_abschnitt(provider, snapshot.episode, plan[len(ergebnisse)], len(plan)))
+            ergebnisse.append(interpret_abschnitt(provider, snapshot.episode, plan[len(ergebnisse)], len(plan),
+                                                   policy=processing_policy))
         except BackgroundInterrupted as interruption:
             # Save completed sections in the caller before unwinding job locks.
             return ergebnisse, verbraucht, True, interruption
@@ -109,7 +111,8 @@ def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitte
 
 def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
         source_ids: list[str] | None = None, pace: Pace | None = None,
-        abschnitte_je_lauf: int | None = None, stand: Zwischenstand | None = None):
+        abschnitte_je_lauf: int | None = None, stand: Zwischenstand | None = None,
+        processing_policy=None):
     """Ein Paket Einordnung: bis `limit` Quellen, höchstens `abschnitte_je_lauf` Modellaufrufe.
 
     Eine lange Quelle geht in Abschnitten durch das Modell (`abschnitte.py`). Reicht das Maß des Pakets nicht für alle,
@@ -117,7 +120,10 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
     Bestand geschrieben wird erst, wenn der letzte Abschnitt fertig ist. Ein Fehler oder eine Änderung der Quelle
     wirft den Zwischenstand der Quelle weg.
     """
-    if provider is None or not getattr(provider, 'is_local', False):
+    local = provider is not None and getattr(provider, 'is_local', False)
+    scoped_remote = (provider is not None and callable(processing_policy)
+                     and getattr(provider, 'is_remote', False))
+    if provider is None or (not local and not scoped_remote):
         return JobResult('gedaechtnis', True, 'Für die automatische Einordnung wird ein lokales Modell benötigt.')
     stand = STAND if stand is None else stand
     store = WorkingMemoryStore(episodes)
@@ -151,11 +157,13 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
                 continue
         episode = snapshot.episode
         fingerprint = source_fingerprint(snapshot)
+        policy = processing_policy(snapshot) if callable(processing_policy) else None
         try:
             plan = abschnitte_der(episode)
             bisher = stand.holen(episode.id, fingerprint, initial_model)
             ergebnisse, verbraucht, gestoppt, interruption = _abschnitte_einordnen(
-                snapshot, provider, plan, bisher, rest, lock, permitted, initial_model)
+                snapshot, provider, plan, bisher, rest, lock, permitted, initial_model,
+                processing_policy=policy)
         except UnsupportedSource:
             stand.verwerfen(episode.id)
             with lock:

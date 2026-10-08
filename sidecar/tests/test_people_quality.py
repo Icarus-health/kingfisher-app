@@ -30,6 +30,15 @@ def test_explicit_person_is_not_reclassified_and_test_label_is_reviewable():
     assert result[1].attributes['quality_category']=='review'
 
 
+def test_confirmed_identity_mapping_is_not_reclassified_as_service_mailbox():
+    from icarus_memory.people_quality import annotate_people
+    node=GraphNode('group','person','Ava <service@example.org>',{'identity_resolution':'confirmed_group'})
+    result=annotate_people([node])[0]
+    assert result.attributes['quality_category']=='person'
+    assert result.attributes['quality_reason']==''
+    assert result.attributes['duplicate_ids']==[]
+
+
 def test_same_name_different_addresses_remains_two_review_candidates():
     from icarus_memory.people_quality import annotate_people
     result=annotate_people([person('a','Alex Example <one@example.org>'),person('b','Alex Example <two@example.org>')])

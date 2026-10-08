@@ -964,6 +964,16 @@ export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbie
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderAccess = {id: "mistral" | "openrouter"; label: string; endpoint: string; key_present: boolean; model: string};
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
+export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;
+  active_account:string|null; accounts:Array<{id:string; label:string; active:boolean; plan_usage:boolean}>};
+export type ChatGPTModel = {id:string; label:string};
+export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
+export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose; count:number;
+  sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
+  scanned_count:number;next_cursor:number|null};
+export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
+  selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
+  stop_reason:string;updated_at:number};
 export type ModelPullState = {
   id: string; modell: string; rolle: string; phase: "wartet" | "laedt" | "prueft" | "fertig" | "fehler";
   fortschritt: number | null; text: string; fehler: {grund: string; naechster_schritt: string; art?: string} | null;
@@ -1032,6 +1042,19 @@ export const api = {
   saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; anbieter?: string; einwilligung?: boolean}) =>
     request<ModelRoles>(`/api/v1/models/roles/${encodeURIComponent(rolle)}`, {method: "PUT", body: JSON.stringify(body)}),
   cloudAccess: () => request<CloudAccessState>("/api/v1/models/cloud-access"),
+  chatgpt: () => request<ChatGPTState>("/api/v1/chatgpt"),
+  chatgptBegin: (account_id?:string) => request<{session_id:string;url:string}>("/api/v1/chatgpt/begin",
+    {method:"POST",body:JSON.stringify({origin:window.location.origin,consent:true,account_id})}),
+  chatgptSession: (sid:string) => request<{status:string}>(`/api/v1/chatgpt/sessions/${encodeURIComponent(sid)}`),
+  chatgptModels: () => request<{models:ChatGPTModel[]}>("/api/v1/chatgpt/models"),
+  chatgptDisconnect: () => request<{remote_revoked:boolean;notice:string}>("/api/v1/chatgpt",{method:"DELETE"}),
+  cloudMemoryStatus: () => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/status"),
+  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
+    {method:"POST",body:JSON.stringify({purpose,cursor,limit:purpose === "pilot" ? 100 : 1000})}),
+  cloudMemoryStart: (preview_id:string,model:string) => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
+    {method:"POST",body:JSON.stringify({preview_id,model,consent:true})}),
+  cloudMemoryAction: (action:"pause"|"resume"|"revoke",job_id:string) => request<{job:CloudMemoryJob|null}>(`/api/v1/memory/cloud/${action}`,
+    {method:"POST",body:JSON.stringify({job_id})}),
   saveCloudAccess: (provider: CloudProviderAccess["id"], body: {api_key?: string; model: string}) =>
     request<CloudAccessState>(`/api/v1/models/cloud-access/${encodeURIComponent(provider)}`, {method: "PUT", body: JSON.stringify(body)}),
   removeCloudAccess: (provider: CloudProviderAccess["id"]) =>

@@ -5,6 +5,7 @@ import { SettingsSections } from "../SettingsSections";
 import { Sidebar } from "../chrome";
 import { Darf } from "./Darf";
 import { CloudAccess } from "../CloudAccess";
+import { ChatGPTAccess } from "../ChatGPTAccess";
 import { DeviceModelHelp } from "../DeviceModelHelp";
 import { LocalModelSettings } from "../LocalModelSettings";
 import { ModelRecommendation } from "../ModelRecommendation";
@@ -41,7 +42,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
 
   const inhalt: Record<Bereich, ReactNode> = {
     zugaenge: <><EinrichtungKopf /><Zugaenge integrationen={integrationen} aktiv={ziel.bereich === "zugaenge"} /></>,
-    ki: <><CloudAccess /><ModelRecommendation /><LocalModelSettings /><DeviceModelHelp /></>,
+    ki: <><ChatGPTAccess /><CloudAccess /><ModelRecommendation /><LocalModelSettings /><DeviceModelHelp /></>,
     darf: <Darf />,
     ich: <Ich />,
     sicherung: <RecoverySettings />,

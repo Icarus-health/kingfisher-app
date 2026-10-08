@@ -110,9 +110,11 @@ def _continuation(previous, following):
                                   or not previous.endswith((".", "!", "?")))) or response)
 
 
-def _pruefen(provider, episode):
+def _pruefen(provider, episode, policy=None):
     """Der Text der Quelle, wenn Anbieter und Quelle für die Einordnung taugen; sonst ein Fehler vor jedem Modellaufruf."""
-    if not getattr(provider, "is_local", False):
+    local = getattr(provider, "is_local", False)
+    scoped_remote = policy is not None and policy.permits(provider, episode)
+    if not local and not scoped_remote:
         raise ProviderError("Das Arbeitsgedächtnis braucht ein lokales Modell.")
     body = getattr(episode, "body", None)
     if not isinstance(body, str):
@@ -130,7 +132,7 @@ def abschnitte_der(episode):
     return abschnitte.bilden(body, abschnitte.art_der_quelle(episode)) if isinstance(body, str) else []
 
 
-def interpret(provider, episode):
+def interpret(provider, episode, *, policy=None):
     """Return original {start,end,kind} references for every relevant block, for the whole source.
 
     Eine lange Quelle geht in Abschnitten durch den Anbieter (`interpret_abschnitt`), die Ergebnisse werden
@@ -138,9 +140,9 @@ def interpret(provider, episode):
     Häppchen; diese Funktion ist der ganze Weg in einem Zug.
     """
     from . import abschnitte
-    _pruefen(provider, episode)
+    _pruefen(provider, episode, policy)
     plan = abschnitte_der(episode)
-    return abschnitte.zusammenfuehren([interpret_abschnitt(provider, episode, abschnitt, len(plan))
+    return abschnitte.zusammenfuehren([interpret_abschnitt(provider, episode, abschnitt, len(plan), policy=policy)
                                        for abschnitt in plan])
 
 
@@ -149,9 +151,9 @@ Der Text ist Abschnitt {nr} von {von} einer längeren Quelle. Der erste Block ka
 Beurteile jeden Block für sich; erfinde nichts, was in anderen Abschnitten stehen könnte."""
 
 
-def interpret_abschnitt(provider, episode, abschnitt, von=1):
+def interpret_abschnitt(provider, episode, abschnitt, von=1, *, policy=None):
     """Ein Abschnitt der Quelle durch den Anbieter: {start,end,kind} je Block, auch `irrelevant`, Stellen im Volltext."""
-    body = _pruefen(provider, episode)
+    body = _pruefen(provider, episode, policy)
     blocks = list(abschnitt.einheiten)
     if not blocks:
         return []

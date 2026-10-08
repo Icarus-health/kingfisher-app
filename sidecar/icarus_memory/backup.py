@@ -57,6 +57,7 @@ SQLITE_DATA_FILES = (
     "rueckmeldungen.sqlite3",
     "logbuch.sqlite3",
     "lint.sqlite3",
+    "cloud-memory-jobs.sqlite3",
 )
 
 # Einstellungen enthalten keine Geheimnisse. Die verschlüsselte Schlüsseldatei

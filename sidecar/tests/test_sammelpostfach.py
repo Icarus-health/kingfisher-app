@@ -44,6 +44,16 @@ def test_bezuege_folgt_der_einen_regel(monkeypatch):
     assert bezuege.maschinell('rechnung@firma.de') is True
 
 
+def test_sammelpostfach_adressen_werden_keine_namensaliase():
+    from icarus_memory.identitaet import Verzeichnis
+    verzeichnis = Verzeichnis.aus([
+        {'participants': ['Alex Winter <notifications@platform.example>']},
+        {'participants': ['Alex Winter <alex.winter@firma.example>']},
+    ])
+
+    assert verzeichnis.adressen_zum_namen('Alex Winter') == ['alex.winter@firma.example']
+
+
 def test_keine_zweite_kopie_der_regel():
     funde = []
     muster = re.compile(r'\bin\s+GENERIC\b|AUTOMATED\.search|import[^\n]*\b(?:AUTOMATED|GENERIC)\b')

@@ -14,7 +14,7 @@ from contextlib import nullcontext
 from email.utils import getaddresses
 
 from .kontakte import absender_text
-from .episodes import IGNORIERTE_ZUSTAENDE, sql_rohquelle
+from .episodes import IGNORIERTE_ZUSTAENDE, sql_geltend, sql_rohquelle
 from .memory_analysis import model_key
 from .model import SourceType
 from .people_quality import ist_sammelpostfach, lokalteil
@@ -31,6 +31,8 @@ MAX_TAXONOMY = 64
 MAX_TOPICS = 12
 MAX_ENTITIES = 8
 MAX_TARGETS = 200
+MAX_PERSON_MENTION_SCAN = 500
+MAX_PERSON_MENTIONS = 200
 #: Arten erwähnter Sachen, die das Modell vorschlagen darf (Orte seit Schema 12).
 ENTITY_KINDS = ("person", "organization", "project", "place")
 RETRY_SECONDS = 300
@@ -211,8 +213,10 @@ def _schema(taxonomy):
                 "role": {"type": "string", "enum": ["sender", "mentioned"]}}}}}}
 
 
-def _interpret(provider, episode, taxonomy):
-    if not getattr(provider, "is_local", False) or not callable(getattr(provider, "complete_json", None)):
+def _interpret(provider, episode, taxonomy, policy=None):
+    local = getattr(provider, "is_local", False)
+    scoped_remote = policy is not None and policy.permits(provider, episode)
+    if (not local and not scoped_remote) or not callable(getattr(provider, "complete_json", None)):
         raise ProviderError("Themenvorschläge brauchen ein lokales Modell mit JSON-Schema.")
     body = episode.body
     blocks = _blocks(body)
@@ -239,6 +243,8 @@ Bei fehlendem Beleg den Vorschlag weglassen. Keine erfundenen Entitäten oder Zi
     payload = {"source": context, "taxonomy": taxonomy,
                "blocks": [{"block_id": f"B{i}", "start": start, "end": end, "text": body[start:end]}
                           for i, (start, end) in enumerate(blocks, 1)]}
+    if policy is not None and not policy.permits(provider, episode):
+        raise ProviderError("Themenauswertung nach geänderter Freigabe gestoppt.")
     reply = provider.complete_json(
         [{"role": "system", "content": instruction},
          {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
@@ -411,11 +417,14 @@ class Categories:
                 if not self._available(snapshot):
                     continue
                 fingerprint = source_fingerprint(snapshot)
+                targeted = self.connection.execute(
+                    "SELECT 1 FROM memory_category_recheck WHERE episode_id=?", (last,)).fetchone() is not None
                 if stored and stored["fingerprint"] == fingerprint:
-                    if stored["status"] == "deferred":
+                    if stored["status"] == "deferred" and not targeted:
                         continue
                     if stored["taxonomy_version"] >= self._required_version(last):
-                        if stored["status"] == "complete" or (stored["retry_after"] or 0) > time.time():
+                        if ((stored["status"] == "complete" and not targeted) or
+                                ((stored["retry_after"] or 0) > time.time() and not targeted)):
                             continue
                 body = snapshot.episode.body
                 blocks = _blocks(body)
@@ -429,6 +438,23 @@ class Categories:
             if source_ids is None:
                 self.connection.execute("UPDATE memory_category_scan SET cursor=? WHERE id=1", (last,))
         return result
+
+    def request_recheck(self, episode_ids):
+        """Queue explicit per-source rechecks without changing the global taxonomy."""
+        if (type(episode_ids) is not list or len(episode_ids) > MAX_TARGETS or
+                any(type(value) is not str or not 1 <= len(value) <= 200 for value in episode_ids)):
+            raise ValueError("Maximal 200 konkrete Quellen auswählen.")
+        queued = 0
+        with self.episodes.transaction():
+            version = self.connection.execute(
+                "SELECT taxonomy_version FROM memory_category_scan WHERE id=1").fetchone()[0]
+            for episode_id in dict.fromkeys(episode_ids):
+                if self._available(self.memory._snapshot(episode_id)):
+                    self.connection.execute(
+                        "INSERT INTO memory_category_recheck VALUES(?,?) ON CONFLICT(episode_id) "
+                        "DO UPDATE SET taxonomy_version=excluded.taxonomy_version", (episode_id, version))
+                    queued += 1
+        return queued
 
     def _write(self, snapshot, version, topics, entities, model):
         with self.episodes.transaction():
@@ -450,10 +476,14 @@ class Categories:
             self.connection.execute("DELETE FROM memory_category_recheck WHERE episode_id=? AND taxonomy_version<=?", (episode_id, version))
             return True
 
-    def run(self, provider, limit=3, permitted=lambda: True, permission_lock=None, source_ids=None):
+    def run(self, provider, limit=3, permitted=lambda: True, permission_lock=None, source_ids=None,
+            processing_policy=None, preserve_on_failure=False):
         if type(limit) is not int or not 1 <= limit <= 20:
             raise ValueError("limit must be 1..20")
-        if provider is None or not getattr(provider, "is_local", False):
+        local = provider is not None and getattr(provider, "is_local", False)
+        scoped_remote = (provider is not None and processing_policy is not None
+                         and getattr(provider, "is_remote", False))
+        if provider is None or (not local and not scoped_remote):
             return JobResult("kategorien", True, "Für Themenvorschläge wird ein lokales Modell benötigt.")
         gate = permission_lock if permission_lock is not None else nullcontext()
         with gate:
@@ -469,17 +499,27 @@ class Categories:
                 if not self._current(snapshot):
                     continue
             try:
-                topics, entities = _interpret(provider, snapshot.episode, taxonomy)
+                policy = processing_policy(snapshot) if callable(processing_policy) else None
+                topics, entities = _interpret(provider, snapshot.episode, taxonomy, policy=policy)
             except Exception as exc:
                 with gate:
                     if permitted() and model_key(provider) == initial:
-                        with self.episodes.transaction():
-                            if self._current(snapshot):
-                                state = "deferred" if isinstance(exc, UnsupportedSource) else "failed"
-                                self._set_status(snapshot.episode.id, source_fingerprint(snapshot), version, state,
-                                                 retry_after=None if state == "deferred" else time.time()+RETRY_SECONDS)
-                                deferred += int(state == "deferred")
-                                failed += int(state == "failed")
+                        if preserve_on_failure:
+                            state = "deferred" if isinstance(exc, UnsupportedSource) else "failed"
+                            deferred += int(state == "deferred")
+                            failed += int(state == "failed")
+                        else:
+                            with self.episodes.transaction():
+                                if self._current(snapshot):
+                                    state = "deferred" if isinstance(exc, UnsupportedSource) else "failed"
+                                    self._set_status(snapshot.episode.id, source_fingerprint(snapshot), version, state,
+                                                     retry_after=None if state == "deferred" else time.time()+RETRY_SECONDS)
+                                    deferred += int(state == "deferred")
+                                    failed += int(state == "failed")
+                if preserve_on_failure:
+                    # The explicitly scoped cloud job classifies quota and
+                    # transient provider errors into pause/resume states.
+                    raise
                 continue
             with gate:
                 if not permitted() or model_key(provider) != initial:
@@ -570,6 +610,56 @@ class Categories:
             if result["status"] == "complete" and not result["categories"] and not result["entities"]:
                 result["status"] = "empty"
             return result
+
+    def person_mentions(self, limit=100):
+        """A bounded source-first view of current extracted person hints.
+
+        These mentions remain unconfirmed and are never fed into identity
+        resolution. `list_for` rechecks each source fingerprint and applies the
+        mailbox quality filter, so changed, withdrawn, or generic-mailbox spans
+        do not leak into this projection.
+        """
+        if type(limit) is not int or not 1 <= limit <= MAX_PERSON_MENTIONS:
+            raise ValueError(f"Bitte höchstens {MAX_PERSON_MENTIONS} Hinweise anfordern.")
+        with self.episodes._lock:
+            rows = self.connection.execute(
+                "SELECT id FROM episodes WHERE " + sql_geltend() +
+                " ORDER BY COALESCE(occurred_at, recorded_at) DESC, id DESC LIMIT ?",
+                (MAX_PERSON_MENTION_SCAN + 1,),
+            ).fetchall()
+            limited_scan = len(rows) > MAX_PERSON_MENTION_SCAN
+            rows = rows[:MAX_PERSON_MENTION_SCAN]
+            mentions = []
+            for row in rows:
+                episode_id = row["id"]
+                snapshot = self.memory._snapshot(episode_id)
+                if not self._available(snapshot):
+                    continue
+                annotations = self.list_for(episode_id)
+                if annotations["status"] != "complete":
+                    continue
+                episode = snapshot.episode
+                for entity in annotations["entities"]:
+                    if entity["kind"] != "person":
+                        continue
+                    mentions.append({
+                        "name": entity["name"],
+                        "quote": entity["quote"],
+                        "role": entity["role"],
+                        "episode_id": episode.id,
+                        "title": episode.title,
+                        "occurred_at": episode.occurred_at.isoformat() if episode.occurred_at else None,
+                        "recorded_at": episode.recorded_at.isoformat(),
+                        "source_type": episode.provenance.source_type.value,
+                    })
+            total = len(mentions)
+            return {
+                "items": mentions[:limit],
+                "total_in_scanned_sources": total,
+                "scanned_sources": len(rows),
+                "scan_limit": MAX_PERSON_MENTION_SCAN,
+                "limited": limited_scan or total > limit,
+            }
 
     def status(self):
         """A bounded, explicitly sampled current projection; no invented totals."""

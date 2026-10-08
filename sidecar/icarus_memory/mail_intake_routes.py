@@ -1,5 +1,5 @@
 """Authenticated intake controls; connecting an account alone never starts content capture."""
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 from pydantic import BaseModel
 from .mail_intake import Intake
 from . import config
@@ -187,6 +187,11 @@ def register(app, guard, data_dir, wire):
     def taxonomy():
         from .memory_categories import Categories
         return Categories(app.state.episodes).taxonomy()
+
+    @app.get('/api/v1/memory/people/mentions',dependencies=guard)
+    def person_mentions(limit: int = Query(default=100, ge=1, le=200)):
+        from .memory_categories import Categories
+        return Categories(app.state.episodes).person_mentions(limit)
 
     @app.post('/api/v1/memory/categories',dependencies=guard)
     def add_category(body:CategoryIn):

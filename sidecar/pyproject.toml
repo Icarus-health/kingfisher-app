@@ -13,6 +13,8 @@ dependencies = [
     "uvicorn>=0.30",
     "pydantic>=2.10",
     "httpx>=0.27",
+    # OIDC-Signaturen: keine selbst geschriebene JWT-Kryptografie.
+    "PyJWT[crypto]>=2.10,<3",
     "pypdf>=6.12,<7",
     # Zeitzonen ohne Betriebssystem-Datenbank: Das schlanke Python-Abbild im Container bringt sie nicht
     # sicher mit; ohne sie stünden Uhrzeiten in UTC mit Versatz statt in der Zeit des Nutzers.

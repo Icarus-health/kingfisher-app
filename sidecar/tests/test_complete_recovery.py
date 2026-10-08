@@ -50,6 +50,11 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     proposal,_=service.propose(subject_ref=person['id'],target_ref='project:'+project.id,predicate='works_on',value='Mitarbeit',statement=episode.body,rationale='Expliziter Testbeleg',evidence=[Evidence(episode.id,episode.body,episode.digest)])
     claim=service.accept(proposal.id,supersedes=[])
     service.propose(subject_ref=person['id'],predicate='role',value='Projektkontakt',statement=episode.body,rationale='Noch nicht bestätigt',evidence=[Evidence(episode.id,episode.body,episode.digest)])
+    from icarus_memory.cloud_memory import CloudMemoryJobs
+    cloud_jobs=CloudMemoryJobs(episodes,data/'cloud-memory-jobs.sqlite3',None,lambda:{})
+    with cloud_jobs._connect() as db:
+        db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",
+                   ('recovery-preview','pilot','catalog',None,'[]',0))
     episodes.close(); proposals.close(); claims.close()
     conversations=ConversationStore(data/'conversations.sqlite3')
     conversation=conversations.create('Gesichertes Gespräch')

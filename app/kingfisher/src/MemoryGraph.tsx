@@ -231,6 +231,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
             ))}
           </div> : null}
           <small>Nur belegte Verbindungen</small>
+          <a href="/settings#ki">Mit ChatGPT einordnen & nachprüfen</a>
           <button type="button" disabled={reviewSubmitting} className={section === "support" ? "active" : ""} aria-pressed={section === "support"} onClick={() => setSection("support")}>Aussagen prüfen</button>
           <button type="button" disabled={reviewSubmitting} className={section === "status" ? "active" : ""} aria-pressed={section === "status"} onClick={() => setSection("status")}>Verarbeitung & Verlauf</button>
         </aside>

@@ -333,7 +333,7 @@ class WorkingMemoryStore:
             "DELETE FROM working_memory_items WHERE episode_id=?", (episode_id,))
 
     def commit(self, snapshot: EpisodeSupportSnapshot, items: list[dict[str, Any]],
-               *, model: str) -> bool:
+               *, model: str, explicit_recheck: bool = False) -> bool:
         if type(model) is not str or not model or len(model) > 200:
             raise ValueError("model identifier required (max 200 chars)")
         if type(items) is not list or len(items) > MAX_ITEMS:
@@ -365,7 +365,7 @@ class WorkingMemoryStore:
             if (not self._eligible(current) or source_fingerprint(current) != fingerprint or
                     (row and row[1] == "dismissed")):
                 return False
-            if (row and row[1] == "complete" and row[0] == fingerprint
+            if (not explicit_recheck and row and row[1] == "complete" and row[0] == fingerprint
                     and row[3] == ANALYSIS_VERSION):
                 return False
             self._delete_items(snapshot.episode.id)

@@ -56,6 +56,23 @@ def test_snapshot_ist_vollstaendig(befuellte_db: Path, tmp_path: Path) -> None:
     assert len(store.export().assertions) == 2
 
 
+def test_cloud_job_history_is_backed_up_and_restore_keeps_inspection_boundary(tmp_path):
+    from icarus_memory.cloud_memory import CloudMemoryJobs
+    from icarus_memory.episodes import EpisodeStore
+    data=tmp_path/'data'
+    episodes=EpisodeStore(data/'episodes.sqlite3')
+    jobs=CloudMemoryJobs(episodes,data/'cloud-memory-jobs.sqlite3',None,lambda:{})
+    with jobs._connect() as db:
+        db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",('sample','pilot','catalog',None,'[]',0))
+    saved=snapshot_all(data,tmp_path/'backups')
+    assert 'cloud-memory-jobs.sqlite3' in {row['name'] for row in verify_snapshot_set(saved)}
+    restored=tmp_path/'restored'
+    restore_all(saved,restored)
+    with sqlite3.connect(restored/'cloud-memory-jobs.sqlite3') as db:
+        assert db.execute('SELECT id FROM cloud_memory_previews').fetchone()[0]=='sample'
+    assert (restored/'restore-state.json').is_file()
+
+
 def test_snapshot_waehrend_schreibzugriff(befuellte_db: Path, tmp_path: Path) -> None:
     """Offene Verbindung: ein blosses Dateikopieren ergäbe hier Bruch."""
     backend = SqliteBackend(befuellte_db)
