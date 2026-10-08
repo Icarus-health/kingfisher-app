@@ -70,7 +70,7 @@
 - [x] RED für begrenzte Quellenantwort, leeren Rückfall, Modellauswahl ohne passenden Treffer und Satz-Abstention.
 - [x] Per-call-Status samt sichtbarer Kennzeichnung und Frischeprüfung implementieren; bestätigten Rückfall erhalten.
 - [x] Diagnosewrapper auf echte statusgebundene Schnittstelle erweitern (RED/GREEN); unvollständige eingeschaltete Suche erhält keinen vollen Erfolgsscore.
-- [ ] Betroffene Tests, unabhängiges Review und datenerhaltende Lieferung abschließen.
+- [x] Betroffene Tests (359), unabhängiges Review und datenerhaltende Lieferung abschließen. PR 8 gemergt; Mac 1.0.6-local.66eb641, 344 Einträge und 17 SQLite-Prüfungen erhalten/bestanden.
 
 ### Noch erforderlicher Nachweis für große Bestände
 
