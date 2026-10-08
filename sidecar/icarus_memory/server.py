@@ -5221,6 +5221,16 @@ def create_app(
             from .working_memory_status import source_status
             result = app.state.episodes.get(episode_id).to_dict()
             result["memory_status"] = source_status(app, episode_id)
+            from .anhaenge import gespeicherter_bericht
+            result['attachment_coverage'] = gespeicherter_bericht(app.state.episodes.get(episode_id))
+            result['attachment_check_pending'] = (result['kind'] == 'message'
+                and result['provenance']['source_type'] == 'email' and result['attachment_coverage'] is None)
+            result['source_incomplete'] = 'source:truncated' in result['tags']
+            snapshot = app.state.episodes.support_snapshot(episode_id)
+            result['source_current'] = bool(snapshot and snapshot.current())
+            result['attachment_sources'] = ([{'id': child_id, 'title': app.state.episodes.get(child_id).title}
+                for child_id in app.state.episodes.mail_attachment_children(episode_id)]
+                if result['kind'] == 'message' else [])
             correction_id = app.state.episodes.source_head('source-correction:' + episode_id)
             if correction_id:
                 result['correction_id'] = correction_id

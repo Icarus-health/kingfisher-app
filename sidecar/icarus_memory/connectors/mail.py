@@ -130,6 +130,8 @@ class Message:
     anhaenge: tuple[Any, ...] = ()
     """Gelesene Anhänge (PDF, Foto einer Rechnung) als `anhaenge.Anhang`; nur beim
     Abruf für die Aufnahme gefüllt (`message_mit_anhaengen`), nie beim Ansehen."""
+    anhang_bericht: dict[str, Any] | None = None
+    """None means not inspected, never proof that the message has no attachments."""
 
     def answer_address(self) -> str:
         """An wen eine Antwort geht. `Reply-To` gewinnt — dafür steht er da."""
@@ -798,8 +800,9 @@ class MailConnector:
             # Außerhalb der IMAP-Sitzung: Eine PDF zu lesen dauert, die Verbindung soll dabei nicht warten.
             from dataclasses import replace
             from ..anhaenge import aus_mail
+            bericht: dict[str, Any] = {}
             nachricht = replace(nachricht, anhaenge=aus_mail(roh['parsed'], abgeschnitten=roh['abgeschnitten'],
-                                                             ocr=self.ocr))
+                                                             ocr=self.ocr, bericht=bericht), anhang_bericht=bericht)
         return nachricht
 
     @staticmethod

@@ -195,8 +195,71 @@ def ist_eigene_quelle(source_type: str | None, source_ref: str | None) -> bool:
     return (source_type or "") in EIGENE_HERKUNFT or str(source_ref or "").startswith("upload:")
 
 
+MAIL_PARENT_TAG = "mail-parent:"
+_MAIL_ATTACHMENT_KEY = re.compile(r"(mail:[a-f0-9]{64}):anhang:[1-9][0-9]*")
+
+
+def mail_attachment_parent(connection, source_key, tags):
+    """(is attachment, exact parent id); ambiguous legacy sources fail closed."""
+    links = [tag for tag in tags if tag.startswith(MAIL_PARENT_TAG)]
+    match = _MAIL_ATTACHMENT_KEY.fullmatch(source_key)
+    if not (match or links or 'anhang' in tags):
+        return False, None
+    if match is None:
+        return True, None
+    if links:
+        if len(links) != 1:
+            return True, None
+        identifier = links[0][len(MAIL_PARENT_TAG):]
+        row = connection.execute("SELECT id FROM episodes WHERE id=? AND source_key=? AND kind='message'",
+                                 (identifier, match[1])).fetchone()
+        return True, row[0] if row else None
+    rows = connection.execute("SELECT id,kind FROM episodes WHERE source_key=? LIMIT 2", (match[1],)).fetchall()
+    return True, rows[0][0] if len(rows) == 1 and rows[0][1] == 'message' else None
+
+
+def _sql_is_mail_attachment(alias: str) -> str:
+    return (f"({alias}.source_key GLOB 'mail:*:anhang:*' OR EXISTS "
+            f"(SELECT 1 FROM json_each({alias}.document, '$.tags') mt "
+            "WHERE mt.value='anhang' OR mt.value LIKE 'mail-parent:%'))")
+
+
+def _sql_direct_mail_parent_valid(alias: str) -> str:
+    """Mirror snapshot parent binding before source text reaches SQL consumers."""
+    key = f"{alias}.source_key"
+    links = f"json_each({alias}.document, '$.tags')"
+    tagged = f"(SELECT COUNT(*) FROM {links} mt WHERE mt.value LIKE 'mail-parent:%')"
+    key_valid = (f"substr({key},1,5)='mail:' AND length(substr({key},6,64))=64 "
+                 f"AND substr({key},6,64) NOT GLOB '*[^0-9a-f]*' AND substr({key},70,8)=':anhang:' "
+                 f"AND substr({key},78) GLOB '[1-9]*' AND substr({key},78) NOT GLOB '*[^0-9]*'")
+    return (f"(CASE WHEN {_sql_is_mail_attachment(alias)} THEN ({key_valid} AND EXISTS (SELECT 1 FROM episodes mp "
+            f"WHERE mp.source_key=substr({key},1,69) AND mp.kind='message' AND mp.state!='ignored' "
+            "AND EXISTS (SELECT 1 FROM source_heads mh WHERE mh.source_key=mp.source_key AND mh.episode_id=mp.id) "
+            f"AND (({tagged}=1 AND EXISTS (SELECT 1 FROM {links} mt WHERE mt.value='mail-parent:'||mp.id)) "
+            f"OR ({tagged}=0 AND (SELECT COUNT(*) FROM episodes mv WHERE mv.source_key=mp.source_key)=1)))) ELSE 1 END)")
+
+
+def sql_mail_parent_valid(alias: str = "episodes") -> str:
+    """Include attachment ancestry of corrections without reopening their targets.
+
+    Missing targets, cycles and overlong chains fail closed. The snapshot allows
+    eight reads including the source; an attachment also needs its parent read.
+    Ordinary sources use the direct predicate; only corrections traverse.
+    """
+    return (f"(CASE WHEN {alias}.source_key GLOB 'source-correction:*' THEN ("
+            "WITH RECURSIVE attachment_lineage(id,source_key,document,depth) AS ("
+            f"SELECT {alias}.id,{alias}.source_key,{alias}.document,0 UNION ALL "
+            "SELECT t.id,t.source_key,t.document,l.depth+1 FROM attachment_lineage l "
+            "JOIN episodes t ON t.id=substr(l.source_key,19) "
+            "WHERE l.source_key GLOB 'source-correction:*' AND l.depth<7) "
+            "SELECT EXISTS (SELECT 1 FROM attachment_lineage l WHERE l.source_key NOT GLOB 'source-correction:*') "
+            f"AND NOT EXISTS (SELECT 1 FROM attachment_lineage l WHERE NOT {_sql_direct_mail_parent_valid('l')})"
+            f" AND NOT EXISTS (SELECT 1 FROM attachment_lineage l WHERE l.depth>=7 AND {_sql_is_mail_attachment('l')})"
+            f") ELSE {_sql_direct_mail_parent_valid(alias)} END)")
+
+
 def sql_nicht_ignoriert(alias: str = "episodes") -> str:
-    return f"{alias}.state NOT IN ({_sql_liste(IGNORIERTE_ZUSTAENDE)})"
+    return f"{alias}.state NOT IN ({_sql_liste(IGNORIERTE_ZUSTAENDE)}) AND {sql_mail_parent_valid(alias)}"
 
 
 def sql_aktuelle_fassung(alias: str = "episodes") -> str:
@@ -227,7 +290,7 @@ def sql_geltend(alias: str = "episodes") -> str:
 
 def sql_nicht_ausgeblendet(alias: str = "episodes") -> str:
     """Weder ignoriert noch archiviert, gleich welcher Art."""
-    return f"{alias}.state NOT IN ({_sql_liste(AUSGEBLENDETE_ZUSTAENDE)})"
+    return f"{alias}.state NOT IN ({_sql_liste(AUSGEBLENDETE_ZUSTAENDE)}) AND {sql_mail_parent_valid(alias)}"
 
 
 def sql_sichtbar(alias: str = "episodes") -> str:
@@ -1000,6 +1063,52 @@ class EpisodeStore:
                 (json.dumps(document, ensure_ascii=False), source_metadata_digest(document), episode_id))
             return episode
 
+    def set_mail_attachment_report(self, episode_id: str, report: dict) -> Episode:
+        """Replace advisory intake coverage without changing the original text."""
+        tag = 'mail:attachments:' + json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        with self.transaction():
+            episode = self.get(episode_id)
+            if episode.state is EpisodeState.IGNORED:
+                return episode
+            tags = [value for value in episode.tags if not value.startswith('mail:attachments:')]
+            tags.append(tag)
+            if tags == episode.tags:
+                return episode
+            episode.tags = tags
+            document = episode.to_dict()
+            self._conn.execute(
+                'UPDATE episodes SET document=?,metadata_digest=?,support_generation=support_generation+1 WHERE id=?',
+                (json.dumps(document, ensure_ascii=False), source_metadata_digest(document), episode_id))
+            return episode
+
+    def _mail_attachment_descendants(self, parent_id: str) -> list[str]:
+        """All stored child versions for withdrawal, including ambiguous legacy ones."""
+        with self._lock:
+            parent = self._conn.execute('SELECT source_key FROM episodes WHERE id=?', (parent_id,)).fetchone()
+            if parent is None or not re.fullmatch(r'mail:[a-f0-9]{64}', parent[0]):
+                return []
+            rows = self._conn.execute(
+                "SELECT id,source_key,document FROM episodes WHERE source_key LIKE ?",
+                (parent[0] + ':anhang:%',)).fetchall()
+            result = []
+            for row in rows:
+                tags = json.loads(row['document']).get('tags', [])
+                links = [tag for tag in tags if tag.startswith(MAIL_PARENT_TAG)]
+                if not links or MAIL_PARENT_TAG + parent_id in links:
+                    result.append(row['id'])
+            return result
+
+    def mail_attachment_children(self, parent_id: str) -> list[str]:
+        """Current child versions bound to this parent; never guess legacy ancestry."""
+        with self._lock:
+            result = []
+            for identifier in self._mail_attachment_descendants(parent_id):
+                row = self._conn.execute('SELECT source_key,document FROM episodes WHERE id=?', (identifier,)).fetchone()
+                _, bound = mail_attachment_parent(self._conn, row['source_key'], json.loads(row['document']).get('tags', []))
+                if bound == parent_id and self.source_head(row['source_key']) == identifier:
+                    result.append(identifier)
+            return result
+
     def add_contacts(self, episode_id: str, contacts: list[dict[str, Any]],
                      participants: list[str]) -> Episode:
         """Ergänzt Beteiligte einer schon aufgenommenen Quelle (Nachtrag).
@@ -1121,6 +1230,7 @@ class EpisodeStore:
         """
         with self.transaction():
             episode = self.get(episode_id)
+            children = self._mail_attachment_descendants(episode_id)
             episode.state = EpisodeState.IGNORED
             if grund and (marke := f"{ENTZUG_MARKE}{grund}") not in episode.tags:
                 episode.tags.append(marke)
@@ -1131,12 +1241,25 @@ class EpisodeStore:
             if self.source_head('source-correction:' + episode_id):
                 self._conn.execute('UPDATE episodes SET support_generation=support_generation+1 WHERE id=?',
                                    (episode_id,))
+            for child_id in children:
+                self.ignore(child_id, grund=grund)
+                correction = self.source_head('source-correction:' + child_id)
+                seen = set()
+                while correction and correction not in seen:
+                    seen.add(correction)
+                    self.ignore(correction, grund=grund)
+                    correction = self.source_head('source-correction:' + correction)
             return episode
 
     def reopen(self, episode_id: str) -> Episode:
         """Gespeicherten Rohtext ausdrücklich erneut prüfen, nie Wissen bestätigen."""
         with self.transaction():
             episode = self.get(episode_id)
+            snapshot = self.support_snapshot(episode_id)
+            if not snapshot.mail_parent_valid:
+                raise EpisodeError('Die zugehörige Mail ist ausgeschlossen, ersetzt oder nicht eindeutig zugeordnet.')
+            if not snapshot.correction_valid:
+                raise EpisodeError('Der Bezug dieser Berichtigung ist nicht mehr gültig. Bitte die aktuelle Quelle prüfen.')
             if episode.state is not EpisodeState.IGNORED:
                 return episode
             if self.source_head('source-correction:' + episode_id):
@@ -1832,12 +1955,15 @@ class EpisodeStore:
     def _put(self, episode: Episode, *, source_key: str = "", _reopen=False) -> None:
         d = episode.to_dict()
         with self.transaction():
-            old = self._conn.execute('SELECT state FROM episodes WHERE id=?', (episode.id,)).fetchone()
+            old = self._conn.execute('SELECT state,source_key FROM episodes WHERE id=?', (episode.id,)).fetchone()
             if old:
                 if old[0] == 'ignored' and episode.state is not EpisodeState.IGNORED and not _reopen:
                     raise EpisodeError('An ignored source requires explicit reopen')
-                self._conn.execute('UPDATE episodes SET state=?,project_id=?,document=? WHERE id=?',
-                    (d['state'],d['project_id'],json.dumps(d,ensure_ascii=False),d['id']))
+                # Zustandsgründe ergänzen Tags; deren Digest muss zum Dokument
+                # passen. Der gespeicherte Quellenschlüssel bleibt unverändert.
+                self._conn.execute('UPDATE episodes SET state=?,project_id=?,document=?,metadata_digest=? WHERE id=?',
+                    (d['state'],d['project_id'],json.dumps(d,ensure_ascii=False),
+                     source_metadata_digest(d) if old[1] else '',d['id']))
             else:
                 self._conn.execute('INSERT INTO episodes (id,digest,kind,state,recorded_at,occurred_at,project_id,title,body,document,source_key,metadata_digest) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                     (d['id'],d['digest'],d['kind'],d['state'],d['recorded_at'],d['occurred_at'],d['project_id'],d['title'],d['body'],json.dumps(d,ensure_ascii=False),source_key,source_metadata_digest(d) if source_key else ''))

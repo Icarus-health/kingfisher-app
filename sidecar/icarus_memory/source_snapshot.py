@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Callable
 from datetime import datetime, timezone
 import re
-from .episodes import Episode, EpisodeKind, EpisodeState, digest_of, source_metadata_digest
+from .episodes import Episode, EpisodeKind, EpisodeState, digest_of, source_metadata_digest, mail_attachment_parent
 from .self_model_basis import digest
 
 
@@ -15,21 +15,29 @@ class EpisodeSupportSnapshot:
     generation: int
     head_id: str | None
     correction_valid: bool = True
+    mail_parent_valid: bool = True
+    mail_parent_fingerprint: str | None = None
 
     def fingerprint(self):
-        return digest({'episode': self.episode.to_dict(), 'source_key': self.source_key,
+        value = {'episode': self.episode.to_dict(), 'source_key': self.source_key,
                        'metadata_digest': self.metadata_digest, 'generation': self.generation,
-                       'head_id': self.head_id})
+                       'head_id': self.head_id}
+        if self.mail_parent_fingerprint is not None:
+            value['mail_parent'] = self.mail_parent_fingerprint
+        return digest(value)
 
     def support_fingerprint(self):
         # Bearbeitungsbuchhaltung darf eine eben angenommene Aussage nicht entwerten.
-        return digest({'id': self.episode.id, 'digest': self.episode.digest,
+        value = {'id': self.episode.id, 'digest': self.episode.digest,
                        'kind': self.episode.kind.value, 'ignored': self.episode.state is EpisodeState.IGNORED,
                        'source_key': self.source_key, 'metadata_digest': self.metadata_digest,
-                       'generation': self.generation, 'head_id': self.head_id})
+                       'generation': self.generation, 'head_id': self.head_id}
+        if self.mail_parent_fingerprint is not None:
+            value['mail_parent'] = self.mail_parent_fingerprint
+        return digest(value)
 
     def current(self):
-        return (self.correction_valid and self.episode.kind is not EpisodeKind.SUMMARY
+        return (self.correction_valid and self.mail_parent_valid and self.episode.kind is not EpisodeKind.SUMMARY
                 and self.episode.state is not EpisodeState.IGNORED
                 and (not self.source_key or self.head_id == self.episode.id))
 
@@ -56,6 +64,19 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
             or type(row['support_generation']) is not int or row['support_generation'] < 0
             or (row['source_key'] and row['metadata_digest'] != source_metadata_digest(document))):
         raise ValueError('Inkonsistente Quelle')
+    is_attachment, parent_id = mail_attachment_parent(connection, row['source_key'], episode.tags)
+    parent_valid, parent_fingerprint = True, None
+    if is_attachment:
+        parent = read_snapshot(connection, parent_id, parse, max_bytes=max_bytes,
+                               _seen=(*_seen, identifier)) if parent_id else None
+        parent_valid = bool(parent and parent.current())
+        # Die exakte Mailfassung und ihr Entzug tragen den Anhang. Beratende
+        # Header-/Abrufberichte entwerten seinen unveränderten Originaltext nicht.
+        parent_fingerprint = digest({
+            'id': parent.episode.id, 'digest': parent.episode.digest,
+            'source_key': parent.source_key, 'head_id': parent.head_id,
+            'ignored': parent.episode.state is EpisodeState.IGNORED,
+        }) if parent else ''
     correction_valid = True
     if row['source_key'].startswith('source-correction:'):
         from .model import SourceType
@@ -66,12 +87,13 @@ def read_snapshot(connection, identifier, parse, *, max_bytes=None, _seen=()):
                 and row['source_key'] == 'source-correction:' + match[1]):
             target = read_snapshot(connection, match[1], parse, max_bytes=max_bytes,
                                    _seen=(*_seen, identifier))
-            correction_valid = bool(target and target.correction_valid
+            correction_valid = bool(target and target.correction_valid and target.mail_parent_valid
                 and target.episode.state is EpisodeState.IGNORED
                 and (not target.source_key or target.head_id == target.episode.id)
                 and target.support_fingerprint() == match[2])
     return EpisodeSupportSnapshot(episode, row['source_key'], row['metadata_digest'],
-                                  row['support_generation'], row['head_id'], correction_valid)
+                                  row['support_generation'], row['head_id'], correction_valid,
+                                  parent_valid, parent_fingerprint)
 
 
 def quote_matches(quote, body):

@@ -1,0 +1,48 @@
+Migration test source-race reproduction
+=======================================
+
+Purpose
+-------
+Show that the migration docstring test can fail if Python has loaded
+`episodes.py` from commit 7061e30 but `inspect.getsource()` subsequently reads
+the later source file from 3483436. This is a temp-only reproduction; no
+repository files were changed and no test suite was started.
+
+Invocation
+----------
+Run from the repository checkout root:
+
+/private/tmp/kingfisher-review-20261006-venv/bin/python - <<'PY'
+import importlib, os, pathlib, shutil, subprocess, sys, time, linecache, tempfile
+repo = pathlib.Path.cwd()
+tmp = pathlib.Path(tempfile.mkdtemp(prefix='kf-migration-source-race-', dir='/tmp'))
+pkg = tmp / 'icarus_memory'
+shutil.copytree(repo / 'sidecar/icarus_memory', pkg, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+source = pkg / 'episodes.py'
+source.write_bytes(subprocess.check_output(['git','show','7061e30:sidecar/icarus_memory/episodes.py'],cwd=repo))
+sys.path.insert(0,str(tmp)); importlib.invalidate_caches()
+importlib.import_module('icarus_memory.episodes')
+sys.path.insert(0,str(repo/'sidecar/tests'))
+test=importlib.import_module('test_migrationsnummern')
+test.test_docstring_nennt_die_nummer_der_migrationsliste()
+print('same-source baseline: PASS')
+time.sleep(1.1)
+source.write_bytes((repo/'sidecar/icarus_memory/episodes.py').read_bytes()); os.utime(source,None); linecache.checkcache(str(source))
+try: test.test_docstring_nennt_die_nummer_der_migrationsliste()
+except AssertionError as exc: print('mixed-source reproduction:',type(exc).__name__+': '+str(exc))
+else: print('mixed-source reproduction: did not reproduce')
+print('temp path:',tmp)
+PY
+
+Observed output
+---------------
+same-source baseline: PASS
+mixed-source reproduction: AssertionError: die Prüfung hat nichts gefunden
+temp path: /tmp/kf-migration-source-race-65bpeibx
+
+Interpretation
+--------------
+The test passes with matching code object and source. After only the temp
+source file is replaced by the current version while the old module remains
+loaded, `inspect.getsource()` finds no migration checks. This supports a
+source/linecache race explanation, not a migration-number defect.

@@ -1,0 +1,37 @@
+{
+  "cause": "Docker VM filesystem full; host filesystem had free space",
+  "host_free_gib_before": 155,
+  "docker_free_mib_before": 0,
+  "docker_free_mib_after": 973,
+  "personal_volumes_removed": 0,
+  "other_containers_removed": 0,
+  "current_and_rollback_images_preserved": true,
+  "archived_build_objects": 64,
+  "archives": [
+    {
+      "file": "kingfisher-unused-build-parents.tar",
+      "bytes": 501731840,
+      "sha256": "9aafa8a1b51ac4e17acc53dd83c738bff03889fcdb0e87ec39e57bd3e6950732"
+    },
+    {
+      "file": "kingfisher-unused-build-stages.tar",
+      "bytes": 501731840,
+      "sha256": "c4b50d80f66a8a364bab588d4e9f3f748ab4033b4973b523c611922e138957ff"
+    },
+    {
+      "file": "kingfisher-unused-build-ancestors.tar",
+      "bytes": 501731840,
+      "sha256": "96d26e164faf63c946cc50335c8f9bb503ee7c2ba9e7c93fcce8a1c3153cc762"
+    },
+    {
+      "file": "kingfisher-unused-images.tar",
+      "bytes": 546661888,
+      "sha256": "d4c0eb61d2f7cb0a45490c0b1078ff918cae9e9143942291d137498716342725"
+    },
+    {
+      "file": "kingfisher-unused-build-chain.tar",
+      "bytes": 502012416,
+      "sha256": "d886010af84d412fd571c740188e517978c65dedfcfd1b7b0bcd856284797029"
+    }
+  ]
+}

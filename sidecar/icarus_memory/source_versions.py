@@ -8,23 +8,25 @@ import json
 
 
 def invalidate_with_corrections(episodes, claims, episode_id, *, at=None):
-    """Auch bestätigte Ableitungen aus den gebundenen Berichtigungen sperren.
+    """Auch Ableitungen aus Anhängen und gebundenen Berichtigungen sperren.
 
     Ein Berichtigungshead ist eine bestehende, indizierte Quellenbeziehung.
     Der gemeinsame Snapshot-Abruf erlaubt höchstens acht Ebenen; weitere
     Ebenen können ohnehin keine gültigen Wissensbelege sein.
     """
     seen = set()
-    current = episode_id
-    for _ in range(8):
-        if not current or current in seen:
-            return
+    pending = [(episode_id, 0)]
+    while pending:
+        current, depth = pending.pop()
+        if not current or current in seen or depth >= 8:
+            continue
         seen.add(current)
         if at is None:
             claims.invalidate_source(current)
         else:
             claims.invalidate_source(current, at=at)
-        current = episodes.source_head('source-correction:' + current)
+        pending.append((episodes.source_head('source-correction:' + current), depth + 1))
+        pending.extend((child, depth + 1) for child in episodes._mail_attachment_descendants(current))
 
 
 def source_key(root, reference):

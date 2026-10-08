@@ -11,6 +11,17 @@ from .zeitgrenze import mit_zeitgrenze
 #: So lange wartet „Mails einlesen“ höchstens auf die Mailbereiche des Postfachs (Sekunden, Wanduhr).
 ZEITGRENZE=15.0
 
+
+def attachment_support(reader):
+    """Reader capability, never a claim that existing mail has been fully read."""
+    from .anhaenge import MAX_ANHAENGE, MAX_BYTES, MAX_SEITEN, MAX_ZEICHEN
+    supported = callable(getattr(reader, 'message_mit_anhaengen', None))
+    description = (f'PDFs und Dokumentbilder werden mitgelesen: höchstens {MAX_ANHAENGE} Anlagen je Mail, '
+                   f'{MAX_SEITEN} Seiten, {MAX_BYTES // (1024 * 1024)} MiB und {MAX_ZEICHEN:,} Zeichen je Anlage. '
+                   'Scans brauchen lokale Texterkennung; ungelesene Inhalte und Grenzen stehen an der Originalquelle.'
+                   if supported else 'Dieser Mailzugang liest bisher den Mailtext, keine Anlagen. Inhalte aus Anlagen können im Gedächtnis fehlen.')
+    return {'attachments_supported': supported, 'attachments_description': description}
+
 class StartIn(BaseModel):
     folders: list[str]
 
@@ -38,6 +49,11 @@ def register(app, guard, data_dir, wire):
         for entry in app.state.settings.mail_accounts:
             state=store.status(entry.id)
             state.update(label=entry.label,connected=entry.configured)
+            try:
+                reader = app.state.mail.reader_for(entry.id) if entry.configured else None
+            except Exception:
+                reader = None
+            state.update(attachment_support(reader))
             # Fortschritt des Empfängernachtrags für ältere Mails; fehlt, solange er nicht begonnen hat.
             lauf=getattr(app.state,'nachtrag',None)
             state['empfaengernachtrag']=lauf.status(entry.id) if lauf is not None and state['started'] else None
@@ -53,7 +69,7 @@ def register(app, guard, data_dir, wire):
         provider=hintergrund_anbieter(app)
         plan=app.state.settings.schedule
         from .model_roles import rollen_von
-        return {'accounts':result,'attachments_supported':False,
+        return {'accounts':result,'attachments_supported':any(s['attachments_supported'] for s in result),
                 # Separate from each mailbox's pause: its resume route cannot
                 # release the explicit global background pause.
                 'background_paused':bool(getattr(getattr(app.state,'hintergrund',None),'pausiert',False)),
@@ -120,7 +136,7 @@ def register(app, guard, data_dir, wire):
         reader,folders=discover(account_id)
         # Ein Leser, der seinen Umfang selbst kennt (Microsoft 365: Posteingang und Gesendet), sagt ihn selbst.
         umfang=getattr(reader,'umfang',None)
-        return {'folders':folders,'attachments_supported':False,
+        return {'folders':folders,**attachment_support(reader),
                 'description': umfang if isinstance(umfang,str) and umfang else 'Posteingang, Gesendet und Archiv über den Gmail-Gesamtbestand; ohne Spam und Papierkorb.'
                     if any(f.upper()!='INBOX' for f in folders) else 'Nur Posteingang; Archiv und Gesendet sind bei diesem Konto noch nicht enthalten.'}
 

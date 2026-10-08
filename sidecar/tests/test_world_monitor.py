@@ -29,6 +29,10 @@ class Episodes:
     def source_head(self, key):
         return self.heads.get(key)
 
+    def _mail_attachment_descendants(self, episode_id):
+        # This fake stores public web excerpts, never mail attachments.
+        return []
+
     def ignore(self, episode_id):
         return episode_id
 

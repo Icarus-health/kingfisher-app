@@ -1,0 +1,45 @@
+# Mailanlagen: belegbarer Inhalt, Lücken und Quellenentzug
+
+## Reproduzierter Fehler
+
+Ein bestätigter Fakt aus einer PDF-Anlage blieb im Antwortkontext verfügbar, nachdem die zugehörige Mail ausgeschlossen oder durch eine Fassung ohne Anlage ersetzt wurde. Anlagen hatten unabhängige Quellenzeiger ohne Bindung an die konkrete Mailfassung. Ein gemischtes PDF mit Text- und Scanseite hieß außerdem „gelesen“, obwohl die Scanseite fehlte. Bei einer langen einzelnen Textzeile ging der Anfang verloren; nach einer exakt ausgeschöpften ersten Seite konnte ein negatives Zeichenbudget fast die ganze Folgeseite übernehmen.
+
+Die unabhängige Gegenprüfung fand weitere Abwesenheitsfehler: namenlose Anlagen und beschädigte MIME-Strukturen erschienen als „keine Anlagen gefunden“. Ein unvollständiger Wiederholungsabruf konnte eine zuvor vollständig gespeicherte Anlage durch einen ungelesenen Platzhalter ersetzen. Beim begründeten Entzug blieb der Metadatendigest hinter den neuen Tags zurück; der Quellen-Snapshot war danach inkonsistent.
+
+## Änderung
+
+Neue Anlagen tragen die exakte Eltern-ID zusätzlich zum bisherigen Mail-/Anlagen-Schlüssel. Gemeinsame SQL- und Snapshot-Prüfung verlangen eine aktuelle, zugelassene Elternfassung. Bei Altanlagen ohne Bindung wird nur eine einzige vorhandene Mailfassung akzeptiert; mehrdeutige Altbestände werden nicht auf eine neue Mail umgedeutet. Ausschluss, Quellenwechsel und Berichtigung entziehen auch Kinder, ihre Berichtigungen und davon abhängige bestätigte Aussagen. Wiederzulassung der Mail öffnet ihre Anlagen nicht automatisch.
+
+Ein begrenzter Eltern-Fingerabdruck bindet Identität, Textdigest, Quellenzeiger und Ausschlussstatus. Reine Abrufberichte entwerten den unveränderten Inhalt einer Anlage nicht. Nicht betroffene Quellen behalten ihre bisherigen Fingerabdrücke. Begründete Zustandsänderungen führen den Metadatendigest korrekt nach.
+
+Der vorhandene Parser behält höchstens fünf unterstützte Anlagen, 30 Seiten, 5 MiB und 60.000 Zeichen Inhalt je Anlage. Das nichtnegative Zeichenbudget umfasst Seitentrenner und erhält den Beginn langer Absätze. Fehlende Texte, Seiten- oder Zeichenlimits sowie ungelesene Anlagen erhalten `source:truncated`. OCR-erfolgreiche und weiterhin leere Seiten werden getrennt betrachtet.
+
+Ein begrenzter Abrufbericht an der Mail zählt lesbare/teilweise/ungelesene Dateien, ausgelassene Anlagen, nicht unterstützte Formate, namenlose Teile und MIME-Fehler. Der Originaltext bleibt unverändert. Ein normaler Mailaufruf ohne Anlagenprüfung löscht diesen Bericht nicht. Nur ein vollständiger, eindeutig zugeordneter MIME-Abruf ohne Anlagenlimit darf Abwesenheit ableiten. Bei unvollständigen oder unbekannten Wiederholungsabrufen bleiben die vorherigen vollständigen Quellen erhalten; der Bericht nennt die Grenze.
+
+Die Einrichtung beschreibt den Anlagenumfang je Leser: IMAP kann begrenzt PDFs/Dokumentbilder lesen; der bestehende Microsoft-Graph-Leser liest weiter nur Mailtext. „Unterstützt“ bezeichnet eine Fähigkeit, keinen nachgewiesenen vollständigen Bestand. Die Quellenansicht nennt unvollständige Erfassung oder fehlende Anlagenprüfung und öffnet gespeicherte Anlagen direkt. Ausgeschlossene historische Anlagen bleiben als solche einsehbar.
+
+## Prüfung
+
+Die neuen Regressionen verwenden echte temporäre Stores, ausdrücklich bestätigte künstliche Fakten, den realen PDF-Unterprozess, FTS-/Originalsuche und den Antwortkontext. Keine echten Konten, Cloudmodelle oder OCR-Modelle wurden aufgerufen. Sieben zunächst rote Parser-/Berichttests und die unabhängigen Vorher-Reproduktionen belegen den Ausgangsfehler; zusätzliche Kontrollfälle schützen vollständige Wiederholungen, Teilabrufe und gespeicherte Originale.
+
+Auf dem finalen Produktstand `3483436` bestehen 51 enge Parser-/Lifecycle-/Intakeprüfungen und 93 gesonderte Quellen-/Korrektur-/Indexprüfungen. Die fünf neuen Tiefengrenzfälle waren zuvor dreimal rot und zweimal grün; ein unabhängiger Reviewer bestätigt alle 20 Lifecycle-Fälle. 391 Oberflächenprüfungen und der Produktionsbuild bestehen. Der erste breite Lauf wurde wegen fehlender Mac-/Loopback-Rechte abgebrochen; 112 isolierte Prüfungen bestehen mit den nötigen Rechten. Der erste breite Lauf startete auf `7061e30` vor der letzten Tiefengrenzenänderung: 5452 bestanden, 1 übersprungen, 4 fehlgeschlagen. Drei Fehler betrafen vereinfachte Weltwissen-Testspeicher ohne die neu erforderliche Anhangsmethode; ausschließlich diese beiden Testobjekte wurden ergänzt, keine Behauptung abgeschwächt. 71 Weltwissen-/echte Lifecycle-/Migrationsprüfungen bestehen danach. Der vierte Fehler entstand durch `inspect.getsource()` gegen die inzwischen geänderte Datei bei bereits geladenem altem Modul. Der unabhängige Reviewer und der Hauptagent reproduzierten ihn getrennt ausschließlich in temporären Kopien; auf unverändertem Stand besteht der Test. **Der eingefrorene vollständige Wiederholungslauf auf Testcommit `59450de` besteht: 5461 bestanden, 1 übersprungen, 2 bestehende Warnungen, 12:42 Minuten.** Dessen Produktdateien entsprechen unverändert `3483436`; während dieses Laufs wurden keine Produkt- oder Testdateien bearbeitet.
+
+Das fertige lokale Image `ghcr.io/icarus-health/kingfisher-app:1.0.6-local.3483436` entspricht byteweise allen 264 Paketdateien und 112 Oberflächendateien. Der enthaltene SQLite-vec-Lizenznachweis stimmt überein. Ein netzloser 128-MiB-Lauf im fertigen Paket prüft den echten PDF-Unterprozess, bestätigte künstliche Fakten, Teilabruf, Zeichenbegrenzung und Quellenentzug einschließlich FTS und Antwortkontext. Wheel-SHA256: `3c624abd6bb9cc5d7418c2c40af1cae9c46652055fb2c2d445192c7a95af3410`. Dies ist ein lokales Paket, kein veröffentlichter Release oder verfügbarer Online-Updater.
+
+Die enthaltenen Prüfprotokolle liegen bytegetreu gzipkomprimiert vor; `log-manifest.json` nennt die SHA-256-Prüfsummen der dekomprimierten Originalbytes.
+
+## Grenzen
+
+Das sind Textabdeckung und Quellenberechtigung, keine Garantie fehlerfreier OCR oder vollständiger Bildinterpretation. Eine Seite mit Text kann zusätzlich bedeutungstragende Bilder enthalten. Nicht unterstützte Formate und Anlagen über den Grenzen bleiben offen. Alte Mails ohne Abrufbericht werden nicht nachträglich als vollständig geprüft bezeichnet. Die gespeicherte Anlagenquelle ist die extrahierte Textfassung; eine unveränderte PDF-Binärablage mit Download ist hier nicht neu gebaut.
+
+Alte Berichtigungen eines Anhangs enthalten einen früheren Ziel-Fingerabdruck ohne Elternbindung. Sie bleiben gespeichert, werden aber vorsichtig ungültig; diese Lieferung migriert oder bestätigt sie nicht automatisch. Korrektur-Ahnen werden auch im SQL-Suchgate begrenzt verfolgt; der finale Integritäts-Snapshot bleibt unabhängig Pflicht.
+
+Die bestehende lokale OCR hat weiterhin eigene Laufzeit-/Ressourcenlimits; ein großer persönlicher Anlagenbestand ist hier weder als vollständig eingelesen noch als schnell abgenommen. Die Bedienung auf dem gesperrten Mac und die ausdrücklich nicht freigegebene Browserprüfung bleiben offen; die Sperre wird nicht durch einen anderen Zugriff umgangen. Keine neuen Cloudkosten, Modellaktivierung, Quellenfreigabe oder Wiederaufnahme des persönlichen Imports.
+
+Diese Lieferung schließt konkret reproduzierte Quellenlücken. Sie beweist keinen fertigen CoS, keine allgemeine Suchvollständigkeit und keine fehlerfreie Gedächtnisqualität.
+
+## Installation und Speicher-Rückweg
+
+Der erste Umschaltversuch scheiterte mit `No space left on device` im Docker-Dateisystem, nicht wegen fehlenden Platzes auf dem Mac und nicht wegen des Anhangcodes. Der automatische Rückweg stellte zunächst die alte App wieder her; sie lief nach erster Speicherfreigabe wieder gesund. Ausschließlich unbenutzte, zu eigenen Kingfisher-Builds gehörende Images und Build-Ahnen wurden in Mac-Archive ausgelagert. Alle Blob-Prüfsummen und Image-Identitäten wurden vor dem Entfernen geprüft. Die Parent-Ketten hielten alte Schichten fest; danach sind rund 973 MiB frei. Keine persönlichen Volumes, fremden Container, aktuelle Version oder Rückweg-Images wurden entfernt. Die Archive und ihre Manifeste liegen unter `Kingfisher-Rueckweg/2026-10-08-ausgelagerte-zwischenpakete`. Das ist begrenzte Entlastung, keine ausreichende Kapazitätsabnahme für einen großen Import.
+
+Der erneute Installer verlangt vor dem Umschalten mindestens 512 MiB freien Docker-Platz. Nach neuer kalter Sicherung unter `Kingfisher-Rueckweg/2026-10-08-vor-3483436-wiederholung` ist **1.0.6-local.3483436** gesund installiert. Alle 344 Original-IDs/Inhaltsdigests wurden auch gegen die Sicherung des ersten Versuchs verglichen; 17 SQLite-Dateien bestehen die Integritätsprüfung. Konten, Kalender, Anbieter, Modellrollen, Zeitpläne und derselbe Datenvolume bleiben erhalten. Importpause und sichtbarer Mailstatus `pausiert` sind bestätigt. Bedeutungssuche bleibt bei ausgeschaltetem produktivem Ollama `unavailable`; native Fensterbedienung ist nicht geprüft. Der zusätzliche Platzcheck betrifft diesen lokalen Installer, nicht automatisch den veröffentlichten Updater.

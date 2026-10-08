@@ -52,6 +52,8 @@ def correct(episodes, claims, episode_id, fingerprint, body):
         if episodes.source_head(key) is not None:
             raise EpisodeError('Zu dieser Quelle gibt es bereits eine Berichtigung. Bitte dort fortfahren.')
         items = _items(episodes, current, body)
+        from .source_versions import invalidate_with_corrections
+        invalidate_with_corrections(episodes, claims, episode_id)
         episodes.ignore(episode_id)
         target_fingerprint = episodes.support_snapshot(episode_id).support_fingerprint()
         correction, created = episodes.record(
