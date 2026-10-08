@@ -909,7 +909,13 @@ def _exakte_nach_vor_regel(satz: str, klausel: str, beleg: Beleg) -> bool:
     Only complete original clauses and simple modal/passive grammar qualify.
     This does not infer that the event happened or that a condition is fulfilled.
     """
-    original = [_regeltext(t) for t in re.split(r'[!?]|(?<!\d)\.(?!\d)', beleg.text) if t.strip()]
+    # A sentence inside a multi-sentence quotation may contain neither quote
+    # delimiter itself. This narrow exception does not parse reported speech.
+    if re.search(r'[„“»«\"\u2018\u2019]', beleg.text):
+        return False
+    teile = re.split(r'([!?]|(?<!\d)\.(?!\d))', beleg.text)
+    original = [_regeltext(teile[i]) for i in range(0, len(teile), 2)
+                if teile[i].strip() and (i + 1 == len(teile) or teile[i + 1] != '?')]
     positiv = _regeltext(satz)
     if positiv not in original:
         return False

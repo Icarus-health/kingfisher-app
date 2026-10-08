@@ -74,6 +74,17 @@ def test_embedded_quote_is_not_a_standalone_after_permission():
     assert not check(AFTER, source).bestanden
 
 
+@pytest.mark.parametrize('quote', [('„', '“'), ('"', '"')])
+def test_inner_sentence_in_a_multisentence_old_quote_does_not_become_permission(quote):
+    source = BEFORE + ' Der Bericht zitiert eine alte Anweisung: ' + quote[0] + (
+        'Zuerst wird das Datum notiert. ' + AFTER + ' Diese Anweisung ist nicht verbindlich.') + quote[1]
+    assert not check(AFTER, source).bestanden
+
+
+def test_permission_question_cannot_be_reused_as_a_statement():
+    assert not check(AFTER, BEFORE + ' ' + AFTER.rstrip('.') + '?').bestanden
+
+
 def test_changed_additional_condition_is_rejected():
     after = 'Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin schriftlich zustimmt.'
     changed = 'Erst nach der Abnahme darf sie entfernt werden, wenn die Technikerin mündlich zustimmt.'
