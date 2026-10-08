@@ -5,7 +5,7 @@ Stand: 8. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nach
 ## Aktueller Stand auf einen Blick (9. Oktober)
 
 - **Auf dem Mac installiert:** Backend `1.0.6-local.3cf769f`. Vorgangsbindung und der neue begrenzte Schutz zeitlicher Erlaubnisbedingungen wirken auch im alten Verlauf. 344 Originale und 17 Datenbanken erhalten; Rückweg vollständig gesichert.
-- **GitHub:** PR 23 ist zusammengeführt; die folgende Satzprüfung ist unabhängig geprüft und wird mit ihren Nachweisen übernommen.
+- **GitHub:** Vorgangsbindung und Satzprüfung sind über [PR 23](https://github.com/Icarus-health/kingfisher-app/pull/23) und [PR 24](https://github.com/Icarus-health/kingfisher-app/pull/24) samt unabhängigen Nachweisen nachvollziehbar.
 - **Qualität bleibt offen:** Der bekannte RQ20-Fehler ist als Regression abgesichert. Acht neue unabhängige Fragen allein an Formulierung/Prüfung ergeben aber nur vier vollständige Antworten, zwei Zitat-Rückfälle und zwei unzureichende Antworten. Das ist weder eine allgemeine Gedächtnisabnahme noch ein Nachweis des vollständigen vorgeschalteten Akten-/Suchwegs.
 - **Weiterhin angehalten:** persönlicher Import und produktives Ollama. Keine neue Cloudfreigabe oder Ausgabe. Verbundene Konten beweisen keine vollständige Aufnahme.
 - **Nächster Kernschritt:** alte/neue Erlaubnis und quelleninterne Verneinung aus IA07/IA08 über den vollständigen Gedächtnisweg prüfen; danach gewünschte Quellenbestände und native Tages-/Akkuqualität abnehmen. Die Fensterprüfung bleibt wegen des gesperrten Macs offen.
