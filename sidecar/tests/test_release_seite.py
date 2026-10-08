@@ -106,3 +106,26 @@ def test_workflow_reihenfolge_und_rechte():
     assert 'actions/deploy-pages@' in text and 'name: github-pages' in text
     container = (WURZEL / '.github' / 'workflows' / 'container.yml').read_text(encoding='utf-8')
     assert 'tags: ["v*"]' not in container and 'value=latest' not in container, ':latest gehört dem Release'
+
+
+@pytest.mark.parametrize('text', [
+    '- ' + 'x' * 301 + '\n',
+    '\n'.join('- Hinweis.' for _ in range(21)),
+    'App mindestens: keine-fassung\n\n- Ein Hinweis.\n',
+], ids=['hint-too-long', 'too-many-hints', 'invalid-app-version'])
+def test_tag_vorpruefung_lehnt_spaeter_ungueltiges_manifest_ab(tmp_path, text):
+    (tmp_path / 'VERSION').write_text('2.0.0\n')
+    folder = tmp_path / 'docs' / 'fassungen'
+    folder.mkdir(parents=True)
+    (folder / '2.0.0.md').write_text(text)
+    with pytest.raises(release.Fehler):
+        release.pruefen('v2.0.0', wurzel=tmp_path)
+
+
+def test_tag_vorpruefung_akzeptiert_die_manifest_grenzen(tmp_path):
+    (tmp_path / 'VERSION').write_text('2.0.0\n')
+    folder = tmp_path / 'docs' / 'fassungen'
+    folder.mkdir(parents=True)
+    text = 'App mindestens: 1.0.0\n\n' + '\n'.join('- ' + 'x' * 300 for _ in range(20))
+    (folder / '2.0.0.md').write_text(text)
+    assert release.pruefen('v2.0.0', wurzel=tmp_path) == '2.0.0'

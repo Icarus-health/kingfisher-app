@@ -80,6 +80,8 @@ STUFEN_TEXT = {
     'rueckstand': 'Der Rückstand, von neu nach alt',
 }
 GRUND_TEXT = {
+    'akku': 'Die automatische Hintergrundverarbeitung pausiert im Akkubetrieb. Am Netzteil geht es weiter; Lesen und direkte Anfragen bleiben möglich.',
+    'energie_unbekannt': 'Der aktuelle Energiestatus des Macs fehlt. Die automatische Hintergrundverarbeitung wartet auf die Meldung der App.',
     'pausiert': 'Pausiert. Kingfisher lernt weiter, wenn du „Weiter“ wählst.',
     'antwort': 'Kingfisher lernt weiter, sobald die Antwort fertig ist; du musst nichts tun.',
     # Fremdprobe 3, Befund 8: „Wartet, solange du arbeitest.“ las sich, als solle man aufhören zu arbeiten.
@@ -93,19 +95,28 @@ SATZ_ANBLEIBEN = 'Es geht schneller, wenn der Rechner heute anbleibt.'
 _ORT = threading.local()
 
 
+class BackgroundInterrupted(BaseException):
+    """Intentional pause, not a provider failure or a source retry/backoff.
+
+    Unwinds the active job to the scheduler tick so its locks and restore lease
+    are released. Ordinary Exception handlers must not mark sources as failed.
+    """
+
+
 @contextmanager
-def als_hintergrund(sperre: Callable[[], str | None] | None = None) -> Iterator[None]:
+def als_hintergrund(sperre: Callable[[], str | None] | None = None, *,
+                    stopped: Callable[[], bool] | None = None) -> Iterator[None]:
     """Kennzeichnet den laufenden Faden als Hintergrund, samt der Sperre seiner Steuerung.
 
     Die Sperre hängt am Faden, nicht am Modul: Zwei Apps in einem Prozess (Tests)
     bremsen sich so nicht gegenseitig.
     """
-    vorher = getattr(_ORT, 'sperre', None), getattr(_ORT, 'hinten', False)
-    _ORT.hinten, _ORT.sperre = True, sperre
+    vorher = getattr(_ORT, 'sperre', None), getattr(_ORT, 'hinten', False), getattr(_ORT, 'stopped', None)
+    _ORT.hinten, _ORT.sperre, _ORT.stopped = True, sperre, stopped
     try:
         yield
     finally:
-        _ORT.sperre, _ORT.hinten = vorher
+        _ORT.sperre, _ORT.hinten, _ORT.stopped = vorher
 
 
 def im_hintergrund() -> bool:
@@ -170,9 +181,15 @@ class ModellAmpel:
     @contextmanager
     def hintergrund(self) -> Iterator[None]:
         sperre = getattr(_ORT, 'sperre', None)
+        stopped = getattr(_ORT, 'stopped', None)
         with self._bedingung:
-            while (self._hinten or (self._vorne and not self._darf_parallel())
-                   or (sperre is not None and _gesperrt(sperre))):
+            while True:
+                if stopped is not None and stopped():
+                    raise BackgroundInterrupted('stopped')
+                # Check energy even while another request occupies the model.
+                gesperrt = sperre is not None and _gesperrt(sperre)
+                if not (self._hinten or (self._vorne and not self._darf_parallel()) or gesperrt):
+                    break
                 self._bedingung.wait(0.25)
             self._hinten += 1
         try:
@@ -193,7 +210,10 @@ class ModellAmpel:
 
 def _gesperrt(sperre: Callable[[], str | None]) -> bool:
     try:
-        return sperre() is not None
+        grund = sperre()
+        if grund in ('akku', 'energie_unbekannt'):
+            raise BackgroundInterrupted(grund)
+        return grund is not None
     except Exception:  # noqa: BLE001 - eine kaputte Sperre darf den Hintergrund nicht für immer anhalten
         return False
 
@@ -498,7 +518,9 @@ class Steuerung:
     def __init__(self, datei: Path | None, episodes: Callable[[], Any], *,
                  uhr: Callable[[], float] = time.monotonic,
                  wanduhr: Callable[[], datetime] = lambda: datetime.now().astimezone(),
-                 ruhe_s: float = RUHE_NACH_EINGABE_S) -> None:
+                 ruhe_s: float = RUHE_NACH_EINGABE_S,
+                 external_gate: Callable[[], str | None] = lambda: None) -> None:
+        self.external_gate = external_gate
         self._datei = datei
         self._episodes = episodes
         self._uhr = uhr
@@ -553,6 +575,9 @@ class Steuerung:
         """Warum der Hintergrund gerade zurücktritt, oder `None`, wenn er arbeiten darf."""
         if self._zustand['pausiert']:
             return 'pausiert'
+        external = self.external_gate()
+        if external is not None:
+            return external
         if self.aktivitaet.antwort_laeuft():
             return 'antwort'
         if self.aktivitaet.ruhe_noch(self.ruhe_s) > 0:
@@ -561,7 +586,7 @@ class Steuerung:
 
     def wartezeit(self) -> float:
         """Wie lange der Takt nach einer Sperre wartet, bevor er erneut nachsieht."""
-        if self._zustand['pausiert']:
+        if self._zustand['pausiert'] or self.external_gate() is not None:
             return PAUSE_MAX_S
         return min(PAUSE_MAX_S, max(PAUSE_MIN_S, self.aktivitaet.ruhe_noch(self.ruhe_s)))
 
@@ -659,7 +684,7 @@ class Steuerung:
         else:
             zustand = 'laeuft'
         schaetzung = None
-        if zustand in ('laeuft', 'wartet') and je_s:
+        if zustand in ('laeuft', 'wartet') and je_s and grund not in ('akku', 'energie_unbekannt'):
             sekunden = offen / je_s
             jetzt = self._wanduhr()
             ziel = jetzt + timedelta(seconds=sekunden)
@@ -669,7 +694,8 @@ class Steuerung:
             satz = SATZ_ANBLEIBEN
         return {
             'zustand': zustand,
-            'grund': GRUND_TEXT.get(grund or '') if zustand in ('pausiert', 'wartet') else None,
+            'grund': GRUND_TEXT.get(grund or '') if (zustand in ('pausiert', 'wartet')
+                      or freigegeben and grund in ('akku', 'energie_unbekannt')) else None,
             'pausiert': self.pausiert,
             'fortschritt': {**zahlen, 'offen': offen},
             'rate_pro_stunde': None if not je_s else round(je_s * 3600, 1),
@@ -690,7 +716,9 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
         ruhe_s = max(0.0, float(os.environ.get(RUHE_ENV, RUHE_NACH_EINGABE_S)))
     except ValueError:
         ruhe_s = RUHE_NACH_EINGABE_S
-    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s)
+    from .host_power import install_routes as install_power_routes
+    power = install_power_routes(app, guard, data_dir)
+    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s, external_gate=power.reason)
     app.state.hintergrund = steuerung
     app.add_middleware(AktivitaetsMiddleware, aktivitaet=lambda: getattr(getattr(app.state, 'hintergrund', None), 'aktivitaet', None))
 
@@ -750,7 +778,7 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
 
 
 __all__ = [
-    'AMPEL', 'Aktivitaet', 'AktivitaetsMiddleware', 'ModellAmpel', 'Steuerung', 'als_hintergrund', 'einbauen',
+    'AMPEL', 'Aktivitaet', 'AktivitaetsMiddleware', 'BackgroundInterrupted', 'ModellAmpel', 'Steuerung', 'als_hintergrund', 'einbauen',
     'im_hintergrund', 'ist_antwort', 'niedrige_prioritaet', 'ordnen', 'rate', 'speicher_reicht', 'wann_text',
     'zaehlen', 'zaehlt_als_eingabe',
 ]

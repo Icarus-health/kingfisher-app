@@ -14,6 +14,66 @@ from icarus_memory.world_monitor import WorldMonitor
 NOW = datetime(2026, 9, 8, 12, tzinfo=timezone.utc)
 
 
+def test_identical_text_at_changed_redirect_keeps_distinct_original_provenance(tmp_path, monkeypatch):
+    from icarus_memory.config import Settings
+    monkeypatch.setattr('icarus_memory.world_monitor._validate_url', lambda url: url)
+    episodes = EpisodeStore(tmp_path / 'redirect-episodes.sqlite3')
+    claims = ClaimStore(tmp_path / 'redirect-claims.sqlite3')
+    try:
+        version = {'url': 'https://example.org/first', 'text': 'Unchanged source text',
+                   'captured_at': '2026-10-01T09:00:00+00:00'}
+        import threading
+        monitor = WorldMonitor(Settings(), episodes, claims, lambda _: None, threading.RLock(),
+                               fetch=lambda _: dict(version))
+        source = monitor.add('https://example.org/start', 'Public source', [])
+        first = monitor.refresh(source['id'])
+        # Simulate the pre-URL-aware metadata of an installed older database.
+        from icarus_memory.episodes import source_metadata_digest
+        old_document = episodes.get(first['episode_id']).to_dict()
+        old_document.pop('provenance')
+        episodes._conn.execute('UPDATE episodes SET metadata_digest=? WHERE id=?',
+                               (source_metadata_digest(old_document), first['episode_id']))
+        assert monitor.refresh(source['id'])['episode_id'] == first['episode_id']
+        version.update(url='https://example.org/second', captured_at='2026-10-02T09:00:00+00:00')
+        second = monitor.refresh(source['id'])
+        assert second['episode_id'] != first['episode_id']
+        old, new = episodes.get(first['episode_id']), episodes.get(second['episode_id'])
+        assert old.body == new.body and old.digest == new.digest
+        assert old.provenance.source_ref == 'https://example.org/first'
+        assert new.provenance.source_ref == second['fetched_url'] == 'https://example.org/second'
+        assert new.provenance.captured_at.isoformat() == second['last_success']
+        assert old.state.value == 'ignored'
+    finally:
+        claims.close()
+        episodes.close()
+
+
+def test_refresh_cannot_reactivate_a_withdrawn_public_version(tmp_path, monkeypatch):
+    from icarus_memory.config import Settings
+    import threading
+    monkeypatch.setattr('icarus_memory.world_monitor._validate_url', lambda url: url)
+    episodes = EpisodeStore(tmp_path / 'cycle-episodes.sqlite3')
+    claims = ClaimStore(tmp_path / 'cycle-claims.sqlite3')
+    try:
+        version = {'text': 'Version A', 'captured_at': NOW.isoformat()}
+        monitor = WorldMonitor(Settings(), episodes, claims, lambda _: None,
+                               threading.RLock(), fetch=lambda _: dict(version))
+        source = monitor.add('https://example.org/source', 'Public source', [])
+        first = monitor.refresh(source['id'])
+        version['text'] = 'Version B'
+        second = monitor.refresh(source['id'])
+        assert episodes.get(first['episode_id']).state.value == 'ignored'
+        version['text'] = 'Version A'
+        with pytest.raises(ValueError, match='zurückgezogen'):
+            monitor.refresh(source['id'])
+        assert episodes.source_head('world:' + source['id']) == second['episode_id']
+        assert monitor.list()[0]['episode_id'] == second['episode_id']
+        assert episodes.get(second['episode_id']).state.value != 'ignored'
+    finally:
+        claims.close()
+        episodes.close()
+
+
 def test_world_source_versions_claims_and_disable_are_real(tmp_path, monkeypatch):
     # Der Sicherheitscheck löst auch bei einem Fake-Fetch die öffentliche
     # Adresse auf. DNS ist hier kein Teil des getesteten Lebenszyklus.

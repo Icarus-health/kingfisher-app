@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ApiError, api, type GraphNode, type MemoryGraph, type PersonMerge, type PersonMergePreview } from "./api";
 import { navigate } from "./ui";
 import { PersonDigest } from "./PersonDigest";
+import { PeopleMentions } from "./PeopleMentions";
 import { nichtMehrZuordenbar } from "./personMergeLost";
 import "./PeopleReview.css";
 
@@ -119,6 +120,7 @@ export function PeopleReview({ graph, onGraphRefresh }: { graph: MemoryGraph; on
 
   return <section className="people-review" aria-label="Personen prüfen">
     <p className="people-review-note">Mögliche Duplikate werden erst nach deiner Bestätigung gemeinsam angezeigt. Die ursprünglichen Akten und Quellen bleiben erhalten.</p>
+    <PeopleMentions />
     {merges.length ? <section className="people-review-history" aria-label="Gespeicherte Zusammenführungen"><h2>Zusammengeführte Personen</h2>{merges.map(merge => <SavedMerge key={merge.id} merge={merge} onChanged={refresh} verloren={nichtMehrZuordenbar(graph, merge.id)} />)}</section> : null}
     {mergeError ? <p className="people-review-error" role="alert">Gespeicherte Zusammenführungen konnten nicht geladen werden. <button type="button" onClick={() => void loadMerges()}>Erneut laden</button></p> : null}
     {Array.from(duplicateGroups.values()).map(group => <MergeCandidate key={group.map(node => node.id).join("|")} members={group} onChanged={refresh} />)}

@@ -44,7 +44,8 @@ class WorldMonitor:
             source = {
                 "id": str(uuid.uuid4()), "url": canonical, "label": label,
                 "topics": clean_topics, "enabled": True, "episode_id": None,
-                "last_success": None, "error": None, "truncated": False,
+                "last_success": None, "fetched_url": None, "source_sha256": None,
+                "error": None, "truncated": False,
             }
             self.settings.world_sources.append(source)
             self._persist()
@@ -57,10 +58,12 @@ class WorldMonitor:
             for source in self.settings.world_sources:
                 if not isinstance(source, dict):
                     continue
+                episode = None
                 ignored = False
                 if source.get("episode_id"):
                     try:
-                        ignored = getattr(self.episodes.get(source["episode_id"]), "state", None).value == "ignored"
+                        episode = self.episodes.get(source["episode_id"])
+                        ignored = getattr(getattr(episode, "state", None), "value", None) == "ignored"
                     except (AttributeError, KeyError, TypeError):
                         ignored = False
                 if not source.get("enabled", True):
@@ -79,6 +82,10 @@ class WorldMonitor:
                     "enabled": bool(source.get("enabled", True)),
                     "episode_id": source.get("episode_id"),
                     "last_success": source.get("last_success"),
+                    "fetched_url": source.get("fetched_url") or getattr(
+                        getattr(episode, "provenance", None), "source_ref", None
+                    ),
+                    "source_sha256": source.get("source_sha256") or getattr(episode, "digest", None),
                     "error": "Quelle konnte zuletzt nicht aktualisiert werden." if source.get("error") else None,
                     "truncated": bool(source.get("truncated", False)), "status": status,
                 })
@@ -132,17 +139,40 @@ class WorldMonitor:
                     or source.get("last_success") != expected_last_success or not permitted()):
                 raise ValueError("Quelle wurde während der Aktualisierung geändert oder deaktiviert.")
             captured = fetched.get("captured_at")
+            final_url = fetched.get("url") or requested_url
             provenance = Provenance(
-                source_type=SourceType.WEB, source_ref=requested_url,
+                source_type=SourceType.WEB, source_ref=final_url,
                 captured_at=self._captured_at(captured), verbatim=fetched["text"],
             )
-            episode, _created = self.episodes.record(
-                EpisodeKind.DOCUMENT, source.get("label", requested_url), fetched["text"], provenance,
-                tags=list(source.get("topics", [])), source_key=f"world:{source_id}",
-            )
+            # An unchanged legacy original predates URL-aware metadata hashes.
+            # Rechecking it must not replace it or invalidate existing claims.
+            episode = None
+            if source.get("episode_id"):
+                try:
+                    current = self.episodes.get(source["episode_id"])
+                    if (getattr(getattr(current, "state", None), "value", None) != "ignored"
+                            and current.body == fetched["text"]
+                            and getattr(current, "title", None) == source.get("label", requested_url)
+                            and current.provenance.source_ref == final_url
+                            and set(getattr(current, "tags", [])) == set(source.get("topics", []))):
+                        episode = current
+                except KeyError:
+                    pass
+            if episode is None:
+                episode, _created = self.episodes.record(
+                    EpisodeKind.DOCUMENT, source.get("label", requested_url), fetched["text"], provenance,
+                    tags=list(source.get("topics", [])), source_key=f"world:{source_id}",
+                )
+            # A former version remains withdrawn even when the remote page
+            # cycles back to its old text. Never advertise it as a new success.
+            if getattr(getattr(episode, "state", None), "value", None) == "ignored":
+                source["error"] = "withdrawn_version"
+                self._persist()
+                raise ValueError("Diese Quellenfassung wurde zurückgezogen; der bisherige Stand bleibt erhalten.")
             track_source(self.episodes, self.claims, f"world:{source_id}", episode)
             source.update({
                 "episode_id": episode.id, "last_success": captured,
+                "fetched_url": final_url, "source_sha256": episode.digest,
                 "error": None, "truncated": bool(fetched.get("truncated", False)),
             })
             self._persist()

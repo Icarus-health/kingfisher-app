@@ -37,3 +37,16 @@ test("Heute zeigt den Stand eines Postfachs, der erklärt, warum keine Mails das
   for (const zustand of ["leer", "nicht_abgerufen", "pausiert", "fehler"]) assert.equal(postfachAufHeute(zustand), true, zustand);
   for (const zustand of ["liest", "aktuell"]) assert.equal(postfachAufHeute(zustand), false, zustand);
 });
+
+test("Heute und Aufgabenquelle unterscheiden Quelldatum und Erfassungszeit", () => {
+  const heute = readFileSync(new URL("TodayOverview.tsx", SRC), "utf8");
+  const aufgabenquelle = readFileSync(new URL("TaskSource.tsx", SRC), "utf8");
+  assert.match(heute, /item\.occurred_at/);
+  assert.match(heute, /occurred \?\? "unbekannt"/);
+  assert.match(heute, /item\.recorded_at/);
+  assert.match(heute, /Erfasst/);
+  assert.match(aufgabenquelle, /source\.occurred_at/);
+  assert.match(aufgabenquelle, /timestamp\(source\.occurred_at\) \?\? "unbekannt"/);
+  assert.match(aufgabenquelle, /source\.recorded_at/);
+  assert.match(aufgabenquelle, /Erfasst/);
+});

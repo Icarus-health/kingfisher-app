@@ -54,6 +54,43 @@ def _api(core, tmp_path, monkeypatch):
     return app, client, provider
 
 
+def test_eingeordnete_originalquelle_bleibt_ohne_modellauswahl_abrufbar(core, tmp_path, monkeypatch):
+    """Wörtliche Anzeige braucht weder Fragenmodell noch Auswahlmodell."""
+    from icarus_memory.providers import ProviderError
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+
+    app, client, provider = _api(core, tmp_path, monkeypatch)
+    try:
+        source_id = _upload(client)
+        store = WorkingMemoryStore(app.state.episodes)
+        snapshot = store.pending(episode_ids=[source_id])[0]
+        assert store.commit(snapshot, [{"start": 0, "end": len(snapshot.episode.body), "kind": "conditional"}],
+                            model="synthetisch")
+        calls = []
+
+        def unavailable(*args, **kwargs):
+            calls.append(True)
+            raise ProviderError("Synthetisch ausgeschaltetes Modell")
+
+        monkeypatch.setattr(provider, 'complete', unavailable)
+        monkeypatch.setattr(provider, 'complete_json', unavailable, raising=False)
+        conversation_id = _conversation(client)
+        answer = _ask(client, conversation_id)
+        context = answer['metadata']['context']
+        assert context['answer_contract']['status'] == 'source_report'
+        assert context['answer_contract']['model_called'] is False
+        assert context['source_answer']['refs'][0]['episode_id'] == source_id
+        assert EXCERPT in answer['content']
+        assert calls == []
+        app.state.episodes.ignore(source_id)
+        reopened = client.get(f"/api/v1/conversations/{conversation_id}")
+        assert reopened.status_code == 200
+        assert EXCERPT not in str(reopened.json())
+    finally:
+        client.close()
+        _close_app(app)
+
+
 @pytest.mark.parametrize('question', [QUESTION, 'Suche in meinen Quellen nach "AURORA-4711".'])
 def test_raw_document_answer_is_projected_from_neutral_persisted_references(
     core, tmp_path, monkeypatch, question

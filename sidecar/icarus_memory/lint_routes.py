@@ -20,6 +20,7 @@ der Mail als Beleg bleibt als Spur (Zustand „abgelöst“).
 from __future__ import annotations
 
 import json
+import hashlib
 import threading
 import time
 from datetime import datetime
@@ -39,11 +40,27 @@ _LINT_SPERRE = threading.Lock()
 class StatusIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
     status: Literal['offen', 'erledigt', 'abgewiesen']
+    stand: str | None = None
 
 
 class WahlIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
     wahl: Literal['alt', 'neu']
+    stand: str | None = None
+
+
+def _quellenstand(app, eintrag: dict[str, Any]) -> str:
+    """Bind a displayed choice to both its finding and current source bodies."""
+    ids = {b['episode_id'] for b in eintrag['belege']}
+    if app.state.episodes.usable_ids(ids) != ids:
+        raise HTTPException(status_code=409, detail='Eine Quelle wurde zurückgezogen oder ersetzt. Bitte neu laden.')
+    sources = []
+    for id in sorted(ids):
+        snapshot = app.state.episodes.support_snapshot(id)
+        if snapshot is None or not snapshot.current():
+            raise HTTPException(status_code=409, detail='Eine Quellengrundlage hat sich geändert. Bitte neu laden.')
+        sources.append((id, snapshot.support_fingerprint()))
+    return hashlib.sha256(json.dumps([eintrag, sources], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def ablage(app) -> Befunde:
@@ -147,7 +164,7 @@ def _annehmen(app, vorschlag_id: str, entwurf: Entwurf, befund: dict[str, Any]) 
     return app.state.knowledge_service.accept(neu.id, supersedes=list(entwurf.ersetzt))
 
 
-def entscheiden(app, kennung: str, wahl: str) -> dict[str, Any]:
+def entscheiden(app, kennung: str, wahl: str, stand: str | None = None) -> dict[str, Any]:
     """Die Wahl „alt“ oder „neu“ zu einem Widerspruch. Ein Klick, dann ist der Befund erledigt."""
     from .claims import ClaimError
     from .proposals import ProposalError, ProposalState
@@ -163,20 +180,42 @@ def entscheiden(app, kennung: str, wahl: str) -> dict[str, Any]:
     aussage = None
     try:
         with app.state.conversation_lock:
+            # Fetch again under the same lock as source withdrawal/knowledge decisions.
+            aktuell = ablage(app).get(kennung)
+            if aktuell != eintrag or aktuell['status'] != 'offen':
+                raise HTTPException(status_code=409, detail='Der Befund hat sich geändert. Bitte neu laden.')
+            aktuell_stand = _quellenstand(app, aktuell)
+            if stand is not None and stand != aktuell_stand:
+                raise HTTPException(status_code=409, detail='Der angezeigte Stand hat sich geändert. Bitte neu laden.')
+            for claim_id in {id for entwurf in entwuerfe.values() for id in entwurf.ersetzt}:
+                from .knowledge_render import KnowledgeInputBuild
+                if KnowledgeInputBuild(app.state.claims, app.state.episodes.support_snapshot).capture(claim_id) is None:
+                    raise HTTPException(status_code=409, detail='Eine bisherige Aussage oder ihre Grundlage ist nicht mehr aktuell. Bitte neu laden.')
+                claim = app.state.claims.get(claim_id)
+                if not app.state.claims.is_usable(claim):
+                    raise HTTPException(status_code=409, detail='Die bisherige Aussage hat sich geändert. Bitte neu laden.')
+                ids = {item.episode_id for item in claim.evidence}
+                if app.state.episodes.usable_ids(ids) != ids:
+                    raise HTTPException(status_code=409, detail='Die bisherige Quelle ist nicht mehr aktuell. Bitte neu laden.')
+                for evidence in claim.evidence:
+                    app.state.knowledge_service._validate(evidence)
             for vorschlag_id in vorschlaege.values():
-                if app.state.proposals.get(vorschlag_id).state is not ProposalState.PENDING:
+                proposal = app.state.proposals.get(vorschlag_id)
+                if proposal.state is not ProposalState.PENDING:
                     raise HTTPException(status_code=409, detail='Der Vorschlag wurde inzwischen anders entschieden. '
                                                                 'Bitte die Liste neu laden.')
+                for evidence in proposal.evidence:
+                    app.state.knowledge_service._validate(evidence)
             if wahl in vorschlaege:
                 aussage = _annehmen(app, vorschlaege[wahl], entwuerfe[wahl], eintrag)
             for andere, vorschlag_id in vorschlaege.items():
                 if andere != wahl and app.state.proposals.get(vorschlag_id).state is ProposalState.PENDING:
                     app.state.knowledge_service.reject(vorschlag_id)
+            befund = ablage(app).status_setzen(kennung, 'erledigt', entschieden=wahl)
     except (ClaimError, ProposalError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     app.state.audit.record('lint_entscheiden', 'write_local', 'confirm', 'approved',
                            {'befund': kennung, 'wahl': wahl}, detail='Widerspruch per Klick entschieden.')
-    befund = ablage(app).status_setzen(kennung, 'erledigt', entschieden=wahl)
     return {'befund': befund, 'aussage': aussage.to_dict() if aussage is not None else None,
             'zusammenfassung': zusammenfassung(app)}
 
@@ -196,11 +235,23 @@ def _anreichern(app, eintraege: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for eintrag in eintraege:
         if any(b['episode_id'] not in geltend for b in eintrag['belege']):
             continue
+        try:
+            eintrag['stand'] = _quellenstand(app, eintrag)
+        except HTTPException:
+            continue
         for b in eintrag['belege']:
             if b['episode_id'] not in titel:
                 episode = app.state.episodes.get(b['episode_id'])
-                titel[b['episode_id']] = {'titel': episode.title[:160], 'datum': episode.reference_time().isoformat()}
+                titel[b['episode_id']] = {'titel': episode.title[:160],
+                                         'datum': episode.occurred_at.isoformat() if episode.occurred_at else None,
+                                         'recorded_at': episode.recorded_at.isoformat(), 'digest': episode.digest}
             b.update(titel[b['episode_id']])
+            episode = app.state.episodes.get(b['episode_id'])
+            start, ende = b.get('start', -1), b.get('ende', -1)
+            b['zitat'] = episode.body[start:ende] if 0 <= start < ende <= len(episode.body) else ''
+            if not b['zitat']:
+                b['zitat'] = next((e['zitat'] for e in eintrag.get('entwuerfe', [])
+                                   if e['episode_id'] == b['episode_id'] and e['zitat'] in episode.body), '')
         eintrag['sachen'] = [{'sache': s, 'name': namen.get(s, s), 'art_text': ART_TEXT.get((zerlegen(s) or ('', ''))[0], '')}
                              for s in eintrag['sachen'] if zerlegen(s)]
         vorschlaege = []
@@ -238,25 +289,30 @@ def register(app, guard, data_dir) -> None:
 
     @app.get('/api/v1/lint/befunde', dependencies=guard)
     def lint_befunde(status: Literal['offen', 'erledigt', 'abgewiesen'] | None = Query('offen')) -> dict[str, Any]:
-        vorschlaege_nachziehen(app)
-        return {'befunde': _anreichern(app, ablage(app).liste(status=status)),
-                'zusammenfassung': zusammenfassung(app), 'laeuft': _LINT_SPERRE.locked()}
+        with app.state.conversation_lock:
+            vorschlaege_nachziehen(app)
+            return {'befunde': _anreichern(app, ablage(app).liste(status=status)),
+                    'zusammenfassung': zusammenfassung(app), 'laeuft': _LINT_SPERRE.locked()}
 
     @app.patch('/api/v1/lint/befunde/{kennung}', dependencies=guard)
     def lint_status(kennung: str, body: StatusIn) -> dict[str, Any]:
         """„Erledigt“, „Ignorieren“ (abgewiesen) oder zurück auf offen. Nie ein Fakt."""
-        eintrag = ablage(app).get(kennung)
-        if eintrag is None:
-            raise HTTPException(status_code=404, detail='Diesen Befund gibt es nicht mehr.')
-        if body.status != 'offen':
-            with app.state.conversation_lock:
+        with app.state.conversation_lock:
+            eintrag = ablage(app).get(kennung)
+            if eintrag is None:
+                raise HTTPException(status_code=404, detail='Diesen Befund gibt es nicht mehr.')
+            if body.status != 'offen' or body.stand is not None:
+                stand = _quellenstand(app, eintrag)
+                if body.stand is not None and body.stand != stand:
+                    raise HTTPException(status_code=409, detail='Der Befund wurde inzwischen geändert. Bitte neu laden.')
+            if body.status != 'offen':
                 _offene_ablehnen(app, eintrag)
-        else:
-            # Wieder offen: Die abgelehnten Vorschläge sind entschieden; der nächste Lauf legt neue an.
-            ablage(app).vorschlaege_setzen(kennung, [])
-        befund = ablage(app).status_setzen(kennung, body.status)
+            else:
+                # Reopening only schedules fresh proposals in the next check.
+                ablage(app).vorschlaege_setzen(kennung, [])
+            befund = ablage(app).status_setzen(kennung, body.status)
         return {'befund': befund, 'zusammenfassung': zusammenfassung(app)}
 
     @app.post('/api/v1/lint/befunde/{kennung}/entscheiden', dependencies=guard)
     def lint_entscheiden(kennung: str, body: WahlIn) -> dict[str, Any]:
-        return entscheiden(app, kennung, body.wahl)
+        return entscheiden(app, kennung, body.wahl, body.stand)

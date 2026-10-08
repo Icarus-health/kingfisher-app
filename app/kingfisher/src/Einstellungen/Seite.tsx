@@ -4,6 +4,11 @@ import { RecoverySettings } from "../RecoverySettings";
 import { SettingsSections } from "../SettingsSections";
 import { Sidebar } from "../chrome";
 import { Darf } from "./Darf";
+import { CloudAccess } from "../CloudAccess";
+import { ChatGPTAccess } from "../ChatGPTAccess";
+import { DeviceModelHelp } from "../DeviceModelHelp";
+import { LocalModelSettings } from "../LocalModelSettings";
+import { ModelRecommendation } from "../ModelRecommendation";
 import { BEREICHE, kennungVon, zielAus, type Bereich } from "./gliederung";
 import { Ich } from "./Ich";
 import { Technik } from "./Technik";
@@ -37,6 +42,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
 
   const inhalt: Record<Bereich, ReactNode> = {
     zugaenge: <><EinrichtungKopf /><Zugaenge integrationen={integrationen} aktiv={ziel.bereich === "zugaenge"} /></>,
+    ki: <><ChatGPTAccess /><CloudAccess /><ModelRecommendation /><LocalModelSettings /><DeviceModelHelp /></>,
     darf: <Darf />,
     ich: <Ich />,
     sicherung: <RecoverySettings />,

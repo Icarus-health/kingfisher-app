@@ -61,6 +61,16 @@
 .today-calendar-list p { font-size: 13px; margin-bottom: 7px; }
 .today-calendar-open { align-self: flex-end; margin: auto 26px 12px; font-size: 12px; }
 .today-memory { grid-column: 1 / -1; }
+.today-followups { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
+.today-followups > *, .today-followups #memory-questions { min-width: 0; }
+.today-followups :is(.task-reminders, .knowledge-questions, .memory-questions) { margin: 0 0 16px; padding: 22px 26px; border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); box-shadow: var(--today-shadow); overflow-wrap: anywhere; }
+.today-followups h2 { margin: 0 0 8px; font-size: 22px; }
+.today-followups h3 { font-size: 16px; }
+.today-followups p, .today-followups small { font-size: 13px; line-height: 1.6; }
+.today-followups blockquote { margin: 12px 0; padding-left: 12px; border-left: 2px solid var(--today-line); white-space: pre-wrap; }
+.today-followups .memory-questions-kopf { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
+.today-followups .task-reminder small { display: block; }
+@media (max-width: 1000px) { .today-followups { grid-template-columns: minmax(0,1fr); } }
 .today-memory .today-panel-heading { min-height: 90px; padding-top: 25px; padding-bottom: 20px; }
 .today-source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; margin: 0 26px; }
 .today-source { min-width: 0; padding: 12px 0 22px; }
@@ -137,3 +147,18 @@ button.today-text-link:disabled { cursor: default; opacity: .6; }
 .today-mail-dialog { width: min(900px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border: 1px solid var(--kf-rand-d7e1df); border-radius: 16px; padding: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
 .today-mail-dialog::backdrop { background: rgba(6, 43, 58, .45); }
 @media (max-width: 700px) { .today-source-status { align-items: stretch; flex-direction: column; } .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }
+
+/* Reuse the task controls inside the existing Today card, with room for narrow columns. */
+.today-task-actions { margin-top: 12px; }
+.today-task-actions .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.today-task-actions .task-detail .task-row { grid-template-columns: 30px minmax(0, 1fr); padding: 16px 0; }
+.today-task-actions .task-detail .task-row > time { grid-column: 2; grid-row: 3; text-align: left; }
+.task-selected { margin: 20px 0; padding: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
+.task-selected h2 { margin-top: 0; }
+
+.today-personal { grid-column: 1 / -1; }
+.development-links { display: flex; flex-wrap: wrap; gap: 14px 24px; margin: 16px 0 24px; }
+.today-personal .development-links { margin-bottom: 0; }
+.development-links a { padding: 8px 0; }
+.development-page > .decision-controls { margin-top: 24px; }
+.memory-area-tabs button:disabled { cursor: wait; opacity: .65; }

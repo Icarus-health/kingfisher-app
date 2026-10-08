@@ -11,7 +11,7 @@ neben den passenden. Dieses Modul sagt es ausdrücklich, ohne Modell und ohne et
   bleibt es bei der Rückfrage (E1); hier entsteht keine neue.
 * `ausserhalb_zeitraum`: Die Frage nennt einen Zeitraum („letzte Woche“, „im Frühjahr“, „im Juli 2026“),
   und die Quelle liegt davor oder danach. Ein Termin gilt nach seinem Beginn, eine Mail nach ihrem
-  Datum (`Episode.reference_time`). Eine Quelle ohne eigenes Datum ist nie „außerhalb“.
+  eigenen Datum (`occurred_at`). Eine Quelle ohne eigenes Datum ist nie „außerhalb“.
 
 Gekennzeichnete Quellen stehen im Kontext hinter den passenden (wie Überholtes, `akten_kontext`), das Modell
 bekommt einen Satz dazu, und die Satzprüfung (`satzantwort.pruefe_satz`) lässt einen Satz, der sich nur auf
@@ -170,8 +170,8 @@ def kennzeichen(episode: Any, rahmen: Rahmen) -> tuple[Kennzeichen, ...]:
             if fremd and person.adresse not in adressen:
                 marken.append(Kennzeichen(ANDERE_PERSON, fremd[0], person.name, person.adresse))
     if rahmen.zeitraum is not None:
-        moment = episode.reference_time()
-        if not rahmen.zeitraum.von <= moment < rahmen.zeitraum.bis:
+        moment = episode.occurred_at
+        if moment is not None and not rahmen.zeitraum.von <= moment < rahmen.zeitraum.bis:
             marken.append(Kennzeichen(AUSSERHALB, moment.date().isoformat(), rahmen.zeitraum.beschriftung))
     return tuple(marken)
 

@@ -32,7 +32,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
   const [projectsError, setProjectsError] = useState(false);
   const [zuordnung, setZuordnung] = useState<TerminZuordnung | null>(null);
   const [zuordnungFehler, setZuordnungFehler] = useState(false);
-  const contextKey = JSON.stringify([event.uid, projectId, personId]);
+  const contextKey = JSON.stringify([event.uid, event.start, projectId, personId]);
   const preparation = preparationState?.context === contextKey ? preparationState.value : null;
 
   useEffect(() => {
@@ -52,11 +52,11 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
     let active = true;
     const folge = ++zuordnungFolge.current;
     setZuordnungFehler(false);
-    api.calendarAssignment(event.uid)
+    api.calendarAssignment(event.uid, event.start)
       .then(next => { if (!active || folge !== zuordnungFolge.current) return; setZuordnung(next); setProjectId(next.projekt?.id ?? ""); })
       .catch(() => { if (active && folge === zuordnungFolge.current) { setZuordnung(null); setZuordnungFehler(true); } });
     return () => { active = false; };
-  }, [event.uid]);
+  }, [event.uid, event.start]);
 
   const projektWaehlen = (value: string) => {
     const vorher = zuordnung?.projekt?.id ?? "";
@@ -66,7 +66,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
     // Die Wahl gilt dauerhaft für diesen Termin, auch im Briefing. Scheitert
     // das Speichern, zeigt die Auswahl wieder den gespeicherten Stand, und
     // der Hinweis bleibt stehen, bis ein Speichern gelingt.
-    api.setCalendarAssignment(event.uid, value || null)
+    api.setCalendarAssignment(event.uid, value || null, event.start)
       .then(next => { if (folge !== zuordnungFolge.current) return; setZuordnung(next); setZuordnungFehler(false); })
       .catch(() => { if (folge !== zuordnungFolge.current) return; setProjectId(vorher); setZuordnungFehler(true); });
   };
@@ -81,7 +81,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
     let active = true;
     setLoading(true);
     setError(false);
-    api.calendarPreparation(event.uid, projectId, personId)
+    api.calendarPreparation(event.uid, projectId, personId, event.start)
       .then(next => { if (active) setPreparationState({context: contextKey, value: next}); })
       .catch(() => { if (active) { setPreparationState(null); setError(true); } })
       .finally(() => { if (active) setLoading(false); });

@@ -52,10 +52,12 @@ SQLITE_DATA_FILES = (
     "knowledge.sqlite3",
     "regeln.sqlite3",
     "mac-calendar.sqlite3",
+    "calendar-actions.sqlite3",
     "gespraeche.sqlite3",
     "rueckmeldungen.sqlite3",
     "logbuch.sqlite3",
     "lint.sqlite3",
+    "cloud-memory-jobs.sqlite3",
 )
 
 # Einstellungen enthalten keine Geheimnisse. Die verschlüsselte Schlüsseldatei

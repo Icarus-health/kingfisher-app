@@ -78,7 +78,7 @@ def test_existing_v1_database_gets_checkpoint_table_without_changing_sources(tmp
     assert episodes.mail_cursor('work') is None
     with sqlite3.connect(path) as connection:
         assert connection.execute('SELECT id, body FROM episodes').fetchall() == before
-        assert connection.execute('PRAGMA user_version').fetchone()[0] == 18
+        assert connection.execute('PRAGMA user_version').fetchone()[0] == 19
     episodes.close()
 
 

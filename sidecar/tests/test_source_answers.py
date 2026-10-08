@@ -28,6 +28,19 @@ def test_explicit_source_literal_only():
         assert source_answers.literal_query(question) is None
 
 
+def test_originalstellen_request_reaches_evidence_without_a_model_call(core):
+    from icarus_memory.memory_routing import route
+    agent, provider, episodes, claims, _ = core
+    source = raw(episodes)
+    question = 'Zeige Originalstellen zu „AURORA-4711“'
+    assert source_answers.literal_query(question) == 'AURORA-4711'
+    assert route(question) == 'memory_evidence'
+    turn = agent.answer_memory(question)
+    assert turn.context['answer_contract']['status'] == 'source_report'
+    assert turn.context['source_answer']['refs'][0]['episode_id'] == source.id
+    assert BODY in turn.reply and provider.calls == []
+
+
 def test_readonly_original_answer_and_reference_only_metadata(core):
     agent, provider, episodes, claims, _ = core
     source = raw(episodes)

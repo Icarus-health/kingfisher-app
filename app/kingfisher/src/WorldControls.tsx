@@ -5,6 +5,7 @@ type Goal = { id: string; statement: string };
 export type WorldSource = {
   id: string; url: string; label: string; topics: string[]; enabled: boolean;
   episode_id: string | null; last_success: string | null; error: string | null;
+  fetched_url?: string | null; source_sha256?: string | null;
   truncated: boolean; status: string; matched_goals?: Goal[];
 };
 type WorldPayload = { items: WorldSource[] };
@@ -26,13 +27,14 @@ function freshness(value: string | null) {
   return value ? `Abgerufen ${new Date(value).toLocaleString("de-DE")}` : "Noch nicht abgerufen";
 }
 
-export function WorldControls() {
+export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
   const [payload, setPayload] = useState<WorldPayload | null>(null);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
   const [topics, setTopics] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const load = async () => {
     setError(false);
     try { setPayload(await request<WorldPayload>("/api/v1/world")); } catch { setError(true); }
@@ -56,9 +58,9 @@ export function WorldControls() {
     try { await request(`/api/v1/world/${encodeURIComponent(source.id)}/${action}`, { method: "POST" }); await load(); }
     catch { setError(true); } finally { setBusy(false); }
   }
-  return <details className="profile-card">
+  return <details className="profile-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>Aktuelle Quellen</summary>
-    <p>Du wählst öffentliche Quellen aus. Automatische Abrufe laufen nur mit aktiviertem Zeitplan, solange Kingfisher läuft. Ohne Zeitplan kannst du hier manuell abrufen.</p><p>Der Abrufzeitpunkt ist kein Veröffentlichungsdatum und bestätigt keine Behauptung der Quelle.</p>
+    <p>Du wählst öffentliche Quellen aus. Automatische Abrufe laufen nur mit aktiviertem Zeitplan, solange Kingfisher läuft. Ohne Zeitplan kannst du hier manuell abrufen.</p><p>Der Abrufzeitpunkt zeigt, wann Kingfisher die Seite gelesen hat. Ein Veröffentlichungsdatum wird nicht übernommen; angezeigt wird ausschließlich der Abrufzeitpunkt. Der Auszug bleibt ein Quellenbericht und bestätigt keine persönliche Angabe.</p>
     <form className="decision-create-form" onSubmit={add} aria-label="Öffentliche Quelle hinzufügen">
       <label>Bezeichnung<input value={label} onChange={event => setLabel(event.target.value)} required maxLength={200} /></label>
       <label>HTTPS-Adresse<input type="url" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://…" required /></label>
@@ -70,8 +72,12 @@ export function WorldControls() {
     {payload?.items.map(source => <article className="identity-source-row" key={source.id}>
       <h3>{source.label}</h3>
       <p>{freshness(source.last_success)} · {sourceStatus(source)}</p>
-      <a href={source.url} target="_blank" rel="noopener noreferrer">Quelle öffnen</a>
-      {source.matched_goals?.length ? <p>Passt zu {source.matched_goals.map(goal => goal.statement).join(", ")}</p> : <p>Von dir ausgewählte Quelle</p>}
+      <a href={source.url} target="_blank" rel="noopener noreferrer">Eingetragene Adresse öffnen</a>
+      {source.fetched_url || source.source_sha256 ? <details style={{overflowWrap: "anywhere"}}><summary>Herkunft und Version des Auszugs</summary>
+        {source.fetched_url && source.fetched_url !== source.url ? <p>Endgültige Abrufadresse: <a href={source.fetched_url} target="_blank" rel="noopener noreferrer">{source.fetched_url}</a></p> : null}
+        {source.source_sha256 ? <p>Textversion (SHA-256): <code>{source.source_sha256}</code></p> : null}
+      </details> : null}
+      {source.matched_goals?.length ? <p>Themenüberschneidung mit einem Ziel (nur ein Hinweis): {source.matched_goals.map(goal => goal.statement).join(", ")}</p> : <p>Von dir ausgewählte öffentliche Quelle</p>}
       {source.truncated && <p>Gespeicherter Auszug: maximal 12.000 Zeichen.</p>}{source.episode_id ? <ProfileSource kind="episode" id={source.episode_id} allowIgnore={false} /> : null}
       {source.error ? <p role="alert">Die Quelle konnte nicht aktualisiert werden. <button type="button" disabled={busy} onClick={() => void mutate(source, "refresh")}>Erneut versuchen</button></p> : null}
       {source.enabled ? <><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "refresh")}>Jetzt abrufen</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "disable")}>Deaktivieren</button></> : null}
@@ -84,5 +90,5 @@ export function WorldRadar() {
   const [items, setItems] = useState<WorldSource[]>([]);
   useEffect(() => { let active = true; request<WorldPayload>("/api/v1/world").then(result => { if (active) setItems(result.items.filter(item => item.enabled && item.status !== "ignored" && !!item.episode_id && !!item.matched_goals?.length)); }).catch(() => { if (active) setItems([]); }); return () => { active = false; }; }, []);
   if (!items.length) return null;
-  return <section aria-label="Quellen passend zu Zielen" className="profile-card"><h2>Passend zu deinen Zielen</h2>{items.map(source => <article key={source.id}><strong>{source.label}</strong><p>{freshness(source.last_success)} · {sourceStatus(source)}</p><a href={source.url} target="_blank" rel="noopener noreferrer">Quelle öffnen</a><p>{source.matched_goals?.map(goal => `Passt zu Ziel ${goal.statement}`).join(" · ")}</p>{source.truncated && <p>Gespeicherter Auszug: maximal 12.000 Zeichen.</p>}{source.episode_id ? <ProfileSource kind="episode" id={source.episode_id} allowIgnore={false} /> : null}</article>)}</section>;
+  return <section aria-label="Öffentliche Quellen mit Themenüberschneidung" className="profile-card"><h2>Quellen mit möglicher Themenüberschneidung</h2>{items.map(source => <article key={source.id}><strong>{source.label}</strong><p>{freshness(source.last_success)} · {sourceStatus(source)}</p><a href={source.url} target="_blank" rel="noopener noreferrer">Eingetragene Adresse öffnen</a><p>Themenüberschneidung mit einem Ziel (nur ein Hinweis): {source.matched_goals?.map(goal => goal.statement).join(" · ")}</p>{source.truncated && <p>Gespeicherter Auszug: maximal 12.000 Zeichen.</p>}{source.episode_id ? <ProfileSource kind="episode" id={source.episode_id} allowIgnore={false} /> : null}</article>)}</section>;
 }

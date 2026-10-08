@@ -51,6 +51,12 @@ test("Ohne Modell, aber Mails werden gelesen: „Pausieren“ steht auf Heute (F
   assert.equal(lerntFuss(null, true).knopf, null);
 });
 
+test("Eine Akku-Pause erklärt auch den wartenden Mailimport ohne Modell", () => {
+  const grund = "Die automatische Hintergrundverarbeitung pausiert im Akkubetrieb.";
+  const stand = hintergrund({zustand: "ohne_modell", grund, fortschritt: {gesamt: 0, fertig: 0, offen: 0}});
+  assert.equal(lerntFuss(stand, true).grund, grund);
+});
+
 test("Eingaben werden gedrosselt gemeldet", () => {
   assert.equal(sollMelden(0, null), true);
   assert.equal(sollMelden(MELDE_ABSTAND_MS - 1, 0), false);

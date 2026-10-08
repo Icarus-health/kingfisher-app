@@ -85,6 +85,7 @@ def install_routes(app, guard, data_dir, rebuild):
             settings = app.state.settings
             original = copy.deepcopy(settings)
             created = []
+            replaced = {}
             try:
                 if item['kind'] == 'mail':
                     if any(m.user.casefold() == item['email'].casefold() for m in settings.mail_accounts):
@@ -96,6 +97,23 @@ def install_routes(app, guard, data_dir, rebuild):
                     created.append(key)
                     oauth.keychain.set(key, json.dumps(item['grant']))
                     settings.mail_accounts.append(entry)
+                elif item['kind'] == 'calendar_write':
+                    # A write grant is an explicit upgrade of selected read sources only.
+                    matches = []
+                    for calendar_id, _ in selected:
+                        match = next((c for c in settings.calendar_sources
+                            if c.kind == 'google' and c.user.casefold() == item['email'].casefold()
+                            and c.url == calendar_id and c.enabled), None)
+                        if match is None:
+                            raise HTTPException(409, 'Schreibzugriff kann nur für bereits verbundene Kalender desselben Kontos aktiviert werden.')
+                        matches.append(match)
+                    for entry in matches:
+                        key = config.integration_secret_name('calendar', entry.id)
+                        previous = oauth.keychain.get(key)
+                        if not previous:
+                            raise HTTPException(409, 'Der bestehende Kalenderzugang fehlt. Bitte neu verbinden.')
+                        replaced[key] = previous
+                        oauth.keychain.set(key, json.dumps(item['grant']))
                 else:
                     for calendar_id, name in selected:
                         if any(c.kind == 'google' and c.user == item['email'] and c.url == calendar_id for c in settings.calendar_sources):
@@ -111,6 +129,8 @@ def install_routes(app, guard, data_dir, rebuild):
                 app.state.settings = original
                 for key in created:
                     oauth.keychain.delete(key)
+                for key, previous in replaced.items():
+                    oauth.keychain.set(key, previous)
                 raise
             item.pop('grant', None)
             item['status'] = 'connected'

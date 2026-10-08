@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api, type ConversationPayload, type MailDetail } from "./api";
 import { navigate } from "./ui";
+import { MailThread } from "./MailThread";
 import { MailTaskForm } from "./MailTaskForm";
 import { MailBriefing, type MailTaskSuggestion } from "./MailBriefing";
 import { MailReplySuggestion, type Suggestion } from "./MailReplySuggestion";
@@ -241,6 +242,7 @@ export function MailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
         </dl>
       </section>
       <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={setTaskSuggestion} onTaskSaved={onTaskSaved} />
+      <MailThread key={`thread:${uid}:${detail.source_digest ?? "missing"}:${remembered}`} uid={uid} expectedDigest={detail.source_digest} onPrepareTask={setTaskSuggestion} taskDisabled={taskSuggestionProtected} />
       <details className="mail-reader-original" ref={originalMessageRef}>
         <summary>Aus der Originalnachricht</summary>
         <section className="mail-reader-body" aria-label="Originaltext der Nachricht"><pre>{detail.body || detail.preview}</pre></section>

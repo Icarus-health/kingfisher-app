@@ -269,7 +269,8 @@ def test_workflow_baut_auf_macos_14():
 def test_logik_pruefprogramm(tmp_path):
     befehl = ['swiftc'] if shutil.which('swiftc') else ['xcrun', 'swiftc']
     programm = tmp_path / 'logik'
-    quellen = [str(p) for p in sorted(LOGIC.glob('*.swift'))] + [str(MACOS / 'tests/main.swift')]
+    quellen = [str(p) for p in sorted(LOGIC.glob('*.swift'))] + [str(MACOS / 'Shared/PowerReporter.swift'),
+                                                                  str(MACOS / 'tests/main.swift')]
     uebersetzt = subprocess.run([*befehl, *quellen, '-o', str(programm)], capture_output=True, text=True)
     assert uebersetzt.returncode == 0, uebersetzt.stderr
     lauf = subprocess.run([str(programm)], capture_output=True, text=True)

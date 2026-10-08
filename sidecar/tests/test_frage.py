@@ -126,6 +126,27 @@ def test_modell_ausgabe_mit_erfundenem_suchwort_wird_verworfen():
     assert verstehen('Was ist mit Mainz los?', modell).herkunft == 'rueckfall'
 
 
+@pytest.mark.parametrize('frage, zeitraum', [
+    ('Was ist mit Mainz los?', 'heute'),
+    ('Was war letzte Woche mit Mainz?', 'gestern'),
+    ('Was war gestern mit Mainz?', 'letzte_woche'),
+])
+def test_modell_zeitraum_muss_zur_zeitangabe_der_frage_passen(frage, zeitraum):
+    anfrage = verstehen(frage, Modell(_ausgabe(sachen=['Mainz'], absicht='ueberblick', zeitraum=zeitraum)))
+    assert anfrage.herkunft == 'rueckfall' and anfrage.grund == 'ungültige Ausgabe'
+
+
+@pytest.mark.parametrize('frage, zeitraum', [
+    ('Was war vorige Woche mit Mainz?', 'letzte_woche'),
+    ('Was war in der vergangenen Woche mit Mainz?', 'letzte_woche'),
+    ('Was ist mit Mainz diese Woche los?', 'diese_woche'),
+    ('Was lief im vorigen Monat mit Mainz?', 'letzter_monat'),
+])
+def test_modell_uebernimmt_erkannte_zeitraum_synonyme(frage, zeitraum):
+    anfrage = verstehen(frage, Modell(_ausgabe(sachen=['Mainz'], absicht='ueberblick', zeitraum=zeitraum)))
+    assert anfrage.herkunft == 'modell' and anfrage.zeitraum == zeitraum
+
+
 @pytest.mark.parametrize('ausgabe', [
     _ausgabe(absicht='loeschen'),                                   # Absicht nicht erlaubt
     _ausgabe(zeitraum='letztes_jahrhundert'),                       # Zeitraum nicht erlaubt

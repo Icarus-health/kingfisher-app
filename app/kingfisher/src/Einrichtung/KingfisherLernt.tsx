@@ -67,8 +67,9 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   if (zeilen === null) return null;
   const fuss = lerntFuss(hintergrund, zeilen.some(zeile => zeile.id === "mail"));
   if (zeilen.length === 0) return leerText ? <p className="lernt-leer" role="status">{leerText}</p> : null;
-  return <section className={`lernt${kompakt ? " lernt-kompakt" : ""}`} aria-label="Kingfisher lernt gerade" aria-live="polite">
-    <h2>Kingfisher lernt gerade</h2>
+  const titel = fuss.grund ? "Verarbeitung wartet" : "Kingfisher lernt gerade";
+  return <section className={`lernt${kompakt ? " lernt-kompakt" : ""}`} aria-label={titel} aria-live="polite">
+    <h2>{titel}</h2>
     <ul>{zeilen.map(zeile => {
       const wert = prozent(zeile);
       return <li key={`${zeile.id}-${zeile.konto ?? ""}`} className={zeile.id === "mail_fehler" ? "lernt-fehler" : undefined}>
@@ -80,7 +81,7 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
     {erneut && zeilen.some(zeile => zeile.id === "mail") ? <p className="lernt-grund" role="status">Kingfisher versucht es jetzt noch einmal. Scheitert es wieder, steht hier der Grund.</p> : null}
     {fuss.grund ? <p className="lernt-grund">{fuss.grund}</p> : null}
     {fuss.satz ? <p className="lernt-hinweis">{fuss.satz}</p> : null}
-    {kompakt ? null : <p className="lernt-hinweis">Das läuft im Hintergrund weiter. Du kannst Kingfisher schon benutzen.</p>}
+    {kompakt ? null : <p className="lernt-hinweis">{fuss.grund ? "Du kannst Kingfisher weiter benutzen." : "Das läuft im Hintergrund weiter. Du kannst Kingfisher schon benutzen."}</p>}
     {fuss.knopf ? <button type="button" className="text-action lernt-knopf" disabled={arbeitet}
       onClick={() => void umschalten(fuss.knopf === "Pausieren")}>{fuss.knopf}</button> : null}
     {fehler ? <p role="alert" className="settings-error">{fehler}</p> : null}

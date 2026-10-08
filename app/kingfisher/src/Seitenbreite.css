@@ -13,6 +13,9 @@
 .shell > main { min-width: 0; }
 .shell main :is(h1, h2, h3, p, strong, small, label, li, dd, dt, blockquote) { overflow-wrap: break-word; }
 .shell main :is(button, select, input, textarea) { max-width: 100%; }
+.task-search, .task-table > nav { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-block: 16px; }
+.task-search label { display: flex; flex: 1 1 260px; flex-direction: column; gap: 6px; }
+.task-search input { width: 100%; min-width: 0; }
 
 /* Auswahlleisten und Knopfreihen brechen um. */
 .shell main :is(.task-tabs, .profile-tabs, .view-switch, .inbox-filter, .history-tools, .calendar-actions,
@@ -102,3 +105,7 @@
   .drawer-heading { left: 12px; right: 12px; max-width: none; }
   .drawer-heading h2 { font-size: 30px; line-height: 1.2; }
 }
+
+.calendar-action-form fieldset { display: grid; gap: 16px; border: 0; padding: 0; margin: 20px 0; }
+.calendar-action-form label { display: grid; gap: 6px; }
+.calendar-action-form input, .calendar-action-form select { max-width: 100%; min-width: 0; }

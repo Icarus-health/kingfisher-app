@@ -1,6 +1,7 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {api, ApiError, type ModelRecommendationRow, type ModelRoles, type ModelRoleState} from "./api";
 import {cloudReady} from "./modelSetup";
+import {listenForCloudAccessChange} from "./cloudAccessEvents";
 
 const failure = (error: unknown) => error instanceof ApiError && error.detail ? error.detail
   : "Das konnte gerade nicht gespeichert werden. Bitte erneut versuchen.";
@@ -19,24 +20,46 @@ export function ModelRolesExpert({installed, rows, onChanged}: {installed: strin
   const [roles, setRoles] = useState<ModelRoles | null>(null);
   const [failed, setFailed] = useState(false);
   const [message, setMessage] = useState<{ok: boolean; text: string} | null>(null);
+  const [accessRevision, setAccessRevision] = useState(0);
+  const loadVersion = useRef(0);
 
   useEffect(() => {
     let active = true;
-    api.modelRoles().then(next => { if (active) setRoles(next); }).catch(() => { if (active) setFailed(true); });
-    return () => { active = false; };
+    async function load() {
+      const version = ++loadVersion.current;
+      try {
+        const next = await api.modelRoles();
+        if (active && version === loadVersion.current) { setRoles(next); setFailed(false); }
+      } catch {
+        if (active && version === loadVersion.current) setFailed(true);
+      }
+    }
+    const cloudAccessChanged = () => {
+      setRoles(null); setFailed(false); setMessage(null); setAccessRevision(value => value + 1);
+      void load();
+    };
+    void load();
+    const unsubscribe = listenForCloudAccessChange(cloudAccessChanged);
+    return () => { active = false; loadVersion.current++; unsubscribe(); };
   }, []);
 
   async function save(rolle: string, body: Parameters<typeof api.saveModelRole>[1], success: string) {
+    const version = ++loadVersion.current;
     setMessage(null);
-    try { setRoles(await api.saveModelRole(rolle, body)); setMessage({ok: true, text: success}); onChanged(); }
-    catch (error) { setMessage({ok: false, text: failure(error)}); }
+    try {
+      const next = await api.saveModelRole(rolle, body);
+      if (version !== loadVersion.current) return;
+      setRoles(next); setMessage({ok: true, text: success}); onChanged();
+    } catch (error) {
+      if (version === loadVersion.current) setMessage({ok: false, text: failure(error)});
+    }
   }
 
   if (failed) return <p role="alert">Die Aufgabenwahl ist gerade nicht erreichbar.</p>;
   if (!roles) return <p className="source-hint" role="status">Wird geladen …</p>;
   return <div className="model-roles">
     <p className="source-hint">Ohne eigene Wahl nutzt jede Aufgabe das Modell, das du oben unter „Lokales Modell“ eingerichtet hast. Cloud-Modelle senden Inhalte an einen Anbieter im Internet und sind nur mit deiner Einwilligung für genau diese Aufgabe möglich.</p>
-    {roles.rollen.map(role => <RoleCard key={role.rolle} role={role} roles={roles} installed={installed}
+    {roles.rollen.map(role => <RoleCard key={`${role.rolle}:${accessRevision}`} role={role} roles={roles} installed={installed}
       alternatives={suitable(rows.find(row => row.rolle === role.rolle))} save={save} />)}
     {message ? <p role={message.ok ? "status" : "alert"} className="model-rec-note">{message.text}</p> : null}
   </div>;
@@ -83,10 +106,10 @@ function RoleCard({role, roles, installed, alternatives, save}: {
           {ollamaCloud.map(name => <option key={name} value={name}>{name}</option>)}
         </select></label> : null}
       {viaOllama && roles.ollama_cloud ? <p className="model-rec-warn">{roles.ollama_cloud.hinweis}</p> : null}
-      {anbieter && !anbieter.schluessel_da ? <p className="model-rec-warn">Für {anbieter.label} ist auf diesem Rechner noch kein Zugangsschlüssel hinterlegt.</p> : null}
+      {anbieter && (!anbieter.schluessel_da || !anbieter.standardmodell.trim()) ? <p className="model-rec-warn">{!anbieter.schluessel_da ? `Für ${anbieter.label} ist noch kein Zugang hinterlegt.` : `Für ${anbieter.label} ist noch kein Modell eingetragen.`} <a href="#ki">Unter KI &amp; Modelle vervollständigen</a>.</p> : null}
       <label className="model-consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} />
         <span>{role.cloud_satz} Ich willige ein.</span></label>
-      <button className="primary-action" type="button" disabled={!cloudReady(provider, Boolean(anbieter?.schluessel_da) || (viaOllama && Boolean(cloudModel)), consent)}
+      <button className="primary-action" type="button" disabled={!cloudReady(provider, Boolean(anbieter?.schluessel_da && anbieter.standardmodell.trim()) || (viaOllama && Boolean(cloudModel)), consent)}
         onClick={() => void save(role.rolle, viaOllama ? {modell: cloudModel, cloud: true, anbieter: provider, einwilligung: true} : {cloud: true, anbieter: provider, einwilligung: true}, "Cloud ist für diese Aufgabe zugeschaltet.").then(() => { setAsking(false); setConsent(false); })}>Cloud zuschalten</button>
       <button className="secondary-action" type="button" onClick={() => { setAsking(false); setConsent(false); }}>Abbrechen</button>
     </div> : <button className="secondary-action" type="button" onClick={() => setAsking(true)}>Cloud statt dieses Rechners nutzen …</button>)

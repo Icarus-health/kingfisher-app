@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { api, type Project, type Task } from "./api";
+import { endOfTaskDay, explicitDeadline, taskHref } from "./taskWorkflow";
 import { navigate } from "./ui";
 
 type MailTaskFormProps = {
@@ -8,12 +9,6 @@ type MailTaskFormProps = {
   initialSuggestion?: { title: string; quote: string; source_digest: string };
   onTaskFormProtected?: (protectedState: boolean) => void;
 };
-
-function localDateAsIso(value: string) {
-  if (!value) return null;
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
 
 export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
   const [open, setOpen] = useState(false);
@@ -70,7 +65,7 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
       const task = await api.addMailTask(uid, {
         title: trimmedTitle,
         project_id: projectId || null,
-        due: localDateAsIso(due),
+        due: endOfTaskDay(due),
         waiting_for: waitingFor.trim() || null,
         ...(sourceDigest ? { source_digest: sourceDigest } : {}),
         ...(sourceQuote ? { source_quote: sourceQuote } : {}),
@@ -113,7 +108,8 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
     setSourceDigest(suggestionsSourceDigest);
   }
 
-  const successPath = `/vorhaben?view=${saved?.wartet_auf ? "waiting" : "mine"}${saved?.project_id ? `&project=${encodeURIComponent(saved.project_id)}` : ""}`;
+  const successPath = saved ? taskHref(saved) : "/vorhaben?view=mine";
+  const suggestedDay = sourceQuote ? explicitDeadline(sourceQuote) : null;
 
   return <section className="mail-task-form" aria-label="Aufgabe aus Nachricht festhalten">
     {!open ? <button className="mail-reader-secondary" onClick={() => setOpen(true)} type="button">Als Aufgabe festhalten</button> : null}
@@ -145,13 +141,14 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
           </article>)}
         </div> : null}
       </div>}
+      {suggestedDay && !due && !saved && <p className="mail-reader-status">In der Textstelle steht ein mögliches Datum. Bitte den Zusammenhang prüfen. <button type="button" className="mail-reader-secondary" disabled={saving} onClick={() => {protectSuggestion(); setDue(suggestedDay);}}>Datum aus Text übernehmen: {suggestedDay.split('-').reverse().join('.')}</button></p>}
       <div className="mail-task-form-fields">
         <label htmlFor="mail-task-project">Projekt <select disabled={saving || Boolean(saved)} id="mail-task-project" aria-label="Projekt" onChange={(event) => { protectSuggestion(); setProjectId(event.target.value); }} value={projectId}>
           <option value="">Keinem Projekt zuordnen</option>
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select></label>
         <label htmlFor="mail-task-due">Fällig am (optional) <input aria-describedby="mail-task-due-hint" disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} />
-          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieses Datum wird für die Aufgabe gespeichert." : "Kein Datum festgelegt. Die Aufgabe wird ohne Termin gespeichert."}</span>
+          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieser Tag wird bis 23:59 Uhr als Fälligkeit gespeichert. Eine ausdrücklich genannte Uhrzeit bitte separat prüfen." : "Kein Datum festgelegt. Die Aufgabe wird ohne Termin gespeichert."}</span>
         </label>
         <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="Optional, z. B. Anna Müller" value={waitingFor} /></label>
       </div>

@@ -147,6 +147,9 @@ class OpenAICompatible:
             return httpx.Client(timeout=timeout, trust_env=False, follow_redirects=False)
         return _http(timeout=timeout)
 
+    def _request_payload(self, payload):
+        return payload
+
     def complete(
         self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
     ) -> Reply:
@@ -170,7 +173,7 @@ class OpenAICompatible:
                 response = client.post(
                     f"{self._base}/chat/completions",
                     headers={"Authorization": f"Bearer {self._key}"},
-                    json=payload,
+                    json=self._request_payload(payload),
                 )
                 response.raise_for_status()
                 data = response.json()

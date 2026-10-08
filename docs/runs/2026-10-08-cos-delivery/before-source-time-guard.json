@@ -1,0 +1,3295 @@
+{
+  "suite": "working-memory-end-to-end-v1",
+  "synthetic_only": true,
+  "catalog_sha256": "7cae3b03694957bfa363b8d9fedbf4d01cdff9b572a149c6c2c98c24fea8230b",
+  "partial_catalog": false,
+  "model": "qwen3.5:4b",
+  "endpoint": "http://127.0.0.1:11436/v1",
+  "calls": 107,
+  "sentence_verifier": "same_model_local",
+  "prose_correctness": "not_automatically_scored_requires_independent_review",
+  "status_criterion": "answerable_rows_require_reports; safe_clarifications_count_separately_in_statuses; catalog_has_source_gold_only_not_semantic_status_gold",
+  "ingestion": "deterministic_indexing_not_model_ingestion",
+  "score": {
+    "direct": {
+      "n": 16,
+      "exact_displayed_sources": 16,
+      "exact_source_and_status": 15,
+      "statuses": {
+        "working_reports": 15,
+        "working_unclear": 1
+      }
+    },
+    "paraphrase": {
+      "n": 16,
+      "exact_displayed_sources": 8,
+      "exact_source_and_status": 8,
+      "statuses": {
+        "unknown": 5,
+        "working_unknown": 3,
+        "working_reports": 8
+      }
+    },
+    "unanswerable": {
+      "n": 4,
+      "exact_displayed_sources": 4,
+      "exact_source_and_status": 4,
+      "statuses": {
+        "unknown": 4
+      }
+    }
+  },
+  "rows": [
+    {
+      "q": "Wann beginnt das Wartungsfenster für den Server?",
+      "type": "direct",
+      "expect": [
+        "S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S1"
+      ],
+      "selected_sources": [
+        "S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Das Wartungsfenster für den Server beginnt am 08.10.2026 um 18 Uhr. [1] (nur über Betreff oder Absender belegt)\n\nBelege\n[1] Serverwartung; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Wartungsfenster",
+          "Server"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "beginnt",
+          "server",
+          "wartungsfenster"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:10:39.894203+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-fd4aa7bf3827",
+              "fingerprint": "a858fded22557c453c85511b3c224cdac80e1c37870c962b5d0309a45ea56dd7",
+              "start": 0,
+              "end": 91,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Das Wartungsfenster für den Server beginnt am 08.10.2026 um 18 Uhr.",
+            "text": "Das Wartungsfenster für den Server beginnt am 08.10.2026 um 18 Uhr.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "duenn"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann beginnt das Wartungsfenster für den Server?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 5.423,
+        "suche": 2.097,
+        "antwort_modell": 1.841,
+        "saetze_modell": 2.337,
+        "satzpruefung": 0.005,
+        "pruefung_modell": 0.542,
+        "gesamt": 17.685
+      },
+      "seconds": 12.269,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Ab wann ist das System am Abend nicht erreichbar?",
+      "type": "paraphrase",
+      "expect": [
+        "S1"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.206,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+      "type": "direct",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S2"
+      ],
+      "selected_sources": [
+        "S2"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S2"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Rechnung für die Dachreparatur wurde am 10. September überwiesen. [1]\n\nBelege\n[1] Dachreparatur; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Rechnung",
+          "Dachreparatur"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "dachreparatur",
+          "rechnung",
+          "uberwiesen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:10:49.497847+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-ec3059fde843",
+              "fingerprint": "1a7d9deca39be7b0395402ab3cdcd9cddc469ebb72ce392840adbe1faf69eca4",
+              "start": 0,
+              "end": 69,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Rechnung für die Dachreparatur wurde am 10. September überwiesen.",
+            "text": "Die Rechnung für die Dachreparatur wurde am 10. September überwiesen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wurde die Rechnung für die Dachreparatur überwiesen?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.325,
+        "suche": 0.08,
+        "antwort_modell": 1.099,
+        "saetze_modell": 1.615,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.521,
+        "gesamt": 7.972
+      },
+      "seconds": 5.653,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Ist die Handwerkerleistung oben am Haus schon beglichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S2"
+      ],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "S2",
+        "S7"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Handwerkerleistung",
+          "Haus"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "beglichen",
+          "handwerkerleistung",
+          "haus",
+          "oben"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 3.012,
+        "suche": 0.073,
+        "antwort_modell": 1.4,
+        "gesamt": 7.5
+      },
+      "seconds": 4.49,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wo liegt die Zugangskarte?",
+      "type": "direct",
+      "expect": [
+        "S3"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S3",
+        "S9"
+      ],
+      "selected_sources": [
+        "S3"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S3"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Zugangskarte liegt im Schrank neben dem Empfang. [1]\n\nBelege\n[1] Empfang; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Zugangskarte"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "liegt",
+          "zugangskarte"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:10:59.793290+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-c8cb904ee6db",
+              "fingerprint": "843691d93106d81f6122d1df97e4d0802a46e1e548ed4cef7450de70b580d9a4",
+              "start": 0,
+              "end": 52,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+            "text": "Die Zugangskarte liegt im Schrank neben dem Empfang.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wo liegt die Zugangskarte?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.426,
+        "suche": 0.081,
+        "antwort_modell": 1.149,
+        "saetze_modell": 1.5,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.511,
+        "gesamt": 8.101
+      },
+      "seconds": 5.681,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wo finde ich den Ausweis zum Reinkommen?",
+      "type": "paraphrase",
+      "expect": [
+        "S3"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.05,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer betreut die Lieferantenverträge?",
+      "type": "direct",
+      "expect": [
+        "S4"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S4"
+      ],
+      "selected_sources": [
+        "S4"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S4"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Mira betreut die Lieferantenverträge für Projekt Linde. [1]\n\nBelege\n[1] Projekt Linde; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Lieferantenverträge"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "betreut",
+          "lieferantenvertrage"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:08.617546+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-26346495a50c",
+              "fingerprint": "d6528ac8ee0080fc87099ac1d1a9ca8d5374ec81e8e540382caee8ce4ee8d777",
+              "start": 0,
+              "end": 55,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+            "text": "Mira betreut die Lieferantenverträge für Projekt Linde.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wer betreut die Lieferantenverträge?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.588,
+        "suche": 0.103,
+        "antwort_modell": 1.058,
+        "saetze_modell": 1.78,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.606,
+        "gesamt": 8.731
+      },
+      "seconds": 6.148,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer kümmert sich um Vereinbarungen mit Zulieferern?",
+      "type": "paraphrase",
+      "expect": [
+        "S4"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.87,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann endet die Anmeldung zum Workshop?",
+      "type": "direct",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S5"
+      ],
+      "selected_sources": [
+        "S5"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S5"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Anmeldung zum Workshop endet am 30. September. [1]\n\nBelege\n[1] Workshop; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Anmeldung",
+          "Workshop"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anmeldung",
+          "endet",
+          "workshop"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:18.361521+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-1f1220a85c6a",
+              "fingerprint": "7c155111a5b4d284ed48b992ce058cc7fcf8f29c8dbe6c2dafbd606b52f31d13",
+              "start": 0,
+              "end": 50,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Anmeldung zum Workshop endet am 30. September.",
+            "text": "Die Anmeldung zum Workshop endet am 30. September.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann endet die Anmeldung zum Workshop?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.415,
+        "suche": 0.077,
+        "antwort_modell": 0.984,
+        "saetze_modell": 1.734,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.557,
+        "gesamt": 8.189
+      },
+      "seconds": 5.78,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Bis wann kann ich mich fürs Seminar registrieren?",
+      "type": "paraphrase",
+      "expect": [
+        "S5"
+      ],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "S5"
+      ],
+      "selected_sources": [
+        "S5"
+      ],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.\n\nGeprüft, aber ohne tragfähige Angabe zu deiner Frage: Workshop",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Seminar"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "furs",
+          "registrieren",
+          "seminar"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "nichts",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:24.486408+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-1f1220a85c6a",
+              "fingerprint": "7c155111a5b4d284ed48b992ce058cc7fcf8f29c8dbe6c2dafbd606b52f31d13",
+              "start": 0,
+              "end": 50,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Bis wann kann ich mich fürs Seminar registrieren?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.597,
+        "suche": 0.209,
+        "antwort_modell": 1.013,
+        "saetze_modell": 1.482,
+        "satzpruefung": 0.0,
+        "gesamt": 7.903
+      },
+      "seconds": 5.308,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann muss das Auto zur Hauptuntersuchung?",
+      "type": "direct",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S6"
+      ],
+      "selected_sources": [
+        "S6"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S6"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Das Auto muss im November zur Hauptuntersuchung. [1]\n\nBelege\n[1] Auto; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Auto",
+          "Hauptuntersuchung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "auto",
+          "hauptuntersuchung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:30.175420+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-ffc622b5e00b",
+              "fingerprint": "dcb2b816a4f320b2c8092a94947f2af53d0e70c3e20b51a4bb210623674ce98c",
+              "start": 0,
+              "end": 48,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Das Auto muss im November zur Hauptuntersuchung.",
+            "text": "Das Auto muss im November zur Hauptuntersuchung.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann muss das Auto zur Hauptuntersuchung?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.122,
+        "suche": 0.148,
+        "antwort_modell": 0.932,
+        "saetze_modell": 1.587,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.522,
+        "gesamt": 9.438
+      },
+      "seconds": 6.322,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann ist beim Wagen der TÜV fällig?",
+      "type": "paraphrase",
+      "expect": [
+        "S6"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S6"
+      ],
+      "selected_sources": [
+        "S6"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S6"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Auto\nDas Auto muss im November zur Hauptuntersuchung.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Wagen",
+          "TÜV"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "fallig",
+          "tuv",
+          "wagen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:36.783875+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Der TÜV ist für das Auto im November fällig.: „TÜV“ steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.285,
+        "suche": 0.153,
+        "antwort_modell": 1.05,
+        "saetze_modell": 1.738,
+        "satzpruefung": 0.001,
+        "gesamt": 9.517
+      },
+      "seconds": 6.236,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann ist die Veranstaltung in Dresden?",
+      "type": "direct",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_unclear",
+      "candidate_sources": [
+        "S7"
+      ],
+      "selected_sources": [
+        "S7"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S7"
+      ],
+      "exact_sources": true,
+      "status_ok": false,
+      "retrieved_expected": true,
+      "selection_pass": false,
+      "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nAngabe · Dresden\nDie Veranstaltung in Dresden wurde auf Freitag verschoben.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Veranstaltung",
+          "Dresden"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "dresden",
+          "veranstaltung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 3.245,
+        "suche": 0.108,
+        "antwort_modell": 1.043,
+        "gesamt": 7.644
+      },
+      "seconds": 4.402,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Auf welchen Tag wurde das Treffen in Sachsen verlegt?",
+      "type": "paraphrase",
+      "expect": [
+        "S7"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S1",
+        "S7"
+      ],
+      "selected_sources": [
+        "S7"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S7"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Dresden\nDie Veranstaltung in Dresden wurde auf Freitag verschoben.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Treffen",
+          "Sachsen"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "sachsen",
+          "tag",
+          "treffen",
+          "verlegt"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:47.092865+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Das Treffen in Dresden wurde auf den 09.10.2026 verschoben.: Datum 09.10.2026 steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.878,
+        "suche": 0.08,
+        "antwort_modell": 1.201,
+        "saetze_modell": 1.808,
+        "satzpruefung": 0.001,
+        "gesamt": 8.851
+      },
+      "seconds": 5.98,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was erlaubt die Lizenz für das Foto?",
+      "type": "direct",
+      "expect": [
+        "S8"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S8"
+      ],
+      "selected_sources": [
+        "S8"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S8"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Lizenz für das Foto erlaubt nur interne Verwendung. [1]\n\nBelege\n[1] Bildlizenz; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Lizenz",
+          "Foto"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "erlaubt",
+          "foto",
+          "lizenz"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:11:52.985718+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-5c07d804c8ae",
+              "fingerprint": "de2d8822cdb4e778eb10c5a48f62ee57e26d6f6c7f2341e63e102bbcc298e4c5",
+              "start": 0,
+              "end": 55,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Lizenz für das Foto erlaubt nur interne Verwendung.",
+            "text": "Die Lizenz für das Foto erlaubt nur interne Verwendung.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Was erlaubt die Lizenz für das Foto?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.005,
+        "suche": 0.112,
+        "antwort_modell": 0.955,
+        "saetze_modell": 1.666,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.518,
+        "gesamt": 9.265
+      },
+      "seconds": 6.266,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Dürfen wir die Grafik öffentlich nutzen?",
+      "type": "paraphrase",
+      "expect": [
+        "S8"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.458,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Ist der Quartalsbericht freigegeben?",
+      "type": "direct",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S9"
+      ],
+      "selected_sources": [
+        "S9"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S9"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Der Quartalsbericht ist als Entwurf gespeichert. [1]\nEine Freigabe liegt nicht vor. [1]\n\nBelege\n[1] Quartalsbericht; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Quartalsbericht"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "freigegeben",
+          "quartalsbericht"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:02.302679+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-98da1248ff1a",
+              "fingerprint": "7adfb526dfc439d38da06f70254d55e4575f475991216201a92d9baebbb875be",
+              "start": 0,
+              "end": 79,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Der Quartalsbericht ist als Entwurf gespeichert.",
+            "text": "Der Quartalsbericht ist als Entwurf gespeichert.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          },
+          {
+            "roh": "Eine Freigabe liegt nicht vor.",
+            "text": "Eine Freigabe liegt nicht vor.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Ist der Quartalsbericht freigegeben?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.515,
+        "suche": 0.173,
+        "antwort_modell": 0.975,
+        "saetze_modell": 2.003,
+        "satzpruefung": 0.006,
+        "pruefung_modell": 1.127,
+        "gesamt": 9.319
+      },
+      "seconds": 6.811,
+      "calls": 5,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Darf der Report schon raus?",
+      "type": "paraphrase",
+      "expect": [
+        "S9"
+      ],
+      "status": "working_unknown",
+      "candidate_sources": [
+        "S9"
+      ],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Report"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "raus",
+          "report"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": null,
+      "times": {
+        "frage": 2.723,
+        "suche": 0.202,
+        "antwort_modell": 0.925,
+        "gesamt": 6.578
+      },
+      "seconds": 3.856,
+      "calls": 2,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Warum verzögert sich die Lieferung?",
+      "type": "direct",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S10"
+      ],
+      "selected_sources": [
+        "S10"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S10"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils. [1]\n\nBelege\n[1] Lieferung; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Lieferung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "lieferung",
+          "verzogert"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:13.937614+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-4558531f4189",
+              "fingerprint": "5f5ed885d5777d66f151fe65cb6b8efefb7320faad6e853bb5f8543c28963ee3",
+              "start": 0,
+              "end": 63,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+            "text": "Die Lieferung verzögert sich wegen eines fehlenden Ersatzteils.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Warum verzögert sich die Lieferung?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.429,
+        "suche": 0.232,
+        "antwort_modell": 0.968,
+        "saetze_modell": 1.718,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.53,
+        "gesamt": 10.314
+      },
+      "seconds": 6.893,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Weshalb kommt die Ware später an?",
+      "type": "paraphrase",
+      "expect": [
+        "S10"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S10"
+      ],
+      "selected_sources": [
+        "S10"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S10"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Lieferung\nDie Lieferung verzögert sich wegen eines fehlenden Ersatzteils.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Ware"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "kommt",
+          "spater",
+          "ware"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:20.940842+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Ware kommt später an, weil ein fehlendes Ersatzteil vorliegt.: „Ware“ steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 3.609,
+        "suche": 0.119,
+        "antwort_modell": 1.011,
+        "saetze_modell": 1.918,
+        "satzpruefung": 0.002,
+        "gesamt": 10.275
+      },
+      "seconds": 6.671,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann kann man mich wegen des Keramiktests anrufen?",
+      "type": "direct",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S11"
+      ],
+      "selected_sources": [
+        "S11"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S11"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Man kann wegen des Keramiktests ab dem 08.10.2026 um 10 Uhr anrufen. [1] (nur über Betreff oder Absender belegt)\n\nBelege\n[1] Keramiktest; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Keramiktests"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anrufen",
+          "keramiktests"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:28.047849+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-c00eca2d2a06",
+              "fingerprint": "1c3ebef12e9a1b800dee24b75fe87fc1c3f8b0c93aad08e5e5925a4763051787",
+              "start": 0,
+              "end": 85,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Man kann wegen des Keramiktests ab dem 08.10.2026 um 10 Uhr anrufen.",
+            "text": "Man kann wegen des Keramiktests ab dem 08.10.2026 um 10 Uhr anrufen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "duenn"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann kann man mich wegen des Keramiktests anrufen?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.579,
+        "suche": 0.21,
+        "antwort_modell": 1.386,
+        "saetze_modell": 2.359,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.671,
+        "gesamt": 11.794
+      },
+      "seconds": 8.224,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+      "type": "paraphrase",
+      "expect": [
+        "S11"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S11"
+      ],
+      "selected_sources": [
+        "S11"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S11"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Sie sind telefonisch ab dem 08.10.2026 um 10 Uhr gut zu erreichen. [1] (nur über Betreff oder Absender belegt)\n\nBelege\n[1] Keramiktest; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "erreichen",
+          "gut",
+          "telefonisch",
+          "uhrzeit"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:35.739851+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-c00eca2d2a06",
+              "fingerprint": "1c3ebef12e9a1b800dee24b75fe87fc1c3f8b0c93aad08e5e5925a4763051787",
+              "start": 0,
+              "end": 85,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Sie sind telefonisch ab dem 08.10.2026 um 10 Uhr gut zu erreichen.",
+            "text": "Sie sind telefonisch ab dem 08.10.2026 um 10 Uhr gut zu erreichen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "duenn"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Zu welcher Uhrzeit bin ich telefonisch gut zu erreichen?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.261,
+        "suche": 0.178,
+        "antwort_modell": 1.202,
+        "saetze_modell": 2.783,
+        "satzpruefung": 0.009,
+        "pruefung_modell": 0.936,
+        "gesamt": 11.643
+      },
+      "seconds": 8.387,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann ist der Umzug des Büros?",
+      "type": "direct",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S12"
+      ],
+      "selected_sources": [
+        "S12"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S12"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Der Umzug des Büros ist für den 3. November geplant. [1]\n\nBelege\n[1] Umzug; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Umzug",
+          "Büros"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "buros",
+          "umzug"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:45.291968+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-d4575c6b9d99",
+              "fingerprint": "886aaa5b23e0c46946105e2eb1ca79abaaed8bb12f2ec8a21391a20689b5c701",
+              "start": 0,
+              "end": 89,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Der Umzug des Büros ist für den 3. November geplant.",
+            "text": "Der Umzug des Büros ist für den 3. November geplant.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann ist der Umzug des Büros?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 4.386,
+        "suche": 0.19,
+        "antwort_modell": 1.229,
+        "saetze_modell": 1.979,
+        "satzpruefung": 0.005,
+        "pruefung_modell": 0.65,
+        "gesamt": 12.831
+      },
+      "seconds": 8.451,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann ziehen wir mit der Firma in die neuen Räume?",
+      "type": "paraphrase",
+      "expect": [
+        "S12"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S12"
+      ],
+      "selected_sources": [
+        "S12"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S12"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Umzug\nDer Umzug des Büros ist für den 3. November geplant, die Kisten kommen eine Woche vorher.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Räume"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "firma",
+          "neuen",
+          "raume",
+          "ziehen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:52.369576+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Der Umzug in die neuen Räume ist für den 3. November geplant.: Zahl 9 steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.895,
+        "suche": 0.283,
+        "antwort_modell": 1.254,
+        "saetze_modell": 1.985,
+        "satzpruefung": 0.003,
+        "gesamt": 9.321
+      },
+      "seconds": 6.43,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Was verträgt Jonas nicht?",
+      "type": "direct",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S13"
+      ],
+      "selected_sources": [
+        "S13"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S13"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Jonas verträgt keine Erdnüsse. [1]\n\nBelege\n[1] Allergie; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Jonas"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "jonas",
+          "vertragt"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:12:58.442233+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-73dc7369f7af",
+              "fingerprint": "68b3cfa5d96491cec5f9a154c5206c5d787219f478494c60b5171cd4c664ac5c",
+              "start": 0,
+              "end": 66,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Jonas verträgt keine Erdnüsse.",
+            "text": "Jonas verträgt keine Erdnüsse.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Was verträgt Jonas nicht?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.727,
+        "suche": 0.243,
+        "antwort_modell": 1.104,
+        "saetze_modell": 2.054,
+        "satzpruefung": 0.001,
+        "pruefung_modell": 0.674,
+        "gesamt": 9.538
+      },
+      "seconds": 6.821,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S13"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S13"
+      ],
+      "selected_sources": [
+        "S13"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S13"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Jonas verträgt keine Erdnüsse. [1]\nBeim Teamessen muss man darauf achten, dass Jonas keine Erdnüsse bekommt. [1]\n\nBelege\n[1] Allergie; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Essen",
+          "Kollegen"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "achten",
+          "allergisch",
+          "essen",
+          "kollegen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:05.707533+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-73dc7369f7af",
+              "fingerprint": "68b3cfa5d96491cec5f9a154c5206c5d787219f478494c60b5171cd4c664ac5c",
+              "start": 0,
+              "end": 66,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Jonas verträgt keine Erdnüsse.",
+            "text": "Jonas verträgt keine Erdnüsse.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          },
+          {
+            "roh": "Beim Teamessen muss man darauf achten, dass Jonas keine Erdnüsse bekommt.",
+            "text": "Beim Teamessen muss man darauf achten, dass Jonas keine Erdnüsse bekommt.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Worauf muss ich beim Essen mit dem Kollegen achten, der allergisch ist?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.28,
+        "suche": 0.202,
+        "antwort_modell": 1.038,
+        "saetze_modell": 2.24,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.749,
+        "gesamt": 10.796
+      },
+      "seconds": 7.528,
+      "calls": 5,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+      "type": "direct",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S14"
+      ],
+      "selected_sources": [
+        "S14"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S14"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Man muss den Mobilfunkvertrag bis Ende Oktober kündigen. [1]\n\nBelege\n[1] Kündigung; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Mobilfunkvertrag"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "gekundigt",
+          "mobilfunkvertrag"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:12.517060+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-6b5934582112",
+              "fingerprint": "c2cc2b17ed42c6fbfa140481af61d63ff8a5dfd7ef894fa1e7ac44adaaa976a5",
+              "start": 0,
+              "end": 67,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Man muss den Mobilfunkvertrag bis Ende Oktober kündigen.",
+            "text": "Man muss den Mobilfunkvertrag bis Ende Oktober kündigen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Bis wann muss der Mobilfunkvertrag gekündigt werden?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.606,
+        "suche": 0.161,
+        "antwort_modell": 1.03,
+        "saetze_modell": 1.639,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.617,
+        "gesamt": 8.671
+      },
+      "seconds": 6.073,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Frist gilt für das Handy-Abo?",
+      "type": "paraphrase",
+      "expect": [
+        "S14"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S14"
+      ],
+      "selected_sources": [
+        "S14"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S14"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Die Frist zum Kündigen des Mobilfunkvertrags endet am 31.10.2026. [1]\n\nBelege\n[1] Kündigung; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Frist",
+          "Handy-Abo"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Frist",
+          "Handy-Abo"
+        ],
+        "umschreibungen": [
+          "Laufzeit",
+          "Gültigkeitsdauer",
+          "Vertragslaufzeit",
+          "Ablaufzeit"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "ablaufzeit",
+          "abo",
+          "frist",
+          "gilt",
+          "gultigkeitsdauer",
+          "handy",
+          "laufzeit",
+          "vertragslaufzeit"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:18.994184+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-6b5934582112",
+              "fingerprint": "c2cc2b17ed42c6fbfa140481af61d63ff8a5dfd7ef894fa1e7ac44adaaa976a5",
+              "start": 0,
+              "end": 67,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Frist zum Kündigen des Mobilfunkvertrags endet am 31.10.2026.",
+            "text": "Die Frist zum Kündigen des Mobilfunkvertrags endet am 31.10.2026.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Welche Frist gilt für das Handy-Abo? Laufzeit Gültigkeitsdauer Vertragslaufzeit Ablaufzeit",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.128,
+        "suche": 0.152,
+        "antwort_modell": 0.925,
+        "saetze_modell": 2.035,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.688,
+        "gesamt": 10.073
+      },
+      "seconds": 6.964,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wie viel Euro stehen für die Messe zur Verfügung?",
+      "type": "direct",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S13",
+        "S15"
+      ],
+      "selected_sources": [
+        "S15"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S15"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Für die Messe stehen 12.000 Euro zur Verfügung. [1]\n\nBelege\n[1] Budget; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Euro",
+          "Messe",
+          "Verfügung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "euro",
+          "messe",
+          "stehen",
+          "verfugung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:27.036435+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-3156f91f6ffc",
+              "fingerprint": "cfb74f800c76dc409b8c998499080bffe1bcf6ebbc666bb7706270c6aaf9d93f",
+              "start": 0,
+              "end": 75,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Für die Messe stehen 12.000 Euro zur Verfügung.",
+            "text": "Für die Messe stehen 12.000 Euro zur Verfügung.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wie viel Euro stehen für die Messe zur Verfügung?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.731,
+        "suche": 0.463,
+        "antwort_modell": 2.087,
+        "saetze_modell": 2.073,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.672,
+        "gesamt": 10.771
+      },
+      "seconds": 8.047,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welches Geld haben wir für den Stand auf der Ausstellung?",
+      "type": "paraphrase",
+      "expect": [
+        "S15"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S15"
+      ],
+      "selected_sources": [
+        "S15"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S15"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Budget\nFür die Messe stehen 12.000 Euro zur Verfügung, Reisekosten eingeschlossen.\nQuellenzeit: unbekannt · Erfasst: 08.10.2026, 16:10 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Geld",
+          "Ausstellung"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 0,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 0,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "ausstellung",
+          "geld",
+          "stand"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 0,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:33.843574+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Für den Stand auf der Ausstellung stehen 12.000 Euro zur Verfügung.: „Ausstellung“ steht nicht im Beleg"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.595,
+        "suche": 0.377,
+        "antwort_modell": 1.068,
+        "saetze_modell": 1.875,
+        "satzpruefung": 0.002,
+        "gesamt": 8.523
+      },
+      "seconds": 5.933,
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+      "type": "direct",
+      "expect": [
+        "S16"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "S16"
+      ],
+      "selected_sources": [
+        "S16"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "S16"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "selection_pass": true,
+      "answer": "Ben übernimmt während des Urlaubs von Anna die Kundenanfragen. [1]\n\nBelege\n[1] Stellvertretung; 08.10.2026\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Urlaubs",
+          "Anna",
+          "Kundenanfragen"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anna",
+          "kundenanfragen",
+          "ubernimmt",
+          "urlaubs",
+          "wahrend"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T14:13:40.809943+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-8a6a31c41940",
+              "fingerprint": "9a7db81940156df95bb84c5a644a29062f68c41ba1775308bb0610cca95c70d3",
+              "start": 0,
+              "end": 62,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Ben übernimmt während des Urlaubs von Anna die Kundenanfragen.",
+            "text": "Ben übernimmt während des Urlaubs von Anna die Kundenanfragen.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "gut"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wer übernimmt während des Urlaubs von Anna die Kundenanfragen?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.877,
+        "suche": 0.189,
+        "antwort_modell": 1.009,
+        "saetze_modell": 1.829,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.716,
+        "gesamt": 11.507
+      },
+      "seconds": 7.639,
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wer vertritt die Kollegin, wenn sie verreist ist?",
+      "type": "paraphrase",
+      "expect": [
+        "S16"
+      ],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": false,
+      "status_ok": false,
+      "retrieved_expected": false,
+      "selection_pass": false,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 4.078,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wie lautet die PIN meiner Bankkarte?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "selection_pass": true,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 2.343,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welche Blutgruppe habe ich?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "selection_pass": true,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.028,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Wann hat meine Schwester Geburtstag?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "selection_pass": true,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.397,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    },
+    {
+      "q": "Welches Passwort hat das WLAN?",
+      "type": "unanswerable",
+      "expect": [],
+      "status": "unknown",
+      "candidate_sources": [],
+      "selected_sources": [],
+      "references_valid": true,
+      "shown_sources": [],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "selection_pass": true,
+      "answer": "Das kann ich mit den gefundenen Belegen nicht beantworten.",
+      "question_understanding": null,
+      "search": null,
+      "sentence_answer": null,
+      "times": null,
+      "seconds": 3.611,
+      "calls": 1,
+      "provider_errors": 0,
+      "provider_pending": 0
+    }
+  ],
+  "withdrawal": {
+    "checked": true,
+    "pass": true,
+    "status": "working_unavailable",
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut."
+  }
+}

@@ -42,6 +42,17 @@
   gap: 3px;
 }
 
+.people-mentions-list blockquote {
+  margin: 2px 0 4px;
+  padding-left: 10px;
+  border-left: 2px solid var(--kf-rand-c9d8d5);
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.people-mentions-limit { display: block; margin: 10px 0; }
+
 .people-review fieldset {
   display: grid;
   gap: 10px;

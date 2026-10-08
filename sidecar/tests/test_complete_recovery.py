@@ -50,6 +50,11 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     proposal,_=service.propose(subject_ref=person['id'],target_ref='project:'+project.id,predicate='works_on',value='Mitarbeit',statement=episode.body,rationale='Expliziter Testbeleg',evidence=[Evidence(episode.id,episode.body,episode.digest)])
     claim=service.accept(proposal.id,supersedes=[])
     service.propose(subject_ref=person['id'],predicate='role',value='Projektkontakt',statement=episode.body,rationale='Noch nicht bestätigt',evidence=[Evidence(episode.id,episode.body,episode.digest)])
+    from icarus_memory.cloud_memory import CloudMemoryJobs
+    cloud_jobs=CloudMemoryJobs(episodes,data/'cloud-memory-jobs.sqlite3',None,lambda:{})
+    with cloud_jobs._connect() as db:
+        db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",
+                   ('recovery-preview','pilot','catalog',None,'[]',0))
     episodes.close(); proposals.close(); claims.close()
     conversations=ConversationStore(data/'conversations.sqlite3')
     conversation=conversations.create('Gesichertes Gespräch')
@@ -86,6 +91,10 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     Keychain(data_dir=data).set('ICARUS_MAIL_PASSWORD','synthetic-mail-password')
     config=tmp_path/'settings.env'
     config.write_text('ICARUS_SECRETS_PASSPHRASE=synthetic-key-passphrase\nICARUS_SIDECAR_TOKEN=synthetic-token\n')
+    from icarus_memory.calendar_actions import CalendarActions
+    CalendarActions(data/'calendar-actions.sqlite3', lambda: None, None)
+    with sqlite3.connect(data/'calendar-actions.sqlite3') as db:
+        db.execute('INSERT INTO actions VALUES (?, ?, ?)', ('completed-draft', 'done', json.dumps({'id':'completed-draft','status':'done','provider_event_id':'confirmed-event'})))
     assert all((data/name).is_file() for name in BACKUP_DATA_FILES)
     before={name:database_contents(data/name) for name in SQLITE_DATA_FILES}
     assert all(any(line.startswith('INSERT INTO') for line in content[1]) for content in before.values())
@@ -123,3 +132,7 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     restored_befunde=Befunde(result/'data/lint.sqlite3')
     assert [(b['id'],b['status']) for b in restored_befunde.liste()]==[(befund.schluessel,'abgewiesen')]
     restored_befunde.close()
+
+    journal = CalendarActions(result/'data/calendar-actions.sqlite3', lambda: None, None)
+    assert journal.get('completed-draft')['status'] == 'done'
+    assert journal.get('completed-draft')['provider_event_id'] == 'confirmed-event'

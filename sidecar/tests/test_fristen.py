@@ -59,6 +59,14 @@ def test_bezug_ist_die_quelle_nicht_heute():
     assert _tage('Ende Oktober', maerz)[0] == [date(2025, 10, 31)]
 
 
+def test_ohne_quelldatum_bleiben_relative_angaben_offen_absolute_jahresdaten_gelten():
+    suche = fristen_in('Bis 31.10. oder bis 31. Oktober 2026; Ende Oktober; in zwei Wochen; bis morgen.', None)
+
+    assert [(f.datum, f.ausdruck) for f in suche.fristen] == [
+        (date(2026, 10, 31), '31. Oktober 2026')]
+    assert suche.ohne_datum == ['31.10.', 'Ende Oktober', 'in zwei Wochen', 'bis morgen']
+
+
 def test_datum_ohne_jahr_im_folgejahr_nur_wenn_eindeutig():
     dezember = datetime(2026, 12, 10, 9, 0, tzinfo=timezone.utc)
     assert _tage('bis 15.1.', dezember)[0] == [date(2027, 1, 15)]

@@ -27,6 +27,10 @@ SCOPES = {
     'calendar': {'https://www.googleapis.com/auth/userinfo.email',
                  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
                  'https://www.googleapis.com/auth/calendar.events.readonly'},
+    'calendar_write': {'https://www.googleapis.com/auth/userinfo.email',
+                       'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+                       'https://www.googleapis.com/auth/calendar.events.readonly',
+                       'https://www.googleapis.com/auth/calendar.events'},
 }
 TTL = 600
 
@@ -147,13 +151,14 @@ class GoogleOAuth:
             if not user.get('verified_email') or not isinstance(address, str) or not re.fullmatch(r'[^\s@\x00-\x1f]+@[^\s@\x00-\x1f]+', address):
                 raise GoogleError('Google hat keine bestätigte Mailadresse geliefert.')
             calendars = []
-            if item['kind'] == 'calendar':
+            if item['kind'] in {'calendar', 'calendar_write'}:
                 page = None
                 for _ in range(20):
                     result = self.request('GET', CALENDAR_URL + '/users/me/calendarList', headers=headers,
                         params={'maxResults': 250, **({'pageToken': page} if page else {})})
+                    allowed_roles = {'writer', 'owner'} if item['kind'] == 'calendar_write' else {'reader', 'writer', 'owner'}
                     calendars.extend({'id': c['id'], 'name': c.get('summary', c['id'])}
-                        for c in result.get('items', []) if c.get('accessRole') in {'reader', 'writer', 'owner'} and c.get('id') and not c.get('deleted'))
+                        for c in result.get('items', []) if c.get('accessRole') in allowed_roles and c.get('id') and not c.get('deleted'))
                     page = result.get('nextPageToken')
                     if not page:
                         break
@@ -163,7 +168,9 @@ class GoogleOAuth:
                 if sid not in self.pending or item['expires'] <= self.clock():
                     raise GoogleError('Diese Anmeldung ist abgelaufen.')
                 item.update(status='ready', email=address, calendars=calendars,
-                    grant={**item['client'], 'refresh_token': token['refresh_token'], 'scope': token['scope']})
+                    grant={**item['client'], 'refresh_token': token['refresh_token'],
+                           'scope': token['scope'], 'kind': item['kind'],
+                           'grant_id': secrets.token_hex(16)})
             return sid
         except Exception:
             with self.lock:
@@ -189,7 +196,7 @@ class GoogleOAuth:
             raise GoogleError('Anmeldung ist nicht zur Übernahme bereit.')
         selected = list(dict.fromkeys(calendar_ids))
         available = {c['id']: c['name'] for c in item['calendars']}
-        if item['kind'] == 'calendar' and (not selected or set(selected) - available.keys()):
+        if item['kind'] in {'calendar', 'calendar_write'} and (not selected or set(selected) - available.keys()):
             raise GoogleError('Bitte mindestens einen angezeigten Kalender auswählen.')
         if item['kind'] == 'mail' and selected:
             raise GoogleError('Für Mail werden keine Kalender ausgewählt.')

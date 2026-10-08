@@ -2,14 +2,11 @@ import { type ReactNode } from "react";
 import { AntwortZeitenProtokoll } from "../AntwortZeiten";
 import { AktenOrdnerSettings } from "../AktenOrdnerSettings";
 import { WasAufgefallenIst } from "../BefundeAnsicht";
-import { DeviceModelHelp } from "../DeviceModelHelp";
 import { GoogleVorbereiten } from "../GoogleVorbereiten";
-import { LocalModelSettings } from "../LocalModelSettings";
 import { MailFilterSettings } from "../MailFilterSettings";
 import { MailSyncSettings } from "../MailSyncSettings";
 import { MemoryAutomationSettings } from "../MemoryAutomationSettings";
 import { MicrosoftVorbereiten } from "../MicrosoftVorbereiten";
-import { ModelRecommendation } from "../ModelRecommendation";
 import { RoutingControls } from "../RoutingControls";
 import { RueckmeldungenListe } from "../RueckmeldungAnsicht";
 import { SetupOverview } from "../SetupOverview";
@@ -55,7 +52,6 @@ export function Technik({ integrationen, ziel, zuBereich }: {
 }) {
   const accounts = integrationen.overview?.mail_accounts ?? [];
   const inhalt: Record<string, ReactNode> = {
-    modelle: <><ModelRecommendation /><LocalModelSettings /><DeviceModelHelp /></>,
     routing: <RoutingControls />,
     antwortzeiten: <AntwortZeitenProtokoll />,
     suchindex: <SuchindexSettings active />,

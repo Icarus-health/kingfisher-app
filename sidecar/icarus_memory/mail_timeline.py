@@ -13,7 +13,7 @@ REPLY = 'mail:reply:'
 REASONS = {
     'history': 'Aus dem importierten Bestand. Ob diese Bitte noch offen ist, muss geprüft werden.',
     'old': 'Historische Quelle. Der heutige Import macht daraus keine aktuelle Aufgabe.',
-    'unknown': 'Quelldatum unbekannt. Der Importzeitpunkt ersetzt kein Maildatum.',
+    'unknown': 'Quelldatum unbekannt. Der Importzeitpunkt ersetzt kein Quelldatum.',
     'future': 'Quelldatum liegt in der Zukunft. Bitte die zeitliche Einordnung prüfen.',
     'followup': 'Weitere Nachricht im selben Verlauf vorhanden. Die frühere Bitte muss im Zusammenhang geprüft werden.',
     'recent': 'Zeitnahe Quelle; weiterhin ein unbestätigter Aufgabenvorschlag.',
@@ -99,13 +99,9 @@ def timings(episodes, sources, *, now, relations=None):
         eligible = {}
         for e in sources:
             date = e.occurred_at
-            if e.provenance.source_type is not SourceType.EMAIL:
-                date = date or e.recorded_at
-                status = 'recent'
-            else:
-                status = date_status(date, now=now)
-                if status == 'recent' and e.id in history:
-                    status = 'history'
+            status = date_status(date, now=now)
+            if e.provenance.source_type is SourceType.EMAIL and status == 'recent' and e.id in history:
+                status = 'history'
             result[e.id] = {'received_at': date.astimezone(timezone.utc).isoformat() if date else None,
                 'recorded_at': e.recorded_at.astimezone(timezone.utc).isoformat(), 'temporal_status': status,
                 'temporal_reason': REASONS[status], 'followup_episode_id': None}

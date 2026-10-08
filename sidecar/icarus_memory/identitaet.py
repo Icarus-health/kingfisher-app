@@ -36,6 +36,7 @@ from typing import Any, Iterable
 
 from .episodes import mail_address
 from .kontakte import anzeigename
+from .people_quality import ist_sammelpostfach, lokalteil
 
 #: Rolle einer Angabe ohne bekannte Rolle (Notiz, Transkript, ältere Mail).
 BETEILIGT = "beteiligt"
@@ -185,6 +186,8 @@ class Verzeichnis:
 
     def aufnehmen(self, nennung: Nennung) -> None:
         if nennung.ich or not nennung.adresse:
+            return
+        if ist_sammelpostfach(lokalteil(nennung.adresse)):
             return
         self._namen[nennung.adresse]  # legt die Adresse an, auch ohne Namen
         schluessel = name_schluessel(nennung.name)

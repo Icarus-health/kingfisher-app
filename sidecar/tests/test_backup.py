@@ -56,6 +56,23 @@ def test_snapshot_ist_vollstaendig(befuellte_db: Path, tmp_path: Path) -> None:
     assert len(store.export().assertions) == 2
 
 
+def test_cloud_job_history_is_backed_up_and_restore_keeps_inspection_boundary(tmp_path):
+    from icarus_memory.cloud_memory import CloudMemoryJobs
+    from icarus_memory.episodes import EpisodeStore
+    data=tmp_path/'data'
+    episodes=EpisodeStore(data/'episodes.sqlite3')
+    jobs=CloudMemoryJobs(episodes,data/'cloud-memory-jobs.sqlite3',None,lambda:{})
+    with jobs._connect() as db:
+        db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",('sample','pilot','catalog',None,'[]',0))
+    saved=snapshot_all(data,tmp_path/'backups')
+    assert 'cloud-memory-jobs.sqlite3' in {row['name'] for row in verify_snapshot_set(saved)}
+    restored=tmp_path/'restored'
+    restore_all(saved,restored)
+    with sqlite3.connect(restored/'cloud-memory-jobs.sqlite3') as db:
+        assert db.execute('SELECT id FROM cloud_memory_previews').fetchone()[0]=='sample'
+    assert (restored/'restore-state.json').is_file()
+
+
 def test_snapshot_waehrend_schreibzugriff(befuellte_db: Path, tmp_path: Path) -> None:
     """Offene Verbindung: ein blosses Dateikopieren ergäbe hier Bruch."""
     backend = SqliteBackend(befuellte_db)
@@ -413,3 +430,20 @@ def test_migration_uebernimmt_nur_bekannte_schluessel(tmp_path: Path) -> None:
     # Die Datei bleibt liegen — ungefragt Dateien des Nutzers zu verändern
     # wäre schlimmer als ein Schlüssel, der einen Tag zu lang dort steht.
     assert env.is_file()
+
+
+def test_calendar_action_journal_survives_backup_and_restore(tmp_path):
+    """A restored application must retain its external-action confirmations."""
+    data = tmp_path / 'data'
+    data.mkdir()
+    path = data / 'calendar-actions.sqlite3'
+    with sqlite3.connect(path) as db:
+        db.execute('CREATE TABLE actions (id TEXT PRIMARY KEY, status TEXT, record TEXT)')
+        db.execute('INSERT INTO actions VALUES (?, ?, ?)', ('draft-1', 'done', '{"provider_event_id":"event-1"}'))
+    saved = snapshot_all(data, tmp_path / 'snapshots')
+    assert 'calendar-actions.sqlite3' in {item['name'] for item in verify_snapshot_set(saved)}
+    with sqlite3.connect(path) as db:
+        db.execute('DELETE FROM actions')
+    restore_all(saved, data)
+    with sqlite3.connect(path) as db:
+        assert db.execute('SELECT id, status FROM actions').fetchall() == [('draft-1', 'done')]

@@ -104,7 +104,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
-from .tasks import TaskStore
+from .tasks import TaskStore, TaskChangedError
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
 from .workspace import (
@@ -219,6 +219,7 @@ class ConversationIn(BaseModel):
 class CalendarAssignmentIn(BaseModel):
     uid: str = Field(min_length=1, max_length=2048)
     project_id: str | None = Field(default=None, max_length=200)
+    start: str | None = Field(default=None, max_length=64)
 
 
 class CalendarFollowupIn(BaseModel):
@@ -299,6 +300,12 @@ class KnowledgeCorrectIn(BaseModel):
 
 class KnowledgeAcceptIn(BaseModel):
     supersedes: list[str] = Field(default_factory=list)
+
+
+class MemoryQuestionIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    stand: str = Field(min_length=64, max_length=64)
+    proposal_id: str | None
 
 
 class ConversationMemoryCandidateIn(BaseModel):
@@ -387,6 +394,7 @@ class TaskIn(BaseModel):
     notes: str | None = None
     tags: list[str] = Field(default_factory=list)
     project_id: str | None = None
+    goal_id: str | None = Field(default=None, max_length=200)
 
 
 class MailTaskIn(BaseModel):
@@ -411,6 +419,11 @@ class MailReplyIn(BaseModel):
     context_token: str | None = Field(default=None, min_length=20, max_length=200)
 
 
+class ThreadSummaryIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    context_fingerprint: str = Field(pattern='^[0-9a-f]{64}$')
+
+
 class TaskProjectIn(BaseModel):
     project_id: str | None
 
@@ -419,6 +432,8 @@ class TaskEditIn(BaseModel):
     title: str | None = Field(default=None, max_length=4096)
     due: datetime | None = None
     notes: str | None = None
+    remind_at: datetime | None = None
+    expected_remind_at: datetime | None = None
 
 
 class SourceProjectIn(BaseModel):
@@ -1182,6 +1197,10 @@ def _wire_scheduler(app: FastAPI) -> None:
 
 def _close_persistent_state(app: FastAPI) -> None:
     """Schließt alle offenen SQLite-Verbindungen vor einer Wiederherstellung."""
+    cloud_jobs = getattr(app.state, "cloud_memory_jobs", None)
+    if cloud_jobs is not None:
+        cloud_jobs.pause(revoke=True)
+        app.state.cloud_memory_jobs = None
     for name in (
         "backend", "audit", "tasks", "workspace", "episodes", "proposals",
         "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde",
@@ -1425,6 +1444,12 @@ def create_app(
     from .device_profile import load_device_profile, save_device_profile
     from .model_roles_routes import register as register_model_roles
     register_model_roles(app, guard, _data_dir, lambda: _build_agent(app))
+    from .cloud_access_routes import register as register_cloud_access
+    register_cloud_access(app, guard, _data_dir, lambda: _build_agent(app))
+    from .chatgpt_routes import register as register_chatgpt
+    register_chatgpt(app, guard, _data_dir)
+    from .cloud_memory_routes import register as register_cloud_memory
+    register_cloud_memory(app, guard, _data_dir, lambda model: app.state.chatgpt_oauth.provider(model))
 
     @app.get("/api/v1/device/profile", dependencies=guard)
     def device_profile():
@@ -1446,6 +1471,8 @@ def create_app(
 
     from .google_routes import install_routes as install_google_routes
     install_google_routes(app, guard, _data_dir, lambda: _build_agent(app))
+    from .calendar_action_routes import install_routes as install_calendar_action_routes
+    install_calendar_action_routes(app, guard, _data_dir, lambda: _build_agent(app))
     from .microsoft_routes import install_routes as install_microsoft_routes
     install_microsoft_routes(app, guard, _data_dir, lambda: _build_agent(app))
     from .memory_routes import install_routes as install_memory_routes
@@ -2352,6 +2379,51 @@ def create_app(
         return {**message.to_dict(), "source_digest": mail_source_digest(message), "can_reply": _can_reply(message),
                 "sending_account": getattr(_mail_or_404(), "sender_label", lambda _: "Standardkonto")(message.account_id)}
 
+    @app.get("/api/v1/messages/{uid}/thread", dependencies=guard)
+    def read_mail_thread(uid: str, limit: int = Query(default=20, ge=2, le=50)) -> dict[str, Any]:
+        from .mail_thread import thread_context
+        from .mail_thread_summary import fingerprint
+        reader = _mail_or_404()
+        message = _read_mail(uid)
+        with app.state.conversation_lock:
+            if app.state.mail is not reader or message.uid != uid:
+                raise HTTPException(status_code=409, detail="Die Mailquelle hat sich geändert. Bitte erneut öffnen.")
+            context = thread_context(app.state.episodes, message, limit=limit)
+            return {**context, 'context_fingerprint': fingerprint(context)}
+
+    thread_summary_lock = threading.Lock()
+
+    @app.post('/api/v1/messages/{uid}/thread-summary', dependencies=guard)
+    def summarize_mail_thread(uid: str, body: ThreadSummaryIn) -> dict[str, Any]:
+        from .mail_thread import thread_context
+        from .mail_thread_summary import fingerprint, summarize
+        if not thread_summary_lock.acquire(blocking=False):
+            raise HTTPException(status_code=429, detail='Ein Mailüberblick wird bereits erstellt. Bitte kurz warten.')
+        try:
+            reader = _mail_or_404()
+            episodes = app.state.episodes
+            message = _read_mail(uid)
+            with app.state.conversation_lock:
+                if app.state.mail is not reader or message.uid != uid or app.state.episodes is not episodes:
+                    raise HTTPException(status_code=409, detail='Die Mailquelle hat sich geändert. Bitte erneut öffnen.')
+                context = thread_context(episodes, message)
+                if context['status'] != 'ready' or fingerprint(context) != body.context_fingerprint:
+                    raise HTTPException(status_code=409, detail='Der Verlauf hat sich geändert. Bitte erneut laden.')
+
+            def still_current(latest=message) -> bool:
+                # Reuse the initial mail during cheap local guards; refetch it
+                # once before delivery, outside the source mutation lock.
+                with app.state.conversation_lock:
+                    return (app.state.mail is reader and app.state.episodes is episodes and latest.uid == uid
+                            and fingerprint(thread_context(episodes, latest)) == body.context_fingerprint)
+
+            result = summarize(app, context, still_current=still_current)
+            if not still_current(_read_mail(uid)) or result['status'] == 'changed':
+                raise HTTPException(status_code=409, detail='Eine Grundlage des Überblicks hat sich geändert. Bitte erneut laden.')
+            return result
+        finally:
+            thread_summary_lock.release()
+
     @app.post("/api/v1/messages/{uid}/reply", dependencies=guard, status_code=201)
     def prepare_mail_reply(uid: str, body: MailReplyIn) -> dict[str, Any]:
         if not body.body.strip():
@@ -2811,22 +2883,27 @@ def create_app(
 
     # -- Kingfisher Morning Briefing -------------------------------------
 
-    @app.get("/api/v1/calendar", dependencies=guard)
-    def kingfisher_calendar(days: int = Query(default=7, ge=1, le=31), year_view: bool = False) -> dict[str, Any]:
+    def _calendar_overview(days: int = 7, year_view: bool = False, *, start: datetime | None = None,
+                           finish: datetime | None = None, zone=None) -> dict[str, Any]:
         calendar = getattr(app.state, "calendar", None)
         result: dict[str, Any] = {"items": [], "errors": [], "configured": calendar is not None}
         # Bestätigte Geburtstage stehen jedes Jahr wieder im Kalender, auch ohne verbundenen Kalender; nur in dieser
         # Ansicht, in keinen Kalender eines Anbieters geschrieben (Fremdprobe 2, Befund 20).
         from .wiederkehrendes import kalender_eintraege
         heute = datetime.now().astimezone().date()
-        von, bis = ((heute.replace(month=1, day=1), heute.replace(year=heute.year + 1, month=1, day=1)) if year_view
+        von, bis = ((start.astimezone(zone).date(), finish.astimezone(zone).date()) if start and finish else
+                    (heute.replace(month=1, day=1), heute.replace(year=heute.year + 1, month=1, day=1)) if year_view
                     else (heute, heute + timedelta(days=days)))
+        if start and finish:
+            result.update(range_start=start.isoformat(), range_end=finish.isoformat())
         geburtstage = kalender_eintraege(app.state.claims, von, bis)
         if calendar is None:
             result["items"] = geburtstage
             return result
         try:
-            if year_view:
+            if start and finish:
+                events = calendar.events(days=(finish - start).total_seconds() / 86400, at=start)
+            elif year_view:
                 current = datetime.now().astimezone()
                 start = current.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
                 finish = start.replace(year=start.year + 1)
@@ -2839,6 +2916,22 @@ def create_app(
             result["errors"] = [str(exc)]
         result["items"] = sorted([*result["items"], *geburtstage], key=lambda e: str(e.get("start") or ""))
         return result
+
+    @app.get("/api/v1/calendar", dependencies=guard)
+    def kingfisher_calendar(days: int = Query(default=7, ge=1, le=31), year_view: bool = False,
+                           from_: str | None = Query(default=None, alias='from', max_length=100),
+                           until: str | None = Query(default=None, max_length=100),
+                           tz: str | None = Query(default=None, max_length=100)) -> dict[str, Any]:
+        from .calendar_window import parse_calendar_window
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+        if bool(from_) != bool(until):
+            raise HTTPException(status_code=422, detail='Beginn und Ende des Kalenderzeitraums sind gemeinsam erforderlich.')
+        try:
+            zone = ZoneInfo(tz) if tz else None
+            start, finish = parse_calendar_window(from_, until) if from_ is not None and until is not None else (None, None)
+        except (ValueError, ZoneInfoNotFoundError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        return _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
 
     def _vorbereiten(items: list[dict[str, Any]]) -> None:
         """Kommende Termine der nächsten 24 Stunden bekommen ihre Zuordnung mit.
@@ -2906,9 +2999,14 @@ def create_app(
     def _eigene_adressen() -> list[str]:
         return identitaet.eigene_adressen(getattr(app.state, "settings", None))
 
-    def _termin(uid: str) -> dict[str, Any]:
-        current = kingfisher_calendar(year_view=True)
-        event = next((item for item in current["items"] if item["uid"] == uid), None)
+    def _termin(uid: str, start: str | None = None) -> dict[str, Any]:
+        if start is not None:
+            return _vorkommen(uid, start)
+        current = _calendar_overview(year_view=True)
+        matches = [item for item in current["items"] if item["uid"] == uid]
+        if len(matches) > 1:
+            raise HTTPException(status_code=409, detail="Dieser Kalenderlink ist mehrdeutig. Bitte ein konkretes Vorkommen mit Beginn auswählen.")
+        event = matches[0] if matches else None
         if event is None:
             if current["errors"]:
                 raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
@@ -2916,17 +3014,17 @@ def create_app(
         return event
 
     @app.get("/api/v1/calendar/zuordnung", dependencies=guard)
-    def calendar_assignment(uid: str = Query(min_length=1, max_length=2048)) -> dict[str, Any]:
+    def calendar_assignment(uid: str = Query(min_length=1, max_length=2048), start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
         """Wer kommt, und welches Projekt gilt: festgelegt oder vorgeschlagen, mit Grund."""
         from .vorbereitung import zuordnung
-        return zuordnung(_termin(uid), episodes=app.state.episodes, workspace=app.state.workspace,
+        return zuordnung(_termin(uid, start), episodes=app.state.episodes, workspace=app.state.workspace,
                          eigene=_eigene_adressen())
 
     @app.put("/api/v1/calendar/zuordnung", dependencies=guard)
     def set_calendar_assignment(body: CalendarAssignmentIn) -> dict[str, Any]:
         """Berichtigung mit einem Klick; gilt dauerhaft für diesen Termin."""
         from .vorbereitung import zuordnung
-        event = _termin(body.uid)
+        event = _termin(body.uid, body.start)
         try:
             app.state.workspace.set_event_project(body.uid, body.project_id)
         except WorkspaceError as exc:
@@ -2937,23 +3035,20 @@ def create_app(
     def _vorkommen(uid: str, start: str) -> dict[str, Any]:
         """Ein bestimmter Termin einer Serie: Kennung und Beginn.
 
-        Zuerst im Jahr, dann in der letzten Woche, damit ein Termin vom
-        31. Dezember am 2. Januar noch nachzubereiten ist.
+        Der ausdrückliche Beginn bestimmt das Zeitfenster auch außerhalb des aktuellen Jahres.
         """
         from .nachbereitung import gleicher_beginn
-        current = kingfisher_calendar(year_view=True)
+        from .datumstext import iso_lesen_streng
+        try:
+            at = iso_lesen_streng(start)
+            if at.utcoffset() is None:
+                raise ValueError()
+        except ValueError:
+            raise HTTPException(status_code=422, detail='Der Terminbeginn muss einen gültigen Zeitpunkt mit Zeitzone enthalten.') from None
+        current = _calendar_overview(start=at.replace(hour=0, minute=0, second=0, microsecond=0),
+                                     finish=at.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
         kandidaten = list(current["items"])
         fehler = list(current["errors"])
-        if not any(item["uid"] == uid and gleicher_beginn(item.get("start"), start) for item in kandidaten):
-            calendar = getattr(app.state, "calendar", None)
-            if calendar is not None:
-                try:
-                    kandidaten = [e.to_dict() for e in calendar.events(days=8, at=datetime.now(timezone.utc) - timedelta(days=7))]
-                    # Hat die letzte Woche geantwortet, gilt ihr Ergebnis:
-                    # Ein fehlender Termin ist dann weg, nicht unerreichbar.
-                    fehler = [str(e) for e in (getattr(calendar, "last_errors", {}) or {}).values()]
-                except Exception as exc:  # noqa: BLE001
-                    fehler.append(str(exc))
         event = next((item for item in kandidaten if item["uid"] == uid and gleicher_beginn(item.get("start"), start)), None)
         if event is None:
             if fehler:
@@ -3092,14 +3187,10 @@ def create_app(
     @app.get("/api/v1/calendar/preparation", dependencies=guard)
     def calendar_preparation(uid: str = Query(min_length=1, max_length=2048),
                              project_id: str | None = None,
-                             person_id: str | None = None) -> dict[str, Any]:
+                             person_id: str | None = None,
+                             start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
         """Lesender, ausdrücklich gewählter Kontext ohne neue Terminzuordnung."""
-        current = kingfisher_calendar(year_view=True)
-        event = next((item for item in current["items"] if item["uid"] == uid), None)
-        if event is None:
-            if current["errors"]:
-                raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
-            raise HTTPException(status_code=404, detail="Der Termin ist nicht mehr im verbundenen Kalender verfügbar.")
+        event = _termin(uid, start)
         result: dict[str, Any] = {"event": event, "project": None, "person": None, "tasks": [],
                                  "decisions": [], "claims": [], "notes": [], "sources": [],
                                  "sources_more": False, "working_memory_more": False}
@@ -4001,10 +4092,14 @@ def create_app(
                 previous_context = (last.metadata.get('context') if last is not None
                     and last.role == 'assistant' and last.status == 'complete' else None)
                 from .working_memory_store import WorkingMemoryStore
+                from .source_answers import literal_query
+                from .frage import rueckfall
+                literal_lookup = (literal_query(body.message) is not None and
+                    route(body.message, previous_context, new_question=body.new_question) == 'memory_evidence')
                 # Die Frage in eine strukturierte Anfrage übersetzen (Modell der Rolle
                 # „frage“, sonst Rückfall); sie gilt für Weg und Antwort dieser Nachricht.
                 # Die Umschreibungen gehören zur Suche: „Catering“ findet „Verpflegung“.
-                anfrage = _frage_verstehen(app, body.message)
+                anfrage = rueckfall(body.message) if literal_lookup else _frage_verstehen(app, body.message)
                 working_available = bool(WorkingMemoryStore(app.state.episodes).search(
                     anfrage.suchanfrage(body.message), limit=1)['refs'])
                 if not working_available:
@@ -4018,7 +4113,7 @@ def create_app(
                     # Quellen bleiben beim Chat mit Werkzeugen, wie bisher.
                     from .frage_weg import bezug_im_bestand
                     working_available = bezug_im_bestand(anfrage, app.state.episodes, _project_directory(app)())
-                if not working_available:
+                if not working_available and not literal_lookup:
                     # Umschriebene Fragen haben keine gemeinsamen Wörter mit der Quelle.
                     from .working_memory_answers import is_question
                     from . import working_memory_semantic
@@ -4435,9 +4530,31 @@ def create_app(
         raise HTTPException(status_code=400, detail="Unbekannte Aufgabenansicht.")
 
     @app.get("/api/v1/tasks", dependencies=guard)
-    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None) -> dict[str, Any]:
+    def list_kingfisher_tasks(view: str = Query(default="mine", pattern="^(mine|waiting|done)$"), project_id: str | None = None,
+                              q: str = Query(default='', max_length=200), limit: int = Query(default=200, ge=1, le=200),
+                              cursor: str | None = Query(default=None, max_length=2048)) -> dict[str, Any]:
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
-        return {"view": view, "tasks": _task_view(view, project_id)}
+        from .task_pages import TaskPageChanged
+        if project_id:
+            _validate_task_project(project_id)
+        try:
+            return {'view': view, **app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)}
+        except TaskPageChanged as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/api/v1/tasks/reminders", dependencies=guard)
+    def task_reminders(limit: int = Query(default=100, ge=1, le=100)) -> dict[str, Any]:
+        tasks = app.state.tasks.reminders_due(limit=limit + 1)
+        return {"items": [task.to_dict() for task in tasks[:limit]], "truncated": len(tasks) > limit}
+
+    @app.get("/api/v1/tasks/{task_id}", dependencies=guard)
+    def read_kingfisher_task(task_id: str) -> dict[str, Any]:
+        task = app.state.tasks.get(task_id)
+        if task is None:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.")
+        return task.to_dict()
 
     @app.get("/api/v1/tasks/{task_id}/history", dependencies=guard)
     def task_history(task_id: str) -> dict[str, Any]:
@@ -4466,14 +4583,16 @@ def create_app(
     @app.post("/api/v1/tasks", dependencies=guard, status_code=201)
     def add_kingfisher_task(body: TaskIn) -> dict[str, Any]:
         """Legt eine ausdrücklich eingegebene Aufgabe mit Nutzerherkunft an."""
-        _validate_task_project(body.project_id)
-        return app.state.tasks.add(
-            body.title,
-            Provenance(source_type=SourceType.USER_STATED,
-                       captured_at=datetime.now().astimezone()),
-            due=body.due, notes=body.notes, tags=body.tags,
-            project_id=body.project_id,
-        ).to_dict()
+        with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
+            _validate_task_goal(body.goal_id)
+            return app.state.tasks.add(
+                body.title,
+                Provenance(source_type=SourceType.USER_STATED,
+                           captured_at=datetime.now().astimezone()),
+                due=body.due, notes=body.notes, tags=body.tags,
+                project_id=body.project_id, goal_id=body.goal_id,
+            ).to_dict()
 
     def _validate_task_project(project_id: str | None) -> None:
         if project_id is not None:
@@ -4481,6 +4600,15 @@ def create_app(
                 app.state.workspace.project(project_id)
             except WorkspaceError as exc:
                 raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    def _validate_task_goal(goal_id: str | None) -> None:
+        if goal_id is None:
+            return
+        goal = app.state.store.get(goal_id)
+        if (goal is None or goal.kind is not Kind.GOAL
+                or (goal.structured or {}).get("domain") == "habit"
+                or not any(item.id == goal_id for item in app.state.store.usable())):
+            raise HTTPException(status_code=409, detail="Das Ziel ist nicht mehr offen. Bitte neu laden.")
 
     @app.patch("/api/v1/tasks/{task_id}", dependencies=guard)
     def edit_kingfisher_task(task_id: str, body: TaskEditIn) -> dict[str, Any]:
@@ -4491,6 +4619,8 @@ def create_app(
             return app.state.tasks.edit(task_id, **changes).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.") from exc
+        except TaskChangedError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
@@ -4519,6 +4649,42 @@ def create_app(
     def task_candidate_service():
         return TaskCandidates(app.state.episodes, app.state.proposals, app.state.tasks,
                               app.state.workspace, app.state.conversation_lock)
+
+    @app.get("/api/v1/task-candidates/page", dependencies=guard)
+    def task_candidates_page(
+        limit: int = Query(default=25, ge=1, le=100),
+        offset: int = Query(default=0, ge=0, le=250000),
+        temporal: Literal["all", "recent", "review"] = Query(default="all"),
+        generation: str | None = Query(default=None, min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$"),
+    ) -> dict[str, Any]:
+        items: list[dict[str, Any]] = []
+        total = 0
+        digest = hashlib.sha256()
+        # Offset pagination scans the full pending set to compute its total and generation (O(N)).
+        with app.state.conversation_lock:
+            for batch in candidate_batches(app.state.proposals, app.state.episodes):
+                for proposal, _, timing in batch:
+                    status = timing.get("temporal_status")
+                    if temporal == "recent" and status != "recent":
+                        continue
+                    if temporal == "review" and status == "recent":
+                        continue
+                    # A task write can succeed immediately before the proposal is marked accepted.
+                    # Do not show that already-created task as a still-pending suggestion.
+                    if app.state.tasks.get(f"t-suggestion-{proposal.id}") is not None:
+                        continue
+                    digest.update(proposal.id.encode("utf-8"))
+                    digest.update(b"\0")
+                    digest.update(str(status or "").encode("utf-8"))
+                    digest.update(b"\n")
+                    if offset <= total < offset + limit:
+                        items.append({**proposal.to_dict(), **timing})
+                    total += 1
+            current_generation = digest.hexdigest()
+            if generation is not None and generation != current_generation:
+                raise HTTPException(409, "Die Prüfliste hat sich geändert. Bitte die erste Seite neu laden.")
+        return {"items": items, "total": total, "offset": offset, "limit": limit,
+                "has_more": offset + len(items) < total, "generation": current_generation}
 
     @app.get("/api/v1/task-candidates", dependencies=guard)
     def task_candidates():
@@ -4552,15 +4718,17 @@ def create_app(
 
     @app.post("/tasks", dependencies=guard, status_code=201)
     def add_task(body: TaskIn) -> dict[str, Any]:
-        _validate_task_project(body.project_id)
-        task = app.state.tasks.add(
-            body.title,
-            Provenance(source_type=SourceType.USER_STATED,
-                       captured_at=datetime.now().astimezone()),
-            due=body.due, notes=body.notes, tags=body.tags,
-            project_id=body.project_id,
-        )
-        return task.to_dict()
+        with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
+            _validate_task_goal(body.goal_id)
+            task = app.state.tasks.add(
+                body.title,
+                Provenance(source_type=SourceType.USER_STATED,
+                           captured_at=datetime.now().astimezone()),
+                due=body.due, notes=body.notes, tags=body.tags,
+                project_id=body.project_id, goal_id=body.goal_id,
+            )
+            return task.to_dict()
 
     @app.post("/tasks/{task_id}/done", dependencies=guard)
     def complete_task(task_id: str) -> dict[str, Any]:
@@ -5164,6 +5332,7 @@ def create_app(
                 workspace=app.state.workspace,
                 jetzt=datetime.now().astimezone(),
                 eigene=_eigene_adressen(),
+                confirmed_merges=app.state.claims.person_merges.list(),
             )
         ]
 
@@ -5186,6 +5355,7 @@ def create_app(
                 workspace=app.state.workspace,
                 jetzt=datetime.now().astimezone(),
                 eigene=_eigene_adressen(),
+                confirmed_merges=app.state.claims.person_merges.list(),
             )
         except personen.Mehrdeutig as fehler:
             raise _mehrdeutig_melden(fehler) from fehler
@@ -5474,6 +5644,17 @@ def create_app(
     @app.get("/api/v1/memory/clarifications", dependencies=guard)
     def memory_clarifications() -> list[dict[str, Any]]:
         return app.state.knowledge_service.clarifications()
+
+    @app.get('/api/v1/memory/questions', dependencies=guard)
+    def memory_questions() -> dict[str, Any]:
+        from .memory_questions import list_questions
+        questions = list_questions(app)
+        return {'items': questions[:50], 'truncated': len(questions) > 50}
+
+    @app.post('/api/v1/memory/questions/{question_id}/resolve', dependencies=guard)
+    def resolve_memory_question(question_id: str, body: MemoryQuestionIn) -> dict[str, Any]:
+        from .memory_questions import resolve_question
+        return resolve_question(app, question_id, stand=body.stand, proposal_id=body.proposal_id)
 
     @app.post(
         "/api/v1/memory/candidates/{proposal_id}/accept",
@@ -5967,7 +6148,12 @@ def create_app(
         def today_ui() -> FileResponse:
             return ui_response()
 
+        @app.get("/world", include_in_schema=False)
+        def world_ui() -> FileResponse:
+            return ui_response()
+
         @app.get("/memory", include_in_schema=False)
+        @app.get("/review", include_in_schema=False)
         def memory_ui() -> FileResponse:
             return ui_response()
 
@@ -5981,6 +6167,10 @@ def create_app(
 
         @app.get("/vorhaben", include_in_schema=False)
         def tasks_ui() -> FileResponse:
+            return ui_response()
+
+        @app.get("/development", include_in_schema=False)
+        def development_ui() -> FileResponse:
             return ui_response()
 
         @app.get("/nachrichten", include_in_schema=False)

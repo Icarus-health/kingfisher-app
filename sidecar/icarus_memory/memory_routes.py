@@ -1,5 +1,6 @@
 """Begrenzte, lesende Eigentümeransicht auf Verarbeitung und Gedächtniszeit."""
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 import time
 
 from fastapi import APIRouter, HTTPException, Query
@@ -60,7 +61,22 @@ def coverage(episodes, proposals):
             counts['partial'] += 1
         else:
             counts['pending'] += 1
-    return {'total_sources': total, 'sampled_sources': len(rows), 'counts': counts,
+    with episodes._lock:
+        placeholders = ','.join('?' for _ in AUSGEBLENDETE_ZUSTAENDE)
+        available = f"{sql_quelle()} AND state NOT IN ({placeholders})"
+        valid_date = "julianday(occurred_at) IS NOT NULL AND (substr(occurred_at,-1)='Z' OR substr(occurred_at,-6,1) IN ('+','-'))"
+        dates = []
+        for order in ('ASC', 'DESC'):
+            row = episodes._conn.execute(
+                f"SELECT occurred_at FROM episodes WHERE {available} AND {valid_date} ORDER BY julianday(occurred_at) {order},id {order} LIMIT 1",
+                tuple(AUSGEBLENDETE_ZUSTAENDE)).fetchone()
+            dates.append(row['occurred_at'] if row else None)
+        undated = episodes._conn.execute(
+            f"SELECT COUNT(*) FROM episodes WHERE {available} AND NOT COALESCE(({valid_date}),0)",
+            tuple(AUSGEBLENDETE_ZUSTAENDE)).fetchone()[0]
+    source_dates = {'earliest': dates[0],
+                    'latest': dates[1], 'undated': undated}
+    return {'source_dates': source_dates, 'total_sources': total, 'sampled_sources': len(rows), 'counts': counts,
             'truncated': total > len(rows), 'analysis_version': VERSION,
             'truncated_sources': truncated_sources,
             'semantic_completeness': False, 'generated_at': datetime.now(timezone.utc).isoformat(),
@@ -70,12 +86,14 @@ def coverage(episodes, proposals):
                           if truncated_sources else ''))}
 
 
-def timeline(episodes, claims, start, end, limit, cursor=None):
+def timeline(episodes, claims, start, end, limit, cursor=None, basis="recorded"):
     """Best-effort live navigation; continuation repeats returned start/end.
 
     A changed/deleted ceiling anchor invalidates the cursor. Rights are checked
     per page, so this does not provide a transaction snapshot across stores.
     """
+    if basis not in {'source', 'recorded'}:
+        raise ValueError('Unbekannte Zeitachse.')
     aware(start)
     aware(end)
     if end <= start:
@@ -83,7 +101,7 @@ def timeline(episodes, claims, start, end, limit, cursor=None):
     if not 1 <= limit <= 500:
         raise ValueError('Der Abruf ist auf 1 bis 500 Einträge begrenzt.')
     query = query_key('timeline', str(episodes._path.resolve()), str(claims._path.resolve()),
-                      time_key(start), time_key(end), limit)
+                      time_key(start), time_key(end), limit, basis)
     continuation = decode_cursor(cursor, query, 2) if cursor is not None else None
     with episodes._lock:
         source_ceiling = (continuation[1][0] if continuation else
@@ -108,10 +126,14 @@ def timeline(episodes, claims, start, end, limit, cursor=None):
             (episodes._conn, 'episodes', "'source:' || id", 'rowid', ceilings[0]),
             (claims._conn, 'knowledge_changes', "'change:' || revision", 'revision', ceilings[1]),
         ):
-            stamp = 'recorded_at' if table == 'episodes' else 'created_at'
+            if basis == 'source' and table != 'episodes':
+                continue
+            stamp = ('occurred_at' if basis == 'source' else 'recorded_at') if table == 'episodes' else 'created_at'
             sql = (f'SELECT *, julianday({stamp}) AS sort_time, {key} AS sort_id FROM {table} '
                    f'WHERE julianday({stamp})>=julianday(?) AND julianday({stamp})<julianday(?) '
                    f'AND {ceiling_column}<=?')
+            if basis == 'source':
+                sql += f" AND {sql_quelle()} AND (substr(occurred_at,-1)='Z' OR substr(occurred_at,-6,1) IN ('+','-'))"
             params = [start.isoformat(), end.isoformat(), ceiling]
             if continuation:
                 after_time, after_id = continuation[0]
@@ -172,7 +194,10 @@ def timeline(episodes, claims, start, end, limit, cursor=None):
             'scanned': scanned, 'budget_truncated': truncated and scanned == SCAN_BUDGET,
             'gaps': gaps, 'gap_scope': 'page', 'consistency': 'best_effort_navigation',
             'start': start.isoformat(), 'end': end.isoformat(),
-            'time_axis': 'recorded_at', 'detail': 'Zeitpunkt der Aufnahme oder Entscheidung. Ein älteres Quellendatum wird gesondert gezeigt.'}
+            'basis': basis, 'time_axis': 'occurred_at' if basis == 'source' else 'recorded_at',
+            'detail': ('Originaldatum verfügbarer Quellen; Quellen ohne Datum sind hier nicht einsortiert.' if basis == 'source' else
+                       'Zeitpunkt der Aufnahme oder Entscheidung. Ein älteres Quellendatum wird gesondert gezeigt.')}
+
 
 
 def install_routes(app, guard):
@@ -313,6 +338,7 @@ def install_routes(app, guard):
 
     @router.get('/timeline')
     def read_timeline(start: datetime | None = None, end: datetime | None = None,
+                      basis: Literal['source', 'recorded'] = 'recorded',
                       limit: int = Query(default=100, ge=1, le=500),
                       cursor: str | None = Query(default=None, max_length=2048,
                           description="Bei Fortsetzung start und end aus der ersten Antwort erneut angeben.")):
@@ -322,7 +348,7 @@ def install_routes(app, guard):
                 raise ValueError('Für einen Timeline-Cursor müssen start und end aus der ersten Antwort erneut angegeben werden.')
             with app.state.conversation_lock:
                 return timeline(app.state.episodes, app.state.claims, start or now - timedelta(days=30),
-                                end or now + timedelta(seconds=1), limit, cursor=cursor)
+                                end or now + timedelta(seconds=1), limit, cursor=cursor, basis=basis)
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
 

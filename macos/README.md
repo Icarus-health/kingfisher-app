@@ -103,7 +103,7 @@ Prüfen ohne Mac und mit Mac:
 
 ```sh
 .venv/bin/python -m pytest macos/test_mac_app.py -q      # überall; mit swiftc auch die Logik
-swiftc macos/App/Logic/*.swift macos/tests/main.swift -o /tmp/kingfisher-logic && /tmp/kingfisher-logic
+swiftc macos/App/Logic/*.swift macos/Shared/PowerReporter.swift macos/tests/main.swift -o /tmp/kingfisher-logic && /tmp/kingfisher-logic
 ```
 
 ## Auf dem Mac prüfen

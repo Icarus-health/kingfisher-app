@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from hashlib import sha256
 from types import SimpleNamespace
 
 import pytest
@@ -17,9 +18,13 @@ class Episodes:
         if old:
             return old, False
         self.n += 1
-        episode = SimpleNamespace(id=f"e{self.n}", body=body)
+        episode = SimpleNamespace(id=f"e{self.n}", body=body, provenance=provenance,
+                                  digest="sha256:" + sha256(body.encode()).hexdigest())
         self.items[(source_key, body)] = episode
         return episode, True
+
+    def get(self, episode_id):
+        return next(episode for episode in self.items.values() if episode.id == episode_id)
 
     def source_head(self, key):
         return self.heads.get(key)
@@ -78,11 +83,15 @@ def test_failure_preserves_previous_episode_and_is_safe(monkeypatch):
     m, episodes, _claims = monitor(lambda _url: state.pop() if state else (_ for _ in ()).throw(RuntimeError("secret")))
     source = m.add("https://example.test", "Example", [])
     m.refresh(source["id"])
+    previous = m.list()[0]
     with pytest.raises(ValueError):
         m.refresh(source["id"])
     assert episodes.n == 1
     listed = m.list()[0]
     assert listed["status"] == "stale"
+    assert listed["last_success"] == previous["last_success"]
+    assert listed["fetched_url"] == previous["fetched_url"]
+    assert listed["source_sha256"] == previous["source_sha256"]
     assert "secret" not in str(listed)
 
 

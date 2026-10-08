@@ -109,6 +109,33 @@ def test_leere_namen_werden_nicht_zu_menschen(episodes: EpisodeStore) -> None:
     assert _alle(episodes) == []
 
 
+def test_sammelpostfaecher_werden_nicht_als_menschen_oder_aliases_gefuehrt(
+    episodes: EpisodeStore,
+) -> None:
+    """Automatisierte Absender belegen keine Person und dürfen Aliasse nicht verunreinigen."""
+    _episode(episodes, "Plattformbenachrichtigung.", [
+        "Alex Winter <notifications@platform.example>",
+        "Alex Winter <billing@vendor.example>",
+        "Alex Winter <service@vendor.example>",
+    ], herkunft=SourceType.EMAIL)
+    _episode(episodes, "Direkter Kontakt.", ["Alex Winter <alex.winter@firma.example>"],
+             herkunft=SourceType.EMAIL)
+    _episode(episodes, "Notiz zum Gespräch.", ["Alex Winter"])
+
+    menschen = _alle(episodes)
+
+    assert [(p.name, p.adressen) for p in menschen] == [
+        ("Alex Winter", ["alex.winter@firma.example"])
+    ]
+    assert menschen[0].episoden_anzahl == 2
+    original = next(e for e in episodes.each_episode() if e.body == "Plattformbenachrichtigung.")
+    assert original.participants == [
+        "Alex Winter <notifications@platform.example>",
+        "Alex Winter <billing@vendor.example>",
+        "Alex Winter <service@vendor.example>",
+    ]
+
+
 # -- Zusammenführen, ohne zu raten -------------------------------------------
 
 

@@ -10,10 +10,13 @@ import { MemoryDirectory } from "./MemoryDirectory";
 import { SachenListe } from "./SachenListe";
 import { SelfModelSupportReview } from "./SelfModelSupportReview";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
+import { MemoryAreas } from "./MemoryAreas";
+import { memorySectionFromSearch } from "./MemoryAreaModel";
 
-type FilterId = "people" | "projects" | "topics" | "decisions" | "documents" | "organizations" | "places" | "topic-files";
+type FilterId = "areas" | "people" | "projects" | "topics" | "decisions" | "documents" | "organizations" | "places" | "topic-files";
 
 const FILTERS: Array<{ id: FilterId; label: string; icon: "people" | "project" | "brain" | "check" | "document" | "building" | "pin" }> = [
+  { id: "areas", label: "Bereiche", icon: "brain" },
   { id: "people", label: "Menschen", icon: "people" },
   { id: "projects", label: "Projekte", icon: "project" },
   { id: "organizations", label: "Organisationen", icon: "building" },
@@ -170,8 +173,9 @@ function GraphCanvas({ graph, filter, personFilter }: { graph: MemoryGraph; filt
 export function MemoryGraph({ recentConversation }: { recentConversation: string | null }) {
   const [graph, setGraph] = useState<MemoryGraph | null>(null);
   const [error, setError] = useState(false);
-  const [filter, setFilter] = useState<FilterId>("people");
-  const [section, setSection] = useState<"browse" | "status" | "support">("browse");
+  const [filter, setFilter] = useState<FilterId>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "people" : "areas");
+  const [section, setSection] = useState<"browse" | "status" | "support">(() =>
+    memorySectionFromSearch(window.location.search));
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const reviewSubmittingRef = useRef(false);
   const [personFilter, setPersonFilter] = useState<PersonFilter>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
@@ -193,9 +197,11 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
       // Ein History-Wechsel innerhalb von /memory darf die wirksame
       // Bestätigung nicht aushängen und ihre Auditwarnung verschlucken.
       if (reviewSubmittingRef.current) return;
-      setSection("browse");
-      setFilter("people");
-      setPersonFilter(new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
+      setSection(memorySectionFromSearch(window.location.search));
+      const query = new URLSearchParams(window.location.search);
+      const isReview = query.get("people") === "review";
+      setFilter(isReview ? "people" : "areas");
+      setPersonFilter(isReview ? "review" : "people");
     };
     window.addEventListener("popstate", applyPeopleQuery);
     return () => window.removeEventListener("popstate", applyPeopleQuery);
@@ -227,11 +233,12 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
               <button aria-pressed={personFilter === id} className={personFilter === id ? "active" : ""} disabled={reviewSubmitting} key={id} onClick={() => setPersonFilter(id)} type="button">{label}{graph ? ` (${personNodes(graph, id).length})` : ""}</button>
             ))}
           </div> : null}
-          <small>Nur belegte Verbindungen</small>
+          <small>{filter === "areas" ? "Quellenbasierte Themenhinweise" : "Nur belegte Verbindungen"}</small>
+          <a href="/settings#ki">Mit ChatGPT einordnen & nachprüfen</a>
           <button type="button" disabled={reviewSubmitting} className={section === "support" ? "active" : ""} aria-pressed={section === "support"} onClick={() => setSection("support")}>Aussagen prüfen</button>
           <button type="button" disabled={reviewSubmitting} className={section === "status" ? "active" : ""} aria-pressed={section === "status"} onClick={() => setSection("status")}>Verarbeitung & Verlauf</button>
         </aside>
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : error ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <p>Das Gedächtnis ist gerade nicht erreichbar.</p>
             <button onClick={load} type="button">Wiederholen</button>

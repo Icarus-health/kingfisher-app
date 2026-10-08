@@ -24,7 +24,8 @@ class Mailbox:
             uid="pilot-1",
             subject="Atlas: Angebot bis Freitag",
             sender="anna@example.invalid",
-            date=datetime(2026, 9, 28, 8, tzinfo=timezone.utc),
+            # The happy path is intentionally fresh; fixed old dates belong to historical controls.
+            date=datetime.now(timezone.utc) - timedelta(hours=2),
             preview="Bitte prüfe das Angebot für den Atlas-Termin.",
             unread=True,
             body="Bitte prüfe das Angebot für den Atlas-Termin bis Freitag.",

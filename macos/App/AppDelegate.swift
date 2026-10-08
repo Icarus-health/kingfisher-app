@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var paths: AppPaths?
     private var startup: Startup?
     private var updater: Updater?
+    private var powerReporter: PowerReporter?
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -134,6 +135,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let again = StatusAction(title: Knopf.nochmalPruefen) { [weak self] in self?.start() }
         switch outcome {
         case .ready(let ollamaMissing):
+            if let paths = paths, powerReporter == nil {
+                let reporter = PowerReporter(origin: AppPaths.origin, tokenFile: paths.envFile)
+                powerReporter = reporter
+                reporter.start()
+            }
             status.show(.working(Satz.starten))
             if ollamaMissing { hint.show(Satz.ollamaFehlt, linkTitle: Knopf.ollamaLaden, url: Adresse.ollamaDownload) }
             surface.load(path: AppPaths.startPage)
@@ -229,7 +235,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    func applicationWillTerminate(_ notification: Notification) { surface?.cancelDownloads() }
+    func applicationWillTerminate(_ notification: Notification) {
+        powerReporter?.stop()
+        surface?.cancelDownloads()
+    }
 }
 
 /// Nimmt Nachrichten der Seite an. Nur aus dem Hauptrahmen der eigenen Adresse; alles andere wird ignoriert.

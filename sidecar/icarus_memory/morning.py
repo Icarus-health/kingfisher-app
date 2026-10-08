@@ -300,6 +300,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             "kind": "activity", "title": title,
             "detail": str(mail.get("from") or "Ungelesene Nachricht"),
             "icon": "mail", "source": "mail", "source_ref": mail.get("uid"),
+            "occurred_at": mail.get("date"), "recorded_at": mail.get("recorded_at"),
             "reason": "Ungelesene Nachricht", "action": None,
         })
         if len(happening) == 3:
@@ -319,6 +320,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             'kind': 'activity', 'title': title,
             'detail': 'Quelle berichtet · ' + ', '.join(KINDS[kind] for kind in report['kinds']),
             'icon': 'brain', 'source': 'working_memory', 'source_ref': report['episode_id'],
+            'occurred_at': report.get('occurred_at'), 'recorded_at': report.get('recorded_at'),
             'reason': 'In den letzten 24 Stunden aufgenommen; keine bestätigte Aussage', 'action': None,
         })
     # Nur, was von anderen kam: die eigenen Zeilen im Gespräch und eben hochgeladene Dateien zählen nicht (Befund 22).

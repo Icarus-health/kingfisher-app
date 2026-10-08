@@ -15,8 +15,10 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 
 from icarus_memory import akten_arten
+from icarus_memory import EpisodeKind, Provenance, SourceType
 from icarus_memory.akten_arten import fristen_finden, vorschlagen, zahlen_belegt
 from icarus_memory.akten_routes import bausteine, nachfuehren
+from icarus_memory.working_memory_store import WorkingMemoryStore
 from tests.test_context_identity import core  # noqa: F401 - Fixture
 from tests.test_kreis import ICH, api, mail  # noqa: F401 - Fixture und Hilfen
 
@@ -153,6 +155,62 @@ def test_fristen_werden_aufgabenvorschlaege_mit_beleg_nie_aufgaben(api):
     assert client.post('/api/v1/akten/arten/fristen').json()['vorgeschlagen'] == 0
     assert not [v for v in client.get('/api/v1/task-candidates').json()
                 if v['proposed_by'].startswith(akten_arten.VORGESCHLAGEN_VON)]
+
+
+def test_undatierte_mail_erzeugt_keine_aufgabe_aus_datum_ohne_jahr(api, monkeypatch):
+    from icarus_memory import model
+
+    app, client = api
+    monkeypatch.setattr(model, 'now', lambda: BEZUG)
+    body = 'Bitte kündigen Sie das Handy-Abo bis 31.10.'
+    kontakte = [
+        {'name': 'Zahnarztpraxis Dr. Krämer', 'adresse': PRAXIS, 'rolle': 'von', 'ich': False},
+        {'name': 'Lea Hartmann', 'adresse': ICH, 'rolle': 'an', 'ich': True},
+    ]
+    episode, _ = app.state.episodes.record(
+        EpisodeKind.MESSAGE, 'Kündigung Handy-Abo', body,
+        Provenance(SourceType.EMAIL, source_ref='test:kuendigung-ohne-jahr'),
+        participants=['Zahnarztpraxis Dr. Krämer <' + PRAXIS + '>'], contacts=kontakte,
+        occurred_at=None, at=BEZUG)
+    store = WorkingMemoryStore(app.state.episodes)
+    snapshot = store.pending(episode_ids=[episode.id])[0]
+    assert store.commit(snapshot, [{'start': 0, 'end': len(body), 'kind': 'request'}], model='synthetisch')
+
+    lauf = client.post('/api/v1/akten/arten/fristen').json()
+    candidates = [v for v in client.get('/api/v1/task-candidates').json()
+                  if v['proposed_by'].startswith(akten_arten.VORGESCHLAGEN_VON)]
+
+    assert lauf['vorgeschlagen'] == 0
+    assert candidates == []
+
+
+def test_undatierte_mail_mit_absolutem_jahr_bleibt_aufgabenvorschlag(api, monkeypatch):
+    from icarus_memory import model
+
+    app, client = api
+    monkeypatch.setattr(model, 'now', lambda: BEZUG)
+    body = 'Bitte kündigen Sie das Handy-Abo bis 31. Oktober 2099.'
+    kontakte = [
+        {'name': 'Zahnarztpraxis Dr. Krämer', 'adresse': PRAXIS, 'rolle': 'von', 'ich': False},
+        {'name': 'Lea Hartmann', 'adresse': ICH, 'rolle': 'an', 'ich': True},
+    ]
+    episode, _ = app.state.episodes.record(
+        EpisodeKind.MESSAGE, 'Kündigung Handy-Abo', body,
+        Provenance(SourceType.EMAIL, source_ref='test:kuendigung-absolutes-jahr'),
+        participants=['Zahnarztpraxis Dr. Krämer <' + PRAXIS + '>'], contacts=kontakte,
+        occurred_at=None, at=BEZUG)
+    store = WorkingMemoryStore(app.state.episodes)
+    snapshot = store.pending(episode_ids=[episode.id])[0]
+    assert store.commit(snapshot, [{'start': 0, 'end': len(body), 'kind': 'request'}], model='synthetisch')
+
+    lauf = client.post('/api/v1/akten/arten/fristen').json()
+    candidates = [v for v in client.get('/api/v1/task-candidates').json()
+                  if v['proposed_by'].startswith(akten_arten.VORGESCHLAGEN_VON)]
+
+    assert lauf['vorgeschlagen'] == 1
+    assert len(candidates) == 1
+    assert candidates[0]['valid_until'].startswith('2099-10-31')
+    assert candidates[0]['evidence'][0]['episode_id'] == episode.id
 
 
 def test_annahme_macht_eine_aufgabe_mit_faelligkeit(api):

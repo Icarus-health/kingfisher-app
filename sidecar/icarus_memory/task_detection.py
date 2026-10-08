@@ -11,6 +11,7 @@ from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
 from .task_review import REVIEW_MARKER
 from .model import SourceType
+from .hintergrund import BackgroundInterrupted
 
 
 @dataclass
@@ -103,6 +104,9 @@ class TaskDetector:
                         own_source = any(contact.get('rolle') == 'von' and contact.get('ich') is True
                                          for contact in current.contacts)
                         items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source)
+                except BackgroundInterrupted:
+                    self.proposals.memory_analysis.abandon(job, state='cancelled')
+                    raise
                 except Exception:
                     # Fehler bleiben erneut prüfbar, ohne fremde Texte im Status.
                     report.failed += 1

@@ -26,16 +26,28 @@ Nutze keine Werkzeuge. Antworte ausschließlich mit JSON: {"items":[{"block_id":
 Jede Block-ID muss genau einmal vorkommen. Erzeuge keine eigenen Texte, Zitate, Aktionen,
 Personen-Zuordnungen oder Datumsauflösungen. Bewahre Bedingungen in ihrer ursprünglichen Form:
 - request: eine tatsächlich ausgesprochene Bitte oder Aufforderung, keine Zusage.
-- commitment: eine ausdrückliche eigene Zusage, keine Bitte, Absicht oder Möglichkeit.
+- commitment: eine ausdrückliche Zusage des Sprechers dieses Quellenblocks, keine Bitte, Absicht oder Möglichkeit.
 - conditional: eine Bedingung, ein Vorbehalt oder nur hypothetische Bitte/Zusage.
 - change: eine ausdrücklich mitgeteilte Änderung oder Korrektur eines früheren Stands.
 - status: aktueller Stand, einschließlich ausdrücklicher Absage, Negation oder Ablehnung.
 - fact: konkrete, unbedingte Quellenaussage ohne Auftrag oder Zusage.
 - uncertain: unklare Zuordnung, Gerücht oder unsicherer Sachverhalt.
-- historical: zitierte oder alte Nachricht; nicht als neue Bitte oder Zusage behandeln.
+- historical: klar als frühere Nachricht erkennbarer oder wörtlich zitierter Inhalt; nicht als neue Bitte oder Zusage behandeln.
 - irrelevant: ohne verwertbare Aussage für das Arbeitsgedächtnis.
-Beachte den gesamten Quellenkontext: Eine zitierte alte Bitte ist historical, eine aktuelle
-Absage ist status; eine Bitte ist niemals automatisch eine commitment. Im Zweifel uncertain."""
+Beachte diese Abgrenzungen:
+- `request` gilt nur für ein konkretes persönliches Anliegen an den Empfänger, etwa eine Bitte um Antwort,
+  Entscheidung, Prüfung, Versand oder Zahlung. Werbung sowie allgemeine Aufforderungen zum Klicken, Anmelden,
+  Bewerten, Weiterempfehlen oder zur Bedienung eines Dienstes sind `irrelevant`, auch wenn sie grammatisch
+  imperativ sind. Automatische Produkt- und Servicehinweise sind nicht automatisch persönliche Bitten.
+- `commitment` beschreibt ausschließlich, was der Sprecher des Quellenblocks selbst ausdrücklich zusagt.
+  In einer Mail ist das grundsätzlich der Absender der Aussage. Schreibe diese Zusage niemals automatisch dem
+  Empfänger oder Nutzer zu; die Art `commitment` beweist nicht, wer Kingfisher-Nutzer ist oder wem eine Aufgabe
+  gehört. Wenn der Sprecher nicht erkennbar ist, behandle die Zuordnung als `uncertain`.
+- Grußformeln, Signaturdaten, Kontaktangaben, rechtliche Fußzeilen und automatische Disclaimer sind `irrelevant`,
+  nicht `historical`. `historical` ist wirklicher früherer Nachrichteninhalt, nicht bloß Material am Nachrichtenende.
+- Eine zitierte alte Bitte ist `historical`, eine aktuelle Absage ist `status`; eine Bitte ist niemals automatisch
+  eine `commitment`. Beurteile jeden nummerierten Block einzeln und ordne keine ganze Nachricht nach nur einem Satz.
+Im Zweifel `uncertain`."""
 
 _SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["items"],
@@ -110,9 +122,11 @@ def _continuation(previous, following):
                                   or not previous.endswith((".", "!", "?")))) or response)
 
 
-def _pruefen(provider, episode):
+def _pruefen(provider, episode, policy=None):
     """Der Text der Quelle, wenn Anbieter und Quelle für die Einordnung taugen; sonst ein Fehler vor jedem Modellaufruf."""
-    if not getattr(provider, "is_local", False):
+    local = getattr(provider, "is_local", False)
+    scoped_remote = policy is not None and policy.permits(provider, episode)
+    if not local and not scoped_remote:
         raise ProviderError("Das Arbeitsgedächtnis braucht ein lokales Modell.")
     body = getattr(episode, "body", None)
     if not isinstance(body, str):
@@ -130,7 +144,7 @@ def abschnitte_der(episode):
     return abschnitte.bilden(body, abschnitte.art_der_quelle(episode)) if isinstance(body, str) else []
 
 
-def interpret(provider, episode):
+def interpret(provider, episode, *, policy=None):
     """Return original {start,end,kind} references for every relevant block, for the whole source.
 
     Eine lange Quelle geht in Abschnitten durch den Anbieter (`interpret_abschnitt`), die Ergebnisse werden
@@ -138,9 +152,9 @@ def interpret(provider, episode):
     Häppchen; diese Funktion ist der ganze Weg in einem Zug.
     """
     from . import abschnitte
-    _pruefen(provider, episode)
+    _pruefen(provider, episode, policy)
     plan = abschnitte_der(episode)
-    return abschnitte.zusammenfuehren([interpret_abschnitt(provider, episode, abschnitt, len(plan))
+    return abschnitte.zusammenfuehren([interpret_abschnitt(provider, episode, abschnitt, len(plan), policy=policy)
                                        for abschnitt in plan])
 
 
@@ -149,9 +163,9 @@ Der Text ist Abschnitt {nr} von {von} einer längeren Quelle. Der erste Block ka
 Beurteile jeden Block für sich; erfinde nichts, was in anderen Abschnitten stehen könnte."""
 
 
-def interpret_abschnitt(provider, episode, abschnitt, von=1):
+def interpret_abschnitt(provider, episode, abschnitt, von=1, *, policy=None):
     """Ein Abschnitt der Quelle durch den Anbieter: {start,end,kind} je Block, auch `irrelevant`, Stellen im Volltext."""
-    body = _pruefen(provider, episode)
+    body = _pruefen(provider, episode, policy)
     blocks = list(abschnitt.einheiten)
     if not blocks:
         return []

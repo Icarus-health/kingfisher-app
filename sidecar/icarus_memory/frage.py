@@ -167,6 +167,8 @@ def pruefe(roh: Any, frage: str) -> Anfrage | None:
         zeitraum = None
     elif zeitraum not in ZEITRAEUME:
         return None
+    if zeitraum is not None and zeitraum != _zeitraum(frage):
+        return None
     sachen = _liste(roh["sachen"], MAX_SACHEN, LAENGE_SACHE)
     suchworte = _liste(roh["suchworte"], MAX_SUCHWORTE, LAENGE_WORT)
     umschreibungen = _liste(roh["umschreibungen"], MAX_UMSCHREIBUNGEN, LAENGE_WORT)

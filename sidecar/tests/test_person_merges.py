@@ -121,6 +121,45 @@ def test_group_projection_does_not_resurrect_removed_sources(tmp_path):
     assert project(empty, [record]).nodes == []
 
 
+def test_confirmed_service_mailbox_group_survives_in_people_projection(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from icarus_memory.server import create_app
+    from icarus_memory.episodes import EpisodeKind
+    from icarus_memory.model import Provenance, SourceType, now
+
+    monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
+    app = create_app()
+    client = TestClient(app)
+    episodes = app.state.episodes
+    for i, participant in enumerate([
+        'Alex Winter <service@example.org>',
+        'Alex Winter <alex@example.org>',
+    ]):
+        episodes.record(EpisodeKind.MESSAGE, f'Message {i}', f'Body {i}',
+                        Provenance(source_type=SourceType.EMAIL, source_ref=f'mail:{i}', captured_at=now()),
+                        participants=[participant])
+    graph = client.get('/api/v1/memory/graph').json()
+    members = [node for node in graph['nodes'] if node['kind'] == 'person']
+    app.state.claims.person_merges.confirm({'members': members, 'label': 'Alex Winter'}, confirmed=True)
+
+    people = client.get('/people').json()
+
+    assert len(people) == 1
+    assert people[0]['name'] == 'Alex Winter'
+    assert set(people[0]['adressen']) == {'service@example.org', 'alex@example.org'}
+    assert people[0]['id'].startswith('merge:')
+    profile = client.get('/people/Alex%20Winter').json()
+    assert profile['id'] == people[0]['id']
+    assert set(profile['adressen']) == {'service@example.org', 'alex@example.org'}
+    assert [episode.participants for episode in episodes.each_episode()] == [
+        ['Alex Winter <service@example.org>'], ['Alex Winter <alex@example.org>']
+    ]
+    app.state.claims.person_merges.undo(people[0]['id'], confirmed=True)
+    after_undo = client.get('/people').json()
+    assert len(after_undo) == 1
+    assert after_undo[0]['adressen'] == ['alex@example.org']
+
+
 def test_all_merge_routes_require_auth(tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
     from icarus_memory.server import create_app

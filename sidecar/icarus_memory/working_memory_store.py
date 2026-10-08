@@ -17,6 +17,7 @@ from .episodes import (CHAT_LOOKUP_TAG, IGNORIERTE_ZUSTAENDE, QUELLEN_ARTEN, Epi
                        sql_rohquelle, sql_sichtbar)
 from . import logbuch
 from .lexical import terms_v1
+from .source_index import FUNKTIONSWOERTER
 from .source_snapshot import EpisodeSupportSnapshot, canonical_instant, read_snapshot
 from .word_forms import alternatives, synonym_alternatives
 from .working_memory_words import candidate_words, query_words
@@ -333,7 +334,7 @@ class WorkingMemoryStore:
             "DELETE FROM working_memory_items WHERE episode_id=?", (episode_id,))
 
     def commit(self, snapshot: EpisodeSupportSnapshot, items: list[dict[str, Any]],
-               *, model: str) -> bool:
+               *, model: str, explicit_recheck: bool = False) -> bool:
         if type(model) is not str or not model or len(model) > 200:
             raise ValueError("model identifier required (max 200 chars)")
         if type(items) is not list or len(items) > MAX_ITEMS:
@@ -365,7 +366,7 @@ class WorkingMemoryStore:
             if (not self._eligible(current) or source_fingerprint(current) != fingerprint or
                     (row and row[1] == "dismissed")):
                 return False
-            if (row and row[1] == "complete" and row[0] == fingerprint
+            if (not explicit_recheck and row and row[1] == "complete" and row[0] == fingerprint
                     and row[3] == ANALYSIS_VERSION):
                 return False
             self._delete_items(snapshot.episode.id)
@@ -804,7 +805,10 @@ class WorkingMemoryStore:
     def _query_terms(query: str) -> tuple[list[str], set[str], bool]:
         if type(query) is not str:
             raise ValueError("query must be text")
-        all_terms = sorted(terms_v1(query))
+        # Beide Suchstufen verwenden dieselben Sachwörter. Sonst verdrängen
+        # „habe“ oder „war“ echte Wortformtreffer und liefern Scheinbelege.
+        # Nur die Anfrage ändern; gespeicherte Tokens und Originale bleiben gleich.
+        all_terms = sorted(terms_v1(query) - FUNKTIONSWOERTER)
         terms = all_terms[:MAX_QUERY_TERMS]
         forms = set().union(*(alternatives(term) for term in terms)) - set(terms)
         synonyms = set().union(*(synonym_alternatives(term) for term in terms)) - set(terms) - forms

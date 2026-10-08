@@ -42,7 +42,7 @@ Widerrufenes. Auf einer Personenseite stünde das dann als geltende Wahrheit
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Any
 
@@ -55,6 +55,7 @@ from . import identitaet
 from .datumstext import MONATE
 from .identitaet import Nennung, Verzeichnis, name_schluessel
 from .model import FREMDE_HERKUNFT
+from .people_quality import ist_sammelpostfach, lokalteil
 
 #: Höchstens drei Themen. Mehr ist keine Auskunft mehr, sondern eine Wolke.
 MAX_THEMEN = 3
@@ -267,6 +268,8 @@ class _Rohbau:
     offen_mit: tuple[str, ...] = ()
     episoden: list[str] = field(default_factory=list)
     """Kennungen der Quellen, in denen dieser Mensch vorkommt (für Profile)."""
+    kontakt_episoden: set[str] = field(default_factory=set)
+    """Quellen, an denen dieser Mensch selbst beteiligt war."""
 
     def zaehlen(self, nennung: Nennung, wann: datetime | None, herkunft: str,
                 themen: list[str], episode_id: str = "", kontakt: bool = True) -> None:
@@ -282,6 +285,8 @@ class _Rohbau:
         if not kontakt:
             return
         self.kontakte += 1
+        if episode_id:
+            self.kontakt_episoden.add(episode_id)
         if wann is not None and (self.letzter is None or wann > self.letzter):
             self.letzter = wann
 
@@ -294,7 +299,14 @@ class _Bestand:
     verzeichnis: Verzeichnis
 
 
+def _graph_person_id(anker: str) -> str:
+    """Stabile Graph-Kennung derselben Adresse oder Namensnennung."""
+    from .graph import person_id_fuer
+    return person_id_fuer(anker)
+
+
 def _sammeln(episodes: Any, *, workspace: Any = None, eigene: Any = (),
+             bestaetigte_mitglieder: set[str] | None = None,
              jetzt: datetime | None = None) -> _Bestand:
     """Geht das Rohmaterial einmal durch und legt die Menschen nach Anker zusammen.
 
@@ -312,6 +324,7 @@ def _sammeln(episodes: Any, *, workspace: Any = None, eigene: Any = (),
             projektnamen[projekt.id] = projekt.name
 
     eigene = list(eigene)
+    bestaetigte_mitglieder = bestaetigte_mitglieder or set()
     verzeichnis = Verzeichnis()
     rohbauten: dict[str, _Rohbau] = {}
     wartende: list[tuple[Nennung, datetime | None, str, list[str], str, bool]] = []
@@ -333,6 +346,12 @@ def _sammeln(episodes: Any, *, workspace: Any = None, eigene: Any = (),
         gezaehlt: set[str] = set()
         for nennung in identitaet.nennungen(episode, eigene):
             if nennung.ich:
+                continue
+            # A service mailbox can display a real person's name, but the
+            # address does not prove that person. Keep the source untouched and
+            # omit this claim from both the person view and its alias directory.
+            if (nennung.adresse and ist_sammelpostfach(lokalteil(nennung.adresse))
+                    and _graph_person_id("a:" + nennung.adresse) not in bestaetigte_mitglieder):
                 continue
             verzeichnis.aufnehmen(nennung)
             if bevorstehend:
@@ -445,6 +464,65 @@ def _mehrdeutige_namen(bestand: _Bestand) -> set[str]:
     return {name for name, menschen in traeger.items() if len(menschen) > 1}
 
 
+def _aktive_zusammenfuehrungen(merges: Any) -> list[dict[str, Any]]:
+    return [record for record in (merges or ())
+            if isinstance(record, dict) and not record.get("undone_at")
+            and isinstance(record.get("id"), str)
+            and isinstance(record.get("label"), str)
+            and isinstance(record.get("members"), list)]
+
+
+def _zusammengefuehrte_personen(menschen: list[Person], bestand: _Bestand,
+                                merges: list[dict[str, Any]], *, tasks: Any,
+                                store: Any, jetzt: datetime) -> list[Person]:
+    """Apply explicit groups to this projection, without restoring absent sources."""
+    verbleibend = {person.id: person for person in menschen}
+    gruppen: list[Person] = []
+    for record in merges:
+        ids = {member.get("id") for member in record["members"]
+               if isinstance(member, dict) and isinstance(member.get("id"), str)}
+        mitglieder = [person for person in verbleibend.values()
+                      if _graph_person_id(person.id) in ids]
+        if not mitglieder:
+            continue
+        rohbauten = [bestand.rohbauten[person.id] for person in mitglieder
+                     if person.id in bestand.rohbauten]
+        if not rohbauten:
+            continue
+        rohbau = _Rohbau()
+        adressen = set()
+        for person, quelle in zip(mitglieder, rohbauten):
+            rohbau.schreibweisen.update(quelle.schreibweisen)
+            rohbau.themen.update(quelle.themen)
+            rohbau.rollen.update(quelle.rollen)
+            rohbau.herkuenfte.update(quelle.herkuenfte)
+            rohbau.episoden.extend(quelle.episoden)
+            rohbau.kontakt_episoden.update(quelle.kontakt_episoden)
+            adressen.update(person.adressen)
+            if quelle.letzter is not None and (rohbau.letzter is None or quelle.letzter > rohbau.letzter):
+                rohbau.letzter = quelle.letzter
+        rohbau.episoden = list(dict.fromkeys(rohbau.episoden))
+        rohbau.anzahl = len(rohbau.episoden)
+        rohbau.kontakte = len(rohbau.kontakt_episoden)
+        person = _bauen(record["id"], rohbau, verzeichnis=bestand.verzeichnis,
+                        mehrdeutige_namen=_mehrdeutige_namen(bestand), tasks=tasks,
+                        store=store, jetzt=jetzt)
+        label = record["label"].strip() or person.name
+        gruppen.append(replace(
+            person,
+            name=label,
+            id=record["id"],
+            adressen=sorted(adressen),
+            namen=list(dict.fromkeys([*person.namen, label])),
+            unterscheidung="",
+            anzeige=label,
+            offen_mit=[],
+        ))
+        for member in mitglieder:
+            verbleibend.pop(member.id, None)
+    return [*verbleibend.values(), *gruppen]
+
+
 class Mehrdeutig(Exception):
     """Ein Name gehört mehreren Menschen; `kandidaten` sind alle, ohne Auswahl."""
 
@@ -462,6 +540,7 @@ def alle(
     jetzt: datetime,
     workspace: Any = None,
     eigene: Any = (),
+    confirmed_merges: Any = (),
 ) -> list[Person]:
     """Alle Menschen aus dem Rohmaterial, jüngster Kontakt zuerst.
 
@@ -473,13 +552,19 @@ def alle(
     `eigene` sind die Adressen des Nutzers; sie zählen nie als Kontakt, auch
     in Quellen, die vor der Rollenangabe aufgenommen wurden.
     """
-    bestand = _sammeln(episodes, workspace=workspace, eigene=eigene, jetzt=jetzt)
+    merges = _aktive_zusammenfuehrungen(confirmed_merges)
+    bestaetigte_mitglieder = {member["id"] for record in merges for member in record["members"]
+                              if isinstance(member, dict) and isinstance(member.get("id"), str)}
+    bestand = _sammeln(episodes, workspace=workspace, eigene=eigene,
+                       bestaetigte_mitglieder=bestaetigte_mitglieder, jetzt=jetzt)
     mehrdeutig = _mehrdeutige_namen(bestand)
     menschen = [
         _bauen(anker, rohbau, verzeichnis=bestand.verzeichnis, mehrdeutige_namen=mehrdeutig,
                tasks=tasks, store=store, jetzt=jetzt)
         for anker, rohbau in bestand.rohbauten.items()
     ]
+    menschen = _zusammengefuehrte_personen(menschen, bestand, merges, tasks=tasks,
+                                           store=store, jetzt=jetzt)
     # Ohne Zeitangabe ganz nach hinten, sonst stünde ein Mensch ohne
     # Kontaktdatum vor dem, mit dem gerade gesprochen wurde.
     menschen.sort(
@@ -551,6 +636,7 @@ def eine(
     jetzt: datetime,
     workspace: Any = None,
     eigene: Any = (),
+    confirmed_merges: Any = (),
 ) -> Person | None:
     """Ein Mensch, oder nichts.
 
@@ -562,8 +648,17 @@ def eine(
     Passt der Name auf mehrere Menschen, ist keiner der richtige: Es wird
     `Mehrdeutig` ausgelöst, mit allen Kandidaten. Die Adresse wählt aus.
     """
-    kandidaten = finden(name, episodes=episodes, tasks=tasks, store=store, jetzt=jetzt,
-                        workspace=workspace, eigene=eigene)
+    if confirmed_merges:
+        adresse = identitaet.mail_address(name)
+        gesucht = name_schluessel(name) if not adresse else ""
+        kandidaten = [person for person in alle(
+            episodes=episodes, tasks=tasks, store=store, jetzt=jetzt,
+            workspace=workspace, eigene=eigene, confirmed_merges=confirmed_merges,
+        ) if (adresse and adresse in person.adressen) or
+            (gesucht and gesucht in {name_schluessel(alias) for alias in [person.name, *person.namen]})]
+    else:
+        kandidaten = finden(name, episodes=episodes, tasks=tasks, store=store, jetzt=jetzt,
+                            workspace=workspace, eigene=eigene)
     if not kandidaten:
         return None
     if len(kandidaten) > 1:

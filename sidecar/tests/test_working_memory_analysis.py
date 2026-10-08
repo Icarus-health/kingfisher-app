@@ -163,3 +163,14 @@ def test_metadata_budget_fails_without_truncating_source_context():
     with pytest.raises(UnsupportedSource):
         interpret(reader, episode("A fact.", title="x" * 5000))
     assert reader.calls == []
+
+
+def test_classification_instruction_distinguishes_personal_requests_and_source_speaker_commitments():
+    reader = LocalReader({"items": [{"block_id": "B1", "kind": "commitment"}]})
+    result = interpret(reader, episode("Ich sende Ihnen die Unterlagen bis Freitag."))
+
+    assert result == [{"start": 0, "end": len("Ich sende Ihnen die Unterlagen bis Freitag."), "kind": "commitment"}]
+    instruction = reader.calls[0][0][0]["content"].casefold()
+    assert "werbung" in instruction and "bewerten" in instruction
+    assert "signatur" in instruction and "disclaimer" in instruction
+    assert "sprecher" in instruction and "niemals automatisch" in instruction

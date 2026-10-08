@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { GoalHistory } from "./GoalHistory";
 import { api } from "./api";
+import { taskHref } from "./taskWorkflow";
 
 type Goal = Awaited<ReturnType<typeof api.goals>>["items"][number];
 export function GoalControls() {
@@ -13,6 +14,11 @@ export function GoalControls() {
   const [statement, setStatement] = useState("");
   const [topics, setTopics] = useState("");
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [nextStepGoal, setNextStepGoal] = useState<Goal | null>(null);
+  const [nextStepTitle, setNextStepTitle] = useState("");
+  const [nextStepBusy, setNextStepBusy] = useState(false);
+  const [nextStepError, setNextStepError] = useState(false);
+  const [createdTask, setCreatedTask] = useState<Awaited<ReturnType<typeof api.addTask>> | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [revision, setRevision] = useState(0);
@@ -24,6 +30,16 @@ export function GoalControls() {
     try {await action();setClosing(null);setEditing(null);setConfirming(null);setRevision(value => value + 1);}
     catch {setError(true);}
     finally {setBusy(false);}
+  }
+  async function saveNextStep(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!nextStepGoal || nextStepBusy || !nextStepTitle.trim()) return;
+    setNextStepBusy(true); setNextStepError(false);
+    try {
+      const task = await api.addTask({title: nextStepTitle.trim(), goal_id: nextStepGoal.id});
+      setCreatedTask(task); setNextStepGoal(null); setNextStepTitle("");
+    } catch { setNextStepError(true); }
+    finally { setNextStepBusy(false); }
   }
   return <section className="decision-controls" aria-label="Persönliche Ziele">
     <div className="decision-controls-heading"><div><h2>Was dir wichtig ist</h2><p>Deine ausdrücklich festgehaltenen Ziele.</p></div><button className="secondary-action" disabled={busy} onClick={() => edit("new")} type="button">+ Ziel</button></div>
@@ -46,6 +62,12 @@ export function GoalControls() {
       <GoalHistory key={`${goal.id}:${revision}`} id={goal.id} />
       {goal.marken.length > 0 && <p>Themen: {goal.marken.join(", ")}</p>}
       {goal.beurteilbar ? <p>{goal.letzte_regung ? `Letzte passende Aktivität: ${new Date(goal.letzte_regung).toLocaleDateString("de-DE")}` : "Noch keine passende Aktivität erfasst."}{goal.woran ? ` · ${goal.woran}` : ""}{goal.schlaeft ? ` Seit ${goal.tage_still} Tagen kein passender Eintrag – bitte selbst zuordnen.` : ""}</p> : <p>Noch keine ausreichende Zuordnung zu Aktivitäten.</p>}
+      {nextStepGoal?.id === goal.id ? <form className="decision-create-form" aria-label={`Nächsten Schritt zu ${goal.satz}`} onSubmit={saveNextStep}>
+        <label>Nächster Schritt<input autoFocus required maxLength={4096} disabled={nextStepBusy} value={nextStepTitle} onChange={event => setNextStepTitle(event.target.value)} placeholder="Was möchtest du als Nächstes tun?" /></label>
+        {nextStepError && <p role="alert">Die Aufgabe konnte nicht mit diesem Ziel verknüpft werden. Das Ziel ist möglicherweise nicht mehr offen. Bitte neu laden.</p>}
+        <div className="decision-form-actions"><button type="button" className="text-action" disabled={nextStepBusy} onClick={() => setNextStepGoal(null)}>Abbrechen</button><button type="submit" className="primary-action" disabled={nextStepBusy || !nextStepTitle.trim()}>Aufgabe speichern</button></div>
+      </form> : <button className="secondary-action" disabled={busy || nextStepBusy} type="button" onClick={() => {setNextStepGoal(goal);setNextStepTitle("");setNextStepError(false);setCreatedTask(null);}}>Nächsten Schritt festhalten</button>}
+      {createdTask?.goal_id === goal.id && <p role="status">Nächster Schritt gespeichert: <a href={taskHref(createdTask)}>Aufgabe öffnen</a></p>}
       <div className="decision-form-actions"><button className="secondary-action" disabled={busy} onClick={() => {setClosing(goal);setEditing(null);setConfirming(null);setOutcome("achieved");setNote("");}} type="button">Ziel abschließen</button>
       <button className="secondary-action" disabled={busy} onClick={() => edit(goal)} type="button">Ziel korrigieren</button>
       <button className="text-action" disabled={busy} onClick={() => setConfirming(goal.id)} type="button">Angabe widerrufen</button></div>

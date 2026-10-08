@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import pytest
 
 from icarus_memory import akten_kontext, satzantwort, working_memory_answers as wma
+from icarus_memory import EpisodeKind, Provenance, SourceType
 from icarus_memory.akten import Akten
 from icarus_memory.akten_kontext import Kontext
 from icarus_memory.claims import ClaimStore
@@ -267,6 +268,81 @@ def test_relative_zeit_ohne_beleg_fuer_den_tag_wird_verworfen(raum):
         assert not urteil.bestanden, text
     # Ein Zeitraum besteht, wenn der Beleg einen Tag darin trägt.
     assert pruefe_satz(Satz('Diese Woche um 14 Uhr ist die Besprechung mit Frau Engel.', ('1',)), tabelle, DIENSTAG).bestanden
+
+
+def test_relative_frist_ohne_quelldatum_wird_nicht_auf_importdatum_aufgeloest(raum):
+    episodes, claims, _ = raum
+    text = 'Die Frist für das Handy-Abo endet Ende Oktober.'
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, 'Handy-Abo', text,
+        Provenance(SourceType.EMAIL, source_ref='test:handy-abo-ohne-quelldatum'),
+        participants=[STIFTUNG], occurred_at=None, at=DIENSTAG)
+    from tests.test_akten import einordnen
+    einordnen(episodes, episode, [(text, 'fact')])
+
+    def geratenes_jahr(nutzer):
+        return {'status': 'antwort', 'saetze': [
+            {'text': 'Die Frist für das Handy-Abo endet am 31. Oktober 2026.', 'belege': [1]}]}
+
+    modell = Skript(geratenes_jahr)
+    gespeichert = antwort(raum, modell, frage='Welche Frist gilt für das Handy-Abo?')
+    assert '29.09.2026' not in ' '.join(b['quelle'] for b in modell.satzanfragen[0]['belege'])
+    assert gespeichert['satzantwort']['status'] == 'zitate'
+    text, _, status = wma.render(gespeichert, episodes, claims)
+    assert status == 'working_reports'
+    assert 'Die Frist für das Handy-Abo endet Ende Oktober.' in text
+    assert '31. Oktober 2026' not in text
+
+
+def test_gespeicherter_alter_satz_wird_mit_fehlendem_quelldatum_neu_geprueft(raum):
+    episodes, claims, _ = raum
+    text = 'Die Frist für das Handy-Abo endet Ende Oktober.'
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, 'Handy-Abo', text,
+        Provenance(SourceType.EMAIL, source_ref='test:handy-abo-alte-antwort'),
+        participants=[STIFTUNG], occurred_at=None, at=DIENSTAG)
+    from tests.test_akten import einordnen
+    einordnen(episodes, episode, [(text, 'fact')])
+    gespeichert = antwort(raum, Skript({'status': 'antwort', 'saetze': [
+        {'text': text, 'belege': [1]}]}), frage='Welche Frist gilt für das Handy-Abo?')
+    assert gespeichert['satzantwort']['status'] == 'saetze'
+
+    legacy = copy.deepcopy(gespeichert)
+    legacy['satzantwort']['saetze'][0]['roh'] = 'Die Frist für das Handy-Abo endet am 31. Oktober 2026.'
+    legacy['satzantwort']['saetze'][0]['text'] = legacy['satzantwort']['saetze'][0]['roh']
+    angezeigter_text, _, status = wma.render(legacy, episodes, claims)
+
+    assert status == 'working_reports'
+    assert '31. Oktober 2026' not in angezeigter_text
+    assert 'Die Frist für das Handy-Abo endet Ende Oktober.' in angezeigter_text
+
+
+def test_absolute_datum_im_quelltext_gilt_auch_ohne_quelldatum(raum):
+    episodes, _, _ = raum
+    text = 'Die Frist für das Handy-Abo endet am 31. Oktober 2026.'
+    episode, _ = episodes.record(
+        EpisodeKind.MESSAGE, 'Handy-Abo', text,
+        Provenance(SourceType.EMAIL, source_ref='test:handy-abo-absolutes-datum'),
+        participants=[STIFTUNG], occurred_at=None, at=DIENSTAG)
+    from tests.test_akten import einordnen
+    einordnen(episodes, episode, [(text, 'fact')])
+    gespeichert = antwort(raum, Skript({'status': 'antwort', 'saetze': [
+        {'text': 'Die Frist für das Handy-Abo endet am 31. Oktober 2026.', 'belege': [1]}]}),
+        frage='Welche Frist gilt für das Handy-Abo?')
+    assert gespeichert['satzantwort']['status'] == 'saetze'
+
+
+def test_quellenkopfdatum_belegt_keine_datumsangabe_im_quellentext(raum):
+    episodes, _, _ = raum
+    mail(episodes, 'Anruf', [('Der Anruf ist erst nach 10 Uhr möglich.', 'fact')], tage=1)
+
+    def ergaenztes_datum(nutzer):
+        return {'status': 'antwort', 'saetze': [
+            {'text': 'Der Anruf ist ab dem 28.09.2026 um 10 Uhr möglich.', 'belege': [1]}]}
+
+    gespeichert = antwort(raum, Skript(ergaenztes_datum), frage='Wann ist der Anruf möglich?')
+
+    assert gespeichert['satzantwort']['status'] == 'zitate'
 
 
 def test_gespeicherte_saetze_werden_beim_anzeigen_erneut_geprueft(raum):

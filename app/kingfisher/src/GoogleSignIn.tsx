@@ -3,14 +3,14 @@ import { api, type GoogleSession } from "./api";
 import { watchGoogleSignIn } from "./googleSignInProgress";
 
 type Flow = {session_id:string; url?:string};
-const storageKey = (kind: "mail"|"calendar") => `kingfisher.google-signin.${kind}.v1`;
-function rememberFlow(kind: "mail"|"calendar", id?: string) {
+const storageKey = (kind: "mail"|"calendar"|"calendar_write") => `kingfisher.google-signin.${kind}.v1`;
+function rememberFlow(kind: "mail"|"calendar"|"calendar_write", id?: string) {
   try {
     if (id) sessionStorage.setItem(storageKey(kind), id);
     else sessionStorage.removeItem(storageKey(kind));
   } catch { /* Recovery is optional when browser storage is unavailable. */ }
 }
-function restoreFlow(kind: "mail"|"calendar"): Flow|null {
+function restoreFlow(kind: "mail"|"calendar"|"calendar_write"): Flow|null {
   try {
     const id = sessionStorage.getItem(storageKey(kind));
     if (id && /^[A-Za-z0-9_-]{32}$/.test(id)) return {session_id:id};
@@ -19,7 +19,7 @@ function restoreFlow(kind: "mail"|"calendar"): Flow|null {
   return null;
 }
 
-export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calendar"; active: boolean; onConnected: () => void}) {
+export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calendar"|"calendar_write"; active: boolean; onConnected: () => void}) {
   const [config, setConfig] = useState<{configured:boolean; secure_storage:boolean}|null>(null);
   const [flow, setFlow] = useState<Flow|null>(() => restoreFlow(kind));
   const [session, setSession] = useState<GoogleSession|null>(null);
@@ -81,8 +81,8 @@ export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calenda
   const pending = flow && (!session || session.status === "waiting" || session.status === "processing");
   const terminal = session && ["expired", "failed", "connected"].includes(session.status);
   return <section className="source-section" aria-label={kind === "mail" ? "Google Mail verbinden" : "Google Kalender verbinden"}>
-    <h2>{kind === "mail" ? "Gmail" : "Google-Kalender"}</h2>
-    <p className="source-hint">{kind === "mail" ? "Die Anmeldung erfolgt bei Google im Browser. Dafür verlangt Google vollen Zugriff auf dein Postfach. Kingfisher versendet weiterhin nur nach deiner ausdrücklichen Freigabe. Automatischen Abruf richtest du anschließend separat ein." : "Melde dich bei Google im Browser an und wähle anschließend die Kalender aus. Kingfisher fordert ausschließlich Lesezugriff an."}</p>
+    <h2>{kind === "mail" ? "Gmail" : kind === "calendar_write" ? "Kalenderänderungen freigeben" : "Google-Kalender"}</h2>
+    <p className="source-hint">{kind === "mail" ? "Die Anmeldung erfolgt bei Google im Browser. Dafür verlangt Google vollen Zugriff auf dein Postfach. Kingfisher versendet weiterhin nur nach deiner ausdrücklichen Freigabe. Automatischen Abruf richtest du anschließend separat ein." : kind === "calendar_write" ? "Eine zusätzliche Freigabe erlaubt Terminänderungen. Wähle nur Kalender, die du bereits mit diesem Konto verbunden hast. Jede Änderung verlangt weiterhin eine eigene Vorschau und Bestätigung." : "Melde dich bei Google im Browser an und wähle anschließend die Kalender aus. Kingfisher fordert ausschließlich Lesezugriff an."}</p>
     {config && !config.configured && <p>Noch nicht freigeschaltet: Google verlangt eine einmalige Vorbereitung, die ein Techniker unter <a href="/settings#technik-google">Für Techniker</a> erledigt. Bis dahin kannst du dein Postfach oder deinen Kalender auch anders verbinden.</p>}
     {config && !config.secure_storage && <p role="alert">Auf diesem Rechner fehlt der geschützte Speicher für Zugänge. Die Google-Anmeldung ist deshalb gesperrt.</p>}
     <button type="button" className="secondary-action" disabled={busy || !config?.configured || !config.secure_storage} onClick={() => run(async current => {
@@ -101,14 +101,14 @@ export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calenda
       {session?.status === "ready" && <div>
         <p role="status"><strong>2. Anmeldung erfolgreich — jetzt Verbindung bestätigen</strong></p>
         <p>Google-Konto: <strong>{session.email}</strong></p>
-        {kind === "calendar" && <p>Wähle die Kalender aus, die Kingfisher lesen darf, und bestätige unten.</p>}
-        {kind === "calendar" && (session.calendars?.length ? session.calendars.map(item => <label key={item.id} className="mail-sync-check"><input type="checkbox" checked={selected.includes(item.id)} onChange={event => setSelected(values => event.target.checked ? [...values, item.id] : values.filter(value => value !== item.id))} />{item.name}</label>) : <p>Keine lesbaren Kalender gefunden.</p>)}
-        <button type="button" className="secondary-action" disabled={busy || (kind === "calendar" && !selected.length)} onClick={() => run(async current => {
+        {kind !== "mail" && <p>{kind === "calendar_write" ? "Wähle bereits verbundene Kalender, in denen du Änderungen erlauben möchtest." : "Wähle die Kalender aus, die Kingfisher lesen darf, und bestätige unten."}</p>}
+        {kind !== "mail" && (session.calendars?.length ? session.calendars.map(item => <label key={item.id} className="mail-sync-check"><input type="checkbox" checked={selected.includes(item.id)} onChange={event => setSelected(values => event.target.checked ? [...values, item.id] : values.filter(value => value !== item.id))} />{item.name}</label>) : <p>Keine lesbaren Kalender gefunden.</p>)}
+        <button type="button" className="secondary-action" disabled={busy || (kind !== "mail" && !selected.length)} onClick={() => run(async current => {
           await api.googleConnect(flow.session_id, selected);
           rememberFlow(kind);
           if (!current()) return;
           setFlow(null); setSession(null);
-          setMessage(kind === "mail" ? "Gmail verbunden. Automatischen Mailabruf kannst du anschließend separat einschalten." : "Ausgewählte Google-Kalender verbunden. Du kannst ihre Termine jetzt abrufen.");
+          setMessage(kind === "mail" ? "Gmail verbunden. Automatischen Mailabruf kannst du anschließend separat einschalten." : kind === "calendar_write" ? "Kalenderänderungen freigegeben. Erstelle jetzt deine Vorschau." : "Ausgewählte Google-Kalender verbunden. Du kannst ihre Termine jetzt abrufen.");
           onConnected();
         })}>{kind === "mail" ? "Dieses Konto verbinden" : "Ausgewählte Kalender verbinden"}</button>
       </div>}

@@ -31,6 +31,15 @@ def test_lokalteil(adresse, lokal):
     ('comments-noreply@docs.google.com', True),
     ('anna.keller@firma.de', False),
     ('information@firma.de', False),
+    ('anna.service@firma.de', False),
+    ('anna_keller.service@firma.de', False),
+    ('versand-service@1und1.de', True),
+    ('rechnungsstelle@1und1.de', True),
+    ('kundenservice@1und1.de', True),
+    ('payments-update@example.org', True),
+    ('order-update@example.org', True),
+    ('shipment-tracking@example.org', True),
+    ('marketplace-messages@example.org', True),
 ])
 def test_sammelpostfach_regel(adresse, erwartet):
     assert ist_sammelpostfach(lokalteil(adresse)) is erwartet
@@ -42,6 +51,27 @@ def test_bezuege_folgt_der_einen_regel(monkeypatch):
     # Erweitert man die Regel an der einen Stelle, folgen die Bezüge.
     monkeypatch.setattr(people_quality, 'GENERIC', people_quality.GENERIC | {'rechnung'})
     assert bezuege.maschinell('rechnung@firma.de') is True
+
+
+def test_sammelpostfach_adressen_werden_keine_namensaliase():
+    from icarus_memory.identitaet import Verzeichnis
+    verzeichnis = Verzeichnis.aus([
+        {'participants': ['Alex Winter <notifications@platform.example>']},
+        {'participants': ['Alex Winter <alex.winter@firma.example>']},
+    ])
+
+    assert verzeichnis.adressen_zum_namen('Alex Winter') == ['alex.winter@firma.example']
+
+
+def test_marketplace_relay_is_not_a_human_alias_even_when_sender_is_named():
+    from icarus_memory.identitaet import Verzeichnis
+
+    directory = Verzeichnis.aus([
+        {'participants': ['Jane Doe <marketplace-messages@market.example>']},
+        {'participants': ['Jane Doe <jane.doe@example.org>']},
+    ])
+
+    assert directory.adressen_zum_namen('Jane Doe') == ['jane.doe@example.org']
 
 
 def test_keine_zweite_kopie_der_regel():

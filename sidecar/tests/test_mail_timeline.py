@@ -193,3 +193,14 @@ def test_reply_scan_is_shared_across_more_than_one_candidate_batch(stores):
         assert for_briefing(proposals,episodes,now=NOW)['pending']==205
     finally:episodes._conn.set_trace_callback(None)
     assert sum('SELECT e.id,j.value,' in query for query in statements)==1
+
+
+def test_undated_document_never_reports_capture_as_its_source_date(stores):
+    from icarus_memory.mail_timeline import timings
+    episodes, _ = stores
+    episode = episodes.record(EpisodeKind.DOCUMENT, 'Undated document', 'Original without source date.',
+                              Provenance(source_type=SourceType.DOCUMENT), at=NOW)[0]
+    timing = timings(episodes, [episode], now=NOW)[episode.id]
+    assert timing['received_at'] is None
+    assert timing['recorded_at'] == NOW.isoformat()
+    assert timing['temporal_status'] == 'unknown'

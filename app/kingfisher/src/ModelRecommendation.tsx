@@ -4,6 +4,7 @@ import { ausstattungSatz, type AusstattungQuelle } from "./system";
 import {api, ApiError, type ModelPullState, type ModelRecommendation as Recommendation, type ModelRecommendationRow} from "./api";
 import {ModelRolesExpert} from "./ModelRolesExpert";
 import {actionLabel, allConfirmation, describePull, isRunning, orchesterZeile, pendingRoles, pullPercent, statusLabel, watchPull} from "./modelSetup";
+import {listenForCloudAccessChange} from "./cloudAccessEvents";
 import "./ModelRecommendation.css";
 
 type Confirm = {kind: "one"; rolle: string} | {kind: "all"} | null;
@@ -29,20 +30,31 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
   const [run, setRun] = useState<Run | null>(null);
   const [note, setNote] = useState<{ok: boolean; text: string} | null>(null);
   const alive = useRef(true);
+  const loadVersion = useRef(0);
 
   const load = useCallback(async () => {
-    try { const next = await api.modelRecommendation(); if (alive.current) { setData(next); setLoadError(false); } }
-    catch { if (alive.current) setLoadError(true); }
+    const version = ++loadVersion.current;
+    try {
+      const next = await api.modelRecommendation();
+      if (alive.current && version === loadVersion.current) { setData(next); setLoadError(false); }
+    } catch {
+      if (alive.current && version === loadVersion.current) setLoadError(true);
+    }
   }, []);
 
   // Ein Ladevorgang, der schon läuft (etwa nach dem Neuladen der Seite), wird weiter angezeigt.
   useEffect(() => {
     alive.current = true;
     void load();
+    const unsubscribe = listenForCloudAccessChange(() => {
+      loadVersion.current++;
+      setData(null); setConfirm(null); setNote(null); setLoadError(false);
+      void load();
+    });
     api.currentModelPull().then(({aktuell}) => {
       if (aktuell && isRunning(aktuell) && alive.current) void follow(aktuell.rolle, aktuell);
     }).catch(() => undefined);
-    return () => { alive.current = false; };
+    return () => { alive.current = false; loadVersion.current++; unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
