@@ -1,0 +1,123 @@
+F...............F.FFFFF                                                  [100%]
+=================================== FAILURES ===================================
+__ test_exact_post_acceptance_rule_survives_unrelated_preacceptance_negation ___
+
+    def test_exact_post_acceptance_rule_survives_unrelated_preacceptance_negation():
+        assert _check(PRE_BAN).bestanden
+>       assert _check(POST_RULE).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = _check('Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.')
+
+sidecar/tests/test_conditional_scope_completeness.py:34: AssertionError
+___ test_matching_explicit_boundary_adjectives_allow_the_separate_post_rule ____
+
+    def test_matching_explicit_boundary_adjectives_allow_the_separate_post_rule():
+        source = ('Bis zur formellen Abnahme darf die Steuerung nicht zurückgesetzt werden. '
+                  'Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die '
+                  'diensthabende Technikerin es schriftlich anordnet.')
+        sentence = ('Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die '
+                    'diensthabende Technikerin es schriftlich anordnet.')
+>       assert _check(sentence, source).bestanden
+E       AssertionError: assert False
+E        +  where False = Urteil(satz=Satz(text='Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)).bestanden
+E        +    where Urteil(satz=Satz(text='Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', belege=('1',)), bestanden=False, gruende=('Der Beleg verneint („nicht“), der Satz nicht',)) = _check('Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', 'Bis zur formellen Abnahme darf die Steuerung nicht zurückgesetzt werden. Ein Zurücksetzen nach der formellen Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.')
+
+sidecar/tests/test_conditional_scope_completeness.py:139: AssertionError
+____ test_new_coverage_rule_form_does_not_change_existing_passive_rule_api _____
+
+    def test_new_coverage_rule_form_does_not_change_existing_passive_rule_api():
+        evidence = Beleg('1', IA08_SOURCE)
+        assert bedingte_regeln(IA08_SOURCE) == ()
+>       assert POST_RULE.lower().rstrip('.') in bedingte_regeln_fuer_antwort(IA08_SOURCE)
+E       AssertionError: assert 'ein zurücksetzen nach der abnahme ist nur zulässig, wenn die diensthabende technikerin es schriftlich anordnet' in ()
+E        +  where 'ein zurücksetzen nach der abnahme ist nur zulässig, wenn die diensthabende technikerin es schriftlich anordnet' = <built-in method rstrip of str object at 0x10ca9dc60>('.')
+E        +    where <built-in method rstrip of str object at 0x10ca9dc60> = 'ein zurücksetzen nach der abnahme ist nur zulässig, wenn die diensthabende technikerin es schriftlich anordnet.'.rstrip
+E        +      where 'ein zurücksetzen nach der abnahme ist nur zulässig, wenn die diensthabende technikerin es schriftlich anordnet.' = <built-in method lower of str object at 0x10bac6e40>()
+E        +        where <built-in method lower of str object at 0x10bac6e40> = 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.'.lower
+E        +  and   () = bedingte_regeln_fuer_antwort('Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.')
+
+sidecar/tests/test_conditional_scope_completeness.py:153: AssertionError
+_____ test_conditional_permission_source_requires_literal_answer_sentences _____
+
+    def test_conditional_permission_source_requires_literal_answer_sentences():
+        evidence = [Beleg('1', IA08_SOURCE)]
+        for paraphrase in ('Es darf zurückgesetzt werden.', 'Es ist zulässig.',
+                           'Ein Zurücksetzen ist erfolgt.'):
+>           assert _bedingung_verloren(paraphrase, evidence), paraphrase
+E           AssertionError: Es darf zurückgesetzt werden.
+E           assert None
+E            +  where None = _bedingung_verloren('Es darf zurückgesetzt werden.', [Beleg(nummer='1', text='Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wir...ahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.', zeit=None, kopf='', gueltig=True)])
+
+sidecar/tests/test_conditional_scope_completeness.py:163: AssertionError
+___________ test_always_yes_gate_keeps_both_directly_supported_rules ___________
+
+    def test_always_yes_gate_keeps_both_directly_supported_rules():
+        checker = _Checker()
+        result = formulieren(QUESTION, [_answer_evidence()], _SentenceModel(), jetzt=NOW,
+                             pruefung=satzpruefung_modell.tor('an', checker))
+    
+        assert result.status == 'saetze'
+>       assert [sentence.text for sentence in result.saetze] == [PRE_BAN, POST_RULE]
+E       AssertionError: assert ['Die Steueru...etzt werden.'] == ['Die Steueru...ch anordnet.']
+E         
+E         Right contains one more item: 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.'
+E         Use -v to get more diff
+
+sidecar/tests/test_conditional_scope_completeness.py:211: AssertionError
+____ test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule ____
+
+    def test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule():
+        checker = _Checker(reject=POST_RULE)
+        result = formulieren(QUESTION, [_answer_evidence()], _SentenceModel(), jetzt=NOW,
+                             pruefung=satzpruefung_modell.tor('an', checker))
+    
+>       assert checker.checked == [PRE_BAN, POST_RULE]
+E       AssertionError: assert ['Die Steueru...etzt werden.'] == ['Die Steueru...ch anordnet.']
+E         
+E         Right contains one more item: 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.'
+E         Use -v to get more diff
+
+sidecar/tests/test_conditional_scope_completeness.py:220: AssertionError
+_ test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition _
+
+core = (<icarus_memory.agent.Agent object at 0x10cafa6f0>, <tests.test_context_identity.Provider object at 0x10caee330>, <ica... 0x10caee2d0>, <icarus_memory.claims.ClaimStore object at 0x10caf8830>, <function core.<locals>.accept at 0x10cb2bce0>)
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-792/test_uploaded_http_answer_and_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ca8e180>
+
+    def test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition(
+            core, tmp_path, monkeypatch):
+        app, client, provider = _api(core, tmp_path, monkeypatch)
+        app.state.agent._working_memory_search = None
+        _script_provider(provider)
+        try:
+            source_id = _upload(client, IA08_SOURCE)
+            run_working(app)
+            conversation = _conversation(client)
+            response = client.post(
+                f'/api/v1/conversations/{conversation}/messages',
+                json={'message': QUESTION, 'answer_mode': 'memory_evidence', 'new_question': True})
+            assert response.status_code == 201, response.text
+            assistant = response.json()['messages'][-1]
+            context = assistant['metadata']['context']
+            assert context['answer_contract']['status'] == 'working_reports'
+            assert context['working_answer']['refs'][0]['episode_id'] == source_id
+>           assert PRE_BAN in assistant['content'] and POST_RULE in assistant['content']
+E           AssertionError: assert ('Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.' in 'Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] vertrag... verworfen, weil die Belege ihn nicht getragen haben.\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).' and 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.' in 'Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] vertrag... verworfen, weil die Belege ihn nicht getragen haben.\nOhne zweite Prüfung durch ein Prüfmodell (keines eingerichtet).')
+
+sidecar/tests/test_conditional_scope_completeness.py:257: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_exact_post_acceptance_rule_survives_unrelated_preacceptance_negation
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_matching_explicit_boundary_adjectives_allow_the_separate_post_rule
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_new_coverage_rule_form_does_not_change_existing_passive_rule_api
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_conditional_permission_source_requires_literal_answer_sentences
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_always_yes_gate_keeps_both_directly_supported_rules
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition
+7 failed, 16 passed, 1 warning in 0.95s

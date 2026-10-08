@@ -1,0 +1,3665 @@
+{
+  "synthetic_only": true,
+  "diagnostic_unload_every_four_sources": true,
+  "production_memory_policy_verified": false,
+  "catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "code_version": "3cf769f-full-applicability",
+  "scope": "actual document upload HTTP; actual model worker and topic/entity suggestions; actual persisted semantic index; actual memory_evidence conversation HTTP; no automatic UI routing or screen test",
+  "model": "qwen3.5:4b",
+  "rows": [
+    {
+      "q": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA01-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA01-S1"
+      ],
+      "selected_sources": [
+        "IA01-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA01-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA01-S1.txt\nVorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:21 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Reinigung",
+          "Dichtung",
+          "Aushärten"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Reinigung",
+          "Dichtung",
+          "vor",
+          "Aushärten",
+          "verwendet",
+          "darf"
+        ],
+        "umschreibungen": [
+          "Vorbehandlung",
+          "Vorbereitung",
+          "Zubereitung",
+          "Anwendung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anwendung",
+          "ausharten",
+          "dichtung",
+          "reinigung",
+          "verwendet",
+          "vorbehandlung",
+          "vorbereitung",
+          "zubereitung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "e548c2077ce38ecb743d1d9d90a1113046fcd66fa0c4cd4c49402c0bffeb17b2",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-065446ac712a",
+                "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+                "start": 0,
+                "end": 171,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:22:27.440537+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.708,
+        "suche": 0.111,
+        "antwort_modell": 2.256,
+        "saetze_modell": 2.115,
+        "satzpruefung": 0.002,
+        "gesamt": 9.924
+      },
+      "id": "IA01",
+      "conversation_id": "c-19390c40247a",
+      "seconds": 7.252,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Reinigung\",\n    \"Dichtung\",\n    \"Aushärten\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Reinigung\",\n    \"Dichtung\",\n    \"vor\",\n    \"Aushärten\",\n    \"verwendet\",\n    \"darf\"\n  ],\n  \"umschreibungen\": [\n    \"Vorbehandlung\",\n    \"Vorbereitung\",\n    \"Zubereitung\",\n    \"Anwendung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+        "basis": [
+          {
+            "episode_id": "e-065446ac712a",
+            "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+            "start": 0,
+            "end": 171,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-065446ac712a",
+            "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+            "start": 0,
+            "end": 171,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "dc172711338a1c0ef617783e508b7c6d7b5e43dfb4c384c86e353bdb95913872",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-065446ac712a": null
+        },
+        "search": {
+          "wortsuche_quellen": 1,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 1,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "anwendung",
+            "ausharten",
+            "dichtung",
+            "reinigung",
+            "verwendet",
+            "vorbehandlung",
+            "vorbereitung",
+            "zubereitung"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "e548c2077ce38ecb743d1d9d90a1113046fcd66fa0c4cd4c49402c0bffeb17b2",
+          "quellen_geliefert": 1,
+          "geprueft": 1,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Reinigung",
+            "Dichtung",
+            "Aushärten"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [
+            "Reinigung",
+            "Dichtung",
+            "vor",
+            "Aushärten",
+            "verwendet",
+            "darf"
+          ],
+          "umschreibungen": [
+            "Vorbehandlung",
+            "Vorbereitung",
+            "Zubereitung",
+            "Anwendung"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "zitate",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:22:27.440537+00:00",
+          "verworfen": 1,
+          "gruende": [
+            "Die Dichtung darf vor dem Aushärten nur trocken abgewischt werden.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "grund": "kein Satz bestand die Prüfung"
+        },
+        "zeiten": {
+          "frage": 2.708,
+          "suche": 0.111,
+          "antwort_modell": 2.256,
+          "saetze_modell": 2.115,
+          "satzpruefung": 0.002,
+          "gesamt": 9.924
+        }
+      }
+    },
+    {
+      "q": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "selected_sources": [
+        "IA02-S2"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA02-S2"
+      ],
+      "exact_sources": false,
+      "status_ok": true,
+      "retrieved_expected": false,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": false,
+      "expected_in_display": false,
+      "first_missing_stage": "selection",
+      "search_degraded": false,
+      "selection_pass": false,
+      "answer": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Schutzschicht"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Voraussetzung",
+          "Schutzschicht",
+          "aufgetragen"
+        ],
+        "umschreibungen": [
+          "Bedingung",
+          "Anforderung",
+          "Nutzungsvoraussetzung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "anforderung",
+          "aufgetragen",
+          "bedingung",
+          "nutzungsvoraussetzung",
+          "schutzschicht",
+          "voraussetzung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "1e275bdfbe4f4a3c46bbcfeaae0d5c453103a73711d894aa7cb9435b0c7be5b3",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-c7f60aa05ec6",
+                "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+                "start": 0,
+                "end": 54,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-40c20551b554",
+                "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+                "start": 0,
+                "end": 151,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:22:33.144420+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-40c20551b554",
+              "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+              "start": 0,
+              "end": 151,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+            "text": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen? Bedingung Anforderung Nutzungsvoraussetzung",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.199,
+        "suche": 0.093,
+        "antwort_modell": 1.246,
+        "saetze_modell": 1.379,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.606,
+        "gesamt": 7.738
+      },
+      "id": "IA02",
+      "conversation_id": "c-1806d0d4b8c8",
+      "seconds": 5.575,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\"Schutzschicht\"],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\"Voraussetzung\", \"Schutzschicht\", \"aufgetragen\"],\n  \"umschreibungen\": [\"Bedingung\", \"Anforderung\", \"Nutzungsvoraussetzung\"]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+        "basis": [
+          {
+            "episode_id": "e-40c20551b554",
+            "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+            "start": 0,
+            "end": 151,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-c7f60aa05ec6",
+            "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+            "start": 0,
+            "end": 54,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-40c20551b554",
+            "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+            "start": 0,
+            "end": 151,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "d825ac35c47b50f52099dff96d45d81cb55d106809b53b3efd2f15c4c270adda",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-40c20551b554": null,
+          "e-c7f60aa05ec6": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 2,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "anforderung",
+            "aufgetragen",
+            "bedingung",
+            "nutzungsvoraussetzung",
+            "schutzschicht",
+            "voraussetzung"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "1e275bdfbe4f4a3c46bbcfeaae0d5c453103a73711d894aa7cb9435b0c7be5b3",
+          "quellen_geliefert": 2,
+          "geprueft": 2,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Schutzschicht"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [
+            "Voraussetzung",
+            "Schutzschicht",
+            "aufgetragen"
+          ],
+          "umschreibungen": [
+            "Bedingung",
+            "Anforderung",
+            "Nutzungsvoraussetzung"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:22:33.144420+00:00",
+          "verworfen": 0,
+          "gruende": [],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-40c20551b554",
+                "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+                "start": 0,
+                "end": 151,
+                "kind": "fact"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+              "text": "Die Schutzschicht wird aufgetragen, wenn die Fläche vollständig staubfrei ist.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen? Bedingung Anforderung Nutzungsvoraussetzung",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 2.199,
+          "suche": 0.093,
+          "antwort_modell": 1.246,
+          "saetze_modell": 1.379,
+          "satzpruefung": 0.003,
+          "pruefung_modell": 0.606,
+          "gesamt": 7.738
+        }
+      }
+    },
+    {
+      "q": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA03-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA02-S1",
+        "IA02-S2",
+        "IA03-S1",
+        "IA08-S1"
+      ],
+      "selected_sources": [
+        "IA03-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA03-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA03-S1.txt\nVor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 00:21 Uhr",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Abdeckung",
+          "Abnahme"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Abdeckung",
+          "vor",
+          "Abnahme",
+          "entfernt",
+          "werden"
+        ],
+        "umschreibungen": [
+          "Deckung",
+          "Schutz",
+          "Verkleidung",
+          "Entfernung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 4,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abdeckung",
+          "abnahme",
+          "entfernt",
+          "entfernung",
+          "schutz",
+          "verkleidung"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "9afeb66c667de81e66fff25496f9a954e1132b5b8bb6e4239e77c632a4880dcb",
+        "quellen_geliefert": 4,
+        "geprueft": 4,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-097178bba71e",
+                "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+                "start": 0,
+                "end": 105,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-fcd47c98a146",
+                "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+                "start": 0,
+                "end": 236,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "zitate",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:22:39.822500+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Die Abdeckung darf vor der Abnahme nicht entfernt werden.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "grund": "kein Satz bestand die Prüfung"
+      },
+      "times": {
+        "frage": 2.923,
+        "suche": 0.112,
+        "antwort_modell": 1.607,
+        "saetze_modell": 1.281,
+        "satzpruefung": 0.001,
+        "gesamt": 8.853
+      },
+      "id": "IA03",
+      "conversation_id": "c-d0eeccc2f9bc",
+      "seconds": 5.953,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Abdeckung\",\n    \"Abnahme\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Abdeckung\",\n    \"vor\",\n    \"Abnahme\",\n    \"entfernt\",\n    \"werden\"\n  ],\n  \"umschreibungen\": [\n    \"Deckung\",\n    \"Schutz\",\n    \"Verkleidung\",\n    \"Entfernung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die Abdeckung darf vor der Abnahme nicht entfernt werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 3,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+        "basis": [
+          {
+            "episode_id": "e-097178bba71e",
+            "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+            "start": 0,
+            "end": 105,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-fcd47c98a146",
+            "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+            "start": 0,
+            "end": 236,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-c7f60aa05ec6",
+            "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+            "start": 0,
+            "end": 54,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-40c20551b554",
+            "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+            "start": 0,
+            "end": 151,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-097178bba71e",
+            "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+            "start": 0,
+            "end": 105,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "5fdff3817a1338cd5ddb1373030ab8273a9a9005b74250950b8aafcb31e963a1",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-097178bba71e": null,
+          "e-fcd47c98a146": null,
+          "e-c7f60aa05ec6": null,
+          "e-40c20551b554": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 4,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "abdeckung",
+            "abnahme",
+            "entfernt",
+            "entfernung",
+            "schutz",
+            "verkleidung"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "9afeb66c667de81e66fff25496f9a954e1132b5b8bb6e4239e77c632a4880dcb",
+          "quellen_geliefert": 4,
+          "geprueft": 4,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Abdeckung",
+            "Abnahme"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [
+            "Abdeckung",
+            "vor",
+            "Abnahme",
+            "entfernt",
+            "werden"
+          ],
+          "umschreibungen": [
+            "Deckung",
+            "Schutz",
+            "Verkleidung",
+            "Entfernung"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "zitate",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:22:39.822500+00:00",
+          "verworfen": 1,
+          "gruende": [
+            "Die Abdeckung darf vor der Abnahme nicht entfernt werden.: Quelle mit bedingter Erlaubnis verlangt vollständige wörtliche Satzbelege"
+          ],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "grund": "kein Satz bestand die Prüfung"
+        },
+        "zeiten": {
+          "frage": 2.923,
+          "suche": 0.112,
+          "antwort_modell": 1.607,
+          "saetze_modell": 1.281,
+          "satzpruefung": 0.001,
+          "gesamt": 8.853
+        }
+      }
+    },
+    {
+      "q": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA04-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA04-S1",
+        "IA06-S1"
+      ],
+      "selected_sources": [
+        "IA04-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA04-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Ventil",
+          "Gespül"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [
+          "Ventil",
+          "geöffnet",
+          "gespült"
+        ],
+        "umschreibungen": [
+          "Schalter",
+          "Offen",
+          "Spülen",
+          "Wasser"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "geoffnet",
+          "gespult",
+          "offen",
+          "schalter",
+          "solange",
+          "spulen",
+          "ventil",
+          "wasser"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "97d2eac6716e2a4c5d8366003d8f0033968a6ff33520025896cd01772cb71d62",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-d6c906c4bcd6",
+                "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+                "start": 0,
+                "end": 71,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:22:45.052750+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-d6c906c4bcd6",
+              "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+              "start": 0,
+              "end": 71,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+            "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Kann das Ventil geöffnet werden, solange gespült wird? Schalter Offen Spülen Wasser",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.78,
+        "suche": 0.09,
+        "antwort_modell": 1.044,
+        "saetze_modell": 1.231,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.525,
+        "gesamt": 8.459
+      },
+      "id": "IA04",
+      "conversation_id": "c-7653e308effd",
+      "seconds": 5.708,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Ventil\",\n    \"Gespül\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Ventil\",\n    \"geöffnet\",\n    \"gespült\"\n  ],\n  \"umschreibungen\": [\n    \"Schalter\",\n    \"Offen\",\n    \"Spülen\",\n    \"Wasser\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Kann das Ventil geöffnet werden, solange gespült wird?",
+        "basis": [
+          {
+            "episode_id": "e-d6c906c4bcd6",
+            "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+            "start": 0,
+            "end": 71,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-3a3ba3cc83eb",
+            "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+            "start": 0,
+            "end": 147,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-d6c906c4bcd6",
+            "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+            "start": 0,
+            "end": 71,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "0e4e988a00fdb86be3d7c809aee8516088e68063f50345929e0958c700277882",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-d6c906c4bcd6": null,
+          "e-3a3ba3cc83eb": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 2,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "geoffnet",
+            "gespult",
+            "offen",
+            "schalter",
+            "solange",
+            "spulen",
+            "ventil",
+            "wasser"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "97d2eac6716e2a4c5d8366003d8f0033968a6ff33520025896cd01772cb71d62",
+          "quellen_geliefert": 2,
+          "geprueft": 2,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Ventil",
+            "Gespül"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [
+            "Ventil",
+            "geöffnet",
+            "gespült"
+          ],
+          "umschreibungen": [
+            "Schalter",
+            "Offen",
+            "Spülen",
+            "Wasser"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:22:45.052750+00:00",
+          "verworfen": 0,
+          "gruende": [],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-d6c906c4bcd6",
+                "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+                "start": 0,
+                "end": 71,
+                "kind": "fact"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+              "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Kann das Ventil geöffnet werden, solange gespült wird? Schalter Offen Spülen Wasser",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 2.78,
+          "suche": 0.09,
+          "antwort_modell": 1.044,
+          "saetze_modell": 1.231,
+          "satzpruefung": 0.002,
+          "pruefung_modell": 0.525,
+          "gesamt": 8.459
+        }
+      }
+    },
+    {
+      "q": "Wann darf der Akku ausgetauscht werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA05-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA05-S1"
+      ],
+      "selected_sources": [
+        "IA05-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA05-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Akku"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Wann",
+          "Akku",
+          "ausgetauscht",
+          "werden"
+        ],
+        "umschreibungen": [
+          "Austausch",
+          "Wechsel",
+          "Ersetzung",
+          "Lebensdauer"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 1,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 1,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "akku",
+          "ausgetauscht",
+          "austausch",
+          "ersetzung",
+          "lebensdauer",
+          "wechsel"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "651d42652f4a6bfc4a160850cb80304af8f21ec102a3205197f689d0525d961f",
+        "quellen_geliefert": 1,
+        "geprueft": 1,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-dcfc8fba29f6",
+                "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:22:54.060312+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-dcfc8fba29f6",
+              "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+              "start": 0,
+              "end": 128,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+            "text": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Wann darf der Akku ausgetauscht werden? Austausch Wechsel Ersetzung Lebensdauer",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 4.954,
+        "suche": 0.072,
+        "antwort_modell": 2.176,
+        "saetze_modell": 1.97,
+        "satzpruefung": 0.002,
+        "pruefung_modell": 0.591,
+        "gesamt": 14.728
+      },
+      "id": "IA05",
+      "conversation_id": "c-a5d873778674",
+      "seconds": 9.804,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Akku\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Wann\",\n    \"Akku\",\n    \"ausgetauscht\",\n    \"werden\"\n  ],\n  \"umschreibungen\": [\n    \"Austausch\",\n    \"Wechsel\",\n    \"Ersetzung\",\n    \"Lebensdauer\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Wann darf der Akku ausgetauscht werden?",
+        "basis": [
+          {
+            "episode_id": "e-dcfc8fba29f6",
+            "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+            "start": 0,
+            "end": 128,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-dcfc8fba29f6",
+            "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+            "start": 0,
+            "end": 128,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "3ee768d5ca01c84d6f4c7c4da5da7488c38f168c17a4d7af38dde8d71508ae1d",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-dcfc8fba29f6": null
+        },
+        "search": {
+          "wortsuche_quellen": 1,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 1,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "akku",
+            "ausgetauscht",
+            "austausch",
+            "ersetzung",
+            "lebensdauer",
+            "wechsel"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "651d42652f4a6bfc4a160850cb80304af8f21ec102a3205197f689d0525d961f",
+          "quellen_geliefert": 1,
+          "geprueft": 1,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Akku"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [
+            "Wann",
+            "Akku",
+            "ausgetauscht",
+            "werden"
+          ],
+          "umschreibungen": [
+            "Austausch",
+            "Wechsel",
+            "Ersetzung",
+            "Lebensdauer"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:22:54.060312+00:00",
+          "verworfen": 0,
+          "gruende": [],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-dcfc8fba29f6",
+                "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+                "start": 0,
+                "end": 128,
+                "kind": "fact"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+              "text": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Wann darf der Akku ausgetauscht werden? Austausch Wechsel Ersetzung Lebensdauer",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 4.954,
+          "suche": 0.072,
+          "antwort_modell": 2.176,
+          "saetze_modell": 1.97,
+          "satzpruefung": 0.002,
+          "pruefung_modell": 0.591,
+          "gesamt": 14.728
+        }
+      }
+    },
+    {
+      "q": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA06-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA04-S1",
+        "IA06-S1",
+        "IA07-S2"
+      ],
+      "selected_sources": [
+        "IA06-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA06-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA06-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Fenster",
+          "Raum B"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Fenster",
+          "Raum B",
+          "Arbeitszeit",
+          "geöffnet"
+        ],
+        "umschreibungen": [
+          "Tür",
+          "Lüften",
+          "Büro",
+          "Geschäft"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 3,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "arbeitszeit",
+          "buro",
+          "fenster",
+          "geoffnet",
+          "geschaft",
+          "luften",
+          "raum",
+          "tur",
+          "wahrend"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "e6d920272631d03b29faf5ae7dc6809e927daa054af6f81bae264200fc11c47f",
+        "quellen_geliefert": 3,
+        "geprueft": 3,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-3a3ba3cc83eb",
+                "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+                "start": 0,
+                "end": 147,
+                "kind": "fact"
+              },
+              {
+                "episode_id": "e-d6c906c4bcd6",
+                "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+                "start": 0,
+                "end": 71,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:23:01.416971+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-3a3ba3cc83eb",
+              "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+              "start": 0,
+              "end": 147,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+            "text": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden? Tür Lüften Büro Geschäft",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 2.864,
+        "suche": 0.137,
+        "antwort_modell": 1.75,
+        "saetze_modell": 1.359,
+        "satzpruefung": 0.003,
+        "pruefung_modell": 0.596,
+        "gesamt": 9.582
+      },
+      "id": "IA06",
+      "conversation_id": "c-fcc484744db4",
+      "seconds": 6.75,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Fenster\",\n    \"Raum B\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Fenster\",\n    \"Raum B\",\n    \"Arbeitszeit\",\n    \"geöffnet\"\n  ],\n  \"umschreibungen\": [\n    \"Tür\",\n    \"Lüften\",\n    \"Büro\",\n    \"Geschäft\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.\",\"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+        "basis": [
+          {
+            "episode_id": "e-3a3ba3cc83eb",
+            "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+            "start": 0,
+            "end": 147,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-d6c906c4bcd6",
+            "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+            "start": 0,
+            "end": 71,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-d93396208768",
+            "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+            "start": 0,
+            "end": 171,
+            "kind": "change"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-3a3ba3cc83eb",
+            "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+            "start": 0,
+            "end": 147,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "f78c228c745d90889697e2835d5a6f672826a29b10752375bd40081cd6db584e",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-3a3ba3cc83eb": null,
+          "e-d6c906c4bcd6": null,
+          "e-d93396208768": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 3,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "arbeitszeit",
+            "buro",
+            "fenster",
+            "geoffnet",
+            "geschaft",
+            "luften",
+            "raum",
+            "tur",
+            "wahrend"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "e6d920272631d03b29faf5ae7dc6809e927daa054af6f81bae264200fc11c47f",
+          "quellen_geliefert": 3,
+          "geprueft": 3,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Fenster",
+            "Raum B"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [
+            "Fenster",
+            "Raum B",
+            "Arbeitszeit",
+            "geöffnet"
+          ],
+          "umschreibungen": [
+            "Tür",
+            "Lüften",
+            "Büro",
+            "Geschäft"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:23:01.416971+00:00",
+          "verworfen": 0,
+          "gruende": [],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-3a3ba3cc83eb",
+                "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+                "start": 0,
+                "end": 147,
+                "kind": "fact"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+              "text": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden? Tür Lüften Büro Geschäft",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 2.864,
+          "suche": 0.137,
+          "antwort_modell": 1.75,
+          "saetze_modell": 1.359,
+          "satzpruefung": 0.003,
+          "pruefung_modell": 0.596,
+          "gesamt": 9.582
+        }
+      }
+    },
+    {
+      "q": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA07-S2"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA07-S1",
+        "IA07-S2"
+      ],
+      "selected_sources": [
+        "IA07-S2"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA07-S2"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Kalibrierung",
+          "Gerät"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "frist",
+        "suchworte": [
+          "Reicht",
+          "Kalibrierung",
+          "Gerät",
+          "starten"
+        ],
+        "umschreibungen": [
+          "Ausreichend",
+          "Status",
+          "Bereitschaft",
+          "Fertigstellung"
+        ],
+        "herkunft": "modell",
+        "grund": "",
+        "modell": "qwen3.5:4b"
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "ausreichend",
+          "bereitschaft",
+          "fertigstellung",
+          "gerat",
+          "kalibrierung",
+          "reicht",
+          "starten",
+          "status"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "0744d52c75e62e1924dec1b9bde229f98a0d88096316d03b544e963c2cb5bd4e",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-d93396208768",
+                "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+                "start": 0,
+                "end": 171,
+                "kind": "change"
+              },
+              {
+                "episode_id": "e-8aed051b920d",
+                "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+                "start": 0,
+                "end": 80,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:23:07.970314+00:00",
+        "verworfen": 0,
+        "gruende": [],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-d93396208768",
+              "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+              "start": 0,
+              "end": 171,
+              "kind": "change"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+            "text": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          },
+          {
+            "roh": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+            "text": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten? Ausreichend Status Bereitschaft Fertigstellung",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.01,
+        "suche": 0.111,
+        "antwort_modell": 1.429,
+        "saetze_modell": 1.994,
+        "satzpruefung": 0.004,
+        "pruefung_modell": 0.979,
+        "gesamt": 10.545
+      },
+      "id": "IA07",
+      "conversation_id": "c-26cd9f1a4cd8",
+      "seconds": 7.575,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"Kalibrierung\",\n    \"Gerät\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"frist\",\n  \"suchworte\": [\n    \"Reicht\",\n    \"Kalibrierung\",\n    \"Gerät\",\n    \"starten\"\n  ],\n  \"umschreibungen\": [\n    \"Ausreichend\",\n    \"Status\",\n    \"Bereitschaft\",\n    \"Fertigstellung\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die frühere Startregel nach Kalibrierung reicht nicht aus.\", \"belege\":[1]},{\"text\":\"Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.\", \"belege\":[1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 5,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+        "basis": [
+          {
+            "episode_id": "e-d93396208768",
+            "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+            "start": 0,
+            "end": 171,
+            "kind": "change"
+          },
+          {
+            "episode_id": "e-8aed051b920d",
+            "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+            "start": 0,
+            "end": 80,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-d93396208768",
+            "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+            "start": 0,
+            "end": 171,
+            "kind": "change"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "bfadc00de8155f5667c969766f748b176aff71f528d12971d4bd1f3df682cb77",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-d93396208768": null,
+          "e-8aed051b920d": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 2,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "ausreichend",
+            "bereitschaft",
+            "fertigstellung",
+            "gerat",
+            "kalibrierung",
+            "reicht",
+            "starten",
+            "status"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "0744d52c75e62e1924dec1b9bde229f98a0d88096316d03b544e963c2cb5bd4e",
+          "quellen_geliefert": 2,
+          "geprueft": 2,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Kalibrierung",
+            "Gerät"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "frist",
+          "suchworte": [
+            "Reicht",
+            "Kalibrierung",
+            "Gerät",
+            "starten"
+          ],
+          "umschreibungen": [
+            "Ausreichend",
+            "Status",
+            "Bereitschaft",
+            "Fertigstellung"
+          ],
+          "herkunft": "modell",
+          "grund": "",
+          "modell": "qwen3.5:4b"
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:23:07.970314+00:00",
+          "verworfen": 0,
+          "gruende": [],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-d93396208768",
+                "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+                "start": 0,
+                "end": 171,
+                "kind": "change"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+              "text": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            },
+            {
+              "roh": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+              "text": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten? Ausreichend Status Bereitschaft Fertigstellung",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 3.01,
+          "suche": 0.111,
+          "antwort_modell": 1.429,
+          "saetze_modell": 1.994,
+          "satzpruefung": 0.004,
+          "pruefung_modell": 0.979,
+          "gesamt": 10.545
+        }
+      }
+    },
+    {
+      "q": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA08-S1"
+      ],
+      "status": "working_reports",
+      "candidate_sources": [
+        "IA03-S1",
+        "IA08-S1"
+      ],
+      "selected_sources": [
+        "IA08-S1"
+      ],
+      "references_valid": true,
+      "shown_sources": [
+        "IA08-S1"
+      ],
+      "exact_sources": true,
+      "status_ok": true,
+      "retrieved_expected": true,
+      "candidate_trace_available": true,
+      "expected_in_candidates": true,
+      "expected_in_selection": true,
+      "expected_in_display": true,
+      "first_missing_stage": null,
+      "search_degraded": false,
+      "selection_pass": true,
+      "answer": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA08-S1.txt\n\n1 Satz wurde verworfen, weil die Belege ihn nicht getragen haben.\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "question_understanding": {
+        "version": 1,
+        "sachen": [
+          "Zurücksetzen",
+          "Abnahme"
+        ],
+        "zeitraum": "keiner",
+        "absicht": "fakt",
+        "suchworte": [],
+        "umschreibungen": [],
+        "herkunft": "rueckfall",
+        "grund": "ungültige Ausgabe",
+        "modell": ""
+      },
+      "search": {
+        "wortsuche_quellen": 2,
+        "oben_quellen": 0,
+        "wortsuche_begrenzt": false,
+        "index": "ok",
+        "index_treffer": 2,
+        "index_begrenzt": false,
+        "index_woerter": [
+          "abnahme",
+          "automatisch",
+          "erlaubt",
+          "formellen",
+          "zurucksetzen"
+        ],
+        "ohne_einordnung": 0,
+        "index_nicht_erfasst": 0,
+        "index_signatur": "2bd39ab7b8a9920fab0f3eac5e7d0bd0c4711f1881374f164a42eddddb3d9f2b",
+        "quellen_geliefert": 2,
+        "geprueft": 2,
+        "verworfen": 0,
+        "abgeschnitten": [],
+        "kuerzung": {
+          "gekuerzt": 0,
+          "absaetze_gezeigt": 0,
+          "absaetze_gesamt": 0
+        }
+      },
+      "execution_trace": {
+        "semantic_enabled": true,
+        "semantic_calls": [
+          {
+            "status": "ok",
+            "refs": [
+              {
+                "episode_id": "e-fcd47c98a146",
+                "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+                "start": 0,
+                "end": 236,
+                "kind": "fact"
+              }
+            ]
+          }
+        ],
+        "http_status": 201,
+        "captured_turns": 1
+      },
+      "sentence_answer": {
+        "version": 1,
+        "status": "saetze",
+        "modell": "openai qwen3.5:4b",
+        "stichtag": "2026-10-08T22:23:15.286045+00:00",
+        "verworfen": 1,
+        "gruende": [
+          "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Techn: Der Beleg verneint („nicht“), der Satz nicht"
+        ],
+        "belege_ausgelassen": 0,
+        "geschwaerzt": 0,
+        "pruefung": {
+          "zustand": "an",
+          "modell": "qwen3.5:4b",
+          "verworfen": 0
+        },
+        "belege": [
+          {
+            "nummer": 1,
+            "ref": {
+              "episode_id": "e-fcd47c98a146",
+              "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+              "start": 0,
+              "end": 236,
+              "kind": "fact"
+            },
+            "rolle": "Quelle",
+            "ueberholt": []
+          }
+        ],
+        "saetze": [
+          {
+            "roh": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+            "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+            "belege": [
+              1
+            ],
+            "relativ": false,
+            "vom_programm": false,
+            "pruefmodell": "ja",
+            "verlaesslichkeit": "einfach"
+          }
+        ],
+        "rahmen": {
+          "version": 1,
+          "personen": [],
+          "zeitraum": null
+        },
+        "suche": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+        "akte": [],
+        "namen": []
+      },
+      "times": {
+        "frage": 3.072,
+        "suche": 0.08,
+        "antwort_modell": 1.133,
+        "saetze_modell": 2.3,
+        "satzpruefung": 0.007,
+        "pruefung_modell": 0.621,
+        "gesamt": 10.292
+      },
+      "id": "IA08",
+      "conversation_id": "c-21a702645ecb",
+      "seconds": 7.246,
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"sachen\": [\n    \"formelle Abnahme\",\n    \"Zurücksetzen\"\n  ],\n  \"zeitraum\": \"keiner\",\n  \"absicht\": \"fakt\",\n  \"suchworte\": [\n    \"Zurücksetzen\",\n    \"formelle Abnahme\",\n    \"automatisch erlaubt\"\n  ],\n  \"umschreibungen\": [\n    \"Rücksetzung\",\n    \"Wiederholung\",\n    \"Neuabnahme\",\n    \"Abnahme rückgängig machen\"\n  ]\n}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\":\"source_reports\",\"ids\":[\"S1\"]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"status\": \"antwort\", \"saetze\": [{\"text\": \"Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.\", \"belege\": [1]}, {\"text\": \"Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.\", \"belege\": [1]}]}",
+          "reply_truncated": false
+        },
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_truncated": false
+        }
+      ],
+      "calls": 4,
+      "provider_errors": 0,
+      "provider_pending": 0,
+      "working_answer": {
+        "version": 1,
+        "query": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+        "basis": [
+          {
+            "episode_id": "e-fcd47c98a146",
+            "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+            "start": 0,
+            "end": 236,
+            "kind": "fact"
+          },
+          {
+            "episode_id": "e-097178bba71e",
+            "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+            "start": 0,
+            "end": 105,
+            "kind": "fact"
+          }
+        ],
+        "refs": [
+          {
+            "episode_id": "e-fcd47c98a146",
+            "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+            "start": 0,
+            "end": 236,
+            "kind": "fact"
+          }
+        ],
+        "claim_basis": {},
+        "claim_candidate_signature": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "candidate_signature": "6df39354bb6be8800d16527fa747287a35617763b60ea9c083c0e8be8ca0d024",
+        "status": "reports",
+        "uncertainty": "none",
+        "limited": false,
+        "project_assignment_basis": {
+          "e-fcd47c98a146": null,
+          "e-097178bba71e": null
+        },
+        "search": {
+          "wortsuche_quellen": 2,
+          "oben_quellen": 0,
+          "wortsuche_begrenzt": false,
+          "index": "ok",
+          "index_treffer": 2,
+          "index_begrenzt": false,
+          "index_woerter": [
+            "abnahme",
+            "automatisch",
+            "erlaubt",
+            "formellen",
+            "zurucksetzen"
+          ],
+          "ohne_einordnung": 0,
+          "index_nicht_erfasst": 0,
+          "index_signatur": "2bd39ab7b8a9920fab0f3eac5e7d0bd0c4711f1881374f164a42eddddb3d9f2b",
+          "quellen_geliefert": 2,
+          "geprueft": 2,
+          "verworfen": 0,
+          "abgeschnitten": [],
+          "kuerzung": {
+            "gekuerzt": 0,
+            "absaetze_gezeigt": 0,
+            "absaetze_gesamt": 0
+          }
+        },
+        "akten_sachen": [],
+        "akten": {
+          "version": 1,
+          "sachen": [],
+          "namen": {},
+          "zeilen": [],
+          "ueberholt": {},
+          "zaehlung": {
+            "sachen": 0,
+            "akten_gelesen": 0,
+            "akten_ausgelassen": 0,
+            "oben": 0,
+            "gekennzeichnet": 0
+          },
+          "signatur": "49973e384bd929cb54d930b4a8fb07c3"
+        },
+        "anfrage": {
+          "version": 1,
+          "sachen": [
+            "Zurücksetzen",
+            "Abnahme"
+          ],
+          "zeitraum": "keiner",
+          "absicht": "fakt",
+          "suchworte": [],
+          "umschreibungen": [],
+          "herkunft": "rueckfall",
+          "grund": "ungültige Ausgabe",
+          "modell": ""
+        },
+        "semantic_inventory": "4f5c5edf9c7c25dba0d631e2e652b91e6a6e6ceac0759129870253b3ee9b1431",
+        "semantic_search_status": "ok",
+        "satzantwort": {
+          "version": 1,
+          "status": "saetze",
+          "modell": "openai qwen3.5:4b",
+          "stichtag": "2026-10-08T22:23:15.286045+00:00",
+          "verworfen": 1,
+          "gruende": [
+            "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Techn: Der Beleg verneint („nicht“), der Satz nicht"
+          ],
+          "belege_ausgelassen": 0,
+          "geschwaerzt": 0,
+          "pruefung": {
+            "zustand": "an",
+            "modell": "qwen3.5:4b",
+            "verworfen": 0
+          },
+          "belege": [
+            {
+              "nummer": 1,
+              "ref": {
+                "episode_id": "e-fcd47c98a146",
+                "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+                "start": 0,
+                "end": 236,
+                "kind": "fact"
+              },
+              "rolle": "Quelle",
+              "ueberholt": []
+            }
+          ],
+          "saetze": [
+            {
+              "roh": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+              "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+              "belege": [
+                1
+              ],
+              "relativ": false,
+              "vom_programm": false,
+              "pruefmodell": "ja",
+              "verlaesslichkeit": "einfach"
+            }
+          ],
+          "rahmen": {
+            "version": 1,
+            "personen": [],
+            "zeitraum": null
+          },
+          "suche": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+          "akte": [],
+          "namen": []
+        },
+        "zeiten": {
+          "frage": 3.072,
+          "suche": 0.08,
+          "antwort_modell": 1.133,
+          "saetze_modell": 2.3,
+          "satzpruefung": 0.007,
+          "pruefung_modell": 0.621,
+          "gesamt": 10.292
+        }
+      }
+    }
+  ],
+  "intake": [
+    {
+      "id": "IA01-S1",
+      "episode_id": "e-065446ac712a",
+      "digest": "sha256:105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+      "original_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA02-S1",
+      "episode_id": "e-c7f60aa05ec6",
+      "digest": "sha256:3ba94baf1c47f8ca86439cfced584900fb01a73270e2dd086664c184ed24a322",
+      "original_sha256": "3ba94baf1c47f8ca86439cfced584900fb01a73270e2dd086664c184ed24a322",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA02-S2",
+      "episode_id": "e-40c20551b554",
+      "digest": "sha256:d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+      "original_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA03-S1",
+      "episode_id": "e-097178bba71e",
+      "digest": "sha256:c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+      "original_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA04-S1",
+      "episode_id": "e-d6c906c4bcd6",
+      "digest": "sha256:2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+      "original_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA05-S1",
+      "episode_id": "e-dcfc8fba29f6",
+      "digest": "sha256:db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+      "original_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA06-S1",
+      "episode_id": "e-3a3ba3cc83eb",
+      "digest": "sha256:bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+      "original_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA07-S1",
+      "episode_id": "e-8aed051b920d",
+      "digest": "sha256:14e816e0da4c906f242848c20c68df1a8c7d3b909a2bcb7131479ac4210dcb80",
+      "original_sha256": "14e816e0da4c906f242848c20c68df1a8c7d3b909a2bcb7131479ac4210dcb80",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA07-S2",
+      "episode_id": "e-d93396208768",
+      "digest": "sha256:e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+      "original_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+      "occurred_at": "None",
+      "http_status": 200
+    },
+    {
+      "id": "IA08-S1",
+      "episode_id": "e-fcd47c98a146",
+      "digest": "sha256:9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+      "original_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+      "occurred_at": "None",
+      "http_status": 200
+    }
+  ],
+  "classification": [
+    {
+      "id": "IA01-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 4.571,
+      "items": [
+        {
+          "id": "31e35594d6cfd217b3ff16b61b9a72488b2eb395e5ecf76e47c330bd316f678b",
+          "episode_id": "e-065446ac712a",
+          "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+          "start": 0,
+          "end": 171,
+          "kind": "fact",
+          "key": 3594811025319252503
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-065446ac712a",
+          "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA02-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.851,
+      "items": [
+        {
+          "id": "14e57e2cf1c7cad67d8992026a4c24ea120c04518696832ce3b4f425d01ac94b",
+          "episode_id": "e-c7f60aa05ec6",
+          "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+          "start": 0,
+          "end": 54,
+          "kind": "fact",
+          "key": 1505748381925362390
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c7f60aa05ec6",
+          "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA02-S2",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.851,
+      "items": [
+        {
+          "id": "c10cd96855d3b0def1962556f47983d28ca258f4a2d33364659adf76adc15470",
+          "episode_id": "e-40c20551b554",
+          "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+          "start": 0,
+          "end": 151,
+          "kind": "fact",
+          "key": -4536011682529169186
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-40c20551b554",
+          "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA03-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.851,
+      "items": [
+        {
+          "id": "32b9ab16df974b9b3e54247092635bb7553f560be5e2b76738ce1bd7f37f94d7",
+          "episode_id": "e-097178bba71e",
+          "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+          "start": 0,
+          "end": 105,
+          "kind": "fact",
+          "key": 3655140687316732827
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-097178bba71e",
+          "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA04-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 3.363,
+      "items": [
+        {
+          "id": "8e1e0f031a34be8a08e7f5758c51ed4aec4fb0dac57fc0722f16ee9b95f1fc53",
+          "episode_id": "e-d6c906c4bcd6",
+          "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+          "start": 0,
+          "end": 71,
+          "kind": "fact",
+          "key": -8206104965023482230
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d6c906c4bcd6",
+          "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA05-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.926,
+      "items": [
+        {
+          "id": "ddb9ac61b099f156975ee538bc14bc741391a607369134f2a10faf36810a655a",
+          "episode_id": "e-dcfc8fba29f6",
+          "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+          "start": 0,
+          "end": 128,
+          "kind": "fact",
+          "key": -2469753385061322410
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-dcfc8fba29f6",
+          "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA06-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.887,
+      "items": [
+        {
+          "id": "39126ece7575622689b963eb4a78d7c841168c3bddc81fa832de5bf5ef6a2905",
+          "episode_id": "e-3a3ba3cc83eb",
+          "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+          "start": 0,
+          "end": 147,
+          "kind": "fact",
+          "key": 4112471242755629606
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-3a3ba3cc83eb",
+          "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA07-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.889,
+      "items": [
+        {
+          "id": "b3b54a813ab30d0bf4d765dd99f4c51e9e75fc2a0e18a02b78277829ce68c233",
+          "episode_id": "e-8aed051b920d",
+          "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+          "start": 0,
+          "end": 80,
+          "kind": "fact",
+          "key": -5497405851239772917
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-8aed051b920d",
+          "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA07-S2",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 3.356,
+      "items": [
+        {
+          "id": "4203def3e28744265a1b648ad578b347d9f644f26642f5fa8c94b8ad0b698c21",
+          "episode_id": "e-d93396208768",
+          "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+          "start": 0,
+          "end": 171,
+          "kind": "change",
+          "key": 4756890770492310566
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d93396208768",
+          "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"change\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA08-S1",
+      "job_ok": true,
+      "detail": "1 Quellen automatisch eingeordnet",
+      "seconds": 0.918,
+      "items": [
+        {
+          "id": "233bc53d68ef650bbc657587b1b20b263d85db80a5b8b3adbb5ceeae0ba36684",
+          "episode_id": "e-fcd47c98a146",
+          "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+          "start": 0,
+          "end": 236,
+          "kind": "fact",
+          "key": 2538839682497602827
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-fcd47c98a146",
+          "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "analysis_version": 1
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\"items\":[{\"block_id\":\"B1\",\"kind\":\"fact\"}]}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "content_review": "pending independent review",
+  "code_files": {
+    "Agent": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/agent.py",
+      "sha256": "e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588"
+    },
+    "run": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_worker.py",
+      "sha256": "3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e"
+    },
+    "SemanticService": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_semantic_service.py",
+      "sha256": "87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df"
+    },
+    "create_app": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/server.py",
+      "sha256": "e411cb93c96a9e68055bad58dd833726afc95f1d2842833ea323cc6428b71661"
+    },
+    "_interpret": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/memory_categories.py",
+      "sha256": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546"
+    },
+    "_interpret_quotes": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/memory_categories.py",
+      "sha256": "f90a6adf18c68fa2248a2749964675d68c8139022ba0ac807b643f1f4dab4546"
+    },
+    "OpenAICompatible": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/providers.py",
+      "sha256": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f"
+    },
+    "VerifiedLocalProvider": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/local_model_guard.py",
+      "sha256": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe"
+    },
+    "Meter": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/scripts/probe_working_memory_end_to_end.py",
+      "sha256": "5713aa3455751ec67dd13bb01c49e96111f73337be67ba8649cc484feb5b63fe"
+    },
+    "prepare": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_answers.py",
+      "sha256": "9d4268eacd1192071cfeb4b9afdab5cdc9a5e9645a598855ca265625179090fa"
+    },
+    "wanted": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/working_memory_references.py",
+      "sha256": "cc5b8dab0c2282829df3292176ddb43624c489c3d9cfbc4d4025607ecef20c53"
+    },
+    "satz_pruefen": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/satzpruefung.py",
+      "sha256": "bc4291b637894584c0cf09c83ac2b67ba9fe848b89636367c24ec35f1f473a17"
+    },
+    "aufbauen": {
+      "path": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/akten_kontext.py",
+      "sha256": "2e274d47cf036471d42af0fc52e2094b394d92eacdf43cb8fd6457f0e86b6355"
+    }
+  },
+  "holdout_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "classification_progress": {
+    "total": 10,
+    "done": 10,
+    "skipped": 0,
+    "retry": 0,
+    "remaining": 0
+  },
+  "topic_entity_suggestions": [
+    {
+      "id": "IA01-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.315,
+      "entities": [],
+      "topics": [],
+      "state": [
+        {
+          "episode_id": "e-065446ac712a",
+          "fingerprint": "bb22503f0bf839d6b44618e469fd200b93b60264f0ba3e276acbd8d79badf667",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA02-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.457,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-c7f60aa05ec6",
+          "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 54
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-c7f60aa05ec6",
+          "fingerprint": "9506184e921883af59c3ca9859376fa91dc764104b1b42e60d98ae01ffb1a3db",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA02-S2",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.732,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-40c20551b554",
+          "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 151
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-40c20551b554",
+          "fingerprint": "bab75d5271aa6e30148f0ae0285df08d17dbabb01236ebfe52de081b6c658c98",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA03-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.75,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-097178bba71e",
+          "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 105
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-097178bba71e",
+          "fingerprint": "1b9b97114c3266d80a99df57ca36197de27499328637b640fa0f5100499ba044",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA04-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 3.289,
+      "entities": [],
+      "topics": [],
+      "state": [
+        {
+          "episode_id": "e-d6c906c4bcd6",
+          "fingerprint": "76ac22789fa26d3294c2fdbb703da1b19e73fcfea66dc728f45720d38bf9aa4e",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA05-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 0.996,
+      "entities": [],
+      "topics": [],
+      "state": [
+        {
+          "episode_id": "e-dcfc8fba29f6",
+          "fingerprint": "09c6d15e0693cc5f5fd8ea1210a19c750f3dfa3c9c687d8cb4d68141a30b151f",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA06-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.598,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-3a3ba3cc83eb",
+          "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 147
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-3a3ba3cc83eb",
+          "fingerprint": "7cf6c7242dae927cee61d1e734f59e3e4156d7775817b87ce56e1b34a8eb74d5",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA07-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.74,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-8aed051b920d",
+          "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 80
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-8aed051b920d",
+          "fingerprint": "42e33570680cae70afe77a28005e87aace9e34a9d349d0c373b9cf31c4165ad3",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA07-S2",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 3.828,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-d93396208768",
+          "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+          "category_id": "work",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 171
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-d93396208768",
+          "fingerprint": "458042cb5f81ffc2f808d8efddfb59e4c7791e1e315eab29668fa4397fd59aef",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    },
+    {
+      "id": "IA08-S1",
+      "job_ok": true,
+      "detail": "1 Quellen mit Themenvorschlägen ausgewertet",
+      "seconds": 1.449,
+      "entities": [],
+      "topics": [
+        {
+          "episode_id": "e-fcd47c98a146",
+          "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+          "category_id": "unclear",
+          "taxonomy_version": 2,
+          "start": 0,
+          "end": 236
+        }
+      ],
+      "state": [
+        {
+          "episode_id": "e-fcd47c98a146",
+          "fingerprint": "b597efd00a4ba1a298a638a640ee2c98f4b991ce7fa21de43df33bbfe5857844",
+          "taxonomy_version": 2,
+          "status": "complete",
+          "model": "e2d3bf09735302ffc734c1170f6db610f09b8c5c7b01e9462342382f4eb87df5",
+          "retry_after": null,
+          "support_generation": 0
+        }
+      ],
+      "model_outputs": [
+        {
+          "state": "ok",
+          "call_kind": "json",
+          "reply": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"unclear\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "reply_truncated": false
+        }
+      ]
+    }
+  ],
+  "person_gold": {},
+  "index_coverage": {
+    "status": "indexed",
+    "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "identity_checked_at": 1791498141.9653919,
+    "total": 10,
+    "indexed": 10,
+    "pending": 0,
+    "failed": 0,
+    "updated_at": 1791498142.0266418,
+    "source_pending": 0
+  },
+  "reopened_before_questions": true,
+  "originals_preserved_before_withdrawal": true,
+  "withdrawal_after_restart": {
+    "status": "working_unavailable",
+    "pass": true,
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "provider_calls": 0,
+    "original_text_retained": true
+  }
+}

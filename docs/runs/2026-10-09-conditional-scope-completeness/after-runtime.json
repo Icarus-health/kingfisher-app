@@ -1,0 +1,267 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791498841.067538,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 36032
+    },
+    {
+      "elapsed": 2.04,
+      "owned_rss_kib": 301696
+    },
+    {
+      "elapsed": 4.07,
+      "owned_rss_kib": 3655904
+    },
+    {
+      "elapsed": 6.11,
+      "owned_rss_kib": 4036848
+    },
+    {
+      "elapsed": 8.15,
+      "owned_rss_kib": 4041232
+    },
+    {
+      "elapsed": 10.17,
+      "owned_rss_kib": 4099184
+    },
+    {
+      "elapsed": 12.2,
+      "owned_rss_kib": 4131280
+    },
+    {
+      "elapsed": 14.23,
+      "owned_rss_kib": 4184096
+    },
+    {
+      "elapsed": 16.26,
+      "owned_rss_kib": 770000
+    },
+    {
+      "elapsed": 18.31,
+      "owned_rss_kib": 5059344
+    },
+    {
+      "elapsed": 20.35,
+      "owned_rss_kib": 5345888
+    },
+    {
+      "elapsed": 22.43,
+      "owned_rss_kib": 5465808
+    },
+    {
+      "elapsed": 24.47,
+      "owned_rss_kib": 4630272
+    },
+    {
+      "elapsed": 26.5,
+      "owned_rss_kib": 232752
+    },
+    {
+      "elapsed": 28.53,
+      "owned_rss_kib": 5042848
+    },
+    {
+      "elapsed": 30.56,
+      "owned_rss_kib": 5302576
+    },
+    {
+      "elapsed": 32.69,
+      "owned_rss_kib": 5761888
+    },
+    {
+      "elapsed": 34.72,
+      "owned_rss_kib": 233040
+    },
+    {
+      "elapsed": 36.76,
+      "owned_rss_kib": 5040544
+    },
+    {
+      "elapsed": 38.81,
+      "owned_rss_kib": 5302144
+    },
+    {
+      "elapsed": 40.86,
+      "owned_rss_kib": 5792528
+    },
+    {
+      "elapsed": 42.89,
+      "owned_rss_kib": 5749776
+    },
+    {
+      "elapsed": 44.93,
+      "owned_rss_kib": 5833968
+    },
+    {
+      "elapsed": 47.01,
+      "owned_rss_kib": 5945712
+    },
+    {
+      "elapsed": 49.05,
+      "owned_rss_kib": 5988704
+    },
+    {
+      "elapsed": 51.1,
+      "owned_rss_kib": 5980336
+    },
+    {
+      "elapsed": 53.14,
+      "owned_rss_kib": 6137616
+    },
+    {
+      "elapsed": 55.18,
+      "owned_rss_kib": 6189456
+    },
+    {
+      "elapsed": 57.2,
+      "owned_rss_kib": 6188928
+    },
+    {
+      "elapsed": 59.25,
+      "owned_rss_kib": 6196416
+    },
+    {
+      "elapsed": 61.28,
+      "owned_rss_kib": 6395184
+    },
+    {
+      "elapsed": 63.34,
+      "owned_rss_kib": 5995152
+    },
+    {
+      "elapsed": 65.37,
+      "owned_rss_kib": 6042624
+    },
+    {
+      "elapsed": 67.4,
+      "owned_rss_kib": 1446944
+    },
+    {
+      "elapsed": 69.45,
+      "owned_rss_kib": 6195440
+    },
+    {
+      "elapsed": 71.49,
+      "owned_rss_kib": 5514400
+    },
+    {
+      "elapsed": 73.52,
+      "owned_rss_kib": 5395120
+    },
+    {
+      "elapsed": 75.57,
+      "owned_rss_kib": 5489424
+    },
+    {
+      "elapsed": 77.63,
+      "owned_rss_kib": 5286528
+    },
+    {
+      "elapsed": 79.67,
+      "owned_rss_kib": 5340384
+    },
+    {
+      "elapsed": 81.71,
+      "owned_rss_kib": 5465440
+    },
+    {
+      "elapsed": 83.77,
+      "owned_rss_kib": 5609584
+    },
+    {
+      "elapsed": 85.84,
+      "owned_rss_kib": 5329792
+    },
+    {
+      "elapsed": 87.89,
+      "owned_rss_kib": 5491232
+    },
+    {
+      "elapsed": 89.93,
+      "owned_rss_kib": 5647648
+    },
+    {
+      "elapsed": 92.0,
+      "owned_rss_kib": 5717312
+    },
+    {
+      "elapsed": 94.03,
+      "owned_rss_kib": 5786400
+    },
+    {
+      "elapsed": 96.06,
+      "owned_rss_kib": 5775840
+    },
+    {
+      "elapsed": 98.11,
+      "owned_rss_kib": 5728560
+    }
+  ],
+  "completed": true,
+  "server_pid": 23881,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-07-09T10:38:25.877447767+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 23884,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791498941.57641
+}

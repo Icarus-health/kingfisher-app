@@ -1,0 +1,415 @@
+{
+  "title": "Independent full-pipeline content review: temporal applicability holdouts",
+  "reviewer": "audit_answer_selection",
+  "synthetic_only": true,
+  "catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "answers_sha256": "5a2e23775fc401315ffc4666f79316c58d727a9b07b895458083ac183b9dfcf8",
+  "embedded_catalog_sha256": "21b9fd8587b7ad58431ac7c6c97163cf31af919d10941ffa1af1acc4931884df",
+  "scope": "All 8 actual visible replies reviewed against frozen original source texts; covers HTTP intake, model classification/index retrieval, sentence answer or quote fallback, topic/entity suggestions and per-answer Akten context. This is not production/UI-routing qualification.",
+  "counts": {
+    "cases": 8,
+    "adequate": 5,
+    "incomplete": 3,
+    "unsupported": 0,
+    "abstained_without_source_access": 0,
+    "quote_fallbacks_with_no_direct_prose_answer": 2
+  },
+  "case_reviews": [
+    {
+      "id": "IA01",
+      "grade": "incomplete",
+      "mode": "source_quote_fallback",
+      "answer_content": "The displayed source quote contains the exact dry-only-before-curing rule, but it also includes the separate return/solvent clause and gives no direct sentence answering the question.",
+      "support": "No unsupported claim. Evidence is present and separable under the source headings.",
+      "retrieval": "IA01-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA01-S1"
+      ],
+      "shown_sources": [
+        "IA01-S1"
+      ]
+    },
+    {
+      "id": "IA02",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The displayed sentence answers the prerequisite: the P-18 coating is applied when the surface is fully dust-free.",
+      "support": "IA02-S2 explicitly says the surface must be fully dust-free before application and expressly binds that requirement to P-18 coating. The wording is a concise paraphrase.",
+      "retrieval": "IA02-S2 selected and shown; IA02-S1 was a candidate but omitted. Exact expected-source comparison therefore fails, although S2 alone supports the visible answer.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA02-S2"
+      ],
+      "shown_sources": [
+        "IA02-S2"
+      ]
+    },
+    {
+      "id": "IA03",
+      "grade": "incomplete",
+      "mode": "source_quote_fallback",
+      "answer_content": "The displayed quote explicitly says the cover must not be removed before acceptance and may be removed only after acceptance, so the evidence itself answers the yes/no question; the answer path still abstained from direct sentence prose.",
+      "support": "No unsupported claim; quote preserves both temporal directions.",
+      "retrieval": "IA03-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA03-S1"
+      ],
+      "shown_sources": [
+        "IA03-S1"
+      ]
+    },
+    {
+      "id": "IA04",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The answer preserves that opening is allowed only during the ongoing flushing process.",
+      "support": "Exact source-supported exclusive time limit.",
+      "retrieval": "IA04-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA04-S1"
+      ],
+      "shown_sources": [
+        "IA04-S1"
+      ]
+    },
+    {
+      "id": "IA05",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The answer correctly attaches replacement to after the technical inspection and ignores the unrelated pre-shipment photo action.",
+      "support": "Exact source-supported action and temporal condition.",
+      "retrieval": "IA05-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA05-S1"
+      ],
+      "shown_sources": [
+        "IA05-S1"
+      ]
+    },
+    {
+      "id": "IA06",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The answer correctly names room B and its during-working-hours ventilation permission; it does not transfer room A's restriction.",
+      "support": "Directly supported by the second source clause.",
+      "retrieval": "IA06-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA06-S1"
+      ],
+      "shown_sources": [
+        "IA06-S1"
+      ]
+    },
+    {
+      "id": "IA07",
+      "grade": "adequate",
+      "mode": "sentence_answer",
+      "answer_content": "The answer says the earlier calibration rule is insufficient and that the device remains off until documented approval. It correctly answers that calibration alone is not enough.",
+      "support": "Both accepted sentences are directly supported by the later 5 March correction; no superseded 3 March permission appears in the visible reply.",
+      "retrieval": "IA07-S2 selected and shown. Intake classified it as change; earlier IA07-S1 was not selected.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA07-S2"
+      ],
+      "shown_sources": [
+        "IA07-S2"
+      ]
+    },
+    {
+      "id": "IA08",
+      "grade": "incomplete",
+      "mode": "partial_sentence_answer",
+      "answer_content": "The displayed answer only prohibits reset until acceptance. It does not answer whether reset after acceptance is automatic or state the written-order prerequisite. The visible UI reports one rejected sentence but does not show its text.",
+      "support": "The accepted pre-acceptance sentence is true. The rejected sentence was the source-supported post-acceptance written-order condition, but the verifier rejected it with a false polarity reason because 'nicht' occurs elsewhere in the source.",
+      "retrieval": "IA08-S1 selected and shown.",
+      "pipeline_status": "working_reports",
+      "selected_sources": [
+        "IA08-S1"
+      ],
+      "shown_sources": [
+        "IA08-S1"
+      ]
+    }
+  ],
+  "pipeline_evidence": {
+    "intake_count": 10,
+    "intake_all_http_200_and_original_digest_match": true,
+    "intake": [
+      {
+        "id": "IA01-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA02-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA02-S2",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA03-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA04-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA05-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA06-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA07-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA07-S2",
+        "http_status": 200,
+        "source_sha256_matches": true
+      },
+      {
+        "id": "IA08-S1",
+        "http_status": 200,
+        "source_sha256_matches": true
+      }
+    ],
+    "classification_count": 10,
+    "classification_all_jobs_complete": true,
+    "classification_full_source_spans": true,
+    "classification": [
+      {
+        "id": "IA01-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 171,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA02-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 54,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA02-S2",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 151,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA03-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 105,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA04-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 71,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA05-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 128,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA06-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 147,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA07-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 80,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA07-S2",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 171,
+            "kind": "change",
+            "covers_exact_full_source": true
+          }
+        ]
+      },
+      {
+        "id": "IA08-S1",
+        "job_ok": true,
+        "items": [
+          {
+            "start": 0,
+            "end": 236,
+            "kind": "fact",
+            "covers_exact_full_source": true
+          }
+        ]
+      }
+    ],
+    "persisted_index_coverage": {
+      "status": "indexed",
+      "model_key": "bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+      "identity_checked_at": 1791498141.9653919,
+      "total": 10,
+      "indexed": 10,
+      "pending": 0,
+      "failed": 0,
+      "updated_at": 1791498142.0266418,
+      "source_pending": 0
+    },
+    "topic_entity_suggestions": [
+      {
+        "id": "IA01-S1",
+        "entities": [],
+        "category_ids": []
+      },
+      {
+        "id": "IA02-S1",
+        "entities": [],
+        "category_ids": [
+          "work"
+        ]
+      },
+      {
+        "id": "IA02-S2",
+        "entities": [],
+        "category_ids": [
+          "work"
+        ]
+      },
+      {
+        "id": "IA03-S1",
+        "entities": [],
+        "category_ids": [
+          "unclear"
+        ]
+      },
+      {
+        "id": "IA04-S1",
+        "entities": [],
+        "category_ids": []
+      },
+      {
+        "id": "IA05-S1",
+        "entities": [],
+        "category_ids": []
+      },
+      {
+        "id": "IA06-S1",
+        "entities": [],
+        "category_ids": [
+          "unclear"
+        ]
+      },
+      {
+        "id": "IA07-S1",
+        "entities": [],
+        "category_ids": [
+          "work"
+        ]
+      },
+      {
+        "id": "IA07-S2",
+        "entities": [],
+        "category_ids": [
+          "work"
+        ]
+      },
+      {
+        "id": "IA08-S1",
+        "entities": [],
+        "category_ids": [
+          "unclear"
+        ]
+      }
+    ],
+    "akten_context": "All 8 working answers have empty akten_sachen; their Akten context contains no linked rows/overrides. No false case/project anchors were injected. IA07-S2 was classified as kind=change, but no explicit Akte supersedes link is recorded; the answer is still correct because the selected later correction itself states the earlier rule is insufficient.",
+    "production_memory_policy_verified": false,
+    "actual_ui_routing_tested": false,
+    "reopened_before_questions": true,
+    "originals_preserved_before_withdrawal": true,
+    "withdrawal_after_restart": {
+      "status": "working_unavailable",
+      "pass": true,
+      "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+      "provider_calls": 0,
+      "original_text_retained": true
+    }
+  },
+  "overall": "5/8 visible replies are adequate. IA01 and IA03 safely display source quotes but do not count as direct prose answers under this review. IA07 is correct in the full pipeline (the stale sentence accepted in the isolated stage is absent). IA08 remains incomplete; its accurate post-acceptance condition is rejected, leaving only the pre-acceptance prohibition visible.",
+  "limits": [
+    "Synthetic eight-question control set only.",
+    "Actual memory_evidence HTTP path was exercised; no native UI/screen routing or production memory policy was verified.",
+    "The same local model family generated and checked candidate answer sentences; this independent review compares visible replies directly to original texts."
+  ]
+}

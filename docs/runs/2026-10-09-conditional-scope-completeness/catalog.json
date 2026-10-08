@@ -1,0 +1,165 @@
+{
+  "synthetic": true,
+  "frozen_before_model_run": true,
+  "parent_holdout_catalog_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "sources": [
+    {
+      "id": "IA01-S1",
+      "text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+      "title": "IA01-S1"
+    },
+    {
+      "id": "IA02-S1",
+      "text": "Arbeitskarte P-18: Die Schutzschicht wird aufgetragen.",
+      "title": "IA02-S1"
+    },
+    {
+      "id": "IA02-S2",
+      "text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+      "title": "IA02-S2"
+    },
+    {
+      "id": "IA03-S1",
+      "text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+      "title": "IA03-S1"
+    },
+    {
+      "id": "IA04-S1",
+      "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+      "title": "IA04-S1"
+    },
+    {
+      "id": "IA05-S1",
+      "text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+      "title": "IA05-S1"
+    },
+    {
+      "id": "IA06-S1",
+      "text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+      "title": "IA06-S1"
+    },
+    {
+      "id": "IA07-S1",
+      "text": "Arbeitsnotiz vom 3. März: Das Gerät darf nach der Kalibrierung gestartet werden.",
+      "title": "IA07-S1"
+    },
+    {
+      "id": "IA07-S2",
+      "text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+      "title": "IA07-S2"
+    },
+    {
+      "id": "IA08-S1",
+      "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "title": "IA08-S1"
+    }
+  ],
+  "questions": [
+    {
+      "id": "IA01",
+      "q": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA01-S1"
+      ],
+      "gold_answer": "Die Dichtung darf vor dem Aushärten ausschließlich trocken abgewischt werden. Die Freigaberegel für Lösungsmittel betrifft die Rückgabe, nicht diese Reinigung.",
+      "gold_requirements": [
+        "Keep the dry-only rule attached to cleaning the seal before curing.",
+        "Do not transfer the return/solvent rule to the cleaning action."
+      ]
+    },
+    {
+      "id": "IA02",
+      "q": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "gold_answer": "Die Fläche muss vorher vollständig staubfrei sein.",
+      "gold_requirements": [
+        "Combine the action in S1 with its explicit prerequisite in S2.",
+        "Preserve that dust-free condition is required before application."
+      ]
+    },
+    {
+      "id": "IA03",
+      "q": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA03-S1"
+      ],
+      "gold_answer": "Nein. Sie darf erst nach der Abnahme entfernt werden.",
+      "gold_requirements": [
+        "Answer no for the before-acceptance interval.",
+        "Do not reverse the before/after relation."
+      ]
+    },
+    {
+      "id": "IA04",
+      "q": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA04-S1"
+      ],
+      "gold_answer": "Ja, aber ausschließlich während des laufenden Spülvorgangs.",
+      "gold_requirements": [
+        "Answer yes for the asked interval.",
+        "Retain the exclusive temporal limit; do not generalize permission beyond the flushing process."
+      ]
+    },
+    {
+      "id": "IA05",
+      "q": "Wann darf der Akku ausgetauscht werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA05-S1"
+      ],
+      "gold_answer": "Ausschließlich nach der technischen Prüfung.",
+      "gold_requirements": [
+        "Attach the post-inspection qualifier to battery replacement.",
+        "Do not answer with the pre-shipment time, which modifies photographing the seal."
+      ]
+    },
+    {
+      "id": "IA06",
+      "q": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA06-S1"
+      ],
+      "gold_answer": "Ja. Für Raum B ist das Öffnen während der Arbeitszeit zur Lüftung erlaubt; die Beschränkung nach Dienstschluss gilt für Raum A.",
+      "gold_requirements": [
+        "Answer yes for room B.",
+        "Do not transfer room A's after-hours restriction to room B."
+      ]
+    },
+    {
+      "id": "IA07",
+      "q": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA07-S2"
+      ],
+      "gold_answer": "Nein. Nach der neueren Korrektur muss zusätzlich eine dokumentierte Freigabe vorliegen; bis dahin bleibt das Gerät ausgeschaltet.",
+      "gold_requirements": [
+        "Use the later correction as the current rule.",
+        "Preserve the additional documented-approval condition and until-then prohibition."
+      ]
+    },
+    {
+      "id": "IA08",
+      "q": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA08-S1"
+      ],
+      "gold_answer": "Nein. Auch nach der Abnahme ist das Zurücksetzen nur mit schriftlicher Anordnung der diensthabenden Technikerin zulässig.",
+      "gold_requirements": [
+        "Do not infer permission merely from the end of the pre-acceptance prohibition.",
+        "Retain the explicit post-acceptance written-order condition."
+      ]
+    }
+  ],
+  "metric_limits": "Exact source lists are diagnostic only; independent original-vs-visible-answer review decides answer adequacy. No automatic project, confirmed claims or supersedes assignments are injected."
+}
