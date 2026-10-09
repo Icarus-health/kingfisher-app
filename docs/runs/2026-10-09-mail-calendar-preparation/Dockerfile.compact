@@ -1,0 +1,13 @@
+FROM ghcr.io/icarus-health/kingfisher-app:1.0.6-local.e21193d
+USER root
+COPY calendar_actions.py /usr/local/lib/python3.12/site-packages/icarus_memory/calendar_actions.py
+COPY mail_calendar_preparations.py /usr/local/lib/python3.12/site-packages/icarus_memory/mail_calendar_preparations.py
+COPY mail_calendar_routes.py /usr/local/lib/python3.12/site-packages/icarus_memory/mail_calendar_routes.py
+COPY server.py /usr/local/lib/python3.12/site-packages/icarus_memory/server.py
+RUN rm /opt/kingfisher/ui/assets/index-D3UNcTkp.js
+COPY ui/assets/index-CQJxInvr.js /opt/kingfisher/ui/assets/index-CQJxInvr.js
+COPY ui/index.html /opt/kingfisher/ui/index.html
+COPY VERSION /opt/kingfisher/VERSION
+ENV KINGFISHER_FASSUNG=1.0.6-local.d431383
+LABEL org.opencontainers.image.revision=d431383b551c6a65254c93331819998f86a685eb
+USER kingfisher

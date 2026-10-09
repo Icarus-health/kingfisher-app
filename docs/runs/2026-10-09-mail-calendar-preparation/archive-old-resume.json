@@ -1,0 +1,12 @@
+{
+  "status": "unchanged_old_image_resumed",
+  "cold_copy_all_bytes_equal": true,
+  "archive_not_removed": true,
+  "image": "sha256:c6bc20a9a39f8759dc7f987462378e41c109afb6b87d754555c14dc3d557176b",
+  "health": {
+    "health": true,
+    "inspection": false,
+    "read_only_route": true,
+    "background_paused": true
+  }
+}

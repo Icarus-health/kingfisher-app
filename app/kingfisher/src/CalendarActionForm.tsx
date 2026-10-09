@@ -10,8 +10,8 @@ const when = (value?: {dateTime?: string; date?: string} | null) => value?.dateT
   ? `${new Date(value.dateTime).toLocaleString('de-DE')} (${value.dateTime})` : value?.date || 'Nicht angegeben';
 const updates = {all:'Alle Gäste benachrichtigen', externalOnly:'Nur externe Gäste benachrichtigen', none:'Keine Google-Benachrichtigungen angefordert'};
 
-export function CalendarActionForm({event, onClose, onDone}: {
-  event?: CalendarOverview['items'][number]; onClose: () => void; onDone: () => void;
+export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
+  event?: CalendarOverview['items'][number]; preparedDraft?: CalendarActionDraft; onClose: () => void; onDone: () => void;
 }) {
   const [sources, setSources] = useState<CalendarActionSource[]>([]);
   const [sourceId, setSourceId] = useState(event?.source_id || '');
@@ -20,7 +20,7 @@ export function CalendarActionForm({event, onClose, onDone}: {
   const [start, setStart] = useState(localDateTime(event?.start));
   const [end, setEnd] = useState(localDateTime(event?.end));
   const [sendUpdates, setSendUpdates] = useState<CalendarActionInput['send_updates']>('all');
-  const [draft, setDraft] = useState<CalendarActionDraft | null>(null);
+  const [draft, setDraft] = useState<CalendarActionDraft | null>(preparedDraft ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [mustRead, setMustRead] = useState(false);
@@ -57,8 +57,8 @@ export function CalendarActionForm({event, onClose, onDone}: {
     if (result.status === 'done') onDone();
   });
   return <section className="source-section calendar-action-form" aria-label="Terminänderung vorbereiten">
-    <h2 ref={heading} tabIndex={-1}>{event ? 'Termin bearbeiten oder absagen' : 'Neuen Termin vorbereiten'}</h2>
-    <p>Zeiten auf diesem Gerät. Erst die bestätigte Vorschau ändert deinen Google-Kalender. Serientermine und fremde Einladungen bearbeitest du vorerst direkt bei Google. Absagen sind hier nur für die bestätigte Organisator-Kopie möglich.</p>
+    <h2 ref={heading} tabIndex={-1}>{preparedDraft ? 'Termin aus der Mail prüfen' : event ? 'Termin bearbeiten oder absagen' : 'Neuen Termin vorbereiten'}</h2>
+    <p>{preparedDraft ? 'Prüfe diese Vorschau einschließlich Kalender und Zeitangaben. Die Mailgrundlage wird vor dem verbindlichen Schreiben erneut geprüft.' : 'Zeiten auf diesem Gerät. Erst die bestätigte Vorschau ändert deinen Google-Kalender. Serientermine und fremde Einladungen bearbeitest du vorerst direkt bei Google. Absagen sind hier nur für die bestätigte Organisator-Kopie möglich.'}</p>
     <button type="button" className="text-action" disabled={busy} onClick={onClose}>Schließen</button>
     {error && <p role="alert">{error}</p>}
     {!draft && <form onSubmit={e => {
@@ -116,7 +116,7 @@ export function CalendarActionForm({event, onClose, onDone}: {
       })}>{draft.kind === 'cancel' ? 'Absage verbindlich bestätigen' : 'Änderung verbindlich bestätigen'}</button>}
       {(mustRead || draft.status === 'running' || draft.status === 'uncertain') && <button type="button" className="secondary-action" disabled={busy} onClick={() => readDraft(draft.id)}>Gespeicherten Status prüfen</button>}
       <p><a href="https://calendar.google.com/" target="_blank" rel="noopener noreferrer">Google-Kalender öffnen</a></p>
-      <button type="button" className="text-action" disabled={busy || mustRead || draft.status === 'running' || draft.status === 'uncertain'} onClick={clear}>Neuen Entwurf vorbereiten</button>
+      <button type="button" className="text-action" disabled={busy || mustRead || draft.status === 'running' || draft.status === 'uncertain'} onClick={preparedDraft ? onClose : clear}>{preparedDraft ? 'Angaben im Mailentwurf ändern' : 'Neuen Entwurf vorbereiten'}</button>
     </div>}
     {!draft && recovery && <button type="button" className="text-action" disabled={busy} onClick={() => readDraft(recovery)}>Letzten gespeicherten Entwurf prüfen</button>}
   </section>;

@@ -3,6 +3,7 @@ import { api, type ConversationPayload, type MailDetail } from "./api";
 import { navigate } from "./ui";
 import { MailThread } from "./MailThread";
 import { MailTaskForm } from "./MailTaskForm";
+import {MailCalendarPreparation} from "./MailCalendarPreparation";
 import { MailBriefing, type MailTaskSuggestion } from "./MailBriefing";
 import { MailReplySuggestion, type Suggestion } from "./MailReplySuggestion";
 import { ProfileSource } from "./ProfileSource";
@@ -252,6 +253,7 @@ export function MailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
         <button className="mail-reader-secondary" disabled={remembering || remembered} onClick={remember} type="button">{remembering ? "Wird gemerkt …" : remembered ? "Als Quelle gemerkt" : "Als Quelle merken"}</button>
         {rememberNotice ? <p className="mail-reader-status" role="status">{rememberNotice}</p> : null}
       </section>
+      <MailCalendarPreparation key={`calendar:${uid}`} uid={uid} expectedBinding={detail.calendar_source_digest} onDone={onTaskSaved} />
       <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} expectedSourceDigest={detail.source_digest ?? null} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
       <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} />
       <MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} />

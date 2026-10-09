@@ -2383,6 +2383,9 @@ def create_app(
         except Exception as exc:
             raise HTTPException(status_code=502, detail="Die Nachricht konnte nicht geladen werden.") from exc
 
+    from .mail_calendar_routes import install_routes as install_mail_calendar_routes, source_binding as calendar_mail_binding
+    install_mail_calendar_routes(app, guard, _read_mail, _mail_or_404)
+
     def _can_reply(message: Any) -> bool:
         mail = _mail_or_404()
         if hasattr(mail, "can_send_from"):
@@ -2391,8 +2394,14 @@ def create_app(
 
     @app.get("/api/v1/messages/{uid}", dependencies=guard)
     def read_kingfisher_mail(uid: str) -> dict[str, Any]:
+        reader = _mail_or_404()
         message = _read_mail(uid)
-        return {**message.to_dict(), "source_digest": mail_source_digest(message), "can_reply": _can_reply(message),
+        from .mail_thread import thread_context
+        with app.state.conversation_lock:
+            if app.state.mail is not reader or message.uid != uid:
+                raise HTTPException(409, 'Die Mailquelle hat sich geändert. Bitte erneut öffnen.')
+            binding = calendar_mail_binding(message, thread_context(app.state.episodes, message))
+        return {**message.to_dict(), "source_digest": mail_source_digest(message), "calendar_source_digest": binding, "can_reply": _can_reply(message),
                 "sending_account": getattr(_mail_or_404(), "sender_label", lambda _: "Standardkonto")(message.account_id)}
 
     @app.get("/api/v1/messages/{uid}/thread", dependencies=guard)

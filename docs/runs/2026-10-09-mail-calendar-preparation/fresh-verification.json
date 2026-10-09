@@ -1,0 +1,21 @@
+{
+  "version": "1.0.6-local.d431383",
+  "python_sources_verified": 266,
+  "ui_files_verified": 112,
+  "ui_file_set_exact": true,
+  "image_id": "sha256:930ef4d708d93668dcb79a54cbaac678444283e769addac1b9c3914fd511b858",
+  "schema": 20,
+  "original_bodies_and_documents_recomputed_and_preserved": 344,
+  "database_count": 17,
+  "settings_and_pause_preserved": true,
+  "same_volume": true,
+  "native_signature_and_bytes_verified": true,
+  "native_ui_verified": false,
+  "health": {
+    "health": true,
+    "inspection": false,
+    "read_only_route": true,
+    "background_paused": true
+  },
+  "native_storage_probe": "before=ok\nafter=ok"
+}
