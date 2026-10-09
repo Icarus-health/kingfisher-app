@@ -1,0 +1,47 @@
+{
+  "patch_sha256": "f5a68a5e60e2e13b0944f7cc8abe0f40ada31c8f6a364d259cdccaffd2cff6c9",
+  "source_1": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+  "source_2": "Der Schalter darf umgelegt werden.",
+  "bad_legacy_candidate": "Die Klappe darf geöffnet werden. Der Schalter darf umgelegt werden. Dies gilt ausschließlich nach schriftlicher Freigabe. Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+  "prepared_status": "saetze",
+  "prepared_text": [
+    "Die Klappe darf geöffnet werden. Der Schalter darf umgelegt werden. Dies gilt ausschließlich nach schriftlicher Freigabe. Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe."
+  ],
+  "judge_calls": 1,
+  "offered": [
+    {
+      "anliegen": "Was gilt für Klappe und Schalter?",
+      "stichtag": "Freitag, 09.10.2026",
+      "belege": [
+        {
+          "nr": 1,
+          "rolle": "Quelle",
+          "quelle": "Schalter",
+          "originalsaetze": [
+            {
+              "nr": 1,
+              "text": "Der Schalter darf umgelegt werden."
+            }
+          ]
+        },
+        {
+          "nr": 2,
+          "rolle": "Quelle",
+          "quelle": "Klappe",
+          "originalsaetze": [
+            {
+              "nr": 1,
+              "text": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "reopened": true,
+  "reopened_text": [
+    "Die Klappe darf geöffnet werden. Der Schalter darf umgelegt werden. Dies gilt ausschließlich nach schriftlicher Freigabe. Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe."
+  ],
+  "after_ignore": false,
+  "original_preserved": true
+}

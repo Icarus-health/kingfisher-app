@@ -1,0 +1,2 @@
+{"version": "1.0.6-local.e8cfc26", "python_sources_verified": 264, "ui_files_verified": 112}
+{"complete_rule_context": true, "header_and_normative_companion_atomic": true, "reversed_and_repeated_fragment_rejected": true, "ordinary_fact_and_single_rule_positive": true, "hidden_context_rejected": true, "network": "none", "private_sources_used": false, "real_model_test": false}

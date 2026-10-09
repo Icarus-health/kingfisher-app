@@ -1,0 +1,27 @@
+{
+  "agent-correction-red.log": {
+    "raw_sha256": "590960a7827cc8f917543e51be9f473fb58f5145aa23f55bac3f2fed30e95a5a",
+    "saved_sha256": "21dffcde45dc393c137819fb0138eef652e562cc0e44a2a82842f3db4f5f965f",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "agent-correction-green.log": {
+    "raw_sha256": "6f5fc00407946728c24b890a1eb9ea0c15c1b7fa5526b82d81788d7ace7c7df4",
+    "saved_sha256": "6f5fc00407946728c24b890a1eb9ea0c15c1b7fa5526b82d81788d7ace7c7df4",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "package-smoke-result.txt": {
+    "raw_sha256": "dc7cfa57177c5054d659e4b1a91da3b132bfbfc6ef78314a4a43a08411f4e0b3",
+    "saved_sha256": "dc7cfa57177c5054d659e4b1a91da3b132bfbfc6ef78314a4a43a08411f4e0b3",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "package-build.log": {
+    "raw_sha256": "337b12817e41ad95fb338732fe36882f3cf467d0f5ec4a52de4c18a5bc667ec4",
+    "saved_sha256": "605975a71c0b5d7076878685d6358479dc89cdddb61bf5a4e26d48e7ccdc6df7",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "interrupted-regression-da38e85.log": {
+    "raw_sha256": "2370e59aee07b86de6c8b5d3d1e810011bd7bed9d67bad9d51cb2ba85ee67000",
+    "saved_sha256": "c4521fe78ff6d3bf55bdcad5564dc632b56ccaf0d259d234f457644804007fb1",
+    "normalization": "trailing ASCII whitespace only"
+  }
+}

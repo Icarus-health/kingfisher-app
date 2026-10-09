@@ -1,0 +1,159 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "ollama_models": "/private/tmp/kingfisher-paragraph-formulation-e8cfc26-20261009/models",
+  "isolated_blobs_real_directory": true,
+  "isolated_blobs_symlink": false,
+  "OLLAMA_NO_CLOUD": "1",
+  "OLLAMA_NOPRUNE": "1",
+  "native_source_blobs_before_sha256": "a06fbb740e875d218e8c0c3408cdea1bbe3c20d32af79f54416ef3ede4ca0961",
+  "preflight_verified_blobs": [
+    {
+      "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "isolated_sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "isolated_inode": 96587623,
+      "source_inode": 53799054,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "isolated_sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "isolated_inode": 96587624,
+      "source_inode": 53789206,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "isolated_sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "isolated_inode": 96587626,
+      "source_inode": 53798972,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "isolated_sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "isolated_inode": 96587625,
+      "source_inode": 53799015,
+      "distinct_inode": true,
+      "not_symlink": true
+    }
+  ],
+  "watchdog": "8 GiB sampled owned server/client process RSS or 600 seconds; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791507627.350528,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 35424
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 1313952
+    },
+    {
+      "elapsed": 4.1,
+      "owned_rss_kib": 4343232
+    },
+    {
+      "elapsed": 6.13,
+      "owned_rss_kib": 4730256
+    },
+    {
+      "elapsed": 8.17,
+      "owned_rss_kib": 4837760
+    },
+    {
+      "elapsed": 10.19,
+      "owned_rss_kib": 232704
+    },
+    {
+      "elapsed": 12.24,
+      "owned_rss_kib": 4943488
+    },
+    {
+      "elapsed": 14.27,
+      "owned_rss_kib": 5023296
+    }
+  ],
+  "completed": true,
+  "client_exit": 0,
+  "server_exit": 0,
+  "watchdog_stop": null,
+  "server_pid": 70634,
+  "tags": {
+    "models": [
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-10-09T02:56:07.306307098+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 70637,
+  "stopped_at": 1791507644.24411,
+  "native_source_blobs_after": [
+    {
+      "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "exists": true,
+      "size": 475,
+      "inode": 53799054,
+      "mtime_ns": 1782993703543041841,
+      "mode": 420,
+      "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887"
+    },
+    {
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "exists": true,
+      "size": 3389971840,
+      "inode": 53789206,
+      "mtime_ns": 1782993698707934990,
+      "mode": 420,
+      "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490"
+    },
+    {
+      "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "exists": true,
+      "size": 11355,
+      "inode": 53798972,
+      "mtime_ns": 1782993700768810413,
+      "mode": 420,
+      "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+    },
+    {
+      "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "exists": true,
+      "size": 65,
+      "inode": 53799015,
+      "mtime_ns": 1791291898020546000,
+      "mode": 420,
+      "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff"
+    }
+  ],
+  "native_source_blobs_unchanged": true
+}

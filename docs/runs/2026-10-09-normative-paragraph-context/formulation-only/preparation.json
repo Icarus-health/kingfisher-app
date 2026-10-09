@@ -1,0 +1,9 @@
+{
+  "revision": "e8cfc26d5aee8ef42a6206da4ffa02a3bbced966",
+  "archive_sha256": "ca15ecbd7b917a698d7c6f3193623e8b3e7ffd68b296420e6b46da70e8a6d830",
+  "catalog_sha256": "4eaed5adeab90bd5e15206d4563bd24b962b791defdc46168d4ad8dfff632242",
+  "harness_identical_to_independently_reviewed_da38e85": true,
+  "only_code_archive_and_catalog_commit_changed": true,
+  "real_apfs_clones": true,
+  "model_execution_started": false
+}
