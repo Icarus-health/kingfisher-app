@@ -71,5 +71,10 @@
   "mutation": {
     "failed_expected": 32,
     "passed_controls": 13
-  }
+  },
+  "durable_loose_app_signature_current": false,
+  "loose_app_preserved_as": "Kingfisher.app-Kopie-nicht-starten",
+  "canonical_installer": "Kingfisher.dmg",
+  "actual_durable_dmg_app_signature_and_hashes_verified": true,
+  "signature_scope": "clean build and read-only actual durable DMG app"
 }
