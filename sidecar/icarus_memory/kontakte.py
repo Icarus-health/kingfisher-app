@@ -22,6 +22,9 @@ unverändert lesbar; die Wörterbücher tragen zusätzlich die Rolle.
 from __future__ import annotations
 
 import re
+import unicodedata
+from email.errors import HeaderParseError
+from email.header import decode_header
 from email.utils import formataddr, getaddresses
 from typing import Any, Iterable
 
@@ -32,13 +35,29 @@ ROLLEN = ("von", "an", "cc", "bcc")
 _SPITZE = re.compile(r"\s*<[^<>]*>\s*$")
 
 
-def anzeigename(wert: Any) -> str:
+def anzeigename(wert: Any, *, kopfzeile: bool = False) -> str:
     """Der Name vor der Adresse: „Keller, Anna“ aus „Keller, Anna <a@x>“.
 
     Ohne Namen (nur eine Adresse) bleibt es leer, statt die Adresse als Namen
-    auszugeben.
+    auszugeben. Nur ausdrücklich als Mailkopf bekannte Namen werden nach
+    RFC 2047 dekodiert; Namen und Textstellen anderer Quellen bleiben wörtlich.
     """
     text = _SPITZE.sub("", str(wert or "")).strip().strip('"').strip()
+    if kopfzeile:
+        try:
+            dekodiert = "".join(teil.decode(kodierung or "ascii", errors="strict")
+                               if isinstance(teil, bytes) else teil
+                               for teil, kodierung in decode_header(text))
+            # Defekte oder steuernde Kopfdaten bleiben sichtbar, statt einen
+            # Ersatznamen oder zusätzliche Kopfzeilen daraus zu erzeugen.
+            if not any(unicodedata.category(zeichen) in {"Cc", "Cf", "Cs"} for zeichen in dekodiert):
+                text = dekodiert.strip()
+        except (LookupError, UnicodeError, ValueError, HeaderParseError):
+            pass
+        # Bei schon unkodierten Unicode-Köpfen ist die Rohfassung kein sicherer
+        # Ersatz. Die Adresse bleibt der Anker, ein steuernder Name entfällt.
+        if any(unicodedata.category(zeichen) in {"Cc", "Cf", "Cs"} for zeichen in text):
+            return ""
     return "" if "@" in text else text
 
 
@@ -50,7 +69,7 @@ def kontakt(wert: Any, rolle: str, *, eigene: Iterable[str] = ()) -> dict[str, A
     if not text:
         return None
     adresse = mail_address(text)
-    name = anzeigename(text)
+    name = anzeigename(text, kopfzeile=True)
     if not name and not adresse:
         return None
     selbst = {mail_address(a) for a in eigene if mail_address(a)}

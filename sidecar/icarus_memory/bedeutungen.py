@@ -199,7 +199,8 @@ def _partei(quelle: dict, eigene: Iterable[str]) -> tuple[str, str, str, str] | 
     zählt die Domäne (mehrere Ansprechpartner, eine Firma), hinter einer
     Freemail-Domäne die Adresse.
     """
-    for n in nennungen({'participants': quelle.get('participants') or [], 'contacts': []}, eigene):
+    for n in nennungen({'participants': quelle.get('participants') or [], 'contacts': [],
+                       'provenance': {'source_type': quelle.get('source_type')}}, eigene):
         if n.ich or not n.adresse:
             continue
         domain = n.adresse.rsplit('@', 1)[1] if '@' in n.adresse else ''
@@ -211,7 +212,8 @@ def _partei(quelle: dict, eigene: Iterable[str]) -> tuple[str, str, str, str] | 
 
 def _selbst_geschrieben(quelle: dict, eigene: Iterable[str]) -> bool:
     """Steht der Nutzer selbst unter den Beteiligten? Empfangene Mails führen seine Adresse nicht, gesendete schon."""
-    return any(n.ich for n in nennungen({'participants': quelle.get('participants') or [], 'contacts': []}, eigene))
+    return any(n.ich for n in nennungen({'participants': quelle.get('participants') or [], 'contacts': [],
+                                       'provenance': {'source_type': quelle.get('source_type')}}, eigene))
 
 
 def _kennwoerter(namen: Iterable[str], domain: str) -> set[str]:

@@ -5651,7 +5651,7 @@ def create_app(
             # Nur die Adresse angegeben: Ihre Anzeigenamen gelten gegen Titel und Ort.
             from .kontakte import anzeigename
             namen = [n for n in (anzeigename(e['name']) for e in
-                                 app.state.episodes.participants_for_address(adresse)[:3]) if n]
+                                 app.state.episodes.participants_for_address(adresse, anzeigenamen=True)[:3]) if n]
         return einzelheiten(ids, episodes=app.state.episodes, claims=app.state.claims, tasks=tasks,
                             termine=_mappen_termine(), namen=namen,
                             adressen=[adresse] if adresse else [], alle=alle)

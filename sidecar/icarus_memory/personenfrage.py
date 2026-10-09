@@ -110,9 +110,9 @@ def namensfolgen(frage: str) -> list[str]:
     return [" ".join(f) for f in folgen if _woerter(" ".join(f))]
 
 
-def _zeilen(episodes: Any, woerter: Iterable[str]) -> list[tuple[str, list[str]]]:
+def _zeilen(episodes: Any, woerter: Iterable[str]) -> list[tuple[str, list[str], str]]:
     """Quellen, deren Beteiligte eines der Wörter tragen könnten (ein Durchgang)."""
-    return episodes.participants_containing(sorted(set(woerter)))
+    return episodes.participants_containing(sorted(set(woerter)), mit_herkunft=True)
 
 
 def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[Erwaehnung]:
@@ -128,8 +128,9 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
     namen: dict[str, Counter] = defaultdict(Counter)
     ohne_adresse: list[tuple[str, str]] = []  # (Name, Quelle)
     zu_adresse: dict[str, list[str]] = defaultdict(list)
-    for episode_id, teilnehmer in zeilen:
-        for nennung in nennungen({"participants": teilnehmer, "contacts": []}, eigene):
+    for episode_id, teilnehmer, art in zeilen:
+        for nennung in nennungen({"participants": teilnehmer, "contacts": [],
+                                 "provenance": {"source_type": art}}, eigene):
             if nennung.ich:
                 continue
             if nennung.adresse:

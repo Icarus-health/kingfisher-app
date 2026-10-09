@@ -62,6 +62,11 @@ ENTZUG_MARKE = "entzogen:"
 
 _SPITZ = re.compile(r'<([^<>]+@[^<>]+)>\s*$')
 
+# Nur Mailquellen können kodierte Kopfnamen tragen. Die eigentliche
+# Dekodierung und Namensprüfung findet außerhalb des SQL-Vorfilters statt.
+_KODIERTER_MAILNAME = ("json_extract(document, '$.provenance.source_type') = 'email' AND "
+                      "json_extract(document, '$.participants') LIKE '%=?%'")
+
 
 def mail_address(value: Any) -> str:
     """Die Mailadresse einer Teilnehmerangabe, kleingeschrieben, sonst ''.
@@ -1606,14 +1611,16 @@ class EpisodeStore:
                 found.update(row[0] for row in rows)
         return found
 
-    def participants_for_addresses(self, addresses: Iterable[str]) -> dict[str, dict[str, Any]]:
+    def participants_for_addresses(self, addresses: Iterable[str], *, anzeigenamen: bool = False) -> dict[str, dict[str, Any]]:
         """Wie Mailadressen im Bestand als Beteiligte auftreten, in einem Durchgang.
 
         Je Adresse: die Schreibweisen mit Anzahl („Anna Keller <anna@x.de>“),
         der letzte Zeitpunkt und je Quelle ihr Projekt, damit eine Nachricht an
         mehrere Teilnehmer nur einmal zählt. Geprüft wird die Adresse genau,
         die Textsuche ist nur Vorfilter. Ein Durchgang für alle Adressen einer
-        Anfrage, nicht einer je Teilnehmer.
+        Anfrage, nicht einer je Teilnehmer. Mit `anzeigenamen` werden nur die
+        Anzeigenamen ausgegeben; RFC-2047-Dekodierung gilt ausschließlich für
+        Mailquellen. Die gespeicherten Beteiligten bleiben unverändert.
         """
         gesucht = sorted({mail_address(a) for a in addresses if mail_address(a)})
         ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
@@ -1628,31 +1635,35 @@ class EpisodeStore:
             bedingung = ' OR '.join("lower(json_extract(document, '$.participants')) LIKE ? ESCAPE '\\'" for _ in teil)
             with self._lock:
                 for zeile in self._conn.execute(
-                        "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id "
+                        "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
+                        "json_extract(document, '$.provenance.source_type') "
                         f"FROM episodes WHERE {sql_aktuell()} AND ({bedingung})", teil):
                     rows.setdefault(zeile[0], zeile)
-        for episode_id, teilnehmer, zeit, projekt in rows.values():
+        for episode_id, teilnehmer, zeit, projekt, art in rows.values():
             for wert in json.loads(teilnehmer or '[]'):
                 adresse = mail_address(str(wert))
                 if adresse not in ergebnis:
                     continue
                 eintrag = ergebnis[adresse]
                 name = str(wert).strip()
+                if anzeigenamen:
+                    from .kontakte import anzeigename
+                    name = anzeigename(name, kopfzeile=art == "email") or adresse
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
                 if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
                     eintrag['zuletzt'] = zeit
         return ergebnis
 
-    def participants_for_address(self, address: str) -> list[dict[str, Any]]:
+    def participants_for_address(self, address: str, *, anzeigenamen: bool = False) -> list[dict[str, Any]]:
         """Die Schreibweisen einer Adresse, häufigste zuerst (für einzelne Abfragen)."""
-        eintrag = self.participants_for_addresses([address]).get(mail_address(address))
+        eintrag = self.participants_for_addresses([address], anzeigenamen=anzeigenamen).get(mail_address(address))
         if not eintrag:
             return []
         return [{'name': name, 'anzahl': anzahl} for name, anzahl
                 in sorted(eintrag['namen'].items(), key=lambda item: (-item[1], item[0]))]
 
-    def _beteiligte_zu(self, name: str) -> list[tuple[str, list[str]]]:
+    def _beteiligte_zu(self, name: str) -> list[tuple[str, list[str], str]]:
         """Geltende Quellen, deren Beteiligte zur Angabe passen könnten (Vorfilter, neueste zuerst).
 
         Vorgefiltert wird nur über Wörter aus reinem ASCII: SQLite vergleicht
@@ -1666,13 +1677,18 @@ class EpisodeStore:
             return []
         bedingung = " AND ".join("lower(json_extract(document, '$.participants')) LIKE ? ESCAPE '\\'"
                                  for _ in woerter) or "1"
+        if not adresse:
+            # Kodierte Mailnamen sind im Rohtext nicht über ihren Namen auffindbar.
+            # Sie sind nur Kandidaten; der anschließende Vergleich bleibt exakt.
+            bedingung = f"({bedingung}) OR ({_KODIERTER_MAILNAME})"
         muster = ["%" + w.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%" for w in woerter]
         with self._lock:
             rows = self._conn.execute(
-                "SELECT id, json_extract(document, '$.participants') FROM episodes "
-                f"WHERE {sql_aktuell()} AND {bedingung} "
+                "SELECT id, json_extract(document, '$.participants'), "
+                "json_extract(document, '$.provenance.source_type') FROM episodes "
+                f"WHERE {sql_aktuell()} AND ({bedingung}) "
                 "ORDER BY COALESCE(occurred_at, recorded_at) DESC, id", muster).fetchall()
-        return [(row[0], [str(v) for v in json.loads(row[1] or '[]')]) for row in rows]
+        return [(row[0], [str(v) for v in json.loads(row[1] or '[]')], row[2]) for row in rows]
 
     def reference_times(self, episode_ids: list[str]) -> list[datetime]:
         """Die fachlichen Zeitpunkte (Ereignis, sonst Aufnahme) der genannten Quellen, ohne sie zu laden."""
@@ -1687,13 +1703,14 @@ class EpisodeStore:
                 zeiten += [ensure_aware(_parse(row[0])) for row in rows if row[0]]
         return zeiten
 
-    def participants_containing(self, woerter: list[str]) -> list[tuple[str, list[str]]]:
+    def participants_containing(self, woerter: list[str], *, mit_herkunft: bool = False) -> list:
         """Geltende Quellen, deren Beteiligte eines der Wörter enthalten, mit ihren Beteiligten.
 
         Ein Durchgang für alle Wörter einer Frage. Nur Vorfilter: Wörter mit
         Umlauten oder Sonderzeichen werden ohne Rücksicht auf Groß- und
         Kleinschreibung nur für ASCII verglichen; die genaue Prüfung macht der
-        Aufrufer.
+        Aufrufer. Mit `mit_herkunft` trägt jeder Rückgabeeintrag zusätzlich den
+        Quellentyp; kodierte Mailnamen werden dann ebenfalls als Kandidaten gelesen.
         """
         muster = ["%" + w.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
                   for w in woerter if w.strip()]
@@ -1701,12 +1718,16 @@ class EpisodeStore:
             return []
         bedingung = " OR ".join("lower(json_extract(document, '$.participants')) LIKE ? ESCAPE '\\'"
                                 for _ in muster)
+        if mit_herkunft:
+            bedingung = f"({bedingung}) OR ({_KODIERTER_MAILNAME})"
         with self._lock:
             rows = self._conn.execute(
-                "SELECT id, json_extract(document, '$.participants') FROM episodes "
+                "SELECT id, json_extract(document, '$.participants'), "
+                "json_extract(document, '$.provenance.source_type') FROM episodes "
                 f"WHERE {sql_aktuell()} AND ({bedingung}) "
                 "ORDER BY COALESCE(occurred_at, recorded_at) DESC, id", muster).fetchall()
-        return [(row[0], [str(v) for v in json.loads(row[1] or '[]')]) for row in rows]
+        return [(row[0], [str(v) for v in json.loads(row[1] or '[]')], row[2]) if mit_herkunft
+                else (row[0], [str(v) for v in json.loads(row[1] or '[]')]) for row in rows]
 
     def participant_ids(self, name: str) -> list[str]:
         """Geltende Quellen, an denen genau diese Person beteiligt ist.
@@ -1723,12 +1744,12 @@ class EpisodeStore:
         adresse = mail_address(name)
         gesucht = name_schluessel(name)
         gefunden = []
-        for episode_id, teilnehmer in self._beteiligte_zu(name):
+        for episode_id, teilnehmer, art in self._beteiligte_zu(name):
             for wert in teilnehmer:
                 if adresse:
                     passt = mail_address(wert) == adresse
                 else:
-                    text = anzeigename(wert) if mail_address(wert) else wert
+                    text = anzeigename(wert, kopfzeile=art == "email") if mail_address(wert) else wert
                     passt = name_schluessel(text) == gesucht
                 if passt:
                     gefunden.append(episode_id)
@@ -1741,10 +1762,10 @@ class EpisodeStore:
         from .kontakte import anzeigename
         gesucht = name_schluessel(name)
         adressen = set()
-        for _, teilnehmer in self._beteiligte_zu(name):
+        for _, teilnehmer, art in self._beteiligte_zu(name):
             for wert in teilnehmer:
                 adresse = mail_address(wert)
-                if adresse and name_schluessel(anzeigename(wert)) == gesucht:
+                if adresse and name_schluessel(anzeigename(wert, kopfzeile=art == "email")) == gesucht:
                     adressen.add(adresse)
         return sorted(adressen)
 
