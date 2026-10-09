@@ -39,7 +39,7 @@ function openProfile(node: GraphNode) {
   } else if (node.attributes.identity_resolution === "explicit_registry") {
     navigate(`/memory/registry/${encodeURIComponent(node.id)}`);
   } else if (node.kind === "person") {
-    navigate(`/memory/people/${encodeURIComponent(node.label)}`);
+    navigate(`/memory/people/${encodeURIComponent(node.label)}?source_node=${encodeURIComponent(node.id)}`);
   } else {
     navigate(`/memory/projects/${encodeURIComponent(node.id.replace(/^project:/, ""))}`);
   }

@@ -12,7 +12,7 @@ import "./PeopleReview.css";
 function openPerson(node: GraphNode) {
   if (node.attributes.identity_resolution === "confirmed_group") navigate("/memory?people=review");
   else if (node.attributes.identity_resolution === "explicit_registry") navigate(`/memory/registry/${encodeURIComponent(node.id)}`);
-  else navigate(`/memory/people/${encodeURIComponent(node.label)}`);
+  else navigate(`/memory/people/${encodeURIComponent(node.label)}?source_node=${encodeURIComponent(node.id)}`);
 }
 
 function MergeCandidate({ members, onChanged }: { members: GraphNode[]; onChanged: () => Promise<void> }) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { api, type PersonProfile as PersonProfileData, type ProjectProfile as ProjectProfileData, type Task, type RegistryProfile as RegistryProfileData } from "./api";
+import { ApiError, api, type PersonProfile as PersonProfileData, type ProjectProfile as ProjectProfileData, type Task, type RegistryProfile as RegistryProfileData } from "./api";
+import { loadContactProfile, type ContactSourceView } from "./contactSources";
 import { ClaimEvidence } from "./ClaimEvidence";
 import { ClaimControls } from "./ClaimControls";
 import { DecisionControls } from "./DecisionControls";
@@ -106,6 +107,8 @@ function ProjectProfile({ data, tab, setTab }: { data: ProjectProfileData; tab: 
 
 export function MemoryProfile({ kind, identifier, recentConversation }: { kind: ProfileKind; identifier: string; recentConversation: string | null }) {
   const [data, setData] = useState<PersonProfileData | ProjectProfileData | null>(null);
+  const [contactSources, setContactSources] = useState<ContactSourceView | null>(null);
+  const sourceNodeId = new URLSearchParams(window.location.search).get("source_node");
   const [error, setError] = useState(false);
   const [personTab, setPersonTab] = useState<PersonTab>("overview");
   const [projectTab, setProjectTab] = useState<ProjectTab>("overview");
@@ -113,11 +116,15 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
   useEffect(() => {
     let active = true;
     setData(null);
+    setContactSources(null);
     setError(false);
-    const load = kind === "person" ? api.personProfile(identifier) : api.projectProfile(identifier);
-    load.then((result) => active && setData(result)).catch(() => active && setError(true));
+    const load = kind === "person"
+      ? loadContactProfile(identifier, sourceNodeId, api.personProfile, api.memoryGraph, cause => cause instanceof ApiError && cause.status === 404)
+        .then(result => { if (active) { if (result.kind === "person") setData(result.profile); else setContactSources(result.view); } })
+      : api.projectProfile(identifier).then(result => { if (active) setData(result); });
+    load.catch(() => active && setError(true));
     return () => { active = false; };
-  }, [kind, identifier]);
+  }, [kind, identifier, sourceNodeId]);
 
   const title = useMemo(() => kind === "person" ? "Personenprofil" : "Projektprofil", [kind]);
   return <div className="shell profile-shell">
@@ -125,7 +132,12 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
     <main className="profile-page">
       <button className="profile-back" onClick={() => navigate("/memory")} type="button">← Gedächtnis</button>
       {error ? <section className="profile-state"><h1>{title}</h1><p>Dieses Profil ist gerade nicht erreichbar oder nicht belegt.</p><button onClick={() => window.location.reload()} type="button">Wiederholen</button></section> : null}
-      {!error && !data ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
+      {!error && !data && !contactSources ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
+      {contactSources ? <section className="profile-card profile-wide">
+        <h1>Absenderquellen</h1><p>{contactSources.node.label}</p>
+        <p>Technischer oder ungeklärter Absender · keine bestätigte Personenidentität.</p>
+        {contactSources.sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id.slice(8)} label={source.label} readOnly allowIgnore={false} />)}
+      </section> : null}
       {data && kind === "person" ? <PersonProfile data={data as PersonProfileData} setTab={setPersonTab} tab={personTab} /> : null}
       {data && kind === "project" ? <ProjectProfile data={data as ProjectProfileData} setTab={setProjectTab} tab={projectTab} /> : null}
     </main>
