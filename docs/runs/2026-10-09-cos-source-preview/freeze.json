@@ -1,0 +1,10 @@
+{
+  "commit": "173cef8adb39d7a5d68a6c81f3acc3c16850733b",
+  "version": "1.0.6-preview.173cef8",
+  "archive_sha256": "aa9a2845d3367b254196df4d229c17e9315dd1d83054f4dd829bc708ddeb5e13",
+  "bytes": 105922560,
+  "untracked_files_included": false,
+  "node_modules_shared": true,
+  "tracked_backend_matches_initial_archive": true,
+  "initial_archive_commit": "26e2bda2860a3c5b65c36e666d2a4344b70fd39d"
+}
