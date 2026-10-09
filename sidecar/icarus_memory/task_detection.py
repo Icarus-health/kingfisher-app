@@ -55,19 +55,20 @@ class TaskDetector:
                     count += 1
         return count
 
-    def run(self, *, with_model: bool, limit: int = 10, permitted: Callable[[], bool] = lambda: True) -> DetectionReport:
-        report = DetectionReport(superseded=self.expire_sources())
+    def run(self, *, with_model: bool, limit: int = 10, rechecks_only: bool = False, permitted: Callable[[], bool] = lambda: True) -> DetectionReport:
+        # Der kurze Takt liest nur die Wiedervorlage; Anzeige/Übernahme prüfen Quellen weiterhin frisch.
+        report = DetectionReport(superseded=0 if rechecks_only else self.expire_sources())
         if not with_model or self.provider is None or not getattr(self.provider, 'is_local', False):
             return report
         report.available = True
         attempted = 0
         cursor = self.proposals.task_scan_cursor()
         budget = max(0, min(limit, 20))
-        priority_budget = self.episodes.task_recheck_budget(budget)
+        priority_budget = budget if rechecks_only else self.episodes.task_recheck_budget(budget)
 
         def work():
-            # Höchstens eine begrenzte Queue-Seite und das halbe Modellbudget.
-            # Bei Budget 1 wechselt die Spur dauerhaft, auch über Neustarts.
+            # Höchstens eine begrenzte Queue-Seite; im Bestandslauf das halbe Modellbudget.
+            # Der kurze Takt nutzt nur die Queue. Im Bestandslauf mit Budget 1 wechselt die Spur dauerhaft.
             if priority_budget:
                 for row in self.episodes.task_rechecks():
                     if attempted >= priority_budget:
@@ -78,7 +79,7 @@ class TaskDetector:
                         self.episodes.finish_task_recheck(row, completed=True)
                         continue
                     yield snapshot, row
-            while attempted < budget:
+            while not rechecks_only and attempted < budget:
                 batch = self.episodes.analysis_batch(cursor)
                 if not batch:
                     self.proposals.advance_task_scan('')

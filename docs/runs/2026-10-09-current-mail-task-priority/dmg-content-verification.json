@@ -1,0 +1,7 @@
+{
+  "mounted_read_only": true,
+  "strict_deep_signature": true,
+  "app_files_identical_to_verified_archive": true,
+  "files_compared": 6,
+  "application_launched": false
+}

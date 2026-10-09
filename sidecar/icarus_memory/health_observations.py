@@ -13,6 +13,7 @@ from uuid import UUID
 from fastapi import HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from .datumstext import iso_lesen_streng
 from .episodes import EpisodeKind, EpisodeState, sql_geltend
 from .memory_categories import Categories
 from .memory_history import query_key, ceiling_anchor, validate_anchor
@@ -48,7 +49,7 @@ class Fields(BaseModel):
     def aware_time(cls, value):
         if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value):
             raise ValueError('Messzeit benötigt Datum, Uhrzeit und Zeitzone.')
-        stamp = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        stamp = iso_lesen_streng(value)
         if stamp.utcoffset() is None:
             raise ValueError('Messzeit benötigt eine Zeitzone.')
         try:
@@ -93,7 +94,7 @@ def _snapshot(episodes, identifier, *, current=True):
     if type(payload) is not dict or payload.pop('schema', None) != SCHEMA:
         raise ValueError('Unbekanntes Messformat.')
     fields = Fields.model_validate(payload)
-    if datetime.fromisoformat(fields.observed_at.replace('Z', '+00:00')) != episode.occurred_at:
+    if iso_lesen_streng(fields.observed_at) != episode.occurred_at:
         raise ValueError('Messzeit und Originalquelle widersprechen sich.')
     return snapshot, fields
 
@@ -116,7 +117,7 @@ def _category_available(episodes):
 def _record(episodes, fields, key):
     return episodes.record(EpisodeKind.DOCUMENT, fields.metric, _body(fields),
         Provenance(SourceType.USER_STATED, source_ref='health:manual'),
-        occurred_at=datetime.fromisoformat(fields.observed_at.replace('Z', '+00:00')),
+        occurred_at=iso_lesen_streng(fields.observed_at),
         source_key=key, tags=[SCHEMA, 'health:subject:self', 'health:change:' + fields.request_id])[0]
 
 
@@ -139,7 +140,7 @@ def _lookup(episodes, identifier, *, current=True):
 def _instant_us(value):
     """Exact signed microseconds, without SQLite's millisecond/float rounding."""
     try:
-        stamp = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        stamp = iso_lesen_streng(value)
         if stamp.utcoffset() is None:
             return None
         delta = stamp.astimezone(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)

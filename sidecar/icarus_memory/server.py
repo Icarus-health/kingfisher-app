@@ -1055,7 +1055,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                 except ValueError:
                     results.append(JobResult('lernen', False, 'Beobachtungen konnten nicht vollständig geprüft werden.'))
         return results
-    def run_task_detection(with_model):
+    def run_task_detection(with_model, *, limit=10, rechecks_only=False):
         agent = getattr(app.state, "agent", None)
         plan_at_start = asdict(app.state.settings.schedule)
         detector = TaskDetector(app.state.episodes, app.state.proposals,
@@ -1065,7 +1065,7 @@ def _wire_scheduler(app: FastAPI) -> None:
         def permitted():
             return (getattr(app.state, "agent", None) is agent
                     and asdict(app.state.settings.schedule) == plan_at_start)
-        report = detector.run(with_model=with_model, permitted=permitted)
+        report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -1178,6 +1178,13 @@ def _wire_scheduler(app: FastAPI) -> None:
     scheduler._run_prompt_working_memory = lambda ids: run_working_memory(True, prompt=True, source_ids=ids)
     scheduler._runtime_boundary = app.state.runtime_boundary
     scheduler._run_task_detection = run_task_detection  # noqa: SLF001
+    def run_priority_tasks():
+        # Keine wiederholte Modellarbeit ohne vorgemerkte neue/korrigierte Quelle.
+        if not app.state.episodes.task_rechecks(limit=1):
+            return JobResult('zusagen', True)
+        return run_task_detection(True, limit=2, rechecks_only=True)
+    scheduler._run_priority_tasks = run_priority_tasks  # noqa: SLF001
+
     scheduler._run_ingest = run_sources  # noqa: SLF001
     bound_agent = app.state.agent
     plan_at_wire = asdict(plan)
