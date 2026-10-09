@@ -1,6 +1,6 @@
 # Neue Mailaufgaben vor dem historischen Bestand prüfen
 
-Code **1913e265744344de91b123ab1dc6e58dbd4b9ca3**, Version **1.0.6-preview.1913e26**. Ergänzung [#49](https://github.com/Icarus-health/kingfisher-app/pull/49) zur gemeinsamen Vorschau #46 auf `integration/cos-preview-reviewed-20261009`; keine Installation oder Veröffentlichung.
+Code **1913e265744344de91b123ab1dc6e58dbd4b9ca3**, Version **1.0.6-preview.1913e26**. Ergänzung [#49](https://github.com/Icarus-health/kingfisher-app/pull/49) ist in die weiterhin offene gemeinsame [Draft-Vorschau #46](https://github.com/Icarus-health/kingfisher-app/pull/46) auf `integration/cos-preview-reviewed-20261009` übernommen. Merge `8642442`: Laufzeit-/UI-/native-/Design-/Deployment-/Script-/Versionsquellen bytegleich zu `1913e26` geprüft. Keine Übernahme in Main, Installation oder Veröffentlichung.
 
 ## Problem und Verhalten
 
