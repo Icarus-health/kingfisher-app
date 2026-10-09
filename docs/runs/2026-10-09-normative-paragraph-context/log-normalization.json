@@ -33,5 +33,15 @@
     "raw_sha256": "956fe0843e44299f85d82e518c5ecaeb513f559de2ee26b27ee94e753ff8c84f",
     "saved_sha256": "956fe0843e44299f85d82e518c5ecaeb513f559de2ee26b27ee94e753ff8c84f",
     "normalization": "trailing ASCII whitespace only"
+  },
+  "full-suite-final.log": {
+    "raw_sha256": "4e8d9d41a9b951f4b979473e7c3b0017ff3479345e9e93540044562725751351",
+    "saved_sha256": "4e8d9d41a9b951f4b979473e7c3b0017ff3479345e9e93540044562725751351",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "installed-package-check.txt": {
+    "raw_sha256": "1538e6fb51b6be4728e786052f21050764349b34e999a1364b7cf1b459ba74f4",
+    "saved_sha256": "1538e6fb51b6be4728e786052f21050764349b34e999a1364b7cf1b459ba74f4",
+    "normalization": "trailing ASCII whitespace only"
   }
 }
