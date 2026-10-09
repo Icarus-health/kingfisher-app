@@ -525,13 +525,25 @@ def _originalstellen(belege: Sequence[AntwortBeleg]) -> dict[tuple[int, int], st
         if beleg.gekuerzt and not beleg.pruef_text:
             continue
         nummer = 0
-        for text in satzpruefung.originalabschnitte(beleg.pruef_text or beleg.text):
+        volltext = beleg.pruef_text or beleg.text
+        atomic = satzpruefung.originalregelabsatz_einheiten(volltext)
+        visible = []
+        for start, end, paragraph in atomic:
+            if (paragraph in beleg.text and '[…]' not in paragraph and '[gekürzt,' not in paragraph):
+                if len(paragraph) > MAX_SATZ_ZEICHEN:
+                    raise ValueError('Vollständiger Regelabsatz überschreitet das Satzlimit')
+                visible.append((start, end, paragraph))
+        for start, end, text in satzpruefung.originalabschnitt_stellen(volltext):
+            if any(start >= atomic_start and end <= atomic_end for atomic_start, atomic_end, _ in atomic):
+                continue
             if (not text or text not in beleg.text
                     or '[…]' in text or '[gekürzt,' in text):
                 continue
             if len(text) > MAX_SATZ_ZEICHEN:
                 # Ein Angebotslimit ist kein Beleg für fehlende Information.
                 raise ValueError('Sichtbare Originalstelle überschreitet das Satzlimit')
+            visible.append((start, end, text))
+        for _, _, text in sorted(visible):
             nummer += 1
             stellen[beleg.nummer, nummer] = text
     return stellen
@@ -569,7 +581,7 @@ def _original_lesen(antwort: Any, stellen: dict[tuple[int, int], str]) -> tuple[
             # Nicht passende Alt-Ausgaben bleiben Kandidaten für dieselben
             # Prüftore, damit Verwerfungs- und Vollständigkeitsausweis erhalten bleiben.
             saetze.append(Satz(original, satz.belege) if original is not None else satz)
-        return status, saetze
+        return status, _absatzduplikate(saetze)
     if (type(roh) is not dict or set(roh) != {'originalstellen', 'status'}
             or roh['status'] not in STATI or type(roh['originalstellen']) is not list
             or len(roh['originalstellen']) > MAX_SAETZE):
@@ -584,7 +596,21 @@ def _original_lesen(antwort: Any, stellen: dict[tuple[int, int], str]) -> tuple[
             raise ValueError('Originalstelle unbekannt oder doppelt')
         gesehen.add(key)
         saetze.append(Satz(stellen[key], (str(key[0]),)))
-    return roh['status'], saetze
+    return roh['status'], _absatzduplikate(saetze)
+
+
+def _absatzduplikate(saetze: Sequence[Satz]) -> list[Satz]:
+    """A selected full paragraph already carries its exact component sentences."""
+    einheiten = [({satzpruefung.originaltext(teil) for teil in satzpruefung.originalabschnitte(satz.text)},
+                 set(satz.belege)) for satz in saetze]
+    behalten = []
+    for nr, satz in enumerate(saetze):
+        teile, belege = einheiten[nr]
+        enthalten = any(nr != anderes_nr and belege & andere_belege and teile < andere_teile
+                        for anderes_nr, (andere_teile, andere_belege) in enumerate(einheiten))
+        if not enthalten:
+            behalten.append(satz)
+    return behalten
 
 
 def _lesen(antwort: Any) -> tuple[str, list[Satz]]:
@@ -689,6 +715,34 @@ def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]
     return False
 
 
+def _fehlender_regelabsatzkontext(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg]) -> str | None:
+    """A rule paragraph must remain one visible, ordered source unit in the answer.
+
+    Sentence validation remains sentence-sized. This answer-level boundary
+    prevents a correct verbatim rule from escaping after its same-paragraph
+    qualifier or document status was omitted or rejected.
+    """
+    for beleg in belege:
+        volltext = beleg.pruef_text or beleg.text
+        sichtbar = satzpruefung.originaltext(beleg.text)
+        for _, _, absatz in satzpruefung.originalregelabsatz_einheiten(volltext):
+            originalteile = [satzpruefung.originaltext(teil) for teil in satzpruefung.originalabschnitte(absatz)]
+            regelteile = {satzpruefung.originaltext(teil) for teil in satzpruefung.originalabschnitte(absatz)
+                          if satzpruefung.originalregeln(teil)}
+            ausgegeben = [(satzpruefung.originaltext(teil), beleg.nummer in satz.belege)
+                          for satz in saetze for teil in satzpruefung.originalabschnitte(satz.text)]
+            if not regelteile & {text for text, zitiert in ausgegeben if zitiert}:
+                continue
+            vollstaendig_sichtbar = satzpruefung.originaltext(absatz) in sichtbar
+            zusammenhaengend = any(
+                ausgegeben[start:start + len(originalteile)] == [(teil, True) for teil in originalteile]
+                for start in range(max(0, len(ausgegeben) - len(originalteile) + 1)))
+            if not vollstaendig_sichtbar or not zusammenhaengend:
+                return ('Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle '
+                        'muss in Originalreihenfolge zusammen ausgegeben werden')
+    return None
+
+
 def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], jetzt: datetime,
               zusatz_woerter: Sequence[str], modell: str, tor: Tor = satzpruefung_modell.OHNE,
               zeiten: Zeiten | None = None) -> Versuch:
@@ -716,6 +770,11 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
     verworfen += am_tor
     if not durch:
         return Versuch('zitate', verworfen=verworfen, grund='kein Satz bestand die Prüfung', modell=modell)
+    kontextfehler = _fehlender_regelabsatzkontext(durch, belege)
+    if kontextfehler:
+        betroffen = [replace(satz, bestanden=False, gruende=(kontextfehler,)) for satz in durch
+                     if satzpruefung.originalregeln(satz.text)]
+        return Versuch('zitate', verworfen=verworfen + betroffen, grund=kontextfehler, modell=modell)
     with zeitmessung.messen(zeiten, 'satzpruefung'):
         ergaenzt = [pruefe_satz(e, nach_nummer, jetzt, zusatz_woerter, vom_programm=True)
                     for e in _wandel_saetze(belege, durch)]
@@ -728,6 +787,11 @@ def _urteilen(status: str, saetze: list[Satz], belege: Sequence[AntwortBeleg], j
         return Versuch('zitate', verworfen=verworfen + am_tor, modell=modell,
                        grund='Wandel einer überholten Quelle nicht belegbar: ' + am_tor[0].gruende[0])
     durch = (durch + ergaenzt)[:MAX_SAETZE + 2]
+    kontextfehler = _fehlender_regelabsatzkontext(durch, belege)
+    if kontextfehler:
+        betroffen = [replace(satz, bestanden=False, gruende=(kontextfehler,)) for satz in durch
+                     if satzpruefung.originalregeln(satz.text)]
+        return Versuch('zitate', verworfen=verworfen + betroffen, grund=kontextfehler, modell=modell)
     if _quelle_fehlt(durch, belege, len(verworfen)):
         return Versuch('zitate', verworfen=verworfen, modell=modell,
                        grund='Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort')
@@ -858,7 +922,8 @@ def wiederherstellen(daten: Any, episodes: Any, claims: Any) -> Dargestellt | No
                 return None  # das zweite Tor lief, aber dieser Satz trägt sein Ja nicht: nicht zeigen
             saetze.append(_eingestuft(replace(neu, pruefmodell=urteil if urteil == satzpruefung_modell.JA else ''),
                                       nach_nummer, jetzt))
-        if not saetze or _quelle_fehlt(saetze, belege, int(daten.get('verworfen', 0))):
+        if (not saetze or _fehlender_regelabsatzkontext(saetze, belege)
+                or _quelle_fehlt(saetze, belege, int(daten.get('verworfen', 0)))):
             return None
         akte = [z.als_dict() for z in (akten_kontext.AktenZeile.aus_dict(x) for x in daten.get('akte', ())) if z is not None]
         return Dargestellt('saetze', saetze, belege, akte, int(daten.get('verworfen', 0)), str(daten.get('modell', '')),

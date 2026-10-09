@@ -38,7 +38,7 @@ def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id)
     provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
     result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
     assert result.status == 'saetze'
-    assert result.saetze[0].text == (case['candidate'] if case_id == 'P01' else source)
+    assert result.saetze[0].text == source
 
 
 def test_hidden_original_cannot_be_reintroduced_by_legacy_text():
