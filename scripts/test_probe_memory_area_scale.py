@@ -48,8 +48,11 @@ def test_cli_retains_completed_checkpoint_and_marks_failure(tmp_path, monkeypatc
         raise OSError('internal details must not be published')
     monkeypatch.setattr(probe,'run',failed_run)
     monkeypatch.setattr(probe.resource,'setrlimit',lambda *_:None)
+    signals=[]
+    monkeypatch.setattr(probe.signal,'signal',lambda *args:signals.append(args))
     monkeypatch.setattr(sys,'argv',['probe','--sizes','64','--output',str(target)])
     assert probe.main()==1
+    assert signals == [(probe.signal.SIGXFSZ, probe.signal.SIG_IGN)]
     result=json.loads(target.read_text())
     assert result['status']=='failed' and result['measurements']==[{'sources':64}]
     assert result['error_class']=='OSError' and 'internal details' not in target.read_text()

@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import resource
+import signal
 import statistics
 import sys
 import tempfile
@@ -132,6 +133,8 @@ def main():
         sizes = validate_workload(tuple(int(n) for n in args.sizes.split(',')), args.body_chars)
     except ValueError as error:
         parser.error(str(error))
+    # Convert file-limit failures to catchable I/O errors, even in embedded interpreters.
+    signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
     resource.setrlimit(resource.RLIMIT_CPU, (180, 180))
     resource.setrlimit(resource.RLIMIT_FSIZE, (2 * 1024**3, 2 * 1024**3))
     # Keep completed checkpoints on failure; exclusive creation protects old reports.
