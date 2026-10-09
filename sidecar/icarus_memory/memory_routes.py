@@ -222,6 +222,15 @@ def install_routes(app, guard):
             result['working_memory_enabled'] = result['automation']['state'] in {'active', 'legacy_active'}
             return result
 
+    def execution_gate(result):
+        # Model readiness may be cached; the execution pause is always live.
+        # Reading this gate never checks a model or resumes background work.
+        from .hintergrund import GRUND_TEXT
+        gate = getattr(getattr(app.state, 'hintergrund', None), 'sperre', None)
+        reason = gate() if callable(gate) else 'unknown'
+        return dict(result, execution_pause_reason=(
+            GRUND_TEXT.get(reason, 'Der aktuelle Verarbeitungsstand ist nicht freigegeben.') if reason else None))
+
     def automation_status(*, verified=None, pending=None, probe=True):
         nonlocal automation_observation
         plan = app.state.settings.schedule
@@ -232,11 +241,11 @@ def install_routes(app, guard):
             # A previous explicit model check remains an observation, not a
             # new verification; changed settings discard it immediately.
             if automation_observation is not None and automation_observation[0] == observation_key:
-                return dict(automation_observation[1], pending=pending)
+                return execution_gate(dict(automation_observation[1], pending=pending))
             requested = bool(plan.enabled and plan.with_model and plan.local_model_only)
             legacy = bool(plan.enabled and plan.with_model and not plan.local_model_only)
-            return {'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
-                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None}
+            return execution_gate({'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
+                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None})
 
         rollen = rollen_von(app)
         # Die Hintergrundarbeit läuft mit dem Anbieter der Rolle `hintergrund`, und der ist immer lokal.
@@ -273,7 +282,7 @@ def install_routes(app, guard):
                   'model': model if local and model and not cloud_modell else None,
                   'cloud_modell': cloud_modell}
         automation_observation = (observation_key, result)
-        return result
+        return execution_gate(result)
 
     @router.get('/automation')
     def read_automation():

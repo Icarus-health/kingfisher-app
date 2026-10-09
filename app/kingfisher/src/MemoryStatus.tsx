@@ -19,19 +19,21 @@ export function roughDuration(seconds: number): string {
   return `${Math.round(hours / 24)} Tage`;
 }
 
-function WorkingMemoryProgress({progress, enabled, wartet}: {progress: NonNullable<MemoryCoverage["working_memory_progress"]>; enabled: boolean; wartet: boolean}) {
+function WorkingMemoryProgress({progress, enabled, wartet, stale = false, pauseReason}: {progress: NonNullable<MemoryCoverage["working_memory_progress"]>; enabled: boolean; wartet: boolean; stale?: boolean; pauseReason?: string | null}) {
   const {total, done, remaining, retry, skipped, estimate_seconds: estimate} = progress;
   if (total === 0) return null;
-  const status = remaining === 0 ? skipped ? "Das Sortieren ist abgeschlossen; einige Quellen konnten nicht sortiert werden." : "Alle Quellen sind sortiert."
+  const status = stale ? "Der aktuelle Fortschritt ist nicht erreichbar. Die Zahlen zeigen den letzten bekannten Stand."
+    : remaining === 0 ? skipped ? "Das Sortieren ist abgeschlossen; einige Quellen konnten nicht sortiert werden." : "Alle Quellen sind sortiert."
+    : pauseReason && enabled ? pauseReason
     : wartet ? "Der Rest wird sortiert, sobald das Sprachmodell auf diesem Rechner bereit ist."
     : !enabled ? "Das automatische Sortieren ist pausiert. Der Rest wird sortiert, sobald es wieder läuft."
     : estimate ? `Noch etwa ${roughDuration(estimate)}, solange die App geöffnet ist.`
     : "Die Restzeit wird nach den ersten Durchgängen geschätzt.";
   return <div className="memory-progress">
-    <p><strong>{done} von {total} Quellen automatisch sortiert.</strong> {FUNDE_SATZ}</p>
-    <progress max={total} value={done + skipped} aria-label="Fortschritt des Sortierens">{Math.round((done + skipped) / total * 100)} %</progress>
+    <p><strong>{done} von {total} Quellen {stale ? "beim letzten Abruf sortiert" : "automatisch sortiert"}.</strong> {FUNDE_SATZ}</p>
+    <progress max={total} value={done + skipped} aria-label={stale ? "Letzter bekannter Fortschritt des Sortierens" : "Fortschritt des Sortierens"}>{Math.round((done + skipped) / total * 100)} %</progress>
     <p role="status">{status}</p>
-    {retry || skipped ? <p className="memory-status-note">{retry ? `${retry} werden erneut versucht. ` : ""}{skipped ? `${skipped} lassen sich nicht sortieren (zu umfangreich, unvollständig oder von dir verworfen).` : ""}</p> : null}
+    {retry || skipped ? <p className="memory-status-note">{retry ? stale || pauseReason ? `${retry} erneute Versuche vorgemerkt. ` : `${retry} werden erneut versucht. ` : ""}{skipped ? `${skipped} lassen sich nicht sortieren (zu umfangreich, unvollständig oder von dir verworfen).` : ""}</p> : null}
   </div>;
 }
 
@@ -83,6 +85,12 @@ export function MemoryStatus() {
   const [automationError, setAutomationError] = useState("");
   const latestSourceMonth = newestSourceMonth(coverage?.source_dates?.latest);
   const undatedSources = coverage?.source_dates?.undated ?? 0;
+  function adoptCoverage(current: MemoryCoverage) {
+    setCoverage(current);
+    setAutomation(current.automation ?? null);
+    setCoverageError(false);
+    setCoverageRefreshError(false);
+  }
   useEffect(() => {
     let active = true;
     let inFlight = false;
@@ -92,10 +100,7 @@ export function MemoryStatus() {
       try {
         const current = await api.memoryCoverage();
         if (active) {
-          setCoverage(current);
-          setAutomation(current.automation ?? null);
-          setCoverageError(false);
-          setCoverageRefreshError(false);
+          adoptCoverage(current);
         }
       } catch {
         if (active) {
@@ -155,14 +160,13 @@ export function MemoryStatus() {
         setAutomationError("Die Änderung konnte nicht bestätigt werden. Bitte aktualisiere den Stand, bevor du es erneut versuchst.");
         try {
           const current = await api.memoryCoverage();
-          setCoverage(current);
-          setAutomation(current.automation ?? null);
-        } catch { /* Der Bestätigungsfehler bleibt sichtbar. */ }
+          adoptCoverage(current);
+        } catch { setCoverageRefreshError(true); }
         return;
       }
       setAutomation(next);
       // Zahlen und Restzeit gleich mit nachladen; der Stand oben gilt schon.
-      api.memoryCoverage().then(current => setCoverage(current)).catch(() => undefined);
+      api.memoryCoverage().then(adoptCoverage).catch(() => setCoverageRefreshError(true));
     } finally { setAutomationBusy(false); }
   }
 
@@ -172,21 +176,21 @@ export function MemoryStatus() {
       <section className="memory-status-card"><h2>Was wurde geprüft?</h2>
         <p>{coverage.total_sources === 0 ? "Noch keine Nachrichten oder Dokumente aufgenommen." : `${coverage.total_sources} Nachrichten und Dokumente sind aufgenommen.`}</p>
         {/* Derselbe Stand wie „Automatisches Sortieren“ darunter, damit nach dem Klick nicht „pausiert“ neben „An“ steht (Befund 12). */}
-        {coverage.working_memory_progress ? <WorkingMemoryProgress progress={coverage.working_memory_progress} enabled={sortiertGerade(automation)} wartet={automation.requested && !sortiertGerade(automation)} /> : null}
+        {coverage.working_memory_progress ? <WorkingMemoryProgress progress={coverage.working_memory_progress} enabled={automation.requested || automation.state === "active" || automation.state === "legacy_active"} wartet={automation.requested && !sortiertGerade(automation)} stale={coverageRefreshError} pauseReason={automation.execution_pause_reason} /> : null}
         {coverage.semantic_index ? <SemanticMemoryProgress progress={coverage.semantic_index} stale={coverageRefreshError} /> : null}
-        <p className="memory-status-pruefung">{pruefSatz(coverage.counts)}</p>
+        <p className="memory-status-pruefung">{coverageRefreshError ? "Die Prüfzahlen stammen aus dem letzten Abruf; der aktuelle Prüfstand ist nicht bestätigt." : pruefSatz(coverage.counts, sortiertGerade(automation))}</p>
         {coverage.truncated ? <p>Die Aufteilung zeigt die neuesten {coverage.sampled_sources} Quellen.</p> : null}
         {coverageRefreshError ? <p className="memory-status-error" role="status">Der Fortschritt konnte gerade nicht aktualisiert werden. Angezeigt wird der letzte bekannte Stand.</p> : null}
         <section aria-label="Automatisches Sortieren">
           <h3>Automatisches Sortieren</h3>
-          <p>{sortierStand(automation)}</p>
-          <p>{sortierWirkung(automation)}</p>
+          <p>{coverageRefreshError ? "Der aktuelle Automatikstand konnte nicht geprüft werden. Bitte aktualisiere den Stand." : sortierStand(automation)}</p>
+          <p>{coverageRefreshError ? "Beim Sortieren entstehen Vorschläge mit Quellen. Die aktuelle Freigabe und der Fortschritt sind gerade nicht bestätigt." : sortierWirkung(automation)}</p>
           {automationError ? <p role="alert">{automationError}</p> : null}
           <div className="memory-status-automation-actions">
             {automation.state === "legacy_active" ? <>
-              <button type="button" disabled={automationBusy} onClick={() => void setAutomaticClassification(true)}>{automationBusy ? "Wird gespeichert …" : "Lokal absichern"}</button>
-              <button type="button" disabled={automationBusy} onClick={() => void setAutomaticClassification(false)}>Automatik pausieren</button>
-            </> : <button type="button" disabled={automationBusy || (!automation.requested && automation.state !== "paused")} onClick={() => void setAutomaticClassification(!automation.requested)}>{automationBusy ? "Wird gespeichert …" : automation.requested ? "Automatisches Sortieren pausieren" : "Automatisches Sortieren einschalten"}</button>}
+              <button type="button" disabled={automationBusy || coverageRefreshError} onClick={() => void setAutomaticClassification(true)}>{automationBusy ? "Wird gespeichert …" : "Lokal absichern"}</button>
+              <button type="button" disabled={automationBusy || coverageRefreshError} onClick={() => void setAutomaticClassification(false)}>Automatik pausieren</button>
+            </> : <button type="button" disabled={automationBusy || coverageRefreshError || (!automation.requested && automation.state !== "paused")} onClick={() => void setAutomaticClassification(!automation.requested)}>{automationBusy ? "Wird gespeichert …" : automation.requested ? "Automatisches Sortieren pausieren" : "Automatisches Sortieren einschalten"}</button>}
             {automation.state === "model_missing" || automation.state === "wrong_model" || automation.state === "cloud_ueber_ollama" || automation.state === "local_model_unavailable" ? <button type="button" onClick={() => navigate("/settings#technik-modelle")}>Lokales Modell prüfen</button> : null}
           </div>
         </section>
