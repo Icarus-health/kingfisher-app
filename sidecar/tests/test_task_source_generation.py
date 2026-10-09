@@ -190,7 +190,7 @@ def test_legacy_pending_is_manual_until_fresh_review_then_one_bound_candidate(co
     assert for_briefing(app.state.proposals, app.state.episodes)['items'][0]['review_required'] is False
 
 
-def test_source_behind_cursor_stays_blocked_and_is_reviewed_next_scan(context):
+def test_source_behind_cursor_stays_blocked_until_priority_review(context):
     app, provider, detector, client = context
     source(context)
     app.state.episodes.record(EpisodeKind.MESSAGE, 'Zweite Quelle', TEXT,
@@ -200,10 +200,10 @@ def test_source_behind_cursor_stays_blocked_and_is_reviewed_next_scan(context):
     app.state.episodes.remove_contacts(first.id, [CONTACT], [])
     assert all(item['episode_id'] != first.id for item in for_briefing(app.state.proposals, app.state.episodes)['items'])
     assert detector.run(with_model=True, limit=1).analyzed == 1
-    # Ein vorhandener Backlog wird weiter abgearbeitet; die Cursor-Runde wird anschließend geschlossen.
-    assert detector.run(with_model=True, limit=1).analyzed == 0
-    assert detector.run(with_model=True, limit=1).analyzed == 1
     assert provider.inputs[-1]['own_source'] is False
+    # Der nächste Lauf mit Einzelschritt-Budget setzt den normalen Import fort.
+    assert detector.run(with_model=True, limit=1).analyzed == 1
+    assert provider.inputs[-1]['own_source'] is True
 
 
 

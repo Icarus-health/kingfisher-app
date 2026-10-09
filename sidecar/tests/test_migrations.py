@@ -91,7 +91,7 @@ STORE_SPECS: tuple[tuple[str, StoreFactory, set[str]], ...] = (
     ("self_model", SqliteBackend, {"assertions"}),
     ("episodes", EpisodeStore, {"episodes", "mail_progress", "source_heads", "episode_produced_assertions",
                                 "working_memory_sources", "working_memory_items", "working_memory_terms",
-                                "working_memory_scan"} | set(EXTENSION_TABLES)),
+                                "working_memory_scan", "task_rechecks", "task_recheck_turn"} | set(EXTENSION_TABLES)),
     ("tasks", TaskStore, {"tasks", "task_events"}),
     ("workspace", WorkspaceStore, {"projects", "notes", "event_projects", "event_followups"}),
     ("proposals", ProposalStore, {"proposals", "task_analysis", "task_scan_cursor", "memory_analysis_jobs"}),
@@ -116,7 +116,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (20 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+    assert _version(path) == (21 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
     assert _tables(path) == expected
 
 
@@ -135,6 +135,8 @@ def test_v17_migration_stamps_existing_interpretations_without_reclassification(
     episodes.close()
 
     connection = sqlite3.connect(path)
+    from tests.working_memory_legacy import drop_task_rechecks
+    drop_task_rechecks(connection)
     connection.execute("ALTER TABLE working_memory_sources DROP COLUMN analysis_version")
     connection.execute("ALTER TABLE memory_category_sources DROP COLUMN failure_code")
     connection.execute("PRAGMA user_version = 17")
@@ -482,7 +484,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (20 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+        assert _version(paths[name]) == (21 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -492,6 +494,8 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             expected_snapshot = {**before[name], "event_projects": [], "event_followups": []}
         actual_snapshot = _snapshot(paths[name])
         if name == "episodes":
+            assert actual_snapshot.pop("task_rechecks") == []
+            assert actual_snapshot.pop("task_recheck_turn") == [(1, 1)]
             for table in EXTENSION_TABLES:
                 values = actual_snapshot.pop(table)
                 if table == 'memory_category_taxonomy':

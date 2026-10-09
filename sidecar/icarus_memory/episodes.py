@@ -629,11 +629,18 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
-                failure_diagnostics=False) -> None:
+                failure_diagnostics=False, task_rechecks=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
     extra_indexes = dict(mail_intake.INDEXES) if intake else {}
+    extra_triggers = {}
+    if task_rechecks:
+        from . import task_rechecks as rechecks
+        extra_tables.update(rechecks.TABLES)
+        extra_keys.update(rechecks.KEYS)
+        extra_indexes.update(rechecks.INDEXES)
+        extra_triggers.update(rechecks.TRIGGERS)
     if index:
         tabellen, schluessel = source_index.tabellen(woerter)
         extra_tables.update(tabellen)
@@ -669,7 +676,7 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
                          "working_memory_items": {"id", "episode_id", "fingerprint", "start", "end", "kind", "key"},
                          "working_memory_terms": {"term", "item"},
                          "working_memory_scan": {"id", "cursor", "revision"}},
-        expected_triggers=support_schema.EPISODE_TRIGGERS,
+        expected_triggers={**support_schema.EPISODE_TRIGGERS, **extra_triggers},
         expected_indexes={**extra_indexes,**_INDEX_CONTRACTS,
             "idx_source_heads_episode": IndexContract("source_heads", ("episode_id",)),
             "idx_episode_produced_episode": IndexContract("episode_produced_assertions", ("episode_id",)),
@@ -822,9 +829,9 @@ def _migrate_v20(connection):
     migrate_failure_diagnostics(connection)
 
 
-def _verify_v20(connection):
+def _verify_v20(connection, *, task_rechecks=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
-                intake_grund=True, analysis_version=True, failure_diagnostics=True)
+                intake_grund=True, analysis_version=True, failure_diagnostics=True, task_rechecks=task_rechecks)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -833,6 +840,15 @@ def _verify_v20(connection):
     lage.verify(connection)
     from .memory_areas import verify_health_taxonomy
     verify_health_taxonomy(connection)
+
+
+def _migrate_v21(connection):
+    from .task_rechecks import migrate
+    migrate(connection)
+
+
+def _verify_v21(connection):
+    _verify_v20(connection, task_rechecks=True)
 
 
 _MIGRATIONS = (
@@ -856,6 +872,7 @@ _MIGRATIONS = (
     Migration(18, "working_memory_analysis_version", _migrate_v18, _verify_v18),
     Migration(19, "memory_area_health_taxonomy", _migrate_v19, _verify_v19),
     Migration(20, "category_failure_diagnostics", _migrate_v20, _verify_v20),
+    Migration(21, "task_source_rechecks", _migrate_v21, _verify_v21),
 )
 
 
@@ -1532,6 +1549,18 @@ class EpisodeStore:
                 (pattern, pattern, limit),
             ).fetchall()
         return [self._from_row(r) for r in rows]
+
+    def task_recheck_budget(self, total: int) -> int:
+        from .task_rechecks import budget
+        return budget(self, total)
+
+    def task_rechecks(self, limit: int = 20) -> list[dict]:
+        from .task_rechecks import pending
+        return pending(self, limit)
+
+    def finish_task_recheck(self, row: dict, *, completed: bool) -> None:
+        from .task_rechecks import finish
+        finish(self, row, completed)
 
     def analysis_batch(self, after_id: str = "", limit: int = 100) -> list[Episode]:
         """Rohquellen in stabilen, begrenzten Seiten für unabhängige Analysen."""

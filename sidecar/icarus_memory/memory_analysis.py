@@ -181,6 +181,14 @@ class MemoryAnalysis:
                 "UPDATE memory_analysis_jobs SET state=?, token=NULL, lease_until=0, updated_at=? WHERE id=? AND token=?",
                 (state, time.time(), job["id"], job["token"]))
 
+    def completed(self, episode, provider, *, context):
+        """Nur der exakt gebundene Job, kein beliebiger letzter Checkpoint."""
+        version = analysis_version(context)
+        with self.lock:
+            return bool(self.connection.execute(
+                "SELECT 1 FROM memory_analysis_jobs WHERE episode_id=? AND digest=? AND version=? AND model=? AND state='completed' LIMIT 1",
+                (episode.id, episode.digest, version, model_key(provider))).fetchone())
+
     def snapshot(self, episode_id):
         with self.lock:
             row = self.connection.execute(
