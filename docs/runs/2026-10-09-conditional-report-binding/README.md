@@ -1,6 +1,6 @@
 # Bedingte Berichte bleiben bedingt
 
-Laufzeitcode **e326f8113eae2e6e8123c7a39417fddf1e9fbebc**, Paket **1.0.6-preview.e326f81**, Basis `5f58e6f` der offenen Draft-Vorschau #46. Nicht in Main übernommen, nicht installiert.
+Laufzeitcode **e326f8113eae2e6e8123c7a39417fddf1e9fbebc**, Paket **1.0.6-preview.e326f81**, Basis `5f58e6f` der offenen Draft-Vorschau #46. Ergänzung [#53](https://github.com/Icarus-health/kingfisher-app/pull/53) in die weiterhin offene [Draft-Vorschau #46](https://github.com/Icarus-health/kingfisher-app/pull/46) übernommen (`883deb4`); Laufzeit-, UI-, native, Design-, Deployment-, Script- und Versionsquellen bytegleich zum geprüften Code. Nicht in Main übernommen, nicht installiert.
 
 ## Konkreter Fehler
 
