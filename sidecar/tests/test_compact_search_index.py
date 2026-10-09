@@ -65,7 +65,7 @@ def test_migration_keeps_results_and_candidate_signatures(tmp_path):
     reopened = EpisodeStore(path)
     memory = WorkingMemoryStore(reopened)
     assert {q: (memory.search(q), memory.candidate_signature(q)) for q in QUESTIONS} == expected
-    assert reopened._conn.execute('PRAGMA user_version').fetchone()[0] == 19
+    assert reopened._conn.execute('PRAGMA user_version').fetchone()[0] == 20
     assert not reopened._conn.execute(
         "SELECT 1 FROM sqlite_master WHERE name='working_memory_tokens'").fetchall()
     reopened.close()

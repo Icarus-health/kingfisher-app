@@ -366,7 +366,7 @@ def test_migration_baut_orte_ein_und_hebt_die_taxonomie_nur_bei_vorhandenem_best
     episodes = EpisodeStore(pfad)
     # Frische Installation: Gesundheit ergänzt die Taxonomie, nicht den Bestand.
     assert episodes._conn.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()[:] == (2, 1)
-    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 19
+    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 20
     # Orte sind als Art zulässig, unbekannte nicht.
     episodes._conn.execute("INSERT INTO memory_category_entities VALUES ('e','f','place',0,1,'mentioned')")
     with pytest.raises(Exception):
@@ -379,7 +379,7 @@ def test_migration_mit_vorhandenem_bestand_behaelt_zeilen_und_wertet_neu_aus(tmp
     episodes = EpisodeStore(tmp_path / 'e.sqlite3')
     verbindung = episodes._conn
     versionen_vorher = tuple(verbindung.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone())
-    verbindung.execute("INSERT INTO memory_category_sources VALUES ('e-1','fp',1,'complete','m',NULL,0)")
+    verbindung.execute("INSERT INTO memory_category_sources(episode_id,fingerprint,taxonomy_version,status,model,retry_after,support_generation) VALUES ('e-1','fp',1,'complete','m',NULL,0)")
     verbindung.execute("INSERT INTO memory_category_entities VALUES ('e-1','fp','person',0,5,'mentioned')")
     with episodes.transaction():
         memory_categories.migrate_ort(verbindung)

@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {api, ApiError, type MailAccount, type MailIntakeAccount, type MailIntakeStatus, type MailIntakePreview} from "./api";
 import {deriveIntakeProgress, watchMailIntake} from "./mailIntakeProgress";
+import {categoryFailureText} from "./categoryFailureText";
 import "./MailIntake.css";
 import {ordnerName} from "./mailAbruf";
 
@@ -59,7 +60,13 @@ function FolderProgress({account, index}: {account: MailIntakeAccount; index: nu
             : !progress.categoriesKnown ? "Stand der Kategorisierung unbekannt"
             : `${number(progress.analyzed)} von ${number(progress.analysisSources)} Quellen sortiert; ${number(progress.categorized)} mit Themen versehen`} />
         <p>{number(progress.deferred)} zurückgestellt · {number(progress.analysisFailed)} Fehler beim Sortieren · {number(progress.excluded)} bewusst ausgeschlossen</p>
-        {progress.categoriesKnown && <p>Kategorien: {number(progress.categoriesPending)} ausstehend · {number(progress.categoriesFailed)} fehlgeschlagen</p>}
+        {progress.categoriesKnown && <>
+          <p>Kategorien: {number(progress.categoriesPending)} ausstehend · {number(progress.categoriesFailed)} aktuell fehlgeschlagen · {number(progress.categoriesDeferred)} zurückgestellt</p>
+          {progress.categoriesUnverified > 0 && <p>Bei {number(progress.categoriesUnverified)} weiteren Einordnungen ist der aktuelle Fehlerstand noch ungeprüft.</p>}
+          {progress.categoriesFailed > 0 && Object.keys(progress.categoriesFailedBy).length > 0 &&
+            <p>{Object.entries(progress.categoriesFailedBy).filter(([, count]) => count > 0)
+              .map(([code, count]) => `${number(count)} · ${categoryFailureText(code)}`).join("; ")}</p>}
+        </>}
       </li>
       <li><strong>Ergebnisse prüfen</strong><p>Automatische Kategorien und Hinweise bleiben Vorschläge. Prüfe sie mit den Originalstellen in der jeweiligen Quelle.</p></li>
     </ol>
@@ -185,7 +192,12 @@ export function MailIntake({accounts, active, onChanged}: {
       const progress = deriveIntakeProgress(account);
       const checked = previews[account.account_id];
       const filtered = progress.filtered + progress.liveFiltered;
-      const retryFailed = progress.failed > 0 || progress.liveFailed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
+      const retryFailed = progress.retryAvailable;
+      const retryCurrentFailure = progress.failed > 0 || progress.liveFailed > 0 || progress.analysisFailed > 0 || progress.categoriesFailed > 0 || account.error;
+      const retryLabel = filtered > 0
+        ? retryCurrentFailure ? "Ausgefilterte Mails und Fehler erneut prüfen"
+          : progress.categoriesUnverified > 0 ? "Ausgefilterte Mails und Einordnungen prüfen" : "Ausgefilterte Mails erneut prüfen"
+        : progress.categoriesUnverified > 0 && !retryCurrentFailure ? "Weitere Einordnungen prüfen" : "Fehlgeschlagenes noch einmal versuchen";
       return <article className="mail-intake-account" key={account.account_id}>
         <div className="mail-intake-heading"><h3>{account.label}</h3><span>{status.background_paused && ["inventory", "capture", "analysis", "waiting_analysis"].includes(progress.stage)
           ? "Verarbeitung pausiert" : stageLabels[progress.stage]}</span></div>
@@ -204,9 +216,7 @@ export function MailIntake({accounts, active, onChanged}: {
         </button>
         {account.started && (retryFailed || filtered > 0) && <>
           <button className="text-action" type="button" disabled={!account.connected || busy}
-            onClick={() => {void change(account, true);}}>{filtered > 0
-              ? retryFailed ? "Ausgefilterte Mails und Fehler erneut prüfen" : "Ausgefilterte Mails erneut prüfen"
-              : "Fehlgeschlagenes noch einmal versuchen"}</button>
+            onClick={() => {void change(account, true);}}>{retryLabel}</button>
           {filtered > 0 && <p>Nur auf deinen Klick: {number(filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
         </>}
         {!account.connected && <p>Für dieses Postfach fehlen gültige Zugangsdaten. Verbinde es unter Zugänge neu.</p>}

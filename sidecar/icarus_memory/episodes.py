@@ -623,7 +623,8 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 
 
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
-                woerter=False, kreis=False, intake_grund=False, analysis_version=False) -> None:
+                woerter=False, kreis=False, intake_grund=False, analysis_version=False,
+                failure_diagnostics=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -635,7 +636,10 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         extra_indexes.update(source_index.INDEXES)
     if intake:
         from . import memory_categories
-        extra_tables.update(memory_categories.TABLES)
+        category_tables = {table: set(columns) for table, columns in memory_categories.TABLES.items()}
+        if not failure_diagnostics:
+            category_tables["memory_category_sources"] -= {"failure_code"}
+        extra_tables.update(category_tables)
         extra_keys.update(memory_categories.PRIMARY_KEYS)
         extra_indexes.update(memory_categories.INDEXES)
     if bezuege:
@@ -683,7 +687,7 @@ def _migrate_v11(connection):
 def _verify_v11(connection):
     _verify_v10(connection, intake=True)
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
 
 
 def _migrate_v12(connection):
@@ -694,7 +698,7 @@ def _migrate_v12(connection):
 def _verify_v12(connection):
     _verify_v10(connection, intake=True, index=True)
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=False)
 
 
@@ -708,7 +712,7 @@ def _verify_v13(connection):
     _verify_v10(connection, intake=True, index=True, bezuege=True)
     from . import bezuege
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=False)
     bezuege.verify(connection)
 
@@ -722,7 +726,7 @@ def _verify_v14(connection):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True)
     from . import bezuege, lage
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=False)
     bezuege.verify(connection)
     lage.verify(connection)
@@ -737,7 +741,7 @@ def _verify_v15(connection):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True)
     from . import bezuege, lage
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=True)
     bezuege.verify(connection)
     lage.verify(connection)
@@ -754,7 +758,7 @@ def _verify_v16(connection):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True)
     from . import bezuege, lage
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=True)
     bezuege.verify(connection)
     lage.verify(connection)
@@ -771,7 +775,7 @@ def _verify_v17(connection):
                 intake_grund=True)
     from . import bezuege, lage
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=True)
     bezuege.verify(connection)
     lage.verify(connection)
@@ -788,7 +792,7 @@ def _verify_v18(connection):
                 intake_grund=True, analysis_version=True)
     from . import bezuege, lage
     from .memory_categories import verify
-    verify(connection)
+    verify(connection, failure_diagnostics=False)
     source_index.verify(connection, woerter=True)
     bezuege.verify(connection)
     lage.verify(connection)
@@ -803,6 +807,25 @@ def _migrate_v19(connection):
 
 def _verify_v19(connection):
     _verify_v18(connection)
+    from .memory_areas import verify_health_taxonomy
+    verify_health_taxonomy(connection)
+
+
+def _migrate_v20(connection):
+    # Fehlergründe bleiben geschlossene, inhaltsfreie Codes; Altbestände bleiben NULL.
+    from .memory_categories import migrate_failure_diagnostics
+    migrate_failure_diagnostics(connection)
+
+
+def _verify_v20(connection):
+    _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
+                intake_grund=True, analysis_version=True, failure_diagnostics=True)
+    from . import bezuege, lage
+    from .memory_categories import verify
+    verify(connection, failure_diagnostics=True)
+    source_index.verify(connection, woerter=True)
+    bezuege.verify(connection)
+    lage.verify(connection)
     from .memory_areas import verify_health_taxonomy
     verify_health_taxonomy(connection)
 
@@ -827,6 +850,7 @@ _MIGRATIONS = (
     Migration(17, "mail_intake_grund", _migrate_v17, _verify_v17),
     Migration(18, "working_memory_analysis_version", _migrate_v18, _verify_v18),
     Migration(19, "memory_area_health_taxonomy", _migrate_v19, _verify_v19),
+    Migration(20, "category_failure_diagnostics", _migrate_v20, _verify_v20),
 )
 
 

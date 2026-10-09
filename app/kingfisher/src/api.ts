@@ -241,6 +241,10 @@ export type MailIntakeFolder = {
   categorized?: number;
   categories_pending?: number;
   categories_failed?: number;
+  categories_deferred?: number;
+  categories_failed_by?: Record<string, number>;
+  /** Failed category records beyond the per-status freshness-check budget. */
+  categories_unverified?: number;
 };
 
 export type MailIntakeAccount = {
@@ -275,6 +279,7 @@ export type CategoryTaxonomyEntry = {id: string; label: string; description: str
 export type SourceCategoriesResult = {
   episode_id: string;
   status: string;
+  failure_code?: string | null;
   categories: Array<{id: string; label: string; origin: string;
     evidence: Array<{start: number; end: number; quote: string}>; taxonomy_version: number}>;
   entities: Array<{kind: string; name: string; role: string; start: number; end: number; quote: string; origin: string}>;

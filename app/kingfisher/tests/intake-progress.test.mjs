@@ -31,6 +31,16 @@ test("unique folder work counts known sources separately from newly captured sou
   assert.equal(progress.complete, false);
 });
 
+test("category deferred and failure reasons remain distinct across folders", () => {
+  const progress = deriveIntakeProgress(account({folders: [
+    folder({categories_deferred: 2, categories_failed: 3, categories_failed_by: {provider_error: 2, internal_error: 1}}),
+    folder({folder: "Archive", categories_deferred: 1, categories_failed: 1, categories_failed_by: {provider_error: 1}}),
+  ]}));
+  assert.equal(progress.categoriesDeferred, 3);
+  assert.equal(progress.categoriesFailed, 4);
+  assert.deepEqual(progress.categoriesFailedBy, {provider_error: 3, internal_error: 1});
+});
+
 test("captured and duplicate source counts are summed across folders", () => {
   const progress = deriveIntakeProgress(account({folders: [folder(), folder({folder: "Archive", total: 20, captured: 7, duplicates: 2, pending: 11, analyzed: 3})]}));
   assert.equal(progress.total, 30);
@@ -47,6 +57,24 @@ for (const unfinished of [{pending: 1}, {live_pending: 1}, {failed: 1}, {deferre
     assert.ok(progress.overallPercent < 100);
   });
 }
+
+test("deferred categories cannot be hidden by contradictory completed counters", () => {
+  const progress = deriveIntakeProgress(account({folders: [folder({total: 1, captured: 1, duplicates: 0,
+    pending: 0, analyzed: 1, categorized: 1, categories_pending: 0, categories_deferred: 1})]}));
+  assert.equal(progress.complete, false);
+  assert.equal(progress.stage, "analysis");
+  assert.ok(progress.overallPercent < 100);
+});
+
+test("unverified category status keeps explicit retry available while mailbox is paused", () => {
+  const progress = deriveIntakeProgress(account({folders: [folder({total: 1, captured: 1, duplicates: 0,
+    pending: 0, analyzed: 1, categorized: 1, categories_pending: 0, categories_unverified: 2})], paused: true}));
+  assert.equal(progress.categoriesUnverified, 2);
+  assert.equal(progress.retryAvailable, true);
+  assert.equal(progress.complete, false);
+  assert.equal(progress.stage, "paused");
+  assert.ok(progress.overallPercent < 100);
+});
 
 test("paused and error states preserve real counters without implying completion", () => {
   const paused = deriveIntakeProgress(account({paused: true}));

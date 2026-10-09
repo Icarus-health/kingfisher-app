@@ -59,7 +59,7 @@ def test_outdated_database_is_saved_before_it_is_rebuilt(tmp_path):
     reopened = EpisodeStore(tmp_path / 'episodes.sqlite3')
     assert reopened.get(episode.id).body == BODY
     reopened.close()
-    assert _version(tmp_path / 'episodes.sqlite3') == 19
+    assert _version(tmp_path / 'episodes.sqlite3') == 20
     # Nach dem Umbau steht nichts mehr an: kein zweiter Satz beim nächsten Start.
     assert backup_before_update(tmp_path) is None
     assert len(list((tmp_path / 'sicherungen').iterdir())) == 1
