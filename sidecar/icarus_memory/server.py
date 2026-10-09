@@ -93,7 +93,7 @@ from .connectors import (
 from .episodes import EpisodeError, EpisodeKind, EpisodeState, EpisodeStore
 from .ingest import ADAPTERS, TEXT_SUFFIXES, ingest_directory
 from .transkript_routes import nach_aufnahme, termin_stand
-from .model import Kind, Provenance, RedactionReason, Sensitivity, SourceType
+from .model import Kind, Provenance, RedactionReason, Sensitivity, SourceType, ensure_aware
 from .morning import compose as compose_morning
 from .policy import Policy, PolicyError
 from .providers import from_env as provider_from_env
@@ -104,7 +104,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
-from .tasks import TaskStore, TaskChangedError
+from .tasks import TaskStore, TaskChangedError, TaskRequestConflict
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
 from .workspace import (
@@ -398,6 +398,7 @@ class TaskIn(BaseModel):
 
 
 class MailTaskIn(BaseModel):
+    request_id: uuid.UUID | None = None
     quick_accept: bool = False
     source_quote: str | None = Field(default=None, min_length=8, max_length=4000)
     source_digest: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
@@ -2573,6 +2574,8 @@ def create_app(
                 raise HTTPException(409, 'Historische oder undatierte Mail. Bitte zuerst die Aufgabe ausdrücklich prüfen und vorbereiten.')
         with app.state.conversation_lock:
             episode = _remember_mail_message(message, source, uid)["episode"]
+            if episode['state'] == 'ignored':
+                raise HTTPException(409, 'Diese Quelle wurde ausgeschlossen. Bitte zuerst die Quelle ausdrücklich prüfen.')
             provenance = Provenance(source_type=SourceType.USER_STATED, source_ref=f"episode:{episode['id']}",
                                     verbatim=body.source_quote, captured_at=datetime.now().astimezone())
             if body.quick_accept:
@@ -2584,6 +2587,16 @@ def create_app(
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
                 return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
+            if body.request_id is not None:
+                payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
+                           'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
+                           'due': ensure_aware(body.due).astimezone(timezone.utc).isoformat() if body.due else None}
+                digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                try:
+                    return app.state.tasks.from_request(str(body.request_id), digest, title, provenance,
+                        due=body.due, project_id=body.project_id, waiting_for=waiting_for).to_dict()
+                except TaskRequestConflict as exc:
+                    raise HTTPException(409, str(exc) + ' Bitte die vorhandenen Aufgaben prüfen.') from exc
             task = app.state.tasks.add(title,
                 provenance,
                 due=body.due, project_id=body.project_id)
