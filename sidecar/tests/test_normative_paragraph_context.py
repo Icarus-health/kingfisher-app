@@ -256,3 +256,25 @@ def test_formulieren_rejects_reversed_and_interleaved_context_output():
         result = sa.formulieren('Was gilt?', [evidence(source), other_evidence],
             Selector({'status': 'antwort', 'saetze': sentences}), jetzt=NOW)
         assert result.status == 'zitate'
+
+
+@pytest.mark.parametrize('order', [
+    ('rule', 'other', 'qualifier', 'rule', 'qualifier'),
+    ('rule', 'qualifier', 'other', 'rule'),
+    ('rule', 'qualifier', 'other', 'qualifier'),
+])
+def test_correct_repetition_cannot_rescue_an_unbound_occurrence(order):
+    from dataclasses import replace
+    from icarus_memory import satzpruefung_modell as spm
+    from tests.test_satzpruefung_modell import Pruefer as Judge
+
+    parts = {'rule': 'Die Klappe darf geöffnet werden.',
+             'qualifier': 'Dies gilt ausschließlich nach schriftlicher Freigabe.',
+             'other': 'Der Schalter darf umgelegt werden.'}
+    source = parts['rule'] + ' ' + parts['qualifier']
+    belege = [evidence(source), replace(evidence(parts['other']), nummer=2, episode_id='source-2')]
+    judge = Judge({'': '{"urteil":"ja"}'})
+    result = sa.formulieren('Was gilt?', belege, Selector({'status': 'antwort', 'saetze': [
+        {'text': ' '.join(parts[part] for part in order), 'belege': [1, 2]}]}),
+        jetzt=NOW, pruefung=spm.tor('an', judge))
+    assert result.status == 'zitate'

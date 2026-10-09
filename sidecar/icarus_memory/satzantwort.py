@@ -734,9 +734,15 @@ def _fehlender_regelabsatzkontext(saetze: Sequence[GeprueftSatz], belege: Sequen
             if not regelteile & {text for text, zitiert in ausgegeben if zitiert}:
                 continue
             vollstaendig_sichtbar = satzpruefung.originaltext(absatz) in sichtbar
-            zusammenhaengend = any(
-                ausgegeben[start:start + len(originalteile)] == [(teil, True) for teil in originalteile]
-                for start in range(max(0, len(ausgegeben) - len(originalteile) + 1)))
+            zusammenhaengende_stellen = set()
+            for start in range(max(0, len(ausgegeben) - len(originalteile) + 1)):
+                if ausgegeben[start:start + len(originalteile)] == [(teil, True) for teil in originalteile]:
+                    zusammenhaengende_stellen.update(range(start, start + len(originalteile)))
+            # One correct repetition cannot rescue another occurrence whose
+            # qualifier is missing or attached to a different source's rule.
+            absatzstellen = {index for index, (text, zitiert) in enumerate(ausgegeben)
+                             if zitiert and text in originalteile}
+            zusammenhaengend = bool(zusammenhaengende_stellen) and absatzstellen <= zusammenhaengende_stellen
             if not vollstaendig_sichtbar or not zusammenhaengend:
                 return ('Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle '
                         'muss in Originalreihenfolge zusammen ausgegeben werden')
