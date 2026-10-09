@@ -366,7 +366,7 @@ def test_migration_baut_orte_ein_und_hebt_die_taxonomie_nur_bei_vorhandenem_best
     episodes = EpisodeStore(pfad)
     # Frische Installation: Gesundheit ergänzt die Taxonomie, nicht den Bestand.
     assert episodes._conn.execute('SELECT taxonomy_version, corpus_version FROM memory_category_scan').fetchone()[:] == (2, 1)
-    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 20
+    assert episodes._conn.execute('PRAGMA user_version').fetchone()[0] == 21
     # Orte sind als Art zulässig, unbekannte nicht.
     episodes._conn.execute("INSERT INTO memory_category_entities VALUES ('e','f','place',0,1,'mentioned')")
     with pytest.raises(Exception):
