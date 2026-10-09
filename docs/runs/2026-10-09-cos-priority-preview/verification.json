@@ -1,0 +1,31 @@
+{
+  "code_commit": "83cfaa0664f73b0d95d2535c582427814f2d24ba",
+  "backend_cases": 507,
+  "backend_scope": "affected combined integration suites, not a fresh full suite",
+  "fresh_ui_test_suite": false,
+  "ui_and_native_tracked_sources_identical_to": "262cfc37118404ee2f814e50cca81b607567244a",
+  "historical_ui_cases": 515,
+  "historical_native_suite": "34 passed, 1 platform skip on unchanged Voice43 sources",
+  "runtime_queue_identical_to": "0cddff7ac030af05a1999d1e853579aed8e42724",
+  "merge_conflict": "test_migrations.py preserves EpisodeStore 21 queue and TaskStore 3 task_requests",
+  "fresh_native_build": "arm64 passed",
+  "fresh_typecheck_vite": "passed, existing bundle warning",
+  "asset_gate": "asset-check: pass (16 Dateien, 16 Icons)",
+  "package_flow": "passed, ephemeral network-none read-only tmpfs no mounts",
+  "synthetic_v20_upgrade_backup_restore": "passed, original rows preserved, unchanged version20 backup, restored rows migrate to21",
+  "independent_integration_review": "no concrete integration collisions; readonly review, no test execution by reviewer",
+  "real_model_quality_tested": false,
+  "no_personal_data": true,
+  "installed": false,
+  "mac_window_deferred": true,
+  "logs_sha256": {
+    "backend.log": "986c9c3c530f78aa8231263d6d1cdb1f2060e386fbf93a2e3504a650410c6b5f",
+    "ui-build.log": "7dbb0d088db91348509985aab2ccf0d7017b3ffa01a6e274d541b273f5f51c9c",
+    "native-build.log": "0b9ab5f37b9474fb8417daba86fcdfa75d73ac5995f1d1b772762d9c9a7c486f",
+    "signature.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dmg-verify.log": "362dcf9d7f5073d61817be1837d2ce0958f9f006b87f37373fb17c0d4db2fef1",
+    "image-build.log": "870c97ff7c71ff510c4169b70f693d8853b4952a547b98ec2e1f5b7ebfc9e260",
+    "package-smoke.log": "5a26f226676505be96465c8a499a1cec233136b2b823989b6954e7f541f7f552",
+    "asset-check.log": "a60838ce87ecc2bce95a3cabde796ee0446b708a382d69915d936785299e5e0b"
+  }
+}
