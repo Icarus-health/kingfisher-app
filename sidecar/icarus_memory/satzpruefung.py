@@ -632,7 +632,8 @@ def _inhaltswoerter(text: str) -> set[str]:
 # Intentionally literal: this is not a parser for arbitrary permission or
 # condition paraphrases. Keep commas/conjunctions and the complete word order.
 _ERLAUBNIS = re.compile(r'\b(?:darf|dürfen|duerfen)\b')
-_REGEL_BEDINGUNG = re.compile(r'\b(?:(?:erst|nur)\s+nach|wenn|sofern|sobald|falls)\b')
+_BEDINGUNG_KONJUNKTION = re.compile(r'\b(?:wenn|sofern|sobald|falls)\b')
+_REGEL_BEDINGUNG = re.compile(r'\b(?:erst|nur)\s+nach\b|' + _BEDINGUNG_KONJUNKTION.pattern)
 _ZULAESSIGKEIT_WENN = re.compile(
     r'\b(?:ist|sind)\s+(?:nur\s+)?(?:zulässig|zulaessig|gestattet|erlaubt)\s*,?\s+wenn\b', re.I)
 _PASSIV = re.compile(r'\b([a-zäöüß]+)\s+werden\b')
@@ -678,12 +679,29 @@ def _regeltext(text: str) -> str:
     return ' '.join(text.lower().strip().strip('.!?').split())
 
 
-# This deliberately bounded source-unit contract is not a grammar/authority parser.
-# Preserve colons, semicolons, internal line wrapping and punctuation clusters.
-_REGELSIGNAL = re.compile(_NORMATIVE_AUSSAGE.pattern + r'|\b(?:muss|müssen|muessen|soll|sollen)\b', re.I)
+# Explizite Bedingungen binden auch beschreibende Berichte an die vollständige
+# Originaleinheit. Weder Satzprüfung noch Modellauswahl dürfen daraus eine
+# unbedingte Zusage machen. Kein allgemeiner Grammatik-/Wahrheitsparser.
+_REGELSIGNAL = re.compile(_NORMATIVE_AUSSAGE.pattern
+                         + r'|\b(?:muss|müssen|muessen|soll|sollen)\b'
+                         + '|' + _BEDINGUNG_KONJUNKTION.pattern
+                         + r'|\b(?:vorausgesetzt|vorbehaltlich)\b'
+                         + r'|\bunter\s+(?:der\s+)?(?:Voraussetzung|Bedingung)\b', re.I)
 _ABKUERZUNG = re.compile(r'\b(?:z\s*\.\s*B\.|u\s*\.\s*a\.|d\s*\.\s*h\.|'
                          r'Dr\.|Prof\.|Nr\.|bzw\.|ca\.|ggf\.|usw\.|etc\.)', re.I)
 _ZITATZEICHEN = re.compile(r'["\'„“”‚‘’«»‹›`]+')
+
+
+def _originalsignal(text: str) -> bool:
+    """Regel/Bedingung oder nominaler Bezug, ohne Funktionswort als Ereigniskopf.
+
+    Der Extraktor ist kein Grammatikparser. „vor Ort“ ist ein Ortsausdruck;
+    „vor allem (die …)“ liefert einen Funktionswortkopf, kein Ereignis.
+    """
+    return bool(_REGELSIGNAL.search(text)) or any(
+        falten(stelle['ereignis']) not in _FUNKTION | {'allem'}
+        and not (stelle['relation'].casefold() == 'vor' and stelle['ereignis'].casefold() == 'ort')
+        for stelle in _ZEITRAHMEN.finditer(text))
 
 
 def originaltext(text: str) -> str:
@@ -756,7 +774,7 @@ def originalregelabsatz_einheiten(text: str) -> tuple[tuple[int, int, str], ...]
         paragraph = text[start:end].strip()
         local_units = originalabschnitte(paragraph)
         if len(local_units) <= 1 or not any(
-                _REGELSIGNAL.search(unit) or _ERLAUBNIS.search(unit) for unit in local_units):
+                _originalsignal(unit) or _ERLAUBNIS.search(unit) for unit in local_units):
             continue
         lower, upper = start, end
         # A preceding paragraph without sentence-ending punctuation may be a
@@ -788,12 +806,12 @@ def originalregelabsatz_einheiten(text: str) -> tuple[tuple[int, int, str], ...]
 
 
 def originalregeln(text: str) -> tuple[str, ...]:
-    """Recognized permission/obligation units; literal binding, not truth proof."""
-    return tuple(originaltext(t) for t in originalabschnitte(text) if _REGELSIGNAL.search(t))
+    """Erlaubnis, Pflicht oder explizite Bedingung: Originalbindung, kein Wahrheitsbeleg."""
+    return tuple(originaltext(t) for t in originalabschnitte(text) if _originalsignal(t))
 
 
 def originalbindung(satz: str, quellen: Sequence[str], *, sichtbar: Sequence[str] | None = None) -> bool:
-    """If a cited source is normative, every clause needs an unquoted full original.
+    """Bei Regeln oder expliziten Bedingungen braucht jede Klausel ihr volles Original.
 
     Quote context cannot safely be inferred from an inner sentence, so a source
     with quotation delimiters cannot establish an affirmative rule here. The
