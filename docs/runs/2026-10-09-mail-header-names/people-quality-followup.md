@@ -1,0 +1,9 @@
+# Folgeauftrag: Firmen und automatische Absender in „Menschen“
+
+Bei der nativen Bedienprüfung war die Menschenansicht geladen und die Mailnamen lesbar, aber die Einordnung enthielt weiterhin Firmen-/Serviceabsender. Keine privaten Namen oder Adressen sind in diesem Nachweis enthalten.
+
+Die unabhängige Prüfung reproduzierte mit frischen künstlichen Quellen `Example Software GmbH <cs-auto@software.example>` und `Audio Shop <do_not_reply@audio.example>`: `graph.build()` ordnet beide ausdrücklich als `quality_category=person` ein. Ursache ist die begrenzte zentrale Mailboxerkennung in `people_quality.py`, die beide lokalen Adressteile nicht erkennt. `identitaet.Verzeichnis.aufnehmen` und die Graphenannotation verwenden diese Grenze; die Oberfläche schließt nur als automatisiert oder unklar markierte Einträge aus. Fehlende Qualitätsmetadaten fallen in `PeopleReview.tsx` zusätzlich auf „person“ zurück, sind bei diesen beiden Beispielen aber nicht die unmittelbare Ursache.
+
+Nächste begrenzte Lieferung: nachgewiesene technische Nicht-Antwort-Adressen als automatische Absender behandeln; mehrdeutige Serviceeinträge zur Prüfung markieren. Keine Namen zusammenführen, keine Quelle löschen, keine ausdrücklich bestätigte Identität still ändern. Quellbasierte Adresskennungen, Verbindungen und Originale müssen erhalten bleiben. Die Oberfläche darf fehlende Qualitätsmetadaten nicht ohne Grundlage als menschliche Person darstellen.
+
+Synthetische Gegenproben: technische und mehrdeutige Serviceabsender verlassen die Menschenliste, gewöhnliche persönliche Postfächer bleiben dort; explizit bestätigte Identitäten, Adresskennungen und Belege bleiben stabil. Backend-/Graphen-/Filterprüfungen und tatsächliche Oberflächenbedienung vor Abnahme. Noch nicht umgesetzt; diese Lieferung korrigiert nur Mailkopfnamen und ihre Anzeige-/Suchprojektionen.
