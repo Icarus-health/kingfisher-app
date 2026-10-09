@@ -1,0 +1,17 @@
+{
+  "package-inputs.json": "8cba314e1e2645c4624816546a8c373bccda7dab96d21f45c96d9e282843f62b",
+  ".DS_Store": "2760fd719ed7d81fd37f6d335a3e35ce21f9531a5f77299250f72fea57b841db",
+  "benchmark.py": "7f78244b3490a5e8016d02fbe4702cf11c6015b88c72dfa3c88f415c5d9e48bd",
+  "Kingfisher.dmg": "a67090cb01ba0383217b27eec0b08e73e2548681cf9eaf661f4858f0af20dd7b",
+  "Dockerfile": "a20d0178c6659ed75d45a73635f1e2cb07b2f3f4cdf97eaafe5877d866493e36",
+  "benchmark-comparison.json": "5a7869caff965fc38e96d03dd5039c9478eff1a40db8b3abb0c9293c8ab5ecea",
+  "probe.py": "a8e53434f90b552575a6c6e60e48178d128f9f428d7ec87135c4bb2382e85907",
+  "verification.json": "934b3b96c52ae51813db52e259c31b748dfffb6dd48255c1df2708d20aa3272c",
+  "freeze.json": "c37e6015e392a28168b7e1b1f16cb065f036ace2b7c41d322c5dcf510cb11b2e",
+  "Kingfisher.app/Contents/Info.plist": "2a787424158ab72eaf372939f8dce5ef4968ad7717bd00781d745357dd687340",
+  "Kingfisher.app/Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+  "Kingfisher.app/Contents/MacOS/Kingfisher": "bcfbe9a48ea180f5cfc061544762f552708daf22b0949441676998235dc95a10",
+  "Kingfisher.app/Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+  "Kingfisher.app/Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+  "Kingfisher.app/Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+}

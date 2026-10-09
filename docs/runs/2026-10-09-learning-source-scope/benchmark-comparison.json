@@ -1,0 +1,40 @@
+{
+  "same_fixture_originals": true,
+  "single_run_not_daily_resource_measurement": true,
+  "results": [
+    {
+      "variant": "before",
+      "duration_seconds": 1.3942,
+      "python_peak_bytes": 20899262,
+      "decoded_rows": {
+        "episodes": 25018,
+        "proposals": 2001
+      },
+      "observed_days": [
+        "2026-09-07"
+      ],
+      "candidate_count": 1,
+      "evidence_count": 3,
+      "originals_sha256": "72c7dfb8b3238a43fe4ae79c5a135a9f3b366973fd00318a0b8c975d0c494ddc",
+      "originals_unchanged": true,
+      "models_used": false
+    },
+    {
+      "variant": "after",
+      "duration_seconds": 0.0333,
+      "python_peak_bytes": 28806,
+      "decoded_rows": {
+        "episodes": 12,
+        "proposals": 0
+      },
+      "observed_days": [
+        "2026-09-07"
+      ],
+      "candidate_count": 1,
+      "evidence_count": 3,
+      "originals_sha256": "72c7dfb8b3238a43fe4ae79c5a135a9f3b366973fd00318a0b8c975d0c494ddc",
+      "originals_unchanged": true,
+      "models_used": false
+    }
+  ]
+}
