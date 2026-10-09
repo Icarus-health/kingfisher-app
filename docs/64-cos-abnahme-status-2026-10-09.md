@@ -2,6 +2,8 @@
 
 Stand: 9. Oktober 2026. Diese Übersicht ersetzt keine Prüfung und erklärt den CoS nicht für fertig. Sie bündelt den aktuellen Betriebsstand und die noch nötigen Nachweise; ältere Liefernotizen bleiben erhalten.
 
+Nachtrag zur Quellenlieferung: Der lokale Sprachentwurf und das geprüfte Vorlesen liegen als [Draft #43](https://github.com/Icarus-health/kingfisher-app/pull/43) und gekoppeltes Preview `1.0.6-preview.6f53fd6` vor. Sie sind nicht installiert und nicht nativ bedient worden. Die [Korrektur manueller Mailaufgaben bei verlorener Speicherantwort](runs/2026-10-09-mail-task-retry/README.md) schützt die Wiederholung und Quellenbindung; sie ersetzt keinen Nachweis der inhaltlichen Aufgabenerkennung.
+
 ## Tatsächlicher Betriebsstand
 
 Die lesende Statusabfrage bestätigt auf dem Mac Backend und App `1.0.6-local.3403623`. Die drei ausgewählten Mac-Kalender sind gespeichert; der Helfer meldet sich. Die neue macOS-Freigabe steht aber noch auf `not_determined`: kein vollständig synchronisierter Kalenderbestand, derzeit null gelieferte Termine. Der Nutzer hat den Fenstertest ausdrücklich verschoben. Das ist keine leere persönliche Agenda.
@@ -23,7 +25,7 @@ Der persönliche Import bleibt pausiert, Kalenderquellen dürfen nicht ins Gedä
 | Entwicklung und Learning | `/development`, Ziele, explizite nächste Aufgaben, Gewohnheiten, belegte Lernvorschläge mit Rücknahme | Persönliche Lernhypothesen und technische Produktverbesserung weiterhin trennen; tägliche Verständlichkeit prüfen. |
 | Gesundheit | Bestehende Originalquellen über den Gesundheitsbereich, erhaltene Kategorien/Belege | Strukturierte datierte Messwerte mit Einheit, Person und Herkunft sind noch kein geliefertes Modul. Keine medizinische Bewertung aus Lücken. |
 | Atlas | Geräte-/Verbindungsstatus und Quellenadapter | Vollständige Sicht auf tatsächliche Quellenabdeckung; ein allgemeines Geräte-/Serverinventar ist noch nicht geliefert. |
-| Voice | Lokale Audio-Worker-Schnittstelle und Briefing-Client | Gesprochener Dialog, Aufnahmefreigabe, Fehler-/Rücknahmeweg und native Bedienung noch offen. Keine Siri-/Cloud-Sprachdienste aktiviert. |
+| Voice | Lokale Audio-Worker-Schnittstelle; Draft #43 ergänzt expliziten lokalen Diktatentwurf, Rücknahme und Vorlesen einer frisch gegengeprüften angezeigten Antwort | Preview nicht installiert; echte Aufnahmefreigabe, deutsche Diktatqualität, Abbruch und native Bedienung noch prüfen. Diktat speichert oder sendet nie automatisch. |
 | Öffentliches Weltwissen | `/world`, explizit ausgewählte öffentliche Quellen, Herkunft und Abrufzeit | Reale gewünschte Quellen auswählen und Aktualität/Inhaltsqualität prüfen; gespeicherter Quellenbericht ist keine bestätigte Weltwahrheit. |
 | GitHub und Mac reproduzierbar liefern | Versionen, Prüfsummen, Sicherungen, Quellen-/Datenbank-Erhaltungsnachweise | Offene Drafts und tatsächliche Mac-Abnahmen getrennt abschließen; öffentlicher Updater ist kein Nachweis für die installierte lokale Fassung. |
 
