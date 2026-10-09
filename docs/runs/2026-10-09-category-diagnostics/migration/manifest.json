@@ -1,0 +1,36 @@
+{
+  "artifact": "offline category migration 19 to 20 preflight",
+  "product_patch_sha256": "25244a13586375dc9366aaad8d68adf4cd4867174bd9a2b207afacb44ad907b8",
+  "synthetic_tests": 22,
+  "product_data_accessed": false,
+  "docker_run": false,
+  "network_or_models": false,
+  "product_files_modified": false,
+  "files": {
+    "preflight.py": "19bc7ff195e760f277fcad4e80dd64f4dddc5ec36221243e613d1917194c54c8",
+    "test_preflight.py": "882d1ac77a10e391bb5b89b70778f8191c49890dcc70ceede0f3b49443959030",
+    "README.md": "b15eb526cfbb9f82db5c1080233b92347f3ecee731ff621ba8ff2a1801573396",
+    "RED.log": "973b60b06bb969971dad67e8e57875cdd1d2ada87b3a8dca885fbab79ca0a15f",
+    "RED-logging.log": "915abddd60cbe39b1558aa3f9b8cf68d5082e89a9d32278d0eab2bf730a45e9a",
+    "RED-original-digest.log": "1bf9c55405478d626dd7035edf8066b2179ff52ed9c254ec4a541479a2bd16a8",
+    "RED-argument.log": "6dc9a55329759181720230bfe697f8f1948be51955388fc9c6415141e699f275",
+    "GREEN.log": "56f7d1dbcd79541c3215cf8163c82b9d24ab7f6b31acbd6e3224aa0d0cf8e766",
+    "ROOT-GREEN.log": "e6be41d660767e220b07a91e97e1403757eeb1fbba35db3655637c4ff144488c"
+  },
+  "independent_review": {
+    "path": "/private/tmp/kingfisher-category-preflight-independent-review-20261009.md",
+    "sha256": "fae45331a4d412c82c94a2436d33fa844a3472d0c42af2635287d5b0fb420d19",
+    "scope": "read-only code and test-contract review; no test execution",
+    "result": "no remaining blocker within bounded offline contract"
+  },
+  "root_verification": {
+    "log": "ROOT-GREEN.log",
+    "result": "22 passed in 1.55s"
+  },
+  "installer_preconditions": [
+    "All writers stopped and candidate unpublished throughout call",
+    "Independent verified cold copy including 17th operational DB and all root artifacts",
+    "Sufficient free space reserved externally before invoking",
+    "Missing or unsuccessful JSON result is a hard stop; no post-publish rewind"
+  ]
+}

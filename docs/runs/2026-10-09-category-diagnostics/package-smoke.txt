@@ -1,0 +1,2 @@
+{"version": "1.0.6-local.5621ec9", "python_sources_verified": 264, "ui_files_verified": 112, "ui_file_set_exact": true}
+{"status": "passed", "actual_schema_19_to_20": true, "originals_preserved": true, "old_failures_remain_unknown": true, "safe_failure_reason_visible": true, "success_clears_reason": true, "network": "none", "private_sources_used": false, "real_model_test": false}

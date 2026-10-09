@@ -1,0 +1,17 @@
+.............................F                                           [100%]
+=================================== FAILURES ===================================
+_________ test_compose_environment_does_not_override_existing_env_file _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107249850>
+
+    def test_compose_environment_does_not_override_existing_env_file(monkeypatch):
+        monkeypatch.setenv('KINGFISHER_IMAGE','wrong:19');monkeypatch.setenv('ICARUS_SIDECAR_TOKEN','wrong-secret')
+        monkeypatch.setenv('DOCKER_CONTEXT','synthetic-context')
+>       env=installer.compose_environment()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'orchestrator' has no attribute 'compose_environment'
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:338: AttributeError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_compose_environment_does_not_override_existing_env_file
+1 failed, 29 passed in 5.86s

@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+____________________ ERROR collecting test_orchestrator.py _____________________
+ImportError while importing test module '/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:11: in <module>
+    import orchestrator as installer
+E   ModuleNotFoundError: No module named 'orchestrator'
+=========================== short test summary info ============================
+ERROR ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.08s
