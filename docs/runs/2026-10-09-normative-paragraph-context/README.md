@@ -1,6 +1,6 @@
 # Vollständige Regelabsätze erhalten
 
-Vorbereiteter Liefernachweis, 9. Oktober 2026. **Die abschließende Vollsuite und Mac-Installation stehen für diese Lieferung noch aus.** Produktstand `e8cfc26d5aee8ef42a6206da4ffa02a3bbced966`, Testvertragsstand `504ffae`. Der installierte Mac bleibt bis zur bestandenen Abnahme auf `ce39f71`.
+Vorbereiteter Liefernachweis, 9. Oktober 2026. **Die abschließende Vollsuite und Mac-Installation stehen für diese Lieferung noch aus.** Produktstand `e8cfc26d5aee8ef42a6206da4ffa02a3bbced966`, Testvertragsstand `50dea3e`. Der installierte Mac bleibt bis zur bestandenen Abnahme auf `ce39f71`.
 
 ## Problem und Verhalten
 
@@ -14,7 +14,7 @@ Das erste Review fand Header-/Satzeinheiten-Kollision, ausgeschlossene normative
 
 Die strengeren Erwartungen in Before/After-, Originalauswahl-, Applicability- und HTTP-Tests sind ausdrücklich dokumentiert. Vollständige Originale bleiben positive Kontrollen; verlorene Begleitsätze, verworfene Bedingungen und alte unvollständige Payloads bleiben negative Kontrollen. Der HTTP-GET-Test beweist erneute Projektion in derselben App, keinen Neustart; reale Store-Neustarts werden separat geprüft.
 
-Ein erster Volltest auf `da38e85` wurde nach dem Wiederholungsbefund abgebrochen und zählt nicht als Abschluss. Er zeigte außerdem gesperrte lokale Testserver/Prozessdiagnosen sowie alte Teilabsatz-Erwartungen. Die Vertragskorrektur lockert keinen Produktguard. Der neue vollständige Lauf nutzt die erforderlichen lokalen Diagnoserechte; sein Ergebnis wird nach Abschluss ergänzt.
+Ein erster Volltest auf `da38e85` wurde nach dem Wiederholungsbefund abgebrochen und zählt nicht als Abschluss. Er zeigte außerdem gesperrte lokale Testserver/Prozessdiagnosen sowie alte Teilabsatz-Erwartungen. Die Vertragskorrektur lockert keinen Produktguard. Der erste abgeschlossene breite Lauf ergab 6.339 bestanden, 1 fehlgeschlagen, 3 übersprungen und 32 Subtests. Das zusätzliche Messlatten-Skript erfand aus „Bitte senden“ eine Muss-Aussage. Derselbe Fehler besteht unabhängig im unveränderten Archiv von `70cac`; er stammt nicht aus dieser Produktänderung. Der sorgfältige Test übernimmt nun den vollständigen echten Fristabsatz im normalen Textschema. Alte und erfundene Daten sowie die freie Muss-Paraphrase bleiben negative Kontrollen. 5/5 fokussiert bestanden, Szenario-Gold und Produktguards unverändert. Der Abschlusslauf auf `50dea3e` läuft; noch kein finales Grün behauptet. [Unabhängiges Review](messlatte-contract-review.md).
 
 ## Echter Modelllauf: enger Umfang
 

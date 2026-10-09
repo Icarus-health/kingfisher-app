@@ -23,5 +23,15 @@
     "raw_sha256": "2370e59aee07b86de6c8b5d3d1e810011bd7bed9d67bad9d51cb2ba85ee67000",
     "saved_sha256": "c4521fe78ff6d3bf55bdcad5564dc632b56ccaf0d259d234f457644804007fb1",
     "normalization": "trailing ASCII whitespace only"
+  },
+  "messlatte-contract-focused.log": {
+    "raw_sha256": "2d9303ae5251c1636429042a2fb0daa20df3d7b93e4362046e6e1617b4b3d0d1",
+    "saved_sha256": "2d9303ae5251c1636429042a2fb0daa20df3d7b93e4362046e6e1617b4b3d0d1",
+    "normalization": "trailing ASCII whitespace only"
+  },
+  "full-suite-before-benchmark-correction.log": {
+    "raw_sha256": "956fe0843e44299f85d82e518c5ecaeb513f559de2ee26b27ee94e753ff8c84f",
+    "saved_sha256": "956fe0843e44299f85d82e518c5ecaeb513f559de2ee26b27ee94e753ff8c84f",
+    "normalization": "trailing ASCII whitespace only"
   }
 }
