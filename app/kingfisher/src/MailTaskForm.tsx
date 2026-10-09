@@ -227,7 +227,7 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
       </div>
       {error ? <div className="mail-reader-error" role="alert">
         <p>{error} <a href="/vorhaben?view=mine" onClick={(event) => {event.preventDefault(); navigate('/vorhaben?view=mine');}}>Aufgaben prüfen</a></p>
-        <label><input id="mail-task-request-reviewed" type="checkbox" checked={retryReviewed} disabled={saving} onChange={(event) => setRetryReviewed(event.target.checked)} /> Ich habe die vorhandenen Aufgaben geprüft und möchte bewusst einen neuen Auftrag vorbereiten.</label>
+        <label className="mail-task-retry-review"><input id="mail-task-request-reviewed" type="checkbox" checked={retryReviewed} disabled={saving} onChange={(event) => setRetryReviewed(event.target.checked)} /> Ich habe die vorhandenen Aufgaben geprüft und möchte bewusst einen neuen Auftrag vorbereiten.</label>
         <button id="mail-task-new-request" type="button" className="mail-reader-secondary" disabled={!retryReviewed || saving} onClick={prepareNewRequest}>Neuen Auftrag vorbereiten</button>
       </div> : null}
       {saved ? <p className="mail-task-form-success" role="status">Aufgabe festgehalten. <a href={successPath} onClick={(event) => { event.preventDefault(); navigate(successPath); }}>Aufgabe ansehen</a></p> : null}
