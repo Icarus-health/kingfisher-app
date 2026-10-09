@@ -1321,7 +1321,7 @@ export const api = {
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
   mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
-  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean}) =>
+  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>
     request<Task>(`/api/v1/messages/${encodeURIComponent(uid)}/task`, {method: "POST", body: JSON.stringify(data)}),
   prepareMailReply: (uid: string, data: {body: string; context_token?: string}) => request<ConversationPayload>(`/api/v1/messages/${encodeURIComponent(uid)}/reply`, {method: "POST", body: JSON.stringify(data)}),
   validateMailReplyContext: (uid: string, contextToken: string) => request<{valid: boolean}>(`/api/v1/messages/${encodeURIComponent(uid)}/reply-suggestion/validate`, {method: "POST", body: JSON.stringify({context_token: contextToken})}),
