@@ -1,0 +1,15 @@
+F.....                                                                   [100%]
+=================================== FAILURES ===================================
+_ test_an_atomic_original_rule_and_negative_status_do_not_contradict_themselves _
+
+    def test_an_atomic_original_rule_and_negative_status_do_not_contradict_themselves():
+        result = check(RULE, RULE)
+>       assert result.bestanden, result.gruende
+E       AssertionError: ('Der Beleg sagt „geliefert“, der Satz „offen“',)
+E       assert False
+E        +  where False = GeprueftSatz(roh='Bei Z-204 darf die Lieferung erst nach schriftlicher Zustimmung versandt werden. Die Zustimmung lieg...er Satz „offen“',), relativ=False, vom_programm=False, nur_kopf=False, pruefmodell='', verlaesslichkeit='', hinweis='').bestanden
+
+sidecar/tests/test_answer_status_sentence_scope.py:21: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_answer_status_sentence_scope.py::test_an_atomic_original_rule_and_negative_status_do_not_contradict_themselves
+1 failed, 5 passed in 0.15s

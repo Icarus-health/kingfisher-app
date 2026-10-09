@@ -1,9 +1,8 @@
 """Zweites Tor im Antwortweg: Das Prüfmodell verwirft, was die erste Prüfung nicht sieht; fail closed; gespeichert.
 
-Der Fall, um den es geht: Eine Mail sagt „Die Geschäftsführung hat dem Vorschlag zugestimmt, der Betriebsrat hat
-sich dagegen entschieden.“ Der Satz „Der Betriebsrat hat dem Vorschlag zugestimmt.“ trägt keinen Anker, den die
-Prüfung ohne Modell prüft (alle Namen und das Statuswort stehen im Beleg, kein Verneinungswort). Er besteht die
-erste Prüfung. Das zweite Tor muss ihn verwerfen.
+Der Fall, um den es geht: Eine Mail sagt „Die Werkstatt liefert Ersatzteile an den Verein.“ Der Satz „Der Verein
+liefert Ersatzteile an die Werkstatt.“ vertauscht die Richtung der Beziehung. Alle Wörter stehen im Beleg, ohne
+Status- oder Verneinungsanker besteht er die erste Prüfung. Das zweite Tor muss ihn verwerfen.
 """
 import copy
 import json
@@ -17,15 +16,13 @@ from tests.test_bezuege import welt  # noqa: F401 - Fixture
 from tests.test_satzantwort import Skript, raum  # noqa: F401 - Fixture und Skriptmodell
 from tests.test_satzpruefung_modell import Pruefer
 
-FRAGE = 'Wer hat dem Vorschlag zugestimmt?'
-RICHTIG = 'Die Geschäftsführung hat dem Vorschlag zugestimmt.'
-FALSCH = 'Der Betriebsrat hat dem Vorschlag zugestimmt.'
+FRAGE = 'Wer liefert Ersatzteile an den Verein?'
+RICHTIG = 'Die Werkstatt liefert Ersatzteile an den Verein.'
+FALSCH = 'Der Verein liefert Ersatzteile an die Werkstatt.'
 
 
-def rueckmeldung(episodes, tage=10):
-    return mail(episodes, 'Rückmeldung zum Vorschlag', [
-        ('Die Geschäftsführung hat dem Vorschlag zugestimmt, der Betriebsrat hat sich dagegen entschieden.', 'fact')],
-        tage=tage)
+def liefermeldung(episodes, tage=10):
+    return mail(episodes, 'Lieferung der Ersatzteile', [(RICHTIG, 'fact')], tage=tage)
 
 
 def beide(nutzer):
@@ -35,7 +32,7 @@ def beide(nutzer):
 
 def ideal():
     """Ein Prüfmodell, das den falschen Satz erkennt und den richtigen durchlässt."""
-    return Pruefer({'Betriebsrat': '{"urteil":"nein"}', 'Geschäftsführung': '{"urteil":"ja"}'})
+    return Pruefer({FALSCH: '{"urteil":"nein"}', RICHTIG: '{"urteil":"ja"}'})
 
 
 def fragen(raum, pruefung, saetze=beide, zeiten=None, frage=FRAGE):
@@ -51,7 +48,7 @@ def texte(gespeichert):
 def test_ohne_pruefmodell_kommt_der_falsche_satz_durch_die_erste_pruefung(raum):
     """Die Lücke, die das zweite Tor schließt: ohne Modell bestehen beide Sätze. Die Antwort sagt, dass es fehlt."""
     episodes, claims, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     gespeichert = fragen(raum, spm.OHNE)
     assert texte(gespeichert) == [RICHTIG, FALSCH]
     assert gespeichert['satzantwort']['pruefung'] == {'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}
@@ -64,7 +61,7 @@ def test_ohne_pruefmodell_kommt_der_falsche_satz_durch_die_erste_pruefung(raum):
 
 def test_das_pruefmodell_verwirft_den_falschen_satz_und_die_antwort_sagt_es(raum):
     episodes, claims, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     pruefer = ideal()
     gespeichert = fragen(raum, spm.tor('an', pruefer))
     daten = gespeichert['satzantwort']
@@ -83,15 +80,15 @@ def test_das_pruefmodell_verwirft_den_falschen_satz_und_die_antwort_sagt_es(raum
 
 def test_das_pruefmodell_sieht_nur_den_satz_und_die_textstellen_seiner_belege(raum):
     episodes, _, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     mail(episodes, 'Andere Sache', [('Die Kantine öffnet am Montag wieder.', 'fact')], tage=3)
     pruefer = ideal()
     fragen(raum, spm.tor('an', pruefer), saetze=lambda n: {'status': 'antwort', 'saetze': [
-        {'text': RICHTIG, 'belege': [next(b['nr'] for b in n['belege'] if 'Rückmeldung' in b['quelle'])]}]})
+        {'text': RICHTIG, 'belege': [next(b['nr'] for b in n['belege'] if 'Lieferung' in b['quelle'])]}]})
     [anfrage] = pruefer.anfragen
     inhalt = json.loads(anfrage[-1]['content'])
     assert inhalt['satz'] == RICHTIG and set(inhalt) == {'satz', 'belege'}
-    assert 'Betriebsrat hat sich dagegen entschieden' in inhalt['belege']
+    assert RICHTIG in inhalt['belege']
     assert 'Kantine' not in json.dumps(anfrage, ensure_ascii=False), 'Kein anderer Beleg, keine andere Quelle'
     assert FRAGE not in json.dumps(anfrage, ensure_ascii=False), 'Die Frage des Nutzers geht nicht an das Prüfmodell'
 
@@ -99,7 +96,7 @@ def test_das_pruefmodell_sieht_nur_den_satz_und_die_textstellen_seiner_belege(ra
 @pytest.mark.parametrize('ausgabe', ['{"urteil":"unklar"}', RuntimeError('Ollama weg'), 'vielleicht'])
 def test_unklar_und_fehler_lassen_keinen_satz_durch(raum, ausgabe):
     episodes, claims, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     gespeichert = fragen(raum, spm.tor('an', Pruefer(standard=ausgabe)))
     daten = gespeichert['satzantwort']
     assert daten['status'] == 'zitate' and daten['pruefung']['verworfen'] == 2
@@ -109,7 +106,7 @@ def test_unklar_und_fehler_lassen_keinen_satz_durch(raum, ausgabe):
 
 def test_das_zeitbudget_wird_eingehalten_und_ueberschreitung_ist_unklar(raum, monkeypatch):
     episodes, _, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     monkeypatch.setattr(spm, 'SATZ_BUDGET_S', 0.05)
     monkeypatch.setattr(spm, 'GESAMT_BUDGET_S', 0.08)
     zeiten = zeitmessung.Zeiten()
@@ -124,7 +121,7 @@ def test_das_zeitbudget_wird_eingehalten_und_ueberschreitung_ist_unklar(raum, mo
 
 def test_vom_nutzer_ausgeschaltet_fragt_niemand_und_die_antwort_sagt_es(raum):
     episodes, claims, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     pruefer = ideal()
     gespeichert = fragen(raum, spm.tor('aus', pruefer))
     assert texte(gespeichert) == [RICHTIG, FALSCH] and pruefer.anfragen == []
@@ -134,7 +131,7 @@ def test_vom_nutzer_ausgeschaltet_fragt_niemand_und_die_antwort_sagt_es(raum):
 
 def test_gespeichert_und_beim_anzeigen_neu_geprueft(raum):
     episodes, claims, _ = raum
-    rueckmeldung(episodes)
+    liefermeldung(episodes)
     gespeichert = fragen(raum, spm.tor('an', ideal()))
     daten = gespeichert['satzantwort']
     assert daten['saetze'][0]['verlaesslichkeit'] == 'gut'
@@ -164,7 +161,7 @@ def test_gespeichert_und_beim_anzeigen_neu_geprueft(raum):
 
 def test_ein_alter_einzelner_beleg_bekommt_den_nebensatz(raum):
     episodes, claims, _ = raum
-    rueckmeldung(episodes, tage=700)
+    liefermeldung(episodes, tage=700)
     gespeichert = fragen(raum, spm.tor('an', ideal()))
     text, _, _ = wma.render(gespeichert, episodes, claims)
     assert f'{RICHTIG} [1] (nur eine Quelle, von 2024)' in text

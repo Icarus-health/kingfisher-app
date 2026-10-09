@@ -28,7 +28,7 @@ Ein Satz besteht nur, wenn
      und kein allgemeines Gattungswort ist, samt Namensfolgen („Klinikum
      Stuttgart“ als Folge), in Beugung und Umlautschreibung tolerant,
    * Zusagen des Status („bezahlt“, „bestätigt“, „erledigt“ …): dieselbe
-     Wortgruppe muss im Beleg stehen,
+     Wortgruppe muss in einer passenden Quellenstelle zur selben Sache stehen,
    * relative Zeitangaben („heute“, „morgen“, „nächste Woche“) sind ohne festen
      Bezugstag nicht prüfbar und werden verworfen (`relative_zeit_erlaubt`),
 
@@ -1145,37 +1145,129 @@ def _abschnitte(text: str, granular: bool) -> list[str]:
 
 
 def _gegenstatus(satz: str, belege: Sequence[Beleg]) -> str | None:
-    """Grund, falls der Beleg zur selben Sache das Gegenteil des Status im Satz sagt (offen gegen erledigt).
+    """Status braucht eine passende Quellenstelle zur selben Sache, nicht nur ein Wort im Pool.
 
-    Verglichen wird dort, wo Satz und Beleg die meisten Sachwörter teilen, je Satzteil und je Satz des
-    Belegs. Steht an dieser Stelle der Status des Satzes irgendwo, bleibt er unbeanstandet.
+    Kennungen und Namensfolgen binden die vorhandene Wortüberlappung enger.
+    Das ist eine konservative Prüfung, kein Parser beliebiger Beziehungen.
     """
+    teile = _status_abschnitte(satz)
+    if len(teile) > 1:
+        for teil in teile:
+            grund = _gegenstatus(teil, belege)
+            if grund:
+                return grund
+        return None
     satz_status = _status_woerter(satz)
     if not satz_status:
         return None
-    satz_woerter = _inhaltswoerter(satz) - {w[:5] for w in _status_woerter_liste()}
-    if not satz_woerter:
-        return None
-    for granular in (True, False):
-        einheiten = []
-        for beleg in belege:
-            for stelle in _abschnitte(f'{beleg.kopf}\n{beleg.text}', granular):
-                gemeinsam = len(satz_woerter & _inhaltswoerter(stelle))
-                if gemeinsam:
-                    einheiten.append((gemeinsam, _status_woerter(stelle)))
-        if not einheiten:
-            continue
-        beste = max(anzahl for anzahl, _ in einheiten)
-        status_dort = [st for anzahl, st in einheiten if anzahl == beste]
-        gefunden = set().union(*status_dort)
-        for gruppe in sorted(satz_status):
-            if gruppe in gefunden:
+    satz_woerter = _status_sachwoerter(satz)
+    kennungen = {k.casefold() for k in _KENNUNG.findall(satz)}
+    if len(kennungen) > 1:
+        # Mehrere Gegenstände innerhalb eines ungetrennten Satzteils sind hier
+        # nicht sicher zuordenbar. Der Aufrufer behält die Originalzitate.
+        return 'Der Status ist innerhalb dieses Satzteils nicht eindeutig zugeordnet'
+    namen = _namensfolgen(satz)
+    einheiten = []
+    for beleg in belege:
+        for stelle in _status_quellenabschnitte(beleg.text):
+            if not _REGELSIGNAL.search(satz) and _REGELSIGNAL.search(stelle):
+                # Eine Erlaubnis oder Pflicht belegt keinen tatsächlichen Stand.
                 continue
-            gegen = {'offen'} if gruppe != 'offen' else {g for g, _ in _STATUS if g != 'offen'}
-            if gegen & gefunden:
-                gegenteil = sorted(gegen & gefunden)[0]
-                return f'Der Beleg sagt „{gegenteil}“, der Satz „{gruppe}“'
+            ids_dort = {k.casefold() for k in _KENNUNG.findall(stelle)} or {k.casefold() for k in _KENNUNG.findall(beleg.kopf)}
+            if kennungen and ids_dort != kennungen:
+                continue
+            namens_text = stelle if _namensfolgen(stelle) else beleg.kopf
+            if not _status_namen_belegt(namen, namens_text):
+                continue
+            gemeinsam = len(satz_woerter & _status_sachwoerter(stelle + '\n' + beleg.kopf))
+            gemeinsam += len(kennungen) + len(namen)
+            if gemeinsam:
+                # Der Kopf darf den Gegenstand benennen, aber keinen Status spenden.
+                namensfolgen = tuple(tuple(w for w, _ in f) for f in _namensfolgen(namens_text))
+                einheiten.append((gemeinsam, _status_woerter(stelle), frozenset(ids_dort), namensfolgen))
+    if not einheiten:
+        return 'Der Status hat keinen Beleg zur selben Sache'
+    beste = max(anzahl for anzahl, _, _, _ in einheiten)
+    passende = [e for e in einheiten if e[0] == beste]
+    if not kennungen and len({ids for _, _, ids, _ in passende if ids}) > 1:
+        return 'Der Status gehört zu mehreren möglichen Kennungen'
+    if not kennungen and not namen and len({ns for _, _, _, ns in passende if ns}) > 1:
+        return 'Der Status gehört zu mehreren möglichen Namensfolgen'
+    status_dort = [st for _, st, _, _ in passende]
+    gefunden = set().union(*status_dort)
+    for gruppe in sorted(satz_status):
+        gegen = {'offen'} if gruppe != 'offen' else {g for g, _ in _STATUS if g != 'offen'}
+        if gruppe in gefunden:
+            if any(gruppe not in st and gegen & st for st in status_dort):
+                return f'Die passenden Belege widersprechen sich zum Status „{gruppe}“'
+            continue
+        if gegen & gefunden:
+            gegenteil = sorted(gegen & gefunden)[0]
+            return f'Der Beleg sagt „{gegenteil}“, der Satz „{gruppe}“'
+        return f'Der Status „{gruppe}“ ist für diese Sache nicht belegt'
     return None
+
+
+def _status_abschnitte(text: str) -> list[str]:
+    """Satzteile mit erhaltenem Doppelpunkt: „Z-204: offen“ bleibt gebunden."""
+    return [teil for satz in _abschnitte(text, False)
+            for teil in re.split(r';|,\s|\s(?:aber|sondern|jedoch|während)\s', satz, flags=re.I) if teil.strip()]
+
+
+def _status_quellenabschnitte(text: str) -> list[str]:
+    """Nur ausdrücklich spätere Stände derselben Sache innerhalb einer Quelle ablösen.
+
+    Die Reihenfolge allein und Zeitstempel verschiedener Quellen reichen nicht.
+    Andere Kennungen, Namen oder Sachwörter behalten ihren eigenen Stand.
+    """
+    stellen: list[str] = []
+    # Nur ein enger, eindeutiger Verlaufsbericht darf den alten Stand ablösen.
+    # Bei Fragen, Regeln, Bedingungen oder gekennzeichneter Unsicherheit bleibt
+    # der gesamte Quellenkonflikt erhalten; keine freie Modalitätsinterpretation.
+    verlauf_eindeutig = (not any(z in text for z in '?\"„“«»')
+                         and not _REGELSIGNAL.search(text)
+                         and not re.search(r'\b(?:wenn|sofern|sobald|falls|ob|vermutlich|wahrscheinlich|'
+                                           r'möglicherweise|moeglicherweise|angeblich|vielleicht|könnte|koennte)\b',
+                                           text, re.I))
+
+    def sache(stelle: str):
+        return (frozenset(k.casefold() for k in _KENNUNG.findall(stelle)),
+                tuple(tuple(w for w, _ in folge) for folge in _namensfolgen(stelle)),
+                _status_sachwoerter(stelle))
+
+    for stelle in _status_abschnitte(text):
+        spaeter = re.match(r'^\s*später\s*:\s*(.+)$', stelle, re.I)
+        if spaeter and verlauf_eindeutig:
+            stelle = spaeter.group(1)
+            anker = sache(stelle)
+            # Nur ein einfacher ausdrücklich behaupteter Statusabschluss:
+            # keine Möglichkeit, Bedingung oder qualifizierende Ergänzung.
+            aussage = re.fullmatch(r'.+?\s+(?:ist|sind|wurde|wurden|hat|haben)\s+(.+?)\s*', stelle, re.I)
+            praedikat = _woerter(aussage.group(1)) if aussage else []
+            klarer_status = bool(praedikat) and all(
+                w in {'bereits', 'schon', 'nun', 'jetzt'} or
+                any(_wortform(w, stamm) for _, staemme in _STATUS_STAEMME for stamm in staemme)
+                for w in praedikat)
+            if klarer_status and _status_woerter(stelle) and anker[2]:
+                stellen = [alt for alt in stellen if sache(alt) != anker]
+        stellen.append(stelle)
+    return stellen
+
+
+def _status_namen_belegt(folgen: list[list[tuple[str, str]]], text: str) -> bool:
+    """Nur gleiche Namensfolgen mit Beugungsendungen, keine freie Ableitung."""
+    woerter = _woerter(text)
+    return all(any(all(_wortform(woerter[i + j], w) or _wortform(w, woerter[i + j])
+                       for j, (w, _) in enumerate(folge))
+                   for i in range(len(woerter) - len(folge) + 1)) for folge in folgen)
+
+
+def _status_sachwoerter(text: str) -> set[str]:
+    """Sachwörter ohne tatsächliche Statusformen; „Unterlagen“ bleibt erhalten."""
+    return {w[:5] for w in _woerter(text) if len(w) >= 4 and w not in _FUNKTION
+            and not _VERNEINUNG.fullmatch(w)
+            and (w in {'zusage', 'zusagen', 'bestatigung', 'bestatigungen'}
+                 or not any(_wortform(w, stamm) for _, staemme in _STATUS_STAEMME for stamm in staemme))}
 
 
 def _status_woerter_liste() -> list[str]:

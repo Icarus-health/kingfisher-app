@@ -1,0 +1,6 @@
+observed_prepare {"status": "reports", "sentence_status": "zitate"}
+prepare_wrong_status {"answer_status": "reports", "sentence_status": "zitate", "basis_count": 2, "selected_source_count": 2, "model_answer_count": 1, "render_status": "working_reports", "wrong_fact_displayed": false, "original_quotes_displayed": [true, true]}
+reopen_wrong_status {"render_status": "working_reports", "wrong_fact_displayed": false, "original_quotes_displayed": [true, true], "source_links": 2}
+legacy_snapshot_recheck {"seed_sentence_status": "saetze", "stored_sentence_mutated": "Die Lieferung Z-204 wurde bezahlt.", "render_status": "working_reports", "wrong_fact_displayed": false, "original_invoice_quote_displayed": true, "source_links": 2}
+legacy_reopen_recheck {"render_status": "working_reports", "wrong_fact_displayed": false, "original_invoice_quote_displayed": true}
+withdrawal {"render_status": "working_unavailable", "source_links": 0, "wrong_fact_displayed": false, "raw_invoice_source_preserved": true, "raw_source": "Die Rechnung R-719 wurde bezahlt."}

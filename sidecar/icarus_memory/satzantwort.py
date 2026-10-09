@@ -130,9 +130,20 @@ ORIGINAL_ANWEISUNG = (ANWEISUNG.replace(
     + '\nIn diesem Modus schreibst du KEINEN Antworttext. Wähle höchstens fünf passende Originalstellen aus '
       '„originalsaetze“ der Belege. „beleg“ ist die Belegnummer, „satz“ die Nummer der Stelle in diesem Beleg. '
       'Kingfisher übernimmt ihren vollständigen Wortlaut. Wähle nur Stellen, die die Frage beantworten. '
+      'Eine nummerierte Originalstelle kann mehrere Sätze enthalten; ihre Nummer gehört zur ganzen Stelle. '
+      'Teile sie nicht in selbst nummerierte Sätze auf. '
       'Eine Regel belegt nicht, dass ihre Voraussetzung erfüllt ist. Fehlt eine Antwort, wähle keine Stellen '
       'und status nichts_vorliegend; bei Widersprüchen oder Unklarheit status unklar. '
       'Erfinde keine Nummern und gib keine zusätzlichen Felder aus.')
+
+ORIGINAL_NACHPRUEFUNG = (
+    '\nPrüfe die leere Auswahl noch einmal anhand derselben nummerierten Originalstellen. '
+    'Ein ausdrücklich berichteter negativer Stand beantwortet eine Frage nach dem Stand ebenfalls: '
+    'nicht eingegangen, noch nicht erfolgt oder abgesagt ist vorhandene Information. '
+    'Unterscheide eine bloße Voraussetzung von einer ausdrücklich berichteten Erfüllung oder Nichterfüllung. '
+    'Wähle dafür nur angebotene vollständige Originalstellen. Eine Regel allein belegt keinen tatsächlichen Stand. '
+    'Fehlt die verlangte Information weiterhin oder betrifft sie einen anderen Vorgang, bleibe bei '
+    'nichts_vorliegend; bei Widersprüchen bleibe bei unklar. Rate nicht und erfinde keine Nummern.')
 
 #: Was den Wandel einer Angabe benennt; ein Satz mit überholter Angabe braucht eines dieser Wörter.
 _WANDEL = re.compile(
@@ -658,6 +669,14 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
         with zeitmessung.messen(zeiten, 'saetze_modell'):
             antwort = anbieter.complete_json(messages, max_tokens=700, schema=ORIGINAL_SCHEMA if originalmodus else SCHEMA)
         status, saetze = _original_lesen(antwort, stellen) if originalmodus else _lesen(antwort)
+        if originalmodus and status == 'nichts_vorliegend' and not saetze:
+            # Höchstens eine Nachprüfung; dieselben sichtbaren Quellen, IDs,
+            # Datenschutzgrenzen und das bestehende Frage-Zeitbudget bleiben.
+            nachpruefung = [{'role': 'system', 'content': ORIGINAL_ANWEISUNG + ORIGINAL_NACHPRUEFUNG},
+                           messages[-1]]
+            with zeitmessung.messen(zeiten, 'saetze_modell'):
+                antwort = anbieter.complete_json(nachpruefung, max_tokens=700, schema=ORIGINAL_SCHEMA)
+            status, saetze = _original_lesen(antwort, stellen)
     except Exception as fehler:  # noqa: BLE001 - jeder Fehler des Modells führt zu den Zitaten, nie zu einer Antwort ohne Beleg
         return Versuch('zitate', grund=f'Modell ohne brauchbare Ausgabe ({type(fehler).__name__})', modell=modell, tor=tor)
     versuch = _urteilen(status, saetze, belege, jetzt, zusatz_woerter, modell, tor, zeiten)

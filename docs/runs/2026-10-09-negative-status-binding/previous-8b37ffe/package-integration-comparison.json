@@ -1,0 +1,23 @@
+{
+  "script_sha256": "ae9bd1b80165a4999a6c50d3b76acb42f79d113bb41e19bc506a33a94fe0595f",
+  "network": "none",
+  "real_dependencies": true,
+  "rows": [
+    {
+      "version": "63f7078",
+      "exit": 1,
+      "observed": {
+        "status": "reports",
+        "sentence_status": "saetze"
+      }
+    },
+    {
+      "version": "8b37ffe",
+      "exit": 0,
+      "observed": {
+        "status": "reports",
+        "sentence_status": "zitate"
+      }
+    }
+  ]
+}

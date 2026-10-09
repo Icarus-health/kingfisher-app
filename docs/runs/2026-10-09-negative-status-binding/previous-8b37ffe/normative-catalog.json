@@ -1,0 +1,332 @@
+{
+  "synthetic": true,
+  "frozen_before_model_run": true,
+  "parent_holdout_catalog_sha256": "32d2e5d697b830e36a4b6ec080ae3fb629d54633e42cc9721ba44101c5d92ad6",
+  "sources": [
+    {
+      "id": "IA01-S1",
+      "text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+      "title": "IA01-S1"
+    },
+    {
+      "id": "IA02-S1",
+      "text": "Arbeitskarte P-18: Die Schutzschicht wird aufgetragen.",
+      "title": "IA02-S1"
+    },
+    {
+      "id": "IA02-S2",
+      "text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+      "title": "IA02-S2"
+    },
+    {
+      "id": "IA03-S1",
+      "text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+      "title": "IA03-S1"
+    },
+    {
+      "id": "IA04-S1",
+      "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+      "title": "IA04-S1"
+    },
+    {
+      "id": "IA05-S1",
+      "text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+      "title": "IA05-S1"
+    },
+    {
+      "id": "IA06-S1",
+      "text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+      "title": "IA06-S1"
+    },
+    {
+      "id": "IA07-S1",
+      "text": "Arbeitsnotiz vom 3. März: Das Gerät darf nach der Kalibrierung gestartet werden.",
+      "title": "IA07-S1"
+    },
+    {
+      "id": "IA07-S2",
+      "text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+      "title": "IA07-S2"
+    },
+    {
+      "id": "IA08-S1",
+      "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+      "title": "IA08-S1"
+    },
+    {
+      "id": "W01-S1",
+      "title": "W01-S1",
+      "text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731."
+    },
+    {
+      "id": "W02-S1",
+      "title": "W02-S1",
+      "text": "Lagerhinweis M-14: Das Ersatzteil wird im Metallschrank aufbewahrt."
+    },
+    {
+      "id": "W03-S1",
+      "title": "W03-S1",
+      "text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden."
+    },
+    {
+      "id": "W04-S1",
+      "title": "W04-S1",
+      "text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt."
+    },
+    {
+      "id": "W05-S1",
+      "title": "W05-S1",
+      "text": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden."
+    },
+    {
+      "id": "W05-S2",
+      "title": "W05-S2",
+      "text": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden."
+    },
+    {
+      "id": "DE01-S1",
+      "title": "Datenbergung",
+      "text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden."
+    },
+    {
+      "id": "DE02-S1",
+      "title": "Restaurierungsanweisung",
+      "text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden."
+    },
+    {
+      "id": "DE03-S1",
+      "title": "Nachtbeobachtung",
+      "text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden."
+    }
+  ],
+  "questions": [
+    {
+      "id": "IA01",
+      "q": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA01-S1"
+      ],
+      "gold_answer": "Die Dichtung darf vor dem Aushärten ausschließlich trocken abgewischt werden. Die Freigaberegel für Lösungsmittel betrifft die Rückgabe, nicht diese Reinigung.",
+      "gold_requirements": [
+        "Keep the dry-only rule attached to cleaning the seal before curing.",
+        "Do not transfer the return/solvent rule to the cleaning action."
+      ]
+    },
+    {
+      "id": "IA02",
+      "q": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "gold_answer": "Die Fläche muss vorher vollständig staubfrei sein.",
+      "gold_requirements": [
+        "Combine the action in S1 with its explicit prerequisite in S2.",
+        "Preserve that dust-free condition is required before application."
+      ]
+    },
+    {
+      "id": "IA03",
+      "q": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA03-S1"
+      ],
+      "gold_answer": "Nein. Sie darf erst nach der Abnahme entfernt werden.",
+      "gold_requirements": [
+        "Answer no for the before-acceptance interval.",
+        "Do not reverse the before/after relation."
+      ]
+    },
+    {
+      "id": "IA04",
+      "q": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA04-S1"
+      ],
+      "gold_answer": "Ja, aber ausschließlich während des laufenden Spülvorgangs.",
+      "gold_requirements": [
+        "Answer yes for the asked interval.",
+        "Retain the exclusive temporal limit; do not generalize permission beyond the flushing process."
+      ]
+    },
+    {
+      "id": "IA05",
+      "q": "Wann darf der Akku ausgetauscht werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA05-S1"
+      ],
+      "gold_answer": "Ausschließlich nach der technischen Prüfung.",
+      "gold_requirements": [
+        "Attach the post-inspection qualifier to battery replacement.",
+        "Do not answer with the pre-shipment time, which modifies photographing the seal."
+      ]
+    },
+    {
+      "id": "IA06",
+      "q": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA06-S1"
+      ],
+      "gold_answer": "Ja. Für Raum B ist das Öffnen während der Arbeitszeit zur Lüftung erlaubt; die Beschränkung nach Dienstschluss gilt für Raum A.",
+      "gold_requirements": [
+        "Answer yes for room B.",
+        "Do not transfer room A's after-hours restriction to room B."
+      ]
+    },
+    {
+      "id": "IA07",
+      "q": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA07-S2"
+      ],
+      "gold_answer": "Nein. Nach der neueren Korrektur muss zusätzlich eine dokumentierte Freigabe vorliegen; bis dahin bleibt das Gerät ausgeschaltet.",
+      "gold_requirements": [
+        "Use the later correction as the current rule.",
+        "Preserve the additional documented-approval condition and until-then prohibition."
+      ]
+    },
+    {
+      "id": "IA08",
+      "q": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "type": "independent-applicability",
+      "expect": [
+        "IA08-S1"
+      ],
+      "gold_answer": "Nein. Auch nach der Abnahme ist das Zurücksetzen nur mit schriftlicher Anordnung der diensthabenden Technikerin zulässig.",
+      "gold_requirements": [
+        "Do not infer permission merely from the end of the pre-acceptance prohibition.",
+        "Retain the explicit post-acceptance written-order condition."
+      ]
+    },
+    {
+      "id": "W01",
+      "q": "Unter welcher Voraussetzung darf die Gewebeprobe in den Kühlbehälter gelegt werden?",
+      "type": "wording-holdout",
+      "expect": [
+        "W01-S1"
+      ],
+      "gold_answer": "Nur wenn die Temperatur unter 8 °C liegt. Der Chargencode 731 ist eine separate Etikettenangabe.",
+      "gold_requirements": [
+        "Keep the under-8-degrees condition attached to placing the sample in the cooler.",
+        "Do not treat the unrelated batch-code fact as a prerequisite."
+      ]
+    },
+    {
+      "id": "W02",
+      "q": "Welche Voraussetzung muss erfüllt sein, damit das Ersatzteil im Metallschrank aufbewahrt werden darf?",
+      "type": "wording-holdout",
+      "expect": [
+        "W02-S1"
+      ],
+      "gold_answer": "Der Hinweis sagt nur, dass das Ersatzteil im Metallschrank aufbewahrt wird. Er nennt keine Voraussetzung und bestätigt auch keine gesonderte Erlaubnisregel.",
+      "gold_requirements": [
+        "State that the source supplies no prerequisite.",
+        "Do not invent a prerequisite or turn the descriptive storage statement into a permission claim."
+      ]
+    },
+    {
+      "id": "W03",
+      "q": "Darf der Trichterdeckel vor dem Wiegen abgenommen werden?",
+      "type": "wording-holdout",
+      "expect": [
+        "W03-S1"
+      ],
+      "gold_answer": "Nein. Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden; erst danach ist es erlaubt.",
+      "gold_requirements": [
+        "Answer no for the interval before weighing.",
+        "Preserve the separate permission after weighing without reversing the temporal relation."
+      ]
+    },
+    {
+      "id": "W04",
+      "q": "War der Einsatz des Dosierkopfs im dokumentierten Versuch zulässig?",
+      "type": "wording-holdout",
+      "expect": [
+        "W04-S1"
+      ],
+      "gold_answer": "Nein. Der Dosierkopf darf erst nach dem Drucktest eingesetzt werden; im Versuch wurde er davor eingesetzt.",
+      "gold_requirements": [
+        "Attach the after-pressure-test condition to using the dosing head.",
+        "Compare the reported before-test use with that condition and identify it as not permitted."
+      ]
+    },
+    {
+      "id": "W05",
+      "q": "Darf die Heizplatte vor vollständiger Abkühlung gereinigt werden?",
+      "type": "wording-holdout",
+      "expect": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "gold_answer": "Die beiden gleich datierten Anweisungen widersprechen sich: Eine erlaubt die Reinigung erst nach vollständiger Abkühlung, die andere erlaubt sie davor. Aus den vorliegenden Quellen lässt sich die geltende Regel nicht eindeutig bestimmen.",
+      "gold_requirements": [
+        "Surface the contradiction between the two sources.",
+        "Do not choose one rule as current without evidence that resolves the conflict."
+      ]
+    },
+    {
+      "id": "DE01",
+      "q": "Wann darf der Speicherchip entnommen werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "DE01-S1"
+      ],
+      "gold_answer": "Vor Abschluss des Rohdatenarchivs darf der Chip nicht entnommen werden. Er darf erst entnommen werden, nachdem das Archiv erstellt und geprüft wurde.",
+      "gold_status": "proposed_not_authoritative",
+      "gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ]
+    },
+    {
+      "id": "DE02",
+      "q": "Wann und wie darf der Lack bearbeitet werden?",
+      "type": "independent-applicability",
+      "expect": [
+        "DE02-S1"
+      ],
+      "gold_answer": "Erst nach schriftlicher Freigabe durch die Restauratorin darf der Lack mit einem weichen Pinsel bearbeitet werden; vorher darf er nicht berührt werden.",
+      "gold_status": "proposed_not_authoritative",
+      "gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ]
+    },
+    {
+      "id": "DE03",
+      "q": "Darf das Teleskop vor Ende der Nachtaufnahme aus der Halterung genommen werden, und wann ist es danach erlaubt?",
+      "type": "independent-applicability",
+      "expect": [
+        "DE03-S1"
+      ],
+      "gold_answer": "Nein. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf das Teleskop aus der Halterung genommen werden.",
+      "gold_status": "proposed_not_authoritative",
+      "gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ]
+    }
+  ],
+  "metric_limits": "Same 13 questions/16 synthetic originals before/after; exact source lists diagnostic only. Independent original-vs-visible-answer review required. W06 excerpt case is a separate prepared-stage control, excluded from full-pipeline totals.",
+  "independent_wording_holdouts_sha256": "3bbb18eeedd24813089df8fe79c28bbee596865fe4fa86b3b601fe027eed9a0e",
+  "phase_permission_holdout_sha256": "c847655468d7a4e79fbb3ad02780d68758a8b60dc837c87ebc3a2c73bc3b5651",
+  "phase_permission_gold_status": "proposed_not_authoritative; independent review evaluates visible answers against original source texts",
+  "phase_permission_extension": {
+    "source_ids": [
+      "DE01-S1",
+      "DE02-S1",
+      "DE03-S1"
+    ],
+    "question_ids": [
+      "DE01",
+      "DE02",
+      "DE03"
+    ],
+    "source_questions_copied_verbatim": true,
+    "source_texts_are_gold_authority": true
+  }
+}

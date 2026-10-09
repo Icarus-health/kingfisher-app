@@ -1,0 +1,59 @@
+/private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+classified IA01-S1 True
+classified IA02-S1 True
+classified IA02-S2 True
+classified IA03-S1 True
+classified IA04-S1 True
+classified IA05-S1 True
+classified IA06-S1 True
+classified IA07-S1 True
+classified IA07-S2 True
+classified IA08-S1 True
+classified W01-S1 True
+classified W02-S1 True
+classified W03-S1 True
+classified W04-S1 True
+classified W05-S1 True
+classified W05-S2 True
+classified DE01-S1 True
+classified DE02-S1 True
+classified DE03-S1 True
+topics/entities IA01-S1 True
+topics/entities IA02-S1 True
+topics/entities IA02-S2 True
+topics/entities IA03-S1 True
+topics/entities IA04-S1 True
+topics/entities IA05-S1 True
+topics/entities IA06-S1 True
+topics/entities IA07-S1 True
+topics/entities IA07-S2 True
+topics/entities IA08-S1 True
+topics/entities W01-S1 True
+topics/entities W02-S1 True
+topics/entities W03-S1 True
+topics/entities W04-S1 True
+topics/entities W05-S1 True
+topics/entities W05-S2 True
+topics/entities DE01-S1 True
+topics/entities DE02-S1 True
+topics/entities DE03-S1 True
+indexed True {'status': 'partial', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535678.3594618, 'total': 19, 'indexed': 8, 'pending': 11, 'failed': 0, 'updated_at': 1791535680.3294358, 'source_pending': 0}
+indexed True {'status': 'partial', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535680.348942, 'total': 19, 'indexed': 16, 'pending': 3, 'failed': 0, 'updated_at': 1791535680.5026162, 'source_pending': 0}
+indexed True {'status': 'indexed', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535680.512264, 'total': 19, 'indexed': 19, 'pending': 0, 'failed': 0, 'updated_at': 1791535680.578503, 'source_pending': 0}
+IA01 working_reports ['IA01-S1'] 13.447
+IA02 working_reports ['IA02-S2'] 6.617
+IA03 working_reports ['IA03-S1'] 8.305
+IA04 working_reports ['IA04-S1'] 7.191
+IA05 working_reports ['IA05-S1'] 12.666
+IA06 working_reports ['IA06-S1'] 8.02
+IA07 working_reports ['IA07-S2'] 9.989
+IA08 working_reports ['IA08-S1'] 8.806
+W01 working_reports ['W01-S1'] 13.483
+W02 working_unknown [] 5.833
+W03 working_reports ['W03-S1'] 7.632
+W04 working_reports ['W04-S1'] 6.879
+W05 working_unclear ['W05-S1', 'W05-S2'] 9.76
+DE01 working_reports ['DE01-S1'] 9.555
+DE02 working_reports ['DE02-S1'] 8.929
+DE03 working_reports ['DE03-S1'] 9.538
