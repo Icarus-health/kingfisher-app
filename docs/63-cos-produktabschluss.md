@@ -2,7 +2,11 @@
 
 Stand: 9. Oktober 2026. Dieses Dokument trennt gebaute Funktionen von ihrem Nachweis im persönlichen Alltag. Ein vorhandener Endpunkt, Test oder Modellname belegt für sich weder vollständige Quellenaufnahme noch zuverlässige Antworten oder geringe Bedienlast.
 
-## Aktueller Stand auf einen Blick (9. Oktober)
+## Aktueller Abnahmestand
+
+Der aktuelle Betriebs- und Anforderungsstand steht in [64 · CoS-Abnahme](64-cos-abnahme-status-2026-10-09.md). Die lesende Prüfung bestätigt `1.0.6-local.3403623`, drei gespeicherte Mac-Kalender und eine noch ausstehende erneute Systemfreigabe. Der Nutzer hat den Fenstertest verschoben. Import bleibt pausiert; RAM-PR #38 ist geprüft, aber nicht installiert. Der große künstliche Bereichstest ist von Antwortqualität und persönlicher Quellenabdeckung getrennt.
+
+## Frühere Liefernotizen vom 9. Oktober (historisch)
 
 - **Neueste Mac-Lieferung:** `1.0.6-local.408df41`. MIME-kodierte Mailnamen werden in bekannter Kopfherkunft lesbar projiziert und bei Personenfragen gefunden; Adressen/Originale/Entscheidungen bleiben erhalten. 29 neue Regressionen, 132 betroffene und 5.863 breite Backendprüfungen (1 übersprungen/26 Subtests), unabhängiges Review und echte Paket-/Neustart-/Quellenentzugsproben bestanden. Gesicherte Installation erhielt 344 Originale, 17 Datenbanken, Konten und Pause. Menschenliste und Tagesüberblick nach regulärer Nachprüfung ohne kodierte Beschriftungen nativ geprüft. [Lieferung](runs/2026-10-09-mail-header-names/README.md).
 - **Vorherige Mac-Lieferung:** `1.0.6-local.7295b2e`. Fehlende Freigaben werden im Originalstellen-Modus einmal begrenzt nachgeprüft; freie Statusaussagen brauchen einen Beleg zur eigenen Sache. Regeln, fremde Kennungen/Namen und Quellenköpfe spenden keinen Ist-Status. Gültige Zusagegrenzen und eindeutig beschriebene spätere Stände bleiben nutzbar. Unabhängiges Review, 365 betroffene und 5.834 breite Backendprüfungen (1 übersprungen/26 Subtests), echtes Paket-/Neustart-/Quellenentzugsverfahren bestanden. 344 Originale/17 Datenbanken/Konten/Pause nach kalter Sicherung erhalten. [Lieferung](runs/2026-10-09-negative-status-binding/README.md).
