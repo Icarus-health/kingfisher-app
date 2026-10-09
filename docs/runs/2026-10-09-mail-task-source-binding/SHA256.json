@@ -1,0 +1,17 @@
+{
+  "README.md": "5f0adfdc9ffeb01e636e72f8f59dd1be4075b0b0d1eff31cd11773d56e77c936",
+  "archive-result.json": "c7ac5cf8c115ddb4e10e08c50c04f5a1ddeb8be32d7e60653bae1d9e624db9f2",
+  "archive-review.md": "230447f7110552023f6222c4f34de09ff5b3f334ef453d72ab9f81cc272d9b1f",
+  "archive-verified-duplicates.py": "8d2f3e7b9fc18238e3e6d9b3d51e1f22098c212fe5b0042eb9f015a7efeb58a3",
+  "build.log": "e2152283992b53e2952473a28ee7049dd08b53cadc2f1b424cb3abb8dd40be15",
+  "full-regression.log": "e156848df67280115b9a0100ae7176decea1e9132b15777277da33c8c48e89a0",
+  "independent-review.md": "2aad874a12fccb4028f53eb546ac6d2e7995d722ba73b8ac6dfc9c6621e56282",
+  "install-review.md": "dac9b67f9838c392516c2ade765f55580e58aa249e81fc63792dc6907d137684",
+  "package-check.json": "197e380b289aff408d56fe8c260a82c42a24fcf91f3426cc505fb5a7a32d4620",
+  "package-manifest.json": "fa8457c767404d3f419d6b3eb5a310178322056b59406c7be8ef4c9237ce08b6",
+  "package-smoke.json": "636e9de88ecca7fca83f29cbb91189b96248808029ec66ccc6c8aec882c55b74",
+  "package-smoke.py": "41bf4ce8304936152229e7549248054c021fecc7e0fac0983e0cb646c7649bb7",
+  "reproduction-note.txt": "de3bd33d9ecb23d63223fbb485ca319d8bb2ec45e4e9b056ab76cfdabff88821",
+  "test_archive_verified_duplicates.py": "ec29a69a70ad8587ceca1b6338212bbb32875505d7d591aab7b4bf4c8b43d478",
+  "ui-tests.log": "583c5755d3ebb093678a65110f3cab0de58477b6d66cdb2d116635e8c9564901"
+}

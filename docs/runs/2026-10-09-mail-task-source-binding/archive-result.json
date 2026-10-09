@@ -1,0 +1,15 @@
+{
+  "status": "archived_duplicates_removed",
+  "removed": 3,
+  "current_snapshot_retained": true,
+  "health": {
+    "health": true,
+    "inspection": false,
+    "read_only_route": true,
+    "background_paused": true
+  },
+  "original_count": 344,
+  "host_archive_unchanged": true,
+  "native_storage_probe": "before=ok\nafter=ok",
+  "bytes_reclaimed": 110966385
+}

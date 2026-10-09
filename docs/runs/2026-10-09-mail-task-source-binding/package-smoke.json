@@ -1,0 +1,30 @@
+{
+  "cases": [
+    {
+      "case": "body",
+      "episodes": 0,
+      "http_status": 409,
+      "tasks": 0
+    },
+    {
+      "case": "date",
+      "episodes": 0,
+      "http_status": 409,
+      "tasks": 0
+    },
+    {
+      "case": "truncated",
+      "episodes": 0,
+      "http_status": 409,
+      "tasks": 0
+    },
+    {
+      "case": "fresh",
+      "episodes": 1,
+      "http_status": 201,
+      "source_verified": true,
+      "tasks": 1
+    }
+  ],
+  "result": "pass"
+}
