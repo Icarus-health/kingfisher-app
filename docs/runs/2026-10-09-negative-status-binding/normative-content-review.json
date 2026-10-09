@@ -1,0 +1,921 @@
+{
+  "review": "Independent factual content grading against frozen literal sources and gold requirements; selection_pass is not treated as correctness.",
+  "run_directory": "/private/tmp/kingfisher-status-normative-7295b2e-20261009",
+  "baseline_directory": "/private/tmp/kingfisher-status-normative-8b37ffe-20261009",
+  "pins": {
+    "product_commit": "7295b2e08f39020998a02bdefb7f2b6b49c4298f",
+    "catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+    "baseline_catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+    "flow_sha256": "1797e42405390de693078d25c48fd4994cb05dd90877789c0dc1d88a9d1761f1",
+    "baseline_flow_sha256": "1797e42405390de693078d25c48fd4994cb05dd90877789c0dc1d88a9d1761f1",
+    "answers_sha256": "c8b1940bccb1cf62ce6756884f05b39acd5aaa1d1acf3069251899f4fe866596",
+    "baseline_answers_sha256": "e9d5797da9d54a301e77912cc98f4da7f8271ab631343b4716513e1d9a171882"
+  },
+  "corpus": {
+    "frozen_sources": 19,
+    "questions": 16,
+    "source_body_hashes": [
+      {
+        "source_id": "IA01-S1",
+        "original_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+        "catalog_body_utf8_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA02-S1",
+        "original_sha256": "3ba94baf1c47f8ca86439cfced584900fb01a73270e2dd086664c184ed24a322",
+        "catalog_body_utf8_sha256": "3ba94baf1c47f8ca86439cfced584900fb01a73270e2dd086664c184ed24a322",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA02-S2",
+        "original_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+        "catalog_body_utf8_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA03-S1",
+        "original_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+        "catalog_body_utf8_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA04-S1",
+        "original_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+        "catalog_body_utf8_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA05-S1",
+        "original_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+        "catalog_body_utf8_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA06-S1",
+        "original_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+        "catalog_body_utf8_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA07-S1",
+        "original_sha256": "14e816e0da4c906f242848c20c68df1a8c7d3b909a2bcb7131479ac4210dcb80",
+        "catalog_body_utf8_sha256": "14e816e0da4c906f242848c20c68df1a8c7d3b909a2bcb7131479ac4210dcb80",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA07-S2",
+        "original_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+        "catalog_body_utf8_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "IA08-S1",
+        "original_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+        "catalog_body_utf8_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W01-S1",
+        "original_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63",
+        "catalog_body_utf8_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W02-S1",
+        "original_sha256": "13e97e34d0b73843fd5e9b6739e3ab481f5c5ed8ccabbcee6e7cb69aed58e3f1",
+        "catalog_body_utf8_sha256": "13e97e34d0b73843fd5e9b6739e3ab481f5c5ed8ccabbcee6e7cb69aed58e3f1",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W03-S1",
+        "original_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068",
+        "catalog_body_utf8_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W04-S1",
+        "original_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b",
+        "catalog_body_utf8_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W05-S1",
+        "original_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e",
+        "catalog_body_utf8_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "W05-S2",
+        "original_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c",
+        "catalog_body_utf8_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "DE01-S1",
+        "original_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f",
+        "catalog_body_utf8_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "DE02-S1",
+        "original_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326",
+        "catalog_body_utf8_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326",
+        "matches": true,
+        "http_status": 200
+      },
+      {
+        "source_id": "DE03-S1",
+        "original_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166",
+        "catalog_body_utf8_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166",
+        "matches": true,
+        "http_status": 200
+      }
+    ],
+    "all_19_body_hashes_match_intake_and_frozen_catalog": true,
+    "all_19_http_status_200": true
+  },
+  "summary": {
+    "rating_counts": {
+      "adequate": 14,
+      "partial": 2,
+      "wrong": 0
+    },
+    "strict_8b37_baseline_counts": {
+      "adequate": 14,
+      "partial": 2,
+      "wrong": 0
+    },
+    "new_content_regression_vs_8b37": false,
+    "no_wrong_factual_claims_found": true,
+    "remaining_material_limits": [
+      "W04 still omits the explicit conclusion that use in the documented trial was not permitted.",
+      "IA05 includes an unrelated pre-shipment photo fact despite the frozen relevance requirement; the identical answer was present in 8b37, so this is not a new regression."
+    ],
+    "presentation_caveat": "W05 correctly surfaces the conflict; both records also carry “Zeitbezug ungeklärt,” a potentially distracting chronology cue."
+  },
+  "row_display_comparison": {
+    "count": 16,
+    "bytewise_equal_to_baseline": 9,
+    "bytewise_different_ids": [
+      "IA01",
+      "IA06",
+      "IA08",
+      "W05",
+      "DE01",
+      "DE02",
+      "DE03"
+    ],
+    "all_statuses_unchanged": true,
+    "all_selected_sources_unchanged": true
+  },
+  "questions": [
+    {
+      "id": "IA01",
+      "question": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "rating": "adequate",
+      "content_assessment": "Correctly distinguishes the return/solvent rule from the dry-only cleaning rule before curing. The return sentence is extra but clearly scoped.",
+      "frozen_gold_answer": "Die Dichtung darf vor dem Aushärten ausschließlich trocken abgewischt werden. Die Freigaberegel für Lösungsmittel betrifft die Rückgabe, nicht diese Reinigung.",
+      "frozen_gold_requirements": [
+        "Keep the dry-only rule attached to cleaning the seal before curing.",
+        "Do not transfer the return/solvent rule to the cleaning action."
+      ],
+      "actual_displayed_answer": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen. [1] (nur eine Quelle)\n\nBelege\n[1] IA01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "8e50a1b6d5640bfeb7645f54e7627fe73470c3cad978ad568d67b1bd1d93fa41",
+      "prior_8b37_display_sha256": "79c8d6b1bc82e538e73799c688dde1471e268309ce013481e819797bb678cd5f",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA01-S1"
+      ],
+      "selected_sources": [
+        "IA01-S1"
+      ],
+      "shown_sources": [
+        "IA01-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA01-S1",
+          "literal_text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "original_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA02",
+      "question": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "rating": "adequate",
+      "content_assessment": "S2 directly states that the surface must be dust-free before application and expressly ties it to the P-18 protective coating; it is sufficient for the asked prerequisite.",
+      "frozen_gold_answer": "Die Fläche muss vorher vollständig staubfrei sein.",
+      "frozen_gold_requirements": [
+        "Combine the action in S1 with its explicit prerequisite in S2.",
+        "Preserve that dust-free condition is required before application."
+      ],
+      "actual_displayed_answer": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18. [1] (nur eine Quelle)\n\nBelege\n[1] IA02-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "255fb89561a879040234cfe4d3aeffaf045d4df0bd058218a2567912970771ca",
+      "prior_8b37_display_sha256": "255fb89561a879040234cfe4d3aeffaf045d4df0bd058218a2567912970771ca",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "selected_sources": [
+        "IA02-S2"
+      ],
+      "shown_sources": [
+        "IA02-S2"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA02-S2",
+          "literal_text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "original_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": false,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA03",
+      "question": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "rating": "adequate",
+      "content_assessment": "Directly prohibits removal before acceptance and preserves permission only afterward.",
+      "frozen_gold_answer": "Nein. Sie darf erst nach der Abnahme entfernt werden.",
+      "frozen_gold_requirements": [
+        "Answer no for the before-acceptance interval.",
+        "Do not reverse the before/after relation."
+      ],
+      "actual_displayed_answer": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA03-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "4e0fd7227b062d215c7ec199f2a670bf9d3d588659f9eb61d2d3565bf423a91c",
+      "prior_8b37_display_sha256": "4e0fd7227b062d215c7ec199f2a670bf9d3d588659f9eb61d2d3565bf423a91c",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA03-S1"
+      ],
+      "selected_sources": [
+        "IA03-S1"
+      ],
+      "shown_sources": [
+        "IA03-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA03-S1",
+          "literal_text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+          "original_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA04",
+      "question": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "rating": "adequate",
+      "content_assessment": "“Only during the running flushing process” answers yes for the asked interval and preserves the exclusive limit.",
+      "frozen_gold_answer": "Ja, aber ausschließlich während des laufenden Spülvorgangs.",
+      "frozen_gold_requirements": [
+        "Answer yes for the asked interval.",
+        "Retain the exclusive temporal limit; do not generalize permission beyond the flushing process."
+      ],
+      "actual_displayed_answer": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "a00e32006741d81018e1525a2661bd1741d208a9fc2a8492807618be028417be",
+      "prior_8b37_display_sha256": "a00e32006741d81018e1525a2661bd1741d208a9fc2a8492807618be028417be",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA04-S1"
+      ],
+      "selected_sources": [
+        "IA04-S1"
+      ],
+      "shown_sources": [
+        "IA04-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA04-S1",
+          "literal_text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "original_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA05",
+      "question": "Wann darf der Akku ausgetauscht werden?",
+      "rating": "partial",
+      "content_assessment": "The battery may be replaced only after technical inspection, correctly. The answer also includes the unrelated pre-shipment seal-photo fact, contrary to the frozen instruction not to answer with that separate timing fact. This exact answer is unchanged from 8b37; it is not a new regression.",
+      "frozen_gold_answer": "Ausschließlich nach der technischen Prüfung.",
+      "frozen_gold_requirements": [
+        "Attach the post-inspection qualifier to battery replacement.",
+        "Do not answer with the pre-shipment time, which modifies photographing the seal."
+      ],
+      "actual_displayed_answer": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden. [1] (nur eine Quelle)\n\nBelege\n[1] IA05-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "8d1354ddc6095d71a062c6cd07d1f3e672341aa8ce2260446a2f4e23e95b114e",
+      "prior_8b37_display_sha256": "8d1354ddc6095d71a062c6cd07d1f3e672341aa8ce2260446a2f4e23e95b114e",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA05-S1"
+      ],
+      "selected_sources": [
+        "IA05-S1"
+      ],
+      "shown_sources": [
+        "IA05-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA05-S1",
+          "literal_text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "original_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA06",
+      "question": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "rating": "adequate",
+      "content_assessment": "Preserves room scope: room A is after-hours only, while room B may be opened during working hours for ventilation.",
+      "frozen_gold_answer": "Ja. Für Raum B ist das Öffnen während der Arbeitszeit zur Lüftung erlaubt; die Beschränkung nach Dienstschluss gilt für Raum A.",
+      "frozen_gold_requirements": [
+        "Answer yes for room B.",
+        "Do not transfer room A's after-hours restriction to room B."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA06-S1.txt\nIm Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "ec34cfe38397b23da70eb87b97f81fd1d43fd54278a497d39dd3bc8cd079e13a",
+      "prior_8b37_display_sha256": "f557c45c405501c3fe55dd386bf5244bf95de7180c6834f356bf72f03022782c",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA06-S1"
+      ],
+      "selected_sources": [
+        "IA06-S1"
+      ],
+      "shown_sources": [
+        "IA06-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA06-S1",
+          "literal_text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "original_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA07",
+      "question": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "rating": "adequate",
+      "content_assessment": "Uses the current correction: calibration alone is insufficient and the device stays off until documented release.",
+      "frozen_gold_answer": "Nein. Nach der neueren Korrektur muss zusätzlich eine dokumentierte Freigabe vorliegen; bis dahin bleibt das Gerät ausgeschaltet.",
+      "frozen_gold_requirements": [
+        "Use the later correction as the current rule.",
+        "Preserve the additional documented-approval condition and until-then prohibition."
+      ],
+      "actual_displayed_answer": "Die frühere Startregel nach Kalibrierung reicht nicht aus. [1] (nur eine Quelle)\nBis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet. [1] (nur eine Quelle)\n\nBelege\n[1] IA07-S2.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "62234bf725f7b698531e6a36f27012eefd942b536880b0d03379a037b8917505",
+      "prior_8b37_display_sha256": "62234bf725f7b698531e6a36f27012eefd942b536880b0d03379a037b8917505",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA07-S2"
+      ],
+      "selected_sources": [
+        "IA07-S2"
+      ],
+      "shown_sources": [
+        "IA07-S2"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA07-S2",
+          "literal_text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "original_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "IA08",
+      "question": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "rating": "adequate",
+      "content_assessment": "States the post-acceptance written-order condition, so it does not imply automatic permission. The archive sentence is extra but does not change the rule.",
+      "frozen_gold_answer": "Nein. Auch nach der Abnahme ist das Zurücksetzen nur mit schriftlicher Anordnung der diensthabenden Technikerin zulässig.",
+      "frozen_gold_requirements": [
+        "Do not infer permission merely from the end of the pre-acceptance prohibition.",
+        "Retain the explicit post-acceptance written-order condition."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · IA08-S1.txt\nDie Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "c6b9d11fff721f2e639e26dcbe327a3a9bc38ccaef3282dfe52e604f8d63f24c",
+      "prior_8b37_display_sha256": "d8dbedafcaa4bcfaff69d607aca9fcb60a7247b467f18db60d9ecf9451b73433",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "IA08-S1"
+      ],
+      "selected_sources": [
+        "IA08-S1"
+      ],
+      "shown_sources": [
+        "IA08-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "IA08-S1",
+          "literal_text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "original_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "W01",
+      "question": "Unter welcher Voraussetzung darf die Gewebeprobe in den Kühlbehälter gelegt werden?",
+      "rating": "adequate",
+      "content_assessment": "Correctly attaches below 8 °C to placing the sample in the cooler. The batch code appears as a separate, sourced label fact, not a prerequisite.",
+      "frozen_gold_answer": "Nur wenn die Temperatur unter 8 °C liegt. Der Chargencode 731 ist eine separate Etikettenangabe.",
+      "frozen_gold_requirements": [
+        "Keep the under-8-degrees condition attached to placing the sample in the cooler.",
+        "Do not treat the unrelated batch-code fact as a prerequisite."
+      ],
+      "actual_displayed_answer": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731. [1] (nur eine Quelle)\n\nBelege\n[1] W01-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "840d19bbad905d85344ae41d36331e89f7785fa9a9faab5af7beeec82ca4f3e4",
+      "prior_8b37_display_sha256": "840d19bbad905d85344ae41d36331e89f7785fa9a9faab5af7beeec82ca4f3e4",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "W01-S1"
+      ],
+      "selected_sources": [
+        "W01-S1"
+      ],
+      "shown_sources": [
+        "W01-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "W01-S1",
+          "literal_text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731.",
+          "original_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "W02",
+      "question": "Welche Voraussetzung muss erfüllt sein, damit das Ersatzteil im Metallschrank aufbewahrt werden darf?",
+      "rating": "adequate",
+      "content_assessment": "Returns unknown rather than inventing a prerequisite. The source describes storage but gives no permission condition.",
+      "frozen_gold_answer": "Der Hinweis sagt nur, dass das Ersatzteil im Metallschrank aufbewahrt wird. Er nennt keine Voraussetzung und bestätigt auch keine gesonderte Erlaubnisregel.",
+      "frozen_gold_requirements": [
+        "State that the source supplies no prerequisite.",
+        "Do not invent a prerequisite or turn the descriptive storage statement into a permission claim."
+      ],
+      "actual_displayed_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "final_display_sha256": "665131f24b02449cdb1deb9edf0a0a3a4bc76662f258096bba19914f21e05c09",
+      "prior_8b37_display_sha256": "665131f24b02449cdb1deb9edf0a0a3a4bc76662f258096bba19914f21e05c09",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_unknown",
+      "prior_8b37_status": "working_unknown",
+      "status_unchanged": true,
+      "expected_sources": [
+        "W02-S1"
+      ],
+      "selected_sources": [],
+      "shown_sources": [],
+      "source_bodies": [],
+      "references_valid": true,
+      "selection_pass_mechanical_only": false,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_unknown",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "W03",
+      "question": "Darf der Trichterdeckel vor dem Wiegen abgenommen werden?",
+      "rating": "adequate",
+      "content_assessment": "Explicitly says the lid may not be removed before weighing and preserves the separate permission afterward.",
+      "frozen_gold_answer": "Nein. Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden; erst danach ist es erlaubt.",
+      "frozen_gold_requirements": [
+        "Answer no for the interval before weighing.",
+        "Preserve the separate permission after weighing without reversing the temporal relation."
+      ],
+      "actual_displayed_answer": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden. [1] (nur eine Quelle)\n\nBelege\n[1] W03-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "5538fb6f84c128dd4900c2f01d7ca82be3e64c53122abfc854f4ab31c2b2e13a",
+      "prior_8b37_display_sha256": "5538fb6f84c128dd4900c2f01d7ca82be3e64c53122abfc854f4ab31c2b2e13a",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "W03-S1"
+      ],
+      "selected_sources": [
+        "W03-S1"
+      ],
+      "shown_sources": [
+        "W03-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "W03-S1",
+          "literal_text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "original_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "W04",
+      "question": "War der Einsatz des Dosierkopfs im dokumentierten Versuch zulässig?",
+      "rating": "partial",
+      "content_assessment": "Quotes both relevant facts accurately: use only after the pressure test and actual use before it. The displayed answer still omits the requested conclusion that the trial use was not permitted. The same gap was present in 8b37.",
+      "frozen_gold_answer": "Nein. Der Dosierkopf darf erst nach dem Drucktest eingesetzt werden; im Versuch wurde er davor eingesetzt.",
+      "frozen_gold_requirements": [
+        "Attach the after-pressure-test condition to using the dosing head.",
+        "Compare the reported before-test use with that condition and identify it as not permitted."
+      ],
+      "actual_displayed_answer": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt. [1] (nur eine Quelle)\n\nBelege\n[1] W04-S1.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "final_display_sha256": "8ce2a80a78dcced7f69b855a8b45adecd2e43f3770a75dbcf72ebe11b3cc5e72",
+      "prior_8b37_display_sha256": "8ce2a80a78dcced7f69b855a8b45adecd2e43f3770a75dbcf72ebe11b3cc5e72",
+      "display_bytewise_equal_to_8b37": true,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "W04-S1"
+      ],
+      "selected_sources": [
+        "W04-S1"
+      ],
+      "shown_sources": [
+        "W04-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "W04-S1",
+          "literal_text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "original_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "W05",
+      "question": "Darf die Heizplatte vor vollständiger Abkühlung gereinigt werden?",
+      "rating": "adequate",
+      "content_assessment": "Surfaces both same-dated contradictory instructions and does not choose a rule. Caveat: the time-unclear labels on both sources are noisy and may suggest a chronology explanation, although the displayed conflict statement is correct.",
+      "frozen_gold_answer": "Die beiden gleich datierten Anweisungen widersprechen sich: Eine erlaubt die Reinigung erst nach vollständiger Abkühlung, die andere erlaubt sie davor. Aus den vorliegenden Quellen lässt sich die geltende Regel nicht eindeutig bestimmen.",
+      "frozen_gold_requirements": [
+        "Surface the contradiction between the two sources.",
+        "Do not choose one rule as current without evidence that resolves the conflict."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nZeitbezug ungeklärt · W05-S2.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr\n\nZeitbezug ungeklärt · W05-S1.txt\nAnweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "70a5869e9ea013bdf4337610fa9ab185d27a980ea9c245e871b553429ac4e34a",
+      "prior_8b37_display_sha256": "10c33c2b8447ec6b9d190fb89c191bb212f6f63b2edf8b20c08faf02f035a81b",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_unclear",
+      "prior_8b37_status": "working_unclear",
+      "status_unchanged": true,
+      "expected_sources": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "selected_sources": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "shown_sources": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "source_bodies": [
+        {
+          "id": "W05-S1",
+          "literal_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.",
+          "original_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e"
+        },
+        {
+          "id": "W05-S2",
+          "literal_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.",
+          "original_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": false,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_unclear",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "DE01",
+      "question": "Wann darf der Speicherchip entnommen werden?",
+      "rating": "adequate",
+      "content_assessment": "Preserves the no-removal-before-completion rule and both later requirements: archive creation and checking.",
+      "frozen_gold_answer": "Vor Abschluss des Rohdatenarchivs darf der Chip nicht entnommen werden. Er darf erst entnommen werden, nachdem das Archiv erstellt und geprüft wurde.",
+      "frozen_gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Datenbergung.txt\nVor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "b249a321982fc5ddf5407d195759824e131e9404debb11012e631b164b09015c",
+      "prior_8b37_display_sha256": "c6ca3e06d3a6e6e61eab1e708f5456383231eb4050412033ec5ba57ea4812196",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "DE01-S1"
+      ],
+      "selected_sources": [
+        "DE01-S1"
+      ],
+      "shown_sources": [
+        "DE01-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "DE01-S1",
+          "literal_text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "original_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "DE02",
+      "question": "Wann und wie darf der Lack bearbeitet werden?",
+      "rating": "adequate",
+      "content_assessment": "Preserves the pre-approval prohibition and the after-written-approval soft-brush method, without strengthening “not worked” into “not touched.”",
+      "frozen_gold_answer": "Erst nach schriftlicher Freigabe durch die Restauratorin darf der Lack mit einem weichen Pinsel bearbeitet werden; vorher darf er nicht berührt werden.",
+      "frozen_gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Restaurierungsanweisung.txt\nVor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "e8036a4892abfdb151a2b3485f475d46e0ec46ce376d8f6d4f81621ac2922644",
+      "prior_8b37_display_sha256": "8f0c9c3b07880473cfed7179f9aac1d3a4986a33514490f0e6c2f58ebce28f62",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "DE02-S1"
+      ],
+      "selected_sources": [
+        "DE02-S1"
+      ],
+      "shown_sources": [
+        "DE02-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "DE02-S1",
+          "literal_text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "original_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    },
+    {
+      "id": "DE03",
+      "question": "Darf das Teleskop vor Ende der Nachtaufnahme aus der Halterung genommen werden, und wann ist es danach erlaubt?",
+      "rating": "adequate",
+      "content_assessment": "Prohibits removal before the night capture ends and preserves both later conditions: capture completed and optics covered.",
+      "frozen_gold_answer": "Nein. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf das Teleskop aus der Halterung genommen werden.",
+      "frozen_gold_requirements": [
+        "Review only against the original source text; this proposed answer is not authoritative."
+      ],
+      "actual_displayed_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Nachtbeobachtung.txt\nVor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:15 Uhr",
+      "final_display_sha256": "64c5f5d736b3392ddedeb1ddbeb08372c5eb3d8f33ca708cb905b86920374e36",
+      "prior_8b37_display_sha256": "4cbcf903fb0e2a3c2f8604dea970dcaaea9eaef81b3675fe2e24ef58c57b656c",
+      "display_bytewise_equal_to_8b37": false,
+      "working_status": "working_reports",
+      "prior_8b37_status": "working_reports",
+      "status_unchanged": true,
+      "expected_sources": [
+        "DE03-S1"
+      ],
+      "selected_sources": [
+        "DE03-S1"
+      ],
+      "shown_sources": [
+        "DE03-S1"
+      ],
+      "source_bodies": [
+        {
+          "id": "DE03-S1",
+          "literal_text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "original_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166"
+        }
+      ],
+      "references_valid": true,
+      "selection_pass_mechanical_only": true,
+      "saved_restart": {
+        "unchanged": true,
+        "provider_calls": 0,
+        "status": "working_reports",
+        "replay_answer_equals_displayed_row": true
+      }
+    }
+  ],
+  "restart_replay": {
+    "reopened_before_questions": true,
+    "count": 16,
+    "all_unchanged": true,
+    "all_equal_to_displayed_rows": true,
+    "provider_calls_total": 0,
+    "statuses": {
+      "IA01": "working_reports",
+      "IA02": "working_reports",
+      "IA03": "working_reports",
+      "IA04": "working_reports",
+      "IA05": "working_reports",
+      "IA06": "working_reports",
+      "IA07": "working_reports",
+      "IA08": "working_reports",
+      "W01": "working_reports",
+      "W02": "working_unknown",
+      "W03": "working_reports",
+      "W04": "working_reports",
+      "W05": "working_unclear",
+      "DE01": "working_reports",
+      "DE02": "working_reports",
+      "DE03": "working_reports"
+    }
+  },
+  "withdrawal_probe": {
+    "originals_preserved_before_withdrawal": true,
+    "status": "working_unavailable",
+    "pass": true,
+    "answer": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "provider_calls": 0,
+    "original_text_retained": true
+  },
+  "runtime_checks": {
+    "completed": true,
+    "synthetic_only": true,
+    "production_memory_policy_verified": false,
+    "runtime_completed": true,
+    "preflight_verified": true,
+    "native_source_blobs_unchanged": true,
+    "native_source_manifests_unchanged": true,
+    "production_endpoint_touched": false,
+    "settings_or_private_directories_loaded": false,
+    "ollama_no_cloud": true,
+    "ollama_noprune": true
+  },
+  "separate_cross_corpus_note": {
+    "source": "Root-provided CoS review result; not re-evaluated in this normative review.",
+    "finding": "CoS entity matching is 8/9 with one NOA miss; core 23 answers were reported adequate. This is a bounded factual follow-up gate; no new run was performed to hide it."
+  },
+  "limitations": [
+    "These are synthetic closed-corpus results, not a production-memory guarantee.",
+    "No rerun, retuning, or new model evaluation was performed for this review."
+  ],
+  "reference_integrity": {
+    "rows": 16,
+    "all_references_valid": true,
+    "shown_source_occurrences": 16,
+    "rows_with_no_shown_source": [
+      "W02"
+    ]
+  }
+}

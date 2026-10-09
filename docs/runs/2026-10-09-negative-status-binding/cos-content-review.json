@@ -1,0 +1,839 @@
+{
+  "run_directory": "/private/tmp/kingfisher-status-cos-7295b2e-20261009",
+  "run_code_version": "7295b2e08f39020998a02bdefb7f2b6b49c4298f",
+  "run_native_sha256": "b5724ea6bd6cc845682257c7893e60d9ceb83448d6b5a2ecdf974c293677f0cd",
+  "answers_sha256": "729614e2ae6cd3842929e62ce28538d66fefa4acf603921cbfa0f4f8346114ed",
+  "catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "holdout_sources_sha256": "34c2880b1bce144af3486c4b4971f8b42dfa2cc8c2b034c651efcbbafabfa594",
+  "previous_run_directory": "/private/tmp/kingfisher-status-cos-8b37ffe-20261009",
+  "previous_code_version": "8b37ffeb26389fd98afca98283857cec292280b9",
+  "previous_catalog_sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+  "summary": {
+    "rows_reviewed": 23,
+    "adequate": 23,
+    "partial": 0,
+    "wrong": 0,
+    "catalog_answerable": 19,
+    "catalog_unanswerable": 4,
+    "answerable_rows_adequate": 19,
+    "correct_unknowns": 4,
+    "all_rows_reference_valid": true,
+    "raw_source_bodies_verified": 18,
+    "raw_source_count": 18,
+    "person_extractions_matching_gold": 8,
+    "person_gold_sources": 9,
+    "person_misses": [
+      "RCS09"
+    ],
+    "answer_content_changes_vs_8b37": [
+      "RQ02",
+      "RQ05",
+      "RQ06",
+      "RQ10",
+      "RQ11",
+      "RQ15"
+    ],
+    "quote_fallback_capture_time_only_changes": [
+      "RQ02",
+      "RQ05",
+      "RQ06",
+      "RQ10",
+      "RQ11",
+      "RQ15"
+    ],
+    "runtime_record_completed": true,
+    "runtime_record_client_exit": 0,
+    "runtime_record_server_exit": 0,
+    "runtime_record_native_model_blobs_unchanged": true,
+    "runtime_record_native_manifests_unchanged": true,
+    "substantive_answer_text_same_as_8b37": true,
+    "answerability_count_mismatch_vs_requested_20_plus_3": true
+  },
+  "method": "Read all 23 displayed answers against the frozen literal catalog and exact imported source bodies, checked expected source IDs against selected/displayed IDs, and compared answer strings with 8b37. Person extraction was compared source-by-source against person_gold; extraction is a separate diagnostic from question-answer adequacy.",
+  "rows": [
+    {
+      "id": "RQ01",
+      "answerable": true,
+      "type": "direct",
+      "question": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "gold_source_ids": [
+        "RCS01"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42. [1] (nur eine Quelle)\n\nBelege\n[1] Sichtprüfung KL-42.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS01"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS01",
+          "title": "Sichtprüfung KL-42",
+          "source_text": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42."
+        }
+      ],
+      "review": "Nora Voss is explicitly assigned KL-42 holder inspection.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ02",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "gold_source_ids": [
+        "RCS01"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Sichtprüfung KL-42.txt\nNora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS01"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS01",
+          "title": "Sichtprüfung KL-42",
+          "source_text": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42."
+        }
+      ],
+      "review": "Quote fallback gives Nora Voss and the KL-42 inspection responsibility; it answers the paraphrase.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ03",
+      "answerable": true,
+      "type": "direct",
+      "question": "Wer liefert die Befestigungssätze für KL-24?",
+      "gold_source_ids": [
+        "RCS02"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24. [1] (nur eine Quelle)\n\nBelege\n[1] Lieferung KL-24.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS02"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS02",
+          "title": "Lieferung KL-24",
+          "source_text": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24."
+        }
+      ],
+      "review": "Nola Voss is correctly named as the KL-24 supplier; distinct from Nora Voss.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ04",
+      "answerable": false,
+      "type": "unanswerable",
+      "question": "Wer prüft die Ware im Auftrag KL-24?",
+      "gold_source_ids": [],
+      "verdict": "adequate",
+      "actual_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "selected_source_ids": [],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [],
+      "review": "Correct unknown. RCS02 identifies the fastening-kit supplier, not who inspects the goods; no source establishes an inspector.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ05",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "gold_source_ids": [
+        "RCS03"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Versand M-731.txt\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS03"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS03",
+          "title": "Versand M-731",
+          "source_text": "Bei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor."
+        }
+      ],
+      "review": "Quote fallback states written Lagerleitung approval is required and still missing.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ06",
+      "answerable": true,
+      "type": "direct",
+      "question": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "gold_source_ids": [
+        "RCS03"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Versand M-731.txt\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS03"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS03",
+          "title": "Versand M-731",
+          "source_text": "Bei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor."
+        }
+      ],
+      "review": "Quote fallback explicitly says the M-731 approval has not arrived; direct answer is adequate despite quote fallback.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ07",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "gold_source_ids": [
+        "RCS04"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt. [1] (nur eine Quelle)\n\nBelege\n[1] Prüfprotokoll M-713.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS04"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS04",
+          "title": "Prüfprotokoll M-713",
+          "source_text": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt."
+        }
+      ],
+      "review": "The source sentence gives the two-signature prerequisite and says one signature is missing.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ08",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "gold_source_ids": [
+        "RCS03",
+        "RCS04"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt. [1] (nur eine Quelle)\nBei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor. [2] (nur eine Quelle)\n\nBelege\n[1] Prüfprotokoll M-713.txt\n[2] Versand M-731.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS03",
+        "RCS04"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS03",
+          "title": "Versand M-731",
+          "source_text": "Bei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor."
+        },
+        {
+          "id": "RCS04",
+          "title": "Prüfprotokoll M-713",
+          "source_text": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt."
+        }
+      ],
+      "review": "Both requirements are present and separately identified by M-713 and M-731 source references; order is reversed from the question but mapping is clear.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ09",
+      "answerable": true,
+      "type": "direct",
+      "question": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "gold_source_ids": [
+        "RCS04"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt. [1] (nur eine Quelle)\n\nBelege\n[1] Prüfprotokoll M-713.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS04"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS04",
+          "title": "Prüfprotokoll M-713",
+          "source_text": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt."
+        }
+      ],
+      "review": "The answer identifies the missing signature as the open item for M-713.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ10",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "gold_source_ids": [
+        "RCS06"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Terminänderung Werkhalle Epsilon.txt\nAktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS06"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS06",
+          "title": "Terminänderung Werkhalle Epsilon",
+          "source_text": "Aktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt."
+        }
+      ],
+      "review": "Quote fallback names the replacement date/time (19 May, 14:30) and says the old date was replaced; it adds no unsupported year.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ11",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "gold_source_ids": [
+        "RCS05",
+        "RCS06"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Terminänderung Werkhalle Epsilon.txt\nAktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr\n\nAngabe · Erste Planung Werkhalle Epsilon.txt\nDie Vor-Ort-Abnahme in Werkhalle Epsilon ist für den 12. Mai um 09:00 Uhr eingeplant.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS05",
+        "RCS06"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS05",
+          "title": "Erste Planung Werkhalle Epsilon",
+          "source_text": "Die Vor-Ort-Abnahme in Werkhalle Epsilon ist für den 12. Mai um 09:00 Uhr eingeplant."
+        },
+        {
+          "id": "RCS06",
+          "title": "Terminänderung Werkhalle Epsilon",
+          "source_text": "Aktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt."
+        }
+      ],
+      "review": "Quote fallback contains both the first plan (12 May, 09:00) and changed date (19 May, 14:30), labeled by source title/status.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ12",
+      "answerable": true,
+      "type": "direct",
+      "question": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "gold_source_ids": [
+        "RCS06"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Der Termin für die Vor-Ort-Abnahme in Werkhalle Epsilon wurde vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. [1] (nur eine Quelle)\n\nBelege\n[1] Terminänderung Werkhalle Epsilon.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS06"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS06",
+          "title": "Terminänderung Werkhalle Epsilon",
+          "source_text": "Aktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt."
+        }
+      ],
+      "review": "The answer says the 12 May date was moved to 19 May at 14:30, directly resolving whether the old date still applies.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ13",
+      "answerable": true,
+      "type": "direct",
+      "question": "Findet der Rundgang im Depot Süd noch statt?",
+      "gold_source_ids": [
+        "RCS07"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Der Rundgang im Depot Süd am 8. Juni wurde abgesagt. [1] (nur eine Quelle)\n\nBelege\n[1] Rundgang Depot Süd.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS07"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS07",
+          "title": "Rundgang Depot Süd",
+          "source_text": "Der Rundgang im Depot Süd am 8. Juni ist abgesagt; es gibt keinen Ersatztermin."
+        }
+      ],
+      "review": "Correctly says the Depot Süd walk-through was cancelled; no unsupported replacement is asserted.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ14",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "gold_source_ids": [
+        "RCS08"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Die Einweisung im Depot Nord findet am 8. Juni wie geplant statt. [1] (nur eine Quelle)\n\nBelege\n[1] Einweisung Depot Nord.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS08"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS08",
+          "title": "Einweisung Depot Nord",
+          "source_text": "Die Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt."
+        }
+      ],
+      "review": "“Findet ... wie geplant statt” correctly answers that the Depot Nord induction was not cancelled.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ15",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "gold_source_ids": [
+        "RCS08"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Einweisung Depot Nord.txt\nDie Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt.\nQuellenzeit: unbekannt · Erfasst: 09.10.2026, 11:08 Uhr",
+      "selected_source_ids": [
+        "RCS08"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS08",
+          "title": "Einweisung Depot Nord",
+          "source_text": "Die Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt."
+        }
+      ],
+      "review": "Quote fallback identifies the Depot Nord induction, 8 June, and that it remains as planned/not cancelled.",
+      "previous_8b37_content_equal": false
+    },
+    {
+      "id": "RQ16",
+      "answerable": false,
+      "type": "unanswerable",
+      "question": "Welche Diagnose hat Noa Jansen?",
+      "gold_source_ids": [],
+      "verdict": "adequate",
+      "actual_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "selected_source_ids": [],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [],
+      "review": "Correct unknown. RCS09 concerns a workplace screen stand request and contains no diagnosis.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ17",
+      "answerable": false,
+      "type": "unanswerable",
+      "question": "Wie lautet Nola Voss' private Anschrift?",
+      "gold_source_ids": [],
+      "verdict": "adequate",
+      "actual_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "selected_source_ids": [],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [],
+      "review": "Correct unknown. No provided source gives Nola Voss’s private address.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ18",
+      "answerable": false,
+      "type": "unanswerable",
+      "question": "Welche Medikamente nimmt Emi Tanaka?",
+      "gold_source_ids": [],
+      "verdict": "adequate",
+      "actual_answer": "Dazu liegt in den bisher eingeordneten Quellen keine Information vor.",
+      "selected_source_ids": [],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [],
+      "review": "Correct unknown. RCS14 confirms a visit time and contains no medication information.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ19",
+      "answerable": true,
+      "type": "direct",
+      "question": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "gold_source_ids": [
+        "RCS11"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Lösungsmittel dürfen nicht eingesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] Reinigung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS11"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS11",
+          "title": "Reinigung R-508",
+          "source_text": "Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Lösungsmittel dürfen nicht eingesetzt werden."
+        }
+      ],
+      "review": "Correctly gives the dry-cloth-only rule and solvent prohibition for R-508.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ20",
+      "answerable": true,
+      "type": "direct",
+      "question": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "gold_source_ids": [
+        "RCS11"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Lösungsmittel dürfen nicht eingesetzt werden. [1] (nur eine Quelle)\n\nBelege\n[1] Reinigung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS11"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS11",
+          "title": "Reinigung R-508",
+          "source_text": "Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Lösungsmittel dürfen nicht eingesetzt werden."
+        }
+      ],
+      "review": "Correctly answers no to solvent cleaning for R-508 and includes the permitted method.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ21",
+      "answerable": true,
+      "type": "paraphrase",
+      "question": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "gold_source_ids": [
+        "RCS12"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben. [1] (nur eine Quelle)\nDie Prüfung ist noch offen. [1] (nur eine Quelle)\n\nBelege\n[1] Materialrechnung R-508.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS12"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS12",
+          "title": "Materialrechnung R-508",
+          "source_text": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben. Die Prüfung ist noch offen."
+        }
+      ],
+      "review": "Correctly states documented goods-receipt inspection is required before release and remains open.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ22",
+      "answerable": true,
+      "type": "direct",
+      "question": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "gold_source_ids": [
+        "RCS13"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Die Oberflächenprobe im Vorgang R-580 wird nur nach trockener Reinigung genommen. [1] (nur eine Quelle)\n\nBelege\n[1] Oberflächenprobe R-580.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS13"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS13",
+          "title": "Oberflächenprobe R-580",
+          "source_text": "Im Vorgang R-580 wird die Oberflächenprobe nur nach trockener Reinigung genommen; Lösungsmittel sind für diesen Auftrag ausgeschlossen."
+        }
+      ],
+      "review": "Correctly states the R-580 surface sample is taken only after dry cleaning.",
+      "previous_8b37_content_equal": true
+    },
+    {
+      "id": "RQ23",
+      "answerable": true,
+      "type": "direct",
+      "question": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "gold_source_ids": [
+        "RCS13"
+      ],
+      "verdict": "adequate",
+      "actual_answer": "Lösungsmittel sind für den Vorgang R-580 ausgeschlossen. [1] (nur eine Quelle)\n\nBelege\n[1] Oberflächenprobe R-580.txt\nJeder Satz wurde zusätzlich von einem Prüfmodell gegen seine Belege geprüft.",
+      "selected_source_ids": [
+        "RCS13"
+      ],
+      "source_references_valid": true,
+      "source_mapping_exact": true,
+      "selected_sources": [
+        {
+          "id": "RCS13",
+          "title": "Oberflächenprobe R-580",
+          "source_text": "Im Vorgang R-580 wird die Oberflächenprobe nur nach trockener Reinigung genommen; Lösungsmittel sind für diesen Auftrag ausgeschlossen."
+        }
+      ],
+      "review": "Correctly states solvents are excluded for R-580.",
+      "previous_8b37_content_equal": true
+    }
+  ],
+  "source_original_checks": [
+    {
+      "id": "RCS01",
+      "title": "Sichtprüfung KL-42.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "e2be217b6febd137fe0b917e65e5ce1813fd79d506f61a6ad0a7e63f71b00e61",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS02",
+      "title": "Lieferung KL-24.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "067c7495803d5b16412f93ff0f7e15efdc4e61116c5473e7cd927d3d93d709f6",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS03",
+      "title": "Versand M-731.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "577d6c10bbe03825bd193e6b2cfb5d11c94829dbb92de6cfc6a2cc5c688d5d1b",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS04",
+      "title": "Prüfprotokoll M-713.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "672bab17a32a9e22370ad4d2f838b394afc20d2a6877f871f7a1c109d54faf7e",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS05",
+      "title": "Erste Planung Werkhalle Epsilon.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "25039b7ba92dda6b046572d710df25d62720d162ea8f1a412f0cd36be21c7b49",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS06",
+      "title": "Terminänderung Werkhalle Epsilon.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "9ed433e33f0af8003c7853073ae9ae87da3b6a07bacb42a61579ec41c25c4598",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS07",
+      "title": "Rundgang Depot Süd.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "4717e924ec25d68d2d5f4526c947d814c5dda9163e349fe4597b16317493f61d",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS08",
+      "title": "Einweisung Depot Nord.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "9e8f438d9ed9e91ef3f049ec15a036483792c25e7f801fbe7933980c40cd0fb0",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS09",
+      "title": "Arbeitsplatznotiz Noa Jansen.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "9ee1e5ce4ee159031183ba3ba13982e27c9218b7ef6eb2904dca55d7c928a08b",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS10",
+      "title": "Beleg Teleskopstativ.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "a44aec4ebdce6bf4d09d6e30422662e6c7507521f2ac6ed495a0dd1d7b2fb9fe",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS11",
+      "title": "Reinigung R-508.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "f353c7fc6bb112de7d15b8f4e9727c3da85301eb076f9b66fa57f89840ed7078",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS12",
+      "title": "Materialrechnung R-508.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "cb12e2629d3f62f6ef4cde28f270ffaee4371fdf786afe75e171902f022d0865",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS13",
+      "title": "Oberflächenprobe R-580.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "55c637094fa084116a02c948ffbaeb72724057743bee360bd643ce42295141b5",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "RCS14",
+      "title": "Besuch Atelierraum 3.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "d6ce7423bd4bf212746046cb01e49f56b53c88a536f73759c3d5507b7323e4ef",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "H01",
+      "title": "Unicode-Einbettung.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "a55d100dca1b848122cbac1520e1c47e0106e2bb842b3b2cf463e2b4aef65d9a",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "H02",
+      "title": "Zwei Personen.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "5b83aa8b52ff9f2e3a43a7f0a40f00817e1cd5bebdaf8696836498a2ea63f8e6",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "H03",
+      "title": "Servicepostfach.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "dc2d93eeba8165051c6726ab703dc960605f59a22937887c3b04fc4911d716de",
+      "imported_digest_matches": true
+    },
+    {
+      "id": "H04",
+      "title": "Person neben Service.txt",
+      "body_matches_imported_original": true,
+      "computed_body_sha256": "bc60e322525320d8fe69098a32fc210c0df6bd2e552b48fbbc1fe21878506d27",
+      "imported_digest_matches": true
+    }
+  ],
+  "person_extraction_checks": [
+    {
+      "source_id": "RCS01",
+      "source_title": "Sichtprüfung KL-42",
+      "gold_people": [
+        "Nora Voss"
+      ],
+      "actual_extracted_people": [
+        "Nora Voss"
+      ],
+      "matches_gold": true,
+      "source_text": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42."
+    },
+    {
+      "source_id": "RCS02",
+      "source_title": "Lieferung KL-24",
+      "gold_people": [
+        "Nola Voss"
+      ],
+      "actual_extracted_people": [
+        "Nola Voss"
+      ],
+      "matches_gold": true,
+      "source_text": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24."
+    },
+    {
+      "source_id": "RCS09",
+      "source_title": "Arbeitsplatznotiz Noa Jansen",
+      "gold_people": [
+        "Noa Jansen"
+      ],
+      "actual_extracted_people": [],
+      "matches_gold": false,
+      "source_text": "Noa Jansen bat um einen höhenverstellbaren Bildschirmständer für den Arbeitsplatz."
+    },
+    {
+      "source_id": "RCS10",
+      "source_title": "Beleg Teleskopstativ",
+      "gold_people": [
+        "Nora Voss"
+      ],
+      "actual_extracted_people": [
+        "Nora Voss"
+      ],
+      "matches_gold": true,
+      "source_text": "Nora Voss hat den Wartungsbeleg für das Teleskopstativ eingereicht; darin stehen keine privaten Kontaktdaten."
+    },
+    {
+      "source_id": "RCS14",
+      "source_title": "Besuch Atelierraum 3",
+      "gold_people": [
+        "Emi Tanaka"
+      ],
+      "actual_extracted_people": [
+        "Emi Tanaka"
+      ],
+      "matches_gold": true,
+      "source_text": "Emi Tanaka hat die Besuchszeit für Atelierraum 3 bestätigt. Eine private Anschrift ist in der Notiz nicht vermerkt."
+    },
+    {
+      "source_id": "H01",
+      "source_title": "Unicode-Einbettung",
+      "gold_people": [
+        "Lene Kühn"
+      ],
+      "actual_extracted_people": [
+        "Lene Kühn"
+      ],
+      "matches_gold": true,
+      "source_text": "🐦 Notiz: Lene Kühn prüft den Entwurf."
+    },
+    {
+      "source_id": "H02",
+      "source_title": "Zwei Personen",
+      "gold_people": [
+        "Veit Noll",
+        "Vera Noll"
+      ],
+      "actual_extracted_people": [
+        "Veit Noll",
+        "Vera Noll"
+      ],
+      "matches_gold": true,
+      "source_text": "Nachricht: Vera Noll liefert, Veit Noll prüft."
+    },
+    {
+      "source_id": "H03",
+      "source_title": "Servicepostfach",
+      "gold_people": [],
+      "actual_extracted_people": [],
+      "matches_gold": true,
+      "source_text": "Kundenservice support@example.invalid bestätigt den Eingang."
+    },
+    {
+      "source_id": "H04",
+      "source_title": "Person neben Service",
+      "gold_people": [
+        "Vera Noll"
+      ],
+      "actual_extracted_people": [
+        "Vera Noll"
+      ],
+      "matches_gold": true,
+      "source_text": "Vera Noll schreibt über support@example.invalid an den Kundenservice."
+    }
+  ],
+  "scope": "Finite synthetic diagnostic only; does not establish general accuracy or production behavior."
+}

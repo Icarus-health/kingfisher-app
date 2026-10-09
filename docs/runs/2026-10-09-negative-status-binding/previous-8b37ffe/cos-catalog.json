@@ -1,0 +1,305 @@
+{
+  "suite": "memory-retrieval-independent-control-20261008-v1",
+  "frozen_before_model_run": true,
+  "synthetic": true,
+  "scope": "Unabhängige Kontrollmenge für Quellenabruf und Nichtwissen: ähnliche Personen und Aufträge, Freigabebedingungen, Terminänderung und Absage sowie nicht vorhandene sensible Angaben.",
+  "source_id_policy": "RCS01-RCS14 sind feste lokale Alias-IDs. Goldwerte beziehen sich auf diese vollständig erfundenen Originalquellen, nicht auf Datenbank-IDs.",
+  "sources": [
+    {
+      "id": "RCS01",
+      "title": "Sichtprüfung KL-42",
+      "text": "Nora Voss übernimmt die Sichtprüfung der Halterungen im Auftrag KL-42."
+    },
+    {
+      "id": "RCS02",
+      "title": "Lieferung KL-24",
+      "text": "Nola Voss liefert die Befestigungssätze für Auftrag KL-24."
+    },
+    {
+      "id": "RCS03",
+      "title": "Versand M-731",
+      "text": "Bei M-731 darf Material erst nach schriftlicher Freigabe durch die Lagerleitung versandt werden. Die Freigabe liegt noch nicht vor."
+    },
+    {
+      "id": "RCS04",
+      "title": "Prüfprotokoll M-713",
+      "text": "Das Prüfprotokoll M-713 darf erst verschickt werden, wenn beide Messreihen unterschrieben sind; eine Unterschrift fehlt."
+    },
+    {
+      "id": "RCS05",
+      "title": "Erste Planung Werkhalle Epsilon",
+      "text": "Die Vor-Ort-Abnahme in Werkhalle Epsilon ist für den 12. Mai um 09:00 Uhr eingeplant."
+    },
+    {
+      "id": "RCS06",
+      "title": "Terminänderung Werkhalle Epsilon",
+      "text": "Aktualisierung: Die Vor-Ort-Abnahme in Werkhalle Epsilon wird vom 12. Mai um 09:00 Uhr auf den 19. Mai um 14:30 Uhr verschoben. Der alte Termin ist ersetzt."
+    },
+    {
+      "id": "RCS07",
+      "title": "Rundgang Depot Süd",
+      "text": "Der Rundgang im Depot Süd am 8. Juni ist abgesagt; es gibt keinen Ersatztermin."
+    },
+    {
+      "id": "RCS08",
+      "title": "Einweisung Depot Nord",
+      "text": "Die Einweisung im Depot Nord findet am 8. Juni wie geplant statt; sie ist nicht abgesagt."
+    },
+    {
+      "id": "RCS09",
+      "title": "Arbeitsplatznotiz Noa Jansen",
+      "text": "Noa Jansen bat um einen höhenverstellbaren Bildschirmständer für den Arbeitsplatz."
+    },
+    {
+      "id": "RCS10",
+      "title": "Beleg Teleskopstativ",
+      "text": "Nora Voss hat den Wartungsbeleg für das Teleskopstativ eingereicht; darin stehen keine privaten Kontaktdaten."
+    },
+    {
+      "id": "RCS11",
+      "title": "Reinigung R-508",
+      "text": "Für Auftrag R-508 ist vor der Reinigung ausschließlich ein trockenes Tuch erlaubt. Lösungsmittel dürfen nicht eingesetzt werden."
+    },
+    {
+      "id": "RCS12",
+      "title": "Materialrechnung R-508",
+      "text": "Die Materialrechnung für R-508 wird erst nach dokumentierter Wareneingangsprüfung freigegeben. Die Prüfung ist noch offen."
+    },
+    {
+      "id": "RCS13",
+      "title": "Oberflächenprobe R-580",
+      "text": "Im Vorgang R-580 wird die Oberflächenprobe nur nach trockener Reinigung genommen; Lösungsmittel sind für diesen Auftrag ausgeschlossen."
+    },
+    {
+      "id": "RCS14",
+      "title": "Besuch Atelierraum 3",
+      "text": "Emi Tanaka hat die Besuchszeit für Atelierraum 3 bestätigt. Eine private Anschrift ist in der Notiz nicht vermerkt."
+    }
+  ],
+  "questions": [
+    {
+      "id": "RQ01",
+      "answerable": true,
+      "rationale": "RCS01 nennt Nora Voss ausdrücklich als Prüferin für KL-42.",
+      "q": "Wer übernimmt die Sichtprüfung bei KL-42?",
+      "expect": [
+        "RCS01"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ02",
+      "answerable": true,
+      "rationale": "Umformulierung derselben Prüfung; nur RCS01 verbindet KL-42 mit der Sichtprüfung.",
+      "q": "Welche Person schaut sich im Vorgang KL-42 die Halterungen an?",
+      "expect": [
+        "RCS01"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ03",
+      "answerable": true,
+      "rationale": "RCS02 nennt Nola Voss als Lieferantin für KL-24.",
+      "q": "Wer liefert die Befestigungssätze für KL-24?",
+      "expect": [
+        "RCS02"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ04",
+      "answerable": false,
+      "rationale": "RCS02 betrifft die ähnlich benannte Nola als Lieferantin und RCS01 Nora für KL-42; keine Quelle nennt eine prüfende Person für KL-24.",
+      "q": "Wer prüft die Ware im Auftrag KL-24?",
+      "expect": [],
+      "type": "unanswerable"
+    },
+    {
+      "id": "RQ05",
+      "answerable": true,
+      "rationale": "RCS03 nennt die schriftliche Freigabe der Lagerleitung und sagt, dass sie noch fehlt.",
+      "q": "Was fehlt noch, bevor Material aus M-731 versandt werden darf?",
+      "expect": [
+        "RCS03"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ06",
+      "answerable": true,
+      "rationale": "RCS03 verneint den Eingang ausdrücklich.",
+      "q": "Ist die Freigabe für den Versand M-731 schon eingegangen?",
+      "expect": [
+        "RCS03"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ07",
+      "answerable": true,
+      "rationale": "RCS04 verlangt zwei unterschriebene Messreihen und nennt eine fehlende Unterschrift.",
+      "q": "Unter welcher Voraussetzung kann das Protokoll M-713 rausgehen?",
+      "expect": [
+        "RCS04"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ08",
+      "answerable": true,
+      "rationale": "Die Frage verlangt beide unterschiedlichen, jeweils explizit genannten Bedingungen.",
+      "q": "Welche Freigabebedingung gilt für M-731 und welche für M-713?",
+      "expect": [
+        "RCS03",
+        "RCS04"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ09",
+      "answerable": true,
+      "rationale": "RCS04 sagt, dass eine der zwei erforderlichen Unterschriften fehlt.",
+      "q": "Was ist beim Prüfprotokoll M-713 noch offen?",
+      "expect": [
+        "RCS04"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ10",
+      "answerable": true,
+      "rationale": "RCS06 ist die Aktualisierung und ersetzt den früheren Termin durch den 19. Mai um 14:30 Uhr.",
+      "q": "Wann findet die Abnahme in Werkhalle Epsilon jetzt statt?",
+      "expect": [
+        "RCS06"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ11",
+      "answerable": true,
+      "rationale": "Die Frage verlangt den Inhalt beider Notizen: erste Planung RCS05 und die ausdrücklich ersetzende Änderungsnotiz RCS06. Eine bloße Frage nach dem ursprünglichen Datum wäre auch mit RCS06 allein beantwortbar und hätte keinen eindeutigen Zwei-Quellen-Goldwert.",
+      "q": "Welche Termine nennen die erste Planung und die spätere Änderungsnotiz zur Epsilon-Abnahme jeweils?",
+      "expect": [
+        "RCS05",
+        "RCS06"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ12",
+      "answerable": true,
+      "rationale": "RCS06 sagt ausdrücklich, dass der alte Termin ersetzt ist.",
+      "q": "Gilt für die Epsilon-Abnahme noch der 12. Mai um 09:00 Uhr?",
+      "expect": [
+        "RCS06"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ13",
+      "answerable": true,
+      "rationale": "RCS07 sagt ausdrücklich, dass der Rundgang abgesagt ist und keinen Ersatz hat.",
+      "q": "Findet der Rundgang im Depot Süd noch statt?",
+      "expect": [
+        "RCS07"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ14",
+      "answerable": true,
+      "rationale": "RCS08 sagt, dass sie wie geplant stattfindet und nicht abgesagt ist.",
+      "q": "Ist die Einweisung im Depot Nord gestrichen worden?",
+      "expect": [
+        "RCS08"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ15",
+      "answerable": true,
+      "rationale": "Umformulierung der Frage zur fortbestehenden Einweisung; Depot Nord ist eindeutig benannt.",
+      "q": "Welche Schulung am nördlichen Depot bleibt beim vorgesehenen Termin?",
+      "expect": [
+        "RCS08"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ16",
+      "answerable": false,
+      "rationale": "Keine Quelle nennt eine Diagnose zu Noa; RCS09 betrifft dieselbe Person, aber nur einen Arbeitsplatzbedarf.",
+      "q": "Welche Diagnose hat Noa Jansen?",
+      "expect": [],
+      "type": "unanswerable"
+    },
+    {
+      "id": "RQ17",
+      "answerable": false,
+      "rationale": "RCS02 enthält nur Lieferangaben; RCS10 betrifft Nora Voss und einen Beleg, keine Anschrift von Nola.",
+      "q": "Wie lautet Nola Voss' private Anschrift?",
+      "expect": [],
+      "type": "unanswerable"
+    },
+    {
+      "id": "RQ18",
+      "answerable": false,
+      "rationale": "RCS14 enthält nur eine Besuchsbestätigung und keine medizinischen Angaben.",
+      "q": "Welche Medikamente nimmt Emi Tanaka?",
+      "expect": [],
+      "type": "unanswerable"
+    },
+    {
+      "id": "RQ19",
+      "answerable": true,
+      "rationale": "RCS11 erlaubt ausschließlich ein trockenes Tuch und schließt Lösungsmittel aus.",
+      "q": "Was darf vor der Reinigung von R-508 verwendet werden?",
+      "expect": [
+        "RCS11"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ20",
+      "answerable": true,
+      "rationale": "RCS11 verbietet Lösungsmittel für genau diesen Auftrag.",
+      "q": "Darf man R-508 mit Lösungsmittel reinigen?",
+      "expect": [
+        "RCS11"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ21",
+      "answerable": true,
+      "rationale": "RCS12 verlangt eine dokumentierte Wareneingangsprüfung und sagt, dass sie noch offen ist.",
+      "q": "Was muss erledigt sein, ehe die Rechnung für R-508 freigegeben wird?",
+      "expect": [
+        "RCS12"
+      ],
+      "type": "paraphrase"
+    },
+    {
+      "id": "RQ22",
+      "answerable": true,
+      "rationale": "RCS13 verlangt trockene Reinigung und schließt Lösungsmittel für R-580 aus.",
+      "q": "Unter welcher Bedingung wird im Vorgang R-580 die Oberflächenprobe genommen?",
+      "expect": [
+        "RCS13"
+      ],
+      "type": "direct"
+    },
+    {
+      "id": "RQ23",
+      "answerable": true,
+      "rationale": "RCS13 schließt Lösungsmittel ausdrücklich für R-580 aus.",
+      "q": "Kann R-580 mit einem Lösungsmittel gereinigt werden?",
+      "expect": [
+        "RCS13"
+      ],
+      "type": "direct"
+    }
+  ]
+}

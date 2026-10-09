@@ -1,0 +1,20 @@
+{
+  "completed": true,
+  "client_exit": 0,
+  "server_exit": 0,
+  "preflight_verified": true,
+  "ollama_no_cloud": true,
+  "ollama_noprune": true,
+  "production_endpoint_touched": false,
+  "settings_or_private_directories_loaded": false,
+  "native_source_blobs_unchanged": true,
+  "native_source_manifests_unchanged": true,
+  "watchdog": "900 seconds or 8 GiB sampled owned-process RSS; emergency sampler, not a hard GPU or memory cap",
+  "runtime_error": null,
+  "product_commit": "8b37ffeb26389fd98afca98283857cec292280b9",
+  "runner_sha256": "1f1597df745356e8e0707cf6c44d3794cf7d0cf2dafb745f74f1af557e836530",
+  "wall_seconds": 248.64,
+  "sampled_peak_owned_rss_gib": 5.578,
+  "flow_sha256": "1797e42405390de693078d25c48fd4994cb05dd90877789c0dc1d88a9d1761f1",
+  "catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada"
+}

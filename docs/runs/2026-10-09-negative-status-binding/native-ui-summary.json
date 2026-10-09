@@ -1,0 +1,23 @@
+{
+  "calendar_existing_event_time_and_source_loaded": true,
+  "clock_advanced_across_routes": true,
+  "cloud_processing_activated": false,
+  "existing_mailbox_and_calendar_subscription_displayed": true,
+  "intake_resumed": false,
+  "memory_loaded": true,
+  "messages_sent": false,
+  "models_changed_or_downloaded": false,
+  "native_ui_verified": true,
+  "native_window_opened_after_install": true,
+  "private_data_or_credentials_published": false,
+  "read_only_checks_only": true,
+  "remaining_limits": [
+    "legacy encoded person label",
+    "Mac calendar helper unavailable even after restart",
+    "route latency not accepted",
+    "personal all-day use not accepted"
+  ],
+  "tasks_loaded": true,
+  "today_loaded": true,
+  "version": "1.0.6-local.7295b2e"
+}
