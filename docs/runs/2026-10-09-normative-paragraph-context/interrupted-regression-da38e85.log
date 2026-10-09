@@ -1,0 +1,250 @@
+........................................................................ [  1%]
+........................................................................ [  2%]
+........................................................................ [  3%]
+....................................EEE.F.E............................. [  4%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  7%]
+........................................................................ [  9%]
+........................................................................ [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 12%]
+............................FFF......................................... [ 13%]
+........................................................................ [ 14%]
+.........................................F.......F...................... [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 19%]
+........................................................................ [ 20%]
+..........EFFFFFF................E.E.
+==================================== ERRORS ====================================
+___ ERROR at setup of test_eine_erkennung_fuer_google_microsoft_und_den_rest ___
+sidecar/tests/test_anbieter_erkennen.py:27: in dienst
+    namensdienst = Namensdienst()
+                   ^^^^^^^^^^^^^^
+sidecar/tests/dns_attrappe.py:68: in __init__
+    self.sock.bind(('127.0.0.1', 0))
+E   PermissionError: [Errno 1] Operation not permitted
+____________ ERROR at setup of test_bekannte_endung_fragt_niemanden ____________
+sidecar/tests/test_anbieter_erkennen.py:27: in dienst
+    namensdienst = Namensdienst()
+                   ^^^^^^^^^^^^^^
+sidecar/tests/dns_attrappe.py:68: in __init__
+    self.sock.bind(('127.0.0.1', 0))
+E   PermissionError: [Errno 1] Operation not permitted
+_ ERROR at setup of test_google_braucht_eine_anfrage_und_antworten_werden_gemerkt _
+sidecar/tests/test_anbieter_erkennen.py:27: in dienst
+    namensdienst = Namensdienst()
+                   ^^^^^^^^^^^^^^
+sidecar/tests/dns_attrappe.py:68: in __init__
+    self.sock.bind(('127.0.0.1', 0))
+E   PermissionError: [Errno 1] Operation not permitted
+____________ ERROR at setup of test_route_nennt_anbieter_und_dienst ____________
+sidecar/tests/test_anbieter_erkennen.py:27: in dienst
+    namensdienst = Namensdienst()
+                   ^^^^^^^^^^^^^^
+sidecar/tests/dns_attrappe.py:68: in __init__
+    self.sock.bind(('127.0.0.1', 0))
+E   PermissionError: [Errno 1] Operation not permitted
+__ ERROR at setup of test_genau_eine_get_anfrage_ohne_kekse_und_ohne_kennung ___
+sidecar/tests/test_fassung.py:77: in attrappe
+    a = Attrappe().json(manifest())
+        ^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+__________________ ERROR at setup of test_endpunkte_mit_token __________________
+sidecar/tests/test_fassung.py:77: in attrappe
+    a = Attrappe().json(manifest())
+        ^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+_ ERROR at setup of test_faden_laeuft_fuer_die_pruefung_und_stoppt_wenn_sie_aus_ist _
+sidecar/tests/test_fassung.py:77: in attrappe
+    a = Attrappe().json(manifest())
+        ^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+=================================== FAILURES ===================================
+________________ test_schweigender_namensdienst_haelt_nicht_auf ________________
+sidecar/tests/test_anbieter_erkennen.py:83: in test_schweigender_namensdienst_haelt_nicht_auf
+    stumm = Namensdienst(stumm=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/dns_attrappe.py:68: in __init__
+    self.sock.bind(('127.0.0.1', 0))
+E   PermissionError: [Errno 1] Operation not permitted
+___________ test_always_yes_gate_keeps_both_directly_supported_rules ___________
+sidecar/tests/test_conditional_scope_completeness.py:210: in test_always_yes_gate_keeps_both_directly_supported_rules
+    assert result.status == 'saetze'
+E   AssertionError: assert 'zitate' == 'saetze'
+E
+E     - saetze
+E     + zitate
+____ test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule ____
+sidecar/tests/test_conditional_scope_completeness.py:222: in test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule
+    assert 'Bedingungsregel' in result.grund
+E   AssertionError: assert 'Bedingungsregel' in 'Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss in Originalreihenfolge zusammen ausgegeben werden'
+E    +  where 'Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss in Originalreihenfolge zusammen ausgegeben werden' = Versuch(status='zitate', saetze=[], verworfen=[GeprueftSatz(roh='Ein Zurücksetzen nach der Abnahme ist nur zulässig, w...ic-answer', tor=Tor(zustand='an', anbieter=<tests.test_conditional_scope_completeness._Checker object at 0x11647b860>)).grund
+_ test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition _
+sidecar/tests/test_conditional_scope_completeness.py:269: in test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition
+    stored['saetze'] = [entry for entry in stored['saetze'] if entry['roh'] == PRE_BAN]
+                                           ^^^^^^^^^^^^^^^^
+E   KeyError: 'saetze'
+__ test_host_report_measures_the_ollama_model_folder_and_sends_only_a_number ___
+sidecar/tests/test_device_profile.py:88: in test_host_report_measures_the_ollama_model_folder_and_sends_only_a_number
+    assert 'noch' not in json.dumps(reporter.collect_report().get('disk_free_bytes'))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/report_device.py:111: in collect_report
+    report = _collect_platform()
+             ^^^^^^^^^^^^^^^^^^^
+scripts/report_device.py:128: in _collect_platform
+    raise ValueError('Der Mac-Speicher konnte nicht gelesen werden.')
+E   ValueError: Der Mac-Speicher konnte nicht gelesen werden.
+___________ test_post_stays_on_loopback_and_does_not_follow_redirect ___________
+sidecar/tests/test_device_profile.py:130: in test_post_stays_on_loopback_and_does_not_follow_redirect
+    server = HTTPServer(('127.0.0.1', 0), Handler)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+_____________________ test_fehler_sind_still[{kaputt-200] ______________________
+sidecar/tests/test_fassung.py:171: in test_fehler_sind_still
+    a = Attrappe(rumpf, status)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+_________________________ test_fehler_sind_still[-200] _________________________
+sidecar/tests/test_fassung.py:171: in test_fehler_sind_still
+    a = Attrappe(rumpf, status)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+_ test_fehler_sind_still[{"fassung": "1.2.0", "datum": "2026-10-02", "image": "ghcr.io/icarus-health/kingfisher-app:1.2.0", "dmg": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.2.0/Kingfisher.dmg", "hinweise": ["Briefing nennt Geburtstage.", "Akten lassen sich als Ordner lesen."], "app_mindestens": "1.0.0"}-500] _
+sidecar/tests/test_fassung.py:171: in test_fehler_sind_still
+    a = Attrappe(rumpf, status)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+_ test_fehler_sind_still[{"fassung": "1.2.0", "datum": "2026-10-02", "image": "ghcr.io/icarus-health/kingfisher-app:1.2.0", "dmg": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.2.0/Kingfisher.dmg", "hinweise": ["Briefing nennt Geburtstage.", "Akten lassen sich als Ordner lesen."], "app_mindestens": "1.0.0"}-404] _
+sidecar/tests/test_fassung.py:171: in test_fehler_sind_still
+    a = Attrappe(rumpf, status)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+__________________ test_zu_grosse_antwort_wird_nicht_gelesen ___________________
+sidecar/tests/test_fassung.py:179: in test_zu_grosse_antwort_wird_nicht_gelesen
+    a = Attrappe(b'{"x": "' + b'a' * (70 * 1024) + b'"}')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+____________________________ test_kurze_zeitgrenze _____________________________
+sidecar/tests/test_fassung.py:187: in test_kurze_zeitgrenze
+    a = Attrappe(json.dumps(manifest()).encode(), verzoegerung=2.0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sidecar/tests/test_fassung.py:62: in __init__
+    self.server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:478: in server_bind
+    self.socket.bind(self.server_address)
+E   PermissionError: [Errno 1] Operation not permitted
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_anbieter_erkennen.py::test_schweigender_namensdienst_haelt_nicht_auf
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_always_yes_gate_keeps_both_directly_supported_rules
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule
+FAILED sidecar/tests/test_conditional_scope_completeness.py::test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_condition
+FAILED sidecar/tests/test_device_profile.py::test_host_report_measures_the_ollama_model_folder_and_sends_only_a_number
+FAILED sidecar/tests/test_device_profile.py::test_post_stays_on_loopback_and_does_not_follow_redirect
+FAILED sidecar/tests/test_fassung.py::test_fehler_sind_still[{kaputt-200] - P...
+FAILED sidecar/tests/test_fassung.py::test_fehler_sind_still[-200] - Permissi...
+FAILED sidecar/tests/test_fassung.py::test_fehler_sind_still[{"fassung": "1.2.0", "datum": "2026-10-02", "image": "ghcr.io/icarus-health/kingfisher-app:1.2.0", "dmg": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.2.0/Kingfisher.dmg", "hinweise": ["Briefing nennt Geburtstage.", "Akten lassen sich als Ordner lesen."], "app_mindestens": "1.0.0"}-500]
+FAILED sidecar/tests/test_fassung.py::test_fehler_sind_still[{"fassung": "1.2.0", "datum": "2026-10-02", "image": "ghcr.io/icarus-health/kingfisher-app:1.2.0", "dmg": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.2.0/Kingfisher.dmg", "hinweise": ["Briefing nennt Geburtstage.", "Akten lassen sich als Ordner lesen."], "app_mindestens": "1.0.0"}-404]
+FAILED sidecar/tests/test_fassung.py::test_zu_grosse_antwort_wird_nicht_gelesen
+FAILED sidecar/tests/test_fassung.py::test_kurze_zeitgrenze - PermissionError...
+ERROR sidecar/tests/test_anbieter_erkennen.py::test_eine_erkennung_fuer_google_microsoft_und_den_rest
+ERROR sidecar/tests/test_anbieter_erkennen.py::test_bekannte_endung_fragt_niemanden
+ERROR sidecar/tests/test_anbieter_erkennen.py::test_google_braucht_eine_anfrage_und_antworten_werden_gemerkt
+ERROR sidecar/tests/test_anbieter_erkennen.py::test_route_nennt_anbieter_und_dienst
+ERROR sidecar/tests/test_fassung.py::test_genau_eine_get_anfrage_ohne_kekse_und_ohne_kennung
+ERROR sidecar/tests/test_fassung.py::test_endpunkte_mit_token - PermissionErr...
+ERROR sidecar/tests/test_fassung.py::test_faden_laeuft_fuer_die_pruefung_und_stoppt_wenn_sie_aus_ist
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/typing.py:2125: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+12 failed, 1314 passed, 1 warning, 7 errors in 155.35s (0:02:35)

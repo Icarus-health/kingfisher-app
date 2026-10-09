@@ -109,7 +109,7 @@ def test_source_selection_retains_both_windows_without_rejection_notice():
     evidence = AntwortBeleg(1, {}, 'conditional', 'synthetic', 'Abdeckung', '', body, None)
     result = formulieren('Darf die Abdeckung vor der Abnahme entfernt werden?', [evidence], SelectBoth(), jetzt=NOW)
     assert result.status == 'saetze'
-    assert [s.text for s in result.saetze] == [BEFORE, AFTER]
+    assert [s.text for s in result.saetze] == [BEFORE + ' ' + AFTER]
     assert not result.verworfen
 
 
@@ -126,11 +126,10 @@ def test_source_supported_saved_permission_survives_store_reopen_and_withdrawal(
         source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Abdeckung', body, Provenance(SourceType.DOCUMENT))
         assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
             [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
-        provider = Skript({'status': 'antwort', 'saetze': [{'text': BEFORE, 'belege': [1]}]})
+        provider = Skript({'status': 'antwort', 'saetze': [{'text': body, 'belege': [1]}]})
         answer = working_memory_answers.prepare('Was steht zur Abdeckung?', episodes, claims, provider, saetze=True)
         saved = answer['satzantwort']
         assert saved['status'] == 'saetze'
-        saved['saetze'][0].update(roh=AFTER, text=AFTER)
     finally:
         claims.close()
         episodes.close()
@@ -139,7 +138,13 @@ def test_source_supported_saved_permission_survives_store_reopen_and_withdrawal(
     try:
         restored = satzantwort.wiederherstellen(saved, episodes, claims)
         assert restored is not None
-        assert [s.text for s in restored.saetze] == [AFTER]
+        assert [s.text for s in restored.saetze] == [body]
+        # Keep the old single-window payload as an explicit negative control:
+        # it must not outlive the new complete-paragraph contract after reopen.
+        from copy import deepcopy
+        incomplete = deepcopy(saved)
+        incomplete['saetze'][0].update(roh=AFTER, text=AFTER)
+        assert satzantwort.wiederherstellen(incomplete, episodes, claims) is None
         episodes.ignore(source.id)
         assert satzantwort.wiederherstellen(saved, episodes, claims) is None
         assert episodes.get(source.id).body == body

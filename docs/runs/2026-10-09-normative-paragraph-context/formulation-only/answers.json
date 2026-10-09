@@ -1,0 +1,537 @@
+{
+  "synthetic_only": true,
+  "scope": "Six fixed synthetic selected-source formulation controls; no retrieval, indexing, source-intake or general quality benchmark; baseline fields intentionally empty for new controls.",
+  "source_commit": "e8cfc26d5aee8ef42a6206da4ffa02a3bbced966",
+  "catalog_sha256": "4eaed5adeab90bd5e15206d4563bd24b962b791defdc46168d4ad8dfff632242",
+  "baseline_answers_sha256": null,
+  "baseline_catalog_sha256": null,
+  "model": "qwen3.5:4b",
+  "second_gate": "active actual satzpruefung_modell.tor(\"an\", verified local provider)",
+  "same_model_for_generation_and_second_gate": true,
+  "completed": true,
+  "rows": [
+    {
+      "id": "L01",
+      "question": "Was steht zur Öffnung der Klappe?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "L01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "L01-S1",
+          "reference": {
+            "episode_id": "synthetic-L01-S1",
+            "fingerprint": "e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7",
+            "start": 0,
+            "end": 101,
+            "kind": "fact"
+          },
+          "title": "L01-S1.txt",
+          "full_source_sha256": "e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7",
+          "full_source_text": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung.",
+          "model_view_sha256": "e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7",
+          "model_view_text": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung.",
+          "raw": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "L01",
+          "role": "formulation",
+          "messages_sha256": "5442ce873ac13b6cc8ffff94f136ea7c182a3f715bd883708127f4d38d645364",
+          "started_at": 1791507628.067337,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507633.0501702,
+          "seconds": 4.983
+        },
+        {
+          "question_id": "L01",
+          "role": "second_gate",
+          "messages_sha256": "202bdd21c7a6ed638ba5b146b3b1067d66e20661021ff93015321b3a59e70d17",
+          "started_at": 1791507633.052753,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507633.447681,
+          "seconds": 0.395
+        }
+      ],
+      "seconds": 5.384
+    },
+    {
+      "id": "L02",
+      "question": "Was steht im historischen Entwurf?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "L02-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "L02-S1",
+          "reference": {
+            "episode_id": "synthetic-L02-S1",
+            "fingerprint": "83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c",
+            "start": 0,
+            "end": 102,
+            "kind": "fact"
+          },
+          "title": "L02-S1.txt",
+          "full_source_sha256": "83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c",
+          "full_source_text": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.",
+          "model_view_sha256": "83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c",
+          "model_view_text": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.",
+          "raw": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "L02",
+          "role": "formulation",
+          "messages_sha256": "79c24550b1246ebf3d435511294b5116bf28853b55bc3b370f83374d3a4dfb4d",
+          "started_at": 1791507633.44876,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507634.3816168,
+          "seconds": 0.933
+        },
+        {
+          "question_id": "L02",
+          "role": "second_gate",
+          "messages_sha256": "109873e6fe7d11cb9c5b71fc51a02efa7e56c0bbf98718ce53a23212fed79a97",
+          "started_at": 1791507634.383805,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507634.754981,
+          "seconds": 0.371
+        }
+      ],
+      "seconds": 1.307
+    },
+    {
+      "id": "H01",
+      "question": "Was steht im Entwurf zur Klappe?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "H01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "H01-S1",
+          "reference": {
+            "episode_id": "synthetic-H01-S1",
+            "fingerprint": "65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d",
+            "start": 0,
+            "end": 76,
+            "kind": "fact"
+          },
+          "title": "H01-S1.txt",
+          "full_source_sha256": "65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d",
+          "full_source_text": "Entwurf\n\nDie Klappe darf geöffnet werden. Dies gilt nur während der Prüfung.",
+          "model_view_sha256": "65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d",
+          "model_view_text": "Entwurf\n\nDie Klappe darf geöffnet werden. Dies gilt nur während der Prüfung.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "zitate",
+      "fallback_reason": "Modell ohne brauchbare Ausgabe (ValueError)",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "H01",
+          "role": "formulation",
+          "messages_sha256": "1c16d28a39c253e3ed7be327ea8cc952045b94747572855eba8069d0c4b572bd",
+          "started_at": 1791507634.756194,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507635.834912,
+          "seconds": 1.079
+        }
+      ],
+      "seconds": 1.079
+    },
+    {
+      "id": "C01",
+      "question": "Unter welcher Bedingung darf die Klappe geöffnet werden?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "C01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "C01-S1",
+          "reference": {
+            "episode_id": "synthetic-C01-S1",
+            "fingerprint": "f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab",
+            "start": 0,
+            "end": 95,
+            "kind": "fact"
+          },
+          "title": "C01-S1.txt",
+          "full_source_sha256": "f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab",
+          "full_source_text": "Die Klappe darf geöffnet werden. Dies darf ausschließlich nach schriftlicher Freigabe erfolgen.",
+          "model_view_sha256": "f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab",
+          "model_view_text": "Die Klappe darf geöffnet werden. Dies darf ausschließlich nach schriftlicher Freigabe erfolgen.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "zitate",
+      "fallback_reason": "Modell ohne brauchbare Ausgabe (ValueError)",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "C01",
+          "role": "formulation",
+          "messages_sha256": "d259e489267f920489c2d692bf7e96b28e89cf11ec7e3d3732b94db9061022c0",
+          "started_at": 1791507635.8359292,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507637.118824,
+          "seconds": 1.283
+        }
+      ],
+      "seconds": 1.283
+    },
+    {
+      "id": "S01",
+      "question": "Wann darf der Schalter umgelegt werden?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "S01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "S01-S1",
+          "reference": {
+            "episode_id": "synthetic-S01-S1",
+            "fingerprint": "b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f",
+            "start": 0,
+            "end": 51,
+            "kind": "fact"
+          },
+          "title": "S01-S1.txt",
+          "full_source_sha256": "b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f",
+          "full_source_text": "Der Schalter darf nach der Prüfung umgelegt werden.",
+          "model_view_sha256": "b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f",
+          "model_view_text": "Der Schalter darf nach der Prüfung umgelegt werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Der Schalter darf nach der Prüfung umgelegt werden.",
+          "raw": "Der Schalter darf nach der Prüfung umgelegt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "S01",
+          "role": "formulation",
+          "messages_sha256": "b8ded1cccf76d6c0d720486626884743416359444cf30b4b011feb9837832115",
+          "started_at": 1791507637.1382458,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507641.463937,
+          "seconds": 4.326
+        },
+        {
+          "question_id": "S01",
+          "role": "second_gate",
+          "messages_sha256": "f2b4dc33031e629a622ddf29c49fc5a994f76a4f7be9567bf1c1e2f8dfe6c728",
+          "started_at": 1791507641.46517,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507641.83977,
+          "seconds": 0.375
+        }
+      ],
+      "seconds": 4.702
+    },
+    {
+      "id": "F01",
+      "question": "Wo liegt der Bericht?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [
+        "F01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "F01-S1",
+          "reference": {
+            "episode_id": "synthetic-F01-S1",
+            "fingerprint": "806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f",
+            "start": 0,
+            "end": 64,
+            "kind": "fact"
+          },
+          "title": "F01-S1.txt",
+          "full_source_sha256": "806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f",
+          "full_source_text": "Der Bericht liegt im Tresor. Der Schlüssel steckt in der Tasche.",
+          "model_view_sha256": "806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f",
+          "model_view_text": "Der Bericht liegt im Tresor. Der Schlüssel steckt in der Tasche.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Der Bericht liegt im Tresor.",
+          "raw": "Der Bericht liegt im Tresor.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "F01",
+          "role": "formulation",
+          "messages_sha256": "3905feebdfbf0394afaf0e56cabcfccd7584843e26d1767c2eb04593cccb3307",
+          "started_at": 1791507641.8411222,
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Der Bericht liegt im Tresor.\", \"belege\":[1]}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507643.3799958,
+          "seconds": 1.539
+        },
+        {
+          "question_id": "F01",
+          "role": "second_gate",
+          "messages_sha256": "e40cac77f48ce53baf182883bdcc8e42a2afac8cbd6fdbfc97f71940864cea50",
+          "started_at": 1791507643.381252,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791507643.818288,
+          "seconds": 0.437
+        }
+      ],
+      "seconds": 1.978
+    }
+  ],
+  "model_calls": [
+    {
+      "question_id": "L01",
+      "role": "formulation",
+      "messages_sha256": "5442ce873ac13b6cc8ffff94f136ea7c182a3f715bd883708127f4d38d645364",
+      "started_at": 1791507628.067337,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507633.0501702,
+      "seconds": 4.983
+    },
+    {
+      "question_id": "L01",
+      "role": "second_gate",
+      "messages_sha256": "202bdd21c7a6ed638ba5b146b3b1067d66e20661021ff93015321b3a59e70d17",
+      "started_at": 1791507633.052753,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507633.447681,
+      "seconds": 0.395
+    },
+    {
+      "question_id": "L02",
+      "role": "formulation",
+      "messages_sha256": "79c24550b1246ebf3d435511294b5116bf28853b55bc3b370f83374d3a4dfb4d",
+      "started_at": 1791507633.44876,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507634.3816168,
+      "seconds": 0.933
+    },
+    {
+      "question_id": "L02",
+      "role": "second_gate",
+      "messages_sha256": "109873e6fe7d11cb9c5b71fc51a02efa7e56c0bbf98718ce53a23212fed79a97",
+      "started_at": 1791507634.383805,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507634.754981,
+      "seconds": 0.371
+    },
+    {
+      "question_id": "H01",
+      "role": "formulation",
+      "messages_sha256": "1c16d28a39c253e3ed7be327ea8cc952045b94747572855eba8069d0c4b572bd",
+      "started_at": 1791507634.756194,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507635.834912,
+      "seconds": 1.079
+    },
+    {
+      "question_id": "C01",
+      "role": "formulation",
+      "messages_sha256": "d259e489267f920489c2d692bf7e96b28e89cf11ec7e3d3732b94db9061022c0",
+      "started_at": 1791507635.8359292,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507637.118824,
+      "seconds": 1.283
+    },
+    {
+      "question_id": "S01",
+      "role": "formulation",
+      "messages_sha256": "b8ded1cccf76d6c0d720486626884743416359444cf30b4b011feb9837832115",
+      "started_at": 1791507637.1382458,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507641.463937,
+      "seconds": 4.326
+    },
+    {
+      "question_id": "S01",
+      "role": "second_gate",
+      "messages_sha256": "f2b4dc33031e629a622ddf29c49fc5a994f76a4f7be9567bf1c1e2f8dfe6c728",
+      "started_at": 1791507641.46517,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507641.83977,
+      "seconds": 0.375
+    },
+    {
+      "question_id": "F01",
+      "role": "formulation",
+      "messages_sha256": "3905feebdfbf0394afaf0e56cabcfccd7584843e26d1767c2eb04593cccb3307",
+      "started_at": 1791507641.8411222,
+      "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Der Bericht liegt im Tresor.\", \"belege\":[1]}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507643.3799958,
+      "seconds": 1.539
+    },
+    {
+      "question_id": "F01",
+      "role": "second_gate",
+      "messages_sha256": "e40cac77f48ce53baf182883bdcc8e42a2afac8cbd6fdbfc97f71940864cea50",
+      "started_at": 1791507643.381252,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791507643.818288,
+      "seconds": 0.437
+    }
+  ],
+  "content_review": "pending independent review"
+}

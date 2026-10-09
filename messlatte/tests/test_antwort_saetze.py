@@ -23,6 +23,15 @@ FRAGE = 'Bis wann muss das Angebot für das Klinikum Mainz raus?'
 
 
 def sorgfaeltig(nutzer):
+    neu = next(b for b in nutzer['belege'] if 'Neue Frist' in b['quelle'])
+    # Die Quelle formuliert eine Bitte, keine erkannte Muss-/Darf-Regel. Im
+    # normalen Textvertrag bleibt der vollständige Originalabsatz erhalten;
+    # aus „Bitte senden“ wird keine vom Modell erfundene Muss-Aussage.
+    original = next(absatz for absatz in neu['text'].split('\n\n') if '26. Oktober' in absatz)
+    return {'status': 'antwort', 'saetze': [{'text': original, 'belege': [neu['nr']]}]}
+
+
+def freie_fristparaphrase(nutzer):
     neu = next(b['nr'] for b in nutzer['belege'] if 'Neue Frist' in b['quelle'])
     return {'status': 'antwort', 'saetze': [{'text': 'Das Angebot muss bis zum 26. Oktober raus.', 'belege': [neu]}]}
 
@@ -56,9 +65,16 @@ def fragen(stufe, regel):
 
 def test_sorgfaeltiges_modell_ergibt_einen_satz_mit_beleg_und_keine_falsche_aussage(stufe):
     ergebnis, bewertung = fragen(stufe, sorgfaeltig)
-    assert ergebnis.text.startswith('Das Angebot muss bis zum 26. Oktober raus. [')
+    assert ergebnis.text.startswith('die Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober. [')
     assert bewertung.klasse == 'richtig' and not bewertung.falsche_aussage, (ergebnis.text, bewertung)
     assert 'mainz-003' in (ergebnis.belege or ())
+
+
+def test_freie_fristparaphrase_ersetzt_keine_vollstaendige_originalregel(stufe):
+    ergebnis, _ = fragen(stufe, freie_fristparaphrase)
+    assert 'Quelle berichtet' in ergebnis.text
+    assert 'Das Angebot muss bis zum 26. Oktober raus.' not in ergebnis.text
+    assert ergebnis.verworfen_satzpruefung == 1
 
 
 def test_unaufmerksames_modell_wird_gestoppt_oder_als_falsch_erkannt(stufe):

@@ -1,0 +1,98 @@
+FFFFFFFFFFFF                                                             [100%]
+=================================== FAILURES ===================================
+_ test_header_and_all_normative_companions_are_atomic[False-Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies muss ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies soll ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[True-Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies muss ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies soll ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:169: in test_header_and_all_normative_companions_are_atomic
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_ test_incomplete_context_is_rejected_after_real_store_reopen[Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.] _
+sidecar/tests/test_normative_paragraph_context.py:214: in test_incomplete_context_is_rejected_after_real_store_reopen
+    assert sa.wiederherstellen(saved, episodes, claims) is None
+E   AssertionError: assert Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Entwurf\n\nDie Klappe darf geöffnet werden.', text='Entwurf\n\n...htag='2026-10-09T00:49:35.694360+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is None
+E    +  where Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Entwurf\n\nDie Klappe darf geöffnet werden.', text='Entwurf\n\n...htag='2026-10-09T00:49:35.694360+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) = <function wiederherstellen at 0x1096d9760>({'version': 1, 'status': 'saetze', 'modell': 'skript skript-1', 'stichtag': '2026-10-09T00:49:35.694360+00:00', ...}, <icarus_memory.episodes.EpisodeStore object at 0x107ad33b0>, <icarus_memory.claims.ClaimStore object at 0x10974bec0>)
+E    +    where <function wiederherstellen at 0x1096d9760> = sa.wiederherstellen
+_ test_incomplete_context_is_rejected_after_real_store_reopen[Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.] _
+sidecar/tests/test_normative_paragraph_context.py:214: in test_incomplete_context_is_rejected_after_real_store_reopen
+    assert sa.wiederherstellen(saved, episodes, claims) is None
+E   AssertionError: assert Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Die Klappe darf geöffnet werden.', text='Die Klappe darf geöffn...htag='2026-10-09T00:49:35.754406+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is None
+E    +  where Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Die Klappe darf geöffnet werden.', text='Die Klappe darf geöffn...htag='2026-10-09T00:49:35.754406+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) = <function wiederherstellen at 0x1096d9760>({'version': 1, 'status': 'saetze', 'modell': 'skript skript-1', 'stichtag': '2026-10-09T00:49:35.754406+00:00', ...}, <icarus_memory.episodes.EpisodeStore object at 0x109556ab0>, <icarus_memory.claims.ClaimStore object at 0x1093a5f70>)
+E    +    where <function wiederherstellen at 0x1096d9760> = sa.wiederherstellen
+___________ test_context_sentences_cannot_be_reversed_or_interleaved ___________
+sidecar/tests/test_normative_paragraph_context.py:236: in test_context_sentences_cannot_be_reversed_or_interleaved
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+_______ test_formulieren_rejects_reversed_and_interleaved_context_output _______
+sidecar/tests/test_normative_paragraph_context.py:258: in test_formulieren_rejects_reversed_and_interleaved_context_output
+    assert result.status == 'zitate'
+E   AssertionError: assert 'saetze' == 'zitate'
+E
+E     - zitate
+E     + saetze
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[False-Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies muss ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[False-Die Klappe darf ge\xf6ffnet werden. Dies soll ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[True-Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies muss ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_header_and_all_normative_companions_are_atomic[True-Die Klappe darf ge\xf6ffnet werden. Dies soll ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_incomplete_context_is_rejected_after_real_store_reopen[Entwurf\n\nDie Klappe darf ge\xf6ffnet werden. Dies gilt nur w\xe4hrend der Pr\xfcfung.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_incomplete_context_is_rejected_after_real_store_reopen[Die Klappe darf ge\xf6ffnet werden. Dies darf ausschlie\xdflich nach schriftlicher Freigabe erfolgen.]
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_context_sentences_cannot_be_reversed_or_interleaved
+FAILED sidecar/tests/test_normative_paragraph_context.py::test_formulieren_rejects_reversed_and_interleaved_context_output
+12 failed, 10 deselected in 0.61s

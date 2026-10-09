@@ -1,0 +1,166 @@
+{
+  "synthetic": true,
+  "frozen_before_model_run": true,
+  "source_commit": "e8cfc26d5aee8ef42a6206da4ffa02a3bbced966",
+  "scope": "Six fixed synthetic selected-source formulation controls; no retrieval, indexing, source-intake or general quality benchmark; baseline fields intentionally empty for new controls.",
+  "baseline_answers_sha256": null,
+  "baseline_catalog_sha256": null,
+  "questions": [
+    {
+      "id": "L01",
+      "question": "Was steht zur Öffnung der Klappe?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "L01-S1",
+          "episode_id": "synthetic-L01-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-L01-S1",
+            "fingerprint": "e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7",
+            "start": 0,
+            "end": 101,
+            "kind": "fact"
+          },
+          "title": "L01-S1.txt",
+          "body": "Die Klappe darf geöffnet werden. Das gilt ausschließlich nach schriftlicher Freigabe der Werkleitung.",
+          "body_sha256": "e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7",
+          "database_digest": "sha256:e50cfe7e4eeacb7c5422fcb02da36d6f09b4a8f36114d48deac2eb4d2300f5f7"
+        }
+      ]
+    },
+    {
+      "id": "L02",
+      "question": "Was steht im historischen Entwurf?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "L02-S1",
+          "episode_id": "synthetic-L02-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-L02-S1",
+            "fingerprint": "83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c",
+            "start": 0,
+            "end": 102,
+            "kind": "fact"
+          },
+          "title": "L02-S1.txt",
+          "body": "Historischer Entwurf. Nach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.",
+          "body_sha256": "83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c",
+          "database_digest": "sha256:83b306e6a0fc54a2a8b6e3e26a17c8b4df4b63bd10221180ea990173638ca86c"
+        }
+      ]
+    },
+    {
+      "id": "H01",
+      "question": "Was steht im Entwurf zur Klappe?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "H01-S1",
+          "episode_id": "synthetic-H01-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-H01-S1",
+            "fingerprint": "65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d",
+            "start": 0,
+            "end": 76,
+            "kind": "fact"
+          },
+          "title": "H01-S1.txt",
+          "body": "Entwurf\n\nDie Klappe darf geöffnet werden. Dies gilt nur während der Prüfung.",
+          "body_sha256": "65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d",
+          "database_digest": "sha256:65c29615888693736dc482dad4a064c800b2d7b8c8e00d9eca33354782e7100d"
+        }
+      ]
+    },
+    {
+      "id": "C01",
+      "question": "Unter welcher Bedingung darf die Klappe geöffnet werden?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "C01-S1",
+          "episode_id": "synthetic-C01-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-C01-S1",
+            "fingerprint": "f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab",
+            "start": 0,
+            "end": 95,
+            "kind": "fact"
+          },
+          "title": "C01-S1.txt",
+          "body": "Die Klappe darf geöffnet werden. Dies darf ausschließlich nach schriftlicher Freigabe erfolgen.",
+          "body_sha256": "f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab",
+          "database_digest": "sha256:f193e7ccd7b56e9120330d87b4468f17fc27a73979cd01c3cb694a14637154ab"
+        }
+      ]
+    },
+    {
+      "id": "S01",
+      "question": "Wann darf der Schalter umgelegt werden?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "S01-S1",
+          "episode_id": "synthetic-S01-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-S01-S1",
+            "fingerprint": "b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f",
+            "start": 0,
+            "end": 51,
+            "kind": "fact"
+          },
+          "title": "S01-S1.txt",
+          "body": "Der Schalter darf nach der Prüfung umgelegt werden.",
+          "body_sha256": "b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f",
+          "database_digest": "sha256:b9fa215ec4e1961feea53179e9b1916775e7ecdbed423c318fa6d7ec228bdf7f"
+        }
+      ]
+    },
+    {
+      "id": "F01",
+      "question": "Wo liegt der Bericht?",
+      "baseline_status": null,
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "F01-S1",
+          "episode_id": "synthetic-F01-S1",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "synthetic-F01-S1",
+            "fingerprint": "806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f",
+            "start": 0,
+            "end": 64,
+            "kind": "fact"
+          },
+          "title": "F01-S1.txt",
+          "body": "Der Bericht liegt im Tresor. Der Schlüssel steckt in der Tasche.",
+          "body_sha256": "806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f",
+          "database_digest": "sha256:806ef3f0fe2b958c22e84ea5858fdc2e5226fa8e2ad278a388f232e784f8226f"
+        }
+      ]
+    }
+  ]
+}

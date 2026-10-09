@@ -1,0 +1,8 @@
+FROM ghcr.io/icarus-health/kingfisher-app:1.0.6-local.ce39f71
+USER root
+COPY satzantwort.py /usr/local/lib/python3.12/site-packages/icarus_memory/satzantwort.py
+COPY satzpruefung.py /usr/local/lib/python3.12/site-packages/icarus_memory/satzpruefung.py
+COPY VERSION /opt/kingfisher/VERSION
+ENV KINGFISHER_FASSUNG=1.0.6-local.e8cfc26
+LABEL org.opencontainers.image.revision=e8cfc26d5aee8ef42a6206da4ffa02a3bbced966
+USER kingfisher

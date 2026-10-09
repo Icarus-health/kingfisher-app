@@ -1,0 +1,241 @@
+{
+  "patch_sha256": "a4214ae4c936de71721327c0ab5f0f60ecad2c4096516572eb923bcea8223334",
+  "answers": [
+    {
+      "name": "whole_paragraph",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 0
+    },
+    {
+      "name": "ordered_components",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "cites": [
+            1
+          ]
+        },
+        {
+          "text": "Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 0
+    },
+    {
+      "name": "reversed_components",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "cites": [
+            1
+          ]
+        },
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 0
+    },
+    {
+      "name": "interleaved_distinct_sources",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "cites": [
+            1
+          ]
+        },
+        {
+          "text": "Der Schalter darf umgelegt werden.",
+          "cites": [
+            2
+          ]
+        },
+        {
+          "text": "Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 0
+    },
+    {
+      "name": "missing_context_wrong_citation",
+      "status": "zitate",
+      "output": [],
+      "reason": "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden",
+      "rejected": [
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "reasons": [
+            "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden"
+          ]
+        }
+      ],
+      "judge_calls": 0
+    },
+    {
+      "name": "hidden_context_borrowed_other_source",
+      "status": "zitate",
+      "output": [],
+      "reason": "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden",
+      "rejected": [
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "reasons": [
+            "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden"
+          ]
+        }
+      ],
+      "judge_calls": 2
+    },
+    {
+      "name": "unrelated_same_word_source_context",
+      "status": "zitate",
+      "output": [],
+      "reason": "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden",
+      "rejected": [
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "reasons": [
+            "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden"
+          ]
+        }
+      ],
+      "judge_calls": 2
+    },
+    {
+      "name": "second_gate_rejects_context",
+      "status": "zitate",
+      "output": [],
+      "reason": "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden",
+      "rejected": [
+        {
+          "text": "Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "reasons": [
+            "Prüfmodell: nicht gestützt"
+          ]
+        },
+        {
+          "text": "Die Klappe darf geöffnet werden.",
+          "reasons": [
+            "Die Regel steht in einem mehrsätzigen Absatz; die vollständige sichtbare Originalstelle muss zusammen ausgegeben werden"
+          ]
+        }
+      ],
+      "judge_calls": 2
+    },
+    {
+      "name": "full_paragraph_with_yes",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 1
+    },
+    {
+      "name": "bare_header_fragment",
+      "status": "saetze",
+      "output": [
+        {
+          "text": "Entwurf\n\nDie Klappe darf geöffnet werden.",
+          "cites": [
+            1
+          ]
+        }
+      ],
+      "reason": "",
+      "rejected": [],
+      "judge_calls": 1
+    }
+  ],
+  "durable_reopen": [
+    {
+      "name": "full_paragraph",
+      "source": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+      "candidate": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+      "expected_restore": true,
+      "actual_restored": true,
+      "after_ignore": false,
+      "source_preserved": true
+    },
+    {
+      "name": "isolated_mixed",
+      "source": "Die Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+      "candidate": "Die Klappe darf geöffnet werden.",
+      "expected_restore": false,
+      "actual_restored": false,
+      "after_ignore": false,
+      "source_preserved": true
+    },
+    {
+      "name": "bare_header_fragment",
+      "source": "Entwurf\n\nDie Klappe darf geöffnet werden. Dies gilt ausschließlich nach schriftlicher Freigabe.",
+      "candidate": "Entwurf\n\nDie Klappe darf geöffnet werden.",
+      "expected_restore": false,
+      "actual_restored": true,
+      "after_ignore": false,
+      "source_preserved": true
+    },
+    {
+      "name": "all_normative_fragment",
+      "source": "Die Klappe darf geöffnet werden. Dies darf ausschließlich nach schriftlicher Freigabe erfolgen.",
+      "candidate": "Die Klappe darf geöffnet werden.",
+      "expected_restore": false,
+      "actual_restored": true,
+      "after_ignore": false,
+      "source_preserved": true
+    },
+    {
+      "name": "single_rule",
+      "source": "Die Klappe darf geöffnet werden.",
+      "candidate": "Die Klappe darf geöffnet werden.",
+      "expected_restore": true,
+      "actual_restored": true,
+      "after_ignore": false,
+      "source_preserved": true
+    },
+    {
+      "name": "ordinary_fact",
+      "source": "Der Bericht liegt im Tresor. Der Schlüssel steckt in der Tasche.",
+      "candidate": "Der Bericht liegt im Tresor.",
+      "expected_restore": true,
+      "actual_restored": true,
+      "after_ignore": false,
+      "source_preserved": true
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "native_binary_sha256": "b294220f1588fa8a7282caec6cf02ede0939440d51c238335dafaf7f15c22778",
+  "version": "1.0.6-local.e8cfc26",
+  "code_commit": "e8cfc26",
+  "new_image_id": "sha256:fd07549663c732c84bfa6bdc880f45000ee2ac07ae34292e5d92e7fdf7237546",
+  "old_image_id": "sha256:a5e28925d4fc8ed5b8cb7845170815f815a3b369b5752777f056ed7134e087f6",
+  "root_sqlite_before": 17,
+  "root_sqlite_after": 17,
+  "episode_ids_and_digests_preserved": 344,
+  "native_binary_unchanged": true,
+  "same_data_volume": true,
+  "operational": true,
+  "semantic_search_activated": true,
+  "semantic_status": "unavailable",
+  "native_ui_verified": false,
+  "background_pause_preserved": true,
+  "mail_global_pause_visible": true,
+  "mail_account_states": [
+    "pausiert"
+  ],
+  "productive_ollama_loopback_unavailable": true
+}

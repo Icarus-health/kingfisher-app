@@ -698,6 +698,11 @@ def originalabschnitte(text: str) -> tuple[str, ...]:
     A number's trailing period stays attached (ordinal/date ambiguity); merging
     adjacent sentences conservatively is preferable to issuing a false fragment.
     """
+    return tuple(teil for _, _, teil in originalabschnitt_stellen(text))
+
+
+def originalabschnitt_stellen(text: str) -> tuple[tuple[int, int, str], ...]:
+    """Original units with offsets, so paragraph and sentence boundaries can share spans."""
     geschuetzt = {i for match in _ABKUERZUNG.finditer(text)
                   for i in range(match.start(), match.end()) if text[i] == '.'}
     teile, start = [], 0
@@ -709,12 +714,77 @@ def originalabschnitte(text: str) -> tuple[str, ...]:
         # A closing quote belongs to its sentence, never to the next one.
         while ende < len(text) and text[ende] in '"\'“”‘’»›`':
             ende += 1
-        if teil := text[start:ende].strip():
-            teile.append(teil)
+        raw = text[start:ende]
+        if teil := raw.strip():
+            trim_start = start + len(raw) - len(raw.lstrip())
+            teile.append((trim_start, trim_start + len(teil), teil))
         start = ende
-    if teil := text[start:].strip():
-        teile.append(teil)
+    raw = text[start:]
+    if teil := raw.strip():
+        trim_start = start + len(raw) - len(raw.lstrip())
+        teile.append((trim_start, trim_start + len(teil), teil))
     return tuple(teile)
+
+
+def originalregelabsatz_kontexte(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Mehrsätzige Originalabsätze mit mindestens einer erkannten Regel.
+
+    Für solche Absätze ist die Satzgrenze kein ausreichender Kontextbeleg:
+    Ein Nachsatz kann eine Einschränkung oder den Dokumentstatus enthalten.
+    Die vorhandenen Absatzgrenzen behalten ihre Quellsemantik; es werden keine
+    Stichwörter für bestimmte Holdouts benötigt.
+    """
+    from .working_memory_analysis import _blocks
+
+    return tuple((absatz, originalabschnitte(absatz))
+                 for _, _, absatz in originalregelabsatz_einheiten(text))
+
+
+def originalregelabsatz_einheiten(text: str) -> tuple[tuple[int, int, str], ...]:
+    """Atomic visible spans for multi-sentence paragraphs containing a recognized rule.
+
+    Paragraphs are the source structure; global sentence units identify an
+    unpunctuated heading attached to a following paragraph. The selector and
+    the final completeness check consume these same spans.
+    """
+    from .working_memory_analysis import _blocks
+
+    blocks = list(_blocks(text))
+    units = originalabschnitt_stellen(text)
+    atomic = []
+    for index, (start, end) in enumerate(blocks):
+        paragraph = text[start:end].strip()
+        local_units = originalabschnitte(paragraph)
+        if len(local_units) <= 1 or not any(
+                _REGELSIGNAL.search(unit) or _ERLAUBNIS.search(unit) for unit in local_units):
+            continue
+        lower, upper = start, end
+        # A preceding paragraph without sentence-ending punctuation may be a
+        # heading attached to the first rule by the global source-unit splitter.
+        cursor = index - 1
+        while cursor >= 0:
+            prior_start, prior_end = blocks[cursor]
+            crosses = any(unit_start <= prior_end and unit_end >= start
+                          and unit_start < start and unit_end > prior_end
+                          for unit_start, unit_end, _ in units)
+            if not crosses:
+                break
+            lower = prior_start
+            start = prior_start
+            cursor -= 1
+        raw = text[lower:upper]
+        span_start = lower + len(raw) - len(raw.lstrip())
+        span_end = upper - (len(raw) - len(raw.rstrip()))
+        atomic.append((span_start, span_end, text[span_start:span_end]))
+    # A source unit crossing two adjacent qualifying paragraphs is one span.
+    merged = []
+    for start, end, value in atomic:
+        if merged and start <= merged[-1][1]:
+            old_start, old_end, _ = merged[-1]
+            merged[-1] = (old_start, max(old_end, end), text[old_start:max(old_end, end)])
+        else:
+            merged.append((start, end, value))
+    return tuple(merged)
 
 
 def originalregeln(text: str) -> tuple[str, ...]:

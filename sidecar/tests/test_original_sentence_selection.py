@@ -33,7 +33,7 @@ class Selector:
 
 def choose(data):
     source = data['belege'][0]
-    selected = next(s for s in source['originalsaetze'] if s['text'] == CLEAN)
+    selected = next(s for s in source['originalsaetze'] if CLEAN in s['text'])
     return {'status': 'antwort', 'originalstellen': [{'beleg': source['nr'], 'satz': selected['nr']}]}
 
 
@@ -41,7 +41,7 @@ def test_selected_original_is_resolved_by_code_and_still_checked():
     provider = Selector(choose)
     result = sa.formulieren('Wie soll die Dichtung gereinigt werden?', [evidence()], provider, jetzt=NOW)
     assert result.status == 'saetze'
-    assert [s.text for s in result.saetze] == [CLEAN]
+    assert [s.text for s in result.saetze] == [RULE + ' ' + CLEAN]
     assert result.saetze[0].belege == (1,)
     assert len(provider.messages) == 1
     payload = json.loads(provider.messages[0][0][-1]['content'])
@@ -73,16 +73,15 @@ def test_hidden_full_source_is_not_offered_and_partial_excerpt_is_not_a_clause()
     full = RULE + ' ' + CLEAN
     excerpt = 'nach schriftlicher Freigabe verwendet werden. […] ' + CLEAN
     provider = Selector(lambda data: {'status': 'unklar', 'originalstellen': []})
-    sa.formulieren('Wann?', [evidence(excerpt, pruef_text=full, gekuerzt=True)], provider, jetzt=NOW)
-    payload = json.loads(provider.messages[0][0][-1]['content'])
-    assert payload['belege'][0]['originalsaetze'] == [{'nr': 1, 'text': CLEAN}]
-    assert RULE not in json.dumps(payload, ensure_ascii=False)
+    result = sa.formulieren('Wann?', [evidence(excerpt, pruef_text=full, gekuerzt=True)], provider, jetzt=NOW)
+    assert result.status == 'zitate'
+    assert not provider.messages, 'A partially visible normative paragraph has no selectable complete unit'
 
 
 def test_selected_exact_text_does_not_bypass_negation_gate():
     source = 'Nach der Abnahme darf die Steuerung nicht zurückgesetzt werden. '
     source += 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die Technikerin es schriftlich anordnet.'
-    provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]})
+    provider = Selector({'status': 'antwort', 'saetze': [{'text': 'Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die Technikerin es schriftlich anordnet.', 'belege': [1]}]})
     result = sa.formulieren('Ist ein Zurücksetzen erlaubt?', [evidence(source)], provider, jetzt=NOW)
     assert result.status == 'zitate'
     assert result.verworfen
@@ -111,7 +110,7 @@ def test_line_wrapping_cannot_offer_an_unconditional_fragment(separator):
     result = sa.formulieren('Ist ein Zurücksetzen automatisch erlaubt?', [evidence(RULE + '\n' + wrapped)],
                             provider, jetzt=NOW)
     payload = json.loads(provider.messages[0][0][-1]['content'])
-    assert payload['belege'][0]['originalsaetze'][1]['text'] == wrapped
+    assert payload['belege'][0]['originalsaetze'] == [{'nr': 1, 'text': RULE + '\n' + wrapped}]
     assert not any(s.text == 'Die Steuerung darf zurückgesetzt werden' for s in result.saetze)
 
 
@@ -134,11 +133,10 @@ def test_legacy_free_text_cannot_restore_a_wrapped_unconditional_fragment():
     assert result.status == 'zitate'
 
 
-def test_legacy_complete_original_remains_compatible_and_uses_server_wording():
+def test_legacy_complete_rule_sentence_cannot_drop_its_same_paragraph_context():
     provider = Selector({'status': 'antwort', 'saetze': [{'text': RULE.rstrip('.'), 'belege': [1]}]})
     result = sa.formulieren('Wann?', [evidence()], provider, jetzt=NOW)
-    assert result.status == 'saetze'
-    assert [s.text for s in result.saetze] == [RULE]
+    assert result.status == 'zitate'
 
 
 def test_saved_legacy_fragment_is_rejected_after_stores_reopen(tmp_path):
@@ -152,14 +150,21 @@ def test_saved_legacy_fragment_is_rejected_after_stores_reopen(tmp_path):
     episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
     claims = ClaimStore(tmp_path / 'claims.sqlite3')
     try:
+        plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Fakt', 'Der Bericht liegt im Tresor.',
+                                   Provenance(SourceType.DOCUMENT))
+        assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+            [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+        answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims,
+            Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]}),
+            saetze=True)
+        saved = answer['satzantwort']
         source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Steuerung', body, Provenance(SourceType.DOCUMENT))
         assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
             [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
-        provider = Skript({'status': 'antwort', 'saetze': [{'text': RULE, 'belege': [1]}]})
-        answer = working_memory_answers.prepare('Was steht zur Steuerung?', episodes, claims, provider, saetze=True)
-        saved = answer['satzantwort']
-        assert saved['status'] == 'saetze'
+        ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+        saved['belege'][0]['ref'] = ref
         saved['saetze'][0].update(roh=fragment, text=fragment)
+        saved.pop('suche', None)
     finally:
         claims.close()
         episodes.close()

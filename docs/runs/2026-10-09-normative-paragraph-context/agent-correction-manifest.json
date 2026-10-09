@@ -1,0 +1,71 @@
+{
+  "artifact": "isolated normative paragraph-context correction after independent review",
+  "base": {
+    "commit": "fda6dc213a2c9183e92531940c137afc162b69a5",
+    "tree": "7ee33aa0eba2f6bb0066bac105b6eb9f3d4c468f",
+    "git_archive_sha256": "30613bc53c578dd3718305261a64218585958cf4658244201db1755c6ef2e457",
+    "product_commit_under_review": "ce39f71046581567d9915d1b06a73e991072f1f3"
+  },
+  "supersedes": {
+    "reviewed_failing_patch": "/private/tmp/kingfisher-rule-paragraph-context-20261009/PATCH.reviewed-failing.diff",
+    "reviewed_failing_patch_sha256": "a4214ae4c936de71721327c0ab5f0f60ecad2c4096516572eb923bcea8223334",
+    "reviewed_failing_manifest": "/private/tmp/kingfisher-rule-paragraph-context-20261009/manifest.reviewed-failing.json",
+    "reviewed_failing_manifest_sha256": "a7e9703261f067eee79dae9e520165fdc2c794138ed31fbe942401d920fd0a37",
+    "independent_review": "/private/tmp/kingfisher-rule-paragraph-review-20261009.md",
+    "probe_results": "/private/tmp/kingfisher-rule-paragraph-review-probes-20261009.json",
+    "independent_helper_results": "/private/tmp/kingfisher-rule-paragraph-independent-helpers-20261009.json"
+  },
+  "patch": {
+    "path": "/private/tmp/kingfisher-rule-paragraph-context-20261009/PATCH.diff",
+    "sha256": "f5a68a5e60e2e13b0944f7cc8abe0f40ada31c8f6a364d259cdccaffd2cff6c9",
+    "fixture_unchanged": true,
+    "fixture_path": "sidecar/tests/fixtures/normative_source_holdouts.json",
+    "fixture_sha256": "a53217e6a52aa5a6c55728cc5ccc6d12ba21317a53538a391adbda970db4a361",
+    "changed_files": {
+      "sidecar/icarus_memory/satzantwort.py": "272d406b20af8d1b185f1394fb118ef1b751ae57f80da85b34c378e0c3ac195b",
+      "sidecar/icarus_memory/satzpruefung.py": "3ab77753104be77fe2285130d5dccfd3d0ced31891d42871c0cc226bb58d042b",
+      "sidecar/tests/test_before_after_permission.py": "1da236ac39fbd0d9cdecdd0e327f947555377186f64664781c93873bb3134f1b",
+      "sidecar/tests/test_normative_source_binding.py": "cd6177356e961b790ad02750e720f5618da58beb65563534b945926a2c6e2ca3",
+      "sidecar/tests/test_original_sentence_selection.py": "4849ac35b3f9ef4b689fb7aa666c5cef70fe672087b9eb6bd08f8814e3a5e6fc",
+      "sidecar/tests/test_normative_paragraph_context.py": "bc46bcbe6b170f218bdd7095ec0a3b32b4425ad08d63f918c1a53ace83327b98"
+    }
+  },
+  "behavior": {
+    "contract": "All recognized multi-sentence rule paragraphs are one ordered source group; the selector offers the complete visible group as one original ID and emits its original text. The legacy sentence path may retain sentence-sized review only when all original parts are consecutive, same-source, and in original order. Header fragments are joined to the group when the existing global original-unit parser spans that paragraph boundary.",
+    "bounds": "Uses _blocks paragraph boundaries and shared originalabschnitt_stellen offsets. Hidden, excerpted, or over-limit rule paragraphs cannot be offered as isolated units and lead to quote fallback. Completeness runs after first validation and second gate, after program additions, and when restoring saved output.",
+    "intentional_ux_cost": "Multi-sentence paragraphs with any recognized normative signal are output as a complete group, including companion sentences that may be independently factual or normative. Rejected/hidden/oversize companions lead to quote fallback. This is a structural guard, not semantic entailment, authority, source-truth, or a universal grammar proof.",
+    "model_calls": false,
+    "network_downloads": false,
+    "shared_checkout_changed": false,
+    "commit_created": false
+  },
+  "verification": {
+    "red": {
+      "command": "pytest sidecar/tests/test_normative_paragraph_context.py -k \"header_and_all_normative or incomplete_context_is_rejected_after_real_store_reopen or context_sentences_cannot_be_reversed_or_interleaved or formulieren_rejects_reversed_and_interleaved\"",
+      "against": "the separately preserved reviewed-failing PATCH.diff plus current regression tests",
+      "result": "12 failed, 10 deselected; reproduced periodless-heading bypass, all-normative companion bypass, real store reopen bypass, reversed/permuted/interleaved output acceptance.",
+      "log": "/private/tmp/kingfisher-rule-paragraph-context-20261009/RED-correction.log",
+      "log_sha256": "590960a7827cc8f917543e51be9f473fb58f5145aa23f55bac3f2fed30e95a5a"
+    },
+    "green": {
+      "command": "/private/tmp/kingfisher-review-20261006-venv/bin/python -m pytest -q sidecar/tests/test_normative_paragraph_context.py sidecar/tests/test_normative_source_binding.py sidecar/tests/test_original_sentence_selection.py sidecar/tests/test_before_after_permission.py sidecar/tests/test_conditional_permission.py sidecar/tests/test_source_answers.py sidecar/tests/test_working_memory_flow.py sidecar/tests/test_source_answers_http.py --tb=short",
+      "result": "224 passed; one existing Starlette/httpx deprecation warning.",
+      "log": "/private/tmp/kingfisher-rule-paragraph-context-20261009/GREEN-correction.log",
+      "log_sha256": "6f5fc00407946728c24b890a1eb9ea0c15c1b7fa5526b82d81788d7ace7c7df4",
+      "full_suite": "not run by instruction"
+    }
+  },
+  "intentional_contract_changes": [
+    "Legacy isolated rule sentences from a multi-sentence rule paragraph now fall back to source quotes, including paragraphs whose companion sentences are all normative.",
+    "Original-selection IDs no longer expose individual sentences of a multi-sentence rule paragraph; the complete visible paragraph is one selectable item.",
+    "Legacy sentence answers covering a complete multi-sentence rule paragraph must retain original order and adjacency. Reversed/interleaved sentence answers fall back to quotes. Original-selection IDs yield the complete paragraph as one atomic sentence.",
+    "The pre-existing P01, split before/after, source-selection, and save/restore expectations now expect the full ordered paragraph or an equivalent consecutive ordered run; standalone rules and ordinary nonnormative facts retain sentence-sized behavior."
+  ],
+  "limits": [
+    "No product commit, merge, installation, full suite, model run, network, or download.",
+    "The synthetic boundary tests do not prove semantic truth, authority, or detection of unrecognized normative language.",
+    "A historical/status heading in its own completed paragraph (for example \"Historischer Entwurf.\" followed by a blank line and a rule paragraph) is not bound unless the existing global original-unit segmentation crosses that boundary. This known status/authority limit remains open.",
+    "Read-only structural probe confirmed \"Historischer Entwurf.\\n\\nNach dem Signal darf das Tor geöffnet werden. Der Entwurf wurde nie freigegeben.\" yields only the second paragraph as the atomic group."
+  ],
+  "repository": "/private/tmp/kingfisher-rule-paragraph-context-20261009/repo"
+}
