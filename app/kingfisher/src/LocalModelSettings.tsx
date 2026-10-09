@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { api, type LokaleKi, type MemoryAutomation } from "./api";
+import { api, ApiError, type LokaleKi, type MemoryAutomation } from "./api";
 import { fuerSystem } from "./system";
 import { useSystem } from "./useSystem";
 import { navigate } from "./ui";
@@ -84,8 +84,8 @@ export function LocalModelSettings() {
       setMessage(`${selected} ist verbunden. Verbindungstest: ${elapsed} Sekunden. Das prüft die Erreichbarkeit, nicht die Gedächtnisqualität.`);
       setOfferNote(null);
       api.memoryAutomation().then(state => setOffer(state.state === "paused" && !state.requested ? state : null)).catch(() => setOffer(null));
-    } catch {
-      setMessage("Die Verbindung konnte nicht bestätigt werden. Bitte Kingfisher und Ollama prüfen und erneut versuchen.");
+    } catch (error) {
+      setMessage(error instanceof ApiError && error.detail ? error.detail : "Die Verbindung konnte nicht bestätigt werden. Bitte Kingfisher und Ollama prüfen und erneut versuchen.");
     } finally {
       setBusy(false);
     }

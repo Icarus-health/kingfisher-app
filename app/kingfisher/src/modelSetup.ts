@@ -82,3 +82,10 @@ export async function watchPull({read, onState, wait = (ms: number) => new Promi
   }
   return null;
 }
+
+/** Block known oversized plans before making any setup request. Unknown capacity is not a fit claim. */
+export function setupFits(rows: Array<Pick<ModelRecommendationRow, "rolle" | "empfohlen">>,
+  plan: Pick<ModelOrchestra, "passt_tag" | "passt_nacht"> | undefined, roles: string[]): boolean {
+  return roles.length > 0 && roles.every(role => rows.some(row => row.rolle === role && row.empfohlen.passt))
+    && (roles.length === 1 || (plan?.passt_tag !== false && plan?.passt_nacht !== false));
+}

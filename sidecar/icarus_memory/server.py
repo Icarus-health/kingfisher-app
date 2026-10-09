@@ -61,7 +61,7 @@ from .agent_verdrahtung import (
     verdrahte_zusaetze,
 )
 from .consolidation import Consolidator
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
@@ -2045,6 +2045,33 @@ def create_app(
         """
         settings: config.Settings = app.state.settings
         keychain = getattr(app.state, "keychain", None) or Keychain()
+        if any(value is not None for value in (body.model, body.provider, body.endpoint)):
+            from .model_recommendation import geraet_aus_profil, model_memory_gb, gb_text
+            proposed = replace(settings)
+            if body.provider is not None:
+                proposed.provider = body.provider
+                if body.model is None and body.provider:
+                    proposed.model = config.DEFAULT_MODELS.get(body.provider, "")
+            if body.model is not None:
+                proposed.model = body.model
+            if body.endpoint is not None:
+                proposed.endpoint = body.endpoint
+            # Mirror the post-save environment without changing settings or the
+            # process: external overrides win, old file-derived values do not.
+            derived = set(getattr(app.state, "env_from_settings", []))
+            effective = {key: value for key, value in os.environ.items() if key not in derived}
+            config.apply_to_env(proposed, effective)
+            target_provider = effective.get("ICARUS_PROVIDER", "").strip().lower()
+            target_model = effective.get("ICARUS_MODEL", "").strip()
+            endpoint = effective.get("ICARUS_BASE_URL", "http://localhost:11434/v1" if target_provider == "ollama" else "")
+            trusted_hosts = effective.get("ICARUS_TRUSTED_LOCAL_MODEL_HOSTS", "").split(",")
+            is_local = target_provider in {"ollama", "kompatibel", "openai"} and providers.is_local_endpoint(endpoint, trusted_hosts)
+            known = model_memory_gb(target_model) if is_local else None
+            budget = geraet_aus_profil(device_profile()).modellbudget_gb
+            if known is not None and budget is not None and known > budget:
+                raise HTTPException(422, f"{target_model} braucht etwa {gb_text(known)} GB Arbeitsspeicher; "
+                                         f"für Modelle sind rund {gb_text(budget)} GB eingeplant. "
+                                         "Bitte ein kleineres Modell wählen, damit andere Programme nutzbar bleiben.")
 
         if body.provider is not None:
             if body.provider not in config.PROVIDERS:
