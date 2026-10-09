@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -44,6 +45,27 @@ def check_required_files(manifest: dict, design: Path) -> None:
         fail("freigegebene Build-Dateien fehlen oder sind leer:\n" + "\n".join(missing))
 
 
+def referenced_icons(sources: str, navigation_source: str) -> set[str]:
+    """Icon-Aufrufe und die ausdrückliche NAV-Liste, keine beliebigen Statuspaare.
+
+    NAV ist ein geschlossenes Literal in ui.ts. Eine neue dynamische Form
+    muss ausdrücklich geprüft werden, statt die Kontrolle still zu umgehen.
+    """
+    names = {match[1] for match in re.findall(r'\bicon\s*\(\s*(["\'`])([^"\'`\r\n]+)\1', sources)}
+    declarations = re.findall(r'^\s*export\s+const\s+NAV\s*=\s*(\[.*?\])\s+as\s+const\b', navigation_source, re.MULTILINE | re.DOTALL)
+    if len(declarations) != 1:
+        fail("Navigation ist nicht als prüfbares NAV-Literal angegeben")
+    try:
+        rows = ast.literal_eval(declarations[0])
+    except (SyntaxError, ValueError):
+        fail("Navigation enthält nicht prüfbare dynamische Einträge")
+    if not isinstance(rows, list) or any(not isinstance(row, list) or len(row) != 2
+                                       or not all(isinstance(value, str) for value in row) for row in rows):
+        fail("Navigation benötigt je Eintrag eine Beschriftung und einen Icon-Namen")
+    names.update(row[1] for row in rows)
+    return names
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     check_required_files(manifest, DESIGN)
@@ -77,8 +99,7 @@ def main() -> None:
         if name not in manifest_text and not re.fullmatch(r"kingfisher-app-icon-(?:20|29|40|60|80|120|152|167|180|256|512|1024)\.png", name):
             fail(f"nicht manifestierte Datei referenziert: {name}")
 
-    icon_names = set(re.findall(r'icon\("([a-z0-9-]+)"', sources))
-    icon_names.update(re.findall(r'\["[^"\n]+",\s*"([a-z0-9-]+)"\]', sources))
+    icon_names = referenced_icons(sources, (UI / 'ui.ts').read_text(encoding='utf-8'))
     # Diese Werte kommen aus dem typisierten Morning-Briefing-Vertrag.
     icon_names.update({"folder", "mail", "message-circle", "brain", "file-text", "network", "circle-alert", "info"})
     approved_icons = set(manifest.get("icons", {}).get("approvedNames", []))
