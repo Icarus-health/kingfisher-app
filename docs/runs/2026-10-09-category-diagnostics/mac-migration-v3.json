@@ -1,0 +1,14 @@
+{
+  "status": "migrated",
+  "phase": "complete",
+  "publish_allowed": true,
+  "snapshot_verified": true,
+  "outdated": [],
+  "patch_sha256": "25244a13586375dc9366aaad8d68adf4cd4867174bd9a2b207afacb44ad907b8",
+  "before_schema": 19,
+  "after_schema": 20,
+  "originals_preserved": true,
+  "original_count": 344,
+  "receipt_sha256": "8914dd4c77b28b2d740212005d26819c6bf9ee671e110db9b2633ad7e2fad534",
+  "published": false
+}

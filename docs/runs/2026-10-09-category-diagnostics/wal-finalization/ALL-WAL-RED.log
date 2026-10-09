@@ -1,0 +1,54 @@
+......................FF                                                 [100%]
+=================================== FAILURES ===================================
+______ test_all17_persistent_wal_modes_close_sidecars_created_by_own_read ______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-965/test_all17_persistent_wal_mode0')
+
+    def test_all17_persistent_wal_modes_close_sidecars_created_by_own_read(tmp_path):
+        source=tmp_path/'data';seed(source)
+        for name in data_proof.DATABASES:
+            db=sqlite3.connect(source/name)
+            try:db.execute('PRAGMA journal_mode=WAL')
+            finally:db.close()
+        assert not list(source.glob('*-wal'))
+        crash_with_committed_wal(source)
+        assert [p.name for p in source.glob('*-wal')]==['episodes.sqlite3-wal']
+        backup=tmp_path/'backup';shutil.copytree(source,backup);manifest=tmp_path/'manifest'
+        sealed=helper.seal_backup(backup,manifest)
+        result=helper.run(source,manifest,sealed['manifest_sha256'],service_stopped=True,unpublished=True,exclusive_writer=True)
+>       assert result['status']=='wal_finalized' and result['checkpointed_databases']==17,result
+E       AssertionError: {'status': 'rejected_before_checkpoint', 'migration_permitted': False, 'phase': 'logical_before', 'raw_backup_verified': True, ...}
+E       assert ('rejected_before_checkpoint' == 'wal_finalized'
+E         
+E         - wal_finalized
+E         + rejected_before_checkpoint)
+
+/private/tmp/kingfisher-category-wal-finalization-20261009/test_wal_finalize.py:227: AssertionError
+_________ test_nonzero_wal_appearing_during_own_read_is_never_accepted _________
+
+frozen = (PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-965/test_nonzero_wal_a...st_nonzero_wal_appearing_dur0/cold-manifest.json'), '1c6e7ddedb469a94ef744c0c49235df35f1e1612874eb5c00ad763228a816815')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bdfaf60>
+
+    def test_nonzero_wal_appearing_during_own_read_is_never_accepted(frozen,monkeypatch):
+        source,backup,manifest,digest=frozen
+        original=data_proof.prove
+        def read_then_extra_wal(*args,**kwargs):
+            result=original(*args,**kwargs)
+            (source/'regeln.sqlite3-wal').write_bytes(b'foreign nonempty WAL')
+            (source/'regeln.sqlite3-shm').write_bytes(b'\0'*32768)
+            return result
+        monkeypatch.setattr(data_proof,'prove',read_then_extra_wal)
+        result=run(frozen)
+>       assert result['status']=='rejected_before_checkpoint' and result['error']=='new_wal_not_empty'
+E       AssertionError: assert ('rejected_before_checkpoint' == 'rejected_before_checkpoint'
+E         
+E           rejected_before_checkpoint and 'sidecars_changed' == 'new_wal_not_empty'
+E         
+E         - new_wal_not_empty
+E         + sidecars_changed)
+
+/private/tmp/kingfisher-category-wal-finalization-20261009/test_wal_finalize.py:243: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-wal-finalization-20261009/test_wal_finalize.py::test_all17_persistent_wal_modes_close_sidecars_created_by_own_read
+FAILED ../../../../../../private/tmp/kingfisher-category-wal-finalization-20261009/test_wal_finalize.py::test_nonzero_wal_appearing_during_own_read_is_never_accepted
+2 failed, 22 passed in 1.76s

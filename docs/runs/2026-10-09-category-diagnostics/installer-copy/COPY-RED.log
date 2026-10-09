@@ -1,0 +1,77 @@
+FFF...F..                                                                [100%]
+=================================== FAILURES ===================================
+_____ test_root_owned_0600_manifest_must_be_staged_readable_to_image_user ______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-970/test_root_owned_0600_manifest_0')
+
+    def test_root_owned_0600_manifest_must_be_staged_readable_to_image_user(tmp_path):
+        fake=FakeSystem(tmp_path);add_wal(fake)
+        observations=[];original=fake.run
+        def inspect_copy(argv):
+            if argv[:2]==['docker','cp'] and ':' in argv[3] and argv[3].endswith('/raw-data-manifest.json'):
+                source=Path(argv[2])
+                observations.append((source,source.parent,stat.S_IMODE(source.stat().st_mode),stat.S_IMODE(source.parent.stat().st_mode)))
+            return original(argv)
+        fake.run=inspect_copy
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='installed',result
+E       AssertionError: {'status': 'stopped_manual_review', 'published': False, 'version': '1.0.6-local.5621ec9', 'image_id': 'sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f', ...}
+E       assert 'stopped_manual_review' == 'installed'
+E         
+E         - installed
+E         + stopped_manual_review
+
+/private/tmp/kingfisher-category-install-copy-20261009/test_copy_permissions.py:21: AssertionError
+______ test_staging_preserves_bytes_and_original_mode_and_cleans_on_error ______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-970/test_staging_preserves_bytes_a0')
+
+    def test_staging_preserves_bytes_and_original_mode_and_cleans_on_error(tmp_path):
+        source=tmp_path/'metadata.json';source.write_text('{"only":"synthetic hash metadata"}');source.chmod(0o600)
+        parent=None
+        try:
+>           with installer.readable_staging((source,)) as staged:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'orchestrator' has no attribute 'readable_staging'
+
+/private/tmp/kingfisher-category-install-copy-20261009/test_copy_permissions.py:36: AttributeError
+_____ test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration _____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-970/test_wal_raw_copy_seal_checkpo0')
+
+    def test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration(tmp_path):
+        fake=FakeSystem(tmp_path);add_wal(fake)
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='installed' and result['original_count']==2,result
+E       AssertionError: {'status': 'stopped_manual_review', 'published': False, 'version': '1.0.6-local.5621ec9', 'image_id': 'sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f', ...}
+E       assert ('stopped_manual_review' == 'installed'
+E         
+E         - installed
+E         + stopped_manual_review)
+
+/private/tmp/kingfisher-category-install-copy-20261009/test_wal_hook.py:25: AssertionError
+_______ test_zero_wal_actual_blocker_shape_is_finalized_before_preflight _______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-970/test_zero_wal_actual_blocker_s0')
+
+    def test_zero_wal_actual_blocker_shape_is_finalized_before_preflight(tmp_path):
+        fake=FakeSystem(tmp_path)
+        code="import os,sys,sqlite3;c=sqlite3.connect(sys.argv[1]);c.execute('PRAGMA journal_mode=WAL');c.execute(\"INSERT INTO example VALUES(2,'synthetic')\");c.commit();c.execute('PRAGMA wal_checkpoint(TRUNCATE)');os._exit(0)"
+        subprocess.run([sys.executable,'-c',code,str(fake.data/'regeln.sqlite3')],check=True)
+        assert (fake.data/'regeln.sqlite3-wal').stat().st_size==0
+        assert (fake.data/'regeln.sqlite3-shm').stat().st_size==32768
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='installed' and result['wal_preparation']=='verified',result
+E       AssertionError: {'status': 'stopped_manual_review', 'published': False, 'version': '1.0.6-local.5621ec9', 'image_id': 'sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f', ...}
+E       assert ('stopped_manual_review' == 'installed'
+E         
+E         - installed
+E         + stopped_manual_review)
+
+/private/tmp/kingfisher-category-install-copy-20261009/test_wal_hook.py:75: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-copy-20261009/test_copy_permissions.py::test_root_owned_0600_manifest_must_be_staged_readable_to_image_user
+FAILED ../../../../../../private/tmp/kingfisher-category-install-copy-20261009/test_copy_permissions.py::test_staging_preserves_bytes_and_original_mode_and_cleans_on_error
+FAILED ../../../../../../private/tmp/kingfisher-category-install-copy-20261009/test_wal_hook.py::test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration
+FAILED ../../../../../../private/tmp/kingfisher-category-install-copy-20261009/test_wal_hook.py::test_zero_wal_actual_blocker_shape_is_finalized_before_preflight
+4 failed, 5 passed in 0.79s

@@ -1,0 +1,23 @@
+# Prepared resume for the already-migrated, unpublished schema20 installation
+
+**No live/private action was performed by this author.** Root reports that the frozen preflight actually completed schema19→20 with `migrated`, publish permission, verified snapshot and empty outdated list. The later strict cold proof failed with remaining WAL/SHM files; their presence was handled without discarding them. This resume accepts that existing schema20 boundary; it does not rerun migration or start the old image.
+
+The existing migration-result SHA supplied by Root is `8914dd4c77b28b2d740212005d26819c6bf9ee671e110db9b2633ad7e2fad534`. The operator config must bind that exact existing file with `migration_result_sha256`, plus `cold_proof_sha256` for its saved `cold-proof.json`. All other config keys are the existing v3 metadata keys, with `backup` pointing to the **existing** `-copy-geprueft` archive, not a new directory. No credentials belong in the config.
+
+## Narrow sequence
+
+1. Require the operator's exclusive unpublished window, exact frozen dependency hashes, exact target image/version/volume, existing migration-result SHA and success fields, saved cold-proof SHA, independently recomputed canonical `backup/data` schema19 proof identical to that saved proof, pause/no-inspection, package metadata and unchanged archived env.
+2. Require the original service still stopped on the recorded image, same named volume, no other writer/host port/native/LaunchAgent/Compose activity. Check native/Info.plist/Compose hashes and codesign **statically**. Do not invoke the native runtime probe while stopped: its `Docker.updateStorage` path requires a running service container and Docker exec.
+3. In an isolated exact-new-image Python one-shot, mount the same data volume read-only and run `postmigration_proof.py`. It uses normal WAL-aware `mode=ro`, never immutable, verifies all17 DBs/integrity/ID-digest-body-document/stored-row/settings/background aggregates, schema20, exact nullable TEXT `failure_code` shape and all old values NULL. Compare it with the independently verified schema19 baseline, allowing only the known schema transition/added NULL column. The helper emits hashes/counts and closed errors, never original contents or IDs. The proven v3 private-staging/cp/user path transfers the helper and its dependency.
+4. Recheck quiet/static bundle/env, atomically change only the image line and start normal Compose on the schema20-compatible pinned image. From the possible-exposure boundary onward, any failure is `forward_repair_required`; retain new image/config/current data. There is no old-image, restore, checkpoint, downgrade or migration branch in this resume.
+5. Require new health/version/read-only route/intake pause, same image/volume, recomputed full original/body/settings/background/DB-set preservation, then invoke the existing native runtime probe **after** healthy normal startup. Success is a separately recorded `postmigration-resume-result.json` in the existing private archive. A second attempt refuses to overwrite that result and requires review.
+
+## Scope and evidence
+
+`orchestrator.py`, `data_proof.py`, `wal_finalize.py` and `preflight.py` here are byte-identical copied dependencies, with their hashes pinned by `resume.py`. Their earlier files/manifests remain untouched. The executable entry point for this bounded path is only `resume.py`. Merely importing it does nothing; CLI without `--execute` does not read config or run Docker. Execution: `python resume.py --config /absolute/metadata.json --execute` by the already-authorized operator after review.
+
+Eight synthetic tests pass: successful resume with runtime probe ordered after Compose and health; five prepublication failure controls (migration-result digest, changed cold backup, non-NULL diagnostic, changed stored rows, active old service); forward-only postpublication health failure; and a real SQLite committed-WAL diagnostic value detected by the WAL-aware proof. Run `python -m pytest -q test_resume.py`. The copied `fake_system.py` is synthetic support, not a live adapter.
+
+The accepted maintenance window remains observation plus the operator's promise, not an atomic OS lock against arbitrary concurrent launches. Read-only SQLite may touch transient SHM metadata; this proof does not claim journal-free files. The canonical host backup is never rewritten. Existing user-table/original aggregates must match before publication; no missing row is excused by a model or by the existence of a snapshot.
+
+This artifact's tests do not establish live delivery. Root's independent runtime checks and any later actual resume result must be reported separately. No full suite is rerun here because the product and frozen migration remain unchanged.

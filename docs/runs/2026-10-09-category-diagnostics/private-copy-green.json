@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "actual_install_isolated_used": true,
+  "source_manifest_mode": "0o600",
+  "source_unchanged": true,
+  "container": {
+    "uid": 1000,
+    "file_uid": 501,
+    "mode": "0o644",
+    "readable": true
+  },
+  "orchestrator_sha256": "019197e4203f6ee83d5b8d8e5dc9a8741f7340eac38f51a90b72cdfb3b49b50d",
+  "network": "none",
+  "private_data_used": false
+}
