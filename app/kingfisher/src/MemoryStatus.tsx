@@ -5,6 +5,7 @@ import { navigate } from "./ui";
 import { FUNDE_SATZ, pruefSatz, sortiertGerade, sortierStand, sortierWirkung } from "./verarbeitung";
 import { newestSourceMonth, timelineDateValues, type TimelineBasis } from "./memoryStatusDates";
 import "./MemoryStatus.css";
+import { SourceOverview } from "./SourceOverview";
 
 const labels: Record<string, string> = {source_received: "Quelle aufgenommen", accepted: "Aussage bestätigt", superseded: "Stand ersetzt", retracted: "Aussage widerrufen", disputed: "Grundlage entzogen"};
 const date = (value: string) => new Date(value).toLocaleString("de-DE", {dateStyle: "medium", timeStyle: "short"});
@@ -172,6 +173,7 @@ export function MemoryStatus() {
 
   return <section className="memory-status" aria-label="Verarbeitung und Verlauf">
     <header><div><p className="eyebrow">GEDÄCHTNIS</p><h1>Verarbeitung & Verlauf</h1></div><button type="button" onClick={() => setRefresh(x => x + 1)}>Aktualisieren</button></header>
+    <SourceOverview refreshKey={refresh} />
     {coverageError && !coverage ? <p role="alert">Der Gedächtnisstand konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !coverage || !automation ? <p role="status">Gedächtnisstand wird geladen …</p> : <>
       <section className="memory-status-card"><h2>Was wurde geprüft?</h2>
         <p>{coverage.total_sources === 0 ? "Noch keine Nachrichten oder Dokumente aufgenommen." : `${coverage.total_sources} Nachrichten und Dokumente sind aufgenommen.`}</p>

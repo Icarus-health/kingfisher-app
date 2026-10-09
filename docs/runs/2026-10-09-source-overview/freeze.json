@@ -1,0 +1,8 @@
+{
+  "commit": "5c99e0a731851f3480aeb561293153a3f0b51473",
+  "base": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "archive_sha256": "70f9c24ebb3ee2c6c51e8668f8c8edd662eaddb1112dc54dd7c322eb3f70ff60",
+  "bytes": 105461760,
+  "untracked_files_included": false,
+  "node_modules_shared": true
+}

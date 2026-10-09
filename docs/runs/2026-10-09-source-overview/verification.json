@@ -1,0 +1,127 @@
+{
+  "tested_code_commit": "5c99e0a731851f3480aeb561293153a3f0b51473",
+  "base": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "working_tree_source_matches_commit": true,
+  "source_sha256": {
+    "app/kingfisher/src/MemoryStatus.css": "57da8920f0ec1052193258779473f11d85cc214cfe904eada5c04e1aa7cbd3ea",
+    "app/kingfisher/src/MemoryStatus.tsx": "d39e0bf31e57ad2c20da098ed27547930346330f3b29eda56a0fa99f65cec023",
+    "app/kingfisher/src/SourceOverview.tsx": "886a7c9abb4b1da21af0117f6b75cfa656b5e9b63b0eedd838be2f1d1aaa79d2",
+    "app/kingfisher/src/api.ts": "b6542dd10c53796ee05e34afaa314d102a5c4f25c5d4edd74b8fcb1ccfcd362a",
+    "app/kingfisher/src/sourceOverviewRows.ts": "d046cda4d64728f01d55b09c1943278ab4ef2de0522d695d71fe30a9cbeedf45",
+    "app/kingfisher/src/sourceOverviewWatch.ts": "ba92958230a92bae3ab44dc7f9fabc261ec9af57e60b6681449d2d77c899da1a",
+    "app/kingfisher/tests/source-overview-ui.test.mjs": "667f6f2dcd4abe8d15fa77d60f355f729afe444ba4b896510f51bc416c6a98d5",
+    "app/kingfisher/tests/source-overview-watcher.test.mjs": "e8569d7ca5551f888e772487a625650a6ff3248fcb0810b659111c62ac2fb854",
+    "app/kingfisher/tests/source-overview.test.mjs": "de80c35c197e64a3f06b54790f9637444759ac3a1e2964096de092a5fd6d479c",
+    "sidecar/icarus_memory/folder_sync.py": "e72347c38a6bbb6ede2de51b12d3590e122c895441603f02db117c27685d114e",
+    "sidecar/tests/test_source_overview_metadata.py": "9e354448dd0c72061bf269ea008434cfa2a00f71ab6e0837ae695dc15bf9ffea"
+  },
+  "tests": {
+    "backend_affected": {
+      "passed": 71,
+      "full_backend_suite": false
+    },
+    "ui_full": {
+      "passed": 452
+    },
+    "ui_new_focused": {
+      "passed": 21
+    },
+    "clean_archive_http": {
+      "passed": 12
+    },
+    "clean_archive_ui": {
+      "passed": 21
+    },
+    "typescript_vite_build": "passed"
+  },
+  "logs": [
+    {
+      "file": "backend-final.log.gz",
+      "uncompressed_sha256": "3732c2bc42be1c7d9d194f350c60eb40f5f97431153c51441486965e1b9210b1",
+      "bytes": 669
+    },
+    {
+      "file": "ui-final.log.gz",
+      "uncompressed_sha256": "f8a5277fa7613493d50ad6c78bb80075f93799373a20abfdbcbc9c54604ac35f",
+      "bytes": 96573
+    },
+    {
+      "file": "focused-final.log.gz",
+      "uncompressed_sha256": "ca1d3598cafb501ded579d69dfb4672564c3c16061ab54d5e0f20b4c49e89b6d",
+      "bytes": 5114
+    },
+    {
+      "file": "build-final.log.gz",
+      "uncompressed_sha256": "5dd7bcba18f366a78c829f57abe098dd08f49860386ac962dd01ecf4413b7409",
+      "bytes": 774
+    },
+    {
+      "file": "metadata-clean-final.log.gz",
+      "uncompressed_sha256": "05a86ae0fd15ce22e0b2c9debb4bc3572f1107c3130ec7d9859aebe3d35119cb",
+      "bytes": 638
+    },
+    {
+      "file": "ui-clean-final.log.gz",
+      "uncompressed_sha256": "fd21165a651ae1e8dcd5cc52f35b2f8b6d7f74fbc88b5c7c211f8dc215090912",
+      "bytes": 5107
+    },
+    {
+      "file": "build-clean-final.log.gz",
+      "uncompressed_sha256": "dcafbe0d70f0d8ab5fdfa8820be416e7e57bde51d1a35e6db182d82d59f4524d",
+      "bytes": 774
+    },
+    {
+      "file": "coverage-dependency-red.log.gz",
+      "uncompressed_sha256": "e668a6bda715f18805399caf5618d76c2ae8bdb2f1c115e3e6ba5b2997dc53ba",
+      "bytes": 2716
+    },
+    {
+      "file": "visible-warning-red.log.gz",
+      "uncompressed_sha256": "f52085fb578ce50fefe46c84a5ee468bd9809170175d800b12c814d953d069c0",
+      "bytes": 5221
+    },
+    {
+      "file": "paused-error-red.log.gz",
+      "uncompressed_sha256": "8e55fb4559acc8c8f0097490eecf1596ad3715e858bb6df24b91c0e739bc609b",
+      "bytes": 3374
+    },
+    {
+      "file": "compact-red.log.gz",
+      "uncompressed_sha256": "01c8d9bc20319532e6fd7b7d4cdd464abc0e505f8b2304c170587c0449991d59",
+      "bytes": 25713
+    },
+    {
+      "file": "compact-ui-red.log.gz",
+      "uncompressed_sha256": "4c061b0c68b8e1b20c60172db3331f342f6168cd656f222cbc03b1a375800f59",
+      "bytes": 6312
+    },
+    {
+      "file": "compact-errors-red.log.gz",
+      "uncompressed_sha256": "855c2d09fb9d84ba32f8f927df597012bb9b6567f4a1bbddf3e25f73c784a07c",
+      "bytes": 5442
+    },
+    {
+      "file": "compact-errors-ui-red.log.gz",
+      "uncompressed_sha256": "e5de05102dd75739052e7d6a46f7ac9463708ce3732468dd28bc290656307354",
+      "bytes": 3577
+    }
+  ],
+  "limits": {
+    "actual_native_window": "deferred_by_user",
+    "productive_database_access": false,
+    "cloud_or_model_inference": false,
+    "productive_intake_resumed": false,
+    "mac_installed": false,
+    "provider_calendar_sync_verified": false,
+    "complete_atlas_inventory": false,
+    "personal_memory_answer_quality_certified": false,
+    "fixture_scale": "10000 saved file aliases for one original; not 10000 distinct source bodies"
+  },
+  "warnings": [
+    "Existing Starlette/httpx deprecation warning",
+    "Existing Vite bundle-size warning"
+  ],
+  "red_log_caveats": {
+    "compact-red.log.gz": "3 failed checks plus 2 fixture-teardown errors; the teardown errors are not product regressions. Fixed by limiting the monkeypatch context to the HTTP request."
+  }
+}

@@ -713,6 +713,13 @@ export type OrdnerOrte = { helfer: boolean; container: boolean; orte: OrdnerOrt[
 export type Unterordner = { pfad: string; name: string; oben: string | null; ordner: { pfad: string; name: string }[] };
 export type OrdnerPrefix = "/api/v1/transcript-sync" | "/api/v1/folder-sync";
 
+/** Local folder metadata; reading it does not scan the selected folder. */
+export type SourceFolderStatus = Pick<TranskriptOrdner, "enabled" | "root_id" | "folder" | "seen_at" | "synced_at" | "running"> & {
+  last_run: (Omit<NonNullable<TranskriptOrdner["last_run"]>, "errors"> & {errors?: string[]; error_count?: number}) | null;
+  files?: TranskriptOrdner["files"];
+  file_counts?: {recorded: number; active: number; ignored: number; unknown: number};
+};
+
 export type TranskriptUebersicht = {
   ordner: TranskriptOrdner;
   vorgabe: string;
@@ -911,6 +918,7 @@ export type MacCalendarState = {
   enabled: boolean; online: boolean; status: string; authorize: boolean;
   selected: string[]; calendars: Array<{id: string; name: string; source: string}>;
   synced_at: string | null; error: string; event_count: number;
+  range_from?: string | null; range_to?: string | null; snapshot_complete?: boolean;
 };
 
 export type CalendarOverview = {
@@ -1233,7 +1241,8 @@ export const api = {
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
-  macCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar"),
+  macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
+  sourceFolderStatus: (prefix: OrdnerPrefix, signal?: AbortSignal) => request<SourceFolderStatus>(`${prefix}?summary=true`, {signal}),
   connectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar/connect", {method: "POST"}),
   selectMacCalendars: (ids: string[]) => request<MacCalendarState>("/api/v1/mac-calendar/selection", {method: "PUT", body: JSON.stringify({ids})}),
   disconnectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar", {method: "DELETE"}),
@@ -1262,8 +1271,8 @@ export const api = {
     }),
   getConversation: (id: string) => request<ConversationPayload>(`/api/v1/conversations/${id}`),
   listConversations: () => request<{ conversations: ConversationSummary[] }>("/api/v1/conversations"),
-  integrations: () => request<IntegrationOverview>("/api/v1/integrations"),
-  schedule: () => request<Schedule>("/api/v1/schedule"),
+  integrations: (signal?: AbortSignal) => request<IntegrationOverview>("/api/v1/integrations", {signal}),
+  schedule: (signal?: AbortSignal) => request<Schedule>("/api/v1/schedule", {signal}),
   saveSchedule: (data: {enabled: boolean; mail_accounts: string[]; interval_minutes: number}) => request<Schedule>("/api/v1/schedule", {method: "PUT", body: JSON.stringify(data)}),
   mailIntake: (signal?: AbortSignal) => request<MailIntakeStatus>("/api/v1/mail/intake", {signal}),
   geburtstag: (sache: string) => request<{geburtstag: null | {wert: string; text: string; aussage: string; aussage_id: string}}>(`/api/v1/geburtstag?sache=${encodeURIComponent(sache)}`),
