@@ -1,0 +1,22 @@
+..............................F                                          [100%]
+=================================== FAILURES ===================================
+____________ test_native_full_command_is_checked_when_comm_is_short ____________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-952/test_native_full_command_is_ch0')
+
+    def test_native_full_command_is_checked_when_comm_is_short(tmp_path):
+        fake=FakeSystem(tmp_path);system=installer.System()
+        def command(argv):
+            if argv==['ps','-axo','comm=']:return 0,b'Kingfisher\n'
+            if argv==['launchctl','list']:return 0,b'PID Status Label\n'
+            if argv==['ps','-axo','command=']:return 0,(str(Path(fake.config['app'])/'Contents/MacOS/Kingfisher')+'\n').encode()
+            raise AssertionError(argv)
+        system.run=command
+>       with pytest.raises(installer.CheckFailed,match='native_or_launcher_active'):system.maintenance(fake.config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE CheckFailed
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:353: Failed
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_native_full_command_is_checked_when_comm_is_short
+1 failed, 30 passed in 1.29s

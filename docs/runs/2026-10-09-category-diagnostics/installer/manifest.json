@@ -1,0 +1,27 @@
+{
+  "excluded": [
+    "root-config.json",
+    "__pycache__",
+    ".pytest_cache",
+    "WORKING.log"
+  ],
+  "independent_synthetic_tests": 31,
+  "product_revision": "5621ec9e1f94ee40ea12485e128950d251211be4",
+  "sha256": {
+    "ENV-RED.log": "a3fc9461f4f83eecacebdd5b2090c5501c55f6f0c9fb76516a56e45715945886",
+    "GREEN.log": "938b83487e679e3bc3720bbab2431821d63698b92725872be653b41bdf5d0cdb",
+    "NATIVE-RED.log": "e68d8a4c97c944a843dd5050ee119081380016a24bf0ffe12778cbf8348265bb",
+    "README.md": "05d1e5eb8c73c56ff1e35be2358f6bf80b933366e75e6d8fd050dda178acb35c",
+    "RED.log": "f5ac98390330223468e1b6ccaf22eab248d761396c26b8d0605ae4d556adec34",
+    "REVIEW-RED.log": "73c1e52db62da253667331b50100c0fb4cabfc22fc5dc7febbbc59ddb1732d66",
+    "ROOT-GREEN.log": "23834b42f782ae404131a3e4ecbbc2423b82c10045ce52debf9a66905c261424",
+    "VOLUME-RED.log": "ef9c53139534e4bd43346b74f9e5d5c35c077b3fd4235062ffdc8c5ab0457def",
+    "config.example.json": "3d38837cdd0e2a0f75208b59f5adde8ca8095b22d2e9433bcdc6af71e824fcd1",
+    "data_proof.py": "1316a92cf90edb21c89c59a1ea31a3f6b57f3437cff6994c62ab00ac5a56ce71",
+    "orchestrator.py": "ea2924c30be4526de0308b524ea249131181399099719d73d0ccf1e524a0b73f",
+    "preflight.py": "19bc7ff195e760f277fcad4e80dd64f4dddc5ec36221243e613d1917194c54c8",
+    "test_orchestrator.py": "f205d977d3ce693fd829d8dfa971f0bd402087529c498206d3ad9a5a61989fa5"
+  },
+  "status": "prepared_not_live_executed_by_author",
+  "synthetic_tests": 31
+}

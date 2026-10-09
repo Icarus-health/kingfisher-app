@@ -1,0 +1,11 @@
+{
+  "schema": 20,
+  "originals": 344,
+  "active_databases": 17,
+  "all_rows_preserved": true,
+  "settings_preserved": true,
+  "paused": true,
+  "inspection": false,
+  "read_only_wal_aware": true,
+  "published": false
+}

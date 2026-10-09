@@ -1,0 +1,8 @@
+{
+  "error": "data_proof_failed",
+  "execution": "requested_local_install",
+  "image_id": "sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f",
+  "published": false,
+  "status": "stopped_manual_review",
+  "version": "1.0.6-local.5621ec9"
+}

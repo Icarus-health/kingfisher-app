@@ -1,0 +1,8 @@
+# v3 staging review
+
+Target `REVISION`: `5621ec9e1f94ee40ea12485e128950d251211be4`.
+SHA-256: `orchestrator.py` `019197e4203f6ee83d5b8d8e5dc9a8741f7340eac38f51a90b72cdfb3b49b50d`; `test_copy_permissions.py` `af3b4f99e6c3d030b2582cc4e2d4d0b7c695ec601a2d7d59aa07c6ab6ed3cf20`.
+
+v3's narrow change addresses the copy-mode issue. `readable_staging` copies only caller-selected regular files into its own temporary directory, explicitly sets directory mode 0700 and staged-file mode 0644, verifies bytes by SHA-256, and leaves source files/modes untouched (`orchestrator.py:55-73`). `isolated()` stages the script plus its explicitly supplied code/hash companions and completes `docker cp` inside the context so staging is cleaned before execution; `proof()` applies the same path to its code copy (`:173-185,208-210`). The actual companion lists are `data_proof.py` and, for WAL finalization, the raw-data hash manifest (`:271,283-286`); no credentials or original data files are staged. No `--user`/root override is added, and the inspected one-shot container must still report `Config.User == 'kingfisher'` (`:187`).
+
+The new synthetic coverage checks 0600 source preservation versus 0644 staged bytes under a 0700 parent, cleanup after a copy failure, no publish/preflight after that failure, and rejection of a root-configured one-shot before start (`test_copy_permissions.py:11-70`). The diff is limited to staging and its permission/cleanup checks. I did not use Docker, network, or private originals. Independent pytest execution was unavailable here because the system Python has no pytest module; the parent reports the package suite green.

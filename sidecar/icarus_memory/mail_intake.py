@@ -27,6 +27,9 @@ TABLES = {**TABLES_V11, 'mail_intake_items': TABLES_V11['mail_intake_items'] | {
 FILTERED='filtered:'
 #: Einträge je Lesefenster von `Intake.status`; klein genug, dass die Episodensperre nur Millisekunden gehalten wird.
 STATUS_WINDOW=1000
+# At most this many distinct failed category sources are reopened for a fresh projection per status request.
+# Each check may fingerprint an original (up to the category body bound), so keep frequent UI polling cheap.
+CATEGORY_DIAGNOSTIC_BUDGET=16
 #: Nachrichten je Hintergrundtakt (alle 30 s). Vorher 8, weil jede Nachricht eine eigene TLS-Verbindung mit Anmeldung
 #: brauchte (rechnerisch rund 1000 je Stunde). Über eine Sitzung kostet sie nur noch den Abruf; 25 bleiben kurz genug,
 #: dass der Takt die Nachanalyse neuer Uploads (teilt sich dessen Sperre) nur Sekunden warten lässt. Abgerufen wird
@@ -252,8 +255,8 @@ class Intake:
             yield after,end
             after=end
 
-    def _window_counts(self, account, row, after, end):
-        """Zähler eines Fensters: Status, Statement-Analyse, Themen. Kein Originaltext wird geladen."""
+    def _window_counts(self, account, row, after, end, category_diagnostics):
+        """Zähler eines Fensters; Kategoriefehler lesen bei Bedarf aktuelle Originale."""
         where=(account,row['folder'],row['generation'],after,end)
         with self.episodes._lock:
             counts=self.db.execute('SELECT status,COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND uid>? AND uid<=? AND lane=\'history\' GROUP BY status',where).fetchall()
@@ -273,12 +276,56 @@ class Intake:
                 LEFT JOIN memory_category_sources c ON c.episode_id=i.episode_id
                 WHERE i.account=? AND i.folder=? AND i.generation=? AND i.uid>? AND i.uid<=? AND i.lane='history' AND i.episode_id IS NOT NULL
                 GROUP BY 1""",where).fetchall()
-        return counts,analysis,categories
+            failed_category_sources=self.db.execute("""SELECT DISTINCT i.episode_id,CASE
+                WHEN e.state='ignored' THEN 'excluded'
+                WHEN c.support_generation=e.support_generation AND c.taxonomy_version >= v.corpus_version
+                THEN c.status ELSE 'pending' END
+                FROM mail_intake_items i JOIN episodes e ON e.id=i.episode_id
+                CROSS JOIN memory_category_scan v
+                JOIN memory_category_sources c ON c.episode_id=i.episode_id
+                WHERE i.account=? AND i.folder=? AND i.generation=? AND i.uid>? AND i.uid<=?
+                  AND i.lane='history' AND c.status='failed'""",where).fetchall()
+        # The source projection is authoritative: it includes the current fingerprint, targeted taxonomy
+        # rechecks, dismissal, and source-head availability. A request-wide budget bounds source reads;
+        # remaining persisted failures are reported as unverified, never as a current cause.
+        if failed_category_sources:
+            from .memory_categories import Categories, FAILURE_CODES
+            projected = Categories(self.episodes)
+            category_counts = Counter(dict(categories))
+            category_failures = Counter()
+            for episode_id, old_status in failed_category_sources:
+                cached = category_diagnostics['projected'].get(episode_id)
+                if cached is None and category_diagnostics['remaining'] > 0:
+                    category_diagnostics['remaining'] -= 1
+                    current = projected.list_for(episode_id)
+                    new_status = current['status']
+                    code = current.get('failure_code')
+                    safe_code = code if code in FAILURE_CODES else 'unknown'
+                    cached = (new_status, safe_code if new_status == 'failed' else None)
+                    category_diagnostics['projected'][episode_id] = cached
+                if cached is None:
+                    category_counts[old_status] -= 1
+                    if category_counts[old_status] <= 0:
+                        category_counts.pop(old_status, None)
+                    category_counts['unverified'] += 1
+                    continue
+                new_status, safe_code = cached
+                category_counts[old_status] -= 1
+                if category_counts[old_status] <= 0:
+                    category_counts.pop(old_status, None)
+                category_counts[new_status] += 1
+                if new_status == 'failed':
+                    category_failures[safe_code or 'unknown'] += 1
+            categories = list(category_counts.items())
+            category_failures = list(category_failures.items())
+        else:
+            category_failures = []
+        return counts,analysis,categories,category_failures
 
-    def _folder_status(self, account, row):
-        counts,analysis,category_counts=Counter(),Counter(),Counter()
+    def _folder_status(self, account, row, category_diagnostics):
+        counts,analysis,category_counts,category_failures=Counter(),Counter(),Counter(),Counter()
         for after,end in self._windows(account,row):
-            for total,rows in zip((counts,analysis,category_counts),self._window_counts(account,row,after,end)):
+            for total,rows in zip((counts,analysis,category_counts,category_failures),self._window_counts(account,row,after,end,category_diagnostics)):
                 for key,number in rows:total[key]+=number
         with self.episodes._lock:
             live_counts=dict(self.db.execute("SELECT status,COUNT(*) FROM mail_intake_items WHERE account=? AND folder=? AND generation=? AND lane='live' AND status IN ('pending','failed') GROUP BY status",(account,row['folder'],row['generation'])).fetchall())
@@ -299,7 +346,8 @@ class Intake:
             failed_by=gescheitert,failed_technik=technik[0] if technik else None,
             analyzed=analysis['complete'],deferred=analysis['deferred'],excluded=analysis['dismissed']+analysis['excluded'],analysis_failed=analysis['failed'],categorized=category_counts['complete'],
             categories_pending=category_counts['pending'],categories_failed=category_counts['failed'],
-            categories_deferred=category_counts['deferred'])
+            categories_deferred=category_counts['deferred'],categories_failed_by=dict(category_failures),
+            categories_unverified=category_counts['unverified'])
 
     def status(self, account):
         """Zähler je Ordner. Liest in kleinen Fenstern statt in einem Zug unter der Episodensperre.
@@ -313,7 +361,8 @@ class Intake:
         """
         with self.episodes._lock:
             rows=[dict(r) for r in self.db.execute('SELECT * FROM mail_intake_folders WHERE account=? ORDER BY folder',(account,))]
-        folders=[self._folder_status(account,row) for row in rows]
+        category_diagnostics={'remaining':CATEGORY_DIAGNOSTIC_BUDGET,'projected':{}}
+        folders=[self._folder_status(account,row,category_diagnostics) for row in rows]
         error=next((r['error'] for r in rows if r['error']),None)
         paused=bool(rows) and all(r['paused'] for r in rows)
         history_waiting=any(f['pending'] or f['failed'] for f in folders) and self._history_backlog(account)>200

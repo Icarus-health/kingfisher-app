@@ -1,0 +1,17 @@
+{
+  "status": "old_schema19_resumed",
+  "schema": 19,
+  "migration_attempted": false,
+  "version": "1.0.6-local.e8cfc26",
+  "original_bodies_verified": 344,
+  "databases": 17,
+  "pause_preserved": true,
+  "backup_with_sidecars": "/Users/sorenkube/Documents/Codex/Kingfisher-Rueckweg/2026-10-09-vor-5621ec9-geprueft",
+  "health": {
+    "health": true,
+    "inspection": false,
+    "read_only_route": true,
+    "background_paused": true
+  },
+  "native_ui_verified": false
+}

@@ -35,6 +35,7 @@ def _stored_topics(categories, episode, category_ids, *, end=1):
 
 def _downgrade_to_v18(path, *, custom_health=False, fill_taxonomy=False):
     connection = sqlite3.connect(path)
+    connection.execute("ALTER TABLE memory_category_sources DROP COLUMN failure_code")
     connection.execute("DELETE FROM memory_category_taxonomy WHERE category_id='health'")
     if custom_health:
         connection.execute("INSERT INTO memory_category_taxonomy VALUES('health',1,'Eigene Gesundheit','Eigene Beschreibung')")
@@ -106,7 +107,7 @@ def test_v18_upgrade_at_category_limit_reports_health_unavailable(tmp_path):
     upgraded.close()
 
 
-def test_restored_v18_snapshot_migrates_to_supported_schema_19(tmp_path):
+def test_restored_v18_snapshot_migrates_to_supported_schema_20(tmp_path):
     live = tmp_path / "live"
     path = live / "episodes.sqlite3"
     episodes = EpisodeStore(path)
@@ -117,7 +118,7 @@ def test_restored_v18_snapshot_migrates_to_supported_schema_19(tmp_path):
     restore_all(snapshot, restored)
 
     from icarus_memory.update_backup import _targets
-    assert max(item.version for item in _targets()["episodes.sqlite3"]) == 19
+    assert max(item.version for item in _targets()["episodes.sqlite3"]) == 20
     recovered = EpisodeStore(restored / "episodes.sqlite3")
     assert any(item["id"] == "health" for item in Categories(recovered).taxonomy()["items"])
     recovered.close()

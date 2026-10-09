@@ -1,0 +1,29 @@
+{
+  "excluded": [
+    "root-config.json",
+    "__pycache__",
+    ".pytest_cache",
+    "WORKING.log"
+  ],
+  "external_actual_copy_evidence_sha256": {
+    "kingfisher-category-private-copy-GREEN-20261009.json": "3065e4f3d43176f16976854255f59d9c32c0733be5980a3345f82dc722fd5725",
+    "kingfisher-category-private-copy-RED-20261009.json": "d77f1ed54e1c66c317b22eb87dfaafcaac3168433616c39b73b889f258e918e9"
+  },
+  "product_revision": "5621ec9e1f94ee40ea12485e128950d251211be4",
+  "sha256": {
+    "COPY-RED.log": "1a205275a81bb6f85c255bf54145bb893b112a44b2e0c3c6d7352639ce55c26d",
+    "GREEN.log": "532c636e57daff9a8c38a0522c94fcf80d3176020910509457c6ead5d34a6bc3",
+    "README.md": "36d3a6eb92b1ba10ef892d4750648340f64d13162544c4e64207e54a8f4b44e0",
+    "ROOT-GREEN.log": "9c23fb8dbc699fe50484681b013e3f6f49aeaf2e86ff14ba3d6d3e5af94eac94",
+    "config.example.json": "3d38837cdd0e2a0f75208b59f5adde8ca8095b22d2e9433bcdc6af71e824fcd1",
+    "data_proof.py": "1316a92cf90edb21c89c59a1ea31a3f6b57f3437cff6994c62ab00ac5a56ce71",
+    "orchestrator.py": "019197e4203f6ee83d5b8d8e5dc9a8741f7340eac38f51a90b72cdfb3b49b50d",
+    "preflight.py": "19bc7ff195e760f277fcad4e80dd64f4dddc5ec36221243e613d1917194c54c8",
+    "test_copy_permissions.py": "af3b4f99e6c3d030b2582cc4e2d4d0b7c695ec601a2d7d59aa07c6ab6ed3cf20",
+    "test_orchestrator.py": "4b2c9a47fa625d8dddc9ee549d3172cf848029c91a434bdd6187a3f74de40c0a",
+    "test_wal_hook.py": "a288a0ec873a5dd6e5d0b2c3eb89985a2a715ee9a21a2a456a86e01304746b17",
+    "wal_finalize.py": "a1cfd9ce698420f63dc9dd0f2a6111a80d960e81285613367341c79189a8d20b"
+  },
+  "status": "prepared_no_live_execution_by_author",
+  "synthetic_tests": 42
+}

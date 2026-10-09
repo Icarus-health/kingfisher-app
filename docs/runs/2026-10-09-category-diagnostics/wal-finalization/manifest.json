@@ -1,0 +1,27 @@
+{
+  "excluded": [
+    "root-config.json",
+    "__pycache__",
+    ".pytest_cache",
+    "WORKING.log"
+  ],
+  "external_evidence_sha256": {
+    "kingfisher-category-wal-finalization-review-20261009.md": "4841bb7a6bbb7567db90987ecdac47afff6c1a3178b727146216ef6497426697",
+    "kingfisher-category-wal-linux-smoke-20261009.log": "981a051b9361a46fba9e694c3b10ff8c891ca39223d3b7637e71ec04a423c848",
+    "kingfisher-category-wal-linux-smoke-20261009.py": "ad99de3ff0fa07ae260da3643680da2ba3d31446c4db440c093eafa8218bea7d"
+  },
+  "independent_root_tests": 24,
+  "product_revision": "5621ec9e1f94ee40ea12485e128950d251211be4",
+  "sha256": {
+    "ALL-WAL-RED.log": "714520a8a5781fdbbe26d333adaa9f7d119eb2470ef188e4811056d3922d148b",
+    "GREEN.log": "5b221b05770e29d8f32650cd5733c1926f1ac47f4a067273a9ec76d40705d787",
+    "README.md": "ba6ec3494ef7af05573476fb04ca29b49bdbf683b77874a11be0929b33280396",
+    "RED.log": "b409e8fd4facd41d84a79f6b436b62c0f4b7a5d8cdd13e688243c4c6673a4788",
+    "ROOT-GREEN.log": "282ed2837e05fc1a0fe5baea16ab98f636631296e4c760bf97860fc770c5ea8c",
+    "data_proof.py": "1316a92cf90edb21c89c59a1ea31a3f6b57f3437cff6994c62ab00ac5a56ce71",
+    "test_wal_finalize.py": "2027e273457edb620b5b1e399ed6ea0e890bdec165711ba85d52bec71fc4beec",
+    "wal_finalize.py": "a1cfd9ce698420f63dc9dd0f2a6111a80d960e81285613367341c79189a8d20b"
+  },
+  "status": "prepared_no_live_execution_by_author",
+  "synthetic_tests": 24
+}

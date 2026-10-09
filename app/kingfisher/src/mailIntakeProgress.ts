@@ -23,8 +23,15 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
     categorized: result.categorized + count(folder.categorized),
     categoriesPending: result.categoriesPending + count(folder.categories_pending),
     categoriesFailed: result.categoriesFailed + count(folder.categories_failed),
+    categoriesDeferred: result.categoriesDeferred + count(folder.categories_deferred),
+    categoriesUnverified: result.categoriesUnverified + count(folder.categories_unverified),
+    categoriesFailedBy: Object.entries(folder.categories_failed_by ?? {}).reduce((reasons, [code, number]) => {
+      if (typeof code === "string") reasons[code] = (reasons[code] ?? 0) + count(number);
+      return reasons;
+    }, {...result.categoriesFailedBy}),
   }), {counted: 0, captured: 0, duplicates: 0, failed: 0, filtered: 0, pending: 0, livePending: 0, liveFailed: 0, liveFiltered: 0,
-    analyzed: 0, analysisFailed: 0, deferred: 0, excluded: 0, categorized: 0, categoriesPending: 0, categoriesFailed: 0});
+    analyzed: 0, analysisFailed: 0, deferred: 0, excluded: 0, categorized: 0, categoriesPending: 0, categoriesFailed: 0,
+    categoriesDeferred: 0, categoriesUnverified: 0, categoriesFailedBy: {} as Record<string, number>});
   const inventoryComplete = account.folders.length > 0 && account.folders.every(folder =>
     folder.inventory_complete && folder.total !== null && Number.isFinite(folder.total));
   const total = inventoryComplete ? sums.counted : null;
@@ -37,14 +44,17 @@ export function deriveIntakeProgress(account: MailIntakeAccount) {
     Number.isFinite(folder.categorized) && Number.isFinite(folder.categories_pending) && Number.isFinite(folder.categories_failed));
   const captureUnfinished = !inventoryComplete || sums.pending > 0 || sums.failed > 0 || processed < sums.counted;
   const analysisUnfinished = sums.deferred > 0 || sums.analysisFailed > 0 || sums.analyzed < analysisSources ||
-    !categoriesKnown || sums.categoriesPending > 0 || sums.categoriesFailed > 0 || sums.categorized < analysisSources;
+    !categoriesKnown || sums.categoriesPending > 0 || sums.categoriesFailed > 0 || sums.categoriesDeferred > 0 ||
+    sums.categoriesUnverified > 0 || sums.categorized < analysisSources;
+  const retryAvailable = sums.failed > 0 || sums.liveFailed > 0 || sums.analysisFailed > 0 ||
+    sums.categoriesFailed > 0 || sums.categoriesUnverified > 0 || Boolean(account.error);
   const complete = account.started && account.connected && !account.error && inventoryComplete &&
     !captureUnfinished && !analysisUnfinished && sums.livePending === 0;
   const stage = !account.connected ? "disconnected" : !account.started ? "ready" : account.paused ? "paused"
     : account.error ? "error" : !inventoryComplete ? "inventory" : account.history_waiting_for_analysis ? "waiting_analysis"
     : captureUnfinished || sums.livePending > 0 ? "capture"
     : analysisUnfinished ? "analysis" : "current";
-  return {...sums, total, sources, analysisSources, categoriesKnown, processed, inventoryComplete, complete, stage,
+  return {...sums, total, sources, analysisSources, categoriesKnown, processed, inventoryComplete, complete, stage, retryAvailable,
     capturePercent: total === null ? null : percentage(processed, total, captureUnfinished),
     analysisPercent: total === null || !categoriesKnown ? null
       : percentage(sums.analyzed + sums.categorized, 2 * analysisSources, analysisUnfinished),

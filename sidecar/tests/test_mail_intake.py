@@ -178,6 +178,169 @@ def test_retry_also_releases_failed_interpretation_cooldowns(tmp_path):
     assert ep._conn.execute('SELECT retry_after FROM memory_category_sources WHERE episode_id=?',(source,)).fetchone()[0]==0
 
 
+def test_status_exposes_bounded_current_category_failure_reasons(tmp_path):
+    from icarus_memory.memory_categories import Categories
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');intake=Intake(ep);intake.start('a',['INBOX'])
+    source=intake.step('a',Reader(),batch=1)[0]
+    categories=Categories(ep)
+    _current_category_failure(categories, source)
+    folder=intake.status('a')['folders'][0]
+    assert folder['categories_failed']==1
+    assert folder['categories_failed_by']=={'provider_error':1}
+    with ep.transaction():
+        ep._conn.execute('UPDATE episodes SET support_generation=support_generation+1 WHERE id=?',(source,))
+    refreshed=intake.status('a')['folders'][0]
+    assert refreshed['categories_failed']==0
+    assert refreshed['categories_failed_by']=={}
+    ep.close()
+
+
+def _current_category_failure(categories, source):
+    from icarus_memory.memory_categories import source_fingerprint
+    snapshot = categories.memory._snapshot(source)
+    version = categories._required_version(source)
+    with categories.episodes.transaction():
+        categories._set_status(source, source_fingerprint(snapshot), version, 'failed',
+                               failure_code='provider_error')
+
+
+@pytest.mark.parametrize('transition', ['targeted_taxonomy', 'dismiss', 'replacement'])
+def test_status_category_failure_reasons_follow_current_source_projection(tmp_path, transition):
+    from icarus_memory.memory_categories import Categories
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    from icarus_memory.episodes import EpisodeKind, Provenance, SourceType
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');intake=Intake(ep);intake.start('a',['INBOX'])
+    source=intake.step('a',Reader(),batch=1)[0]
+    categories=Categories(ep);_current_category_failure(categories, source)
+    assert categories.list_for(source)['status']=='failed'
+    before=intake.status('a')['folders'][0]
+    assert before['categories_failed']==1 and before['categories_failed_by']=={'provider_error':1}
+
+    if transition == 'targeted_taxonomy':
+        categories.add_category('new_topic', 'New topic', episode_ids=[source])
+        expected='pending'
+    elif transition == 'dismiss':
+        assert WorkingMemoryStore(ep).dismiss(source)
+        expected='excluded'
+    else:
+        old=ep._conn.execute('SELECT source_key FROM episodes WHERE id=?',(source,)).fetchone()[0]
+        replacement,created=ep.record(EpisodeKind.MESSAGE,'Replacement','New version',
+            Provenance(SourceType.EMAIL,source_ref='replacement'),source_key=old)
+        assert created
+        ep.advance_source_head(old,source,replacement.id)
+        expected='excluded'
+
+    assert categories.list_for(source)['status']==expected
+    after=intake.status('a')['folders'][0]
+    assert after['categories_failed']==0
+    assert after['categories_failed_by']=={}
+    assert after['categories_pending']==(1 if expected=='pending' else 0)
+    ep.close()
+
+
+def test_status_never_exposes_unrecognized_persisted_category_failure_code(tmp_path):
+    from icarus_memory.memory_categories import Categories
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');intake=Intake(ep);intake.start('a',['INBOX'])
+    source=intake.step('a',Reader(),batch=1)[0]
+    categories=Categories(ep);_current_category_failure(categories, source)
+    with ep.transaction():
+        ep._conn.execute('PRAGMA ignore_check_constraints=ON')
+        ep._conn.execute("UPDATE memory_category_sources SET failure_code='private raw failure' WHERE episode_id=?",(source,))
+        ep._conn.execute('PRAGMA ignore_check_constraints=OFF')
+    folder=intake.status('a')['folders'][0]
+    assert folder['categories_failed']==1
+    assert folder['categories_failed_by']=={'unknown':1}
+    assert 'private raw failure' not in str(folder)
+    ep.close()
+
+
+def test_status_bounds_failed_category_projection_across_windows_and_folders(tmp_path, monkeypatch):
+    from icarus_memory import mail_intake as mail_intake_module
+    from icarus_memory.memory_categories import Categories, source_fingerprint
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');intake=Intake(ep);reader=Reader();reader.count=8
+    intake.start('a',['INBOX']);intake.step('a',reader,batch=50)
+    with ep._lock:
+        sources=[row[0] for row in ep._conn.execute(
+            "SELECT episode_id FROM mail_intake_items WHERE folder='INBOX' ORDER BY uid")]
+    assert len(sources)==8 and len(set(sources))==8
+    categories=Categories(ep)
+    with ep.transaction():
+        for source in sources:
+            snapshot=categories.memory._snapshot(source)
+            categories._set_status(source,source_fingerprint(snapshot),categories._required_version(source),
+                                   'failed',failure_code='provider_error')
+        intake.start('a',['Archive'])
+        ep._conn.execute("UPDATE mail_intake_folders SET generation='7',upper_uid=8,scan_uid=8,live_uid=8,inventory_complete=1 WHERE account='a' AND folder='Archive'")
+        ep._conn.executemany("INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES('a','Archive','7',?,'history','duplicate',?)",
+                             [(index+1,source) for index,source in enumerate(sources)])
+
+    calls=[]
+    original=Categories.list_for
+    def counted(self, source):
+        calls.append(source)
+        return original(self,source)
+    monkeypatch.setattr(Categories,'list_for',counted)
+    monkeypatch.setattr(mail_intake_module,'CATEGORY_DIAGNOSTIC_BUDGET',3,raising=False)
+    monkeypatch.setattr(mail_intake_module,'STATUS_WINDOW',2)
+    state=intake.status('a')
+
+    assert len(calls)==3
+    assert len(set(calls))==3
+    assert state['folders'][0]['folder']=='Archive'
+    assert state['folders'][0]['categories_failed']==3
+    assert state['folders'][0]['categories_unverified']==5
+    assert state['folders'][0]['categories_failed_by']=={'provider_error':3}
+    assert state['folders'][1]['categories_failed']==3
+    assert state['folders'][1]['categories_unverified']==5
+    assert state['folders'][1]['categories_failed_by']=={'provider_error':3}
+    ep.close()
+
+
+def test_explicit_retry_reaches_current_failures_beyond_stale_diagnostic_prefix(tmp_path, monkeypatch):
+    from icarus_memory.memory_categories import Categories, source_fingerprint
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');intake=Intake(ep);reader=Reader();reader.count=19
+    intake.start('a',['INBOX']);intake.step('a',reader,batch=50)
+    with ep._lock:
+        sources=[row[0] for row in ep._conn.execute(
+            "SELECT episode_id FROM mail_intake_items WHERE folder='INBOX' ORDER BY uid")]
+    assert len(sources)==19
+    categories=Categories(ep);future=9999999999
+    with ep.transaction():
+        for source in sources:
+            snapshot=categories.memory._snapshot(source)
+            categories._set_status(source,source_fingerprint(snapshot),categories._required_version(source),
+                                   'failed',retry_after=future,failure_code='provider_error')
+
+    projected_ids=[]
+    original=Categories.list_for
+    def record_projection(self, source):
+        projected_ids.append(source)
+        return original(self,source)
+    monkeypatch.setattr(Categories,'list_for',record_projection)
+    monkeypatch.setattr('icarus_memory.mail_intake.CATEGORY_DIAGNOSTIC_BUDGET',16)
+    first=intake.status('a')['folders'][0]
+    assert first['categories_failed']==16 and first['categories_unverified']==3
+    stale_prefix=projected_ids[:]
+    assert len(stale_prefix)==16 and len(set(stale_prefix))==16
+
+    store=WorkingMemoryStore(ep)
+    for source in stale_prefix:
+        assert store.dismiss(source)
+    projected_ids.clear()
+    after_dismiss=intake.status('a')['folders'][0]
+    assert after_dismiss['categories_failed']==0 and after_dismiss['categories_unverified']==3
+    assert projected_ids==stale_prefix
+
+    # This is the same persistence operation used by the explicit retry route.
+    # The category worker's bounded page must skip the dismissed prefix and see
+    # the still-current failures after it, without calling a provider/model.
+    intake.retry('a')
+    retry_candidates=categories._pending(limit=20)
+    assert {snapshot.episode.id for snapshot, _version, _taxonomy in retry_candidates}==set(sources)-set(stale_prefix)
+    ep.close()
+
+
 @pytest.mark.parametrize('manual_first',[True,False])
 def test_provider_identity_shared_by_manual_and_automatic_intake(tmp_path,manual_first):
     from dataclasses import replace

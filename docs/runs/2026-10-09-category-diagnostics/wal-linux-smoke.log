@@ -1,0 +1,1 @@
+{"status": "passed", "linux_sqlite_version": "3.46.1", "committed_wal_original_preserved": true, "schema_unchanged": 19, "databases": 17, "sidecars_closed_by_sqlite": true, "network": "none", "private_data_used": false}

@@ -1,0 +1,30 @@
+{
+  "excluded": [
+    "root-config.json",
+    "__pycache__",
+    ".pytest_cache",
+    "WORKING.log"
+  ],
+  "external_evidence_sha256": {
+    "kingfisher-category-wal-finalization-review-20261009.md": "4841bb7a6bbb7567db90987ecdac47afff6c1a3178b727146216ef6497426697",
+    "kingfisher-category-wal-linux-smoke-20261009.log": "981a051b9361a46fba9e694c3b10ff8c891ca39223d3b7637e71ec04a423c848",
+    "kingfisher-category-wal-linux-smoke-20261009.py": "ad99de3ff0fa07ae260da3643680da2ba3d31446c4db440c093eafa8218bea7d"
+  },
+  "independent_root_tests": 38,
+  "product_revision": "5621ec9e1f94ee40ea12485e128950d251211be4",
+  "sha256": {
+    "GREEN.log": "a324effc8dacd457d8c1cc582b77ed84dd4c6ba7147b26a3f8d14a013243a061",
+    "HOOK-RED.log": "a295f7b458b51fa91f45b5e7e62884a034c7163f89f1fc4b294127266766f526",
+    "README.md": "efa51070ffd9efe70c9875ed5d60e4b4955aa05d881978de74a2440bb107c0af",
+    "ROOT-GREEN.log": "c3d6fec765cab1a3b0478f544a3ee755cf34bdabc150f5483f4329641bbac0a0",
+    "config.example.json": "3d38837cdd0e2a0f75208b59f5adde8ca8095b22d2e9433bcdc6af71e824fcd1",
+    "data_proof.py": "1316a92cf90edb21c89c59a1ea31a3f6b57f3437cff6994c62ab00ac5a56ce71",
+    "orchestrator.py": "035a6e8ec7fd8f24cf12628dbd614e97ff159072685894b11b425058d99f35af",
+    "preflight.py": "19bc7ff195e760f277fcad4e80dd64f4dddc5ec36221243e613d1917194c54c8",
+    "test_orchestrator.py": "53f47eacf8d426a94ec5843ccfeb968876039c31a343ccf35dc9e666379633a9",
+    "test_wal_hook.py": "a288a0ec873a5dd6e5d0b2c3eb89985a2a715ee9a21a2a456a86e01304746b17",
+    "wal_finalize.py": "a1cfd9ce698420f63dc9dd0f2a6111a80d960e81285613367341c79189a8d20b"
+  },
+  "status": "prepared_no_live_execution_by_author",
+  "synthetic_tests": 38
+}

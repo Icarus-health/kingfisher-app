@@ -1,0 +1,19 @@
+{
+  "status": "installed_verified_with_next_update_storage_warning",
+  "version": "1.0.6-local.5621ec9",
+  "image_id": "sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f",
+  "schema": 20,
+  "published": true,
+  "health": {
+    "health": true,
+    "inspection": false,
+    "read_only_route": true,
+    "background_paused": true
+  },
+  "same_data_volume": true,
+  "original_count": 344,
+  "native_storage_before_next_backup": "lowSpace",
+  "native_storage_after_update": "ok",
+  "prior_resume_result_preserved": true,
+  "native_ui_verified": false
+}

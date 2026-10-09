@@ -1,0 +1,213 @@
+FFFFFFFF.......FF..FF                                                    [100%]
+=================================== FAILURES ===================================
+___________________ test_success_order_and_network_isolation ___________________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_success_order_and_network0')
+
+    def test_success_order_and_network_isolation(tmp_path):
+        fake=FakeSystem(tmp_path); result=installer.run(fake.config,fake)
+>       assert result['status']=='installed'
+E       AssertionError: assert 'prepare_failed' == 'installed'
+E         
+E         - installed
+E         + prepare_failed
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:142: AssertionError
+____ test_ambiguous_or_failure_never_publishes_or_starts_old[missing-None] _____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_ambiguous_or_failure_neve0')
+mode = 'missing', exitcode = None
+
+    @pytest.mark.parametrize('mode,exitcode',[('missing',None),('migrated',1),('recovery_failed',None),('restored_inspection',0)])
+    def test_ambiguous_or_failure_never_publishes_or_starts_old(tmp_path,mode,exitcode):
+        fake=FakeSystem(tmp_path);fake.mode=mode;fake.preflight_exit=exitcode
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:168: AssertionError
+_____ test_ambiguous_or_failure_never_publishes_or_starts_old[migrated-1] ______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_ambiguous_or_failure_neve1')
+mode = 'migrated', exitcode = 1
+
+    @pytest.mark.parametrize('mode,exitcode',[('missing',None),('migrated',1),('recovery_failed',None),('restored_inspection',0)])
+    def test_ambiguous_or_failure_never_publishes_or_starts_old(tmp_path,mode,exitcode):
+        fake=FakeSystem(tmp_path);fake.mode=mode;fake.preflight_exit=exitcode
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:168: AssertionError
+_ test_ambiguous_or_failure_never_publishes_or_starts_old[recovery_failed-None] _
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_ambiguous_or_failure_neve2')
+mode = 'recovery_failed', exitcode = None
+
+    @pytest.mark.parametrize('mode,exitcode',[('missing',None),('migrated',1),('recovery_failed',None),('restored_inspection',0)])
+    def test_ambiguous_or_failure_never_publishes_or_starts_old(tmp_path,mode,exitcode):
+        fake=FakeSystem(tmp_path);fake.mode=mode;fake.preflight_exit=exitcode
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:168: AssertionError
+_ test_ambiguous_or_failure_never_publishes_or_starts_old[restored_inspection-0] _
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_ambiguous_or_failure_neve3')
+mode = 'restored_inspection', exitcode = 0
+
+    @pytest.mark.parametrize('mode,exitcode',[('missing',None),('migrated',1),('recovery_failed',None),('restored_inspection',0)])
+    def test_ambiguous_or_failure_never_publishes_or_starts_old(tmp_path,mode,exitcode):
+        fake=FakeSystem(tmp_path);fake.mode=mode;fake.preflight_exit=exitcode
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:168: AssertionError
+_ test_known_safe_prepublication_recovery[preflight_failed-old_schema19_resumed] _
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_known_safe_prepublication0')
+mode = 'preflight_failed', status = 'old_schema19_resumed'
+
+    @pytest.mark.parametrize('mode,status',[('preflight_failed','old_schema19_resumed'),('restored_inspection','old_inspection_only')])
+    def test_known_safe_prepublication_recovery(tmp_path,mode,status):
+        fake=FakeSystem(tmp_path);fake.mode=mode
+        result=installer.run(fake.config,fake)
+>       assert result['status']==status and fake.started and not fake.published
+E       AssertionError: assert ('prepare_failed' == 'old_schema19_resumed'
+E         
+E         - old_schema19_resumed
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:176: AssertionError
+_ test_known_safe_prepublication_recovery[restored_inspection-old_inspection_only] _
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_known_safe_prepublication1')
+mode = 'restored_inspection', status = 'old_inspection_only'
+
+    @pytest.mark.parametrize('mode,status',[('preflight_failed','old_schema19_resumed'),('restored_inspection','old_inspection_only')])
+    def test_known_safe_prepublication_recovery(tmp_path,mode,status):
+        fake=FakeSystem(tmp_path);fake.mode=mode
+        result=installer.run(fake.config,fake)
+>       assert result['status']==status and fake.started and not fake.published
+E       AssertionError: assert ('prepare_failed' == 'old_inspection_only'
+E         
+E         - old_inspection_only
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:176: AssertionError
+__________ test_postpublication_failure_does_not_rewind_or_start_old ___________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_postpublication_failure_d0')
+
+    def test_postpublication_failure_does_not_rewind_or_start_old(tmp_path):
+        fake=FakeSystem(tmp_path);fake.fail_health=True
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='forward_repair_required' and fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'forward_repair_required'
+E         
+E         - forward_repair_required
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:183: AssertionError
+____________________ test_cold_copy_tamper_blocks_migration ____________________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_cold_copy_tamper_blocks_m0')
+
+    def test_cold_copy_tamper_blocks_migration(tmp_path):
+        fake=FakeSystem(tmp_path);run=fake.run
+        def tamper(argv):
+            response=run(argv)
+            if argv[:2]==['docker','cp'] and argv[2]==installer.CONTAINER+':/data':
+                (Path(argv[3])/'auxiliary-original.txt').write_text('tampered')
+            return response
+        fake.run=tamper
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and result['error']=='cold_copy_mismatch'
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:236: AssertionError
+___ test_bundle_hashes_unchanged_on_success_and_native_tamper_blocks_publish ___
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_bundle_hashes_unchanged_o0')
+
+    def test_bundle_hashes_unchanged_on_success_and_native_tamper_blocks_publish(tmp_path):
+        fake=FakeSystem(tmp_path);app=Path(fake.config['app'])
+        before={str(p.relative_to(app)):installer.sha(p) for p in app.rglob('*') if p.is_file()}
+>       assert installer.run(fake.config,fake)['status']=='installed'
+E       AssertionError: assert 'prepare_failed' == 'installed'
+E         
+E         - installed
+E         + prepare_failed
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:243: AssertionError
+____________ test_writer_appearing_during_migration_cannot_publish _____________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_writer_appearing_during_m0')
+
+    def test_writer_appearing_during_migration_cannot_publish(tmp_path):
+        fake=FakeSystem(tmp_path)
+        def guarded(argv,check):
+            result=fake.run(argv)
+            fake.maintenance_error='native_or_launcher_active';check()
+            return result
+        fake.guarded_run=guarded
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('prepare_failed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + prepare_failed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:268: AssertionError
+____ test_actual_restore_result_extra_metadata_is_accepted_only_after_proof ____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-948/test_actual_restore_result_ext0')
+
+    def test_actual_restore_result_extra_metadata_is_accepted_only_after_proof(tmp_path):
+        fake=FakeSystem(tmp_path);fake.mode='restored_inspection'
+        run=fake.run
+        def actual_shape(argv):
+            code,raw=run(argv)
+            if argv[:3]==['docker','start','-a'] and b'"restored_inspection"' in raw:
+                payload=json.loads(raw);payload['rollback'].update(schema=19,inspection=True)
+                raw=json.dumps(payload).encode()
+            return code,raw
+        fake.run=actual_shape
+>       assert installer.run(fake.config,fake)['status']=='old_inspection_only'
+E       AssertionError: assert 'prepare_failed' == 'old_inspection_only'
+E         
+E         - old_inspection_only
+E         + prepare_failed
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:281: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_success_order_and_network_isolation
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_ambiguous_or_failure_never_publishes_or_starts_old[missing-None]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_ambiguous_or_failure_never_publishes_or_starts_old[migrated-1]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_ambiguous_or_failure_never_publishes_or_starts_old[recovery_failed-None]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_ambiguous_or_failure_never_publishes_or_starts_old[restored_inspection-0]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_known_safe_prepublication_recovery[preflight_failed-old_schema19_resumed]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_known_safe_prepublication_recovery[restored_inspection-old_inspection_only]
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_postpublication_failure_does_not_rewind_or_start_old
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_cold_copy_tamper_blocks_migration
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_bundle_hashes_unchanged_on_success_and_native_tamper_blocks_publish
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_writer_appearing_during_migration_cannot_publish
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_actual_restore_result_extra_metadata_is_accepted_only_after_proof
+12 failed, 9 passed in 0.59s

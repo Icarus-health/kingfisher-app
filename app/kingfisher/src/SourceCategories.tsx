@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
+import { categoryFailureText } from './categoryFailureText';
 
 type Annotations = Awaited<ReturnType<typeof api.sourceCategories>>;
 type Taxonomy = Awaited<ReturnType<typeof api.categoryTaxonomy>>;
@@ -42,7 +43,8 @@ export function SourceCategories({ id, readOnly = false }: { id: string; readOnl
     {data && <>
       {data.status === 'excluded' ? <p>Diese Quelle ist ausgeschlossen. Es werden keine Zuordnungen angezeigt.</p> : <>
         <p>Automatische Zuordnungen sind Vorschläge und keine bestätigten Fakten.</p>
-        {data.categories.length ? <ul>{data.categories.map(category => <li key={category.id}><strong>{category.label}</strong> · {category.origin === 'user' ? 'Von dir zugeordnet' : 'Automatisch vorgeschlagen'}{category.evidence.map((proof, index) => <blockquote key={index}>{proof.quote}</blockquote>)}</li>)}</ul> : <p>{data.status === 'failed' ? 'Sortieren fehlgeschlagen; erneuter Versuch folgt.' : data.status === 'deferred' ? 'Diese Quelle konnte noch nicht vollständig sortiert werden.' : data.status === 'pending' ? 'Die Themen stehen noch aus.' : 'Noch keine Themen zugeordnet.'}</p>}
+        {data.status === 'failed' && <p role="status">Automatische Themenzuordnung fehlgeschlagen: {categoryFailureText(data.failure_code)}</p>}
+        {data.categories.length ? <ul>{data.categories.map(category => <li key={category.id}><strong>{category.label}</strong> · {category.origin === 'user' ? 'Von dir zugeordnet' : 'Automatisch vorgeschlagen'}{category.evidence.map((proof, index) => <blockquote key={index}>{proof.quote}</blockquote>)}</li>)}</ul> : <p>{data.status === 'failed' ? 'Für diese Quelle liegen noch keine Themenhinweise vor.' : data.status === 'deferred' ? 'Diese Quelle konnte noch nicht vollständig sortiert werden.' : data.status === 'pending' ? 'Die Themen stehen noch aus.' : 'Noch keine Themen zugeordnet.'}</p>}
         {data.correction?.stale && <p role="status">Deine frühere Zuordnung bleibt gespeichert. Die Quelle hat sich geändert; bitte prüfe die Zuordnung erneut.</p>}
         {data.entities.length > 0 && <ul>{data.entities.map((entity, index) => <li key={index}><strong>{entity.name}</strong> · {{person: 'Person', organization: 'Organisation', project: 'Projekt', place: 'Ort'}[entity.kind] ?? entity.kind} · {entity.role === 'sender' ? 'Absenderhinweis' : 'Im Text erwähnt'}<blockquote>{entity.quote}</blockquote><small>Quellenhinweis · noch keiner bestehenden Identität zugeordnet</small></li>)}</ul>}
         {!readOnly && !editing && <button type="button" className="text-action" onClick={() => {setSelected(data.categories.map(c => c.id)); setEditing(true);}}>Themen korrigieren</button>}

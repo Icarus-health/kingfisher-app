@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/tmp/smoke.py", line 24, in <module>
+    assert result['status']=='wal_finalized' and result['original_count']==1 and result['schema']==19,result
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'status': 'rejected_before_checkpoint', 'migration_permitted': False, 'phase': 'logical_before', 'raw_backup_verified': True, 'manifest_sha256': 'fdeabecb5979c5b8ae201a2e7e73f2bb877d16d64c01acb7be7f087a04a0612e', 'error': 'sidecars_changed'}

@@ -1,0 +1,20 @@
+F...                                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration _____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-960/test_wal_raw_copy_seal_checkpo0')
+
+    def test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration(tmp_path):
+        fake=FakeSystem(tmp_path);add_wal(fake)
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='installed' and result['original_count']==2,result
+E       AssertionError: {'status': 'stopped_manual_review', 'published': False, 'version': '1.0.6-local.5621ec9', 'image_id': 'sha256:72837cc0356954760e26aa1f9eb99713edc5287f598d7bd1a994f28a4298168f', ...}
+E       assert ('stopped_manual_review' == 'installed'
+E         
+E         - installed
+E         + stopped_manual_review)
+
+/private/tmp/kingfisher-category-install-wal-20261009/test_wal_hook.py:25: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-wal-20261009/test_wal_hook.py::test_wal_raw_copy_seal_checkpoint_precedes_clean_proof_and_migration
+1 failed, 3 passed in 0.32s

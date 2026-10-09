@@ -1,0 +1,76 @@
+.................FFFF                                                    [100%]
+=================================== FAILURES ===================================
+______________ test_running_native_or_launcher_blocks_before_stop ______________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-946/test_running_native_or_launche0')
+
+    def test_running_native_or_launcher_blocks_before_stop(tmp_path):
+        fake=FakeSystem(tmp_path);fake.maintenance_error='native_or_launcher_active'
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='prepare_failed' and result['error']=='native_or_launcher_active'
+E       AssertionError: assert ('installed' == 'prepare_failed'
+E         
+E         - prepare_failed
+E         + installed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:229: AssertionError
+______________ test_missing_maintenance_attestation_does_nothing _______________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-946/test_missing_maintenance_attes0')
+
+    def test_missing_maintenance_attestation_does_nothing(tmp_path):
+        fake=FakeSystem(tmp_path);fake.config['operator_exclusive_window']=False
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='prepare_failed' and not fake.calls
+E       AssertionError: assert ('installed' == 'prepare_failed'
+E         
+E         - prepare_failed
+E         + installed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:236: AssertionError
+____________ test_writer_appearing_during_migration_cannot_publish _____________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-946/test_writer_appearing_during_m0')
+
+    def test_writer_appearing_during_migration_cannot_publish(tmp_path):
+        fake=FakeSystem(tmp_path)
+        def guarded(argv,check):
+            result=fake.run(argv)
+            fake.maintenance_error='native_or_launcher_active';check()
+            return result
+        fake.guarded_run=guarded
+        result=installer.run(fake.config,fake)
+>       assert result['status']=='stopped_manual_review' and not fake.published and not fake.started
+E       AssertionError: assert ('installed' == 'stopped_manual_review'
+E         
+E         - stopped_manual_review
+E         + installed)
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:247: AssertionError
+____ test_actual_restore_result_extra_metadata_is_accepted_only_after_proof ____
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-946/test_actual_restore_result_ext0')
+
+    def test_actual_restore_result_extra_metadata_is_accepted_only_after_proof(tmp_path):
+        fake=FakeSystem(tmp_path);fake.mode='restored_inspection'
+        run=fake.run
+        def actual_shape(argv):
+            code,raw=run(argv)
+            if argv[:3]==['docker','start','-a'] and b'"restored_inspection"' in raw:
+                payload=json.loads(raw);payload['rollback'].update(schema=19,inspection=True)
+                raw=json.dumps(payload).encode()
+            return code,raw
+        fake.run=actual_shape
+>       assert installer.run(fake.config,fake)['status']=='old_inspection_only'
+E       AssertionError: assert 'stopped_manual_review' == 'old_inspection_only'
+E         
+E         - old_inspection_only
+E         + stopped_manual_review
+
+/private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py:260: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_running_native_or_launcher_blocks_before_stop
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_missing_maintenance_attestation_does_nothing
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_writer_appearing_during_migration_cannot_publish
+FAILED ../../../../../../private/tmp/kingfisher-category-install-orchestrator-20261009/test_orchestrator.py::test_actual_restore_result_extra_metadata_is_accepted_only_after_proof
+4 failed, 17 passed in 1.40s

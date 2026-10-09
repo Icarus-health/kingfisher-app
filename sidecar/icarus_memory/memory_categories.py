@@ -39,6 +39,13 @@ MAX_REMOTE_SOURCE_BLOCKS = 120
 MAX_REMOTE_TOPICS = 192
 MAX_REMOTE_ENTITIES = 128
 MAX_REMOTE_SOURCE_BYTES = MAX_REMOTE_SOURCE_CHARS * 4 + 40_000
+FAILURE_CODES = frozenset({
+    "validation_output_format", "validation_category_evidence",
+    "validation_entity_format", "validation_entity_missing",
+    "validation_entity_ambiguous", "validation_entity_span",
+    "validation_entity_sender", "validation_entity_duplicate",
+    "validation_unspecified", "provider_error", "internal_error",
+})
 
 
 class SourceValidationError(ProviderError):
@@ -76,7 +83,7 @@ _DEFAULTS = (
 
 TABLES = {
     "memory_category_taxonomy": {"category_id", "version", "label", "description"},
-    "memory_category_sources": {"episode_id", "fingerprint", "taxonomy_version", "status", "model", "retry_after", "support_generation"},
+    "memory_category_sources": {"episode_id", "fingerprint", "taxonomy_version", "status", "model", "retry_after", "support_generation", "failure_code"},
     "memory_category_topics": {"episode_id", "fingerprint", "category_id", "taxonomy_version", "start", "end"},
     "memory_category_entities": {"episode_id", "fingerprint", "kind", "start", "end", "role"},
     "memory_category_corrections": {"episode_id", "fingerprint", "taxonomy_version", "categories", "updated_at"},
@@ -93,6 +100,14 @@ PRIMARY_KEYS = {
     "memory_category_scan": {"id"},
 }
 INDEXES = {}
+
+
+def migrate_failure_diagnostics(connection):
+    """Add a nullable, content-free explanation for category failures."""
+    allowed = ",".join("'" + code + "'" for code in sorted(FAILURE_CODES))
+    connection.execute(
+        "ALTER TABLE memory_category_sources ADD COLUMN failure_code TEXT "
+        f"CHECK(failure_code IS NULL OR failure_code IN ({allowed}))")
 
 
 def migrate(connection):
@@ -154,9 +169,11 @@ def migrate_ort(connection):
                            "corpus_version=taxonomy_version+1 WHERE id=1")
 
 
-def verify(connection):
+def verify(connection, *, failure_diagnostics=True):
     """Verify this extension alone; EpisodeStore checks the complete schema."""
     for table, expected in TABLES.items():
+        if table == "memory_category_sources" and not failure_diagnostics:
+            expected = expected - {"failure_code"}
         rows = connection.execute(f'PRAGMA table_info("{table}")').fetchall()
         if ({row[1] for row in rows} != expected or
                 {row[1] for row in rows if row[5]} != PRIMARY_KEYS[table]):
@@ -170,6 +187,18 @@ def verify(connection):
                 "SELECT 1 FROM memory_category_taxonomy WHERE category_id=? AND version=1",
                 (identifier,)).fetchone():
             raise sqlite3.DatabaseError("Die Grundkategorien fehlen")
+
+
+def _failure_code(exc):
+    """Map failures to a closed code set without retaining exception content."""
+    if isinstance(exc, UnsupportedSource):
+        return None
+    if isinstance(exc, SourceValidationError):
+        candidate = f"validation_{exc.reason}"
+        return candidate if candidate in FAILURE_CODES else "validation_unspecified"
+    if isinstance(exc, ProviderError):
+        return "provider_error"
+    return "internal_error"
 
 
 def _normal(value):
@@ -630,14 +659,17 @@ class Categories:
         targeted = self.connection.execute("SELECT taxonomy_version FROM memory_category_recheck WHERE episode_id=?", (episode_id,)).fetchone()
         return max(global_version, targeted[0] if targeted else 1)
 
-    def _set_status(self, episode_id, fingerprint, version, state, model="", retry_after=None):
+    def _set_status(self, episode_id, fingerprint, version, state, model="", retry_after=None, failure_code=None):
+        if state != "failed" or failure_code not in FAILURE_CODES:
+            failure_code = None
         generation = self.connection.execute("SELECT support_generation FROM episodes WHERE id=?", (episode_id,)).fetchone()[0]
         self.connection.execute(
-            "INSERT INTO memory_category_sources(episode_id,fingerprint,taxonomy_version,status,model,retry_after,support_generation) "
-            "VALUES(?,?,?,?,?,?,?) ON CONFLICT(episode_id) DO UPDATE SET "
+            "INSERT INTO memory_category_sources(episode_id,fingerprint,taxonomy_version,status,model,retry_after,support_generation,failure_code) "
+            "VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(episode_id) DO UPDATE SET "
             "fingerprint=excluded.fingerprint,taxonomy_version=excluded.taxonomy_version,"
-            "status=excluded.status,model=excluded.model,retry_after=excluded.retry_after,support_generation=excluded.support_generation",
-            (episode_id, fingerprint, version, state, model, retry_after, generation))
+            "status=excluded.status,model=excluded.model,retry_after=excluded.retry_after,support_generation=excluded.support_generation,"
+            "failure_code=excluded.failure_code",
+            (episode_id, fingerprint, version, state, model, retry_after, generation, failure_code))
 
     def _pending(self, limit, *, source_ids=None, allow_bounded_remote=False):
         if source_ids is not None and (type(source_ids) is not list or len(source_ids) > MAX_TARGETS or
@@ -773,7 +805,8 @@ class Categories:
                                 if self._current(snapshot):
                                     state = "deferred" if isinstance(exc, UnsupportedSource) else "failed"
                                     self._set_status(snapshot.episode.id, source_fingerprint(snapshot), version, state,
-                                                     retry_after=None if state == "deferred" else time.time()+RETRY_SECONDS)
+                                                     retry_after=None if state == "deferred" else time.time()+RETRY_SECONDS,
+                                                     failure_code=_failure_code(exc))
                                     deferred += int(state == "deferred")
                                     failed += int(state == "failed")
                 if preserve_on_failure:
@@ -813,7 +846,8 @@ class Categories:
         with self.episodes._lock:
             correction = self.connection.execute("SELECT * FROM memory_category_corrections WHERE episode_id=?", (episode_id,)).fetchone()
             result = {"episode_id": episode_id, "status": "excluded", "categories": [],
-                      "entities": [], "correction": None, "automatic": correction is None}
+                      "entities": [], "correction": None, "automatic": correction is None,
+                      "failure_code": None}
             if self._dismissed(episode_id):
                 return result
             snapshot = self.memory._snapshot(episode_id)
@@ -834,6 +868,14 @@ class Categories:
                 result["status"] = stored["status"]
             else:
                 result["status"] = "pending"
+            current_generation = self.connection.execute(
+                "SELECT support_generation FROM episodes WHERE id=?", (episode_id,)).fetchone()
+            if (result["status"] == "failed" and stored and current_generation and stored["status"] == "failed" and
+                    stored["fingerprint"] == fingerprint and
+                    stored["taxonomy_version"] >= self._required_version(episode_id) and
+                    stored["support_generation"] == current_generation[0]):
+                code = stored["failure_code"]
+                result["failure_code"] = code if code in FAILURE_CODES else None
             if correction and not result["correction"]["stale"]:
                 taxonomy = {item["id"]: item for item in self._taxonomy(correction["taxonomy_version"])}
                 result["categories"] = [{"id": identifier, "label": taxonomy[identifier]["label"],
