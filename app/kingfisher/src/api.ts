@@ -1269,7 +1269,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ title }),
     }),
-  getConversation: (id: string) => request<ConversationPayload>(`/api/v1/conversations/${id}`),
+  getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
   listConversations: () => request<{ conversations: ConversationSummary[] }>("/api/v1/conversations"),
   integrations: (signal?: AbortSignal) => request<IntegrationOverview>("/api/v1/integrations", {signal}),
   schedule: (signal?: AbortSignal) => request<Schedule>("/api/v1/schedule", {signal}),

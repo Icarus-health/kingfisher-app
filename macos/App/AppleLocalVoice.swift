@@ -11,7 +11,8 @@ final class AppleLocalVoiceReader: NativeVoiceReading {
     private var tapped=false
     var supportsLocal:Bool {
         let permission=SFSpeechRecognizer.authorizationStatus()
-        return permission != .denied && permission != .restricted && recognizer?.supportsOnDeviceRecognition==true && recognizer?.isAvailable==true
+        let microphone=AVCaptureDevice.authorizationStatus(for:.audio)
+        return microphone != .denied && microphone != .restricted && permission != .denied && permission != .restricted && recognizer?.supportsOnDeviceRecognition==true && recognizer?.isAvailable==true
     }
     func authorize(if allowed:@escaping()->Bool,_ done:@escaping(Bool)->Void) {
         guard allowed(),supportsLocal else{done(false);return}

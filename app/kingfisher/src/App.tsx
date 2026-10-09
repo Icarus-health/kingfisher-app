@@ -1,3 +1,4 @@
+import {useConversationVoice, VoiceDraftControls, VoiceDraftStatus, VoiceReply, recordingVoice, type ConversationVoice} from "./ConversationVoice";
 import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
@@ -94,15 +95,18 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
   </form>;
 }
 
-function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder }: {
+function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice }: {
   onSubmit: (message: string) => Promise<void>;
   busy?: boolean;
   conversation?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  voice?: ConversationVoice;
 }) {
   const [message, setMessage] = useState("");
+  const recording = voice ? recordingVoice(voice.state) : false;
   const input = useRef<HTMLInputElement>(null);
+  useEffect(() => { if ((busy || disabled) && recording) voice?.cancel(); }, [busy, disabled, recording, voice]);
   // Der Hinweis passt zum Gerät: „⌘ K“ auf dem Mac, „Strg K“ sonst, keiner auf dem Telefon (Fremdprobe 2, Befund 11).
   const taste = tastenHinweis(useEingabegeraet());
 
@@ -120,7 +124,8 @@ function CommandBar({ onSubmit, busy = false, conversation = false, disabled = f
   async function submit(event: FormEvent) {
     event.preventDefault();
     const clean = message.trim();
-    if (!clean || busy || disabled) return;
+    if (!clean || busy || disabled || recording) return;
+    voice?.cancel();
     try {
       await onSubmit(clean);
       setMessage("");
@@ -134,14 +139,15 @@ function CommandBar({ onSubmit, busy = false, conversation = false, disabled = f
       {!conversation ? <InterfaceIcon name="search" /> : null}
       <input
         aria-label="Kingfisher fragen"
-        disabled={busy || disabled}
+        disabled={busy || disabled || recording}
         onChange={(event) => setMessage(event.target.value)}
         placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“")}
         ref={input}
         value={message}
       />
       {!conversation && taste ? <kbd>{taste}</kbd> : null}
-      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled} type="submit">
+      {voice ? <VoiceDraftControls voice={voice} disabled={busy || disabled} base={message} onDraft={setMessage} /> : null}
+      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled || recording} type="submit">
         <InterfaceIcon name="arrow-up" />
       </button>
     </form>
@@ -422,6 +428,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
   const [memoryError, setMemoryError] = useState(false);
   const [correctionSaved, setCorrectionSaved] = useState(false);
+  const voice = useConversationVoice(id, data, sending || error || !data);
 
   function load(change?: "correction") {
     if (change === "correction") setCorrectionSaved(true);
@@ -590,6 +597,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
                 <span>{message.role === "user" ? "DU" : "KINGFISHER"}</span>
                 {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <p>{message.content}</p>}
+                {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
                 {message.role === "assistant" && message.metadata?.context?.quellen ? <BelegQuellen quellen={message.metadata.context.quellen} gespraech={data.conversation.id} zeigeNachricht={showMemorySource} onChange={load} /> : null}
                 {message.metadata?.context?.satzantwort || message.role !== "user" ? null : message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet eigeneFrage />)}
@@ -635,7 +643,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
           </div>
           {sendError ? <p className="partial-error thread-send-error">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
           {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-          <div className="thread-command"><CommandBar busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} /></div>
+          <div className="thread-command"><VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} /></div>
         </section>
       </main>
     </div>
