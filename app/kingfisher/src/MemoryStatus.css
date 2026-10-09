@@ -35,3 +35,13 @@ html:has(.memory-page-status), body:has(.memory-page-status), #root:has(.memory-
   .memory-page-status .memory-filter > div { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 }
 @media (max-width: 700px) { .memory-status { padding: 16px; } .memory-status-card { padding: 16px; } }
+
+.memory-source-overview > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.memory-source-overview > header p { margin: 6px 0; color: var(--kf-schrift-adc5ca); }
+.memory-source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.memory-source-row { border: 1px solid var(--kf-rand-35535e); border-radius: 10px; padding: 16px; min-width: 0; overflow-wrap: anywhere; }
+.memory-source-row h3 { font-size: 16px; margin: 4px 0 10px; }
+.memory-source-row p { font-size: 14px; line-height: 1.5; margin: 8px 0; }
+.memory-source-row a { color: var(--kf-schrift-adc5ca); display: inline-block; margin-top: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.memory-source-row a:focus-visible, .memory-source-row summary:focus-visible { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 4px; }
+.memory-source-row .memory-source-stale { border-left: 3px solid var(--kf-rand-00a7c4); padding-left: 10px; }
