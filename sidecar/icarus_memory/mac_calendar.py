@@ -62,10 +62,12 @@ class WorkerUpdate(BaseModel):
     range_from: datetime | None = None
     range_to: datetime | None = None
     generation: int
+    authorization_attempted: bool = True
     status: Literal['granted', 'not_determined', 'denied', 'restricted', 'write_only', 'unknown', 'error']
     calendars: list[CalendarInfo] = Field(default_factory=list, max_length=100)
     events: list[SnapshotEvent] | None = Field(default=None, max_length=10000)
     error: str = Field(default='', max_length=1000)
+    memory_error: str | None = Field(default=None, max_length=1000)
 
 
 class MacCalendar:
@@ -115,7 +117,7 @@ class MacCalendar:
 
     def enable(self):
         def action(s):
-            s.update(enabled=True, authorize=True, generation=s['generation'] + 1, error='')
+            s.update(enabled=True, authorize=True, generation=s['generation'] + 1, error='', memory_error='')
         return self.change(action)
 
     def select(self, ids):
@@ -125,13 +127,13 @@ class MacCalendar:
             if not set(ids) <= {c['id'] for c in s['calendars']}:
                 raise HTTPException(400, 'Ein ausgewählter Kalender ist nicht mehr verfügbar.')
             s.update(selected=list(dict.fromkeys(ids)), events=[], synced_at=None,
-                     generation=s['generation'] + 1, error='')
+                     generation=s['generation'] + 1, error='', memory_error='')
         return self.change(action)
 
     def disconnect(self):
         def action(s):
             s.update(enabled=False, authorize=False, selected=[], calendars=[], events=[],
-                     synced_at=None, error='', generation=s['generation'] + 1)
+                     synced_at=None, error='', memory_error='', generation=s['generation'] + 1)
         return self.change(action)
 
     def update(self, body):
@@ -139,9 +141,12 @@ class MacCalendar:
             if body.generation != s['generation']:
                 raise HTTPException(409, 'Veraltete Synchronisation verworfen.')
             s.update(seen_at=now().isoformat(), status=body.status, error=body.error)
+            if body.memory_error is not None:
+                s['memory_error'] = body.memory_error
             if not s['enabled']:
                 return
-            s['authorize'] = False
+            if body.authorization_attempted:
+                s['authorize'] = False
             s['calendars'] = [c.model_dump() for c in body.calendars]
             if body.status != 'granted' or body.error:
                 s.update(events=[], synced_at=None)
@@ -185,7 +190,7 @@ class MacCalendar:
     def freigegeben(self, quelle):
         """Ob eine Gedächtnisquelle (`mac-calendar/<Kurzhash>`) gerade freigegeben ist."""
         state = self.read()
-        if not state['enabled'] or not state['selected']:
+        if not state['enabled'] or not state['selected'] or state['status'] != 'granted' or state['error']:
             return False
         return quelle in {quelle_fuer_mac(kalender) for kalender in state['selected']}
 
@@ -212,6 +217,12 @@ def install_routes(app, guard, calendar, refresh, memory=None):
     """`memory`: `KalenderGedaechtnis` (oder None); ohne es bleibt der Adapter bei der Live-Anzeige."""
     prefix = '/api/v1/mac-calendar'
 
+    def memory_allowed():
+        # Aktueller Zustand, keine persistierte Freigabe aus einem alten Poll.
+        controller = getattr(app.state, 'hintergrund', None)
+        gate = getattr(controller, 'sperre', None)
+        return callable(gate) and gate() is None
+
     def entziehen():
         # Abgewählt oder getrennt: Was nicht mehr freigegeben ist, verlässt das Gedächtnis.
         if memory is not None:
@@ -219,7 +230,7 @@ def install_routes(app, guard, calendar, refresh, memory=None):
 
     @app.get(prefix, dependencies=guard)
     def state():
-        return calendar.public()
+        return {**calendar.public(), 'memory_allowed': memory_allowed()}
 
     @app.post(prefix + '/connect', dependencies=guard)
     def connect():
@@ -242,12 +253,17 @@ def install_routes(app, guard, calendar, refresh, memory=None):
 
     @app.post(prefix + '/worker', dependencies=guard)
     def update(body: WorkerUpdate):
-        return calendar.update(body)
+        result = calendar.update(body)
+        if body.status in ('denied', 'restricted', 'write_only', 'not_determined'):
+            entziehen()
+        return result
 
     @app.post(prefix + '/memory', dependencies=guard)
     def memory_update(body: MemoryUpdate):
         """Ein Abschnitt fürs Gedächtnis. Ohne Gedächtnis (Test, Wiederherstellung) wird nichts abgelegt."""
         events = calendar.memory_events(body)
+        if not memory_allowed():
+            raise HTTPException(409, 'Kalender-Gedächtnisabgleich wartet auf die Hintergrundfreigabe.')
         if memory is None:
             return {'stored': False}
         from .calendar_memory import Abgleich
@@ -257,5 +273,6 @@ def install_routes(app, guard, calendar, refresh, memory=None):
             eigene = [event for event in events if event.source_id == kalender]
             summe += memory.abgleichen(quelle, eigene[0].source_label or 'Mac-Kalender', eigene,
                                        body.range_from, body.range_to,
-                                       erlaubt=lambda quelle=quelle: calendar.freigegeben(quelle))
+                                       erlaubt=lambda quelle=quelle: memory_allowed() and
+                                       calendar.read()['generation'] == body.generation and calendar.freigegeben(quelle))
         return {'stored': True, **summe.to_dict()}

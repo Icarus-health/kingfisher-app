@@ -904,6 +904,8 @@ async function request<T>(path: string, init?: RequestInit, previewError = false
 }
 
 export type MacCalendarState = {
+  generation: number;
+  memory_error?: string;
   enabled: boolean; online: boolean; status: string; authorize: boolean;
   selected: string[]; calendars: Array<{id: string; name: string; source: string}>;
   synced_at: string | null; error: string; event_count: number;

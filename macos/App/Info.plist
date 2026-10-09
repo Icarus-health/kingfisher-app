@@ -26,6 +26,8 @@
 	<string>public.app-category.productivity</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Kingfisher liest Termine aus den Kalendern, die du anschließend auswählst. Ohne Auswahl wird kein Termin gelesen. Der Mac-Kalenderhelfer verändert keine Termine.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Kingfisher — lokale App</string>
 	<key>NSAppTransportSecurity</key>

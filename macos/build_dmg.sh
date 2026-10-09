@@ -54,7 +54,7 @@ QUELLEN=(macos/Shared/*.swift macos/App/Logic/*.swift macos/App/*.swift)
 for ARCH in arm64 x86_64; do
     echo "Übersetze für $ARCH …"
     xcrun swiftc -parse-as-library -O -target "$ARCH-apple-macosx$MINDEST_MACOS" \
-        -framework AppKit -framework WebKit -framework Security \
+        -framework AppKit -framework WebKit -framework Security -framework EventKit \
         "${QUELLEN[@]}" -o "$BAU/Kingfisher-$ARCH"
 done
 xcrun lipo -create -output "$APP/Contents/MacOS/Kingfisher" "$BAU/Kingfisher-arm64" "$BAU/Kingfisher-x86_64"
