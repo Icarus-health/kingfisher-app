@@ -456,6 +456,13 @@ export type MailThreadContext = {
     occurred_at: string | null; recorded_at: string | null; text: string; truncated: boolean}>;
 };
 
+export type MailCalendarPreparationRecord = {
+  id: string; uid: string; binding: string; stand: string; status: 'preparation'; reviewed: boolean;
+  fields: {title: string; start: string; end: string};
+  origins: Record<'title'|'start'|'end', {kind: 'source'|'user'|'missing'; quote: string}>;
+  context: {items: MailThreadContext['items']; limited: boolean; detail: string; warnings: string[]};
+};
+
 export type MailThreadSummary = {
   uid: string; context_fingerprint: string; available: boolean; status: string;
   limited: boolean; warnings: string[]; detail: string; selection_review: "proposed"; semantic_validation: false;
@@ -468,6 +475,7 @@ export type MailDetail = {
   uid: string; subject: string; from: string; date: string | null;
   body: string; preview: string; answer_to: string; message_id: string;
   source_digest?: string;
+  calendar_source_digest?: string;
   account_label?: string; can_reply: boolean; sending_account: string; truncated: boolean;
 };
 
@@ -1185,6 +1193,10 @@ export const api = {
   taskSource: (id: string) => request<TaskSource>(`/api/v1/tasks/${encodeURIComponent(id)}/source`),
   resolveAction: (conversationId: string, approvalId: string, granted: boolean, confirmation?: string) =>
     request<ConversationPayload>(`/api/v1/conversations/${conversationId}/approvals/${approvalId}`, {method: "POST", body: JSON.stringify({granted, confirmation})}),
+  mailCalendarPrepare: (uid: string, binding: string) => request<MailCalendarPreparationRecord>(`/api/v1/messages/${encodeURIComponent(uid)}/calendar-preparation`, {method:'POST',body:JSON.stringify({source_binding:binding})}),
+  mailCalendarRead: (id: string) => request<MailCalendarPreparationRecord>(`/api/v1/mail-calendar-preparations/${encodeURIComponent(id)}`),
+  mailCalendarSave: (id: string, body: {stand:string;fields:MailCalendarPreparationRecord['fields'];reviewed:boolean}) => request<MailCalendarPreparationRecord>(`/api/v1/mail-calendar-preparations/${encodeURIComponent(id)}`, {method:'PUT',body:JSON.stringify(body)}),
+  mailCalendarPreview: (id: string, body: {stand:string;source_id:string;send_updates:CalendarActionInput['send_updates']}) => request<CalendarActionDraft>(`/api/v1/mail-calendar-preparations/${encodeURIComponent(id)}/preview`, {method:'POST',body:JSON.stringify(body)}),
   calendarActionSources: () => request<{sources: CalendarActionSource[]}>('/api/v1/calendar-actions/sources'),
   calendarActionDraft: (body: CalendarActionInput) => request<CalendarActionDraft>('/api/v1/calendar-actions/drafts', {method:'POST', body:JSON.stringify(body)}),
   calendarActionRead: (id: string) => request<CalendarActionDraft>(`/api/v1/calendar-actions/drafts/${encodeURIComponent(id)}`),

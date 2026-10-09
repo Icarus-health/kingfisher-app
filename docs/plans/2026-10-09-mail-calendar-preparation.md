@@ -1,0 +1,21 @@
+# Mail → geprüfter Terminentwurf
+
+Freigegebenes Ziel: mit wenig Bedienaufwand aus der geöffneten Mail einen persistenten, originalgebundenen Terminentwurf vorbereiten und nach Prüfung an die bestehende Kalender-Vorschau übergeben. Kein Datum/Jahr/Ende/Zone erfinden, keine Gäste aus Namen raten, keine Absage oder Alternative als bestätigten Termin buchen. Voller Funktionsvertrag: lokale Vorbereitung, Aktualität beim Speichern/Wiederöffnen, Übergabe, erneute Quellenprüfung unmittelbar vor externer Wirkung, Wiederanlauf/Dopplungsschutz, nachvollziehbare Originale und Rückkehr zur geöffneten Mail.
+
+## Daten und Wege
+
+- Vorhandenes `calendar-actions.sqlite3`/`actions`-Journal erhält eine explizit nicht ausführbare lokale `mail_preparation`. Kein zweites Journal, keine neue Datenbank und kein zweites Freigabesystem. Normale Kalender-GET-/Execute-Routen dürfen diesen Zustand nicht als Google-Vorschau behandeln oder Originaltexte ohne Quellenprüfung ausgeben.
+- Serverseitig erstellte Bindung aus vollständigen kalenderrelevanten Mailfeldern, kontogebundenem begrenztem Thread und Quellen-/Supportgenerationen. `unread` ist Bedienzustand und kein Quelleninhalt. Bei Ignore→Reopen, Head-/Metadaten-/Verlaufswechsel ist der alte Prüfstand ungültig. Grenzen des bekannten Verlaufs immer sichtbar; kein Beweis, dass keine spätere Absage außerhalb des Bestands existiert.
+- Zur Aktualitätsprüfung wird die Originalmail im bereits verbundenen Konto erneut gelesen. Lokale Vorbereitung ruft weder Kalenderanbieter noch Modell auf. Diese Unterscheidung ist nötig: Ohne Mailabruf wäre Remote-Mailfrische nicht prüfbar. Kein zusätzliches Konto, keine neue Datenfreigabe.
+- Titel aus Betreff; ausdrücklich vollständige, eindeutige Zeiten dürfen als unbestätigte Quellenangaben vorgeschlagen werden. Fehlende oder mehrdeutige Felder bleiben leer. Originalstellen und alle bekannten Nachrichten bleiben prüfbar; Änderungen im Formular sind sichtbar Nutzereingaben. Absagen/Alternativen/abgeschnittener Text erzwingen Aufmerksamkeit, keine stillschweigende Wahl. Manuell ergänzte vollständige Zeiten enthalten explizite Zone/Offset; keine Gerätelokalzeit als Quellenbehauptung.
+- Doppelklick/Wiederöffnen gleicher Quellfassung führt zum selben lokalen Entwurf und erhält gespeicherte Eingaben. Optimistische Standprüfung verhindert Überschreiben einer neueren Bearbeitung. Explizite Prüfung der Angaben ist Voraussetzung der Übergabe.
+- Übergabe verwendet bestehendes `CalendarActions.draft` inklusive aktueller Google-Rechteprüfung. Persistente Bindung an lokalen Entwurf/Stand und stabile Aktions-ID verhindern doppelte Kalenderentwürfe nach verlorener Antwort/Neustart. Änderungen am lokalen Prüfstand entwerten alte Vorschauen. Vor Provider-Schreiben werden Mail-/Verlaufsbindung und lokaler Stand erneut geprüft; fehlender Quellenprüfer blockiert. Bestehende Bestätigung, ETags, Berechtigungen und Uncertain-Reconciliation bleiben erhalten.
+
+## Arbeit und Nachweis
+
+1. Lokalen Journalzustand mit optimistischem Update, Herkunftskennzeichnung und begrenzter exakter Zeitvorschlagslogik durch rote synthetische Tests einführen.
+2. Quellgebundene Mail-API, Kalenderübergabe und Source-Guard in den bestehenden Ausführungsweg integrieren. Keine neue allgemeine Workflowmaschine.
+3. Prüfkarte direkt an der geöffneten Mail; gespeicherten Entwurf wiederfinden, Original/Verlauf daneben prüfen, korrigieren, explizit bestätigen und vorhandene Google-Vorschau verwenden.
+4. Unabhängiges Review; gezielte Quellen-, Race-, Neustart-, Doppelaufruf-, Datum-/Zone-/Absage-/Kontotests, UI-Handler/Build und fertiges Paket prüfen. Breite Regression angemessen zur Änderung. Erst vollständige nachgewiesene Lieferung mergen/Mac installieren; kein neuer Cloud-/Modelllauf ohne Zustimmung. Native Bedienabnahme getrennt.
+
+Prüfmatrix: vollständige künstliche Einladung; Jahr/Ende/Zone fehlen; alternative Zeiten/nachfolgende bekannte Absage; gleiche Namen in anderem Konto; Quelländerung/Entzug/Reopen/neuer Thread zwischen Öffnen/Speichern/Übergabe/Execute; verlorene Antwort und Neustart; Original/Rückweg/Formularerhalt. Local-Phase darf keine Kalender-/Modellaufrufe ausführen; Google-Writes nur nach bestehender ausdrücklicher Ausführungsbestätigung.
