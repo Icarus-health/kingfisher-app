@@ -728,6 +728,7 @@ export type NachbereitungGespeichert = {
 };
 
 export type TerminZuordnung = {
+  zuordnungskonflikt?: boolean;
   teilnehmer: TerminTeilnehmer[];
   vorschlag: { id: string; name: string; grund: string } | null;
   festgelegt: boolean;
@@ -916,6 +917,7 @@ export type CalendarOverview = {
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];
+    source_copies?: Array<{uid: string; source_id: string; source_label: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string}>;
 };

@@ -35,6 +35,7 @@ class Selection(BaseModel):
 
 class SnapshotEvent(BaseModel):
     uid: str = Field(min_length=1, max_length=8192)
+    external_uid: str = Field(default='', max_length=8192)
     summary: str = Field(max_length=4096)
     start: datetime
     end: datetime
@@ -110,6 +111,7 @@ class MacCalendar:
     def public(self, state=None):
         state = dict(state or self.read())
         state['event_count'] = len(state.pop('events'))
+        state.pop('external_uids', None)
         # Wie weit der Arbeiter fürs Gedächtnis lesen soll; die Zahlen stehen nur in `calendar_memory`.
         state['memory_window'] = {'days_back': VERGANGENHEIT_TAGE, 'days_ahead': ZUKUNFT_TAGE}
         state['online'] = bool(state['seen_at'] and now() - _timestamp(state['seen_at']) < timedelta(seconds=30))
@@ -126,13 +128,13 @@ class MacCalendar:
                 raise HTTPException(409, 'Bitte zuerst den Mac-Kalender freigeben.')
             if not set(ids) <= {c['id'] for c in s['calendars']}:
                 raise HTTPException(400, 'Ein ausgewählter Kalender ist nicht mehr verfügbar.')
-            s.update(selected=list(dict.fromkeys(ids)), events=[], synced_at=None,
+            s.update(selected=list(dict.fromkeys(ids)), events=[], external_uids={}, synced_at=None,
                      generation=s['generation'] + 1, error='', memory_error='')
         return self.change(action)
 
     def disconnect(self):
         def action(s):
-            s.update(enabled=False, authorize=False, selected=[], calendars=[], events=[],
+            s.update(enabled=False, authorize=False, selected=[], calendars=[], events=[], external_uids={},
                      synced_at=None, error='', memory_error='', generation=s['generation'] + 1)
         return self.change(action)
 
@@ -149,17 +151,20 @@ class MacCalendar:
                 s['authorize'] = False
             s['calendars'] = [c.model_dump() for c in body.calendars]
             if body.status != 'granted' or body.error:
-                s.update(events=[], synced_at=None)
+                s.update(events=[], external_uids={}, synced_at=None)
                 return
             if not set(s['selected']) <= {c.id for c in body.calendars}:
-                s.update(events=[], synced_at=None, error='Ein ausgewählter Kalender fehlt. Bitte neu auswählen.')
+                s.update(events=[], external_uids={}, synced_at=None, error='Ein ausgewählter Kalender fehlt. Bitte neu auswählen.')
                 return
             if body.events is not None:
                 for event in body.events:
                     if (event.source_id not in s['selected'] or event.start.tzinfo is None
                             or event.end.tzinfo is None or event.end < event.start):
                         raise HTTPException(400, 'Ungültige Termindaten.')
-                s.update(events=[e.model_dump(mode='json') for e in body.events], synced_at=now().isoformat(),
+                # Keep the old event-cache shape readable by the previous backend.
+                s.update(events=[e.model_dump(mode='json', exclude={'external_uid'}) for e in body.events],
+                         external_uids={e.uid: e.external_uid for e in body.events if e.external_uid},
+                         synced_at=now().isoformat(),
                          range_from=body.range_from.isoformat() if body.range_from else None,
                          range_to=body.range_to.isoformat() if body.range_to else None)
         return self.change(action)
@@ -184,7 +189,8 @@ class MacCalendar:
                 raise HTTPException(400, 'Ungültige Termindaten.')
             result.append(Event(uid=event.uid, summary=event.summary, start=event.start, end=event.end,
                                 location=event.location, attendees=list(event.attendees), all_day=event.all_day,
-                                source_id=event.source_id, source_label=event.source_label, notes=event.notes))
+                                source_id=event.source_id, source_label=event.source_label, notes=event.notes,
+                                external_uid=event.external_uid))
         return result
 
     def freigegeben(self, quelle):
@@ -209,7 +215,8 @@ class MacCalendar:
         )
         if ((at is not None or days > 31) and not has_complete_range) or outside_snapshot:
             raise CalendarError('Kalendertermine für den angefragten Zeitraum werden noch synchronisiert. Bitte gleich erneut aktualisieren.')
-        return [Event(**{**e, 'start': _timestamp(e['start']), 'end': _timestamp(e['end'])})
+        return [Event(**{**e, 'start': _timestamp(e['start']), 'end': _timestamp(e['end']),
+                         'external_uid': state.get('external_uids', {}).get(e['uid'], '')})
                 for e in state['events'] if _timestamp(e['end']) > start and _timestamp(e['start']) < end]
 
 

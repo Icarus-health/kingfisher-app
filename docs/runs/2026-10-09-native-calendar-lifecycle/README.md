@@ -18,10 +18,20 @@ Eine Berechtigung wird nur aus einer ausdrücklichen Aktion im aktuellen Hauptfe
 
 Das signierte ARM-App-Paket und neue Backend sind installiert. Der bisherige App-Wrapper und eine bytegeprüfte Rohdatenkopie einschließlich SQLite-Journals bleiben lokal gesichert. Schema 20, unverändertes Datenvolume, Originalquellen, Einstellungen und Pause wurden vor und nach dem Backendtausch geprüft. Keine Datenmigration, kein Modellstart.
 
-Die echte App öffnet Einstellungen am richtigen lokalen Dienst, bestehende Zugänge bleiben sichtbar. Beim Start erscheint kein macOS-Kalenderdialog. Die echte Kalenderfreigabe und bewusste Auswahl stehen noch aus; dieser Nachweis wird nicht durch synthetische Tests ersetzt.
+Die echte App öffnet Einstellungen am richtigen lokalen Dienst, bestehende Zugänge bleiben sichtbar. Beim Start erscheint kein macOS-Kalenderdialog. Die macOS-Lesefreigabe wurde im echten App-Fenster geprüft. Die vom Nutzer ausdrücklich genannten drei Hauptkalender sind gespeichert; der erste vollständige Live-Schnappschuss enthält 490 Termine. Historische Gedächtnisaufnahme bleibt pausiert.
 
 ## Grenzen
 
 Der lokale Intel-Paketbau scheitert an fehlenden Intel-Kompatibilitätsbibliotheken des Apple-Werkzeugs; derselbe Fehler wurde an der bisherigen Basis reproduziert. Der öffentliche Standard bleibt Universal, für diesen Mac ist ausdrücklich ARM paketiert und signaturgeprüft. Kein bestandener Universal-Release-Build wird behauptet.
 
 Leere historische Abschnitte gelten weiterhin nicht automatisch als Löschbeweis. Der Kalenderhelfer ist eine Teil-Lieferung; ein vollständig verlässliches CoS-Gedächtnis oder ein fertiges Gesamtprodukt ist damit nicht nachgewiesen. GitHub-CI wurde nicht neu gestartet.
+
+## Kalenderkopien: Korrektur nach dem Fenstertest
+
+Die zusätzliche Mac-Verbindung zeigte einen Termin auch über das bestehende Kalenderabo. Die Anzeige fasst nun nur Kopien mit derselben externen Anbieterkennung, demselben konkreten Beginn/Ende und übereinstimmenden sichtbaren Details zusammen. Gleiche Titel/Uhrzeiten, unbekannte Kennungen, abweichende Kopien und Vorkommen einer Serie bleiben getrennt. Alle ursprünglichen Quellenkennungen bleiben erhalten; es ist eine Leseprojektion ohne Quellenlöschung oder Schemawechsel. ICS-Titel/Orte werden korrekt entwertet.
+
+Bestehende Projektwahl, Nachbereitung und Mitschriften werden über die aktuell verfügbaren Kopien gelesen. Widersprüchliche Projektentscheidungen erzeugen eine sichtbare Klärung; eine ausdrückliche Wahl setzt die aktuellen Kopien atomar. Kalenderänderungen behalten die genaue schreibbare Google-Quelle als Ziel. Ein entzogener Quellenalias ist danach nicht mehr auflösbar.
+
+Unabhängiges Review fand verlorene Aliasentscheidungen und verdeckte Bearbeitungsaktionen; beide wurden mit Regressionstests korrigiert. Ein weiterer Reviewfall zur expliziten Projektwahl im Nachbereitungsformular wurde rot/grün bestätigt und korrigiert. 250 betroffene Backendtests bestanden vor dieser letzten idempotenten Bedingungskorrektur; die abschließenden 32 Tests für Kopien/Nachbereitung bestanden danach. 435 UI-Tests, Typprüfung und Produktionsbuild bestanden. Aus einem sauberen Quellschnappschuss bestanden 29 native Prüfungen mit einer erwarteten Nicht-Mac-Ausnahme; lokale Synchronisationsduplikate bleiben unangetastet.
+
+Die Anbieterkennung ist ausdrücklich vorgesehen: [Apple EventKit: calendarItemExternalIdentifier](https://developer.apple.com/documentation/eventkit/ekcalendaritem/calendaritemexternalidentifier?language=objc). Sie allein reicht nicht zum Zusammenfassen wiederkehrender Termine. Der neue Wert wird intern separat gespeichert, sodass das bisherige Cacheformat und der Rückweg erhalten bleiben. Die korrigierte Paketinstallation und abschließende echte Einzelanzeige werden separat nachgewiesen; dieser Abschnitt behauptet sie noch nicht.

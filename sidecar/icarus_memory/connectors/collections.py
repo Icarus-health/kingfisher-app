@@ -173,16 +173,67 @@ class CalendarCollection:
             try:
                 for event in source.reader.events(days=days, at=at):
                     # Leser dürfen dieselben zwischengespeicherten Objekte liefern.
+                    label = (f"{source.label} · {event.source_label}"
+                             if source.id == 'mac-calendar' and event.source_label else source.label)
                     events.append(replace(event, uid=f"{source.id}:{event.uid}",
-                                          source_id=source.id, source_label=source.label))
+                                          source_id=source.id, source_label=label, source_copies=[]))
             except Exception as exc:  # partial failures must not hide other calendars
                 self.last_errors[source.id] = str(exc)
         if not events and self.last_errors and len(self.last_errors) == len(self._sources):
             raise CalendarError("; ".join(self.last_errors.values()))
         return sorted(
-            events,
+            _mirror_copies(events),
             key=lambda item: item.start or datetime.max.replace(tzinfo=timezone.utc),
         )
+
+
+def _mirror_copies(events: list[Event]) -> list[Event]:
+    """Reading projection only: explicit same external UID plus agreeing occurrence/details.
+
+    No title/time heuristic, persistence change, or source deletion. Unknown,
+    conflicting, recurring, and same-source entries remain individually visible.
+    """
+    groups: list[list[Event]] = []
+    index: dict[tuple, list[int]] = {}
+    for event in events:
+        key = None
+        if (event.external_uid and event.start and event.end
+                and event.start.utcoffset() is not None and event.end.utcoffset() is not None):
+            key = (event.external_uid, event.start, event.end, event.all_day,
+                   event.summary, event.location, tuple(sorted(event.attendees)))
+        eligible = next((i for i in index.get(key, [])
+                         if event.source_id not in {e.source_id for e in groups[i]}), None) if key else None
+        if eligible is not None:
+            groups[eligible].append(event)
+        else:
+            if key:
+                index.setdefault(key, []).append(len(groups))
+            groups.append([event])
+    result = []
+    for group in groups:
+        if len(group) == 1:
+            result.append(group[0]); continue
+        # Existing connected-feed assignments survive adding a Mac mirror.
+        primary = next((e for e in group if e.source_id != 'mac-calendar'), group[0])
+        copies = [dict(uid=e.uid, source_id=e.source_id, source_label=e.source_label) for e in group]
+        result.append(replace(primary, source_copies=copies))
+    return result
+
+
+def event_uids(item: dict) -> list[str]:
+    """Only references in the current authorized projection, primary first."""
+    return list(dict.fromkeys(uid for uid in [item.get('uid'),
+        *(copy.get('uid') for copy in item.get('source_copies') or [])] if isinstance(uid, str) and uid))
+
+
+def event_copy(item: dict, uid: str) -> dict | None:
+    """Resolve only references present in this fresh projection, retaining the requested source."""
+    if item.get('uid') == uid:
+        return item
+    for copy in item.get('source_copies') or []:
+        if copy.get('uid') == uid:
+            return {**item, **copy}
+    return None
 
 
 __all__ = [

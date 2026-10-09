@@ -1,8 +1,13 @@
 type TimedEvent = { start?: string | null; end?: string | null };
 
-export function findCalendarEvent<T extends TimedEvent & {uid: string}>(items: T[], uid: string, start?: string | null): T | null {
+export function findCalendarEvent<T extends TimedEvent & {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string}>}>(items: T[], uid: string, start?: string | null): T | null {
   const stamp = start ? new Date(start).getTime() : null;
-  const matches = items.filter(item => item.uid === uid && (stamp === null || Boolean(item.start && new Date(item.start).getTime() === stamp)));
+  const matches = items.flatMap(item => {
+    if (stamp !== null && !(item.start && new Date(item.start).getTime() === stamp)) return [];
+    if (item.uid === uid) return [item];
+    const copy = item.source_copies?.find(copy => copy.uid === uid);
+    return copy ? [{...item, ...copy}] : [];
+  });
   return matches.length === 1 ? matches[0] : null;
 }
 export type CalendarView = "Liste" | "Woche" | "Monat" | "Jahr";
@@ -45,4 +50,9 @@ export function preparationView<T extends string>(view: T, at: Date | null, toda
   const from = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const until = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
   return at >= from && at < until ? view : 'Monat';
+}
+
+/** Preserve the source-specific destination for each action on a proven copy. */
+export function calendarSourceVersions<T extends {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string}>}>(item: T): T[] {
+  return item.source_copies?.length ? item.source_copies.map(copy => ({...item, ...copy})) : [item];
 }

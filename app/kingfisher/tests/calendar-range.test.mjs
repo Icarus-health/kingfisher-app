@@ -95,3 +95,25 @@ test('dated preparation links leave the current seven-day list when necessary', 
   assert.equal(preparationView('Woche', new Date(2030, 0, 1), now), 'Woche');
   assert.equal(preparationView('Liste', null, now), 'Liste');
 });
+
+test('a mirrored calendar event retains source-specific links', () => {
+  const item = {uid:'feed:remote',start:'2026-10-10T18:00:00Z',end:'2026-10-10T19:00:00Z',source_id:'feed',source_label:'Feed',source_copies:[{uid:'feed:remote',source_id:'feed',source_label:'Feed'},{uid:'mac:local',source_id:'mac',source_label:'Mac'}]};
+  const result=findCalendarEvent([item],'mac:local',item.start);
+  assert.equal(result?.uid,'mac:local');assert.equal(result?.source_id,'mac');
+  assert.equal(findCalendarEvent([item],'revoked:gone',item.start),null);
+  assert.equal(findCalendarEvent([item,{...item,uid:'other'}],'mac:local',item.start),null);
+});
+
+test('mirror actions retain the writable source UID and withdrawal removes it', async () => {
+  const {calendarSourceVersions} = await import('../src/calendarRange.ts');
+  const {editableEventId} = await import('../src/calendarActionState.ts');
+  const item = {uid:'ical:remote', source_id:'ical', source_label:'Abo', source_copies:[
+    {uid:'ical:remote',source_id:'ical',source_label:'Abo'},
+    {uid:'google:event123',source_id:'google',source_label:'Google'},
+    {uid:'mac-calendar:opaque',source_id:'mac-calendar',source_label:'Mac'}]};
+  const actions=calendarSourceVersions(item).filter(copy => copy.source_id==='google' && editableEventId(copy));
+  assert.equal(actions.length,1);
+  assert.equal(actions[0].uid,'google:event123');
+  assert.equal(editableEventId(actions[0]),'event123');
+  assert.equal(calendarSourceVersions({...item,source_copies:undefined}).filter(copy => copy.source_id==='google').length,0);
+});

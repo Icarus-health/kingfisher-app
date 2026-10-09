@@ -54,7 +54,8 @@ final class EventKitCalendar: NativeCalendarReading {
             var identity = [calendar.calendarIdentifier, event.calendarItemIdentifier]
             if event.hasRecurrenceRules || event.isDetached { identity.append(formatter.string(from: start)) }
             let uid = try JSONSerialization.data(withJSONObject: identity).base64EncodedString()
-            var entry: [String: Any] = ["uid": uid, "summary": event.title ?? "", "start": formatter.string(from: start),
+            var entry: [String: Any] = ["uid": uid, "external_uid": event.calendarItemExternalIdentifier ?? "",
+                "summary": event.title ?? "", "start": formatter.string(from: start),
                 "end": formatter.string(from: end), "all_day": event.isAllDay, "location": event.location ?? "",
                 "source_id": calendar.calendarIdentifier, "source_label": calendar.title,
                 "attendees": (event.attendees ?? []).map { participant -> String in
