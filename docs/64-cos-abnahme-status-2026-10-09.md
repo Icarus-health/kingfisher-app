@@ -6,6 +6,8 @@ Nachtrag zur Quellenlieferung: Der lokale Sprachentwurf und das geprüfte Vorles
 
 Nachtrag zur gemeinsamen Abnahme: [Vorschau `1.0.6-preview.8ad7828`](runs/2026-10-09-cos-reviewed-preview/README.md) vereint die geprüften Entwürfe #37/#38/#40–#45. Frisch: 515 UI-Fälle, 234 betroffene Backendfälle und 26 Unterfälle, Grafikprüfung, ARM-App/DMG und isolierter künstlicher Paketfluss bestanden. Die persönliche App bleibt unverändert; Fenstertest weiterhin ausdrücklich verschoben. Kein heutiger Backend-Gesamtlauf und keine persönliche Modellqualitätsabnahme behauptet.
 
+Nachtrag zur aktuellen Aufgabenbindung: [Vorschau `1.0.6-preview.9544bc4`](runs/2026-10-09-cos-context-preview/README.md) ergänzt #47. Frisch: 326 betroffene Backendtests, UI-Build/Grafikprüfung, ARM-App/DMG und tatsächlicher isolierter Paketfluss bestanden. Kontaktänderungen entwerten alte Aufgabenprüfung; bestätigte Aufgaben und Originale bleiben erhalten. UI/native Quellen unverändert, frühere UI-/native Testzahlen ausdrücklich historisch. Nicht installiert; Fenstertest weiterhin später. Persönliche Einordnungsqualität nicht geprüft.
+
 ## Tatsächlicher Betriebsstand
 
 Die lesende Statusabfrage bestätigt auf dem Mac Backend und App `1.0.6-local.3403623`. Die drei ausgewählten Mac-Kalender sind gespeichert; der Helfer meldet sich. Die neue macOS-Freigabe steht aber noch auf `not_determined`: kein vollständig synchronisierter Kalenderbestand, derzeit null gelieferte Termine. Der Nutzer hat den Fenstertest ausdrücklich verschoben. Das ist keine leere persönliche Agenda.
