@@ -79,6 +79,7 @@ export function MemoryStatus() {
   const [timelineError, setTimelineError] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const generation = useRef(0);
+  const coverageGeneration = useRef(0);
   const loadingMore = useRef(false);
   const [paging, setPaging] = useState(false);
   const [pageError, setPageError] = useState(false);
@@ -95,27 +96,41 @@ export function MemoryStatus() {
   useEffect(() => {
     let active = true;
     let inFlight = false;
+    let controller: AbortController | null = null;
     const loadCoverage = async () => {
       if (!active || document.visibilityState !== "visible" || inFlight) return;
       inFlight = true;
+      const currentGeneration = coverageGeneration.current;
+      controller = new AbortController();
+      const canPublish = () => active && currentGeneration === coverageGeneration.current && document.visibilityState === "visible";
       try {
-        const current = await api.memoryCoverage();
-        if (active) {
+        const current = await api.memoryCoverage(controller.signal);
+        if (canPublish()) {
           adoptCoverage(current);
         }
       } catch {
-        if (active) {
+        if (canPublish()) {
           setCoverageError(true);
           setCoverageRefreshError(true);
         }
-      } finally { inFlight = false; }
+      } finally {
+        inFlight = false;
+        controller = null;
+        if (active && currentGeneration !== coverageGeneration.current && document.visibilityState === "visible") void loadCoverage();
+      }
     };
-    const onVisibilityChange = () => { if (document.visibilityState === "visible") void loadCoverage(); };
+    const onVisibilityChange = () => {
+      coverageGeneration.current += 1;
+      if (document.visibilityState === "visible") void loadCoverage();
+      else controller?.abort();
+    };
     void loadCoverage();
     const interval = window.setInterval(() => void loadCoverage(), 15000);
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       active = false;
+      coverageGeneration.current += 1;
+      controller?.abort();
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
@@ -152,22 +167,27 @@ export function MemoryStatus() {
 
   async function setAutomaticClassification(enabled: boolean) {
     if (automationBusy) return;
+    const currentGeneration = coverageGeneration.current;
+    const canPublish = () => currentGeneration === coverageGeneration.current && document.visibilityState === "visible";
     setAutomationBusy(true); setAutomationError("");
     try {
       let next: MemoryAutomation;
       try {
         next = await api.setMemoryAutomation(enabled);
       } catch {
+        if (!canPublish()) return;
         setAutomationError("Die Änderung konnte nicht bestätigt werden. Bitte aktualisiere den Stand, bevor du es erneut versuchst.");
         try {
           const current = await api.memoryCoverage();
-          adoptCoverage(current);
-        } catch { setCoverageRefreshError(true); }
+          if (canPublish()) adoptCoverage(current);
+        } catch { if (canPublish()) setCoverageRefreshError(true); }
         return;
       }
+      if (!canPublish()) return;
       setAutomation(next);
       // Zahlen und Restzeit gleich mit nachladen; der Stand oben gilt schon.
-      api.memoryCoverage().then(adoptCoverage).catch(() => setCoverageRefreshError(true));
+      api.memoryCoverage().then(current => { if (canPublish()) adoptCoverage(current); })
+        .catch(() => { if (canPublish()) setCoverageRefreshError(true); });
     } finally { setAutomationBusy(false); }
   }
 

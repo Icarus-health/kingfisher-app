@@ -1165,7 +1165,7 @@ export const api = {
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
   taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
-  memoryCoverage: () => request<MemoryCoverage>("/api/v1/memory/coverage"),
+  memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),
   memoryTimeline: (start: string, end: string, cursor?: string, basis: "source" | "recorded" = "recorded") => request<MemoryTimeline>(`/api/v1/memory/timeline?${new URLSearchParams({start, end, basis, ...(cursor ? {cursor} : {})})}`),

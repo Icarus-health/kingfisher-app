@@ -61,3 +61,89 @@ test('failed refresh after enabling marks the retained counts stale and disables
   }finally{d.close();api.memoryCoverage=previous.coverage;api.setMemoryAutomation=previous.automation;api.memoryTimeline=previous.timeline;
     globalThis.window=oldWindow;globalThis.document=oldDocument;delete globalThis.__memoryStatusDriver;}
 });
+
+for(const scenario of ['hidden-success','hidden-failure','hidden-then-visible-success']) {
+  test(`coverage poll discards obsolete ${scenario} and starts a fresh visible read without overlap`,async()=>{
+    const previous={coverage:api.memoryCoverage,timeline:api.memoryTimeline};
+    const oldWindow=globalThis.window,oldDocument=globalThis.document;
+    let poll,visibility;const requests=[];
+    globalThis.window={setInterval:fn=>{poll=fn;return 1;},clearInterval:()=>{}};
+    globalThis.document={visibilityState:'visible',addEventListener:(_name,fn)=>{visibility=fn;},removeEventListener:()=>{}};
+    api.memoryCoverage=signal=>new Promise((resolve,reject)=>requests.push({resolve,reject,signal}));
+    api.memoryTimeline=async()=>({basis:'source',items:[],next_cursor:null});
+    const d=driver();
+    try{
+      d.render();d.runEffects();requests[0].resolve(initial);await tick();
+      poll();poll();assert.equal(requests.length,2,'one in-flight read');
+      globalThis.document.visibilityState='hidden';visibility();poll();
+      assert.equal(requests.length,2,'no hidden read');
+      if(scenario==='hidden-then-visible-success'){
+        globalThis.document.visibilityState='visible';visibility();
+        assert.equal(requests.length,2,'old request must settle before replacement');
+      }
+      if(scenario==='hidden-failure')requests[1].reject(Error('synthetic late failure'));
+      else requests[1].resolve({...initial,total_sources:888,automation:{...initial.automation,requested:true,state:'active'}});
+      await tick();
+      const tree=d.render(),html=renderToStaticMarkup(tree);
+      assert.doesNotMatch(html,/888 Nachrichten/,'obsolete counts must not replace the retained source count');
+      assert.doesNotMatch(html,/Der Fortschritt konnte gerade nicht aktualisiert/,'hidden failure must not publish');
+      assert.ok(button(tree,'Automatisches Sortieren einschalten'),'obsolete automation must not publish');
+      assert.equal(requests[1].signal?.aborted,true,'hide aborts the metadata request');
+      if(globalThis.document.visibilityState==='hidden'){
+        assert.equal(requests.length,2);globalThis.document.visibilityState='visible';visibility();
+      }
+      assert.equal(requests.length,3,'return immediately refreshes without waiting fifteen seconds');
+      requests[2].resolve({...initial,total_sources:12});await tick();
+      assert.match(renderToStaticMarkup(d.render()),/12 Nachrichten und Dokumente/);
+    }finally{
+      d.close();api.memoryCoverage=previous.coverage;api.memoryTimeline=previous.timeline;
+      globalThis.window=oldWindow;globalThis.document=oldDocument;delete globalThis.__memoryStatusDriver;
+    }
+  });
+}
+
+for(const actionFailed of [false,true]){
+  test(`coverage reread after automation ${actionFailed?'failure':'success'} cannot publish after hiding`,async()=>{
+    const previous={coverage:api.memoryCoverage,timeline:api.memoryTimeline,automation:api.setMemoryAutomation};
+    const oldWindow=globalThis.window,oldDocument=globalThis.document;let visibility,finish;
+    globalThis.window={setInterval:()=>1,clearInterval:()=>{}};
+    globalThis.document={visibilityState:'visible',addEventListener:(_name,fn)=>{visibility=fn;},removeEventListener:()=>{}};
+    api.memoryCoverage=async()=>initial;
+    api.memoryTimeline=async()=>({basis:'source',items:[],next_cursor:null});
+    api.setMemoryAutomation=async()=>{if(actionFailed)throw Error('synthetic unconfirmed change');return {...initial.automation,requested:true,state:'active'};};
+    const d=driver();
+    try{
+      d.render();d.runEffects();await tick();
+      api.memoryCoverage=()=>new Promise(resolve=>{finish=resolve;});
+      button(d.render(),'Automatisches Sortieren einschalten').props.onClick();await tick();
+      assert.equal(typeof finish,'function');
+      globalThis.document.visibilityState='hidden';visibility();
+      finish({...initial,total_sources:888});await tick();
+      assert.doesNotMatch(renderToStaticMarkup(d.render()),/888 Nachrichten/);
+    }finally{
+      d.close();api.memoryCoverage=previous.coverage;api.memoryTimeline=previous.timeline;api.setMemoryAutomation=previous.automation;
+      globalThis.window=oldWindow;globalThis.document=oldDocument;delete globalThis.__memoryStatusDriver;
+    }
+  });
+}
+
+test('coverage interval preserves timeline and unmount aborts and discards its pending read',async()=>{
+  const previous={coverage:api.memoryCoverage,timeline:api.memoryTimeline};
+  const oldWindow=globalThis.window,oldDocument=globalThis.document;let poll,intervalMs,cleared,removed,timelineReads=0;
+  const requests=[];
+  globalThis.window={setInterval:(fn,ms)=>{poll=fn;intervalMs=ms;return 7;},clearInterval:id=>{cleared=id;}};
+  globalThis.document={visibilityState:'visible',addEventListener:()=>{},removeEventListener:name=>{removed=name;}};
+  api.memoryCoverage=signal=>new Promise(resolve=>requests.push({resolve,signal}));
+  api.memoryTimeline=async()=>{timelineReads++;return {basis:'source',items:[],next_cursor:null};};
+  const d=driver();
+  try{
+    d.render();d.runEffects();requests[0].resolve(initial);await tick();
+    assert.equal(intervalMs,15000);poll();poll();assert.equal(requests.length,2);assert.equal(timelineReads,1);
+    d.close();assert.equal(cleared,7);assert.equal(removed,'visibilitychange');assert.equal(requests[1].signal.aborted,true);
+    requests[1].resolve({...initial,total_sources:888});await tick();poll();
+    assert.equal(requests.length,2);assert.doesNotMatch(renderToStaticMarkup(d.render()),/888 Nachrichten/);
+  }finally{
+    d.close();api.memoryCoverage=previous.coverage;api.memoryTimeline=previous.timeline;
+    globalThis.window=oldWindow;globalThis.document=oldDocument;delete globalThis.__memoryStatusDriver;
+  }
+});
