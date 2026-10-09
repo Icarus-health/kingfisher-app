@@ -144,6 +144,8 @@ class Scheduler:
         self._run_working_memory = run_working_memory
         self._run_prompt_working_memory = run_prompt_working_memory
         self._run_backup = run_backup
+        #: Zwei Quellenversuche für neue/korrigierte Post zwischen großen Durchgängen.
+        self._run_priority_tasks: Callable[[], JobResult] | None = None
         #: Lagen (Ebene 3) in kleinen Paketen; wie die Einordnung nur mit Modellprüfung und Freigabe.
         self._run_lage: Callable[[bool], JobResult] | None = None
 
@@ -512,7 +514,8 @@ class Scheduler:
                 except Exception:
                     pass  # Restore boundary can reject work while recovery is pending.
             faellig = self.next_run()
-            if faellig is not None and now() >= faellig:
+            voller_lauf = faellig is not None and now() >= faellig
+            if voller_lauf:
                 try:
                     self.run_once()
                 except Exception:  # noqa: BLE001 - der Thread darf nie sterben
@@ -523,7 +526,13 @@ class Scheduler:
                     # es erneut versucht.
                     with self._lock:
                         self._last_at = now()
-            elif not prompt:
+            else:
+                # Neue/korrigierte Aufgaben warten weder auf den großen Lauf noch auf die Upload-Schlange.
+                try:
+                    self._run_background_tasks()
+                except Exception:
+                    pass  # Auch die Restore-Sperre vor dem Aufruf darf den Zeitplanfaden nicht beenden.
+            if not prompt and not voller_lauf:
                 # Rückstände der lokalen Quellen-Einordnung laufen in kleinen
                 # Batches zwischen den regulären (teuren) Aufnahme-/Sicherungs-
                 # Durchgängen. Upload-Signale haben Vorrang; die Store-Seite
@@ -546,6 +555,23 @@ class Scheduler:
                 callback = getattr(self, '_run_mail_intake', None)
                 if callback is not None:
                     callback()
+        finally:
+            self._run_lock.release()
+
+    @guarded
+    def _run_background_tasks(self) -> None:
+        """Begrenzte Wiedervorlage im selben Faden; alle Freigaben und Sperren gelten."""
+        if self._run_priority_tasks is None or not self._run_lock.acquire(blocking=False):
+            return
+        try:
+            with self._lock:
+                permitted = self._enabled and self._with_model and not self._stop.is_set()
+                steuerung = self._steuerung
+            if permitted and (steuerung is None or steuerung.sperre() is None):
+                try:
+                    self._run_priority_tasks()
+                except Exception:
+                    pass  # Dauerhafte Wiedervorlage bleibt für den nächsten erlaubten Takt erhalten.
         finally:
             self._run_lock.release()
 

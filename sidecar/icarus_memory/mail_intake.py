@@ -136,6 +136,9 @@ class Intake:
     def _captured(self, item, episode_id, created):
         self.db.execute("UPDATE mail_intake_items SET status=?,episode_id=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         ('captured' if created else 'duplicate',episode_id,item['account'],item['folder'],item['generation'],item['uid']))
+        if item['lane'] == 'live':
+            from .task_rechecks import enqueue
+            enqueue(self.episodes, episode_id)
 
     def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None):
         """Ein Hintergrundtakt mit den Filterregeln der Einstellungen (`mail_filter.intake_screen`)."""

@@ -26,6 +26,16 @@ def migrate(connection):
         connection.execute(sql)
 
 
+def enqueue(store, episode_id):
+    """Neue laufende Post vormerken; mit Aufnahme und Fortschritt atomar speicherbar."""
+    with store.transaction():
+        store._conn.execute(
+            'INSERT INTO task_rechecks(id,generation,position) '
+            'SELECT id,support_generation,(SELECT COALESCE(MAX(position),0)+1 FROM task_rechecks) '
+            'FROM episodes WHERE id=? '
+            'ON CONFLICT(id) DO UPDATE SET generation=excluded.generation', (episode_id,))
+
+
 def budget(store, total):
     if total < 1:
         return 0
