@@ -1959,10 +1959,11 @@ class EpisodeStore:
             gesamt = self._conn.execute(f"SELECT COUNT(*) FROM episodes WHERE {sql_quelle()}").fetchone()[0]
             zeilen = self._conn.execute(
                 "SELECT id,digest,state,EXISTS(SELECT 1 FROM json_each(episodes.document,'$.tags') "
-                "WHERE value='source:truncated') AS source_truncated "
+                "WHERE value='source:truncated') AS source_truncated,support_generation,metadata_digest "
                 f"FROM episodes WHERE {sql_quelle()} "
                 "ORDER BY recorded_at DESC,id LIMIT ?", (limit,)).fetchall()
-        return gesamt, [{"id": z[0], "digest": z[1], "state": z[2], "source_truncated": z[3]} for z in zeilen]
+        return gesamt, [{"id": z[0], "digest": z[1], "state": z[2], "source_truncated": z[3],
+                         "support_generation": z[4], "metadata_digest": z[5]} for z in zeilen]
 
     def termine_nach_herkunft(self, muster: str) -> list[tuple[str, str, str | None]]:
         """(Id, Text, Herkunftsangabe) geltender Termine, deren Herkunft auf das LIKE-Muster passt.
