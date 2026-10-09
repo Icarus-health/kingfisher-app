@@ -6,7 +6,7 @@ müssen dieselbe Quelle unabhängig ansehen können. Nur Vorschläge werden gesp
 from dataclasses import dataclass
 from typing import Callable
 
-from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError
+from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
 from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
 from .task_review import REVIEW_MARKER, current_task_context, task_context_matches
@@ -62,87 +62,120 @@ class TaskDetector:
         report.available = True
         attempted = 0
         cursor = self.proposals.task_scan_cursor()
-        while attempted < max(0, min(limit, 20)):
-            batch = self.episodes.analysis_batch(cursor)
-            if not batch:
-                self.proposals.advance_task_scan('')
-                break
-            for snapshot in batch:
+        budget = max(0, min(limit, 20))
+        priority_budget = self.episodes.task_recheck_budget(budget)
+
+        def work():
+            # Höchstens eine begrenzte Queue-Seite und das halbe Modellbudget.
+            # Bei Budget 1 wechselt die Spur dauerhaft, auch über Neustarts.
+            if priority_budget:
+                for row in self.episodes.task_rechecks():
+                    if attempted >= priority_budget:
+                        break
+                    try:
+                        snapshot = self.episodes.get(row['id'])
+                    except EpisodeError:
+                        self.episodes.finish_task_recheck(row, completed=True)
+                        continue
+                    yield snapshot, row
+            while attempted < budget:
+                batch = self.episodes.analysis_batch(cursor)
+                if not batch:
+                    self.proposals.advance_task_scan('')
+                    return
+                for snapshot in batch:
+                    yield snapshot, None
+
+        for snapshot, recheck in work():
+            if recheck is None:
                 cursor = snapshot.id
-                with self.lock:
-                    if not permitted():
-                        report.cancelled = True
-                        return report
-                    current = self.episodes.get(snapshot.id)
-                    if current.state in AUSGEBLENDETE_ZUSTAENDE:
-                        continue
-                    from .model import SourceType
-                    if current.provenance.source_type is SourceType.EMAIL and 'source:truncated' in current.tags:
-                        report.failed += 1
-                        continue
-                    context = current_task_context(self.episodes, current.id)
-                    if context is None:
-                        continue
-                    job = self.proposals.memory_analysis.acquire(current, self.provider, context=context)
-                    if job is None:
-                        continue
-                attempted += 1
-                try:
-                    # Den Schreiblock nicht während eines langsamen Modellaufrufs halten.
-                    text, end = segment(current.body, job['offset'])
-                    items = interpret(self.provider, current.title, text)
-                    # Mail tasks need a semantic check with the complete mail,
-                    # not only the extraction segment. Foreign promises are
-                    # not silently converted into the recipient's own work.
-                    if current.provenance.source_type is SourceType.EMAIL and items:
-                        with self.lock:
-                            fresh = self.episodes.get(current.id)
-                            if (not permitted() or fresh.state in AUSGEBLENDETE_ZUSTAENDE
-                                    or fresh.digest != current.digest or fresh.contacts != current.contacts or fresh.tags != current.tags
-                                    or model_key(self.provider) != job['model']
-                                    or current_task_context(self.episodes, current.id) != context):
-                                self.proposals.memory_analysis.abandon(job, state='cancelled')
-                                report.cancelled = True
-                                return report
-                        from .task_review import review_tasks
-                        own_source = any(contact.get('rolle') == 'von' and contact.get('ich') is True
-                                         for contact in current.contacts)
-                        items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source)
-                except BackgroundInterrupted:
-                    self.proposals.memory_analysis.abandon(job, state='cancelled')
-                    raise
-                except Exception:
-                    # Fehler bleiben erneut prüfbar, ohne fremde Texte im Status.
+            with self.lock:
+                if not permitted():
+                    report.cancelled = True
+                    return report
+                current = self.episodes.get(snapshot.id)
+                if current.state in AUSGEBLENDETE_ZUSTAENDE or current.kind not in ROHQUELLEN:
+                    if recheck is not None:
+                        self.episodes.finish_task_recheck(recheck, completed=True)
+                    continue
+                from .model import SourceType
+                if current.provenance.source_type is SourceType.EMAIL and 'source:truncated' in current.tags:
                     report.failed += 1
-                    self.proposals.memory_analysis.abandon(job)
-                else:
+                    if recheck is not None:
+                        self.episodes.finish_task_recheck(recheck, completed=False)
+                    continue
+                context = current_task_context(self.episodes, current.id)
+                if context is None:
+                    if recheck is not None:
+                        self.episodes.finish_task_recheck(recheck, completed=True)
+                    continue
+                job = self.proposals.memory_analysis.acquire(current, self.provider, context=context)
+                if job is None:
+                    if recheck is not None:
+                        complete = self.proposals.memory_analysis.completed(current, self.provider, context=context)
+                        self.episodes.finish_task_recheck(recheck, completed=complete)
+                    continue
+            attempted += 1
+            result = None
+            try:
+                # Den Schreiblock nicht während eines langsamen Modellaufrufs halten.
+                text, end = segment(current.body, job['offset'])
+                items = interpret(self.provider, current.title, text)
+                # Mail tasks need a semantic check with the complete mail,
+                # not only the extraction segment. Foreign promises are
+                # not silently converted into the recipient's own work.
+                if current.provenance.source_type is SourceType.EMAIL and items:
                     with self.lock:
-                        if not permitted():
+                        fresh = self.episodes.get(current.id)
+                        if (not permitted() or fresh.state in AUSGEBLENDETE_ZUSTAENDE
+                                or fresh.digest != current.digest or fresh.contacts != current.contacts or fresh.tags != current.tags
+                                or model_key(self.provider) != job['model']
+                                or current_task_context(self.episodes, current.id) != context):
                             self.proposals.memory_analysis.abandon(job, state='cancelled')
                             report.cancelled = True
                             return report
-                        fresh = self.episodes.get(current.id)
-                        if (fresh.state not in AUSGEBLENDETE_ZUSTAENDE and fresh.digest == current.digest
-                                and fresh.contacts == current.contacts and fresh.tags == current.tags
-                                and model_key(self.provider) == job['model']
-                                and current_task_context(self.episodes, current.id) == context):
-                            try:
-                                result = self.proposals.memory_analysis.finish(
-                                    job, items, end,
-                                    proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
-                                                + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL else ''),
-                                )
-                            except Exception:
-                                self.proposals.memory_analysis.abandon(job)
-                                raise
-                            if result is not None:
-                                report.proposed += result[0]
-                                report.analyzed += int(result[1])
-                        else:
-                            self.proposals.memory_analysis.abandon(job, state='cancelled')
+                    from .task_review import review_tasks
+                    own_source = any(contact.get('rolle') == 'von' and contact.get('ich') is True
+                                     for contact in current.contacts)
+                    items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source)
+            except BackgroundInterrupted:
+                self.proposals.memory_analysis.abandon(job, state='cancelled')
+                raise
+            except Exception:
+                # Fehler bleiben erneut prüfbar, ohne fremde Texte im Status.
+                report.failed += 1
+                self.proposals.memory_analysis.abandon(job)
+            else:
+                with self.lock:
+                    if not permitted():
+                        self.proposals.memory_analysis.abandon(job, state='cancelled')
+                        report.cancelled = True
+                        return report
+                    fresh = self.episodes.get(current.id)
+                    if (fresh.state not in AUSGEBLENDETE_ZUSTAENDE and fresh.digest == current.digest
+                            and fresh.contacts == current.contacts and fresh.tags == current.tags
+                            and model_key(self.provider) == job['model']
+                            and current_task_context(self.episodes, current.id) == context):
+                        try:
+                            result = self.proposals.memory_analysis.finish(
+                                job, items, end,
+                                proposed_by=f"{getattr(self.provider, 'name', 'local')}/{getattr(self.provider, 'model', '')}"
+                                            + (REVIEW_MARKER if current.provenance.source_type is SourceType.EMAIL else ''),
+                            )
+                        except Exception:
+                            self.proposals.memory_analysis.abandon(job)
+                            raise
+                        if result is not None:
+                            report.proposed += result[0]
+                            report.analyzed += int(result[1])
+                    else:
+                        self.proposals.memory_analysis.abandon(job, state='cancelled')
+            if recheck is not None:
+                self.episodes.finish_task_recheck(recheck, completed=result is not None and result[1])
+            else:
                 self.proposals.advance_task_scan(cursor)
-                if attempted >= max(0, min(limit, 20)):
-                    break
+            if attempted >= budget:
+                break
         return report
 
 
