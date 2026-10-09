@@ -1,0 +1,26 @@
+{
+  "purpose": "Restore original BGE assets pruned by our shared-symlink diagnostic",
+  "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+  "private_data_sent": false,
+  "model_calls": 0,
+  "started_at": 1791530440.099212,
+  "blobs": [
+    {
+      "digest": "sha256:0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+      "size": 337,
+      "restored_verified": true
+    },
+    {
+      "digest": "sha256:daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+      "size": 1157671200,
+      "restored_verified": true
+    },
+    {
+      "digest": "sha256:a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+      "size": 1068,
+      "restored_verified": true
+    }
+  ],
+  "completed": true,
+  "finished_at": 1791530503.0791948
+}

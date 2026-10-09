@@ -1,0 +1,22 @@
+[
+  {
+    "id": "H01",
+    "title": "Unicode-Einbettung",
+    "text": "🐦 Notiz: Lene Kühn prüft den Entwurf."
+  },
+  {
+    "id": "H02",
+    "title": "Zwei Personen",
+    "text": "Nachricht: Vera Noll liefert, Veit Noll prüft."
+  },
+  {
+    "id": "H03",
+    "title": "Servicepostfach",
+    "text": "Kundenservice support@example.invalid bestätigt den Eingang."
+  },
+  {
+    "id": "H04",
+    "title": "Person neben Service",
+    "text": "Vera Noll schreibt über support@example.invalid an den Kundenservice."
+  }
+]
