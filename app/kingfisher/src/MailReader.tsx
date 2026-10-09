@@ -252,7 +252,7 @@ export function MailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
         <button className="mail-reader-secondary" disabled={remembering || remembered} onClick={remember} type="button">{remembering ? "Wird gemerkt …" : remembered ? "Als Quelle gemerkt" : "Als Quelle merken"}</button>
         {rememberNotice ? <p className="mail-reader-status" role="status">{rememberNotice}</p> : null}
       </section>
-      <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
+      <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} expectedSourceDigest={detail.source_digest ?? null} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
       <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} />
       <MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} />
       {<form className="mail-reader-reply" onSubmit={prepareReply}>

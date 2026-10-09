@@ -1,0 +1,1 @@
+Confirmed reproduction: old manual title + no source_digest is accepted after the same UID changes; supplied opening digest is rejected409. Next tests exercise actual TSX submit payload under minimal hook runner and real API refusal before source/task writes. No personal/model data.

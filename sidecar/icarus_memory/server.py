@@ -38,7 +38,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from .source_versions import invalidate_with_corrections
 from .agent import Agent, Turn
 from .source_versions import track_document, exclude_missing_documents
-from .mail_task_suggestions import suggest as suggest_mail_tasks, source_digest as mail_source_digest
+from .mail_task_suggestions import suggest as suggest_mail_tasks, source_digest as mail_source_digest, task_identity as mail_task_identity
 from .audit import AuditLog
 from .backends import CogneeBackend, SqliteBackend, ImmutableContentError
 from .backup import (
@@ -2522,6 +2522,8 @@ def create_app(
                                   or body.project_id or body.due or body.waiting_for):
             raise HTTPException(status_code=422, detail="Die direkte Übernahme benötigt eine aktuelle Textstelle und enthält keine weiteren Zuordnungen.")
         _validate_task_project(body.project_id)
+        if not body.source_digest:
+            raise HTTPException(status_code=409, detail="Die gelesene Mailfassung fehlt. Bitte die Nachricht erneut öffnen und die Aufgabe prüfen.")
         # Erst die aktuelle Mail lesen; bei Quellenentzug entsteht keine Aufgabe.
         source = _mail_or_404()
         message = _read_mail(uid)
@@ -2544,7 +2546,7 @@ def create_app(
                 # The same explicit suggestion remains once-only after a lost
                 # response or reopening the mail. A source change still fails
                 # the checks above, even if an earlier task already exists.
-                key = hashlib.sha256(json.dumps([uid, body.source_digest, title, body.source_quote]).encode()).hexdigest()
+                key = mail_task_identity(message, title, body.source_quote)
                 return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
             task = app.state.tasks.add(title,
                 provenance,

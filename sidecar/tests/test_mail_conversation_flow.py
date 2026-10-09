@@ -440,7 +440,8 @@ def test_mail_task_is_explicit_sourced_and_waiting(tmp_path):
     app, first, second = mail_app()
     client = TestClient(app)
     project = client.post('/api/v1/projects', json={'name':'Atlas'}).json()
-    payload = {'title':'Angebot nachhalten', 'project_id':project['id'], 'waiting_for':'Alex', 'due':'2026-09-10T10:00:00+02:00'}
+    payload = {'title':'Angebot nachhalten', 'project_id':project['id'], 'waiting_for':'Alex', 'due':'2026-09-10T10:00:00+02:00',
+               'source_digest': client.get('/api/v1/messages/work:1').json()['source_digest']}
     response = client.post('/api/v1/messages/work:1/task', json=payload)
     assert response.status_code == 201
     task = response.json()
@@ -484,6 +485,29 @@ def test_quick_mail_task_is_idempotent_and_never_invents_due_or_person():
     assert client.post('/api/v1/messages/work:1/task', json=payload).status_code == 409
 
 
+def test_quick_mail_task_keeps_existing_identity_after_source_digest_extension():
+    import hashlib
+    from datetime import datetime, timezone
+    from icarus_memory.mail_task_suggestions import source_digest
+    app, _, second = mail_app()
+    second.item = replace(second.item, date=datetime.now(timezone.utc), body='Bitte das Angebot prüfen.')
+    client = TestClient(app)
+    message = app.state.mail.message('work:1')
+    episode = client.post('/api/v1/messages/work:1/remember').json()['episode']
+    # Der bereits veröffentlichte Schlüssel vor Datum/Vollständigkeit im Digest.
+    old_digest = hashlib.sha256(json.dumps([message.uid, message.account_id, message.message_id,
+        message.sender, message.subject, message.body or message.preview], ensure_ascii=False).encode()).hexdigest()
+    title, quote = 'Angebot prüfen', message.body
+    old_key = hashlib.sha256(json.dumps([message.uid, old_digest, title, quote]).encode()).hexdigest()
+    existing = app.state.tasks.from_suggestion('mail-' + old_key, title,
+        Provenance(SourceType.USER_STATED, source_ref='episode:' + episode['id'], verbatim=quote))
+    response = client.post('/api/v1/messages/work:1/task', json={'title':title,
+        'source_quote':quote, 'source_digest':source_digest(message), 'quick_accept':True})
+    assert response.status_code == 201
+    assert response.json()['id'] == existing.id
+    assert len(app.state.tasks.all_tasks()) == 1
+
+
 def test_quick_accept_requires_current_evidence_and_no_hidden_assignment():
     app, _, _ = mail_app()
     client = TestClient(app)
@@ -518,6 +542,50 @@ def test_local_suggestions_are_read_only_and_bound_to_current_mail():
     assert not remote['available'] and remote['items'] == []
 
 
+@pytest.mark.parametrize('binding', [{}, {'source_digest': None}])
+def test_manual_mail_task_without_opened_source_version_never_captures(binding):
+    app, _, second = mail_app()
+    client = TestClient(app)
+    opened = client.get('/api/v1/messages/work:1').json()
+    second.item = replace(second.item, subject='Bitte zurückgezogen', body='Es ist nichts mehr zu tun.')
+    response = client.post('/api/v1/messages/work:1/task', json={
+        'title': opened['subject'], 'due': '2026-10-12T12:00:00+02:00', **binding})
+    assert response.status_code == 409
+    assert app.state.tasks.all_tasks() == []
+    assert app.state.episodes.all_episodes() == []
+
+
+def test_manual_mail_task_keeps_opened_version_without_model_quote():
+    app, _, second = mail_app()
+    client = TestClient(app)
+    opened = client.get('/api/v1/messages/work:1').json()
+    original = second.item
+    payload = {'title': 'Angebot nachhalten', 'source_digest': opened['source_digest']}
+    second.item = replace(original, body='Die Bitte ist zurückgezogen.')
+    assert client.post('/api/v1/messages/work:1/task', json=payload).status_code == 409
+    assert app.state.tasks.all_tasks() == [] and app.state.episodes.all_episodes() == []
+    second.item = original
+    response = client.post('/api/v1/messages/work:1/task', json=payload)
+    assert response.status_code == 201
+    task = response.json()
+    source = client.get(f"/api/v1/tasks/{task['id']}/source").json()
+    assert source['body'] == original.body
+
+
+@pytest.mark.parametrize('field', ['date', 'truncated'])
+def test_manual_mail_task_rejects_changed_source_timing_or_completeness(field):
+    from datetime import datetime, timezone
+    app, _, second = mail_app()
+    client = TestClient(app)
+    opened = client.get('/api/v1/messages/work:1').json()
+    changes = {'date': datetime(2015, 1, 1, tzinfo=timezone.utc)} if field == 'date' else {'truncated': True}
+    second.item = replace(second.item, **changes)
+    response = client.post('/api/v1/messages/work:1/task', json={
+        'title': 'Aufgabe aus der gelesenen Mail', 'source_digest': opened['source_digest']})
+    assert response.status_code == 409
+    assert app.state.tasks.all_tasks() == [] and app.state.episodes.all_episodes() == []
+
+
 def test_suggestions_reject_tool_calls_and_invalid_json():
     from icarus_memory.providers import Reply, ToolCall
     class Local:
@@ -538,7 +606,8 @@ def test_task_source_survives_mail_removal_completion_and_restart():
     app, _, second = mail_app()
     second.item.body = '<script>kein aktiver Inhalt</script>' + 'x' * 20000
     client = TestClient(app)
-    task = client.post('/api/v1/messages/work:1/task', json={'title':'Quelle prüfen'}).json()
+    task = client.post('/api/v1/messages/work:1/task', json={'title':'Quelle prüfen',
+        'source_digest': client.get('/api/v1/messages/work:1').json()['source_digest']}).json()
     del app.state.mail._accounts['work']
     client.post(f'/api/v1/tasks/{task["id"]}/done')
     # Neue Stores lesen denselben persistenten lokalen Bestand.
@@ -595,13 +664,14 @@ def test_task_source_revocation_during_fetch_prevents_partial_capture(tmp_path, 
     monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
     app, first, second = mail_app()
     client = TestClient(app)
+    opened_digest = client.get('/api/v1/messages/work:1').json()['source_digest']
     original = second.message
     def revoked(uid):
         result = original(uid)
         app.state.mail = None
         return result
     second.message = revoked
-    response = client.post('/api/v1/messages/work:1/task', json={'title':'Prüfen'})
+    response = client.post('/api/v1/messages/work:1/task', json={'title':'Prüfen', 'source_digest':opened_digest})
     assert response.status_code == 409
     assert app.state.episodes.all_episodes() == []
 

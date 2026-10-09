@@ -6,18 +6,19 @@ import { navigate } from "./ui";
 type MailTaskFormProps = {
   uid: string;
   subject: string;
+  expectedSourceDigest: string | null;
   initialSuggestion?: { title: string; quote: string; source_digest: string };
   onTaskFormProtected?: (protectedState: boolean) => void;
 };
 
-export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
+export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(subject || "(Ohne Betreff)");
   const [projectId, setProjectId] = useState("");
   const [due, setDue] = useState("");
   const [waitingFor, setWaitingFor] = useState("");
   const [sourceQuote, setSourceQuote] = useState<string | null>(null);
-  const [sourceDigest, setSourceDigest] = useState<string | null>(null);
+  const [sourceDigest, setSourceDigest] = useState<string | null>(expectedSourceDigest);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsError, setProjectsError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,12 +38,12 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
   }
 
   useEffect(() => {
-    if (!initialSuggestion || userChanged.current || saved) return;
+    if (!initialSuggestion || initialSuggestion.source_digest !== expectedSourceDigest || userChanged.current || saved) return;
     setOpen(true);
     setTitle(initialSuggestion.title);
     setSourceQuote(initialSuggestion.quote);
     setSourceDigest(initialSuggestion.source_digest);
-  }, [initialSuggestion, saved]);
+  }, [initialSuggestion, expectedSourceDigest, saved]);
 
   useEffect(() => {
     let active = true;
@@ -58,6 +59,10 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
     event.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle || saving || saved) return;
+    if (!sourceDigest || sourceDigest !== expectedSourceDigest) {
+      setError("Die gelesene Mailfassung konnte nicht bestätigt werden. Bitte die Nachricht neu öffnen und deine Eingaben mit dem Original abgleichen.");
+      return;
+    }
     protectSuggestion();
     setSaving(true);
     setError(null);
@@ -67,7 +72,7 @@ export function MailTaskForm({ uid, subject, initialSuggestion, onTaskFormProtec
         project_id: projectId || null,
         due: endOfTaskDay(due),
         waiting_for: waitingFor.trim() || null,
-        ...(sourceDigest ? { source_digest: sourceDigest } : {}),
+        source_digest: sourceDigest,
         ...(sourceQuote ? { source_quote: sourceQuote } : {}),
       });
       setSaved(task);
