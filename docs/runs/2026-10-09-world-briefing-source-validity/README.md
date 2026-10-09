@@ -1,6 +1,6 @@
 # Weltmeldung nur aus aktuellen Quellen und eigenen Belegen
 
-Code **e2bd4c14e98a0aed7ca8a873286dbf46e53c52ad**, Paket **1.0.6-preview.e2bd4c1**, Basis `f782636` der offenen gemeinsamen Draft-Vorschau #46. Nicht in Main übernommen und nicht installiert.
+Code **e2bd4c14e98a0aed7ca8a873286dbf46e53c52ad**, Paket **1.0.6-preview.e2bd4c1**, Basis `f782636` der offenen gemeinsamen Draft-Vorschau #46. Ergänzung [#52](https://github.com/Icarus-health/kingfisher-app/pull/52) in die weiterhin offene [Draft-Vorschau #46](https://github.com/Icarus-health/kingfisher-app/pull/46) übernommen (`30dde28`); Laufzeit-, UI-, native, Design-, Deployment-, Script- und Versionsquellen bytegleich zum geprüften Code. Nicht in Main übernommen und nicht installiert.
 
 ## Fehler und Korrektur
 

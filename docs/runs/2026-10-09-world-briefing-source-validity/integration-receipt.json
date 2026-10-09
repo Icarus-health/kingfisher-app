@@ -1,0 +1,10 @@
+{
+  "pr": 52,
+  "destination": "integration/cos-preview-reviewed-20261009",
+  "merge_commit": "30dde28ed1f3b2171bb2353f51f32a8fe7ed25ac",
+  "tested_code": "e2bd4c14e98a0aed7ca8a873286dbf46e53c52ad",
+  "runtime_ui_native_design_deploy_scripts_version_byte_equal": true,
+  "main_updated": false,
+  "productive_installed": false,
+  "window_tested": false
+}
