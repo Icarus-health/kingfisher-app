@@ -1319,6 +1319,10 @@ class EpisodeStore:
             episode.state = EpisodeState.NEW
             episode.tags = [tag for tag in episode.tags if not tag.startswith(ENTZUG_MARKE)]
             self._put(episode, _reopen=True)
+            # Das Wiederöffnen ist eine neue ausdrückliche Prüfung. Ein früherer
+            # Queue-Abschluss darf diese spätere Freigabe nicht quittieren.
+            self._conn.execute('UPDATE episodes SET support_generation=support_generation+1 WHERE id=?',
+                               (episode_id,))
             return episode
 
     def archive_before(self, cutoff: datetime) -> int:

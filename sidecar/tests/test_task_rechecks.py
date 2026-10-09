@@ -250,3 +250,14 @@ def test_migration_failure_rolls_back_queue_and_version(tmp_path):
     assert conn.execute('PRAGMA user_version').fetchone()[0] == 20
     assert conn.execute("SELECT name FROM sqlite_schema WHERE name LIKE 'task_recheck%' OR name LIKE 'trg_task_recheck%'").fetchall() == []
     conn.close()
+
+
+def test_reopen_after_excluded_ack_is_prioritized_behind_backlog(context):
+    app, _, detector, _ = context
+    first = backlog(context)
+    app.state.episodes.ignore(first.id)
+    detector.run(with_model=True, limit=2)
+    assert app.state.episodes.task_rechecks() == []
+    app.state.episodes.reopen(first.id)
+    assert detector.run(with_model=True, limit=2).analyzed == 2
+    assert app.state.proposals.memory_analysis.snapshot(first.id)['version'] == analysis_version(current_task_context(app.state.episodes, first.id))
