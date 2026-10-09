@@ -1,0 +1,209 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "platform": "native macOS / Metal if runtime confirms",
+  "no_hard_memory_cap": true,
+  "watchdog": "8 GiB sampled process RSS or 600s; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791504041.303338,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 35760
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 298656
+    },
+    {
+      "elapsed": 4.08,
+      "owned_rss_kib": 3949328
+    },
+    {
+      "elapsed": 6.11,
+      "owned_rss_kib": 4511008
+    },
+    {
+      "elapsed": 8.14,
+      "owned_rss_kib": 4512496
+    },
+    {
+      "elapsed": 10.17,
+      "owned_rss_kib": 1501136
+    },
+    {
+      "elapsed": 12.2,
+      "owned_rss_kib": 5103616
+    },
+    {
+      "elapsed": 14.25,
+      "owned_rss_kib": 5077472
+    },
+    {
+      "elapsed": 16.27,
+      "owned_rss_kib": 296128
+    },
+    {
+      "elapsed": 18.3,
+      "owned_rss_kib": 5045424
+    },
+    {
+      "elapsed": 20.33,
+      "owned_rss_kib": 5153728
+    },
+    {
+      "elapsed": 22.36,
+      "owned_rss_kib": 5153696
+    },
+    {
+      "elapsed": 24.39,
+      "owned_rss_kib": 3489792
+    },
+    {
+      "elapsed": 26.42,
+      "owned_rss_kib": 5029776
+    },
+    {
+      "elapsed": 28.46,
+      "owned_rss_kib": 4497920
+    },
+    {
+      "elapsed": 30.49,
+      "owned_rss_kib": 245472
+    },
+    {
+      "elapsed": 32.52,
+      "owned_rss_kib": 4983440
+    },
+    {
+      "elapsed": 34.57,
+      "owned_rss_kib": 4649184
+    },
+    {
+      "elapsed": 36.6,
+      "owned_rss_kib": 4550944
+    },
+    {
+      "elapsed": 38.63,
+      "owned_rss_kib": 4661792
+    },
+    {
+      "elapsed": 40.67,
+      "owned_rss_kib": 4839536
+    },
+    {
+      "elapsed": 42.72,
+      "owned_rss_kib": 4812992
+    },
+    {
+      "elapsed": 44.74,
+      "owned_rss_kib": 1268736
+    },
+    {
+      "elapsed": 46.77,
+      "owned_rss_kib": 5076128
+    },
+    {
+      "elapsed": 48.83,
+      "owned_rss_kib": 5515872
+    },
+    {
+      "elapsed": 50.86,
+      "owned_rss_kib": 5294976
+    },
+    {
+      "elapsed": 52.88,
+      "owned_rss_kib": 174528
+    },
+    {
+      "elapsed": 54.94,
+      "owned_rss_kib": 4926944
+    },
+    {
+      "elapsed": 56.98,
+      "owned_rss_kib": 5303456
+    },
+    {
+      "elapsed": 59.01,
+      "owned_rss_kib": 4658912
+    },
+    {
+      "elapsed": 61.06,
+      "owned_rss_kib": 4740848
+    },
+    {
+      "elapsed": 63.09,
+      "owned_rss_kib": 229632
+    },
+    {
+      "elapsed": 65.12,
+      "owned_rss_kib": 5041472
+    },
+    {
+      "elapsed": 67.23,
+      "owned_rss_kib": 5249632
+    },
+    {
+      "elapsed": 69.27,
+      "owned_rss_kib": 5031280
+    },
+    {
+      "elapsed": 71.32,
+      "owned_rss_kib": 4665600
+    },
+    {
+      "elapsed": 73.36,
+      "owned_rss_kib": 4427904
+    },
+    {
+      "elapsed": 75.38,
+      "owned_rss_kib": 5151504
+    },
+    {
+      "elapsed": 77.47,
+      "owned_rss_kib": 4982880
+    },
+    {
+      "elapsed": 79.53,
+      "owned_rss_kib": 4553024
+    }
+  ],
+  "completed": false,
+  "server_pid": 50222,
+  "tags": {
+    "models": [
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-07-03T15:20:19.142626614+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 50225,
+  "client_exit": 1,
+  "server_exit": 0,
+  "stopped_at": 1791504123.3411999
+}

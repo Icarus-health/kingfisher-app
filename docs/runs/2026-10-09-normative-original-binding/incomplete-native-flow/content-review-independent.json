@@ -1,0 +1,84 @@
+{
+  "review_type": "independent_content_review",
+  "status": "not_rateable_no_answers_generated",
+  "source_commit": "ce39f71046581567d9915d1b06a73e991072f1f3",
+  "branch": "fix/normative-original-evidence-20261009",
+  "catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "catalog_source_count": 19,
+  "catalog_question_count": 16,
+  "frozen_product_sha256": "70d6d086165d59946431c6d14de67c8c2a8df0763fe81c2ba0db744eac3009b8",
+  "answers_sha256": "580cdb75c2aefdd0f95f5f5b48b5da38558d4fb3ce482672d73a6bf09ff52001",
+  "runtime_sha256": "fcdd4dd88929ee8bf159b1df687ddeed5de90add8daad00936e01d290298cb2d",
+  "run_status": {
+    "completed": false,
+    "client_exit": 1,
+    "server_exit": 0,
+    "watchdog_stop": null,
+    "production_endpoint_touched": false
+  },
+  "observed_stages": {
+    "intake": 19,
+    "classification": 19,
+    "topic_entity_suggestions": 19,
+    "index": "unavailable",
+    "visible_answer_rows": 0
+  },
+  "failure": {
+    "stage": "embedding/indexing before any question answer stage",
+    "error": "RuntimeError: Embedding batch failed",
+    "cause": "The immediate failure was missing BGE-M3 blobs during embedding. Root cause is now established as a prior probe-harness error, not a preexisting cache deficiency: the earlier gate-only runner exposed the shared native ~/.ollama/models/blobs through a writable symlink while its isolated manifest contained only qwen, and Ollama pruning was enabled.",
+    "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "required_blobs": [
+      {
+        "digest": "sha256:0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+        "path": "/Users/sorenkube/.ollama/models/blobs/sha256-0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+        "exists": false
+      },
+      {
+        "digest": "sha256:daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+        "path": "/Users/sorenkube/.ollama/models/blobs/sha256-daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+        "exists": false
+      },
+      {
+        "digest": "sha256:a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+        "path": "/Users/sorenkube/.ollama/models/blobs/sha256-a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+        "exists": false
+      }
+    ],
+    "initial_assessment_superseded": "The original wording that the missing blobs were already absent from the shared cache is withdrawn; the evidence below shows the earlier test removed them."
+  },
+  "docker_fallback": {
+    "inspected_read_only": true,
+    "kingfisher_labeled_volumes": [
+      "kingfisher_kingfisher-data"
+    ],
+    "dedicated_kingfisher_ollama_model_volume_found": false,
+    "reusable_alternate_exact_blobs_found": false,
+    "unrelated_javis_ollama_volume_touched": false
+  },
+  "prior_comparison": {
+    "baseline": "/private/tmp/kingfisher-phase-after-final-20261009",
+    "same_catalog_sha256": true,
+    "baseline_was_successful": true,
+    "answer_quality_delta": "not assessable: current run generated zero answer rows; no claim of improvement or regression"
+  },
+  "conclusion": "The failed 19-source run cannot be used for product answer-quality conclusions: BGE-M3 had been pruned by the earlier shared-cache symlink harness before the index stage. This is a harness-caused preflight failure, not a product answer-quality regression. The successful separate formulation-only run is reported independently and does not test retrieval/indexing.",
+  "proposed_preflight_runner_sha256": "24fae3697d240c16956ecd9053f3c5adc37762f45b44c442a2babecb234ae066",
+  "proposed_preflight_runner_executed": false,
+  "causal_correction": {
+    "cause": "The earlier /private/tmp/kingfisher-phase-real-verifier-20261009 runner used OLLAMA_MODELS=/private/tmp/kingfisher-phase-real-verifier-20261009/models, copied only the qwen manifest, symlinked models/blobs to the native shared cache, and left OLLAMA_NOPRUNE=false. Its own Ollama log reports total blobs 7 then total unused blobs removed 3; this pruned the three BGE-M3 blobs shared by the native cache.",
+    "prior_pruning_log": "/private/tmp/kingfisher-phase-real-verifier-20261009/ollama.log",
+    "evidence_lines": {
+      "line_1": "OLLAMA_NOPRUNE:false; OLLAMA_MODELS points to the gate-only temp models directory",
+      "line_3": "total blobs: 7",
+      "line_4": "total unused blobs removed: 3"
+    },
+    "failed_run_log": "/private/tmp/kingfisher-normative-after-20261009/ollama.log",
+    "failed_run_evidence_lines": {
+      "line_1": "OLLAMA_NOPRUNE:false; models/blobs resolved through the shared-cache symlink",
+      "line_3": "total blobs: 4",
+      "line_4": "total unused blobs removed: 0; by this run, the BGE blobs had already been removed"
+    },
+    "disposition": "Harness mistake caused local model-cache damage. No download or model substitution was performed. The fresh formulation-only run used qwen APFS clones in a real isolated blob directory with OLLAMA_NOPRUNE=1, and confirmed native qwen source blobs unchanged."
+  }
+}

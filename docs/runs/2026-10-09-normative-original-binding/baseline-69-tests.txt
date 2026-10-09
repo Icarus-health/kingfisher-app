@@ -1,0 +1,1061 @@
+FF..FFF.FFFFFFFFFFFFF.........FFFFFFFFFFFFFFF.FFFFFF.FFFFFF.FFFFFFF..    [100%]
+=================================== FAILURES ===================================
+_______________ test_independent_original_binding_controls[N01] ________________
+
+case = {'id': 'N01', 'source_ids': ['N01-S1'], 'candidate': 'Nach dem Fotografieren des Etiketts darf das Originaletikett ent...ual_control': 'Falsch: nur die Dublette darf entsorgt werden; das Originaletikett muss beim Herbarbeleg bleiben.', ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach dem Fotografieren des Etiketts darf das Originaletikett entsorgt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N02] ________________
+
+case = {'id': 'N02', 'source_ids': ['N02-S1'], 'candidate': 'Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsd...de.', 'factual_control': 'Nicht belegt: Die Quelle nennt das Messen des Leitungsdrucks, nicht dessen Einstellen.', ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Das Rückschlagventil darf geöffnet werden, nachdem der Leitungsdruck eingestellt wurde.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N05] ________________
+
+case = {'id': 'N05', 'source_ids': ['N05-S1'], 'candidate': 'Nach der Inventur darf die mit rotem Faden markierte Münze aus d...lle eingeschränkt: Die Erlaubnis betrifft das Öffnen der Mappe; die markierten Münzen müssen versiegelt bleiben.', ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach der Inventur darf die mit rotem Faden markierte Münze aus der Ledermappe genommen werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N06] ________________
+
+case = {'id': 'N06', 'source_ids': ['N06-S1'], 'candidate': 'Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.', 'fac...: Nach dem Abkühlen darf die Ofentür geöffnet werden; für den Rohling gilt die Abdeckungspflicht bis zum Wiegen.', ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N07] ________________
+
+case = {'id': 'N07', 'source_ids': ['N07-S1'], 'candidate': 'Nach dem Signal darf das Nordtor entriegelt werden.', 'factual_c...gebenes Zitat; die verbindliche Aussage verlangt, dass das Tor bis zur schriftlichen Freigabe verriegelt bleibt.', ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach dem Signal darf das Nordtor entriegelt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N09] ________________
+
+case = {'id': 'N09', 'source_ids': ['N09-S1'], 'candidate': 'Der Techniker muss den Messbericht prüfen, bevor die Archivarin die Anlage startet.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Der Techniker muss den Messbericht prüfen, bevor die Archivarin die Anlage startet.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N10] ________________
+
+case = {'id': 'N10', 'source_ids': ['N10-S1'], 'candidate': 'Das Siegel muss geöffnet und die Mappe muss unversehrt aufbewahrt werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Das Siegel muss geöffnet und die Mappe muss unversehrt aufbewahrt werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N11] ________________
+
+case = {'id': 'N11', 'source_ids': ['N11-S1'], 'candidate': 'Vor dem Transport muss die Batterie ausgebaut werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Vor dem Transport muss die Batterie ausgebaut werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N12] ________________
+
+case = {'id': 'N12', 'source_ids': ['N12-S1'], 'candidate': 'Die Anlage darf nach Prüfung des Protokolls gestartet werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Die Anlage darf nach Prüfung des Protokolls gestartet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N13] ________________
+
+case = {'id': 'N13', 'source_ids': ['N13-S1'], 'candidate': 'Nach dem Wiegen darf die Dose geöffnet werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach dem Wiegen darf die Dose geöffnet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N14] ________________
+
+case = {'id': 'N14', 'source_ids': ['N14-S1'], 'candidate': 'Nach dem Wiegen darf die Dose geöffnet werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach dem Wiegen darf die Dose geöffnet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N15] ________________
+
+case = {'id': 'N15', 'source_ids': ['N15-S1'], 'candidate': 'Das Sicherungsband muss angelegt bleiben.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Das Sicherungsband muss angelegt bleiben.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N16] ________________
+
+case = {'id': 'N16', 'source_ids': ['N16-S1'], 'candidate': 'Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll freigegeben hat.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll freigegeben hat.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N17] ________________
+
+case = {'id': 'N17', 'source_ids': ['N17-S1'], 'candidate': 'Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll und die Messkurve freigegeben hat.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Die Technikerin darf die Anlage starten, nachdem der Prüfer das Protokoll und die Messkurve freigegeben hat.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N18] ________________
+
+case = {'id': 'N18', 'source_ids': ['N18-S1'], 'candidate': 'Es ist erlaubt, die Ventilklappe nach der Kontrolle zu öffnen.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Es ist erlaubt, die Ventilklappe nach der Kontrolle zu öffnen.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N20] ________________
+
+case = {'id': 'N20', 'source_ids': ['N20-S1'], 'candidate': 'Die Messsonde darf z.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Die Messsonde darf z.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N21] ________________
+
+case = {'id': 'N21', 'source_ids': ['N21-S1'], 'candidate': 'Der Techniker muss die Schraube Nr.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Der Techniker muss die Schraube Nr.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+_______________ test_independent_original_binding_controls[N22] ________________
+
+case = {'id': 'N22', 'source_ids': ['N22-S1'], 'candidate': 'Nach der Kontrolle darf die Klappe geöffnet werden.', 'expected_binding': False, ...}
+
+    @pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+    def test_independent_original_binding_controls(case):
+        belege = {str(n): Beleg(str(n), SOURCES[s]) for n, s in enumerate(case['source_ids'], 1)}
+        result = satz_pruefen(Satz(case['candidate'], tuple(belege)), belege)
+>       assert result.bestanden is case['expected_binding'], result.gruende
+E       AssertionError: ()
+E       assert True is False
+E        +  where True = Urteil(satz=Satz(text='Nach der Kontrolle darf die Klappe geöffnet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+
+sidecar/tests/test_normative_source_binding.py:22: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N02] ______
+
+case_id = 'N02'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N06] ______
+
+case_id = 'N06'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N09] ______
+
+case_id = 'N09'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N11] ______
+
+case_id = 'N11'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N13] ______
+
+case_id = 'N13'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N14] ______
+
+case_id = 'N14'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N20] ______
+
+case_id = 'N20'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+______ test_legacy_wrong_candidate_cannot_escape_through_formulation[N22] ______
+
+case_id = 'N22'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N09', 'N11', 'N13', 'N14', 'N20', 'N22'])
+    def test_legacy_wrong_candidate_cannot_escape_through_formulation(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:30: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P01] ___
+
+case_id = 'P01'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P02] ___
+
+case_id = 'P02'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P03] ___
+
+case_id = 'P03'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P04] ___
+
+case_id = 'P04'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P05] ___
+
+case_id = 'P05'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P06] ___
+
+case_id = 'P06'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+___ test_model_selects_complete_original_instead_of_reconstructing_rule[P07] ___
+
+case_id = 'P07'
+
+    @pytest.mark.parametrize('case_id', ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'])
+    def test_model_selects_complete_original_instead_of_reconstructing_rule(case_id):
+        case = next(c for c in CASES if c['id'] == case_id)
+        source = SOURCES[case['source_ids'][0]]
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'zitate' == 'saetze'
+E
+E         - saetze
+E         + zitate
+
+sidecar/tests/test_normative_source_binding.py:40: AssertionError
+__________ test_hidden_original_cannot_be_reintroduced_by_legacy_text __________
+
+    def test_hidden_original_cannot_be_reintroduced_by_legacy_text():
+        hidden = 'Die Klappe darf nach der Kontrolle geöffnet werden.'
+        visible = 'Der Bericht liegt im Tresor.'
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': hidden, 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(visible, pruef_text=hidden + ' ' + visible, gekuerzt=True)],
+                                provider, jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:50: AssertionError
+__ test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source ___
+
+    def test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source():
+        from dataclasses import replace
+        permission = 'Die Klappe darf nach der Kontrolle geöffnet werden.'
+        visible = 'Der Bericht liegt im Tresor.'
+        hidden = evidence(visible, pruef_text=permission + ' ' + visible, gekuerzt=True)
+        quoted = replace(evidence('Alte Anweisung: „Zunächst wird das Datum notiert. ' + permission
+                                  + ' Diese Anweisung wurde verworfen.“'), nummer=2, episode_id='source-2')
+        for cited in [[1], [2], [1, 2]]:
+            result = sa.formulieren('Was gilt?', [hidden, quoted], Selector({'status': 'antwort', 'saetze': [
+                {'text': permission, 'belege': cited}]}), jetzt=NOW)
+>           assert result.status == 'zitate', cited
+E           AssertionError: [1]
+E           assert 'saetze' == 'zitate'
+E
+E             - zitate
+E             + saetze
+
+sidecar/tests/test_normative_source_binding.py:63: AssertionError
+_ test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.] _
+
+source = 'Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.'
+
+    @pytest.mark.parametrize('source', [
+        'Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.',
+        'Der Techniker muss die Schraube Nr. 7 vor dem Start prüfen.',
+        'Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.',
+        'Die Anlage darf am 9. Oktober nach der Prüfung gestartet werden.',
+    ])
+    def test_abbreviations_and_ordinals_do_not_issue_permission_fragments(source):
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       offered = json.loads(provider.messages[0][0][-1]['content'])['belege'][0]['originalsaetze']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'originalsaetze'
+
+sidecar/tests/test_normative_source_binding.py:75: KeyError
+_ test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Der Techniker muss die Schraube Nr. 7 vor dem Start pr\xfcfen.] _
+
+source = 'Der Techniker muss die Schraube Nr. 7 vor dem Start prüfen.'
+
+    @pytest.mark.parametrize('source', [
+        'Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.',
+        'Der Techniker muss die Schraube Nr. 7 vor dem Start prüfen.',
+        'Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.',
+        'Die Anlage darf am 9. Oktober nach der Prüfung gestartet werden.',
+    ])
+    def test_abbreviations_and_ordinals_do_not_issue_permission_fragments(source):
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       offered = json.loads(provider.messages[0][0][-1]['content'])['belege'][0]['originalsaetze']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'originalsaetze'
+
+sidecar/tests/test_normative_source_binding.py:75: KeyError
+_ test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.] _
+
+source = 'Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.'
+
+    @pytest.mark.parametrize('source', [
+        'Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.',
+        'Der Techniker muss die Schraube Nr. 7 vor dem Start prüfen.',
+        'Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.',
+        'Die Anlage darf am 9. Oktober nach der Prüfung gestartet werden.',
+    ])
+    def test_abbreviations_and_ordinals_do_not_issue_permission_fragments(source):
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       offered = json.loads(provider.messages[0][0][-1]['content'])['belege'][0]['originalsaetze']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'originalsaetze'
+
+sidecar/tests/test_normative_source_binding.py:75: KeyError
+_ test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Anlage darf am 9. Oktober nach der Pr\xfcfung gestartet werden.] _
+
+source = 'Die Anlage darf am 9. Oktober nach der Prüfung gestartet werden.'
+
+    @pytest.mark.parametrize('source', [
+        'Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.',
+        'Der Techniker muss die Schraube Nr. 7 vor dem Start prüfen.',
+        'Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.',
+        'Die Anlage darf am 9. Oktober nach der Prüfung gestartet werden.',
+    ])
+    def test_abbreviations_and_ordinals_do_not_issue_permission_fragments(source):
+        provider = Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]})
+        result = sa.formulieren('Was gilt?', [evidence(source)], provider, jetzt=NOW)
+>       offered = json.loads(provider.messages[0][0][-1]['content'])['belege'][0]['originalsaetze']
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'originalsaetze'
+
+sidecar/tests/test_normative_source_binding.py:75: KeyError
+________ test_descriptive_event_does_not_become_an_invented_permission _________
+
+    def test_descriptive_event_does_not_become_an_invented_permission():
+        source = 'Nach der Kontrolle wird die Klappe geöffnet.'
+        candidate = 'Nach der Kontrolle darf die Klappe geöffnet werden.'
+>       assert not satz_pruefen(Satz(candidate, ('1',)), {'1': Beleg('1', source)}).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Nach der Kontrolle darf die Klappe geöffnet werden.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Nach der Kontrolle darf die Klappe geöffnet werden.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Nach der Kontrolle darf die Klappe geöffnet werden.', belege=('1',)), {'1': Beleg(nummer='1', text='Nach der Kontrolle wird die Klappe geöffnet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Nach der Kontrolle darf die Klappe geöffnet werden.', belege=('1',)) = Satz('Nach der Kontrolle darf die Klappe geöffnet werden.', ('1',))
+
+sidecar/tests/test_normative_source_binding.py:89: AssertionError
+__ test_incorrect_yes_from_second_model_cannot_override_original_binding[N02] __
+
+case_id = 'N02'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06'])
+    def test_incorrect_yes_from_second_model_cannot_override_original_binding(case_id):
+        from icarus_memory import satzpruefung_modell as spm
+        from tests.test_satzpruefung_modell import Pruefer
+        case = next(c for c in CASES if c['id'] == case_id)
+        judge = Pruefer(standard='{"urteil":"ja"}')
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider,
+                                jetzt=NOW, pruefung=spm.tor('an', judge))
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:104: AssertionError
+__ test_incorrect_yes_from_second_model_cannot_override_original_binding[N06] __
+
+case_id = 'N06'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06'])
+    def test_incorrect_yes_from_second_model_cannot_override_original_binding(case_id):
+        from icarus_memory import satzpruefung_modell as spm
+        from tests.test_satzpruefung_modell import Pruefer
+        case = next(c for c in CASES if c['id'] == case_id)
+        judge = Pruefer(standard='{"urteil":"ja"}')
+        provider = Selector({'status': 'antwort', 'saetze': [{'text': case['candidate'], 'belege': [1]}]})
+        result = sa.formulieren('Was gilt?', [evidence(SOURCES[case['source_ids'][0]])], provider,
+                                jetzt=NOW, pruefung=spm.tor('an', judge))
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:104: AssertionError
+____________ test_selected_original_still_requires_second_gate[ja] _____________
+
+verdict = 'ja'
+
+    @pytest.mark.parametrize('verdict', ['ja', 'nein', 'unklar'])
+    def test_selected_original_still_requires_second_gate(verdict):
+        from icarus_memory import satzpruefung_modell as spm
+        from tests.test_satzpruefung_modell import Pruefer
+        source = SOURCES['N02-S1']
+        judge = Pruefer(standard=json.dumps({'urteil': verdict}))
+        result = sa.formulieren('Was gilt?', [evidence(source)],
+            Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]}),
+            jetzt=NOW, pruefung=spm.tor('an', judge))
+>       assert len(judge.anfragen) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+E        +    where [] = <tests.test_satzpruefung_modell.Pruefer object at 0x10bc18fb0>.anfragen
+
+sidecar/tests/test_normative_source_binding.py:117: AssertionError
+___________ test_selected_original_still_requires_second_gate[nein] ____________
+
+verdict = 'nein'
+
+    @pytest.mark.parametrize('verdict', ['ja', 'nein', 'unklar'])
+    def test_selected_original_still_requires_second_gate(verdict):
+        from icarus_memory import satzpruefung_modell as spm
+        from tests.test_satzpruefung_modell import Pruefer
+        source = SOURCES['N02-S1']
+        judge = Pruefer(standard=json.dumps({'urteil': verdict}))
+        result = sa.formulieren('Was gilt?', [evidence(source)],
+            Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]}),
+            jetzt=NOW, pruefung=spm.tor('an', judge))
+>       assert len(judge.anfragen) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+E        +    where [] = <tests.test_satzpruefung_modell.Pruefer object at 0x10bc18920>.anfragen
+
+sidecar/tests/test_normative_source_binding.py:117: AssertionError
+__________ test_selected_original_still_requires_second_gate[unklar] ___________
+
+verdict = 'unklar'
+
+    @pytest.mark.parametrize('verdict', ['ja', 'nein', 'unklar'])
+    def test_selected_original_still_requires_second_gate(verdict):
+        from icarus_memory import satzpruefung_modell as spm
+        from tests.test_satzpruefung_modell import Pruefer
+        source = SOURCES['N02-S1']
+        judge = Pruefer(standard=json.dumps({'urteil': verdict}))
+        result = sa.formulieren('Was gilt?', [evidence(source)],
+            Selector({'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 1}]}),
+            jetzt=NOW, pruefung=spm.tor('an', judge))
+>       assert len(judge.anfragen) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+E        +    where [] = <tests.test_satzpruefung_modell.Pruefer object at 0x10bbffb30>.anfragen
+
+sidecar/tests/test_normative_source_binding.py:117: AssertionError
+_____ test_rejected_rule_cannot_be_hidden_by_a_true_fact_from_same_source ______
+
+    def test_rejected_rule_cannot_be_hidden_by_a_true_fact_from_same_source():
+        source = SOURCES['N02-S1'] + ' Der Bericht liegt im Tresor.'
+        bad = next(c['candidate'] for c in CASES if c['id'] == 'N02')
+        result = sa.formulieren('Was gilt?', [evidence(source)], Selector({'status': 'antwort', 'saetze': [
+            {'text': bad, 'belege': [1]}, {'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]}), jetzt=NOW)
+>       assert result.status == 'zitate'
+E       AssertionError: assert 'saetze' == 'zitate'
+E
+E         - zitate
+E         + saetze
+
+sidecar/tests/test_normative_source_binding.py:134: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N02] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked0')
+case_id = 'N02'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Das Rückschlagventil darf geöffnet werden, nachdem der Leitungs...htag='2026-10-09T00:00:41.514201+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N06] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked1')
+case_id = 'N06'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Nach dem Abkühlen darf der Glasrohling aufgedeckt werden.', tex...htag='2026-10-09T00:00:41.580507+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N11] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked2')
+case_id = 'N11'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Vor dem Transport muss die Batterie ausgebaut werden.', text='V...htag='2026-10-09T00:00:41.643232+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N13] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked3')
+case_id = 'N13'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Nach dem Wiegen darf die Dose geöffnet werden.', text='Nach dem...htag='2026-10-09T00:00:41.708574+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N14] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked4')
+case_id = 'N14'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Nach dem Wiegen darf die Dose geöffnet werden.', text='Nach dem...htag='2026-10-09T00:00:41.770245+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+_________ test_old_answers_are_rechecked_after_real_stores_reopen[N22] _________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-847/test_old_answers_are_rechecked5')
+case_id = 'N22'
+
+    @pytest.mark.parametrize('case_id', ['N02', 'N06', 'N11', 'N13', 'N14', 'N22', 'P02', 'P03'])
+    def test_old_answers_are_rechecked_after_real_stores_reopen(tmp_path, case_id):
+        from icarus_memory import EpisodeStore, EpisodeKind, Provenance, SourceType, working_memory_answers
+        from icarus_memory.claims import ClaimStore
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+        from tests.test_satzantwort import Skript
+
+        case = next(c for c in CASES if c['id'] == case_id)
+        body = SOURCES[case['source_ids'][0]]
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            # Obtain a real saved answer envelope, then reproduce an old unchecked
+            # candidate inside it. Product validation is never replaced with a mock.
+            plain, _ = episodes.record(EpisodeKind.DOCUMENT, 'Bericht', 'Der Bericht liegt im Tresor.',
+                                       Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(plain.id),
+                [{'start': 0, 'end': len(plain.body), 'kind': 'fact'}], model='synthetic')
+            provider = Skript({'status': 'antwort', 'saetze': [{'text': 'Der Bericht liegt im Tresor.', 'belege': [1]}]})
+            answer = working_memory_answers.prepare('Wo liegt der Bericht?', episodes, claims, provider, saetze=True)
+            saved = answer['satzantwort']
+            assert saved['status'] == 'saetze'
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, 'Regel', body, Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'conditional'}], model='synthetic')
+            # Preserve the exact current-source reference shape used by production.
+            ref = WorkingMemoryStore(episodes).source_refs(episode_ids=[source.id])['refs'][0]
+            saved['belege'][0]['ref'] = ref
+            saved['saetze'][0].update(roh=case['candidate'], text=case['candidate'])
+            saved.pop('suche', None)
+        finally:
+            claims.close()
+            episodes.close()
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            restored = sa.wiederherstellen(saved, episodes, claims)
+>           assert (restored is not None) is case['expected_binding']
+E           AssertionError: assert (Dargestellt(status='saetze', saetze=[GeprueftSatz(roh='Nach der Kontrolle darf die Klappe geöffnet werden.', text='Nac...htag='2026-10-09T00:00:41.834035+00:00', gruende=[], pruefung={'zustand': 'kein_modell', 'modell': '', 'verworfen': 0}) is not None) is False
+
+sidecar/tests/test_normative_source_binding.py:175: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N01]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N02]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N05]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N06]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N07]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N09]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N10]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N11]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N12]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N13]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N14]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N15]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N16]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N17]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N18]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N20]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N21]
+FAILED sidecar/tests/test_normative_source_binding.py::test_independent_original_binding_controls[N22]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N02]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N06]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N09]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N11]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N13]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N14]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N20]
+FAILED sidecar/tests/test_normative_source_binding.py::test_legacy_wrong_candidate_cannot_escape_through_formulation[N22]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P01]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P02]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P03]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P04]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P05]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P06]
+FAILED sidecar/tests/test_normative_source_binding.py::test_model_selects_complete_original_instead_of_reconstructing_rule[P07]
+FAILED sidecar/tests/test_normative_source_binding.py::test_hidden_original_cannot_be_reintroduced_by_legacy_text
+FAILED sidecar/tests/test_normative_source_binding.py::test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source
+FAILED sidecar/tests/test_normative_source_binding.py::test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Messsonde darf z. B. nach der Kalibrierung eingeschaltet werden.]
+FAILED sidecar/tests/test_normative_source_binding.py::test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Der Techniker muss die Schraube Nr. 7 vor dem Start pr\xfcfen.]
+FAILED sidecar/tests/test_normative_source_binding.py::test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Anlage darf nach Freigabe durch Dr. Weber gestartet werden.]
+FAILED sidecar/tests/test_normative_source_binding.py::test_abbreviations_and_ordinals_do_not_issue_permission_fragments[Die Anlage darf am 9. Oktober nach der Pr\xfcfung gestartet werden.]
+FAILED sidecar/tests/test_normative_source_binding.py::test_descriptive_event_does_not_become_an_invented_permission
+FAILED sidecar/tests/test_normative_source_binding.py::test_incorrect_yes_from_second_model_cannot_override_original_binding[N02]
+FAILED sidecar/tests/test_normative_source_binding.py::test_incorrect_yes_from_second_model_cannot_override_original_binding[N06]
+FAILED sidecar/tests/test_normative_source_binding.py::test_selected_original_still_requires_second_gate[ja]
+FAILED sidecar/tests/test_normative_source_binding.py::test_selected_original_still_requires_second_gate[nein]
+FAILED sidecar/tests/test_normative_source_binding.py::test_selected_original_still_requires_second_gate[unklar]
+FAILED sidecar/tests/test_normative_source_binding.py::test_rejected_rule_cannot_be_hidden_by_a_true_fact_from_same_source
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N02]
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N06]
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N11]
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N13]
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N14]
+FAILED sidecar/tests/test_normative_source_binding.py::test_old_answers_are_rechecked_after_real_stores_reopen[N22]
+52 failed, 17 passed in 0.99s

@@ -1,0 +1,13 @@
+{
+  "version": "1.0.6-local.ce39f71",
+  "original_bodies_verified": 344,
+  "root_sqlite_verified": 17,
+  "cold_backup_identical": true,
+  "original_body_digest_recomputed": true,
+  "package_sources_verified": 264,
+  "package_ui_files_verified": 112,
+  "native_binary_unchanged_and_signature_verified": true,
+  "native_ui_verified": false,
+  "background_pause_preserved": true,
+  "same_data_volume": true
+}

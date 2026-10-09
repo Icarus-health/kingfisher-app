@@ -28,9 +28,10 @@ def test_permission_paraphrase_cannot_drop_precleaning_applicability():
     assert not _check(UNSCOPED_TOWELS).bestanden
 
 
-def test_exact_and_supported_qualified_permission_wordings_pass():
+def test_qualified_permissions_require_their_complete_original_wording():
     assert _check(R508_RULE).bestanden
-    assert _check(QUALIFIED_TOWELS).bestanden
+    assert not _check(QUALIFIED_TOWELS).bestanden
+    assert _check(QUALIFIED_TOWELS, QUALIFIED_TOWELS).bestanden
 
 
 def test_independent_solvent_ban_does_not_inherit_cleaning_scope():
@@ -91,10 +92,13 @@ def test_separate_cited_sources_are_alternative_contexts_for_same_permission():
     assert _check(second, first, second).bestanden
 
 
-def test_reordered_qualified_permission_matches_noun_after_modal_verb():
+def test_reordered_qualified_permission_requires_its_own_original():
     source = 'Vor der Abnahme darf die Abdeckung nicht entfernt werden.'
     answer = 'Die Abdeckung darf vor der Abnahme nicht entfernt werden.'
-    assert _check(answer, source).bestanden
+    assert _check(source, source).bestanden
+    assert not _check(answer, source).bestanden
+    assert _check(answer, answer).bestanden
+    assert not _check('Die Abdeckung darf nicht entfernt werden.', source).bestanden
 
 
 def test_forbidden_clause_does_not_support_positive_alternative_scope():
@@ -171,10 +175,26 @@ def test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission():
         pruefung=satzpruefung_modell.tor('an', checker),
     )
 
-    assert attempt.status == 'saetze'
-    assert [sentence.text for sentence in attempt.saetze] == [SOLVENT_BAN]
+    assert attempt.status == 'zitate'
+    assert not attempt.saetze
     assert [sentence.roh for sentence in attempt.verworfen] == [UNSCOPED_TOWELS]
     assert checker.checked == [SOLVENT_BAN]
+
+    # The complete original rules remain usable through the server-issued IDs.
+    checker = _AlwaysYesChecker()
+    originals = formulieren(
+        'Darf man R-508 mit Lösungsmittel reinigen?',
+        [source],
+        Skript({'status': 'antwort', 'originalstellen': [
+            {'beleg': 1, 'satz': 1}, {'beleg': 1, 'satz': 2},
+        ]}),
+        jetzt=datetime(2026, 10, 8, tzinfo=timezone.utc),
+        pruefung=satzpruefung_modell.tor('an', checker),
+    )
+    assert originals.status == 'saetze'
+    assert [sentence.text for sentence in originals.saetze] == [R508_RULE, SOLVENT_BAN]
+    assert not originals.verworfen
+    assert checker.checked == [R508_RULE, SOLVENT_BAN]
 
 
 def test_saved_answer_rechecks_applicability_and_keeps_independent_ban(raum):

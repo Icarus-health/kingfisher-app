@@ -1,0 +1,25 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source ___
+
+    def test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source():
+        from dataclasses import replace
+        permission = 'Die Klappe darf nach der Kontrolle geöffnet werden.'
+        visible = 'Der Bericht liegt im Tresor.'
+        hidden = evidence(visible, pruef_text=permission + ' ' + visible, gekuerzt=True)
+        quoted = replace(evidence('Alte Anweisung: „Zunächst wird das Datum notiert. ' + permission
+                                  + ' Diese Anweisung wurde verworfen.“'), nummer=2, episode_id='source-2')
+        for cited in [[1], [2], [1, 2]]:
+            result = sa.formulieren('Was gilt?', [hidden, quoted], Selector({'status': 'antwort', 'saetze': [
+                {'text': permission, 'belege': cited}]}), jetzt=NOW)
+>           assert result.status == 'zitate', cited
+E           AssertionError: [1, 2]
+E           assert 'saetze' == 'zitate'
+E
+E             - zitate
+E             + saetze
+
+sidecar/tests/test_normative_source_binding.py:63: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_normative_source_binding.py::test_visibility_and_unquoted_context_must_belong_to_the_same_cited_source
+1 failed, 67 deselected in 0.20s

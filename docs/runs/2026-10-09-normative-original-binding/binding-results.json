@@ -1,0 +1,319 @@
+{
+  "product_commit": "ce39f71046581567d9915d1b06a73e991072f1f3",
+  "catalog_sha256": "a53217e6a52aa5a6c55728cc5ccc6d12ba21317a53538a391adbda970db4a361",
+  "required_cases": 30,
+  "required_matches": 30,
+  "synthetic_only": true,
+  "real_model_calls": 0,
+  "rows": [
+    {
+      "id": "N01",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N02",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N03",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Zahl 10 steht nicht im Beleg",
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N04",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "„Intendanten“ steht nicht im Beleg",
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N05",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N06",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N07",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N08",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "„Eintragen“ steht nicht im Beleg",
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N09",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N10",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N11",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N12",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N13",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N14",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N15",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N16",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N17",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N18",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N19",
+      "required": false,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "N20",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N21",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "N22",
+      "required": true,
+      "binding_expected": false,
+      "supported_gold": false,
+      "accepted": false,
+      "reasons": [
+        "Quelle mit Erlaubnis oder Pflicht verlangt vollständige wörtliche Satzbelege"
+      ]
+    },
+    {
+      "id": "L01",
+      "required": false,
+      "binding_expected": true,
+      "supported_gold": false,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "L02",
+      "required": false,
+      "binding_expected": true,
+      "supported_gold": false,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P01",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P02",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P03",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P04",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P05",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P06",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P07",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P08",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    },
+    {
+      "id": "P09",
+      "required": true,
+      "binding_expected": true,
+      "supported_gold": true,
+      "accepted": true,
+      "reasons": []
+    }
+  ]
+}

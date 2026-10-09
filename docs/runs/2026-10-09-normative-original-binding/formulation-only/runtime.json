@@ -1,0 +1,219 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "ollama_models": "/private/tmp/kingfisher-normative-formulation-only-20261009/models",
+  "isolated_blobs_real_directory": true,
+  "isolated_blobs_symlink": false,
+  "OLLAMA_NO_CLOUD": "1",
+  "OLLAMA_NOPRUNE": "1",
+  "native_source_blobs_before_sha256": "8ea89d344d73575b4d212ed08c2a54b94e8694b1058f1735f5ed84fa1e128f54",
+  "preflight_verified_blobs": [
+    {
+      "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "isolated_sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "isolated_inode": 95947686,
+      "source_inode": 53799054,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "isolated_sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "isolated_inode": 95947693,
+      "source_inode": 53789206,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "isolated_sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "isolated_inode": 95949367,
+      "source_inode": 53798972,
+      "distinct_inode": true,
+      "not_symlink": true
+    },
+    {
+      "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "isolated_sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "isolated_inode": 95949368,
+      "source_inode": 53799015,
+      "distinct_inode": true,
+      "not_symlink": true
+    }
+  ],
+  "watchdog": "8 GiB sampled owned server/client process RSS or 600 seconds; GPU allocation not fully covered by RSS",
+  "production_endpoint_touched": false,
+  "started_at": 1791504575.105537,
+  "samples": [
+    {
+      "elapsed": 0.02,
+      "owned_rss_kib": 35616
+    },
+    {
+      "elapsed": 2.05,
+      "owned_rss_kib": 1566400
+    },
+    {
+      "elapsed": 4.08,
+      "owned_rss_kib": 4286688
+    },
+    {
+      "elapsed": 6.1,
+      "owned_rss_kib": 4635408
+    },
+    {
+      "elapsed": 8.14,
+      "owned_rss_kib": 4794704
+    },
+    {
+      "elapsed": 10.18,
+      "owned_rss_kib": 4797632
+    },
+    {
+      "elapsed": 12.21,
+      "owned_rss_kib": 225488
+    },
+    {
+      "elapsed": 14.24,
+      "owned_rss_kib": 4841104
+    },
+    {
+      "elapsed": 16.26,
+      "owned_rss_kib": 4230288
+    },
+    {
+      "elapsed": 18.31,
+      "owned_rss_kib": 4254192
+    },
+    {
+      "elapsed": 20.38,
+      "owned_rss_kib": 4445776
+    },
+    {
+      "elapsed": 22.41,
+      "owned_rss_kib": 4440464
+    },
+    {
+      "elapsed": 24.44,
+      "owned_rss_kib": 4602544
+    },
+    {
+      "elapsed": 26.47,
+      "owned_rss_kib": 283952
+    },
+    {
+      "elapsed": 28.5,
+      "owned_rss_kib": 4928288
+    },
+    {
+      "elapsed": 30.53,
+      "owned_rss_kib": 4666416
+    },
+    {
+      "elapsed": 32.57,
+      "owned_rss_kib": 4433104
+    },
+    {
+      "elapsed": 34.61,
+      "owned_rss_kib": 4357936
+    },
+    {
+      "elapsed": 36.63,
+      "owned_rss_kib": 288768
+    },
+    {
+      "elapsed": 38.66,
+      "owned_rss_kib": 5031840
+    },
+    {
+      "elapsed": 40.69,
+      "owned_rss_kib": 4516704
+    },
+    {
+      "elapsed": 42.72,
+      "owned_rss_kib": 4462768
+    },
+    {
+      "elapsed": 44.76,
+      "owned_rss_kib": 4535392
+    }
+  ],
+  "completed": true,
+  "client_exit": 0,
+  "server_exit": 0,
+  "watchdog_stop": null,
+  "server_pid": 53071,
+  "tags": {
+    "models": [
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-10-09T02:08:13.934943026+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 53074,
+  "stopped_at": 1791504624.788219,
+  "native_source_blobs_after": [
+    {
+      "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "exists": true,
+      "size": 475,
+      "inode": 53799054,
+      "mtime_ns": 1782993703543041841,
+      "mode": 420,
+      "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887"
+    },
+    {
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "exists": true,
+      "size": 3389971840,
+      "inode": 53789206,
+      "mtime_ns": 1782993698707934990,
+      "mode": 420,
+      "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490"
+    },
+    {
+      "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "exists": true,
+      "size": 11355,
+      "inode": 53798972,
+      "mtime_ns": 1782993700768810413,
+      "mode": 420,
+      "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+    },
+    {
+      "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "exists": true,
+      "size": 65,
+      "inode": 53799015,
+      "mtime_ns": 1791291898020546000,
+      "mode": 420,
+      "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff"
+    }
+  ],
+  "native_source_blobs_unchanged": true
+}
