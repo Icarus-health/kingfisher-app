@@ -1,0 +1,18 @@
+[
+  {
+    "model_name": null,
+    "tag": null,
+    "path": "/Users/sorenkube/.ollama/models/manifests/registry.ollama.ai/library/qwen3.5/4b",
+    "exists": true,
+    "symlink": false,
+    "sha256": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd"
+  },
+  {
+    "model_name": null,
+    "tag": null,
+    "path": "/Users/sorenkube/.ollama/models/manifests/registry.ollama.ai/library/bge-m3/latest",
+    "exists": true,
+    "symlink": false,
+    "sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab"
+  }
+]

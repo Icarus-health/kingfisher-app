@@ -1,0 +1,86 @@
+TAP version 13
+# Subtest: Today filters only ruhend before prioritizing and limiting to five rows
+not ok 1 - Today filters only ruhend before prioritizing and limiting to five rows
+  ---
+  duration_ms: 6.235125
+  type: 'test'
+  location: '/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/tests/memory-questions-today.test.mjs:89:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"calls":["offen"],"tree":{"type":"section","key":null,"ref":null,"props":{"className":"source-section befunde memory-questions","aria-label":"Gedächtnisfragen","children":[{"type":"div","key":null,"ref":null,"props":{"className":"memory-questions-kopf","children":[{"type":"div","key":null,"ref":null,"props":{"children":[{"type":"h2","key":null,"ref":null,"props":{"children":"Gedächtnisfragen"}},{"type":"p","key":null,"ref":null,"props":{"children":"Wichtige offene Punkte mit ihren Quellen. Erst deine Entscheidung macht daraus Wissen."}}]}},{"type":"button","key":null,"ref":null,"props":{"type":"button","className":"text-action","children":"Alle öffnen"}}]}},null,null,null,{"type":"ul","key":null,"ref":null,"props":{"className":"befunde-liste","aria-label":"Offene Gedächtnisfragen","children":[{"key":"conflict","ref":null,"props":{"befund":{"id":"conflict","text":"conflict","schwere":"wichtig","art":"widerspruch","unterart":"frist","sachen":[{"sache":"person:demo","name":"Demo"}],"belege":[{"episode_id":"ep-conflict","zitat":"Synthetic source quote"}],"vorschlaege":[],"stand":"stand-conflict"},"arbeitet":false}},{"key":"stale-0","ref":null,"props":{"befund":{"id":"stale-0","text":"stale-0","schwere":"hinweis","art":"waise","unterart":"ruhend","sachen":[{"sache":"person:demo","name":"Demo"}],"belege":[{"episode_id":"ep-stale-0","zitat":"Synthetic source quote"}],"vorschlaege":[],"stand":"stand-stale-0"},"arbeitet":false}},{"key":"stale-1","ref":null,"props":{"befund":{"id":"stale-1","text":"stale-1","schwere":"hinweis","art":"waise","unterart":"ruhend","sachen":[{"sache":"person:demo","name":"Demo"}],"belege":[{"episode_id":"ep-stale-1","zitat":"Synthetic source quote"}],"vorschlaege":[],"stand":"stand-stale-1"},"arbeitet":false}},{"key":"stale-2","ref":null,"props":{"befund":{"id":"stale-2","text":"stale-2","schwere":"hinweis","art":"waise","unterart":"ruhend","sachen":[{"sache":"person:demo","name":"Demo"}],"belege":[{"episode_id":"ep-stale-2","zitat":"Synthetic source quote"}],"vorschlaege":[],"stand":"stand-stale-2"},"arbeitet":false}},{"key":"stale-3","ref":null,"props":{"befund":{"id":"stale-3","text":"stale-3","schwere":"hinweis","art":"waise","unterart":"ruhend","sachen":[{"sache":"person:demo","name":"Demo"}],"belege":[{"episode_id":"ep-stale-3","zitat":"Synthetic source quote"}],"vorschlaege":[],"stand":"stand-stale-3"},"arbeitet":false}}]}},{"type":"button","key":null,"ref":null,"props":{"type":"button","className":"text-action","children":["Weitere ",6," Gedächtnisfragen öffnen"]}},null,null]}}}
+    + actual - expected
+
+      [
+        'conflict',
+    +   'stale-0',
+    +   'stale-1',
+    +   'stale-2',
+    +   'stale-3'
+    -   'unmatched-name',
+    -   'dangling-reference',
+    -   'unknown-waise'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'conflict'
+    1: 'unmatched-name'
+    2: 'dangling-reference'
+    3: 'unknown-waise'
+  actual:
+    0: 'conflict'
+    1: 'stale-0'
+    2: 'stale-1'
+    3: 'stale-2'
+    4: 'stale-3'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/tests/memory-questions-today.test.mjs:100:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: focus refresh and post-error retry apply the same Today filtering
+not ok 2 - focus refresh and post-error retry apply the same Today filtering
+  ---
+  duration_ms: 1.947042
+  type: 'test'
+  location: '/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/tests/memory-questions-today.test.mjs:106:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      [
+    +   'first-stale',
+        'first-live'
+      ]
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'first-live'
+  actual:
+    0: 'first-stale'
+    1: 'first-live'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/tests/memory-questions-today.test.mjs:113:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: full Review continues to render the complete lint list
+ok 3 - full Review continues to render the complete lint list
+  ---
+  duration_ms: 1.503208
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 1
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 361.379291

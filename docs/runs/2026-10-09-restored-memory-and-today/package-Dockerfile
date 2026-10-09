@@ -1,0 +1,10 @@
+FROM ghcr.io/icarus-health/kingfisher-app:1.0.6-local.d431383
+USER root
+COPY server.py /usr/local/lib/python3.12/site-packages/icarus_memory/server.py
+RUN rm /opt/kingfisher/ui/assets/index-CQJxInvr.js
+COPY ui/assets/index-EVnXwZ7w.js /opt/kingfisher/ui/assets/index-EVnXwZ7w.js
+COPY ui/index.html /opt/kingfisher/ui/index.html
+COPY VERSION /opt/kingfisher/VERSION
+ENV KINGFISHER_FASSUNG=1.0.6-local.63f7078
+LABEL org.opencontainers.image.revision=63f707885615f63a502a37f04c5b5ff86e5488fc
+USER kingfisher

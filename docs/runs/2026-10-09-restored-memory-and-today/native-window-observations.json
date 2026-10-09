@@ -1,0 +1,32 @@
+{
+  "observed_date": "2026-10-09",
+  "observation_method": "authorized native CUA, installed Kingfisher 127.0.0.1:8890; no denied browser surface used",
+  "version": "1.0.6-local.63f7078",
+  "today": {
+    "loaded": true,
+    "clock_updated_between_routes": true,
+    "remaining_actionable_memory_rows": 1,
+    "dormant_informational_rows_removed_from_today": true,
+    "pending_proposals_displayed": 49,
+    "intake_paused": true
+  },
+  "review": {
+    "loaded": true,
+    "dormant_group_count": 19,
+    "group_expanded_and_original_rows_accessible": true,
+    "status_actions_not_executed": true
+  },
+  "preceding_d431383_window_read_checks": {
+    "tasks_page_loaded": true,
+    "calendar_page_and_day_loaded": true,
+    "mail_list_and_one_original_loaded": true,
+    "accounts_present": true
+  },
+  "limitations": [
+    "No private mail, calendar, person text or screenshots published",
+    "No create/send/approve/resume/model setting action executed",
+    "No productive model call, battery-day measurement, narrow window or keyboard-only review",
+    "No browser console inspection",
+    "Pre-update encoded display name, source metadata without quote spans, and model recommendation/resource mismatch remain open"
+  ]
+}

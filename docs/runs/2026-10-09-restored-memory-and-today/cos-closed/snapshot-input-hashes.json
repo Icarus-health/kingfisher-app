@@ -1,0 +1,21 @@
+{
+  "snapshot_commit": "63f707885615f63a502a37f04c5b5ff86e5488fc",
+  "inputs": [
+    {
+      "name": "catalog",
+      "repo_path": "docs/evaluations/memory-quality/retrieval-controls/catalog-20261008.json",
+      "sha256": "857965be8e845fde716e5d22d94d5310f5011058db68a4b7107abae1e10e465a",
+      "source_count": 14,
+      "question_count": 23
+    },
+    {
+      "name": "anchor_control_holdout",
+      "repo_path": "docs/runs/2026-10-08-closed-model-memory/anchor-control-holdout-sources.json",
+      "sha256": "34c2880b1bce144af3486c4b4971f8b42dfa2cc8c2b034c651efcbbafabfa594",
+      "source_count": 4,
+      "question_count": 0
+    }
+  ],
+  "combined_source_count": 18,
+  "catalog_question_count": 23
+}

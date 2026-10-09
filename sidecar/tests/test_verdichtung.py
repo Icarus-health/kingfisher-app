@@ -564,6 +564,23 @@ def test_dashboard_meldet_wartende_vorschlaege(client) -> None:
     assert client.get("/dashboard").json()["proposals"]["pending"] == 1
 
 
+def test_dashboard_zeigt_exakte_pending_anzahl_bei_begrenzter_auswahl(client) -> None:
+    for index in range(23):
+        client.app.state.proposals.propose(
+            ProposalKind.CONFIRMATION,
+            f"Synthetic confirmation {index}",
+            "Synthetic test proposal",
+            about=[f"assertion:synthetic-{index}"],
+        )
+    before = client.app.state.proposals.counts().copy()
+
+    result = client.get("/dashboard?post=false").json()["proposals"]
+
+    assert result["pending"] == 23
+    assert len(result["items"]) == 20
+    assert client.app.state.proposals.counts() == before
+
+
 def test_es_gibt_keinen_weg_von_episode_zu_bestand(client) -> None:
     """Die Kernzusicherung, an der Schnittstelle geprüft.
 

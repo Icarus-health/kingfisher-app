@@ -1,0 +1,17 @@
+{
+  "backend-count-red.log": {
+    "normalization": "trailing whitespace only; original kept in private temp evidence",
+    "before_sha256": "6c4ce2fea1eefb609c5f41e7bb85faa88bdf37104664a95fb3337c4809e09ca6",
+    "after_sha256": "a8585319adec8e1b631ed5f93106a6c7259ef5c4cd9373909376bebe1121495c"
+  },
+  "ui-red.log": {
+    "normalization": "trailing whitespace only; original kept in private temp evidence",
+    "before_sha256": "effb3cc086799696759586cb257ae87ae3486eeafe1579712f13232fb33b572d",
+    "after_sha256": "66b05f7b2e404086883dc7d56e918ea76c3b33fccfa414cec587c1618d072bd7"
+  },
+  "build.log": {
+    "normalization": "trailing whitespace only; original kept in private temp evidence",
+    "before_sha256": "30d2ee77503e1c75b5a83f58513d89ec34f1860f458f1e209c96c4e9128d3225",
+    "after_sha256": "7e4c95a604f4d56cb64010f9f84e75295d8b586b9936a21a9094607467ca56e1"
+  }
+}

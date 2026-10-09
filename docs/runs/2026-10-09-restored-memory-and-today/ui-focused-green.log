@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: Today filters only ruhend before prioritizing and limiting to five rows
+ok 1 - Today filters only ruhend before prioritizing and limiting to five rows
+  ---
+  duration_ms: 6.70225
+  type: 'test'
+  ...
+# Subtest: focus refresh and post-error retry apply the same Today filtering
+ok 2 - focus refresh and post-error retry apply the same Today filtering
+  ---
+  duration_ms: 2.095
+  type: 'test'
+  ...
+# Subtest: full Review continues to render the complete lint list
+ok 3 - full Review continues to render the complete lint list
+  ---
+  duration_ms: 1.278042
+  type: 'test'
+  ...
+# Subtest: Heute lädt offene Gedächtnisfragen nur im aktiven Bereich und zeigt eine begrenzte Auswahl
+ok 4 - Heute lädt offene Gedächtnisfragen nur im aktiven Bereich und zeigt eine begrenzte Auswahl
+  ---
+  duration_ms: 1.313958
+  type: 'test'
+  ...
+# Subtest: Heute priorisiert wichtige und verwaiste Punkte vor übrigen Befunden
+ok 5 - Heute priorisiert wichtige und verwaiste Punkte vor übrigen Befunden
+  ---
+  duration_ms: 0.127917
+  type: 'test'
+  ...
+# Subtest: Quellen zeigen Originalzitat, unbekannte Quellenzeit und Erfassungszeit
+ok 6 - Quellen zeigen Originalzitat, unbekannte Quellenzeit und Erfassungszeit
+  ---
+  duration_ms: 0.274917
+  type: 'test'
+  ...
+# Subtest: Entscheidungen übergeben den gespeicherten Stand und blockieren synchrone Doppelklicks
+ok 7 - Entscheidungen übergeben den gespeicherten Stand und blockieren synchrone Doppelklicks
+  ---
+  duration_ms: 0.087042
+  type: 'test'
+  ...
+# Subtest: Lade- und Entscheidungsfehler bleiben sichtbar und lassen einen erneuten Versuch zu
+ok 8 - Lade- und Entscheidungsfehler bleiben sichtbar und lassen einen erneuten Versuch zu
+  ---
+  duration_ms: 0.084417
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 535.200916

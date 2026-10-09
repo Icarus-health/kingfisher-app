@@ -1,0 +1,752 @@
+{
+  "synthetic_only": true,
+  "endpoint": "http://127.0.0.1:11439",
+  "isolated_models_directory": "/private/tmp/kingfisher-closed-restored-d431383-20261009/models",
+  "ollama_no_cloud": true,
+  "ollama_noprune": true,
+  "production_endpoint_touched": false,
+  "settings_or_private_directories_loaded": false,
+  "watchdog": "900 seconds or 8 GiB sampled owned-process RSS; emergency sampler, not a hard GPU or memory cap",
+  "started_at": 1791530801.888031,
+  "samples": [
+    {
+      "elapsed_seconds": 0.02,
+      "owned_rss_kib": 36816
+    },
+    {
+      "elapsed_seconds": 2.09,
+      "owned_rss_kib": 246400
+    },
+    {
+      "elapsed_seconds": 4.13,
+      "owned_rss_kib": 1661776
+    },
+    {
+      "elapsed_seconds": 6.19,
+      "owned_rss_kib": 3837664
+    },
+    {
+      "elapsed_seconds": 8.23,
+      "owned_rss_kib": 4411792
+    },
+    {
+      "elapsed_seconds": 10.27,
+      "owned_rss_kib": 4391552
+    },
+    {
+      "elapsed_seconds": 12.3,
+      "owned_rss_kib": 3899552
+    },
+    {
+      "elapsed_seconds": 14.33,
+      "owned_rss_kib": 249296
+    },
+    {
+      "elapsed_seconds": 16.38,
+      "owned_rss_kib": 3803776
+    },
+    {
+      "elapsed_seconds": 18.41,
+      "owned_rss_kib": 3981712
+    },
+    {
+      "elapsed_seconds": 20.44,
+      "owned_rss_kib": 4009264
+    },
+    {
+      "elapsed_seconds": 22.48,
+      "owned_rss_kib": 73280
+    },
+    {
+      "elapsed_seconds": 24.51,
+      "owned_rss_kib": 3737696
+    },
+    {
+      "elapsed_seconds": 26.55,
+      "owned_rss_kib": 4207216
+    },
+    {
+      "elapsed_seconds": 28.6,
+      "owned_rss_kib": 4209648
+    },
+    {
+      "elapsed_seconds": 30.63,
+      "owned_rss_kib": 4205648
+    },
+    {
+      "elapsed_seconds": 32.66,
+      "owned_rss_kib": 247072
+    },
+    {
+      "elapsed_seconds": 34.69,
+      "owned_rss_kib": 5041280
+    },
+    {
+      "elapsed_seconds": 36.79,
+      "owned_rss_kib": 4198864
+    },
+    {
+      "elapsed_seconds": 38.83,
+      "owned_rss_kib": 3985776
+    },
+    {
+      "elapsed_seconds": 40.85,
+      "owned_rss_kib": 234480
+    },
+    {
+      "elapsed_seconds": 42.88,
+      "owned_rss_kib": 3775968
+    },
+    {
+      "elapsed_seconds": 44.91,
+      "owned_rss_kib": 4117536
+    },
+    {
+      "elapsed_seconds": 46.94,
+      "owned_rss_kib": 4166768
+    },
+    {
+      "elapsed_seconds": 48.98,
+      "owned_rss_kib": 4426224
+    },
+    {
+      "elapsed_seconds": 51.02,
+      "owned_rss_kib": 4369104
+    },
+    {
+      "elapsed_seconds": 53.05,
+      "owned_rss_kib": 4518256
+    },
+    {
+      "elapsed_seconds": 55.09,
+      "owned_rss_kib": 4697792
+    },
+    {
+      "elapsed_seconds": 57.19,
+      "owned_rss_kib": 4782080
+    },
+    {
+      "elapsed_seconds": 59.21,
+      "owned_rss_kib": 2973840
+    },
+    {
+      "elapsed_seconds": 61.24,
+      "owned_rss_kib": 4147920
+    },
+    {
+      "elapsed_seconds": 63.28,
+      "owned_rss_kib": 4410544
+    },
+    {
+      "elapsed_seconds": 65.32,
+      "owned_rss_kib": 4577840
+    },
+    {
+      "elapsed_seconds": 67.37,
+      "owned_rss_kib": 4723248
+    },
+    {
+      "elapsed_seconds": 69.4,
+      "owned_rss_kib": 262096
+    },
+    {
+      "elapsed_seconds": 71.43,
+      "owned_rss_kib": 4458752
+    },
+    {
+      "elapsed_seconds": 73.51,
+      "owned_rss_kib": 4245168
+    },
+    {
+      "elapsed_seconds": 75.6,
+      "owned_rss_kib": 4383824
+    },
+    {
+      "elapsed_seconds": 77.64,
+      "owned_rss_kib": 4514656
+    },
+    {
+      "elapsed_seconds": 79.67,
+      "owned_rss_kib": 4586080
+    },
+    {
+      "elapsed_seconds": 81.72,
+      "owned_rss_kib": 70336
+    },
+    {
+      "elapsed_seconds": 83.75,
+      "owned_rss_kib": 3531392
+    },
+    {
+      "elapsed_seconds": 85.79,
+      "owned_rss_kib": 4154240
+    },
+    {
+      "elapsed_seconds": 87.88,
+      "owned_rss_kib": 4334784
+    },
+    {
+      "elapsed_seconds": 89.92,
+      "owned_rss_kib": 4469920
+    },
+    {
+      "elapsed_seconds": 91.95,
+      "owned_rss_kib": 4561968
+    },
+    {
+      "elapsed_seconds": 93.98,
+      "owned_rss_kib": 70448
+    },
+    {
+      "elapsed_seconds": 96.01,
+      "owned_rss_kib": 4086144
+    },
+    {
+      "elapsed_seconds": 98.07,
+      "owned_rss_kib": 4126640
+    },
+    {
+      "elapsed_seconds": 100.12,
+      "owned_rss_kib": 4381136
+    },
+    {
+      "elapsed_seconds": 102.16,
+      "owned_rss_kib": 4496640
+    },
+    {
+      "elapsed_seconds": 104.26,
+      "owned_rss_kib": 4470560
+    },
+    {
+      "elapsed_seconds": 106.29,
+      "owned_rss_kib": 5618416
+    },
+    {
+      "elapsed_seconds": 108.39,
+      "owned_rss_kib": 6052848
+    },
+    {
+      "elapsed_seconds": 110.49,
+      "owned_rss_kib": 6053136
+    },
+    {
+      "elapsed_seconds": 112.53,
+      "owned_rss_kib": 5900928
+    },
+    {
+      "elapsed_seconds": 114.65,
+      "owned_rss_kib": 5772144
+    },
+    {
+      "elapsed_seconds": 116.68,
+      "owned_rss_kib": 5789904
+    },
+    {
+      "elapsed_seconds": 118.72,
+      "owned_rss_kib": 5988768
+    },
+    {
+      "elapsed_seconds": 120.75,
+      "owned_rss_kib": 5956864
+    },
+    {
+      "elapsed_seconds": 122.78,
+      "owned_rss_kib": 5833456
+    },
+    {
+      "elapsed_seconds": 124.82,
+      "owned_rss_kib": 5887824
+    },
+    {
+      "elapsed_seconds": 126.9,
+      "owned_rss_kib": 5811936
+    },
+    {
+      "elapsed_seconds": 128.94,
+      "owned_rss_kib": 5811200
+    },
+    {
+      "elapsed_seconds": 130.97,
+      "owned_rss_kib": 5892592
+    },
+    {
+      "elapsed_seconds": 133.01,
+      "owned_rss_kib": 5902640
+    },
+    {
+      "elapsed_seconds": 135.12,
+      "owned_rss_kib": 5708112
+    },
+    {
+      "elapsed_seconds": 137.15,
+      "owned_rss_kib": 5830624
+    },
+    {
+      "elapsed_seconds": 139.19,
+      "owned_rss_kib": 5811408
+    },
+    {
+      "elapsed_seconds": 141.22,
+      "owned_rss_kib": 1944144
+    },
+    {
+      "elapsed_seconds": 143.25,
+      "owned_rss_kib": 4494928
+    },
+    {
+      "elapsed_seconds": 145.35,
+      "owned_rss_kib": 4567424
+    },
+    {
+      "elapsed_seconds": 147.39,
+      "owned_rss_kib": 4732000
+    },
+    {
+      "elapsed_seconds": 149.42,
+      "owned_rss_kib": 4989984
+    },
+    {
+      "elapsed_seconds": 151.46,
+      "owned_rss_kib": 4916464
+    },
+    {
+      "elapsed_seconds": 153.53,
+      "owned_rss_kib": 5250464
+    },
+    {
+      "elapsed_seconds": 155.61,
+      "owned_rss_kib": 4989920
+    },
+    {
+      "elapsed_seconds": 157.67,
+      "owned_rss_kib": 4788672
+    },
+    {
+      "elapsed_seconds": 159.7,
+      "owned_rss_kib": 5084928
+    },
+    {
+      "elapsed_seconds": 161.75,
+      "owned_rss_kib": 5268064
+    },
+    {
+      "elapsed_seconds": 163.83,
+      "owned_rss_kib": 5255024
+    },
+    {
+      "elapsed_seconds": 165.87,
+      "owned_rss_kib": 5004400
+    },
+    {
+      "elapsed_seconds": 167.92,
+      "owned_rss_kib": 4972736
+    },
+    {
+      "elapsed_seconds": 169.99,
+      "owned_rss_kib": 4826608
+    },
+    {
+      "elapsed_seconds": 172.07,
+      "owned_rss_kib": 4942384
+    },
+    {
+      "elapsed_seconds": 174.14,
+      "owned_rss_kib": 4820528
+    },
+    {
+      "elapsed_seconds": 176.24,
+      "owned_rss_kib": 4465312
+    },
+    {
+      "elapsed_seconds": 178.31,
+      "owned_rss_kib": 5235408
+    },
+    {
+      "elapsed_seconds": 180.41,
+      "owned_rss_kib": 4660288
+    },
+    {
+      "elapsed_seconds": 182.44,
+      "owned_rss_kib": 871232
+    },
+    {
+      "elapsed_seconds": 184.49,
+      "owned_rss_kib": 4494704
+    },
+    {
+      "elapsed_seconds": 186.6,
+      "owned_rss_kib": 4587328
+    },
+    {
+      "elapsed_seconds": 188.63,
+      "owned_rss_kib": 4718576
+    },
+    {
+      "elapsed_seconds": 190.73,
+      "owned_rss_kib": 4702304
+    },
+    {
+      "elapsed_seconds": 192.76,
+      "owned_rss_kib": 4913952
+    },
+    {
+      "elapsed_seconds": 194.79,
+      "owned_rss_kib": 5255216
+    },
+    {
+      "elapsed_seconds": 196.84,
+      "owned_rss_kib": 5255392
+    },
+    {
+      "elapsed_seconds": 198.88,
+      "owned_rss_kib": 5345264
+    },
+    {
+      "elapsed_seconds": 200.92,
+      "owned_rss_kib": 5551680
+    },
+    {
+      "elapsed_seconds": 202.97,
+      "owned_rss_kib": 5551712
+    },
+    {
+      "elapsed_seconds": 205.01,
+      "owned_rss_kib": 5562352
+    },
+    {
+      "elapsed_seconds": 207.03,
+      "owned_rss_kib": 5451520
+    },
+    {
+      "elapsed_seconds": 209.07,
+      "owned_rss_kib": 5452672
+    },
+    {
+      "elapsed_seconds": 211.12,
+      "owned_rss_kib": 5463136
+    },
+    {
+      "elapsed_seconds": 213.14,
+      "owned_rss_kib": 5566352
+    },
+    {
+      "elapsed_seconds": 215.17,
+      "owned_rss_kib": 723616
+    },
+    {
+      "elapsed_seconds": 217.23,
+      "owned_rss_kib": 4515904
+    },
+    {
+      "elapsed_seconds": 219.26,
+      "owned_rss_kib": 4776192
+    },
+    {
+      "elapsed_seconds": 221.29,
+      "owned_rss_kib": 4925056
+    },
+    {
+      "elapsed_seconds": 223.33,
+      "owned_rss_kib": 4961616
+    },
+    {
+      "elapsed_seconds": 225.37,
+      "owned_rss_kib": 5175616
+    },
+    {
+      "elapsed_seconds": 227.42,
+      "owned_rss_kib": 5157472
+    },
+    {
+      "elapsed_seconds": 229.46,
+      "owned_rss_kib": 5178144
+    },
+    {
+      "elapsed_seconds": 231.5,
+      "owned_rss_kib": 5178192
+    },
+    {
+      "elapsed_seconds": 233.53,
+      "owned_rss_kib": 5290656
+    },
+    {
+      "elapsed_seconds": 235.57,
+      "owned_rss_kib": 5394832
+    },
+    {
+      "elapsed_seconds": 237.61,
+      "owned_rss_kib": 5394832
+    },
+    {
+      "elapsed_seconds": 239.66,
+      "owned_rss_kib": 5465328
+    },
+    {
+      "elapsed_seconds": 241.69,
+      "owned_rss_kib": 5462624
+    },
+    {
+      "elapsed_seconds": 243.75,
+      "owned_rss_kib": 5452160
+    },
+    {
+      "elapsed_seconds": 245.82,
+      "owned_rss_kib": 5511328
+    },
+    {
+      "elapsed_seconds": 247.89,
+      "owned_rss_kib": 5504960
+    },
+    {
+      "elapsed_seconds": 249.96,
+      "owned_rss_kib": 5584944
+    },
+    {
+      "elapsed_seconds": 252.0,
+      "owned_rss_kib": 5506832
+    },
+    {
+      "elapsed_seconds": 254.04,
+      "owned_rss_kib": 5408336
+    },
+    {
+      "elapsed_seconds": 256.07,
+      "owned_rss_kib": 767120
+    }
+  ],
+  "completed": true,
+  "preflight_verified": true,
+  "native_source_blobs_before_sha256": "903fb7859c5e43ba956dbd03c9a564d693942a71bdc04c8b595132794156bb17",
+  "native_source_manifests_before_sha256": "9e35d664fb8e57c4b38273d7bea9a35c52d464eecaf0e423ebf9e91612eb8b94",
+  "preflight": {
+    "manifests": [
+      {
+        "name": "qwen3.5:4b",
+        "path": "/private/tmp/kingfisher-closed-restored-d431383-20261009/models/manifests/registry.ollama.ai/library/qwen3.5/4b",
+        "sha256": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd"
+      },
+      {
+        "name": "bge-m3:latest",
+        "path": "/private/tmp/kingfisher-closed-restored-d431383-20261009/models/manifests/registry.ollama.ai/library/bge-m3/latest",
+        "sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab"
+      }
+    ],
+    "blobs": [
+      {
+        "model": "qwen3.5:4b",
+        "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+        "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+        "isolated_inode": 98099482,
+        "source_inode": 53799054,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "qwen3.5:4b",
+        "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+        "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+        "isolated_inode": 98099514,
+        "source_inode": 53789206,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "qwen3.5:4b",
+        "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+        "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+        "isolated_inode": 98099544,
+        "source_inode": 53798972,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "qwen3.5:4b",
+        "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+        "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+        "isolated_inode": 98099545,
+        "source_inode": 53799015,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "bge-m3:latest",
+        "digest": "sha256:0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+        "sha256": "0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+        "isolated_inode": 98099546,
+        "source_inode": 98093883,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "bge-m3:latest",
+        "digest": "sha256:daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+        "sha256": "daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+        "isolated_inode": 98099549,
+        "source_inode": 98094504,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      },
+      {
+        "model": "bge-m3:latest",
+        "digest": "sha256:a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+        "sha256": "a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+        "isolated_inode": 98099557,
+        "source_inode": 98094511,
+        "distinct_inode": true,
+        "isolated_not_symlink": true
+      }
+    ]
+  },
+  "ollama_binary": "/Applications/Ollama.app/Contents/Resources/ollama",
+  "server_pid": 53583,
+  "tags": {
+    "models": [
+      {
+        "name": "bge-m3:latest",
+        "model": "bge-m3:latest",
+        "modified_at": "2026-10-09T09:24:58.603353336+02:00",
+        "size": 1157672605,
+        "digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "bert",
+          "families": [
+            "bert"
+          ],
+          "parameter_size": "566.70M",
+          "quantization_level": "F16",
+          "context_length": 8192,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      },
+      {
+        "name": "qwen3.5:4b",
+        "model": "qwen3.5:4b",
+        "modified_at": "2026-10-09T09:24:58.603086961+02:00",
+        "size": 3389983735,
+        "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "4.7B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 2560
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools",
+          "thinking"
+        ]
+      }
+    ]
+  },
+  "ollama_version": {
+    "version": "0.35.1"
+  },
+  "client_pid": 53592,
+  "client_exit": 0,
+  "server_exit": 0,
+  "stopped_at": 1791531066.996612,
+  "native_source_blobs_after": [
+    {
+      "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+      "exists": true,
+      "symlink": false,
+      "size": 475,
+      "inode": 53799054,
+      "mtime_ns": 1782993703543041841,
+      "mode": 420,
+      "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887"
+    },
+    {
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "exists": true,
+      "symlink": false,
+      "size": 3389971840,
+      "inode": 53789206,
+      "mtime_ns": 1782993698707934990,
+      "mode": 420,
+      "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490"
+    },
+    {
+      "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "exists": true,
+      "symlink": false,
+      "size": 11355,
+      "inode": 53798972,
+      "mtime_ns": 1782993700768810413,
+      "mode": 420,
+      "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+    },
+    {
+      "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+      "exists": true,
+      "symlink": false,
+      "size": 65,
+      "inode": 53799015,
+      "mtime_ns": 1791291898020546000,
+      "mode": 420,
+      "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff"
+    },
+    {
+      "digest": "sha256:0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+      "exists": true,
+      "symlink": false,
+      "size": 337,
+      "inode": 98093883,
+      "mtime_ns": 1791530440586431001,
+      "mode": 420,
+      "sha256": "0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276"
+    },
+    {
+      "digest": "sha256:daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+      "exists": true,
+      "symlink": false,
+      "size": 1157671200,
+      "inode": 98094504,
+      "mtime_ns": 1791530502070318995,
+      "mode": 420,
+      "sha256": "daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c"
+    },
+    {
+      "digest": "sha256:a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+      "exists": true,
+      "symlink": false,
+      "size": 1068,
+      "inode": 98094511,
+      "mtime_ns": 1791530503078613483,
+      "mode": 420,
+      "sha256": "a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde"
+    }
+  ],
+  "native_source_blobs_unchanged": true,
+  "native_source_manifests_after": [
+    {
+      "model_name": null,
+      "tag": null,
+      "path": "/Users/sorenkube/.ollama/models/manifests/registry.ollama.ai/library/qwen3.5/4b",
+      "exists": true,
+      "symlink": false,
+      "sha256": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd"
+    },
+    {
+      "model_name": null,
+      "tag": null,
+      "path": "/Users/sorenkube/.ollama/models/manifests/registry.ollama.ai/library/bge-m3/latest",
+      "exists": true,
+      "symlink": false,
+      "sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab"
+    }
+  ],
+  "native_source_manifests_unchanged": true
+}

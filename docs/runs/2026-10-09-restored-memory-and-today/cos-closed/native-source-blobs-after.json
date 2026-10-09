@@ -1,0 +1,72 @@
+[
+  {
+    "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+    "exists": true,
+    "symlink": false,
+    "size": 475,
+    "inode": 53799054,
+    "mtime_ns": 1782993703543041841,
+    "mode": 420,
+    "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887"
+  },
+  {
+    "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+    "exists": true,
+    "symlink": false,
+    "size": 3389971840,
+    "inode": 53789206,
+    "mtime_ns": 1782993698707934990,
+    "mode": 420,
+    "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490"
+  },
+  {
+    "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+    "exists": true,
+    "symlink": false,
+    "size": 11355,
+    "inode": 53798972,
+    "mtime_ns": 1782993700768810413,
+    "mode": 420,
+    "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+  },
+  {
+    "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+    "exists": true,
+    "symlink": false,
+    "size": 65,
+    "inode": 53799015,
+    "mtime_ns": 1791291898020546000,
+    "mode": 420,
+    "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff"
+  },
+  {
+    "digest": "sha256:0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276",
+    "exists": true,
+    "symlink": false,
+    "size": 337,
+    "inode": 98093883,
+    "mtime_ns": 1791530440586431001,
+    "mode": 420,
+    "sha256": "0c4c9c2a325fb1cdafec606e6809cb745f1cb26a6d919994400d27372303e276"
+  },
+  {
+    "digest": "sha256:daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c",
+    "exists": true,
+    "symlink": false,
+    "size": 1157671200,
+    "inode": 98094504,
+    "mtime_ns": 1791530502070318995,
+    "mode": 420,
+    "sha256": "daec91ffb5dd0c27411bd71f29932917c49cf529a641d0168496c3a501e3062c"
+  },
+  {
+    "digest": "sha256:a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde",
+    "exists": true,
+    "symlink": false,
+    "size": 1068,
+    "inode": 98094511,
+    "mtime_ns": 1791530503078613483,
+    "mode": 420,
+    "sha256": "a406579cd136771c705c521db86ca7d60a6f3de7c9b5460e6193a2df27861bde"
+  }
+]
