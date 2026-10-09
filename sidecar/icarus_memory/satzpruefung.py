@@ -1169,7 +1169,7 @@ def _gegenstatus(satz: str, belege: Sequence[Beleg]) -> str | None:
     namen = _namensfolgen(satz)
     einheiten = []
     for beleg in belege:
-        for stelle in _status_abschnitte(beleg.text):
+        for stelle in _status_quellenabschnitte(beleg.text):
             if not _REGELSIGNAL.search(satz) and _REGELSIGNAL.search(stelle):
                 # Eine Erlaubnis oder Pflicht belegt keinen tatsächlichen Stand.
                 continue
@@ -1214,6 +1214,46 @@ def _status_abschnitte(text: str) -> list[str]:
             for teil in re.split(r';|,\s|\s(?:aber|sondern|jedoch|während)\s', satz, flags=re.I) if teil.strip()]
 
 
+def _status_quellenabschnitte(text: str) -> list[str]:
+    """Nur ausdrücklich spätere Stände derselben Sache innerhalb einer Quelle ablösen.
+
+    Die Reihenfolge allein und Zeitstempel verschiedener Quellen reichen nicht.
+    Andere Kennungen, Namen oder Sachwörter behalten ihren eigenen Stand.
+    """
+    stellen: list[str] = []
+    # Nur ein enger, eindeutiger Verlaufsbericht darf den alten Stand ablösen.
+    # Bei Fragen, Regeln, Bedingungen oder gekennzeichneter Unsicherheit bleibt
+    # der gesamte Quellenkonflikt erhalten; keine freie Modalitätsinterpretation.
+    verlauf_eindeutig = (not any(z in text for z in '?\"„“«»')
+                         and not _REGELSIGNAL.search(text)
+                         and not re.search(r'\b(?:wenn|sofern|sobald|falls|ob|vermutlich|wahrscheinlich|'
+                                           r'möglicherweise|moeglicherweise|angeblich|vielleicht|könnte|koennte)\b',
+                                           text, re.I))
+
+    def sache(stelle: str):
+        return (frozenset(k.casefold() for k in _KENNUNG.findall(stelle)),
+                tuple(tuple(w for w, _ in folge) for folge in _namensfolgen(stelle)),
+                _status_sachwoerter(stelle))
+
+    for stelle in _status_abschnitte(text):
+        spaeter = re.match(r'^\s*später\s*:\s*(.+)$', stelle, re.I)
+        if spaeter and verlauf_eindeutig:
+            stelle = spaeter.group(1)
+            anker = sache(stelle)
+            # Nur ein einfacher ausdrücklich behaupteter Statusabschluss:
+            # keine Möglichkeit, Bedingung oder qualifizierende Ergänzung.
+            aussage = re.fullmatch(r'.+?\s+(?:ist|sind|wurde|wurden|hat|haben)\s+(.+?)\s*', stelle, re.I)
+            praedikat = _woerter(aussage.group(1)) if aussage else []
+            klarer_status = bool(praedikat) and all(
+                w in {'bereits', 'schon', 'nun', 'jetzt'} or
+                any(_wortform(w, stamm) for _, staemme in _STATUS_STAEMME for stamm in staemme)
+                for w in praedikat)
+            if klarer_status and _status_woerter(stelle) and anker[2]:
+                stellen = [alt for alt in stellen if sache(alt) != anker]
+        stellen.append(stelle)
+    return stellen
+
+
 def _status_namen_belegt(folgen: list[list[tuple[str, str]]], text: str) -> bool:
     """Nur gleiche Namensfolgen mit Beugungsendungen, keine freie Ableitung."""
     woerter = _woerter(text)
@@ -1226,7 +1266,8 @@ def _status_sachwoerter(text: str) -> set[str]:
     """Sachwörter ohne tatsächliche Statusformen; „Unterlagen“ bleibt erhalten."""
     return {w[:5] for w in _woerter(text) if len(w) >= 4 and w not in _FUNKTION
             and not _VERNEINUNG.fullmatch(w)
-            and not any(_wortform(w, stamm) for _, staemme in _STATUS_STAEMME for stamm in staemme)}
+            and (w in {'zusage', 'zusagen', 'bestatigung', 'bestatigungen'}
+                 or not any(_wortform(w, stamm) for _, staemme in _STATUS_STAEMME for stamm in staemme))}
 
 
 def _status_woerter_liste() -> list[str]:

@@ -50,3 +50,38 @@ def test_source_title_can_identify_its_own_status_body():
     sources = {'1':Beleg('1','Die Rechnung wurde bezahlt.',kopf='Rechnung R-719')}
     result = satz_pruefen(Satz('Die Rechnung R-719 wurde bezahlt.',('1',)),sources)
     assert result.bestanden, result.gruende
+
+
+@pytest.mark.parametrize(('statement', 'source', 'accepted'), [
+    ('Die Rechnung wurde bezahlt.', 'Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', True),
+    ('Die Rechnung ist offen.', 'Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', False),
+    ('Die Rechnung wurde bezahlt.', 'Die Rechnung wurde bezahlt. Später: Die Rechnung ist offen.', False),
+    ('Die Rechnung R-719 wurde bezahlt.', 'Die Rechnung R-719 ist offen. Später: Die Rechnung R-720 wurde bezahlt.', False),
+    ('Anna Keller hat bezahlt.', 'Anna Keller hat die Rechnung offen. Später: Mira Sander hat bezahlt.', False),
+    ('Die Rechnung wurde bezahlt.', 'Die Rechnung ist offen. Die Rechnung wurde bezahlt.', False),
+])
+def test_explicit_later_status_stays_with_its_subject(statement, source, accepted):
+    sources = {'1': Beleg('1', source)}
+    result = satz_pruefen(Satz(statement, ('1',)), sources)
+    assert result.bestanden is accepted, result.gruende
+
+
+def test_later_label_in_another_source_does_not_order_conflicting_sources():
+    sources = {'1': Beleg('1', 'Die Rechnung ist offen.'),
+               '2': Beleg('2', 'Später: Die Rechnung wurde bezahlt.')}
+    assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1', '2')), sources).bestanden
+
+
+@pytest.mark.parametrize('later', [
+    'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+    'Vermutlich wurde die Rechnung bezahlt.',
+    'Die Rechnung wurde wohl bezahlt.',
+    'Die Rechnung kann bezahlt werden.',
+    'Die Rechnung wurde angeblich bezahlt.',
+    'Wurde die Rechnung bezahlt?',
+    'Die Rechnung soll bezahlt werden.',
+    '„Die Rechnung wurde bezahlt.“',
+])
+def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+    sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+    assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
