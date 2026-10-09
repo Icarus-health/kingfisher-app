@@ -10,6 +10,8 @@ Der persönliche Import bleibt pausiert, Kalenderquellen dürfen nicht ins Gedä
 
 ## Anforderungen und Belege
 
+Kalender, RAM-Reserve und eigene Gesundheitswerte sind inzwischen zusätzlich in einem [getrennten gemeinsamen Testpaket](runs/2026-10-09-cos-preview-integration/README.md) `1.0.6-preview.5f58289` geprüft: betroffene Backendfälle einschließlich zweier Umgebungs-Wiederprüfungen, 451 UI-Tests, 29 native synthetische Tests und ein isolierter Paketablauf. Das Paket ist lokal vorbereitet, **nicht installiert**. Die drei Drafts, `main`, der laufende Dienst und der ausdrücklich verschobene Fenstertest behalten ihren bisherigen Status. Das ersetzt weder einen echten Arbeitstag noch die persönliche Gedächtnisabnahme.
+
 | Anforderung | Vorhandener Beleg | Fehlender Nachweis oder Ausbau |
 |---|---|---|
 | Originale aufnehmen, zeitlich einordnen und erhalten | Quellenfassungen, getrennte Quell-/Erfassungszeit, Mail-/Dateiwege; [gesicherte Installation](runs/2026-10-09-mail-calendar-preparation/README.md) | Gewünschte reale Konten, Zeiträume und Anlagen gegen Ausgangssystem abgleichen; großer Import weiterhin pausiert. |

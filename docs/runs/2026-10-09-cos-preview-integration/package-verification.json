@@ -1,0 +1,22 @@
+{
+  "version": "1.0.6-preview.5f58289",
+  "code_commit": "5f5828932c721d06d18137574d092de2f8a40212",
+  "image_id": "sha256:141071a098dd10c903bf32e4e120581a6f4df5f6a314aa9a41970453cb570430",
+  "base_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+  "base_layers_verified": true,
+  "native_architecture": "arm64",
+  "native_bundle_files_sha256": {
+    "Contents/Info.plist": "fa10611e1c988ff2f483b4d8f9392bd68ce99795cca1d9d53c9a109aa536efa9",
+    "Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+    "Contents/MacOS/Kingfisher": "e70a09dcb2c7bd446673936f37ec5673479fd2cd4e09f288859c272fa24bc4da",
+    "Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+    "Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+    "Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+  },
+  "dmg_sha256": "5ef0addc0f75e060971a661a71ab09e9268b6568e150baf2dbbd70b9d053692e",
+  "codesign": "strict deep verified",
+  "dmg_checksum": "verified",
+  "installed": false,
+  "notarized": false,
+  "public_release": false
+}
