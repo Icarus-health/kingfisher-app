@@ -1,0 +1,35 @@
+{
+  "architecture": "arm64",
+  "background_pause_preserved": true,
+  "cloud_or_model_calls_in_calendar_helper": false,
+  "code_revision": "9cbf9310d7fdec729bdfdb7d80e5ea17d4a9ffde",
+  "exact_python_files_verified": 266,
+  "exact_ui_files_verified": 112,
+  "image_id": "sha256:757a2e2d402ebb3fb82f771d07ba78f3f5bd89c24a7c11802d1295597144f605",
+  "installed": true,
+  "limits": [
+    "Intel compatibility libraries absent from local Apple toolchain; baseline fails identically. Local arm64 package verified; default universal remains unchanged.",
+    "Real EventKit connect and calendar selection await explicit macOS permission.",
+    "Empty historical sections remain conservative; they do not automatically prove deletion."
+  ],
+  "migration_performed": false,
+  "native_eventkit_flow_verified": false,
+  "native_executable_sha256": "72153551a7831324aed390b359b02e98f97183f3ee3addb5098cfa8ef9d4ba74",
+  "native_signature_verified": true,
+  "native_startup_verified": true,
+  "originals_preserved": true,
+  "raw_copy_verified": true,
+  "same_data_volume": true,
+  "schema": 20,
+  "startup_permission_prompt": false,
+  "tests": {
+    "affected_backend": 99,
+    "frontend": 433,
+    "native_app": 27,
+    "native_app_platform_skip": 1,
+    "native_coordinator_and_http": 2,
+    "synthetic_native_swap_gates": 4
+  },
+  "universal_release_build_verified": false,
+  "version": "1.0.6-local.9cbf931"
+}
