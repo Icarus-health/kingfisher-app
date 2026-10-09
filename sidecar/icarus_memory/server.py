@@ -3013,7 +3013,8 @@ def create_app(
         """
         from .nachbereitung import offene, schluessel
         try:
-            keys = [k for k in (schluessel(str(item.get("uid") or ""), item.get("start")) for item in items) if k]
+            from .connectors.collections import event_uids
+            keys = [k for item in items for uid in event_uids(item) if (k := schluessel(uid, item.get("start")))]
             erledigt = app.state.workspace.event_followups(keys)
             holen = getattr(app.state, "zuordner_holen", None)
             # Liegt zu einem Termin eine Mitschrift vor, gibt es nichts nachzufragen.
@@ -3027,10 +3028,11 @@ def create_app(
         return identitaet.eigene_adressen(getattr(app.state, "settings", None))
 
     def _termin(uid: str, start: str | None = None) -> dict[str, Any]:
+        from .connectors.collections import event_copy
         if start is not None:
             return _vorkommen(uid, start)
         current = _calendar_overview(year_view=True)
-        matches = [item for item in current["items"] if item["uid"] == uid]
+        matches = [copy for item in current["items"] if (copy := event_copy(item, uid)) is not None]
         if len(matches) > 1:
             raise HTTPException(status_code=409, detail="Dieser Kalenderlink ist mehrdeutig. Bitte ein konkretes Vorkommen mit Beginn auswählen.")
         event = matches[0] if matches else None
@@ -3053,7 +3055,8 @@ def create_app(
         from .vorbereitung import zuordnung
         event = _termin(body.uid, body.start)
         try:
-            app.state.workspace.set_event_project(body.uid, body.project_id)
+            from .connectors.collections import event_uids
+            app.state.workspace.set_event_projects(event_uids(event), body.project_id)
         except WorkspaceError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return zuordnung(event, episodes=app.state.episodes, workspace=app.state.workspace,
@@ -3076,7 +3079,9 @@ def create_app(
                                      finish=at.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
         kandidaten = list(current["items"])
         fehler = list(current["errors"])
-        event = next((item for item in kandidaten if item["uid"] == uid and gleicher_beginn(item.get("start"), start)), None)
+        from .connectors.collections import event_copy
+        event = next((copy for item in kandidaten if (copy := event_copy(item, uid)) is not None
+                      and gleicher_beginn(copy.get("start"), start)), None)
         if event is None:
             if fehler:
                 raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
@@ -3086,18 +3091,28 @@ def create_app(
     def _nachbereitung_stand(event: dict[str, Any]) -> dict[str, Any]:
         from .nachbereitung import andere_teilnehmer, schluessel
         key = schluessel(str(event["uid"]), event.get("start"))
-        erledigt, episode_id = app.state.workspace.event_followup(key) if key else (False, None)
+        from .connectors.collections import event_uids
+        keys = [k for uid in event_uids(event) if (k := schluessel(uid, event.get("start")))]
+        completed = app.state.workspace.event_followups(keys)
+        erledigt = bool(completed)
+        episode_id = next((completed[k] for k in keys if completed.get(k)), None)
         try:
             beginn = datetime.fromisoformat(str(event.get("start") or ""))
             begonnen = beginn.tzinfo is not None and beginn <= datetime.now(timezone.utc)
         except ValueError:
             begonnen = False
+        transcripts = {"transkripte": [], "angebote": []}
+        for copy_key in keys:
+            for kind, values in termin_stand(app, copy_key).items():
+                for value in values:
+                    if value not in transcripts[kind]:
+                        transcripts[kind].append(value)
         return {"uid": event["uid"], "start": event.get("start"), "end": event.get("end"),
                 "summary": event.get("summary"), "begonnen": begonnen,
                 "stand": "offen" if not erledigt else "festgehalten" if episode_id else "nichts",
                 "episode_id": episode_id,
                 "teilnehmer": andere_teilnehmer(event.get("attendees") or (), _eigene_adressen()),
-                "termin": key, **termin_stand(app, key)}
+                "termin": key, **transcripts}
 
     @app.get("/api/v1/calendar/nachbereitung", dependencies=guard)
     def calendar_followup(uid: str = Query(min_length=1, max_length=2048),
@@ -3178,8 +3193,9 @@ def create_app(
             # Ein gewähltes Projekt gilt wie jede andere Wahl für diesen
             # Termin. „Kein Projekt“ hier ändert die Zuordnung nicht: Es kann
             # auch heißen, dass die Auswahl nicht geladen war.
-            if body.project_id is not None and app.state.workspace.event_project(str(event["uid"])) != (True, body.project_id):
-                app.state.workspace.set_event_project(str(event["uid"]), body.project_id)
+            if body.project_id is not None:
+                from .connectors.collections import event_uids
+                app.state.workspace.set_event_projects(event_uids(event), body.project_id)
             app.state.workspace.set_event_followup(key, episode.id)
         einordnung = "aus" if created else "schon_festgehalten"
         schedule = app.state.settings.schedule
@@ -3205,10 +3221,14 @@ def create_app(
         # steht: Ein „nichts“ aus einem zweiten Fenster überschreibt keine
         # festgehaltene Nachbereitung.
         with app.state.conversation_lock:
+            from .connectors.collections import event_uids
+            keys = [k for uid in event_uids(event) if (k := schluessel(uid, event.get("start")))]
             if body.nichts:
-                app.state.workspace.mark_event_nothing(key)
+                if not app.state.workspace.event_followups(keys):
+                    app.state.workspace.mark_event_nothing(key)
             else:
-                app.state.workspace.reopen_event_followup(key)
+                for copy_key in keys:
+                    app.state.workspace.reopen_event_followup(copy_key)
         return _nachbereitung_stand(event)
 
     @app.get("/api/v1/calendar/preparation", dependencies=guard)

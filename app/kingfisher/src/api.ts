@@ -729,6 +729,7 @@ export type NachbereitungGespeichert = {
 };
 
 export type TerminZuordnung = {
+  zuordnungskonflikt?: boolean;
   teilnehmer: TerminTeilnehmer[];
   vorschlag: { id: string; name: string; grund: string } | null;
   festgelegt: boolean;
@@ -905,6 +906,8 @@ async function request<T>(path: string, init?: RequestInit, previewError = false
 }
 
 export type MacCalendarState = {
+  generation: number;
+  memory_error?: string;
   enabled: boolean; online: boolean; status: string; authorize: boolean;
   selected: string[]; calendars: Array<{id: string; name: string; source: string}>;
   synced_at: string | null; error: string; event_count: number;
@@ -915,6 +918,7 @@ export type CalendarOverview = {
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];
+    source_copies?: Array<{uid: string; source_id: string; source_label: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string}>;
 };

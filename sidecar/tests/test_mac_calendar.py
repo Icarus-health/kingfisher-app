@@ -172,3 +172,12 @@ def test_explicit_period_requires_known_snapshot_coverage(tmp_path):
     cal, _ = connected(tmp_path)
     with pytest.raises(CalendarError, match='angefragten Zeitraum'):
         cal.events(days=7, at=datetime(1999, 1, 1, tzinfo=timezone.utc))
+
+
+def test_os_permission_revocation_removes_memory_source_authority(tmp_path):
+    from icarus_memory.calendar_memory import quelle_fuer_mac
+    cal, state = connected(tmp_path)
+    source = quelle_fuer_mac('private')
+    assert cal.freigegeben(source)
+    cal.update(WorkerUpdate(generation=state['generation'], status='denied'))
+    assert not cal.freigegeben(source)
