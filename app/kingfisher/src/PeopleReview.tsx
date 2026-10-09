@@ -5,29 +5,14 @@ import { navigate } from "./ui";
 import { PersonDigest } from "./PersonDigest";
 import { PeopleMentions } from "./PeopleMentions";
 import { nichtMehrZuordenbar } from "./personMergeLost";
+import { isPerson, quality, duplicateIds } from "./peopleQuality";
+export { personNodes, type PersonFilter } from "./peopleQuality";
 import "./PeopleReview.css";
-
-export type PersonFilter = "people" | "automated" | "review" | "all";
-
-const isPerson = (node: GraphNode) => node.kind === "person";
-const quality = (node: GraphNode) => typeof node.attributes.quality_category === "string" ? node.attributes.quality_category : "person";
-const duplicateIds = (node: GraphNode) => Array.isArray(node.attributes.duplicate_ids)
-  ? node.attributes.duplicate_ids.filter((id): id is string => typeof id === "string") : [];
 
 function openPerson(node: GraphNode) {
   if (node.attributes.identity_resolution === "confirmed_group") navigate("/memory?people=review");
   else if (node.attributes.identity_resolution === "explicit_registry") navigate(`/memory/registry/${encodeURIComponent(node.id)}`);
   else navigate(`/memory/people/${encodeURIComponent(node.label)}`);
-}
-
-export function personNodes(graph: MemoryGraph, filter: PersonFilter) {
-  return graph.nodes.filter(node => {
-    if (!isPerson(node)) return false;
-    if (filter === "automated") return quality(node) === "automated";
-    if (filter === "review") return quality(node) === "review" || duplicateIds(node).length > 0 || node.attributes.identity_resolution === "confirmed_group";
-    if (filter === "people") return quality(node) !== "automated" && quality(node) !== "review";
-    return true;
-  });
 }
 
 function MergeCandidate({ members, onChanged }: { members: GraphNode[]; onChanged: () => Promise<void> }) {

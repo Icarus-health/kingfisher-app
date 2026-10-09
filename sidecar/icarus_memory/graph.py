@@ -23,7 +23,7 @@ from typing import Any, Iterable
 from . import entscheidungen, identitaet, personen
 from .episodes import Episode, EpisodeState
 from .model import Assertion, now
-from .people_quality import annotate_people
+from .people_quality import annotate_people, ist_sammelpostfach, lokalteil
 
 
 def _stable(prefix: str, value: str) -> str:
@@ -253,7 +253,9 @@ def _person_node(nennung: "identitaet.Nennung", verzeichnis: "identitaet.Verzeic
     if aufloesung.schluessel.startswith("a:"):
         adresse = aufloesung.schluessel[2:]
         namen = verzeichnis.namen(adresse)
-        return GraphNode(kennung, "person", identitaet.beschriftung(adresse, namen[0] if namen else ""), {
+        # Service-Anzeigenamen bleiben lesbar, bilden aber keinen menschlichen Namensalias.
+        anzeige = namen[0] if namen else (nennung.name if ist_sammelpostfach(lokalteil(adresse)) else "")
+        return GraphNode(kennung, "person", identitaet.beschriftung(adresse, anzeige), {
             "identity_resolution": "address",
             "addresses": [adresse],
             "names": namen,
