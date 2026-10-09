@@ -1,0 +1,7 @@
+----------------------------------------------------------------------
+Ran 10 tests in 0.048s
+
+OK
+{"status": "post_archive_runtime_verification_failed", "active_data_changed": false, "archive_mutation_attempted": true, "error": "health_failed"}
+{"status": "one_duplicate_archived", "active_data_changed": false, "archive_mutation_attempted": true, "target": "vor-update-20261009T022544Z", "host_archives_verified": 2, "active_file_tree_exact": true, "health": {"health": true, "background_paused": true}, "native_storage_probe": "before=ok\nafter=ok", "plan_sha256": "9c2d3d2ea11e0b37430689fcc4d11b561206642a38747e0348315c29f3df40a5", "bytes_reclaimed": 12}
+{"status": "stopped_review_required", "active_data_changed": null, "archive_mutation_attempted": true, "error": "unexpected_active_file_change"}

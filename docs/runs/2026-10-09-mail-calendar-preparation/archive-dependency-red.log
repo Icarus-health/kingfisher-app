@@ -1,0 +1,25 @@
+======================================================================
+FAIL: test_runtime_failure_is_not_reported_as_prepare_failure (test_execute_verified_v2.CallerTests.test_runtime_failure_is_not_reported_as_prepare_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/kingfisher-last-snapshot-relocation-20261009/test_execute_verified_v2.py", line 65, in test_runtime_failure_is_not_reported_as_prepare_failure
+    self.assertEqual(code,1);self.assertTrue(running)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_success_checks_cold_copy_before_api_and_resumes_same_image (test_execute_verified_v2.CallerTests.test_success_checks_cold_copy_before_api_and_resumes_same_image)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/kingfisher-last-snapshot-relocation-20261009/test_execute_verified_v2.py", line 59, in test_success_checks_cold_copy_before_api_and_resumes_same_image
+    self.assertEqual(code,0);self.assertTrue(running)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.016s
+
+FAILED (failures=2)
+{"status": "stopped_review_required", "active_data_changed": null, "archive_mutation_attempted": false, "error": "archive_check_failed"}
+{"status": "stopped_review_required", "active_data_changed": null, "archive_mutation_attempted": false, "error": "archive_check_failed"}
+{"status": "stopped_review_required", "active_data_changed": null, "archive_mutation_attempted": false, "error": "archive_check_failed"}

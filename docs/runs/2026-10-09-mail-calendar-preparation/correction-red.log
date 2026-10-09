@@ -1,0 +1,49 @@
+.....FF..                                                                [100%]
+=================================== FAILURES ===================================
+________ test_done_replay_rechecks_source_without_changing_done_journal ________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1014/test_done_replay_rechecks_sour0')
+
+    def test_done_replay_rechecks_source_without_changing_done_journal(tmp_path):
+        service,_,_,provider=action_service(tmp_path)
+        allow_source(service)
+        draft=service.draft(**INPUT,mail_preparation=BINDING)
+        service.execute(draft['id'],confirmed=True,stand=draft['stand'])
+        @contextmanager
+        def withdrawn(binding):raise ActionError('Quelle entzogen.',409);yield
+        service.source_guard=withdrawn
+>       with pytest.raises(ActionError):service.execute(draft['id'],confirmed=True,stand=draft['stand'])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ActionError
+
+sidecar/tests/test_mail_calendar_action_binding.py:88: Failed
+_ test_reauthorization_repreviews_unexecuted_mail_and_invalidates_old_confirmation _
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1014/test_reauthorization_repreview0')
+
+    def test_reauthorization_repreviews_unexecuted_mail_and_invalidates_old_confirmation(tmp_path):
+        service,_,keys,provider=action_service(tmp_path)
+        allow_source(service)
+        old=service.draft(**INPUT,mail_preparation=BINDING)
+        reauthorize(service,keys)
+        with pytest.raises(ActionError):service.execute(old['id'],confirmed=True,stand=old['stand'])
+        restarted=CalendarActions(service.path,service.settings,service.oauth,provider)
+        allow_source(restarted)
+        new=restarted.draft(**INPUT,mail_preparation=BINDING)
+>       assert new['id']==old['id'] and new['stand']!=old['stand'] and new['status']=='draft'
+E       AssertionError: assert ('babbec575910...d03ebc15c2d67' == 'babbec575910...d03ebc15c2d67'
+E         
+E         Skipping 53 identical leading characters in diff, use -v to show
+E           3ebc15c2d67 and '2a9777ba68d14b60b64352e01235bc7f92a97bcc0cd0c523d5ce26a96c438d95' != '2a9777ba68d14b60b64352e01235bc7f92a97bcc0cd0c523d5ce26a96c438d95')
+
+sidecar/tests/test_mail_calendar_action_binding.py:103: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_mail_calendar_action_binding.py::test_done_replay_rechecks_source_without_changing_done_journal
+FAILED sidecar/tests/test_mail_calendar_action_binding.py::test_reauthorization_repreviews_unexecuted_mail_and_invalidates_old_confirmation
+2 failed, 7 passed, 1 warning in 0.27s
