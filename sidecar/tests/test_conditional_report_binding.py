@@ -143,3 +143,41 @@ def test_function_words_are_not_nominal_conditions(memory, source):
     text, _, status = answers.render(answer, *memory)
     assert status == 'working_reports' and candidate in text
     assert answer['satzantwort']['status'] == 'saetze'
+
+
+def test_same_paragraph_followup_condition_keeps_date_and_full_original(memory):
+    source = ('Die Lieferung Orion erfolgt am 14. Oktober 2026. '
+              'Wir melden uns, sobald es Neuigkeiten gibt.')
+    recorded(memory, source)
+    provider = Skript(lambda user: {'status': 'antwort', 'originalstellen': [
+        {'beleg': nr(user, 'Orion Original'), 'satz': 1}]})
+    answer = answers.prepare('Welche Angaben nennt die Quelle zu Orion?', *memory, provider, saetze=True)
+    text, _, status = answers.render(answer, *memory)
+    assert status == 'working_reports' and source in text
+    assert answer['satzantwort']['status'] == 'saetze'
+
+
+def test_oversize_conditional_paragraph_falls_back_without_hiding_date(memory):
+    source = ('Die Lieferung Orion erfolgt am 14. Oktober 2026. '
+              'Wir melden uns, sobald es Neuigkeiten gibt. '
+              + 'Weitere Unterlagen zur Lieferung Orion liegen bei uns vor. ' * 9)
+    assert len(source) > 400
+    recorded(memory, source)
+    provider = Skript(lambda user: {'status': 'antwort', 'originalstellen': [
+        {'beleg': nr(user, 'Orion Original'), 'satz': 1}]})
+    answer = answers.prepare('Welche Angaben nennt die Quelle zu Orion?', *memory, provider, saetze=True)
+    text, _, status = answers.render(answer, *memory)
+    assert answer['satzantwort']['status'] == 'zitate'
+    assert not provider.satzanfragen  # Das vollständige Original passt nicht ins Satzlimit.
+    assert status == 'working_reports' and source in text
+    assert answers.satz_struktur(answer, *memory) is None
+
+
+def test_legacy_paraphrase_with_separate_condition_keeps_original_report(memory):
+    source = ('Die Lieferung Orion erfolgt am 14. Oktober 2026.\n\n'
+              'Wir melden uns, sobald es Neuigkeiten gibt.')
+    recorded(memory, source)
+    answer = prepared(memory, 'Die Lieferung Orion erfolgt am 14.10.2026.')
+    text, _, status = answers.render(answer, *memory)
+    assert answer['satzantwort']['status'] == 'zitate'
+    assert status == 'working_reports' and source in text

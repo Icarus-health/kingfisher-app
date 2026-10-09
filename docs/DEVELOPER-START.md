@@ -1,8 +1,17 @@
 # Einstieg für Entwickler und Claude Code
 
-Stand: 2. Oktober 2026 (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
+Einstiegsstand: 9. Oktober 2026. Die gemeinsame CoS-Vorschau liegt in
+[Draft #46](https://github.com/Icarus-health/kingfisher-app/pull/46), Branch
+`integration/cos-preview-reviewed-20261009`; sie ist noch nicht in `main`
+übernommen oder auf dem persönlichen Mac installiert. Vor weiterer Arbeit
+den [aktuellen Abnahmestand](64-cos-abnahme-status-2026-10-09.md) und die
+[Alltagsabnahme](60-alltagsabnahme.md) lesen. Die dort verlinkten Lieferprotokolle
+trennen aktuelle Prüfungen von historischen Ergebnissen und offenen Nachweisen.
+Nicht erneut bauen, was bereits in der gemeinsamen Vorschau enthalten ist.
+
+Stand der folgenden Codekarte: 2. Oktober 2026 (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
 Sammelbestätigung, PDF-Anhänge und Cloud-Ordner; um Microsoft 365 (M5), den lesbaren Quellenhinweis und Google ohne
-Cloud-Projekt; am 30. September um die Abschnitte langer Quellen; sonst 29. September, einschließlich PR #124). Gemeinsame Basis: `main`.
+Cloud-Projekt; am 30. September um die Abschnitte langer Quellen; sonst 29. September, einschließlich PR #124). Veröffentlichte Basis: `main`.
 Kingfisher ist ein aktiver lokaler Pilot, kein fertig qualifizierter autonomer CoS.
 Ziel sind verlässliches Gedächtnis, Mail, Kalender und Aufgaben mit einfacher
 Bedienung. Ein belegter Hinweis ist noch keine bestätigte Tatsache.
@@ -13,7 +22,10 @@ Bedienung. Ein belegter Hinweis ist noch keine bestätigte Tatsache.
 2. [Plan vom Gedächtnis zum Stabschef](26-plan-stabschef.md): Reihenfolge der
    Arbeit und Entscheidungen des Nutzers. Danach die
    [Memory-first-Roadmap](release/MEMORY-FIRST-ROADMAP.md).
-3. [Aktuelle Lieferung und Grenzen](runs/mail-intake-20260929/README.md).
+3. [Aktueller Abnahmestand und Grenzen](64-cos-abnahme-status-2026-10-09.md),
+   anschließend das dort verlinkte neueste Lieferprotokoll. Der
+   [Mailaufnahme-Nachweis vom 29. September](runs/mail-intake-20260929/README.md)
+   bleibt als historischer Beleg erhalten.
 4. [Freigegebener Aufnahmeentwurf](superpowers/specs/2026-09-29-mail-memory-intake-design.md).
 
 Ältere `docs/runs/`, Evaluierungen und Roadmap-Prozentzahlen sind datierte
