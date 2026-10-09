@@ -1,0 +1,22 @@
+{
+  "full-regression-before-test-contract-alignment.txt": {
+    "raw_sha256": "c15394e4f4c455786a65416e8cdf5a7b43876c4e7ae2531fa1ad3d4a73961fd8",
+    "copied_sha256": "153095650c4b6a811ca69e1711c25c757e9501cbc07abd2b9754c2a9687884c2",
+    "transformation": "Trailing ASCII spaces/tabs removed; content and line order unchanged"
+  },
+  "sandbox-localhost-repro.txt": {
+    "raw_sha256": "63801fe85cc363b10ca983d082efc1cba33ff76a9df77cf5fa0825fc0554a94e",
+    "copied_sha256": "e432aa30e28c2d223220102dcbc4e8fed09dab4ba6108ac317a35b9d8b6e0e0b",
+    "transformation": "Trailing ASCII spaces/tabs removed; content and line order unchanged"
+  },
+  "cross-source-red.txt": {
+    "raw_sha256": "282ceb95c4e7c95b2cc0bf7eb65137d6fa3f88565d722fdb8b6db9f0129137f4",
+    "copied_sha256": "db5cfc00cad3674416ec99160ef338ec08ebd37e2df459b68920dde0fe4f9b3b",
+    "transformation": "Trailing ASCII spaces/tabs removed; content and line order unchanged"
+  },
+  "baseline-69-tests.txt": {
+    "raw_sha256": "44b3088875951cb2c795e512187e1f5dfc5ce438f2671e65da1e3c3e46eb1431",
+    "copied_sha256": "24b2d1ac94a55b083ac205da6e63c04ff27e1c0114d004fba368d5b76638c00c",
+    "transformation": "Trailing ASCII spaces/tabs removed; content and line order unchanged"
+  }
+}

@@ -1,0 +1,659 @@
+{
+  "synthetic": true,
+  "frozen_before_model_run": true,
+  "scope": "Direct actual satzantwort.formulieren plus active actual local second gate; no source intake/classification/search/index/retrieval. For each question, the input is its exact selected full synthetic source text, in the persisted prior 3ff sentence-answer belege order where present, otherwise persisted working_answer.refs order. W05 was previously unclear and had no formulation, so this is a new direct formulation over its persisted refs.",
+  "source_commit": "ce39f71046581567d9915d1b06a73e991072f1f3",
+  "product_repository": "/private/tmp/kingfisher-normative-after-20261009/repo",
+  "baseline_run": "/private/tmp/kingfisher-phase-after-final-20261009",
+  "baseline_answers_sha256": "9af3d071de9ca278d84ebae6242d706e9e501b6d539137aac1000ffaf6bbc925",
+  "baseline_catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "source_count": 19,
+  "question_count": 16,
+  "questions": [
+    {
+      "id": "IA01",
+      "question": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "gold_expected_sources": [
+        "IA01-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA01-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA01-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA01-S1",
+          "episode_id": "e-5b66bd9ae1be",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-5b66bd9ae1be",
+            "fingerprint": "d57a5f9c8ddcaa96acc12523af482666ffb9855694106073f605e9937432e06f",
+            "start": 0,
+            "end": 171,
+            "kind": "fact"
+          },
+          "title": "IA01-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.007255+02:00",
+          "occurred_at": null,
+          "body": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "body_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+          "database_digest": "sha256:105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA01-S1"
+      ]
+    },
+    {
+      "id": "IA02",
+      "question": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "gold_expected_sources": [
+        "IA02-S1",
+        "IA02-S2"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA02-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA02-S2"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA02-S2"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA02-S2",
+          "episode_id": "e-a1c97f7d7463",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-a1c97f7d7463",
+            "fingerprint": "9355bceb6f20a623ad65531cd0c442eb916456cc9b42421914ebb49b64509858",
+            "start": 0,
+            "end": 151,
+            "kind": "fact"
+          },
+          "title": "IA02-S2.txt",
+          "recorded_at": "2026-10-09T01:30:33.012881+02:00",
+          "occurred_at": null,
+          "body": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "body_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+          "database_digest": "sha256:d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA02-S2"
+      ]
+    },
+    {
+      "id": "IA03",
+      "question": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "gold_expected_sources": [
+        "IA03-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA03-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA03-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA03-S1",
+          "episode_id": "e-53c61f18f291",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-53c61f18f291",
+            "fingerprint": "1840be92bd3793f184eda24e4164f1684cde66c5b883574d4345575eacc53e6b",
+            "start": 0,
+            "end": 105,
+            "kind": "fact"
+          },
+          "title": "IA03-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.014883+02:00",
+          "occurred_at": null,
+          "body": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+          "body_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+          "database_digest": "sha256:c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA03-S1"
+      ]
+    },
+    {
+      "id": "IA04",
+      "question": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "gold_expected_sources": [
+        "IA04-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA04-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA04-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA04-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA04-S1",
+          "episode_id": "e-b49f1d4ff578",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-b49f1d4ff578",
+            "fingerprint": "e97fcdd70b56fa4f0a0970b2174c961b4731c17dbe1dcda2b1bcf2aaf6532fe7",
+            "start": 0,
+            "end": 71,
+            "kind": "fact"
+          },
+          "title": "IA04-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.016762+02:00",
+          "occurred_at": null,
+          "body": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "body_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+          "database_digest": "sha256:2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA04-S1"
+      ]
+    },
+    {
+      "id": "IA05",
+      "question": "Wann darf der Akku ausgetauscht werden?",
+      "gold_expected_sources": [
+        "IA05-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA05-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA05-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA05-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA05-S1",
+          "episode_id": "e-773f5777fc05",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-773f5777fc05",
+            "fingerprint": "c43513de0704c9991dd19f9bd556c609e14ab028b89bbd6a8b46d094bb755fc0",
+            "start": 0,
+            "end": 128,
+            "kind": "fact"
+          },
+          "title": "IA05-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.018582+02:00",
+          "occurred_at": null,
+          "body": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "body_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+          "database_digest": "sha256:db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA05-S1"
+      ]
+    },
+    {
+      "id": "IA06",
+      "question": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "gold_expected_sources": [
+        "IA06-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA06-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA06-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA06-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA06-S1",
+          "episode_id": "e-aec0c8aea01d",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-aec0c8aea01d",
+            "fingerprint": "67f1f8cbe278f0a6703772ef84703a68135857f8ef3a81d1386b9767d48495a5",
+            "start": 0,
+            "end": 147,
+            "kind": "fact"
+          },
+          "title": "IA06-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.020762+02:00",
+          "occurred_at": null,
+          "body": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "body_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+          "database_digest": "sha256:bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA06-S1"
+      ]
+    },
+    {
+      "id": "IA07",
+      "question": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "gold_expected_sources": [
+        "IA07-S2"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA07-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA07-S2"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA07-S2"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA07-S2",
+          "episode_id": "e-1aacc408e164",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-1aacc408e164",
+            "fingerprint": "d239e2449fdc012949550970a87ee7b7215c78ea154f345788c1d9212b8c0f88",
+            "start": 0,
+            "end": 171,
+            "kind": "change"
+          },
+          "title": "IA07-S2.txt",
+          "recorded_at": "2026-10-09T01:30:33.024448+02:00",
+          "occurred_at": null,
+          "body": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "body_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+          "database_digest": "sha256:e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA07-S2"
+      ]
+    },
+    {
+      "id": "IA08",
+      "question": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "gold_expected_sources": [
+        "IA08-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA08-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA08-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "IA08-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "IA08-S1",
+          "episode_id": "e-0ce4ccbbf524",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-0ce4ccbbf524",
+            "fingerprint": "fe68cd2b880a03417565ed70f9a6372e34f4a064c5f8f200c54dae5a6dc613c5",
+            "start": 0,
+            "end": 236,
+            "kind": "fact"
+          },
+          "title": "IA08-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.026703+02:00",
+          "occurred_at": null,
+          "body": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "body_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+          "database_digest": "sha256:9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "IA08-S1"
+      ]
+    },
+    {
+      "id": "W01",
+      "question": "Unter welcher Voraussetzung darf die Gewebeprobe in den Kühlbehälter gelegt werden?",
+      "gold_expected_sources": [
+        "W01-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W01-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "W01-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "W01-S1",
+          "episode_id": "e-4671afbcf2ae",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-4671afbcf2ae",
+            "fingerprint": "fc21ebe1fbd10f46a837c687c430a57b5ac9322ed7325c965d618230b47b4eb9",
+            "start": 0,
+            "end": 152,
+            "kind": "fact"
+          },
+          "title": "W01-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.028693+02:00",
+          "occurred_at": null,
+          "body": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731.",
+          "body_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63",
+          "database_digest": "sha256:4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "W01-S1"
+      ]
+    },
+    {
+      "id": "W02",
+      "question": "Welche Voraussetzung muss erfüllt sein, damit das Ersatzteil im Metallschrank aufbewahrt werden darf?",
+      "gold_expected_sources": [
+        "W02-S1"
+      ],
+      "baseline_status": "working_unknown",
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "baseline_persisted_ref_order": [],
+      "formulation_source_order": [],
+      "baseline_sentence_attempt_order": []
+    },
+    {
+      "id": "W03",
+      "question": "Darf der Trichterdeckel vor dem Wiegen abgenommen werden?",
+      "gold_expected_sources": [
+        "W03-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W03-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "W03-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "W03-S1",
+          "episode_id": "e-5f7256cd5bcd",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-5f7256cd5bcd",
+            "fingerprint": "b1bac293fe7ba336dedb2af26a4926bbcafa74dbbd65083f2f5969eea84c5304",
+            "start": 0,
+            "end": 122,
+            "kind": "fact"
+          },
+          "title": "W03-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.032362+02:00",
+          "occurred_at": null,
+          "body": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "body_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068",
+          "database_digest": "sha256:e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "W03-S1"
+      ]
+    },
+    {
+      "id": "W04",
+      "question": "War der Einsatz des Dosierkopfs im dokumentierten Versuch zulässig?",
+      "gold_expected_sources": [
+        "W04-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W04-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W04-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "W04-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "W04-S1",
+          "episode_id": "e-61b0ab92f246",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-61b0ab92f246",
+            "fingerprint": "7483cc37bb70fcb2ad8ebafd1ab1f09f76a0a4bdb4f6117a0466f7abefd0845d",
+            "start": 0,
+            "end": 148,
+            "kind": "fact"
+          },
+          "title": "W04-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.034012+02:00",
+          "occurred_at": null,
+          "body": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "body_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b",
+          "database_digest": "sha256:8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "W04-S1"
+      ]
+    },
+    {
+      "id": "W05",
+      "question": "Darf die Heizplatte vor vollständiger Abkühlung gereinigt werden?",
+      "gold_expected_sources": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "baseline_status": "working_unclear",
+      "baseline_selected_sources_in_order": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "baseline_persisted_ref_order": [
+        "W05-S2",
+        "W05-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "W05-S2",
+          "episode_id": "e-cb1f0d0e2b25",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-cb1f0d0e2b25",
+            "fingerprint": "16d52e24a6647ae77fca4c68ca1be621f111c672e8b9d2b07541e1da1d42cb46",
+            "start": 0,
+            "end": 94,
+            "kind": "historical"
+          },
+          "title": "W05-S2.txt",
+          "recorded_at": "2026-10-09T01:30:33.037357+02:00",
+          "occurred_at": null,
+          "body": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.",
+          "body_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c",
+          "database_digest": "sha256:a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c"
+        },
+        {
+          "synthetic_source_id": "W05-S1",
+          "episode_id": "e-daf0784864d3",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-daf0784864d3",
+            "fingerprint": "d30e373d34f448b10e40f02d242d9f8b3a61b3b274a7776092326d638cd945fa",
+            "start": 0,
+            "end": 100,
+            "kind": "fact"
+          },
+          "title": "W05-S1.txt",
+          "recorded_at": "2026-10-09T01:30:33.035640+02:00",
+          "occurred_at": null,
+          "body": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.",
+          "body_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e",
+          "database_digest": "sha256:8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "W05-S2",
+        "W05-S1"
+      ]
+    },
+    {
+      "id": "DE01",
+      "question": "Wann darf der Speicherchip entnommen werden?",
+      "gold_expected_sources": [
+        "DE01-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE01-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "DE01-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "DE01-S1",
+          "episode_id": "e-05ad3d21d1b3",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-05ad3d21d1b3",
+            "fingerprint": "5df4439fcd5418ae340afd6269c924423f68aed0a718240522cffbf91e00002a",
+            "start": 0,
+            "end": 163,
+            "kind": "fact"
+          },
+          "title": "Datenbergung.txt",
+          "recorded_at": "2026-10-09T01:30:33.039734+02:00",
+          "occurred_at": null,
+          "body": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "body_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f",
+          "database_digest": "sha256:911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "DE01-S1"
+      ]
+    },
+    {
+      "id": "DE02",
+      "question": "Wann und wie darf der Lack bearbeitet werden?",
+      "gold_expected_sources": [
+        "DE02-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE02-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE02-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "DE02-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "DE02-S1",
+          "episode_id": "e-33ead1b37a77",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-33ead1b37a77",
+            "fingerprint": "9a9b66d5e73a70a25d616fea48ddd9708da3e4386c9f098975143e503d239f7e",
+            "start": 0,
+            "end": 188,
+            "kind": "status"
+          },
+          "title": "Restaurierungsanweisung.txt",
+          "recorded_at": "2026-10-09T01:30:33.041622+02:00",
+          "occurred_at": null,
+          "body": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "body_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326",
+          "database_digest": "sha256:78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "DE02-S1"
+      ]
+    },
+    {
+      "id": "DE03",
+      "question": "Darf das Teleskop vor Ende der Nachtaufnahme aus der Halterung genommen werden, und wann ist es danach erlaubt?",
+      "gold_expected_sources": [
+        "DE03-S1"
+      ],
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE03-S1"
+      ],
+      "baseline_persisted_ref_order": [
+        "DE03-S1"
+      ],
+      "formulation_source_order": [
+        {
+          "synthetic_source_id": "DE03-S1",
+          "episode_id": "e-9fb1dec73a9c",
+          "role": "Quelle",
+          "reference": {
+            "episode_id": "e-9fb1dec73a9c",
+            "fingerprint": "7ab7906b1ddc71c7c83cb1640eca3c462b65132cf2afbd4c46ddb670a8212729",
+            "start": 0,
+            "end": 210,
+            "kind": "status"
+          },
+          "title": "Nachtbeobachtung.txt",
+          "recorded_at": "2026-10-09T01:30:33.043866+02:00",
+          "occurred_at": null,
+          "body": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "body_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166",
+          "database_digest": "sha256:d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166"
+        }
+      ],
+      "baseline_sentence_attempt_order": [
+        "DE03-S1"
+      ]
+    }
+  ],
+  "limitations": [
+    "This is not an end-to-end or source-selection benchmark.",
+    "It cannot assess whether the fixed selected sources are the right ones.",
+    "Generator and verifier use the same qwen3.5:4b instance, so the second gate is not independent truth.",
+    "Selected source full text is passed directly; this does not reproduce prior question-specific excerpt generation.",
+    "Rows without prior selected refs are called with an empty evidence list; the product returns fallback before any model call.",
+    "W05 did not have a prior formulation; refs order is used as fixed input for this supplementary probe."
+  ]
+}

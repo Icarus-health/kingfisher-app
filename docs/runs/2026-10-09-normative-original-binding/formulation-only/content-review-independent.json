@@ -1,0 +1,319 @@
+{
+  "review_type": "independent_content_review",
+  "status": "complete_formulation_only_review",
+  "source_commit": "ce39f71046581567d9915d1b06a73e991072f1f3",
+  "formulation_catalog_sha256": "7aef099996cce34d282eef99eaec6c56b5e2359f9f36f2ba15a2365ef8c26f5b",
+  "baseline_answers_sha256": "9af3d071de9ca278d84ebae6242d706e9e501b6d539137aac1000ffaf6bbc925",
+  "baseline_catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "answers_sha256": "d7ea6821308479213ab525576e7b3f3ddc29306a7ab44143bdcd7dae7f669c6a",
+  "runtime_sha256": "52d045cfe637c7ff464e090c9238e6504e07d1ce2999757400bdcbd0d9bb45af",
+  "code_sha256": {
+    "satzantwort.py": "80c32b29838c716f25668520d427ec9a5869984fab80c8b228734023fd32ba5f",
+    "satzpruefung.py": "70d6d086165d59946431c6d14de67c8c2a8df0763fe81c2ba0db744eac3009b8",
+    "satzpruefung_modell.py": "e6b75b94d433b08bc61dd9469d722d719e56d0544db1f3db90b309defb4aaebc",
+    "local_model_guard.py": "92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe",
+    "providers.py": "1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f"
+  },
+  "scope": "Direct actual satzantwort.formulieren plus active actual local second gate; no source intake/classification/search/index/retrieval. For each question, the input is its exact selected full synthetic source text, in the persisted prior 3ff sentence-answer belege order where present, otherwise persisted working_answer.refs order. W05 was previously unclear and had no formulation, so this is a new direct formulation over its persisted refs.",
+  "run_integrity": {
+    "completed": true,
+    "questions": 16,
+    "formulation_calls": 15,
+    "second_gate_calls": 22,
+    "client_exit": 0,
+    "server_exit": 0,
+    "watchdog_stop": null,
+    "production_endpoint_touched": false,
+    "isolated_cache": true,
+    "no_symlink_or_hardlink_model_blobs": true,
+    "OLLAMA_NO_CLOUD": "1",
+    "OLLAMA_NOPRUNE": "1",
+    "native_qwen_blobs_unchanged": true
+  },
+  "rating_counts": {
+    "adequate": 10,
+    "incomplete": 1,
+    "safe_ambiguity_fallback": 1,
+    "no_evidence_fixed_input_not_assessable": 1,
+    "false_rejection_safe_quote_fallback": 3
+  },
+  "rows": [
+    {
+      "id": "IA01",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA01-S1"
+      ],
+      "accepted_sentences": [
+        "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+        "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "The dry-only rule answers the asked cleaning step. The returned solvent rule is explicitly labeled for return, so it is supported but extraneous; it is not transferred to cleaning."
+    },
+    {
+      "id": "IA02",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA02-S2"
+      ],
+      "accepted_sentences": [
+        "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "The selected supplement states the complete dust-free prerequisite and explicitly ties it to the P-18 protective layer. It answers the condition without needing the separate action source."
+    },
+    {
+      "id": "IA03",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA03-S1"
+      ],
+      "accepted_sentences": [
+        "Vor der Abnahme darf die Abdeckung nicht entfernt werden.",
+        "Erst nach der Abnahme darf sie entfernt werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "Both sentences preserve the prohibition before acceptance and permission only after acceptance; the requested before-acceptance answer is clear even without a leading “No”."
+    },
+    {
+      "id": "IA04",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA04-S1"
+      ],
+      "accepted_sentences": [
+        "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It preserves the exclusive limit: opening is allowed only during the active flushing process."
+    },
+    {
+      "id": "IA05",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA05-S1"
+      ],
+      "accepted_sentences": [
+        "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+        "Vor dem Versand wird das Prüfsiegel fotografiert."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "The answer correctly attaches replacement to the technical inspection. The separate pre-shipment seal-photograph fact is accurate but extraneous and is not presented as the replacement condition."
+    },
+    {
+      "id": "IA06",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA06-S1"
+      ],
+      "accepted_sentences": [
+        "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+        "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It answers yes for room B during work hours and correctly labels the after-hours restriction as applying to room A."
+    },
+    {
+      "id": "IA07",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA07-S2"
+      ],
+      "accepted_sentences": [
+        "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+        "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It uses the correction and preserves both the insufficient earlier calibration rule and the until-documented-approval prohibition."
+    },
+    {
+      "id": "IA08",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "IA08-S1"
+      ],
+      "accepted_sentences": [
+        "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+        "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It answers that post-acceptance reset is conditional on a written order by the on-duty technician; it does not infer automatic permission."
+    },
+    {
+      "id": "W01",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "W01-S1"
+      ],
+      "accepted_sentences": [
+        "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It attaches the under-8 °C condition to placing the sample in the cooler; the unrelated batch-code fact is not included."
+    },
+    {
+      "id": "W02",
+      "rating": "not_assessable_fixed_input_empty",
+      "status": "zitate",
+      "source_order": [],
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "fallback_reason": "keine Belege",
+      "review": "The previous full run selected no source although this question’s gold expects W02-S1. The direct formatter received no evidence and returned its safe “keine Belege” fallback with zero model calls. This probe cannot assess retrieval or answer content for this row."
+    },
+    {
+      "id": "W03",
+      "rating": "adequate",
+      "status": "saetze",
+      "source_order": [
+        "W03-S1"
+      ],
+      "accepted_sentences": [
+        "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden.",
+        "Nach dem Wiegen darf der Trichterdeckel abgenommen werden."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "It keeps the prohibition before weighing separate from permission after weighing."
+    },
+    {
+      "id": "W04",
+      "rating": "incomplete",
+      "status": "saetze",
+      "source_order": [
+        "W04-S1"
+      ],
+      "accepted_sentences": [
+        "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden.",
+        "Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt."
+      ],
+      "rejected_sentences": [],
+      "fallback_reason": "",
+      "review": "Both quoted claims are supported, but the answer never explicitly says whether the documented use was permitted. Under the frozen criterion, juxtaposition is not a direct reasoned “No”."
+    },
+    {
+      "id": "W05",
+      "rating": "safe_ambiguity_fallback_not_direct_prose",
+      "status": "zitate",
+      "source_order": [
+        "W05-S2",
+        "W05-S1"
+      ],
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "fallback_reason": "Modell hält die Frage nach den Belegen für unklar",
+      "review": "The formatter returned the quote fallback because it judged the evidence unclear. The two fixed sources directly conflict and carry no resolving chronology; abstaining is safe. The quotations enable comparison but are not a reasoned answer."
+    },
+    {
+      "id": "DE01",
+      "rating": "safe_quote_fallback_after_false_rejection",
+      "status": "zitate",
+      "source_order": [
+        "DE01-S1"
+      ],
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "review": "The rejected positive permission sentence is an exact source sentence and is supported by the source. The first gate rejects it because another sentence in the same source contains “nicht”; the formatter falls back to the source. Safe but not successful prose."
+    },
+    {
+      "id": "DE02",
+      "rating": "safe_quote_fallback_after_false_rejection",
+      "status": "zitate",
+      "source_order": [
+        "DE02-S1"
+      ],
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "reasons": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "review": "The rejected positive “after written approval / soft brush” sentence is supported verbatim by the original. It is rejected because the same source also prohibits work before approval. The source says “bearbeitet”, not “berührt”; the proposed gold wording about touching is not adopted. Safe fallback, no accepted unsupported claim."
+    },
+    {
+      "id": "DE03",
+      "rating": "safe_quote_fallback_after_false_rejection",
+      "status": "zitate",
+      "source_order": [
+        "DE03-S1"
+      ],
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "reasons": [
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "review": "The rejected post-completion permission sentence reproduces the original’s completion and covered-optics conditions. The first gate reports missing temporal applicability and source negation despite the exact sentence. The quote fallback is safe but not successful prose."
+    }
+  ],
+  "overall": "Among questions with fixed selected evidence, ten outputs are adequate prose, W04 is incomplete, W05 correctly abstains on contradictory sources, and DE01-DE03 fall back to quotes because the first gate blocks exact positive permission sentences in sources that also contain the preceding negation. W02 is not assessable as a formulation answer because its fixed input had no source; the full-pipeline selection miss remains out of this probe.",
+  "material_limitations": [
+    "This run calls satzantwort.formulieren directly; it does not exercise intake, classification, source selection, retrieval, semantic indexing, persistence/restart, withdrawal, HTTP conversation rendering, or source links.",
+    "Fixed inputs are the prior 3ff selected full synthetic sources and persisted order; the probe cannot establish whether that source selection was correct.",
+    "W05 had no prior sentence-answer call because the full pipeline was unclear; its persisted working_memory_refs order S2,S1 was used as the new direct input. The baseline selected/shown list order was S1,S2.",
+    "Generation and the actual local second gate use the same qwen3.5:4b model; gate “ja” is not independent truth.",
+    "The 3 DE quote fallbacks are safe source access, not successful natural-language answers."
+  ],
+  "comparison_to_prior_3ff": {
+    "comparable_scope": "Only compares the direct sentence-formulation artifacts for the same frozen questions, using the same prior selected synthetic evidence and order. It does not compare end-to-end retrieval or final HTTP/UI responses.",
+    "existing_text_identical_rows": [
+      "IA01",
+      "IA03",
+      "IA04",
+      "IA06",
+      "IA07",
+      "IA08",
+      "W01",
+      "W04"
+    ],
+    "changed_but_source_supported_text_rows": {
+      "IA02": "Correct paraphrase of the same dust-free-before-application condition; its direct source in this probe is the selected supplement IA02-S2.",
+      "IA05": "Retains the correct battery-after-inspection answer but adds the unrelated pre-shipment seal-photograph fact, a small scope/relevance regression.",
+      "W03": "Equivalent rephrasing of the before-weighing prohibition; after-weighing permission remains intact."
+    },
+    "non_sentence_rows": {
+      "W02": "No selected evidence in both baseline and fixed-input probe; probe makes no retrieval claim.",
+      "W05": "Prior full pipeline was unclear; direct formatter also abstains on contradictory fixed sources.",
+      "DE01": "Quote fallback in both.",
+      "DE02": "Quote fallback in both.",
+      "DE03": "Quote fallback in both."
+    },
+    "overall_delta": "No broad quality gain or regression can be claimed from this direct-stage probe. It reproduces the W04 incompleteness and DE01-DE03 quote fallbacks; IA05 adds one irrelevant, though supported, sentence."
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "digest": "sha256:de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+    "path": "/Users/sorenkube/.ollama/models/blobs/sha256-de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887",
+    "exists": true,
+    "size": 475,
+    "inode": 53799054,
+    "mtime_ns": 1782993703543041841,
+    "mode": 420,
+    "sha256": "de9fed2251b37295b763727a59ca35cf5cfe5c7379bc3e2104b2ce3c145aa887"
+  },
+  {
+    "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+    "path": "/Users/sorenkube/.ollama/models/blobs/sha256-81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+    "exists": true,
+    "size": 3389971840,
+    "inode": 53789206,
+    "mtime_ns": 1782993698707934990,
+    "mode": 420,
+    "sha256": "81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490"
+  },
+  {
+    "digest": "sha256:7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+    "path": "/Users/sorenkube/.ollama/models/blobs/sha256-7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+    "exists": true,
+    "size": 11355,
+    "inode": 53798972,
+    "mtime_ns": 1782993700768810413,
+    "mode": 420,
+    "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+  },
+  {
+    "digest": "sha256:9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+    "path": "/Users/sorenkube/.ollama/models/blobs/sha256-9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff",
+    "exists": true,
+    "size": 65,
+    "inode": 53799015,
+    "mtime_ns": 1791291898020546000,
+    "mode": 420,
+    "sha256": "9371364b27a52acac9d87f88bd93c9db1174d8d6ec57f6888925cdc1788871ff"
+  }
+]

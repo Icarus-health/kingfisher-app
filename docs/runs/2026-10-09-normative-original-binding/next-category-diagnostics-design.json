@@ -1,0 +1,72 @@
+{
+  "repo": "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923",
+  "branch": "fix/normative-original-evidence-20261009",
+  "head": "8394ff5",
+  "mode": "read-only design review; no models, private source data, or product edits",
+  "finding": "Category job failures lose the actionable distinction between invalid model output, provider failure, and internal error. Deferred work is already a distinct stored status and has no automatic retry, but the current mail intake UI drops its backend count. Thus 187 failed jobs are exposed only as a generic failure/retry message, and users cannot tell those apart from work deliberately deferred.",
+  "evidence": [
+    {
+      "path": "sidecar/icarus_memory/memory_categories.py",
+      "details": "SourceValidationError has closed CODES and REASONS allowlists, but run() catches every exception, stores only status/model/retry_after via _set_status(), and discards its type/reason. UnsupportedSource maps to deferred; other exceptions map to failed with a 300-second retry. preserve_on_failure=True deliberately avoids persisting status and re-raises; keep that behavior. list_for() trusts a stored status only when its fingerprint matches the currently available source, which is the correct freshness boundary for returning any diagnostic."
+    },
+    {
+      "path": "sidecar/icarus_memory/mail_intake.py",
+      "details": "_folder_status() already returns categories_deferred along with categories_pending and categories_failed. The history-window SQL distinguishes failed, deferred, pending and complete without reading source bodies. It currently exposes counts only, not failure reasons."
+    },
+    {
+      "path": "app/kingfisher/src/api.ts",
+      "details": "MailIntakeFolder type includes categories_pending and categories_failed but omits categories_deferred."
+    },
+    {
+      "path": "app/kingfisher/src/mailIntakeProgress.ts",
+      "details": "deriveIntakeProgress aggregates pending and failed category counts, but not deferred. categoriesKnown and analysisUnfinished account for pending/failed/categorized, and categories_failed prevents completion."
+    },
+    {
+      "path": "app/kingfisher/src/MailIntake.tsx",
+      "details": "The visible categorization line renders only 'ausstehend' and 'fehlgeschlagen'; it omits the backend-provided deferred count."
+    },
+    {
+      "path": "app/kingfisher/src/SourceCategories.tsx",
+      "details": "A failed source displays the fixed text 'Sortieren fehlgeschlagen; erneuter Versuch folgt.' when no categories exist. It has no reason code field. If user correction categories exist, that conditional emptystate is not rendered, so a failed automatic refresh can be hidden behind user categories unless an independent warning is added."
+    },
+    {
+      "path": "sidecar/icarus_memory/episodes.py",
+      "details": "episodes schema migrations currently end at version 19. memory_category_sources is created by migration 11 and verified through current category TABLES contracts."
+    },
+    {
+      "path": "sidecar/icarus_memory/update_backup.py",
+      "details": "episodes.sqlite3 is already part of the update migration targets; backup planning can detect outdated schema and back up that store before migration. The standard backup data-file set already includes episodes.sqlite3."
+    }
+  ],
+  "recommended_contract": {
+    "storage": "For a separate follow-up patch, add a nullable, closed-enum diagnostic column to memory_category_sources, e.g. failure_code. Clear it on complete, and set it only when a normal persisted run records failed. Keep deferred as a separate status; do not store raw exception strings, provider bodies, prompts, generated text, quotes, or source-derived fragments.",
+    "code_mapping": {
+      "SourceValidationError.reason": "Persist only its existing allowlisted, content-free reason (possibly namespaced as validation_*).",
+      "ProviderError": "Map to provider_error; the current type does not expose stable typed subcategories, so do not parse exception text or provider response bodies.",
+      "UnsupportedSource": "Keep status=deferred; if cause detail is later needed, use a separate closed deferred_code, not failure_code.",
+      "other_exception": "Map to internal_error without persisting message or traceback."
+    },
+    "freshness_and_legacy": "Expose a diagnostic only when the same current-source fingerprint/status validation used by list_for() accepts the row and status is failed. Missing, NULL, unknown, or unrecognized codes must safely fall back to generic copy. Existing legacy failed rows therefore remain 'unknown reason' rather than being retroactively assigned a guessed cause. Source changes, support-generation changes, taxonomy-version invalidation, dismissal, and successful classification must not surface stale failure codes.",
+    "status_semantics": "Failed means a classification attempt failed and has a retry cooldown; deferred means processing was intentionally skipped due to unsupported, truncated, or oversized input and is not automatically retried by the normal path. Do not say 'retry follows' for deferred. preserve_on_failure=True must continue not to persist per-source status/diagnostics.",
+    "ui_minimum": "Add categories_deferred to the TypeScript folder type and progress aggregate, and render failed and deferred separately in MailIntake. Add an optional failure_code to the source-categories API type and use a static German label map with generic fallback. Show automatic-classification failure independently of manual correction categories so a saved user correction stays visible while the failed automatic result is still disclosed. A concise per-folder/account count grouped by failure_code would be more useful for a 187-job backlog than requiring source-by-source inspection; implement through the existing bounded status windows and count rows only, never source content. Legacy rows form an unknown bucket."
+  },
+  "migration_backup": {
+    "proposal": "Introduce episodes schema migration 20 with nullable diagnostic column, and add it to _MIGRATIONS plus schema verification. Update the memory_categories table-column contract and upsert logic in the same code patch.",
+    "preservation": "The nullable field preserves existing rows and does not invalidate category fingerprints or source originals. The existing episodes.sqlite3 backup target should automatically back up v19 before v20 migration. Validate a v19 database containing complete/failed/deferred rows migrates with rows and current status/retry values intact and NULL diagnostics, and validate backup/restore/reopen retains a newly written code. Old snapshots should restore as v19 then migrate forward. No new database or backup payload is required.",
+    "caution": "Avoid schema verification that silently assumes every old row has a newly inferred reason. Verify constraint/column presence, not semantic backfill."
+  },
+  "minimal_tests": [
+    "failed SourceValidationError records only its allowlisted code; no exception message reaches DB/API; response stays generic for NULL/unknown legacy codes",
+    "ProviderError and unexpected exception map to fixed safe codes; successful retry clears code",
+    "changed fingerprint or support generation makes prior failure code unavailable; current failed row exposes it",
+    "deferred oversized/truncated/UnsupportedSource remains deferred, receives no failure code or retry-after, and is not described as automatic retry",
+    "preserve_on_failure=True re-raises without persisting per-source diagnostics",
+    "backend MailIntake status already reports deferred; frontend aggregation/display now keeps deferred distinct from failed",
+    "v19 episodes migration preserves existing data and assigns NULL to new diagnostic field; backup/restore/reopen preserves code"
+  ],
+  "limits": [
+    "No live private mailbox, model, or provider data was inspected; the reported count of 187/193 comes from the parent task context, not independently re-read here.",
+    "No tests or product files were changed or executed.",
+    "The category status endpoint is bounded by status windows, but failure-code aggregation should preserve that bounded/count-only design rather than introducing a full corpus scan."
+  ]
+}

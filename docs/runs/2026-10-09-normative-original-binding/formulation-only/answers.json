@@ -1,0 +1,1853 @@
+{
+  "synthetic_only": true,
+  "scope": "Direct actual satzantwort.formulieren plus active actual local second gate; no source intake/classification/search/index/retrieval. For each question, the input is its exact selected full synthetic source text, in the persisted prior 3ff sentence-answer belege order where present, otherwise persisted working_answer.refs order. W05 was previously unclear and had no formulation, so this is a new direct formulation over its persisted refs.",
+  "source_commit": "ce39f71046581567d9915d1b06a73e991072f1f3",
+  "catalog_sha256": "7aef099996cce34d282eef99eaec6c56b5e2359f9f36f2ba15a2365ef8c26f5b",
+  "baseline_answers_sha256": "9af3d071de9ca278d84ebae6242d706e9e501b6d539137aac1000ffaf6bbc925",
+  "baseline_catalog_sha256": "3db9c664ffbea385d291b7c4d2500ecd032502bd4f360ba7aa33c7239698fada",
+  "model": "qwen3.5:4b",
+  "second_gate": "active actual satzpruefung_modell.tor(\"an\", verified local provider)",
+  "same_model_for_generation_and_second_gate": true,
+  "completed": true,
+  "rows": [
+    {
+      "id": "IA01",
+      "question": "Was darf bei der Reinigung der Dichtung vor dem Aushärten verwendet werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA01-S1"
+      ],
+      "formulation_source_order": [
+        "IA01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA01-S1",
+          "reference": {
+            "episode_id": "e-5b66bd9ae1be",
+            "fingerprint": "d57a5f9c8ddcaa96acc12523af482666ffb9855694106073f605e9937432e06f",
+            "start": 0,
+            "end": 171,
+            "kind": "fact"
+          },
+          "title": "IA01-S1.txt",
+          "full_source_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+          "full_source_text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "model_view_sha256": "105360467394e3d38ff0c573d30e4fb4bb93138aae0c97c93894322bed950836",
+          "model_view_text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden. Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA01-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "raw": "Reinigung: Vor dem Aushärten die Dichtung ausschließlich trocken abwischen.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden.",
+          "raw": "Vorgang K-71. Rückgabe: Lösungsmittel dürfen erst nach schriftlicher Freigabe verwendet werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA01",
+          "role": "formulation",
+          "messages_sha256": "ee41989322b853be5baffc632d8fb70788e513d7e031257a66a06785479f572f",
+          "started_at": 1791504578.061663,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504583.2051358,
+          "seconds": 5.143
+        },
+        {
+          "question_id": "IA01",
+          "role": "second_gate",
+          "messages_sha256": "dcfe6c39a921600314c83e8f29e0ce1b2687a0abff5990d4789bed9bc952176f",
+          "started_at": 1791504583.209857,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504583.6166441,
+          "seconds": 0.407
+        },
+        {
+          "question_id": "IA01",
+          "role": "second_gate",
+          "messages_sha256": "dac3d23818fd7dfff1be8bdb0a4d5b617f793bc5d23edf112d6eb6afec553abc",
+          "started_at": 1791504583.6169548,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504583.982035,
+          "seconds": 0.365
+        }
+      ],
+      "seconds": 5.924
+    },
+    {
+      "id": "IA02",
+      "question": "Unter welcher Voraussetzung wird die Schutzschicht aufgetragen?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA02-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA02-S2"
+      ],
+      "formulation_source_order": [
+        "IA02-S2"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA02-S2",
+          "reference": {
+            "episode_id": "e-a1c97f7d7463",
+            "fingerprint": "9355bceb6f20a623ad65531cd0c442eb916456cc9b42421914ebb49b64509858",
+            "start": 0,
+            "end": 151,
+            "kind": "fact"
+          },
+          "title": "IA02-S2.txt",
+          "full_source_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+          "full_source_text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "model_view_sha256": "d8ad3427c26537248a6a70b1b5e52963d6caee7d75f08ce95fdafc628878b032",
+          "model_view_text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA02-S2"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "raw": "Ergänzung zur Arbeitskarte P-18: Vor dem Auftragen muss die Fläche vollständig staubfrei sein; diese Voraussetzung gilt für die Schutzschicht aus P-18.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA02",
+          "role": "formulation",
+          "messages_sha256": "219c1ec05b799b3a1dca19df2f3a33edc759d1f71a27b2dba1578a1042070047",
+          "started_at": 1791504583.983344,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504585.0664802,
+          "seconds": 1.083
+        },
+        {
+          "question_id": "IA02",
+          "role": "second_gate",
+          "messages_sha256": "5c0261f54044d1186e5c225acc1140521e62538da22d4b9f0922f12a92a28c51",
+          "started_at": 1791504585.068938,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504585.506895,
+          "seconds": 0.438
+        }
+      ],
+      "seconds": 1.524
+    },
+    {
+      "id": "IA03",
+      "question": "Darf die Abdeckung vor der Abnahme entfernt werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA03-S1"
+      ],
+      "formulation_source_order": [
+        "IA03-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA03-S1",
+          "reference": {
+            "episode_id": "e-53c61f18f291",
+            "fingerprint": "1840be92bd3793f184eda24e4164f1684cde66c5b883574d4345575eacc53e6b",
+            "start": 0,
+            "end": 105,
+            "kind": "fact"
+          },
+          "title": "IA03-S1.txt",
+          "full_source_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+          "full_source_text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+          "model_view_sha256": "c9d1961252afc19d40bc10f5646e285db78ab916e4032bf97baf5ce11a88c468",
+          "model_view_text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden. Erst nach der Abnahme darf sie entfernt werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA03-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Vor der Abnahme darf die Abdeckung nicht entfernt werden.",
+          "raw": "Vor der Abnahme darf die Abdeckung nicht entfernt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Erst nach der Abnahme darf sie entfernt werden.",
+          "raw": "Erst nach der Abnahme darf sie entfernt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA03",
+          "role": "formulation",
+          "messages_sha256": "a3b5829a6655967ebb4b93bda7bb35f9bfa6ee378f6dafd151fae22ce3e3a96f",
+          "started_at": 1791504585.507883,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504586.792598,
+          "seconds": 1.285
+        },
+        {
+          "question_id": "IA03",
+          "role": "second_gate",
+          "messages_sha256": "336631407182d1063f6309271f81880055138e7d4e28087a5b80b2f7bce7e7fa",
+          "started_at": 1791504586.801088,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504587.3070898,
+          "seconds": 0.506
+        },
+        {
+          "question_id": "IA03",
+          "role": "second_gate",
+          "messages_sha256": "acbfdcc566416efba7a6cb00efaddd2195c163113bc79de54ad1387f34da56e2",
+          "started_at": 1791504587.307255,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504587.7223969,
+          "seconds": 0.415
+        }
+      ],
+      "seconds": 2.215
+    },
+    {
+      "id": "IA04",
+      "question": "Kann das Ventil geöffnet werden, solange gespült wird?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA04-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA04-S1"
+      ],
+      "formulation_source_order": [
+        "IA04-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA04-S1",
+          "reference": {
+            "episode_id": "e-b49f1d4ff578",
+            "fingerprint": "e97fcdd70b56fa4f0a0970b2174c961b4731c17dbe1dcda2b1bcf2aaf6532fe7",
+            "start": 0,
+            "end": 71,
+            "kind": "fact"
+          },
+          "title": "IA04-S1.txt",
+          "full_source_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+          "full_source_text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "model_view_sha256": "2c7d6af1dab61e8f740c1564112b8c4b23fa5b43720c6f56bd5656b6366546fb",
+          "model_view_text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA04-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "raw": "Das Ventil darf nur während des laufenden Spülvorgangs geöffnet werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA04",
+          "role": "formulation",
+          "messages_sha256": "07cf9ad3154af2b8a638ce9dbc3b53b85bab944c9e786d02e21299c766a2dcdf",
+          "started_at": 1791504587.7237198,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504588.8475652,
+          "seconds": 1.124
+        },
+        {
+          "question_id": "IA04",
+          "role": "second_gate",
+          "messages_sha256": "ea5db6f33ef408e7960425c64d5f5ff4544b4b5eee7ab150017798e5216e67ef",
+          "started_at": 1791504588.849762,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504589.299437,
+          "seconds": 0.45
+        }
+      ],
+      "seconds": 1.576
+    },
+    {
+      "id": "IA05",
+      "question": "Wann darf der Akku ausgetauscht werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA05-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA05-S1"
+      ],
+      "formulation_source_order": [
+        "IA05-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA05-S1",
+          "reference": {
+            "episode_id": "e-773f5777fc05",
+            "fingerprint": "c43513de0704c9991dd19f9bd556c609e14ab028b89bbd6a8b46d094bb755fc0",
+            "start": 0,
+            "end": 128,
+            "kind": "fact"
+          },
+          "title": "IA05-S1.txt",
+          "full_source_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+          "full_source_text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "model_view_sha256": "db3be2b24da191688e0c1ee290b4a916810e1cd36ff6c107d53b6e9f244f0189",
+          "model_view_text": "Vor dem Versand wird das Prüfsiegel fotografiert. Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA05-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "raw": "Der Akku darf ausschließlich nach der technischen Prüfung ausgetauscht werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Vor dem Versand wird das Prüfsiegel fotografiert.",
+          "raw": "Vor dem Versand wird das Prüfsiegel fotografiert.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA05",
+          "role": "formulation",
+          "messages_sha256": "693c780d7a14d47f9e471074d787a1c9400b0e07eb991b5513301435e08e587e",
+          "started_at": 1791504589.3099542,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504593.968811,
+          "seconds": 4.659
+        },
+        {
+          "question_id": "IA05",
+          "role": "second_gate",
+          "messages_sha256": "0762ea1bb59e370fe8621fa41a6db4ad06bab8ef1ad17aecc32f394218e36696",
+          "started_at": 1791504593.971374,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504594.40033,
+          "seconds": 0.429
+        },
+        {
+          "question_id": "IA05",
+          "role": "second_gate",
+          "messages_sha256": "ff5edb4ca0dd119b0277310773f670c8ede0fa7b4f92dc719d0ea578e10ce21c",
+          "started_at": 1791504594.400488,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504594.858486,
+          "seconds": 0.458
+        }
+      ],
+      "seconds": 5.549
+    },
+    {
+      "id": "IA06",
+      "question": "Darf das Fenster in Raum B während der Arbeitszeit geöffnet werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA06-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA06-S1"
+      ],
+      "formulation_source_order": [
+        "IA06-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA06-S1",
+          "reference": {
+            "episode_id": "e-aec0c8aea01d",
+            "fingerprint": "67f1f8cbe278f0a6703772ef84703a68135857f8ef3a81d1386b9767d48495a5",
+            "start": 0,
+            "end": 147,
+            "kind": "fact"
+          },
+          "title": "IA06-S1.txt",
+          "full_source_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+          "full_source_text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "model_view_sha256": "bfe541dc56fd62cb638582d1455b4f0b832d4f3c65ddd2d65975cd6ce40ed976",
+          "model_view_text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden. Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA06-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "raw": "Das Fenster in Raum B darf während der Arbeitszeit zur Lüftung geöffnet werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden.",
+          "raw": "Im Raum A darf das Fenster erst nach Dienstschluss geöffnet werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA06",
+          "role": "formulation",
+          "messages_sha256": "45724641c6b23f37ea261e0fdf09027cf89d746e5e8c256d19561f0093f193ca",
+          "started_at": 1791504594.860458,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504596.294358,
+          "seconds": 1.434
+        },
+        {
+          "question_id": "IA06",
+          "role": "second_gate",
+          "messages_sha256": "48113fd2e985b16dde6cdeb4b652a461a4212e2c65e587c388445b7c275e35d5",
+          "started_at": 1791504596.303266,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504596.8552861,
+          "seconds": 0.552
+        },
+        {
+          "question_id": "IA06",
+          "role": "second_gate",
+          "messages_sha256": "86dd47b18802918ebb1c6c0dc6b547446b9133a11cb959984f7e2490087ab5eb",
+          "started_at": 1791504596.856411,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504597.3540668,
+          "seconds": 0.498
+        }
+      ],
+      "seconds": 2.494
+    },
+    {
+      "id": "IA07",
+      "question": "Reicht die Kalibrierung jetzt aus, um das Gerät zu starten?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA07-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA07-S2"
+      ],
+      "formulation_source_order": [
+        "IA07-S2"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA07-S2",
+          "reference": {
+            "episode_id": "e-1aacc408e164",
+            "fingerprint": "d239e2449fdc012949550970a87ee7b7215c78ea154f345788c1d9212b8c0f88",
+            "start": 0,
+            "end": 171,
+            "kind": "change"
+          },
+          "title": "IA07-S2.txt",
+          "full_source_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+          "full_source_text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "model_view_sha256": "e6fc6805722cd5099cae5ae91ec2bde627cab4aa6576bb48958b94e3be1444df",
+          "model_view_text": "Korrektur vom 5. März zu derselben Arbeitsnotiz: Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet; die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA07-S2"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "raw": "Die frühere Startregel nach Kalibrierung reicht nicht aus.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+          "raw": "Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA07",
+          "role": "formulation",
+          "messages_sha256": "ff5164b6e138f458d7530ab0a80fe6787974f25e21360ce7bd5abc2fb5cc08c1",
+          "started_at": 1791504597.3556118,
+          "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die frühere Startregel nach Kalibrierung reicht nicht aus.\", \"belege\":[1]},{\"text\":\"Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.\", \"belege\":[1]}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504600.0775192,
+          "seconds": 2.722
+        },
+        {
+          "question_id": "IA07",
+          "role": "second_gate",
+          "messages_sha256": "93cd2faef92887b40d3d8b010476b2d24d8a7a464540f3789dcf7c51753a6ef6",
+          "started_at": 1791504600.085172,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504600.6560051,
+          "seconds": 0.571
+        },
+        {
+          "question_id": "IA07",
+          "role": "second_gate",
+          "messages_sha256": "6fc9e993cfcbcf4f30052bd48c3ea5bb57ee71bfb2878a790ac2d9d994fb2fdf",
+          "started_at": 1791504600.656171,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504601.1037362,
+          "seconds": 0.448
+        }
+      ],
+      "seconds": 3.748
+    },
+    {
+      "id": "IA08",
+      "question": "Ist ein Zurücksetzen nach der formellen Abnahme automatisch erlaubt?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "IA08-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "IA08-S1"
+      ],
+      "formulation_source_order": [
+        "IA08-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "IA08-S1",
+          "reference": {
+            "episode_id": "e-0ce4ccbbf524",
+            "fingerprint": "fe68cd2b880a03417565ed70f9a6372e34f4a064c5f8f200c54dae5a6dc613c5",
+            "start": 0,
+            "end": 236,
+            "kind": "fact"
+          },
+          "title": "IA08-S1.txt",
+          "full_source_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+          "full_source_text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "model_view_sha256": "9e9b7bfc974b94d02fcfa711c57d3e3faeb609578dba6680d7cdd51c8cb08ca4",
+          "model_view_text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden. Nach der Abnahme wird das Messprotokoll archiviert. Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "IA08-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+          "raw": "Die Steuerung darf bis zur formellen Abnahme nicht zurückgesetzt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "raw": "Ein Zurücksetzen nach der Abnahme ist nur zulässig, wenn die diensthabende Technikerin es schriftlich anordnet.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "IA08",
+          "role": "formulation",
+          "messages_sha256": "661a66523f78e2a0c031db504aaa1ccf53dbe01fa968e74107e4275db2e975d8",
+          "started_at": 1791504601.105267,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":3}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504602.527586,
+          "seconds": 1.422
+        },
+        {
+          "question_id": "IA08",
+          "role": "second_gate",
+          "messages_sha256": "3295797b3cca98e3175f5662c4c68a852be26b42084e912acb45d407f7a8495f",
+          "started_at": 1791504602.538765,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504603.139153,
+          "seconds": 0.6
+        },
+        {
+          "question_id": "IA08",
+          "role": "second_gate",
+          "messages_sha256": "f095cf2a7a2f704f3f4372f903975fd0da0c9eec37bfbacce7cf78e17ca3086e",
+          "started_at": 1791504603.139333,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504603.664971,
+          "seconds": 0.526
+        }
+      ],
+      "seconds": 2.56
+    },
+    {
+      "id": "W01",
+      "question": "Unter welcher Voraussetzung darf die Gewebeprobe in den Kühlbehälter gelegt werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W01-S1"
+      ],
+      "formulation_source_order": [
+        "W01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "W01-S1",
+          "reference": {
+            "episode_id": "e-4671afbcf2ae",
+            "fingerprint": "fc21ebe1fbd10f46a837c687c430a57b5ac9322ed7325c965d618230b47b4eb9",
+            "start": 0,
+            "end": 152,
+            "kind": "fact"
+          },
+          "title": "W01-S1.txt",
+          "full_source_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63",
+          "full_source_text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731.",
+          "model_view_sha256": "4a6acd246f07a26b8e4a85579b62503d53d82cf8f12b699f36221f8fafc0de63",
+          "model_view_text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden. Das Etikett trägt den Chargencode 731.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "W01-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden.",
+          "raw": "Prüfkarte L-26: Nur wenn die Temperatur unter 8 °C liegt, darf die Gewebeprobe in den Kühlbehälter gelegt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "W01",
+          "role": "formulation",
+          "messages_sha256": "07fd6293614f777198c84fbc41f04d0cfefa78d9dc5fc10c6f177bcf177969cc",
+          "started_at": 1791504603.672439,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504607.946988,
+          "seconds": 4.275
+        },
+        {
+          "question_id": "W01",
+          "role": "second_gate",
+          "messages_sha256": "8c8cc89905ab8d90b345b0e4cbbda908fb1661eabeaf5c877b7ca60820f72bbc",
+          "started_at": 1791504607.949041,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504608.549141,
+          "seconds": 0.6
+        }
+      ],
+      "seconds": 4.877
+    },
+    {
+      "id": "W02",
+      "question": "Welche Voraussetzung muss erfüllt sein, damit das Ersatzteil im Metallschrank aufbewahrt werden darf?",
+      "baseline_status": "working_unknown",
+      "baseline_selected_sources_in_order": [],
+      "baseline_shown_sources_in_order": [],
+      "formulation_source_order": [],
+      "full_selected_sources": [],
+      "input_ref_order": [],
+      "status": "zitate",
+      "fallback_reason": "keine Belege",
+      "model": "",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "calls_for_question": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "W03",
+      "question": "Darf der Trichterdeckel vor dem Wiegen abgenommen werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W03-S1"
+      ],
+      "formulation_source_order": [
+        "W03-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "W03-S1",
+          "reference": {
+            "episode_id": "e-5f7256cd5bcd",
+            "fingerprint": "b1bac293fe7ba336dedb2af26a4926bbcafa74dbbd65083f2f5969eea84c5304",
+            "start": 0,
+            "end": 122,
+            "kind": "fact"
+          },
+          "title": "W03-S1.txt",
+          "full_source_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068",
+          "full_source_text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "model_view_sha256": "e8419feb1a62441c2c32e2a7324fd9d1fb7743b3f90275d73e1f31e757203068",
+          "model_view_text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden. Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "W03-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden.",
+          "raw": "Vor dem Wiegen darf der Trichterdeckel nicht abgenommen werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "raw": "Nach dem Wiegen darf der Trichterdeckel abgenommen werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "W03",
+          "role": "formulation",
+          "messages_sha256": "3836f7522ccecedadd226ac8f8c1b773452098b308acb6c7abbc6f7530694828",
+          "started_at": 1791504608.55154,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504609.84791,
+          "seconds": 1.296
+        },
+        {
+          "question_id": "W03",
+          "role": "second_gate",
+          "messages_sha256": "cfd8781fdfc82e8ec3cc7e69accf6544c3e73ba3307d5a14f8cf25ba1c832f8f",
+          "started_at": 1791504609.855297,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504610.4039412,
+          "seconds": 0.549
+        },
+        {
+          "question_id": "W03",
+          "role": "second_gate",
+          "messages_sha256": "60a6ab8216fdabe49b680002883472d53505dcf9dc2ceeb882bcc5bc007ec14d",
+          "started_at": 1791504610.404162,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504610.8804932,
+          "seconds": 0.476
+        }
+      ],
+      "seconds": 2.329
+    },
+    {
+      "id": "W04",
+      "question": "War der Einsatz des Dosierkopfs im dokumentierten Versuch zulässig?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "W04-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W04-S1"
+      ],
+      "formulation_source_order": [
+        "W04-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "W04-S1",
+          "reference": {
+            "episode_id": "e-61b0ab92f246",
+            "fingerprint": "7483cc37bb70fcb2ad8ebafd1ab1f09f76a0a4bdb4f6117a0466f7abefd0845d",
+            "start": 0,
+            "end": 148,
+            "kind": "fact"
+          },
+          "title": "W04-S1.txt",
+          "full_source_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b",
+          "full_source_text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "model_view_sha256": "8cd160e430f9d6a13c79532a0cacfb7df921ad2a9ef0bb645d82771a21207b9b",
+          "model_view_text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden. Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "W04-S1"
+      ],
+      "status": "saetze",
+      "fallback_reason": "",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [
+        {
+          "text": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden.",
+          "raw": "Der Dosierkopf darf nur nach dem Drucktest eingesetzt werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        },
+        {
+          "text": "Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "raw": "Beim dokumentierten Versuch wurde der Dosierkopf bereits vor dem Drucktest eingesetzt.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": true,
+          "second_gate": "ja",
+          "reliability": "einfach",
+          "reason": []
+        }
+      ],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "W04",
+          "role": "formulation",
+          "messages_sha256": "967b8f503625bbff0d9d8471d5d8d3db619f559911483c1513f56917f7d7e84d",
+          "started_at": 1791504610.882247,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504612.2597709,
+          "seconds": 1.378
+        },
+        {
+          "question_id": "W04",
+          "role": "second_gate",
+          "messages_sha256": "a5ac2635c1c4102cd86ea93012a1d9fa696eb9903742729a765569cfbab1adb9",
+          "started_at": 1791504612.267214,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504612.774444,
+          "seconds": 0.507
+        },
+        {
+          "question_id": "W04",
+          "role": "second_gate",
+          "messages_sha256": "9094c9f97e67e39a2e52288dfe41f32c812db17f2a95acdbd64e644f677b291a",
+          "started_at": 1791504612.7746549,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504613.248536,
+          "seconds": 0.474
+        }
+      ],
+      "seconds": 2.367
+    },
+    {
+      "id": "W05",
+      "question": "Darf die Heizplatte vor vollständiger Abkühlung gereinigt werden?",
+      "baseline_status": "working_unclear",
+      "baseline_selected_sources_in_order": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "baseline_shown_sources_in_order": [
+        "W05-S1",
+        "W05-S2"
+      ],
+      "formulation_source_order": [
+        "W05-S2",
+        "W05-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "W05-S2",
+          "reference": {
+            "episode_id": "e-cb1f0d0e2b25",
+            "fingerprint": "16d52e24a6647ae77fca4c68ca1be621f111c672e8b9d2b07541e1da1d42cb46",
+            "start": 0,
+            "end": 94,
+            "kind": "historical"
+          },
+          "title": "W05-S2.txt",
+          "full_source_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c",
+          "full_source_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.",
+          "model_view_sha256": "a4c8339a74046d9062fc9be6efaeebcf9eeb62840b74113b1a524c3d56d7c06c",
+          "model_view_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf vor vollständiger Abkühlung gereinigt werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        },
+        {
+          "id": "W05-S1",
+          "reference": {
+            "episode_id": "e-daf0784864d3",
+            "fingerprint": "d30e373d34f448b10e40f02d242d9f8b3a61b3b274a7776092326d638cd945fa",
+            "start": 0,
+            "end": 100,
+            "kind": "fact"
+          },
+          "title": "W05-S1.txt",
+          "full_source_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e",
+          "full_source_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.",
+          "model_view_sha256": "8187cbcb4ef176c4f900f274d8613b39e3bb4d47f623a6cbf7c755372bd2131e",
+          "model_view_text": "Anweisung D-8 vom 12. April: Die Heizplatte darf erst nach vollständiger Abkühlung gereinigt werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "W05-S2",
+        "W05-S1"
+      ],
+      "status": "zitate",
+      "fallback_reason": "Modell hält die Frage nach den Belegen für unklar",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [],
+      "calls_for_question": [
+        {
+          "question_id": "W05",
+          "role": "formulation",
+          "messages_sha256": "3be2a7332f9e6fc0771a41d4a93d7b55c43fb9ab210349a3d99fe4f3c1b03b73",
+          "started_at": 1791504613.25682,
+          "reply": "{\"status\":\"unklar\",\"originalstellen\":[]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504617.213082,
+          "seconds": 3.956
+        }
+      ],
+      "seconds": 3.957
+    },
+    {
+      "id": "DE01",
+      "question": "Wann darf der Speicherchip entnommen werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE01-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE01-S1"
+      ],
+      "formulation_source_order": [
+        "DE01-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "DE01-S1",
+          "reference": {
+            "episode_id": "e-05ad3d21d1b3",
+            "fingerprint": "5df4439fcd5418ae340afd6269c924423f68aed0a718240522cffbf91e00002a",
+            "start": 0,
+            "end": 163,
+            "kind": "fact"
+          },
+          "title": "Datenbergung.txt",
+          "full_source_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f",
+          "full_source_text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "model_view_sha256": "911dd4d6e0284ad00e3bf5203b2b2aead6c4ac483464c425b2a67224d597829f",
+          "model_view_text": "Vor Abschluss des Rohdatenarchivs darf der Speicherchip nicht entnommen werden. Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "DE01-S1"
+      ],
+      "status": "zitate",
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "raw": "Erst nachdem das Archiv erstellt und geprüft wurde, darf der Chip entnommen werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": false,
+          "second_gate": "",
+          "reason": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "calls_for_question": [
+        {
+          "question_id": "DE01",
+          "role": "formulation",
+          "messages_sha256": "c05d529b4a215d55ca24ca49d726c9f126ec96916644107bb4767dfb54768959",
+          "started_at": 1791504617.2147279,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504618.461817,
+          "seconds": 1.247
+        },
+        {
+          "question_id": "DE01",
+          "role": "second_gate",
+          "messages_sha256": "9ed19675de9fa0b5269bc80888de0d77c8b67971bbd70c327e36709c93f8a478",
+          "started_at": 1791504618.468381,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504619.022957,
+          "seconds": 0.555
+        }
+      ],
+      "seconds": 1.809
+    },
+    {
+      "id": "DE02",
+      "question": "Wann und wie darf der Lack bearbeitet werden?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE02-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE02-S1"
+      ],
+      "formulation_source_order": [
+        "DE02-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "DE02-S1",
+          "reference": {
+            "episode_id": "e-33ead1b37a77",
+            "fingerprint": "9a9b66d5e73a70a25d616fea48ddd9708da3e4386c9f098975143e503d239f7e",
+            "start": 0,
+            "end": 188,
+            "kind": "status"
+          },
+          "title": "Restaurierungsanweisung.txt",
+          "full_source_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326",
+          "full_source_text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "model_view_sha256": "78cb4277d4f9790cc3595aa2af5b141c846ac330014ccde26e78d24cdc775326",
+          "model_view_text": "Vor der Freigabe durch die Restauratorin darf der Lack nicht bearbeitet werden. Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "DE02-S1"
+      ],
+      "status": "zitate",
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "raw": "Erst nach schriftlicher Freigabe durch die Restauratorin darf er mit einem weichen Pinsel bearbeitet werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": false,
+          "second_gate": "",
+          "reason": [
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "calls_for_question": [
+        {
+          "question_id": "DE02",
+          "role": "formulation",
+          "messages_sha256": "7ce43b4aeb98823f3a0e04005ff6581a49750843948891454f69ae1e72349cad",
+          "started_at": 1791504619.025218,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504620.400225,
+          "seconds": 1.375
+        },
+        {
+          "question_id": "DE02",
+          "role": "second_gate",
+          "messages_sha256": "ede5562c91a90c4f79cbe68a3c389628ece8bd545c621d2c012a1240e8ab5390",
+          "started_at": 1791504620.406788,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504620.931126,
+          "seconds": 0.524
+        }
+      ],
+      "seconds": 1.906
+    },
+    {
+      "id": "DE03",
+      "question": "Darf das Teleskop vor Ende der Nachtaufnahme aus der Halterung genommen werden, und wann ist es danach erlaubt?",
+      "baseline_status": "working_reports",
+      "baseline_selected_sources_in_order": [
+        "DE03-S1"
+      ],
+      "baseline_shown_sources_in_order": [
+        "DE03-S1"
+      ],
+      "formulation_source_order": [
+        "DE03-S1"
+      ],
+      "full_selected_sources": [
+        {
+          "id": "DE03-S1",
+          "reference": {
+            "episode_id": "e-9fb1dec73a9c",
+            "fingerprint": "7ab7906b1ddc71c7c83cb1640eca3c462b65132cf2afbd4c46ddb670a8212729",
+            "start": 0,
+            "end": 210,
+            "kind": "status"
+          },
+          "title": "Nachtbeobachtung.txt",
+          "full_source_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166",
+          "full_source_text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "model_view_sha256": "d2692efaa5f39b75f94d56be710932c6f7fab54f6ecd716d871e48727df77166",
+          "model_view_text": "Vor Abschluss der Nachtaufnahme darf das Teleskop nicht aus der Halterung genommen werden. Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "redacted_paragraphs": 0,
+          "role": "Quelle"
+        }
+      ],
+      "input_ref_order": [
+        "DE03-S1"
+      ],
+      "status": "zitate",
+      "fallback_reason": "Nach der Satzprüfung fehlt eine vorgelegte Quelle oder Bedingungsregel in der Teilantwort",
+      "model": "openai qwen3.5:4b",
+      "gate": {
+        "zustand": "an",
+        "modell": "qwen3.5:4b"
+      },
+      "accepted_sentences": [],
+      "rejected_sentences": [
+        {
+          "text": "Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "raw": "Erst nach Abschluss der Nachtaufnahme und nachdem die Optik abgedeckt wurde, darf es aus der Halterung genommen werden.",
+          "belege": [
+            1
+          ],
+          "first_gate_passed": false,
+          "second_gate": "",
+          "reason": [
+            "Zeitliche Anwendbarkeit der Erlaubnis fehlt oder weicht vom Beleg ab",
+            "Der Beleg verneint („nicht“), der Satz nicht"
+          ]
+        }
+      ],
+      "calls_for_question": [
+        {
+          "question_id": "DE03",
+          "role": "formulation",
+          "messages_sha256": "430234ddc6aaec66a0b381be9550d290ce646857df873d7ff0944a15e7eb5141",
+          "started_at": 1791504620.93371,
+          "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504622.2935512,
+          "seconds": 1.36
+        },
+        {
+          "question_id": "DE03",
+          "role": "second_gate",
+          "messages_sha256": "7e85cdb0755de0a56a5c3fcb5f89a28beae3938f3a4f0465c295a148eab3ce0a",
+          "started_at": 1791504622.300586,
+          "reply": "{\"urteil\":\"ja\"}",
+          "reply_model": "qwen3.5:4b",
+          "ok": true,
+          "finished_at": 1791504622.823381,
+          "seconds": 0.523
+        }
+      ],
+      "seconds": 1.89
+    }
+  ],
+  "model_calls": [
+    {
+      "question_id": "IA01",
+      "role": "formulation",
+      "messages_sha256": "ee41989322b853be5baffc632d8fb70788e513d7e031257a66a06785479f572f",
+      "started_at": 1791504578.061663,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504583.2051358,
+      "seconds": 5.143
+    },
+    {
+      "question_id": "IA01",
+      "role": "second_gate",
+      "messages_sha256": "dcfe6c39a921600314c83e8f29e0ce1b2687a0abff5990d4789bed9bc952176f",
+      "started_at": 1791504583.209857,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504583.6166441,
+      "seconds": 0.407
+    },
+    {
+      "question_id": "IA01",
+      "role": "second_gate",
+      "messages_sha256": "dac3d23818fd7dfff1be8bdb0a4d5b617f793bc5d23edf112d6eb6afec553abc",
+      "started_at": 1791504583.6169548,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504583.982035,
+      "seconds": 0.365
+    },
+    {
+      "question_id": "IA02",
+      "role": "formulation",
+      "messages_sha256": "219c1ec05b799b3a1dca19df2f3a33edc759d1f71a27b2dba1578a1042070047",
+      "started_at": 1791504583.983344,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504585.0664802,
+      "seconds": 1.083
+    },
+    {
+      "question_id": "IA02",
+      "role": "second_gate",
+      "messages_sha256": "5c0261f54044d1186e5c225acc1140521e62538da22d4b9f0922f12a92a28c51",
+      "started_at": 1791504585.068938,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504585.506895,
+      "seconds": 0.438
+    },
+    {
+      "question_id": "IA03",
+      "role": "formulation",
+      "messages_sha256": "a3b5829a6655967ebb4b93bda7bb35f9bfa6ee378f6dafd151fae22ce3e3a96f",
+      "started_at": 1791504585.507883,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504586.792598,
+      "seconds": 1.285
+    },
+    {
+      "question_id": "IA03",
+      "role": "second_gate",
+      "messages_sha256": "336631407182d1063f6309271f81880055138e7d4e28087a5b80b2f7bce7e7fa",
+      "started_at": 1791504586.801088,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504587.3070898,
+      "seconds": 0.506
+    },
+    {
+      "question_id": "IA03",
+      "role": "second_gate",
+      "messages_sha256": "acbfdcc566416efba7a6cb00efaddd2195c163113bc79de54ad1387f34da56e2",
+      "started_at": 1791504587.307255,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504587.7223969,
+      "seconds": 0.415
+    },
+    {
+      "question_id": "IA04",
+      "role": "formulation",
+      "messages_sha256": "07cf9ad3154af2b8a638ce9dbc3b53b85bab944c9e786d02e21299c766a2dcdf",
+      "started_at": 1791504587.7237198,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504588.8475652,
+      "seconds": 1.124
+    },
+    {
+      "question_id": "IA04",
+      "role": "second_gate",
+      "messages_sha256": "ea5db6f33ef408e7960425c64d5f5ff4544b4b5eee7ab150017798e5216e67ef",
+      "started_at": 1791504588.849762,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504589.299437,
+      "seconds": 0.45
+    },
+    {
+      "question_id": "IA05",
+      "role": "formulation",
+      "messages_sha256": "693c780d7a14d47f9e471074d787a1c9400b0e07eb991b5513301435e08e587e",
+      "started_at": 1791504589.3099542,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504593.968811,
+      "seconds": 4.659
+    },
+    {
+      "question_id": "IA05",
+      "role": "second_gate",
+      "messages_sha256": "0762ea1bb59e370fe8621fa41a6db4ad06bab8ef1ad17aecc32f394218e36696",
+      "started_at": 1791504593.971374,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504594.40033,
+      "seconds": 0.429
+    },
+    {
+      "question_id": "IA05",
+      "role": "second_gate",
+      "messages_sha256": "ff5edb4ca0dd119b0277310773f670c8ede0fa7b4f92dc719d0ea578e10ce21c",
+      "started_at": 1791504594.400488,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504594.858486,
+      "seconds": 0.458
+    },
+    {
+      "question_id": "IA06",
+      "role": "formulation",
+      "messages_sha256": "45724641c6b23f37ea261e0fdf09027cf89d746e5e8c256d19561f0093f193ca",
+      "started_at": 1791504594.860458,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":2},{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504596.294358,
+      "seconds": 1.434
+    },
+    {
+      "question_id": "IA06",
+      "role": "second_gate",
+      "messages_sha256": "48113fd2e985b16dde6cdeb4b652a461a4212e2c65e587c388445b7c275e35d5",
+      "started_at": 1791504596.303266,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504596.8552861,
+      "seconds": 0.552
+    },
+    {
+      "question_id": "IA06",
+      "role": "second_gate",
+      "messages_sha256": "86dd47b18802918ebb1c6c0dc6b547446b9133a11cb959984f7e2490087ab5eb",
+      "started_at": 1791504596.856411,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504597.3540668,
+      "seconds": 0.498
+    },
+    {
+      "question_id": "IA07",
+      "role": "formulation",
+      "messages_sha256": "ff5164b6e138f458d7530ab0a80fe6787974f25e21360ce7bd5abc2fb5cc08c1",
+      "started_at": 1791504597.3556118,
+      "reply": "{\"status\":\"antwort\",\"saetze\":[{\"text\":\"Die frühere Startregel nach Kalibrierung reicht nicht aus.\", \"belege\":[1]},{\"text\":\"Bis zur dokumentierten Freigabe bleibt das Gerät ausgeschaltet.\", \"belege\":[1]}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504600.0775192,
+      "seconds": 2.722
+    },
+    {
+      "question_id": "IA07",
+      "role": "second_gate",
+      "messages_sha256": "93cd2faef92887b40d3d8b010476b2d24d8a7a464540f3789dcf7c51753a6ef6",
+      "started_at": 1791504600.085172,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504600.6560051,
+      "seconds": 0.571
+    },
+    {
+      "question_id": "IA07",
+      "role": "second_gate",
+      "messages_sha256": "6fc9e993cfcbcf4f30052bd48c3ea5bb57ee71bfb2878a790ac2d9d994fb2fdf",
+      "started_at": 1791504600.656171,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504601.1037362,
+      "seconds": 0.448
+    },
+    {
+      "question_id": "IA08",
+      "role": "formulation",
+      "messages_sha256": "661a66523f78e2a0c031db504aaa1ccf53dbe01fa968e74107e4275db2e975d8",
+      "started_at": 1791504601.105267,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":3}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504602.527586,
+      "seconds": 1.422
+    },
+    {
+      "question_id": "IA08",
+      "role": "second_gate",
+      "messages_sha256": "3295797b3cca98e3175f5662c4c68a852be26b42084e912acb45d407f7a8495f",
+      "started_at": 1791504602.538765,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504603.139153,
+      "seconds": 0.6
+    },
+    {
+      "question_id": "IA08",
+      "role": "second_gate",
+      "messages_sha256": "f095cf2a7a2f704f3f4372f903975fd0da0c9eec37bfbacce7cf78e17ca3086e",
+      "started_at": 1791504603.139333,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504603.664971,
+      "seconds": 0.526
+    },
+    {
+      "question_id": "W01",
+      "role": "formulation",
+      "messages_sha256": "07fd6293614f777198c84fbc41f04d0cfefa78d9dc5fc10c6f177bcf177969cc",
+      "started_at": 1791504603.672439,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504607.946988,
+      "seconds": 4.275
+    },
+    {
+      "question_id": "W01",
+      "role": "second_gate",
+      "messages_sha256": "8c8cc89905ab8d90b345b0e4cbbda908fb1661eabeaf5c877b7ca60820f72bbc",
+      "started_at": 1791504607.949041,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504608.549141,
+      "seconds": 0.6
+    },
+    {
+      "question_id": "W03",
+      "role": "formulation",
+      "messages_sha256": "3836f7522ccecedadd226ac8f8c1b773452098b308acb6c7abbc6f7530694828",
+      "started_at": 1791504608.55154,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504609.84791,
+      "seconds": 1.296
+    },
+    {
+      "question_id": "W03",
+      "role": "second_gate",
+      "messages_sha256": "cfd8781fdfc82e8ec3cc7e69accf6544c3e73ba3307d5a14f8cf25ba1c832f8f",
+      "started_at": 1791504609.855297,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504610.4039412,
+      "seconds": 0.549
+    },
+    {
+      "question_id": "W03",
+      "role": "second_gate",
+      "messages_sha256": "60a6ab8216fdabe49b680002883472d53505dcf9dc2ceeb882bcc5bc007ec14d",
+      "started_at": 1791504610.404162,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504610.8804932,
+      "seconds": 0.476
+    },
+    {
+      "question_id": "W04",
+      "role": "formulation",
+      "messages_sha256": "967b8f503625bbff0d9d8471d5d8d3db619f559911483c1513f56917f7d7e84d",
+      "started_at": 1791504610.882247,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504612.2597709,
+      "seconds": 1.378
+    },
+    {
+      "question_id": "W04",
+      "role": "second_gate",
+      "messages_sha256": "a5ac2635c1c4102cd86ea93012a1d9fa696eb9903742729a765569cfbab1adb9",
+      "started_at": 1791504612.267214,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504612.774444,
+      "seconds": 0.507
+    },
+    {
+      "question_id": "W04",
+      "role": "second_gate",
+      "messages_sha256": "9094c9f97e67e39a2e52288dfe41f32c812db17f2a95acdbd64e644f677b291a",
+      "started_at": 1791504612.7746549,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504613.248536,
+      "seconds": 0.474
+    },
+    {
+      "question_id": "W05",
+      "role": "formulation",
+      "messages_sha256": "3be2a7332f9e6fc0771a41d4a93d7b55c43fb9ab210349a3d99fe4f3c1b03b73",
+      "started_at": 1791504613.25682,
+      "reply": "{\"status\":\"unklar\",\"originalstellen\":[]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504617.213082,
+      "seconds": 3.956
+    },
+    {
+      "question_id": "DE01",
+      "role": "formulation",
+      "messages_sha256": "c05d529b4a215d55ca24ca49d726c9f126ec96916644107bb4767dfb54768959",
+      "started_at": 1791504617.2147279,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504618.461817,
+      "seconds": 1.247
+    },
+    {
+      "question_id": "DE01",
+      "role": "second_gate",
+      "messages_sha256": "9ed19675de9fa0b5269bc80888de0d77c8b67971bbd70c327e36709c93f8a478",
+      "started_at": 1791504618.468381,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504619.022957,
+      "seconds": 0.555
+    },
+    {
+      "question_id": "DE02",
+      "role": "formulation",
+      "messages_sha256": "7ce43b4aeb98823f3a0e04005ff6581a49750843948891454f69ae1e72349cad",
+      "started_at": 1791504619.025218,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504620.400225,
+      "seconds": 1.375
+    },
+    {
+      "question_id": "DE02",
+      "role": "second_gate",
+      "messages_sha256": "ede5562c91a90c4f79cbe68a3c389628ece8bd545c621d2c012a1240e8ab5390",
+      "started_at": 1791504620.406788,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504620.931126,
+      "seconds": 0.524
+    },
+    {
+      "question_id": "DE03",
+      "role": "formulation",
+      "messages_sha256": "430234ddc6aaec66a0b381be9550d290ce646857df873d7ff0944a15e7eb5141",
+      "started_at": 1791504620.93371,
+      "reply": "{\"status\":\"antwort\",\"originalstellen\":[{\"beleg\":1,\"satz\":1},{\"beleg\":1,\"satz\":2}]}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504622.2935512,
+      "seconds": 1.36
+    },
+    {
+      "question_id": "DE03",
+      "role": "second_gate",
+      "messages_sha256": "7e85cdb0755de0a56a5c3fcb5f89a28beae3938f3a4f0465c295a148eab3ce0a",
+      "started_at": 1791504622.300586,
+      "reply": "{\"urteil\":\"ja\"}",
+      "reply_model": "qwen3.5:4b",
+      "ok": true,
+      "finished_at": 1791504622.823381,
+      "seconds": 0.523
+    }
+  ],
+  "content_review": "pending independent review"
+}
