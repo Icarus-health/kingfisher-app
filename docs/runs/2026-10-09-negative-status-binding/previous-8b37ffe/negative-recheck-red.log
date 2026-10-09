@@ -7,7 +7,7 @@ ______ test_rechecked_negative_status_keeps_the_whole_original_paragraph _______
         result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
 >       assert result.status == 'saetze'
 E       AssertionError: assert 'nichts' == 'saetze'
-E         
+E
 E         - saetze
 E         + nichts
 
@@ -27,7 +27,7 @@ tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/p
             saved = answers.prepare(QUESTION, episodes, claims, SequenceProvider(EMPTY, FULL), saetze=True)
 >           assert saved['satzantwort']['status'] == 'saetze'
 E           AssertionError: assert 'nichts' == 'saetze'
-E             
+E
 E             - saetze
 E             + nichts
 
@@ -59,7 +59,7 @@ last = {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]}
         result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
 >       assert result.status == 'zitate' and result.saetze == []
 E       AssertionError: assert ('nichts' == 'zitate'
-E         
+E
 E         - zitate
 E         + nichts)
 
@@ -79,7 +79,7 @@ last = {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]}
         result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
 >       assert result.status == 'zitate' and result.saetze == []
 E       AssertionError: assert ('nichts' == 'zitate'
-E         
+E
 E         - zitate
 E         + nichts)
 
@@ -99,7 +99,7 @@ last = {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 
         result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
 >       assert result.status == 'zitate' and result.saetze == []
 E       AssertionError: assert ('nichts' == 'zitate'
-E         
+E
 E         - zitate
 E         + nichts)
 
@@ -119,7 +119,7 @@ last = ProviderError('bounded synthetic failure')
         result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
 >       assert result.status == 'zitate' and result.saetze == []
 E       AssertionError: assert ('nichts' == 'zitate'
-E         
+E
 E         - zitate
 E         + nichts)
 
@@ -132,7 +132,7 @@ _______________ test_recheck_keeps_the_second_verification_gate ________________
                                 pruefung=gate.Tor(gate.AN, verifier))
 >       assert result.status == 'zitate' and result.saetze == []
 E       AssertionError: assert ('nichts' == 'zitate'
-E         
+E
 E         - zitate
 E         + nichts)
 

@@ -29,8 +29,8 @@ ________ test_flektierte_statuswoerter_und_wechsel_im_verlauf_bestehen _________
         _besteht('Die erledigten Punkte liegen vor.', _belege('Erledigte Punkte: Angebot, Vertrag.'))
 >       _besteht('Die Rechnung wurde bezahlt.', _belege('Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.'))
 
-sidecar/tests/test_pruefbefunde_0929.py:258: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sidecar/tests/test_pruefbefunde_0929.py:258:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 satz = 'Die Rechnung wurde bezahlt.'
 b = {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', zeit=datetime.datetime(2026, 9, 21, 9, 0, tzinfo=datetime.timezone.utc), kopf='', gueltig=True)}
