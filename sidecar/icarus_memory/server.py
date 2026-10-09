@@ -6149,6 +6149,9 @@ def create_app(
     from .world_routes import register_world_routes
     register_world_routes(app, guard, _data_dir)
 
+    from .health_observations import register as register_health_observations
+    register_health_observations(app, guard)
+
     # -- Oberfläche --------------------------------------------------------
     #
     # Ganz zum Schluss, und das ist keine Kosmetik: Ein Mount auf "/" fängt
@@ -6209,6 +6212,7 @@ def create_app(
         def tasks_ui() -> FileResponse:
             return ui_response()
 
+        @app.get("/wellbeing", include_in_schema=False)
         @app.get("/development", include_in_schema=False)
         def development_ui() -> FileResponse:
             return ui_response()

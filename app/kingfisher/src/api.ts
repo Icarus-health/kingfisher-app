@@ -1,3 +1,4 @@
+import type {HealthPayload} from "./healthObservationForm";
 import type { AktenArt, ArtStand, KreisArt, KreisStand, KreisUebersicht } from "./kreis";
 import type { WkStand } from "./wiederkehrendes";
 import type { SuchindexStand } from "./suchindex";
@@ -1088,7 +1089,14 @@ export type MemoryQuestion = {id: string; stand: string; subject_ref: string; pr
   candidates: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>;
   active_claims: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>};
 
+export type HealthObservation = HealthPayload & {id: string; recorded_at: string; status: 'current' | 'superseded' | 'excluded'; support_fingerprint: string | null};
+export type HealthObservationPage = {items: HealthObservation[]; next_cursor: string | null; scanned_sources: number; invalid_sources: number; scan_limit: number; complete: boolean};
+
 export const api = {
+  healthObservations: (cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  healthObservationHistory: (id: string, cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations/${encodeURIComponent(id)}/history${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  saveHealthObservation: (data: HealthPayload & {request_id: string}) => request<HealthObservation>('/api/v1/health/observations', {method:'POST',body:JSON.stringify(data)}),
+  correctHealthObservation: (id: string, data: HealthPayload & {request_id: string; expected_support_fingerprint: string}) => request<HealthObservation>(`/api/v1/health/observations/${encodeURIComponent(id)}`, {method:'PATCH',body:JSON.stringify(data)}),
   deviceProfile: () => request<DeviceProfile>("/api/v1/device/profile"),
   /** Auf welchem System Kingfisher läuft (system.ts, laufumgebung.py). */
   system: () => request<SystemAngabe>("/api/v1/system"),
