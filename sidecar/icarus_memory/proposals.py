@@ -738,6 +738,15 @@ class ProposalStore:
             ).fetchall()
         return [self._from_row(r) for r in rows]
 
+    def from_origin_prefix(self, prefix: str) -> list[Proposal]:
+        """Alle Zustände eines exakten Herkunftspräfixes, neueste zuerst."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM proposals "
+                "WHERE substr(json_extract(document, '$.proposed_by'), 1, ?) = ? "
+                "ORDER BY created_at DESC", (len(prefix), prefix)).fetchall()
+        return [self._from_row(row) for row in rows]
+
     def counts(self) -> dict[str, int]:
         with self._lock:
             rows = self._conn.execute(

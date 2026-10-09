@@ -1876,6 +1876,33 @@ class EpisodeStore:
             ).fetchall()
         return [self._from_row(r) for r in rows]
 
+    def tagged_raw(self, tags: list[str]) -> list[Episode]:
+        """Rohquellen mit mindestens einer exakten Marke, vor dem Laden gefiltert.
+
+        Zustände und Arten bleiben erhalten: Aufrufer entscheiden über Gültigkeit.
+        Reihenfolge wie `all_episodes`; keine stille Grenze für passende Belege.
+        """
+        if not tags:
+            return []
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM episodes WHERE EXISTS "
+                "(SELECT 1 FROM json_each(episodes.document, '$.tags') AS tag "
+                "WHERE tag.value IN (SELECT value FROM json_each(?))) "
+                "ORDER BY COALESCE(occurred_at, recorded_at) DESC",
+                (json.dumps(list(dict.fromkeys(tags))),)).fetchall()
+        return [self._from_row(row) for row in rows]
+
+    def by_source_ref(self, source_ref: str) -> Episode | None:
+        """Neueste Quelle mit genau diesem Herkunftsbezug, auch nach Rücknahme."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT document FROM episodes "
+                "WHERE json_extract(document, '$.provenance.source_ref') = ? "
+                "ORDER BY COALESCE(occurred_at, recorded_at) DESC LIMIT 1",
+                (source_ref,)).fetchone()
+        return self._from_row(row) if row is not None else None
+
     def geltende_zuletzt(self, kind: EpisodeKind, *, limit: int = 400) -> list[Episode]:
         """Geltende Quellen dieser Art (nicht ignoriert, aktuelle Fassung), jüngste zuerst.
 
