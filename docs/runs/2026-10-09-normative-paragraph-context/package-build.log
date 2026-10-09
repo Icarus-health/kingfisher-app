@@ -1,0 +1,31 @@
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  180.2kB
+Step 1/8 : FROM ghcr.io/icarus-health/kingfisher-app:1.0.6-local.ce39f71
+ ---> a5e28925d4fc
+Step 2/8 : USER root
+ ---> Running in 4550bdff22aa
+ ---> Removed intermediate container 4550bdff22aa
+ ---> fb238c9865c3
+Step 3/8 : COPY satzantwort.py /usr/local/lib/python3.12/site-packages/icarus_memory/satzantwort.py
+ ---> 9ee6321ed94d
+Step 4/8 : COPY satzpruefung.py /usr/local/lib/python3.12/site-packages/icarus_memory/satzpruefung.py
+ ---> 9079f24aac41
+Step 5/8 : COPY VERSION /opt/kingfisher/VERSION
+ ---> 8e7c4ee451bb
+Step 6/8 : ENV KINGFISHER_FASSUNG=1.0.6-local.e8cfc26
+ ---> Running in e5efa208298c
+ ---> Removed intermediate container e5efa208298c
+ ---> a309a60f010c
+Step 7/8 : LABEL org.opencontainers.image.revision=e8cfc26d5aee8ef42a6206da4ffa02a3bbced966
+ ---> Running in e4396988e416
+ ---> Removed intermediate container e4396988e416
+ ---> c0d203b1316b
+Step 8/8 : USER kingfisher
+ ---> Running in cfb5c1c05295
+ ---> Removed intermediate container cfb5c1c05295
+ ---> fd07549663c7
+Successfully built fd07549663c7
+Successfully tagged ghcr.io/icarus-health/kingfisher-app:1.0.6-local.e8cfc26
