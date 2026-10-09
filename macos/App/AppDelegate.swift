@@ -6,9 +6,11 @@ import WebKit
 // Keine Fachlogik: Die steckt im Container.
 
 @available(macOS 11.3, *)
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: NSWindow!
     private var surface: WebSurface!
+    private var voice: NativeVoiceEngine?
+    private var voiceTimer: Timer?
     private let status = StatusView()
     private let hint = HintBar()
     private var paths: AppPaths?
@@ -47,14 +49,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Die Brücke: Nur die Seite von Kingfisher selbst kann ein Update anfragen (BridgeHandler prüft das).
         let configuration = WKWebViewConfiguration()
+        voice = NativeVoiceEngine(reader: AppleLocalVoiceReader(), speaker: AppleLocalVoiceSpeaker(), emit: { [weak self] event in
+            self?.deliverVoice(event)
+        })
         let bridge = BridgeHandler(origin: AppPaths.origin, onUpdate: { [weak self] request in self?.requestUpdate(request) },
                                    onCalendar: { [weak self] request in
             guard let self = self, !self.busy else { return }
             self.calendarReporter?.requestPermission(generation: request.generation)
-        })
+        }, onVoice: { [weak self] request in self?.requestVoice(request) })
         configuration.userContentController.add(bridge, name: UpdateRequest.bridgeName)
         surface = WebSurface(origin: AppPaths.origin, configuration: configuration)
         surface.window = window
+        window.delegate = self
+        surface.onLeave = { [weak self] in self?.stopVoice() }
         surface.onLoaded = { [weak self] in
             guard let self = self, !self.busy else { return }
             self.status.isHidden = true
@@ -259,9 +266,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        stopVoice()
         calendarReporter?.stop()
         powerReporter?.stop()
         surface?.cancelDownloads()
+    }
+
+    func applicationDidResignActive(_ notification: Notification) { stopVoice() }
+    func windowDidResignKey(_ notification: Notification) { stopVoice() }
+    func windowWillClose(_ notification: Notification) { stopVoice() }
+
+    private func stopVoice() {
+        voice?.suspend(); voiceTimer?.invalidate(); voiceTimer = nil
+    }
+
+    private func requestVoice(_ request: VoiceRequest) {
+        guard let page = surface?.webView.url, sameOrigin(page, AppPaths.origin), page.path.hasPrefix("/conversations/") else { return }
+        voice?.handle(request, allowed: { [weak self] in
+            guard let self = self else { return false }
+            return NSApp.isActive && self.window.isKeyWindow && self.surface.webView.url == page && !self.busy
+        })
+        guard voice?.hasWork == true, voiceTimer == nil else { return }
+        voiceTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
+            self?.voice?.tick()
+            if self?.voice?.hasWork != true { timer.invalidate(); self?.voiceTimer = nil }
+        }
+    }
+
+    private func deliverVoice(_ event: VoiceEvent) {
+        guard let data = try? JSONSerialization.data(withJSONObject: event.dictionary) else { return }
+        let encoded = data.base64EncodedString()
+        surface?.webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('kingfisher:voice',{detail:JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('\(encoded)'),c=>c.charCodeAt(0))))}))")
     }
 }
 
@@ -271,19 +306,23 @@ final class BridgeHandler: NSObject, WKScriptMessageHandler {
     private let origin: URL
     private let onUpdate: (UpdateRequest) -> Void
     private let onCalendar: (CalendarPermissionRequest) -> Void
+    private let onVoice: (VoiceRequest) -> Void
 
     init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void,
-         onCalendar: @escaping (CalendarPermissionRequest) -> Void = { _ in }) {
+         onCalendar: @escaping (CalendarPermissionRequest) -> Void = { _ in },
+         onVoice: @escaping (VoiceRequest) -> Void = { _ in }) {
         self.origin = origin
         self.onUpdate = onUpdate
         self.onCalendar = onCalendar
+        self.onVoice = onVoice
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let source = message.frameInfo.securityOrigin
         guard message.name == UpdateRequest.bridgeName, message.frameInfo.isMainFrame,
               source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port else { return }
-        if let calendar = CalendarPermissionRequest(message: message.body) { onCalendar(calendar) }
+        if let voice = VoiceRequest(message: message.body) { onVoice(voice) }
+        else if let calendar = CalendarPermissionRequest(message: message.body) { onCalendar(calendar) }
         else if let request = UpdateRequest(message: message.body) { onUpdate(request) }
     }
 }
