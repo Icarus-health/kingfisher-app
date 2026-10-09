@@ -10,5 +10,7 @@
   "browser_rendered": false,
   "actual_microphone_calendar_permissions": false,
   "notarized": false,
-  "intel_verified": false
+  "intel_verified": false,
+  "durable_copy_signature_verified": true,
+  "durable_copy_native_dmg_archive_hashes_verified": true
 }

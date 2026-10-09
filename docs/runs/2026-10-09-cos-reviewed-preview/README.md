@@ -18,6 +18,8 @@ Der erste native Paketbau scheiterte am System-Iconwerkzeug in der eingeschränk
 
 Der erste Container-Prüfaufruf hatte falsche tmpfs-Besitzrechte (10001 statt vorhandener 1000) und keinen ausdrücklichen Python-Einstieg; der Dienststart scheiterte sofort an seinem leeren Testverzeichnis. Der korrigierte Prüfer startet ausdrücklich Python und nutzt UID/GID 1000. Es wurden keine produktiven Daten gemountet oder Modelle aufgerufen. Beide Fehlprotokolle erhalten.
 
+Nach Kopieren in die dauerhafte Paketablage beanstandete codesign Finder-/Resource-Metadaten. Ausschließlich beim neu erstellten Vorschau-App-Bündel wurden diese Metadaten entfernt (`xattr -cr`); danach bestand die strenge tiefe Signaturprüfung auch dort. Programm, DMG und Quellarchiv wurden gegen ihre gespeicherten Prüfsummen verglichen und sind unverändert. Keine produktive App verändert.
+
 ## Pakete und Grenzen
 
 Dauerhafte lokale Ablage: `/Users/sorenkube/Documents/Codex/Kingfisher-Pruefpakete/2026-10-09-cos-reviewed-8ad7828/` mit App, DMG, Original-Gitarchiv, Manifesten und ausführbarem stdin-Prüfer. Ältere Pakete erhalten. Docker-ID `sha256:c9b13d19f1873968a4da1e8c559e8653388d20d8b5b408a47580334c6bd68cd8`, Basis `sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9`. Lokaler kompatibler Tag `ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.8ad7828`; **nicht veröffentlicht**.
