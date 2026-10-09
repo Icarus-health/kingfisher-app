@@ -23,6 +23,7 @@ import { ProjectControls } from "./ProjectControls";
 import { DecisionControls } from "./DecisionControls";
 import { GoalControls } from "./GoalControls";
 import { DevelopmentPage } from "./DevelopmentPage";
+import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
@@ -928,6 +929,7 @@ export function App() {
   if (erstePruefung) return <div className="shell"><main className="state-page" aria-busy="true" /></div>;
   if (path === "/calendar") return <CalendarPage recentConversation={recentConversation} />;
   if (path === '/review') return <ReviewPage recentConversation={recentConversation} />;
+  if (path === '/wellbeing') return <HealthPage recentConversation={recentConversation} />;
   if (path === '/development') return <DevelopmentPage recentConversation={recentConversation} />;
   if (path === "/settings") return <EinstellungenSeite recentConversation={recentConversation} />;
   if (path === "/world") return <WorldPage recentConversation={recentConversation} />;
