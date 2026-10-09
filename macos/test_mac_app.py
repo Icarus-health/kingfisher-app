@@ -120,6 +120,15 @@ def test_ungueltige_fassung_wird_abgewiesen(tmp_path, fassung):
     assert 'SemVer' in ergebnis.stderr
 
 
+def test_unbekannte_paketarchitektur_bricht_vor_dateiaenderungen_ab(tmp_path):
+    result = bau(tmp_path, '--nur-fassung', compose=False,
+                 umgebung={'KINGFISHER_ARCHITEKTUR': 'arm64; external-command'})
+    assert result.returncode != 0
+    assert 'Architektur' in result.stderr
+    assert not (tmp_path / 'build').exists()
+    assert not (tmp_path / 'dist').exists()
+
+
 def test_alle_quellen_werden_uebersetzt():
     skript = BUILD.read_text(encoding='utf-8')
     assert 'QUELLEN=(macos/Shared/*.swift macos/App/Logic/*.swift macos/App/*.swift)' in skript
