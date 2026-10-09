@@ -1,0 +1,14 @@
+{
+  "commit": "061acef414cc213c24ebd10006c7a7aa0d6e902b",
+  "sha256": {
+    "app/kingfisher/src/MailTaskForm.tsx": "c67e593c9aaf0910d4bfecf056b1b6b841aab6cc3a4e9413812f9648ea3d8020",
+    "app/kingfisher/src/MailReader.css": "f91effaa4cd428ec9b54fc597c94f15fe5f66b4a3d3845d673a9ff7d8d7166b0",
+    "app/kingfisher/src/api.ts": "12d2fec2e563f673947750ba8bfe0b6c740d24b4edc8dc14dda0a72e5ff4a289",
+    "sidecar/icarus_memory/server.py": "176193e55b5ffd9c72bf787e1486b19a6bd5e2eb72649427d63c7756c09eb320",
+    "sidecar/icarus_memory/tasks.py": "23516cd4f0a38bc8874d7606dd6572871f4d0010119932ed78325c182fb724ac",
+    "sidecar/tests/test_mail_task_retry.py": "f22ac8743a57f12d3151ad07e84103a20e9fdc98e4348d06a867b457be047699",
+    "sidecar/tests/test_task_save_requests.py": "eab31fb58d5a4de7408319cad6d6bf70afa0cead72967fa30402e3a623018166",
+    "sidecar/tests/test_migrations.py": "d81e09f38ecdbe0556c5cd718c0b0765e56e49b605d0c7e6ad0f6b91a202e57c",
+    "app/kingfisher/tests/mail-task-source-binding.test.mjs": "d94b547f6deca7380c87a5bbcb8522368601a408f1f7184694a64c76cfbd62b8"
+  }
+}
