@@ -1,6 +1,6 @@
 # Gewohnheiten und Lernprüfung ohne Laden des Mailarchivs
 
-Code **9f18408c8d6c8b0fd55c334cfc3ab184d933bb42**, Version **1.0.6-preview.9f18408**. Ergänzung der gemeinsamen Draft-Vorschau #46, ausgehend von `a70aaf0`. Keine neue Oberfläche, kein Modell, kein Neuimport und keine Schemaänderung.
+Code **9f18408c8d6c8b0fd55c334cfc3ab184d933bb42**, Version **1.0.6-preview.9f18408**. Ergänzung [#50](https://github.com/Icarus-health/kingfisher-app/pull/50) ist in die weiterhin offene [Draft-Vorschau #46](https://github.com/Icarus-health/kingfisher-app/pull/46) übernommen, ausgehend von `a70aaf0`; Integrations-Merge `dd497f1`. Laufzeit-, UI-, native, Design-, Deployment-, Script- und Versionsquellen sind gegenüber dem geprüften Code bytegleich. Main bleibt unverändert. Keine neue Oberfläche, kein Modell, kein Neuimport und keine Schemaänderung.
 
 Die Gewohnheitsanzeige lud bisher zweimal pro Gewohnheit sämtliche Quellen. Die Lernprüfung wiederholte dies und lud zusätzlich alle Quellen sowie wiederholt alle Vorschläge. Bei einem großen Mailarchiv verursachte schon dieser rein regelbasierte Weg unnötige Textobjekte und Arbeit, obwohl nur explizite Check-ins gebraucht werden.
 
