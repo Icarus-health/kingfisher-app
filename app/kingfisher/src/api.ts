@@ -713,7 +713,11 @@ export type Unterordner = { pfad: string; name: string; oben: string | null; ord
 export type OrdnerPrefix = "/api/v1/transcript-sync" | "/api/v1/folder-sync";
 
 /** Local folder metadata; reading it does not scan the selected folder. */
-export type SourceFolderStatus = Pick<TranskriptOrdner, "enabled" | "root_id" | "folder" | "seen_at" | "synced_at" | "last_run" | "running" | "files">;
+export type SourceFolderStatus = Pick<TranskriptOrdner, "enabled" | "root_id" | "folder" | "seen_at" | "synced_at" | "running"> & {
+  last_run: (Omit<NonNullable<TranskriptOrdner["last_run"]>, "errors"> & {errors?: string[]; error_count?: number}) | null;
+  files?: TranskriptOrdner["files"];
+  file_counts?: {recorded: number; active: number; ignored: number; unknown: number};
+};
 
 export type TranskriptUebersicht = {
   ordner: TranskriptOrdner;
@@ -1226,7 +1230,7 @@ export const api = {
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
   macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
-  sourceFolderStatus: (prefix: OrdnerPrefix, signal?: AbortSignal) => request<SourceFolderStatus>(prefix, {signal}),
+  sourceFolderStatus: (prefix: OrdnerPrefix, signal?: AbortSignal) => request<SourceFolderStatus>(`${prefix}?summary=true`, {signal}),
   connectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar/connect", {method: "POST"}),
   selectMacCalendars: (ids: string[]) => request<MacCalendarState>("/api/v1/mac-calendar/selection", {method: "PUT", body: JSON.stringify({ids})}),
   disconnectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar", {method: "DELETE"}),

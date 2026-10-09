@@ -30,7 +30,7 @@ test('all six metadata readers use only local authenticated GET endpoints and ne
   const previous=globalThis.fetch,calls=[];
   globalThis.fetch=async(path,init)=>{calls.push({path,init});return {ok:true,json:async()=>({})};};
   try{const readers=sourceMetadataReaders();await Promise.all(Object.values(readers).map(read=>read(new AbortController().signal)));
-    assert.deepEqual(calls.map(c=>c.path).sort(),['/api/v1/integrations','/api/v1/mail/intake','/api/v1/schedule','/api/v1/mac-calendar','/api/v1/folder-sync','/api/v1/transcript-sync'].sort());
+    assert.deepEqual(calls.map(c=>c.path).sort(),['/api/v1/integrations','/api/v1/mail/intake','/api/v1/schedule','/api/v1/mac-calendar','/api/v1/folder-sync?summary=true','/api/v1/transcript-sync?summary=true'].sort());
     assert.equal(calls.length,6);for(const c of calls){assert.ok(c.init.credentials===undefined || c.init.credentials==='same-origin');assert.equal(c.init.body,undefined);assert.ok(!c.init.method||c.init.method==='GET');assert.ok(c.init.signal);}
   }finally{globalThis.fetch=previous;}
 });

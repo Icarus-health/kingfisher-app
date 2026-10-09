@@ -55,7 +55,49 @@ def test_source_metadata_contracts_keep_originals_permissions_and_last_success(b
     assert app.state.hintergrund.pausiert is True
 
 
-@pytest.mark.parametrize('path', PATHS)
+@pytest.mark.parametrize('path', (*PATHS, 'folder-sync?summary=true', 'transcript-sync?summary=true'))
 def test_each_source_metadata_endpoint_requires_the_existing_browser_session(browser,path):
     browser.cookies.clear()
     assert browser.get('/api/v1/'+path).status_code==401
+
+
+@pytest.mark.parametrize('prefix,setting', [('folder-sync','folder_sync'),('transcript-sync','transcript_sync')])
+def test_compact_folder_status_counts_refs_without_loading_bodies_or_exposing_file_names(browser,monkeypatch,prefix,setting):
+    app=browser.app
+    first=browser.post('/api/v1/sources/documents',json={'filename':'First.txt','body':'Synthetic first source.','project_id':None}).json()['id']
+    old=browser.post('/api/v1/sources/documents',json={'filename':'Old.txt','body':'Synthetic old source.','project_id':None}).json()['id']
+    assert browser.post(f'/api/v1/episodes/{old}/ignore').status_code==200
+    setattr(app.state.settings,setting,{'enabled':False,'root_id':'test-root','files':{
+        'private-A.txt':first,'private-alias.txt':first,'private-old.txt':old,'private-missing.txt':'missing-source'},
+        'synced_at':'2026-10-08T12:00:00Z',
+        'last_run':{'recorded':1,'duplicates':0,'changed':0,'removed':0,'errors':['private-file-error']*10000}})
+    def no_body(*_args,**_kwargs): pytest.fail('Compact folder status must not load individual original bodies')
+    with monkeypatch.context() as patch:
+        patch.setattr(app.state.episodes,'get',no_body)
+        response=browser.get(f'/api/v1/{prefix}?summary=true')
+    assert response.status_code==200,response.text
+    result=response.json()
+    assert 'files' not in result
+    assert result['file_counts']=={'recorded':4,'active':2,'ignored':1,'unknown':1}
+    assert result['synced_at']=='2026-10-08T12:00:00Z'
+    assert result['enabled'] is False
+    assert result['last_run']['error_count']==10000
+    assert 'errors' not in result['last_run']
+    assert len(response.content)<2048
+    assert 'private-' not in response.text
+
+
+def test_compact_folder_status_uses_bounded_bulk_lookups_for_many_saved_references(browser):
+    app=browser.app
+    ident=browser.post('/api/v1/sources/documents',json={'filename':'One.txt','body':'Synthetic source.','project_id':None}).json()['id']
+    app.state.settings.folder_sync={'enabled':False,'root_id':'test-root','files':{f'file-{n}.txt':ident for n in range(10000)}}
+    queries=[]
+    app.state.episodes._conn.set_trace_callback(queries.append)
+    try:
+        response=browser.get('/api/v1/folder-sync?summary=true')
+        assert response.status_code==200,response.text
+        assert response.json()['file_counts']=={'recorded':10000,'active':10000,'ignored':0,'unknown':0}
+        selects=[q for q in queries if 'FROM episodes' in q]
+        assert len(selects)<=1
+        assert len(response.content)<2048
+    finally: app.state.episodes._conn.set_trace_callback(None)

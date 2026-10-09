@@ -102,13 +102,15 @@ export function buildSourceOverview(state: SourceOverviewState, at=Date.now()): 
     const data=state[key]?.data;
     if (!data) {rows.push(missing(key,title,'Ordner',!!state[key]?.failed));continue;}
     const row=base(key,title,'Ordner');row.stale=!!state[key]?.failed;
-    const errors=Boolean(data.last_run?.errors.length);
+    const errors=Boolean(data.last_run?.error_count || data.last_run?.errors?.length);
     row.status=row.stale ? staleStatus : !data.root_id ? 'Noch kein Ordner ausgewählt.'
       : !data.enabled ? 'Ordneraufnahme pausiert.' : errors ? 'Der letzte Lauf war nicht vollständig erfolgreich.'
       : !data.running || !fresh(data.seen_at,at,120000) ? 'Ordneraufnahme eingeschaltet · Helfer derzeit nicht erreichbar.' : 'Ordneraufnahme eingeschaltet.';
     if (data.root_id) {
-      const taken=data.files.filter(file=>file.state!=='ignored').length;
-      row.details.push(`${number(taken)} bekannte Dateien aufgenommen · ${number(data.files.length-taken)} ausgenommen.`,
+      // Older servers may ignore ?summary and still return the full file list.
+      const counts=data.file_counts ?? (data.files ? {active:data.files.filter(file=>file.state!=='ignored').length,
+        ignored:data.files.filter(file=>file.state==='ignored').length,unknown:0} : null);
+      row.details.push(counts ? `${number(counts.active)} bekannte Dateien aufgenommen · ${number(counts.ignored)} ausgenommen.${counts.unknown ? ` Bei ${number(counts.unknown)} Dateien ist der gespeicherte Quellenstatus nicht bestätigt.` : ''}` : 'Die Dateizahl ist noch nicht verfügbar.',
         'Die Zählung beschreibt gespeicherte Aufnahmen, nicht sämtliche Dateien auf deinem Gerät.');
     }
     if (errors) row.details.push('Ein unvollständiger Lauf belegt keine fehlenden Dateien. Bisherige Aufnahmen und der letzte erfolgreiche Lauf bleiben erhalten.');

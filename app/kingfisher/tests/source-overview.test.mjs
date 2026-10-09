@@ -74,3 +74,18 @@ test('pausing mail intake does not hide a known intake problem or leak its raw e
   assert.match(row.status,/pausiert/);assert.match(row.warning || '',/Bei der Aufnahme ist ein Problem aufgetreten/);
   assert.doesNotMatch(text(row),/private server detail|inventory_unavailable/);
 });
+
+test('compact folder counters retain unknown refs without receiving source bodies or filenames',()=>{
+  const data={enabled:true,root_id:'synthetic',running:true,seen_at:'2026-10-09T11:59:00Z',synced_at:null,
+    last_run:null,file_counts:{recorded:4,active:2,ignored:1,unknown:1}};
+  const row=buildSourceOverview(state({documents:slot(data)}),at).find(r=>r.id==='documents');
+  assert.match(text(row),/2.*aufgenommen.*1.*ausgenommen/);assert.match(text(row),/1.*nicht bestätigt/);
+});
+
+test('compact last-run failure count remains visible without returning private failure text',()=>{
+  const data={enabled:true,root_id:'synthetic',running:true,seen_at:'2026-10-09T11:59:00Z',synced_at:'2026-10-08T12:00:00Z',
+    last_run:{recorded:1,duplicates:0,changed:0,removed:0,error_count:2},file_counts:{recorded:2,active:2,ignored:0,unknown:0}};
+  const row=buildSourceOverview(state({documents:slot(data)}),at).find(r=>r.id==='documents');
+  assert.match(row.status,/letzte Lauf war nicht vollständig erfolgreich/);
+  assert.equal(row.lastSuccess,data.synced_at);assert.match(text(row),/bisherige Aufnahmen|Bisherige Aufnahmen/);
+});
