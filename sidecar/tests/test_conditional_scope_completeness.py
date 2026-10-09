@@ -202,14 +202,22 @@ def _answer_evidence():
         text=IA08_SOURCE, zeit=None, pruef_text=IA08_SOURCE)
 
 
-def test_always_yes_gate_keeps_both_directly_supported_rules():
+def test_always_yes_gate_cannot_hide_same_paragraph_status():
     checker = _Checker()
     result = formulieren(QUESTION, [_answer_evidence()], _SentenceModel(), jetzt=NOW,
                          pruefung=satzpruefung_modell.tor('an', checker))
 
-    assert result.status == 'saetze'
-    assert [sentence.text for sentence in result.saetze] == [PRE_BAN, POST_RULE]
+    assert result.status == 'zitate'
     assert checker.checked == [PRE_BAN, POST_RULE]
+
+
+def test_always_yes_gate_keeps_the_complete_original_paragraph():
+    checker = _Checker()
+    result = formulieren(QUESTION, [_answer_evidence()], _SentenceModel([IA08_SOURCE]), jetzt=NOW,
+                         pruefung=satzpruefung_modell.tor('an', checker))
+    assert result.status == 'saetze'
+    assert [sentence.text for sentence in result.saetze] == [IA08_SOURCE]
+    assert checker.checked == [IA08_SOURCE]
 
 
 def test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule():
@@ -219,10 +227,11 @@ def test_rejecting_second_gate_falls_back_when_it_drops_the_governing_rule():
 
     assert checker.checked == [PRE_BAN, POST_RULE]
     assert result.status == 'zitate'
-    assert 'Bedingungsregel' in result.grund
+    assert 'vollständige sichtbare Originalstelle' in result.grund
+    assert any(sentence.roh == POST_RULE for sentence in result.verworfen)
 
 
-def _script_provider(provider):
+def _script_provider(provider, sentences=None):
     def complete_json(messages, *, max_tokens=256, schema=None):
         data = json.loads(messages[-1]['content'])
         if 'blocks' in data:
@@ -232,7 +241,7 @@ def _script_provider(provider):
             return Reply(text=json.dumps({'status': 'reports', 'ids': [row['id'] for row in data['sources']]}))
         if 'anliegen' in data:
             return Reply(text=json.dumps({'status': 'antwort', 'saetze': [
-                {'text': PRE_BAN, 'belege': [1]}, {'text': POST_RULE, 'belege': [1]}]}))
+                {'text': sentence, 'belege': [1]} for sentence in (sentences or [PRE_BAN, POST_RULE])]}))
         raise AssertionError(f'unexpected synthetic provider request: {list(data)}')
     provider.complete_json = complete_json
 
@@ -241,7 +250,7 @@ def test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_conditio
         core, tmp_path, monkeypatch):
     app, client, provider = _api(core, tmp_path, monkeypatch)
     app.state.agent._working_memory_search = None
-    _script_provider(provider)
+    _script_provider(provider, sentences=[IA08_SOURCE])
     try:
         source_id = _upload(client, IA08_SOURCE)
         run_working(app)
@@ -256,7 +265,8 @@ def test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_conditio
         assert context['working_answer']['refs'][0]['episode_id'] == source_id
         assert PRE_BAN in assistant['content'] and POST_RULE in assistant['content']
 
-        # Reopening revalidates the stored sentence answer and retains the same source-bound rule.
+        # Reloading projects the saved answer in this same app; actual store
+        # reopen is covered separately by the paragraph-context tests.
         reopened = client.get(f'/api/v1/conversations/{conversation}')
         assert reopened.status_code == 200
         projected = reopened.json()['messages'][-1]
@@ -266,7 +276,7 @@ def test_uploaded_http_answer_and_saved_projection_keep_post_acceptance_conditio
         # A legacy snapshot that had dropped the rejected rule must no longer look complete.
         legacy = copy.deepcopy(assistant)
         stored = legacy['metadata']['context']['working_answer']['satzantwort']
-        stored['saetze'] = [entry for entry in stored['saetze'] if entry['roh'] == PRE_BAN]
+        stored['saetze'][0].update(roh=PRE_BAN, text=PRE_BAN)
         stored['verworfen'] = 1
         projected_legacy = working_memory_answers.project_message(
             legacy, app.state.episodes, app.state.claims)

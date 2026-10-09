@@ -177,7 +177,9 @@ def test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission():
 
     assert attempt.status == 'zitate'
     assert not attempt.saetze
-    assert [sentence.roh for sentence in attempt.verworfen] == [UNSCOPED_TOWELS]
+    # The valid ban cannot remain a partial answer after the other rule from
+    # its same paragraph was rejected. Preserve both explicit rejection paths.
+    assert [sentence.roh for sentence in attempt.verworfen] == [UNSCOPED_TOWELS, SOLVENT_BAN]
     assert checker.checked == [SOLVENT_BAN]
 
     # The complete original rules remain usable through the server-issued IDs.
@@ -186,15 +188,15 @@ def test_an_always_yes_model_gate_cannot_rescue_a_broadened_permission():
         'Darf man R-508 mit Lösungsmittel reinigen?',
         [source],
         Skript({'status': 'antwort', 'originalstellen': [
-            {'beleg': 1, 'satz': 1}, {'beleg': 1, 'satz': 2},
+            {'beleg': 1, 'satz': 1},
         ]}),
         jetzt=datetime(2026, 10, 8, tzinfo=timezone.utc),
         pruefung=satzpruefung_modell.tor('an', checker),
     )
     assert originals.status == 'saetze'
-    assert [sentence.text for sentence in originals.saetze] == [R508_RULE, SOLVENT_BAN]
+    assert [sentence.text for sentence in originals.saetze] == [R508_SOURCE]
     assert not originals.verworfen
-    assert checker.checked == [R508_RULE, SOLVENT_BAN]
+    assert checker.checked == [R508_SOURCE]
 
 
 def test_saved_answer_rechecks_applicability_and_keeps_independent_ban(raum):
