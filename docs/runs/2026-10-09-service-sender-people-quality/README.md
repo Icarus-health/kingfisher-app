@@ -44,5 +44,63 @@ Personenerkennung. Bei mehreren Anzeigenamen desselben Servicepostfachs ist
 die Graph-Beschriftung weiterhin die erste eingelesene Nennung, keine
 bestätigte Identität. Originalquellen bleiben maßgeblich.
 
-Mac-Abnahme und Paketnachweise folgen separat nach der Installation.
+## Reale Bedienprüfung und Korrektur des Detailwegs
+
+Die erste Installation `32f4b01` korrigierte die Listen, zeigte beim Öffnen
+technischer Absender aber die bestehende unerreichbare Personenprofilseite.
+Der Detailweg wurde deshalb vor dem Merge weiter korrigiert (Codefreeze
+`af8e791bb55a4268597d2cef58106cc31e0315f5`).
+
+Nur nach einem Personenprofil-404 kann eine lesende Absenderquellenansicht
+folgen: frischer Graph, eindeutiger exakter Anzeigename und gleiche angeklickte
+Kennung, bekannte Kategorie automatisch/prüfbedürftig, keine bestätigte
+Identität. Die Quellen müssen aktuelle, genau belegte ausgehende Beteiligungen
+an vorhandenen Episoden sein. Keine Namensergänzung, Zusammenführung,
+Personenverdichtung oder Quellenänderung. Andere Fehler, fehlende Kennung,
+Mehrdeutigkeit und fehlende gültige Quellen bleiben Fehler.
+
+Acht weitere Oberflächentests: vor der Korrektur drei Fehler/fünf bestanden,
+danach acht bestanden; anschließend alle 431 UI-Tests und Build bestanden.
+Unabhängige Prüfung ohne Blocker. Python ist gegenüber `32f4b01` unverändert;
+die Backend-Läufe wurden deshalb nicht unnötig wiederholt.
+
+Native Mac-Prüfung am 9. Oktober 2026:
+
+- Vorher Personen 112, automatisch 28, prüfen 31, alle 164.
+- Nachher Personen 110, automatisch 27, prüfen 34, alle 164. Die Filter
+  überlappen bei Duplikathinweisen; die Gesamtsicht bleibt vollständig.
+- Beide betroffenen Service-Familien verlassen die Personenliste. Service
+  unter Prüfen, technische Adresse unter automatische Absender sichtbar.
+- Beide Einträge öffnen ihre Absenderquellen; jeweils eine Originalquelle
+  geöffnet und erfolgreich geladen. Kennzeichnung als gespeicherte Quelle,
+  keine bestätigte Personenidentität, keine Schreibaktionen.
+- Abschließend Heute geladen, Uhr läuft, Importpause sichtbar, keine
+  kodierten Mailheader im sichtbaren Text. Keine Nutzerentscheidung bestätigt.
+
+Version `1.0.6-local.af8e791`, Image
+`sha256:602b9e59d3565a12eefbcea0e6dbb4eafab41533272ba51ebd060978d5d79537`.
+Alle 266 Python- und 112 UI-Dateien im tatsächlich laufenden Paket erneut
+anhand der unabhängigen Soll-Prüfsummen verifiziert. Nativer Wrapper bleibt
+unverändert. Zwei versiegelte Sicherungen angelegt, gleicher Datenbereich,
+keine Migration: 344 Originale und 17 Datenbanken erhalten. Lokaler
+Betriebsstatus nach der UI-Prüfung grün; Hintergrund weiterhin pausiert.
+
+Eine zunächst zu kleine Docker-Speicherreserve hat das Update vor jeder
+Veröffentlichung angehalten. Zwei ältere Sicherungsduplikate wurden erst
+nach vollständigem Abgleich mit der bestehenden versiegelten Mac-Kopie
+aus dem gestoppten Docker-Datenbereich ausgelagert (91.508.470 Bytes).
+Nur die festgelegten Duplikate, niemals aktive Dateien oder die jüngste
+Sicherung; externer Rückweg unverändert. Falscher Pfad, falsche Prüfsumme
+und geänderte Quelldatei wurden mit Testdaten abgewiesen. Unabhängiger
+Prüfer kontrollierte den Einmalweg; aktive Zeilen und Einstellungen danach
+identisch, alter Dienst geprüft gestartet, Speicherreserve wieder grün.
+
+## Verbleibende Grenze der Quellenansicht
+
+Graph und Quellenabruf sind getrennte Momentaufnahmen. Eine inzwischen
+ausgeschlossene Quelle kann noch im alten Verzeichnis stehen; ihre beim
+Öffnen frisch geladene Quellkarte zeigt den Ausschluss beziehungsweise
+fehlende aktuelle Zulassung. Die Ansicht bestätigt nichts und bietet
+keine Wiederzulassung an. Technische und ungeklärte Quellen sind weiterhin
+kein bestätigtes Menschenwissen.
 Keine Modellaufrufe, Cloudkosten, Quellenlöschung oder CI-Neustarts.
