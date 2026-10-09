@@ -1,6 +1,6 @@
 # Quellenstatus aus Zeitplan und tatsächlicher Warteschlange
 
-Code **a214f99cde2c8910d1ba5e762b2e89f485380471**, Paket **1.0.6-preview.a214f99**, Basis `31c42ad` der gemeinsamen offenen Draft-Vorschau #46. Nicht in Main übernommen oder installiert.
+Code **a214f99cde2c8910d1ba5e762b2e89f485380471**, Paket **1.0.6-preview.a214f99**, Basis `31c42ad` der gemeinsamen offenen Draft-Vorschau #46. Ergänzung [#51](https://github.com/Icarus-health/kingfisher-app/pull/51) in die weiterhin offene [Draft-Vorschau #46](https://github.com/Icarus-health/kingfisher-app/pull/46) übernommen (`7c17427`); Laufzeit-, UI-, native, Design-, Deployment-, Script- und Versionsquellen bytegleich zum geprüften Code. Nicht in Main übernommen oder installiert.
 
 ## Konkreter Fehler und Änderung
 
