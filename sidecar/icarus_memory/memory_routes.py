@@ -11,7 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError, EpisodeKind, sql_quelle
 from .claims import ClaimError
 from .model import Status
-from .memory_analysis import VERSION
+from .memory_analysis import VERSION, analysis_version
+from .task_review import task_context_key
 from .model_roles import hintergrund_anbieter, rollen_von
 from .memory_history import aware, query_key, time_key, encode_cursor, decode_cursor, SCAN_BUDGET, ceiling_anchor, validate_anchor
 from . import config
@@ -48,7 +49,7 @@ def coverage(episodes, proposals):
             continue
         truncated_sources += int(row['source_truncated'])
         job = proposals.memory_analysis.snapshot(row['id'])
-        if not job or job['digest'] != row['digest'] or job['version'] != VERSION:
+        if not job or job['digest'] != row['digest'] or job['version'] != analysis_version(task_context_key(row['support_generation'], row['metadata_digest'])):
             counts['pending'] += 1
         elif job['state'] == 'completed' and job['offset'] == job['total']:
             # Der empfangene Ausschnitt ist fertig geprüft. Die fehlenden Bytes

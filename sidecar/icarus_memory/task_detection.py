@@ -9,7 +9,7 @@ from typing import Callable
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError
 from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
-from .task_review import REVIEW_MARKER
+from .task_review import REVIEW_MARKER, current_task_context, task_context_matches
 from .model import SourceType
 from .hintergrund import BackgroundInterrupted
 
@@ -43,7 +43,7 @@ class TaskDetector:
                     # beim nächsten Lauf nicht als Quellenentzug umgedeutet werden.
                     self.proposals.accept(proposal.id, produced=existing.id)
                     continue
-                valid = bool(proposal.evidence)
+                valid = bool(proposal.evidence) and task_context_matches(proposal, self.episodes)
                 for evidence in proposal.evidence:
                     try:
                         episode = self.episodes.get(evidence.episode_id)
@@ -80,7 +80,10 @@ class TaskDetector:
                     if current.provenance.source_type is SourceType.EMAIL and 'source:truncated' in current.tags:
                         report.failed += 1
                         continue
-                    job = self.proposals.memory_analysis.acquire(current, self.provider)
+                    context = current_task_context(self.episodes, current.id)
+                    if context is None:
+                        continue
+                    job = self.proposals.memory_analysis.acquire(current, self.provider, context=context)
                     if job is None:
                         continue
                 attempted += 1
@@ -96,7 +99,8 @@ class TaskDetector:
                             fresh = self.episodes.get(current.id)
                             if (not permitted() or fresh.state in AUSGEBLENDETE_ZUSTAENDE
                                     or fresh.digest != current.digest or fresh.contacts != current.contacts or fresh.tags != current.tags
-                                    or model_key(self.provider) != job['model']):
+                                    or model_key(self.provider) != job['model']
+                                    or current_task_context(self.episodes, current.id) != context):
                                 self.proposals.memory_analysis.abandon(job, state='cancelled')
                                 report.cancelled = True
                                 return report
@@ -120,7 +124,8 @@ class TaskDetector:
                         fresh = self.episodes.get(current.id)
                         if (fresh.state not in AUSGEBLENDETE_ZUSTAENDE and fresh.digest == current.digest
                                 and fresh.contacts == current.contacts and fresh.tags == current.tags
-                                and model_key(self.provider) == job['model']):
+                                and model_key(self.provider) == job['model']
+                                and current_task_context(self.episodes, current.id) == context):
                             try:
                                 result = self.proposals.memory_analysis.finish(
                                     job, items, end,
@@ -171,7 +176,8 @@ def candidate_batches(proposals, episodes, *, now=None):
             except EpisodeError:
                 continue
             if (episode.state in AUSGEBLENDETE_ZUSTAENDE or episode.digest != evidence.digest
-                    or not evidence.quote or evidence.quote not in episode.body):
+                    or not evidence.quote or evidence.quote not in episode.body
+                    or not task_context_matches(proposal, episodes)):
                 continue
             valid.append((proposal, episode))
         temporal = timings(episodes, [e for _, e in valid], now=now, relations=relations)
@@ -195,7 +201,7 @@ def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS, now=None) 
                 'id': proposal.id, 'statement': proposal.statement, 'quote': proposal.evidence[0].quote,
                 'episode_id': episode.id, 'sender': _absender(episode), **timing,
                 'review_required': episode.provenance.source_type is SourceType.EMAIL
-                    and not proposal.proposed_by.endswith(REVIEW_MARKER),
+                    and (proposal.task_context is None or not proposal.proposed_by.endswith(REVIEW_MARKER)),
             })
             # Keep memory bounded even when a large inventory produced many candidates.
             items.sort(key=lambda item: item['received_at'] or '', reverse=True)
