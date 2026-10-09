@@ -16,6 +16,7 @@
   "cos-closed/run_native.py": "c4e4967024f4048faa901e4b316d3cda95ed04fe48f61caede9af1d57c422540",
   "cos-closed/runtime.json": "e09f5ae685157c99f180060d08dd710c4b9926753f2917ee163bd4b0aeaa5416",
   "cos-closed/snapshot-input-hashes.json": "130f04736ac9b75ee7d629f0409d9d857569465dd0502024ba5e58a16ca266b8",
+  "delivery-evidence-independent-review.md": "fdeb4351b1a0f7a35ecc62a49d37e328513b262a53a29295b2fa41fefa465b07",
   "installed-check.py": "12c877fa8da4f8f20dc1e560fd668b66b2737d6af41b3d9df1b4665e7e7f68b9",
   "log-normalization.json": "46072f5220d0877a3b0b23146234f62f3e60a50c46146a1641db66f3a30a3952",
   "mac-fresh-verification.json": "05d8336f2b14075c32df25bca0b27012748292e1150ccad50d4e6b61b91fc975",
