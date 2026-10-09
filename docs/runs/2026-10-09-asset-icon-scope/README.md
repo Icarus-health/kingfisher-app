@@ -12,6 +12,8 @@ Die Prüfung sammelt jetzt ausdrückliche `icon(...)`-Textargumente und genau ei
 - Abgeschaltete Referenzsammlung in einem getrennten Archiv: **7 gezielte Tests schlagen fehl**, 6 bestehen. Arbeitskopie wurde dafür nicht geändert.
 - Enges unabhängiges Read-only-Review: kein aktueller Fehler gefunden; statische Grenzen ausdrücklich benannt.
 
+Sauberes Archiv des Codecommits `a5b5656`: betroffene Tests erneut 13 bestanden, echte Grafikprüfung grün, UI-Suite **431 bestanden**, TypeScript/Vite-Build bestanden. Die bestehende Bündelgrößenwarnung bleibt sichtbar. Kein neuer Backend-Gesamtlauf, da Laufzeit-/Backendcode unverändert ist.
+
 ## Grenzen
 
 Das Werkzeug ist ein begrenzter statischer Vertragsprüfer, kein JavaScript-Parser. Dynamische `icon(iconName)`-Werte werden nicht allgemein aufgelöst. Der bestehende SourceRow-Vertrag erlaubt nur `mail`/`calendar-days`, die bereits über NAV geprüft werden. Änderungen an dynamischen Wertemengen brauchen eine explizite Prüfung. Deklarationsbeispiele in mehrzeiligen Blockkommentaren können konservativ eine zusätzliche NAV-Deklaration ergeben und den Lauf ablehnen. Direkte Icon-Aufrufe in Kommentaren/Text werden wie bisher konservativ mit erfasst.
