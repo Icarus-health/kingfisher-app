@@ -10,7 +10,7 @@ LABELS = {
     'paused': 'Gespeichert · automatische Einordnung pausiert',
     # Fremdprobe 3, Befund 9: „erneuter Versuch bei aktiver Automatik“ las sich bei laufender Automatik wie ein
     # Widerspruch. Jetzt je nach Stand ein Satz, der stimmt.
-    'failed': 'Einordnung fehlgeschlagen · Kingfisher versucht es von selbst noch einmal',
+    'failed': 'Einordnung fehlgeschlagen · erneuter Versuch ausstehend',
     'failed_paused': 'Einordnung fehlgeschlagen · Kingfisher versucht es wieder, sobald das automatische Sortieren läuft',
     'deferred': 'Nicht eingeordnet · Quelle zu umfangreich oder unvollständig',
     'dismissed': 'Automatische Einordnung von dir verworfen',
@@ -18,21 +18,24 @@ LABELS = {
 }
 
 
-def _automatik_laeuft(app):
+def _automatik_vorgesehen(app):
     plan = app.state.settings.schedule
-    provider = getattr(getattr(app.state, 'agent', None), 'provider', None)
-    return bool(plan.enabled and plan.with_model and getattr(provider, 'is_local', False))
+    # Das Gesprächsmodell ist nicht die Hintergrundrolle. Die Anzeige liest
+    # nur den Zeitplan; Modellbereitschaft und Ausführung prüft der Worker.
+    return bool(plan.enabled and plan.with_model)
 
 
 def source_status(app, episode_id):
     state = WorkingMemoryStore(app.state.episodes).source_state(episode_id)
-    if state == 'failed' and not _automatik_laeuft(app):
-        state = 'failed_paused'
-    if state == 'pending':
-        if not _automatik_laeuft(app):
-            state = 'paused'
-        else:
-            scheduler = getattr(app.state, 'scheduler', None)
-            state = scheduler.memory_state(episode_id) if scheduler is not None else None
-            state = state or 'pending'
+    if state in {'pending', 'failed'}:
+        scheduler = getattr(app.state, 'scheduler', None)
+        observed = scheduler.memory_state(episode_id) if scheduler is not None else None
+        if observed == 'processing':
+            # Ein schon laufender Aufruf kann die geänderte Freigabe erst
+            # beim nächsten Worker-Prüfpunkt sehen; er ist noch nicht beendet.
+            state = 'processing'
+        elif not _automatik_vorgesehen(app):
+            state = 'failed_paused' if state == 'failed' else 'paused'
+        elif observed == 'queued':
+            state = 'queued'
     return {'state': state, 'label': LABELS[state]}
