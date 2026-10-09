@@ -1,0 +1,51 @@
+{
+  "code_commit": "1913e265744344de91b123ab1dc6e58dbd4b9ca3",
+  "version": "1.0.6-preview.1913e26",
+  "image_id": "sha256:6b03de639866319d310581f003345c458b13e824d53bb4e76a5381c14f5c9430",
+  "base_layers_preserved": true,
+  "ui_unchanged": true,
+  "signature_strict_deep": true,
+  "dmg_integrity": true,
+  "arm64_only": true,
+  "notarized": false,
+  "installed": false,
+  "native_window_tested": false,
+  "real_model_quality_tested": false,
+  "probe_records": [
+    {
+      "mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal": "passed"
+    },
+    {
+      "source_context_removal_restoration_reanalysis_acceptance_preservation": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "corrected_source_priority_ignore_reopen_no_automatic_tasks": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "synthetic_v20_to_v21_preserved_original_rows_preupgrade_backup_verified_restore": "passed",
+      "productive_database_accessed": false
+    },
+    {
+      "synthetic_live_intake_queue_scheduler_job_no_parallel_or_unpermitted_model_no_history_scan": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "browser_rendered": false,
+      "calendar_route_selection_disconnect": true,
+      "health_create_retry_correct_stale_history_restart_exclude": true,
+      "models_configured": false,
+      "productive_mounts": false,
+      "python_files": 269,
+      "ram_aliases_reject_oversize": true,
+      "source_metadata_auth_pause_compact_originals": true,
+      "status": "passed",
+      "synthetic_auth": true,
+      "ui_files": 112,
+      "version": "1.0.6-preview.1913e26",
+      "wellbeing_served_health_preserved": true
+    }
+  ],
+  "artifact_manifest": "artifact-sha256.json"
+}

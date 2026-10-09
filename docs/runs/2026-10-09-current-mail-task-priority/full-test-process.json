@@ -1,0 +1,9 @@
+{
+  "state": "running",
+  "session_id": 53179,
+  "source_archive": "/private/tmp/kingfisher-current-mail-tasks-20261009/source-1913e26.tar",
+  "cwd": "/private/tmp/kingfisher-current-mail-tasks-20261009/checked-source",
+  "log": "/private/tmp/kingfisher-current-mail-tasks-20261009/final-full-backend.log",
+  "code_commit": "1913e265744344de91b123ab1dc6e58dbd4b9ca3",
+  "synthetic_only": true
+}
