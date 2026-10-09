@@ -1,0 +1,64 @@
+/private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+classified RCS01 True
+classified RCS02 True
+classified RCS03 True
+classified RCS04 True
+classified RCS05 True
+classified RCS06 True
+classified RCS07 True
+classified RCS08 True
+classified RCS09 True
+classified RCS10 True
+classified RCS11 True
+classified RCS12 True
+classified RCS13 True
+classified RCS14 True
+classified H01 True
+classified H02 True
+classified H03 True
+classified H04 True
+topics/entities RCS01 True
+topics/entities RCS02 True
+topics/entities RCS03 True
+topics/entities RCS04 True
+topics/entities RCS05 True
+topics/entities RCS06 True
+topics/entities RCS07 True
+topics/entities RCS08 True
+topics/entities RCS09 True
+topics/entities RCS10 True
+topics/entities RCS11 True
+topics/entities RCS12 True
+topics/entities RCS13 True
+topics/entities RCS14 True
+topics/entities H01 True
+topics/entities H02 True
+topics/entities H03 True
+topics/entities H04 True
+indexed True {'status': 'partial', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535214.548179, 'total': 18, 'indexed': 8, 'pending': 10, 'failed': 0, 'updated_at': 1791535216.5816278, 'source_pending': 0}
+indexed True {'status': 'partial', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535216.600173, 'total': 18, 'indexed': 16, 'pending': 2, 'failed': 0, 'updated_at': 1791535216.739701, 'source_pending': 0}
+indexed True {'status': 'indexed', 'model_key': 'bge-m3:latest:7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab', 'identity_checked_at': 1791535216.750714, 'total': 18, 'indexed': 18, 'pending': 0, 'failed': 0, 'updated_at': 1791535216.7902899, 'source_pending': 0}
+RQ01 working_reports ['RCS01'] 11.577
+RQ02 working_reports ['RCS01'] 8.375
+RQ03 working_reports ['RCS02'] 7.651
+RQ04 working_unknown [] 3.391
+RQ05 working_reports ['RCS03'] 12.499
+RQ06 working_reports ['RCS03'] 7.943
+RQ07 working_reports ['RCS04'] 7.433
+RQ08 working_reports ['RCS03', 'RCS04'] 9.106
+RQ09 working_reports ['RCS04'] 12.189
+RQ10 working_reports ['RCS06'] 9.057
+RQ11 working_reports ['RCS05', 'RCS06'] 9.765
+RQ12 working_reports ['RCS06'] 8.901
+RQ13 working_reports ['RCS07'] 12.514
+RQ14 working_reports ['RCS08'] 7.261
+RQ15 working_reports ['RCS08'] 7.407
+RQ16 working_unknown [] 4.216
+RQ17 working_unknown [] 9.893
+RQ18 working_unknown [] 5.892
+RQ19 working_reports ['RCS11'] 8.965
+RQ20 working_reports ['RCS11'] 5.761
+RQ21 working_reports ['RCS12'] 13.827
+RQ22 working_reports ['RCS13'] 8.768
+RQ23 working_reports ['RCS13'] 8.033

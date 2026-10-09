@@ -1,0 +1,56 @@
+...............................F................................F....... [100%]
+=================================== FAILURES ===================================
+_ test_explicit_later_status_stays_with_its_subject[Die Rechnung wurde bezahlt.-Die Rechnung ist offen. Sp\xe4ter: Die Rechnung wurde bezahlt.-True] _
+
+statement = 'Die Rechnung wurde bezahlt.'
+source = 'Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.'
+accepted = True
+
+    @pytest.mark.parametrize(('statement', 'source', 'accepted'), [
+        ('Die Rechnung wurde bezahlt.', 'Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', True),
+        ('Die Rechnung ist offen.', 'Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', False),
+        ('Die Rechnung wurde bezahlt.', 'Die Rechnung wurde bezahlt. Später: Die Rechnung ist offen.', False),
+        ('Die Rechnung R-719 wurde bezahlt.', 'Die Rechnung R-719 ist offen. Später: Die Rechnung R-720 wurde bezahlt.', False),
+        ('Anna Keller hat bezahlt.', 'Anna Keller hat die Rechnung offen. Später: Mira Sander hat bezahlt.', False),
+        ('Die Rechnung wurde bezahlt.', 'Die Rechnung ist offen. Die Rechnung wurde bezahlt.', False),
+    ])
+    def test_explicit_later_status_stays_with_its_subject(statement, source, accepted):
+        sources = {'1': Beleg('1', source)}
+        result = satz_pruefen(Satz(statement, ('1',)), sources)
+>       assert result.bestanden is accepted, result.gruende
+E       AssertionError: ('Die passenden Belege widersprechen sich zum Status „bezahlt“',)
+E       assert False is True
+E        +  where False = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=False, gruende=('Die passenden Belege widersprechen sich zum Status „bezahlt“',)).bestanden
+
+sidecar/tests/test_status_subject_binding.py:66: AssertionError
+________ test_flektierte_statuswoerter_und_wechsel_im_verlauf_bestehen _________
+
+    def test_flektierte_statuswoerter_und_wechsel_im_verlauf_bestehen():
+        _besteht('Die erledigten Punkte liegen vor.', _belege('Erledigte Punkte: Angebot, Vertrag.'))
+>       _besteht('Die Rechnung wurde bezahlt.', _belege('Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.'))
+
+sidecar/tests/test_pruefbefunde_0929.py:258: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+satz = 'Die Rechnung wurde bezahlt.'
+b = {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Die Rechnung wurde bezahlt.', zeit=datetime.datetime(2026, 9, 21, 9, 0, tzinfo=datetime.timezone.utc), kopf='', gueltig=True)}
+ids = None, kwargs = {}
+
+    def besteht(satz, b, ids=None, **kwargs):
+        u = urteil(satz, b, ids, **kwargs)
+>       assert u.bestanden, f'{satz!r} sollte bestehen, verworfen wegen {u.gruende}'
+E       AssertionError: 'Die Rechnung wurde bezahlt.' sollte bestehen, verworfen wegen ('Die passenden Belege widersprechen sich zum Status „bezahlt“',)
+E       assert False
+E        +  where False = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=False, gruende=('Die passenden Belege widersprechen sich zum Status „bezahlt“',)).bestanden
+
+sidecar/tests/test_satzpruefung.py:22: AssertionError
+=============================== warnings summary ===============================
+tests/test_pruefbefunde_0929.py::test_wiederherstellung_stellt_die_entscheidungen_zu_mitschriften_her
+  /private/tmp/kingfisher-review-20261006-venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_status_subject_binding.py::test_explicit_later_status_stays_with_its_subject[Die Rechnung wurde bezahlt.-Die Rechnung ist offen. Sp\xe4ter: Die Rechnung wurde bezahlt.-True]
+FAILED sidecar/tests/test_pruefbefunde_0929.py::test_flektierte_statuswoerter_und_wechsel_im_verlauf_bestehen
+2 failed, 70 passed, 1 warning in 5.93s

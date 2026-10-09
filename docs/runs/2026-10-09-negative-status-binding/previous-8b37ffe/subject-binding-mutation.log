@@ -1,0 +1,744 @@
+FFFFFFFFFFFFFFFFFFFF...........                                          [100%]
+=================================== FAILURES ===================================
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources0] _
+
+statement = 'Die Lieferung Z-204 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')) = Satz('Die Lieferung Z-204 wurde bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 ist offen.-sources1] _
+
+statement = 'Die Lieferung Z-204 ist offen.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 ist offen.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 ist offen.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 ist offen.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 ist offen.', belege=('1', '2')) = Satz('Die Lieferung Z-204 ist offen.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde zugestellt.-sources2] _
+
+statement = 'Die Rechnung R-719 wurde zugestellt.'
+sources = {'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde zugestellt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung R-719 wurde zugestellt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung R-719 wurde zugestellt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung R-719 wurde zugestellt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde zugestellt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung R-719 wurde zugestellt.', belege=('1', '2')) = Satz('Die Rechnung R-719 wurde zugestellt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde zugestellt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources3] _
+
+statement = 'Die Lieferung Z-204 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1', '2')) = Satz('Die Lieferung Z-204 wurde bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-720 ist offen.-sources4] _
+
+statement = 'Die Rechnung R-720 ist offen.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 wurde erstellt.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung R-720 ist offen.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung R-720 ist offen.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung R-720 ist offen.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung R-720 ist offen.', belege=('1', '2')) = Satz('Die Rechnung R-720 ist offen.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 ist offen.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Mira Sander hat bezahlt.-sources5] _
+
+statement = 'Mira Sander hat bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Anna Keller hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Mira Sander hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Mira Sander hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Mira Sander hat bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Anna Keller hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Mira Sander hat bezahlt.', belege=('1', '2')) = Satz('Mira Sander hat bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Anna Keller hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Nora Weber hat bezahlt.-sources6] _
+
+statement = 'Nora Weber hat bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Nola Weber hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Nora Weber hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Nora Weber hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Nora Weber hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Nora Weber hat bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Nola Weber hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Nora Weber hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Nora Weber hat bezahlt.', belege=('1', '2')) = Satz('Nora Weber hat bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Nola Weber hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Nora Weber hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources7] _
+
+statement = 'Die Lieferung Z-204 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)) = Satz('Die Lieferung Z-204 wurde bezahlt.', ('1',))
+E        +        where ('1',) = tuple({'1': Beleg(nummer='1', text='Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources8] _
+
+statement = 'Die Lieferung Z-204 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 wurde bezahlt.', belege=('1',)) = Satz('Die Lieferung Z-204 wurde bezahlt.', ('1',))
+E        +        where ('1',) = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.-sources9] _
+
+statement = 'Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.'
+sources = {'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.', belege=('1',)) = Satz('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.', ('1',))
+E        +        where ('1',) = tuple({'1': Beleg(nummer='1', text='Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Z-204 wurde bezahlt.-sources10] _
+
+statement = 'Z-204 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Z-204 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Z-204 wurde bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Z-204 wurde bezahlt.', belege=('1', '2')) = Satz('Z-204 wurde bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Z-205 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Tim hat bezahlt.-sources11] _
+
+statement = 'Tim hat bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Jan hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Tim hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Tim hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Tim hat bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Tim hat bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Jan hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Tim hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Tim hat bezahlt.', belege=('1', '2')) = Satz('Tim hat bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Jan hat bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Tim hat die Unterlagen geprüft.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung ist bezahlt.-sources12] _
+
+statement = 'Die Rechnung ist bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 ist noch offen.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 ist noch offen.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')) = Satz('Die Rechnung ist bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-720 ist noch offen.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Z-204: Die Zustimmung liegt noch nicht vor.-sources13] _
+
+statement = 'Z-204: Die Zustimmung liegt noch nicht vor.'
+sources = {'1': Beleg(nummer='1', text='Z-205: Die Zustimmung liegt noch nicht vor.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204: Die Zustimmung liegt bereits vor.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Z-204: Die Zustimmung liegt noch nicht vor.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Z-204: Die Zustimmung liegt noch nicht vor.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Z-204: Die Zustimmung liegt noch nicht vor.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Z-205: Die Zustimmung liegt noch nicht vor.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204: Die Zustimmung liegt bereits vor.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Z-204: Die Zustimmung liegt noch nicht vor.', belege=('1', '2')) = Satz('Z-204: Die Zustimmung liegt noch nicht vor.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Z-205: Die Zustimmung liegt noch nicht vor.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Z-204: Die Zustimmung liegt bereits vor.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung ist bezahlt.-sources14] _
+
+statement = 'Die Lieferung ist bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Anna Keller: Die Lieferung Z-204 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander: Die Lieferung Z-205 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Lieferung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Lieferung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Lieferung ist bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Anna Keller: Die Lieferung Z-204 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander: Die Lieferung Z-205 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Lieferung ist bezahlt.', belege=('1', '2')) = Satz('Die Lieferung ist bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Anna Keller: Die Lieferung Z-204 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Mira Sander: Die Lieferung Z-205 wurde vorbereitet.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde bezahlt.-sources15] _
+
+statement = 'Die Rechnung R-719 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='Rechnung R-719 wurde bezahlt', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='Rechnung R-719 wurde bezahlt', gueltig=True)})
+E        +      where Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung R-719 wurde bezahlt.', ('1',))
+E        +        where ('1',) = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='Rechnung R-719 wurde bezahlt', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde bezahlt.-sources16] _
+
+statement = 'Die Rechnung R-719 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-720 wurde bezahlt.', zeit=None, kopf='Rechnung R-719', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-720 wurde bezahlt.', zeit=None, kopf='Rechnung R-719', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung R-719 wurde bezahlt.', belege=('1', '2')) = Satz('Die Rechnung R-719 wurde bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-720 wurde bezahlt.', zeit=None, kopf='Rechnung R-719', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung R-719 wurde erstellt.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.-sources17] _
+
+statement = 'Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.', belege=('1',)) = Satz('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.', ('1',))
+E        +        where ('1',) = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung ist bezahlt.-sources18] _
+
+statement = 'Die Rechnung ist bezahlt.'
+sources = {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung ist noch offen.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung ist noch offen.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung ist bezahlt.', belege=('1', '2')) = Satz('Die Rechnung ist bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='Die Rechnung R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='Die Rechnung ist noch offen.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+_ test_status_cannot_be_donated_by_an_unrelated_subject[R-719 wurde bezahlt.-sources19] _
+
+statement = 'R-719 wurde bezahlt.'
+sources = {'1': Beleg(nummer='1', text='R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='R-719 ist noch offen.', zeit=None, kopf='', gueltig=True)}
+
+    @pytest.mark.parametrize(('statement', 'sources'), [
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde zugestellt.',{'1':Beleg('1','Die Lieferung Z-204 wurde zugestellt.'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt.'),'2':Beleg('2','Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Rechnung R-720 ist offen.',{'1':Beleg('1','Die Rechnung R-719 ist offen.'),'2':Beleg('2','Die Rechnung R-720 wurde erstellt.')}),
+        ('Mira Sander hat bezahlt.',{'1':Beleg('1','Anna Keller hat bezahlt.'),'2':Beleg('2','Mira Sander hat die Unterlagen geprüft.')}),
+        ('Nora Weber hat bezahlt.',{'1':Beleg('1','Nola Weber hat bezahlt.'),'2':Beleg('2','Nora Weber hat die Unterlagen geprüft.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Lieferung Z-205 wurde bezahlt; die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt. Die Lieferung Z-204 wurde vorbereitet.')}),
+        ('Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.',{'1':Beleg('1','Die Lieferung Z-204 wurde vorbereitet; die Rechnung R-719 wurde bezahlt.')}),
+        ('Z-204 wurde bezahlt.',{'1':Beleg('1','Z-205 wurde bezahlt.'),'2':Beleg('2','Z-204 wurde vorbereitet.')}),
+        ('Tim hat bezahlt.',{'1':Beleg('1','Jan hat bezahlt.'),'2':Beleg('2','Tim hat die Unterlagen geprüft.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung R-720 ist noch offen.')}),
+        ('Z-204: Die Zustimmung liegt noch nicht vor.',{'1':Beleg('1','Z-205: Die Zustimmung liegt noch nicht vor.'),'2':Beleg('2','Z-204: Die Zustimmung liegt bereits vor.')}),
+        ('Die Lieferung ist bezahlt.',{'1':Beleg('1','Anna Keller: Die Lieferung Z-204 wurde bezahlt.'),'2':Beleg('2','Mira Sander: Die Lieferung Z-205 wurde vorbereitet.')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde erstellt.',kopf='Rechnung R-719 wurde bezahlt')}),
+        ('Die Rechnung R-719 wurde bezahlt.',{'1':Beleg('1','Die Rechnung R-720 wurde bezahlt.',kopf='Rechnung R-719'),'2':Beleg('2','Die Rechnung R-719 wurde erstellt.')}),
+        ('Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 ist bezahlt und die Rechnung R-720 ist offen.')}),
+        ('Die Rechnung ist bezahlt.',{'1':Beleg('1','Die Rechnung R-719 wurde bezahlt.'),'2':Beleg('2','Die Rechnung ist noch offen.')}),
+        ('R-719 wurde bezahlt.',{'1':Beleg('1','R-719 wurde bezahlt.'),'2':Beleg('2','R-719 ist noch offen.')}),
+    ])
+    def test_status_cannot_be_donated_by_an_unrelated_subject(statement, sources):
+>       assert not satz_pruefen(Satz(statement,tuple(sources)),sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='R-719 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='R-719 wurde bezahlt.', belege=('1', '2')), bestanden=True, gruende=()) = satz_pruefen(Satz(text='R-719 wurde bezahlt.', belege=('1', '2')), {'1': Beleg(nummer='1', text='R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='R-719 ist noch offen.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='R-719 wurde bezahlt.', belege=('1', '2')) = Satz('R-719 wurde bezahlt.', ('1', '2'))
+E        +        where ('1', '2') = tuple({'1': Beleg(nummer='1', text='R-719 wurde bezahlt.', zeit=None, kopf='', gueltig=True), '2': Beleg(nummer='2', text='R-719 ist noch offen.', zeit=None, kopf='', gueltig=True)})
+
+sidecar/tests/test_status_subject_binding.py:29: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources0]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 ist offen.-sources1]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde zugestellt.-sources2]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources3]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-720 ist offen.-sources4]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Mira Sander hat bezahlt.-sources5]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Nora Weber hat bezahlt.-sources6]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources7]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt.-sources8]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung Z-204 wurde bezahlt; die Rechnung R-719 wurde vorbereitet.-sources9]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Z-204 wurde bezahlt.-sources10]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Tim hat bezahlt.-sources11]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung ist bezahlt.-sources12]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Z-204: Die Zustimmung liegt noch nicht vor.-sources13]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Lieferung ist bezahlt.-sources14]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde bezahlt.-sources15]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 wurde bezahlt.-sources16]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung R-719 ist offen und die Rechnung R-720 ist bezahlt.-sources17]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[Die Rechnung ist bezahlt.-sources18]
+FAILED sidecar/tests/test_status_subject_binding.py::test_status_cannot_be_donated_by_an_unrelated_subject[R-719 wurde bezahlt.-sources19]
+20 failed, 11 passed in 0.20s

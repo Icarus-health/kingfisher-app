@@ -1,0 +1,172 @@
+......................................FFFFFF.F                           [100%]
+=================================== FAILURES ===================================
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Wenn die Rechnung bezahlt wurde, ist sie erledigt.] _
+
+later = 'Wenn die Rechnung bezahlt wurde, ist sie erledigt.'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Wenn die Rechnung bezahlt wurde, ist sie erledigt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Vermutlich wurde die Rechnung bezahlt.] _
+
+later = 'Vermutlich wurde die Rechnung bezahlt.'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Vermutlich wurde die Rechnung bezahlt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung wurde wohl bezahlt.] _
+
+later = 'Die Rechnung wurde wohl bezahlt.'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Die Rechnung wurde wohl bezahlt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung kann bezahlt werden.] _
+
+later = 'Die Rechnung kann bezahlt werden.'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Die Rechnung kann bezahlt werden.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung wurde angeblich bezahlt.] _
+
+later = 'Die Rechnung wurde angeblich bezahlt.'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Die Rechnung wurde angeblich bezahlt.', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[Wurde die Rechnung bezahlt?] _
+
+later = 'Wurde die Rechnung bezahlt?'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: Wurde die Rechnung bezahlt?', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+_ test_later_condition_question_or_qualified_status_does_not_replace_open_status[\u201eDie Rechnung wurde bezahlt.\u201c] _
+
+later = '„Die Rechnung wurde bezahlt.“'
+
+    @pytest.mark.parametrize('later', [
+        'Wenn die Rechnung bezahlt wurde, ist sie erledigt.',
+        'Vermutlich wurde die Rechnung bezahlt.',
+        'Die Rechnung wurde wohl bezahlt.',
+        'Die Rechnung kann bezahlt werden.',
+        'Die Rechnung wurde angeblich bezahlt.',
+        'Wurde die Rechnung bezahlt?',
+        'Die Rechnung soll bezahlt werden.',
+        '„Die Rechnung wurde bezahlt.“',
+    ])
+    def test_later_condition_question_or_qualified_status_does_not_replace_open_status(later):
+        sources = {'1': Beleg('1', 'Die Rechnung ist offen. Später: ' + later)}
+>       assert not satz_pruefen(Satz('Die Rechnung wurde bezahlt.', ('1',)), sources).bestanden
+E       AssertionError: assert not True
+E        +  where True = Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()).bestanden
+E        +    where Urteil(satz=Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), bestanden=True, gruende=()) = satz_pruefen(Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)), {'1': Beleg(nummer='1', text='Die Rechnung ist offen. Später: „Die Rechnung wurde bezahlt.“', zeit=None, kopf='', gueltig=True)})
+E        +      where Satz(text='Die Rechnung wurde bezahlt.', belege=('1',)) = Satz('Die Rechnung wurde bezahlt.', ('1',))
+
+sidecar/tests/test_status_subject_binding.py:87: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Wenn die Rechnung bezahlt wurde, ist sie erledigt.]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Vermutlich wurde die Rechnung bezahlt.]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung wurde wohl bezahlt.]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung kann bezahlt werden.]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Die Rechnung wurde angeblich bezahlt.]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[Wurde die Rechnung bezahlt?]
+FAILED sidecar/tests/test_status_subject_binding.py::test_later_condition_question_or_qualified_status_does_not_replace_open_status[\u201eDie Rechnung wurde bezahlt.\u201c]
+7 failed, 39 passed in 0.24s

@@ -1,0 +1,149 @@
+FFFFFFFF.                                                                [100%]
+=================================== FAILURES ===================================
+______ test_rechecked_negative_status_keeps_the_whole_original_paragraph _______
+
+    def test_rechecked_negative_status_keeps_the_whole_original_paragraph():
+        provider = SequenceProvider(EMPTY, FULL)
+        result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
+>       assert result.status == 'saetze'
+E       AssertionError: assert 'nichts' == 'saetze'
+E         
+E         - saetze
+E         + nichts
+
+sidecar/tests/test_negative_answer_recheck.py:55: AssertionError
+________ test_rechecked_negative_status_survives_restart_and_withdrawal ________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1040/test_rechecked_negative_status1')
+
+    def test_rechecked_negative_status_survives_restart_and_withdrawal(tmp_path):
+        episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+        claims = ClaimStore(tmp_path / 'claims.sqlite3')
+        try:
+            episode, _ = episodes.record(EpisodeKind.DOCUMENT, 'Lieferung Z-204', BODY,
+                                        Provenance(SourceType.DOCUMENT))
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(episode.id),
+                [{'start': 0, 'end': len(BODY), 'kind': 'status'}], model='synthetic')
+            saved = answers.prepare(QUESTION, episodes, claims, SequenceProvider(EMPTY, FULL), saetze=True)
+>           assert saved['satzantwort']['status'] == 'saetze'
+E           AssertionError: assert 'nichts' == 'saetze'
+E             
+E             - saetze
+E             + nichts
+
+sidecar/tests/test_negative_answer_recheck.py:72: AssertionError
+___________ test_a_rule_alone_still_does_not_establish_its_condition ___________
+
+    def test_a_rule_alone_still_does_not_establish_its_condition():
+        provider = SequenceProvider(EMPTY, EMPTY)
+        result = sa.formulieren(QUESTION, [evidence(BODY.split(' Die Zustimmung')[0])], provider, jetzt=NOW)
+        assert result.status == 'nichts' and result.saetze == []
+>       assert len(provider.answer_payloads) == 2
+E       AssertionError: assert 1 == 2
+E        +  where 1 = len([{'anliegen': 'Ist die Zustimmung für die Lieferung Z-204 schon eingegangen?', 'stichtag': 'Freitag, 09.10.2026', 'bel...nalsaetze': [{'nr': 1, 'text': 'Bei Z-204 darf die Lieferung erst nach schriftlicher Zustimmung versandt werden.'}]}]}])
+E        +    where [{'anliegen': 'Ist die Zustimmung für die Lieferung Z-204 schon eingegangen?', 'stichtag': 'Freitag, 09.10.2026', 'bel...nalsaetze': [{'nr': 1, 'text': 'Bei Z-204 darf die Lieferung erst nach schriftlicher Zustimmung versandt werden.'}]}]}] = <tests.test_negative_answer_recheck.SequenceProvider object at 0x10b58a330>.answer_payloads
+
+sidecar/tests/test_negative_answer_recheck.py:97: AssertionError
+______ test_recheck_cannot_bypass_original_identity_or_consistency[last0] ______
+
+last = {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]}
+
+    @pytest.mark.parametrize('last', [
+        {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]},
+        {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]},
+        {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 1}]},
+        ProviderError('bounded synthetic failure'),
+    ])
+    def test_recheck_cannot_bypass_original_identity_or_consistency(last):
+        provider = SequenceProvider(EMPTY, last)
+        result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
+>       assert result.status == 'zitate' and result.saetze == []
+E       AssertionError: assert ('nichts' == 'zitate'
+E         
+E         - zitate
+E         + nichts)
+
+sidecar/tests/test_negative_answer_recheck.py:109: AssertionError
+______ test_recheck_cannot_bypass_original_identity_or_consistency[last1] ______
+
+last = {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]}
+
+    @pytest.mark.parametrize('last', [
+        {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]},
+        {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]},
+        {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 1}]},
+        ProviderError('bounded synthetic failure'),
+    ])
+    def test_recheck_cannot_bypass_original_identity_or_consistency(last):
+        provider = SequenceProvider(EMPTY, last)
+        result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
+>       assert result.status == 'zitate' and result.saetze == []
+E       AssertionError: assert ('nichts' == 'zitate'
+E         
+E         - zitate
+E         + nichts)
+
+sidecar/tests/test_negative_answer_recheck.py:109: AssertionError
+______ test_recheck_cannot_bypass_original_identity_or_consistency[last2] ______
+
+last = {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 1}]}
+
+    @pytest.mark.parametrize('last', [
+        {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]},
+        {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]},
+        {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 1}]},
+        ProviderError('bounded synthetic failure'),
+    ])
+    def test_recheck_cannot_bypass_original_identity_or_consistency(last):
+        provider = SequenceProvider(EMPTY, last)
+        result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
+>       assert result.status == 'zitate' and result.saetze == []
+E       AssertionError: assert ('nichts' == 'zitate'
+E         
+E         - zitate
+E         + nichts)
+
+sidecar/tests/test_negative_answer_recheck.py:109: AssertionError
+______ test_recheck_cannot_bypass_original_identity_or_consistency[last3] ______
+
+last = ProviderError('bounded synthetic failure')
+
+    @pytest.mark.parametrize('last', [
+        {'status': 'antwort', 'originalstellen': [{'beleg': 1, 'satz': 2}]},
+        {'status': 'antwort', 'originalstellen': [{'beleg': 2, 'satz': 1}]},
+        {'status': 'nichts_vorliegend', 'originalstellen': [{'beleg': 1, 'satz': 1}]},
+        ProviderError('bounded synthetic failure'),
+    ])
+    def test_recheck_cannot_bypass_original_identity_or_consistency(last):
+        provider = SequenceProvider(EMPTY, last)
+        result = sa.formulieren(QUESTION, [evidence()], provider, jetzt=NOW)
+>       assert result.status == 'zitate' and result.saetze == []
+E       AssertionError: assert ('nichts' == 'zitate'
+E         
+E         - zitate
+E         + nichts)
+
+sidecar/tests/test_negative_answer_recheck.py:109: AssertionError
+_______________ test_recheck_keeps_the_second_verification_gate ________________
+
+    def test_recheck_keeps_the_second_verification_gate():
+        verifier = SequenceProvider({'urteil': 'nein'})
+        result = sa.formulieren(QUESTION, [evidence()], SequenceProvider(EMPTY, FULL), jetzt=NOW,
+                                pruefung=gate.Tor(gate.AN, verifier))
+>       assert result.status == 'zitate' and result.saetze == []
+E       AssertionError: assert ('nichts' == 'zitate'
+E         
+E         - zitate
+E         + nichts)
+
+sidecar/tests/test_negative_answer_recheck.py:117: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_rechecked_negative_status_keeps_the_whole_original_paragraph
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_rechecked_negative_status_survives_restart_and_withdrawal
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_a_rule_alone_still_does_not_establish_its_condition
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_recheck_cannot_bypass_original_identity_or_consistency[last0]
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_recheck_cannot_bypass_original_identity_or_consistency[last1]
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_recheck_cannot_bypass_original_identity_or_consistency[last2]
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_recheck_cannot_bypass_original_identity_or_consistency[last3]
+FAILED sidecar/tests/test_negative_answer_recheck.py::test_recheck_keeps_the_second_verification_gate
+8 failed, 1 passed in 0.40s
