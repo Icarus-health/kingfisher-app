@@ -2840,7 +2840,7 @@ def create_app(
                 v.to_dict() for v in app.state.proposals.pending(limit=20)
             ]
             result["proposals"] = {
-                "pending": len(offene_vorschlaege),
+                "pending": app.state.proposals.counts().get(ProposalState.PENDING.value, 0),
                 "items": offene_vorschlaege,
                 "error": None,
             }

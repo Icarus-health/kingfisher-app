@@ -12,6 +12,11 @@ function prioritaet(a: BefundMitQuellen, b: BefundMitQuellen) {
   return rang(a) - rang(b);
 }
 
+function todayBefunde(befunde: BefundMitQuellen[]) {
+  return befunde.filter(befund => !(befund.art === "waise" && befund.unterart === "ruhend"))
+    .sort(prioritaet);
+}
+
 /** Kleine, handlungsfähige Auswahl offener Gedächtnisfragen für „Heute“. */
 export function MemoryQuestions({ active, onOpenAll }: { active: boolean; onOpenAll: () => void }) {
   const [befunde, setBefunde] = useState<BefundMitQuellen[] | null>(null);
@@ -28,7 +33,7 @@ export function MemoryQuestions({ active, onOpenAll }: { active: boolean; onOpen
     setBefunde(null);
     const daten: Antwort = await api.lintBefunde("offen");
     if (!aktivRef.current || version !== ladeVersion.current) return;
-    setBefunde((daten.befunde as BefundMitQuellen[]).slice().sort(prioritaet));
+    setBefunde(todayBefunde(daten.befunde as BefundMitQuellen[]));
     setFehler("");
   }, []);
 
@@ -41,7 +46,7 @@ export function MemoryQuestions({ active, onOpenAll }: { active: boolean; onOpen
     api.lintBefunde("offen")
       .then(daten => {
         if (mounted && version === ladeVersion.current) {
-          setBefunde((daten.befunde as BefundMitQuellen[]).slice().sort(prioritaet));
+          setBefunde(todayBefunde(daten.befunde as BefundMitQuellen[]));
           setFehler("");
         }
       })
