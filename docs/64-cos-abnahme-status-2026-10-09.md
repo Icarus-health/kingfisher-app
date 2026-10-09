@@ -4,6 +4,8 @@ Stand: 9. Oktober 2026. Diese Übersicht ersetzt keine Prüfung und erklärt den
 
 Nachtrag zur Quellenlieferung: Der lokale Sprachentwurf und das geprüfte Vorlesen liegen als [Draft #43](https://github.com/Icarus-health/kingfisher-app/pull/43) und gekoppeltes Preview `1.0.6-preview.6f53fd6` vor. Sie sind nicht installiert und nicht nativ bedient worden. Die [Korrektur manueller Mailaufgaben bei verlorener Speicherantwort](runs/2026-10-09-mail-task-retry/README.md) schützt die Wiederholung und Quellenbindung; sie ersetzt keinen Nachweis der inhaltlichen Aufgabenerkennung.
 
+Nachtrag zur gemeinsamen Abnahme: [Vorschau `1.0.6-preview.8ad7828`](runs/2026-10-09-cos-reviewed-preview/README.md) vereint die geprüften Entwürfe #37/#38/#40–#45. Frisch: 515 UI-Fälle, 234 betroffene Backendfälle und 26 Unterfälle, Grafikprüfung, ARM-App/DMG und isolierter künstlicher Paketfluss bestanden. Die persönliche App bleibt unverändert; Fenstertest weiterhin ausdrücklich verschoben. Kein heutiger Backend-Gesamtlauf und keine persönliche Modellqualitätsabnahme behauptet.
+
 ## Tatsächlicher Betriebsstand
 
 Die lesende Statusabfrage bestätigt auf dem Mac Backend und App `1.0.6-local.3403623`. Die drei ausgewählten Mac-Kalender sind gespeichert; der Helfer meldet sich. Die neue macOS-Freigabe steht aber noch auf `not_determined`: kein vollständig synchronisierter Kalenderbestand, derzeit null gelieferte Termine. Der Nutzer hat den Fenstertest ausdrücklich verschoben. Das ist keine leere persönliche Agenda.

@@ -1,0 +1,30 @@
+{
+  "code_commit": "8ad7828c7664f6cd277f6bfeb2b06407591e4075",
+  "ui_cases": 515,
+  "backend_cases": 234,
+  "backend_subtests": 26,
+  "asset_gate": "pass (16 Dateien, 16 Icons)",
+  "typecheck_vite": "passed, existing bundle warning",
+  "native_code_identical_to_voice43": true,
+  "fresh_native_test_suite": false,
+  "historical_native_suite": "34 passed, 1 platform skip on unchanged Voice43 source",
+  "fresh_native_build": "arm64 passed after permitting system icon tool",
+  "package_flow": "passed, ephemeral network-none read-only tmpfs no mounts",
+  "no_models": true,
+  "no_personal_data": true,
+  "installed": false,
+  "mac_window_deferred": true,
+  "logs_sha256": {
+    "ui.log": "867ccf06b0eb07514cc33b8fd1d3acf15ba473c395413c0f788e47cc1d89c86e",
+    "ui-build.log": "b02c75a64c355e33e72d6a4b481e03868fdec6a38494b8b05ebf439c6f9c29c8",
+    "backend.log": "1a548fc3c6c48df8b4cfae25dc32cfd2841633b8061eaae759fd4b5d91163d5a",
+    "task-views.log": "d41e4a27c191324bbf8aecf92b6a85ecc65909cbae75de2dd2b5e1885fdbc5c9",
+    "native-build.log": "a440007b69a5c89c799653860022116eba34d20a7221175cf7c0c773792221e7",
+    "native-build-permitted.log": "1bfad29daf5c2b99de3caf02abeb92083267831ffcf386e29f81d7936d923115",
+    "dmg-verify.log": "feb964f1093ba39c18a10627ec026a15ca6ce3b4e973cf5ebf92d3a60051c2c1",
+    "image-build.log": "1df33b54b8cf14c7fbb7bbdc89c86574f702b09909b8c1beabc8d8121c5a710c",
+    "image-layers.log": "038da5c1494ed17980aac0a94abfe75205a37cdb0b04605ddc4858c462831216",
+    "package-smoke.log": "b88ce0e884fb12be89f1506d7d4fcf5d66290abf1ff28210a25fd01ec2f09a83",
+    "package-smoke-final.log": "bc04bf493c98d9db997ced2ae15afbba0e88f59346acebc69c6dd061e402828f"
+  }
+}
