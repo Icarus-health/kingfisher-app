@@ -1,9 +1,16 @@
 {
-  "state": "running",
+  "state": "completed",
   "session_id": 53179,
-  "source_archive": "/private/tmp/kingfisher-current-mail-tasks-20261009/source-1913e26.tar",
-  "cwd": "/private/tmp/kingfisher-current-mail-tasks-20261009/checked-source",
-  "log": "/private/tmp/kingfisher-current-mail-tasks-20261009/final-full-backend.log",
+  "exit_code": 1,
   "code_commit": "1913e265744344de91b123ab1dc6e58dbd4b9ca3",
+  "summary": "1 failed, 6059 passed, 1 skipped, 2 warnings, 26 subtests passed in 901.83s",
+  "failed_node": "test_rechner_ausstattung.py::test_ausweichwahl_passt_und_wiederholt_nichts",
+  "failure_also_reproduced_on_base": "0d1c868337271dd80b8990ab0d7325b4cc2a603d",
+  "cause": "Old test expected 4.7/6 GB verifier alternatives on 8 GB shared RAM; documented 6 GB reserve allows only 2 GB.",
+  "test_contract_corrected": true,
+  "runtime_changed_after_full_suite": false,
+  "affected_files_rerun": "73 passed, 1 warning in 9.53s",
+  "fresh_full_suite_after_test_only_correction": false,
+  "native_personal_tested": false,
   "synthetic_only": true
 }
