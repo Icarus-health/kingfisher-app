@@ -8,7 +8,7 @@ from dataclasses import replace
 from email.utils import getaddresses
 import re
 
-AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|notifications?|mailer[._-]?daemon|postmaster)(?:$|[._-])', re.I)
+AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|do[._-]not[._-]reply|notifications?|mailer[._-]?daemon|postmaster)(?:$|[._-])', re.I)
 GENERIC = {
     'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
     'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen',
@@ -17,7 +17,7 @@ _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
     r'rechnungs?[-_.]?(?:stelle|service|team)|zahlungs?[-_.]?(?:stelle|service|update)|'
     r'payments?[-_.]update|orders?[-_.]update|shipments?[-_.]tracking|'
-    r'marketplace[-_.]messages?)$'
+    r'marketplace[-_.]messages?|cs[-_.]auto)$'
 )
 
 
