@@ -1150,6 +1150,15 @@ def _gegenstatus(satz: str, belege: Sequence[Beleg]) -> str | None:
     Verglichen wird dort, wo Satz und Beleg die meisten Sachwörter teilen, je Satzteil und je Satz des
     Belegs. Steht an dieser Stelle der Status des Satzes irgendwo, bleibt er unbeanstandet.
     """
+    teile = _abschnitte(satz, False)
+    if len(teile) > 1:
+        # Eine vollständige Originalstelle kann Regel und tatsächlichen Stand
+        # enthalten. Deren Status gehört jeweils zu seinem eigenen Satz.
+        for teil in teile:
+            grund = _gegenstatus(teil, belege)
+            if grund:
+                return grund
+        return None
     satz_status = _status_woerter(satz)
     if not satz_status:
         return None
