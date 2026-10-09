@@ -150,23 +150,25 @@ def nennungen(episode: Any, eigene: Iterable[str] = ()) -> list[Nennung]:
         return daten.get(name) if daten is not None else getattr(episode, name, None)
 
     ergebnis: list[Nennung] = []
+    quelle = feld("provenance")
+    art = (quelle.get("source_type") if isinstance(quelle, dict)
+           else getattr(getattr(quelle, "source_type", None), "value", None))
     kontakte = feld("contacts") or []
     if kontakte:
         for eintrag in kontakte:
             adresse = str(eintrag.get("adresse") or "").casefold()
             name = str(eintrag.get("name") or "").strip()
+            if art == "email":
+                name = anzeigename(name, kopfzeile=True)
             if adresse or name:
                 ergebnis.append(Nennung(name, adresse, str(eintrag.get("rolle") or BETEILIGT),
                                         bool(eintrag.get("ich")) or bool(adresse and adresse in selbst)))
         return ergebnis
     teilnehmer = [str(t) for t in (feld("participants") or []) if str(t).strip()]
-    quelle = feld("provenance")
-    art = (quelle.get("source_type") if isinstance(quelle, dict)
-           else getattr(getattr(quelle, "source_type", None), "value", None))
     einziger_absender = art == "email" and len(teilnehmer) == 1
     for text in teilnehmer:
         adresse = mail_address(text)
-        name = anzeigename(text) if adresse else text.strip()
+        name = anzeigename(text, kopfzeile=art == "email") if adresse else text.strip()
         ergebnis.append(Nennung(name, adresse, "von" if einziger_absender else BETEILIGT,
                                 bool(adresse and adresse in selbst)))
     return ergebnis

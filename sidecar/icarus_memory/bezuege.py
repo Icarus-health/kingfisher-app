@@ -713,7 +713,7 @@ class Bezuege:
         art, kennung = teile
         if art == 'person' and kennung.startswith('a:'):
             from .kontakte import anzeigename
-            for eintrag in self.episodes.participants_for_address(kennung[2:]):
+            for eintrag in self.episodes.participants_for_address(kennung[2:], anzeigenamen=True):
                 name = anzeigename(eintrag['name'])
                 if name:
                     return name
@@ -739,7 +739,7 @@ class Bezuege:
         gelesen statt einzeln (jede Einzelabfrage einer Adresse durchsucht alle Quellen)."""
         adressen = [zerlegen(s)[1][2:] for s in sachen if (zerlegen(s) or ('', ''))[0] == 'person'
                     and zerlegen(s)[1].startswith('a:')]
-        gefunden = self.episodes.participants_for_addresses(adressen) if adressen else {}
+        gefunden = self.episodes.participants_for_addresses(adressen, anzeigenamen=True) if adressen else {}
         from .kontakte import anzeigename
         ergebnis: dict[str, str] = {}
         for sache in sachen:
