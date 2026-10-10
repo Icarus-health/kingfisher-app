@@ -56,7 +56,7 @@ def test_empfehlung_je_rolle_mit_status_und_bestaetigung(app_und_client):
     rollen = {z["rolle"]: z for z in daten["rollen"]}
     assert list(rollen) == ["frage", "antwort", "pruefung", "hintergrund", "einbettung"]
     # 32 GB: das große Mixture-of-Experts-Modell würde tagsüber mit Frage und Suche nicht zusammen passen.
-    assert rollen["antwort"]["empfohlen"]["name"] == "gemma4:12b"
+    assert rollen["antwort"]["empfohlen"]["name"] == "qwen3.5:9b"
     assert "qwen3.6:35b" in rollen["antwort"]["orchester_hinweis"]
     assert "Minuten" in rollen["antwort"]["empfohlen"]["bestaetigung"]
     assert rollen["einbettung"]["status"] == "eingerichtet"  # bge-m3 wird schon genutzt
@@ -66,7 +66,7 @@ def test_empfehlung_je_rolle_mit_status_und_bestaetigung(app_und_client):
 
 def test_standardmodell_das_der_empfehlung_entspricht_gilt_als_eingerichtet(app_und_client):
     app, client = app_und_client
-    geraet(client, 24)
+    geraet(client, 32)
     bereit(app, FakeOllama(installiert=["standard-modell", "qwen3.5:9b"]))
     rollen = {z["rolle"]: z for z in client.get("/api/v1/models/recommendation").json()["rollen"]}
     assert rollen["antwort"]["status"] == "installiert"  # installiert, aber noch nicht übernommen
@@ -191,7 +191,7 @@ def einrichten(client, app, rolle="antwort", **extra):
 
 def test_einrichten_laedt_prueft_und_uebernimmt_das_modell(app_und_client):
     app, client = app_und_client
-    geraet(client, 64)
+    geraet(client, 128)
     fake = bereit(app)
     r, stand = einrichten(client, app)
     assert r.json()["modell"] == "qwen3.6:35b"
@@ -241,8 +241,8 @@ def test_alternative_der_empfehlung_ist_erlaubt(app_und_client):
     app, client = app_und_client
     geraet(client, 32)
     bereit(app)
-    r, stand = einrichten(client, app, modell="qwen3.5:27b")
-    assert r.status_code == 202 and stand["phase"] == "fertig" and app.state.agent.provider.model == "qwen3.5:27b"
+    r, stand = einrichten(client, app, modell="gemma4:12b")
+    assert r.status_code == 202 and stand["phase"] == "fertig" and app.state.agent.provider.model == "gemma4:12b"
 
 
 def test_zu_wenig_arbeitsspeicher_wird_vorher_erklaert(app_und_client, monkeypatch):
