@@ -1,5 +1,8 @@
 # Einstieg für Entwickler und Claude Code
 
+**Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
+
+
 Einstiegsstand: 9. Oktober 2026. Die gemeinsame CoS-Vorschau liegt in
 [Draft #46](https://github.com/Icarus-health/kingfisher-app/pull/46), Branch
 `integration/cos-preview-reviewed-20261009`; sie ist noch nicht in `main`

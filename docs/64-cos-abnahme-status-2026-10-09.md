@@ -1,5 +1,8 @@
 # Kingfisher: aktueller Abnahmestand und nächster Produktweg
 
+**Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
+
+
 Stand: 9. Oktober 2026. Diese Übersicht ersetzt keine Prüfung und erklärt den CoS nicht für fertig. Sie bündelt den aktuellen Betriebsstand und die noch nötigen Nachweise; ältere Liefernotizen bleiben erhalten.
 
 Produktnachtrag vom 10. Oktober: [Draft #54](https://github.com/Icarus-health/kingfisher-app/pull/54)
