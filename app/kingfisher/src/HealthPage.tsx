@@ -4,6 +4,7 @@ import {api, type HealthObservation, type HealthObservationPage} from './api';
 import {Sidebar} from './chrome';
 import {ProfileSource} from './ProfileSource';
 import {HealthObservationEditor} from './HealthObservationEditor';
+import {HealthTrend} from './HealthTrend';
 
 function measurementTime(value: string) {return value.replace('T',' · ').replace('Z',' UTC');}
 
@@ -51,7 +52,7 @@ function HealthEntry({item,onCorrect,onChange}: {item: HealthObservation;onCorre
     catch {setError('Die Quelle konnte nicht ausgeschlossen werden. Bitte erneut versuchen.');}
     finally {setBusy(false);}
   }
-  return <article className="health-entry">
+  return <article className="health-entry" id={`health-observation-${item.id}`}>
     <div className="health-entry-heading"><div><h3>{item.metric}</h3><p className="health-value">{item.value} <span>{item.unit}</span></p></div>
       <div><p>Eigene Angabe</p><time dateTime={item.observed_at}>{measurementTime(item.observed_at)}</time></div></div>
     {item.note && <p className="health-note">{item.note}</p>}
@@ -75,13 +76,16 @@ export function HealthPage({recentConversation}: {recentConversation: string | n
   const [editor,setEditor]=useState(false);
   const [editing,setEditing]=useState<HealthObservation | null>(null);
   const [notice,setNotice]=useState('');
+  const [metricInput,setMetricInput]=useState('');
+  const [unitInput,setUnitInput]=useState('');
+  const [filters,setFilters]=useState({metric:'',unit:''});
   function reload() {setCursor(null);setPrevious([]);setRevision(n=>n+1);}
   useEffect(()=> {
     let active=true;setPage(null);setError('');setLoadedAt(null);
-    api.healthObservations(cursor).then(result=>{if(active){setPage(result);setLoadedAt(new Date().toLocaleTimeString('de-DE'));}})
+    api.healthObservations(cursor,filters).then(result=>{if(active){setPage(result);setLoadedAt(new Date().toLocaleTimeString('de-DE'));}})
       .catch(()=>{if(active)setError('Die Angaben sind gerade nicht verfügbar. Bitte neu laden; frühere Ergebnisse werden hier nicht als aktueller Stand angezeigt.');});
     return ()=>{active=false;};
-  },[cursor,revision]);
+  },[cursor,revision,filters]);
   useEffect(()=> {
     const refresh=()=>{if(!document.hidden){setCursor(null);setPrevious([]);setRevision(n=>n+1);}};
     window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
@@ -104,9 +108,20 @@ export function HealthPage({recentConversation}: {recentConversation: string | n
       {notice && <p role="status">{notice}</p>}
       <section className="health-timeline" aria-label="Datierte eigene Angaben">
         <div className="health-list-heading"><div><h2>Deine Angaben im Verlauf</h2><p>Nach Messzeit sortiert, neueste zuerst. Je Seite bis zu 25 Angaben.</p></div><button type="button" onClick={reload}>Neu laden</button></div>
+        <form className="health-filters" aria-label="Messwerte filtern" onSubmit={event=>{event.preventDefault();setFilters({metric:metricInput.trim(),unit:unitInput.trim()});reload();}}>
+          <label>Messgröße<input aria-label="Messgröße filtern" list="health-metric-hints" maxLength={100} placeholder="z. B. Gewicht" value={metricInput} onChange={event=>setMetricInput(event.target.value)} /></label>
+          <label>Einheit<input aria-label="Einheit filtern" list="health-unit-hints" maxLength={40} placeholder="z. B. kg" value={unitInput} onChange={event=>setUnitInput(event.target.value)} /></label>
+          <datalist id="health-metric-hints">{[...new Set(page?.items.map(item=>item.metric))].map(value=><option key={value} value={value} />)}</datalist>
+          <datalist id="health-unit-hints">{[...new Set(page?.items.map(item=>item.unit))].map(value=><option key={value} value={value} />)}</datalist>
+          <button type="submit">Verlauf zeigen</button>
+          {(filters.metric || filters.unit) && <button type="button" onClick={()=>{setMetricInput('');setUnitInput('');setFilters({metric:'',unit:''});reload();}}>Filter löschen</button>}
+        </form>
+        <p className="health-help">Filter durchsuchen den gesamten Messbestand. Messgrößen müssen vollständig stimmen; Groß-/Kleinschreibung ist dort egal. Einheiten bleiben genau getrennt (z. B. mV und MV). Eingabevorschläge stammen nur aus dem geladenen Ausschnitt.</p>
+        {(filters.metric || filters.unit) && <p role="status">Aktiver Filter: {filters.metric || 'alle Messgrößen'} · {filters.unit || 'alle Einheiten'}</p>}
         {loadedAt && <p className="health-help">Zuletzt geladen: {loadedAt}. Quellen werden beim Zurückkehren erneut geprüft.</p>}
         {!page && !error && <p role="status">Angaben werden geladen …</p>}
         {error && <p role="alert">{error}</p>}
+        {page && <HealthTrend items={page.items} />}
         {page?.items.map(item=><HealthEntry key={item.id} item={item} onChange={reload} onCorrect={()=>{setEditing(item);setEditor(true);setNotice('');}} />)}
         {page?.items.length===0 && <p role="status">{page.next_cursor ? 'In diesem Ausschnitt ist keine geprüfte Angabe verfügbar. Ältere Angaben können folgen.' : 'In diesem Ausschnitt sind keine aktuellen eigenen Messangaben vorhanden.'}</p>}
         {Boolean(page?.invalid_sources) && <p role="status">{page!.invalid_sources} Quellen konnten nicht als unveränderte Messangaben geprüft werden und bleiben aus dieser Ansicht ausgeblendet.</p>}

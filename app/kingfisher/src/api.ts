@@ -1116,7 +1116,10 @@ export type HealthObservation = HealthPayload & {id: string; recorded_at: string
 export type HealthObservationPage = {items: HealthObservation[]; next_cursor: string | null; scanned_sources: number; invalid_sources: number; scan_limit: number; complete: boolean};
 
 export const api = {
-  healthObservations: (cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  healthObservations: (cursor?: string | null, filters: {metric?: string; unit?: string} = {}) => {
+    const query = new URLSearchParams({...cursor ? {cursor} : {}, ...filters.metric ? {metric:filters.metric} : {}, ...filters.unit ? {unit:filters.unit} : {}});
+    return request<HealthObservationPage>(`/api/v1/health/observations${query.size ? '?'+query : ''}`);
+  },
   healthObservationHistory: (id: string, cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations/${encodeURIComponent(id)}/history${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
   saveHealthObservation: (data: HealthPayload & {request_id: string}) => request<HealthObservation>('/api/v1/health/observations', {method:'POST',body:JSON.stringify(data)}),
   correctHealthObservation: (id: string, data: HealthPayload & {request_id: string; expected_support_fingerprint: string}) => request<HealthObservation>(`/api/v1/health/observations/${encodeURIComponent(id)}`, {method:'PATCH',body:JSON.stringify(data)}),

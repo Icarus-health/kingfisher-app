@@ -9,6 +9,16 @@ den [aktuellen Abnahmestand](64-cos-abnahme-status-2026-10-09.md) und die
 trennen aktuelle Prüfungen von historischen Ergebnissen und offenen Nachweisen.
 Nicht erneut bauen, was bereits in der gemeinsamen Vorschau enthalten ist.
 
+Ergänzung vom 10. Oktober: [Draft #54](https://github.com/Icarus-health/kingfisher-app/pull/54)
+auf `feat/memory-feedback-20261010` ergänzt die gemeinsame Vorschau um direkte
+[Quellenkorrekturen](runs/2026-10-10-memory-feedback/README.md), einen
+[Projektüberblick](runs/2026-10-10-project-overview/README.md) sowie
+[Health-Verlauf und Gesprächsaufnahme](runs/2026-10-10-health-conversation-ux/README.md).
+Nicht in #46/main übernommen oder auf dem persönlichen Mac installiert. Neueste
+Prüfung: 187 betroffene Backendtests, 545 UI-Tests, Web-Build und Assetvertrag;
+unabhängige Reviews mit vor Veröffentlichung behobenen Gegenfällen. Ein neues
+gekoppeltes Mac-/Backend-Paket und die native Abnahme sind weiterhin offen.
+
 Stand der folgenden Codekarte: 2. Oktober 2026 (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
 Sammelbestätigung, PDF-Anhänge und Cloud-Ordner; um Microsoft 365 (M5), den lesbaren Quellenhinweis und Google ohne
 Cloud-Projekt; am 30. September um die Abschnitte langer Quellen; sonst 29. September, einschließlich PR #124). Veröffentlichte Basis: `main`.

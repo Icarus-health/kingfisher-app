@@ -84,7 +84,7 @@
 .shell :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--calm-link); outline-offset: 3px; }
 .shell .sidebar :is(button, a):focus-visible { outline-color: #a2d8de; }
 .shell :is(input, select, textarea) { font-family: 'Inter', sans-serif; }
-.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.history-search input) {
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input) {
   border-radius: 11px; border-color: var(--calm-line); background: var(--calm-surface); color: var(--calm-ink); font-size: 14px;
 }
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select):not(.command-bar input):not(.history-search input) { min-height: 42px; }
