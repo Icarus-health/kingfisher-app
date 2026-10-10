@@ -47,7 +47,7 @@ class ConfigurationError(ValueError):
     """Verständlicher Konfigurationsfehler ohne geheime Werte."""
 
 
-def validate_configuration(env_file, container_env):
+def validate_configuration(env_file, container_env, *, container_image=None):
     """Nur wörtliche Docker-Werte vergleichen, nie Shell-Code ausführen."""
     configured = {}
     for line in Path(env_file).read_text().splitlines():
@@ -60,7 +60,8 @@ def validate_configuration(env_file, container_env):
     required = ('ICARUS_SIDECAR_TOKEN', 'ICARUS_SECRETS_PASSPHRASE')
     actual = dict(entry.split('=', 1) for entry in container_env if '=' in entry)
     if any(not configured.get(key) for key in required) or any(
-        actual.get(key) != value for key, value in configured.items()
+        (container_image if key == 'KINGFISHER_IMAGE' else actual.get(key)) != value
+        for key, value in configured.items()
     ):
         raise ConfigurationError('Die Sicherungskonfiguration passt nicht zur gewählten Kingfisher-Instanz.')
 
@@ -94,8 +95,9 @@ def _backup(docker, container, env_file, output_dir, password):
     if len(password) < 16:
         raise ValueError('Bitte mindestens 16 Zeichen als Sicherungspasswort verwenden.')
     state = json.loads(docker_call(docker, ['inspect', '--format',
-        '{"image":{{json .Image}},"running":{{.State.Running}},"mounts":{{json .Mounts}},"env":{{json .Config.Env}}}', container]).stdout)
-    validate_configuration(env_file, state['env'])
+        '{"image":{{json .Image}},"configured_image":{{json .Config.Image}},"running":{{.State.Running}},"mounts":{{json .Mounts}},"env":{{json .Config.Env}}}', container]).stdout)
+    # Compose uses this host selector; it is not a container environment value.
+    validate_configuration(env_file, state['env'], container_image=state.get('configured_image'))
     mounts = [mount for mount in state['mounts'] if mount['Destination'] == '/data']
     if len(mounts) != 1 or mounts[0]['Type'] not in ('volume', 'bind'):
         raise ValueError('Kein eindeutiger persistenter Kingfisher-Datenordner gefunden.')

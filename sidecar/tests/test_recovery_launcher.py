@@ -103,3 +103,82 @@ def test_backup_uses_validated_copy_when_original_changes(tmp_path, monkeypatch)
     monkeypatch.setattr(launcher, 'docker_call', call)
     launcher.backup('docker','test',config,tmp_path/'out','synthetic-secure-password')
     assert not list(tmp_path.glob('.kingfisher-backup-*'))
+
+
+@pytest.mark.parametrize('running', [True, False])
+def test_host_image_selector_is_verified_against_container_image(tmp_path, monkeypatch, running):
+    """Compose consumes KINGFISHER_IMAGE; the container does not export it."""
+    config = tmp_path / 'settings.env'
+    image = 'ghcr.io/icarus-health/kingfisher-app:1.0.6'
+    values = ['ICARUS_SIDECAR_TOKEN=test-token',
+              'ICARUS_SECRETS_PASSPHRASE=correct-passphrase']
+    config.write_text('\n'.join(values + ['KINGFISHER_IMAGE=' + image]) + '\n')
+    calls = []
+
+    def call(docker, arguments, **kwargs):
+        calls.append(arguments)
+        if arguments[0] == 'inspect':
+            return SimpleNamespace(stdout=json.dumps({
+                'image': 'sha256:test', 'configured_image': image,
+                'running': running, 'env': values,
+                'mounts': [{'Destination': '/data', 'Type': 'volume', 'Name': 'test'}],
+            }))
+        if '-i' in arguments:
+            mount = next(arg for arg in arguments if 'target=/configuration,' in arg)
+            frozen = Path(mount.split('source=', 1)[1].split(',target=', 1)[0])
+            assert 'KINGFISHER_IMAGE=' + image in frozen.read_text()
+            assert json.loads(kwargs['input'])['image'] == 'sha256:test'
+        return SimpleNamespace(stdout='')
+
+    monkeypatch.setattr(launcher, 'docker_call', call)
+    output = launcher.backup('docker', 'test', config, tmp_path / 'out', 'synthetic-secure-password')
+    assert output.suffix == '.recovery'
+    assert (['stop', 'test'] in calls) is running
+    assert (['start', 'test'] in calls) is running
+
+
+@pytest.mark.parametrize('actual_image', [None, '', 'ghcr.io/icarus-health/kingfisher-app:other'])
+def test_wrong_or_unverified_host_image_is_rejected_before_stop(tmp_path, monkeypatch, actual_image):
+    config = tmp_path / 'settings.env'
+    configured_image = 'ghcr.io/icarus-health/kingfisher-app:1.0.6'
+    values = ['ICARUS_SIDECAR_TOKEN=test-token',
+              'ICARUS_SECRETS_PASSPHRASE=correct-passphrase']
+    config.write_text('\n'.join(values + ['KINGFISHER_IMAGE=' + configured_image]) + '\n')
+    calls = []
+
+    def call(docker, arguments, **kwargs):
+        calls.append(arguments[0])
+        assert arguments[0] == 'inspect', 'Mismatched instance must never be stopped.'
+        # An identically named container env var is not the authoritative image selector.
+        return SimpleNamespace(stdout=json.dumps({
+            'image': 'sha256:test', 'configured_image': actual_image, 'running': True,
+            'env': values + ['KINGFISHER_IMAGE=' + configured_image], 'mounts': [],
+        }))
+
+    monkeypatch.setattr(launcher, 'docker_call', call)
+    with pytest.raises(launcher.ConfigurationError) as error:
+        launcher.backup('docker', 'test', config, tmp_path / 'out', 'synthetic-secure-password')
+    assert calls == ['inspect'] and not (tmp_path / 'out').exists()
+    assert 'correct-passphrase' not in str(error.value)
+
+
+def test_host_image_exception_does_not_skip_secret_validation(tmp_path, monkeypatch):
+    config = tmp_path / 'settings.env'
+    image = 'ghcr.io/icarus-health/kingfisher-app:1.0.6'
+    config.write_text('ICARUS_SIDECAR_TOKEN=test-token\nICARUS_SECRETS_PASSPHRASE=wrong-passphrase\n'
+                      + 'KINGFISHER_IMAGE=' + image + '\n')
+    calls = []
+
+    def call(docker, arguments, **kwargs):
+        calls.append(arguments[0])
+        assert arguments[0] == 'inspect'
+        return SimpleNamespace(stdout=json.dumps({
+            'image': 'sha256:test', 'configured_image': image, 'running': True,
+            'env': ['ICARUS_SIDECAR_TOKEN=test-token', 'ICARUS_SECRETS_PASSPHRASE=correct-passphrase'],
+            'mounts': [],
+        }))
+
+    monkeypatch.setattr(launcher, 'docker_call', call)
+    with pytest.raises(launcher.ConfigurationError):
+        launcher.backup('docker', 'test', config, tmp_path / 'out', 'synthetic-secure-password')
+    assert calls == ['inspect'] and not (tmp_path / 'out').exists()

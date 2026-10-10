@@ -1,0 +1,23 @@
+{
+  "affected_tests_passed": 31,
+  "before_fix": {
+    "failed": 5,
+    "passed": 12
+  },
+  "bundled_native_or_backend_runtime_changed": false,
+  "configuration_values_logged": false,
+  "container_stopped": false,
+  "corrected_helper_accepts_actual_host_configuration": true,
+  "independent_review": "no concrete blocker",
+  "instance_inspection_only": true,
+  "native_window": "Mac locked; no personal installation or native backup UI verification",
+  "new_model_or_provider_constructed": false,
+  "new_regression_cases": 6,
+  "original_helper_rejected_actual_host_configuration": true,
+  "reviewed_files_sha256": {
+    "scripts/create_recovery_bundle.py": "f72fc657e0245014d48ca53a7e0ab46d402f93311554d144ef64053e9ada8fcc",
+    "sidecar/tests/test_recovery_launcher.py": "34f628831442c8e4afecee75f7ddf8ae29105a0a10b5f7c2c5e9846f95559071"
+  },
+  "runtime_package_remains": "1.0.6-preview.6979131",
+  "tested_command": "PYTHONPATH=sidecar python -m pytest sidecar/tests/test_recovery_launcher.py sidecar/tests/test_recovery_bundle.py sidecar/tests/test_complete_recovery.py sidecar/tests/test_recovery_jobs.py -q"
+}
