@@ -21,6 +21,7 @@ import {
 import { Sidebar } from "./chrome";
 import { ActionApprovalCard } from "./ActionApprovalCard";
 import { ProjectControls } from "./ProjectControls";
+import {ProjectOverview} from "./ProjectOverview";
 import { DecisionControls } from "./DecisionControls";
 import { GoalControls } from "./GoalControls";
 import { DevelopmentPage } from "./DevelopmentPage";
@@ -731,6 +732,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
   const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
+  const [overviewRevision, setOverviewRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const currentSearch = useRef(search);
@@ -767,6 +769,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
+    setOverviewRevision(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
@@ -848,6 +851,11 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
 
   function startTask() { if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true); }
+  function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
+    currentSearch.current = '';
+    setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
+    load(nextView);
+  }
   const visibleTasks = tasks?.filter(task => task.id !== selectedTask && (!projectId || task.project_id === projectId));
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -863,6 +871,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={view === item.id} className={view === item.id ? "active" : ""} key={item.id} onClick={() => setView(item.id)} type="button">{item.label}</button>)}</nav>
       {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
       {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
+      {(view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
       {(view === 'mine' || view === 'waiting' || view === 'done') && <>
         <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>

@@ -452,6 +452,14 @@ export type Task = {
   overdue: boolean;
 };
 
+export type ProjectTaskOverview = {
+  project_id: string;
+  as_of: string;
+  counts: {mine: number; waiting: number; done: number; dropped: number; overdue: number; undated: number};
+  next_tasks: Task[];
+  waiting_tasks: Task[];
+};
+
 export type MailThreadContext = {
   context_fingerprint: string;
   uid: string; source_digest: string; scope: "stored_header_links"; status: "ready" | "excluded";
@@ -1327,6 +1335,7 @@ export const api = {
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
   tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
+  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),

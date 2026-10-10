@@ -1,0 +1,15 @@
+{
+  "base": "acfa1009c4c3a759344c5493d6b801f33f23a2a9",
+  "backend_targeted": 51,
+  "ui_full": 529,
+  "ui_after_label_adjustment": 5,
+  "build": "passed",
+  "assets": {
+    "files": 16,
+    "icons": 16
+  },
+  "native": "not_run",
+  "installed": false,
+  "backend_full": "not_run",
+  "review": "no_concrete_blocker; reviewer UI 5 passed; backend environment unavailable"
+}
