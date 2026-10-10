@@ -6,6 +6,7 @@ corrections have their own fingerprint and cannot be overwritten by a model.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
@@ -46,6 +47,10 @@ FAILURE_CODES = frozenset({
     "validation_entity_sender", "validation_entity_duplicate",
     "validation_unspecified", "provider_error", "internal_error",
 })
+
+
+class CategoryCorrectionConflict(ValueError):
+    """The source, taxonomy or explicit feedback changed since review."""
 
 
 class SourceValidationError(ProviderError):
@@ -825,11 +830,27 @@ class Categories:
             detail += f", {failed} fehlgeschlagen; erneuter Versuch folgt"
         return JobResult("kategorien", failed == 0, detail)
 
-    def correct(self, episode_id, categories):
+    def _correction_revision(self, snapshot):
+        correction = self.connection.execute(
+            "SELECT fingerprint,taxonomy_version,categories,updated_at "
+            "FROM memory_category_corrections WHERE episode_id=?",
+            (snapshot.episode.id,),
+        ).fetchone()
+        version = self.connection.execute(
+            "SELECT taxonomy_version FROM memory_category_scan WHERE id=1").fetchone()[0]
+        payload = [source_fingerprint(snapshot), version,
+                   list(correction) if correction is not None else None]
+        return hashlib.sha256(json.dumps(payload, separators=(",", ":")).encode()).hexdigest()
+
+    def correct(self, episode_id, categories, *, expected_revision=None):
         if type(categories) is not list or len(categories) > MAX_TAXONOMY or any(type(item) is not str for item in categories) or len(set(categories)) != len(categories):
             raise ValueError("Kategorien müssen eine eindeutige Liste bekannter IDs sein.")
         with self.episodes.transaction():
             snapshot = self.memory._snapshot(episode_id)
+            if expected_revision is not None:
+                if (not self._available(snapshot) or
+                        expected_revision != self._correction_revision(snapshot)):
+                    raise CategoryCorrectionConflict("Die geprüfte Zuordnung hat sich geändert.")
             if not self._available(snapshot):
                 raise ValueError("Die Originalquelle ist nicht aktuell verfügbar.")
             taxonomy = self.taxonomy()
@@ -847,12 +868,14 @@ class Categories:
             correction = self.connection.execute("SELECT * FROM memory_category_corrections WHERE episode_id=?", (episode_id,)).fetchone()
             result = {"episode_id": episode_id, "status": "excluded", "categories": [],
                       "entities": [], "correction": None, "automatic": correction is None,
-                      "failure_code": None}
+                      "failure_code": None, "revision": None}
             if self._dismissed(episode_id):
                 return result
             snapshot = self.memory._snapshot(episode_id)
             eligible = self._available(snapshot)
             fingerprint = source_fingerprint(snapshot) if eligible else None
+            if eligible:
+                result["revision"] = self._correction_revision(snapshot)
             if correction:
                 result["correction"] = {"categories": json.loads(correction["categories"]),
                                         "fingerprint": correction["fingerprint"],

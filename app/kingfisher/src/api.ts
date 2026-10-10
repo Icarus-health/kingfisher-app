@@ -277,8 +277,11 @@ export type MailIntakeStatus = {
 export type MailIntakePreview = {folders: string[]; description: string; attachments_supported: boolean; attachments_description?: string};
 
 export type CategoryTaxonomyEntry = {id: string; label: string; description: string; version: number};
+export const CATEGORY_FEEDBACK_EVENT = "kingfisher:category-feedback-saved";
 export type SourceCategoriesResult = {
   episode_id: string;
+  /** Current original, taxonomy and explicit correction; absent on older services. */
+  revision?: string | null;
   status: string;
   failure_code?: string | null;
   categories: Array<{id: string; label: string; origin: string;
@@ -1287,7 +1290,15 @@ export const api = {
   memoryAreas: (limit = 50, cursor?: number, area?: string) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)}), ...(area === undefined ? {} : {area})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
   sourceCategories: (id: string) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`),
-  correctSourceCategories: (id: string, categories: string[]) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories})}),
+  correctSourceCategories: async (id: string, categories: string[], expected_revision?: string) => {
+    const result = await request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories, expected_revision})});
+    // The committing request can outlive its editor. Notify whichever area is
+    // currently mounted, without broadcasting source contents or identifiers.
+    if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+      window.dispatchEvent(new Event(CATEGORY_FEEDBACK_EVENT));
+    }
+    return result;
+  },
   einrichtung: () => request<EinrichtungStand>("/api/v1/einrichtung"),
   einrichtungSetzen: (aenderung: EinrichtungAenderung) => request<EinrichtungStand>("/api/v1/einrichtung", { method: "PUT", body: JSON.stringify(aenderung) }),
   calendarMemory: () => request<{ mac_termine: number; quellen: Array<{ id: string; label: string; termine: number }> }>("/api/v1/calendar-memory"),
