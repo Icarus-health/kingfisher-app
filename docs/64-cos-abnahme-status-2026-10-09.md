@@ -1,5 +1,8 @@
 # Kingfisher: aktueller Abnahmestand und nächster Produktweg
 
+**Persönliche Updatevorprüfung (10.10.):** Dateien und Verzeichnisse des vollständigen Bestands samt Besitzern, Rechten und Änderungszeiten lokal gesichert und separat wiederhergestellt; v20→v21 auf Kopie erhält 344 Originalquellen und 333 Quellenverweise. Backend-Suite in zwei Läufen abgeklärt (6.166 unterschiedliche Tests + 26 Subtests bestanden, ein Linux-Fall ausgelassen). Mac vor Umschaltung erneut gesperrt; noch nicht installiert. [Nachweis](runs/2026-10-10-personal-upgrade-preflight/README.md).
+
+
 **Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
 
 

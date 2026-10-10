@@ -1,0 +1,21 @@
+{
+  "personal_files_or_docker_accessed_by_reviewer": false,
+  "resolved_findings": [
+    "regular-file-only recovery proof now preserves and verifies directory entries, ownership, modes, nanosecond mtime, xattrs",
+    "selected table preservation now explicitly verifies row content, columns and table DDL before, after and on reopen"
+  ],
+  "result": "no remaining concrete blocker or materially misleading claim",
+  "reviewed_file_sha256": {
+    "README.md": "e4a860e16e0b52f08bbfcbb7e8fd028e11d7e6a211220f9f5c061ae175b93c97",
+    "copy_migration_rehearsal.py": "5b21b0ddb2917a3aecbb47b8e0be82ad92e95121b461691b9c7a26a39e54dc9b",
+    "full_preupdate_backup.py": "d4881ea494ff0446099bf4162ac51606ecceae64a357e7a9f8a1fa3ac1cb2b28",
+    "verification.json": "7f9b79108e8b52ecc273bcfc6a45c7493fcabc5868552108519710dfce152808"
+  },
+  "reviewer": "independent gpt-6-luna review",
+  "scope": [
+    "full_preupdate_backup.py",
+    "copy_migration_rehearsal.py",
+    "README.md",
+    "verification.json"
+  ]
+}
