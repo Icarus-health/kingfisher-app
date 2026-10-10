@@ -344,6 +344,8 @@ def mac(tmp_path, bestand):
     episodes, claims, kg = bestand
     kalender = MacCalendar(tmp_path / 'mac.sqlite3')
     app = FastAPI()
+    from types import SimpleNamespace
+    app.state.hintergrund = SimpleNamespace(sperre=lambda: None)
     install_routes(app, [], kalender, lambda: None, kg)
     client = TestClient(app)
     info = [{'id': 'privat', 'name': 'Privat'}, {'id': 'arbeit', 'name': 'Arbeit'}]
@@ -377,6 +379,28 @@ def test_mac_abschnitt_legt_termine_je_kalender_ab(mac):
     assert mac.kg.anzahl(quelle_fuer_mac('privat')) == 1 and mac.kg.anzahl(MAC_QUELLE) == 2
     # Erneut gesendet: nichts Neues.
     assert mac.abschnitt(mac_termin('e1', 'privat'), mac_termin('e2', 'arbeit', notes='Notiz der Arbeit')).json()['unveraendert'] == 2
+
+
+def test_mac_systemfreigabe_entzogen_sperrt_gespeicherte_quelle(mac):
+    assert mac.abschnitt(mac_termin('e1', 'privat')).status_code == 200
+    originals = [(e.id, e.body, e.digest) for e in mac.episodes.all_episodes(limit=100)]
+    response = mac.client.post('/api/v1/mac-calendar/worker', json={
+        'generation': mac.stand['generation'], 'status': 'denied'})
+    assert response.status_code == 200
+    assert mac.kg.anzahl(MAC_QUELLE) == 0
+    assert all(mac.episodes.get(id).state == EpisodeState.IGNORED for id, _, _ in originals)
+    assert [(id, mac.episodes.get(id).body, mac.episodes.get(id).digest) for id, _, _ in originals] == originals
+
+
+def test_mac_technischer_lesefehler_entzieht_keine_gespeicherte_quelle(mac):
+    assert mac.abschnitt(mac_termin('e1', 'privat')).status_code == 200
+    id = mac.episodes.all_episodes(limit=10)[0].id
+    response = mac.client.post('/api/v1/mac-calendar/worker', json={
+        'generation': mac.stand['generation'], 'status': 'granted',
+        'error': 'Technischer Lesefehler', 'calendars': [{'id': 'privat', 'name': 'Privat'}, {'id': 'arbeit', 'name': 'Arbeit'}]})
+    assert response.status_code == 200
+    assert mac.episodes.get(id).state != EpisodeState.IGNORED
+    assert mac.kg.anzahl(MAC_QUELLE) == 1
 
 
 def test_mac_verschobener_termin_behaelt_seine_uid_und_wird_neue_fassung(mac):

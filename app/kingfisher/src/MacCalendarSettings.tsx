@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, type MacCalendarState } from "./api";
 import { nurAufDemMac } from "./system";
 import { useSystem } from "./useSystem";
+import { requestMacCalendarPermission } from "./macCalendarBridge";
 
 // Nur auf dem Mac sichtbar (Zugaenge.tsx): Die Mac-Kalender liest ein Helfer der Kingfisher-App.
 export function MacCalendarSettings() {
@@ -26,14 +27,23 @@ export function MacCalendarSettings() {
     catch (e) { setError(e instanceof Error ? e.message : "Verbindung fehlgeschlagen."); }
     finally { setBusy(false); }
   }
+  async function connect() {
+    await run(async () => {
+      const next = await api.connectMacCalendar();
+      if (!requestMacCalendarPermission(next)) {
+        throw new Error("Die Kalenderfreigabe ist im Kingfisher-App-Fenster verfügbar. Öffne die App und wähle dort „Freigabe öffnen“.");
+      }
+      return next;
+    });
+  }
   return <section className="source-section mac-calendar" aria-label="Kalender auf diesem Mac">
     <h2>Kalender auf diesem Mac</h2>
     <p>Termine aus deinen ausgewählten Mac-Kalendern.</p>
     {!state ? <p>Status wird geladen …</p> : <>
       {!state.online && <p role="status">{nurAufDemMac(system, "Das Lesen der Mac-Kalender")}</p>}
-      {!state.enabled ? <button disabled={busy || !state.online} onClick={() => void run(api.connectMacCalendar)}>Mac-Kalender verbinden</button> : <>
-        {state.authorize && <p role="status">Bitte die Kalenderfreigabe im macOS-Dialog bestätigen.</p>}
-        {!state.authorize && state.status !== "granted" && <p>Kalenderzugriff fehlt. <button disabled={busy || !state.online} onClick={() => void run(api.connectMacCalendar)}>Freigabe erneut anfragen</button></p>}
+      {!state.enabled ? <button disabled={busy || !state.online} onClick={() => void connect()}>Mac-Kalender verbinden</button> : <>
+        {state.authorize && <p role="status">Kalenderfreigabe steht aus. Bestätige den macOS-Dialog, falls er geöffnet ist. <button disabled={busy || !state.online} onClick={() => void connect()}>Freigabe öffnen</button></p>}
+        {!state.authorize && state.status !== "granted" && <p>Kalenderzugriff fehlt. <button disabled={busy || !state.online} onClick={() => void connect()}>Freigabe erneut anfragen</button></p>}
         {state.status === "granted" && <details className="calendar-selection" open={dirty || undefined}>
           <summary>Kalender auswählen ({state.selected.length})</summary><fieldset disabled={busy}>
           <legend>Diese Kalender lesen</legend>
@@ -46,7 +56,8 @@ export function MacCalendarSettings() {
 
       </>}
     </>}
-    <details className="calendar-permissions"><summary>Zugriff und Datenschutz</summary><p className="source-empty">Kingfisher liest Titel, Zeiten, Ort und genannte Teilnehmer aus den ausgewählten Kalendern. macOS nennt die Leseberechtigung „Vollzugriff“. Dieser Adapter verändert keine Termine. Der Systemzugriff lässt sich unter Datenschutz &amp; Sicherheit → Kalender entziehen.</p>{state?.enabled && <button disabled={busy} onClick={() => void run(api.disconnectMacCalendar)}>Trennen und lokale Terminkopie löschen</button>}</details>
+    <details className="calendar-permissions"><summary>Zugriff und Datenschutz</summary><p className="source-empty">Kingfisher liest Titel, Zeiten, Ort und genannte Teilnehmer aus den ausgewählten Kalendern. Für das Gedächtnis werden auch Terminnotizen aus den letzten drei Jahren und dem kommenden Jahr gelesen; dieser Abgleich wartet bei pausierter Hintergrundverarbeitung. macOS nennt die Leseberechtigung „Vollzugriff“. Dieser Adapter verändert keine Termine. Der Systemzugriff lässt sich unter Datenschutz &amp; Sicherheit → Kalender entziehen.</p>{state?.enabled && <button disabled={busy} onClick={() => void run(api.disconnectMacCalendar)}>Trennen und lokale Terminkopie löschen</button>}</details>
     {(error || state?.error) && <p role="alert" className="settings-error">{error || state?.error}</p>}
+    {state?.memory_error && <p role="status" className="settings-error">{state.memory_error}</p>}
   </section>;
 }

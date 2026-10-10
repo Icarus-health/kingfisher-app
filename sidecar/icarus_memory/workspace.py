@@ -431,17 +431,20 @@ class WorkspaceStore:
 
     def set_event_project(self, event_uid: str, project_id: str | None, at: datetime | None = None) -> None:
         """Legt das Projekt eines Termins fest; None heißt „kein Projekt“."""
-        if not isinstance(event_uid, str) or not event_uid or len(event_uid) > 2048:
+        self.set_event_projects([event_uid], project_id, at)
+
+    def set_event_projects(self, event_uids: list[str], project_id: str | None, at: datetime | None = None) -> None:
+        """Apply an explicit choice atomically to the currently proven copies."""
+        if not event_uids or any(not isinstance(uid, str) or not uid or len(uid) > 2048 for uid in event_uids):
             raise WorkspaceError("Unbekannter Termin")
         if project_id is not None:
             self.project(project_id)
-        with self._lock:
-            self._conn.execute(
+        stamp = (at or now()).isoformat()
+        with self._lock, self._conn:
+            self._conn.executemany(
                 "INSERT INTO event_projects(event_uid, project_id, chosen_at) VALUES (?, ?, ?) "
                 "ON CONFLICT(event_uid) DO UPDATE SET project_id = excluded.project_id, "
-                "chosen_at = excluded.chosen_at",
-                (event_uid, project_id, (at or now()).isoformat()))
-            self._conn.commit()
+                "chosen_at = excluded.chosen_at", [(uid, project_id, stamp) for uid in dict.fromkeys(event_uids)])
 
     def event_followup(self, event_key: str) -> tuple[bool, str | None]:
         """Ob ein Termin nachbereitet ist.

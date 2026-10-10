@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var startup: Startup?
     private var updater: Updater?
     private var powerReporter: PowerReporter?
+    private var calendarReporter: CalendarReporter?
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -46,7 +47,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Die Brücke: Nur die Seite von Kingfisher selbst kann ein Update anfragen (BridgeHandler prüft das).
         let configuration = WKWebViewConfiguration()
-        let bridge = BridgeHandler(origin: AppPaths.origin) { [weak self] request in self?.requestUpdate(request) }
+        let bridge = BridgeHandler(origin: AppPaths.origin, onUpdate: { [weak self] request in self?.requestUpdate(request) },
+                                   onCalendar: { [weak self] request in
+            guard let self = self, !self.busy else { return }
+            self.calendarReporter?.requestPermission(generation: request.generation)
+        })
         configuration.userContentController.add(bridge, name: UpdateRequest.bridgeName)
         surface = WebSurface(origin: AppPaths.origin, configuration: configuration)
         surface.window = window
@@ -135,6 +140,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let again = StatusAction(title: Knopf.nochmalPruefen) { [weak self] in self?.start() }
         switch outcome {
         case .ready(let ollamaMissing):
+            if let paths = paths, calendarReporter == nil {
+                let reporter = CalendarReporter(origin: AppPaths.origin, tokenFile: paths.envFile, reader: EventKitCalendar())
+                calendarReporter = reporter
+                reporter.start()
+            }
             if let paths = paths, powerReporter == nil {
                 let reporter = PowerReporter(origin: AppPaths.origin, tokenFile: paths.envFile)
                 powerReporter = reporter
@@ -185,6 +195,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !busy, let updater = updater else { return }
         busy = true
         updating = true
+        calendarReporter?.stop()
+        calendarReporter = nil
         hint.isHidden = true
         status.show(.working(Satz.platzPruefen, title: Satz.aktualisieren))
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -198,6 +210,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func finishUpdate(_ result: UpdateResult) {
         busy = false
         updating = false
+        let mayResume: Bool
+        switch result { case .updated, .storageBlocked, .notStarted: mayResume = true
+        case .rolledBack, .broken: mayResume = false }
+        if mayResume, let paths = paths {
+            let reporter = CalendarReporter(origin: AppPaths.origin, tokenFile: paths.envFile, reader: EventKitCalendar())
+            calendarReporter = reporter
+            reporter.start()
+        }
         let reload = StatusAction(title: Knopf.weiter) { [weak self] in
             guard let self = self else { return }
             self.status.show(.working(Satz.starten))
@@ -239,6 +259,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        calendarReporter?.stop()
         powerReporter?.stop()
         surface?.cancelDownloads()
     }
@@ -249,18 +270,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 final class BridgeHandler: NSObject, WKScriptMessageHandler {
     private let origin: URL
     private let onUpdate: (UpdateRequest) -> Void
+    private let onCalendar: (CalendarPermissionRequest) -> Void
 
-    init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void) {
+    init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void,
+         onCalendar: @escaping (CalendarPermissionRequest) -> Void = { _ in }) {
         self.origin = origin
         self.onUpdate = onUpdate
+        self.onCalendar = onCalendar
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let source = message.frameInfo.securityOrigin
         guard message.name == UpdateRequest.bridgeName, message.frameInfo.isMainFrame,
-              source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port,
-              let request = UpdateRequest(message: message.body) else { return }
-        onUpdate(request)
+              source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port else { return }
+        if let calendar = CalendarPermissionRequest(message: message.body) { onCalendar(calendar) }
+        else if let request = UpdateRequest(message: message.body) { onUpdate(request) }
     }
 }
 
