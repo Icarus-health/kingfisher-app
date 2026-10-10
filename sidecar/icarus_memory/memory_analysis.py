@@ -5,6 +5,7 @@ Der Worker bekommt weder Tools noch Schreibrechte durch seine JSON-Antwort.
 """
 import hashlib
 import json
+import re
 import time
 import uuid
 
@@ -30,6 +31,12 @@ def install_schema(connection):
         updated_at REAL NOT NULL
     )""")
     connection.execute("CREATE INDEX idx_memory_analysis_episode ON memory_analysis_jobs(episode_id,updated_at)")
+
+
+def analysis_version(context=None):
+    if context is not None and (not isinstance(context, str) or not re.fullmatch(r"[a-f0-9]{64}", context)):
+        raise ValueError("Ungültige Bindung der Aufgabenprüfung.")
+    return VERSION if context is None else VERSION + "@" + context
 
 
 def model_key(provider):
@@ -120,10 +127,11 @@ class MemoryAnalysis:
         self.connection = store._conn
         self.lock = store._lock
 
-    def acquire(self, episode, provider, *, at=None, lease_seconds=180):
+    def acquire(self, episode, provider, *, at=None, lease_seconds=180, context=None):
         moment = time.time() if at is None else at
         model = model_key(provider)
-        key = hashlib.sha256(json.dumps([episode.id, episode.digest, VERSION, model]).encode()).hexdigest()
+        version = analysis_version(context)
+        key = hashlib.sha256(json.dumps([episode.id, episode.digest, version, model]).encode()).hexdigest()
         with self.lock, self.connection:
             self.connection.execute("BEGIN IMMEDIATE")
             if self.connection.execute(
@@ -131,7 +139,7 @@ class MemoryAnalysis:
                 return None
             self.connection.execute(
                 "INSERT OR IGNORE INTO memory_analysis_jobs VALUES (?,?,?,?,?,?,?, ?,?,?,?,?)",
-                (key, episode.id, episode.digest, VERSION, model, 0, len(episode.body), "pending", None, 0, 0, moment))
+                (key, episode.id, episode.digest, version, model, 0, len(episode.body), "pending", None, 0, 0, moment))
             row = self.connection.execute("SELECT * FROM memory_analysis_jobs WHERE id=?", (key,)).fetchone()
             if row["state"] == "completed" or (row["state"] == "running" and row["lease_until"] > moment):
                 return None
@@ -151,7 +159,12 @@ class MemoryAnalysis:
                 return None
             if not current["offset"] <= end <= current["total"] or (end == current["offset"] and current["total"] != 0):
                 raise ValueError("Ungültiger Fortschritt der Quellenauswertung.")
-            count = self.store._record_task_candidates(current["episode_id"], current["digest"], items, proposed_by=proposed_by)
+            version = current['version']
+            context = version[len(VERSION) + 1:] if version.startswith(VERSION + '@') else None
+            if analysis_version(context) != version:
+                raise ValueError("Ungültige Fassung der Aufgabenprüfung.")
+            count = self.store._record_task_candidates(current["episode_id"], current["digest"], items,
+                                                        proposed_by=proposed_by, task_context=context)
             complete = end == current["total"]
             if complete:
                 self.store._record_task_checkpoint(current["episode_id"], current["digest"])
@@ -167,6 +180,14 @@ class MemoryAnalysis:
             self.connection.execute(
                 "UPDATE memory_analysis_jobs SET state=?, token=NULL, lease_until=0, updated_at=? WHERE id=? AND token=?",
                 (state, time.time(), job["id"], job["token"]))
+
+    def completed(self, episode, provider, *, context):
+        """Nur der exakt gebundene Job, kein beliebiger letzter Checkpoint."""
+        version = analysis_version(context)
+        with self.lock:
+            return bool(self.connection.execute(
+                "SELECT 1 FROM memory_analysis_jobs WHERE episode_id=? AND digest=? AND version=? AND model=? AND state='completed' LIMIT 1",
+                (episode.id, episode.digest, version, model_key(provider))).fetchone())
 
     def snapshot(self, episode_id):
         with self.lock:

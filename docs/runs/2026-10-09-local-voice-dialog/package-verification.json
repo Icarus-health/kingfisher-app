@@ -1,0 +1,17 @@
+{
+  "version": "1.0.6-preview.6f53fd6",
+  "code_commit": "6f53fd69f6fa0c5c1b569b05e51ea5e0565481d3",
+  "image_id": "sha256:94d37a065ed08d015bb269c47764c99cdf65c110da9190e1e048b2e1605bad03",
+  "base_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+  "base_layers_verified": true,
+  "native_architecture": "arm64",
+  "native_sha256": "c71c9ccd13d3d2799949552f7acc7abe5f1d172b2044d839c63854dcfb28bb82",
+  "dmg_sha256": "42c16b0813bbad4b99556381b58096f4757a8bff11e43454ba5b128b5a9028ec",
+  "signature": "strict deep verified",
+  "dmg_checksum": "verified",
+  "installed": false,
+  "notarized": false,
+  "public_release": false,
+  "actual_microphone_test": false,
+  "actual_calendar_window_test": false
+}

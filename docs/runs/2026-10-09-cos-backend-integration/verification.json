@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-09",
+  "runtime_commit": "e326f8113eae2e6e8123c7a39417fddf1e9fbebc",
+  "source_archive_sha256": "08e28271e6015924c327a9eb5b4c5259f216a17daad1deede57eafc0b6fdd109",
+  "full_run": {
+    "passed": 6134,
+    "failed": 10,
+    "skipped": 1,
+    "warnings": 1,
+    "subtests_passed": 26,
+    "seconds": 899.2,
+    "exit_code": 1,
+    "preview_version_override": true,
+    "git_metadata_present": false
+  },
+  "followup_runs": [
+    {
+      "files": [
+        "test_absatzauswahl_saetze.py",
+        "test_conditional_report_binding.py"
+      ],
+      "passed": 58,
+      "seconds": 4.46
+    },
+    {
+      "files": [
+        "test_fassung.py"
+      ],
+      "passed": 57,
+      "warnings": 1,
+      "seconds": 6.61
+    },
+    {
+      "files": [
+        "test_nachbereitung.py",
+        "test_briefing.py"
+      ],
+      "passed": 35,
+      "warnings": 1,
+      "seconds": 8.17
+    },
+    {
+      "files": [
+        "test_pruefe_anfuehrungszeichen.py",
+        "test_release_seite.py"
+      ],
+      "passed": 46,
+      "warnings": 1,
+      "seconds": 4.17
+    }
+  ],
+  "new_test_mutation": {
+    "expected_failures": 3,
+    "deselected": 45,
+    "seconds": 0.54
+  },
+  "corrected_full_run_repeated": false,
+  "runtime_changed": false,
+  "installed": false,
+  "personal_data_accessed": false,
+  "native_test": "explicitly deferred by user",
+  "cloud_or_model_calls": false
+}

@@ -54,6 +54,9 @@ class Event:
     source_label: str = ""
     notes: str = ""
     """Notiz des Termins. Nur fürs Gedächtnis; `to_dict` (Anzeige) gibt sie nicht heraus."""
+    external_uid: str = ""
+    """Provider/ICS identity for recognizing copies; never replaces the source-scoped UID."""
+    source_copies: list[dict[str, str]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         def iso(v: datetime | None) -> str | None:
@@ -71,6 +74,8 @@ class Event:
         if self.source_id:
             result["source_id"] = self.source_id
             result["source_label"] = self.source_label
+        if self.source_copies:
+            result["source_copies"] = [dict(copy) for copy in self.source_copies]
         return result
 
 
@@ -128,13 +133,14 @@ def parse_events(ical: str) -> list[Event]:
 
         events.append(Event(
             uid=fields.get("UID", (str(uuid.uuid4()), ""))[0],
-            summary=fields.get("SUMMARY", ("(ohne Titel)", ""))[0],
+            summary=_text_aus_ical(fields.get("SUMMARY", ("(ohne Titel)", ""))[0]),
             start=start,
             end=end,
-            location=fields.get("LOCATION", ("", ""))[0],
+            location=_text_aus_ical(fields.get("LOCATION", ("", ""))[0]),
             attendees=attendees,
             all_day=all_day,
             notes=_text_aus_ical(fields.get("DESCRIPTION", ("", ""))[0]),
+            external_uid=fields.get("UID", ("", ""))[0],
         ))
     return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
 

@@ -1,3 +1,4 @@
+import type {HealthPayload} from "./healthObservationForm";
 import type { AktenArt, ArtStand, KreisArt, KreisStand, KreisUebersicht } from "./kreis";
 import type { WkStand } from "./wiederkehrendes";
 import type { SuchindexStand } from "./suchindex";
@@ -712,6 +713,13 @@ export type OrdnerOrte = { helfer: boolean; container: boolean; orte: OrdnerOrt[
 export type Unterordner = { pfad: string; name: string; oben: string | null; ordner: { pfad: string; name: string }[] };
 export type OrdnerPrefix = "/api/v1/transcript-sync" | "/api/v1/folder-sync";
 
+/** Local folder metadata; reading it does not scan the selected folder. */
+export type SourceFolderStatus = Pick<TranskriptOrdner, "enabled" | "root_id" | "folder" | "seen_at" | "synced_at" | "running"> & {
+  last_run: (Omit<NonNullable<TranskriptOrdner["last_run"]>, "errors"> & {errors?: string[]; error_count?: number}) | null;
+  files?: TranskriptOrdner["files"];
+  file_counts?: {recorded: number; active: number; ignored: number; unknown: number};
+};
+
 export type TranskriptUebersicht = {
   ordner: TranskriptOrdner;
   vorgabe: string;
@@ -728,6 +736,7 @@ export type NachbereitungGespeichert = {
 };
 
 export type TerminZuordnung = {
+  zuordnungskonflikt?: boolean;
   teilnehmer: TerminTeilnehmer[];
   vorschlag: { id: string; name: string; grund: string } | null;
   festgelegt: boolean;
@@ -904,9 +913,12 @@ async function request<T>(path: string, init?: RequestInit, previewError = false
 }
 
 export type MacCalendarState = {
+  generation: number;
+  memory_error?: string;
   enabled: boolean; online: boolean; status: string; authorize: boolean;
   selected: string[]; calendars: Array<{id: string; name: string; source: string}>;
   synced_at: string | null; error: string; event_count: number;
+  range_from?: string | null; range_to?: string | null; snapshot_complete?: boolean;
 };
 
 export type CalendarOverview = {
@@ -914,6 +926,7 @@ export type CalendarOverview = {
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];
+    source_copies?: Array<{uid: string; source_id: string; source_label: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string}>;
 };
@@ -968,7 +981,7 @@ export type MemoryCoverage = {
 };
 export type PostfachErreichbar = {account_id: string; label: string; erreichbar: boolean;
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
-export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null};
+export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null};
 export type MemoryTimeline = {
   basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;
@@ -1088,7 +1101,14 @@ export type MemoryQuestion = {id: string; stand: string; subject_ref: string; pr
   candidates: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>;
   active_claims: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>};
 
+export type HealthObservation = HealthPayload & {id: string; recorded_at: string; status: 'current' | 'superseded' | 'excluded'; support_fingerprint: string | null};
+export type HealthObservationPage = {items: HealthObservation[]; next_cursor: string | null; scanned_sources: number; invalid_sources: number; scan_limit: number; complete: boolean};
+
 export const api = {
+  healthObservations: (cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  healthObservationHistory: (id: string, cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations/${encodeURIComponent(id)}/history${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  saveHealthObservation: (data: HealthPayload & {request_id: string}) => request<HealthObservation>('/api/v1/health/observations', {method:'POST',body:JSON.stringify(data)}),
+  correctHealthObservation: (id: string, data: HealthPayload & {request_id: string; expected_support_fingerprint: string}) => request<HealthObservation>(`/api/v1/health/observations/${encodeURIComponent(id)}`, {method:'PATCH',body:JSON.stringify(data)}),
   deviceProfile: () => request<DeviceProfile>("/api/v1/device/profile"),
   /** Auf welchem System Kingfisher läuft (system.ts, laufumgebung.py). */
   system: () => request<SystemAngabe>("/api/v1/system"),
@@ -1145,7 +1165,7 @@ export const api = {
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
   taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
-  memoryCoverage: () => request<MemoryCoverage>("/api/v1/memory/coverage"),
+  memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),
   memoryTimeline: (start: string, end: string, cursor?: string, basis: "source" | "recorded" = "recorded") => request<MemoryTimeline>(`/api/v1/memory/timeline?${new URLSearchParams({start, end, basis, ...(cursor ? {cursor} : {})})}`),
@@ -1221,7 +1241,8 @@ export const api = {
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
-  macCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar"),
+  macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
+  sourceFolderStatus: (prefix: OrdnerPrefix, signal?: AbortSignal) => request<SourceFolderStatus>(`${prefix}?summary=true`, {signal}),
   connectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar/connect", {method: "POST"}),
   selectMacCalendars: (ids: string[]) => request<MacCalendarState>("/api/v1/mac-calendar/selection", {method: "PUT", body: JSON.stringify({ids})}),
   disconnectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar", {method: "DELETE"}),
@@ -1248,10 +1269,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ title }),
     }),
-  getConversation: (id: string) => request<ConversationPayload>(`/api/v1/conversations/${id}`),
+  getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
   listConversations: () => request<{ conversations: ConversationSummary[] }>("/api/v1/conversations"),
-  integrations: () => request<IntegrationOverview>("/api/v1/integrations"),
-  schedule: () => request<Schedule>("/api/v1/schedule"),
+  integrations: (signal?: AbortSignal) => request<IntegrationOverview>("/api/v1/integrations", {signal}),
+  schedule: (signal?: AbortSignal) => request<Schedule>("/api/v1/schedule", {signal}),
   saveSchedule: (data: {enabled: boolean; mail_accounts: string[]; interval_minutes: number}) => request<Schedule>("/api/v1/schedule", {method: "PUT", body: JSON.stringify(data)}),
   mailIntake: (signal?: AbortSignal) => request<MailIntakeStatus>("/api/v1/mail/intake", {signal}),
   geburtstag: (sache: string) => request<{geburtstag: null | {wert: string; text: string; aussage: string; aussage_id: string}}>(`/api/v1/geburtstag?sache=${encodeURIComponent(sache)}`),
@@ -1321,7 +1342,7 @@ export const api = {
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
   mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
-  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean}) =>
+  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>
     request<Task>(`/api/v1/messages/${encodeURIComponent(uid)}/task`, {method: "POST", body: JSON.stringify(data)}),
   prepareMailReply: (uid: string, data: {body: string; context_token?: string}) => request<ConversationPayload>(`/api/v1/messages/${encodeURIComponent(uid)}/reply`, {method: "POST", body: JSON.stringify(data)}),
   validateMailReplyContext: (uid: string, contextToken: string) => request<{valid: boolean}>(`/api/v1/messages/${encodeURIComponent(uid)}/reply-suggestion/validate`, {method: "POST", body: JSON.stringify({context_token: contextToken})}),

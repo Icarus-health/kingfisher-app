@@ -3,7 +3,7 @@ import { pruefRolleOhneModell } from "./pruefHinweis";
 import { ausstattungSatz, type AusstattungQuelle } from "./system";
 import {api, ApiError, type ModelPullState, type ModelRecommendation as Recommendation, type ModelRecommendationRow} from "./api";
 import {ModelRolesExpert} from "./ModelRolesExpert";
-import {actionLabel, allConfirmation, describePull, isRunning, orchesterZeile, pendingRoles, pullPercent, statusLabel, watchPull} from "./modelSetup";
+import {actionLabel, allConfirmation, describePull, isRunning, orchesterZeile, pendingRoles, pullPercent, setupFits, statusLabel, watchPull} from "./modelSetup";
 import {listenForCloudAccessChange} from "./cloudAccessEvents";
 import "./ModelRecommendation.css";
 
@@ -16,7 +16,7 @@ const deviceLine = (data: Recommendation) => {
   // wie unter „Gerät und lokale Modelle“ (Fremdprobe 2, Befund 27).
   const quelle = (data.geraet.quelle ?? (bekannt ? "bericht" : "unbekannt")) as AusstattungQuelle;
   return (bekannt || quelle !== "unbekannt" ? ausstattungSatz({ chip, gb, quelle }) : null)
-    ?? "Die Ausstattung ließ sich nicht ermitteln. Es gilt eine kleine Vorauswahl, die auf jedem Rechner läuft.";
+    ?? "Die Ausstattung ließ sich nicht ermitteln. Es gilt eine kleine Vorauswahl. Ob sie hier passt, ist noch nicht bestätigt.";
 };
 
 const failure = (error: unknown) => error instanceof ApiError && error.detail ? error.detail
@@ -68,6 +68,10 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
   // Richtet die Rollen nacheinander ein und hält bei der ersten Fehlermeldung an; der Grund bleibt sichtbar.
   async function setUp(roles: string[]) {
     setConfirm(null); setNote(null);
+    if (!data || !setupFits(data.rollen, data.orchester, roles)) {
+      setNote({ok: false, text: "Diese Modellwahl überschreitet den Planungsrahmen für den Arbeitsspeicher. Bitte einzelne passende Aufgaben auswählen."});
+      return;
+    }
     for (const rolle of roles) {
       const row = data?.rollen.find(item => item.rolle === rolle);
       try {
@@ -120,7 +124,7 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
             {row.blockiert ? <p className="model-rec-warn" role="status">{row.blockiert}</p> : null}
           </div>
           <span className={`model-rec-status is-${row.status}`}>{statusLabel(row.status)}</span>
-          {action ? <button className="secondary-action" type="button" disabled={busy || !data.ollama.erreichbar}
+          {action ? <button className="secondary-action" type="button" disabled={busy || !data.ollama.erreichbar || !row.empfohlen.passt}
             aria-label={`${row.titel}: ${action}`} onClick={() => ask(row)}>{action}</button> : <span className="model-rec-spacer" />}
           {confirm?.kind === "one" && confirm.rolle === row.rolle ? <div className="model-rec-confirm" role="group" aria-label="Bestätigung">
             <p>{row.empfohlen.bestaetigung}</p>
@@ -136,10 +140,10 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
     </div> : null}
     {data?.ollama.cloud_ueber_ollama?.length ? <p className="source-hint model-rec-meta" role="status">Läuft in Ollamas Cloud, nicht auf diesem Rechner: {data.ollama.cloud_ueber_ollama.join(", ")}. Die Anfragen gehen über Ollama an dessen Server in den USA. Diese Modelle werden hier nicht als lokale Vorauswahl angeboten.</p> : null}
     {data && pending.length > 1 && confirm?.kind !== "all" ? <div className="source-form-actions">
-      <button className="primary-action" type="button" disabled={busy || !data.ollama.erreichbar} onClick={() => setConfirm({kind: "all"})}>Alles einrichten</button></div> : null}
+      <button className="primary-action" type="button" disabled={busy || !data.ollama.erreichbar || !setupFits(rows, data.orchester, pending)} onClick={() => setConfirm({kind: "all"})}>Alles einrichten</button></div> : null}
     {data && confirm?.kind === "all" ? <div className="model-rec-confirm" role="group" aria-label="Bestätigung">
       <p>{allConfirmation(rows.filter(row => pending.includes(row.rolle)))}</p>
-      <button className="primary-action" type="button" onClick={() => void setUp(pending)}>Laden und einrichten</button>
+      <button className="primary-action" type="button" disabled={!setupFits(rows, data.orchester, pending)} onClick={() => void setUp(pending)}>Laden und einrichten</button>
       <button className="secondary-action" type="button" onClick={() => setConfirm(null)}>Abbrechen</button>
     </div> : null}
     {run?.state ? <div className={`model-rec-progress${failed ? " is-failed" : ""}`} role={failed ? "alert" : "status"} aria-live="polite">

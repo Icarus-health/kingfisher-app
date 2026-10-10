@@ -282,16 +282,27 @@ def test_ein_kaputter_feed_kostet_nur_seine_meldungen_und_wird_nicht_sofort_wied
     assert a.dienst.feedstand() == {'f0': 'Der Feed ist zu groß.'}
 
 
-def test_weltquellen_werden_ohne_neuen_abruf_satzweise_gelesen_und_nur_wenn_gewaehlt():
+def test_weltquellen_werden_ohne_neuen_abruf_satzweise_gelesen_und_nur_wenn_gewaehlt(tmp_path):
+    from icarus_memory.episodes import EpisodeStore, EpisodeKind
+    from icarus_memory.model import Provenance
     text = 'Allgemeines vorweg. Das Klinikum Rheingau-Süd erhält einen neuen Küchenleiter im Herbst. Ende.'
-    quelle = SimpleNamespace(title='Fachportal', body=text, provenance=SimpleNamespace(source_type=SourceType.WEB))
-    a = Aufbau([], weltquellen=['w1'], episoden=Episoden({'wep': quelle}))
-    a.weltquellen = [{'id': 'w1', 'label': 'Fachportal', 'url': 'https://fach.example/', 'enabled': True, 'episode_id': 'wep'}]
-    meldung = a.dienst.aktualisieren(jetzt=a.jetzt)
-    assert meldung['sache'] == 'organisation:klinikumrheingausued' and meldung['quelle_id'] == 'w1' and a.abgerufen == []
-    andere = Aufbau([], weltquellen=[], episoden=Episoden({'wep': quelle}))
-    andere.weltquellen = a.weltquellen
-    assert andere.dienst.aktualisieren(jetzt=andere.jetzt) is None  # nicht gewählt: nicht gelesen
+    store = EpisodeStore(tmp_path/'world.sqlite3')
+    try:
+        quelle,_ = store.record(EpisodeKind.DOCUMENT,'Fachportal',text,
+            Provenance(SourceType.WEB,source_ref='https://fach.example/'),source_key='world:w1')
+        store.advance_source_head('world:w1',None,quelle.id)
+        episoden=Episoden({quelle.id:quelle})
+        episoden.support_snapshot=store.support_snapshot
+        a = Aufbau([], weltquellen=['w1'], episoden=episoden)
+        a.weltquellen = [{'id':'w1','label':'Fachportal','url':'https://fach.example/','enabled':True,
+                         'episode_id':quelle.id,'last_success':JETZT.isoformat()}]
+        meldung = a.dienst.aktualisieren(jetzt=a.jetzt)
+        assert meldung['sache']=='organisation:klinikumrheingausued' and meldung['quelle_id']=='w1' and a.abgerufen==[]
+        andere = Aufbau([], weltquellen=[], episoden=episoden)
+        andere.weltquellen = a.weltquellen
+        assert andere.dienst.aktualisieren(jetzt=andere.jetzt) is None
+    finally:
+        store.close()
 
 
 def test_feed_hinzufuegen_prueft_und_liest_ihn_einmal(monkeypatch):

@@ -91,8 +91,8 @@ STORE_SPECS: tuple[tuple[str, StoreFactory, set[str]], ...] = (
     ("self_model", SqliteBackend, {"assertions"}),
     ("episodes", EpisodeStore, {"episodes", "mail_progress", "source_heads", "episode_produced_assertions",
                                 "working_memory_sources", "working_memory_items", "working_memory_terms",
-                                "working_memory_scan"} | set(EXTENSION_TABLES)),
-    ("tasks", TaskStore, {"tasks", "task_events"}),
+                                "working_memory_scan", "task_rechecks", "task_recheck_turn"} | set(EXTENSION_TABLES)),
+    ("tasks", TaskStore, {"tasks", "task_events", "task_requests"}),
     ("workspace", WorkspaceStore, {"projects", "notes", "event_projects", "event_followups"}),
     ("proposals", ProposalStore, {"proposals", "task_analysis", "task_scan_cursor", "memory_analysis_jobs"}),
     ("audit", AuditLog, {"audit"}),
@@ -116,7 +116,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (20 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+    assert _version(path) == (21 if name == "episodes" else 5 if name == "proposals" else 3 if name in ("workspace", "tasks") else 1)
     assert _tables(path) == expected
 
 
@@ -135,6 +135,8 @@ def test_v17_migration_stamps_existing_interpretations_without_reclassification(
     episodes.close()
 
     connection = sqlite3.connect(path)
+    from tests.working_memory_legacy import drop_task_rechecks
+    drop_task_rechecks(connection)
     connection.execute("ALTER TABLE working_memory_sources DROP COLUMN analysis_version")
     connection.execute("ALTER TABLE memory_category_sources DROP COLUMN failure_code")
     connection.execute("PRAGMA user_version = 17")
@@ -464,6 +466,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             connection.execute("CREATE UNIQUE INDEX idx_episodes_digest ON episodes(digest)")
         if name == "tasks":
             connection.execute("DROP TABLE task_events")
+            connection.execute("DROP TABLE task_requests")
         if name == "workspace":
             connection.execute("DROP TABLE event_projects")
             connection.execute("DROP TABLE event_followups")
@@ -482,7 +485,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (20 if name == "episodes" else 5 if name == "proposals" else 3 if name == "workspace" else 2 if name == "tasks" else 1)
+        assert _version(paths[name]) == (21 if name == "episodes" else 5 if name == "proposals" else 3 if name in ("workspace", "tasks") else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -490,8 +493,12 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             expected_snapshot = {**before[name], "task_analysis": [], "task_scan_cursor": [], "memory_analysis_jobs": []}
         if name == "workspace":
             expected_snapshot = {**before[name], "event_projects": [], "event_followups": []}
+        if name == "tasks":
+            expected_snapshot = {**before[name], "task_requests": []}
         actual_snapshot = _snapshot(paths[name])
         if name == "episodes":
+            assert actual_snapshot.pop("task_rechecks") == []
+            assert actual_snapshot.pop("task_recheck_turn") == [(1, 1)]
             for table in EXTENSION_TABLES:
                 values = actual_snapshot.pop(table)
                 if table == 'memory_category_taxonomy':
@@ -539,7 +546,7 @@ def test_bekannte_alte_task_tabelle_wird_gezielt_migriert(tmp_path: Path) -> Non
     migrated = store.all_tasks()
     store.close()
 
-    assert _version(path) == 2
+    assert _version(path) == 3
     assert len(migrated) == 1
     assert migrated[0].id == "t-alt"
     assert migrated[0].title == "Alte Aufgabe"
@@ -671,7 +678,7 @@ def test_encrypted_recovery_restores_pre_migration_schema_and_keeps_newer_data(t
     assert updated.get(task.id).title==task.title
     new=updated.add('Nach dem Update', provenance)
     updated.close()
-    assert _version(path)==2
+    assert _version(path)==3
     newer_state=_snapshot(path)
     assert newer_state!=before
 

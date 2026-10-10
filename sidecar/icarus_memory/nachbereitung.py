@@ -18,6 +18,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Iterable
 
+from .connectors.collections import event_uids
 from .bezuege import org_aus_adresse
 from .datumstext import iso_versuchen as _zeit
 from .episodes import mail_address
@@ -121,7 +122,8 @@ def offene(items: list[dict[str, Any]], *, jetzt: datetime, eigene: Iterable[str
         if not (jetzt - FENSTER <= ende <= jetzt):
             continue
         key = schluessel(str(item.get('uid') or ''), beginn)
-        if key is None or key in erledigt or hat_mitschrift(key):
+        keys = [k for uid in event_uids(item) if (k := schluessel(uid, beginn))]
+        if key is None or any(k in erledigt or hat_mitschrift(k) for k in keys):
             continue
         mit = externe(item.get('attendees') or (), eigene)
         if not mit:

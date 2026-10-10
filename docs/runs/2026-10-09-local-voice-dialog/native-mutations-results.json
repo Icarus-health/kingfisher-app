@@ -1,0 +1,10 @@
+{
+  "permit_hidden": {
+    "exit_code": -5,
+    "expected_rejected": true
+  },
+  "permit_old_session": {
+    "exit_code": -5,
+    "expected_rejected": true
+  }
+}

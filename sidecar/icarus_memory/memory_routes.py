@@ -11,7 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, EpisodeError, EpisodeKind, sql_quelle
 from .claims import ClaimError
 from .model import Status
-from .memory_analysis import VERSION
+from .memory_analysis import VERSION, analysis_version
+from .task_review import task_context_key
 from .model_roles import hintergrund_anbieter, rollen_von
 from .memory_history import aware, query_key, time_key, encode_cursor, decode_cursor, SCAN_BUDGET, ceiling_anchor, validate_anchor
 from . import config
@@ -48,7 +49,7 @@ def coverage(episodes, proposals):
             continue
         truncated_sources += int(row['source_truncated'])
         job = proposals.memory_analysis.snapshot(row['id'])
-        if not job or job['digest'] != row['digest'] or job['version'] != VERSION:
+        if not job or job['digest'] != row['digest'] or job['version'] != analysis_version(task_context_key(row['support_generation'], row['metadata_digest'])):
             counts['pending'] += 1
         elif job['state'] == 'completed' and job['offset'] == job['total']:
             # Der empfangene Ausschnitt ist fertig geprüft. Die fehlenden Bytes
@@ -222,6 +223,15 @@ def install_routes(app, guard):
             result['working_memory_enabled'] = result['automation']['state'] in {'active', 'legacy_active'}
             return result
 
+    def execution_gate(result):
+        # Model readiness may be cached; the execution pause is always live.
+        # Reading this gate never checks a model or resumes background work.
+        from .hintergrund import GRUND_TEXT
+        gate = getattr(getattr(app.state, 'hintergrund', None), 'sperre', None)
+        reason = gate() if callable(gate) else 'unknown'
+        return dict(result, execution_pause_reason=(
+            GRUND_TEXT.get(reason, 'Der aktuelle Verarbeitungsstand ist nicht freigegeben.') if reason else None))
+
     def automation_status(*, verified=None, pending=None, probe=True):
         nonlocal automation_observation
         plan = app.state.settings.schedule
@@ -232,11 +242,11 @@ def install_routes(app, guard):
             # A previous explicit model check remains an observation, not a
             # new verification; changed settings discard it immediately.
             if automation_observation is not None and automation_observation[0] == observation_key:
-                return dict(automation_observation[1], pending=pending)
+                return execution_gate(dict(automation_observation[1], pending=pending))
             requested = bool(plan.enabled and plan.with_model and plan.local_model_only)
             legacy = bool(plan.enabled and plan.with_model and not plan.local_model_only)
-            return {'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
-                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None}
+            return execution_gate({'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
+                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None})
 
         rollen = rollen_von(app)
         # Die Hintergrundarbeit läuft mit dem Anbieter der Rolle `hintergrund`, und der ist immer lokal.
@@ -273,7 +283,7 @@ def install_routes(app, guard):
                   'model': model if local and model and not cloud_modell else None,
                   'cloud_modell': cloud_modell}
         automation_observation = (observation_key, result)
-        return result
+        return execution_gate(result)
 
     @router.get('/automation')
     def read_automation():

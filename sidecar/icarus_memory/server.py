@@ -61,7 +61,7 @@ from .agent_verdrahtung import (
     verdrahte_zusaetze,
 )
 from .consolidation import Consolidator
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
@@ -93,7 +93,7 @@ from .connectors import (
 from .episodes import EpisodeError, EpisodeKind, EpisodeState, EpisodeStore
 from .ingest import ADAPTERS, TEXT_SUFFIXES, ingest_directory
 from .transkript_routes import nach_aufnahme, termin_stand
-from .model import Kind, Provenance, RedactionReason, Sensitivity, SourceType
+from .model import Kind, Provenance, RedactionReason, Sensitivity, SourceType, ensure_aware
 from .morning import compose as compose_morning
 from .policy import Policy, PolicyError
 from .providers import from_env as provider_from_env
@@ -104,7 +104,7 @@ from .providers_mail import guess as guess_mail_provider
 from .secrets import Keychain, load_into_env
 from .security import SecurityError, file_roots_from_env
 from .store import ConflictError, SelfModelStore
-from .tasks import TaskStore, TaskChangedError
+from .tasks import TaskStore, TaskChangedError, TaskRequestConflict
 from .tools import build_registry
 from .zeitgrenze import mit_zeitgrenze
 from .workspace import (
@@ -398,6 +398,7 @@ class TaskIn(BaseModel):
 
 
 class MailTaskIn(BaseModel):
+    request_id: uuid.UUID | None = None
     quick_accept: bool = False
     source_quote: str | None = Field(default=None, min_length=8, max_length=4000)
     source_digest: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
@@ -1054,7 +1055,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                 except ValueError:
                     results.append(JobResult('lernen', False, 'Beobachtungen konnten nicht vollständig geprüft werden.'))
         return results
-    def run_task_detection(with_model):
+    def run_task_detection(with_model, *, limit=10, rechecks_only=False):
         agent = getattr(app.state, "agent", None)
         plan_at_start = asdict(app.state.settings.schedule)
         detector = TaskDetector(app.state.episodes, app.state.proposals,
@@ -1064,7 +1065,7 @@ def _wire_scheduler(app: FastAPI) -> None:
         def permitted():
             return (getattr(app.state, "agent", None) is agent
                     and asdict(app.state.settings.schedule) == plan_at_start)
-        report = detector.run(with_model=with_model, permitted=permitted)
+        report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -1177,6 +1178,13 @@ def _wire_scheduler(app: FastAPI) -> None:
     scheduler._run_prompt_working_memory = lambda ids: run_working_memory(True, prompt=True, source_ids=ids)
     scheduler._runtime_boundary = app.state.runtime_boundary
     scheduler._run_task_detection = run_task_detection  # noqa: SLF001
+    def run_priority_tasks():
+        # Keine wiederholte Modellarbeit ohne vorgemerkte neue/korrigierte Quelle.
+        if not app.state.episodes.task_rechecks(limit=1):
+            return JobResult('zusagen', True)
+        return run_task_detection(True, limit=2, rechecks_only=True)
+    scheduler._run_priority_tasks = run_priority_tasks  # noqa: SLF001
+
     scheduler._run_ingest = run_sources  # noqa: SLF001
     bound_agent = app.state.agent
     plan_at_wire = asdict(plan)
@@ -2045,6 +2053,33 @@ def create_app(
         """
         settings: config.Settings = app.state.settings
         keychain = getattr(app.state, "keychain", None) or Keychain()
+        if any(value is not None for value in (body.model, body.provider, body.endpoint)):
+            from .model_recommendation import geraet_aus_profil, model_memory_gb, gb_text
+            proposed = replace(settings)
+            if body.provider is not None:
+                proposed.provider = body.provider
+                if body.model is None and body.provider:
+                    proposed.model = config.DEFAULT_MODELS.get(body.provider, "")
+            if body.model is not None:
+                proposed.model = body.model
+            if body.endpoint is not None:
+                proposed.endpoint = body.endpoint
+            # Mirror the post-save environment without changing settings or the
+            # process: external overrides win, old file-derived values do not.
+            derived = set(getattr(app.state, "env_from_settings", []))
+            effective = {key: value for key, value in os.environ.items() if key not in derived}
+            config.apply_to_env(proposed, effective)
+            target_provider = effective.get("ICARUS_PROVIDER", "").strip().lower()
+            target_model = effective.get("ICARUS_MODEL", "").strip()
+            endpoint = effective.get("ICARUS_BASE_URL", "http://localhost:11434/v1" if target_provider == "ollama" else "")
+            trusted_hosts = effective.get("ICARUS_TRUSTED_LOCAL_MODEL_HOSTS", "").split(",")
+            is_local = target_provider in {"ollama", "kompatibel", "openai"} and providers.is_local_endpoint(endpoint, trusted_hosts)
+            known = model_memory_gb(target_model) if is_local else None
+            budget = geraet_aus_profil(device_profile()).modellbudget_gb
+            if known is not None and budget is not None and known > budget:
+                raise HTTPException(422, f"{target_model} braucht etwa {gb_text(known)} GB Arbeitsspeicher; "
+                                         f"für Modelle sind rund {gb_text(budget)} GB eingeplant. "
+                                         "Bitte ein kleineres Modell wählen, damit andere Programme nutzbar bleiben.")
 
         if body.provider is not None:
             if body.provider not in config.PROVIDERS:
@@ -2546,6 +2581,8 @@ def create_app(
                 raise HTTPException(409, 'Historische oder undatierte Mail. Bitte zuerst die Aufgabe ausdrücklich prüfen und vorbereiten.')
         with app.state.conversation_lock:
             episode = _remember_mail_message(message, source, uid)["episode"]
+            if episode['state'] == 'ignored':
+                raise HTTPException(409, 'Diese Quelle wurde ausgeschlossen. Bitte zuerst die Quelle ausdrücklich prüfen.')
             provenance = Provenance(source_type=SourceType.USER_STATED, source_ref=f"episode:{episode['id']}",
                                     verbatim=body.source_quote, captured_at=datetime.now().astimezone())
             if body.quick_accept:
@@ -2557,6 +2594,16 @@ def create_app(
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
                 return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
+            if body.request_id is not None:
+                payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
+                           'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
+                           'due': ensure_aware(body.due).astimezone(timezone.utc).isoformat() if body.due else None}
+                digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                try:
+                    return app.state.tasks.from_request(str(body.request_id), digest, title, provenance,
+                        due=body.due, project_id=body.project_id, waiting_for=waiting_for).to_dict()
+                except TaskRequestConflict as exc:
+                    raise HTTPException(409, str(exc) + ' Bitte die vorhandenen Aufgaben prüfen.') from exc
             task = app.state.tasks.add(title,
                 provenance,
                 due=body.due, project_id=body.project_id)
@@ -3013,7 +3060,8 @@ def create_app(
         """
         from .nachbereitung import offene, schluessel
         try:
-            keys = [k for k in (schluessel(str(item.get("uid") or ""), item.get("start")) for item in items) if k]
+            from .connectors.collections import event_uids
+            keys = [k for item in items for uid in event_uids(item) if (k := schluessel(uid, item.get("start")))]
             erledigt = app.state.workspace.event_followups(keys)
             holen = getattr(app.state, "zuordner_holen", None)
             # Liegt zu einem Termin eine Mitschrift vor, gibt es nichts nachzufragen.
@@ -3027,10 +3075,11 @@ def create_app(
         return identitaet.eigene_adressen(getattr(app.state, "settings", None))
 
     def _termin(uid: str, start: str | None = None) -> dict[str, Any]:
+        from .connectors.collections import event_copy
         if start is not None:
             return _vorkommen(uid, start)
         current = _calendar_overview(year_view=True)
-        matches = [item for item in current["items"] if item["uid"] == uid]
+        matches = [copy for item in current["items"] if (copy := event_copy(item, uid)) is not None]
         if len(matches) > 1:
             raise HTTPException(status_code=409, detail="Dieser Kalenderlink ist mehrdeutig. Bitte ein konkretes Vorkommen mit Beginn auswählen.")
         event = matches[0] if matches else None
@@ -3053,7 +3102,8 @@ def create_app(
         from .vorbereitung import zuordnung
         event = _termin(body.uid, body.start)
         try:
-            app.state.workspace.set_event_project(body.uid, body.project_id)
+            from .connectors.collections import event_uids
+            app.state.workspace.set_event_projects(event_uids(event), body.project_id)
         except WorkspaceError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return zuordnung(event, episodes=app.state.episodes, workspace=app.state.workspace,
@@ -3076,7 +3126,9 @@ def create_app(
                                      finish=at.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
         kandidaten = list(current["items"])
         fehler = list(current["errors"])
-        event = next((item for item in kandidaten if item["uid"] == uid and gleicher_beginn(item.get("start"), start)), None)
+        from .connectors.collections import event_copy
+        event = next((copy for item in kandidaten if (copy := event_copy(item, uid)) is not None
+                      and gleicher_beginn(copy.get("start"), start)), None)
         if event is None:
             if fehler:
                 raise HTTPException(status_code=503, detail="Der Termin kann gerade nicht aus seiner Quelle geladen werden.")
@@ -3086,18 +3138,28 @@ def create_app(
     def _nachbereitung_stand(event: dict[str, Any]) -> dict[str, Any]:
         from .nachbereitung import andere_teilnehmer, schluessel
         key = schluessel(str(event["uid"]), event.get("start"))
-        erledigt, episode_id = app.state.workspace.event_followup(key) if key else (False, None)
+        from .connectors.collections import event_uids
+        keys = [k for uid in event_uids(event) if (k := schluessel(uid, event.get("start")))]
+        completed = app.state.workspace.event_followups(keys)
+        erledigt = bool(completed)
+        episode_id = next((completed[k] for k in keys if completed.get(k)), None)
         try:
             beginn = datetime.fromisoformat(str(event.get("start") or ""))
             begonnen = beginn.tzinfo is not None and beginn <= datetime.now(timezone.utc)
         except ValueError:
             begonnen = False
+        transcripts = {"transkripte": [], "angebote": []}
+        for copy_key in keys:
+            for kind, values in termin_stand(app, copy_key).items():
+                for value in values:
+                    if value not in transcripts[kind]:
+                        transcripts[kind].append(value)
         return {"uid": event["uid"], "start": event.get("start"), "end": event.get("end"),
                 "summary": event.get("summary"), "begonnen": begonnen,
                 "stand": "offen" if not erledigt else "festgehalten" if episode_id else "nichts",
                 "episode_id": episode_id,
                 "teilnehmer": andere_teilnehmer(event.get("attendees") or (), _eigene_adressen()),
-                "termin": key, **termin_stand(app, key)}
+                "termin": key, **transcripts}
 
     @app.get("/api/v1/calendar/nachbereitung", dependencies=guard)
     def calendar_followup(uid: str = Query(min_length=1, max_length=2048),
@@ -3178,8 +3240,9 @@ def create_app(
             # Ein gewähltes Projekt gilt wie jede andere Wahl für diesen
             # Termin. „Kein Projekt“ hier ändert die Zuordnung nicht: Es kann
             # auch heißen, dass die Auswahl nicht geladen war.
-            if body.project_id is not None and app.state.workspace.event_project(str(event["uid"])) != (True, body.project_id):
-                app.state.workspace.set_event_project(str(event["uid"]), body.project_id)
+            if body.project_id is not None:
+                from .connectors.collections import event_uids
+                app.state.workspace.set_event_projects(event_uids(event), body.project_id)
             app.state.workspace.set_event_followup(key, episode.id)
         einordnung = "aus" if created else "schon_festgehalten"
         schedule = app.state.settings.schedule
@@ -3205,10 +3268,14 @@ def create_app(
         # steht: Ein „nichts“ aus einem zweiten Fenster überschreibt keine
         # festgehaltene Nachbereitung.
         with app.state.conversation_lock:
+            from .connectors.collections import event_uids
+            keys = [k for uid in event_uids(event) if (k := schluessel(uid, event.get("start")))]
             if body.nichts:
-                app.state.workspace.mark_event_nothing(key)
+                if not app.state.workspace.event_followups(keys):
+                    app.state.workspace.mark_event_nothing(key)
             else:
-                app.state.workspace.reopen_event_followup(key)
+                for copy_key in keys:
+                    app.state.workspace.reopen_event_followup(copy_key)
         return _nachbereitung_stand(event)
 
     @app.get("/api/v1/calendar/preparation", dependencies=guard)
@@ -6149,6 +6216,9 @@ def create_app(
     from .world_routes import register_world_routes
     register_world_routes(app, guard, _data_dir)
 
+    from .health_observations import register as register_health_observations
+    register_health_observations(app, guard)
+
     # -- Oberfläche --------------------------------------------------------
     #
     # Ganz zum Schluss, und das ist keine Kosmetik: Ein Mount auf "/" fängt
@@ -6209,6 +6279,7 @@ def create_app(
         def tasks_ui() -> FileResponse:
             return ui_response()
 
+        @app.get("/wellbeing", include_in_schema=False)
         @app.get("/development", include_in_schema=False)
         def development_ui() -> FileResponse:
             return ui_response()

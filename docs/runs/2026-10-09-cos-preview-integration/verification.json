@@ -1,0 +1,173 @@
+{
+  "code_commit": "5f5828932c721d06d18137574d092de2f8a40212",
+  "source_pr_heads": {
+    "37": "b7a96231e51bccad6529bc53bc38634e7ef31419",
+    "38": "012800a4fdc339c862d9a94ab3fdb3cf86e2861b",
+    "40": "63664cde52591d030b1de8d85d61c13edda70b01"
+  },
+  "backend_affected": {
+    "cases": 557,
+    "passed_initial": 554,
+    "skipped": 1,
+    "failed_initial_environment": 2,
+    "failed_cases_rechecked": 2,
+    "rechecked_passed": 2,
+    "remaining_failures": 0,
+    "full_suite": false,
+    "files": [
+      "sidecar/tests/test_health_observations.py",
+      "sidecar/tests/test_episoden.py",
+      "sidecar/tests/test_episode_support.py",
+      "sidecar/tests/test_episode_zugriffe.py",
+      "sidecar/tests/test_source_versions.py",
+      "sidecar/tests/test_source_correction_flow.py",
+      "sidecar/tests/test_source_partial_correction.py",
+      "sidecar/tests/test_memory_areas.py",
+      "sidecar/tests/test_memory_categories.py",
+      "sidecar/tests/test_memory_source_timeline.py",
+      "sidecar/tests/test_claims.py",
+      "sidecar/tests/test_model_memory_reserve.py",
+      "sidecar/tests/test_device_profile.py",
+      "sidecar/tests/test_model_recommendation.py",
+      "sidecar/tests/test_model_roles_routes.py",
+      "sidecar/tests/test_orchester.py",
+      "sidecar/tests/test_orchester_routes.py",
+      "sidecar/tests/test_hintergrund.py",
+      "sidecar/tests/test_hintergrund_lokal.py",
+      "sidecar/tests/test_fremdprobe3_hintergrund.py",
+      "sidecar/tests/test_calendar_copies.py",
+      "sidecar/tests/test_mac_calendar.py",
+      "sidecar/tests/test_mac_calendar_background_gate.py",
+      "sidecar/tests/test_kalendergedaechtnis.py",
+      "sidecar/tests/test_calendar_window.py",
+      "sidecar/tests/test_terminvorbereitung.py",
+      "sidecar/tests/test_vorbereitung.py",
+      "sidecar/tests/test_nachbereitung.py",
+      "sidecar/tests/test_compose_vertrag.py"
+    ]
+  },
+  "ui_full": {
+    "passed": 451,
+    "failed": 0,
+    "typescript": "passed",
+    "vite": "passed",
+    "warning": "main JS chunk >500 kB"
+  },
+  "native": {
+    "initial_passed": 27,
+    "initial_failed_environment": 2,
+    "initial_skipped": 1,
+    "authorized_full_passed": 29,
+    "authorized_full_skipped": 1,
+    "eventkit_accessed": false,
+    "synthetic_loopback_only": true
+  },
+  "independent_review": {
+    "read_only": true,
+    "concrete_integration_blockers_reported": 0,
+    "reviewer_tests_or_runtime_access": false,
+    "scope": "auto-merged server.py/api.ts, setup environment precedence, guarded route registrations and separate source keys"
+  },
+  "package": {
+    "version": "1.0.6-preview.5f58289",
+    "code_commit": "5f5828932c721d06d18137574d092de2f8a40212",
+    "image_id": "sha256:141071a098dd10c903bf32e4e120581a6f4df5f6a314aa9a41970453cb570430",
+    "base_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+    "base_layers_verified": true,
+    "native_architecture": "arm64",
+    "native_bundle_files_sha256": {
+      "Contents/Info.plist": "fa10611e1c988ff2f483b4d8f9392bd68ce99795cca1d9d53c9a109aa536efa9",
+      "Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+      "Contents/MacOS/Kingfisher": "e70a09dcb2c7bd446673936f37ec5673479fd2cd4e09f288859c272fa24bc4da",
+      "Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+      "Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+      "Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+    },
+    "dmg_sha256": "5ef0addc0f75e060971a661a71ab09e9268b6568e150baf2dbbd70b9d053692e",
+    "codesign": "strict deep verified",
+    "dmg_checksum": "verified",
+    "installed": false,
+    "notarized": false,
+    "public_release": false
+  },
+  "package_smoke": {
+    "browser_rendered": false,
+    "calendar_route_selection_disconnect": true,
+    "health_create_retry_correct_stale_history_restart_exclude": true,
+    "models_configured": false,
+    "productive_mounts": false,
+    "python_files": 268,
+    "ram_aliases_reject_oversize": true,
+    "status": "passed",
+    "synthetic_auth": true,
+    "ui_files": 112,
+    "version": "1.0.6-preview.5f58289",
+    "wellbeing_served_health_preserved": true
+  },
+  "installed_app_observation": {
+    "version": "1.0.6-local.3403623",
+    "native_sha256": "5366fcc6a8e9c52559b22bad103d9a3bc944d9fcb43b4b500e36fe971e15929c",
+    "matches_previous_pinned_package": true
+  },
+  "raw_log_manifest": {
+    "backend-tests.log": {
+      "sha256": "d6fad0b4193452cfad95470d6ea538660a5c3f4472b49e9e499b36fc64027d49",
+      "bytes": 6457
+    },
+    "backend-environment-recheck.log": {
+      "sha256": "29dfaadb73977f4d958826f9fe727776d7cfc85207543b453ecdd2304ffa15cd",
+      "bytes": 98
+    },
+    "ui-tests.log": {
+      "sha256": "07eeb58ed01fb950d69f8410d0d35174837fd991509f33848358673824bdab48",
+      "bytes": 96023
+    },
+    "ui-build.log": {
+      "sha256": "0f01f9014cfc0b82cd0aa7c0ca8d63758df0de8d71935713fac85157be2c5f0e",
+      "bytes": 774
+    },
+    "native-tests.log": {
+      "sha256": "9009d7693f2169fe7f209f32529890f957cac91c9bc1eec2e01e350f6e617b70",
+      "bytes": 10324
+    },
+    "native-tests-authorized.log": {
+      "sha256": "175cf1a91390ac2a3215e83ee4cb674a7906b1983d3e5003724b438cc2348652",
+      "bytes": 111
+    },
+    "native-build.log": {
+      "sha256": "e3ada9a8c3229614579aea6dca9426c32b63372f325375f56184cc2569927d15",
+      "bytes": 386
+    },
+    "image-build.log": {
+      "sha256": "c70a8572c57ce501316a84d46b3751795cca5a7b409a69bab1505d2b7e170187",
+      "bytes": 1480
+    },
+    "package-smoke.log": {
+      "sha256": "bfa02834835d7d616800c5b76b4ad69a261a9bb7596f7dca88fc45796c668d35",
+      "bytes": 81
+    },
+    "package-smoke-stdin.log": {
+      "sha256": "e5775b7f95394cbf3c5b6c2369b3b6aef121f90ee2536436bb9813332648496f",
+      "bytes": 638
+    },
+    "package-smoke-final.log": {
+      "sha256": "148b32dd7fe85fd9ba5300c49fcd7d3fb9c78d8764b08862f564bd3edbffc639",
+      "bytes": 639
+    }
+  },
+  "boundaries": {
+    "installed": false,
+    "main_changed": false,
+    "prs_merged": false,
+    "native_window": "deferred by user",
+    "rendered_ui": false,
+    "productive_data_mounts": false,
+    "productive_data_read": false,
+    "models_activated": false,
+    "cloud_calls": 0,
+    "new_dependency_downloads": false,
+    "real_rss_or_battery_proof": false,
+    "real_calendar_permission_or_selection_proof": false,
+    "personal_memory_quality_proof": false
+  }
+}

@@ -221,7 +221,7 @@ def _gesperrt(sperre: Callable[[], str | None]) -> bool:
 AMPEL = ModellAmpel()
 
 
-def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
+def speicher_reicht(geraet_gb: float | None, modelle: list[str], *, modellbudget_gb: float | None = None) -> bool:
     """Passen alle genannten Modelle zugleich in den Speicher dieses Rechners?
 
     Nur mit bekannten Größen aus dem Katalog (`model_recommendation.KATALOG`) und
@@ -229,7 +229,8 @@ def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
     Modell zweimal zählt einmal (es wird nur einmal geladen), teilt sich aber die
     Rechenzeit; auch dann gilt deshalb: nacheinander.
     """
-    from .model_recommendation import KATALOG, _NUTZBARER_ANTEIL, normalisiere
+    from .model_recommendation import KATALOG, normalisiere
+    from .device_profile import memory_plan_gb
     namen = [normalisiere(m) for m in modelle if m]
     if geraet_gb is None or len(namen) < 2 or len(set(namen)) < 2:
         return False
@@ -238,7 +239,8 @@ def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
         groesse[normalisiere(eintrag.name)] = max(groesse.get(normalisiere(eintrag.name), 0.0), eintrag.speicher_gb)
     if any(n not in groesse for n in namen):
         return False
-    return sum(groesse[n] for n in set(namen)) <= geraet_gb * _NUTZBARER_ANTEIL
+    budget = memory_plan_gb(geraet_gb)[1] if modellbudget_gb is None else modellbudget_gb
+    return sum(groesse[n] for n in set(namen)) <= budget
 
 
 # -- Aktivität des Menschen ---------------------------------------------------
@@ -729,7 +731,8 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
         wahlen = lese_wahlen(getattr(app.state.settings, 'model_roles', None))
         standard = getattr(app.state.settings, 'model', '') or ''
         namen = [(wahlen[r].modell if r in wahlen and wahlen[r].modell else standard) for r in ('antwort', 'hintergrund')]
-        return speicher_reicht(geraet_aus_profil(load_device_profile(data_dir())).modellspeicher_gb, namen)
+        geraet = geraet_aus_profil(load_device_profile(data_dir()))
+        return speicher_reicht(geraet.modellspeicher_gb, namen, modellbudget_gb=geraet.modellbudget_gb)
 
     AMPEL.parallel = modelle_passen
 

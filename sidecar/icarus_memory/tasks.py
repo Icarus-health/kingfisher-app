@@ -43,6 +43,10 @@ class TaskChangedError(ValueError):
     """The displayed reminder no longer matches the stored task."""
 
 
+class TaskRequestConflict(ValueError):
+    """A saved request may not be reused for a different task payload."""
+
+
 class TaskStatus(str, Enum):
     OPEN = "open"
     DONE = "done"
@@ -268,9 +272,28 @@ def _verify_v2(connection: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_v3(connection: sqlite3.Connection) -> None:
+    connection.execute("""CREATE TABLE task_requests (
+        request_id TEXT PRIMARY KEY,
+        payload_digest TEXT NOT NULL,
+        task_id TEXT NOT NULL
+    )""")
+
+
+def _verify_v3(connection: sqlite3.Connection) -> None:
+    verify_schema(connection,
+        expected_tables={**_CURRENT_SCHEMA, "task_events": _HISTORY_SCHEMA,
+                         "task_requests": {"request_id", "payload_digest", "task_id"}},
+        expected_indexes={**_INDEX_CONTRACTS, "idx_task_events_task_sequence": _HISTORY_INDEX},
+        expected_triggers=_HISTORY_TRIGGERS,
+        expected_primary_keys={**_PRIMARY_KEYS, "task_events": {"sequence"}, "task_requests": {"request_id"}},
+    )
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "append_only_task_history", _migrate_v2, _verify_v2),
+    Migration(3, "atomic_task_save_requests", _migrate_v3, _verify_v3),
 )
 
 
@@ -329,6 +352,35 @@ class TaskStore:
             self._write(task)
             self._append_event(task, "created", None, at)
         return task
+
+    def from_request(self, request_id: str, payload_digest: str, title: str, provenance: Provenance,
+                     *, due: datetime | None = None, project_id: str | None = None,
+                     waiting_for: str | None = None) -> Task:
+        """Save the task, initial waiting state, history and retry binding atomically.
+
+        A retry returns the current task, preserving edits and completion made
+        since the original save. Content equality alone is never deduplication.
+        The caller must still verify the source before invoking this method.
+        """
+        at = now()
+        with self._transaction():
+            binding = self._conn.execute("SELECT payload_digest, task_id FROM task_requests WHERE request_id = ?",
+                                         (request_id,)).fetchone()
+            if binding:
+                if binding['payload_digest'] != payload_digest:
+                    raise TaskRequestConflict("Der Speicherauftrag wurde bereits mit anderen Eingaben verwendet.")
+                row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (binding['task_id'],)).fetchone()
+                if row is None:
+                    raise TaskRequestConflict("Die bereits gespeicherte Aufgabe ist nicht mehr verfügbar.")
+                return self._from_row(row)
+            task = Task(id=f"t-{uuid.uuid4().hex}", title=title, provenance=provenance,
+                        created_at=at, due=ensure_aware(due), project_id=project_id,
+                        wartet_auf=waiting_for, wartet_seit=at if waiting_for else None)
+            self._write(task)
+            self._append_event(task, "created", None, None)
+            self._conn.execute("INSERT INTO task_requests (request_id, payload_digest, task_id) VALUES (?, ?, ?)",
+                               (request_id, payload_digest, task.id))
+            return task
 
     def from_suggestion(self, proposal_id: str, title: str, provenance: Provenance, *, due: datetime | None = None, project_id: str | None = None, waiting_for: str | None = None) -> Task:
         """Eine ausdrückliche Übernahme bleibt auch nach einem Abbruch einmalig."""

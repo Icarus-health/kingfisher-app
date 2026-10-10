@@ -8,7 +8,9 @@ import type { MemoryAutomation, MemoryCoverage } from "./api";
 const anzahl = (n: number, einzahl: string, mehrzahl: string) => `${n} ${n === 1 ? einzahl : mehrzahl}`;
 
 /** Der erste Satz unter „Automatisches Sortieren“: läuft es, und wenn nicht, warum. Ohne Modellnamen. */
-export function sortierStand(a: Pick<MemoryAutomation, "state" | "cloud_modell"> & {requested?: boolean}): string {
+export function sortierStand(a: Pick<MemoryAutomation, "state" | "cloud_modell" | "execution_pause_reason"> & {requested?: boolean}): string {
+  if (a.execution_pause_reason && (a.requested || a.state === "active" || a.state === "legacy_active"))
+    return `Automatik eingeschaltet. Die Verarbeitung wartet: ${a.execution_pause_reason}`;
   // Eingeschaltet, aber das Modell lädt noch oder antwortet noch nicht: kein „Pausiert“, es beginnt von selbst (Befund 3).
   if (a.requested && (a.state === "model_missing" || a.state === "local_model_unavailable"))
     return "An: Kingfisher sortiert deine Quellen selbst, sobald das Sprachmodell auf diesem Rechner bereit ist.";
@@ -25,7 +27,7 @@ export function sortierStand(a: Pick<MemoryAutomation, "state" | "cloud_modell">
 }
 
 /** Läuft das Sortieren? Eine Quelle für den Satz zum Stand und für den Fortschritt darunter (Fremdprobe 3, Befund 12). */
-export const sortiertGerade = (a: Pick<MemoryAutomation, "state">) => a.state === "active" || a.state === "legacy_active";
+export const sortiertGerade = (a: Pick<MemoryAutomation, "state" | "execution_pause_reason">) => !a.execution_pause_reason && (a.state === "active" || a.state === "legacy_active");
 
 /** Der zweite Satz: was das Sortieren bewirkt. Läuft es, steht kein „wenn du es einschaltest“ da. */
 export function sortierWirkung(a: Pick<MemoryAutomation, "state" | "pending"> & {requested?: boolean}): string {
@@ -37,7 +39,7 @@ export function sortierWirkung(a: Pick<MemoryAutomation, "state" | "pending"> & 
 }
 
 /** Ein Satz statt der Kacheln „Prüflauf durchgeführt“, „Teilweise geprüft“, „Prüfung fehlgeschlagen“. */
-export function pruefSatz(counts: MemoryCoverage["counts"]): string {
+export function pruefSatz(counts: MemoryCoverage["counts"], retryMayRun = true): string {
   const fertig = counts.completed ?? 0;
   const offen = (counts.pending ?? 0) + (counts.running ?? 0);
   const teils = counts.partial ?? 0;
@@ -52,7 +54,7 @@ export function pruefSatz(counts: MemoryCoverage["counts"]): string {
     aus ? `${anzahl(aus, "ist", "sind")} ausgenommen` : "",
   ].filter(Boolean);
   const satz = teile.length ? teile.join(", ").replace(/, ([^,]*)$/, " und $1") + "." : "";
-  const nochmal = fehler ? ` Bei ${anzahl(fehler, "Quelle", "Quellen")} hat es nicht geklappt; du musst nichts tun, Kingfisher versucht es von selbst noch einmal.` : "";
+  const nochmal = fehler ? ` Bei ${anzahl(fehler, "Quelle", "Quellen")} hat es nicht geklappt; ${retryMayRun ? "du musst nichts tun, Kingfisher versucht es von selbst noch einmal." : "ein erneuter Versuch steht noch aus."}` : "";
   return `${satz[0]?.toUpperCase() ?? ""}${satz.slice(1)}${nochmal}`.trim();
 }
 
