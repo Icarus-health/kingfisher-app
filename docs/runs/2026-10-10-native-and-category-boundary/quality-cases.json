@@ -1,0 +1,71 @@
+{
+  "purpose": "Synthetic semantic review cases, not an executed model benchmark",
+  "personal_data": false,
+  "model_run_completed": false,
+  "cases": [
+    {
+      "id": "advertising-only",
+      "body": "Unser öffentlicher Newsletter: Heute gibt es neue Sommerfarben. Sie erhalten diese Werbung als Abonnent. Jetzt abbestellen.",
+      "required_categories": ["information"],
+      "forbidden_categories": ["work", "appointments", "finance"],
+      "required_people": [],
+      "note": "General product advertising is not evidence of a personal project or obligation."
+    },
+    {
+      "id": "system-success",
+      "body": "Automatische Statusmeldung: Das nächtliche Backup wurde erfolgreich abgeschlossen. Keine Aktion erforderlich.",
+      "required_categories": ["information"],
+      "forbidden_categories": ["appointments", "finance"],
+      "required_people": [],
+      "note": "No task or deadline may be invented. A work category needs additional actual work context, absent here."
+    },
+    {
+      "id": "specific-work",
+      "body": "Lene Kühn schreibt: Für unser Projekt Orion prüfe bitte den Entwurf. Ich übernehme danach die Freigabe.",
+      "required_categories": ["work"],
+      "forbidden_categories": ["appointments", "finance"],
+      "required_people": ["Lene Kühn"],
+      "note": "Extract the exact mention; do not merge it into an existing same-name identity or invent a date."
+    },
+    {
+      "id": "newsletter-with-real-assignment",
+      "body": "Öffentlicher Newsletter: Unsere Software erhält neue Funktionen.\n\nPersönliche Nachricht von Lene Kühn: Für unser Projekt Orion sollst du den Entwurf bis zum 14. Oktober 2026 prüfen.",
+      "required_categories": ["information", "work"],
+      "forbidden_categories": ["finance"],
+      "required_people": ["Lene Kühn"],
+      "note": "Keep separate relevant block evidence; never suppress the whole source merely because it contains newsletter text."
+    },
+    {
+      "id": "invoice",
+      "body": "Ihre Rechnung über 49 Euro ist beigefügt. Zahlung bis zum 20. Oktober 2026. Automatischer Rechnungsversand; bitte nicht antworten.",
+      "required_categories": ["finance"],
+      "forbidden_categories": ["appointments"],
+      "required_people": [],
+      "note": "An automatic sender does not make the content irrelevant; sender label is not a person."
+    },
+    {
+      "id": "booking",
+      "body": "Ihre Buchung ist bestätigt: Anreise am 21. Oktober 2026, Abreise am 23. Oktober 2026. Dies ist eine automatische Reservierungsbestätigung.",
+      "required_categories": ["appointments"],
+      "forbidden_categories": ["work"],
+      "required_people": [],
+      "note": "Keep source dates distinct from import date. Do not invent a payment deadline."
+    },
+    {
+      "id": "conditional-report",
+      "body": "Lene Kühn berichtet: Die Lieferung Orion erfolgt am 14. Oktober 2026, sofern die Freigabe vorliegt.",
+      "required_categories": ["work"],
+      "forbidden_categories": ["finance"],
+      "required_people": ["Lene Kühn"],
+      "note": "A retrieval answer must preserve the condition and must not assert that approval has already occurred."
+    },
+    {
+      "id": "cancelled-old-request",
+      "body": "Nachricht vom 3. April 2019: Bitte prüfe den Projektentwurf bis Freitag.\n\nNachricht vom 4. April 2019: Die Prüfung ist abgesagt; du brauchst nichts mehr zu tun.",
+      "required_categories": ["work"],
+      "forbidden_categories": ["finance"],
+      "required_people": [],
+      "note": "Work remains a valid historical topic; do not surface the withdrawn request as a current task."
+    }
+  ]
+}
