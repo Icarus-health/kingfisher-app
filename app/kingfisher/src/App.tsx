@@ -1,4 +1,6 @@
-import {useConversationVoice, VoiceDraftControls, VoiceDraftStatus, VoiceReply, recordingVoice, type ConversationVoice} from "./ConversationVoice";
+import {useConversationVoice, VoiceDraftStatus, VoiceReply} from "./ConversationVoice";
+import {CommandBar} from "./CommandBar";
+import {ConversationCapture} from "./ConversationCapture";
 import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
@@ -21,6 +23,7 @@ import {
 import { Sidebar } from "./chrome";
 import { ActionApprovalCard } from "./ActionApprovalCard";
 import { ProjectControls } from "./ProjectControls";
+import {ProjectOverview} from "./ProjectOverview";
 import { DecisionControls } from "./DecisionControls";
 import { GoalControls } from "./GoalControls";
 import { DevelopmentPage } from "./DevelopmentPage";
@@ -52,8 +55,6 @@ import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { verbindungenPruefen } from "./verbindungen";
 import { Verweis } from "./VerweisLink";
-import { tastenHinweis } from "./system";
-import { useEingabegeraet } from "./useSystem";
 import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
 import { TodaySourceStatus } from "./TodaySourceStatus";
@@ -93,65 +94,6 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
     <label>Datum der Nachricht<input max={max} onChange={(event) => setValue(event.target.value)} required type="date" value={value} /></label>
     <button className="memory-reject" disabled={busy || !value} type="submit">Datum übernehmen</button>
   </form>;
-}
-
-function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice }: {
-  onSubmit: (message: string) => Promise<void>;
-  busy?: boolean;
-  conversation?: boolean;
-  disabled?: boolean;
-  placeholder?: string;
-  voice?: ConversationVoice;
-}) {
-  const [message, setMessage] = useState("");
-  const recording = voice ? recordingVoice(voice.state) : false;
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if ((busy || disabled) && recording) voice?.cancel(); }, [busy, disabled, recording, voice]);
-  // Der Hinweis passt zum Gerät: „⌘ K“ auf dem Mac, „Strg K“ sonst, keiner auf dem Telefon (Fremdprobe 2, Befund 11).
-  const taste = tastenHinweis(useEingabegeraet());
-
-  useEffect(() => {
-    const key = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        input.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, []);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const clean = message.trim();
-    if (!clean || busy || disabled || recording) return;
-    voice?.cancel();
-    try {
-      await onSubmit(clean);
-      setMessage("");
-    } catch {
-      // Der aufrufende Screen zeigt den Fehler in der bestehenden Fläche.
-    }
-  }
-
-  return (
-    <form className={`command-bar ${conversation ? "conversation-command" : ""}`} onSubmit={submit}>
-      {!conversation ? <InterfaceIcon name="search" /> : null}
-      <input
-        aria-label="Kingfisher fragen"
-        disabled={busy || disabled || recording}
-        onChange={(event) => setMessage(event.target.value)}
-        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“")}
-        ref={input}
-        value={message}
-      />
-      {!conversation && taste ? <kbd>{taste}</kbd> : null}
-      {voice ? <VoiceDraftControls voice={voice} disabled={busy || disabled} base={message} onDraft={setMessage} /> : null}
-      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled || recording} type="submit">
-        <InterfaceIcon name="arrow-up" />
-      </button>
-    </form>
-  );
 }
 
 /** Der Zähler einer Kachel im Briefing; bei null keiner (Fremdprobe 2, Befund 10). */
@@ -581,6 +523,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
         </aside>
         <section className="thread">
           <header className="thread-header"><div><p className="eyebrow">GESPRÄCH</p><h1>{data?.conversation.title ?? "Gespräch"}</h1></div><span className="local-status"><i /> Lokal gespeichert</span></header>
+          {!error && data && <ConversationCapture key={id} />}
           <div className="messages">
             {error ? <div className="message assistant error-message"><p>Das Gespräch ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></div> : null}
             {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
@@ -641,9 +584,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
             {refreshNotice ? <p className="memory-decision thread-notice" role="status">{refreshNotice}</p> : null}
           </div>
-          {sendError ? <p className="partial-error thread-send-error">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
-          {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-          <div className="thread-command"><VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} /></div>
+          <div className="thread-command">
+            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+            {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
+            <VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
+          </div>
         </section>
       </main>
     </div>
@@ -731,6 +676,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
   const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
+  const [overviewRevision, setOverviewRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const currentSearch = useRef(search);
@@ -767,6 +713,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
+    setOverviewRevision(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
@@ -848,6 +795,11 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
 
   function startTask() { if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true); }
+  function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
+    currentSearch.current = '';
+    setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
+    load(nextView);
+  }
   const visibleTasks = tasks?.filter(task => task.id !== selectedTask && (!projectId || task.project_id === projectId));
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -863,6 +815,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={view === item.id} className={view === item.id ? "active" : ""} key={item.id} onClick={() => setView(item.id)} type="button">{item.label}</button>)}</nav>
       {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
       {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
+      {(view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
       {(view === 'mine' || view === 'waiting' || view === 'done') && <>
         <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>

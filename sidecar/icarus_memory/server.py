@@ -5109,6 +5109,11 @@ def create_app(
         )
         return project.to_dict()
 
+    @app.get("/api/v1/projects/{project_id}/task-overview", dependencies=guard)
+    def project_task_overview(project_id: str) -> dict[str, Any]:
+        _validate_task_project(project_id)
+        return app.state.tasks.project_overview(project_id)
+
     @app.get("/api/v1/projects/{project_id}", dependencies=guard)
     @app.get("/projects/{project_id}", dependencies=guard)
     def project_detail(project_id: str) -> dict[str, Any]:

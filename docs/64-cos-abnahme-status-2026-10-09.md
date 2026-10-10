@@ -1,6 +1,24 @@
 # Kingfisher: aktueller Abnahmestand und nächster Produktweg
 
+**Persönliche Updatevorprüfung (10.10.):** Dateien und Verzeichnisse des vollständigen Bestands samt Besitzern, Rechten und Änderungszeiten lokal gesichert und separat wiederhergestellt; v20→v21 auf Kopie erhält 344 Originalquellen und 333 Quellenverweise. Backend-Suite in zwei Läufen abgeklärt (6.166 unterschiedliche Tests + 26 Subtests bestanden, ein Linux-Fall ausgelassen). Mac vor Umschaltung erneut gesperrt; noch nicht installiert. [Nachweis](runs/2026-10-10-personal-upgrade-preflight/README.md).
+
+
+**Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
+
+
 Stand: 9. Oktober 2026. Diese Übersicht ersetzt keine Prüfung und erklärt den CoS nicht für fertig. Sie bündelt den aktuellen Betriebsstand und die noch nötigen Nachweise; ältere Liefernotizen bleiben erhalten.
+
+Produktnachtrag vom 10. Oktober: [Draft #54](https://github.com/Icarus-health/kingfisher-app/pull/54)
+ergänzt die gemeinsame Vorschau um [dauerhafte Themenkorrekturen](runs/2026-10-10-memory-feedback/README.md),
+den [Projektüberblick mit vollständigen Aufgabenständen](runs/2026-10-10-project-overview/README.md)
+und [Health-Verlauf, Filter und Aufnahme im Gespräch](runs/2026-10-10-health-conversation-ux/README.md).
+Finaler gemeinsamer Lauf: 187 betroffene Backendtests, 545 UI-Tests, Typprüfung,
+Web-Build und Assetvertrag bestanden; unabhängige Reviews nach zwei behobenen
+Darstellungs-/Entwurfsfehlern ohne verbleibenden Blocker im jeweiligen engen Diff.
+Nicht in die Basisvorschau #46/main übernommen, nicht installiert. Ein neues
+gepaartes App-/Backend-Paket und persönliche/native Abnahme bleiben offen.
+Quellenkorrekturen bedeuten keinen allgemeinen Modell-Lerntransfer; Dateiaufnahme
+im Gespräch bedeutet keinen automatisch verwendeten Chat-Anhang.
 
 Nachtrag vom 10. Oktober: Die [native Teilprüfung und Kategorien-Gegenprobe](runs/2026-10-10-native-and-category-boundary/README.md) bestätigt Navigation, laufende Uhr und Rückwege auf der weiterhin älteren installierten App `1.0.6-local.3403623`. Die drei lokalen Kalender sind wegen einer nicht mehr passenden TCC-Code-Anforderung noch nicht freigegeben; Google-Anzeige allein belegt keine vollständige Agenda. Die Gedächtnisansicht enthält weiterhin unruhige Themenhinweise. 78 gezielte Tests bestanden; zwei synthetische Gegenproben zeigen ausdrücklich, dass gültige Originalbelege eine sachlich falsche Kategorie nicht verhindern. Acht künstliche Sollfälle sind vorbereitet, noch kein tatsächlicher Modelllauf. Der Nutzer hat Berechtigungsreparatur und einzelne Ausschnittprüfungen inzwischen erlaubt, ist aber wieder vom Mac weg; diese Schritte bleiben unausgeführt. DMG-Prüfsumme frisch unverändert bestätigt. Kein Produktcode geändert, kein Update, Import oder Anbieteraufruf gestartet.
 

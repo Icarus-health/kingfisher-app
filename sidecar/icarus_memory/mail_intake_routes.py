@@ -1,6 +1,6 @@
 """Authenticated intake controls; connecting an account alone never starts content capture."""
 from fastapi import HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .mail_intake import Intake
 from . import config
 from .model_roles import hintergrund_anbieter
@@ -30,6 +30,8 @@ class PauseIn(BaseModel):
 
 class CorrectionIn(BaseModel):
     categories: list[str]
+    expected_revision: str | None = Field(default=None, min_length=64, max_length=64,
+                                         pattern=r'^[0-9a-f]{64}$')
 
 class CategoryIn(BaseModel):
     id: str
@@ -235,10 +237,12 @@ def register(app, guard, data_dir, wire):
 
     @app.put('/api/v1/episodes/{episode_id}/categories',dependencies=guard)
     def correct(episode_id:str,body:CorrectionIn):
-        from .memory_categories import Categories
+        from .memory_categories import Categories, CategoryCorrectionConflict
         try:
             with app.state.conversation_lock:
                 store=Categories(app.state.episodes)
-                store.correct(episode_id,body.categories)
+                store.correct(episode_id,body.categories,expected_revision=body.expected_revision)
                 return store.list_for(episode_id)
+        except CategoryCorrectionConflict:
+            raise HTTPException(409,'Quelle, Bereiche oder deine Zuordnung haben sich geändert. Bitte den aktuellen Stand prüfen.') from None
         except (ValueError,KeyError):raise HTTPException(422,'Quelle oder Kategorien sind nicht verfügbar.') from None

@@ -277,8 +277,11 @@ export type MailIntakeStatus = {
 export type MailIntakePreview = {folders: string[]; description: string; attachments_supported: boolean; attachments_description?: string};
 
 export type CategoryTaxonomyEntry = {id: string; label: string; description: string; version: number};
+export const CATEGORY_FEEDBACK_EVENT = "kingfisher:category-feedback-saved";
 export type SourceCategoriesResult = {
   episode_id: string;
+  /** Current original, taxonomy and explicit correction; absent on older services. */
+  revision?: string | null;
   status: string;
   failure_code?: string | null;
   categories: Array<{id: string; label: string; origin: string;
@@ -447,6 +450,14 @@ export type Task = {
   wartet_seit: string | null;
   wartet_tage: number | null;
   overdue: boolean;
+};
+
+export type ProjectTaskOverview = {
+  project_id: string;
+  as_of: string;
+  counts: {mine: number; waiting: number; done: number; dropped: number; overdue: number; undated: number};
+  next_tasks: Task[];
+  waiting_tasks: Task[];
 };
 
 export type MailThreadContext = {
@@ -1105,7 +1116,10 @@ export type HealthObservation = HealthPayload & {id: string; recorded_at: string
 export type HealthObservationPage = {items: HealthObservation[]; next_cursor: string | null; scanned_sources: number; invalid_sources: number; scan_limit: number; complete: boolean};
 
 export const api = {
-  healthObservations: (cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  healthObservations: (cursor?: string | null, filters: {metric?: string; unit?: string} = {}) => {
+    const query = new URLSearchParams({...cursor ? {cursor} : {}, ...filters.metric ? {metric:filters.metric} : {}, ...filters.unit ? {unit:filters.unit} : {}});
+    return request<HealthObservationPage>(`/api/v1/health/observations${query.size ? '?'+query : ''}`);
+  },
   healthObservationHistory: (id: string, cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations/${encodeURIComponent(id)}/history${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
   saveHealthObservation: (data: HealthPayload & {request_id: string}) => request<HealthObservation>('/api/v1/health/observations', {method:'POST',body:JSON.stringify(data)}),
   correctHealthObservation: (id: string, data: HealthPayload & {request_id: string; expected_support_fingerprint: string}) => request<HealthObservation>(`/api/v1/health/observations/${encodeURIComponent(id)}`, {method:'PATCH',body:JSON.stringify(data)}),
@@ -1287,7 +1301,15 @@ export const api = {
   memoryAreas: (limit = 50, cursor?: number, area?: string) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)}), ...(area === undefined ? {} : {area})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
   sourceCategories: (id: string) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`),
-  correctSourceCategories: (id: string, categories: string[]) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories})}),
+  correctSourceCategories: async (id: string, categories: string[], expected_revision?: string) => {
+    const result = await request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories, expected_revision})});
+    // The committing request can outlive its editor. Notify whichever area is
+    // currently mounted, without broadcasting source contents or identifiers.
+    if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+      window.dispatchEvent(new Event(CATEGORY_FEEDBACK_EVENT));
+    }
+    return result;
+  },
   einrichtung: () => request<EinrichtungStand>("/api/v1/einrichtung"),
   einrichtungSetzen: (aenderung: EinrichtungAenderung) => request<EinrichtungStand>("/api/v1/einrichtung", { method: "PUT", body: JSON.stringify(aenderung) }),
   calendarMemory: () => request<{ mac_termine: number; quellen: Array<{ id: string; label: string; termine: number }> }>("/api/v1/calendar-memory"),
@@ -1316,6 +1338,7 @@ export const api = {
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
   tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
+  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),

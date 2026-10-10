@@ -1,0 +1,75 @@
+{
+  "affected_cases_rerun": {
+    "code_changes": false,
+    "conditions": "Git metadata restored for the exact source commit, loopback test-server sockets allowed, separate writable Swift/Clang caches",
+    "passed": 104,
+    "seconds": 88.28
+  },
+  "backend_initial_full_run": {
+    "environment": "workspace sandbox, initial archive without Git metadata, default Swift cache",
+    "failed": 18,
+    "passed": 6062,
+    "seconds": 868.4,
+    "setup_errors": 86,
+    "skipped": 1,
+    "subtests_passed": 26
+  },
+  "backup_metadata_synthetic_fixture": {
+    "different_owner_and_modes_included": true,
+    "directories": 3,
+    "empty_directory_included": true,
+    "files": 2,
+    "nanosecond_mtime_included": true,
+    "network": "none",
+    "personal_data_used": false,
+    "restored_match": true,
+    "xattr_entries": 5
+  },
+  "code_commit": "69791314c69c0092cd81e69952c2d0a1fdb21985",
+  "combined_backend_result": {
+    "single_full_green_run_claimed": false,
+    "skipped": 1,
+    "subtests_passed": 26,
+    "unique_tests_passed": 6166
+  },
+  "copy_only_schema_rehearsal": {
+    "existing_selected_table_columns_and_ddl_preserved": 6,
+    "existing_selected_table_row_content_preserved": 6,
+    "model_or_provider_constructed": false,
+    "network": "none",
+    "original_backup_readonly": true,
+    "original_episode_rows_preserved": 344,
+    "productive_database_modified": false,
+    "reopened_migrated_store": "passed",
+    "restored_copy_migrated_as_uid": 1000,
+    "restored_metadata_verified_before_migration": true,
+    "schema_after": 21,
+    "schema_before": 20,
+    "source_heads_preserved": 333,
+    "sqlite_integrity": "passed"
+  },
+  "independent_review_correction": {
+    "file_only_archive_claim_narrowed_and_metadata_preserved": true,
+    "runtime_code_changed": false,
+    "selected_table_ddl_and_columns_now_verified": true
+  },
+  "installed_on_mac": false,
+  "native_window_before_update": "reachable_then_locked_before_switch",
+  "new_cloud_or_model_calls": false,
+  "old_image_tag": "ghcr.io/icarus-health/kingfisher-app:1.0.6-local.3403623",
+  "personal_backup": {
+    "configuration_included": true,
+    "entire_volume_bytes": 229239354,
+    "entire_volume_directories": 8,
+    "entire_volume_files": 129,
+    "local_private_storage": true,
+    "old_runtime_restarted": true,
+    "personal_files_committed": false,
+    "proof_scope": "file and directory contents, uid/gid, mode, mtime_ns, xattrs; not a block-device image or inode/ctime preservation",
+    "restore_bytewise_match": true,
+    "restore_directory_entries_match": true,
+    "restore_ownership_modes_mtime_xattrs_match": true,
+    "root_databases_integrity_checked": 17,
+    "xattr_entries_in_personal_volume": 0
+  }
+}

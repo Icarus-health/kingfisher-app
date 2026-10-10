@@ -1,5 +1,11 @@
 # Einstieg für Entwickler und Claude Code
 
+**Persönliche Updatevorprüfung (10.10.):** Dateien und Verzeichnisse des vollständigen Bestands samt Besitzern, Rechten und Änderungszeiten lokal gesichert und separat wiederhergestellt; v20→v21 auf Kopie erhält 344 Originalquellen und 333 Quellenverweise. Backend-Suite in zwei Läufen abgeklärt (6.166 unterschiedliche Tests + 26 Subtests bestanden, ein Linux-Fall ausgelassen). Mac vor Umschaltung erneut gesperrt; noch nicht installiert. [Nachweis](runs/2026-10-10-personal-upgrade-preflight/README.md).
+
+
+**Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
+
+
 Einstiegsstand: 9. Oktober 2026. Die gemeinsame CoS-Vorschau liegt in
 [Draft #46](https://github.com/Icarus-health/kingfisher-app/pull/46), Branch
 `integration/cos-preview-reviewed-20261009`; sie ist noch nicht in `main`
@@ -8,6 +14,16 @@ den [aktuellen Abnahmestand](64-cos-abnahme-status-2026-10-09.md) und die
 [Alltagsabnahme](60-alltagsabnahme.md) lesen. Die dort verlinkten Lieferprotokolle
 trennen aktuelle Prüfungen von historischen Ergebnissen und offenen Nachweisen.
 Nicht erneut bauen, was bereits in der gemeinsamen Vorschau enthalten ist.
+
+Ergänzung vom 10. Oktober: [Draft #54](https://github.com/Icarus-health/kingfisher-app/pull/54)
+auf `feat/memory-feedback-20261010` ergänzt die gemeinsame Vorschau um direkte
+[Quellenkorrekturen](runs/2026-10-10-memory-feedback/README.md), einen
+[Projektüberblick](runs/2026-10-10-project-overview/README.md) sowie
+[Health-Verlauf und Gesprächsaufnahme](runs/2026-10-10-health-conversation-ux/README.md).
+Nicht in #46/main übernommen oder auf dem persönlichen Mac installiert. Neueste
+Prüfung: 187 betroffene Backendtests, 545 UI-Tests, Web-Build und Assetvertrag;
+unabhängige Reviews mit vor Veröffentlichung behobenen Gegenfällen. Ein neues
+gekoppeltes Mac-/Backend-Paket und die native Abnahme sind weiterhin offen.
 
 Stand der folgenden Codekarte: 2. Oktober 2026 (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
 Sammelbestätigung, PDF-Anhänge und Cloud-Ordner; um Microsoft 365 (M5), den lesbaren Quellenhinweis und Google ohne

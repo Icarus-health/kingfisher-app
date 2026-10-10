@@ -29,6 +29,17 @@
 .health-history > section { margin-top: 12px; padding: 14px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); }
 .health-version { padding: 12px 0; border-bottom: 1px solid var(--calm-line); }
 .health-version > span { color: var(--calm-muted); font-size: 13px; }
+.health-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 16px; }
+.health-filters label { display: grid; gap: 6px; flex: 1; min-width: min(100%,180px); }
+.health-filters input { min-width: 0; padding: 10px; border: 1px solid var(--calm-line); border-radius: 10px; background: var(--calm-inset); color: var(--calm-ink); font: inherit; }
+.health-trend { margin: 20px 0; padding: 16px; border: 1px solid var(--calm-line); border-radius: 16px; background: var(--calm-surface); }
+.health-trend figcaption p, .health-trend-range { color: var(--calm-muted); font-size: 12px; }
+.health-trend svg { display: block; width: 100%; max-height: 240px; }
+.health-trend-axis { stroke: var(--calm-line); }
+.health-trend-line { fill: none; stroke: var(--kf-rand-00a7c4); stroke-width: 2; }
+.health-trend circle { fill: var(--kf-rand-00a7c4); stroke: var(--calm-surface); stroke-width: 2; }
+.health-trend a:focus-visible circle { stroke: var(--calm-ink); stroke-width: 4; }
+.health-trend-range { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
 @media (max-width: 600px) {
   .health-fields { grid-template-columns: minmax(0,1fr); }
   .health-editor, .health-entry { padding: 16px; }

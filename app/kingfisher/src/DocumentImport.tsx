@@ -3,8 +3,10 @@ import { api, DocumentPreviewError, type Project } from "./api";
 import { DocumentSources } from "./DocumentSources";
 import { ProfileSource } from "./ProfileSource";
 
-export function DocumentImport() {
-  const [expanded, setExpanded] = useState(false);
+export function DocumentImport({initiallyExpanded=false, showLibrary=true, title='Dateien', onClose}: {
+  initiallyExpanded?: boolean; showLibrary?: boolean; title?: string; onClose?: ()=>void;
+} = {}) {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState("");
   const [file, setFile] = useState<{filename: string; body: string; warning?: string} | null>(null);
@@ -12,11 +14,12 @@ export function DocumentImport() {
   const [reading, setReading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [closing,setClosing] = useState(false);
   const version = useRef(0);
   useEffect(() => {let active = true; api.projects().then(items => {if (active) setProjects(items);}).catch(() => {if (active) setError("Projekte konnten nicht geladen werden. Eine Aufnahme ohne Projekt ist möglich.");});return () => {active = false;version.current++;};}, []);
   async function choose(selected: File | undefined) {
     const current = ++version.current;
-    setFile(null);setResult(null);setError("");
+    setFile(null);setResult(null);setError("");setClosing(false);
     setReading(false);
     if (!selected) return;
     const pdf = /\.pdf$/i.test(selected.name);
@@ -55,12 +58,12 @@ export function DocumentImport() {
   async function save() {
     if (!file || busy) return;
     setBusy(true);setError("");
-    try {setResult(await api.importDocument({...file, project_id: projectId || null}));setFile(null);}
+    try {setResult(await api.importDocument({filename:file.filename, body:file.body, project_id: projectId || null}));setFile(null);setClosing(false);}
     catch {setError("Die Datei konnte nicht aufgenommen werden. Bitte Auswahl und Projekt prüfen und erneut versuchen.");}
     finally {setBusy(false);}
   }
   return <section className="source-section document-import" aria-label="Dateien aufnehmen">
-    <div className="compact-integration-heading"><div><h2>Dateien</h2><p>Dokumente als Quellen aufnehmen und verwalten.</p></div><button className="secondary-action" type="button" aria-expanded={expanded} disabled={busy || reading} onClick={() => setExpanded(value => !value)}>{expanded ? "Schließen" : "Dateien verwalten"}</button></div>
+    <div className="compact-integration-heading"><div><h2>{title}</h2><p>Dokumente als Quellen aufnehmen und verwalten.</p></div><button className="secondary-action" type="button" aria-expanded={expanded} disabled={busy || reading} onClick={() => {if(expanded && onClose) {if(file) setClosing(true); else onClose();} else setExpanded(value => !value);}}>{expanded ? "Schließen" : "Dateien verwalten"}</button></div>
     {expanded && <div>
     <p>Textdateien, Transkripte (SRT/VTT), Word-Dokumente (DOCX) und PDFs werden lokal eingelesen. Gespeichert wird nur der Text nach deiner Bestätigung. Daraus wird kein Wissen automatisch bestätigt. Die Originaldatei bleibt unverändert.</p>
     <p>Bei Word wird der Haupttext übernommen. Bilder, Formatierungen, Kopf- und Fußzeilen bleiben unberücksichtigt. Bitte die Vorschau prüfen.</p>
@@ -72,10 +75,15 @@ export function DocumentImport() {
       <label>Projekt für die Datei<select aria-label="Projekt für die Datei" disabled={busy} value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Ohne Projekt</option>{projects.map(project => <option value={project.id} key={project.id}>{project.name}</option>)}</select></label>
       <details><summary>Vorschau prüfen</summary><div className="task-source-body">{file.body.slice(0, 4000)}</div>{file.body.length > 4000 && <p>Vorschau gekürzt; aufgenommen wird der vollständige ausgelesene Text.</p>}</details>
       <button className="primary-action" type="button" disabled={busy} onClick={() => void save()}>Datei als Quelle aufnehmen</button>
-      <button className="secondary-action" type="button" disabled={busy} onClick={() => setFile(null)}>Abbrechen</button>
+      <button className="secondary-action" type="button" disabled={busy} onClick={() => {setFile(null);setClosing(false);}}>Abbrechen</button>
+    </div>}
+    {closing && file && <div className="health-confirm" role="group" aria-label="Dateivorschau schließen">
+      <p>Die Dateivorschau ist noch nicht gespeichert. Beim Schließen wird dieser Entwurf verworfen; die Originaldatei bleibt erhalten.</p>
+      <button type="button" className="secondary-action" disabled={busy} onClick={()=>setClosing(false)}>Weiter bearbeiten</button>
+      <button type="button" className="secondary-action" disabled={busy} onClick={()=>onClose?.()}>Vorschau verwerfen und schließen</button>
     </div>}
     {result && <div role="status"><p>{result.created ? "Datei als Quelle aufgenommen." : "Dieser Inhalt ist bereits vorhanden. Herkunft und Projektzuordnung wurden nicht verändert."}</p><ProfileSource key={result.id} kind="episode" id={result.id} />{result.project_id && <p><a href={`/memory/projects/${encodeURIComponent(result.project_id)}`}>Projektakte öffnen</a></p>}</div>}
-    <DocumentSources key={result ? `${result.id}:${result.created}` : "initial"} />
+    {showLibrary && <DocumentSources key={result ? `${result.id}:${result.created}` : "initial"} />}
     {error && <p role="alert">{error}</p>}
     </div>}
   </section>;

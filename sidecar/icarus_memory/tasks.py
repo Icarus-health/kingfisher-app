@@ -587,6 +587,44 @@ class TaskStore:
             items = [t for t in items if t.status is TaskStatus.OPEN]
         return items
 
+    def project_overview(self, project_id: str, at: datetime | None = None) -> dict[str, Any]:
+        """Full-project counts and bounded previews from one read snapshot.
+
+        Waiting work is not the user's overdue work. Dropped tasks are not
+        completed tasks. No task, event, or deadline is changed by this read.
+        """
+        moment = ensure_aware(at) or now()
+        waiting = "json_extract(document, '$.wartet_auf')"
+        with self._lock:
+            self._conn.execute('BEGIN')
+            try:
+                counts = self._conn.execute(f"""
+                    SELECT
+                      coalesce(sum(status='open' AND {waiting} IS NULL),0) AS mine,
+                      coalesce(sum(status='open' AND {waiting} IS NOT NULL),0) AS waiting,
+                      coalesce(sum(status='done'),0) AS done,
+                      coalesce(sum(status='dropped'),0) AS dropped,
+                      coalesce(sum(status='open' AND {waiting} IS NULL AND julianday(due)<julianday(?)),0) AS overdue,
+                      coalesce(sum(status='open' AND {waiting} IS NULL AND due IS NULL),0) AS undated
+                    FROM tasks WHERE project_id=?
+                """, (moment.isoformat(), project_id)).fetchone()
+                mine = self._conn.execute(f"""
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NULL
+                    ORDER BY due IS NULL, julianday(due), julianday(created_at), id LIMIT 3
+                """, (project_id,)).fetchall()
+                waiting_rows = self._conn.execute(f"""
+                    SELECT document FROM tasks WHERE project_id=? AND status='open' AND {waiting} IS NOT NULL
+                    ORDER BY coalesce(julianday(json_extract(document,'$.wartet_seit')),julianday(created_at)), id LIMIT 3
+                """, (project_id,)).fetchall()
+            finally:
+                self._conn.rollback()
+        def preview(row: sqlite3.Row) -> dict[str, Any]:
+            task = self._from_row(row)
+            return {**task.to_dict(), 'overdue': task.is_overdue(moment), 'wartet_tage': task.wartet_tage(moment)}
+        return {'project_id': project_id, 'as_of': moment.isoformat(), 'counts': dict(counts),
+                'next_tasks': [preview(row) for row in mine],
+                'waiting_tasks': [preview(row) for row in waiting_rows]}
+
     def all_tasks(self, limit: int = 500) -> list[Task]:
         with self._lock:
             rows = self._conn.execute(
