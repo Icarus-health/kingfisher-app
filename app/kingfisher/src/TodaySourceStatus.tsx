@@ -19,7 +19,7 @@ export function TodaySourceStatus({briefing, refreshing, refreshError, onRefresh
     </div>
     <div className="today-source-actions">
       {Boolean(briefing.historical_task_reviews) && <a className="today-text-link" href="/vorhaben?view=mine&pruefen=1">{briefing.historical_task_reviews} zeitlich ungeklärte Vorschläge prüfen →</a>}
-      {status.attention && <a className="today-text-link" href={status.href}>Quellen prüfen →</a>}
+      {status.attention && <a className="today-text-link" href={status.href}>{status.actionLabel} →</a>}
       <button className="today-text-link" type="button" disabled={refreshing} onClick={onRefresh}>{refreshing ? 'Wird aktualisiert …' : 'Überblick aktualisieren'}</button>
     </div>
   </section>;

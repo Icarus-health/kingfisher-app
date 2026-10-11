@@ -439,6 +439,33 @@ def erstelle(
             aktion="Ansehen",
         ))
 
+    # A newly captured message is a reason to re-check an already confirmed
+    # task, not to rewrite it. Promote an existing task point when present;
+    # otherwise create a small, capped review point even for undated/future
+    # tasks and tasks hidden behind a grouped due-date point.
+    review_tasks = [task for task in aufgaben if (task.get("source_review") or {}).get("reason")]
+    review_points = []
+    for task in review_tasks[:3]:
+        reason = task["source_review"]["reason"]
+        existing = next((point for point in kandidaten
+                         if point.quelle in ("aufgabe", "wartet") and point.ref == task.get("id")), None)
+        if existing is None:
+            existing = Punkt(
+                text=f"Aufgabe „{_kurz(task.get('title', ''))}“: {reason}",
+                gewicht=110, quelle="wartet" if task.get("wartet_auf") else "aufgabe",
+                ref=task.get("id"), aktion="Verlauf prüfen",
+            )
+            kandidaten.append(existing)
+        else:
+            existing.text = f"{existing.text} {reason}"
+            existing.gewicht = max(existing.gewicht, 110)
+            if task.get("wartet_auf"):
+                existing.quelle = "wartet"
+            existing.aktion = "Verlauf prüfen"
+        review_points.append(existing)
+    if review_tasks and len(review_tasks) > 3:
+        review_points[0].text += f" {len(review_tasks) - 3} weitere Aufgaben benötigen eine Verlaufsprüfung."
+
     kandidaten.sort(key=lambda p: p.gewicht, reverse=True)
     punkte = kandidaten[:MAX_PUNKTE]
 

@@ -309,6 +309,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   );
 
   const attentionCount = todayAttention(briefing).length;
+  const connectionFailures = briefing.partial_failures.filter(failure => failure.section !== "source_review");
   return (
     <div className="shell">
       <Sidebar active="Heute" briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
@@ -342,9 +343,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           <TodayPersonal />
           <FassungHeute />
           {briefing.post_ausstehend ? <p className="today-post-laedt" role="status">Deine Post wird gerade geholt …</p> : <PostfachStand />}
-          {briefing.partial_failures.length > 0 && <details className="today-connection-note"><summary>Quellen teilweise nicht verfügbar ({briefing.partial_failures.length})</summary>
-            {briefing.partial_failures.map(failure => <p key={failure.section}>{failure.message}</p>)}
-            <a className="today-text-link" href={verbindungenPruefen(briefing.partial_failures)}>Verbindungen prüfen →</a>
+          {connectionFailures.length > 0 && <details className="today-connection-note"><summary>Quellen teilweise nicht verfügbar ({connectionFailures.length})</summary>
+            {connectionFailures.map(failure => <p key={failure.section}>{failure.message}</p>)}
+            <a className="today-text-link" href={verbindungenPruefen(connectionFailures)}>Verbindungen prüfen →</a>
           </details>}
         </section>
       </main>

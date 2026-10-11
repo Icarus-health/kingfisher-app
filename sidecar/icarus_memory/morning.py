@@ -234,6 +234,12 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             if project:
                 attention[item_id]["detail"] = f"Projekt: {project['name']}"
             attention[item_id]["project_id"] = project_id if project else None
+            source_review = task.get("source_review") or {}
+            if source_review.get("reason"):
+                attention[item_id]["reason"] = source_review["reason"]
+                attention[item_id]["detail"] = source_review["reason"]
+                attention[item_id]["action"] = "Verlauf prüfen"
+                attention[item_id]["episode_id"] = source_review.get("followup_episode_id")
         elif source == "entscheidung":
             decision = decisions_by_id.get(ref, {})
             attention[item_id]["title"] = str(decision.get("satz") or text)
@@ -384,6 +390,15 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
                         ("task_candidates", "Aufgabenvorschläge")):
         if (dashboard.get(name) or {}).get("error"):
             failures.append({"section": name, "message": f"{label}: gerade nicht verfügbar. Bitte erneut laden."})
+    # Die Aufgabenliste kann verfügbar sein, obwohl die begrenzte Prüfung
+    # einzelner Mailverläufe nicht alle verknüpften Quellen einordnen konnte.
+    source_review_coverage = (dashboard.get("tasks") or {}).get("source_review_coverage") or {}
+    if source_review_coverage and source_review_coverage.get("complete") is False:
+        failures.append({
+            "section": "source_review",
+            "message": str(source_review_coverage.get("reason") or
+                           "Einige verknüpfte Quellen konnten nicht vollständig eingeordnet werden."),
+        })
     if dashboard.get("briefing_error"):
         failures.append({"section": "briefing", "message": "Die Priorisierung ist gerade nicht verfügbar. Bitte erneut laden."})
     # `wetter`: das Wetter aus der Einstellung „Wetter im Briefing“ (`wetter.py`); ohne sie die alte Umgebungsprüfung.

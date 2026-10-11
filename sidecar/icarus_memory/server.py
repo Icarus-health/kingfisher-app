@@ -2773,10 +2773,31 @@ def create_app(
             # die Anzeige. Sonst verdrängen alte Wartezustände eigene Fristen.
             offen = app.state.tasks.open_tasks(limit=None)
             result["tasks"]["items"] = [t.to_dict() for t in offen]
+            try:
+                from .task_source_review import review_tasks
+                review_result = review_tasks(app.state.episodes, offen)
+                reviews = review_result.by_task
+                if review_result.coverage_limited:
+                    from .task_source_review import CLASSIFICATION_LIMIT_REASON
+                    result["tasks"]["source_review_coverage"] = {
+                        "complete": False, "reason": CLASSIFICATION_LIMIT_REASON,
+                    }
+            except Exception:  # noqa: BLE001 - eine unsichere Abfrage wird als ungeprüft kenntlich
+                from .task_source_review import CLASSIFICATION_LIMIT_REASON
+                reviews = {}
+                result["tasks"]["source_review_coverage"] = {
+                    "complete": False, "reason": CLASSIFICATION_LIMIT_REASON,
+                }
+            for item in result["tasks"]["items"]:
+                if item["id"] in reviews:
+                    item["source_review"] = reviews[item["id"]]
             result["tasks"]["overdue"] = sum(1 for t in offen if t.is_overdue())
             result["tasks"]["wartend"] = [
                 t.to_dict() for t in offen if t.wartet_auf is not None
             ]
+            for item in result["tasks"]["wartend"]:
+                if item["id"] in reviews:
+                    item["source_review"] = reviews[item["id"]]
         except Exception as exc:  # noqa: BLE001 - ein Bereich darf die Seite nicht kippen
             result["tasks"]["error"] = str(exc)
 
@@ -4686,8 +4707,26 @@ def create_app(
             episode = app.state.episodes.get(ref.removeprefix("episode:"))
         except EpisodeError as exc:
             raise HTTPException(status_code=404, detail="Die gespeicherte Quelle ist nicht verfügbar.") from exc
-        return {**episode.to_dict(), "body": episode.body[:20000], "quote": task.provenance.verbatim,
-                "truncated": len(episode.body) > 20000 or "source:truncated" in episode.tags}
+        response = {**episode.to_dict(), "body": episode.body[:20000], "quote": task.provenance.verbatim,
+                    "truncated": len(episode.body) > 20000 or "source:truncated" in episode.tags}
+        try:
+            from .task_source_review import review_tasks
+            review_result = review_tasks(app.state.episodes, [task])
+            review = review_result.by_task.get(task.id)
+            if review_result.coverage_limited:
+                from .task_source_review import CLASSIFICATION_LIMIT_REASON
+                response["source_review_coverage"] = {
+                    "complete": False, "reason": CLASSIFICATION_LIMIT_REASON,
+                }
+        except Exception:  # noqa: BLE001
+            from .task_source_review import CLASSIFICATION_LIMIT_REASON
+            review = None
+            response["source_review_coverage"] = {
+                "complete": False, "reason": CLASSIFICATION_LIMIT_REASON,
+            }
+        if review:
+            response["source_review"] = review
+        return response
 
     @app.post("/api/v1/tasks", dependencies=guard, status_code=201)
     def add_kingfisher_task(body: TaskIn) -> dict[str, Any]:
