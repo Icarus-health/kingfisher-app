@@ -1,0 +1,40 @@
+{
+  "code_commit": "675ad8054d980313cca84c4b91a2523f5e3c2302",
+  "baseline_commit": "c4b60795020efb714ef66d35a53cb56f87437c6b",
+  "baseline_rendered_expected_failures": [
+    "fehlt",
+    "nicht_erreichbar"
+  ],
+  "baseline_controls_passed": [
+    "keins",
+    "bereit",
+    "cloud"
+  ],
+  "final_rendered_cases_passed": 5,
+  "ui_tests_passed": 551,
+  "typecheck_passed": true,
+  "production_build_passed": true,
+  "asset_contract_passed": true,
+  "browser_plugin": "not available; bundled Playwright",
+  "viewports": [
+    [
+      1100,
+      850
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "console_warnings_errors": [],
+  "screenshots_visually_inspected": true,
+  "api_responses": "synthetic intercepted HTTP; no real backend/model/private data",
+  "automatic_writes": [],
+  "independent_review": "Static narrow review without concrete blocker; reviewer did not execute tests",
+  "installed": false,
+  "native_ui_verified": false,
+  "personal_mac_observation": "locked; no repeated unlock attempts",
+  "known_build_warning": "existing bundle >500kB",
+  "retry_interleaving_qualified": false,
+  "source_sha256": "1080fabc0c0faaf44c3d4bdeca1c5f6cdfb9e0953e30762413b6ce30ba25cd10"
+}
