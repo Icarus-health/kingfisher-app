@@ -1,5 +1,7 @@
 # Host-Auswahl des Docker-Images bei der Sicherung
 
+Nachtrag 11.10.: Das unveränderte Alltagspaket wurde mit frischer geprüfter Sicherung persönlich installiert; [native Teilabnahme](../2026-10-11-daily-ux-installation/README.md). Die offene Erstellung eines verschlüsselten Recovery-Archivs über die App bleibt davon getrennt.
+
 ## Konkreter Fehler
 
 Die private Host-Konfiguration enthält `KINGFISHER_IMAGE`. Compose verwendet diesen Wert für die Bildauswahl; die Container-Umgebung enthält ihn üblicherweise nicht. Der Host-Helfer `create_recovery_bundle.py` verglich jedoch alle Host-Werte mit `Config.Env` und lehnte dadurch eine passende native Installation ab. Lesend am laufenden persönlichen Bestand reproduziert: alter Validator lehnt ab, korrigierter Validator akzeptiert. Keine Geheimnisse oder Konfigurationswerte ausgegeben, kein Container angehalten.

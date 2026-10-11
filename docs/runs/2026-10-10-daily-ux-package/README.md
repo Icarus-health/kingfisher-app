@@ -1,5 +1,7 @@
 # Kingfisher: Alltagspaket 1.0.6-preview.6979131
 
+Nachtrag 11.10.: Dieses unveränderte Paket ist inzwischen persönlich installiert. [Frische Sicherung, tatsächlicher Wechsel und native Teilabnahme](../2026-10-11-daily-ux-installation/README.md). Die Angaben unten beschreiben den ursprünglichen Paketbau vom 10.10.
+
 Dieser lokale Prüfkandidat enthält die Korrektur der Gedächtnis-Einordnung, die Projektübersicht, Health-Filter mit Verlaufskurve sowie den direkten Gesprächsimport und mehrzeiligen Gesprächsentwurf. Er ist nicht auf dem persönlichen Mac installiert und kein öffentliches Release.
 
 ## Gebaut und geprüft
