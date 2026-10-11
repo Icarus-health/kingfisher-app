@@ -1,0 +1,158 @@
+{
+  "scope": "category_and_person_mentions_only",
+  "personal_data_used": false,
+  "scoring": "exact_category_and_person_sets_from_manual_fixture",
+  "model": "qwen3.5:4b",
+  "catalog_sha256": "ac0663b80134cf79fb799115d6c643bc00188b7b9eaecc0d3a79e4bcd97d54ae",
+  "product_category_sha256": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+  "cases_planned": 8,
+  "cases_attempted": 8,
+  "cases_evaluated": 8,
+  "cases_meeting_requirements": 5,
+  "model_calls_attempted": 8,
+  "model_run_completed": true,
+  "results": [
+    {
+      "id": "advertising-only",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true
+    },
+    {
+      "id": "system-success",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true
+    },
+    {
+      "id": "specific-work",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "work"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [
+        "Lene Kühn"
+      ],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": false
+    },
+    {
+      "id": "newsletter-with-real-assignment",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information",
+        "work"
+      ],
+      "people": [
+        "Lene Kühn"
+      ],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true
+    },
+    {
+      "id": "invoice",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "finance"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true
+    },
+    {
+      "id": "booking",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "appointments"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true
+    },
+    {
+      "id": "conditional-report",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "work"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [
+        "Lene Kühn"
+      ],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": false
+    },
+    {
+      "id": "cancelled-old-request",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "unclear"
+      ],
+      "people": [],
+      "missing_categories": [
+        "work"
+      ],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [
+        "unclear"
+      ],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": false
+    }
+  ],
+  "status": "evaluated",
+  "reason": null,
+  "seconds": 21.998
+}

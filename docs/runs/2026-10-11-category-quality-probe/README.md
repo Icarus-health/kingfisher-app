@@ -1,5 +1,7 @@
 # Ausführbare Einordnungsprobe, 11. Oktober 2026
 
+Spätere Fortsetzung: [tatsächliche lokale 4B-Messung und fehlende Gewichte der eingestellten Modelle](../2026-10-11-live-category-quality/README.md). Der Offline-Bericht unten bleibt der ursprüngliche erste Aufruf.
+
 Die acht [künstlichen Inhaltsfälle](../2026-10-10-native-and-category-boundary/quality-cases.json) können jetzt über `scripts/probe_category_quality.py` tatsächlich gegen ein lokales Ollama-Modell laufen. Persönliche Daten, App-Einstellungen und laufender Import werden nicht verwendet oder geändert. Der heutige echte Aufruf ergab **nicht ausgeführt**, nicht acht bestandene Fälle: Ollama ist nicht erreichbar. Keine Inferenz gestartet.
 
 ## Umfang und Bewertung
