@@ -1,0 +1,11 @@
+{
+  "version": "1.0.6-preview.b7cd321",
+  "live_python_files_match": 272,
+  "live_ui_files_match": 112,
+  "healthy": true,
+  "background_paused": true,
+  "calendar_api_or_window_accessed": false,
+  "model_inference": false,
+  "native_files_match": true,
+  "native_window_verified": false
+}

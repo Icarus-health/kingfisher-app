@@ -19,10 +19,20 @@ Alle 272 Python- und 112 UI-Dateien byteweise an das Archiv beziehungsweise den 
 
 ARM-App mit sechs Dateien streng/tief ad hoc signiert, nicht notarisiert. DMG nur lesend eingehängt, identische Bündeldateien nachgewiesen, wieder ausgehängt. DMG SHA-256 `dd82c485c719a760b7a06bbec786175a9b78f8a88ebda35bd15e407d37d4d2f3`. Separates Prüfpaket außerhalb Git; keine Registryveröffentlichung.
 
-Das neue Paket ist **nicht persönlich installiert**. Letzter installierter Stand bleibt `preview.f858681`; persönlicher Import bleibt pausiert. Native Fenster-/WebKit- und persönliche Kalenderabnahme offen: Computersteuerung meldet den Mac weiterhin gesperrt, obwohl der Nutzer den Kalenderdialog bestätigt hat. Keine Umgehung durch anderen UI-Zugriff.
+Das Paket ist inzwischen **als App-Dateien und gesundes Backend persönlich installiert**: `preview.b7cd321`. Persönlicher Import bleibt pausiert. Die bestehenden nativen Fensterprozesse wurden noch nicht neu gestartet; dies bestätigt keine neue WebKit-Sitzung. Native Fenster-/WebKit- und persönliche Kalenderabnahme offen: Computersteuerung meldet den Mac weiterhin gesperrt, obwohl der Nutzer den Kalenderdialog bestätigt hat. Keine Umgehung durch anderen UI-Zugriff.
 
 ## Grenzen und korrigierte Prüfaufbauten
 
 Der persönliche Einfenster-Prototyp bietet keine globale Mehrfenster-Atomarität: separate localStorage-Operationen sind keine Transaktion. Ein Neuladen rekonstruiert keine Entwurfsfelder; die Oberfläche erklärt dies ausdrücklich. Weder perfekt fehlerfreies Gedächtnis noch persönliche Modellqualität wird damit behauptet.
 
 Die erste Paketprobe las wegen fehlendem stdin-Schalter keinen Code ein und wurde nicht als Nachweis verwendet. Danach hielt die unveränderte Speicherreserve die zu kleine künstliche tmpfs-Partition korrekt an; der Prüflauf erhielt 1 GiB virtuelle Reserve bei weiter 1 GiB Arbeitsspeicherlimit. Der neue Neustart-Prüffall benötigte zudem einen dauerhaften synthetischen Selbstmodellspeicher statt eines neuen leeren MemoryBackend. Erst der abschließende vollständige Lauf mit dauerhaftem künstlichem Ziel, Exitcode 0 und letztem manuellen Marker gilt als grün. Produktcode wurde dafür nicht geändert.
+
+## Tatsächliche Installation
+
+Frische vollständige Sicherung: 167 Dateien, zehn Verzeichnisse, 333.347.678 Bytes; Wiederherstellung byteweise sowie Eigentümer, Rechte, Zeitstempel und erweiterte Attribute identisch. Alle 17 SQLite-Kopien bestehen die Integritätsprüfung. Archive, Konfiguration und Dateimanifeste verbleiben privat auf dem Mac; nur Inhaltsfingerabdrücke und technische Summen stehen im Repository.
+
+Die neue Version öffnete anschließend eine getrennte netzlose Sicherungskopie; 17 Schemas/Versionen und sämtliche 47 Tabellen im Episoden-, Aufgaben- und Selbstmodellspeicher unverändert, Headerindex gegen Original-Tags geprüft. Im tatsächlichen Dienst dieselben Erhaltungsprüfungen und die sieben zusätzlichen Kerntabellen bestanden; unverändertes Volume und Anbieter-/Modellumgebung. Exakt nur der Image-Selektor der geschützten Konfiguration geändert. Native sechs Dateien signiert und identisch zum DMG; tatsächlich laufende 272 Python- und 112 UI-Dateien stimmen mit dem geprüften Paket überein. Dienst gesund, globale Aufnahme pausiert. Kein neuer Modelllauf, Cloudauftrag, Fenster- oder Kalender-API-Test.
+
+Unabhängiger enger Installerreview samt eigenen AST-/SQLite-Gegenproben ohne konkreten Blocker. Root prüfte zusätzlich neun SQLite-Erhaltungsfälle, vier Staging- und drei Rückwegfälle und die echte Compose-Konfiguration mit künstlichen Werten. Der Rückweg überschreibt keine neuen Eingaben und startet nach fehlgeschlagenem Wechsel keinen alten Dienst auf ungeprüften Daten. Wartungssperre ist beratend; Mehrfenster-/globale OS-Exklusivität nicht behauptet.
+
+Eine zusätzliche Nachprüfung erwartete zunächst fälschlich die kurze öffentliche Gesundheitsantwort bei angemeldeter Anfrage; sie wurde auf das richtige öffentliche Lebenszeichen korrigiert. Die abschließende tatsächliche Dateien-/Versions-/Gesundheits-/Pausenprüfung bestand mit Exitcode 0. Native neue Sitzung und persönliche Kalender-/Gedächtnisqualität bleiben offen.

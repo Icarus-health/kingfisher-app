@@ -1,0 +1,33 @@
+{
+  "version": "1.0.6-preview.b7cd321",
+  "backend_image_id": "sha256:44c6f9fa0c6d0a8852ac7dfdbdad221def3e237a61acd5bb1485ca8e8f04db27",
+  "backend_healthy": true,
+  "native_files_match_canonical_dmg": true,
+  "native_strict_deep_signature": true,
+  "all_seven_core_tables_unchanged": true,
+  "sqlite_schema_and_user_version_unchanged": true,
+  "preserved_tables_checked": 47,
+  "existing_episode_store_tables_unchanged": 43,
+  "sqlite_schema_databases_checked": 17,
+  "protected_copy_store_opening_passed": true,
+  "data_volume_unchanged": true,
+  "only_env_image_selector_changed": true,
+  "runtime_provider_configuration_preserved": true,
+  "ambient_compose_overrides_removed": true,
+  "background_paused": true,
+  "storage_blocked": null,
+  "native_calendar_display_verified": false,
+  "native_process_restarted": false,
+  "native_window_verified": false,
+  "installed_but_native_restart_pending": true,
+  "backup": {
+    "volume_files": 167,
+    "volume_directories": 10,
+    "volume_bytes": 333347678,
+    "root_sqlite_integrity_checked": 17,
+    "restore_bytewise_match": true,
+    "restore_directory_entries_match": true,
+    "restore_ownership_modes_mtime_xattrs_match": true
+  },
+  "private_backup_details_kept_on_host": true
+}
