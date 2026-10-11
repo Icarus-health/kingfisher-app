@@ -1,0 +1,10 @@
+{
+  "source_archive_VERSION": "1.0.6",
+  "source_archive_VERSION_sha256": "51c18dc8694861beb47a67894e61044864214435389f6d3a274704d9566ff96c",
+  "staged_VERSION": "1.0.6-preview.a5787c8",
+  "staged_VERSION_sha256": "5cf69bbde6dde81b207bcd524444cec65f666f9d82474d371b759e9f62acc1b2",
+  "staged_Dockerfile_sha256": "50f3f3b96149fc5af7fcf829940074d6eb89d8456045f5a5a6c2f13fb57d197b",
+  "derivation": "git archive a5787c88914400151769dae714dfd74c9ea8a0c3; replace artifact VERSION with 1.0.6-preview.a5787c8; build UI; add Dockerfile deriving from pinned existing e2caaa4f image; native build reads staged VERSION",
+  "runtime_version_independently_asserted": true,
+  "source_archive_unmodified": true
+}
