@@ -60,7 +60,8 @@ import { PostfachStand } from "./PostfachStand";
 import { TodaySourceStatus } from "./TodaySourceStatus";
 import { createDailyRefresh } from "./dailyFlow";
 import { MailReader } from "./MailReader";
-import {TaskSaveAttempt, TASK_SAVE_UNCONFIRMED} from './taskSaveAttempt';
+import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
+import {TaskRetryReview} from './TaskRetryReview';
 
 
 
@@ -698,8 +699,9 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const taskSave = useRef(new TaskSaveAttempt());
+  const taskSave = useRef(new TaskSaveAttempt(undefined, MANUAL_TASK_REQUEST_KEY));
   const [createError, setCreateError] = useState("");
+  const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
 
   const currentView = useRef(view);
@@ -741,6 +743,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     if (submitting || attempt.inFlight || attempt.succeeded || !title.trim()) return;
     setSubmitting(true);
     setCreateError("");
+    setCreateReviewed(false);
     try {
       const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
       if (!task) return;
@@ -752,7 +755,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       if (view === "mine") load("mine");
       else setView("mine");
     } catch (cause) {
-      setCreateError(cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);
+      setCreateError(cause instanceof TaskSavePreparationError ? `${cause.message} Es wurde keine Aufgabe gesendet.` : cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);
     } finally {
       setSubmitting(false);
     }
@@ -800,7 +803,19 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     finally { setCompleting(null); }
   }
 
-  function startTask() { if (creating || taskSave.current.inFlight) return; taskSave.current = new TaskSaveAttempt(); setTitle(""); setDue(""); setCreateError(""); if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true); }
+  function startTask() {
+    if (creating || taskSave.current.inFlight) return;
+    taskSave.current = new TaskSaveAttempt(undefined, MANUAL_TASK_REQUEST_KEY);
+    setTitle(""); setDue(""); setCreateReviewed(false);
+    try {setCreateError(taskSave.current.restore() ? TASK_SAVE_PENDING : "");}
+    catch (cause) {setCreateError(`${cause instanceof Error ? cause.message : 'Der lokale Speicher ist nicht verfügbar.'} Es wurde keine Aufgabe gesendet.`);}
+    if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true);
+  }
+  function prepareNewTaskRequest() {
+    if (!createReviewed || submitting || taskSave.current.inFlight) return;
+    try {taskSave.current.resetAfterReview(); setCreateReviewed(false); setCreateError("");}
+    catch {setCreateError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
+  }
   function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
     currentSearch.current = '';
     setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
@@ -836,7 +851,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       </>}
       {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading}>
         <header><span>Aufgabe</span><span>Fällig</span></header>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
         {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
         {visibleTasks?.map((task) => <TaskRow projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={(name) => wait(task.id, name)} onComplete={() => complete(task.id, task.status === "done")} task={task} view={view} />)}
         {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { GoalHistory } from "./GoalHistory";
 import { api, ApiError } from "./api";
-import {TaskSaveAttempt, TASK_SAVE_UNCONFIRMED} from './taskSaveAttempt';
+import {TaskSaveAttempt, TaskSavePreparationError, goalTaskRequestKey, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
+import {TaskRetryReview} from './TaskRetryReview';
 import { taskHref } from "./taskWorkflow";
 
 type Goal = Awaited<ReturnType<typeof api.goals>>["items"][number];
@@ -19,6 +20,7 @@ export function GoalControls() {
   const [nextStepTitle, setNextStepTitle] = useState("");
   const [nextStepBusy, setNextStepBusy] = useState(false);
   const [nextStepError, setNextStepError] = useState("");
+  const [nextStepReviewed, setNextStepReviewed] = useState(false);
   const nextStepSave = useRef(new TaskSaveAttempt());
   const [createdTask, setCreatedTask] = useState<Awaited<ReturnType<typeof api.addTask>> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,13 +39,25 @@ export function GoalControls() {
     event.preventDefault();
     const attempt = nextStepSave.current;
     if (!nextStepGoal || nextStepBusy || attempt.inFlight || attempt.succeeded || !nextStepTitle.trim()) return;
-    setNextStepBusy(true); setNextStepError("");
+    setNextStepBusy(true); setNextStepError(""); setNextStepReviewed(false);
     try {
       const task = await attempt.save({title: nextStepTitle.trim(), goal_id: nextStepGoal.id}, api.addTask);
       if (!task) return;
       setCreatedTask(task); setNextStepGoal(null); setNextStepTitle("");
-    } catch (cause) {setNextStepError(cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);}
+    } catch (cause) {setNextStepError(cause instanceof TaskSavePreparationError ? `${cause.message} Es wurde keine Aufgabe gesendet.` : cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);}
     finally { setNextStepBusy(false); }
+  }
+  function openNextStep(goal: Goal) {
+    if (nextStepSave.current.inFlight) return;
+    nextStepSave.current = new TaskSaveAttempt(undefined, goalTaskRequestKey(goal.id));
+    setNextStepGoal(goal); setNextStepTitle(""); setNextStepReviewed(false); setCreatedTask(null);
+    try {setNextStepError(nextStepSave.current.restore() ? TASK_SAVE_PENDING : "");}
+    catch (cause) {setNextStepError(`${cause instanceof Error ? cause.message : 'Der lokale Speicher ist nicht verfügbar.'} Es wurde keine Aufgabe gesendet.`);}
+  }
+  function prepareNewNextStepRequest() {
+    if (!nextStepReviewed || nextStepBusy || nextStepSave.current.inFlight) return;
+    try {nextStepSave.current.resetAfterReview(); setNextStepReviewed(false); setNextStepError("");}
+    catch {setNextStepError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
   }
   return <section className="decision-controls" aria-label="Persönliche Ziele">
     <div className="decision-controls-heading"><div><h2>Was dir wichtig ist</h2><p>Deine ausdrücklich festgehaltenen Ziele.</p></div><button className="secondary-action" disabled={busy} onClick={() => edit("new")} type="button">+ Ziel</button></div>
@@ -69,8 +83,9 @@ export function GoalControls() {
       {nextStepGoal?.id === goal.id ? <form className="decision-create-form" aria-label={`Nächsten Schritt zu ${goal.satz}`} onSubmit={saveNextStep}>
         <label>Nächster Schritt<input autoFocus required maxLength={4096} disabled={nextStepBusy} value={nextStepTitle} onChange={event => setNextStepTitle(event.target.value)} placeholder="Was möchtest du als Nächstes tun?" /></label>
         {nextStepError && <p role="alert">{nextStepError}</p>}
+        {nextStepError && <TaskRetryReview reviewed={nextStepReviewed} busy={nextStepBusy} onReviewed={setNextStepReviewed} onPrepareNew={prepareNewNextStepRequest} />}
         <div className="decision-form-actions"><button type="button" className="text-action" disabled={nextStepBusy} onClick={() => setNextStepGoal(null)}>Abbrechen</button><button type="submit" className="primary-action" disabled={nextStepBusy || !nextStepTitle.trim()}>Aufgabe speichern</button></div>
-      </form> : <button className="secondary-action" disabled={busy || nextStepBusy} type="button" onClick={() => {nextStepSave.current = new TaskSaveAttempt();setNextStepGoal(goal);setNextStepTitle("");setNextStepError("");setCreatedTask(null);}}>Nächsten Schritt festhalten</button>}
+      </form> : <button className="secondary-action" disabled={busy || nextStepBusy} type="button" onClick={() => openNextStep(goal)}>Nächsten Schritt festhalten</button>}
       {createdTask?.goal_id === goal.id && <p role="status">Nächster Schritt gespeichert: <a href={taskHref(createdTask)}>Aufgabe öffnen</a></p>}
       <div className="decision-form-actions"><button className="secondary-action" disabled={busy} onClick={() => {setClosing(goal);setEditing(null);setConfirming(null);setOutcome("achieved");setNote("");}} type="button">Ziel abschließen</button>
       <button className="secondary-action" disabled={busy} onClick={() => edit(goal)} type="button">Ziel korrigieren</button>
