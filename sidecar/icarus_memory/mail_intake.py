@@ -100,6 +100,8 @@ class Intake:
 
     def _active(self, account, permitted):
         if not permitted():return False
+        from .storage_capacity import reason
+        if reason(self.episodes._path.parent) is not None:return False
         with self.episodes._lock:
             row=self.db.execute('SELECT MIN(paused) FROM mail_intake_folders WHERE account=?',(account,)).fetchone()
         return row is not None and row[0]==0
@@ -109,6 +111,8 @@ class Intake:
         return self._active(account,permitted)
 
     def _inventory(self, account, reader, row, live, permitted, gate):
+        with gate:
+            if not self._active(account,permitted):return
         folder=row['folder']; generation=row['generation']
         page=reader.inventory_page(folder,
             after_uid=row['live_uid'] if live else row['scan_uid'],
@@ -159,6 +163,8 @@ class Intake:
         nicht aufgenommen, aber gezählt (Status `filtered:<Kategorie>`) und im Status gezeigt.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
+        with (permission_lock if permission_lock is not None else nullcontext()):
+            if not self._active(account,permitted):return []
         sitzung=getattr(reader,'session',None)
         with (sitzung() if sitzung is not None else nullcontext()):
             return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold)

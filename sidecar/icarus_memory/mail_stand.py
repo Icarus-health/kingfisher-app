@@ -220,6 +220,8 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
     from .mail_intake import Intake
     settings = app.state.settings
     global_pause = bool(getattr(getattr(app.state, 'hintergrund', None), 'pausiert', False))
+    from .storage_capacity import reason, MESSAGES
+    storage_blocked = reason(app.state.episodes._path.parent)
     ergebnis = []
     store = None
     for eintrag in settings.mail_accounts:
@@ -244,6 +246,9 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
             aussage = {**aussage, 'zustand': 'pausiert',
                        'satz': f'Postfach {eintrag.label}: Einlesen pausiert. {zahlen} '
                                'Auf Heute geht es mit „Weiter“ weiter.'}
+        elif storage_blocked and aussage['zustand'] in {'liest', 'wartet'}:
+            aussage = {**aussage, 'zustand': 'wartet',
+                       'satz': f'Postfach {eintrag.label}: {MESSAGES[storage_blocked]}'}
         ergebnis.append({'account_id': eintrag.id, 'label': eintrag.label, **aussage})
     return ergebnis
 

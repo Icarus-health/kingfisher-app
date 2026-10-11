@@ -953,6 +953,8 @@ def _wire_scheduler(app: FastAPI) -> None:
     if scheduler is None:
         scheduler = Scheduler()
         app.state.scheduler = scheduler
+    from .storage_capacity import reason as storage_reason
+    scheduler._capacity_gate = lambda: storage_reason(_data_dir())
 
     def scheduled_provider(provider, *, agent, plan_at_start):
         if provider is not None and plan_at_start["local_model_only"]:

@@ -87,6 +87,9 @@ GRUND_TEXT = {
     # Fremdprobe 3, Befund 8: „Wartet, solange du arbeitest.“ las sich, als solle man aufhören zu arbeiten.
     'nutzer': 'Kingfisher lernt weiter, sobald du eine Pause machst; du musst nichts tun.',
 }
+from .storage_capacity import MESSAGES as STORAGE_MESSAGES
+GRUND_TEXT.update(STORAGE_MESSAGES)
+RESOURCE_INTERRUPTS = ('akku', 'energie_unbekannt', *STORAGE_MESSAGES)
 SATZ_ANBLEIBEN = 'Es geht schneller, wenn der Rechner heute anbleibt.'
 
 
@@ -211,7 +214,7 @@ class ModellAmpel:
 def _gesperrt(sperre: Callable[[], str | None]) -> bool:
     try:
         grund = sperre()
-        if grund in ('akku', 'energie_unbekannt'):
+        if grund in RESOURCE_INTERRUPTS:
             raise BackgroundInterrupted(grund)
         return grund is not None
     except Exception:  # noqa: BLE001 - eine kaputte Sperre darf den Hintergrund nicht für immer anhalten
@@ -686,7 +689,7 @@ class Steuerung:
         else:
             zustand = 'laeuft'
         schaetzung = None
-        if zustand in ('laeuft', 'wartet') and je_s and grund not in ('akku', 'energie_unbekannt'):
+        if zustand in ('laeuft', 'wartet') and je_s and grund not in RESOURCE_INTERRUPTS:
             sekunden = offen / je_s
             jetzt = self._wanduhr()
             ziel = jetzt + timedelta(seconds=sekunden)
@@ -697,7 +700,7 @@ class Steuerung:
         return {
             'zustand': zustand,
             'grund': GRUND_TEXT.get(grund or '') if (zustand in ('pausiert', 'wartet')
-                      or freigegeben and grund in ('akku', 'energie_unbekannt')) else None,
+                      or freigegeben and grund in RESOURCE_INTERRUPTS) else None,
             'pausiert': self.pausiert,
             'fortschritt': {**zahlen, 'offen': offen},
             'rate_pro_stunde': None if not je_s else round(je_s * 3600, 1),
@@ -719,8 +722,10 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     except ValueError:
         ruhe_s = RUHE_NACH_EINGABE_S
     from .host_power import install_routes as install_power_routes
+    from .storage_capacity import reason as storage_reason
     power = install_power_routes(app, guard, data_dir)
-    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s, external_gate=power.reason)
+    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s,
+                          external_gate=lambda: storage_reason(data_dir()) or power.reason())
     app.state.hintergrund = steuerung
     app.add_middleware(AktivitaetsMiddleware, aktivitaet=lambda: getattr(getattr(app.state, 'hintergrund', None), 'aktivitaet', None))
 
@@ -740,6 +745,7 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     # von außen übergebener Agent in Prüfungen), bleibt es beim alten Verhalten; die Routen gehen trotzdem.
     scheduler = getattr(app.state, 'scheduler', None)
     if scheduler is not None:
+        scheduler._capacity_gate = lambda: storage_reason(data_dir())
         scheduler.anschliessen(steuerung)
 
     def stand() -> dict[str, Any]:
