@@ -175,6 +175,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {error && <p role="alert">Termine konnten nicht geladen werden. Bitte erneut versuchen.</p>}
       {loading && <p role="status">Kalenderzeitraum wird geladen …</p>}
       {visibleData?.errors.map((message, index) => <p className="settings-error" role="alert" key={index}>{message}</p>)}
+      {visibleData?.warnings?.map((message, index) => <p role="status" key={index}>{message}</p>)}
       {visibleData && !visibleData.configured && <p>Noch kein Kalender verbunden. Wähle unter „Kalender verwalten“ deine Quellen aus.</p>}
       {visibleData?.configured && !loading && visibleData.items.length === 0 && visibleData.errors.length === 0 && <p role="status">Keine Termine in diesem Zeitraum.</p>}
       {(view === "Monat" || view === "Woche" || view === "Jahr") && <div className="calendar-period"><button aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>←</button><h2>{view === "Monat" ? focus.toLocaleDateString("de-DE", {month:"long", year:"numeric"}) : view === "Jahr" ? `${focus.getFullYear()}` : `${weekStart.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})} – ${plusDays(weekStart, 6).toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})}`}</h2><button aria-label="Nächster Zeitraum" onClick={() => shift(1)}>→</button><button onClick={() => setFocus(midnight(today))}>Heute</button></div>}

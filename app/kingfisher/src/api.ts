@@ -936,6 +936,7 @@ export type MacCalendarState = {
 
 export type CalendarOverview = {
   configured: boolean; errors: string[];
+  warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];

@@ -2755,7 +2755,7 @@ def create_app(
             "now": datetime.now().astimezone().isoformat(),
             "projects": {"items": [], "error": None},
             "tasks": {"items": [], "error": None},
-            "calendar": {"items": [], "nachzubereiten": [], "error": None},
+            "calendar": {"items": [], "nachzubereiten": [], "warnings": [], "error": None},
             "mail": {"items": [], "error": None},
             "memory": {"count": 0, "recent": []},
             "working_memory": {"items": [], "truncated": False, "error": None},
@@ -2817,8 +2817,12 @@ def create_app(
                 # Ein Abruf für beides: Was kommt, wird vorbereitet; was in den
                 # letzten 48 Stunden zu Ende ging, fragt nach seinem Ergebnis.
                 from .nachbereitung import FENSTER
+                from .calendar_window import display_events, display_warning
                 jetzt_utc = datetime.now(timezone.utc)
-                alle = [e.to_dict() for e in calendar.events(days=days + 2, at=jetzt_utc - FENSTER)]
+                von = jetzt_utc - FENSTER
+                termine, unbekannt = display_events(calendar.events(days=days + 2, at=von),
+                                                   von, jetzt_utc + timedelta(days=days))
+                alle = [e.to_dict() for e in termine]
                 kommend, vergangen = [], []
                 for item in alle:
                     # Ohne Ende (etwa DURATION statt DTEND) weiß niemand, ob
@@ -2835,6 +2839,8 @@ def create_app(
                 errors = list(getattr(calendar, "last_errors", {}).values())
                 if errors:
                     result["calendar"]["error"] = "Einige Kalender sind gerade nicht verfügbar: " + "; ".join(str(error) for error in errors)
+                if unbekannt:
+                    result["calendar"]["warnings"].append(display_warning(unbekannt))
             except Exception as exc:  # noqa: BLE001
                 result["calendar"]["error"] = str(exc)
 
@@ -2963,7 +2969,7 @@ def create_app(
     def _calendar_overview(days: int = 7, year_view: bool = False, *, start: datetime | None = None,
                            finish: datetime | None = None, zone=None) -> dict[str, Any]:
         calendar = getattr(app.state, "calendar", None)
-        result: dict[str, Any] = {"items": [], "errors": [], "configured": calendar is not None}
+        result: dict[str, Any] = {"items": [], "errors": [], "warnings": [], "configured": calendar is not None}
         # Bestätigte Geburtstage stehen jedes Jahr wieder im Kalender, auch ohne verbundenen Kalender; nur in dieser
         # Ansicht, in keinen Kalender eines Anbieters geschrieben (Fremdprobe 2, Befund 20).
         from .wiederkehrendes import kalender_eintraege
@@ -2978,17 +2984,20 @@ def create_app(
             result["items"] = geburtstage
             return result
         try:
-            if start and finish:
-                events = calendar.events(days=(finish - start).total_seconds() / 86400, at=start)
-            elif year_view:
+            from .calendar_window import display_events, display_warning
+            if not (start and finish) and year_view:
                 current = datetime.now().astimezone()
                 start = current.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
                 finish = start.replace(year=start.year + 1)
-                events = calendar.events(days=(finish - start).days, at=start)
-            else:
-                events = calendar.events(days=days)
+            elif not (start and finish):
+                start = datetime.now(timezone.utc)
+                finish = start + timedelta(days=days)
+            events, unknown = display_events(
+                calendar.events(days=(finish - start).total_seconds() / 86400, at=start), start, finish, zone=zone)
             result["items"] = [event.to_dict() for event in events]
             result["errors"] = list(getattr(calendar, "last_errors", {}).values())
+            if unknown:
+                result["warnings"].append(display_warning(unknown))
         except Exception as exc:
             result["errors"] = [str(exc)]
         result["items"] = sorted([*result["items"], *geburtstage], key=lambda e: str(e.get("start") or ""))
