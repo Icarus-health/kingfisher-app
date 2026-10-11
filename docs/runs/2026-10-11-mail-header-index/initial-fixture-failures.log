@@ -1,0 +1,410 @@
+..................................F................................F.... [ 97%]
+..                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_v17_migration_stamps_existing_interpretations_without_reclassification __
+
+connection = <sqlite3.Connection object at 0x10e609300>, store = 'episodes'
+path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_v17_migration_stamps_exis0/episodes.sqlite3')
+migrations = (Migration(version=1, name='initial_explicit_version', apply=<function _migrate_v1 at 0x108ed1ee0>, verify=<function _...ion_and_produced', apply=<function migrate_episodes at 0x108ed1260>, verify=<function _verify_v6 at 0x108ed2a20>), ...)
+
+    def run_migrations(
+        connection: sqlite3.Connection,
+        *,
+        store: str,
+        path: str | Path,
+        migrations: Iterable[Migration],
+    ) -> int:
+        """Prüft und aktualisiert eine SQLite-Datei bis zur Zielversion.
+    
+        Jeder Schritt läuft in einer eigenen expliziten Transaktion. Die Version
+        wird erst nach ``apply`` und ``verify`` geschrieben. ``BEGIN IMMEDIATE``
+        serialisiert zwei gleichzeitig startende ICARUS-Prozesse; nach dem Lock
+        wird die Version erneut gelesen, damit kein Schritt doppelt läuft.
+        """
+    
+        ordered = _ordered(migrations)
+        target = ordered[-1].version
+        db_path = Path(path)
+    
+        try:
+            version = current_version(connection)
+        except sqlite3.DatabaseError as exc:
+            raise MigrationError(
+                "Die SQLite-Schemaversion konnte nicht gelesen werden.",
+                store=store,
+                path=db_path,
+            ) from exc
+        _guard_version(store, db_path, version, target)
+    
+        while version < target:
+            migration = ordered[version]
+            before = version
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                locked_version = current_version(connection)
+                _guard_version(store, db_path, locked_version, target)
+    
+                # Eine andere Verbindung kann den Schritt während unserer
+                # Wartezeit bereits abgeschlossen haben.
+                if locked_version != before:
+                    connection.rollback()
+                    version = locked_version
+                    continue
+    
+                # Der Verifier der aktuell geöffneten Version ist die Vorbedingung
+                # für den nächsten Schritt. Frühere Verifier sind keine Invarianten
+                # aller späteren Versionen: Eine v2 darf den exakten v1-Vertrag
+                # beispielsweise durch eine neue Tabelle bewusst erweitern.
+                if locked_version > 0:
+>                   ordered[locked_version - 1].verify(connection)
+
+sidecar/icarus_memory/migrations.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sidecar/icarus_memory/episodes.py:792: in _verify_v17
+    _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
+sidecar/icarus_memory/episodes.py:676: in _verify_v10
+    verify_schema(connection,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+connection = <sqlite3.Connection object at 0x10e609300>
+expected_tables = {'mail_intake_analysis': {'episode_id', 'generation', 'status'}, 'mail_intake_folders': {'account', 'error', 'folder',...nt', 'attempts', 'episode_id', 'folder', 'generation', 'grund', ...}, 'source_index': {'body', 'people', 'title'}, ...}
+expected_indexes = {'idx_mail_intake_queue': IndexContract(table='mail_intake_items', columns=('account', 'status', 'retry_at', 'lane', '...alse), 'idx_sach_nutzer_sache': IndexContract(table='sach_nutzer', columns=('sache', 'episode_id'), unique=False), ...}
+expected_triggers = {'trg_episode_projection_insert': "CREATE TRIGGER trg_episode_projection_insert BEFORE INSERT ON episode_produced_asse...LD.state!='ignored'\n BEGIN UPDATE episodes SET support_generation=OLD.support_generation+1 WHERE id=NEW.id; END", ...}
+expected_primary_keys = {'mail_intake_analysis': {'episode_id'}, 'mail_intake_folders': {'account', 'folder'}, 'mail_intake_items': {'account', 'folder', 'generation', 'uid'}, 'source_index': set(), ...}
+
+    def verify_schema(
+        connection: sqlite3.Connection,
+        *,
+        expected_tables: Mapping[str, set[str]],
+        expected_indexes: Mapping[str, IndexContract] | None = None,
+        expected_triggers: Mapping[str, str] | None = None,
+        expected_primary_keys: Mapping[str, set[str]] | None = None,
+    ) -> None:
+        """Prüft den für einen Store zugesagten Mindestvertrag."""
+    
+        actual_tables = _user_tables(connection)
+        if actual_tables != set(expected_tables):
+>           raise sqlite3.DatabaseError(
+                f"Tabellen weichen ab: erwartet {sorted(expected_tables)}, "
+                f"gefunden {sorted(actual_tables)}"
+            )
+E           sqlite3.DatabaseError: Tabellen weichen ab: erwartet ['akten_arten', 'akten_cache', 'episode_produced_assertions', 'episodes', 'lagen', 'mail_intake_analysis', 'mail_intake_folders', 'mail_intake_items', 'mail_progress', 'memory_category_corrections', 'memory_category_entities', 'memory_category_recheck', 'memory_category_scan', 'memory_category_sources', 'memory_category_taxonomy', 'memory_category_topics', 'personen_kreis', 'sach_bezuege', 'sach_nutzer', 'sach_quellen', 'source_heads', 'source_index', 'source_index_config', 'source_index_content', 'source_index_data', 'source_index_docs', 'source_index_docsize', 'source_index_idx', 'source_index_meta', 'source_index_skipped', 'source_index_woerter', 'source_index_woerter_config', 'source_index_woerter_content', 'source_index_woerter_data', 'source_index_woerter_docsize', 'source_index_woerter_idx', 'working_memory_items', 'working_memory_scan', 'working_memory_sources', 'working_memory_terms'], gefunden ['akten_arten', 'akten_cache', 'episode_mail_headers', 'episode_produced_assertions', 'episodes', 'lagen', 'mail_intake_analysis', 'mail_intake_folders', 'mail_intake_items', 'mail_progress', 'memory_category_corrections', 'memory_category_entities', 'memory_category_recheck', 'memory_category_scan', 'memory_category_sources', 'memory_category_taxonomy', 'memory_category_topics', 'personen_kreis', 'sach_bezuege', 'sach_nutzer', 'sach_quellen', 'source_heads', 'source_index', 'source_index_config', 'source_index_content', 'source_index_data', 'source_index_docs', 'source_index_docsize', 'source_index_idx', 'source_index_meta', 'source_index_skipped', 'source_index_woerter', 'source_index_woerter_config', 'source_index_woerter_content', 'source_index_woerter_data', 'source_index_woerter_docsize', 'source_index_woerter_idx', 'working_memory_items', 'working_memory_scan', 'working_memory_sources', 'working_memory_terms']
+
+sidecar/icarus_memory/migrations.py:315: DatabaseError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_v17_migration_stamps_exis0')
+
+    def test_v17_migration_stamps_existing_interpretations_without_reclassification(tmp_path):
+        from icarus_memory.working_memory_store import WorkingMemoryStore
+    
+        path = tmp_path / "episodes.sqlite3"
+        episodes = EpisodeStore(path)
+        episode, _ = episodes.record(
+            EpisodeKind.MESSAGE, "Original", "Orion bleibt unverändert",
+            Provenance(SourceType.CHAT, source_ref="chat:local"), at=T0)
+        memory = WorkingMemoryStore(episodes)
+        assert memory.commit(episodes.support_snapshot(episode.id),
+                             [{"start": 0, "end": len(episode.body), "kind": "fact"}], model="local-v1")
+        before_ref = memory.search("Orion")["refs"][0]
+        episodes.close()
+    
+        connection = sqlite3.connect(path)
+        from tests.working_memory_legacy import drop_task_rechecks
+        drop_task_rechecks(connection)
+        connection.execute("ALTER TABLE working_memory_sources DROP COLUMN analysis_version")
+        connection.execute("ALTER TABLE memory_category_sources DROP COLUMN failure_code")
+        connection.execute("PRAGMA user_version = 17")
+        connection.commit()
+        connection.close()
+    
+>       reopened = EpisodeStore(path)
+                   ^^^^^^^^^^^^^^^^^^
+
+sidecar/tests/test_migrations.py:146: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sidecar/icarus_memory/episodes.py:911: in __init__
+    run_migrations(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+connection = <sqlite3.Connection object at 0x10e609300>, store = 'episodes'
+path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_v17_migration_stamps_exis0/episodes.sqlite3')
+migrations = (Migration(version=1, name='initial_explicit_version', apply=<function _migrate_v1 at 0x108ed1ee0>, verify=<function _...ion_and_produced', apply=<function migrate_episodes at 0x108ed1260>, verify=<function _verify_v6 at 0x108ed2a20>), ...)
+
+    def run_migrations(
+        connection: sqlite3.Connection,
+        *,
+        store: str,
+        path: str | Path,
+        migrations: Iterable[Migration],
+    ) -> int:
+        """Prüft und aktualisiert eine SQLite-Datei bis zur Zielversion.
+    
+        Jeder Schritt läuft in einer eigenen expliziten Transaktion. Die Version
+        wird erst nach ``apply`` und ``verify`` geschrieben. ``BEGIN IMMEDIATE``
+        serialisiert zwei gleichzeitig startende ICARUS-Prozesse; nach dem Lock
+        wird die Version erneut gelesen, damit kein Schritt doppelt läuft.
+        """
+    
+        ordered = _ordered(migrations)
+        target = ordered[-1].version
+        db_path = Path(path)
+    
+        try:
+            version = current_version(connection)
+        except sqlite3.DatabaseError as exc:
+            raise MigrationError(
+                "Die SQLite-Schemaversion konnte nicht gelesen werden.",
+                store=store,
+                path=db_path,
+            ) from exc
+        _guard_version(store, db_path, version, target)
+    
+        while version < target:
+            migration = ordered[version]
+            before = version
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                locked_version = current_version(connection)
+                _guard_version(store, db_path, locked_version, target)
+    
+                # Eine andere Verbindung kann den Schritt während unserer
+                # Wartezeit bereits abgeschlossen haben.
+                if locked_version != before:
+                    connection.rollback()
+                    version = locked_version
+                    continue
+    
+                # Der Verifier der aktuell geöffneten Version ist die Vorbedingung
+                # für den nächsten Schritt. Frühere Verifier sind keine Invarianten
+                # aller späteren Versionen: Eine v2 darf den exakten v1-Vertrag
+                # beispielsweise durch eine neue Tabelle bewusst erweitern.
+                if locked_version > 0:
+                    ordered[locked_version - 1].verify(connection)
+    
+                logger.info(
+                    "SQLite-Migration startet: store=%s path=%s version_before=%d "
+                    "migration=%s",
+                    store,
+                    db_path,
+                    before,
+                    migration.name,
+                )
+                migration.apply(connection)
+                migration.verify(connection)
+                connection.execute(f"PRAGMA user_version = {migration.version}")
+                if current_version(connection) != migration.version:
+                    raise sqlite3.DatabaseError("user_version wurde nicht übernommen")
+                connection.commit()
+            except MigrationError:
+                connection.rollback()
+                logger.exception(
+                    "SQLite-Migration fehlgeschlagen: store=%s path=%s "
+                    "version_before=%d migration=%s",
+                    store,
+                    db_path,
+                    before,
+                    migration.name,
+                )
+                raise
+            except Exception as exc:
+                connection.rollback()
+                logger.exception(
+                    "SQLite-Migration fehlgeschlagen: store=%s path=%s "
+                    "version_before=%d migration=%s",
+                    store,
+                    db_path,
+                    before,
+                    migration.name,
+                )
+>               raise MigrationError(
+                    f"Migration {migration.version} ({migration.name}) ist fehlgeschlagen.",
+                    store=store,
+                    path=db_path,
+                ) from exc
+E               icarus_memory.migrations.MigrationError: Migration 18 (working_memory_analysis_version) ist fehlgeschlagen.
+
+sidecar/icarus_memory/migrations.py:207: MigrationError
+------------------------------ Captured log call -------------------------------
+ERROR    icarus_memory.migrations:migrations.py:199 SQLite-Migration fehlgeschlagen: store=episodes path=/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_v17_migration_stamps_exis0/episodes.sqlite3 version_before=17 migration=working_memory_analysis_version
+Traceback (most recent call last):
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/migrations.py", line 170, in run_migrations
+    ordered[locked_version - 1].verify(connection)
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/episodes.py", line 792, in _verify_v17
+    _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/episodes.py", line 676, in _verify_v10
+    verify_schema(connection,
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/migrations.py", line 315, in verify_schema
+    raise sqlite3.DatabaseError(
+sqlite3.DatabaseError: Tabellen weichen ab: erwartet ['akten_arten', 'akten_cache', 'episode_produced_assertions', 'episodes', 'lagen', 'mail_intake_analysis', 'mail_intake_folders', 'mail_intake_items', 'mail_progress', 'memory_category_corrections', 'memory_category_entities', 'memory_category_recheck', 'memory_category_scan', 'memory_category_sources', 'memory_category_taxonomy', 'memory_category_topics', 'personen_kreis', 'sach_bezuege', 'sach_nutzer', 'sach_quellen', 'source_heads', 'source_index', 'source_index_config', 'source_index_content', 'source_index_data', 'source_index_docs', 'source_index_docsize', 'source_index_idx', 'source_index_meta', 'source_index_skipped', 'source_index_woerter', 'source_index_woerter_config', 'source_index_woerter_content', 'source_index_woerter_data', 'source_index_woerter_docsize', 'source_index_woerter_idx', 'working_memory_items', 'working_memory_scan', 'working_memory_sources', 'working_memory_terms'], gefunden ['akten_arten', 'akten_cache', 'episode_mail_headers', 'episode_produced_assertions', 'episodes', 'lagen', 'mail_intake_analysis', 'mail_intake_folders', 'mail_intake_items', 'mail_progress', 'memory_category_corrections', 'memory_category_entities', 'memory_category_recheck', 'memory_category_scan', 'memory_category_sources', 'memory_category_taxonomy', 'memory_category_topics', 'personen_kreis', 'sach_bezuege', 'sach_nutzer', 'sach_quellen', 'source_heads', 'source_index', 'source_index_config', 'source_index_content', 'source_index_data', 'source_index_docs', 'source_index_docsize', 'source_index_idx', 'source_index_meta', 'source_index_skipped', 'source_index_woerter', 'source_index_woerter_config', 'source_index_woerter_content', 'source_index_woerter_data', 'source_index_woerter_docsize', 'source_index_woerter_idx', 'working_memory_items', 'working_memory_scan', 'working_memory_sources', 'working_memory_terms']
+_____________ test_legacy_bestand_aller_stores_bleibt_unveraendert _____________
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_legacy_bestand_aller_stor0')
+
+    def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None:
+        provenance = Provenance(source_type=SourceType.CHAT, source_ref="chat:legacy")
+        paths = {name: tmp_path / f"{name}.sqlite3" for name, _, _ in STORE_SPECS}
+    
+        backend = SqliteBackend(paths["self_model"])
+        model = SelfModelStore(backend, subject_id="test")
+        model.record("Bleibt erhalten.", Kind.STATE, provenance, at=T0)
+        backend.close()
+    
+        episodes = EpisodeStore(paths["episodes"])
+        episode, _ = episodes.record(
+            EpisodeKind.DOCUMENT,
+            "Legacy Episode",
+            "Unveränderter Rohtext",
+            provenance,
+            at=T0,
+        )
+        episodes.close()
+    
+        tasks = TaskStore(paths["tasks"])
+        tasks.add("Legacy Aufgabe", provenance, at=T0)
+        tasks.close()
+    
+        workspace = WorkspaceStore(paths["workspace"])
+        project = workspace.add_project("Legacy Projekt", provenance, at=T0)
+        workspace.add_note(
+            "Legacy Notiz", "Unveränderter Inhalt", provenance, project_id=project.id, at=T0
+        )
+        workspace.close()
+    
+        proposals = ProposalStore(paths["proposals"])
+        proposals.propose(
+            ProposalKind.ASSERTION,
+            "Legacy Vorschlag",
+            "Belegter Vorschlag",
+            assertion_kind=Kind.STATE,
+            evidence=[
+                Evidence(episode_id=episode.id, quote="Rohtext", digest=episode.digest)
+            ],
+            at=T0,
+        )
+        proposals.close()
+    
+        audit = AuditLog(paths["audit"])
+        audit.record("test", "read", "auto", "executed", {"id": "legacy"}, at=T0)
+        audit.close()
+    
+        rules = RegelStore(paths["rules"])
+        rules.anlegen("Legacy Regel", "zeit", "notify", {"zone": "UTC"})
+        rules.close()
+    
+        before: dict[str, dict[str, list[tuple]]] = {}
+        for name, path in paths.items():
+            connection = sqlite3.connect(path)
+            if name in ('episodes', 'proposals'):
+                from icarus_memory.support_schema import EPISODE_TRIGGERS, PROPOSAL_TRIGGERS
+                for trigger in (EPISODE_TRIGGERS if name == 'episodes' else PROPOSAL_TRIGGERS):
+                    connection.execute('DROP TRIGGER ' + trigger)
+            if name == "episodes":
+                from tests.working_memory_legacy import drop_intake_extensions
+                drop_intake_extensions(connection)
+                connection.execute('DROP TABLE working_memory_terms')
+                connection.execute('DROP TABLE working_memory_items')
+                connection.execute('DROP TABLE working_memory_sources')
+                connection.execute('DROP TABLE working_memory_scan')
+                connection.execute('DROP TABLE episode_produced_assertions')
+                connection.execute('ALTER TABLE episodes DROP COLUMN support_generation')
+                connection.execute("DROP TABLE mail_progress")
+                connection.execute("DROP TABLE source_heads")
+                connection.execute("DROP INDEX idx_episodes_digest")
+                connection.execute("ALTER TABLE episodes DROP COLUMN source_key")
+                connection.execute("ALTER TABLE episodes DROP COLUMN metadata_digest")
+                connection.execute("CREATE UNIQUE INDEX idx_episodes_digest ON episodes(digest)")
+            if name == "tasks":
+                connection.execute("DROP TABLE task_events")
+                connection.execute("DROP TABLE task_requests")
+            if name == "workspace":
+                connection.execute("DROP TABLE event_projects")
+                connection.execute("DROP TABLE event_followups")
+            if name == "proposals":
+                connection.execute('DROP INDEX idx_proposals_produced')
+                connection.execute('ALTER TABLE proposals DROP COLUMN produced_assertion_id')
+                connection.execute('ALTER TABLE proposals DROP COLUMN support_authorization')
+                connection.execute("DROP TABLE task_analysis")
+                connection.execute("DROP TABLE task_scan_cursor")
+                connection.execute("DROP TABLE memory_analysis_jobs")
+            connection.execute("PRAGMA user_version = 0")
+            connection.commit()
+            connection.close()
+            before[name] = _snapshot(path)
+    
+        for name, factory, _ in STORE_SPECS:
+>           store = factory(paths[name])
+                    ^^^^^^^^^^^^^^^^^^^^
+
+sidecar/tests/test_migrations.py:486: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sidecar/icarus_memory/episodes.py:911: in __init__
+    run_migrations(
+sidecar/icarus_memory/migrations.py:180: in run_migrations
+    migration.apply(connection)
+sidecar/icarus_memory/episodes.py:452: in _migrate_v1
+    validate_legacy_or_empty(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+connection = <sqlite3.Connection object at 0x10e6096c0>, store = 'episodes'
+path = '/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_legacy_bestand_aller_stor0/episodes.sqlite3'
+expected_tables = {'episodes': {'body', 'digest', 'document', 'id', 'kind', 'occurred_at', ...}}
+allowed_column_sets = None
+expected_indexes = {'idx_episodes_digest': IndexContract(table='episodes', columns=('digest',), unique=True), 'idx_episodes_state': Index...d_at',), unique=False), 'idx_episodes_project': IndexContract(table='episodes', columns=('project_id',), unique=False)}
+expected_triggers = None, expected_primary_keys = {'episodes': {'id'}}
+
+    def validate_legacy_or_empty(
+        connection: sqlite3.Connection,
+        *,
+        store: str,
+        path: str | Path,
+        expected_tables: Mapping[str, set[str]],
+        allowed_column_sets: Mapping[str, Iterable[set[str]]] | None = None,
+        expected_indexes: Mapping[str, IndexContract] | None = None,
+        expected_triggers: Mapping[str, str] | None = None,
+        expected_primary_keys: Mapping[str, set[str]] | None = None,
+    ) -> None:
+        """Akzeptiert bei Version 0 nur leer oder einen bekannten Bestand."""
+    
+        actual_tables = _user_tables(connection)
+        if not actual_tables:
+            if _user_schema_objects(connection):
+                raise IncompatibleLegacySchema(
+                    f"Die unversionierte Datei für {store} ist nicht leer und "
+                    "entspricht keinem bekannten Legacy-Schema.",
+                    store=store,
+                    path=path,
+                )
+            return
+        expected_names = set(expected_tables)
+        if actual_tables != expected_names:
+>           raise IncompatibleLegacySchema(
+                f"Die unversionierte Datei für {store} enthält nicht das erwartete "
+                "Legacy-Schema.",
+                store=store,
+                path=path,
+            )
+E           icarus_memory.migrations.IncompatibleLegacySchema: Die unversionierte Datei für episodes enthält nicht das erwartete Legacy-Schema.
+
+sidecar/icarus_memory/migrations.py:271: IncompatibleLegacySchema
+------------------------------ Captured log call -------------------------------
+ERROR    icarus_memory.migrations:migrations.py:188 SQLite-Migration fehlgeschlagen: store=episodes path=/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1425/test_legacy_bestand_aller_stor0/episodes.sqlite3 version_before=0 migration=initial_explicit_version
+Traceback (most recent call last):
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/migrations.py", line 180, in run_migrations
+    migration.apply(connection)
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/episodes.py", line 452, in _migrate_v1
+    validate_legacy_or_empty(
+  File "/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/sidecar/icarus_memory/migrations.py", line 271, in validate_legacy_or_empty
+    raise IncompatibleLegacySchema(
+icarus_memory.migrations.IncompatibleLegacySchema: Die unversionierte Datei für episodes enthält nicht das erwartete Legacy-Schema.
+=============================== warnings summary ===============================
+../../../../../../../../private/tmp/kingfisher-question-model-venv-20261011/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /private/tmp/kingfisher-question-model-venv-20261011/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_migrations.py::test_v17_migration_stamps_existing_interpretations_without_reclassification
+FAILED sidecar/tests/test_migrations.py::test_legacy_bestand_aller_stores_bleibt_unveraendert
+2 failed, 72 passed, 1 warning in 10.97s
