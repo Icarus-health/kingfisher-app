@@ -1,0 +1,11 @@
+{
+  "version": "1.0.6-preview.45cb1c8",
+  "base_image": "sha256:6172ec0c0a63075d9a7481c9c934657f698a6f3d8764e063cdbccdf9a21daa63",
+  "code_commit": "45cb1c8272a1335a49b7a3adc1d59fa3c542e9c5",
+  "source_tar_sha256": "7438c86a2944270213fd984b4d705f48cfeb7c729120ad85c010cc78d5065217",
+  "arch": "arm64",
+  "private_data": false,
+  "unchanged_ui_source_tree": true,
+  "ui_reused_from_verified_package": "3690733",
+  "scope": "Exact installed parent plus memory_categories.py and version/native bundle metadata"
+}

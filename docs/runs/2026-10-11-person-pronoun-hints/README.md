@@ -1,6 +1,6 @@
 # Pronomen sind keine Personennamen
 
-11. Oktober 2026, Code `45cb1c8272a1335a49b7a3adc1d59fa3c542e9c5`. Im bestehenden Draft #54, noch nicht persönlich installiert. Mac bleibt auf dem geprüften Speicherschutzpaket `1.0.6-preview.3690733`; große Aufnahme unverändert pausiert.
+11. Oktober 2026, Code `45cb1c8272a1335a49b7a3adc1d59fa3c542e9c5`. Im bestehenden Draft #54. Beim hier dokumentierten Code-Lauf noch nicht persönlich installiert; anschließend als [geprüftes Paket `1.0.6-preview.45cb1c8`](../2026-10-11-person-pronoun-package/README.md) installiert. Große Aufnahme unverändert pausiert.
 
 ## Konkreter Fehler und Korrektur
 
@@ -17,4 +17,4 @@ Seltene Anzeigenamen wie „Sie“ bleiben als ungeprüfte Erwähnung verfügbar
 - Finale 32 neue Fälle: lokale Quote-/Absolutbelege, künstlicher ausdrücklich erlaubter Remote-Quote-Weg, gespeicherter Altspan nach Datenbank-Neustart, echte/kurze Namen, Organisationen, aktuelle Absender-/Empfängermetadaten, generische/ungültige Adresse sowie Roh-/Zitatkopf ohne Ausnahme. Alte gespeicherte Pronomenzeile bleibt nach Wiederöffnung tatsächlich in der Datenbank; nur die Anzeigeprojektion verbirgt sie. Originalquelle und andere Belege unverändert.
 - 198 betroffene Tests und 44 zusätzliche, disjunkte Cloud-/Importtests bestanden (242 zusammen). Provider ausschließlich künstlich; keine neue Modellinferenz, kostenpflichtige Anfrage oder persönlichen Quellen. Vorhandene Starlette/httpx-Abkündigung. Keine neue gesamte Backend-Suite oder UI-Wiederholung für diesen reinen Backend-Diff.
 
-`verification.json` bindet Code und Datei-Hashes; komprimierte Logs bewahren die roten und finalen Läufe. Die vorherigen echten Modell-Qualitätswerte werden dadurch nicht nachträglich geändert. Das beweist den deterministischen Filter, keine allgemeine Einordnungs- oder Identitätsgenauigkeit und keinen neuen nativen Bediennachweis. Auslieferung im nächsten geprüften Paket und persönliche Alltagsabnahme bleiben offen.
+`verification.json` bindet Code und Datei-Hashes; komprimierte Logs bewahren die roten und finalen Läufe. Die vorherigen echten Modell-Qualitätswerte werden dadurch nicht nachträglich geändert. Das beweist den deterministischen Filter, keine allgemeine Einordnungs- oder Identitätsgenauigkeit und keinen neuen nativen Bediennachweis. Die spätere [Paketinstallation](../2026-10-11-person-pronoun-package/README.md) ist separat nachgewiesen; neuer nativer Fenster- und persönlicher Alltagsnachweis bleiben offen.
