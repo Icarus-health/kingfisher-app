@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.bfe555e",
+  "canonical_path": "/Users/sorenkube/Documents/Codex/Kingfisher-Pruefpakete/2026-10-11-calendar-display-bfe555e/Kingfisher.dmg",
+  "dmg_sha256": "4c03e6819960395c7b7d46ea1a9fbe3ad3042d56844c6b21d4900d841c0472d5",
+  "read_only_mounted_bundle_matches": true,
+  "strict_deep_signature": true,
+  "architecture": "arm64",
+  "files": 6,
+  "personal_data": false
+}
