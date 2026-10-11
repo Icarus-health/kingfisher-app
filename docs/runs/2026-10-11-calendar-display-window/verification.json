@@ -1,0 +1,17 @@
+{
+  "scope": "Actual CalendarPage; synthetic responses only; no personal app access",
+  "browser": "Browser plugin not available; bundled Playwright",
+  "errors": [],
+  "writes": [],
+  "cases": [
+    {
+      "name": "warning-visible-as-status-without-provider-error",
+      "passed": true
+    },
+    {
+      "name": "refresh-clears-old-warning",
+      "passed": true
+    }
+  ],
+  "mobile_horizontal_overflow": false
+}
