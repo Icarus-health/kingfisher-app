@@ -1,0 +1,95 @@
+{
+  "phase": "before",
+  "scope": "Actual LocalModelSettings with controlled synthetic HTTP; no real model/private data/cloud",
+  "browser": "Browser plugin not available; bundled Playwright",
+  "cases": [
+    {
+      "name": "installed-alternative",
+      "before": {
+        "model": "qwen3.5:9b",
+        "manual": false
+      },
+      "expected": {
+        "model": "qwen3.5:9b",
+        "manual": false
+      },
+      "actual": {
+        "model": "missing:12b",
+        "manual": true
+      },
+      "passed": false,
+      "writes": [],
+      "mobile_no_horizontal_overflow": true
+    },
+    {
+      "name": "typed-name",
+      "before": {
+        "model": "typed:7b",
+        "manual": true
+      },
+      "expected": {
+        "model": "typed:7b",
+        "manual": true
+      },
+      "actual": {
+        "model": "missing:12b",
+        "manual": true
+      },
+      "passed": false,
+      "writes": []
+    },
+    {
+      "name": "empty-manual",
+      "before": {
+        "model": "",
+        "manual": true
+      },
+      "expected": {
+        "model": "",
+        "manual": true
+      },
+      "actual": {
+        "model": "missing:12b",
+        "manual": true
+      },
+      "passed": false,
+      "writes": []
+    },
+    {
+      "name": "untouched-config",
+      "before": {
+        "model": "missing:12b",
+        "manual": true
+      },
+      "expected": {
+        "model": "qwen3.5:9b",
+        "manual": false
+      },
+      "actual": {
+        "model": "qwen3.5:9b",
+        "manual": false
+      },
+      "passed": true,
+      "writes": []
+    },
+    {
+      "name": "removed-alternative",
+      "before": {
+        "model": "qwen3.5:9b",
+        "manual": false
+      },
+      "expected": {
+        "model": "qwen3.5:9b",
+        "manual": true
+      },
+      "actual": {
+        "model": "missing:12b",
+        "manual": true
+      },
+      "passed": false,
+      "writes": []
+    }
+  ],
+  "errors": [],
+  "passed": false
+}
