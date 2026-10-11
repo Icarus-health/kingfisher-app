@@ -1,5 +1,7 @@
 # Native Teilprüfung und Grenze der Themenprüfung
 
+Fortsetzung vom 11. Oktober: Die vorbereiteten Inhaltsfälle haben jetzt einen [ausführbaren lokalen Testläufer](../2026-10-11-category-quality-probe/README.md). Der echte Aufruf meldet bei nicht erreichbarem Ollama ausdrücklich keine ausgeführte Modellmessung. Die historische Prüfung unten bleibt ein eigener Nachweis.
+
 10. Oktober 2026. Geprüfter Checkout: `99073b2cbb7b41b65855bd75224a8bc07fbe3801`.
 Die folgende Prüfung ändert keinen Produktcode und keinen persönlichen Bestand.
 
