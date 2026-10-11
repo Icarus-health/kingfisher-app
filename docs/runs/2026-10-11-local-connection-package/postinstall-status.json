@@ -1,0 +1,12 @@
+{
+  "version": "1.0.6-preview.bc21155",
+  "background_paused": true,
+  "calendar_safe": {
+    "status": "granted",
+    "enabled": true,
+    "online": true,
+    "error": "",
+    "memory_allowed": false
+  },
+  "selected_count": 3
+}
