@@ -1,5 +1,7 @@
 # Lokale Themenzuordnung: begrenzte Verbesserung, 11.10.2026
 
+Nachtrag: Die unten geprüfte Änderung ist inzwischen als `1.0.6-preview.2d6467b` lokal installiert. [Paket, frische Sicherung und tatsächlicher Backendwechsel](../2026-10-11-category-guidance-package/README.md). Der native Neustart bleibt offen; die folgenden Versuchsangaben beschreiben den Stand vor dem Paketbau.
+
 Das wiederhergestellte ausgewählte Modell `kingfisher-qwen3.5:9b-32k` ließ Werbung, Statusmeldung und Rechnung ohne Kategorie, obwohl die Kategorie-Beschreibungen diese Fälle abdecken. Der lokale Quote-Prompt enthält jetzt eine allgemeine Klarstellung: Themen unabhängig von erkannten Personen oder anderen Entitäten anhand der Taxonomie prüfen. Keine fallbezogenen Regeln oder angepassten Sollwerte. Remote-Prompt, JSON-Schema, Belegprüfung, Speicherung und Rollenwahl bleiben unverändert.
 
 ## Kontrollierter Vergleich und tatsächlicher Produktlauf
