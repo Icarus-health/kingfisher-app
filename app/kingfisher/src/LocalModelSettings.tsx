@@ -4,6 +4,7 @@ import { api, ApiError, type LokaleKi, type MemoryAutomation } from "./api";
 import { fuerSystem } from "./system";
 import { useSystem } from "./useSystem";
 import { navigate } from "./ui";
+import { connectLocalAnswer } from "./localAnswerConnection";
 
 const LOCAL_ENDPOINT = "http://host.docker.internal:11434/v1";
 
@@ -19,6 +20,7 @@ export function LocalModelSettings() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   // Was die eine Statusquelle sagt (lokale_ki.py); Kopfzeile und Hinweise lesen nur sie (Befund 9).
@@ -32,6 +34,7 @@ export function LocalModelSettings() {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setConnectionFailed(false);
     setLoadError(false);
     Promise.all([api.modelSetup(), api.localModels().catch(() => ({ modelle: [] as string[] })),
       api.modelRoles().then(roles => roles.ollama_cloud?.modelle ?? []).catch(() => [] as string[])]).then(([setup, result, cloud]) => {
@@ -61,22 +64,30 @@ export function LocalModelSettings() {
     if (busy || !selected) return;
     setBusy(true);
     setConnected(false);
+    setConnectionFailed(false);
     setOffer(null);
     setMessage("Modell wird gespeichert und aus Kingfisher heraus geprüft …");
     try {
       const ziel = (lage?.endpunkt ?? LOCAL_ENDPOINT).replace(/\/$/, "");
-      const setup = await api.saveLocalModel(selected, ziel);
+      const connection = await connectLocalAnswer(api, selected, ziel);
+      if (connection.state === "unverified") {
+        setConnectionFailed(true);
+        setMessage("Die Antwortwahl wurde gespeichert, aber das Modell ist noch nicht als lokal installiert bestätigt. Bitte Ollama starten, erneut suchen und verbinden.");
+        return;
+      }
+      const setup = connection.setup;
       // Gespeicherte Auswahl und bestätigte Verbindung sind getrennte Zustände.
       setConfigured(setup.status.model || "");
-      if (setup.status.provider !== "ollama" || setup.status.model !== selected || setup.status.endpoint?.replace(/\/$/, "") !== ziel) {
+      setLage(setup.status.lokale_ki ?? null);
+      if (connection.state === "different") {
+        setConnectionFailed(true);
         setMessage("Die Auswahl wurde gespeichert, aber die Startkonfiguration gibt ein anderes Modell oder eine andere Adresse vor. Bitte die Modellvorgaben beim Docker-Start prüfen.");
         return;
       }
-      const started = performance.now();
-      const result = await api.testModel();
-      const elapsed = ((performance.now() - started) / 1000).toFixed(1);
+      const elapsed = ((connection.elapsedMs ?? 0) / 1000).toFixed(1);
       // HTTP 200 allein ist kein erfolgreicher Modelltest.
-      if (result.ok !== true) {
+      if (connection.state !== "ready") {
+        setConnectionFailed(true);
         setMessage("Die Auswahl wurde gespeichert, aber das Modell antwortet nicht. Bitte Ollama starten, das Modell prüfen und erneut verbinden.");
         return;
       }
@@ -85,6 +96,7 @@ export function LocalModelSettings() {
       setOfferNote(null);
       api.memoryAutomation().then(state => setOffer(state.state === "paused" && !state.requested ? state : null)).catch(() => setOffer(null));
     } catch (error) {
+      setConnectionFailed(true);
       setMessage(error instanceof ApiError && error.detail ? error.detail : "Die Verbindung konnte nicht bestätigt werden. Bitte Kingfisher und Ollama prüfen und erneut versuchen.");
     } finally {
       setBusy(false);
@@ -108,9 +120,9 @@ export function LocalModelSettings() {
   }
 
   return <section className="source-section compact-model" aria-label="Lokale KI">
-    <div className="compact-integration-heading"><div><h2>Lokale KI</h2><p>{loading ? "Wird geladen …" : loadError ? "Status gerade nicht erreichbar" : lage ? lage.kurz : configured ? `Eingerichtet: ${configured}` : "Noch kein Modell eingerichtet"}</p></div><button className="secondary-action" type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Schließen" : "Modell verwalten"}</button></div>
+    <div className="compact-integration-heading"><div><h2>Lokale KI</h2><p>{loading ? "Wird geladen …" : loadError ? "Status gerade nicht erreichbar" : connectionFailed ? "Antwortverbindung nicht bestätigt" : lage ? lage.kurz : configured ? `Eingerichtet: ${configured}` : "Noch kein Modell eingerichtet"}</p></div><button className="secondary-action" type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Schließen" : "Modell verwalten"}</button></div>
     {expanded && <form className="source-form" onSubmit={connect} aria-label="Lokales Modell einrichten">
-    <p className="source-hint">{fuerSystem("Ollama auf deinem {Rechner}.", system)} Der Verbindungstest sendet nur eine kurze Bereitschaftsfrage, keine persönlichen Inhalte.</p>
+    <p className="source-hint">{fuerSystem("Ollama auf deinem {Rechner}.", system)} Die Auswahl ersetzt dein bisheriges Antwortmodell, auch eine Cloud-Auswahl. Der Verbindungstest sendet nur eine kurze Bereitschaftsfrage, keine persönlichen Inhalte.</p>
     {loadError ? <p role="alert">Die Modelleinrichtung ist gerade nicht erreichbar. <button type="button" onClick={() => setAttempt(attempt + 1)}>Wiederholen</button></p> : null}
     <label>Installiertes Ollama-Modell<select value={manual ? "__manual__" : model} disabled={loading || busy || loadError} onChange={(event) => {
       const value = event.target.value;
@@ -134,7 +146,7 @@ export function LocalModelSettings() {
       <button className="primary-action" disabled={loading || busy || loadError || !model.trim()} type="submit">{busy ? "Verbindung wird geprüft …" : "Speichern und verbinden"}</button>
     </div>
     {offer && connected && configured === model.trim() && <div className="classification-offer">
-      <p>Soll Kingfisher deine Quellen jetzt lokal mit {configured} sortieren? Erst dann beantwortet das Gedächtnis Fragen aus Mails und Dokumenten und schlägt Aufgaben vor. Es wird nichts versendet und nichts automatisch bestätigt; pausieren kannst du jederzeit.{offer.pending === 1 ? " Eine Quelle wartet." : offer.pending > 1 ? ` ${offer.pending} Quellen warten.` : ""}</p>
+      <p>Soll Kingfisher deine Quellen jetzt mit der eingerichteten lokalen KI sortieren? Erst dann beantwortet das Gedächtnis Fragen aus Mails und Dokumenten und schlägt Aufgaben vor. Es wird nichts versendet und nichts automatisch bestätigt; pausieren kannst du jederzeit.{offer.pending === 1 ? " Eine Quelle wartet." : offer.pending > 1 ? ` ${offer.pending} Quellen warten.` : ""}</p>
       <button className="primary-action" disabled={offerBusy} type="button" onClick={() => void startClassification()}>{offerBusy ? "Wird gestartet …" : "Sortieren starten"}</button>
     </div>}
     {offerNote && <p className="classification-offer-note" role={offerNote.ok ? "status" : "alert"}>{offerNote.text}{offerNote.ok ? <>{" "}<button className="secondary-action" type="button" onClick={() => navigate("/memory?view=status")}>Fortschritt ansehen</button></> : null}</p>}

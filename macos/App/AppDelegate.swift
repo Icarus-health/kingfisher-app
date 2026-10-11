@@ -146,7 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         busy = false
         let again = StatusAction(title: Knopf.nochmalPruefen) { [weak self] in self?.start() }
         switch outcome {
-        case .ready(let ollamaMissing):
+        case .ready(let ollamaHint):
             if let paths = paths, calendarReporter == nil {
                 let reporter = CalendarReporter(origin: AppPaths.origin, tokenFile: paths.envFile, reader: EventKitCalendar())
                 calendarReporter = reporter
@@ -158,7 +158,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 reporter.start()
             }
             status.show(.working(Satz.starten))
-            if ollamaMissing { hint.show(Satz.ollamaFehlt, linkTitle: Knopf.ollamaLaden, url: Adresse.ollamaDownload) }
+            hint.isHidden = true
+            switch ollamaHint {
+            case .none:
+                break
+            case .start:
+                hint.show(Satz.ollamaStarten, linkTitle: Knopf.ollamaStarten, url: Adresse.ollamaApp)
+            case .download:
+                hint.show(Satz.ollamaFehlt, linkTitle: Knopf.ollamaLaden, url: Adresse.ollamaDownload)
+            }
             surface.load(path: AppPaths.startPage)
         case .dockerMissing:
             status.show(StatusContent(title: nil, sentence: Satz.dockerFehlt, busy: false, actions: [

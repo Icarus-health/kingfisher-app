@@ -890,6 +890,7 @@ def _build_agent(app: FastAPI) -> Agent:
 
     from .memory_routes import coverage as memory_coverage
     from .calendar_context import local_snapshot
+    from .ollama_inventar import inventar_von
 
     # Ohne Rollenkonfiguration ist der Anbieter für alles derselbe wie bisher.
     # Mit ihr bekommt der Agent (Gespräch) den Anbieter der Rolle „antwort“;
@@ -913,7 +914,7 @@ def _build_agent(app: FastAPI) -> Agent:
             episodes=app.state.episodes,
             mcp_verbindungen=getattr(app.state, "mcp", None),
         ),
-        provider=provider_fuer("antwort", standard_provider, lese_wahlen(app.state.settings.model_roles)),
+        provider=provider_fuer("antwort", standard_provider, lese_wahlen(app.state.settings.model_roles), inventar=inventar_von(app)),
         knowledge=app.state.claims,
         knowledge_conflicts=app.state.knowledge_service.answer_conflict_status,
         episodes=app.state.episodes,

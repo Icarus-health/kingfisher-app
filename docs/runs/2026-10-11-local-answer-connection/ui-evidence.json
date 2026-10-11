@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "scope": "actual React component and product ASGI API through loopback bridge; fake inventory and readiness, no model inference; NOT native WKWebView",
+  "browser": "Browser plugin not available; bundled Playwright 1.62.1",
+  "checks": [
+    "old missing answer override replaced, ready model is actually Qwen9B, background role preserved, no download/cloud/import start",
+    "390px viewport without horizontal page overflow",
+    "HTTP200/okfalse remains disconnected and offers no classification start"
+  ],
+  "errors": [],
+  "passed": true,
+  "url": "http://127.0.0.1:18756/"
+}

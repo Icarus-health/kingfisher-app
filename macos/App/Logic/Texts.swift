@@ -19,6 +19,7 @@ enum Satz {
     static let bestehendeInstallation = "Hier läuft schon eine Kingfisher-Installation aus einer Arbeitskopie. Sie wird nicht automatisch umgestellt. Öffne sie über ihren bisherigen Starter; für einen Wechsel müssen Daten und Ordnerfreigaben geprüft werden."
     static let falscheInstallation = "Die antwortende Kingfisher-Installation passt nicht zu diesem App-Bild und Schlüssel. Prüfe die vorhandene Installation, bevor du fortfährst."
     static let ollamaFehlt = "Installiere außerdem Ollama (kostenlos), damit Kingfisher deine Fragen beantworten kann – bis dahin kommen Mails, Termine und dein Briefing trotzdem."
+    static let ollamaStarten = "Ollama ist installiert, aber nicht gestartet. Starte es, damit Kingfisher deine Fragen beantworten kann."
 
     static let platzPruefen = "Speicher für das Update wird geprüft."
 
@@ -71,9 +72,11 @@ enum Knopf {
     static let dateiWaehlen = "Datei auswählen"
     static let weiter = "Weiter"
     static let ollamaLaden = "Ollama laden"
+    static let ollamaStarten = "Ollama starten"
 }
 
 enum Adresse {
     static let dockerDownload = URL(string: "https://www.docker.com/products/docker-desktop/")!
     static let ollamaDownload = URL(string: "https://ollama.com/download")!
+    static let ollamaApp = URL(fileURLWithPath: "/Applications/Ollama.app")
 }

@@ -1133,7 +1133,7 @@ export const api = {
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
   satzpruefungSetzen: (satzpruefung: "an" | "aus") =>
     request<SatzpruefungStand>("/api/v1/models/satzpruefung", {method: "PUT", body: JSON.stringify({satzpruefung})}),
-  saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; anbieter?: string; einwilligung?: boolean}) =>
+  saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; local_only?: boolean; anbieter?: string; einwilligung?: boolean}) =>
     request<ModelRoles>(`/api/v1/models/roles/${encodeURIComponent(rolle)}`, {method: "PUT", body: JSON.stringify(body)}),
   cloudAccess: () => request<CloudAccessState>("/api/v1/models/cloud-access"),
   chatgpt: () => request<ChatGPTState>("/api/v1/chatgpt"),

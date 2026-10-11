@@ -51,6 +51,7 @@ _ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mis
 class RolleIn(BaseModel):
     modell: str | None = None
     cloud: bool | None = None
+    local_only: bool = False  # explizit lokal: keine ungeprüfte Standardwahl
     anbieter: str | None = None
     einwilligung: bool | None = None  # ausdrückliche Bestätigung des Satzes zur Rolle
 
@@ -222,6 +223,8 @@ def register(app, guard, data_dir, rebuild):
             if not spec.cloud_moeglich:
                 raise HTTPException(422, f"{modell} {HINWEIS_CLOUD} {spec.cloud_satz} Bitte ein lokales Modell wählen.")
             cloud, body.anbieter = True, OLLAMA_CLOUD
+        if body.local_only and cloud:
+            raise HTTPException(422, "Bitte entweder ein lokales Modell oder die Cloud wählen.")
         if cloud:
             if not spec.cloud_moeglich:
                 raise HTTPException(422, spec.cloud_satz)
@@ -255,7 +258,7 @@ def register(app, guard, data_dir, rebuild):
                                          f"Für Modelle sind hier rund {gb_text(budget)} GB eingeplant; "
                                          "die Reserve bleibt für andere Programme frei. Bitte ein kleineres Modell wählen.")
         neu = RollenWahl(modell=modell, cloud=bool(cloud), anbieter=anbieter, cloud_einwilligung=einwilligung,
-                        local_only=not bool(cloud) and (aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
+                        local_only=not bool(cloud) and (body.local_only or aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
         with app.state.conversation_lock:
             if neu.ist_leer:
                 settings.model_roles.pop(rolle, None)

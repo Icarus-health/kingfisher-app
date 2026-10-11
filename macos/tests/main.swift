@@ -44,6 +44,21 @@ func expect(_ condition: Bool, _ what: String, line: Int = #line) {
     }
 }
 
+// MARK: Ollama-Hinweis
+
+do {
+    expect(OllamaHintState.select(isRunning: true, appInstalled: true) == .none,
+           "laufendes Ollama bekommt keinen Hinweis")
+    expect(OllamaHintState.select(isRunning: true, appInstalled: false) == .none,
+           "erreichbares Ollama braucht keinen Installationshinweis")
+    expect(OllamaHintState.select(isRunning: false, appInstalled: true) == .start,
+           "installiertes, gestopptes Ollama kann bewusst gestartet werden")
+    expect(OllamaHintState.select(isRunning: false, appInstalled: false) == .download,
+           "fehlendes Ollama behält den Downloadhinweis")
+    expect(Adresse.ollamaApp.path == "/Applications/Ollama.app",
+           "nur die vorhandene offizielle App wird geöffnet")
+}
+
 // MARK: Env-Datei
 
 do {
