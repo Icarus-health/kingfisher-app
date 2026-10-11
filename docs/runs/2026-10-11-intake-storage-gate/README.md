@@ -1,6 +1,6 @@
 # Speicherreserve vor Aufnahme und Verarbeitung
 
-11. Oktober 2026. Laufzeitcode `3690733`; noch nicht als neues Paket auf dem persönlichen Mac installiert. Dort bleibt `1.0.6-preview.bc21155` mit pausierter großer Aufnahme. Kein persönlicher Dienst/Modellstart, keine private Quellensichtung oder Cloudkosten in dieser Prüfung.
+11. Oktober 2026. Laufzeitcode `3690733`; in dieser Code-/UI-Prüfung noch nicht persönlich installiert. Anschließend als [gepaartes Update](../2026-10-11-intake-capacity-package/README.md) `1.0.6-preview.3690733` auf dem Mac installiert, große Aufnahme weiterhin pausiert. Kein persönlicher Modellstart, keine private Quellensichtung oder Cloudkosten in dieser Prüfung.
 
 ## Problem und Verhalten
 
