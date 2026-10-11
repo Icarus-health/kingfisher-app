@@ -389,6 +389,7 @@ def _mail_sink(app: FastAPI):
 
 
 class TaskIn(BaseModel):
+    request_id: uuid.UUID | None = None
     title: str = Field(min_length=1)
     due: datetime | None = None
     notes: str | None = None
@@ -4734,6 +4735,18 @@ def create_app(
         with app.state.conversation_lock:
             _validate_task_project(body.project_id)
             _validate_task_goal(body.goal_id)
+            if body.request_id is not None:
+                payload = {'operation': 'manual_task', 'title': body.title, 'notes': body.notes,
+                           'tags': body.tags, 'project_id': body.project_id, 'goal_id': body.goal_id,
+                           'due': ensure_aware(body.due).astimezone(timezone.utc).isoformat() if body.due else None}
+                digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                try:
+                    return app.state.tasks.from_request(str(body.request_id), digest, body.title,
+                        Provenance(source_type=SourceType.USER_STATED, captured_at=datetime.now().astimezone()),
+                        due=body.due, notes=body.notes, tags=body.tags,
+                        project_id=body.project_id, goal_id=body.goal_id).to_dict()
+                except TaskRequestConflict as exc:
+                    raise HTTPException(409, str(exc) + ' Bitte die vorhandenen Aufgaben prüfen.') from exc
             return app.state.tasks.add(
                 body.title,
                 Provenance(source_type=SourceType.USER_STATED,
@@ -4866,17 +4879,7 @@ def create_app(
 
     @app.post("/tasks", dependencies=guard, status_code=201)
     def add_task(body: TaskIn) -> dict[str, Any]:
-        with app.state.conversation_lock:
-            _validate_task_project(body.project_id)
-            _validate_task_goal(body.goal_id)
-            task = app.state.tasks.add(
-                body.title,
-                Provenance(source_type=SourceType.USER_STATED,
-                           captured_at=datetime.now().astimezone()),
-                due=body.due, notes=body.notes, tags=body.tags,
-                project_id=body.project_id, goal_id=body.goal_id,
-            )
-            return task.to_dict()
+        return add_kingfisher_task(body)
 
     @app.post("/tasks/{task_id}/done", dependencies=guard)
     def complete_task(task_id: str) -> dict[str, Any]:

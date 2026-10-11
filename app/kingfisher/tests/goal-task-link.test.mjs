@@ -8,7 +8,7 @@ const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
 
 test('each open goal offers explicit next-step creation with a structured goal link', () => {
   assert.match(goals, /Nächsten Schritt festhalten/);
-  assert.match(goals, /api\.addTask\(\{\s*title:[^}]*goal_id:\s*nextStepGoal\.id/s);
+  assert.match(goals, /attempt\.save\(\{\s*title:[^}]*goal_id:\s*nextStepGoal\.id\s*\},\s*api\.addTask/s);
   assert.match(goals, /Aufgabe öffnen/);
 });
 

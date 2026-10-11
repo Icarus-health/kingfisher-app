@@ -355,7 +355,8 @@ class TaskStore:
 
     def from_request(self, request_id: str, payload_digest: str, title: str, provenance: Provenance,
                      *, due: datetime | None = None, project_id: str | None = None,
-                     waiting_for: str | None = None) -> Task:
+                     waiting_for: str | None = None, notes: str | None = None,
+                     tags: list[str] | None = None, goal_id: str | None = None) -> Task:
         """Save the task, initial waiting state, history and retry binding atomically.
 
         A retry returns the current task, preserving edits and completion made
@@ -375,7 +376,8 @@ class TaskStore:
                 return self._from_row(row)
             task = Task(id=f"t-{uuid.uuid4().hex}", title=title, provenance=provenance,
                         created_at=at, due=ensure_aware(due), project_id=project_id,
-                        wartet_auf=waiting_for, wartet_seit=at if waiting_for else None)
+                        wartet_auf=waiting_for, wartet_seit=at if waiting_for else None,
+                        notes=notes, tags=list(tags or []), goal_id=goal_id)
             self._write(task)
             self._append_event(task, "created", None, None)
             self._conn.execute("INSERT INTO task_requests (request_id, payload_digest, task_id) VALUES (?, ?, ?)",
