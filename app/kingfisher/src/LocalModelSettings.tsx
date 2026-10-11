@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { api, ApiError, type LokaleKi, type MemoryAutomation } from "./api";
 import { fuerSystem } from "./system";
@@ -23,6 +23,7 @@ export function LocalModelSettings() {
   const [connectionFailed, setConnectionFailed] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const selectionDraft = useRef<{model: string; manual: boolean} | null>(null);
   // Was die eine Statusquelle sagt (lokale_ki.py); Kopfzeile und Hinweise lesen nur sie (Befund 9).
   const [lage, setLage] = useState<LokaleKi | null>(null);
   // Einordnung ist eine eigene Zustimmung. Sie wird dort angeboten, wo der
@@ -53,13 +54,31 @@ export function LocalModelSettings() {
         setExpanded(!setup.status.model || state === "keins" || state === "fehlt" || state === "nicht_erreichbar");
       }
       setModels(installed);
-      setModel(saved || suggested);
-      setManual(Boolean(saved && !installed.includes(saved)) || installed.length === 0);
-      setMessage(setup.status.lokale_ki && setup.status.lokale_ki.zustand !== "keins" ? setup.status.lokale_ki.satz : suggested ? "Installiertes Modell gefunden. Ein Klick verbindet es mit Kingfisher." : "Bitte ein installiertes Modell auswählen.");
+      const draft = selectionDraft.current;
+      if (draft) {
+        setModel(draft.model);
+        setManual(draft.manual || Boolean(draft.model && !installed.includes(draft.model)));
+        setMessage(!draft.model ? "Bitte ein installiertes Modell auswählen." : installed.includes(draft.model)
+          ? "Auswahl geändert. Bitte verbinden."
+          : "Deine Auswahl bleibt erhalten, wird aber derzeit nicht als lokal installiert gemeldet. Bitte Ollama und den Modellnamen prüfen.");
+      } else {
+        setModel(saved || suggested);
+        setManual(Boolean(saved && !installed.includes(saved)) || installed.length === 0);
+        setMessage(setup.status.lokale_ki && setup.status.lokale_ki.zustand !== "keins" ? setup.status.lokale_ki.satz : suggested ? "Installiertes Modell gefunden. Ein Klick verbindet es mit Kingfisher." : "Bitte ein installiertes Modell auswählen.");
+      }
     }).catch(() => { if (active) setLoadError(true); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [attempt]);
+
+  function changeSelection(value: string, manual: boolean) {
+    selectionDraft.current = {model: value, manual};
+    setModel(value);
+    setManual(manual);
+    setConnected(false);
+    setOffer(null);
+    setMessage("Auswahl geändert. Bitte verbinden.");
+  }
 
   async function connect(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,6 +114,7 @@ export function LocalModelSettings() {
         return;
       }
       setConnected(true);
+      selectionDraft.current = null;
       setMessage(`${selected} ist verbunden. Verbindungstest: ${elapsed} Sekunden. Das prüft die Erreichbarkeit, nicht die Gedächtnisqualität.`);
       setOfferNote(null);
       api.memoryAutomation().then(state => setOffer(state.state === "paused" && !state.requested ? state : null)).catch(() => setOffer(null));
@@ -129,17 +149,13 @@ export function LocalModelSettings() {
     {loadError ? <p role="alert">Die Modelleinrichtung ist gerade nicht erreichbar. <button type="button" onClick={() => setAttempt(attempt + 1)}>Wiederholen</button></p> : null}
     <label>Installiertes Ollama-Modell<select value={manual ? "__manual__" : model} disabled={loading || busy || loadError} onChange={(event) => {
       const value = event.target.value;
-      setManual(value === "__manual__");
-      setModel(value === "__manual__" ? "" : value);
-      setConnected(false);
-      setOffer(null);
-      setMessage("Auswahl geändert. Bitte verbinden.");
+      changeSelection(value === "__manual__" ? "" : value, value === "__manual__");
     }}>
       <option value="">Modell auswählen</option>
       {models.map((name) => <option key={name} value={name}>{name}</option>)}
       <option value="__manual__">Modellnamen selbst eingeben</option>
     </select></label>
-    {manual ? <label>Ollama-Modell<input value={model} required disabled={loading || busy || loadError} onChange={(event) => { setModel(event.target.value); setConnected(false); setOffer(null); setMessage("Auswahl geändert. Bitte verbinden."); }} /></label> : null}
+    {manual ? <label>Ollama-Modell<input value={model} required disabled={loading || busy || loadError} onChange={(event) => changeSelection(event.target.value, true)} /></label> : null}
     {cloudModels.length ? <p className="source-hint" role="status">Läuft in Ollamas Cloud, nicht auf diesem Rechner: {cloudModels.join(", ")}. Diese Modelle werden hier nicht angeboten; die Anfragen gingen über Ollama an dessen Server in den USA.</p> : null}
     <p className="source-hint">{loading ? "Installierte Modelle werden gesucht …" : models.length ? `${models.length} installierte Modelle gefunden. Es wird nichts heruntergeladen.` : lage?.erreichbar ? "Ollama läuft, hat aber noch kein Modell. Die Vorauswahl oben lädt die passenden mit einem Klick." : "Ollama antwortet gerade nicht. Starte Ollama und suche erneut."}</p>
     <p role="status" aria-live="polite">{loading ? "Modelleinrichtung wird geladen …" : message}</p>
