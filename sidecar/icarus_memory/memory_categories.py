@@ -385,7 +385,10 @@ Namensauflösung oder Identitätsverschmelzung."""
             schema['required'] = ['entities', 'categories']
         reply = provider.complete_json(
             [{"role": "system", "content": instruction +
-              f"\\nHöchstens {MAX_TOPICS} Kategoriebelege und {MAX_ENTITIES} Entitäten liefern."},
+              f"\\nHöchstens {MAX_TOPICS} Kategoriebelege und {MAX_ENTITIES} Entitäten liefern." +
+              ("\nPrüfe die Themen unabhängig von der Entitätenerkennung anhand der Beschreibungen in taxonomy. "
+               "Eine fehlende Person oder andere Entität ist kein Grund, ein im Original belegtes Thema wegzulassen."
+               if local else "")},
              {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
             max_tokens=1200, schema=schema)
         if getattr(reply, "tool_calls", None):

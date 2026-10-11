@@ -1,0 +1,54 @@
+{
+  "purpose": "Independent synthetic holdout cases for category and person-mention boundaries; not a statistical quality estimate",
+  "personal_data": false,
+  "cases": [
+    {
+      "id": "supplier-invoice-no-person",
+      "body": "Rechnung für gelieferte Druckerpatronen: Gesamtbetrag 72,80 Euro, noch offen. Bitte überweisen Sie den Rechnungsbetrag innerhalb der vereinbarten Zahlungsfrist. Diese Mitteilung enthält die Rechnung und die Zahlungsangaben.",
+      "required_categories": ["finance"],
+      "forbidden_categories": ["appointments"],
+      "required_people": [],
+      "note": "Die offene Rechnung und die Zahlungspflicht belegen Finanzen. Es gibt keine Buchung oder Personenerwähnung. Keine Frist extrahieren oder weiter auslegen."
+    },
+    {
+      "id": "automated-public-service-restored",
+      "body": "Automatische Mitteilung an alle Nutzerinnen und Nutzer: Das öffentliche Kartenportal ist nach der Wartung wieder erreichbar. Die gespeicherten Karten bleiben verfügbar; es ist keine weitere Handlung erforderlich.",
+      "required_categories": ["information"],
+      "forbidden_categories": ["appointments", "finance"],
+      "required_people": [],
+      "note": "Eine allgemeine Statusinformation ohne persönliche Aufgabe, Termin oder Zahlung. Der Hinweis auf Wartung allein begründet kein Arbeitsprojekt."
+    },
+    {
+      "id": "public-audiobook-advertisement",
+      "body": "Neu im Hörbuchprogramm: Die Reihe „Nebel über dem Hafen“ erzählt in sechs Folgen von einem verschwundenen Leuchtturm. Jetzt die Hörprobe starten und die Reihe entdecken.",
+      "required_categories": ["information"],
+      "forbidden_categories": ["appointments", "finance", "work"],
+      "required_people": [],
+      "note": "Allgemeine Werbung für ein Kulturprodukt ohne persönliche Verpflichtung, Zahlung oder beruflichen Projektbezug. Der Titel und die Handlungsbeschreibung sind keine realen Personenhinweise."
+    },
+    {
+      "id": "theatre-seat-reservation",
+      "body": "Ihre zwei Plätze für die Abendvorstellung im Stadttheater sind verbindlich reserviert. Die Plätze B12 und B13 sind für Sie vorgemerkt; die Reservierung gilt für die angegebene Vorstellung.",
+      "required_categories": ["appointments"],
+      "forbidden_categories": ["finance", "work"],
+      "required_people": [],
+      "note": "Eine konkrete bestätigte Sitzplatzreservierung belegt eine Buchung, auch ohne Datum oder Preis. Ob eine private Kulturveranstaltung zusätzlich „personal“ erhalten sollte, ist taxonomisch nicht eindeutig; deshalb ist „personal“ nicht als verboten markiert und der Fall sollte bei einer exakten Gesamtmengenwertung manuell gelesen werden."
+    },
+    {
+      "id": "chance-meeting-no-work-evidence",
+      "body": "Beim Spaziergang am Fluss traf ich zufällig Nora Beck. Wir unterhielten uns kurz über den Regen und den neuen Weg am Ufer; danach ging ich weiter nach Hause.",
+      "required_categories": ["personal"],
+      "forbidden_categories": ["appointments", "finance", "work"],
+      "required_people": ["Nora Beck"],
+      "note": "Der Name ist eine konkrete erwähnte Person, aber der Text belegt weder eine berufliche Beziehung noch ein Projekt. Der private Zufallskontakt begründet „personal“; bloßes Auftreten eines Namens darf kein „work“ auslösen."
+    },
+    {
+      "id": "automated-payment-with-named-recipient",
+      "body": "Von: Zahlungsservice <noreply@zahlungen.example.invalid>\nAutomatische Zahlungsbestätigung: Ihre Überweisung über 58,00 Euro an Lea Winter mit dem Verwendungszweck „Stromanteil Oktober“ wurde ausgeführt. Vorgangsnummer Z-492. Diese Nachricht wurde automatisch erstellt; eine Antwort ist nicht erforderlich.",
+      "required_categories": ["finance"],
+      "forbidden_categories": ["appointments", "work"],
+      "required_people": ["Lea Winter"],
+      "note": "Die ausgeführte Überweisung belegt Finanzen; Lea Winter ist eine ausdrücklich genannte Empfängerin und kein Absender. Das generische noreply-Postfach und der Anzeigename „Zahlungsservice“ sind keine Personen. Ob eine private Erstattung zusätzlich „personal“ erhält, bleibt eine echte Taxonomiefrage; bei exakter Gesamtmengenwertung manuell prüfen."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "targeted_tests": {
+    "passed": 101,
+    "failed": 0,
+    "seconds": 35.79,
+    "warnings": [
+      "Existing Starlette/httpx deprecation"
+    ]
+  },
+  "personal_core_tables_unchanged": true,
+  "model_daemon_session_exit": 0,
+  "new_code_installed_on_mac": false,
+  "independent_review": "Local-only prompt change matches prototype; bounded proposal metadata improvement accepted with newsletter appointments regression and no full quality qualification.",
+  "background_paused": true
+}
