@@ -179,7 +179,7 @@ def review_tasks(episodes, tasks: Iterable) -> TaskSourceReviewResult:
             try:
                 reply_rows = bounded_fetchall(
                     "SELECT e.id, j.value, e.recorded_at, json_extract(e.document,'$.tags') "
-                    "FROM episodes e, json_each(e.document,'$.tags') j "
+                    "FROM episode_mail_headers j JOIN episodes e ON e.id=j.episode_id "
                     f"WHERE {sql_aktuell('e')} AND e.kind='message' "
                     "AND json_extract(e.document,'$.provenance.source_type')='email' "
                     f"AND j.value IN ({reply_placeholders}) "

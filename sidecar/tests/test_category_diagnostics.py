@@ -146,7 +146,7 @@ def test_backup_restore_preserves_failure_code(tmp_path):
 
     saved = snapshot_all(tmp_path, tmp_path / "backups")
     restored = EpisodeStore(saved / "episodes.sqlite3")
-    assert restored._conn.execute("PRAGMA user_version").fetchone()[0] == 21
+    assert restored._conn.execute("PRAGMA user_version").fetchone()[0] == 22
     assert Categories(restored).list_for(item.id)["failure_code"] == "provider_error"
     restored.close()
     episodes.close()
@@ -199,7 +199,7 @@ def test_v19_upgrade_preserves_legacy_status_with_unknown_reason(tmp_path):
 
     store = EpisodeStore(path)
     row = store._conn.execute("SELECT status,model,retry_after,failure_code FROM memory_category_sources WHERE episode_id=?", (item.id,)).fetchone()
-    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 21
+    assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 22
     assert tuple(row) == (*tuple(old), None)
     assert Categories(store).list_for(item.id)["status"] == "failed"
     assert Categories(store).list_for(item.id)["failure_code"] is None
