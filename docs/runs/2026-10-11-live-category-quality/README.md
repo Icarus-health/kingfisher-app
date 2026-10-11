@@ -1,5 +1,7 @@
 # Tatsächliche lokale Einordnungsprobe, 11. Oktober 2026
 
+Spätere Fortsetzung: [gewähltes 9B-Modell wiederhergestellt und tatsächlich gemessen](../2026-10-11-local-model-restoration/README.md). Der unten dokumentierte fehlende Bestand ist der Zustand vor dieser Wiederherstellung.
+
 **Ergebnis: Qwen 3.5 4B erfüllt fünf von acht künstlichen Sollfällen. Die eingestellten 9B-/12B-Modelle sind nicht qualifiziert, weil ihre lokalen Gewichtedateien fehlen.** Keine Umstellung der persönlichen Modellwahl, kein Importstart, keine Cloudanfrage oder Modellnachladung.
 
 ## Ausgangslage und abgegrenzter Dienststart

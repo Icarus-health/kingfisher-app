@@ -1,0 +1,7 @@
+{
+  "model": "qwen3.5:9b",
+  "pull_success": true,
+  "elapsed_seconds": 346.33,
+  "reported_layers": 6,
+  "bytes_total_reported": 6550825550
+}
