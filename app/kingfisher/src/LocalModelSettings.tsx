@@ -48,7 +48,10 @@ export function LocalModelSettings() {
       const suggested = installed.includes("qwen3.5:4b") ? "qwen3.5:4b" : installed.length === 1 ? installed[0] : "";
       setConfigured(setup.status.model || "");
       setLage(setup.status.lokale_ki ?? null);
-      if (attempt === 0) setExpanded(!setup.status.model);
+      if (attempt === 0) {
+        const state = setup.status.lokale_ki?.zustand;
+        setExpanded(!setup.status.model || state === "keins" || state === "fehlt" || state === "nicht_erreichbar");
+      }
       setModels(installed);
       setModel(saved || suggested);
       setManual(Boolean(saved && !installed.includes(saved)) || installed.length === 0);
