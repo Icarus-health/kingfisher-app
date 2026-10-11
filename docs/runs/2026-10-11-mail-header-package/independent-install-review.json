@@ -1,0 +1,13 @@
+{
+  "result": "No remaining concrete blocker in narrow static review",
+  "initial_finding": "Ambient shell values could override Compose env-file and silently change provider/model/key",
+  "resolution": "Compose interpolation keys removed from inherited shell; actual new runtime configuration compared to pinned old state except exact separately verified version",
+  "reviewed_sha256": {
+    "install.py": "95ac0112cf98ac68f9ec32c664e6649ef188a2cd17e46ea0916bbcd9aefed287",
+    "prepare_install.py": "b17248c91e156b57eb4c6fd48e4ec7bd504595595f1c17a4571a524b888fe7e9",
+    "migration_guard.py": "ba546ce12e0e3e269c62e2149435ee1143d0adbf9ff885e6942684abcccc3798",
+    "qualify_copy_worker.py": "0748ed537518e01ff2a5bd2b7980f82d45eb464fd182a014ab6f988ec55a9b99",
+    "backup.py": "df02cf608e7a3df74a719d9fca9cccaab1ddec01c616540582223bb5b8ce29fa"
+  },
+  "reviewer_tests_or_personal_data_access": false
+}

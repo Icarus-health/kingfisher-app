@@ -1,0 +1,10 @@
+{
+  "exit_code": 0,
+  "version": "1.0.6-preview.f858681",
+  "image_id": "sha256:48b1bd538de8eb14eca5f217dcefeac28f042630533310cb7cc7916ed40e0102",
+  "probe_sha256": "2bea39a747f6edd4ebe5a8676661e8945c68e1f58fb36aa6aa72a83ad5bca720",
+  "log_sha256": "0f0185ef41da3946f0f73aababfb4daf5966ff7918c73bc861d04f7cd5c4499a",
+  "network": "none",
+  "productive_mounts": false,
+  "new_index_runtime_cases": 4
+}
