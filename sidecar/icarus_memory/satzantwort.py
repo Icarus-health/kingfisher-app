@@ -13,8 +13,8 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
 * **Jeder Satz läuft durch die Satzprüfung** (`satzpruefung.py`, ohne Modell): Zahlen,
   Daten, Uhrzeiten, Namen, Kennungen und Zusagen des Satzes müssen in den genannten
   Belegen stehen, eine Verneinung darf nicht umgekehrt sein. Ein Satz, der nicht besteht,
-  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt danach eine der
-  vorgelegten Quellen ganz in den übrigen Sätzen, gilt stattdessen der Zitatmodus.
+  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt eine gewählte
+  Originalquelle ganz in den Sätzen, gilt stattdessen der Zitatmodus, auch ohne Verwerfung.
 * **Überholtes wird nie als Stand genannt.** Trägt ein Beleg die Kennzeichnung „überholt“
   (`akten_kontext.py`), besteht ein Satz mit seiner überholten Angabe nur, wenn er
   zugleich die neuere Quelle nennt und den Wandel benennt („verschoben“, „vorher“,
@@ -712,17 +712,21 @@ def _eingestuft(satz: GeprueftSatz, nach_nummer: dict[str, AntwortBeleg], jetzt:
 
 
 def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg], verworfen: int) -> bool:
-    """Nach Verwerfung keine Quelle oder erkannte Erlaubnis/Pflicht verdecken.
+    """Keine gewählte Originalquelle verdecken, auch wenn kein Satz verworfen wurde.
 
     Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
-    Erkannte normative Regeln bleiben nur bei vollständiger wörtlicher Wiedergabe;
+    Zusätzlich vorgelegter Aktenkontext muss nicht vollständig erzählt werden.
+    Nach Verwerfung bleiben erkannte normative Regeln nur bei vollständiger wörtlicher Wiedergabe;
     sonst zeigt der Zitatmodus auch die innerhalb derselben Quelle verlorene Bedingung.
     Das ist keine allgemeine semantische Vollständigkeitsprüfung.
     """
-    if verworfen <= 0:
-        return False
     nummern = {n for satz in saetze for n in satz.belege}
     vertreten = {beleg.episode_id for beleg in belege if beleg.nummer in nummern}
+    gewaehlt = {beleg.episode_id for beleg in belege if 'Quelle' in beleg.rolle.split(' · ')}
+    if gewaehlt - vertreten:
+        return True
+    if verworfen <= 0:
+        return False
     if {beleg.episode_id for beleg in belege} - vertreten:
         return True
     for beleg in belege:

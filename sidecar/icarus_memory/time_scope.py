@@ -29,6 +29,23 @@ PATTERNS = [
     ('yesterday', re.compile(r'\bgestern\b', re.I)),
     ('today', re.compile(r'\bheute\b', re.I)),
 ]
+# Only immediate negation of a recognized period, not an unrelated "nicht" elsewhere.
+_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|am|der|den|dem)\s+)*'
+_NEGIERTE_ZEIT = re.compile(r'\bnicht\s+' + _ZEIT_VORWORTE + r'$', re.I)
+_NICHT_NUR_ZEIT = re.compile(r'\bnicht\s+(?:nur|bloß|bloss|allein|ausschließlich|ausschliesslich)\s+'
+                            + _ZEIT_VORWORTE + r'$', re.I)
+
+
+def _negation(question, match):
+    prefix = question[:match.start()]
+    return ('offen' if _NICHT_NUR_ZEIT.search(prefix) else
+            'negiert' if _NEGIERTE_ZEIT.search(prefix) else None)
+
+
+def has_negated_period(question):
+    """A recognized period is excluded or explicitly nonexclusive: model suggestions must not restore it."""
+    return isinstance(question, str) and any(_negation(question, match)
+        for _, pattern in PATTERNS for match in pattern.finditer(question))
 
 
 def zahl(wort):
@@ -52,12 +69,19 @@ def _month_start(value):
 
 
 def mentioned_period(question, now=None):
-    """(Beginn, Ende, Beschriftung) des erstgenannten Zeitraums, sonst None."""
+    """(Beginn, Ende, Beschriftung) des ersten positiven Zeitraums, sonst None.
+
+    „Nicht heute, sondern gestern“ berücksichtigt gestern. „Nicht nur heute“ nennt
+    ausdrücklich keinen einzelnen Bereich; es wird kein enger Zeitraum geraten.
+    """
     if not isinstance(question, str):
         return None
     now = now or datetime.now(user_timezone() or timezone.utc)
-    found = min(((match.start(), kind, match) for kind, pattern in PATTERNS
-                 for match in [pattern.search(question)] if match), default=None, key=lambda item: item[0])
+    matches = [(match.start(), kind, match) for kind, pattern in PATTERNS for match in pattern.finditer(question)]
+    if any(_negation(question, match) == 'offen' for _, _, match in matches):
+        return None
+    found = min((item for item in matches if _negation(question, item[2]) is None),
+                default=None, key=lambda item: item[0])
     if found is None:
         return None
     _, kind, match = found

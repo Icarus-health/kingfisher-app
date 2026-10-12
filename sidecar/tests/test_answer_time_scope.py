@@ -9,6 +9,7 @@ from icarus_memory.claims import ClaimStore
 from icarus_memory.episodes import EpisodeKind, EpisodeStore
 from icarus_memory.model import Provenance, SourceType
 from icarus_memory.providers import Reply
+from icarus_memory.frage import Anfrage
 from icarus_memory.time_scope import mentioned_period
 from icarus_memory.working_memory_answers import _fresh, prepare, render
 from icarus_memory.working_memory_store import WorkingMemoryStore
@@ -36,6 +37,14 @@ class Selector:
     ('Was ist nächste Woche?', None),
     ('Wann ist die Abnahme im Oktober?', None),
     ('Was war vorletzte Woche?', None),
+    ('Welche Orion-Mail meine ich, nicht heute?', None),
+    ('Welche Orion-Mail meine ich, nicht von heute?', None),
+    ('Was kam nicht heute, sondern gestern zu Orion?', ('2026-09-25', '2026-09-26', 'von gestern')),
+    ('Was kam nicht gestern, sondern heute zu Orion?', ('2026-09-26', '2026-09-27', 'von heute')),
+    ('Was kam nicht nur heute zu Orion?', None),
+    ('Was kam nicht nur heute, sondern auch gestern zu Orion?', None),
+    ('Was kam nicht in der letzten Woche zu Orion?', None),
+    ('Was kam heute zur noch nicht bezahlten Orion-Rechnung?', ('2026-09-26', '2026-09-27', 'von heute')),
 ])
 def test_only_unambiguous_past_periods_are_recognized(question, expected):
     found = mentioned_period(question, NOW)
@@ -133,6 +142,103 @@ def test_unknown_source_time_does_not_render_import_as_an_outside_source_date(tm
         assert 'Quellenzeit: unbekannt' in text and 'Erfasst:' in text
         assert 'Außerhalb des gefragten Zeitraums' not in text
         assert 'ausserhalb_zeitraum' not in selector.rows[0]
+    finally:
+        claims.close()
+        episodes.close()
+
+
+@pytest.mark.parametrize('question,period', [
+    ('Was kam nicht von heute zur Orion-Freigabe?', None),
+    ('Was kam nicht nur heute zur Orion-Freigabe?', None),
+    ('Was kam nicht nur heute, sondern auch gestern zur Orion-Freigabe?', None),
+    ('Was kam nicht heute, sondern gestern zur Orion-Freigabe?', 'von gestern'),
+])
+def test_negated_period_cannot_return_through_question_understanding(tmp_path, monkeypatch, question, period):
+    episodes, claims = EpisodeStore(tmp_path / 'negated-e.sqlite3'), ClaimStore(tmp_path / 'negated-k.sqlite3')
+    try:
+        _mail(episodes, 'Die Orion-Freigabe ist offen.', NOW - timedelta(days=1))
+        monkeypatch.setattr('icarus_memory.time_scope.datetime',
+                            type('Fixed', (datetime,), {'now': classmethod(lambda cls, tz=None: NOW)}))
+        # Exercise preparation and reopening with a valid structured question as in the Agent path.
+        anfrage = Anfrage(('Orion',), 'gestern' if period else None, 'rueckblick',
+                          suchworte=('Orion',), herkunft='modell')
+        selector = Selector()
+        answer = prepare(question, episodes, claims, selector, anfrage=anfrage)
+        assert answer.get('time_label') == period
+        text, _, _ = render(answer, episodes, claims)
+        assert 'Zuerst berücksichtigt: Quellen von heute.' not in text
+        assert all('ausserhalb_zeitraum' not in row for row in selector.rows)
+        assert 'Orion-Freigabe ist offen' in text
+    finally:
+        claims.close()
+        episodes.close()
+
+
+def test_invalid_structured_today_cannot_restore_negated_time_label(tmp_path):
+    episodes, claims = EpisodeStore(tmp_path / 'invalid-e.sqlite3'), ClaimStore(tmp_path / 'invalid-k.sqlite3')
+    try:
+        _mail(episodes, 'Die Orion-Freigabe ist offen.', NOW - timedelta(days=1))
+        selector = Selector()
+        answer = prepare('Was kam nicht von heute zur Orion-Freigabe?', episodes, claims, selector,
+                         anfrage=Anfrage(('Orion',), 'heute', 'rueckblick', herkunft='modell'))
+        assert 'time_label' not in answer
+        # A structured question inconsistent with the original cannot certify a saved answer.
+        assert answer['status'] == 'unavailable'
+        assert selector.rows is None
+    finally:
+        claims.close()
+        episodes.close()
+
+
+@pytest.mark.parametrize('question', [
+    'Was kam nicht von heute zur Orion-Freigabe?',
+    'Was kam nicht nur heute zur Orion-Freigabe?',
+    'Was kam nicht heute, sondern gestern zur Orion-Freigabe?',
+])
+def test_saved_legacy_negated_today_without_structured_question_is_unavailable(tmp_path, monkeypatch, question):
+    from icarus_memory import time_scope
+    episodes, claims = EpisodeStore(tmp_path / 'legacy-e.sqlite3'), ClaimStore(tmp_path / 'legacy-k.sqlite3')
+    try:
+        _mail(episodes, 'Die Orion-Freigabe ist offen.', NOW - timedelta(days=1))
+        today = mentioned_period('heute', NOW)
+        # Reproduce the original interpretation and real stored fields/signatures, without an Anfrage.
+        with monkeypatch.context() as legacy:
+            legacy.setattr(time_scope, 'has_negated_period', lambda question: False)
+            legacy.setattr(time_scope, 'mentioned_period', lambda question, now=None: today)
+            saved = prepare(question, episodes, claims, Selector(), semantic_search=None)
+        assert saved['status'] == 'reports' and 'anfrage' not in saved
+        assert saved['time_label'] == 'von heute'
+        assert saved['time_scope'] == [today[0].isoformat(), today[1].isoformat()]
+        assert not _fresh(saved, episodes, claims)
+        text, links, status = render(saved, episodes, claims)
+        assert status == 'working_unavailable' and not links
+        assert 'Zuerst berücksichtigt: Quellen von heute' not in text
+        reopened = working_memory_answers.project_message({'role': 'assistant', 'content': 'old display',
+            'metadata': {'context': {'working_answer': saved}}}, episodes, claims)
+        assert reopened['metadata']['context']['answer_contract']['status'] == 'working_unavailable'
+        assert not reopened['metadata']['context']['source_links']
+    finally:
+        claims.close()
+        episodes.close()
+
+
+def test_valid_negation_with_positive_yesterday_keeps_frozen_period_after_reopen(tmp_path, monkeypatch):
+    episodes, claims = EpisodeStore(tmp_path / 'frozen-e.sqlite3'), ClaimStore(tmp_path / 'frozen-k.sqlite3')
+    try:
+        _mail(episodes, 'Die Orion-Freigabe ist offen.', NOW - timedelta(days=1))
+        monkeypatch.setattr('icarus_memory.time_scope.datetime',
+                            type('Fixed', (datetime,), {'now': classmethod(lambda cls, tz=None: NOW)}))
+        saved = prepare('Was kam nicht heute, sondern gestern zur Orion-Freigabe?',
+                        episodes, claims, Selector(), semantic_search=None)
+        assert saved['time_label'] == 'von gestern'
+        frozen = list(saved['time_scope'])
+        later = NOW + timedelta(days=10)
+        monkeypatch.setattr('icarus_memory.time_scope.datetime',
+                            type('Later', (datetime,), {'now': classmethod(lambda cls, tz=None: later)}))
+        assert _fresh(saved, episodes, claims)
+        text, _, status = render(saved, episodes, claims)
+        assert status == 'working_reports' and 'Orion-Freigabe ist offen' in text
+        assert saved['time_scope'] == frozen
     finally:
         claims.close()
         episodes.close()

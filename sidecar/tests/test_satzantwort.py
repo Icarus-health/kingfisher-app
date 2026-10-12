@@ -591,7 +591,12 @@ def test_die_antwort_zeigt_nur_belege_auf_die_ein_satz_sich_stuetzt(raum):
         return {'status': 'antwort', 'saetze': [
             {'text': 'Die Einreichfrist ist der 12. November 2026.', 'belege': [nr(nutzer, 'Verlängerung')]}]}
 
-    gespeichert = antwort(raum, Skript(nur_neu))
+    modell = Skript(nur_neu, auswahl=lambda nutzer: [
+        row['id'] for row in nutzer['sources'] if row['title'] != 'Nebensache'])
+    gespeichert = antwort(raum, modell)
+    # The irrelevant global search hit is excluded by source selection, not silently hidden by prose.
+    assert any(row['title'] == 'Nebensache' for row in modell.auswahlen[0]['sources'])
+    assert {ref['episode_id'] for ref in gespeichert['refs']} == {alt.id, neu.id}
     text, links, _ = wma.render(gespeichert, episodes, claims)
     assert [l['episode_id'] for l in links][:1] == [neu.id] and 'Nebensache' not in text
     struktur = wma.satz_struktur(gespeichert, episodes, claims)

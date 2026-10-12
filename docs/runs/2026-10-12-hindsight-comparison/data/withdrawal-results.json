@@ -1,0 +1,994 @@
+{
+  "question": "Wie lautet der Aufbewahrungscode für das Testobjektiv?",
+  "kingfisher": {
+    "before_status": "reports",
+    "before_source_ids": [
+      "s19"
+    ],
+    "before_answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Künstliche Quelle s19\nDer ausschließlich künstliche Aufbewahrungscode für das Testobjektiv lautet 7342. Diese Quelle wird in der Entzugsphase ausgeschlossen.\nQuellenzeit: 10.09.2026, 09:00 Uhr",
+    "old_answer_mode_after_withdrawal": "working_unavailable",
+    "old_answer_after_withdrawal": "Die Grundlage dieses Arbeitsstands hat sich verändert. Bitte frage erneut.",
+    "fresh_status": "unknown",
+    "fresh_source_ids": [],
+    "original_retained": true
+  },
+  "hindsight": {
+    "before_source_ids": [
+      "s01",
+      "s02",
+      "s03",
+      "s04",
+      "s05",
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10",
+      "s11",
+      "s12",
+      "s13",
+      "s14",
+      "s15",
+      "s16",
+      "s17",
+      "s18",
+      "s19",
+      "s20"
+    ],
+    "delete_status_code": 200,
+    "after_source_ids": [
+      "s01",
+      "s02",
+      "s03",
+      "s04",
+      "s05",
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10",
+      "s11",
+      "s12",
+      "s13",
+      "s14",
+      "s15",
+      "s16",
+      "s17",
+      "s18",
+      "s20"
+    ],
+    "recall_after": {
+      "results": [
+        {
+          "id": "07253e58-2f90-43cb-a06e-3c468bb05c60",
+          "text": "Die Originalmail, in der die Ankündigung steht, hat ein unbekanntes Datum. | Das spätere Erfassungsdatum (2026-10-12) darf nicht als Bezug für den Termin 'nächsten Freitag' benutzt werden.",
+          "type": "world",
+          "entities": [
+            "Originalmail"
+          ],
+          "context": "Künstliche Originalquelle s20. Quellenzeit None. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-10-12T09:11:27.935885+00:00",
+          "document_id": "s20",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s20",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s20_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0976896822452546,
+            "reranker": 0.9978997111320496,
+            "semantic": 0.360748621292325,
+            "keyword": 0.5
+          },
+          "attachments": null
+        },
+        {
+          "id": "bd9dd6ca-aea7-44e0-b46e-ac43d3841771",
+          "text": "Förderantrag für BioRegio-Projekt muss bis 20.10.2026 eingereicht werden, Bestätigung der Einreichung steht noch aus. | Involving: user",
+          "type": "world",
+          "entities": [
+            "BioRegio-Projekt"
+          ],
+          "context": "Künstliche Originalquelle s02. Quellenzeit 2026-09-05T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": "2026-10-20T00:00:00+00:00",
+          "occurred_end": "2026-10-20T00:00:00+00:00",
+          "mentioned_at": "2026-09-05T07:00:00+00:00",
+          "document_id": "s02",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s02",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s02_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.095287311077118,
+            "reranker": 0.9957157373428345,
+            "semantic": null,
+            "keyword": 0.4000000059604645
+          },
+          "attachments": null
+        },
+        {
+          "id": "99021cf7-c041-4df0-b687-891de952ef10",
+          "text": "Der Prüfer kommt nächsten Freitag um 17 Uhr. | When: 2026-10-19 | Involving: user (implied recipient of the email)",
+          "type": "world",
+          "entities": [
+            "Prüfer"
+          ],
+          "context": "Künstliche Originalquelle s20. Quellenzeit None. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-10-12T09:11:27.925885+00:00",
+          "document_id": "s20",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s20",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s20_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0902471899986268,
+            "reranker": 0.9911338090896606,
+            "semantic": 0.3747952096103475,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "281c6d1f-42ac-4d1b-8ade-564572900f2e",
+          "text": "Bei der Vereinsversammlung bezeichnet die Nummer 42 eine Sitzplatzreihe.",
+          "type": "world",
+          "entities": [
+            "Nummer 42",
+            "Vereinsversammlung"
+          ],
+          "context": "Künstliche Originalquelle s18. Quellenzeit 2026-09-11T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-11T07:00:00+00:00",
+          "document_id": "s18",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s18",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s18_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0797730505262335,
+            "reranker": 0.9970287680625916,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "3e536d75-0367-40f7-a036-942275990094",
+          "text": "Die Sitzplatzreihe Nummer 42 hat nichts mit dem BioRegio-Projekt zu tun.",
+          "type": "world",
+          "entities": [
+            "BioRegio-Projekt"
+          ],
+          "context": "Künstliche Originalquelle s18. Quellenzeit 2026-09-11T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-11T07:00:00.010000+00:00",
+          "document_id": "s18",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s18",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s18_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0789662240662397,
+            "reranker": 0.996283769607544,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "7a4e55f1-7dfb-41d1-aa24-dc323db801fe",
+          "text": "Die Einreichung von Rückmeldungen zum Satzungsentwurf ist nicht mehr erforderlich, da die frühere Bitte aufgehoben wurde. | Involving: user | Änderung der Vorgangsweise bezüglich des Satzungsentwurfs",
+          "type": "world",
+          "entities": [
+            "Satzungsentwurf"
+          ],
+          "context": "Künstliche Originalquelle s08. Quellenzeit 2026-09-10T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-10T07:00:00+00:00",
+          "document_id": "s08",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s08",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s08_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0787442631087347,
+            "reranker": 0.9965830445289612,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "26637548-90b8-429f-b0d3-52cd9e995ebc",
+          "text": "Im BioRegio-Projekt bezeichnet die Nummer 42 das Arbeitspaket Kommunikation",
+          "type": "world",
+          "entities": [
+            "Arbeitspaket Kommunikation",
+            "BioRegio-Projekt"
+          ],
+          "context": "Künstliche Originalquelle s17. Quellenzeit 2026-09-11T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-11T07:00:00+00:00",
+          "document_id": "s17",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s17",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s17_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.078585500518481,
+            "reranker": 0.9959322214126587,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "9694e150-5f96-45ef-b39f-889ce4b49c25",
+          "text": "User ist unsicher bezüglich der alten Adresse in der Lindenstraße und hat keine aktuelle Wohnadresse angegeben. | Involving: user",
+          "type": "world",
+          "entities": [
+            "user",
+            "Lindenstraße"
+          ],
+          "context": "Künstliche Originalquelle s13. Quellenzeit 2026-09-07T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-07T07:00:00+00:00",
+          "document_id": "s13",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s13",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s13_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0773291975218955,
+            "reranker": 0.9967895150184631,
+            "semantic": null,
+            "keyword": 0.4000000059604645
+          },
+          "attachments": null
+        },
+        {
+          "id": "77185df4-3925-4675-844d-76fc65628a81",
+          "text": "User cannot help at the Autumn Market on September 27, 2026 and requests to withdraw their previous commitment. | When: 2026-09-27 | Involving: user",
+          "type": "world",
+          "entities": [
+            "Herbstmarkt",
+            "user"
+          ],
+          "context": "Künstliche Originalquelle s06. Quellenzeit 2026-09-12T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-12T07:00:00+00:00",
+          "document_id": "s06",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s06",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s06_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.076199041070187,
+            "reranker": 0.9932261109352112,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "15a4e53c-c1d9-44b3-85ba-2e68765a87f6",
+          "text": "Dr. Lena Berg vom Klinikum Süd hat ihr Gespräch am 20.10.2026 abgesagt. | When: 2026-10-20 | Involving: Dr. Lena Berg (vom Klinikum Süd)",
+          "type": "world",
+          "entities": [
+            "Dr. Lena Berg",
+            "Klinikum Süd"
+          ],
+          "context": "Künstliche Originalquelle s12. Quellenzeit 2026-09-06T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-06T07:00:00+00:00",
+          "document_id": "s12",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s12",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s12_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.075555776481487,
+            "reranker": 0.9956534504890442,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "639593b2-e0ce-4b3f-aa6e-a30db61da55c",
+          "text": "User sent the BioRegio draft (not the grant application) yesterday, on October 11, 2026. | When: 2026-10-11 | Involving: user",
+          "type": "world",
+          "entities": [
+            "BioRegio",
+            "user"
+          ],
+          "context": "Künstliche Originalquelle s15. Quellenzeit 2026-10-12T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": "2026-10-10T22:00:00+00:00",
+          "occurred_end": "2026-10-10T22:00:00+00:00",
+          "mentioned_at": "2026-10-12T07:00:00+00:00",
+          "document_id": "s15",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s15",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s15_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0753968350500822,
+            "reranker": 0.9783238768577576,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "66d8f893-3105-4cb3-9a17-668ef2a05f24",
+          "text": "Eine andere Person namens Alex Winter arbeitet an der Schule B. | Involving: Alex Winter",
+          "type": "world",
+          "entities": [
+            "Alex Winter",
+            "Schule B"
+          ],
+          "context": "Künstliche Originalquelle s11. Quellenzeit 2026-09-04T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-04T07:00:00+00:00",
+          "document_id": "s11",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s11",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s11_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0748996635985701,
+            "reranker": 0.9960565567016602,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "9681930c-ed00-4747-87f8-9bbd6997015b",
+          "text": "Der Kalenderexport vom 01.09.2026 enthält keine Termine für den September und ist unvollständig, da weitere Kalender fehlen. | When: 2026-09-01 | Involving: user",
+          "type": "world",
+          "entities": [
+            "user",
+            "Kalenderexport"
+          ],
+          "context": "Künstliche Originalquelle s16. Quellenzeit 2026-09-01T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-01T07:00:00+00:00",
+          "document_id": "s16",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s16",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s16_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.074573071954185,
+            "reranker": 0.9972730278968811,
+            "semantic": null,
+            "keyword": 0.4000000059604645
+          },
+          "attachments": null
+        },
+        {
+          "id": "baf49dc7-25de-481e-b745-f3e4606ab284",
+          "text": "Die E-Mail-Adresse von Alex Winter ist a.winter@schule-b.invalid. | Involving: Alex Winter",
+          "type": "world",
+          "entities": [
+            "Alex Winter"
+          ],
+          "context": "Künstliche Originalquelle s11. Quellenzeit 2026-09-04T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-04T07:00:00.010000+00:00",
+          "document_id": "s11",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s11",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s11_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0725296950548713,
+            "reranker": 0.9938604235649109,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "7ab98d57-3feb-44bc-873d-1dacff49d4b1",
+          "text": "User will prepare documents for the association meeting | Involving: user | for the association meeting on October 10, 2026",
+          "type": "world",
+          "entities": [
+            "user",
+            "association meeting"
+          ],
+          "context": "Künstliche Originalquelle s09. Quellenzeit 2026-08-30T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-08-30T07:00:00+00:00",
+          "document_id": "s09",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s09",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s09_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0719028120171532,
+            "reranker": 0.9958076477050781,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "c4abf925-4d93-4de8-b3de-aa6226144acc",
+          "text": "Der Herbstmarkt findet am 27. September 2026 statt (nicht am 20.). | When: 2026-09-27 to 2026-09-27 | Involving: user",
+          "type": "world",
+          "entities": [
+            "user",
+            "Herbstmarkt"
+          ],
+          "context": "Künstliche Originalquelle s05. Quellenzeit 2026-09-11T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-11T07:00:00+00:00",
+          "document_id": "s05",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s05",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s05_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0715016423975496,
+            "reranker": 0.9893912076950073,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "a0761aa0-6635-47dc-9a3d-c91faa0a5496",
+          "text": "Alex Winters E-Mail-Adresse ist alex.winter@firma-a.invalid. | Involving: Alex Winter",
+          "type": "world",
+          "entities": [
+            "Alex Winter"
+          ],
+          "context": "Künstliche Originalquelle s10. Quellenzeit 2026-09-03T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-03T07:00:00.010000+00:00",
+          "document_id": "s10",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s10",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s10_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0712878246030948,
+            "reranker": 0.993213951587677,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "e8ded622-d39f-4a32-8ed1-2463ae1a758b",
+          "text": "User had a conversation with Dr. Lena Berg at Klinikum Nord on October 20, 2026 at 10:00, and was asked to bring an offer list. | When: 2026-10-20 | Involving: Dr. Lena Berg (user's contact)",
+          "type": "world",
+          "entities": [
+            "Klinikum Nord",
+            "Dr. Lena Berg",
+            "offer list"
+          ],
+          "context": "Künstliche Originalquelle s01. Quellenzeit 2026-09-02T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-02T07:00:00+00:00",
+          "document_id": "s01",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s01",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s01_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0696807169696512,
+            "reranker": 0.9922280311584473,
+            "semantic": 0.30126323398164834,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "89e557c8-f1de-410d-a211-38073a708bd9",
+          "text": "User takes shift duty at the Autumn Market on September 20, 2026, with childcare arranged. | When: 2026-09-20 | Involving: user",
+          "type": "world",
+          "entities": [
+            "user",
+            "autumn market"
+          ],
+          "context": "Künstliche Originalquelle s04. Quellenzeit 2026-09-09T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-09T07:00:00+00:00",
+          "document_id": "s04",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s04",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s04_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.068810000876858,
+            "reranker": 0.9879055023193359,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "951e743f-5e47-4918-9237-08f3bad47f01",
+          "text": "No invitation or confirmation for the meeting is available | Involving: user | regarding the association meeting on October 10, 2026",
+          "type": "world",
+          "entities": [
+            "association meeting",
+            "user"
+          ],
+          "context": "Künstliche Originalquelle s09. Quellenzeit 2026-08-30T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-08-30T07:00:00.010000+00:00",
+          "document_id": "s09",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s09",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s09_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0683495381273829,
+            "reranker": 0.9925066232681274,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "135d3823-024a-4401-ba45-8207f3106973",
+          "text": "User must provide feedback on the draft bylaws (Satzungsentwurf) by September 15, 2026. | When: 2026-09-15 | Involving: user | Deadline for feedback submission",
+          "type": "world",
+          "entities": [
+            "Satzungsentwurf",
+            "user"
+          ],
+          "context": "Künstliche Originalquelle s07. Quellenzeit 2026-09-01T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-01T07:00:00+00:00",
+          "document_id": "s07",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s07",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s07_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.067829608461356,
+            "reranker": 0.9910146594047546,
+            "semantic": 0.3061345085777045,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "9c3ccf4a-6e5d-47e8-aae9-c232c8deee41",
+          "text": "Alex Winter arbeitet im Einkauf der Firma A. | Involving: Alex Winter",
+          "type": "world",
+          "entities": [
+            "Firma A",
+            "Alex Winter"
+          ],
+          "context": "Künstliche Originalquelle s10. Quellenzeit 2026-09-03T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-03T07:00:00+00:00",
+          "document_id": "s10",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s10",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s10_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.067004374355486,
+            "reranker": 0.989242672920227,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "1def1d8d-f767-4d93-bab2-87558381087d",
+          "text": "Die Quelle s17 ist synthetisch und wurde am 2026-10-12T10:00:00+02:00 erfasst | When: 2026-10-12 | Keine unabhängig bestätigten Fakten",
+          "type": "experience",
+          "entities": [
+            "s17"
+          ],
+          "context": "Künstliche Originalquelle s17. Quellenzeit 2026-09-11T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-11T07:00:00.010000+00:00",
+          "document_id": "s17",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s17",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s17_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0661828747022641,
+            "reranker": 0.9844800233840942,
+            "semantic": 0.30959466662757973,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "e5f66100-87b7-4ed2-827f-8e3ed3366953",
+          "text": "User could help at the autumn market on September 20, 2026, pending childcare arrangements. | When: 2026-09-20 | Involving: user",
+          "type": "world",
+          "entities": [
+            "user",
+            "autumn market"
+          ],
+          "context": "Künstliche Originalquelle s03. Quellenzeit 2026-09-08T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-08T07:00:00+00:00",
+          "document_id": "s03",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s03",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s03_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.064275027064428,
+            "reranker": 0.9842122793197632,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "c19aae85-b3ae-4313-b3ee-27d9c32ae6fb",
+          "text": "Notiz vom 02.09.2026 erwähnt Gespräch heute um 14:00 Uhr | When: 2026-09-02T09:00:00+02:00 | Involving: user",
+          "type": "world",
+          "entities": [
+            "user"
+          ],
+          "context": "Künstliche Originalquelle s14. Quellenzeit 2026-09-02T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-02T07:00:00.010000+00:00",
+          "document_id": "s14",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s14",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s14_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0611046104491988,
+            "reranker": 0.9842728972434998,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "f9e79e75-200b-4602-876e-07a9c5b75515",
+          "text": "The source report (Quelle s07) contains no independently verified facts. | Context regarding source reliability",
+          "type": "world",
+          "entities": [
+            "s07"
+          ],
+          "context": "Künstliche Originalquelle s07. Quellenzeit 2026-09-01T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-01T07:00:00.010000+00:00",
+          "document_id": "s07",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s07",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s07_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0476614517644556,
+            "reranker": 0.9722973108291626,
+            "semantic": 0.31202233599817664,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        },
+        {
+          "id": "f0e17525-2d3c-49dc-a89e-41572252712f",
+          "text": "Gespräch mit Alex Winter aus dem Einkauf der Firma A um 14:00 Uhr | When: 2026-09-02T14:00:00+02:00 | Involving: Alex Winter (Einkauf, Firma A)",
+          "type": "world",
+          "entities": [
+            "Alex Winter",
+            "Firma A"
+          ],
+          "context": "Künstliche Originalquelle s14. Quellenzeit 2026-09-02T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-02T07:00:00+00:00",
+          "document_id": "s14",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s14",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s14_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.0285973334870382,
+            "reranker": 0.9541193842887878,
+            "semantic": null,
+            "keyword": 0.30000001192092896
+          },
+          "attachments": null
+        },
+        {
+          "id": "5f6b4e03-a7e5-498f-b9af-f2a18fffad12",
+          "text": "Die Quelle ist synthetisch und nicht unabhängig bestätigt. | When: 2026-10-12T10:00:00+02:00 | Quelle s13",
+          "type": "world",
+          "entities": [
+            "s13"
+          ],
+          "context": "Künstliche Originalquelle s13. Quellenzeit 2026-09-07T09:00:00+02:00. Erfassungszeit 2026-10-12T10:00:00+02:00. Quelle berichtet; keine unabhängig bestätigten Fakten. Datum der Quelle ist nicht automatisch Datum der berichteten Ereignisse.",
+          "occurred_start": null,
+          "occurred_end": null,
+          "mentioned_at": "2026-09-07T07:00:00.010000+00:00",
+          "document_id": "s13",
+          "metadata": {
+            "synthetic": "true",
+            "original_id": "s13",
+            "recorded_at": "2026-10-12T10:00:00+02:00"
+          },
+          "chunk_id": "kf-main-7768438e_s13_0",
+          "tags": [],
+          "source_fact_ids": null,
+          "scores": {
+            "final": 1.025318287435747,
+            "reranker": 0.9486668705940247,
+            "semantic": null,
+            "keyword": 0.20000000298023224
+          },
+          "attachments": null
+        }
+      ],
+      "trace": null,
+      "entities": {
+        "Originalmail": {
+          "entity_id": "671dc884-cea5-4c57-865a-9bb0ca5a4415",
+          "canonical_name": "Originalmail",
+          "observations": []
+        },
+        "BioRegio-Projekt": {
+          "entity_id": "533ad795-3fac-422c-bc4b-5a1ab4b75e64",
+          "canonical_name": "BioRegio-Projekt",
+          "observations": []
+        },
+        "Prüfer": {
+          "entity_id": "38a1c1dd-7e68-4bdb-ad64-f2f0fa61f4bf",
+          "canonical_name": "Prüfer",
+          "observations": []
+        },
+        "Nummer 42": {
+          "entity_id": "d87dc758-1152-4fbd-9445-778a325a5689",
+          "canonical_name": "Nummer 42",
+          "observations": []
+        },
+        "Vereinsversammlung": {
+          "entity_id": "81eeba8a-2265-4b71-aa02-c3d199cd7be0",
+          "canonical_name": "Vereinsversammlung",
+          "observations": []
+        },
+        "Satzungsentwurf": {
+          "entity_id": "5ce3e733-9546-4e20-ad70-edf5932472f4",
+          "canonical_name": "Satzungsentwurf",
+          "observations": []
+        },
+        "Arbeitspaket Kommunikation": {
+          "entity_id": "2ffda165-a11b-42be-ab24-607bd3199ab9",
+          "canonical_name": "Arbeitspaket Kommunikation",
+          "observations": []
+        },
+        "user": {
+          "entity_id": "e4e7af61-c6ce-4c51-b308-d97d8279770d",
+          "canonical_name": "user",
+          "observations": []
+        },
+        "Lindenstraße": {
+          "entity_id": "f168345c-e7ee-40ae-b6b9-82feb4af2757",
+          "canonical_name": "Lindenstraße",
+          "observations": []
+        },
+        "Herbstmarkt": {
+          "entity_id": "65022b5d-a9bb-483a-9481-d2044961a9cd",
+          "canonical_name": "Herbstmarkt",
+          "observations": []
+        },
+        "Dr. Lena Berg": {
+          "entity_id": "11a86ddd-ff61-4dca-aa4c-13d1eed5371a",
+          "canonical_name": "Dr. Lena Berg",
+          "observations": []
+        },
+        "Klinikum Süd": {
+          "entity_id": "0deab829-68e9-45bf-b66e-0f1fcfca4bb6",
+          "canonical_name": "Klinikum Süd",
+          "observations": []
+        },
+        "BioRegio": {
+          "entity_id": "543c9b1b-c91e-4389-8e0a-7ab6eb62e813",
+          "canonical_name": "BioRegio",
+          "observations": []
+        },
+        "Alex Winter": {
+          "entity_id": "30120a76-afe6-4e3c-8267-59aff100f704",
+          "canonical_name": "Alex Winter",
+          "observations": []
+        },
+        "Schule B": {
+          "entity_id": "d31898ed-b3f3-443b-aae7-ad67e1b1903d",
+          "canonical_name": "Schule B",
+          "observations": []
+        },
+        "Kalenderexport": {
+          "entity_id": "8ba5d70a-dd60-4d5d-b2a7-b274d529189d",
+          "canonical_name": "Kalenderexport",
+          "observations": []
+        },
+        "association meeting": {
+          "entity_id": "ce490afa-6a89-4976-94c5-5ef7f81b45cf",
+          "canonical_name": "association meeting",
+          "observations": []
+        },
+        "Klinikum Nord": {
+          "entity_id": "b2b10a9f-48a7-4a9a-a508-8deb42039899",
+          "canonical_name": "Klinikum Nord",
+          "observations": []
+        },
+        "offer list": {
+          "entity_id": "7fb2c66e-edbb-4aea-a984-780a4bb05b99",
+          "canonical_name": "offer list",
+          "observations": []
+        },
+        "autumn market": {
+          "entity_id": "9c9948ea-c90d-4aad-80f2-07c61d519a65",
+          "canonical_name": "autumn market",
+          "observations": []
+        },
+        "Firma A": {
+          "entity_id": "bf8494f8-2118-42b7-b33b-b1f030dfa746",
+          "canonical_name": "Firma A",
+          "observations": []
+        },
+        "s17": {
+          "entity_id": "7f4f2eb0-7985-49ed-a426-4542c833eca4",
+          "canonical_name": "s17",
+          "observations": []
+        },
+        "s07": {
+          "entity_id": "771655a1-6573-4831-958a-92a7b6c7e1d8",
+          "canonical_name": "s07",
+          "observations": []
+        },
+        "s13": {
+          "entity_id": "a9735561-ff4e-43f2-a233-e10f5312f0ab",
+          "canonical_name": "s13",
+          "observations": []
+        }
+      },
+      "chunks": null,
+      "source_facts": null,
+      "source_facts_truncated": null
+    }
+  },
+  "synthetic_only": true
+}
