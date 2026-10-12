@@ -1,0 +1,12 @@
+{
+  "exit_code": 0,
+  "version": "1.0.6-preview.a5787c8",
+  "image_id": "sha256:24a5528456eff9474d1aa7b6f9f7e710491e6a6a0323829c2cd00e177387d3cf",
+  "probe_sha256": "e1c1340a4b26a8247a18941b39bd6f99697aacee277f8f9bd3008946ac938d5b",
+  "log_sha256": "a736920237066eae5ad64e617b053ebc936c08548971088f6b56dad3b44a4475",
+  "network": "none",
+  "productive_mounts": false,
+  "invocation": "docker run --rm -i --network none --tmpfs /data:rw,mode=1777 --tmpfs /tmp:rw,exec,mode=1777 --entrypoint python IMAGE - < package_probe.py",
+  "initial_mount_attempt_exit_code": 125,
+  "initial_mount_attempt": "Docker VM cannot see /private/tmp; no runtime started; preserved package-probe.log"
+}

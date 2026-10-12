@@ -1,0 +1,117 @@
+{
+  "runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+  "cases": [
+    {
+      "id": "exact",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "paraphrase",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "ambiguous_appointment",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": false
+    },
+    {
+      "id": "same_name",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "specific_person",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "withdrawn_commitment",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "cancelled_deadline",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "deadline",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "historical_today",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "yesterday",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_coverage",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_address",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "ambiguous_number",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "unknown_source_time",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_fact",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    }
+  ],
+  "required_evidence_retained": 15,
+  "status_rubric_differences": [
+    "ambiguous_appointment"
+  ],
+  "historical_today_frame_fixed": true,
+  "seconds_total": 302.853,
+  "release_eligible": "requires independent semantic review, complete regression, package and Mac acceptance"
+}

@@ -1,0 +1,60 @@
+{
+  "scope": "Metadata lookup only; valid synthetic Episode documents bulk inserted, not normal ingestion throughput",
+  "root": "/private/tmp/kingfisher-thread-scale-4gb23v7y",
+  "models": false,
+  "network": false,
+  "results": [
+    {
+      "unrelated_mail_rows": 100,
+      "seconds": [
+        0.0017126249731518328,
+        0.0010622089612297714
+      ],
+      "exact_followup_found": true,
+      "result": {
+        "reason": "Seit dem Festhalten der Aufgabe wurde eine weitere Nachricht im Verlauf erfasst. Bitte pr\u00fcfen, ob die Aufgabe noch so gilt.",
+        "followup_episode_id": "e-d99da6d3bf28"
+      },
+      "coverage_limited": false
+    },
+    {
+      "unrelated_mail_rows": 10000,
+      "seconds": [
+        0.07636629097396508,
+        0.07542554201791063
+      ],
+      "exact_followup_found": true,
+      "result": {
+        "reason": "Seit dem Festhalten der Aufgabe wurde eine weitere Nachricht im Verlauf erfasst. Bitte pr\u00fcfen, ob die Aufgabe noch so gilt.",
+        "followup_episode_id": "e-d99da6d3bf28"
+      },
+      "coverage_limited": false
+    },
+    {
+      "unrelated_mail_rows": 50000,
+      "seconds": [
+        0.08799662499222904,
+        0.09043729200493544
+      ],
+      "exact_followup_found": false,
+      "result": {
+        "reason": "Der Mailverlauf konnte f\u00fcr diese Aufgabe nicht vollst\u00e4ndig gepr\u00fcft werden. Bitte selbst pr\u00fcfen, ob die Aufgabe noch gilt.",
+        "followup_episode_id": null
+      },
+      "coverage_limited": false
+    },
+    {
+      "unrelated_mail_rows": 125000,
+      "seconds": [
+        0.0835164999589324,
+        0.0857262919889763
+      ],
+      "exact_followup_found": false,
+      "result": {
+        "reason": "Der Mailverlauf konnte f\u00fcr diese Aufgabe nicht vollst\u00e4ndig gepr\u00fcft werden. Bitte selbst pr\u00fcfen, ob die Aufgabe noch gilt.",
+        "followup_episode_id": null
+      },
+      "coverage_limited": false
+    }
+  ]
+}

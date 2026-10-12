@@ -1,0 +1,16 @@
+[
+  {
+    "attempt": "kingfisher-one-local-question-model-20261011",
+    "completed": false,
+    "processes_stopped": true,
+    "original_weights_unchanged": true,
+    "failure_log": "Traceback (most recent call last):\n  File \"/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/docs/runs/2026-10-11-one-local-question-model/question_flow.py\", line 23, in <module>\n    from fastapi.testclient import TestClient\nModuleNotFoundError: No module named 'fastapi'\n"
+  },
+  {
+    "attempt": "kingfisher-one-local-question-model-20261011-attempt2",
+    "completed": false,
+    "processes_stopped": true,
+    "original_weights_unchanged": true,
+    "failure_log": "Error: $HOME is not defined\n"
+  }
+]

@@ -1,0 +1,142 @@
+{
+  "scope": "synthetic_prompt_contrast_not_product_change",
+  "personal_data_used": false,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "catalog_sha256": "ac0663b80134cf79fb799115d6c643bc00188b7b9eaecc0d3a79e4bcd97d54ae",
+  "product_category_sha256": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+  "guidance": "Prüfe die Themen unabhängig von der Entitätenerkennung anhand der Beschreibungen in taxonomy. Eine fehlende Person oder andere Entität ist kein Grund, ein im Original belegtes Thema wegzulassen.",
+  "arms": [
+    {
+      "guided": false,
+      "results": [
+        {
+          "parsed": {
+            "id": "advertising-only",
+            "source_status": "empty",
+            "failure_code": null,
+            "categories": [],
+            "people": [],
+            "missing_categories": [
+              "information"
+            ],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": false
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "seconds": 6.868
+        },
+        {
+          "parsed": {
+            "id": "system-success",
+            "source_status": "empty",
+            "failure_code": null,
+            "categories": [],
+            "people": [],
+            "missing_categories": [
+              "information"
+            ],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": false
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "seconds": 1.832
+        },
+        {
+          "parsed": {
+            "id": "invoice",
+            "source_status": "empty",
+            "failure_code": null,
+            "categories": [],
+            "people": [],
+            "missing_categories": [
+              "finance"
+            ],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": false
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "seconds": 1.661
+        }
+      ],
+      "calls": 3
+    },
+    {
+      "guided": true,
+      "results": [
+        {
+          "parsed": {
+            "id": "advertising-only",
+            "source_status": "complete",
+            "failure_code": null,
+            "categories": [
+              "information"
+            ],
+            "people": [],
+            "missing_categories": [],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": true
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"information\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "seconds": 2.929
+        },
+        {
+          "parsed": {
+            "id": "system-success",
+            "source_status": "complete",
+            "failure_code": null,
+            "categories": [
+              "information"
+            ],
+            "people": [],
+            "missing_categories": [],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": true
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"information\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "seconds": 3.015
+        },
+        {
+          "parsed": {
+            "id": "invoice",
+            "source_status": "complete",
+            "failure_code": null,
+            "categories": [
+              "finance"
+            ],
+            "people": [],
+            "missing_categories": [],
+            "forbidden_categories_found": [],
+            "unexpected_categories": [],
+            "missing_people": [],
+            "unexpected_people": [],
+            "original_unchanged": true,
+            "meets_requirements": true
+          },
+          "raw_response": "{\n  \"entities\": [],\n  \"categories\": [\n    {\n      \"category_id\": \"finance\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "seconds": 2.989
+        }
+      ],
+      "calls": 3
+    }
+  ]
+}

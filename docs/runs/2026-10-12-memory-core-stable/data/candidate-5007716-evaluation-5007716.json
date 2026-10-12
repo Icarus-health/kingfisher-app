@@ -1,0 +1,114 @@
+{
+  "runtime_commit": "50077168d486679cac7c2fc600355e56f16e9446",
+  "release_eligible": false,
+  "cases": [
+    {
+      "id": "exact",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "paraphrase",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "ambiguous_appointment",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": false
+    },
+    {
+      "id": "same_name",
+      "required_evidence_retained": false,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": false
+    },
+    {
+      "id": "specific_person",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "withdrawn_commitment",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "cancelled_deadline",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "deadline",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "historical_today",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "yesterday",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_coverage",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_address",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "ambiguous_number",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "unknown_source_time",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    },
+    {
+      "id": "missing_fact",
+      "required_evidence_retained": true,
+      "forbidden_evidence_excluded": true,
+      "selected_evidence_shown": true,
+      "status_allowed": true
+    }
+  ],
+  "blocker": "same_name: both explicit namesake originals found but model selected one and produced an unqualified email-address answer",
+  "other_rubric_difference": "ambiguous_appointment: both distinct originals shown, no requested clarification",
+  "seconds_total": 293.093
+}

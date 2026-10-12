@@ -1,0 +1,14 @@
+{
+  "scope": "Fresh process, same synthetic SQLite files after backend shutdown",
+  "source_count": 1,
+  "exact_body_preserved": true,
+  "project_preserved": true,
+  "original_provenance_preserved": true,
+  "exclusion_preserved": true,
+  "confirmed_claims_count": 0,
+  "model_provider": null,
+  "background_paused": true,
+  "task_unchanged_after_restart": true,
+  "followup_retained_after_restart": true,
+  "task_original_preserved": true
+}

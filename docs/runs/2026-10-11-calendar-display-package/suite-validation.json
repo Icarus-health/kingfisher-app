@@ -1,0 +1,20 @@
+{
+  "tested_head": "ac908b46b229f7b421a1588fb11d3f4bb65212aa",
+  "runtime_code": "bfe555e",
+  "file_count": 424,
+  "all_non_skipped_tests_verified": true,
+  "verified_passed": 6235,
+  "skipped": 1,
+  "subtests_passed": 26,
+  "single_full_run_green": false,
+  "full_suite_exit_code": 1,
+  "full_suite_passed": 6234,
+  "sole_full_suite_failure": "tests/test_pruefe_anfuehrungszeichen.py::test_der_bestand_des_repositorys_ist_sauber",
+  "sole_failure_reason": "git ls-files requires Git metadata absent from archive",
+  "isolated_failure_recheck_exit_code": 0,
+  "isolated_failure_recheck_passed": 1,
+  "tracked_source_unchanged": true,
+  "exact_git_index_added_only_to_temporary_snapshot": true,
+  "full_log_sha256": "b3640c5f3f32a8efedf2ad0ba6a6b4f55c890ee2624bd0e32ed7ed006291524c",
+  "recheck_log_sha256": "669da11e0103d9c939ed82da0277952300c2c35e9a19e44c04b0fe34292979b3"
+}

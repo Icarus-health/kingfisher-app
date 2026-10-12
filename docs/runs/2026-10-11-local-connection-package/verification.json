@@ -1,0 +1,25 @@
+{
+  "version": "1.0.6-preview.bc21155",
+  "backend_image_id": "sha256:a8c96f76d9c5c67de4aff2ffebcd1590f95d70547cfca5760c142cd42909c45a",
+  "backend_healthy": true,
+  "native_files_match_canonical_dmg": true,
+  "native_strict_deep_signature": true,
+  "all_seven_core_tables_unchanged": true,
+  "sqlite_schema_and_user_version_unchanged": true,
+  "sqlite_schema_databases_checked": 17,
+  "data_volume_unchanged": true,
+  "only_env_image_selector_changed": true,
+  "background_paused": true,
+  "native_process_restarted": false,
+  "native_window_verified": false,
+  "installed_but_native_restart_pending": true,
+  "backup": {
+    "volume_files": 148,
+    "volume_directories": 9,
+    "volume_bytes": 281322188,
+    "root_sqlite_integrity_checked": 17,
+    "restore_bytewise_match": true,
+    "restore_directory_entries_match": true,
+    "restore_ownership_modes_mtime_xattrs_match": true
+  }
+}

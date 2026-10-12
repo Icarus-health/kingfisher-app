@@ -1,0 +1,20 @@
+{
+  "scope": "Independent static review only; no tests, personal-data access or live actions by reviewer",
+  "result": "No concrete blocker",
+  "findings": [
+    "Backfill, triggers and schema version are atomic within existing BEGIN IMMEDIATE migration",
+    "INSERT, document/kind UPDATE and DELETE maintain projection",
+    "JOIN retains current/nonignored email source eligibility and account-scoped full tokens",
+    "No original rows rewritten"
+  ],
+  "limits": [
+    "Schema verifier checks DDL and triggers, not full derived-data parity on every startup",
+    "One-time backfill and additional storage",
+    "Existing retrieval budgets remain"
+  ],
+  "source_sha256": {
+    "mail_header_index.py": "21eb41b544e12958cf06317c31a77b8f99353df02e27b45247e3c4d0c645221b",
+    "episodes.py": "f48a456cd5f5ca7a102d238af5baed082e6fa1744fb16eac9f132cc2633d2fd2",
+    "task_source_review.py": "c402a9f2d9fef2497a03f9e5ec7542ec41635b1b59852e7b3c94b2a6016fec8d"
+  }
+}

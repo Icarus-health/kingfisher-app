@@ -26,6 +26,34 @@ _RECORD_EXISTENCE = re.compile(
 _NEW_TURN = re.compile(
     r'\b(?:schreib\w*|sende\w*|schick\w*|merke\w*|speicher\w*|lösche\w*|loesche\w*|'
     r'vergiss|öffne\w*|oeffne\w*|erstelle\w*|buche\w*|kaufe\w*|suche\w*|erkläre\w*|erklaere\w*)\b', re.I)
+# A local lookup is read-only even when it follows a factual question and no
+# classified source is available yet. Only one lookup clause, optionally after
+# one question, is accepted; compound commands keep the existing chat path.
+_LOCAL_MEMORY_SEARCH = re.compile(
+    r'(?:^|[.!?;\n]\s*)(?:bitte\s+)?'
+    r'(?P<lookup>suche?\s+(?:im|in\s+(?:meinem|unserem|dem))\s+gedächtnis)\b', re.I)
+_WEB_SEARCH_SCOPE = re.compile(r'\b(?:im|ins|in|auf|aus)\s+(?:(?:dem|das)\s+)?(?:internet|web|netz)\b', re.I)
+_NEGATED_SEARCH = re.compile(r'^\s*(?:nicht|niemals|keinesfalls)\b', re.I)
+_LOCAL_FACT_QUESTION = re.compile(
+    r'(?:welche\s+[^.!?,;:\n]{1,120}\s+(?:hat|ist)\s+[^.!?,;:\n]{1,160}'
+    r'|was\s+steht\s+(?:in|zu|über)\s+[^.!?,;:\n]{1,160})', re.I)
+_LOCAL_COMPOUND = re.compile(r'\b(?:und|oder|aber|sowie|dann|danach|anschließend|außerdem)\b|\s[-–—]\s', re.I)
+
+
+def _local_memory_lookup(text):
+    matches = list(_LOCAL_MEMORY_SEARCH.finditer(text))
+    if len(matches) != 1 or _WEB_SEARCH_SCOPE.search(text):
+        return False
+    match = matches[0]
+    before, after = text[:match.start()].strip(), text[match.end():].strip()
+    if before and (not _LOCAL_FACT_QUESTION.fullmatch(before) or re.search(r'[.!?,;:\n]', before)):
+        return False
+    if (not re.fullmatch(r'[^.!?,;:\n]*[.!?]?', after) or _NEGATED_SEARCH.match(after)
+            or _LOCAL_COMPOUND.search(before + ' ' + after)):
+        return False
+    return not _NEW_TURN.search(before + ' ' + after)
+
+
 _QUESTION_START = re.compile(r'^(?:was|wie|wer|wo|wann|warum|wieso|welch\w*|kann\w*|hast|ist|sind)\b', re.I)
 _PERSONAL_RECALL = re.compile(
     r'^(?:'
@@ -106,6 +134,8 @@ def _gedaechtnisfrage(text, anfrage):
 
 def route(message, previous_context=None, *, new_question=False, working_available=False, anfrage=None):
     text = message.strip()
+    if _LOCAL_MEMORY_SEARCH.search(text):
+        return 'memory_evidence' if _local_memory_lookup(text) else 'chat'
     from .source_answers import literal_query
     if (re.match(r'^(?:was steht\b|(?:bitte\s+)?(?:suche?|zeige?|finde)\b)', text, re.I)
             and literal_query(text) is not None):

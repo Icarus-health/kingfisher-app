@@ -11,6 +11,7 @@ from typing import Any
 
 from .lexical import terms_v1
 from .people_quality import ist_sammelpostfach, lokalteil
+from .working_memory_changes import _FOLLOWING_NEGATION, _NEGATED
 
 
 _SENDER = re.compile(r"^([^<>\r\n@]+?)\s+<([^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+)>$")
@@ -25,6 +26,12 @@ _CAPITALIZED = re.compile(r"(?<![\w])([A-ZÄÖÜ][a-zäöüß]+(?:[-‐][A-ZÄÖ
 _PROJECT_QUALIFIER = re.compile(
     r"\b(?:aus|im|in|für|fuer|vom|von)\s+(?:(?:dem|das|der)\s+)?Projekt\s+[A-ZÄÖÜ][\w-]*"
 )
+_PERSON_CONTEXT = re.compile(r'\b(?:aus|vom|von|im|bei|an|in)\s+(?:(?:dem|der|das|den|einer|einem)\s+)?([A-ZÄÖÜ][\w-]*)', re.I)
+_FALSE_PERSON_STATEMENT = re.compile(r'^\s+(?:(?:ist|war|sei|wäre)\s+)?(?:falsch|unwahr|unzutreffend)\b', re.I)
+_OTHER_PERSON_PREFIX = (r'\b(?:eine?|die|diese)\s+andere[rn]?\s+(?:person|mensch)\s+'
+                        r'(?:heißt|heisst|namens|mit\s+dem\s+namen)\s+(?:(?:ebenfalls|auch)\s+)?')
+_EXPLICIT_PERSON_NAME = re.compile(r'(?i:' + _OTHER_PERSON_PREFIX + r')'
+                                  r'(?P<name>[A-ZÄÖÜ][\w-]+(?:\s+[A-ZÄÖÜ][\w-]+){1,3})(?!\w)')
 
 
 def _normal(text: str) -> str:
@@ -126,6 +133,74 @@ def _has_shared_topic_anchor(question: str, name: str,
     return False
 
 
+def _explicit_distinction(text: str, pattern: re.Pattern) -> bool:
+    for match in pattern.finditer(text):
+        start = max((text.rfind(c, 0, match.start()) for c in '.;!?\n'), default=-1) + 1
+        if _NEGATED.search(text[start:match.start()]):
+            continue
+        after = text[match.end():]
+        if _FOLLOWING_NEGATION.match(after) or _FALSE_PERSON_STATEMENT.match(after):
+            continue
+        return True
+    return False
+
+
+def explicit_person_selection(question: str, source_rows: list[dict[str, Any]],
+                              selected_ids: list[str], *, candidate_ids: list[str] | None = None
+                              ) -> tuple[list[str], str | None, str | None]:
+    """Keep an explicitly different same-name person's original visible.
+
+    This does not identify senders or create people. Only a literal statement
+    that another person has the queried full name can request clarification.
+    Multiple addresses or an address change alone cannot establish that.
+    """
+    original = list(selected_ids)
+    unchanged = (original, None, None)
+    if (not isinstance(question, str) or not original or _PLURAL.search(question)
+            or _NEGATION.search(question) or '@' in question or _PROJECT_QUALIFIER.search(question)):
+        return unchanged
+    by_id = {row.get('id'): row for row in source_rows if isinstance(row, dict) and isinstance(row.get('id'), str)}
+    candidates = original if candidate_ids is None else list(candidate_ids)
+    if (any(not isinstance(identifier, str) or identifier not in by_id for identifier in original + candidates)
+            or len(set(candidates)) != len(candidates)):
+        return unchanged
+    from .personenfrage import _FRAGEWORT
+    names = {match['name'] for i in candidates if isinstance(by_id[i].get('context'), str)
+             for match in _EXPLICIT_PERSON_NAME.finditer(by_id[i]['context'])}
+    for name in sorted(names):
+        named = re.compile(r'(?<!\w)' + re.escape(name) + r'(?!\w)', re.I)
+        if not named.search(question):
+            continue
+        explicit = re.compile(_OTHER_PERSON_PREFIX + re.escape(name) + r'(?!\w)', re.I)
+        rows = [by_id[i] for i in candidates if not by_id[i].get('andere_person')
+                and isinstance(by_id[i].get('context'), str)
+                and named.search(by_id[i].get('context', ''))]
+        selected = [row for row in rows if row['id'] in original]
+        if not selected or not any(_explicit_distinction(row['context'], explicit) for row in rows):
+            continue
+        topics = terms_v1(question) - terms_v1(name) - _FRAGEWORT
+        relevant = [row for row in rows if not topics or any(
+            topics & terms_v1(row.get('context', '')) & terms_v1(chosen.get('context', '')) for chosen in selected)]
+        if (len(relevant) < 2 or not any(_explicit_distinction(row['context'], explicit) for row in relevant)
+                or not any(not _explicit_distinction(row['context'], explicit) for row in relevant)):
+            continue
+        # An explicit context qualifier can preserve an already specific model
+        # choice. It is not evidence to merge people or to manufacture identities.
+        context_words = {w for match in _PERSON_CONTEXT.finditer(question)
+                         for w in terms_v1(match[1])} - terms_v1(name)
+        selected_types = {_explicit_distinction(row['context'], explicit) for row in selected}
+        contrasts = [row for row in relevant if row not in selected
+                     and _explicit_distinction(row['context'], explicit) not in selected_types]
+        if len(selected_types) == 1 and contrasts and any(
+                all(word in terms_v1(chosen['context']) for chosen in selected)
+                and all(word not in terms_v1(row['context']) for row in contrasts)
+                for word in context_words):
+            continue
+        peers = [row['id'] for row in relevant if row['id'] not in original]
+        return original + peers, 'person', 'Welche der genannten Personen meinst du? Die Originale nennen ausdrücklich eine andere Person gleichen Namens.'
+    return unchanged
+
+
 def adjust_selection(question: str, source_rows: list[dict[str, Any]],
                      selected_ids: list[str], *, candidate_ids: list[str] | None = None
                      ) -> tuple[list[str], str | None, str | None]:
@@ -144,6 +219,9 @@ def adjust_selection(question: str, source_rows: list[dict[str, Any]],
             or len(set(original)) != len(original)):
         return unchanged
     normalized_question = _normal(question)
+    explicit = explicit_person_selection(question, source_rows, original, candidate_ids=candidate_ids)
+    if explicit[1] is not None:
+        return explicit
     if (not _SINGULAR_OPENING.match(normalized_question)
             or _PLURAL.search(normalized_question) or _NEGATION.search(normalized_question)):
         return unchanged

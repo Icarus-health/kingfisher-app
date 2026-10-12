@@ -1,0 +1,12 @@
+{
+  "volume_files": 167,
+  "volume_directories": 10,
+  "volume_bytes": 333347678,
+  "root_sqlite_integrity_checked": 17,
+  "archive_sha256": "cbcf06cbab2a33f711583e12877a74cf6557607eec1c016a9da287af80774252",
+  "restore_bytewise_match": true,
+  "restore_directory_entries_match": true,
+  "restore_ownership_modes_mtime_xattrs_match": true,
+  "network": "none",
+  "original_volume_readonly": true
+}

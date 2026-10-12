@@ -1,0 +1,18 @@
+/usr/local/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal": "passed"}
+{"source_context_removal_restoration_reanalysis_acceptance_preservation": "passed", "real_model_quality_tested": false}
+{"corrected_source_priority_ignore_reopen_no_automatic_tasks": "passed", "real_model_quality_tested": false}
+{"synthetic_v20_to_v21_preserved_original_rows_preupgrade_backup_verified_restore": "passed", "productive_database_accessed": false}
+{"synthetic_live_intake_queue_scheduler_job_no_parallel_or_unpermitted_model_no_history_scan": "passed", "real_model_quality_tested": false}
+{"learning_explicit_sources_no_unrelated_rawtexts_or_proposals_retry_explicit_accept_retract_history": "passed", "real_model_quality_tested": false}
+{"source_status_distinguishes_queue_processing_pause_retry_without_conversation_provider": "passed", "real_model_quality_tested": false}
+{"world_http_original_refresh_disable_cache_binding_and_own_evidence_withdrawal": "passed", "real_model_quality_tested": false}
+{"conditional_fresh_and_legacy_answers_keep_full_original_after_restart_withdrawal_enforced": "passed", "real_model_quality_tested": false}
+{"daily_ux_category_feedback_restart_stale_guard_original_preservation_project_totals_health_filters_withdrawal_transcript_preview_save": "passed", "real_model_quality_tested": false, "browser_rendered": false}
+{"browser_rendered": false, "code_commit": "a5787c88914400151769dae714dfd74c9ea8a0c3", "models_configured": false, "productive_mounts": false, "python_files": 271, "status": "passed", "ui_files": 112, "version": "1.0.6-preview.a5787c8"}
+{"packaged_local_answer_role_changes_actual_agent": "passed", "cloud_contradiction_rejected": true, "background_role_and_disabled_schedule_preserved": true, "actual_model_inference": false}
+{"packaged_storage_gate_routes_and_scheduler": "passed", "manual_pause_preserved_after_recovery": true, "productive_mounts": false, "network": "none", "final_package_status": "passed", "version": "1.0.6-preview.a5787c8"}
+{"packaged_pronoun_filter_new_and_legacy_spans": "passed", "original_and_legacy_rows_preserved": true, "final_package_status": "passed", "version": "1.0.6-preview.a5787c8", "productive_mounts": false, "network": "none"}
+{"packaged_calendar_display_default_explicit_year_dashboard": "passed", "source_history_retained": true, "dst_fold_utc_overlap": "passed", "network": "none", "productive_mounts": false, "final_package_status": "passed", "version": "1.0.6-preview.a5787c8"}
+{"packaged_confirmed_task_accept_transitive_followup_restart_withdrawal": "passed", "task_and_history_unchanged": true, "originals_preserved": true, "network": "none", "productive_mounts": false, "version": "1.0.6-preview.a5787c8"}

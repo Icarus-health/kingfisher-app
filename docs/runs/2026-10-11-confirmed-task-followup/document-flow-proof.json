@@ -1,0 +1,49 @@
+{
+  "scope": "Actual DocumentImport and real isolated SQLite backend; synthetic data; no native file dialog proof",
+  "browser": "Browser plugin not available; bundled Playwright",
+  "errors": [],
+  "writes": [
+    {
+      "method": "POST",
+      "path": "/api/v1/sources/documents"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/sources/documents"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/episodes/e-3be321acc67a/ignore"
+    }
+  ],
+  "cases": [
+    {
+      "name": "preview-and-cancel-no-writes",
+      "passed": true
+    },
+    {
+      "name": "single-explicit-save-retains-exact-body-and-project",
+      "passed": true
+    },
+    {
+      "name": "reload-reopens-original-and-mobile-layout",
+      "passed": true
+    },
+    {
+      "name": "duplicate-keeps-one-source-and-first-project",
+      "passed": true
+    },
+    {
+      "name": "invalid-encoding-and-extension-no-write",
+      "passed": true
+    },
+    {
+      "name": "explicit-exclusion-preserves-original",
+      "passed": true
+    }
+  ],
+  "source_id": "e-3be321acc67a",
+  "project_id": "p-c24ec1ee8861",
+  "mobile_horizontal_overflow": false,
+  "completed": true
+}

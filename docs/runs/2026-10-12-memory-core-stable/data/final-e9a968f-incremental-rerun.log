@@ -1,0 +1,6 @@
+/private/tmp/kingfisher-question-model-venv-20261011/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"phase": "withdrawal_after_app_store_reopen", "withdrawn_original_not_shown": true, "original_retained": true}
+{"phase": "incremental_before"}
+{"phase": "incremental_saved_invalidated"}
+{"phase": "incremental_fresh", "old_original_retained": true, "new_original_retained": true}

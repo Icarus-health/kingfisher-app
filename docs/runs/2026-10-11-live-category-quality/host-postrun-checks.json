@@ -1,0 +1,41 @@
+{
+  "captured_at": "2026-10-11T10:43:04.227324+00:00",
+  "scope": "read_only_local_postrun_checks",
+  "configured_model_files": {
+    "kingfisher-qwen3.5:9b-32k": {
+      "manifest_present": true,
+      "references": 6,
+      "missing_files": 6
+    },
+    "kingfisher-gemma4:12b-32k": {
+      "manifest_present": true,
+      "references": 7,
+      "missing_files": 7
+    }
+  },
+  "free_disk_bytes": 22079311872,
+  "test_daemon_process_count": 0,
+  "local_ollama_reachable": false,
+  "personal_core_tables": {
+    "all_equal_to_post_native_ui_snapshot": true,
+    "table_count": 7,
+    "row_counts": {
+      "conversations.sqlite3/conversation_messages": 14,
+      "conversations.sqlite3/conversations": 3,
+      "episodes.sqlite3/episodes": 344,
+      "episodes.sqlite3/source_heads": 333,
+      "tasks.sqlite3/tasks": 0,
+      "workspace.sqlite3/notes": 0,
+      "workspace.sqlite3/projects": 0
+    }
+  },
+  "personal_source_texts_in_report": false,
+  "model_choices_changed": false,
+  "selected_models_read_after_run": {
+    "frage": "kingfisher-qwen3.5:9b-32k",
+    "antwort": "kingfisher-gemma4:12b-32k",
+    "pruefung": "kingfisher-qwen3.5:9b-32k",
+    "hintergrund": "kingfisher-qwen3.5:9b-32k"
+  },
+  "selected_roles_use_cloud": false
+}

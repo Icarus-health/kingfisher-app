@@ -1,0 +1,122 @@
+{
+  "scope": "synthetic_independent_cases_actual_product",
+  "personal_data_used": false,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "holdout_sha256": "25104f9cdbe2774766586a862aba2a351c6e8111d1a8f00845a21630acfb9b12",
+  "product_category_sha256": "7fa1b14b9e3724800ac77d41e2fd22b5ecd3818347fd3ac48b5ca5f0b91985ed",
+  "driver_sha256": "c9d3c1d15320e77bafeb615e0a6a6d0312c1bc27be87445e0ce323d5431e8cb8",
+  "results": [
+    {
+      "id": "supplier-invoice-no-person",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "finance"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 5.105
+    },
+    {
+      "id": "automated-public-service-restored",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 2.274
+    },
+    {
+      "id": "public-audiobook-advertisement",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 2.751
+    },
+    {
+      "id": "theatre-seat-reservation",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "appointments"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 2.926
+    },
+    {
+      "id": "chance-meeting-no-work-evidence",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "personal",
+        "unclear"
+      ],
+      "people": [
+        "Nora Beck"
+      ],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [
+        "unclear"
+      ],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": false,
+      "seconds": 5.097
+    },
+    {
+      "id": "automated-payment-with-named-recipient",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "finance"
+      ],
+      "people": [
+        "Lea Winter"
+      ],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 4.488
+    }
+  ],
+  "completed": true,
+  "model_calls_attempted": 6,
+  "cases_meeting_requirements": 5
+}

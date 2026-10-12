@@ -1,0 +1,68 @@
+{
+  "runtime_commit": "3721bc2c470ffe570df50327f2c7126a7fe10ba3",
+  "backend_source": "canonical immutable Git export, rerun with local socket rights (coordinator run)",
+  "checks": {
+    "final-3721bc2-backend-local-sockets.log.gz": {
+      "status": "passed",
+      "uncompressed_log_sha256": "8efc9a34e172e4b83ff637ff31703e2b7188ea3591c756a52de9c30dd2542aeb",
+      "compressed_log_sha256": "b89f0f7e6935bf438c9a4bd9187bb114c2e81ead81bad059e9ff0f9250d58bba",
+      "result": {
+        "passed": 6456,
+        "skipped": 1,
+        "warnings": 2,
+        "subtests_passed": 26,
+        "seconds": 992.47
+      }
+    },
+    "final-3721bc2-backend-aborted-sandbox.log.gz": {
+      "status": "interrupted_not_passed",
+      "uncompressed_log_sha256": "2060073d6a0330772a214657714d7bdee290da88a26ba0e42a853ab8b2d7c9ed",
+      "compressed_log_sha256": "305f80d3a39fa661131bb910442fe6e5f6322687eaed418d95f87a3e79fb4b57",
+      "progress_before_interrupt_percent": 53
+    },
+    "final-3721bc2-sandbox-diagnosis.log.gz": {
+      "status": "confirmed_local_socket_permission_error",
+      "uncompressed_log_sha256": "2504213e0cf7b946e42479db779074b3bfcae9829f68fcbe20d4c87b4452c7f5",
+      "compressed_log_sha256": "92c0841ca34f9ba54c3e3caa91e29da131d9d0799bf2665207c47b42e6a57a55",
+      "result": {
+        "passed": 7,
+        "setup_errors": 3,
+        "seconds": 0.39,
+        "exception": "PermissionError [Errno 1] Operation not permitted while binding local HTTPServer"
+      }
+    },
+    "final-3721bc2-routing-target.log.gz": {
+      "status": "passed",
+      "result": {
+        "passed": 42,
+        "warnings": 1,
+        "seconds": 0.82
+      },
+      "uncompressed_log_sha256": "5a422d23ee555f74afe0e4ce27d8040b637bb654b1784e1d11a517cb7f4b89bc",
+      "compressed_log_sha256": "d78f272e17eaa9b64a9285253b150f18f63b37b3e4a8f7f4c8d780261b0375b3"
+    },
+    "final-3721bc2-routing-affected.log.gz": {
+      "status": "passed",
+      "result": {
+        "passed": 328,
+        "warnings": 1,
+        "seconds": 40.12
+      },
+      "uncompressed_log_sha256": "85e571b0c248026234410cf9eaa70382fc8b9ba193cc40d7e46198eab722ab1c",
+      "compressed_log_sha256": "6b97a0a858ed3ce75a0df6860b4f1ab82a0c32a016fe00600245385bd88704d2"
+    },
+    "final-3721bc2-routing-sabotage.log.gz": {
+      "status": "expected_negative_probe",
+      "result": {
+        "expected_failures": 13,
+        "passed": 29,
+        "warnings": 1,
+        "seconds": 0.89
+      },
+      "uncompressed_log_sha256": "af5b530b685198fb23ad56b0bc3d1d1057ebc9c1a0e8fa9cc3adb888194d687b",
+      "compressed_log_sha256": "6d1e65392fa31c9932b43542ed63618cc9c60709e5f080c8258d872992a59965"
+    }
+  },
+  "prior_e9a968f_proof": "final-e9a968f-full-test-proof.json",
+  "prior_other_tests_ui": "575 passed/1 skipped; unchanged UI 573 passed/build succeeded; existing e9 proof and logs retained, not rerun or relabeled as 3721 executions"
+}

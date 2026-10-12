@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.bfe555e",
+  "base_image": "sha256:d65a5a4b205496e222ffab16b1137b9734718e46837a0b848c12819bc2a4de3f",
+  "code_commit": "bfe555e5c57358ddb6578eaefb380755fd9f97fe",
+  "source_tar_sha256": "0b7e7731762a949f2a14907c4f10f28977960718f9e9127f9e703da13ad75665",
+  "arch": "arm64",
+  "private_data": false,
+  "backend_source_unchanged": false,
+  "scope": "Pinned code archive; calendar display filter plus tested model selection UI; originals and saved roles unchanged"
+}

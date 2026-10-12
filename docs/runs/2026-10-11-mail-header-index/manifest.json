@@ -1,0 +1,14 @@
+{
+  "before.json": "29c0caf1ac09b1698b2f6c0a512eb4937bb9299b9b9408d1685cfe845bcb6ad1",
+  "independent-review.json": "10a4d6a7816a3ad6b2b18ec02aea7f0c0e6a3e8716ca69cb4800fde83867ef35",
+  "initial-fixture-failures.log": "6f866c8eb9eb3a7350d94a0a9687301458735b92d0f18e791d2f55ed8f71ec0d",
+  "after.json": "4ab25a61358500f0b1a35140cc47471a90c39af10a91ca375dfb9f098736b11c",
+  "README.md": "3eba09b8435d25a831ede3daa9396d3acfd340f1ec01725005c46bf08bd443e9",
+  "regression-red.log": "ad238c0caa26cb94bb1fc74e9a50f8e754c2c6477f4d4f866449129638d083bc",
+  "support.log": "099f9923a5d2996f33838a347b83434f6bb218776dccc5d7a449cbb98b6ff787",
+  "scale_after.py": "cdd9afffc08e2795734a948bd11ac76480b580fed944a5933a59d7e247499d1a",
+  "scale_before.py": "9d85cc6a3c0cb4efee72e6dbb1377628067825d8f1755d428e21b261de69695e",
+  "affected.log": "528e1397004177e1fa0ce4859abeae38897c59cd44fb897f3725ed7cdbbc7473",
+  "originals.log": "aacdddb75dcda38be951b46d4470d81adcdb47d7a7b1c34c8342ebb0687bea18",
+  "calendar-live-status.json": "80e49430b81a623dd3fe49b9ec3bcd3ade20c4a7298e08c90ab0647de95f530e"
+}

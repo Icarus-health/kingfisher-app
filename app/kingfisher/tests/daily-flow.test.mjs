@@ -22,6 +22,26 @@ test('pending mail remains an explicit incomplete overview', () => {
   assert.equal(status.attention, true);
 });
 
+test('incomplete mail-thread review directs the user to tasks, not connection setup', () => {
+  const status = sourceStatus({...briefing, partial_failures: [{section: 'source_review', message: 'Einige Mailverläufe konnten nicht vollständig geprüft werden.'}]});
+  assert.equal(status.attention, true);
+  assert.match(status.text, /nicht vollständig geprüft/);
+  assert.equal(status.href, '/vorhaben?view=mine');
+  assert.equal(status.actionLabel, 'Aufgaben prüfen');
+});
+
+test('a concurrent connection failure keeps its setup action and extra review hints stay neutral', () => {
+  const status = sourceStatus({...briefing, partial_failures: [
+    {section: 'calendar', message: 'Kalender fehlt.'},
+    {section: 'mail', message: 'Post fehlt.'},
+    {section: 'source_review', message: 'Verlauf ungeprüft.'},
+  ]});
+  assert.equal(status.href, '/settings#zugaenge');
+  assert.equal(status.actionLabel, 'Quellen prüfen');
+  assert.match(status.text, /1 weitere Hinweise/);
+  assert.doesNotMatch(status.text, /Bereiche nicht verfügbar/);
+});
+
 test('source success wording describes an overview, not verified source synchronization', () => {
   assert.equal(sourceStatus(briefing).text, 'Überblick erstellt · Quellen können sich danach geändert haben.');
 });

@@ -26,13 +26,15 @@ async function page(fetchPage, fetchHistory=async()=>({items:[],next_cursor:null
     if(name==='./HealthObservationEditor')return {HealthObservationEditor(){}};
     return require(name);
   },module,module.exports);
-  const expand=node=>{if(Array.isArray(node))return node.map(expand);if(!node||typeof node!=='object')return node;if(typeof node.type==='function'&&['HealthEntry','HealthHistory'].includes(node.type.name))return expand(node.type(node.props));return {...node,props:{...node.props,children:expand(node.props?.children)}};};
+  const expand=node=>{if(Array.isArray(node))return node.map(expand);if(!node||typeof node!=='object')return node;if(typeof node.type==='function'&&['HealthEntry','HealthHistory','HealthTrend'].includes(node.type.name))return expand(node.type(node.props));return {...node,props:{...node.props,children:expand(node.props?.children)}};};
   const render=()=>{index=0;const tree=expand(module.exports.HealthPage({recentConversation:null}));while(effects.length)effects.shift()();return tree;};
   const nodes=node=>!node||typeof node!=='object'?[]:[node,...[node.props?.children].flat(Infinity).flatMap(nodes)];
   const settle=async()=>{await new Promise(r=>setImmediate(r));return nodes(render());};
   const click=async label=>{const button=nodes(render()).find(n=>n.type==='button'&&[n.props.children].flat(Infinity).join('').includes(label));assert.ok(button,`button ${label}`);await button.props.onClick?.();render();};
   const dispose=()=>{for(const slot of slots)slot?.cleanup?.();};
-  return {render,nodes,settle,click,callbacks,dispose};
+  const input=(label,value)=>{const field=nodes(render()).find(n=>n.type==='input'&&n.props['aria-label']===label);assert.ok(field,`input ${label}`);field.props.onChange({target:{value}});};
+  const filter=async()=>{const form=nodes(render()).find(n=>n.type==='form'&&n.props['aria-label']==='Messwerte filtern');assert.ok(form,'measurement filter');form.props.onSubmit({preventDefault(){}});render();await settle();};
+  return {render,nodes,settle,click,callbacks,dispose,input,filter};
 }
 const record={id:'e-one',subject:'self',metric:'Gewicht',value:'072,50',unit:'kg',observed_at:'2023-07-02T09:30:00+02:00',note:'',recorded_at:'2026-10-09T09:00:00Z',status:'current',support_fingerprint:'a'.repeat(64)};
 const result=(items,next_cursor=null)=>({items,next_cursor,scanned_sources:items.length,invalid_sources:0,complete:!next_cursor});
@@ -77,4 +79,30 @@ test('history is visibly a loaded snapshot and explicit refresh replaces stale c
   assert.ok(ui.nodes(ui.render()).some(n=>n.type==='span'&&n.props.children==='Ausgeschlossen'));
   assert.equal(ui.nodes(ui.render()).some(n=>n.type==='span'&&n.props.children==='Aktuell beim Abruf'),false);
   ui.dispose();
+});
+
+test('measurement filter resets pagination, preserves unit case and uses the backend scope',async()=>{
+  const calls=[];const ui=await page(async(cursor,filters)=>{calls.push([cursor,filters]);return result([record],'next');});
+  ui.render();await ui.settle();await ui.click('Ältere Angaben');await ui.settle();
+  ui.input('Messgröße filtern',' Gewicht ');ui.input('Einheit filtern',' mV ');await ui.filter();
+  assert.deepEqual(calls.at(-1),[null,{metric:'Gewicht',unit:'mV'}]);
+  assert.equal(ui.nodes(ui.render()).some(n=>n.type==='button'&&n.props.children==='Neuere Angaben'),false);
+  await ui.click('Filter löschen');await ui.settle();
+  assert.deepEqual(calls.at(-1),[null,{metric:'',unit:''}]);ui.dispose();
+});
+
+test('late result from another filter cannot restore its old measurement or chart',async()=>{
+  let finishOld,calls=0;const ui=await page(async()=>++calls===1 ? new Promise(r=>finishOld=r) : result([]));
+  ui.render();ui.input('Messgröße filtern','Puls');await ui.filter();
+  finishOld(result([record]));await ui.settle();
+  assert.equal(ui.nodes(ui.render()).some(n=>n.type==='time'),false);ui.dispose();
+});
+
+test('curve identifies its loaded scope and links each literal point to its source-backed entry',async()=>{
+  const second={...record,id:'e-two',value:'73',observed_at:'2023-07-03T09:30:00+02:00'};
+  const ui=await page(async()=>result([record,second],'next'));ui.render();const tree=await ui.settle();
+  assert.ok(tree.some(n=>n.type==='svg'&&n.props.role==='img'&&n.props['aria-label'].includes('geladenen Ausschnitt')));
+  assert.ok(tree.some(n=>n.type==='a'&&n.props.href==='#health-observation-e-one'&&n.props['aria-label'].includes('072,50 kg')));
+  assert.ok(tree.some(n=>n.type==='article'&&n.props.id==='health-observation-e-one'));
+  assert.ok(tree.some(n=>n.type==='button'&&n.props.children==='Ältere Angaben'));ui.dispose();
 });

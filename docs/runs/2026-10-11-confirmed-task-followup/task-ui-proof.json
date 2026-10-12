@@ -1,0 +1,19 @@
+{
+  "scope": "Actual TodayOverview, TodayTaskActions and ProfileSource against isolated synthetic SQLite backend",
+  "browser": "Browser plugin not available; bundled Playwright",
+  "errors": [],
+  "writes": [],
+  "reads": [
+    "/api/v1/morning-briefing",
+    "/api/v1/tag/briefing",
+    "/api/v1/tasks/reminders",
+    "/api/v1/memory/questions",
+    "/api/v1/lint/befunde",
+    "/api/v1/episodes/e-54117be1f680"
+  ],
+  "mobile_horizontal_overflow": false,
+  "new_message_visible": true,
+  "read_only_followup": true,
+  "task_unchanged": true,
+  "completed": true
+}

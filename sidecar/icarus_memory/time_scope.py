@@ -29,6 +29,40 @@ PATTERNS = [
     ('yesterday', re.compile(r'\bgestern\b', re.I)),
     ('today', re.compile(r'\bheute\b', re.I)),
 ]
+# Only immediate negation of a recognized period, not an unrelated "nicht" elsewhere.
+_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|am|der|den|dem)\s+)*'
+_NEGIERTE_ZEIT = re.compile(r'\bnicht\s+' + _ZEIT_VORWORTE + r'$', re.I)
+_NICHT_NUR_ZEIT = re.compile(r'\bnicht\s+(?:nur|bloß|bloss|allein|ausschließlich|ausschliesslich)\s+'
+                            + _ZEIT_VORWORTE + r'$', re.I)
+_RELATIVES_WORT = r'(?:heute|gestern|vorgestern|morgen|nächste[nmr]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag))\b'
+_WORTANFANG = r'(?:(?:das\s+)?(?:wort|ausdruck)\s+)?[\u201e"\']?'
+_QUELLENWORT = re.compile(r'\b(?:original(?:notiz|mail|nachricht|quelle|text)|notiz|mail|nachricht)\b', re.I)
+_ZEITWORTBEZUG = re.compile(
+    r'\b(?:bezog|bezieht)\s+sich\s+' + _WORTANFANG + _RELATIVES_WORT + r'|'
+    r'\b(?:bedeutet|bedeutete|meint|meinte)\s+' + _WORTANFANG + _RELATIVES_WORT + r'|'
+    r'\b(?:datum|tag|zeitpunkt)\b[^.!?\n]{0,80}\bmit\s+' + _WORTANFANG + _RELATIVES_WORT
+    + r'[^.!?\n]{0,120}\bgemeint\b', re.I)
+
+
+def original_time_reference(question):
+    """A question about a relative word's meaning in a source, not its arrival time.
+
+    A source mention alone is insufficient: the question must explicitly ask
+    what its relative word meant or referred to. No date is inferred here.
+    """
+    return isinstance(question, str) and bool(_QUELLENWORT.search(question) and _ZEITWORTBEZUG.search(question))
+
+
+def _negation(question, match):
+    prefix = question[:match.start()]
+    return ('offen' if _NICHT_NUR_ZEIT.search(prefix) else
+            'negiert' if _NEGIERTE_ZEIT.search(prefix) else None)
+
+
+def has_negated_period(question):
+    """A recognized period is excluded or explicitly nonexclusive: model suggestions must not restore it."""
+    return isinstance(question, str) and any(_negation(question, match)
+        for _, pattern in PATTERNS for match in pattern.finditer(question))
 
 
 def zahl(wort):
@@ -52,12 +86,19 @@ def _month_start(value):
 
 
 def mentioned_period(question, now=None):
-    """(Beginn, Ende, Beschriftung) des erstgenannten Zeitraums, sonst None."""
-    if not isinstance(question, str):
+    """(Beginn, Ende, Beschriftung) des ersten positiven Zeitraums, sonst None.
+
+    „Nicht heute, sondern gestern“ berücksichtigt gestern. „Nicht nur heute“ nennt
+    ausdrücklich keinen einzelnen Bereich; es wird kein enger Zeitraum geraten.
+    """
+    if not isinstance(question, str) or original_time_reference(question):
         return None
     now = now or datetime.now(user_timezone() or timezone.utc)
-    found = min(((match.start(), kind, match) for kind, pattern in PATTERNS
-                 for match in [pattern.search(question)] if match), default=None, key=lambda item: item[0])
+    matches = [(match.start(), kind, match) for kind, pattern in PATTERNS for match in pattern.finditer(question)]
+    if any(_negation(question, match) == 'offen' for _, _, match in matches):
+        return None
+    found = min((item for item in matches if _negation(question, item[2]) is None),
+                default=None, key=lambda item: item[0])
     if found is None:
         return None
     _, kind, match = found

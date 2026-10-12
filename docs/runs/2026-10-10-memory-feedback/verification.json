@@ -1,0 +1,45 @@
+{
+  "base": "6dade820f667e03cd2461176981bffa2afbc0d49",
+  "backend": {
+    "passed": 99,
+    "warnings": 1,
+    "full_suite": false
+  },
+  "ui": {
+    "passed": 524,
+    "failed": 0,
+    "full_suite": true
+  },
+  "typecheck_and_web_build": true,
+  "asset_contract": true,
+  "personal_data_used": false,
+  "installed": false,
+  "real_model_calls": 0,
+  "native_window_test": false,
+  "independent_review": "No blocker after navigation refresh correction; review did not run tests",
+  "files": {
+    "sidecar/icarus_memory/memory_categories.py": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+    "sidecar/icarus_memory/mail_intake_routes.py": "bd6520d95557124bf163f7978c7534c31d6a3b740b1e7bb9d78b20600d107ae5",
+    "app/kingfisher/src/api.ts": "815f78a3d041440447fac0bc2f78e5ec0ae4657dc8d9bb2e7eff021db0d40932",
+    "app/kingfisher/src/CategoryCorrection.tsx": "6d6c3e40a8175ca7eaacadccae41af8866d02d328be5e0dbc84ad9e0c2bffa62",
+    "app/kingfisher/src/MemoryAreas.tsx": "3ec1424320389f01fede3ae2a068077fa22d742fb9f132dbf12a659a99fda9d2",
+    "app/kingfisher/src/MemoryAreas.css": "5eee087807f126095f957c2616b024c256c0f4a9ea7f03582262b6dd171622f6",
+    "app/kingfisher/src/SourceCategories.tsx": "86abaeac12fd4024b3fa88eab460b35d5c74074d4deba600ed5869bbf0a4a9bc",
+    "sidecar/tests/test_category_feedback.py": "5f85324590e2785390603399676cd50b78ed15d4faf073dd783d3f2f28c10023",
+    "app/kingfisher/tests/category-correction.test.mjs": "f3da6fa8b9dde78063dd6df8d65c78e9973c9f4b1349592cda90a763716a4618"
+  },
+  "logs": {
+    "backend": {
+      "sha256": "9660e101a69f2c50a6b609c6a75aa5c9bb5bafa81d5efe3ec255d06d991425da",
+      "bytes": 748
+    },
+    "ui": {
+      "sha256": "ad1ab288ff4b728dfe427bbcfb85800d482279c8ae069894e8e1a05a70e07c14",
+      "bytes": 112906
+    },
+    "build": {
+      "sha256": "22068dd5c4d3f6e467e32e14f43aa8ecc5be0ca8d3cddc9e9f6928c3d1bae84b",
+      "bytes": 774
+    }
+  }
+}

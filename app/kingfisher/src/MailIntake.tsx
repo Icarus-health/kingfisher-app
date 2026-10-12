@@ -111,6 +111,8 @@ export function MailIntake({accounts, active, onChanged}: {
         if (error instanceof ApiError && error.status === 409) {
           setPreviews({});
           setMessage("Die Ordner im Postfach haben sich geändert. Sieh sie dir noch einmal an, bevor du einliest.");
+        } else if (error instanceof ApiError && error.status === 507) {
+          setMessage(error.message);
         } else setMessage(kind === "action" ? "Das hat nicht geklappt. Bitte noch einmal versuchen."
           : "Der Stand konnte gerade nicht geladen werden. Der letzte bekannte Stand bleibt sichtbar; Kingfisher versucht es erneut.");
       },
@@ -179,9 +181,10 @@ export function MailIntake({accounts, active, onChanged}: {
 
   return <section className="mail-intake" aria-label="Ältere Mails einlesen">
     <p>Kingfisher liest auf Wunsch auch die Mails, die schon in deinem Postfach liegen: Zuerst schaut es nach, welche Ordner es gibt, dann liest es sie ein und hält sie aktuell. Spam und Papierkorb bleiben außen vor. Welche Anlagen mitgelesen werden, steht bei jedem Konto; was eingelesen ist, gilt noch nicht als bestätigt.</p>
+    {status?.storage_blocked && <p role="status">{status.storage_message || "Die Verarbeitung wartet auf eine ausreichende freie Speicherreserve. Bereits gespeicherte Inhalte bleiben erhalten."}</p>}
     {status?.background_paused && <div role="status">
       <p>Die gesamte Hintergrundarbeit ist pausiert. Bereits gespeicherte Inhalte bleiben verfügbar. Setze sie hier fort; einzeln pausierte Postfächer behalten ihre eigene Pause.</p>
-      <button className="secondary-action" type="button" disabled={busy} onClick={() => {void resumeBackground();}}>
+      <button className="secondary-action" type="button" disabled={busy || Boolean(status.storage_blocked)} onClick={() => {void resumeBackground();}}>
         {backgroundBusy ? "Wird fortgesetzt …" : "Verarbeitung fortsetzen"}
       </button>
     </div>}
@@ -200,7 +203,8 @@ export function MailIntake({accounts, active, onChanged}: {
         : progress.categoriesUnverified > 0 && !retryCurrentFailure ? "Weitere Einordnungen prüfen" : "Fehlgeschlagenes noch einmal versuchen";
       return <article className="mail-intake-account" key={account.account_id}>
         <div className="mail-intake-heading"><h3>{account.label}</h3><span>{status.background_paused && ["inventory", "capture", "analysis", "waiting_analysis"].includes(progress.stage)
-          ? "Verarbeitung pausiert" : stageLabels[progress.stage]}</span></div>
+          ? "Verarbeitung pausiert" : status.storage_blocked && ["inventory", "capture", "analysis", "waiting_analysis"].includes(progress.stage)
+            ? "Wartet auf Speicher" : stageLabels[progress.stage]}</span></div>
         {account.stand && <p>{account.stand.satz}</p>}
         {progress.stage === "waiting_analysis" && !status.background_paused && <a className="text-action" href="/memory?view=status">Automatisches Sortieren prüfen →</a>}
         <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
@@ -209,13 +213,13 @@ export function MailIntake({accounts, active, onChanged}: {
         {account.paused && <p>Das Einlesen pausiert. Was schon gespeichert ist, bleibt, und es geht dort weiter, wo es aufgehört hat.</p>}
         {!account.started && <button className="secondary-action" type="button" disabled={!account.connected || busy}
           aria-label={`Ordner ansehen: ${account.label}`} onClick={() => {void preview(account);}}>{busyAccount === account.account_id && checkingScope ? "Kingfisher schaut nach …" : checked ? "Ordner noch einmal ansehen" : "Ordner ansehen"}</button>}
-        <button className="secondary-action" type="button" disabled={!account.connected || busy || Boolean(status.background_paused && account.started) || (!account.started && !checked?.folders.length)}
+        <button className="secondary-action" type="button" disabled={!account.connected || busy || Boolean(status.background_paused && account.started) || Boolean(status.storage_blocked && (!account.started || account.paused)) || (!account.started && !checked?.folders.length)}
           aria-label={`${!account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}: ${account.label}`}
           onClick={() => {void change(account);}}>
           {busyAccount === account.account_id && !checkingScope ? "Wird gespeichert …" : !account.started ? "Diese Ordner einlesen" : account.paused ? "Einlesen fortsetzen" : "Einlesen pausieren"}
         </button>
         {account.started && (retryFailed || filtered > 0) && <>
-          <button className="text-action" type="button" disabled={!account.connected || busy}
+          <button className="text-action" type="button" disabled={!account.connected || busy || Boolean(status.storage_blocked)}
             onClick={() => {void change(account, true);}}>{retryLabel}</button>
           {filtered > 0 && <p>Nur auf deinen Klick: {number(filtered)} ausgefilterte Mails werden mit den aktuellen Regeln erneut geprüft. Auch Mails, die wegen voller Prüfliste dort nicht angezeigt werden, sind dabei. Das geschieht nicht automatisch.</p>}
         </>}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type TaskSource as Source } from "./api";
 import { Herkunft } from "./HerkunftAnzeige";
+import { ProfileSource } from "./ProfileSource";
 
 function timestamp(value: string | null | undefined) {
   if (!value) return null;
@@ -27,6 +28,10 @@ export function TaskSource({taskId}: {taskId: string}) {
       {!source && !error && <p role="status">Quelle wird geladen …</p>}
       {error && <p role="alert">Die gespeicherte Quelle ist nicht verfügbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut versuchen</button></p>}
       {source && <><h3>{source.title}</h3><p>Gespeicherter Stand · Rohmaterial, keine bestätigte Aussage</p>
+        {source.source_review_coverage?.complete === false && <p role="status">{source.source_review_coverage.reason}</p>}
+        {source.source_review && <div role="status"><p>{source.source_review.reason}</p>
+          {source.source_review.followup_episode_id && <ProfileSource kind="episode" id={source.source_review.followup_episode_id} label="Weitere Nachricht im Verlauf ansehen" originalOnly />}
+        </div>}
         {source.state === "ignored" && <p role="status">Diese Quelle wurde ausgeschlossen und darf nicht als Wissensbeleg verwendet werden.</p>}
         {source.quote && <div><p>Übernommene Textstelle</p><blockquote>{source.quote}</blockquote></div>}
         <p>Quelldatum: {timestamp(source.occurred_at) ?? "unbekannt"}</p>

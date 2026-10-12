@@ -1,0 +1,16 @@
+{
+  "synthetic_only": true,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "model_digest": "4b44ba7611d862092ee5ea1fe4fbf3c127613ea7721bf762de348d5ff9d65de3",
+  "catalog_sha256": "7768438e8fd27fabdab0e1210b001dc474001e03f9b76025202776082e105e52",
+  "progress": {
+    "total": 20,
+    "done": 20,
+    "skipped": 0,
+    "retry": 0,
+    "remaining": 0
+  },
+  "transport": "loopback_only",
+  "route": "POST /episodes -> real working_memory_worker.run",
+  "classification": "actual local Qwen, not fixture annotations"
+}

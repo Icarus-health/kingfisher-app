@@ -1,0 +1,33 @@
+{
+  "code_commit": "d092006699bdfe89b390916ede8505bc7b3cac9f",
+  "baseline_commit": "3449e443a00752a81f8e07a2c3c9468f947ee420",
+  "baseline_expected_failures": 4,
+  "baseline_preservation_controls_passed": 1,
+  "selection_refresh_scenarios_passed": 5,
+  "connection_error_scenarios_passed": 4,
+  "previous_initial_visibility_scenarios_passed": 5,
+  "ui_suite_passed": 551,
+  "typecheck_passed": true,
+  "production_build_passed": true,
+  "asset_contract_passed": true,
+  "viewports": [
+    [
+      1100,
+      850
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "screenshots_visually_inspected": true,
+  "browser": "Browser plugin not available; bundled Playwright",
+  "api": "intercepted synthetic HTTP only; no real API writes or model/cloud calls",
+  "independent_review": "Narrow static review without concrete blocker; reviewer did not run tests",
+  "console": "No warnings/errors in normal flows; one intentional HTTP503 resource error in failure case, no page errors",
+  "installed": false,
+  "personal_model_role_changed": false,
+  "pending_user_question": "Existing Qwen9B answer-role change and Ollama start for personal test",
+  "big_import_started": false,
+  "source_sha256": "204b2b7404cbf0b6d214a104951ae27ca5f3c56fc47d3a224e3c1ef937d5879f"
+}

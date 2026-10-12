@@ -1,0 +1,1 @@
+{"actual_installer_ast_exercised": true, "staging_cases": 4, "rollback_cases": 3, "signature_copy_hash_failures_remove_only_owned_stage": true, "confirmed_absent_container_restores_code_without_stop": true, "unknown_docker_state_fails_closed": true, "new_data_writes_preserved": true, "productive_app_or_volume_accessed": false}

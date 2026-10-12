@@ -1,4 +1,6 @@
-import {useConversationVoice, VoiceDraftControls, VoiceDraftStatus, VoiceReply, recordingVoice, type ConversationVoice} from "./ConversationVoice";
+import {useConversationVoice, VoiceDraftStatus, VoiceReply} from "./ConversationVoice";
+import {CommandBar} from "./CommandBar";
+import {ConversationCapture} from "./ConversationCapture";
 import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
@@ -21,6 +23,7 @@ import {
 import { Sidebar } from "./chrome";
 import { ActionApprovalCard } from "./ActionApprovalCard";
 import { ProjectControls } from "./ProjectControls";
+import {ProjectOverview} from "./ProjectOverview";
 import { DecisionControls } from "./DecisionControls";
 import { GoalControls } from "./GoalControls";
 import { DevelopmentPage } from "./DevelopmentPage";
@@ -52,13 +55,13 @@ import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { verbindungenPruefen } from "./verbindungen";
 import { Verweis } from "./VerweisLink";
-import { tastenHinweis } from "./system";
-import { useEingabegeraet } from "./useSystem";
 import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
 import { TodaySourceStatus } from "./TodaySourceStatus";
 import { createDailyRefresh } from "./dailyFlow";
 import { MailReader } from "./MailReader";
+import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
+import {TaskRetryReview} from './TaskRetryReview';
 
 
 
@@ -93,65 +96,6 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
     <label>Datum der Nachricht<input max={max} onChange={(event) => setValue(event.target.value)} required type="date" value={value} /></label>
     <button className="memory-reject" disabled={busy || !value} type="submit">Datum übernehmen</button>
   </form>;
-}
-
-function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice }: {
-  onSubmit: (message: string) => Promise<void>;
-  busy?: boolean;
-  conversation?: boolean;
-  disabled?: boolean;
-  placeholder?: string;
-  voice?: ConversationVoice;
-}) {
-  const [message, setMessage] = useState("");
-  const recording = voice ? recordingVoice(voice.state) : false;
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if ((busy || disabled) && recording) voice?.cancel(); }, [busy, disabled, recording, voice]);
-  // Der Hinweis passt zum Gerät: „⌘ K“ auf dem Mac, „Strg K“ sonst, keiner auf dem Telefon (Fremdprobe 2, Befund 11).
-  const taste = tastenHinweis(useEingabegeraet());
-
-  useEffect(() => {
-    const key = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        input.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, []);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const clean = message.trim();
-    if (!clean || busy || disabled || recording) return;
-    voice?.cancel();
-    try {
-      await onSubmit(clean);
-      setMessage("");
-    } catch {
-      // Der aufrufende Screen zeigt den Fehler in der bestehenden Fläche.
-    }
-  }
-
-  return (
-    <form className={`command-bar ${conversation ? "conversation-command" : ""}`} onSubmit={submit}>
-      {!conversation ? <InterfaceIcon name="search" /> : null}
-      <input
-        aria-label="Kingfisher fragen"
-        disabled={busy || disabled || recording}
-        onChange={(event) => setMessage(event.target.value)}
-        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“")}
-        ref={input}
-        value={message}
-      />
-      {!conversation && taste ? <kbd>{taste}</kbd> : null}
-      {voice ? <VoiceDraftControls voice={voice} disabled={busy || disabled} base={message} onDraft={setMessage} /> : null}
-      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled || recording} type="submit">
-        <InterfaceIcon name="arrow-up" />
-      </button>
-    </form>
-  );
 }
 
 /** Der Zähler einer Kachel im Briefing; bei null keiner (Fremdprobe 2, Befund 10). */
@@ -367,6 +311,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   );
 
   const attentionCount = todayAttention(briefing).length;
+  const connectionFailures = briefing.partial_failures.filter(failure => failure.section !== "source_review");
   return (
     <div className="shell">
       <Sidebar active="Heute" briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
@@ -400,9 +345,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           <TodayPersonal />
           <FassungHeute />
           {briefing.post_ausstehend ? <p className="today-post-laedt" role="status">Deine Post wird gerade geholt …</p> : <PostfachStand />}
-          {briefing.partial_failures.length > 0 && <details className="today-connection-note"><summary>Quellen teilweise nicht verfügbar ({briefing.partial_failures.length})</summary>
-            {briefing.partial_failures.map(failure => <p key={failure.section}>{failure.message}</p>)}
-            <a className="today-text-link" href={verbindungenPruefen(briefing.partial_failures)}>Verbindungen prüfen →</a>
+          {connectionFailures.length > 0 && <details className="today-connection-note"><summary>Quellen teilweise nicht verfügbar ({connectionFailures.length})</summary>
+            {connectionFailures.map(failure => <p key={failure.section}>{failure.message}</p>)}
+            <a className="today-text-link" href={verbindungenPruefen(connectionFailures)}>Verbindungen prüfen →</a>
           </details>}
         </section>
       </main>
@@ -581,6 +526,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
         </aside>
         <section className="thread">
           <header className="thread-header"><div><p className="eyebrow">GESPRÄCH</p><h1>{data?.conversation.title ?? "Gespräch"}</h1></div><span className="local-status"><i /> Lokal gespeichert</span></header>
+          {!error && data && <ConversationCapture key={id} />}
           <div className="messages">
             {error ? <div className="message assistant error-message"><p>Das Gespräch ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></div> : null}
             {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
@@ -641,9 +587,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
             {refreshNotice ? <p className="memory-decision thread-notice" role="status">{refreshNotice}</p> : null}
           </div>
-          {sendError ? <p className="partial-error thread-send-error">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
-          {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-          <div className="thread-command"><VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} /></div>
+          <div className="thread-command">
+            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+            {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
+            <VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
+          </div>
         </section>
       </main>
     </div>
@@ -731,6 +679,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
   const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
+  const [overviewRevision, setOverviewRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const currentSearch = useRef(search);
@@ -750,6 +699,9 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const taskSave = useRef(new TaskSaveAttempt(undefined, MANUAL_TASK_REQUEST_KEY));
+  const [createError, setCreateError] = useState("");
+  const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
 
   const currentView = useRef(view);
@@ -767,6 +719,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
+    setOverviewRevision(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
@@ -786,11 +739,14 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting || !title.trim()) return;
+    const attempt = taskSave.current;
+    if (submitting || attempt.inFlight || attempt.succeeded || !title.trim()) return;
     setSubmitting(true);
-    setError("");
+    setCreateError("");
+    setCreateReviewed(false);
     try {
-      const task = await api.addTask({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) });
+      const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
+      if (!task) return;
       setSelectedTask(task.id);
       setProjectId(newTaskProject);
       setTitle("");
@@ -798,8 +754,8 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       setCreating(false);
       if (view === "mine") load("mine");
       else setView("mine");
-    } catch {
-      setError("Die Aufgabe konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    } catch (cause) {
+      setCreateError(cause instanceof TaskSavePreparationError ? `${cause.message} Es wurde keine Aufgabe gesendet.` : cause instanceof ApiError && cause.status === 409 ? (cause.detail ?? TASK_SAVE_UNCONFIRMED) : TASK_SAVE_UNCONFIRMED);
     } finally {
       setSubmitting(false);
     }
@@ -847,14 +803,31 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     finally { setCompleting(null); }
   }
 
-  function startTask() { if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true); }
+  function startTask() {
+    if (creating || taskSave.current.inFlight) return;
+    taskSave.current = new TaskSaveAttempt(undefined, MANUAL_TASK_REQUEST_KEY);
+    setTitle(""); setDue(""); setCreateReviewed(false);
+    try {setCreateError(taskSave.current.restore() ? TASK_SAVE_PENDING : "");}
+    catch (cause) {setCreateError(`${cause instanceof Error ? cause.message : 'Der lokale Speicher ist nicht verfügbar.'} Es wurde keine Aufgabe gesendet.`);}
+    if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true);
+  }
+  function prepareNewTaskRequest() {
+    if (!createReviewed || submitting || taskSave.current.inFlight) return;
+    try {taskSave.current.resetAfterReview(); setCreateReviewed(false); setCreateError("");}
+    catch {setCreateError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
+  }
+  function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
+    currentSearch.current = '';
+    setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
+    load(nextView);
+  }
   const visibleTasks = tasks?.filter(task => task.id !== selectedTask && (!projectId || task.project_id === projectId));
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
     <main className="tasks-page">
-      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
+      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
       {selectedTask && <section className="task-selected" aria-label="Ausgewählte Aufgabe">
         <h2>Ausgewählte Aufgabe</h2>
         <TaskDetail key={selectedTask} taskId={selectedTask} onChanged={() => load()} />
@@ -863,6 +836,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={view === item.id} className={view === item.id ? "active" : ""} key={item.id} onClick={() => setView(item.id)} type="button">{item.label}</button>)}</nav>
       {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
       {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
+      {(view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
       {(view === 'mine' || view === 'waiting' || view === 'done') && <>
         <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
@@ -877,7 +851,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       </>}
       {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading}>
         <header><span>Aufgabe</span><span>Fällig</span></header>
-        {creating ? <form className="task-create" onSubmit={create}><label>Aufgabe<input autoFocus onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
         {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
         {visibleTasks?.map((task) => <TaskRow projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={(name) => wait(task.id, name)} onComplete={() => complete(task.id, task.status === "done")} task={task} view={view} />)}
         {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}

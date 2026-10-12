@@ -1,0 +1,65 @@
+{
+  "suite": "memory-core-lifecycle-v2",
+  "synthetic_only": true,
+  "network_used": false,
+  "llm_called": false,
+  "embedding_quality_tested": false,
+  "assertions": {
+    "full_intake_restart_transport_retry": {
+      "passed": true,
+      "ticks": 277,
+      "classification_calls": 10000
+    },
+    "cross_label_duplicates": {
+      "passed": true,
+      "duplicates": 1000,
+      "extra_classification_calls": 0
+    },
+    "durable_vector_restart": {
+      "passed": true,
+      "first": 5000,
+      "after_restart": 5000,
+      "total": 10000
+    },
+    "incremental_arrivals": {
+      "passed": true,
+      "new": 10,
+      "extra_classification_calls": 10,
+      "extra_vectors": 10
+    },
+    "replacement_preserves_old_original_invalidates_old_ref": {
+      "passed": true,
+      "extra_classification_calls": 1,
+      "extra_vectors": 1
+    },
+    "withdrawal_restart_original_preserved": {
+      "passed": true
+    }
+  },
+  "original_preservation": {
+    "all_initial_payloads_checked": 10000,
+    "initial_original_sha256": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+    "initial_inventory_by_stage": {
+      "full_intake": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+      "label_replay": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+      "vector_restart": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+      "new_arrivals": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+      "source_replacement": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb",
+      "withdrawal_restart": "c8e9d5445c2ddcd65411195e988710cb47055ba27e56f4768385b22be63b0cbb"
+    },
+    "new_mail_payloads_checked": 10,
+    "replacement_originals_checked": 1,
+    "final_original_count": 10011,
+    "all_originals_preserved": true,
+    "scope": "body, digest, identity, origin, timestamps, participants, contacts; all stored versions"
+  },
+  "final_progress": {
+    "total": 10009,
+    "done": 10009,
+    "skipped": 0,
+    "retry": 0,
+    "remaining": 0
+  },
+  "source_count": 10011,
+  "seconds": 107.367
+}

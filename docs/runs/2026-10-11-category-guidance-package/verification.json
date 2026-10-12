@@ -1,0 +1,43 @@
+{
+  "version": "1.0.6-preview.2d6467b",
+  "code_commit": "2d6467b888fc150eb2f118e272ba8ac2f2bfbeda",
+  "dmg_sha256": "ec7784a9991882b7b81d5db396b7f1cd6181accd6eb86f90ac12df45c5790a74",
+  "dmg_readonly_manifest_match": true,
+  "native_strict_deep_signature": true,
+  "native_files": 6,
+  "dmg_detached": true,
+  "backend_image_id": "sha256:a3f6dc20a9b9115c0479b11fc174d4eb19ff80ab79320237efc8c99c7761d812",
+  "package_probe_exit": 0,
+  "python_files_verified": 269,
+  "ui_files_verified": 112,
+  "native_window_tested": false,
+  "installed": true,
+  "registry_uploaded": false,
+  "notarized": false,
+  "architecture": "arm64",
+  "installation": {
+    "version": "1.0.6-preview.2d6467b",
+    "backend_image_id": "sha256:a3f6dc20a9b9115c0479b11fc174d4eb19ff80ab79320237efc8c99c7761d812",
+    "backend_healthy": true,
+    "native_files_match_canonical_dmg": true,
+    "native_strict_deep_signature": true,
+    "all_seven_core_tables_unchanged": true,
+    "sqlite_schema_and_user_version_unchanged": true,
+    "sqlite_schema_databases_checked": 17,
+    "data_volume_unchanged": true,
+    "only_env_image_selector_changed": true,
+    "background_paused": true,
+    "native_process_restarted": false,
+    "native_window_verified": false,
+    "installed_but_native_restart_pending": true,
+    "backup": {
+      "volume_files": 148,
+      "volume_directories": 9,
+      "volume_bytes": 281322188,
+      "root_sqlite_integrity_checked": 17,
+      "restore_bytewise_match": true,
+      "restore_directory_entries_match": true,
+      "restore_ownership_modes_mtime_xattrs_match": true
+    }
+  }
+}

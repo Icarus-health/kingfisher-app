@@ -1,0 +1,47 @@
+import {chromium} from '/Users/sorenkube/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import assert from 'node:assert/strict';
+import {writeFile} from 'node:fs/promises';
+const root='/private/tmp/kingfisher-intake-capacity-ui-20261011',url='http://127.0.0.1:18766';
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1100,height:900}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const report={synthetic:true,scope:'Actual React MailIntake and product ASGI API with synthetic mail and filesystem measurements. Not native WKWebView or personal capacity test.',checks:[]};
+try {
+ await page.goto(url);
+ await page.getByText('Wartet auf Speicher',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Einlesen pausieren: Künstlich Aktiv',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Einlesen pausieren: Künstlich Aktiv',exact:true}).isEnabled(),true);
+ assert.equal(await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Pausiert',exact:true}).isEnabled(),false);
+ await page.getByRole('button',{name:'Ordner ansehen: Künstlich Neu',exact:true}).click();
+ await page.getByText('Gefunden: Posteingang.',{exact:false}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Diese Ordner einlesen: Künstlich Neu',exact:true}).isEnabled(),false);
+ assert.equal(await page.getByText(/Die Verarbeitung wartet auf freien Speicher/).count()>=1,true);
+ await page.screenshot({path:root+'/low-desktop.png',fullPage:true});report.checks.push('Low capacity: reason visible, progress retained, starts/resume disabled, pause and scope preview available.');
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+ await page.screenshot({path:root+'/low-mobile.png',fullPage:true});report.checks.push('390px without horizontal page overflow.');
+ await page.request.post(url+'/qa/unknown');await page.getByRole('button',{name:'Stand neu laden',exact:true}).click();
+ await page.getByText(/freie Speicherreserve lässt sich gerade nicht prüfen/).first().waitFor();
+ assert.equal(await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Pausiert',exact:true}).isEnabled(),false);
+ report.checks.push('Unknown measurement is visible and still blocks resume.');
+ await page.request.post(url+'/qa/healthy');await page.getByRole('button',{name:'Stand neu laden',exact:true}).click();
+ await page.getByText('Wartet auf Speicher',{exact:true}).waitFor({state:'hidden'});
+ assert.equal(await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Pausiert',exact:true}).isEnabled(),true);
+ assert.equal(await page.getByRole('button',{name:'Diese Ordner einlesen: Künstlich Neu',exact:true}).isEnabled(),true);
+ await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Pausiert',exact:true}).click();
+ await page.getByRole('button',{name:'Einlesen pausieren: Künstlich Pausiert',exact:true}).waitFor();
+ await page.request.post(url+'/qa/low');await page.getByRole('button',{name:'Stand neu laden',exact:true}).click();
+ await page.getByText('Wartet auf Speicher',{exact:true}).first().waitFor();
+ await page.getByRole('button',{name:'Einlesen pausieren: Künstlich Aktiv',exact:true}).click();
+ await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Aktiv',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Aktiv',exact:true}).isEnabled(),false);
+ report.checks.push('Healthy refresh enables explicit resume; low-capacity pause remains usable and survives new capacity recovery.');
+ await page.request.post(url+'/qa/healthy');await page.getByRole('button',{name:'Stand neu laden',exact:true}).click();
+ await page.getByRole('button',{name:'Einlesen fortsetzen: Künstlich Aktiv',exact:true}).waitFor();
+ const state=await (await page.request.get(url+'/qa/state')).json();
+ const writes=state.requests.filter(r=>r[0]!=='GET');
+ assert.deepEqual(writes,[['POST','/api/v1/mail/intake/b/pause'],['POST','/api/v1/mail/intake/a/pause']]);
+ report.writes=writes;report.errors=errors;assert.deepEqual(errors,[]);report.passed=true;
+} catch(e) {report.failure=e.message;report.dom=await page.locator('body').innerText();await page.screenshot({path:root+'/failure.png',fullPage:true});throw e;}
+finally {await writeFile(root+'/ui-evidence.json',JSON.stringify(report,null,2)+'\n');await browser.close();}
+console.log(JSON.stringify(report));

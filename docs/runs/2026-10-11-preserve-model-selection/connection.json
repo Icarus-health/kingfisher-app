@@ -1,0 +1,67 @@
+{
+  "scope": "Actual React connection and subsequent refresh; intercepted synthetic HTTP only",
+  "checks": [
+    {
+      "mode": "success",
+      "passed": true,
+      "simulated_writes": [
+        [
+          "PUT",
+          "/api/v1/models/roles/antwort"
+        ],
+        [
+          "PUT",
+          "/api/v1/setup"
+        ],
+        [
+          "POST",
+          "/api/v1/setup/test/modell"
+        ]
+      ],
+      "console_errors": [],
+      "actual_backend_calls": false
+    },
+    {
+      "mode": "readiness-failed",
+      "passed": true,
+      "simulated_writes": [
+        [
+          "PUT",
+          "/api/v1/models/roles/antwort"
+        ],
+        [
+          "PUT",
+          "/api/v1/setup"
+        ],
+        [
+          "POST",
+          "/api/v1/setup/test/modell"
+        ]
+      ],
+      "console_errors": [],
+      "actual_backend_calls": false
+    },
+    {
+      "mode": "reload-failed",
+      "passed": true,
+      "simulated_writes": [],
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "actual_backend_calls": false
+    },
+    {
+      "mode": "locality-unverified",
+      "passed": true,
+      "simulated_writes": [
+        [
+          "PUT",
+          "/api/v1/models/roles/antwort"
+        ]
+      ],
+      "console_errors": [],
+      "actual_backend_calls": false
+    }
+  ],
+  "passed": true
+}

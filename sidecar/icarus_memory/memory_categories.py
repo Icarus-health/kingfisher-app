@@ -6,6 +6,7 @@ corrections have their own fingerprint and cannot be overwritten by a model.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
@@ -48,6 +49,10 @@ FAILURE_CODES = frozenset({
 })
 
 
+class CategoryCorrectionConflict(ValueError):
+    """The source, taxonomy or explicit feedback changed since review."""
+
+
 class SourceValidationError(ProviderError):
     """Closed-code result validation failure for one original source."""
 
@@ -72,6 +77,20 @@ ENTITY_KINDS = ("person", "organization", "project", "place")
 RETRY_SECONDS = 300
 _ID = re.compile(r"[a-z][a-z0-9_]{0,39}\Z")
 _ADDRESS = re.compile(r"[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+")
+# Standalone German personal/reflexive/possessive pronouns are not name evidence.
+# Exact equality only: short names, compound names and other entity kinds stay
+# untouched. A current explicit mailbox display name can be ambiguous with a
+# pronoun; it remains an unconfirmed mention, never an identity resolution.
+_PERSON_PRONOUNS = frozenset({
+    "ich", "mich", "mir", "du", "dich", "dir", "er", "ihn", "ihm", "sie",
+    "ihr", "ihnen", "es", "wir", "uns", "euch", "sich",
+    "mein", "meine", "meiner", "meinem", "meinen", "meines",
+    "dein", "deine", "deiner", "deinem", "deinen", "deines",
+    "sein", "seine", "seiner", "seinem", "seinen", "seines",
+    "ihre", "ihrer", "ihrem", "ihren", "ihres",
+    "unser", "unsere", "unserer", "unserem", "unseren", "unseres",
+    "euer", "eure", "eurer", "eurem", "euren", "eures",
+})
 _DEFAULTS = (
     ("work", "Arbeit / Projekte", "Beruf, Zusammenarbeit und konkrete Projekte"),
     ("appointments", "Termine / Buchungen", "Termine, Reisen, Reservierungen und Buchungen"),
@@ -220,9 +239,33 @@ def _decoded_header(value):
         return value
 
 
-def _not_person(name, banned):
+def _contact_names(episode):
+    """Only current email metadata supplies rare pronoun/name exceptions.
+
+    Prose and quoted From lines never create an exception. These names merely
+    retain unconfirmed hints; they do not assign body statements to a contact.
+    """
+    if episode.provenance.source_type is not SourceType.EMAIL:
+        return set()
+    names = set()
+    for contact in episode.contacts:
+        name, address = contact.get('name'), contact.get('adresse')
+        if (isinstance(name, str) and isinstance(address, str) and
+                _ADDRESS.fullmatch(address) and not _generic_address(address)):
+            names.add(_normal(_decoded_header(name)))
+    for label in episode.participants:
+        if not isinstance(label, str):
+            continue
+        for name, address in getaddresses([_decoded_header(label)]):
+            if name and _ADDRESS.fullmatch(address) and not _generic_address(address):
+                names.add(_normal(name))
+    return names
+
+
+def _not_person(name, banned, contact_names=()):
     normalized = _normal(name)
     return (normalized in banned or ist_sammelpostfach(normalized)
+            or (normalized in _PERSON_PRONOUNS and normalized not in contact_names)
             or any(_generic_address(match[0]) for match in _ADDRESS.finditer(name)))
 
 
@@ -360,6 +403,7 @@ oder automatische Postfächer sind keine Personen. Keine Ergänzung, Normalisier
 Namensauflösung oder Identitätsverschmelzung."""
     all_topics, all_entities = [], []
     banned, _senders = _mailbox_names(episode)
+    contact_names = _contact_names(episode)
     for section in sections:
         block_map = {f"B{i}": span for i, span in enumerate(section, 1)}
         payload = {"source": context, "taxonomy": taxonomy, "blocks": [
@@ -380,7 +424,10 @@ Namensauflösung oder Identitätsverschmelzung."""
             schema['required'] = ['entities', 'categories']
         reply = provider.complete_json(
             [{"role": "system", "content": instruction +
-              f"\\nHöchstens {MAX_TOPICS} Kategoriebelege und {MAX_ENTITIES} Entitäten liefern."},
+              f"\\nHöchstens {MAX_TOPICS} Kategoriebelege und {MAX_ENTITIES} Entitäten liefern." +
+              ("\nPrüfe die Themen unabhängig von der Entitätenerkennung anhand der Beschreibungen in taxonomy. "
+               "Eine fehlende Person oder andere Entität ist kein Grund, ein im Original belegtes Thema wegzulassen."
+               if local else "")},
              {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
             max_tokens=1200, schema=schema)
         if getattr(reply, "tool_calls", None):
@@ -444,7 +491,7 @@ Namensauflösung oder Identitätsverschmelzung."""
                 raise SourceValidationError("invalid_entity_evidence", "Ungültige Entitätsbelege.", reason="entity_format")
             if role != "mentioned":
                 raise SourceValidationError("invalid_entity_evidence", "Unerlaubte Modell-Absenderrolle.", reason="entity_sender")
-            if kind == "person" and _not_person(name, banned):
+            if kind == "person" and _not_person(name, banned, contact_names):
                 continue
             # Gleicher Name beweist keine Identität der erwähnten Person.
             # Der tatsächliche Absender bleibt separat in den Mailkopfdaten.
@@ -533,6 +580,7 @@ Bei fehlendem Beleg oder mehreren Vorkommen im Block die Entität weglassen. Kei
             raise SourceValidationError("invalid_category_evidence", "Doppelter Kategoriebeleg.")
         topics.append(span)
     banned, senders = _mailbox_names(episode)
+    contact_names = _contact_names(episode)
     if entity_anchor_mode == "block_quote":
         anchored = []
         for item in result["entities"]:
@@ -565,7 +613,7 @@ Bei fehlendem Beleg oder mehreren Vorkommen im Block die Entität weglassen. Kei
                 raise SourceValidationError("invalid_entity_evidence", "Unbelegte Entität.")
             raise ProviderError("Unbelegte Entität.")
         normalized = _normal(name)
-        if kind == "person" and _not_person(name, banned):
+        if kind == "person" and _not_person(name, banned, contact_names):
             continue
         if role == "sender" and normalized not in senders:
             if entity_anchor_mode == "block_quote":
@@ -825,11 +873,27 @@ class Categories:
             detail += f", {failed} fehlgeschlagen; erneuter Versuch folgt"
         return JobResult("kategorien", failed == 0, detail)
 
-    def correct(self, episode_id, categories):
+    def _correction_revision(self, snapshot):
+        correction = self.connection.execute(
+            "SELECT fingerprint,taxonomy_version,categories,updated_at "
+            "FROM memory_category_corrections WHERE episode_id=?",
+            (snapshot.episode.id,),
+        ).fetchone()
+        version = self.connection.execute(
+            "SELECT taxonomy_version FROM memory_category_scan WHERE id=1").fetchone()[0]
+        payload = [source_fingerprint(snapshot), version,
+                   list(correction) if correction is not None else None]
+        return hashlib.sha256(json.dumps(payload, separators=(",", ":")).encode()).hexdigest()
+
+    def correct(self, episode_id, categories, *, expected_revision=None):
         if type(categories) is not list or len(categories) > MAX_TAXONOMY or any(type(item) is not str for item in categories) or len(set(categories)) != len(categories):
             raise ValueError("Kategorien müssen eine eindeutige Liste bekannter IDs sein.")
         with self.episodes.transaction():
             snapshot = self.memory._snapshot(episode_id)
+            if expected_revision is not None:
+                if (not self._available(snapshot) or
+                        expected_revision != self._correction_revision(snapshot)):
+                    raise CategoryCorrectionConflict("Die geprüfte Zuordnung hat sich geändert.")
             if not self._available(snapshot):
                 raise ValueError("Die Originalquelle ist nicht aktuell verfügbar.")
             taxonomy = self.taxonomy()
@@ -847,12 +911,14 @@ class Categories:
             correction = self.connection.execute("SELECT * FROM memory_category_corrections WHERE episode_id=?", (episode_id,)).fetchone()
             result = {"episode_id": episode_id, "status": "excluded", "categories": [],
                       "entities": [], "correction": None, "automatic": correction is None,
-                      "failure_code": None}
+                      "failure_code": None, "revision": None}
             if self._dismissed(episode_id):
                 return result
             snapshot = self.memory._snapshot(episode_id)
             eligible = self._available(snapshot)
             fingerprint = source_fingerprint(snapshot) if eligible else None
+            if eligible:
+                result["revision"] = self._correction_revision(snapshot)
             if correction:
                 result["correction"] = {"categories": json.loads(correction["categories"]),
                                         "fingerprint": correction["fingerprint"],
@@ -900,12 +966,13 @@ class Categories:
                     item["evidence"].append({"start": start, "end": end, "quote": body[start:end]})
                 result["categories"] = list(grouped.values())
             banned, _ = _mailbox_names(snapshot.episode)
+            contact_names = _contact_names(snapshot.episode)
             for row in self.connection.execute("SELECT * FROM memory_category_entities WHERE episode_id=? AND fingerprint=? ORDER BY rowid", (episode_id, fingerprint)):
                 start,end = row["start"],row["end"]
                 if not 0 <= start < end <= len(body):
                     continue
                 name = body[start:end]
-                if row["kind"] == "person" and _not_person(name, banned):
+                if row["kind"] == "person" and _not_person(name, banned, contact_names):
                     continue
                 result["entities"].append({"kind": row["kind"], "name": name, "role": row["role"],
                     "start": start, "end": end, "quote": name, "origin": "automatic"})

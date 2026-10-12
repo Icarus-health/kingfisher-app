@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.3690733",
+  "base_image": "sha256:a8c96f76d9c5c67de4aff2ffebcd1590f95d70547cfca5760c142cd42909c45a",
+  "code_commit": "36907338bde9251b4f92081913327ac0d63e463c",
+  "source_tar_sha256": "bd290ead78fd5ded576d8a25715a408e79e8f0581b2dd45523e4faa563ea3792",
+  "arch": "arm64",
+  "private_data": false,
+  "parent_version": "1.0.6-preview.bc21155",
+  "packaging": "Exact installed parent plus seven capacity-guard Python modules, rebuilt UI/native app"
+}

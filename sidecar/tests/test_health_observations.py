@@ -334,3 +334,48 @@ def test_unchanged_correction_does_not_create_version_or_invalidate_claims(healt
     assert result.json()['id'] == old['id']
     assert episodes._conn.total_changes == before
     assert claims.revision == revision
+
+
+def test_filter_reaches_old_measurements_beyond_other_metrics_and_units(health):
+    client, _, _ = health
+    old = create(health, observed_at='2020-01-01T09:00:00Z')
+    for n in range(105):
+        create(health, metric='Puls', unit='bpm')
+    create(health, metric='Gewicht', unit='lb')
+    result = client.get(ROOT, params={'metric': ' gewicht ', 'unit': 'kg'}).json()
+    assert [item['id'] for item in result['items']] == [old['id']]
+    assert result['scanned_sources'] == 1 and result['complete']
+
+
+def test_filter_cursor_cannot_switch_metric_or_case_sensitive_unit(health):
+    client, _, _ = health
+    create(health, metric='Signal', unit='mV')
+    create(health, metric='Signal', unit='mV')
+    create(health, metric='Signal', unit='MV')
+    first = client.get(ROOT, params={'limit': 1, 'metric': 'Signal', 'unit': 'mV'}).json()
+    assert first['next_cursor']
+    for changed in ({'metric': 'Puls', 'unit': 'mV'}, {'metric': 'Signal', 'unit': 'MV'}, {}):
+        assert client.get(ROOT, params={'limit': 1, 'cursor': first['next_cursor'], **changed}).status_code == 422
+    second = client.get(ROOT, params={'limit': 1, 'metric': 'SIGNAL', 'unit': 'mV', 'cursor': first['next_cursor']}).json()
+    assert len(second['items']) == 1 and second['complete']
+
+
+def test_filtered_source_withdrawal_correction_and_bad_body_remain_checked(health):
+    client, episodes, _ = health
+    old = create(health)
+    changed = client.patch(f"{ROOT}/{old['id']}", json=correction(old, metric='Puls', unit='bpm')).json()
+    assert client.get(ROOT, params={'metric': 'Gewicht', 'unit': 'kg'}).json()['items'] == []
+    episodes.ignore(changed['id'])
+    assert client.get(ROOT, params={'metric': 'Puls', 'unit': 'bpm'}).json()['items'] == []
+    bad = create(health)
+    with episodes._lock:
+        episodes._conn.execute("UPDATE episodes SET body=? WHERE id=?", ('not json', bad['id']))
+        episodes._conn.commit()
+    response = client.get(ROOT, params={'metric': 'Gewicht', 'unit': 'kg'})
+    assert response.status_code == 200 and response.json()['items'] == []
+
+
+def test_measurement_filters_reject_control_characters_and_overlong_fields(health):
+    client, _, _ = health
+    for params in ({'metric': 'a'*101}, {'unit': 'a'*41}, {'metric': 'Puls\n'}, {'unit': 'k\tg'}):
+        assert client.get(ROOT, params=params).status_code == 422

@@ -1,0 +1,7 @@
+{
+  "file": "install.py",
+  "normalization": "Trailing whitespace removed after successful execution; executable AST unchanged",
+  "executed_sha256": "c0e46b101fc67daa22339d33f5ca52b27a0f26988a2e62b17bb1d0aee02ead33",
+  "normalized_sha256": "bc8ac6223ba432a9b90c7d4bde543681e1b62b23e33ebf850c91b9625f969d61",
+  "ast_equal": true
+}

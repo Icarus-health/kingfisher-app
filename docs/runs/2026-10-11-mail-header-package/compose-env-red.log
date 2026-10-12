@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/private/tmp/kingfisher-header-package-f858681/test_compose_env.py", line 11, in <module>
+    assert env is not None, 'Compose inherits ambient provider overrides'
+           ^^^^^^^^^^^^^^^
+AssertionError: Compose inherits ambient provider overrides

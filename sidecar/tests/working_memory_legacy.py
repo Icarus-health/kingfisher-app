@@ -11,6 +11,12 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # v20 and earlier also lack the later derived mail-header projection.
+    from icarus_memory.mail_header_index import TABLES as HEADERS, TRIGGERS as HEADER_TRIGGERS
+    for trigger in HEADER_TRIGGERS:
+        connection.execute("DROP TRIGGER IF EXISTS " + trigger)
+    for table in HEADERS:
+        connection.execute("DROP TABLE IF EXISTS " + table)
     from icarus_memory.task_rechecks import TABLES, TRIGGERS
     for trigger in TRIGGERS:
         connection.execute('DROP TRIGGER IF EXISTS ' + trigger)

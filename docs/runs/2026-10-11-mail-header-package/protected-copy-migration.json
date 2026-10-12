@@ -1,0 +1,14 @@
+{
+  "database_schemas_checked": 17,
+  "existing_episode_store_tables_unchanged": 42,
+  "old_schema": 21,
+  "new_schema": 22,
+  "only_expected_schema_additions": true,
+  "protected_local_copy": true,
+  "original_backup_readonly": true,
+  "network": "none",
+  "models": false,
+  "all_derived_headers_match_originals": true,
+  "header_rows": 74,
+  "migration_and_verification_seconds": 0.8725731580052525
+}

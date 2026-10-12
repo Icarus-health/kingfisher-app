@@ -13,19 +13,19 @@ Die Sicherheit liegt nicht im Modell, sondern in dem, was danach kommt:
 * **Jeder Satz läuft durch die Satzprüfung** (`satzpruefung.py`, ohne Modell): Zahlen,
   Daten, Uhrzeiten, Namen, Kennungen und Zusagen des Satzes müssen in den genannten
   Belegen stehen, eine Verneinung darf nicht umgekehrt sein. Ein Satz, der nicht besteht,
-  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt danach eine der
-  vorgelegten Quellen ganz in den übrigen Sätzen, gilt stattdessen der Zitatmodus.
+  entfällt; die Zahl der verworfenen Sätze steht in der Antwort. Fehlt eine gewählte
+  Originalquelle ganz in den Sätzen, gilt stattdessen der Zitatmodus, auch ohne Verwerfung.
 * **Überholtes wird nie als Stand genannt.** Trägt ein Beleg die Kennzeichnung „überholt“
   (`akten_kontext.py`), besteht ein Satz mit seiner überholten Angabe nur, wenn er
   zugleich die neuere Quelle nennt und den Wandel benennt („verschoben“, „vorher“,
-  „bisher“). Ist eine gewählte Quelle überholt und erzählt kein Satz den Wandel, ergänzt
-  das Programm ihn wörtlich aus der Akte („Die Frist gilt jetzt für 12. November 2026;
-  vorher hieß es 15. Oktober 2026.“), durch dieselbe Prüfung.
+  „bisher“). Automatische Aktenbeziehungen sind Vermutungen. Das Programm ergänzt
+  daraus keine Überholungs- oder Absagesätze; fehlt eine gewählte Originalquelle,
+  bleibt der Zitatmodus mit beiden Originalen.
 * **Namensvettern und Zeiträume** (`kennzeichnung.py`): Ein Beleg, der einem anderen Menschen gleichen Namens
   gehört (`andere_person`) oder außerhalb des gefragten Zeitraums liegt (`ausserhalb_zeitraum`), steht hinter den
   passenden und ist dem Modell gekennzeichnet. Ein Satz, der sich **nur** auf solche Belege stützt, besteht nur, wenn
   er es ausdrücklich sagt („ein anderer Alex Winter“, „außerhalb des Zeitraums“); mit auch einem passenden Beleg
-  besteht er. Das Programm ergänzt hier nichts (anders als beim Wandel einer Frist).
+  besteht er. Das Programm ergänzt hier nichts.
 * **Relative Zeitangaben** („morgen“, „nächste Woche“) gelten nur, wenn sie gegen den
   Stichtag aufgelöst und vom Beleg getragen sind (`relative_zeit.py`); das Datum steht
   dann in Klammern dabei, damit der Satz auch später noch wahr ist.
@@ -92,7 +92,7 @@ Regeln, an denen nichts weich ist:
 - Nimm die Wörter der Belege. Verneinungen und Absagen müssen so bleiben, wie sie dort stehen.
 - Erhalte Datumsgrenzen mit ihrer Richtung und Einschränkung („ab“, „bis“, „vor“, „nach“, „nicht vor“). Eine befristete Gültigkeit darf nicht zu „gilt aktuell“ oder einer unbefristeten Zusage werden. Ein Datum allein belegt keine heutige Gültigkeit.
 - Bei einem langen Beleg steht nur ein Auszug der Absätze, die zur Frage passen; der Vermerk „… [gekürzt, 3 von 12 Absätzen]“ sagt es, „[…]“ trennt Stellen. Was im Auszug fehlt, ist weder bestätigt noch verneint: Schreibe darüber nichts.
-- Ein Beleg mit „ueberholt“ nennt eine Angabe, die eine neuere Quelle überholt hat. Nenne für den aktuellen Stand die neuere Quelle. Die überholte Angabe nennst du nur, um den Wandel zu erklären („Die Frist wurde vom 15.10. auf den 12.11. verschoben“); dann nennst du beide Belege. Nie beide Werte gleichrangig.
+- Ein Beleg mit „ueberholt“ trägt eine automatisch vermutete Beziehung zu einer neueren Quelle. Das ist keine bestätigte Überholung oder Absage. Behaupte eine Ersetzung nur, wenn die Originaltexte sie für denselben konkreten Gegenstand ausdrücklich belegen; nenne dann beide Belege. Andernfalls bleiben die Originalangaben getrennt oder status unklar. Die ältere Angabe nicht allein als aktuellen Stand ausgeben.
 - Ein Beleg mit „andere_person“ gehört einem anderen Menschen gleichen Namens als dem gemeinten; nenne ihn nie als Angabe der gemeinten Person. Nur wenn die Frage es verlangt, erwähne ihn, und dann ausdrücklich als „ein anderer <Name>“.
 - Ein Beleg mit „ausserhalb_zeitraum“ liegt vor oder nach dem gefragten Zeitraum. Stütze eine Antwort auf den Zeitraum nicht allein auf ihn; erwähnst du ihn, sage „außerhalb des Zeitraums“.
 - Was ein Beleg nur als „Vermutlich offen“ führt, gibst du mit „vermutlich“ wieder.
@@ -201,7 +201,8 @@ class AntwortBeleg:
     def fuer_modell(self, nummern: dict[str, int]) -> dict[str, Any]:
         eintrag: dict[str, Any] = {'nr': self.nummer, 'rolle': self.rolle, 'quelle': self.kopf, 'text': self.text}
         if self.ueberholt:
-            eintrag['ueberholt'] = [{'angabe': u.alt_wert or u.alt, 'neu': u.neu_wert or u.neu,
+            eintrag['ueberholt'] = [{'beziehung': 'automatisch vermutet, nicht bestätigt',
+                                     'angabe': u.alt_wert or u.alt, 'neu': u.neu_wert or u.neu,
                                      'neue_quelle_nr': nummern.get(u.durch)} for u in self.ueberholt]
         eintrag.update(kennzeichnung.hinweise_fuer_modell(self.kennzeichen))
         return eintrag
@@ -463,30 +464,12 @@ def _fremde_quellen(text: str, zitiert: Sequence[AntwortBeleg]) -> list[str]:
 
 
 def _wandel_saetze(belege: Sequence[AntwortBeleg], saetze: Sequence[GeprueftSatz]) -> list[Satz]:
-    """Was das Programm ergänzt, wenn eine gewählte Quelle überholt ist und kein Satz den Wandel erzählt.
+    """Keine Tatsachensätze aus automatischen Aktenbeziehungen ableiten.
 
-    Wörtlich aus der Kennzeichnung der Akte, ohne Deutung; die Sätze laufen durch dieselbe Prüfung.
+    Die Beziehung ist eine Vermutung. Fehlende Deckung einer gewählten Quelle
+    führt über _quelle_fehlt zu Originalzitaten, nicht zu einer Programminferenz.
     """
-    nummern = {b.episode_id: b.nummer for b in belege}
-    erzaehlt = [set(s.belege) for s in saetze if s.bestanden]
-    ergaenzt: list[Satz] = []
-    for beleg in belege:
-        if 'Quelle' not in beleg.rolle.split(' · '):
-            continue
-        for u in beleg.ueberholt:
-            neu = nummern.get(u.durch)
-            if neu is None or any({beleg.nummer, neu} <= belegt for belegt in erzaehlt):
-                continue
-            if u.grund == 'frist' and u.alt_wert and u.neu_wert:
-                text = f'Die Frist gilt jetzt für {u.neu_wert}; vorher hieß es {u.alt_wert}.'
-            elif u.grund == 'abgesagt':
-                text = 'Die ältere Angabe ist durch eine spätere Absage überholt.'
-            else:
-                text = 'Die ältere Angabe ist durch eine neuere Meldung überholt.'
-            satz = Satz(text, (str(beleg.nummer), str(neu)))
-            if satz not in ergaenzt:
-                ergaenzt.append(satz)
-    return ergaenzt
+    return []
 
 
 # -- Formulieren ----------------------------------------------------------------------
@@ -712,17 +695,21 @@ def _eingestuft(satz: GeprueftSatz, nach_nummer: dict[str, AntwortBeleg], jetzt:
 
 
 def _quelle_fehlt(saetze: Sequence[GeprueftSatz], belege: Sequence[AntwortBeleg], verworfen: int) -> bool:
-    """Nach Verwerfung keine Quelle oder erkannte Erlaubnis/Pflicht verdecken.
+    """Keine gewählte Originalquelle verdecken, auch wenn kein Satz verworfen wurde.
 
     Mehrere Abschnitte derselben Quelle zählen einmal. Ein geprüfter Wandel-Satz kann beide Quellen tragen.
-    Erkannte normative Regeln bleiben nur bei vollständiger wörtlicher Wiedergabe;
+    Zusätzlich vorgelegter Aktenkontext muss nicht vollständig erzählt werden.
+    Nach Verwerfung bleiben erkannte normative Regeln nur bei vollständiger wörtlicher Wiedergabe;
     sonst zeigt der Zitatmodus auch die innerhalb derselben Quelle verlorene Bedingung.
     Das ist keine allgemeine semantische Vollständigkeitsprüfung.
     """
-    if verworfen <= 0:
-        return False
     nummern = {n for satz in saetze for n in satz.belege}
     vertreten = {beleg.episode_id for beleg in belege if beleg.nummer in nummern}
+    gewaehlt = {beleg.episode_id for beleg in belege if 'Quelle' in beleg.rolle.split(' · ')}
+    if gewaehlt - vertreten:
+        return True
+    if verworfen <= 0:
+        return False
     if {beleg.episode_id for beleg in belege} - vertreten:
         return True
     for beleg in belege:
@@ -938,6 +925,8 @@ def wiederherstellen(daten: Any, episodes: Any, claims: Any) -> Dargestellt | No
         zusatz = [str(n) for n in daten.get('namen', ()) if isinstance(n, str)]
         saetze: list[GeprueftSatz] = []
         for eintrag in daten['saetze']:
+            if eintrag.get('vom_programm'):
+                return None  # Legacy program inferences fall back to revalidated original quotes.
             neu = pruefe_satz(Satz(eintrag['roh'], tuple(str(n) for n in eintrag['belege'])), nach_nummer, jetzt, zusatz,
                               vom_programm=bool(eintrag.get('vom_programm')))
             if not neu.bestanden or neu.text != eintrag['text']:
@@ -987,8 +976,8 @@ def _ueberholt_text(beleg: AntwortBeleg, nummern: dict[str, int]) -> str:
     durch = nummern.get(u.durch)
     wer = f'durch [{durch}]' if durch else 'durch eine neuere Quelle'
     if u.grund == 'frist' and u.alt_wert and u.neu_wert:
-        return f'überholt {wer}: {u.alt_wert} → {u.neu_wert}'
-    return f'überholt {wer}'
+        return f'vermutlich überholt {wer}: {u.alt_wert} → {u.neu_wert}'
+    return f'vermutlich überholt {wer}'
 
 
 def _angezeigt(dargestellt: Dargestellt) -> tuple[list[AntwortBeleg], dict[int, int]]:

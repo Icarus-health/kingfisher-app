@@ -1,0 +1,328 @@
+[
+  {
+    "kind": "kingfisher_answer",
+    "id": "exact",
+    "seconds": 8.995,
+    "retrieval_seconds": 0.0878,
+    "status": "reports",
+    "source_ids": [
+      "s01"
+    ],
+    "candidate_source_ids": [
+      "s01",
+      "s12",
+      "s14"
+    ],
+    "prompt_chars": 6949,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nUnklare Einordnung · Künstliche Quelle s01\nAm 20. Oktober 2026 um 10:00 habe ich das Gespräch mit Dr. Lena Berg im Klinikum Nord; bitte Angebotsliste mitbringen.\nQuellenzeit: 02.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "hindsight_reflect",
+    "id": "exact",
+    "seconds": 189.7377,
+    "status": "reports",
+    "source_ids": [
+      "s01",
+      "s12"
+    ],
+    "answer": "Für das Gespräch mit Dr. Lena Berg im Klinikum Nord müssen Sie laut den verfügbaren Quellen eine Angebotsliste mitbringen. Diese Information basiert auf der Notiz aus der Quelle s01, die ein Treffen am 20. Oktober 2026 um 10:00 Uhr im Klinikum Nord beschreibt, bei dem explizit angefordert wurde, die Angebotsliste zu überreichen. Es ist wichtig zu beachten, dass dies sich auf das Klinikum Nord bezieht und nicht auf das Klinikum Süd. Es gibt eine potenzielle Verwechslungsgefahr mit einer anderen Person namens Dr. Lena Berg: Die Quelle s12 erwähnt eine Absage eines Gesprächs am 20.10.2026, jedoch bezieht sich diese Absage auf Dr. Lena Berg vom Klinikum Süd. Dies ist ein separates Ereignis und hat keinen Einfluss auf die Vorbereitung für das Treffen im Klinikum Nord. Zusammenfassend gilt für den Termin im Klinikum Nord: Was mitbringen: Angebotsliste. Wo: Klinikum Nord. Wann (laut Quelle): 20.10.2026 um 10:00 Uhr."
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "paraphrase",
+    "seconds": 8.2555,
+    "retrieval_seconds": 1.837,
+    "status": "reports",
+    "source_ids": [
+      "s01"
+    ],
+    "candidate_source_ids": [
+      "s01",
+      "s09",
+      "s12"
+    ],
+    "prompt_chars": 6962,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nUnklare Einordnung · Künstliche Quelle s01\nAm 20. Oktober 2026 um 10:00 habe ich das Gespräch mit Dr. Lena Berg im Klinikum Nord; bitte Angebotsliste mitbringen.\nQuellenzeit: 02.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "hindsight_reflect",
+    "id": "paraphrase",
+    "seconds": 172.5247,
+    "status": "unknown",
+    "source_ids": [
+      "s01",
+      "s12"
+    ],
+    "answer": "Die Unterlagen sind derzeit als \"unknown\" zu bewerten. Zwar wird in Quelle s01 eine \"Angebotsliste\" für ein Gespräch am 20.10.2026 im Klinikum Nord mit Dr. Lena Berg erwähnt, doch aufgrund der Unsicherheit bezüglich der Identität von Dr. Lena Berg (Klinikum Süd vs. Nord) und dem fehlenden Status des Termins ist keine definitive Liste verfügbar."
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "ambiguous_appointment",
+    "seconds": 11.7446,
+    "retrieval_seconds": 0.0649,
+    "status": "reports",
+    "source_ids": [
+      "s01",
+      "s12"
+    ],
+    "candidate_source_ids": [
+      "s01",
+      "s02",
+      "s03",
+      "s04",
+      "s05",
+      "s06",
+      "s07",
+      "s09",
+      "s12",
+      "s14",
+      "s15",
+      "s16"
+    ],
+    "prompt_chars": 11234,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Künstliche Quelle s12 · neueste Quelle\nDr. Lena Berg vom Klinikum Süd hat das Gespräch am 20.10.2026 abgesagt. Gemeint ist das Gespräch im Klinikum Süd, nicht das Klinikum Nord.\nQuellenzeit: 06.09.2026, 09:00 Uhr\n\nUnklare Einordnung · Künstliche Quelle s01\nAm 20. Oktober 2026 um 10:00 habe ich das Gespräch mit Dr. Lena Berg im Klinikum Nord; bitte Angebotsliste mitbringen.\nQuellenzeit: 02.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "same_name",
+    "seconds": 7.4105,
+    "retrieval_seconds": 0.0928,
+    "status": "unclear",
+    "source_ids": [
+      "s10",
+      "s11"
+    ],
+    "candidate_source_ids": [
+      "s10",
+      "s11",
+      "s13",
+      "s14",
+      "s20"
+    ],
+    "prompt_chars": 8024,
+    "answer": "Quelle berichtet · automatisch eingeordnet\nWelche der genannten Personen meinst du?\n\nAngabe · Künstliche Quelle s11 · neueste Quelle\nEine andere Person heißt ebenfalls Alex Winter. Sie arbeitet an der Schule B. Ihre E-Mail-Adresse lautet a.winter@schule-b.invalid.\nQuellenzeit: 04.09.2026, 09:00 Uhr\n\nAngabe · Künstliche Quelle s10\nAlex Winter arbeitet im Einkauf der Firma A. Seine E-Mail-Adresse lautet alex.winter@firma-a.invalid.\nQuellenzeit: 03.09.2026, 09:00 Uhr",
+    "mode": "working_unclear",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "specific_person",
+    "seconds": 7.4423,
+    "retrieval_seconds": 0.0952,
+    "status": "reports",
+    "source_ids": [
+      "s10"
+    ],
+    "candidate_source_ids": [
+      "s10",
+      "s11",
+      "s13",
+      "s14",
+      "s20"
+    ],
+    "prompt_chars": 8040,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Künstliche Quelle s10\nAlex Winter arbeitet im Einkauf der Firma A. Seine E-Mail-Adresse lautet alex.winter@firma-a.invalid.\nQuellenzeit: 03.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "withdrawn_commitment",
+    "seconds": 7.6819,
+    "retrieval_seconds": 0.0905,
+    "status": "reports",
+    "source_ids": [
+      "s04",
+      "s05"
+    ],
+    "candidate_source_ids": [
+      "s03",
+      "s04",
+      "s05",
+      "s06",
+      "s13",
+      "s16"
+    ],
+    "prompt_chars": 8261,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nÄnderung · Künstliche Quelle s05 · neueste Quelle\nDer Herbstmarkt findet nicht am 20., sondern am 27. September 2026 statt. Es ist derselbe Herbstmarkt.\nQuellenzeit: 11.09.2026, 09:00 Uhr\n\nZusage · Urheber in Quelle prüfen · Künstliche Quelle s04\nIch übernehme den Standdienst am Herbstmarkt am 20.09.2026; die Kinderbetreuung ist organisiert.\nQuellenzeit: 09.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "cancelled_deadline",
+    "seconds": 6.7344,
+    "retrieval_seconds": 0.0876,
+    "status": "reports",
+    "source_ids": [
+      "s07",
+      "s08"
+    ],
+    "candidate_source_ids": [
+      "s05",
+      "s07",
+      "s08",
+      "s16"
+    ],
+    "prompt_chars": 7254,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Künstliche Quelle s08 · neueste Quelle\nDie Rückmeldung zum Satzungsentwurf wird nicht mehr benötigt; bitte nichts einreichen. Die frühere Bitte ist aufgehoben.\nQuellenzeit: 10.09.2026, 09:00 Uhr\n\nBitte · Künstliche Quelle s07\nBitte Rückmeldung zum Satzungsentwurf bis 15.09.2026.\nQuellenzeit: 01.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "deadline",
+    "seconds": 6.9048,
+    "retrieval_seconds": 0.0846,
+    "status": "reports",
+    "source_ids": [
+      "s02"
+    ],
+    "candidate_source_ids": [
+      "s02",
+      "s15",
+      "s17",
+      "s18"
+    ],
+    "prompt_chars": 7267,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nStatusmeldung · Künstliche Quelle s02\nFür das BioRegio-Projekt ist der Förderantrag bis 20.10.2026 einzureichen. Einreichung wurde bisher nicht bestätigt.\nQuellenzeit: 05.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "historical_today",
+    "seconds": 8.2261,
+    "retrieval_seconds": 0.0964,
+    "status": "reports",
+    "source_ids": [
+      "s14"
+    ],
+    "candidate_source_ids": [
+      "s01",
+      "s10",
+      "s12",
+      "s14",
+      "s20"
+    ],
+    "prompt_chars": 8468,
+    "answer": "Quelle berichtet · automatisch eingeordnet\nZuerst berücksichtigt: Quellen von heute.\n\nAngabe · Künstliche Quelle s14 · außerhalb des Zeitraums\nHeute um 14:00 Gespräch mit Alex Winter aus dem Einkauf der Firma A. Das Wort heute stammt aus dieser Originalnotiz vom 02.09.2026.\nQuellenzeit: 02.09.2026, 09:00 Uhr\nAußerhalb des gefragten Zeitraums (von heute): Quelle vom 02.09.2026",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "yesterday",
+    "seconds": 5.5314,
+    "retrieval_seconds": 0.082,
+    "status": "reports",
+    "source_ids": [
+      "s15"
+    ],
+    "candidate_source_ids": [
+      "s15"
+    ],
+    "prompt_chars": 5920,
+    "answer": "Quelle berichtet · automatisch eingeordnet\nZuerst berücksichtigt: Quellen von gestern.\n\nAngabe · Künstliche Quelle s15 · außerhalb des Zeitraums\nGestern, am 11.10.2026, habe ich den BioRegio-Entwurf verschickt. Gemeint ist der Entwurf, nicht der Förderantrag.\nQuellenzeit: 12.10.2026, 09:00 Uhr\nAußerhalb des gefragten Zeitraums (von gestern): Quelle vom 12.10.2026",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "missing_coverage",
+    "seconds": 6.5853,
+    "retrieval_seconds": 0.0922,
+    "status": "reports",
+    "source_ids": [
+      "s16"
+    ],
+    "candidate_source_ids": [
+      "s05",
+      "s16",
+      "s20"
+    ],
+    "prompt_chars": 7058,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nAngabe · Künstliche Quelle s16\nIm Kalenderexport vom 01.09.2026 stehen keine Termine für September. Weitere Kalender fehlen im Export; der Export ist nicht vollständig.\nQuellenzeit: 01.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "missing_address",
+    "seconds": 7.3023,
+    "retrieval_seconds": 0.0801,
+    "status": "reports",
+    "source_ids": [
+      "s13"
+    ],
+    "candidate_source_ids": [
+      "s10",
+      "s11",
+      "s13",
+      "s19"
+    ],
+    "prompt_chars": 7365,
+    "answer": "Quelle berichtet · automatisch eingeordnet\n\nUnklare Einordnung · Künstliche Quelle s13\nBei meiner alten Lindenstraße-Adresse bin ich mir nicht sicher; meine aktuelle Wohnadresse habe ich nicht angegeben.\nQuellenzeit: 07.09.2026, 09:00 Uhr",
+    "mode": "working_reports",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "ambiguous_number",
+    "seconds": 6.0123,
+    "retrieval_seconds": 0.0818,
+    "status": "unclear",
+    "source_ids": [
+      "s17",
+      "s18"
+    ],
+    "candidate_source_ids": [
+      "s17",
+      "s18"
+    ],
+    "prompt_chars": 6247,
+    "answer": "Quelle berichtet · automatisch eingeordnet\nDie Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?\n\nAngabe · Künstliche Quelle s18\nDie Nummer 42 bezeichnet bei der Vereinsversammlung eine Sitzplatzreihe. Sie hat nichts mit dem BioRegio-Projekt zu tun.\nQuellenzeit: 11.09.2026, 09:00 Uhr\n\nAngabe · Künstliche Quelle s17\nDie Nummer 42 bezeichnet im BioRegio-Projekt das Arbeitspaket Kommunikation.\nQuellenzeit: 11.09.2026, 09:00 Uhr",
+    "mode": "working_unclear",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "unknown_source_time",
+    "seconds": 7.4464,
+    "retrieval_seconds": 0.0942,
+    "status": "unclear",
+    "source_ids": [
+      "s20"
+    ],
+    "candidate_source_ids": [
+      "s10",
+      "s11",
+      "s13",
+      "s19",
+      "s20"
+    ],
+    "prompt_chars": 8079,
+    "answer": "Quelle berichtet · automatisch eingeordnet\nDer Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?\n\nZeitbezug ungeklärt · Künstliche Quelle s20\nIn einer alten Originalmail steht: nächsten Freitag um 17 Uhr kommt der Prüfer. Das Datum dieser Originalmail ist unbekannt; das spätere Erfassungsdatum darf nicht als Bezug für nächsten Freitag benutzt werden.\nQuellenzeit: unbekannt · Erfasst: 12.10.2026, 10:00 Uhr",
+    "mode": "working_unclear",
+    "semantic_status": "ok"
+  },
+  {
+    "kind": "kingfisher_answer",
+    "id": "missing_fact",
+    "seconds": 0.0464,
+    "retrieval_seconds": 0.069,
+    "status": "no_working_answer",
+    "source_ids": [],
+    "candidate_source_ids": [],
+    "prompt_chars": 0,
+    "answer": null,
+    "mode": "not_handled_by_this_memory_route",
+    "semantic_status": "ok"
+  }
+]

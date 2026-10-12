@@ -188,10 +188,20 @@ def test_hinweis_fuer_das_modell_nennt_alten_und_neuen_wert_und_die_neue_quelle(
     alt, neue = ausschreibung_und_verlaengerung(episodes)
     kontext = aufbauen(episodes, None, [alt.id, neue.id], akten=neu(akten))
     hinweise = hinweis_fuer_modell(kontext, alt.id, {alt.id: 'S1', neue.id: 'S2'}, {})
-    assert hinweise == [{'grund': 'Frist verschoben', 'ueberholte_angabe': '15. Oktober 2026',
+    assert hinweise == [{'grund': 'Frist vermutlich verschoben', 'ueberholte_angabe': '15. Oktober 2026',
                          'neu': '12. November 2026', 'neue_quelle': 'S2'}]
     assert hinweis_fuer_modell(kontext, alt.id, {}, {neue.id: 'Verlängerung'})[0]['neue_quelle'] == 'Verlängerung'
     assert hinweis_fuer_modell(kontext, neue.id, {}, {}) == []
+
+
+@pytest.mark.parametrize('grund', ['frist', 'stand', 'erledigt', 'abgesagt'])
+def test_automatic_relation_hint_is_a_guess_and_keeps_both_originals(grund):
+    relation = Ueberholt('old', grund, 'Die alte Originalangabe.', '', 'new', 'Die neue Originalangabe.', '', 'projekt:test')
+    context = Kontext(ueberholt={'old': (relation,)})
+    hints = hinweis_fuer_modell(context, 'old', {'new': 'S2'}, {})
+    assert len(hints) == 1 and 'vermutlich' in hints[0]['grund']
+    assert hints[0]['ueberholte_angabe'] == 'Die alte Originalangabe.'
+    assert hints[0]['neu'] == 'Die neue Originalangabe.' and hints[0]['neue_quelle'] == 'S2'
 
 
 def test_gekennzeichnetes_steht_nachrangig_und_nichts_faellt_weg(welt, akten):

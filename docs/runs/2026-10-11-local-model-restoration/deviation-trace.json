@@ -1,0 +1,121 @@
+{
+  "scope": "synthetic_category_diagnostic_repeat_only",
+  "personal_data_used": false,
+  "product_changed": false,
+  "results": [
+    {
+      "case": "advertising-only",
+      "parsed_result": {
+        "id": "advertising-only",
+        "source_status": "empty",
+        "failure_code": null,
+        "categories": [],
+        "people": [],
+        "missing_categories": [
+          "information"
+        ],
+        "forbidden_categories_found": [],
+        "unexpected_categories": [],
+        "missing_people": [],
+        "unexpected_people": [],
+        "original_unchanged": true,
+        "meets_requirements": false
+      },
+      "raw_responses": [
+        {
+          "text": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "tool_calls": false
+        }
+      ]
+    },
+    {
+      "case": "system-success",
+      "parsed_result": {
+        "id": "system-success",
+        "source_status": "empty",
+        "failure_code": null,
+        "categories": [],
+        "people": [],
+        "missing_categories": [
+          "information"
+        ],
+        "forbidden_categories_found": [],
+        "unexpected_categories": [],
+        "missing_people": [],
+        "unexpected_people": [],
+        "original_unchanged": true,
+        "meets_requirements": false
+      },
+      "raw_responses": [
+        {
+          "text": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "tool_calls": false
+        }
+      ]
+    },
+    {
+      "case": "invoice",
+      "parsed_result": {
+        "id": "invoice",
+        "source_status": "empty",
+        "failure_code": null,
+        "categories": [],
+        "people": [],
+        "missing_categories": [
+          "finance"
+        ],
+        "forbidden_categories_found": [],
+        "unexpected_categories": [],
+        "missing_people": [],
+        "unexpected_people": [],
+        "original_unchanged": true,
+        "meets_requirements": false
+      },
+      "raw_responses": [
+        {
+          "text": "{\n  \"entities\": [],\n  \"categories\": []\n}",
+          "tool_calls": false
+        }
+      ]
+    },
+    {
+      "case": "conditional-report",
+      "parsed_result": {
+        "id": "conditional-report",
+        "source_status": "complete",
+        "failure_code": null,
+        "categories": [
+          "appointments",
+          "work"
+        ],
+        "people": [
+          "Lene Kühn"
+        ],
+        "missing_categories": [],
+        "forbidden_categories_found": [],
+        "unexpected_categories": [
+          "appointments"
+        ],
+        "missing_people": [],
+        "unexpected_people": [],
+        "original_unchanged": true,
+        "meets_requirements": false
+      },
+      "raw_responses": [
+        {
+          "text": "{\n  \"entities\": [\n    {\n      \"kind\": \"person\",\n      \"name\": \"Lene Kühn\",\n      \"block_id\": \"B1\",\n      \"role\": \"mentioned\"\n    },\n    {\n      \"kind\": \"project\",\n      \"name\": \"Orion\",\n      \"block_id\": \"B1\",\n      \"role\": \"mentioned\"\n    }\n  ],\n  \"categories\": [\n    {\n      \"category_id\": \"work\",\n      \"block_id\": \"B1\"\n    },\n    {\n      \"category_id\": \"appointments\",\n      \"block_id\": \"B1\"\n    }\n  ]\n}",
+          "tool_calls": false
+        }
+      ]
+    }
+  ],
+  "model_calls_attempted": 4,
+  "postrun_provenance": {
+    "added_after_execution": true,
+    "requested_model_from_executed_driver": "kingfisher-qwen3.5:9b-32k",
+    "driver_sha256": "6a2612b0b7501d636cce638c463ddb49f54cd49c2d08756263cc98bf131678c9",
+    "catalog_sha256": "ac0663b80134cf79fb799115d6c643bc00188b7b9eaecc0d3a79e4bcd97d54ae",
+    "product_category_sha256": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+    "metadata_scope": "Driver and unchanged inputs checked after run; no new inference or in-run metadata capture"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "scope": "Actual LocalModelSettings React component; synthetic HTTP responses, no personal app/model/cloud requests",
+  "browser": "Browser plugin not available; bundled Playwright",
+  "phase": "selection-refresh-regression",
+  "cases": [
+    {
+      "state": "fehlt",
+      "expected_expanded": true,
+      "actual_expanded": true,
+      "passed": true,
+      "manual_close_open": true,
+      "installed_alternative_selectable": true,
+      "writes": [],
+      "mobile_no_horizontal_overflow": true
+    },
+    {
+      "state": "nicht_erreichbar",
+      "expected_expanded": true,
+      "actual_expanded": true,
+      "passed": true,
+      "manual_close_open": true,
+      "writes": []
+    },
+    {
+      "state": "keins",
+      "expected_expanded": true,
+      "actual_expanded": true,
+      "passed": true,
+      "manual_close_open": true,
+      "writes": []
+    },
+    {
+      "state": "bereit",
+      "expected_expanded": false,
+      "actual_expanded": false,
+      "passed": true,
+      "writes": []
+    },
+    {
+      "state": "cloud",
+      "expected_expanded": false,
+      "actual_expanded": false,
+      "passed": true,
+      "writes": []
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

@@ -1,0 +1,17 @@
+{
+  "version": "1.0.6-preview.bfe555e",
+  "calendar_permission": "granted",
+  "selected_count": 3,
+  "calendar_online": true,
+  "calendar_error": false,
+  "snapshot_event_count": 490,
+  "snapshot_has_explicit_range": true,
+  "next_seven_days_count": 6,
+  "all_displayed_entries_in_requested_window": true,
+  "overview_errors_count": 0,
+  "overview_warnings_count": 0,
+  "background_paused": true,
+  "memory_allowed": false,
+  "storage_blocked": null,
+  "native_window_verified": false
+}

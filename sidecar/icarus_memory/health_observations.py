@@ -173,14 +173,29 @@ def _decode(cursor, query):
         raise ValueError('Ungültiger Cursor oder Cursor für einen anderen Messverlauf.') from None
 
 
-def _page(episodes, *, limit, cursor=None, key=None):
+def _filter_text(value, *, metric=False):
+    if not isinstance(value, str):
+        return None
+    if any(ord(c) < 32 for c in value):
+        raise ValueError('Messfilter benötigen lesbaren Text.')
+    return value.strip().casefold() if metric else value.strip()
+
+
+def _page(episodes, *, limit, cursor=None, key=None, metric='', unit=''):
     query = query_key('health-history-v1' if key else 'health-current-v1', str(episodes._path.resolve()), limit, key)
+    # Preserve old unfiltered/history cursors, bind filtered navigation to its
+    # exact scope. Unit case matters (mV is not MV); metric case does not.
+    metric, unit = _filter_text(metric, metric=True), _filter_text(unit)
+    if metric or unit:
+        query = query_key('health-filter-v1', query, metric, unit)
     after = _decode(cursor, query) if cursor is not None else None
     with episodes._lock:
         ceiling = after[1] if after else episodes._conn.execute('SELECT COALESCE(MAX(rowid),0) FROM episodes').fetchone()[0]
         anchor = after[2] if after else ceiling_anchor(episodes._conn, 'episodes', 'rowid', ceiling)
         validate_anchor(episodes._conn, 'episodes', 'rowid', ceiling, anchor)
         episodes._conn.create_function('_health_instant_us', 1, _instant_us, deterministic=True)
+        episodes._conn.create_function('_health_metric', 1, lambda v: v.strip().casefold() if isinstance(v, str) else None, deterministic=True)
+        episodes._conn.create_function('_health_unit', 1, lambda v: v.strip() if isinstance(v, str) else None, deterministic=True)
         stamp = 'recorded_at' if key else 'occurred_at'
         instant = f'_health_instant_us(e.{stamp})'
         source = 'episodes e' if key else 'source_heads h JOIN episodes e ON e.id=h.episode_id'
@@ -192,6 +207,10 @@ def _page(episodes, *, limit, cursor=None, key=None):
         else:
             sql += f'AND h.source_key>=? AND h.source_key<? AND {sql_geltend("e")} '
             params.extend([PREFIX, PREFIX[:-1] + ';'])
+        for name, value in (('metric', metric), ('unit', unit)):
+            if value:
+                sql += f"AND _health_{name}(CASE WHEN json_valid(e.body) THEN json_extract(e.body,'$.{name}') END)=? "
+                params.append(value)
         if after:
             sql += f'AND ({instant}<? OR ({instant}=? AND e.rowid<?)) '
             params.extend([after[0][0], after[0][0], after[0][1]])
@@ -265,10 +284,11 @@ def register(app, guard):
             return _item(_lookup(episodes, episode.id))
 
     @app.get('/api/v1/health/observations', dependencies=guard)
-    def observations(limit: int = Query(default=25, ge=1, le=50), cursor: str | None = Query(default=None, max_length=2048)):
+    def observations(limit: int = Query(default=25, ge=1, le=50), cursor: str | None = Query(default=None, max_length=2048),
+                     metric: str = Query(default='', max_length=100), unit: str = Query(default='', max_length=40)):
         with app.state.conversation_lock:
             try:
-                return _page(app.state.episodes, limit=limit, cursor=cursor)
+                return _page(app.state.episodes, limit=limit, cursor=cursor, metric=metric, unit=unit)
             except ValueError as exc:
                 raise HTTPException(422, str(exc)) from None
 

@@ -1,0 +1,593 @@
+"""Synthetic installed-package check; run only in ephemeral --network none container."""
+from pathlib import Path
+import hashlib, json, os
+from dataclasses import asdict
+from uuid import uuid4
+
+expected={'version': '1.0.6-preview.d092006', 'base_image': 'sha256:d65a5a4b205496e222ffab16b1137b9734718e46837a0b848c12819bc2a4de3f', 'code_commit': 'd092006699bdfe89b390916ede8505bc7b3cac9f', 'source_tar_sha256': 'd11c118ba0af717c1d7ed31e0742e5684ebfb6b9eb2622440a7480cccc0d06dc', 'arch': 'arm64', 'private_data': False, 'backend_source_unchanged': True, 'scope': 'Exact installed backend parent; rebuilt UI for LocalModelSettings changes and version/native bundle metadata', 'python_files_sha256': {'icarus_memory/__init__.py': 'b4668814dc42a3bb0fefe18a01b58a1563b1c4f99ec9d88f295b00ffb5d97ea9', 'icarus_memory/absatzauswahl.py': '164cee460638277b9ed211bdd237f4e81550bc089e988777ab9c059bed10c0a0', 'icarus_memory/abschnitte.py': '17ed5a0856bf56f02af0d2e3bdb27efce4b366f6ad6ab751f2cc1e8a225c4c2a', 'icarus_memory/agent.py': 'e67270dccabba3aa0d108ce1280c20b3a18cc6388a7a20a4aad812f9dfc85588', 'icarus_memory/agent_verdrahtung.py': 'b99ec8cdd4da720f8f446577ed74c4409fea14e47fd56384f458fcdc2b5d4371', 'icarus_memory/akten.py': '0ca4b05e72cc8e772e01a0570a2e0e74831bcd6ac49559c87ef1ee5382bea9b1', 'icarus_memory/akten_arten.py': '1bd435ee66e0ffbc01709b422748cd93a5b11fe25de83ccfcdbc8c82129214c4', 'icarus_memory/akten_arten_routes.py': '04a20ce5ddaf4598d71c2fbf77e84358bf4dfd9715c56c6a627d3463250f5057', 'icarus_memory/akten_aussagen.py': '37c801da23a6885a4091d3402d8595d2348997bc78e245c8859b1d935ee14d73', 'icarus_memory/akten_export_routes.py': '6581e2bdd5e24b5e0fc067eefacfbe5692c84b7c9abb102a718e8840e11d825d', 'icarus_memory/akten_kontext.py': '2e274d47cf036471d42af0fc52e2094b394d92eacdf43cb8fd6457f0e86b6355', 'icarus_memory/akten_markdown.py': 'c0ce0c3a7118f06d9b9995d4634f9fa100462f8f54d2ac9e667079dfcd01eac5', 'icarus_memory/akten_routes.py': 'e242432fd613280b36d95e0ab1855cfba4e4e0a351241b667d10a8fe06b932bc', 'icarus_memory/anbieter_erkennen.py': 'c61f4303296df5c62caa229ee5edeb8cd32e7e7a849a4562d16d994dae66469f', 'icarus_memory/anhaenge.py': '42589fc789362664f7e28c884e6128cafe4dd290461db3b52b4317ccd13a81f2', 'icarus_memory/atomic.py': '5c705073479661b3c2a1c8a4d522dc7f61962c6d492d680240717cdbb6f45a27', 'icarus_memory/audit.py': '74f3659f6277f88231a23f6d9351af6400923dd69804ae057eb06517c6461698', 'icarus_memory/autostart.py': '7f0f980204b98057bcd9974bd136a8a284117fb6d1ec0f58ec31a6596fa87bfe', 'icarus_memory/backends.py': 'd198cf266b9fa9a87b69bde82e8e213cdd1dd1a1a203e63ebd203b5d8782c994', 'icarus_memory/backup.py': 'd1c6555adc94657778ca5879045a4acaf817b8c8e01ca7886d8a147090289851', 'icarus_memory/bedeutungen.py': '343a221e13b6433f75555130d7cdc239d1fe60fa33f72b4ac5cf94380aa2c556', 'icarus_memory/bezuege.py': '1162ef256343eb8eefc3014c9b7108804813dd7dd2aef09d71dbf951bd549852', 'icarus_memory/briefing.py': 'fb52c2f99509e834674b0d627b169cda303121db022461ca4dd83ade784833f9', 'icarus_memory/calendar_action_routes.py': '74a383ba430ca373ebed5d8b31fcd52eae1f9b225553a2ffab5151b9d7d380bc', 'icarus_memory/calendar_actions.py': '07cd03d59f7a4a79e2a85348eb1b6f2d61fe2314ceed100d84845ad25b008192', 'icarus_memory/calendar_answers.py': '40ab775395fc9a74d271884bdd9e56f4c9d755f004e64606d62a2881b6ab3795', 'icarus_memory/calendar_context.py': '33542452044e81e5dd3991a6c64d6b1942a8a84c5831b9a7e948047822b3efec', 'icarus_memory/calendar_memory.py': 'c13ab7219167bf2fe6d03f6f0b931938d1711cfc4d79ff1308320d86ca504b79', 'icarus_memory/calendar_memory_routes.py': '7c14aed9269360e74f74c174a727539501118cc68918ffd266d692bb77605b31', 'icarus_memory/calendar_window.py': '3293c400d79e45c2f3a7e93bc438ab9f79dfeae26b3dc92de7c6a24ad0948c7e', 'icarus_memory/chatgpt_oauth.py': '26c2597cb320250f674b5b5568c3bf60b4f055b3b0a866efa3d71e2679e082e2', 'icarus_memory/chatgpt_provider.py': 'fae1fa87ad06df45bd0b98417768356d3f2f5fdedb133275a3adadd6e65c47ee', 'icarus_memory/chatgpt_routes.py': '2db001510736fbe8851c5b892cb1f37b8c379beb2dffa491e3a0c16b0403f18a', 'icarus_memory/claim_index.py': '5647f7f5562f561bb41ae9955b1c9540def12392f981a7b519bc5a96bc1820c4', 'icarus_memory/claim_traversal.py': '8e1f0e1c768bef70e0942836709288f6d354b3fde2e6c76baa81bc9ce4209d20', 'icarus_memory/claims.py': '55011dcde18b322ae8f0ebc0d44a818939d688ae7d8646d1c5401395f0e2062e', 'icarus_memory/cloud_access_routes.py': '72b9cac77a7e8055185f58dd4f61cb08febdbbdfa4f5e2d8fc2b444888de9a41', 'icarus_memory/cloud_memory.py': '0d8a1d18d503ad3efb4a87d22c738fc0e5fda8c7be3b0524b7c1533b0e21c7b0', 'icarus_memory/cloud_memory_routes.py': 'c39d0272c6d78a67a646077d1315d37d8139cccb48479ec79b08293ef6f80068', 'icarus_memory/config.py': '46b9996ee748f79247263c79f88982362d4c1e653f1c5b6b017fde82b1c010c0', 'icarus_memory/connectors/__init__.py': '4b9b2b014911675f2ebe0e38557a43884184f999f998eb19feaa97d990bacbf7', 'icarus_memory/connectors/calendar.py': '40419b0ee94a7c1c2908a651a16b77aa71c30b690f42836742fe43332bf07b03', 'icarus_memory/connectors/collections.py': 'a4d8e1f098c2066eb1b51669fd165ce79f5e609c6f431261655775afa01b14f3', 'icarus_memory/connectors/mail.py': 'b2692605b4e6f2895abe1de22d6339ad3c57d5302214319dd217ff276f5a7373', 'icarus_memory/consolidation.py': '8917b73c1d25c8b4579ff6cd8f8f53a62bf7252d1f8b07056413e8c279bc7037', 'icarus_memory/context.py': 'dd32b250e830d44fc43362b74ebdf24083f36c8511a3f94bab667956214610ce', 'icarus_memory/conversation_memory.py': 'f6afc0656404ec8dfa72517cf4f56b9ca1b8a8eea014b2a3de030bf2d60857f3', 'icarus_memory/conversations.py': 'fc3b66cf3515c119ff5b2369d03130b7bc563c38244a3bcc4c83c2ffeec82398', 'icarus_memory/crypto.py': '45a0ce1f341ea337d90122823a98428c9789995a7aa6f89eab6956739aa3688b', 'icarus_memory/currency.py': 'be6d663c72fa97708ebc4f528571504ac19c107ab5fd9f4788bd08d4b262cd41', 'icarus_memory/datumstext.py': 'f6d48d5412ebcdd0d48e8e1ff4ea1ab156a393bba6366e8d532d8b2e0958af05', 'icarus_memory/decision_models.py': '33d30dc51383568a88efbebc61cbe52072d6d83e07aa6339b874d658e3818bea', 'icarus_memory/device_profile.py': '24dd9b133e898bde51725978273e29224f2289e32d316aa24723b9db5f521982', 'icarus_memory/dns_abfrage.py': 'eea17dde3484e05a7a9466123277128a39279a65a4708ffa60a314ebf7346807', 'icarus_memory/document_text.py': 'c3f26947600573133e509c6f709669ce724b4ccc50edbea4e69003c317f202b5', 'icarus_memory/einpacken.py': '410f6c9f944358d96ae02eaab3736541a4a3a0534d44af23b30eef945795e9aa', 'icarus_memory/einrichtung_routes.py': 'c76159657dbfe6f27b1b990b2affb24c21764f048fbf3185efc5bee504ead56d', 'icarus_memory/entities.py': '3cdda946abe4d136e2985ba8c8824a9a70200f27b9b4f8ef7c4bf325bcba9c3c', 'icarus_memory/entscheidungen.py': 'e69056b4e81ea3aecfedd94c2e7da46a7aa38a92901efaefeb0838f351885f20', 'icarus_memory/episodes.py': '36f3306eb9b1047c16855ce403926a626bdf32ae4984dceeabb78f466345afbb', 'icarus_memory/evidence_answer.py': 'f910dffcb33404157d500eacb8bd42dd830a652612c8dc785f2133fd0799628b', 'icarus_memory/fassung.py': '4a919b429cdd628c453b40f80775ccfc7f3c1d9a6c64d12f42afdb90417aec8a', 'icarus_memory/fassung_routes.py': 'ff507974bc1082ad01774943907582b1b26b905be642b4fb3e4110c3cd726af9', 'icarus_memory/folder_sync.py': 'e72347c38a6bbb6ede2de51b12d3590e122c895441603f02db117c27685d114e', 'icarus_memory/frage.py': 'bb3ae5ef4ba9c4108e0518a7b5af00540b88b32073728f977c90241ad60274d1', 'icarus_memory/frage_weg.py': '18e8a7453a919d20e88014e8b82e43278a9e358b109528c82f844b677e5a3a80', 'icarus_memory/fristen.py': '0b899794e7f3853ffdb4529fd713a741b33dae72436d3ec3b5c4cc67498fe395', 'icarus_memory/fristlage.py': '6acb95681c9191ae2ae7a3cf854dadaeb269c886c4ee0e5cb0508e471995b24c', 'icarus_memory/goals.py': 'caa6ebd477f36df4a2c9457caa30f4f46de46a4b54a8fc88c6b76735967845a9', 'icarus_memory/google_calendar.py': 'b54a9f370fcb15a65c22cc8ab0aea051517db88bd8dd50f636ddcaaa4d4d6281', 'icarus_memory/google_oauth.py': '14be3c5afcd7294beab830ee78ce3b2b6cf79721fb8ad2af6ad641341a795149', 'icarus_memory/google_routes.py': '9dc30f3c54c9cd426212884e1ab8271e2e4f99df7f342aa41e81a7db5d9a1dd8', 'icarus_memory/graph.py': '2fd90a480dc96c39b6bad12cc9db255020d142493b03ea1a593cec6659de5c7f', 'icarus_memory/habits.py': 'd1ecaa0a3318880ff2cb079414a3ec6ae3e5baeaee0c31057f31cf9c6f9208de', 'icarus_memory/health_observations.py': '235abcebec3570d9e970aeef80f962673450ab3927c0e37ec5f519f29101f5b0', 'icarus_memory/hintergrund.py': '9c6a10fda8ec5c0f0327e75b7fb1ddd095db01d02c23a4b04770f1303c9a3c2f', 'icarus_memory/host_power.py': 'aaca5a6610fe66ac61463f9a95ed28dceda64143f6456101b4a0d37d0a519014', 'icarus_memory/identitaet.py': 'ffa11ef5f97c3aaecea55c1af1db0a073400baeca8a1373d5bdb1979c67368cb', 'icarus_memory/inbox_filter.py': 'c7d4876d7463a9007636534f03b4ee22b54c40e078f3ea41844b2d4a8cef2e47', 'icarus_memory/ingest.py': '1031dfbef443db3b2958bd86e58e8abd08d84f45113469354c2699a283f931ff', 'icarus_memory/kalender_abo.py': '161d8c08a67c08f532f0ba7aa8febe35b8383cab96277b38e9266cac69cd4431', 'icarus_memory/kalender_anmeldung.py': '6411e0f734f6284ff26ac2c29ffa41cce546806c17e4ec4d43c9f1772d9293c0', 'icarus_memory/kennzeichnung.py': '53ea35c0e3bfbee6fbc069e75b68505328ad6ff3988548dc4089c79af57e789f', 'icarus_memory/knowledge_answer_view.py': '5f59315a4b0af9e42083ca68e5da234b7438681e3d890f527f3e8a35c69b01c7', 'icarus_memory/knowledge_conflicts.py': 'b77ae92a930f6b5211e945ed7a8d6420a4e9ba75306e09c994b6a4653fd6ac51', 'icarus_memory/knowledge_context.py': 'be51dd02631bf1006060b33c61de23eac14cd82d165f0bec85da151917665eed', 'icarus_memory/knowledge_history.py': '8f9b0dd4fba8ef8bb409e6702ecff6e026186e7375881f3f4ef287976bef5432', 'icarus_memory/knowledge_render.py': '1daab4e38f7d693a8e7cc4799e4283236f8ab2c6ca48a4be40586c3f2377dbfc', 'icarus_memory/knowledge_search.py': '9728693ca20c540d24993ac1d64437537ad2a018b32030941ec76ae198b8507d', 'icarus_memory/kontakte.py': '0910f18697aba1ef84ecbd7199109247bd6e61924b7247272a20c3c2cda250d3', 'icarus_memory/kreis.py': '25e4aae9d9945c079d4bba93029087af871d2235495638f5787ab9a1329e773c', 'icarus_memory/kreis_routes.py': 'b781a7d53a517a2148d0c08bdfd9d7c25ade416d33eec96e18d1f9b6583ce120', 'icarus_memory/lage.py': '091ada9c5d98f0175ab3e0386819e8ebe0e5649bda4ef6b32407168be867f94b', 'icarus_memory/lage_routes.py': '19b28c226d95b4167af9ee087b419fc2d2b3c1b67d28034e32093906ebad2b24', 'icarus_memory/laufumgebung.py': '86796b7d82c9868c27560a7c6838c54be1f3a910605e515560923c187c02583f', 'icarus_memory/learning_patterns.py': '1705304f097d842074cd83b4c4fe3590d6b2a2bcc665fb9d59fd30aa3ef6e106', 'icarus_memory/learning_routes.py': '739ba20b5ee67c9c67492c877b9ddc1ba1e2fcabb7f8594b145dcc468a649133', 'icarus_memory/learning_service.py': '0b4c8a4bd1b41c37347ea189fe59a4e3b0b28c2ce6478ca113ee7f3062817bab', 'icarus_memory/lexical.py': '86a3388349344312fb7a7175fefd566efbd5237062e55d9e81f68ecc316c07fe', 'icarus_memory/lint.py': '842f03669253913a5753a6c662d56b858c00f4bfcea4a889abc22e988d0bef55', 'icarus_memory/lint_routes.py': '192dcaeefdd86877345a20890f619e62bb44c3066840dfa51c727d8d7a43a3d1', 'icarus_memory/local_audio.py': 'eac86f216ab26c31ff8c5501253dc7e89a2096b9c7de9ca590ebf909daaa8c8a', 'icarus_memory/local_embeddings.py': '2744ff79af0ab79ec844d0ca025b6e1e6b54e34794e964603caa058757741427', 'icarus_memory/local_model_guard.py': '92fe370328e5f8fc0f1c974f6d01b265c1fc53c94c83ed005a0cd2d3e4ee44fe', 'icarus_memory/logbuch.py': '99e7360967fc6c5a352e8da3e2b20d5056ef3a2c3526a15a5c4a6ce1200e4d50', 'icarus_memory/logbuch_routes.py': 'd14ad44c7b07a164b4d478a42ed1d3d07358810df7f1ab2c23e2d5eb35380f7e', 'icarus_memory/lokale_ki.py': 'bc7c082412038bcd8ddc00e402e4f43efc85a5b8f5f6fcd6b2d9da87a8bccb81', 'icarus_memory/mac_calendar.py': '5bc0fbada1bdddce5105777b9a09ded73c12b54739c2c138e83a02a043c7d7bf', 'icarus_memory/mail_anmeldung.py': '8819a827bdee7a4a74ad6538222f16f7568d12c9df2f0ca28a7b89380b5d4122', 'icarus_memory/mail_briefing.py': 'fa4a7614770fd5ce321a71fa66474f01475da066321b0601db2ef784242e21fb', 'icarus_memory/mail_calendar_preparations.py': '7e239b114be5b3143892a5d88b6f6521238a240f8200f7c19d1a9de5f5242edf', 'icarus_memory/mail_calendar_routes.py': '8594795db73561fcc28117a35e29e63fd97250d7f5dc35ea96578e7d134fb5ed', 'icarus_memory/mail_filter.py': '8a32db4ed68b6002146f987ce481d7b42e0dd459c3d3789f50b0e16bf779b748', 'icarus_memory/mail_filter_routes.py': '7247bc42d004b12e312b180cc747f749e4e86a8da1b2d9f1847ac63209eb8a2d', 'icarus_memory/mail_ingestion.py': '138c5176571f91ebbdb93f038290354ee65dee581a70e862f09cace81fbb1d80', 'icarus_memory/mail_intake.py': '88019f77ae17a3bebdd46fa6c199cee0cc2e25e9b5e2c8460bef2a8f4210450b', 'icarus_memory/mail_intake_grund.py': '93a66e9f061908c02fd91ac099c90198ee2da11410b63ece9c2107df20e7b02e', 'icarus_memory/mail_intake_routes.py': 'acae22b7980127e01beba592577751c20e55bd41b90ed44560933445dca22cbf', 'icarus_memory/mail_reply_suggestions.py': 'c6b952ad9cd919911e2e91ed37dca4a997cd0c1960a46fcc9d553face9e0fc00', 'icarus_memory/mail_stand.py': '17734915d96d92dff1de1559c8317744fa011e2c0f227f454b551bc583986c8a', 'icarus_memory/mail_style.py': '0f74c460b83f9e43f564f9c27ff4cafb8b4137a2f7e4d6e63c453e8e5e9ad244', 'icarus_memory/mail_sync_status.py': 'f6d2e6e75b57b630352c663b2ed7d823da16fc17c2f02110a63988ba001da581', 'icarus_memory/mail_task_suggestions.py': 'b33e4b9fb755a39372b640177e7f3eda67e1f3af41c743723c00e73e1a5a2a2d', 'icarus_memory/mail_thread.py': '74ed2666823b66117bdd158ca02db5f90069cdb94118097f305b0ebb948ef392', 'icarus_memory/mail_thread_summary.py': '0e8a784284273fe5ec0057f6dd62fdb93f2dd4d100d8c46e14aa89e35e13dd33', 'icarus_memory/mail_timeline.py': 'e40bff30450d088a7854ced9f4a0c662c9a990a24e6aafc2eb390652b47d7fc8', 'icarus_memory/mappe.py': '557d3d784a08f556b2f036cba2bf21df6079ad55ad391464b70282946ad428b8', 'icarus_memory/mcp.py': '9b262b7bd1ce3d494a5b6d8328750895fdbbc48fd0977edfc9c49c53b1084aed', 'icarus_memory/mcp_client.py': '3d98b58c1549d38da0ea6850de85f4eab4688020f9ed80e26f088ac6f26e1baa', 'icarus_memory/memory_analysis.py': '1223aa9946a4f5648190a022be8766865aecff6a880329af6e17439dff91303c', 'icarus_memory/memory_areas.py': '4f7e93eed34a32f8898f91472010406c4df36d68d2773c63b28a38eceb0a7bad', 'icarus_memory/memory_categories.py': '9ea5e32ccfbc8e54e5ffdd739c3870a9eb97108b1558f13dce89c579de3b20f6', 'icarus_memory/memory_choice.py': '2084cf1a82b50dc70b1f8645849cedf84f87434ac4d2790ddd5db302c8ff3613', 'icarus_memory/memory_history.py': '1391c2d6c2297482343c06bfb141528e0d3d3bc1df8d5dcf08510b992386631a', 'icarus_memory/memory_questions.py': '44c2a7929c1226ed4bd84d7be195ea58df78328ac894b21b06e089df925cd462', 'icarus_memory/memory_routes.py': 'ff3ea385d9050b46ac9c0920441290cea2e1b8b145fa2c7ef4eabf7fb4ef7703', 'icarus_memory/memory_routing.py': 'd8f98a150aad8dbb2d8e9dbc01ab97a1552d6ce4d44a3785144a9f17c14d908b', 'icarus_memory/microsoft_anmeldung.py': 'ab297c5f020ef9a8765785a52e0a26be307343a0e243a89ce6036e8ddfae964f', 'icarus_memory/microsoft_graph.py': '67e4ff2f6b87b41e4b58b723e617f3ffac9f3eae97f13ac654218b5a8798a2fd', 'icarus_memory/microsoft_routes.py': '1ac6d9dcea4081bcecfd70eccc33886bbbd2fa092f5b959120caf88052ebacff', 'icarus_memory/migrations.py': '6d619ca366e78e2a354d51b46a0a3d97ec4ec6c884d0f81bba2debdc12965f9a', 'icarus_memory/model.py': '44d6c2ae306f405108bae4352bd2b771c71dfb3bf6f34f0e60b093e535312619', 'icarus_memory/model_pull.py': '873e1be66cac2e9c772204cf7047575abf0b740371fd92dd830190202d92ad99', 'icarus_memory/model_recommendation.py': 'e91eadfb2921be87abcb622688e511dfd83d217ad40b3f24afd7878f25dba15e', 'icarus_memory/model_roles.py': '150a039af56d3341d2b2dfc6cddedc0f8e80d5fbda986cca28795c759f03c860', 'icarus_memory/model_roles_routes.py': 'fc72590ff6e617a8d75c8ca037afa6e7240140a3a98c6f5712187d46c8abb21d', 'icarus_memory/model_routing.py': 'b77ecfad0675b8241db9d0ccff4cdfafbd2fa01e30dc729f0cb68b6d5b10b926', 'icarus_memory/morning.py': '7efe2745183427300a3d5edf98bc07e1a75136dddba70b241c3a13930c6a8a6d', 'icarus_memory/nachbereitung.py': 'd14e82465bd547e9d16c5a5c638e61d3a6969e35351a787e017e932048efb767', 'icarus_memory/ollama_inventar.py': '9cd05499b0ce332e24089fb03e90924be33044cfc782030c2c6ea90529b94cfc', 'icarus_memory/ollama_memory.py': '67be6412307815f7ebf8e88733ddca95bf57f7e8e49250667236b1a477f3998d', 'icarus_memory/ordner_lokal.py': '02aac2418fd71a7184d53f7d24060aba2b0a5f8b00db6172afcb2dc1fe2e1618', 'icarus_memory/pdf_text_worker.py': '26a067d4eaa83512f31dcb55892fe4fab567a33d30d7c3235044416ed421ddbd', 'icarus_memory/people_quality.py': '4ed33c8ed91b709e59c9abf0d1f822f6521a88fc1b4ea84672b68cbfe4f27981', 'icarus_memory/person_digest_api.py': '613d39700cacd5ba5cc56b5393280cefc614429eca2ebdb0d85818728540301c', 'icarus_memory/person_digest_context.py': '7414cce8dcdbcec9d1efeaa1d986e8998c7a30643cfaef70d561966d38780ffd', 'icarus_memory/person_digests.py': 'f3d3a4f203d97cbf1f231042fd36488ee78b58922088b5814738e73ca5ad555e', 'icarus_memory/person_merge_altkennung.py': '7db25d0a26b909ae02a9c9dbcb64f389e3fe73fc238711992218533a63e6032d', 'icarus_memory/person_merge_api.py': 'a401e71de316ffb6491c16a608fd34d9c85444c41287125f9e6d989d511c59ce', 'icarus_memory/person_merges.py': '40ca40bea7f108b2535b892efabc4894cf899343d4132f7801adb6c22a23d3e2', 'icarus_memory/personen.py': '6db24b17cf1e7a153c4698cc96e55a228af7db8876bf4442a0e893fe6a0ce78c', 'icarus_memory/personenfrage.py': '9931ef43c564e3b141e2b19a099eca7bdd7d2b99544be812bdacb3af4ecaaf9d', 'icarus_memory/policy.py': '60f9a57a373e04be818c348c2e43a0705edb352479246bac42ac04adaab12460', 'icarus_memory/postfach_lage.py': 'd73536c2a7a59ce66dc7ea1d1e84824feb0e9db2e3d19616664c4f85cff4ee25', 'icarus_memory/project_suggestions.py': '525003bd0577c17648a280db7f633be6ab1a3cdbc32f4d1a0a7490c49c270fa0', 'icarus_memory/proposals.py': '8c2d3365a03c9fb09f2197ace7a224da0670c3aa401c142a6837062d266ba40f', 'icarus_memory/providers.py': '1a6a6c3c29a3c14454ed137046f005557a700669a2a8ac02c907cd6d12d30c5f', 'icarus_memory/providers_mail.py': '683fdc83d3ed3e352e97a92d5b162b93de549ada36ad6a1d7cba29109cd58db8', 'icarus_memory/quellenhinweis.py': 'f46d89006a12164058cee8856bc165dd4cd1b08afd45c2998e21629f424eab11', 'icarus_memory/recovery_bundle.py': '70047e50345695735501144e48872f4b0c228f7a77548f7924f1c359507e9e35', 'icarus_memory/recovery_jobs.py': '0b4716fa2e68d41daaf7d21ed0989ad4c02b40ad0d9b954302470ac7ead9dab2', 'icarus_memory/regeln.py': '7ab7f9ded59aa5d495cc9162a52e1b8d3c62ccc65427ab63c7db5a5e6155e5d6', 'icarus_memory/regional_cloud.py': 'd24b70bb8ebe77fb14219e29a50396796bd0da9d29ea0d0be57c0c4ab5a43b2c', 'icarus_memory/relations.py': 'ef65d2a147e3734d05b2e23445287d006bc1ab82d302dd658e7b95ff701034e0', 'icarus_memory/relative_zeit.py': 'd46aaaac19f5cbe8422bb35652c9708bc701b88e8727343b383befb12d77133e', 'icarus_memory/restore_boundary.py': 'ff3e8dc21ade17c3f347264b1346b26c187b817f3fe448a0dc39df90c395126e', 'icarus_memory/restore_inspection.py': 'f8856c0e7123a9c1d5ffabee4fb8bdc0ca4272745cdeabf94bb502cad414ffd4', 'icarus_memory/routing_provider.py': '2bb24c3da20af97ede97360bfef143e2ff4a21fb78e4fe73e79d21fca1e19f23', 'icarus_memory/routing_runtime.py': '4cbc66f98981284f83bc33228e9b37d47c17ca1bdd7823ca68411fb2f314155e', 'icarus_memory/rueckmeldung.py': '4839ea1ba4bcbc4a05f14a3b359155a11505b5fbf89bbd0bbfd864d417ca2940', 'icarus_memory/rueckmeldung_faelle.py': '5223b53a96124d749e3f9f188d34cec65357e2ded0206572e50ca71c94ccbc5f', 'icarus_memory/rueckmeldung_routes.py': 'e3911f5f3250a1529eb52959ba85e56935b99800a5306e72a242abfe62a34f81', 'icarus_memory/satzantwort.py': '4871fc90c41caf8e23c4291c64ecbebcb04f08c8447a1bcd9bc478e6e2cc57cd', 'icarus_memory/satzpruefung.py': 'ca8dd08893f3bff7ea2d6a9e6a779a1eb1485dd3d72618775befec15ef584b23', 'icarus_memory/satzpruefung_modell.py': 'e6b75b94d433b08bc61dd9469d722d719e56d0544db1f3db90b309defb4aaebc', 'icarus_memory/scheduler.py': '5b29f69d84fb27e40d22c799f60cd92259a83fb23e4185d1a804b2738a4f1fa2', 'icarus_memory/secrets.py': 'a64748ac92d3884cf24c8e66194f2c6a2d180c4afd9016297ce7551c1c28572a', 'icarus_memory/security.py': '5a7f4ee42fd21de1366a4cb68b900790d208e3a28642c7de557600dbb960836e', 'icarus_memory/self_model_basis.py': 'a9a24b8512c394172aab678f2c10f164d38bf9e96f75c4bcb49cf6ddc0b660e8', 'icarus_memory/self_model_history.py': 'c6a866c79a6e37a0aac9dc6623f059865c44e9873c646a891f18b4c54fbc3ff0', 'icarus_memory/self_model_support.py': '7ce04a68ef9cc61de72b1631f79f1989056b12de496aef86b7d8fee050d8eadc', 'icarus_memory/server.py': 'b82988d7f2e84ecbd181f83f91e836192146481dc0aaa57194c0943d51974846', 'icarus_memory/server_finden.py': '5535add3e3dd0ee8dd96506f5e77ffeef62322ae4d3b5354c84dd0f4662d4edc', 'icarus_memory/sicherung_download.py': 'cbe9a3c2ab4f4b2f811500b1c3b8ff13a55a592f8011aa8b33ca406aa88b9ffd', 'icarus_memory/source_answers.py': 'd79201ee9524ea886307155c78ec46460ccebc2eb9f9d2c221e84b9960d5b799', 'icarus_memory/source_candidates.py': '7fedb3d109767a06aae39162684ee12d7ee54e0c78231769fb47d5e9ceb36fe9', 'icarus_memory/source_corrections.py': '1187da9005e6ebe9c179b769658d1d8a9a5243c6322884723196989599b6f641', 'icarus_memory/source_index.py': 'fa1ab23621d158f7f8548ee5af4c52d92e8d3a19824307455900b1c2899a58d9', 'icarus_memory/source_processing_policy.py': '47a0b3b884db32974c28e228274eb2b6dd1fc6bc5b5cae34201991fed4c4179d', 'icarus_memory/source_search.py': 'f509d132cb6621eec56f20b712b241f4274912ec7e324df5b9cc76efd7c34562', 'icarus_memory/source_snapshot.py': 'eead37e51430df9e46a6c2479b0012b2d728fc9eef80eb72aff3728c7c4e62a4', 'icarus_memory/source_versions.py': '0c785d24dc303976a22c9df7fb19ee2e81de0065521cdb0bfa52ff7486a431d3', 'icarus_memory/sqlite-vec-LICENSE-MIT.txt': '6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea', 'icarus_memory/storage_capacity.py': '27e3c068ad5fe2671042a816b2ac6ad3b1c15308c12adea6d75f7b14f64e57d5', 'icarus_memory/store.py': '9161168c1026594f7da40a03b80e55c1643362821365d3bb57ccf18d1a3deba4', 'icarus_memory/store_transactions.py': '06645b56068cd49c05381f5b41a931e9266c39ccfd20b6fb2868e5dc6ced94d1', 'icarus_memory/suche.py': '97ad49e0d8879f6d260f2dca3885e8295e6bd6864fce271850df0c9e15c57aaf', 'icarus_memory/suchindex_routes.py': '71b2dd4f8b18105ebdfc42e2b381d84d6714a190287b9e6f99703febd8ff7104', 'icarus_memory/summaries.py': '431db5e8e3976b1db57c73e45653816fed6487679847f12d7b68e47ba98dd5b4', 'icarus_memory/support_review.py': '107b23fff67983278cb778f98d1fe8d741b322d491841b9a16717ec0b0943c02', 'icarus_memory/support_schema.py': '6dbb935b1457604370dc0859a1a57d5942358c7801276a808a80893a0c9bb601', 'icarus_memory/support_types.py': '27a154e201cc82457cff4a7d4bda97c60f92985c1c13f3721153cdbd8725c95b', 'icarus_memory/tag_routes.py': '5e4e1f5c3cb3fb9e931716ddf25e49059a99ae56724389a2c4993fef47f8c6c5', 'icarus_memory/tagesbriefing.py': '6193d2a6888c9bfeb01b9bf413a93e801e9c91368aa4cca14b611bb3a2fed636', 'icarus_memory/task_candidates.py': 'f7548e2166b617244e4b14a2cd7e79395c16e0996dd5ac2b8214f5080431d43b', 'icarus_memory/task_detection.py': 'ac10f0a41182a4d236c0ee57da1b1be5be668a76a03ec999cd5a345638880d5e', 'icarus_memory/task_pages.py': 'b6a04bf4f9996393eb1d2ba5d6228661cb662cf0c56dbf31625bcd95428a1ea6', 'icarus_memory/task_rechecks.py': 'fd7fa79e19d83fba1d16d1cf6815b0f18d3a7ff50d3dbf4b8d800208694e3a4b', 'icarus_memory/task_review.py': '6edb6626b1d67b44f456a707e65c6e114e002dc5956b8f5610bbddf7d3552d06', 'icarus_memory/tasks.py': 'f4f6ef2d1d98d1b817e60b18a05ceb80856bce92d9c272c63096105befd66074', 'icarus_memory/teilnehmer_nachtrag.py': '4387373500614d715336f73c2ad1efa936b73475a752176f8d26133d5d1e3ac6', 'icarus_memory/terminvorbereitung.py': 'a9f1de90fcce12a4e0ed6b6b5449a9e6d2d04f54c2ec9297830c072c2811be82', 'icarus_memory/time_scope.py': '55f39420979eb3e9a577df96c08a49112085a957b1bd31ddc858d02e464ba0f0', 'icarus_memory/tools.py': '5dd6d27d2b13afb03440d17b07e51f6e18d36b0eacceafe390413d432ad41795', 'icarus_memory/transcript_import.py': 'b0a96efd97931567276ae0955365e22f9dd0afc88641ea9b5b9c32a35efb3ee3', 'icarus_memory/transcript_preview.py': '9080a4436e0a99658aa5900d8cfac161f67d6d35fc55ac0afb6e07533ef42c1f', 'icarus_memory/transkript_eingang.py': 'e2eb3a7aedbbf947f9c4090873cb05cc7f91361dc55cf32846e4030155fc5e31', 'icarus_memory/transkript_routes.py': 'b0b007f0d9adf76ffe48d631586fa8758a7719798f7d9d9d37964e13fc0bc2b7', 'icarus_memory/transkript_zuordnung.py': '1a6708539b181407d39115e28bd30c49d7796eac230abff019bb1c0c4a42db8a', 'icarus_memory/uebernehmen.py': 'ae8da0de9d4686fda2a4db668f31e544a8291d8c4e8b16c1be706a7650a5c857', 'icarus_memory/uebernehmen_routes.py': '824d9335121b25afd9641e02abc21305d80c6a1580e90f85400f6f83f1621c6d', 'icarus_memory/update_backup.py': '47d43c74e31eae7bc516b66f4eae6080067e42afe7ce80c618be7288574a1fd5', 'icarus_memory/update_restore.py': 'ad0c2ec64b7202ac0738a6c85b7f4ef843aea192ddea426c0bea8954ca25d113', 'icarus_memory/urteil.py': 'c96381c224f34f97ef883f67eaf412125b3392dbb6f0b68b189d9efe0eda952c', 'icarus_memory/verlaesslichkeit.py': '4f85bec36d695280ca554d486bfafb5c4b71f09c19f65b8a494956e56cc6347f', 'icarus_memory/vorbereitung.py': '20151be36e8fea47c8025bd445ffccbae803e770352f05556a6e0e47a0635576', 'icarus_memory/wegezeit.py': '0c34bcd9d604bc6f634c0fbb9fc24cacc4c1f444cc7163fa2a2e53a65979e331', 'icarus_memory/wegezeit_routes.py': '55af5fa68e3db0b81aff5c3c36552703a7358a22de4b545e21dbbf35d23eb73c', 'icarus_memory/welt_briefing_routes.py': '4519c5ecf075437057129109ba09a58bf437551a3e8bd45344b1b00c33323a77', 'icarus_memory/welt_feeds.py': 'e2be2321e72634c68b9638c118140cf1bd2493d5aaeba7bace07113cea54f38b', 'icarus_memory/welt_meldungen.py': '379a9c9c574fe9e7ac891544c1e7a4eb81e8dadc69ff59e49dccd4785e4daada', 'icarus_memory/welt_vorgaben.py': '6d6f85f66636fa88093becd902a44949b0d9b47c643c93c0376ef2a8f5ba898b', 'icarus_memory/wetter.py': '316b2c6cdce5875a5f5468ea06a2a154d69245e1a1c4170a978ace7c0f4294eb', 'icarus_memory/wetter_routes.py': '6ad4cbb2c3d970c0f5e0e2a6763a701f73b94b8212b8895f3d7121541e99cdd4', 'icarus_memory/wiederkehrendes.py': '390b90aabad1cd367fa6a1344d3290d95fca353943338ea684f89b5ca26f6dc6', 'icarus_memory/wiederkehrendes_routes.py': 'e47da325e3d3dea081ad21afc2af509f4f6788ab847f9b32881fa2ee02cc4702', 'icarus_memory/word_forms.py': '9698a5cc94905ac74885e1edbfc86436dce13522503a6373de38fa5777697305', 'icarus_memory/working_memory_analysis.py': 'e92e0f886af82c0e1ba04d30a201e76bc4bc1eeffda209dc8eb3449883ff7925', 'icarus_memory/working_memory_answers.py': 'bc530b955a7352475b02973544654a49858b4a29a9e41bc3303d19cd7072c926', 'icarus_memory/working_memory_context.py': '1174fb0274447842010d3db8b9314996c7f437bac72e33a7da59a744ff843056', 'icarus_memory/working_memory_focus.py': '3947c808c4319cb03bc12097133d862ca3b883b9dff0471362ed8268605ccbf5', 'icarus_memory/working_memory_identity.py': '8342cebe048ef4b30cd998f34b76de9283dd7a47ff1b93e50fd79c8940148051', 'icarus_memory/working_memory_projects.py': '644a240edc734c01ebb83d7946f69f68fd69b107a37561486806739943cc26d7', 'icarus_memory/working_memory_references.py': 'cc5b8dab0c2282829df3292176ddb43624c489c3d9cfbc4d4025607ecef20c53', 'icarus_memory/working_memory_semantic.py': 'b6b106b7b4e1e46d6a89a9d5c1c62152c3cd6a93e3fbd5538129b78f081579df', 'icarus_memory/working_memory_semantic_index.py': '6590437299356cff5d45031196170fc9f96eca569d7313b39d1cc8f43c29b7ba', 'icarus_memory/working_memory_semantic_runtime.py': '599d38b8863167515f13d7956d20a7f000a9e6c98a67b6c761476a396605288e', 'icarus_memory/working_memory_semantic_service.py': '87d5b1c920d3f1c8dcca4d04b2447c08f894df1a97e7392b6e668eea49b509df', 'icarus_memory/working_memory_status.py': '4c1bb025e682aea07d17e453b827066625d37bc1ba045ca72ac1e62cf57cdcef', 'icarus_memory/working_memory_store.py': '949a0f8f3dc230590e03f96fe39dffe405767b4c9625cca2a36846287e3cc66c', 'icarus_memory/working_memory_words.py': '479cd6a7e2340e37d3693e1facc24f3674998c6207e3870e1ff4953455980046', 'icarus_memory/working_memory_worker.py': '3e5e24eba1333fe1b578c1229ae0527376c41b06063367701b03ac506ae5461e', 'icarus_memory/working_profile.py': '1c51f0cd245228ef02809206251c6edad600d4a00b6e3db379a280022032847d', 'icarus_memory/workspace.py': 'fb510c4bac3c61d4a7c4a83a4d2c293077a642f690a1c618c7dba6e082f514c9', 'icarus_memory/world_monitor.py': '9ea27e640038be791b3d05d881bb877168878a4875f35fbeef3b77fe2c0b5a20', 'icarus_memory/world_routes.py': 'b725f67dad64adcff7ce4d5d88e040466e75a2e7143cb19b916baf2976c67aa8', 'icarus_memory/world_sources.py': '56d4ece55d1250c4d7c30c7bafc5ef30d7a42c4e0740c4b02aa59527457978b5', 'icarus_memory/zeiten_routes.py': 'a9dbd7d85551cda9c55963e342672b666354a387cdec46eb1bc71f1bb328e247', 'icarus_memory/zeitgrenze.py': 'cbb2d3bea30163308cdd2ae1668503b225d6752a37b5ac2f509ade7caa860def', 'icarus_memory/zeitmessung.py': '0723cdc0c9c9e85aa466510a06339b69c5ffb6b3c64a6a6979b7c8687c919f4b'}, 'ui_files_sha256': {'01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-1024.png': 'b8915596f7649223968ed5b1e557f79b23fd28d3e44e17bdc25f61e5290e3de4', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-120.png': '25ea7ba561974df46d6d0f1d5674a790208196a384ae75a568e00a5304704bb1', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-152.png': '9429c948d0c2be83f2d532cd7deb25bd5b824010ce09cf5e655252d6a2a4be79', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-167.png': '9c380df72ac0543f880a4f44b6d906c0a4b2721bd16fb79e6d3d64d53fde3861', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-180.png': '709ce372b64a5d3035b0dfff31fc22492dd242873e10d7fe9ae7205cbae91638', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-20.png': 'b5a501e8dc7e2077f189fd62ae3f1cdd7ea0d0be7374dab59057f060a2e6a40b', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-256.png': 'd95f8248c988151cd490a038f0cce43ec87eeb6f18fc2442e7cdc4f4a945d7b7', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-29.png': '801e1acc652b29dca5de6790295b34edbfe454ade051a5edd5033602216ff504', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-40.png': '29f62f3bd95af3a376161dd2e89b3f0cf5b8964f05ff946c51ea44fe4af5c880', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-512.png': '8490974a07ae5ac7f7cad453f3807d9e195130e410105ccc8fe2baadb7ef4fba', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-60.png': 'd68c9b1499444f53c863c4f7c11609c0e48f214aaf8c188a2d4e9a7588ea6060', '01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-80.png': 'e8946b860894fe3fed8ce9ea5bcd116f1dc4365cfb5f05a9a14e9f969a6ffa51', '01_Brand/Approved/kingfisher-logo-dark-approved-v1.png': '76e8c9bcdb51af53ed6e972f498e0ad81fd2d2b32b38208a291ead364dd66666', '01_Brand/Approved/kingfisher-logo-light-approved-v1.png': '45ca943b51a3e5a5b454739a99644421ec7af4a95472bdf655cacbafc65825b0', '02_Icons/Approved/Filled/arrow-up.svg': '8cb8896cf27f1e0a19891568f33246932f7edb524b019caa230f65f3405b9d8b', '02_Icons/Approved/Filled/bell.svg': 'eb32d36b7ae7e6d6e18f18564fd8d39cc4b4b8bdbc68f601134acc2a15bc0fde', '02_Icons/Approved/Filled/brain.svg': '917599da7118bcaee2a754f3b942e07d000bcbf2e11f751d69854637568295ef', '02_Icons/Approved/Filled/calendar-days.svg': 'ab62e3daeda16df2c3b27a0f459e8722170d521c75b0d895364f5d9b62f16168', '02_Icons/Approved/Filled/check.svg': '9564ad1124a7e85def24b3c24100c4328cce68f56625036d26b8570bb5e3a5c5', '02_Icons/Approved/Filled/circle-alert.svg': 'a5a4ef9eb9009d7ee9d4669f7295134c18df1398b4829c8b9a9c1b8e15583a98', '02_Icons/Approved/Filled/clock3.svg': 'd2ed239e934bddeb6bc411bcc75c67f0c546fa122204a6a5dee1d06eceba3703', '02_Icons/Approved/Filled/download.svg': 'efe9ddb0a892de35c4af829d15ea54e3f666eaeb94f9270e72bdf585aa4d89a6', '02_Icons/Approved/Filled/eye.svg': '37be99f0c34f09ba6f298a0001767cd617fda0efed40c1f7e03cc28f5a46db3b', '02_Icons/Approved/Filled/file-text.svg': 'ccd2308b544716b2fb647b505765d07c7cbe437d5821466edeca341fe2b5b18e', '02_Icons/Approved/Filled/folder.svg': 'aeb3a17bf594de4adb087a2d719e77c38da0a0aef731756ec985c58caa18d854', '02_Icons/Approved/Filled/funnel.svg': 'fb3f9f553b731f45f4548913dfd228251a073a7a0463f358cde38915fbbc3390', '02_Icons/Approved/Filled/house.svg': '7aa10c9cdb4d36cb2b4c37c1f3a8a69db9e5d00154cfe303a154bbb761f46c00', '02_Icons/Approved/Filled/info.svg': '4c4633b396b0963e7b551b2e1716af5237081f845f37a08519b2c967461a8ae8', '02_Icons/Approved/Filled/link.svg': 'd4ac2d02bccb8508bcb3e16a35a922ebbb597c378c22e88effa07d4e1223661d', '02_Icons/Approved/Filled/mail.svg': 'efe77c4073403b2da44401b0391b2ec9fc335a9d2841d93afe716535180dac35', '02_Icons/Approved/Filled/message-circle.svg': 'f9721bed43e816f115b2ac51536fef726bfcca39bb774b4602ba0c3a2309dd5f', '02_Icons/Approved/Filled/microphone.svg': 'b51d12d79ade488a020664bb6f89d03005fa4c58495169253b9528dcd1f3ec98', '02_Icons/Approved/Filled/network.svg': 'a74ccaccf80fff313931e9c53cc8cb217af0532e7bfa2ecd24c6fbed54a1832f', '02_Icons/Approved/Filled/pause.svg': 'b977d270959aaddaa52b423cf149c4a9f8b01e15e20ec2243a7f5ce9050003d6', '02_Icons/Approved/Filled/pencil.svg': '91f7dec2320182f9c328a2979c7d4d5dbd4b3f8096ac7a9e94206b0dd19872a0', '02_Icons/Approved/Filled/plus.svg': '039542212fc58512f89263b01d87e02d678f85b2dfb07766303c59964e221557', '02_Icons/Approved/Filled/search.svg': 'de9579fc9f6a5fa3ea9e86a55bc347cb30fa44de923ac6cc5143193d18ee897a', '02_Icons/Approved/Filled/settings.svg': '6b73ede0525a83fc87961dd5ed266058fba581464ed35fbe51801b28a601e2f4', '02_Icons/Approved/Filled/trash2.svg': '008747433f73028db7fdaad66da8ce8ea05762fb0193353ae2f8d54e35cacd55', '02_Icons/Approved/Filled/triangle-alert.svg': 'f0934747b2d6c9e293962304f94a85a65ed5e322120f97e57326848ec79b1c4d', '02_Icons/Approved/Filled/users-round.svg': '3935cda0f70240c0522de4d624d410145ff4a84c4c3d4fbd1e3c38e01857bbe5', '02_Icons/Approved/ICON-USAGE.md': '31a20c4296aac0089fc391644deafacde76087022767d6a24728ed6a1bed949c', '02_Icons/Approved/Outline/arrow-up.svg': '8cb8896cf27f1e0a19891568f33246932f7edb524b019caa230f65f3405b9d8b', '02_Icons/Approved/Outline/bell.svg': '8768c53f1b4673767c4e78613bfc791f9efbe94331a457ed9a5cdafe6f6d753f', '02_Icons/Approved/Outline/brain.svg': 'ce052a7a4883ad5eacc0a9c1b68d06e3ff68f9a0486d1c76ec544865ae14c492', '02_Icons/Approved/Outline/calendar-days.svg': 'da6dd07ecaf833e7d4e1b769bbb40918dfa4f2afe35efba634afaa7e129cdd25', '02_Icons/Approved/Outline/check.svg': '8665cc6cee49ba08978e5f3ec4d94c8eaf6a9258800380c482c3fec150407575', '02_Icons/Approved/Outline/circle-alert.svg': '9cf1ef17312e7effe7565c167d6a773d214dc333ad11988936c312f94a2fe7ab', '02_Icons/Approved/Outline/clock3.svg': 'f4bd440839da1d3cbdf11b105431d238aaad3b1abaae1d277c118dd353c51c53', '02_Icons/Approved/Outline/download.svg': '169cd4dbbca1d6b1088e806b0b2db3817167e4dff732b389dd1065f114f87d68', '02_Icons/Approved/Outline/eye.svg': '301cc404fd48e0e98c7a4bd630d9993e800d5fe8e0e2b6b2e2166d4d1d1a13ae', '02_Icons/Approved/Outline/file-text.svg': '176dd221123daf1b8de662132882d5677178facb4578681b577e16ab5d7fb37c', '02_Icons/Approved/Outline/folder.svg': '6f9c69e9c30692017753fc15a67038c091affbbeec20c7dbe3a1dedafffd2336', '02_Icons/Approved/Outline/funnel.svg': '426d7aad3ade1ea265a090938fd525a37a21b1d4332702ecf4da3c6a4e9b33ae', '02_Icons/Approved/Outline/house.svg': 'db1a57af45bb90398c252f8e323967d0e422afc765f49c717185faf9159730ef', '02_Icons/Approved/Outline/info.svg': 'a79f4274f89fbce1136e410c07efd71819eeb7b32bad6abfdd938c70663688bf', '02_Icons/Approved/Outline/link.svg': '7c883717fb2f0fea62435e0112c3413c6b506fdbc6fb03e5474be1c3774e7076', '02_Icons/Approved/Outline/mail.svg': '56bd07596ecd9a49aec012d92c160b39cacb5d82a43f01bda99b100b347eea6b', '02_Icons/Approved/Outline/message-circle.svg': '28ed2b21f1ab4ee327092d66ccda4293e51456ff900284e6b7942702772f657b', '02_Icons/Approved/Outline/microphone.svg': 'b51d12d79ade488a020664bb6f89d03005fa4c58495169253b9528dcd1f3ec98', '02_Icons/Approved/Outline/network.svg': '0db41a2a4c1658f0087d1bf7c40bdf84be6bde85d6177c236cd2bee9bf819974', '02_Icons/Approved/Outline/pause.svg': 'b977d270959aaddaa52b423cf149c4a9f8b01e15e20ec2243a7f5ce9050003d6', '02_Icons/Approved/Outline/pencil.svg': '68bde50c8eb380b27c10d3e8d36f7ec53a1512503da0e97dcad57b1439c39139', '02_Icons/Approved/Outline/plus.svg': 'f4d85f5af0c06ddfb7ebba06a81dfed55e7275e53240a4bbe77b12ef9d4b5bb0', '02_Icons/Approved/Outline/search.svg': 'f26d78f6005c2854b00c601632ba51c24b1dbdf8cc9133aa0f90f317d31f4cf4', '02_Icons/Approved/Outline/settings.svg': '4e2fc64c367f81c6cc5d10fa6e22c9365d31b5b573230dd591011f4e5cc1e03a', '02_Icons/Approved/Outline/trash2.svg': 'ec5e5a0b073e27367966177609579ec91fbe30ff0c433c077cd614ca6ced2d5b', '02_Icons/Approved/Outline/triangle-alert.svg': '9ec66e608c2dbcfd87fa59526d8a26def5f01f86fa2b41f9ca8dd0bac2653d30', '02_Icons/Approved/Outline/users-round.svg': 'a25b69abbed90a418fcf7a62dfe9f8fb18d0c6c26058c2e923cfaa1ae88b7372', '02_Icons/Approved/kingfisher-core-icons-v1.zip': '5da33a368cf976c89b27ff399ce43aa1ce61e87745771575ef3306b267d0d352', '02_Icons/LUCIDE-LICENSE.txt': 'b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57', '03_Media/Approved/Freigestellter Eisvogel auf Zweig.png': '0fd953cd09be62fde7b46dbbef1bba5cd25a693cff84a0ab6d54a1e1df443826', '03_Media/Approved/aurora-network-tile.png': 'cda8345b74d0a6a9881a9c1f74f8c38a927c47ece2f3a241c27a6d9548454b3b', '03_Media/Approved/calendar-lakeside-header-v1.png': '052fa95cf56f2c8f838dbbc9e32583ec38667a0dbdcf75e8e598335708250685', '03_Media/Approved/data-current-dark-approved-v1.png': 'e0529c45464ec1344eaae3a2c142fbb9e51100d6c8d6fe5024e5574b51bf8cf6', '03_Media/Approved/ice-abstract-tile.png': 'a24db944bf4014261936a5e8cf7afce6b3792f02487d28cc44ee3e65c9de57ff', '03_Media/Approved/kingfisher-flight-clean-v1.png': 'a714887c52a266150caa6f66fb8152ad4449710045563e243b6728af6dc061d2', '03_Media/Approved/kingfisher-flight-horizontal.png': 'ed6d853a2ad252112048a5aaacc47196a6508e19b01844a149d0d7d6dc558a28', '03_Media/Approved/kingfisher-flight-transparent-approved-v1.png': '678eaf27fe55929989c0f1e60bd7bc60af44fcce73dd0ac0eb5088f03b79836b', '03_Media/Approved/kingfisher-hero-dark-approved-v1.png': '24ae7c4c7d6af7bc6a17c5c086f7604e7d400f2c993c41d03eea92f48242edbb', '03_Media/Approved/kingfisher-perched-branch-alt.png': 'd5551c576117d46c08a87d0cfa22639a7167cdf58bed43e3ca06d1f639102eac', '03_Media/Approved/kingfisher-perched-branch.png': 'f666101a5d5928dba65487d9030275cda8df976fdf50864718602824a9d4c724', '03_Media/Approved/kingfisher-perched-close.png': '9b35d3350fd891009d42dfe26b7cdea81cb9c0aca22ece233a92ab209a676f75', '03_Media/Approved/landscape-calm-page-v1.png': 'a2042852965b9f99a9c944789ad2ff2779d54bbe87863e38eb0f182a098f9b2d', '03_Media/Approved/morning-lake-panorama-approved-v1.png': '28b93b9569efad85b98fdc83d6caa0e40f1194ee0a44f7815125567e07441519', '03_Media/Approved/network-constellation-tile.png': '0234837d04a99e548bad63ba0b447deaa7f095b958959cf799efded02a36494a', '03_Media/Approved/water-reflection-light-approved-v1.png': '6c494e0c0e896dd91fb9ef704bbc13916eaf817c0496bfb0caf00f3e62f199a0', '04_UI_Foundation/Approved/KINGFISHER-UI-FOUNDATION-v1.md': '0e44c944a743578726826b2685b1456bbcdf0907a4e5d540ba39cd732451f1b4', '04_UI_Foundation/Approved/kingfisher-ui-foundation-board-v1.png': '60800159c336a435ff61933946570b09a6e8232a7c2ac70997829b5544559201', '04_UI_Foundation/Approved/kingfisher-ui-tokens-v1.json': 'a7286629eea2a44296bc8281733de702d372d4b2f27f16f675194479be64eab1', '05_Components/Approved/KINGFISHER-COMPONENTS-v1.md': '14dcca055e9f1c960f00543c65fa21d8cdad8641e6496f686685af33c2d6a48c', '05_Components/Approved/kingfisher-components-v1.png': 'c04d6c8814850f5566254214d4632cc8d7a76f9762ba7a2cb242ae905b058d4c', '06_Screens/Approved/MORNING-BRIEFING-CANONICAL-v1.md': '9683f4d1e9baa3783eaead17015ff89f6942869d5a0a69c7ea6930bbc2937c7b', '06_Screens/Approved/Mobile/MOBILE-REFERENCE-INDEX-v1.md': '93ec1dae3d66385019935f2ff8dbe5b4812f56794d96723b7883ccb76968a148', '06_Screens/Approved/SCREEN-REFERENCE-INDEX-v1.md': '77c92f1635a0d8a1bbb0de34fcfe55ed307f66d4666958d7cc180b3ebe939e78', '07_Coding_Package/Fonts/CormorantGaramond-OFL.txt': '60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956', '07_Coding_Package/Fonts/CormorantGaramond-Regular.ttf': '6d37a86241a25d63f8fe6018b4c083449886b7165c1acb15edd0f574f690ecf7', '07_Coding_Package/Fonts/CormorantGaramond-SemiBold.ttf': '69e7ae35cba23d962227b86f99217c250e642e4c6f6104b4f3ec465039e4e2d8', '07_Coding_Package/Fonts/Inter-Bold.ttf': 'b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c', '07_Coding_Package/Fonts/Inter-Medium.ttf': '8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63', '07_Coding_Package/Fonts/Inter-OFL.txt': '262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a', '07_Coding_Package/Fonts/Inter-Regular.ttf': '1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba', '07_Coding_Package/Fonts/Inter-SemiBold.ttf': 'e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7', '07_Coding_Package/Fonts/kingfisher-fonts.css': '174195c7d51036c9b401df06892decbb53ebf6a223eb95e5bd7fa77e958fbc94', '07_Coding_Package/KINGFISHER-ASSET-MANIFEST-v1.json': 'c8b19ca8651f9d6e62114b130ad0fd40bbb72a018754b0ce8d1336d43eaf18d3', '07_Coding_Package/KINGFISHER-CODING-HANDOFF-v1.md': '24e3da730989c0d04801032037ecc1bb9f80f1b5976f10ee5ea3b4a18890469f', '07_Coding_Package/KINGFISHER-IMPLEMENTATION-GUARDRAILS-v1.md': 'cf8cf1f3f96f2e73fb08e0391eeef73a5220aad5219286557be5afebc7091c1b', '07_Coding_Package/KINGFISHER-UI-STATES-v1.md': '55b41bb090ec8d5554522b48cf4f7215a790ffcebd347b8660825040eacdb11b', '07_Coding_Package/KINGFISHER-VISUAL-ACCEPTANCE-v1.md': '4b470d856ef3da9b1a8e20de4c43228880776378ccf64c59754fc0862805d734', 'assets/index-CFIrrqWu.css': '188c5e814f22dc5edfdffd4079890932c1e62ee4fbd3656bc3188be5aa9f5fe1', 'assets/index-CG75f6ri.js': '41f314742c253acde7b7da7bbb162f1c73d6122f7c66b92e7c3ae98eca73b8a4', 'index.html': '82908fe6e875918269f14227c7a974901b12b5464dd717725a68e3dd3b165614'}, 'ui_source_sha256': {'ActionApprovalCard.tsx': '0b9ea377c7aec4a936060f35985c2716424758651522161a34b49e915a4a1a36', 'AkteAbschnitte.css': '54d82360ad28eaafd9a96b1c0ec48cf36a5fd3947e9f7b4bea84c43e5e0d469c', 'AkteAbschnitte.tsx': 'dbb140b3007819fb1cd7a4625aa17a0333ddd9982d1435daf75815573a676a02', 'AktenOrdnerSettings.css': '8cc7d95020dd08cdef06a6043f5e823a9d63ce0806d0e6bb3b08fac857049876', 'AktenOrdnerSettings.tsx': 'a388acafbe3f54dede911e9b91b5ccd3096d21ab453134a6d7a07d8673306bdc', 'AntwortZeiten.css': '46cf1f287dcd85b2cede049f7da91cfe66489e52b0159d14822383e409aceb70', 'AntwortZeiten.tsx': '27e1406d925337909a8737ff49c39795fa23c4c701cbde672581a691b3c4f56f', 'App.tsx': '11c1e6a88e4bb397b62a594bb649ee66db536a2fdb46f5072755880afe2ebe73', 'AudioBriefing.css': '42717a26c0c611e8d79a9c7de91c5a66180b6867e448f7da12cab33b872a2332', 'AudioBriefing.tsx': '1ca53a323820e08ffae78d68081d7b00de0a64210772d7a3c46d27080bf24252', 'Befunde.css': '47c2c39dd123c59dd03d388279ae84569739d50ed989855ebc139b4f7e090b01', 'BefundeAnsicht.tsx': '06bca1d88d0d3dbec331d4c78bb2aa3da88d19f6e1d643d4d57e1ebee2b913fa', 'BelegQuellen.css': '49fcf40e831c2140ae63c528745be06f82e0a8aa0af1712397a4b3aa911563b8', 'BelegQuellen.tsx': 'e5438e666f48b64a178fb4326b00d0cfad154af315bc459eda8f1a0460bd5e28', 'BriefingSuggestion.tsx': '77cf9b4034a65f9865a65ad8a69fb6e739097fe804bd3a6a69bfd44a5a594bf1', 'CalendarActionForm.tsx': '1bfb9eaf1f88b4213a19689e9650de673c2cc8fe58ac415ab415198ef0f38b2d', 'CalendarFollowup.tsx': '5c45edbc829fd970f92dcfe7dcf29b2f31515c2240ca2397008b1d5998c23f25', 'CalendarPage.tsx': 'da679d892b7625e870e18c961f9c63283eb8fa298df803bb6ac0d2641526ef4a', 'CalendarPreparation.tsx': '09f5cc175ca96f08df0bd940565330e3443838e4894831854cc62e676d6d9464', 'CalmUI.css': 'f76b4b0fe12b58966c296a044ea676839b4c55b19973c9076f82fe9e361a1578', 'CategoryCorrection.tsx': '6d6c3e40a8175ca7eaacadccae41af8866d02d328be5e0dbc84ad9e0c2bffa62', 'ChatGPTAccess.css': 'd5ede73720fd9a5f72d36424a634620906dab5393d001622b09c1c976cefe8cf', 'ChatGPTAccess.tsx': '5acfcb23b18a53c15f93517b783ed59cd31beec1ee28d8153f2fcb5cb9daab41', 'ClaimControls.tsx': 'e6d79600df9df9c48ba312d711971823224dcbffb561c06f2742b6cc2430e232', 'ClaimCorrection.tsx': '47a3d4c3e5c312199670ad7ccb255b44157f4963af5a97bdf4bfbe9b6db90f3f', 'ClaimEvidence.tsx': '69736cdb46f21acd5a49a385dac7caa866121f9365ff9104a136b019af90e478', 'CloudAccess.css': '76eaf1394866acd3d74706deb6f09d0babf8d5420acdc9d2b7f5f7a13b4a912d', 'CloudAccess.tsx': '2551ace1b67ba00d85194397b034b0cd9aa7352cf06e993afbc3d500704fa1d5', 'CloudMemory.tsx': 'dceef8dfe66271822cd538f684da9e224284bf4b43060e4ee5834ff9aef80445', 'CommandBar.css': '4fa8566f6d0b052fdc7a9aa6f2801ddd2bf1d86a4469db6968904b69608958f4', 'CommandBar.tsx': '3c7c6b834ede564137334ec73eeda6bff4bf9ba442e11f1ac17d2eee6668eec0', 'ConversationCapture.tsx': 'a7506b8dbcf863a3d272b403c6ca8f562cbfdf0191d3997553c18cd942dfa469', 'ConversationVoice.css': '23707cfa523b6643347911bab1bc79a61bf3c1b84198d219d4b508718c498d1b', 'ConversationVoice.tsx': 'abcab797ae5f5c4a0e65abe74f3bd7c55bb2c65f869d7892567787eb71125204', 'DecisionControls.css': '8ecfaa2d7c6aca7ec84ae527430685234cfb5eca2f1e8e1e7eedf26032f729a0', 'DecisionControls.tsx': 'f86f5ffd876955c033ef6105b8f7c8d22203b4f16763a3da5a79a53f3476f5c3', 'DevelopmentPage.tsx': '1c5eaecf8ebeb21ab7148b498e857cf19845f692cf02b8ad3e58190fb9f25520', 'DeviceModelHelp.tsx': 'fe8acf5547dcafa93dbc02876f166fd8f4d697b01da121899baa2fa26f91bb81', 'DocumentImport.tsx': 'a9d01606c7508495b5e8aba1689e92362bd930b0194407820690e97306d91153', 'DocumentSources.tsx': '2040a6b844f07d2b7ec47f27bd5956dc448a2cd9e0df9006b376568d57bc7bd4', 'Einrichtung/AutostartSchritt.tsx': '6a9c1f9fe9c03a1e31193963cc5712f1555b4e9d5fd704671b6014f3be36eb03', 'Einrichtung/AutostartWahl.tsx': 'dc9d19a3606bea20e248d41ca422ffb3adc5f26ef4d0726f9bd95462a5a883d3', 'Einrichtung/Einrichtung.css': '9a5d8f710ca837c715dd04535af25dc13f5f153144c788d231e2a259b04bff82', 'Einrichtung/EinrichtungKopf.tsx': '9f9da0f5c2c1e408a0483fc39a9b07c24dc541ef16aada88ce0fd1c324d4424d', 'Einrichtung/Erststart.tsx': 'df9185633b37cac2ac3a9808354fa5feb3b57c45949b82f936cd7b6a3d49220a', 'Einrichtung/FertigSchritt.tsx': '7450c7303695875cfc76388fda0e0e6169882dbb3d7a17ae48fbc2a501ad6ad8', 'Einrichtung/FreigabenSchritt.tsx': '58887f30931a574a48394693004c80d060fc6fbbecc1aeaad5d96ccbddc8eb3a', 'Einrichtung/HeuteLeer.tsx': 'ff40408a44dfa1d5999416f6b6457dd6b3c1f90ff1890dc7818efd1f13e264d2', 'Einrichtung/KalenderSchritt.tsx': '687e94ac78271a8181e3dbf5ed03e1c34504667bd7bc651a01d704a179d0da7b', 'Einrichtung/KingfisherLernt.tsx': '71b5ba9a53e755f7644a5ec219ebd001f4a7746a7e724788f887f3e6bc842fa0', 'Einrichtung/MailEinlesen.tsx': '4e392cdc984e06a7e6ef9f34e2a6b5af0ba4e8edcd3514a3668dd45576046ede', 'Einrichtung/MailErneut.tsx': 'a7ce9fc16841f19ad8ae1cd768089ceb65da93e50d39ac3440267c51941776c9', 'Einrichtung/MailSchritt.tsx': '57b0d79af997026ebcbe65e5b0ea7283d985da222b75c755adee151c0726aaec', 'Einrichtung/ModellSchritt.tsx': '29c048aa24803e477c61ef62f2c36ba709a72f07d5120526b164c40036703865', 'Einrichtung/NameSchritt.tsx': '4be0eb8b3c5db012099a6c35bac478ceb473dd7b6393d40bd3e8676360232e9f', 'Einrichtung/RechnerKarte.tsx': '77dd0189cda242b9d0af11b11c260aec6a008a92e03c386e115f0fd45179e99e', 'Einrichtung/SchrittFuss.tsx': '8aecae922105e4f284483e35bfa0220b5a209f2b1b7810478cf4669d9ebd8626', 'Einrichtung/autostart.ts': 'c3994f8276769a8babf9934438d3fe41fbd5068660c77eba8587b063089a9267', 'Einrichtung/einlesen.ts': 'a1f97f21cada047942d7885c76b6a5f79255ea3f885c264c403c79e070c320f4', 'Einrichtung/fertig.ts': '9bf2ad1151c4fd74eaebc408f25605fd5f92ddb14431a9657923da1a11af7bf5', 'Einrichtung/freigaben.ts': '95552b3f6307099596876117dde479e6b6f4497bb1ce28a4530e840e19e3366d', 'Einrichtung/lernt.ts': 'f3f82002755d72de9aa48388e5b03bdcc788dec99b698b3a1d782d6abe08216b', 'Einrichtung/postfach.ts': '9fc6aef9d44bec8d16ae8f4a39992b6493f165259ddaf5d6f01cbeca4e935274', 'Einrichtung/rechner.ts': '80053687c76681ff363edd275363ee5b0f72e176c73b1f1b9afd4881c06d0ec1', 'Einrichtung/schritte.ts': '3c7b5454215e53a19b56e89cf60480af8459b0d547c6450818bb1ce2692b2943', 'Einrichtung/useEinrichtung.ts': '2c24cb274b1e3d2f4c49112d774bc3fc7e77d783add10a51187d8231dd66deba', 'Einrichtung/useErststartWeiterleitung.ts': '150a740eb0660a5a2f02705fd8bcb9b2b6133563ad1628153a5ef330c75b1101', 'Einrichtung/usePostfaecher.ts': '0b15be648b22b98b0eeb6e3f487406f50fd4a4f95b7334fd24622be3fe9047d9', 'Einstellungen/Aufklapp.tsx': '4334d2ca1e28d22010fc47a0a0eae6d34440803f306f902110c84a569bc3e4e4', 'Einstellungen/CloudSchalter.tsx': 'dfdb07162bc17c7650085b313ef82d237a6d34b6f56081ea22e086509c09716c', 'Einstellungen/Darf.tsx': '9a6c3351891fc089eca486d1dd7216507f8c6ce8bc5b42a9b3b1adf32a9953a1', 'Einstellungen/Einstellungen.css': '414bc6391fb51004fbe214edb2896d4788c12fcb9e689cdfb756754791b8fd28', 'Einstellungen/Ich.tsx': '726a3565af32d6e39e02d8547877a92af9cc0cca13414b9cae224823a0270586', 'Einstellungen/Quellenformulare.tsx': '5236e0d6063a63498051215133ff5c7b0d682e27b703710389b255bcfd70bd32', 'Einstellungen/Seite.tsx': '0d00e1eafce8935974f56ccb969d0ca8932e1cd87fa35f24b2de40102196b134', 'Einstellungen/ServerFelder.tsx': '29e4c7b40abfe6441d7eec8f02c446d4419b7d857bfa162d25e77f8ad95f40c7', 'Einstellungen/Technik.tsx': '1e40518923c556a5aed99ea4d705c59175cfe0469e7f4ded3f75b1457c6a8921', 'Einstellungen/Zugaenge.tsx': '6ec15bfe6bdcb53e3a6f0cad1aa05dbe92c551a63b33232f4f8c4d08fa2ab511', 'Einstellungen/gliederung.ts': '355db9914748d2f1661fcbda861274ef2a0a4dfa20ba90ec5c8c9bcededfdaf1', 'Fassung.css': '7c951c2e9dd16d9addaa67fc5efc2a219820939ef20bb19a6932394866855f0f', 'Fassung.tsx': '5fbad33d84484b1c41a23d2c08238b04bf6c2176c50b26c4ff9cb49b31ccf3bd', 'FolderSyncSettings.tsx': '8897b83f114c639438a41bc611a8e5caa9e2fefadea71590e82ebcf6f83fe383', 'GedaechtnisLeer.tsx': '327d01b796113ec3a9002930ffadd16736656e0e808fdd5c6dc5647831c4ba4c', 'GoalControls.tsx': '7b4212c44ad3ee06c0e2a4b2cda0a6782c31dc61f356a4148e7553615323dd01', 'GoalHistory.tsx': '6cec41ddcaefd5776e9fe8d902e59e2a814b038d3045c80184abe541a3cd8ded', 'GoogleKalenderAdresse.tsx': 'dd812b175966474aaf2eb660a83131d50de03ceaf23fdfa6a222d5696a0c09c8', 'GoogleSignIn.tsx': 'f5d106d6d29f6c9213b0155b21e506a33472e4a50535079704a836c36977cc74', 'GoogleVorbereiten.tsx': 'e7b79eea0239b24b6e23e184f7e627784e245b64310df23a379ae3099e0833f7', 'HabitControls.tsx': '6b43e77fb1e5cd8b5dc70b166ebe85f68cde1a3c69d234dae39c25785ff3fb40', 'HealthObservationEditor.tsx': '397a4ff063366299358a0e0e545d85fa72082c6f82554d48bfe4f81f5a58d3ec', 'HealthPage.css': '357cf09a388719b5c6ea39d2831c4d6d16a211415b8d101906da04b53cf9a98b', 'HealthPage.tsx': '9bb7d00c0192159017d1d4d8dbdb3f29c2c744b6b0315144c9923142e429ee56', 'HealthTrend.tsx': '27e2b5d7557d469b30e37dc10ea549b575c05ac13d2b5387738fa05f0fd7aaff', 'HerkunftAnzeige.tsx': '31db23bb7b0c71b38c2b9e3bcabb8932b404d14ae93616ef4accdc11b49b4a3f', 'IdentityControls.tsx': '6b1ab8038e5f3a2aef2771d752b5e320450c47377fd5bafcb487446a77493541', 'InterfaceIcon.css': '28578b02760b475ffcd2bf9bfea02d3e7cdbf0ec3b185923729a48bbb0645d99', 'InterfaceIcon.tsx': '9566559386387dbad0a8ccd8de53a176becf924d783c13921a98f978a063beb8', 'KalenderMitAdresse.tsx': '82e85d4cc7c7fc223c23e212d60eab07b36f5843d6acf01149f80e1f48555095', 'KnowledgeQuestions.tsx': '9107f732e84b01051af43b8d07bbbf1b8ff4334222386a487f64ca26ec79e901', 'Kreis.css': '52ccd8412800677d539ecbcee73ea717ba6c482237eaf60d655e8c89bed12b09', 'KreisKarten.tsx': '2bcd1927fda8510d1906c4e12dce9d0f07bac107b2aa24177be27bd12521ea34', 'LiveClock.css': '6fdfa6b64209885a49b4f60d595784cfd37bc638a999d4674c3ffedbbc2493fb', 'LiveClock.tsx': '95d2f7e762e26f98335ab0c1d3e40ba40e86a21f63f5eed214ce998685792045', 'LocalModelSettings.tsx': '204b2b7404cbf0b6d214a104951ae27ca5f3c56fc47d3a224e3c1ef937d5879f', 'Logbuch.css': 'fd254585acbbae35f48a33bc2c98589ca707c727b386f624fb72cf8b4bc0acec', 'Logbuch.tsx': 'af6bd3865d08723e256baded1ca3b62d61da6c5a54f9905602eb808a0757a3a1', 'MacCalendarSettings.tsx': '7392cbdaf6562fa766f5c7094d18232df4eba9f5cdc0e81c45a8e4d2e6a27539', 'MailBriefing.css': '91bb2a88843a52c0265d78618143c95ee90e1e8db1a476852a10e52a0535421b', 'MailBriefing.tsx': 'f362346d2bc100005b35febe3b9edcca680c79b69e3154a722660d9dad16e159', 'MailCalendarPreparation.tsx': 'c591412f791553e9d5e9cfa69081f5cfe68fb8a080f1729a2420d29f33e646f2', 'MailFilterSettings.css': '7bcb3915f5287a299ef15460082363080507e690ce6412c2d47d8d25e27a08aa', 'MailFilterSettings.tsx': 'aa047a1beb080d60cdc1bd95e0fddf45f59347be9a6277994bd0db32306f7ef6', 'MailIntake.css': 'a68dabfbd23f482f8884362b780ed631d278b93efb594f04af6778cdd5c536bd', 'MailIntake.tsx': '7bf9724faf89314da476dc76c95ec7a7bfb9478f80821e7a054a251eb035460f', 'MailQuickTask.tsx': '435385b6b2b179d03c6464ba13248e6f0f031752cca723ad804ac5b68f8d7057', 'MailReader.css': 'f91effaa4cd428ec9b54fc597c94f15fe5f66b4a3d3845d673a9ff7d8d7166b0', 'MailReader.tsx': '9938bc8c1d3aa9ce3c3d537244241ce7eede3d70d7422ac2b1e0bc6dc902dd20', 'MailReplySuggestion.css': '0e85abb1b1b5da20ca38aead282fd5c7eaeccd564d3455f56636eb690955c427', 'MailReplySuggestion.tsx': '38cc23be9c4fd48b69ef06a5bef993796aad6ecc7215a074fd69290bac2c1e99', 'MailStyle.css': 'e344fad91144daafe896d18e3d7db3a3ffd17d7b2ee28f00a087f01bfffa5858', 'MailStyle.tsx': 'eba4eb18d19b5919be7780a0373b65e409ab0749cc0f4a53050595cae5489788', 'MailSyncSettings.css': 'afa44e7be8eabb7d1e7e81e6df702bbb52987de3635770bf09d1042c66ba9e22', 'MailSyncSettings.tsx': '76bf2ee236edf2c15f95983709a804c6b5cf0a73d0e79b36f349ac1dc26683d4', 'MailTaskForm.tsx': 'c67e593c9aaf0910d4bfecf056b1b6b841aab6cc3a4e9413812f9648ea3d8020', 'MailThread.tsx': '01e1ee3f725c81c56c818559c735e08195c912ca2d0773871e6d0326292fe891', 'MailThreadSummary.tsx': '36b1e2580dc3debca0aad4e66f598c6be16a6f5cab3150a87665ba65a2b3c2d4', 'MappeDetails.css': 'ae7f728f02220faa5c5891146636f1c7849ad21251b506b2b6b13aca08db19e7', 'MappeDetails.tsx': '5244e37b95c8ccfb42504ead7f2c6b596d45321b06ea46b44428d56f603ba398', 'MemoryAreaModel.ts': '1c3df23e4e8dd314200604c42420427677c93963511c4607b3f26c2a0d300530', 'MemoryAreas.css': '5eee087807f126095f957c2616b024c256c0f4a9ea7f03582262b6dd171622f6', 'MemoryAreas.tsx': '3ec1424320389f01fede3ae2a068077fa22d742fb9f132dbf12a659a99fda9d2', 'MemoryAutomationSettings.tsx': '6198b0893bb8b9330b4034760855a7f6daaf8de42114d0d5d3eef54f467a0c4e', 'MemoryDirectory.css': 'c3ba47732840b3c8928819c9b06620df1bfab2ce3b171f0da986a633f969f35f', 'MemoryDirectory.tsx': '297ab023834d0035d975445e6af79b49f70b991c80123202eb30e7683adb2913', 'MemoryGraph.tsx': 'f29c788615d73fdbb3818e6b75e2005b4980f3ba9bfd1ba549b43133b6c5974a', 'MemoryProfile.tsx': '5917d4091ab2ae12ee9086ba9d99594237dddead924db597e7a9daa75000b7ac', 'MemoryQuestions.tsx': 'bcbd3bc0680c48b634523b3d12113260d861c2bdb52c7fa08265466b7338ab9b', 'MemoryStatus.css': '57da8920f0ec1052193258779473f11d85cc214cfe904eada5c04e1aa7cbd3ea', 'MemoryStatus.tsx': '18a047f7824c5af13c13c31f415e1e02fa182f1830bab3a0b4cfe2bcb1096099', 'Messages.css': '14e8e13f0d1928c2a4ab919278a3067e0d4cb542d8daa7e1a36feea00aa9cbba', 'Messages.tsx': 'bc4671ca2d8c4783342eb2131d283c60ebf298abbd396764c763fd48a4b357ab', 'MicrosoftAnmeldung.css': '060e78e7dff43abd9bf9fb9edd610ee0df2c083ab43f462df908a3ddccc36ecb', 'MicrosoftAnmeldungKarte.tsx': '7e7fff5ae04865ab8faebd7e750aa3fe907210a96e95c61e63f2f0e62a8b5ea7', 'MicrosoftVorbereiten.tsx': '47dc0f9873c738cf1c0d9142ace9942b76e9eea50982685fe2f094814b831a0f', 'MicrosoftZugang.tsx': 'f0d955e98faff17350e550634fe754ed3d29efdc47438578e062189085d00662', 'ModelRecommendation.css': '32f741f093bc6ffe9d0b285b176f3ef993b2c6d2cd3199b8f8b469c1fc42556a', 'ModelRecommendation.tsx': 'e5361027d0dfd40b5e5fec3fc9f02310501230311692007085536fb86b18e702', 'ModelRolesExpert.tsx': 'bb57f696634ac869100cc33e1e06843f81d838a6e63e1c9f159bd7487f4f85ca', 'OrdnerImBrowser.tsx': '7b36dfeb27644f074cc6ae4968c6bf52eeb629464237b0d4dd221a44f5f8b2f6', 'PeopleMentions.tsx': 'fcd3dbc16c6b2d504aa761bce18481bde068534efafb9c8b50e25789063a634f', 'PeopleReview.css': '7fc67b438ebe398f0d5e0b17801f5e6eeb788a89db6fd2d2795367765964bcc7', 'PeopleReview.tsx': 'b90b62890649546f8068432795111af387e8d3edb6c7bf99ca7b1544334e7441', 'PersonDigest.css': 'dab33d9f4da432f0cfdb1aba796f8eef27b5ca3edec79b3daad7f3bbce954aa5', 'PersonDigest.tsx': '83179051de8e53174b9731ef2f0ff51366d918e1461528a4be2899ed75a02e99', 'PostfachMitAdresse.tsx': '94b9792e48e80659459e271acc8bc1c2f82cfcee88e39c1ab306be3d8a4fd983', 'PostfachStand.tsx': 'd7408e9523362caa22346ecdaf2fd79490ab4aa16765d86852cf52b1b6dbfcfe', 'ProfileSource.tsx': '3e273abce65a2a0bd61d5e3644975bb09260aa2c769fd6241e733e047dde262d', 'ProjectControls.css': 'ab3bfb63a05e2caa555e2051eb6aaa479207d083b2b55e465ff46e3396dc148c', 'ProjectControls.tsx': 'd18e5184ef91d5e6f6a9256b9fa73ca2194ba1e99b0a0ffdfe3cf1e31048f6d7', 'ProjectOverview.css': 'be16754f07bbb1758fd7241363e698c684f46a9f0048e8a5a8ab8d191f35ab4c', 'ProjectOverview.tsx': 'f3ebaf7967b4113e70c0806e0eff1c05fcd666409084304dfd057850360b9c7d', 'RecoverySettings.tsx': '5a60c2176da0d345f6fecea63189b5bb2d031f05b902a65b74bb07f692afee1a', 'ReviewPage.tsx': '2ddb2b31b9863b493110a1af8d89e1b8fb207f3a4e29a99d6ba9075bf2cf0143', 'RoutingControls.tsx': '7c053a7c6cc6c5fa343a918fd576d4cdb90606c75910922f1be5213f6d02d7a9', 'Rueckmeldung.css': '3c2aa56f95adcd4acb2db2ca0ef6519990029c0002891634e0d197a7e8640c4b', 'RueckmeldungAnsicht.tsx': 'a2e040bbd38b49883e144650062164d0b782ae515cea8ffe9baaec35ff208a50', 'SachenListe.tsx': '017264bc36dbab8425e497c5ed1279482e8459ac6f4f1beccec26f547dc6d84a', 'SatzAntwort.css': '7ec8466d6e2dbf86bf00c95f550ce20b1e8aa2d6bc3f7e13a8b89dc7c9ac8d0a', 'SatzAntwort.tsx': 'b40de47880312befd2904fa57d3bf79b9366143d4ba4904e8e8b175f209fb711', 'Seitenbreite.css': 'cf391bc60a2c3fffe3c5e78e71cfc75c2ee233524ecff326c9db60679aead7e7', 'SelfModelSupportReview.css': '2d9ffc231d7dcbd9a9b1d4d4e407d8766518dd08270c2160e6d3a682e4e72f4b', 'SelfModelSupportReview.tsx': '44b38c5061d24cfdb325510bf073764b8c3968f75328b9b4047710025bb07ac1', 'SettingsSections.css': '1691b658cdc9ad5c37cd0dfb28c23ace6689df55f069ad71e2743da0913c1167', 'SettingsSections.tsx': 'ff9be45677aae617fdc0e7ef68ed1db1ea4b37339869e7919378d9461f7bd376', 'SetupOverview.css': '28b548b28176e4dcd74f897199c567944dd530ab25d42975a3d70d38a2eb70c6', 'SetupOverview.tsx': '8e6c2a3c59da8b9a02fe5aa7a0f202f131cc7b289e22040fad5b29d6333a6a75', 'SourceBezuege.tsx': 'a5542b0bf11a18d2c2fb91cc4a0ff530fdeaebf96d4e0840e0bbe0e975a8fe18', 'SourceCategories.tsx': '86abaeac12fd4024b3fa88eab460b35d5c74074d4deba600ed5869bbf0a4a9bc', 'SourceCorrection.tsx': '767ea4050f1cfd46a03747170b7a6030cb44e51d2306d02f3ac54e02b911476c', 'SourceOverview.tsx': '886a7c9abb4b1da21af0117f6b75cfa656b5e9b63b0eedd838be2f1d1aaa79d2', 'SourceProject.tsx': 'a91366f7801a04cdaf8fedb3b37600105db05702ad5644e576226c1517197f77', 'SuchindexSettings.tsx': '89ffb6b059d374d579bd7d93d546704300d64cbf08b45d9741a0767ed549e142', 'TagesLage.css': '129118b30cb7273aeb4bd61e4e30595d7ff4cf85213ab9d66cf204f8ce685d27', 'TagesLage.tsx': 'db54b7e6d391b0fc3db03c6549f6058c9a1b61312a7bfbf620cf9b06c5b7beb1', 'TaskDetail.tsx': '7393c12ed5b365782653c410b5fad70fbc4bce6c7e5944bc3a2ac0a7a4400f8f', 'TaskHistory.tsx': 'd76c588127bab02965263003993404c23700b2eee8d510375f98a27a76625de8', 'TaskReminders.tsx': '4f159e772acb99773ddc65bc789b58b5b5c9667bde50178fee2237b141dad74a', 'TaskRow.tsx': 'fd7787a2bf00d81520c5ce587a92c7de435d16830b730164406c653cd6895122', 'TaskSource.tsx': 'c453b6c0f19ce47cb1ca3ce02a43819c1fe2c13e968811ca38d04ae94b8b1489', 'TaskSuggestions.tsx': 'ba8cf74cda416f3753a43de8a05524c31d85ec9ef9a05bb118894138ff9ea588', 'TerminVorbereitung.tsx': '064a00eb2af3ca25d003d8ad1b071a1105b8be63f61036a9e589efce6ce3408e', 'TodayOverview.css': '4d465b33db96525cdc46cb0f1c7056076fb0b06a7e1d49105a34237c66b52be6', 'TodayOverview.tsx': 'f9784024bc1f8aba7496a89f37d234a9fd4fff1e5bf38f961fa3225ae940757d', 'TodaySourceStatus.tsx': '9c6a96fa2668581d62db0ca0b51fb11f461357d155ddad3eb1d32323cf192c95', 'TodayTaskActions.tsx': '040190f4492c1923ff8c8a9aaa08454bce07556b5886752d3510a38e787ea51d', 'TranscriptSettings.css': 'aebf11d9d35d71759d61459630059eca1fb4c57cca0c2d40f483ae8919c39787', 'TranscriptSettings.tsx': '231f990f5ca749a3b95c77f5a6f8314c6503809fb02d283f0e2a5c14080ffbb8', 'Uebernehmen.css': '7a664e3750b840c5413cf4dab19e09df234624100cac76e3e608c6e68341bd42', 'UebernehmenKarte.tsx': 'f0417d300cea74cd6ec4a07a9c6be5b0fc46ca47b4bc0d19c5036e2b3e5cabd2', 'VerweisLink.tsx': 'feb5f6575409cd7097783cb11f5553227f5ef9784869dee1df71e0d1184840a8', 'WegezeitSettings.tsx': '108858fff4ed74a6d26177687e157c3d3c874fdfb8de8fabee4f79aa7e5a1046', 'WeltSettings.css': '05b66656caf3acf2e482345e19534987c1892e0c7e00b2fb10bb0e31e524e09d', 'WeltSettings.tsx': '5ba3fc629d7fa40287d7647b0cb59d8b150b3a0559def7937f77e9c0276abec5', 'WiederkehrendKarte.tsx': '00c904781522ba53273e8d4a9be3040cbbd3c68db516011b9e33f5082d30028f', 'WorkingProfileSettings.tsx': '5a0617e3068b078241d6fdc620f040ab59365f2af93b5e6c88ee31b69d40afc8', 'WorldControls.tsx': 'b78998bf27b4cf9a4ae7edc6f7a730b64af0fcd0b80aaa844e79cef9484c677e', 'WorldPage.tsx': '88691d1df57c9785d9959e9300cb67fd6e57397a18c22216f6fe1789f9882593', 'adresseEntwurf.ts': '7139049244f088eff8c03ca5cc593321d6d426e96ec9c25e9ea177b141d1cba7', 'aktenOrdner.ts': 'ea547f247e1eb22e009440e98531f6d3de04374e8e63e4456c414338dfcd9eb2', 'aktivitaet.ts': 'c52dd05373bd8e0b916dac59432417241d547755c651a8b10d9073efe6d9fc0b', 'antwortzeit.ts': 'd083d91a3ea911f4c76e66292ed96d335b15670c9927485b401138543f86a91a', 'api.ts': '1d2db1a4069d1fd3fe439ae8f494479abe08e887995e45bfad879bef8d9ad16d', 'befunde.ts': 'f55d0d03c1cf40bd8351c8927b37948dc8df204e28afcd1b1397f247d6bc6ae1', 'beleg.ts': '97929af6dcb0cd27505fce67e86825be04267144c90c171d24e00a905e9785c1', 'belegHinweis.ts': '42bf509dcb9ba9b93efe699ff448d6c01def9b40acd39d739d6c9168002b58fe', 'calendarActionState.ts': 'ac57f5523a7a087ac4b1155e6a3887bce08472cb46425f08023c3d254e255e35', 'calendarRange.ts': 'd95e009f4f311f9349947e5cf3b9eec377722ce1c7da2a4adc142a97f4b9fbdf', 'categoryFailureText.ts': 'a98464c415995d693c9fd80eb6ca02b4c91ecbfc68aa0d35411f1d0a2805a7e1', 'chrome.tsx': '9b2a0256cfd561f12e4c1a672c0aeb36cee54b63980d2356104b42f8e663a656', 'cloud-issues.ts': '0834ea3f9d267dcd7fb5e77214d9ce896383bb223d1e52d57de1e097971efb6a', 'cloud-preview.ts': '6c318e87fec3342c14eac2e87268a0db8670a88746e418d786381231e2be41d5', 'cloudAccessEvents.ts': 'a192f33fa26d9719a6dcbcf80773cec59e9fea338de7e1bbc3f37a662b310526', 'cloudAccessForm.ts': 'bc5615ea698aa99c3f30bfa21bbeafdf5b0fa47d3a16b48d1f012dc5b63f60f2', 'contactSources.ts': '2691d24a7858e09f43931f7faae273a8ce6bcd867b46d3e63c36fecaa8185b3f', 'dailyFlow.ts': '7e456a3f9c81a4fc2cfb4ae6e138143ee6cf714c7430cd5b1e1e6c7f5eb8f49e', 'displayIdentity.ts': '4f293baa21794aef9907b915e508036fd89928375a1cc9a56598f6c546b5e66b', 'fassungsAngebot.ts': '6cd178ac00853f55a1ce66cd5d4c8a6f4b7b7dcf135f7a3802ce8ccaee1f8231', 'googleSignInProgress.ts': 'd040d7683cba1a107c589040b73b8fe9837c07bb7d1ddcc5510b2b765776e22b', 'googleWeg.ts': '98649ce8ef71a7c9ebb41e2aee748a22e610d91d303e6f7fd1ed15ed568b4228', 'healthObservationForm.ts': '941059f9be6c49982b843effb300fe697248860be1c6eb0c26259e9cb4e34fe9', 'healthSeries.ts': 'da35dd1d045c56210456a48aafb3b29c72cb6a213c130fc293c600df7eff1df0', 'herkunft.ts': '1f3bb7c98b4932b83257df888d1a19a43a85f65f58eadfb5867c9e803e1806ec', 'heute.ts': '5b99663fc8f4d42ad96211a76ea18bf1ad86386c591362146b5b924e613c2515', 'kalenderWeg.ts': 'e69ba0fe9380eb238972d0571ead72fa7246072dcb297b35e82c0ac38400ff95', 'kreis.ts': '4b09cdcce88c7302e435a098bbe39a7c4b2393bd7881ec1e398ee15e2c32897d', 'localAnswerConnection.ts': '073279e137ddfd8405c43952cee25030d605d5bdf26188e09dbf5fdb7f63650c', 'macCalendarBridge.ts': '0d62f2ebd68bda0cef8c0ab8b7893d948c3520736ec3f876111fb01f5b242837', 'mailAbruf.ts': '365655b86f9c3907cefc9629570485a5a1e57ff9c40faf9b566f086e614e7e74', 'mailBriefingState.ts': 'fd3442e866bff7c0fa56000196e7354271504293ff3ea67a260f23205855dc13', 'mailCalendarInput.ts': '035df54f67147f323a7335c93f615dd5f59989272f8096fb8bd85613d114e41c', 'mailIntakeProgress.ts': 'a48a2d99ba8ece791363d87a831930901f05b527d2681af7490fe57a8092af2b', 'main.tsx': '27b2ef94063313954e269c2ed41aee72f2bc65245759ac04e99e865c9d43b6c5', 'memoryStatusDates.ts': '78e25cb07769c54e5a9c8f89853116d20615d2f949090264a9cd0c5c388b1ae7', 'microsoftAnmeldung.ts': 'cf374813d61fe2b68f61b6db4f483b361c708850499d90297653bcf948eb9f0c', 'modelSetup.ts': 'e77f2040d15bd6b8194ae6fd0ea5f3759b7a5be0db2fe14e06a735f441e92ea8', 'nativeVoice.ts': 'e567bd1090836d60d80743c5c72186b2185eab41b3a5c973db0c7d8da57b12a9', 'ordnerWahl.ts': 'f25a576836b671f6481c0adecc54d7ff7be42ab60e9f5214804f4e31d7ca9d99', 'peopleQuality.ts': '548dc9fcb93327e2d2e68620152ccad352deee9062c4e78be4cff4d88375d846', 'personMergeLost.ts': 'cc28c06b8157275e5e5a9201b08c40d2f3ba6350a1224e680c0f19531c1782d6', 'postfachWeg.ts': '5c02578bb429f4774d15482194da30ead934b57186c5bcc75e8a80bb1556eab1', 'pruefHinweis.ts': '303c1662b20b47be049b3f0dd84e9f482402a20b5d00b8bb4c7c22999f522216', 'quellenWeg.ts': '4165fefbab8e55a6a6e573b4137e0d79b97fecf77a99162b48336d9eb44609ac', 'questionLabels.ts': '933ac87e2bf1a9b80adb9cd8fa1d5767aa1a549adb8cd26a80a7d6010e10bc3a', 'reminderDates.ts': '1698caaad2ba16ca91c489cfb0d59ababea164dfea61b2266e2e6ce6003eb6dc', 'rueckmeldung.ts': '79272f9c2d2f78563f5ff56676ebcce453eb3c8386ec1a664525524c3783851d', 'sicherung.ts': 'd2a041c7b43b9ce7d7638ab66d3501e020e44da74589eca36d7935edc6c7abfb', 'sourceOverviewRows.ts': 'd046cda4d64728f01d55b09c1943278ab4ef2de0522d695d71fe30a9cbeedf45', 'sourceOverviewWatch.ts': 'ba92958230a92bae3ab44dc7f9fabc261ec9af57e60b6681449d2d77c899da1a', 'styles.css': '60a8f26a8b23d2f7c1750dd922dde223d01f55a5b332f2800b879a1c8196b3ee', 'suchindex.ts': '1e1455311131ca769536fa72cf3ba00183586d844f074d9321b72c65fd2c5458', 'system.ts': '37ab5415c72da3846b3c4f9cb2d944f1ae7df0d89e0137a7a86d828bf6838623', 'taskPager.ts': 'f3c909f4af9838ef7fc61a9b909ae74bc2b848b065baa20c2268a47ec56a7e80', 'taskSuggestionsView.ts': 'a4e3de078970d6aa0c600e3c1d81612509bb4128acf8d4231b619b7a906fa19b', 'taskWorkflow.ts': '82e353f5b46ec377a7f01481d228d0c82d688bbfb53b467d93c378fb828686a4', 'technik.ts': '5555855aabbaaeba6b41acc8d1efd1526edc9a53f3b5ae26ce84c2226da993ef', 'theme.css': '7422e27ed105e17a7af83dca6377bc306463ca7ef892f1f203210e726a757c01', 'threadSummary.ts': '9b0ae1aadebbdb5e4606d7c599ac2cddeab1a824e1703389b6e6ea20bfe0c804', 'uebernehmen.ts': 'afea2f52cdc40bbb31df037fbb5aebecac17ffe98efbac802e96bbe8d295760a', 'ui.ts': '4468f5f5dc8f7d1d1e6ac7a1b3d2d4789453b8141835329b5b3127c1d54d410c', 'useAnbieter.ts': 'a162005f83ac01bd6b2d4bf1f1f2a18d0c7836d8800765cef5e568fd4056773b', 'useImBlick.ts': '43d9f27c5b6a2576e97f0bc0c656fc5fb8fdc935e323999a7f23fbc8fdf6ba9b', 'useSystem.ts': 'afb24245817ba1d99f79932b507a6c744c7d632f8fcefa33eda8a8904148d891', 'verarbeitung.ts': 'c50602daecad1a4b1c128576073b175ffff6b9bc47a8df3cffa7a63183523136', 'verbindungen.ts': '4acbcac82b8bec1eb546d832ae55785a9f2e3fae20f31658dc56a72275a4d2a8', 'verweis.ts': 'd0304b2c2de36cf0b3b606b299512ad03ca65e0f5151fdb417f510c20df6cb7f', 'vite-env.d.ts': '65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5', 'wegezeitSchalter.ts': 'ac05b889d856917ffa9ad20d11bed0dc1c0c3cc010d776f8277f1edc9f261f26', 'weltVorgaben.ts': '5798591c2669e0c745e475bf08792c6e38dec2506de28db86fe79faacda4c60c', 'wiederkehrendes.ts': '2b7a9c1254e3740541a454f9a9231269e26164cd78f3e20ef41f6a9224c594c3'}}
+import icarus_memory
+package=Path(icarus_memory.__file__).resolve().parent
+assert str(package)=='/usr/local/lib/python3.12/site-packages/icarus_memory'
+actual={str(p.relative_to(package.parent)):hashlib.sha256(p.read_bytes()).hexdigest() for p in package.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+assert actual==expected['python_files_sha256'], 'Python content mismatch'
+ui=Path('/opt/kingfisher/ui')
+actual_ui={str(p.relative_to(ui)):hashlib.sha256(p.read_bytes()).hexdigest() for p in ui.rglob('*') if p.is_file()}
+assert actual_ui==expected['ui_files_sha256'], 'UI content mismatch'
+assert Path('/opt/kingfisher/VERSION').read_text().strip()==expected['version']
+assert os.environ['KINGFISHER_FASSUNG']==expected['version']
+assert os.environ['ICARUS_DATA_DIR']=='/data'
+assert not any(Path('/data').iterdir()), 'requires a new empty tmpfs'
+for key in ('OPENAI_API_KEY','ANTHROPIC_API_KEY','LLM_API_KEY','ICARUS_PROVIDER','ICARUS_MODEL'):
+    assert not os.environ.get(key), 'a provider was configured'
+os.environ['KINGFISHER_UPDATE_URL']=''
+os.environ['ICARUS_SIDECAR_TOKEN']='synthetic-package-check'
+from fastapi.testclient import TestClient
+from icarus_memory import MemoryBackend, SelfModelStore
+from icarus_memory.server import create_app
+app=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic'))
+client=TestClient(app)
+assert app.state.agent.provider is None
+for path in ('/api/v1/health/observations','/api/v1/mac-calendar','/api/v1/device/profile'):
+    assert client.get(path).status_code==401, path
+assert client.get('/health').json()=={'status':'ok'}
+client.headers['x-icarus-token']='synthetic-package-check'
+assert client.post('/api/v1/hintergrund/pause').status_code==200
+root='/api/v1/health/observations'
+payload=dict(request_id=str(uuid4()),subject='self',metric='Gewicht',value='072,50',unit='kg',observed_at='2023-07-02T09:30:00.000123Z',note='Künstlicher Pakettest')
+response=client.post(root,json=payload);assert response.status_code==201,response.text
+old=response.json();original=app.state.episodes.get(old['id']).body
+replay=client.post(root,json=payload);assert replay.status_code==200 and replay.json()['id']==old['id']
+changed={**payload,'request_id':str(uuid4()),'value':'71,8','expected_support_fingerprint':old['support_fingerprint']}
+response=client.patch(f"{root}/{old['id']}",json=changed);assert response.status_code==200,response.text
+new=response.json();assert new['id']!=old['id'] and new['observed_at']==payload['observed_at']
+assert app.state.episodes.get(old['id']).body==original
+assert not app.state.episodes.support_snapshot(old['id']).current()
+assert client.patch(f"{root}/{old['id']}",json={**changed,'request_id':str(uuid4()),'value':'80'}).status_code==409
+assert client.get(root).json()['items'][0]['id']==new['id']
+assert {r['id']:r['status'] for r in client.get(f"{root}/{old['id']}/history").json()['items']}=={old['id']:'superseded',new['id']:'current'}
+app2=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic'))
+restarted=TestClient(app2);restarted.headers['x-icarus-token']='synthetic-package-check'
+assert restarted.get(root).json()['items'][0]['id']==new['id']
+assert restarted.post(f"/api/v1/episodes/{new['id']}/ignore").status_code==200
+assert client.get(root).json()['items']==[]
+assert {r['id']:r['status'] for r in client.get(f"{root}/{old['id']}/history").json()['items']}[new['id']]=='excluded'
+assert app.state.episodes.get(old['id']).body==original
+# Synthetic native worker route: never EventKit or the user's calendars.
+cal='/api/v1/mac-calendar'
+state=client.post(cal+'/connect').json()
+calendars=[dict(id=str(i),name='Synthetic '+str(i)) for i in range(3)]
+response=client.post(cal+'/worker',json=dict(generation=state['generation'],status='granted',calendars=calendars));assert response.status_code==200,response.text
+state=client.put(cal+'/selection',json={'ids':['0','1','2']}).json()
+assert state['selected']==['0','1','2']
+response=client.post(cal+'/worker',json=dict(generation=state['generation'],status='granted',calendars=calendars,events=[]));assert response.status_code==200,response.text
+assert client.get(cal).json()['memory_allowed'] is False
+assert client.delete(cal).status_code==200
+assert client.get(cal).json()['selected']==[]
+# Reject the known oversized local model before settings/environment/model I/O.
+profile=client.post('/api/v1/device/profile',json={'platform':'macos','chip':'Synthetic','memory_bytes':32*1024**3})
+assert profile.status_code==200,profile.text
+assert profile.json()['guidance']['model_budget_gb']==19.2
+before=asdict(app.state.settings)
+for path in ('/setup','/api/v1/setup'):
+    response=client.put(path,json={'provider':'ollama','model':'qwen3.6:35b'})
+    assert response.status_code==422,response.text
+    assert asdict(app.state.settings)==before
+    assert app.state.agent.provider is None
+# Real static-serving contract; this does not render or drive a browser.
+page=client.get('/wellbeing');assert page.status_code==200 and '<div id="root">' in page.text
+assert client.get('/health').json()['status']=='ok'
+# New combined metadata contracts. Only stored synthetic sources and local state.
+status_paths=('mail/intake','integrations','schedule','mac-calendar','folder-sync?summary=true','transcript-sync?summary=true','memory/coverage')
+client.headers.clear()
+client.cookies.clear()
+for path in status_paths: assert client.get('/api/v1/'+path).status_code==401,path
+client.headers['x-icarus-token']='synthetic-package-check'
+for path in status_paths: assert client.get('/api/v1/'+path).status_code==200,path
+assert 'Pausiert' in client.get('/api/v1/memory/coverage').json()['automation']['execution_pause_reason']
+synthetic=client.post('/api/v1/sources/documents',json={'filename':'Synthetic.txt','body':'Only synthetic package metadata.','project_id':None})
+assert synthetic.status_code==200,synthetic.text
+ident=synthetic.json()['id'];body=app.state.episodes.get(ident).body
+app.state.settings.folder_sync={'enabled':False,'root_id':'synthetic','files':{'private-name.txt':ident,'alias.txt':ident,'unknown.txt':'missing'},'synced_at':'2026-10-08T12:00:00Z','last_run':{'errors':['private-error']*10000}}
+result=client.get('/api/v1/folder-sync?summary=true');assert result.status_code==200,result.text
+assert result.json()['file_counts']=={'recorded':3,'active':2,'ignored':0,'unknown':1}
+assert result.json()['last_run']['error_count']==10000 and 'errors' not in result.json()['last_run']
+assert 'files' not in result.json() and 'private-' not in result.text and len(result.content)<2048
+assert app.state.episodes.get(ident).body==body
+assert app.state.hintergrund.pausiert is True and app.state.agent.provider is None
+# New retry flow in the actual combined package, with one explicit synthetic mail.
+from types import SimpleNamespace
+from dataclasses import replace
+from icarus_memory.connectors.mail import Message
+from icarus_memory.mail_task_suggestions import source_digest
+mail=SimpleNamespace(current=Message(uid='synthetic:1', account_id='synthetic', subject='Bericht', sender='Tom <tom@example.test>', date=None, preview='', unread=False, body='Bitte sende Tom den Bericht.'))
+mail.message=lambda uid:mail.current
+app.state.mail=mail
+payload={'title':'Bericht an Tom senden','waiting_for':'Lea','source_digest':source_digest(mail.current),'source_quote':mail.current.body,'request_id':str(uuid4())}
+route='/api/v1/messages/synthetic:1/task'
+first=client.post(route,json=payload);assert first.status_code==201,first.text
+retry=client.post(route,json=payload);assert retry.status_code==201,retry.text
+ident=first.json()['id'];assert retry.json()['id']==ident and len(app.state.tasks.all_tasks())==1
+app.state.tasks.complete(ident)
+app.state.tasks.edit(ident,title='Explizit nachbearbeitet')
+new_app=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic'));new_app.state.mail=mail
+reopened=TestClient(new_app);reopened.headers['x-icarus-token']='synthetic-package-check'
+retry=reopened.post(route,json=payload);assert retry.status_code==201,retry.text
+assert retry.json()['id']==ident and retry.json()['status']=='done' and retry.json()['title']=='Explizit nachbearbeitet'
+assert reopened.post(route,json={**payload,'title':'Anderer Auftrag'}).status_code==409
+original=mail.current;mail.current=replace(original,body='Die Bitte ist zurückgenommen.')
+assert reopened.post(route,json=payload).status_code==409
+mail.current=original
+source_id=first.json()['provenance']['source_ref'].removeprefix('episode:')
+new_app.state.episodes.ignore(source_id)
+assert reopened.post(route,json=payload).status_code==409
+assert len(new_app.state.tasks.all_tasks())==1
+assert app.state.agent.provider is None and new_app.state.agent.provider is None
+print(json.dumps({'mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal':'passed'}))
+# Context-change guard in the installed Python package, using only fabricated review responses.
+from datetime import datetime, timezone
+from icarus_memory.episodes import EpisodeKind
+from icarus_memory.model import Provenance, SourceType
+from icarus_memory.proposals import ProposalKind
+from icarus_memory.providers import Reply
+from icarus_memory.task_detection import TaskDetector, for_briefing
+text = 'Ich sende dir den Bericht.'
+contact = {'rolle': 'von', 'ich': True, 'adresse': 'own@example.test'}
+class FabricatedReview:
+    is_local = True
+    name = 'synthetic'
+    model = 'context-protocol-check'
+    def complete(self, messages, tools):
+        assert tools == []
+        body = json.loads(messages[1]['content'])
+        if 'candidates' in body:
+            return Reply(text=json.dumps({'reviews': [{'id': r['id'], 'kind': 'own_commitment' if body['own_source'] else 'other_person', 'title_supported': True} for r in body['candidates']]}))
+        return Reply(text=json.dumps({'items': [{'title': 'Bericht senden', 'quote': text}]}))
+# Separate empty synthetic directory prevents prior workflow sources affecting counts.
+os.environ['ICARUS_DATA_DIR'] = '/tmp/task-context-check'
+ctxapp = create_app(SelfModelStore(MemoryBackend(), subject_id='synthetic-context'))
+ctxclient = TestClient(ctxapp); ctxclient.headers['x-icarus-token'] = 'synthetic-package-check'
+assert ctxclient.post('/api/v1/hintergrund/pause').status_code == 200
+provider = FabricatedReview()
+detector = TaskDetector(ctxapp.state.episodes, ctxapp.state.proposals, provider, ctxapp.state.conversation_lock, tasks=ctxapp.state.tasks)
+episode = ctxapp.state.episodes.record(EpisodeKind.MESSAGE, 'Bericht', text, Provenance(source_type=SourceType.EMAIL), source_key='synthetic:context', occurred_at=datetime.now(timezone.utc), contacts=[contact])[0]
+assert detector.run(with_model=True).proposed == 1
+[candidate] = ctxapp.state.proposals.pending(ProposalKind.TASK)
+assert candidate.task_context is not None
+ctxapp.state.episodes.remove_contacts(episode.id, [contact], [])
+assert for_briefing(ctxapp.state.proposals, ctxapp.state.episodes)['items'] == []
+assert ctxclient.get('/api/v1/task-candidates/page').json()['items'] == []
+assert ctxclient.post(f'/api/v1/task-candidates/{candidate.id}/accept', json={'title': candidate.statement}).status_code == 409
+assert ctxclient.get('/api/v1/memory/coverage').json()['counts']['completed'] == 0
+assert ctxapp.state.tasks.all_tasks() == []
+ctxapp.state.episodes.add_contacts(episode.id, [contact], [])
+assert for_briefing(ctxapp.state.proposals, ctxapp.state.episodes)['items'] == []
+assert detector.run(with_model=True).proposed == 1
+[fresh] = ctxapp.state.proposals.pending(ProposalKind.TASK)
+assert fresh.id != candidate.id
+accepted = ctxclient.post(f'/api/v1/task-candidates/{fresh.id}/accept', json={'title':'Explizit behalten'})
+assert accepted.status_code == 200, accepted.text
+ctxapp.state.episodes.remove_contacts(episode.id, [contact], [])
+assert len(ctxapp.state.tasks.all_tasks()) == 1
+assert ctxapp.state.tasks.get(accepted.json()['id']).title == 'Explizit behalten'
+assert ctxapp.state.episodes.get(episode.id).body == text
+assert ctxapp.state.agent.provider is None and ctxapp.state.hintergrund.pausiert is True
+print(json.dumps({'source_context_removal_restoration_reanalysis_acceptance_preservation':'passed','real_model_quality_tested':False}))
+# Prioritized corrected source behind a synthetic backlog, including ignore/reopen.
+from icarus_memory.task_review import current_task_context
+from icarus_memory.memory_analysis import analysis_version
+os.environ['ICARUS_DATA_DIR'] = '/tmp/task-priority-check'
+priority = create_app(SelfModelStore(MemoryBackend(), subject_id='synthetic-priority'))
+priority_client = TestClient(priority); priority_client.headers['x-icarus-token']='synthetic-package-check'
+assert priority_client.post('/api/v1/hintergrund/pause').status_code == 200
+priority_detector = TaskDetector(priority.state.episodes, priority.state.proposals, provider, priority.state.conversation_lock, tasks=priority.state.tasks)
+for i in range(30):
+    priority.state.episodes.record(EpisodeKind.MESSAGE, f'Bericht {i}', text, Provenance(source_type=SourceType.EMAIL), source_key=f'synthetic:priority:{i}', contacts=[contact])
+first = priority.state.episodes.analysis_batch()[0]
+assert priority_detector.run(with_model=True, limit=1).analyzed == 1
+priority.state.episodes.remove_contacts(first.id, [contact], [])
+assert priority_detector.run(with_model=True, limit=2).analyzed == 2
+job = priority.state.proposals.memory_analysis.snapshot(first.id)
+assert job['state'] == 'completed' and job['version'] == analysis_version(current_task_context(priority.state.episodes, first.id))
+assert priority.state.episodes.task_rechecks() == []
+priority.state.episodes.ignore(first.id)
+priority_detector.run(with_model=True, limit=2)
+assert priority.state.episodes.task_rechecks() == []
+priority.state.episodes.reopen(first.id)
+assert priority.state.episodes.task_rechecks()[0]['id'] == first.id
+priority_detector.run(with_model=True, limit=2)
+job = priority.state.proposals.memory_analysis.snapshot(first.id)
+assert job['state'] == 'completed' and job['version'] == analysis_version(current_task_context(priority.state.episodes, first.id))
+assert priority.state.episodes.task_rechecks() == []
+assert priority.state.episodes.get(first.id).body == text
+assert priority.state.tasks.all_tasks() == []
+assert priority.state.agent.provider is None and priority.state.hintergrund.pausiert is True
+print(json.dumps({'corrected_source_priority_ignore_reopen_no_automatic_tasks':'passed','real_model_quality_tested':False}))
+# Genuine synthetic SQLite upgrade with a verified pre-upgrade backup and restore.
+import sqlite3
+from icarus_memory.episodes import EpisodeStore, _MIGRATIONS
+from icarus_memory.migrations import run_migrations
+from icarus_memory.backup import snapshot_all, verify_snapshot_set, restore_all
+old_dir = Path('/tmp/v20-upgrade'); old_dir.mkdir()
+old_path = old_dir / 'episodes.sqlite3'
+conn = sqlite3.connect(old_path)
+run_migrations(conn, store='episodes', path=old_path, migrations=_MIGRATIONS[:20])
+row = dict(priority.state.episodes._conn.execute('SELECT * FROM episodes WHERE id=?', (first.id,)).fetchone())
+row['support_generation'] = 3; fields = list(row)
+conn.execute(f"INSERT INTO episodes ({','.join(fields)}) VALUES ({','.join('?' for _ in fields)})", tuple(row[f] for f in fields))
+conn.commit(); before = conn.execute('SELECT * FROM episodes').fetchall()
+assert conn.execute('PRAGMA user_version').fetchone()[0] == 20
+conn.close()
+saved = snapshot_all(old_dir, Path('/tmp/synthetic-backups'))
+assert verify_snapshot_set(saved)
+upgraded = EpisodeStore(old_path)
+assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0] == 21
+assert [tuple(r) for r in upgraded._conn.execute('SELECT * FROM episodes')] == before
+assert upgraded.task_rechecks()[0]['id'] == first.id and upgraded.task_rechecks()[0]['generation'] == 3
+assert upgraded.get(first.id).body == text
+upgraded.close()
+backup_conn = sqlite3.connect(saved / 'episodes.sqlite3')
+assert backup_conn.execute('PRAGMA user_version').fetchone()[0] == 20
+assert backup_conn.execute('SELECT * FROM episodes').fetchall() == before
+backup_conn.close()
+restored_dir = Path('/tmp/restored-v20'); restore_all(saved, restored_dir)
+recovered = EpisodeStore(restored_dir / 'episodes.sqlite3')
+assert recovered._conn.execute('PRAGMA user_version').fetchone()[0] == 21
+assert [tuple(r) for r in recovered._conn.execute('SELECT * FROM episodes')] == before
+assert recovered.task_rechecks()[0]['generation'] == 3 and recovered.get(first.id).body == text
+recovered.close()
+print(json.dumps({'synthetic_v20_to_v21_preserved_original_rows_preupgrade_backup_verified_restore':'passed','productive_database_accessed':False}))
+# Live intake -> persistent task queue -> small scheduler job; fabricated model only.
+from icarus_memory.mail_intake import Intake
+from icarus_memory.scheduler import Scheduler, JobResult
+from dataclasses import replace
+from threading import Event
+import time
+os.environ['ICARUS_DATA_DIR']='/tmp/live-task-check'
+liveapp=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-live'))
+liveclient=TestClient(liveapp);liveclient.headers['x-icarus-token']='synthetic-package-check'
+assert liveclient.post('/api/v1/hintergrund/pause').status_code==200
+class SyntheticMailbox:
+    count=30
+    def inventory_page(self,folder,after_uid=0,before_uid=None,limit=100,uidvalidity=None):
+        upper=self.count if before_uid is None else min(self.count,before_uid)
+        end=min(upper,after_uid+limit)
+        return dict(folder=folder,uidvalidity='7',upper_uid=upper,uids=list(range(after_uid+1,end+1)),next_uid=end,done=end>=upper)
+    def message_in_folder(self,folder,uid):
+        return Message(uid=uid,subject='Eigene synthetische Zusage',sender='Own <own@example.test>',date=datetime.now(timezone.utc),preview=text,unread=False,body=text,own_addresses=('own@example.test',))
+mailbox=SyntheticMailbox();intake=Intake(liveapp.state.episodes);intake.start('synthetic',['INBOX'])
+intake.step('synthetic',mailbox,batch=2)
+first=liveapp.state.episodes.analysis_batch()[0]
+liveapp.state.proposals.advance_task_scan('e-ffffffffffff')
+mailbox.count=31
+[identifier]=intake.step('synthetic',mailbox,batch=1)
+assert intake.db.execute("SELECT status FROM mail_intake_items WHERE account='synthetic' AND uid=31 AND lane='live'").fetchone()[0]=='captured'
+assert any(row['id']==identifier for row in liveapp.state.episodes.task_rechecks())
+detection=TaskDetector(liveapp.state.episodes,liveapp.state.proposals,provider,liveapp.state.conversation_lock,tasks=liveapp.state.tasks)
+plan=Scheduler()
+plan._run_priority_tasks=lambda:detection.run(with_model=True,limit=2,rechecks_only=True)
+# Ausgeschaltete Modellfreigabe lässt die echte persistente Quelle ungeprüft.
+plan.configure(enabled=True,with_model=False);plan._run_background_tasks()
+assert liveapp.state.proposals.memory_analysis.snapshot(identifier) is None
+plan.configure(with_model=True)
+with plan._run_lock:
+    plan._run_background_tasks()
+    assert liveapp.state.proposals.memory_analysis.snapshot(identifier) is None
+# Gleiche neue Scheduler-Methode und echte Stores, kein voller Quellen-Scan.
+plan._run_background_tasks()
+assert liveapp.state.proposals.memory_analysis.snapshot(identifier)['state']=='completed'
+assert [x['episode_id'] for x in for_briefing(liveapp.state.proposals,liveapp.state.episodes)['items']]==[identifier]
+assert liveapp.state.proposals.memory_analysis.snapshot(first.id) is None
+assert liveapp.state.tasks.all_tasks()==[]
+assert liveapp.state.agent.provider is None and liveapp.state.hintergrund.pausiert is True
+print(json.dumps({'synthetic_live_intake_queue_scheduler_job_no_parallel_or_unpermitted_model_no_history_scan':'passed','real_model_quality_tested':False}))
+# Gewohnheiten und Lernen verwenden nur die ausdrücklichen Belege, auch im fertigen Paket.
+from icarus_memory import learning_routes
+from icarus_memory.proposals import ProposalKind, Evidence
+from icarus_memory.model import Kind
+learning_routes._now=lambda:datetime(2026,9,8,12,tzinfo=timezone.utc)
+os.environ['ICARUS_DATA_DIR']='/tmp/scoped-learning'
+learningapp=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-learning'))
+learningclient=TestClient(learningapp);learningclient.headers['x-icarus-token']='synthetic-package-check'
+response=learningclient.post('/api/v1/habits',json={'label':'Lesen','target_per_week':3});assert response.status_code==201
+habit_id=response.json()['id'];learningids=set()
+for day in ('2026-09-04','2026-09-06','2026-09-07'):
+    response=learningclient.post(f'/api/v1/habits/{habit_id}/checkins',json={'day':day});assert response.status_code==200
+    learningids.add(response.json()['episode']['id'])
+for i in range(25):
+    learningapp.state.episodes.record(EpisodeKind.MESSAGE,'Künstliches Archiv',f'Unbeteiligte Mail {i}',Provenance(SourceType.EMAIL),occurred_at=learning_routes._now())
+learningep=learningapp.state.episodes;decode_original=learningep._from_row
+learning_reads=[]
+def decode_learning_source(row):
+    value=decode_original(row)
+    assert value.id in learningids,'Unbeteiligter Rohtext im Lernweg'
+    learning_reads.append(value.id)
+    return value
+learningep._from_row=decode_learning_source
+response=learningclient.get('/api/v1/habits');assert response.status_code==200 and response.json()['items'][0]['observed_days']==['2026-09-07']
+response=learningclient.post('/api/v1/learning/scan');assert response.status_code==200,response.text
+[learningcandidate]=response.json()['items'];assert len(learningcandidate['evidence'])==3
+[learningcandidate_again]=learningclient.post('/api/v1/learning/scan').json()['items'];assert learningcandidate_again['id']==learningcandidate['id']
+learningoriginal=learningep.get(next(iter(learningids)))
+learningapp.state.proposals.propose(ProposalKind.ASSERTION,'Andere Prüfung','Andere Herkunft',assertion_kind=Kind.EPISODE,evidence=[Evidence(learningoriginal.id,learningoriginal.body,learningoriginal.digest)],proposed_by='habit_pattern:fake',at=learning_routes._now())
+proposal_decode_original=learningapp.state.proposals._from_row
+def decode_learning_proposal(row):
+    value=proposal_decode_original(row);assert value.proposed_by.startswith('habit-pattern:');return value
+learningapp.state.proposals._from_row=decode_learning_proposal
+assert [x['id'] for x in learningclient.get('/api/v1/learning').json()['items']]==[learningcandidate['id']]
+# Keine automatische Aussage: erst die ausdrückliche Testannahme schreibt sie.
+assert learningapp.state.claims.by_subject(f'habit:{habit_id}',include_inactive=True)==[]
+response=learningclient.post(f"/api/v1/learning/{learningcandidate['id']}/accept");assert response.status_code==200,response.text
+response=learningclient.post(f'/api/v1/habits/checkins/{learningoriginal.id}/retract');assert response.status_code==200,response.text
+history=learningclient.get('/api/v1/learning').json()['items'];assert history[0]['claim']['status']!='active'
+assert learningep.get(learningoriginal.id).body==learningoriginal.body and learningep.get(learningoriginal.id).state.value=='ignored'
+assert learningapp.state.agent.provider is None
+print(json.dumps({'learning_explicit_sources_no_unrelated_rawtexts_or_proposals_retry_explicit_accept_retract_history':'passed','real_model_quality_tested':False}))
+# Quellenstatus im fertigen Paket: getrennt vom Gesprächsmodell, ohne Provideraufruf.
+from types import SimpleNamespace
+from icarus_memory.working_memory_store import WorkingMemoryStore
+os.environ['ICARUS_DATA_DIR']='/tmp/source-status'
+statusapp=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-status'))
+statusclient=TestClient(statusapp);statusclient.headers['x-icarus-token']='synthetic-package-check'
+response=statusclient.post('/api/v1/sources/documents',json={'filename':'synthetic-status.txt','body':'Synthetischer Prüfauftrag.'});assert response.status_code==200,response.text
+statusid=response.json()['id'];statusstore=WorkingMemoryStore(statusapp.state.episodes)
+statusapp.state.settings.schedule.enabled=True;statusapp.state.settings.schedule.with_model=True
+statusapp.state.settings.model_roles={'hintergrund':{'modell':'synthetisch-lokal:4b'}}
+statusapp.state.agent._provider=SimpleNamespace(is_local=False)
+statusapp.state.scheduler=Scheduler()
+def displayed():
+    response=statusclient.get('/api/v1/episodes/'+statusid);assert response.status_code==200
+    return response.json()['memory_status']['state']
+assert displayed()=='pending'
+statusapp.state.scheduler._memory_pending[statusid]=None
+assert displayed()=='queued'
+statusapp.state.settings.schedule.with_model=False;assert displayed()=='paused'
+statusapp.state.scheduler._memory_pending.clear();statusapp.state.scheduler._memory_active.add(statusid)
+assert displayed()=='processing'
+statusapp.state.scheduler._memory_active.clear();statusapp.state.settings.schedule.with_model=True
+statusstore.fail(statusapp.state.episodes.support_snapshot(statusid));assert displayed()=='failed'
+statusapp.state.scheduler._memory_active.add(statusid);assert displayed()=='processing'
+assert statusstore.source_state(statusid)=='failed'
+statusapp.state.episodes.ignore(statusid);assert displayed()=='excluded'
+statusapp.state.agent._provider=None
+print(json.dumps({'source_status_distinguishes_queue_processing_pause_retry_without_conversation_provider':'passed','real_model_quality_tested':False}))
+
+# Öffentliche Weltmeldung: aktuelle Originalfassung und aktuelle eigene Begründung.
+from icarus_memory.world_monitor import WorldMonitor
+from icarus_memory.welt_meldungen import WeltDienst
+from icarus_memory import world_monitor
+world_monitor._validate_url=lambda value:value
+os.environ['ICARUS_DATA_DIR']='/tmp/world-validity'
+worldapp=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-world'))
+worldclient=TestClient(worldapp);worldclient.headers['x-icarus-token']='synthetic-package-check'
+worldnow=datetime(2026,10,9,8,tzinfo=timezone.utc)
+worldtext='Das Klinikum Falken erhält einen neuen Küchenleiter im Herbst.'
+version={'text':worldtext,'captured_at':worldnow.isoformat(),'url':'https://example.org/final'}
+worldapp.state.world_monitor.fetch=lambda _:dict(version)
+response=worldclient.post('/api/v1/world',json={'url':'https://example.org/start','label':'Fachportal','topics':[]});assert response.status_code==201,response.text
+worldid=response.json()['id']
+response=worldclient.post('/api/v1/world/'+worldid+'/refresh');assert response.status_code==200,response.text
+worldep=response.json()['item']['episode_id']
+own,_=worldapp.state.episodes.record(EpisodeKind.MESSAGE,'Eigene Korrespondenz','Wir arbeiten mit Klinikum Falken.',Provenance(SourceType.EMAIL),occurred_at=worldnow)
+class WorldLinks:
+    def sachen(self,*,art=None,**kwargs):return {'sachen':[{'sache':'organisation:falken','letzte':worldnow.isoformat()}] if art=='organisation' else []}
+    def beschriftung(self,sache):assert sache=='organisation:falken';return 'Klinikum Falken'
+    def quellen_von(self,sache):assert sache=='organisation:falken';return [{'episode_id':own.id,'zeit':worldnow.isoformat()}]
+worldstate={'aktiv':True,'weltquellen':[worldid]}
+def saveworld(data):worldstate.clear();worldstate.update(data)
+def no_world_fetch(*args):raise AssertionError('Briefing darf keine neue Weltquelle abrufen')
+worldservice=WeltDienst(lesen=lambda:worldstate,speichern=saveworld,bezuege=WorldLinks,episodes=lambda:worldapp.state.episodes,weltquellen=lambda:worldapp.state.settings.world_sources,abrufen=no_world_fetch,jetzt=lambda:worldnow)
+message=worldservice.aktualisieren();assert message and message['link']=='https://example.org/final'
+assert message['quelle_fassung']['episode_id']==worldep and worldservice.heute()==message
+worldapp.state.episodes.ignore(own.id);assert worldservice.heute() is None
+# Die Meldung bleibt gespeichert, aber der zurückgezogene eigene Beleg rechtfertigt keine Anzeige.
+assert worldstate['heute']['meldung']['id']==message['id']
+response=worldclient.post('/api/v1/world/'+worldid+'/disable');assert response.status_code==200
+assert worldservice.heute() is None and worldapp.state.episodes.get(worldep).state.value=='ignored'
+assert worldapp.state.episodes.get(worldep).body==worldtext
+assert worldapp.state.agent.provider is None
+print(json.dumps({'world_http_original_refresh_disable_cache_binding_and_own_evidence_withdrawal':'passed','real_model_quality_tested':False}))
+
+
+# Real original store and fresh/saved conditional report renderer; fixed local outputs only.
+from icarus_memory import working_memory_answers as conditional_answers, satzantwort
+from icarus_memory.working_memory_store import WorkingMemoryStore
+from icarus_memory.providers import Reply
+os.environ['ICARUS_DATA_DIR']='/tmp/conditional-validity'
+conditional_app=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-conditional'))
+condition_text='Die Lieferung Orion erfolgt am 14. Oktober, sofern die Freigabe vorliegt.'
+condition_source,_=conditional_app.state.episodes.record(EpisodeKind.DOCUMENT,'Orion Original',condition_text,Provenance(SourceType.DOCUMENT))
+assert WorkingMemoryStore(conditional_app.state.episodes).commit(conditional_app.state.episodes.support_snapshot(condition_source.id),[{'start':0,'end':len(condition_text),'kind':'fact'}],model='synthetic')
+class ConditionalSelector:
+    is_local=True
+    name=model='synthetic-conditional-selector'
+    def __init__(self,good=False):self.good=good
+    def complete_json(self,messages,**kwargs):
+        data=json.loads(messages[-1]['content'])
+        if satzantwort.ist_satzanfrage(messages):
+            nr=data['belege'][0]['nr']
+            payload={'status':'antwort','originalstellen':[{'beleg':nr,'satz':1}]} if self.good else {'status':'antwort','saetze':[{'text':'Die Lieferung Orion erfolgt am 14. Oktober.','belege':[nr]}]}
+        else:payload={'status':'source_reports','ids':[x['id'] for x in data['sources'] if x['id'].startswith('S')]}
+        return Reply(text=json.dumps(payload))
+    def complete(self,*args,**kwargs):raise AssertionError('No free model/chat call')
+e=conditional_app.state.episodes;c=conditional_app.state.claims
+wrong=conditional_answers.prepare('Welche Angaben nennt die Quelle zu Orion?',e,c,ConditionalSelector(),saetze=True)
+text,links,status=conditional_answers.render(wrong,e,c);assert status=='working_reports' and condition_text in text
+good=conditional_answers.prepare('Welche Angaben nennt die Quelle zu Orion?',e,c,ConditionalSelector(True),saetze=True)
+assert good['satzantwort']['status']=='saetze'
+legacy=json.loads(json.dumps(good));legacy['satzantwort']['saetze'][0]['roh']=legacy['satzantwort']['saetze'][0]['text']='Die Lieferung Orion erfolgt am 14. Oktober.'
+reopened=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-conditional'))
+text,links,status=conditional_answers.render(legacy,reopened.state.episodes,reopened.state.claims)
+assert status=='working_reports' and condition_text in text and conditional_answers.satz_struktur(legacy,reopened.state.episodes,reopened.state.claims) is None
+reopened.state.episodes.ignore(condition_source.id)
+text,links,status=conditional_answers.render(good,reopened.state.episodes,reopened.state.claims)
+assert status=='working_unavailable' and links==[] and condition_text not in text
+assert reopened.state.episodes.get(condition_source.id).body==condition_text
+assert conditional_app.state.agent.provider is None and reopened.state.agent.provider is None
+print(json.dumps({'conditional_fresh_and_legacy_answers_keep_full_original_after_restart_withdrawal_enforced':'passed','real_model_quality_tested':False}))
+
+# Actual newly shipped routes, using only a fresh synthetic tmpfs directory.
+os.environ['ICARUS_DATA_DIR']='/tmp/daily-ux'
+daily=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-daily'))
+dc=TestClient(daily); dc.headers['x-icarus-token']='synthetic-package-check'
+assert dc.post('/api/v1/hintergrund/pause').status_code==200
+assert daily.state.agent.provider is None
+project=dc.post('/api/v1/projects',json={'name':'Synthetic Orion'}).json()['id']
+# Preview reads the supplied transcript but does not create an original source.
+before=dc.get('/api/v1/sources/documents').json()['items']
+preview=dc.post('/api/v1/sources/documents/preview-transcript',json={'format':'srt','text':'1\n00:00:00,000 --> 00:00:01,000\nAlex: Wir prüfen das Angebot.\n'})
+assert preview.status_code==200,preview.text
+assert dc.get('/api/v1/sources/documents').json()['items']==before
+body=preview.json()['body']; assert 'Alex: Wir prüfen das Angebot.' in body
+saved=dc.post('/api/v1/sources/documents',json={'filename':'Synthetic.srt','body':body,'project_id':project})
+assert saved.status_code==200,saved.text
+source=saved.json()['id']; original=daily.state.episodes.get(source).to_dict()
+assert original['body']==body
+route=f'/api/v1/episodes/{source}/categories'
+reviewed=dc.get(route).json()
+corrected=dc.put(route,json={'categories':['information'],'expected_revision':reviewed['revision']})
+assert corrected.status_code==200,corrected.text
+assert corrected.json()['categories'][0]['origin']=='user'
+assert daily.state.episodes.get(source).to_dict()==original
+assert dc.put(route,json={'categories':['finance'],'expected_revision':reviewed['revision']}).status_code==409
+from datetime import timedelta
+at=datetime.now(timezone.utc)
+for n in range(205): daily.state.tasks.add(f'Synthetic own {n}',Provenance(SourceType.USER_STATED),project_id=project)
+overdue=daily.state.tasks.add('Synthetic overdue',Provenance(SourceType.USER_STATED),project_id=project,due=at-timedelta(days=2))
+waiting=daily.state.tasks.add('Synthetic waiting',Provenance(SourceType.USER_STATED),project_id=project,due=at-timedelta(days=3)); daily.state.tasks.warten_auf(waiting.id,'Synthetic Alex')
+done=daily.state.tasks.add('Synthetic done',Provenance(SourceType.USER_STATED),project_id=project);daily.state.tasks.complete(done.id)
+dropped=daily.state.tasks.add('Synthetic dropped',Provenance(SourceType.USER_STATED),project_id=project);daily.state.tasks.drop(dropped.id)
+history=daily.state.tasks.history(overdue.id)
+overview=dc.get(f'/api/v1/projects/{project}/task-overview')
+assert overview.status_code==200,overview.text
+assert overview.json()['counts']=={'mine':206,'waiting':1,'done':1,'dropped':1,'overdue':1,'undated':205}
+assert len(overview.json()['next_tasks'])==3 and overview.json()['next_tasks'][0]['id']==overdue.id
+assert daily.state.tasks.history(overdue.id)==history
+health='/api/v1/health/observations'
+def measurement(**values):
+    data={'request_id':str(uuid4()),'subject':'self','metric':'Gewicht','value':'072,50','unit':'kg','observed_at':'2020-01-01T09:00:00.000123Z','note':'Synthetic'}
+    data.update(values); response=dc.post(health,json=data);assert response.status_code==201,response.text
+    return response.json()
+weight=measurement()
+for n in range(105): measurement(metric='Puls',unit='bpm',observed_at='2026-01-01T09:00:00Z')
+measurement(unit='lb')
+filtered=dc.get(health,params={'metric':' gewicht ','unit':'kg'}).json()
+assert [i['id'] for i in filtered['items']]==[weight['id']]
+assert filtered['scanned_sources']==1 and filtered['complete']
+assert filtered['items'][0]['value']=='072,50'
+measurement(metric='Signal',unit='mV');measurement(metric='Signal',unit='mV');measurement(metric='Signal',unit='MV')
+page=dc.get(health,params={'metric':'Signal','unit':'mV','limit':1}).json();assert page['next_cursor']
+assert dc.get(health,params={'metric':'Signal','unit':'MV','limit':1,'cursor':page['next_cursor']}).status_code==422
+assert dc.get(health,params={'metric':'SIGNAL','unit':'mV','limit':1,'cursor':page['next_cursor']}).status_code==200
+# Reopen databases in a new app and retain the reviewed correction and project totals.
+reopened_daily=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-daily'))
+rc=TestClient(reopened_daily);rc.headers['x-icarus-token']='synthetic-package-check'
+assert rc.get(route).json()==corrected.json()
+assert reopened_daily.state.episodes.get(source).to_dict()==original
+assert rc.get(f'/api/v1/projects/{project}/task-overview').json()['counts']==overview.json()['counts']
+assert rc.post(f"/api/v1/episodes/{weight['id']}/ignore").status_code==200
+assert rc.get(health,params={'metric':'Gewicht','unit':'kg'}).json()['items']==[]
+assert reopened_daily.state.episodes.get(weight['id']).body==daily.state.episodes.get(weight['id']).body
+assert daily.state.agent.provider is None and reopened_daily.state.agent.provider is None
+print(json.dumps({'daily_ux_category_feedback_restart_stale_guard_original_preservation_project_totals_health_filters_withdrawal_transcript_preview_save':'passed','real_model_quality_tested':False,'browser_rendered':False}))
+print(json.dumps({'status':'passed','version':expected['version'],'code_commit':expected['code_commit'],'python_files':len(actual),'ui_files':len(actual_ui),'productive_mounts':False,'models_configured':False,'browser_rendered':False},sort_keys=True))
+
+# New answer connection: the selected role must rebuild the actual packaged agent.
+import httpx
+from icarus_memory import ollama_inventar
+os.environ['ICARUS_DATA_DIR'] = '/tmp/local-answer-connection-check'
+for name in ('ICARUS_PROVIDER', 'ICARUS_BASE_URL', 'ICARUS_MODEL'):
+    os.environ.pop(name, None)
+def fake_inventory_response(request):
+    if request.url.path == '/api/tags':
+        return httpx.Response(200, json={'models': [
+            {'name': n, 'size': 1, 'digest': '0'*64, 'details': {'format': 'gguf'}}
+            for n in ('qwen3.5:4b','qwen3.5:9b')]})
+    raise AssertionError('Unexpected mock request: '+request.url.path)
+transport = httpx.MockTransport(fake_inventory_response)
+original_inventory = ollama_inventar.inventar_von
+def fake_inventory(app):
+    if not hasattr(app.state, 'ollama_transport'):
+        app.state.ollama_transport = transport
+    return original_inventory(app)
+ollama_inventar.inventar_von = fake_inventory
+localapp = create_app()
+localapp.state.settings.model_roles = {'antwort': {'modell': 'missing:12b','local_only': True},
+                                      'hintergrund': {'modell': 'qwen3.5:4b','cloud': False}}
+localclient = TestClient(localapp, headers={'x-icarus-token':'synthetic-package-check'})
+assert localclient.post('/api/v1/device/profile',json={'platform':'macos','chip':'Synthetic M2 Max','memory_bytes':32*1024**3,'disk_free_bytes':10*1024**3}).status_code == 200
+role = localclient.put('/api/v1/models/roles/antwort', json={'modell':'qwen3.5:9b','cloud':False,'local_only':True})
+assert role.status_code == 200, role.text
+assert localapp.state.agent.provider.model == 'qwen3.5:9b'
+assert localclient.get('/api/v1/setup').json()['status']['model']=='qwen3.5:9b'
+assert localapp.state.settings.model_roles['antwort']['local_only'] is True
+assert localapp.state.settings.model_roles['hintergrund']=={'modell':'qwen3.5:4b','cloud':False}
+assert localapp.state.settings.schedule.enabled is False
+before = dict(localapp.state.settings.model_roles)
+contradiction = localclient.put('/api/v1/models/roles/antwort', json={'cloud':True,'anbieter':'anthropic','einwilligung':True,'local_only':True})
+assert contradiction.status_code == 422 and before == localapp.state.settings.model_roles
+print(json.dumps({'packaged_local_answer_role_changes_actual_agent': 'passed', 'cloud_contradiction_rejected': True,
+                  'background_role_and_disabled_schedule_preserved':True,'actual_model_inference':False}))
+
+# New installed capacity gate: artificial measurements, actual packaged routes/worker.
+from unittest.mock import patch
+from contextlib import contextmanager
+os.environ['ICARUS_DATA_DIR']='/tmp/capacity-package-check'
+capapp=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-capacity'))
+cc=TestClient(capapp,headers={'x-icarus-token':'synthetic-package-check'})
+assert cc.post('/api/v1/hintergrund/pause').status_code==200
+from icarus_memory.storage_capacity import reason
+healthy=SimpleNamespace(f_frsize=1,f_bavail=2*1024**3,f_files=100000,f_favail=10000)
+low=SimpleNamespace(f_frsize=1,f_bavail=90*1024**2,f_files=100000,f_favail=10000)
+capapp.state.settings.mail_accounts=[SimpleNamespace(id='synthetic',label='Synthetic',configured=True)]
+store=Intake(capapp.state.episodes);store.start('synthetic',['INBOX']);store.pause('synthetic',True)
+class NeverContact:
+    @contextmanager
+    def session(self):
+        raise AssertionError('Mail contacted while storage low')
+        yield
+with patch('os.statvfs',return_value=low):
+    assert reason('/data')=='storage_low'
+    response=cc.get('/api/v1/mail/intake');assert response.status_code==200,response.text
+    assert response.json()['storage_blocked']=='storage_low'
+    r=cc.post('/api/v1/mail/intake/synthetic/pause',json={'paused':False});assert r.status_code==507,r.text
+    assert store.status('synthetic')['paused'] is True
+    assert cc.post('/api/v1/mail/intake/synthetic/pause',json={'paused':True}).status_code==200
+    assert store.step('synthetic',NeverContact())==[]
+    calls=[]
+    scheduler=Scheduler(run_ingest=lambda:calls.append('contact'))
+    scheduler._capacity_gate=lambda:reason('/data')
+    report=scheduler.run_once();assert calls==[] and scheduler._last_at is None
+    assert any(not job.ok and 'Speicher' in job.detail for job in report.jobs)
+with patch('os.statvfs',side_effect=OSError('synthetic')):
+    assert cc.get('/api/v1/mail/intake').json()['storage_blocked']=='storage_unknown'
+with patch('os.statvfs',return_value=healthy):
+    assert reason('/data') is None
+    assert cc.get('/api/v1/mail/intake').json()['storage_blocked'] is None
+    assert store.status('synthetic')['paused'] is True
+print(json.dumps({'packaged_storage_gate_routes_and_scheduler':'passed','manual_pause_preserved_after_recovery':True,'productive_mounts':False,'network':'none','final_package_status':'passed','version':expected['version']}))
+
+# Actual packaged name validation, projection and persistent original preservation.
+from icarus_memory.memory_categories import Categories
+os.environ['ICARUS_DATA_DIR']='/tmp/person-pronoun-package-check'
+pa=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-pronoun'))
+body='Ihre Rechnung prüft Anna Kranz.'
+source,_=pa.state.episodes.record(EpisodeKind.MESSAGE,'Synthetic pronoun test',body,Provenance(SourceType.EMAIL))
+class PersonCandidateModel:
+    is_local=True
+    name=model='synthetic-pronoun-probe'
+    entity_anchor_mode='block_quote'
+    def complete_json(self,messages,**kwargs):
+        block=json.loads(messages[-1]['content'])['blocks'][0]
+        return Reply(text=json.dumps({'categories':[{'category_id':'finance','block_id':block['block_id']}],
+            'entities':[{'kind':'person','name':n,'block_id':block['block_id'],'role':'mentioned'} for n in ('Ihre','Anna Kranz')]}))
+cats=Categories(pa.state.episodes);assert cats.run(PersonCandidateModel(),source_ids=[source.id]).ok
+assert [e['name'] for e in cats.list_for(source.id)['entities']]==['Anna Kranz']
+assert [c['id'] for c in cats.list_for(source.id)['categories']]==['finance']
+fp=pa.state.episodes._conn.execute('SELECT fingerprint FROM memory_category_sources WHERE episode_id=?',(source.id,)).fetchone()[0]
+with pa.state.episodes.transaction():
+    pa.state.episodes._conn.execute('INSERT INTO memory_category_entities VALUES(?,?,?,?,?,?)',(source.id,fp,'person',0,4,'mentioned'))
+reopened=create_app(SelfModelStore(MemoryBackend(),subject_id='synthetic-pronoun'))
+assert [e['name'] for e in Categories(reopened.state.episodes).list_for(source.id)['entities']]==['Anna Kranz']
+assert reopened.state.episodes._conn.execute('SELECT COUNT(*) FROM memory_category_entities WHERE episode_id=?',(source.id,)).fetchone()[0]==2
+assert reopened.state.episodes.get(source.id).body==body
+print(json.dumps({'packaged_pronoun_filter_new_and_legacy_spans':'passed','original_and_legacy_rows_preserved':True,'final_package_status':'passed','version':expected['version'],'productive_mounts':False,'network':'none'}))

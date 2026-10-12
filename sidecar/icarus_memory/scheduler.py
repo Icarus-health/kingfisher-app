@@ -168,6 +168,9 @@ class Scheduler:
         #: Die Steuerung des Hintergrunds (`hintergrund.Steuerung`): Pause, Rücksicht, Reihenfolge, Drosselung.
         #: Ohne sie verhält sich der Zeitplan wie zuvor (etwa in Tests, die ihn allein prüfen).
         self._steuerung: Any = None
+        # Also applies to explicitly requested full passes, independent of
+        # background pause/activity/power. Installed alongside the controller.
+        self._capacity_gate: Callable[[], str | None] = lambda: None
         #: Eine leichte Aufgabe, die bei jedem Aufwachen läuft, auch wenn der Zeitplan selbst aus ist (die tägliche
         #: Fassungsprüfung, `fassung_routes.py`). Sie entscheidet selbst, ob sie fällig ist, und wirft nie.
         self._nebenbei: Callable[[], None] | None = None
@@ -316,6 +319,7 @@ class Scheduler:
         report = RunReport(started_at=now())
         modell = self._with_model if with_model is None else with_model
 
+        if self._capacity_wait(report):return report
         if self._run_ingest is not None:
             try:
                 report.jobs.extend(self._run_ingest())
@@ -324,27 +328,32 @@ class Scheduler:
                     JobResult("aufnahme", False, f"{type(exc).__name__}: {exc}")
                 )
 
+        if self._capacity_wait(report):return report
         if self._run_working_memory is not None:
             try:
                 report.jobs.append(self._run_working_memory(modell))
             except Exception:
                 report.jobs.append(JobResult("gedaechtnis", False, "Quellen konnten noch nicht eingeordnet werden."))
 
+        if self._capacity_wait(report):return report
         if any((self._run_task_detection, self._run_consolidation, self._run_summary)):
             self._serve_waiting_uploads(report, modell)
 
+        if self._capacity_wait(report):return report
         if self._run_lage is not None:
             try:
                 report.jobs.append(self._run_lage(modell))
             except Exception:  # Keine Quelldaten oder Modellantworten im Status.
                 report.jobs.append(JobResult("lage", False, "Lagen konnten noch nicht erstellt werden."))
 
+        if self._capacity_wait(report):return report
         if self._run_task_detection is not None:
             try:
                 report.jobs.append(self._run_task_detection(modell))
             except Exception:  # Keine fremden Quellen oder Modellantworten im Status.
                 report.jobs.append(JobResult("zusagen", False, "Zusagen konnten nicht geprüft werden. Bitte erneut versuchen."))
 
+        if self._capacity_wait(report):return report
         if self._run_consolidation is not None:
             try:
                 report.jobs.append(self._run_consolidation(modell))
@@ -353,6 +362,7 @@ class Scheduler:
                     JobResult("verdichtung", False, f"{type(exc).__name__}: {exc}")
                 )
 
+        if self._capacity_wait(report):return report
         if self._run_summary is not None:
             try:
                 report.jobs.append(self._run_summary(modell))
@@ -361,6 +371,7 @@ class Scheduler:
                     JobResult("zusammenfassung", False, f"{type(exc).__name__}: {exc}")
                 )
 
+        if self._capacity_wait(report):return report
         if self._run_backup is not None:
             try:
                 report.jobs.append(self._run_backup())
@@ -369,6 +380,7 @@ class Scheduler:
                     JobResult("sicherung", False, f"{type(exc).__name__}: {exc}")
                 )
 
+        if self._capacity_wait(report):return report
         report.finished_at = now()
         logbuch.fehler_des_laufs(report.jobs)
         with self._lock:
@@ -378,6 +390,20 @@ class Scheduler:
         if steuerung is not None:
             steuerung.voller_lauf_fertig(report.finished_at)
         return report
+
+    def _capacity_wait(self, report: RunReport) -> bool:
+        """Keep committed work, but never call an interrupted pass complete."""
+        from .storage_capacity import MESSAGES
+        try:
+            blocked = self._capacity_gate()
+        except Exception:
+            blocked = 'storage_unknown'
+        if blocked is None:return False
+        report.jobs.append(JobResult('speicher', False, MESSAGES.get(blocked, MESSAGES['storage_unknown'])))
+        report.finished_at = now()
+        with self._lock:
+            self._last = report
+        return True
 
     def _start_locked(self) -> None:
         self._stop.clear()
@@ -472,6 +498,9 @@ class Scheduler:
                 except Exception:  # noqa: BLE001 - der Thread darf nie sterben
                     pass
             steuerung = self._steuerung
+            if self._enabled and self._capacity_gate() is not None:
+                pause = TICK_SECONDS
+                continue
             if steuerung is not None and self._enabled:
                 if self._with_model:
                     steuerung.probe()

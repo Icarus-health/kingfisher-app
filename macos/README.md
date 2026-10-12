@@ -40,7 +40,9 @@ Beim Öffnen, Schritt für Schritt (`App/Startup.swift`), jeweils mit einem Satz
 5. **Prüfen**: Das laufende Bild muss zur Konfiguration passen; `/api/v1/fassung` muss mit dem eigenen Token
    die passende Fassung bestätigen. Nach einer Wiederherstellung ist stattdessen der authentifizierte Prüfmodus
    zulässig. Erst danach die Seite `/today` laden.
-6. **Ollama** fehlt (weder erreichbar noch in Programme): ein Satz mit Link unter der Seite, kein Hindernis.
+6. **Ollama**: Wenn es läuft, erscheint kein Hinweis. Ist die offizielle App `/Applications/Ollama.app`
+   vorhanden, aber der Dienst nicht erreichbar, bietet ein bewusster Knopf „Ollama starten“ an, die App zu
+   öffnen. Fehlt sie, bleibt der Downloadhinweis. Keine automatische App- oder Modellinstallation.
 
 Ein Protokoll der Docker-Aufrufe (ohne Geheimnisse) liegt in `~/Library/Logs/Kingfisher/kingfisher.log`.
 
@@ -133,7 +135,8 @@ und, nur auf einem Testrechner, `docker compose -p kingfisher down -v`.
 - [ ] **Frischer Mac ohne Docker:** DMG öffnen, App nach Programme ziehen, öffnen, Gatekeeper
       („Dennoch öffnen“). Satz und „Docker Desktop laden“ erscheinen; der Knopf öffnet die Downloadseite.
       Docker installieren und einmal öffnen, „Nochmal prüfen“: Laden mit Satz, danach die Einrichtung
-      von Kingfisher. Env-Datei hat 0600, Ordner 0700. Ohne Ollama steht der Hinweis unter der Seite.
+      von Kingfisher. Env-Datei hat 0600, Ordner 0700. Ohne Ollama erscheint der Downloadhinweis; ist
+      `/Applications/Ollama.app` vorhanden, aber gestoppt, öffnet der Knopf die App. Läuft Ollama, fehlt der Hinweis.
 - [ ] **Docker installiert, aber aus:** App öffnen. Docker Desktop startet von selbst, der Satz dazu
       steht da, danach öffnet sich Kingfisher. Docker in der Zeit nicht anfassen.
 - [ ] **Bestehende Starter-Installation mit Daten** (`make start` mit einem API-Schlüssel in den

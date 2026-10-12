@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.d092006",
+  "base_image": "sha256:d65a5a4b205496e222ffab16b1137b9734718e46837a0b848c12819bc2a4de3f",
+  "code_commit": "d092006699bdfe89b390916ede8505bc7b3cac9f",
+  "source_tar_sha256": "d11c118ba0af717c1d7ed31e0742e5684ebfb6b9eb2622440a7480cccc0d06dc",
+  "arch": "arm64",
+  "private_data": false,
+  "backend_source_unchanged": true,
+  "scope": "Exact installed backend parent; rebuilt UI for LocalModelSettings changes and version/native bundle metadata"
+}

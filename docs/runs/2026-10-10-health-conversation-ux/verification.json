@@ -1,0 +1,16 @@
+{
+  "base": "cc4e845da29d7165d9f8dbaaf25a1ec2362696f9",
+  "backend_targeted": 187,
+  "ui_full": 545,
+  "build": "passed",
+  "assets": {
+    "files": 16,
+    "icons": 16
+  },
+  "review_health": "microsecond bug reproduced and fixed; final review no blocker; UI 14 passed",
+  "review_conversation": "draft close-loss reproduced and fixed; final review no blocker; UI/native-voice 29 passed",
+  "backend_full": "not_run",
+  "native": "not_run",
+  "package": "not_built",
+  "installed": false
+}
