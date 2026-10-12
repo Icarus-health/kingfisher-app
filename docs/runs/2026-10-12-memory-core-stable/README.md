@@ -77,7 +77,7 @@ Die e9-App wurde geöffnet; die vier Modellrollen verwenden lokal das vorhandene
 
 ## Reguläre Veröffentlichung bestätigt
 
-Die PRs #55/#56 und die bestehende Integrationsfolge #54/#46 sind übernommen. `main` und Tag `v1.0.7` zeigen auf `f7dae379add9282a1d1c6262c14270e3e9e51f78`; dessen vollständiger Tree entspricht dem abschließend dokumentierten Stand `f679a04`. Gegenüber der eingefrorenen Runtime `3721bc2` unterscheiden sich nur 13 Dokumentationsdateien.
+Die PRs #55/#56 und die bestehende Integrationsfolge #54/#46 sind übernommen. Der Release wurde vom damaligen `main`-Stand `f7dae379add9282a1d1c6262c14270e3e9e51f78` veröffentlicht; Tag `v1.0.7` bleibt an diesen Commit gebunden. Dieser Veröffentlichungsstand hat genau den vollständigen Tree des abschließend dokumentierten Standes `f679a04`. Der spätere Dokumentationsnachtrag verändert weder den Release-Tag noch die Runtime. Gegenüber der eingefrorenen Runtime `3721bc2` unterscheiden sich nur 13 Dokumentationsdateien.
 
 Der einmal gestartete [Release-Lauf](https://github.com/Icarus-health/kingfisher-app/actions/runs/38260423499) bestand in allen fünf Jobs: Tag/VERSION, Docker für arm64 und amd64, Mac-App, GitHub-Release sowie Download-Seite. [Kingfisher 1.0.7](https://github.com/Icarus-health/kingfisher-app/releases/tag/v1.0.7) enthält das öffentlich heruntergeladene DMG mit 2.551.840 Bytes und SHA-256 `54b070ebbe0baf25a754b37583b7b6a4f47dcd19c07456e3a6e9e4a42053c321`; die Bytes stimmen mit dem GitHub-Asset-Digest überein. Ein erneutes lokales Mounten ist wegen des Disk-Management-Fehlers nicht belegt; daraus wird kein weiterer Fenstertest des öffentlichen DMG behauptet.
 
