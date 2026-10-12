@@ -1,0 +1,96 @@
+{
+  "runtime_commit": "3721bc2c470ffe570df50327f2c7126a7fe10ba3",
+  "prior_model_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+  "prior_model_evidence_manifest": "final-e9a968f-evidence-manifest.json",
+  "scope": "Public synthetic test logs and sanitized actual native observations only; no private source content, installation receipt, backup hashes or databases. Prior actual model evidence remains bound to e9a968f.",
+  "artifacts": {
+    "final-3721bc2-backend-local-sockets.log.gz": {
+      "sha256": "b89f0f7e6935bf438c9a4bd9187bb114c2e81ead81bad059e9ff0f9250d58bba",
+      "bytes": 1160
+    },
+    "final-3721bc2-backend-aborted-sandbox.log.gz": {
+      "sha256": "305f80d3a39fa661131bb910442fe6e5f6322687eaed418d95f87a3e79fb4b57",
+      "bytes": 1226
+    },
+    "final-3721bc2-sandbox-diagnosis.log.gz": {
+      "sha256": "92c0841ca34f9ba54c3e3caa91e29da131d9d0799bf2665207c47b42e6a57a55",
+      "bytes": 839
+    },
+    "final-3721bc2-full-test-proof.json": {
+      "sha256": "6ad763450d830120c30b9ae31dba6bb5c3f6a9ca9891f837540876b88877deae",
+      "bytes": 2901
+    },
+    "final-3721bc2-routing-target.log.gz": {
+      "sha256": "d78f272e17eaa9b64a9285253b150f18f63b37b3e4a8f7f4c8d780261b0375b3",
+      "bytes": 316
+    },
+    "final-3721bc2-routing-affected.log.gz": {
+      "sha256": "6b97a0a858ed3ce75a0df6860b4f1ab82a0c32a016fe00600245385bd88704d2",
+      "bytes": 340
+    },
+    "final-3721bc2-routing-sabotage.log.gz": {
+      "sha256": "6d1e65392fa31c9932b43542ed63618cc9c60709e5f080c8258d872992a59965",
+      "bytes": 1796
+    },
+    "final-3721bc2-native-observations.json": {
+      "sha256": "66fdfba2f917361cf4bbec3ba159beaa30ae051939eba74e42c8281187019b26",
+      "bytes": 2782
+    },
+    "final-3721bc2-routing-catalog-path-proof.json": {
+      "sha256": "8bee78e895c5e1e8719217ea006f220e31b3a05cd1d8b46979013cff3bbb29e9",
+      "bytes": 240
+    }
+  },
+  "routing_regression": {
+    "target_cases": 42,
+    "affected_passed": 328,
+    "sabotage_expected_failures": 13,
+    "sabotage_other_passed": 29,
+    "independent_review_passed": 188,
+    "independent_review_seconds": 19.45,
+    "independent_review_stage": "bounded routing before final finite factual-prefix tightening; final 42 target and 328 affected checks cover frozen commit",
+    "countercases": "compound commands, separators, polite action/advice prefixes, authenticated paused-source lookup, excluded original, local-only cloud guard",
+    "provenance": "final 42 target, 328 affected and 13 expected sabotage failures independently checked against copied raw logs; independent 188 review is recorded tool output, no recreated raw log"
+  },
+  "environment_failure": {
+    "first_full_run": "interrupted at 53 percent, not a passing run",
+    "diagnosis": "3 local HTTP setup PermissionErrors, 7 other tests passed; local socket binding prohibited",
+    "final_full_run": "passed unchanged runtime with local socket rights"
+  },
+  "private_native_observation": {
+    "private_raw_copied": false,
+    "coordinator_reported_actual_mail_lookup_seconds": 54,
+    "human_assisted_synthetic_file_preview_and_save": true,
+    "targeted_single_synthetic_document_classification": "existing local Qwen 9B",
+    "plain_synthetic_lookup_after_classification_passed": true,
+    "plain_synthetic_lookup_seconds": 11,
+    "combined_lookup_on_final_package": "pending final native-window check",
+    "compound_lookup_on_final_package": true,
+    "compound_lookup_seconds_cold": 46,
+    "clicked_source_matches_original": true,
+    "source_exclusion_invalidates_saved_answer": true,
+    "fresh_lookup_after_exclusion_no_color": true,
+    "ignored_original_retained": true,
+    "app_restart_and_old_history": true,
+    "excluded_source_link_absent_after_restart": true,
+    "native_window_acceptance": true
+  },
+  "delivery_status": {
+    "reported_version": "1.0.7",
+    "reported_runtime_commit": "3721bc2c470ffe570df50327f2c7126a7fe10ba3",
+    "reported_backup_databases": 17,
+    "reported_authoritative_tables_unchanged": 14,
+    "private_receipt_included": false,
+    "native_repair": "passed canonical deployment repair; unchanged runtime and native bundle; config changed only image selector; 14 authoritative tables unchanged",
+    "native_window_acceptance": "passed actual native compound lookup, original comparison, source exclusion, process quit/restart and persisted old-history check",
+    "publication": "pending coordinator"
+  },
+  "prior_model_evidence_manifest_sha256": "88ef68badf91cce6a467d187dc5bd500283232ccd2c5b35fb39f371c55d3cfba",
+  "routing_catalog_path_check": {
+    "cases_checked": 15,
+    "new_router_exception_matches": [],
+    "prior_actual_llm_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+    "old_llm_run_not_relabelled": true
+  },
+  "source_texts_synthetic_only": true
+}
