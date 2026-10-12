@@ -154,6 +154,10 @@ def _heute_faellig(aufgaben: list[dict], jetzt: datetime) -> list[dict]:
         if aufgabe.get("overdue"):
             continue
         faellig = _tag(aufgabe.get("due"))
+        # A UTC timestamp can fall on the previous/next civil date from the
+        # user's perspective. Date-only and naive values keep their written day.
+        if faellig is not None and faellig.tzinfo is not None and jetzt.tzinfo is not None:
+            faellig = faellig.astimezone(jetzt.tzinfo)
         if faellig is not None and _gleicher_tag(faellig, jetzt):
             treffer.append(aufgabe)
     return treffer

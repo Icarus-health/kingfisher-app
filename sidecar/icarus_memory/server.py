@@ -2743,8 +2743,8 @@ def create_app(
 
     # -- Dashboard ---------------------------------------------------------
 
-    @app.get("/dashboard", dependencies=guard)
-    def dashboard(days: int = 7, post: bool = True) -> dict[str, Any]:
+    def _dashboard_data(days: int = 7, post: bool = True, *,
+                        briefing_now: datetime | None = None) -> dict[str, Any]:
         """Alles für die Startseite in einem Aufruf.
 
         Jeder Bereich ist einzeln fehlertolerant: Ist ein Konnektor nicht
@@ -2977,7 +2977,7 @@ def create_app(
         try:
             result["briefing"] = briefing.erstelle(
                 result,
-                jetzt=datetime.now().astimezone(),
+                jetzt=briefing_now or datetime.now().astimezone(),
                 vorschlaege=offene_vorschlaege,
             ).to_dict()
         except Exception as exc:  # noqa: BLE001
@@ -2985,6 +2985,10 @@ def create_app(
             result["briefing_error"] = str(exc)
 
         return result
+
+    @app.get("/dashboard", dependencies=guard)
+    def dashboard(days: int = 7, post: bool = True) -> dict[str, Any]:
+        return _dashboard_data(days, post)
 
     # -- Kingfisher Morning Briefing -------------------------------------
 
@@ -3418,7 +3422,7 @@ def create_app(
         from .logbuch_routes import zeilen as logbuch_zeilen
         from .wetter_routes import dienst as wetter_dienst
         # `post=false`: ohne Posteingang, damit Heute den Gruß sofort zeigt; die Oberfläche holt danach den Rest.
-        return compose_morning(dashboard(days=1, post=post), now=current, target=target,
+        return compose_morning(_dashboard_data(days=1, post=post, briefing_now=current), now=current, target=target,
                                wetter=lambda: wetter_dienst(app).aktuell(), verlauf=logbuch_zeilen(app, current),
                                nutzername=str((app.state.settings.einrichtung or {}).get("name") or ""))
 
