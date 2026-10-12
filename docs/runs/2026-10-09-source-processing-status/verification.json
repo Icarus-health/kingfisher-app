@@ -1,0 +1,59 @@
+{
+  "version": "1.0.6-preview.a214f99",
+  "code_commit": "a214f99cde2c8910d1ba5e762b2e89f485380471",
+  "image_id": "sha256:552a7d2f6ccc6433357000c2385dfe0b034f597a8c7126ea87fca3009580937a",
+  "signature_strict_deep": true,
+  "dmg_integrity": true,
+  "read_only_mounted_app_files_identical": true,
+  "arm64_only": true,
+  "notarized": false,
+  "window_tested": false,
+  "productive_data_accessed": false,
+  "real_models_used": false,
+  "ui_unchanged": true,
+  "records": [
+    {
+      "mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal": "passed"
+    },
+    {
+      "source_context_removal_restoration_reanalysis_acceptance_preservation": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "corrected_source_priority_ignore_reopen_no_automatic_tasks": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "synthetic_v20_to_v21_preserved_original_rows_preupgrade_backup_verified_restore": "passed",
+      "productive_database_accessed": false
+    },
+    {
+      "synthetic_live_intake_queue_scheduler_job_no_parallel_or_unpermitted_model_no_history_scan": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "learning_explicit_sources_no_unrelated_rawtexts_or_proposals_retry_explicit_accept_retract_history": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "source_status_distinguishes_queue_processing_pause_retry_without_conversation_provider": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "browser_rendered": false,
+      "calendar_route_selection_disconnect": true,
+      "health_create_retry_correct_stale_history_restart_exclude": true,
+      "models_configured": false,
+      "productive_mounts": false,
+      "python_files": 269,
+      "ram_aliases_reject_oversize": true,
+      "source_metadata_auth_pause_compact_originals": true,
+      "status": "passed",
+      "synthetic_auth": true,
+      "ui_files": 112,
+      "version": "1.0.6-preview.a214f99",
+      "wellbeing_served_health_preserved": true
+    }
+  ],
+  "base_layers_preserved": true
+}

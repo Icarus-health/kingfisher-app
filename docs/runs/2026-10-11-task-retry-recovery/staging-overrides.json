@@ -1,0 +1,17 @@
+{
+  "VERSION": {
+    "original_sha256": "51c18dc8694861beb47a67894e61044864214435389f6d3a274704d9566ff96c",
+    "packaged_sha256": "1fdc54d6917e421e44ecc2c9c24a253c4f2609bdd35528adb2f62a4435e99980",
+    "original": "1.0.6",
+    "packaged": "1.0.6-preview.b7cd321"
+  },
+  ".dockerignore": {
+    "original_sha256": "a024913c4090f32c2e431ef26c87c300596b7232d753853a96a0a03c392e8130",
+    "packaged_sha256": "00d3c5cfd0dc6da1b6b676e58b9328fe6801eaad41683f6b932ded8e38847768",
+    "reason": "Allow only frozen Python, built UI and VERSION in overlay context"
+  },
+  "Dockerfile": {
+    "packaged_sha256": "61ae785cdb062c380ff84df871a826c89f0044a61e781ba1369c94e8d6d47da1",
+    "reason": "Offline overlay on previously installed immutable dependency image"
+  }
+}

@@ -22,6 +22,7 @@ import logging
 import threading
 import time
 from copy import deepcopy
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import PurePosixPath
@@ -174,18 +175,45 @@ def register_folder_routes(app, guard, data_dir, art: Ordnerart = DOKUMENTE):
             setattr(app.state.settings, art.einstellung, previous)
             raise
 
-    def public():
-        s = state()
+    def public(*, summary=False):
+        if summary:
+            # Keep only small metadata. No deep copy of names, digests or the
+            # complete file map, and no original-body lookup for each file.
+            stored = getattr(app.state.settings, art.einstellung)
+            keys = ('enabled', 'generation', 'root_id', 'folder', 'seen_at', 'synced_at',
+                    'pick_request', 'lokal', 'helfer_at', 'getrennt')
+            s = {'enabled': False, 'generation': 0,
+                 **{key: deepcopy(stored[key]) for key in keys if key in stored}}
+            last = stored.get('last_run')
+            s['last_run'] = ({**{key: last.get(key, 0) for key in ('recorded', 'duplicates', 'changed', 'removed')},
+                              'error_count': len(last.get('errors') or [])} if last else None)
+            references = Counter((stored.get('files') or {}).values())
+        else:
+            s = state()
         pick = s.get('pick_request')
-        return {**{k: s.get(k) for k in ('enabled', 'generation', 'root_id', 'folder', 'seen_at', 'synced_at', 'last_run')},
-                'running': fresh(s['seen_at'], 2),
-                # Liest der Sidecar selbst (im Browser gewählt), oder meldet sich ein Helfer auf dem Mac?
-                'lokal': bool(s.get('lokal')), 'helfer': fresh(s.get('helfer_at'), 2),
-                'getrennt': bool(s.get('getrennt')),
-                'pick_request': ({'id': pick['id'], 'modus': pick['modus']}
-                                 if pick and fresh(pick.get('at'), PICK_MINUTEN) else None),
-                'files': [{'filename': name, 'id': eid, 'state': app.state.episodes.get(eid).state.value}
-                          for name, eid in sorted(s['files'].items())]}
+        result = {**{k: s.get(k) for k in ('enabled', 'generation', 'root_id', 'folder', 'seen_at', 'synced_at', 'last_run')},
+                  'running': fresh(s.get('seen_at'), 2),
+                  'lokal': bool(s.get('lokal')), 'helfer': fresh(s.get('helfer_at'), 2),
+                  'getrennt': bool(s.get('getrennt')),
+                  'pick_request': ({'id': pick['id'], 'modus': pick['modus']}
+                                   if pick and fresh(pick.get('at'), PICK_MINUTEN) else None)}
+        if summary:
+            counts = {'recorded': sum(references.values()), 'active': 0, 'ignored': 0, 'unknown': sum(references.values())}
+            identifiers = list(references)
+            with app.state.episodes._lock:
+                for start in range(0, len(identifiers), 500):
+                    chunk = identifiers[start:start + 500]
+                    rows = app.state.episodes._conn.execute(
+                        f"SELECT id,state FROM episodes WHERE id IN ({','.join('?' for _ in chunk)})", chunk).fetchall()
+                    for identifier, episode_state in rows:
+                        amount = references[identifier]
+                        counts['ignored' if episode_state == 'ignored' else 'active'] += amount
+                        counts['unknown'] -= amount
+            result['file_counts'] = counts
+        else:
+            result['files'] = [{'filename': name, 'id': eid, 'state': app.state.episodes.get(eid).state.value}
+                               for name, eid in sorted(s['files'].items())]
+        return result
 
     def permitted(body, *, run=False):
         s = state()
@@ -206,9 +234,9 @@ def register_folder_routes(app, guard, data_dir, art: Ordnerart = DOKUMENTE):
             app.state.episodes.ignore(eid, grund=grund)
 
     @app.get(art.prefix, dependencies=guard)
-    def get_state():
+    def get_state(summary: bool = False):
         with app.state.conversation_lock:
-            return public()
+            return public(summary=summary)
 
     @app.post(art.prefix + '/worker', dependencies=guard)
     def worker(body: WorkerIn):

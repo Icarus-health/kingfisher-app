@@ -3,12 +3,14 @@ import type { Attention, MorningBriefing } from './api';
 export function sourceStatus(briefing: Pick<MorningBriefing, 'partial_failures' | 'post_ausstehend'>) {
   const failures = briefing.partial_failures;
   const messages = failures.slice(0, 2).map(failure => failure.message);
-  if (failures.length > 2) messages.push(`${failures.length - 2} weitere Bereiche nicht verfügbar.`);
+  if (failures.length > 2) messages.push(`${failures.length - 2} weitere Hinweise.`);
   if (briefing.post_ausstehend) messages.push('Posteingang wird noch geladen.');
+  const reviewOnly = failures.length > 0 && failures.every(failure => failure.section === 'source_review') && !briefing.post_ausstehend;
   return {
     attention: messages.length > 0,
     text: messages.join(' ') || 'Überblick erstellt · Quellen können sich danach geändert haben.',
-    href: failures.some(failure => failure.section === 'mail' || failure.section === 'calendar')
+    actionLabel: reviewOnly ? 'Aufgaben prüfen' : 'Quellen prüfen',
+    href: reviewOnly ? '/vorhaben?view=mine' : failures.some(failure => failure.section === 'mail' || failure.section === 'calendar')
       ? '/settings#zugaenge' : '/settings',
   };
 }

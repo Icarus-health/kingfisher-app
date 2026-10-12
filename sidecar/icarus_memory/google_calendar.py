@@ -34,7 +34,7 @@ class GoogleCalendar:
                         if value.get('date'):
                             return datetime.combine(datetime.fromisoformat(value['date']).date(), time.min, zone)
                         return None
-                    events.append(Event(uid=entry['id'], summary=entry.get('summary', '(ohne Titel)'),
+                    events.append(Event(uid=entry['id'], external_uid=entry.get('iCalUID') or '', summary=entry.get('summary', '(ohne Titel)'),
                         start=parse(start), end=parse(end), all_day='date' in start,
                         location=entry.get('location', ''),
                         attendees=[(f"{a['displayName']} <{a['email']}>" if a.get('displayName') and a['displayName'] != a['email']

@@ -2,6 +2,7 @@
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, QUELLEN_ARTEN
 from .model import Provenance, SourceType, now
 from .proposals import ProposalError, ProposalKind, ProposalState
+from .task_review import task_context_matches
 
 
 class TaskCandidates:
@@ -39,7 +40,8 @@ class TaskCandidates:
             evidence = candidate.evidence[0]
             episode = self.episodes.get(evidence.episode_id)
             if (episode.state in AUSGEBLENDETE_ZUSTAENDE or episode.kind not in QUELLEN_ARTEN
-                    or episode.digest != evidence.digest or not evidence.quote or evidence.quote not in episode.body):
+                    or episode.digest != evidence.digest or not evidence.quote or evidence.quote not in episode.body
+                    or not task_context_matches(candidate, self.episodes)):
                 raise ProposalError('Die Quelle ist nicht mehr gültig. Bitte erneut prüfen.')
             if project_id:
                 self.workspace.project(project_id)

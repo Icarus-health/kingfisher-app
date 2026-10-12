@@ -43,7 +43,8 @@ def test_quellen_kopf_zaehlt_alle_rohquellen_und_zeigt_kopfdaten(store):
     assert gesamt == 2 and len(kopf) == 1
     _, kopf = store.quellen_kopf()
     assert {z['id']: z['state'] for z in kopf} == {a.id: 'new', b.id: 'ignored'}
-    assert set(kopf[0]) == {'id', 'digest', 'state', 'source_truncated'}
+    assert set(kopf[0]) == {'id', 'digest', 'state', 'source_truncated', 'support_generation', 'metadata_digest'}
+    assert {z['id']: z['support_generation'] for z in kopf} == {a.id: 0, b.id: 1}
 
 
 def test_nachrichten_mit_text_und_termine_nach_herkunft(store):

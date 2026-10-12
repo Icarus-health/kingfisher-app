@@ -12,16 +12,22 @@ from tests.test_satzantwort import Skript, nr, raum  # noqa: F401 - Fixture und 
 
 
 
-def antwort_mit_saetzen(raum, saetze, **weiter):
+def antwort_mit_saetzen(raum, saetze, *, auswahl=None, **weiter):
     episodes, _, _ = raum
     winter_mails(episodes)
     vettern = personenfrage.gemeinte_unter_namensvettern(FRAGE_CATERING, episodes, eigene=[ICH])
-    modell = Skript(saetze=saetze)
+    modell = Skript(saetze=saetze, auswahl=auswahl)
     return fragen_und_antworten(raum, modell, FRAGE_CATERING, namensvettern=vettern, **weiter), modell
 
 
 def satz_nur_institut(text):
     return lambda n: {'status': 'antwort', 'saetze': [{'text': text, 'belege': [nr(n, 'Feedback')]}]}
+
+
+def nur_titel(*titel):
+    # Satzregeln prüfen die ausdrücklich ausgewählten Belege. Weitere Quellen
+    # dürfen als Kontext vorhanden sein, aber nicht unbemerkt ausgewählt fehlen.
+    return lambda n: [q['id'] for q in n['sources'] if any(t in q['title'] for t in titel)]
 
 
 def test_ein_satz_nur_aus_der_quelle_des_namensvetters_besteht_nicht(raum):
@@ -32,7 +38,8 @@ def test_ein_satz_nur_aus_der_quelle_des_namensvetters_besteht_nicht(raum):
 
 
 def test_derselbe_satz_besteht_wenn_er_den_anderen_alex_winter_ausdruecklich_nennt(raum):
-    antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'))
+    antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'),
+                                    auswahl=nur_titel('Feedback'))
     assert antwort['satzantwort']['status'] == 'saetze' and antwort['satzantwort']['verworfen'] == 0
 
 
@@ -41,7 +48,7 @@ def test_ein_satz_der_auch_die_passende_quelle_nennt_besteht(raum):
         return {'status': 'antwort', 'saetze': [{
             'text': 'Der Preis beträgt 38 Euro pro Person; die Bitte um Feedback bis zum 16. Oktober ist eine andere Sache.',
             'belege': [nr(n, 'Preisanpassung'), nr(n, 'Feedback')]}]}
-    antwort, _ = antwort_mit_saetzen(raum, beide)
+    antwort, _ = antwort_mit_saetzen(raum, beide, auswahl=nur_titel('Preisanpassung', 'Feedback'))
     assert antwort['satzantwort']['status'] == 'saetze'
 
 
@@ -78,7 +85,8 @@ def test_satz_aus_einer_quelle_ausserhalb_des_zeitraums_besteht_nur_mit_ausdruec
 
 def test_gespeicherte_satzantwort_traegt_den_rahmen_und_prueft_beim_anzeigen_erneut(raum):
     episodes, claims, _ = raum
-    antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'))
+    antwort, _ = antwort_mit_saetzen(raum, satz_nur_institut('Ein anderer Alex Winter bittet bis zum 16. Oktober um Feedback.'),
+                                    auswahl=nur_titel('Feedback'))
     assert antwort['satzantwort']['rahmen']['personen'][0]['adresse'] == A_CATERING
     assert satzantwort.wiederherstellen(antwort['satzantwort'], episodes, claims) is not None
     # Derselbe Satz ohne den ausdrücklichen Hinweis besteht nach dem Speichern nicht mehr.

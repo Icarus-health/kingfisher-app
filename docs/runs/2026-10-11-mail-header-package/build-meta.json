@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.f858681",
+  "code_commit": "f858681bb5afa0d7fe0482f87ce208c10793c38f",
+  "source_tar_sha256": "5312a58aaa106c9fcdfb9d98501dcdda4ecb5345e63bbfc0870fae406f70a560",
+  "base_image": "sha256:24a5528456eff9474d1aa7b6f9f7e710491e6a6a0323829c2cd00e177387d3cf",
+  "arch": "arm64",
+  "private_data": false,
+  "backend_source_unchanged": false,
+  "scope": "Exact mail header derived index and v21-to-v22 migration; UI and model roles unchanged"
+}

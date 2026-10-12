@@ -20,7 +20,7 @@ def propose_patterns(store: Any, episodes: Any, proposals: Any,
     # prevent learning from a few explicitly recorded check-ins.
     grouped = {habit_id: [] for habit_id in active_ids}
     start = at - timedelta(days=30)
-    for episode in episodes.all_episodes(limit=-1):
+    for episode in episodes.tagged_raw([f"habit:{habit_id}" for habit_id in active_ids]):
         if episode.state in AUSGEBLENDETE_ZUSTAENDE:
             continue
         if not start <= episode.reference_time() <= at:
@@ -32,6 +32,10 @@ def propose_patterns(store: Any, episodes: Any, proposals: Any,
                   for pattern in detect_patterns(values, now=at)]
     current: set[str] = set()
     result: list[Proposal] = []
+    prior_patterns = proposals.from_origin_prefix("habit-pattern:")
+    newest = {}
+    for prior in prior_patterns:
+        newest.setdefault(prior.proposed_by, prior)
     for pattern in candidates:
         label_id = pattern["label"]
         if label_id not in active_ids:
@@ -39,9 +43,9 @@ def propose_patterns(store: Any, episodes: Any, proposals: Any,
         habit = habits[label_id]
         proposed_by = f"habit-pattern:{pattern['id']}"
         current.add(proposed_by)
-        prior = [p for p in proposals.all_proposals(limit=-1) if p.proposed_by == proposed_by]
-        if prior:
-            result.append(prior[0])
+        prior = newest.get(proposed_by)
+        if prior is not None:
+            result.append(prior)
             continue
         evidence = [Evidence(item["episode_id"], item["quote"], item["digest"])
                     for item in pattern["evidence"]]
@@ -61,7 +65,7 @@ def propose_patterns(store: Any, episodes: Any, proposals: Any,
             at=at,
         )
         result.append(proposal)
-    for prior in proposals.all_proposals(limit=-1):
+    for prior in prior_patterns:
         if (prior.proposed_by.startswith("habit-pattern:")
                 and prior.state is ProposalState.PENDING
                 and prior.proposed_by not in current):

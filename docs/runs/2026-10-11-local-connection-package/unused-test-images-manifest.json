@@ -1,0 +1,13 @@
+{
+  "refs": {
+    "kingfisher-current-mail:b472108": "sha256:975b7debbbd13623ce1ae3f9daff8c9c16cec92b6ef7615cea5246ce786ce682",
+    "kingfisher:core-workflow-a1b4e98-qa": "sha256:8f189851ea5a4ed540f778dbbe786f3a81dbdf1edd980e9c96b97c750df47fd0",
+    "kingfisher-workflow:20261006-final": "sha256:b389fdf02667be927cd6806579839aabbfbebb8ee348f8190128c9d544cc5d6e"
+  },
+  "archive_sha256": "15aa0bb6d35cdda961841d8f133250cb08fc395f8d4786df6a43aeae1ddfad57",
+  "archive_bytes": 429189671,
+  "image_ids_verified_in_archive": true,
+  "no_container_references": true,
+  "volumes_untouched": true,
+  "recover_with": "docker image load -i unused-test-images.tar.gz"
+}

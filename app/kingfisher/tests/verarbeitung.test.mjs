@@ -53,3 +53,16 @@ test("Fortschritt und Stand sagen dasselbe (Fremdprobe 3, Befund 12)", () => {
   }
   assert.match(sortierStand({ state: "active" }), /^An: /);
 });
+
+test('enabled automation with a live execution pause is not described as running', () => {
+  const paused={state:'active',requested:true,pending:7,execution_pause_reason:'Pausiert. Mit Weiter geht es weiter.'};
+  assert.equal(sortiertGerade(paused),false);
+  assert.match(sortierStand(paused),/Verarbeitung wartet|Verarbeitung pausiert/);
+  assert.doesNotMatch(sortierStand(paused),/sortiert deine Quellen selbst/);
+});
+
+test('failed checks do not promise automatic retries while processing is blocked',()=>{
+  const text=pruefSatz({completed:0,pending:0,running:0,partial:0,failed:1,excluded:0},false);
+  assert.match(text,/noch aus|vorgemerkt/);
+  assert.doesNotMatch(text,/von selbst|du musst nichts tun/);
+});

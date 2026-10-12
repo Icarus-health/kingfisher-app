@@ -100,6 +100,8 @@ class Intake:
 
     def _active(self, account, permitted):
         if not permitted():return False
+        from .storage_capacity import reason
+        if reason(self.episodes._path.parent) is not None:return False
         with self.episodes._lock:
             row=self.db.execute('SELECT MIN(paused) FROM mail_intake_folders WHERE account=?',(account,)).fetchone()
         return row is not None and row[0]==0
@@ -109,6 +111,8 @@ class Intake:
         return self._active(account,permitted)
 
     def _inventory(self, account, reader, row, live, permitted, gate):
+        with gate:
+            if not self._active(account,permitted):return
         folder=row['folder']; generation=row['generation']
         page=reader.inventory_page(folder,
             after_uid=row['live_uid'] if live else row['scan_uid'],
@@ -136,6 +140,9 @@ class Intake:
     def _captured(self, item, episode_id, created):
         self.db.execute("UPDATE mail_intake_items SET status=?,episode_id=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         ('captured' if created else 'duplicate',episode_id,item['account'],item['folder'],item['generation'],item['uid']))
+        if item['lane'] == 'live':
+            from .task_rechecks import enqueue
+            enqueue(self.episodes, episode_id)
 
     def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None):
         """Ein Hintergrundtakt mit den Filterregeln der Einstellungen (`mail_filter.intake_screen`)."""
@@ -156,6 +163,8 @@ class Intake:
         nicht aufgenommen, aber gezählt (Status `filtered:<Kategorie>`) und im Status gezeigt.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
+        with (permission_lock if permission_lock is not None else nullcontext()):
+            if not self._active(account,permitted):return []
         sitzung=getattr(reader,'session',None)
         with (sitzung() if sitzung is not None else nullcontext()):
             return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold)

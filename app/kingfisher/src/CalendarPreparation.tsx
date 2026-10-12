@@ -109,6 +109,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
     </div> : <p>{event.attendees?.length ? `Im Kalender genannte Teilnehmer: ${event.attendees.join(", ")}` : "Der Kalender liefert keine Teilnehmerangaben."}</p>}
     {zuordnungFehler && <p role="alert">Die Projektwahl konnte nicht geladen oder gespeichert werden. Es gilt der zuletzt gespeicherte Stand.</p>}
     {zuordnung?.projekt?.herkunft === "vorschlag" && zuordnung.projekt.id === projectId && <p className="calendar-preparation-empty">Vorgeschlagen: {zuordnung.projekt.grund} Stimmt es nicht, wähle ein anderes Projekt oder „Kein Projekt ausgewählt“.</p>}
+    {zuordnung?.zuordnungskonflikt && <p role="alert">Die Kalenderkopien haben unterschiedliche Projektzuordnungen. Bitte wähle das gemeinsame Projekt ausdrücklich aus.</p>}
     <label className="calendar-preparation-project">Projektkontext
       <select value={projectId} onChange={e => projektWaehlen(e.target.value)} aria-label="Projektkontext auswählen">
         <option value="">Kein Projekt ausgewählt</option>

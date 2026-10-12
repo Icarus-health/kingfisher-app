@@ -1,0 +1,27 @@
+{
+  "code_commit": "9544bc491c42ef2417870df362c738204166310a",
+  "backend_cases": 326,
+  "fresh_ui_test_suite": false,
+  "ui_and_native_tracked_sources_identical_to": "311041f309552e84d7e3745ee67c8c7f0a116214",
+  "historical_ui_cases": 515,
+  "historical_native_suite": "34 passed, 1 platform skip on unchanged Voice43 sources",
+  "fresh_native_build": "arm64 passed",
+  "fresh_typecheck_vite": "passed, existing bundle warning",
+  "asset_gate": "asset-check: pass (16 Dateien, 16 Icons)",
+  "package_flow": "passed, ephemeral network-none read-only tmpfs no mounts",
+  "source_context_flow": "removal hides/rejects; restoration stays stale until reanalysis; explicit accepted task survives",
+  "real_model_quality_tested": false,
+  "no_personal_data": true,
+  "installed": false,
+  "mac_window_deferred": true,
+  "logs_sha256": {
+    "backend.log": "047c1d1be568f1debf116296838bd5bd903427bb461ed0bb4659f12a1741ea59",
+    "ui-build.log": "048acf189cf883ef6936669ee2368e9b50a160921aacaf63ded8f71763961bf1",
+    "native-build.log": "a5aabe3cb20ea70d3d9a14ef14ad1e99f30c60a39a82c39caf92398bd4c0f2ae",
+    "dmg-verify.log": "e09a9752727011a11a9aa5c45202974adff2e0b9c858db9a49d3e8dfa720774f",
+    "image-build.log": "4073ccb7c20bfdec8f4e33aa9b576cc4a1ea387d4c1089c0042fb9e85c35399e",
+    "image-layers.log": "99bfd47ca72676405b89614934313d8644e98e832665b5fa133b77fa8117c37a",
+    "package-smoke.log": "0aef247ff90d4dbe6a9e098a07c39181f9bef0a1fec4f90466cc31c491ac18a6",
+    "asset-check.log": "a60838ce87ecc2bce95a3cabde796ee0446b708a382d69915d936785299e5e0b"
+  }
+}

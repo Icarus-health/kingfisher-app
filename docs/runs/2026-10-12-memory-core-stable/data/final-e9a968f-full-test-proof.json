@@ -1,0 +1,50 @@
+{
+  "runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+  "backend_source": "canonical immutable Git export e9a968f (coordinator run)",
+  "ui_source": "existing unchanged UI sources; UI tests/build reused, runtime changes only in sidecar",
+  "checks": {
+    "final-e9a968f-backend.log.gz": {
+      "result": {
+        "passed": 6414,
+        "skipped": 1,
+        "warnings": 2,
+        "subtests_passed": 26,
+        "seconds": 999.98
+      },
+      "uncompressed_log_sha256": "b5d15687c8403dbf4ee4abce7f54d10a3925b61fd175e613388df35d10e0eee6",
+      "compressed_log_sha256": "e3c9890a370d2f1ec19573ef8e7c8a7ff9d7f0fe2ecfbc0d7cfbb07102de70c7"
+    },
+    "final-e9a968f-other-tests.log.gz": {
+      "result": {
+        "passed": 575,
+        "skipped": 1,
+        "warnings": 1,
+        "seconds": 80.59
+      },
+      "uncompressed_log_sha256": "4950d9ea71060ab3e0e66eb0e0a2938eff6afa0d8b7519356f3f64ca1c912e2d",
+      "compressed_log_sha256": "48ab8817018b1b8572c09688a086f30e70d63a34e3b04ef1e79f4f03bfe2d122"
+    },
+    "final-ui-tests.log.gz": {
+      "result": {
+        "passed": 573,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 22.288037041
+      },
+      "uncompressed_log_sha256": "79a84094bd059c0937b0401d36e71aa4cca1776e298da16f1949723c412ff816",
+      "compressed_log_sha256": "9046d37701385f9092cdb4f1da7ed3d8acae4af7833230ba43787d5c4cd1f13e"
+    },
+    "final-ui-build.log.gz": {
+      "result": {
+        "build": "passed",
+        "seconds": 33.02,
+        "warnings": [
+          "chunk size greater than 500 kB",
+          "plugin timing notice"
+        ]
+      },
+      "uncompressed_log_sha256": "499abb692f07d67ffd5a922230162a628ca349d14d93d5fc10cb73f19bbd8016",
+      "compressed_log_sha256": "0f4e41cc0f3bd871a0d3fbfb6fbae95f15e3d0d258a1ad8778485ee2ac3f73eb"
+    }
+  }
+}

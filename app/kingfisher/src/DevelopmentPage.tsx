@@ -12,7 +12,7 @@ export function DevelopmentPage({recentConversation}: {recentConversation: strin
       <nav className="development-links" aria-label="Persönlicher Arbeitsbereich">
         <a className="today-text-link" href="/today">Zurück zu Heute →</a>
         <a className="today-text-link" href="/vorhaben">Nächste Schritte als Aufgaben →</a>
-        <a className="today-text-link" href="/memory?area=health">Gesundheitsquellen →</a>
+        <a className="today-text-link" href="/wellbeing">Gesundheit →</a>
         <a className="today-text-link" href="/review">Offene Angaben prüfen →</a>
       </nav>
       <GoalControls />

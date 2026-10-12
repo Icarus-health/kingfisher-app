@@ -1,0 +1,31 @@
+[
+  {
+    "mutation": "old_callbacks",
+    "exit": 1,
+    "failures": [
+      "not ok 3 - cancel, old ids and malformed callbacks cannot overwrite the draft"
+    ]
+  },
+  {
+    "mutation": "hidden_callbacks",
+    "exit": 1,
+    "failures": [
+      "not ok 4 - hidden/disposed sessions ignore late results and stop capture"
+    ]
+  },
+  {
+    "mutation": "source_freshness",
+    "exit": 1,
+    "failures": [
+      "not ok 5 - changed source metadata blocks reading even with identical visible wording",
+      "not ok 7 - late fetch cannot play a canceled, hidden, replaced or deleted answer"
+    ]
+  },
+  {
+    "mutation": "uncertainty",
+    "exit": 1,
+    "failures": [
+      "not ok 1 - spoken answer keeps displayed uncertainty and coverage, never hidden model content"
+    ]
+  }
+]

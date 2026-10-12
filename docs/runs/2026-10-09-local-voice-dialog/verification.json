@@ -1,0 +1,44 @@
+{
+  "code_commit": "6f53fd69f6fa0c5c1b569b05e51ea5e0565481d3",
+  "ui_full": {
+    "passed": 507,
+    "failed": 0
+  },
+  "native_focused": {
+    "passed": 34,
+    "skipped": 1,
+    "failed": 0,
+    "skip_reason": "Abbruchtest au\u00dferhalb macOS wird auf macOS \u00fcbersprungen"
+  },
+  "voice_ui_cases": 22,
+  "ui_build": true,
+  "native_arm_build": true,
+  "package_synthetic_smoke": true,
+  "controller_mutations_caught": 4,
+  "native_engine_identical_to_foundation": true,
+  "runtime_microphone": false,
+  "runtime_window": false,
+  "installed": false,
+  "personal_data_access": false,
+  "model_calls": false,
+  "ci_rerun": false,
+  "log_sha256": {
+    "ui-first.log": "7163d1eab6c66cf4faee83efc6a853ad05b11c10c2c00200dedbecca97e45e86",
+    "ui-final.log": "3c82da88cf74fb1de82fa5e0f0800abd01cb7bb8a875ca5e05b1431b8b2d6ba0",
+    "native-checkout-failed.log": "3fdea35abaa65a887fd29b6e8b8d84cdf8662ccaa3e8c1ee021edaa5e96360ad",
+    "native-clean.log": "3e00901785b68d64d66f4fc6f249315964be4902b315faae265c02c480dc3919",
+    "conversation-switch-red.log": "b24084f1a700c9bb715da1c2a0342b8553a42b53572a2e19ecb259f1ae5ce732",
+    "review-red.log": "1a2d9a1a878785dfb66182d4c608c363dbe31531294708803e7e47108c667206",
+    "review-green.log": "88a3d1c785115e67a93213750dd5a1b1e71fc11d5b573a0762d2fc16256461b5",
+    "ui-build.log": "7e5c49b926df05cb740af619c89477c914f933ec4d9c7287eb79b555ce52c3ac",
+    "native-build.log": "347fa0375fd5153c6d7e4b9041afffd2acac6f07c544cfe1f36637ff063c1185",
+    "native-verify.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dmg-verify.log": "7e8bff573f91dcf464aae7079919285078a6468f44b4eda2ee9e3b0ffd4e362c",
+    "image-build.log": "4e50c41989eb9f6b9b1c3cfa374709b033f03dea325826b3d797d370271f377c",
+    "package-smoke.log": "3644736b1bed2ae1a47f1d1bdf49dd1d93f6714d3b52cea9df59b140fd791aa5",
+    "old_callbacks.log": "c3469393a4165ec48d56f6c9482f7b0e8bbd3b120663a681547bb016f9e11245",
+    "source_freshness.log": "952e431f136fd02ed69e4c01646fbcdfa9945c3abe062f5a9eec5652a1e20df9",
+    "hidden_callbacks.log": "89e9e84dd5002903bccb346a564a9e53c17a0426e9dbe1917ba6cc51b7a93795",
+    "uncertainty.log": "9d8e55af98140c21374afbd7dd2cc70892a6228dd6c061f0b956b6181675a0d1"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "code_commit": "8d5971b5fb98229a50deb0f002b4d0f1da9e3be7",
+  "base_commit": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "backend_affected": {
+    "passed": 239,
+    "failed": 0,
+    "files": 11,
+    "full_suite": false
+  },
+  "health_http": {
+    "passed": 33,
+    "failed": 0,
+    "repeated_from_clean_git_archive": true
+  },
+  "frontend_full": {
+    "passed": 446,
+    "failed": 0,
+    "health_tests": 15,
+    "repeated_from_clean_git_archive": true
+  },
+  "build": {
+    "typescript": "passed",
+    "vite": "passed",
+    "warning": "main JavaScript chunk exceeds 500 kB",
+    "clean_archive": true,
+    "assets_sha256": {
+      "assets/index-BGxEMD71.css": "0475213883deeb2dfcc4d50e33348f074bc4404908bea972952ebbe2b94094ea",
+      "assets/index-CWWWFmOW.js": "db1aab4a48b16637e2532e656acef62a0a8542804ca11fe1714cf9e569df1cc1",
+      "index.html": "6a018792a64a2acc8baa07478700244e318033c2fb0e87de6a42b195fd67a771"
+    }
+  },
+  "review": {
+    "independent_read_only": true,
+    "reviewer_reran_tests": false,
+    "resolved": [
+      "health category can be unavailable",
+      "submillisecond ordering",
+      "history status must identify loaded snapshot",
+      "no-op correction must not supersede claims"
+    ],
+    "remaining_concrete_blockers_reported": 0
+  },
+  "verification_boundaries": {
+    "native_window": "deferred by user",
+    "rendered_desktop_mobile": "not run; deferred access was not bypassed",
+    "mac_installation": false,
+    "merged": false,
+    "medical_evaluation": false,
+    "file_or_healthkit_import": false,
+    "other_people": false,
+    "productive_data_read": false,
+    "models_activated": false,
+    "cloud_calls": 0,
+    "new_database_schema": false
+  }
+}

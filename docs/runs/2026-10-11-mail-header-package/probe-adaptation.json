@@ -1,0 +1,7 @@
+{
+  "initial_probe_exit_code": 1,
+  "reason": "Previous probe asserted latest schema v21; actual new migration correctly reached v22",
+  "only_old_latest_version_assertions_changed": true,
+  "original_v20_and_backup_assertions_retained": true,
+  "new_frozen_test_cases": 4
+}

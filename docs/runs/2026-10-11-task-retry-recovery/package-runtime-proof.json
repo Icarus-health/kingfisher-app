@@ -1,0 +1,128 @@
+{
+  "version": "1.0.6-preview.b7cd321",
+  "code_commit": "b7cd321dd2c081b48c5fcb42fd3ae37184554326",
+  "source_tar_sha256": "54985d265894c0db73f2eea596421e803aa07478394cf8e48dbc087c7d7b2438",
+  "base_image": "sha256:48b1bd538de8eb14eca5f217dcefeac28f042630533310cb7cc7916ed40e0102",
+  "arch": "arm64",
+  "private_data": false,
+  "scope": "Manual task replay plus UI opaque retry identity recovery; no schema migration or model changes",
+  "exit_code": 0,
+  "image_id": "sha256:44c6f9fa0c6d0a8852ac7dfdbdad221def3e237a61acd5bb1485ca8e8f04db27",
+  "network": "none",
+  "productive_mounts": false,
+  "memory_limit": "1g",
+  "cpu_limit": 2,
+  "test_tmpfs": {
+    "data": "1g",
+    "tmp": "1g"
+  },
+  "checks": [
+    {
+      "mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal": "passed"
+    },
+    {
+      "source_context_removal_restoration_reanalysis_acceptance_preservation": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "corrected_source_priority_ignore_reopen_no_automatic_tasks": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "synthetic_v20_to_v22_preserved_original_rows_preupgrade_backup_verified_restore": "passed",
+      "productive_database_accessed": false
+    },
+    {
+      "synthetic_live_intake_queue_scheduler_job_no_parallel_or_unpermitted_model_no_history_scan": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "learning_explicit_sources_no_unrelated_rawtexts_or_proposals_retry_explicit_accept_retract_history": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "source_status_distinguishes_queue_processing_pause_retry_without_conversation_provider": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "world_http_original_refresh_disable_cache_binding_and_own_evidence_withdrawal": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "conditional_fresh_and_legacy_answers_keep_full_original_after_restart_withdrawal_enforced": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "daily_ux_category_feedback_restart_stale_guard_original_preservation_project_totals_health_filters_withdrawal_transcript_preview_save": "passed",
+      "real_model_quality_tested": false,
+      "browser_rendered": false
+    },
+    {
+      "browser_rendered": false,
+      "code_commit": "b7cd321dd2c081b48c5fcb42fd3ae37184554326",
+      "models_configured": false,
+      "productive_mounts": false,
+      "python_files": 272,
+      "status": "passed",
+      "ui_files": 112,
+      "version": "1.0.6-preview.b7cd321"
+    },
+    {
+      "packaged_local_answer_role_changes_actual_agent": "passed",
+      "cloud_contradiction_rejected": true,
+      "background_role_and_disabled_schedule_preserved": true,
+      "actual_model_inference": false
+    },
+    {
+      "packaged_storage_gate_routes_and_scheduler": "passed",
+      "manual_pause_preserved_after_recovery": true,
+      "productive_mounts": false,
+      "network": "none",
+      "final_package_status": "passed",
+      "version": "1.0.6-preview.b7cd321"
+    },
+    {
+      "packaged_pronoun_filter_new_and_legacy_spans": "passed",
+      "original_and_legacy_rows_preserved": true,
+      "final_package_status": "passed",
+      "version": "1.0.6-preview.b7cd321",
+      "productive_mounts": false,
+      "network": "none"
+    },
+    {
+      "packaged_calendar_display_default_explicit_year_dashboard": "passed",
+      "source_history_retained": true,
+      "dst_fold_utc_overlap": "passed",
+      "network": "none",
+      "productive_mounts": false,
+      "final_package_status": "passed",
+      "version": "1.0.6-preview.b7cd321"
+    },
+    {
+      "packaged_confirmed_task_accept_transitive_followup_restart_withdrawal": "passed",
+      "task_and_history_unchanged": true,
+      "originals_preserved": true,
+      "network": "none",
+      "productive_mounts": false,
+      "version": "1.0.6-preview.b7cd321"
+    },
+    {
+      "packaged_mail_header_index_50000_backfill_atomic_updates_source_kinds": "passed",
+      "version": "1.0.6-preview.b7cd321",
+      "network": "none",
+      "productive_mounts": false,
+      "final_package_status": "passed"
+    },
+    {
+      "packaged_manual_task_retry_both_routes_restart_current_status_payload_conflict_goal_link": "passed",
+      "schema_tasks": 3,
+      "schema_episodes": 22,
+      "version": "1.0.6-preview.b7cd321",
+      "network": "none",
+      "productive_mounts": false,
+      "final_package_status": "passed"
+    }
+  ],
+  "package_probe_sha256": "a72a6abefedeb4a0b7820072cff178b44c622522e0c4551592e3f3c7da10cc61",
+  "package_log_sha256": "a2023c55e3fe103e9c1d0e41ef2c60cfe9ca0f538a4fe03243a7485bcc160a1a"
+}

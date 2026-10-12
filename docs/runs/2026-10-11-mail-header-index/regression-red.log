@@ -1,0 +1,35 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_exact_followup_is_found_among_fifty_thousand_unrelated_mails _______
+
+tmp_path = PosixPath('/private/var/folders/7b/xbphbg7j4bs5br02n5sj8k4r0000gn/T/pytest-of-sorenkube/pytest-1424/test_exact_followup_is_found_a0')
+
+    def test_exact_followup_is_found_among_fifty_thousand_unrelated_mails(tmp_path):
+        store = EpisodeStore(tmp_path / "episodes.sqlite3")
+        now = datetime.now(timezone.utc)
+        source = record(store, "<source@scale>", captured=now - timedelta(hours=2))
+        reply = record(store, "<reply@scale>", ("<source@scale>",), captured=now)
+        assert source.id != reply.id
+        doc = source.to_dict()
+        rows = []
+        for i in range(50000):
+            other = {**doc, "id": f"unrelated-{i}", "digest": f"unrelated-digest-{i}",
+                     "tags": [f"mail:message:unrelated-{i}"]}
+            rows.append((other["id"], other["digest"], other["kind"], other["state"],
+                         other["recorded_at"], other["occurred_at"], other["title"],
+                         other["body"], json.dumps(other)))
+        with store._conn:
+            store._conn.executemany(
+                "INSERT INTO episodes(id,digest,kind,state,recorded_at,occurred_at,title,body,document) "
+                "VALUES (?,?,?,?,?,?,?,?,?)", rows)
+        task = SimpleNamespace(id="confirmed-task", status="open", created_at=now - timedelta(hours=1),
+                               provenance=Provenance(SourceType.USER_STATED, source_ref="episode:" + source.id))
+        result = review_tasks(store, [task])
+>       assert result.by_task[task.id]["followup_episode_id"] == reply.id
+E       AssertionError: assert None == 'e-a6beaa8dff24'
+E        +  where 'e-a6beaa8dff24' = Episode(id='e-a6beaa8dff24', kind=<EpisodeKind.MESSAGE: 'message'>, title='Synthetic', body='Synthetic <reply@scale>',...67eca3da8e08da8', 'mail:reply:f95194f8c18f7b4f224e2742f4a9022111f624f2b1cfda53864a31fab8686822'], covers=[], period='').id
+
+sidecar/tests/test_mail_header_index.py:44: AssertionError
+=========================== short test summary info ============================
+FAILED sidecar/tests/test_mail_header_index.py::test_exact_followup_is_found_among_fifty_thousand_unrelated_mails
+1 failed in 2.37s

@@ -273,7 +273,8 @@ def test_http_source_answer_discloses_partial_semantic_inventory(core, tmp_path,
         from icarus_memory import satzantwort, working_memory_answers
         monkeypatch.setattr(satzantwort, 'wiederherstellen', lambda *args: SimpleNamespace(status='nichts'))
         text, _, status = working_memory_answers.render(working, app.state.episodes, app.state.claims)
-        assert status == 'working_unknown'
+        assert status == 'working_reports'
+        assert SOURCE in text and 'Quelle berichtet' in text
         assert 'keine Information vor' not in text
         assert 'begrenzt' in text
     finally:

@@ -88,7 +88,8 @@ output(["ok": true, "start": formatter.string(from: start), "end": formatter.str
         identity.append(formatter.string(from: event.startDate))
     }
     let uid = try! JSONSerialization.data(withJSONObject: identity).base64EncodedString()
-    var entry: [String: Any] = ["uid": uid, "summary": event.title ?? "", "start": formatter.string(from: event.startDate),
+    var entry: [String: Any] = ["uid": uid, "external_uid": event.calendarItemExternalIdentifier ?? "",
+            "summary": event.title ?? "", "start": formatter.string(from: event.startDate),
             "end": formatter.string(from: event.endDate), "all_day": event.isAllDay,
             "location": event.location ?? "", "source_id": event.calendar.calendarIdentifier,
             "source_label": event.calendar.title,

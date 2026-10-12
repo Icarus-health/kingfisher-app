@@ -1,0 +1,22 @@
+{
+  "synthetic": true,
+  "scope": "Actual React MailIntake and product ASGI API with synthetic mail and filesystem measurements. Not native WKWebView or personal capacity test.",
+  "checks": [
+    "Low capacity: reason visible, progress retained, starts/resume disabled, pause and scope preview available.",
+    "390px without horizontal page overflow.",
+    "Unknown measurement is visible and still blocks resume.",
+    "Healthy refresh enables explicit resume; low-capacity pause remains usable and survives new capacity recovery."
+  ],
+  "writes": [
+    [
+      "POST",
+      "/api/v1/mail/intake/b/pause"
+    ],
+    [
+      "POST",
+      "/api/v1/mail/intake/a/pause"
+    ]
+  ],
+  "errors": [],
+  "passed": true
+}

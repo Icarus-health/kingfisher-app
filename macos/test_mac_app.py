@@ -120,6 +120,15 @@ def test_ungueltige_fassung_wird_abgewiesen(tmp_path, fassung):
     assert 'SemVer' in ergebnis.stderr
 
 
+def test_unbekannte_paketarchitektur_bricht_vor_dateiaenderungen_ab(tmp_path):
+    result = bau(tmp_path, '--nur-fassung', compose=False,
+                 umgebung={'KINGFISHER_ARCHITEKTUR': 'arm64; external-command'})
+    assert result.returncode != 0
+    assert 'Architektur' in result.stderr
+    assert not (tmp_path / 'build').exists()
+    assert not (tmp_path / 'dist').exists()
+
+
 def test_alle_quellen_werden_uebersetzt():
     skript = BUILD.read_text(encoding='utf-8')
     assert 'QUELLEN=(macos/Shared/*.swift macos/App/Logic/*.swift macos/App/*.swift)' in skript
@@ -160,7 +169,7 @@ def test_update_nur_nach_nachricht_der_seite():
     """Kein Update ohne Klick: Updater.perform hat genau einen Aufrufer, und der kommt aus der Brücke."""
     app = swift('App', 'AppDelegate.swift')
     assert app.count('requestUpdate(') == 2, 'Definition und genau ein Aufruf'
-    assert re.search(r'BridgeHandler\(origin: AppPaths\.origin\) \{ \[weak self\] request in self\?\.requestUpdate\(request\) \}', app)
+    assert re.search(r'onUpdate: \{ \[weak self\] request in self\?\.requestUpdate\(request\) \}', app)
     alle = '\n'.join(p.read_text(encoding='utf-8') for p in APP.rglob('*.swift'))
     assert alle.count('.perform(request)') == 1
     assert 'Updater' not in swift('App', 'Startup.swift')
@@ -237,7 +246,7 @@ def test_logik_braucht_nur_foundation():
     """Die reine Logik muss ohne AppKit übersetzen, sonst lässt sie sich nicht außerhalb des Macs prüfen."""
     for datei in LOGIC.glob('*.swift'):
         importe = set(re.findall(r'^import (\w+)', datei.read_text(encoding='utf-8'), re.M))
-        assert importe == {'Foundation'}, f'{datei.name}: {importe}'
+        assert 'Foundation' in importe and importe <= {'Foundation', 'CoreFoundation'}, f'{datei.name}: {importe}'
 
 
 def test_deutsche_anfuehrungszeichen_in_swift():

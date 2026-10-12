@@ -1,4 +1,5 @@
 """Bounded semantic screening of suggestions, never confirmation of a fact."""
+import hashlib
 import json
 
 from .providers import ProviderError
@@ -69,3 +70,30 @@ def review_tasks(provider, subject, body, items, *, own_source=False):
     return [item for i, item in enumerate(items) if verdicts[i]['title_supported']
             and (verdicts[i]['kind'] == 'request_to_recipient'
                  or (own_source and verdicts[i]['kind'] == 'own_commitment'))]
+
+
+def task_context_key(generation, metadata_digest):
+    """Bindung an die vorhandene Quellengeneration, keine Freigabe einer Aussage."""
+    return hashlib.sha256(json.dumps([generation, metadata_digest]).encode()).hexdigest()
+
+
+def current_task_context(episodes, episode_id):
+    from .episodes import AUSGEBLENDETE_ZUSTAENDE
+    try:
+        snapshot = episodes.support_snapshot(episode_id)
+    except (ValueError, LookupError):
+        return None
+    if (snapshot is None or not snapshot.correction_valid or not snapshot.mail_parent_valid
+            or (snapshot.head_id is not None and snapshot.head_id != snapshot.episode.id)
+            or snapshot.episode.state in AUSGEBLENDETE_ZUSTAENDE):
+        return None
+    return task_context_key(snapshot.generation, snapshot.metadata_digest)
+
+
+def task_context_matches(candidate, episodes):
+    # Altvorschläge brauchen weiterhin einen tragenden Quellbezug, nur ihre
+    # fehlende alte Kontextbindung lässt sich nicht nachträglich zertifizieren.
+    if len(candidate.evidence) != 1:
+        return False
+    current = current_task_context(episodes, candidate.evidence[0].episode_id)
+    return current is not None and (candidate.task_context is None or candidate.task_context == current)

@@ -1,0 +1,11 @@
+{
+  "merged_pr": "https://github.com/Icarus-health/kingfisher-app/pull/49",
+  "integration_pr": "https://github.com/Icarus-health/kingfisher-app/pull/46",
+  "integration_branch": "integration/cos-preview-reviewed-20261009",
+  "merge_commit": "8642442d4ce8676b2029a52b22ac7ca95ecdfc8e",
+  "runtime_code_commit": "1913e265744344de91b123ab1dc6e58dbd4b9ca3",
+  "runtime_ui_native_design_deploy_scripts_version_unchanged_after_merge": true,
+  "integration_pr_still_draft": true,
+  "main_merged": false,
+  "installed": false
+}

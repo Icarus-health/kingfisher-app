@@ -131,6 +131,14 @@ class Treffer:
         return hashlib.sha256(f'{self.quelle_id}|{self.eintrag.kennung}|{self.sache.sache}'.encode()).hexdigest()[:20]
 
 
+@dataclass(frozen=True)
+class WeltEintrag(Eintrag):
+    """Öffentlicher Originalausschnitt mit Bindung an seine konkrete Fassung."""
+
+    episode_id: str
+    fingerprint: str
+
+
 _RECHTSFORM = re.compile(r'\s+(?:gmbh(?: & co\.? kg)?|mbh|ag|kg|ug|gbr|ohg|se|kgaa|inc\.?|ltd\.?|e\.\s?v\.|co\.)\s*$', re.I)
 
 
@@ -185,7 +193,10 @@ def _jung(zeit: str, jetzt: datetime) -> bool:
 
 def begruendung(t: Treffer) -> str:
     """Warum diese Meldung da ist. Nur, was im Bestand steht; der Feedtext steckt nicht darin."""
-    s = t.sache
+    return _begruendung_sache(t.sache)
+
+
+def _begruendung_sache(s: Sache) -> str:
     satz = f'Betrifft {s.name}, weil dazu {"eine Quelle" if s.quellen == 1 else f"{s.quellen} Quellen"} in deinen Akten stehen'
     if s.titel_letzte:
         satz += f' (zuletzt „{s.titel_letzte}“{_am(s.letzte_zeit)})'
@@ -199,9 +210,12 @@ def _am(zeit: str | None) -> str:
 
 def meldung_von(t: Treffer, tag: str) -> dict[str, Any]:
     """Die Meldung, wie sie gespeichert und angezeigt wird: Titel und Link gekürzt, keine Zusammenfassung."""
-    return {'id': t.kennung, 'tag': tag, 'titel': t.eintrag.titel[:200], 'link': t.eintrag.link,
+    meldung = {'id': t.kennung, 'tag': tag, 'titel': t.eintrag.titel[:200], 'link': t.eintrag.link,
             'quelle_id': t.quelle_id, 'quelle': t.quelle_name, 'sache': t.sache.sache, 'sache_name': t.sache.name,
             'sache_art': ART_TEXT.get(t.sache.art, t.sache.art), 'grund': begruendung(t)}
+    if isinstance(t.eintrag, WeltEintrag):
+        meldung['quelle_fassung'] = {'episode_id': t.eintrag.episode_id, 'fingerprint': t.eintrag.fingerprint}
+    return meldung
 
 
 # -- Das Modell darf nur streichen ----------------------------------------------
@@ -376,7 +390,7 @@ class WeltDienst:
             return None
         tag = self._jetzt().date().isoformat()
         if welt.heute.get('tag') == tag and (welt.heute.get('meldung') or welt.heute.get('abbestellt')):
-            return welt.heute.get('meldung')
+            return self._aktuelle_meldung(welt, welt.heute.get('meldung'), self._jetzt())
         self.anstossen()
         return None
 
@@ -409,7 +423,51 @@ class WeltDienst:
 
     # -- Abruf und Auswahl --
 
-    def _eintraege(self, welt: Welt) -> list[tuple[str, str, Eintrag]]:
+    def _weltaufnahme(self, quelle, jetzt):
+        """Nur aktuell verfügbare, erfolgreich und frisch abgerufene öffentliche Originale."""
+        from .world_monitor import WorldMonitor
+        if (not quelle or not quelle.get('enabled', True) or quelle.get('error')
+                or not quelle.get('episode_id') or not quelle.get('last_success')
+                or WorldMonitor._is_stale(quelle['last_success'], jetzt)):
+            return None
+        try:
+            snapshot = self._episodes().support_snapshot(quelle['episode_id'])
+            if (snapshot and snapshot.current() and snapshot.episode.provenance.source_type is SourceType.WEB
+                    and snapshot.source_key == f"world:{quelle['id']}"):
+                return snapshot
+        except Exception:  # noqa: BLE001 - fehlende/inkonsistente Quelle ist keine Tagesmeldung
+            pass
+        return None
+
+    def _aktuelle_meldung(self, welt, meldung, jetzt):
+        """Gegenprüfung auch nach Auswahl und bei bereits gespeicherter Tagesmeldung; kein Abruf."""
+        if (not meldung or not welt.aktiv or meldung.get('sache') in welt.abbestellt_sachen
+                or not _quelle_gewollt(welt, meldung.get('quelle_id'))):
+            return None
+        try:
+            sache = meldung['sache']
+            art = sache.split(':', 1)[0]
+            if art not in LIMITS:
+                return None
+            name = self._bezuege().beschriftung(sache)
+            aktuell = Sache(sache, art, name, namensvarianten(name, art))
+            self._rueckhalt(aktuell)
+            if (aktuell.quellen < MIN_QUELLEN.get(art, 2)
+                    or _begruendung_sache(aktuell) != meldung.get('grund')):
+                return None
+        except Exception:  # noqa: BLE001 - auch die persönliche Begründung muss aktuell belegt sein
+            return None
+        if any(f['id'] == meldung.get('quelle_id') and f.get('enabled', True) for f in welt.feeds):
+            return meldung
+        quelle = next((q for q in self._weltquellen() if q.get('id') == meldung.get('quelle_id')), None)
+        snapshot = self._weltaufnahme(quelle, jetzt)
+        bindung = meldung.get('quelle_fassung')
+        if (snapshot and isinstance(bindung, dict) and bindung.get('episode_id') == snapshot.episode.id
+                and bindung.get('fingerprint') == snapshot.support_fingerprint()):
+            return meldung
+        return None
+
+    def _eintraege(self, welt: Welt, *, jetzt: datetime | None = None) -> list[tuple[str, str, Eintrag]]:
         alle: list[tuple[str, str, Eintrag]] = []
         for feed in welt.feeds:
             if not feed.get('enabled', True):
@@ -427,10 +485,10 @@ class WeltDienst:
                 self._feedspeicher[feed['id']] = gemerkt
             for e in gemerkt[1] or []:
                 alle.append((feed['id'], feed['label'] or _host(feed['url']), e))
-        alle.extend(self._aus_weltquellen(welt))
+        alle.extend(self._aus_weltquellen(welt, jetzt=jetzt))
         return alle
 
-    def _aus_weltquellen(self, welt: Welt) -> list[tuple[str, str, Eintrag]]:
+    def _aus_weltquellen(self, welt: Welt, *, jetzt: datetime | None = None) -> list[tuple[str, str, Eintrag]]:
         """Die schon gelesenen öffentlichen Quellen des Nutzers, satzweise. Kein neuer Abruf: Was `world_sources`
         bereits geholt hat, wird gelesen; das Gedächtnis entscheidet der Nutzer dort."""
         ergebnis = []
@@ -438,20 +496,24 @@ class WeltDienst:
             if str(quelle.get('id')) not in welt.weltquellen or not quelle.get('enabled', True) or not quelle.get('episode_id'):
                 continue
             try:
-                text = self._episodes().get(quelle['episode_id']).body
+                snapshot = self._weltaufnahme(quelle, jetzt or self._jetzt())
+                if snapshot is None:
+                    continue
+                text = snapshot.episode.body
             except Exception:  # noqa: BLE001
                 continue
             for satz in re.split(r'(?<=[.!?])\s+|\n+', text)[:MAX_SAETZE_QUELLE]:
                 satz = ' '.join(satz.split())
                 if len(satz) >= 20:
                     ergebnis.append((str(quelle['id']), str(quelle.get('label') or _host(str(quelle.get('url', '')))),
-                                     Eintrag(hashlib.sha256(satz.encode()).hexdigest()[:16], satz[:200], satz[:600],
-                                             str(quelle.get('url') or ''), None)))
+                                     WeltEintrag(hashlib.sha256(satz.encode()).hexdigest()[:16], satz[:200], satz[:600],
+                                             snapshot.episode.provenance.source_ref or '', None,
+                                             snapshot.episode.id, snapshot.support_fingerprint())))
         return ergebnis
 
     def _sachen(self, text: str) -> list[Sache]:
         """Die Sachen aus den Akten, deren Name überhaupt im Nachrichtentext vorkommt (mit Rückhalt im Bestand)."""
-        bezuege, episodes = self._bezuege(), self._episodes()
+        bezuege = self._bezuege()
         kandidaten: list[Sache] = []
         for art, limit in LIMITS.items():
             seite = bezuege.sachen(art=art, limit=limit)['sachen']
@@ -461,20 +523,24 @@ class WeltDienst:
                 if s.varianten and erkennt(text, s):
                     kandidaten.append(s)
         for s in kandidaten:
-            quellen = bezuege.quellen_von(s.sache)
-            eigene = []
-            for q in quellen[:40]:
-                try:
-                    ep = episodes.get(q['episode_id'])
-                except Exception:  # noqa: BLE001
-                    continue
-                if ep.provenance.source_type != SourceType.WEB:
-                    eigene.append((q, ep))
-            s.quellen = len(eigene)
-            if eigene:
-                s.titel_letzte = ' '.join(eigene[0][1].title.split())[:80]
-                s.letzte_zeit = str(eigene[0][0]['zeit'] or s.letzte_zeit or '')
+            self._rueckhalt(s)
         return kandidaten
+
+    def _rueckhalt(self, sache: Sache) -> None:
+        """Nur die ausgewählte Sache gegen eigene weiterhin verfügbare Quellen prüfen."""
+        eigene = []
+        for q in self._bezuege().quellen_von(sache.sache)[:40]:
+            try:
+                ep = self._episodes().get(q['episode_id'])
+            except Exception:  # noqa: BLE001
+                continue
+            if (ep.provenance.source_type != SourceType.WEB
+                    and getattr(getattr(ep, 'state', None), 'value', None) != 'ignored'):
+                eigene.append((q, ep))
+        sache.quellen = len(eigene)
+        if eigene:
+            sache.titel_letzte = ' '.join(eigene[0][1].title.split())[:80]
+            sache.letzte_zeit = str(eigene[0][0]['zeit'] or sache.letzte_zeit or '')
 
     def aktualisieren(self, *, jetzt: datetime | None = None) -> dict[str, Any] | None:
         """Ruft die Quellen ab und wählt die Meldung des Tages, wenn es noch keine gibt. Blockierend (im Hintergrund
@@ -485,8 +551,8 @@ class WeltDienst:
         if not welt.aktiv or not self._quellen_vorhanden(welt):
             return None
         if welt.heute.get('tag') == tag and (welt.heute.get('meldung') or welt.heute.get('abbestellt')):
-            return welt.heute.get('meldung')
-        eintraege = self._eintraege(welt)
+            return self._aktuelle_meldung(welt, welt.heute.get('meldung'), jetzt)
+        eintraege = self._eintraege(welt, jetzt=jetzt)
         if not eintraege:
             return None
         text = '\n'.join(f'{e.titel}\n{e.text}' for _, _, e in eintraege)
@@ -497,15 +563,16 @@ class WeltDienst:
             welt = self.welt()
             # Zwischenzeitlich abbestellt oder schon gewählt: nichts überschreiben.
             if welt.heute.get('tag') == tag and (welt.heute.get('meldung') or welt.heute.get('abbestellt')):
-                return welt.heute.get('meldung')
+                return self._aktuelle_meldung(welt, welt.heute.get('meldung'), jetzt)
             meldung = meldung_von(gewaehlt, tag) if gewaehlt else None
             if meldung and (meldung['sache'] in welt.abbestellt_sachen or not _quelle_gewollt(welt, meldung['quelle_id'])):
                 meldung = None
+            meldung = self._aktuelle_meldung(welt, meldung, jetzt)
             welt.heute = {'tag': tag, 'meldung': meldung, 'abbestellt': False}
             if meldung:
                 welt.gezeigt.append(meldung['id'])
             self._speichern(welt.to_dict())
-            return meldung
+            return self._aktuelle_meldung(welt, meldung, jetzt)
 
     def feedstand(self) -> dict[str, str]:
         """Kurze Fehlersätze je Feed (aus dem letzten Abruf), für die Einstellungen."""

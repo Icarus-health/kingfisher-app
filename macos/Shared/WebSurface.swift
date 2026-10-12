@@ -14,6 +14,8 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
     var onLoaded: (() -> Void)?
     /// Die Seite ließ sich nicht laden; der Satz ist für den Menschen.
     var onFailure: ((String) -> Void)?
+    /// Leaving/reloading the document ends ephemeral microphone/playback sessions.
+    var onLeave: (() -> Void)?
 
     private struct DownloadTarget {
         let download: WKDownload
@@ -55,6 +57,7 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = action.request.url else { decisionHandler(.cancel); return }
         let top = action.targetFrame == nil || action.targetFrame?.isMainFrame == true
+        if top { onLeave?() }
         switch navigationDisposition(url, origin: origin, topLevel: top, download: action.shouldPerformDownload) {
         case .local:
             if action.shouldPerformDownload { decisionHandler(.download) }
@@ -87,7 +90,7 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
             onFailure?("Die Seite konnte nicht geladen werden. Bitte erneut versuchen.")
         }
     }
-    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { webView.reload() }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { onLeave?(); webView.reload() }
 
     // MARK: Fenster, Dateiauswahl, Hinweise der Seite
 

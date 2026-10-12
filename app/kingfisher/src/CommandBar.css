@@ -1,0 +1,6 @@
+.shell main .conversation-command { height: auto; min-height: 84px; padding-top: 10px; padding-bottom: 10px; gap: 12px; }
+.shell main .conversation-command textarea { flex: 1; min-width: 0; min-height: 56px; max-height: 140px; padding: 4px 0; border: 0; outline: 0; resize: vertical; background: transparent; color: var(--kf-schrift-062b3a); font: inherit; font-size: 14px; line-height: 1.6; }
+.shell main .conversation-command textarea::placeholder { color: var(--kf-schrift-31535f); opacity: 1; }
+.composer-hint { margin: 5px 0 0; padding: 0 6px; font-size: 11px; color: var(--kf-schrift-31535f); background: var(--calm-surface); }
+.shell main .messages { padding-bottom: 230px; }
+.shell main .thread-command .thread-send-error, .shell main .thread-command .memory-send-error { position: static; margin: 0; padding: 6px; background: var(--calm-surface); }

@@ -1,6 +1,6 @@
 """Authenticated intake controls; connecting an account alone never starts content capture."""
 from fastapi import HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .mail_intake import Intake
 from . import config
 from .model_roles import hintergrund_anbieter
@@ -30,6 +30,8 @@ class PauseIn(BaseModel):
 
 class CorrectionIn(BaseModel):
     categories: list[str]
+    expected_revision: str | None = Field(default=None, min_length=64, max_length=64,
+                                         pattern=r'^[0-9a-f]{64}$')
 
 class CategoryIn(BaseModel):
     id: str
@@ -38,6 +40,13 @@ class CategoryIn(BaseModel):
 
 
 def register(app, guard, data_dir, wire):
+    from .storage_capacity import reason as storage_reason, MESSAGES as STORAGE_MESSAGES
+
+    def require_capacity():
+        blocked = storage_reason(data_dir())
+        if blocked is not None:
+            raise HTTPException(507, STORAGE_MESSAGES[blocked])
+
     def account(account_id):
         entry=next((e for e in app.state.settings.mail_accounts if e.id==account_id and e.configured),None)
         if entry is None:raise HTTPException(404,'Mailkonto ist nicht verbunden.')
@@ -69,7 +78,10 @@ def register(app, guard, data_dir, wire):
         provider=hintergrund_anbieter(app)
         plan=app.state.settings.schedule
         from .model_roles import rollen_von
+        storage_blocked = storage_reason(data_dir())
         return {'accounts':result,'attachments_supported':any(s['attachments_supported'] for s in result),
+                'storage_blocked':storage_blocked,
+                'storage_message':STORAGE_MESSAGES.get(storage_blocked),
                 # Separate from each mailbox's pause: its resume route cannot
                 # release the explicit global background pause.
                 'background_paused':bool(getattr(getattr(app.state,'hintergrund',None),'pausiert',False)),
@@ -142,11 +154,14 @@ def register(app, guard, data_dir, wire):
 
     @app.post('/api/v1/mail/intake/{account_id}/start',dependencies=guard)
     def start(account_id:str,body:StartIn):
+        account(account_id)
+        require_capacity()
         reader,historical=discover(account_id)
         if body.folders!=historical:
             raise HTTPException(409,'Die Mailbereiche haben sich geändert. Bitte Umfang erneut prüfen.')
         with app.state.conversation_lock:
             account(account_id)
+            require_capacity()
             if app.state.mail.reader_for(account_id) is not reader:raise HTTPException(409,'Kontoverbindung wurde geändert.')
             # All Mail already includes inbox and sent for Gmail: one queue avoids label duplicates.
             store=Intake(app.state.episodes)
@@ -179,6 +194,7 @@ def register(app, guard, data_dir, wire):
             if body.paused:
                 store.pause(account_id,True)
             else:
+                require_capacity()
                 plan=app.state.settings.schedule
                 old_accounts=list(plan.mail_accounts);old_enabled=plan.enabled;old_local=getattr(plan,'local_model_only',False)
                 try:
@@ -235,10 +251,12 @@ def register(app, guard, data_dir, wire):
 
     @app.put('/api/v1/episodes/{episode_id}/categories',dependencies=guard)
     def correct(episode_id:str,body:CorrectionIn):
-        from .memory_categories import Categories
+        from .memory_categories import Categories, CategoryCorrectionConflict
         try:
             with app.state.conversation_lock:
                 store=Categories(app.state.episodes)
-                store.correct(episode_id,body.categories)
+                store.correct(episode_id,body.categories,expected_revision=body.expected_revision)
                 return store.list_for(episode_id)
+        except CategoryCorrectionConflict:
+            raise HTTPException(409,'Quelle, Bereiche oder deine Zuordnung haben sich geändert. Bitte den aktuellen Stand prüfen.') from None
         except (ValueError,KeyError):raise HTTPException(422,'Quelle oder Kategorien sind nicht verfügbar.') from None

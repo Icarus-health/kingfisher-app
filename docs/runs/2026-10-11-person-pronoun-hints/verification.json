@@ -1,0 +1,25 @@
+{
+  "code_commit": "45cb1c8272a1335a49b7a3adc1d59fa3c542e9c5",
+  "file_sha256": {
+    "sidecar/icarus_memory/memory_categories.py": "9ea5e32ccfbc8e54e5ffdd739c3870a9eb97108b1558f13dce89c579de3b20f6",
+    "sidecar/tests/test_person_pronoun_candidates.py": "bb5768cca1d69f6910d37472adcf6ab4d6f5f53765dbf5ed849ecf0829b34992"
+  },
+  "new_cases": 32,
+  "initial_baseline_failures": 17,
+  "initial_baseline_passed_controls": 9,
+  "review_reflexive_baseline_failures": 2,
+  "affected_tests_passed": 198,
+  "additional_cloud_and_import_tests_passed": 44,
+  "test_groups_disjoint": true,
+  "review": "Read-only independent review found missing sich; two countercases failed before adding it. Other inspected diff showed no concrete regression; reviewer did not execute tests.",
+  "ui_changed": false,
+  "personal_runtime_modified": false,
+  "models_called": false,
+  "cloud_calls": false,
+  "schema_changed": false,
+  "full_backend_suite_rerun": false,
+  "installed_version_unchanged": "1.0.6-preview.3690733",
+  "warnings": [
+    "existing Starlette/httpx deprecation"
+  ]
+}

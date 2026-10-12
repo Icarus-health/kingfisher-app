@@ -308,15 +308,18 @@ def test_workspace_never_reopens_a_recorded_followup(tmp_path):
 
 
 def test_followup_ranks_after_the_next_meeting_and_before_suggestions():
+    # Rangfolge prüfen, unabhängig von Uhrzeit/Zeitzone des Testrechners.
+    # JETZT + 1 h liegt spätabends am nächsten Tag und gehört nicht zu „heute“.
+    jetzt = datetime(2026, 10, 9, 10, 0, tzinfo=timezone.utc)
     daten = {
         'calendar': {
-            'items': [{'uid': 'bald', 'summary': 'Bald', 'start': (JETZT + timedelta(hours=1)).isoformat()}],
-            'nachzubereiten': [{'uid': 't1', 'summary': 'Runde', 'start': (JETZT - timedelta(hours=3)).isoformat(),
-                                'end': (JETZT - timedelta(hours=2)).isoformat()}]},
+            'items': [{'uid': 'bald', 'summary': 'Bald', 'start': (jetzt + timedelta(hours=1)).isoformat()}],
+            'nachzubereiten': [{'uid': 't1', 'summary': 'Runde', 'start': (jetzt - timedelta(hours=3)).isoformat(),
+                                'end': (jetzt - timedelta(hours=2)).isoformat()}]},
         'task_candidates': {'pending': 1, 'items': [{'id': 'v1', 'statement': 'Angebot schicken'}]},
     }
     vorschlaege = [{'kind': 'confirmation', 'id': 'c1', 'statement': 'Alt'}]
-    punkte = briefing.erstelle(daten, jetzt=JETZT.astimezone(), vorschlaege=vorschlaege).to_dict()['punkte']
+    punkte = briefing.erstelle(daten, jetzt=jetzt, vorschlaege=vorschlaege).to_dict()['punkte']
     assert [p['quelle'] for p in punkte] == ['termin', 'nachbereitung', 'zusage']
 
 

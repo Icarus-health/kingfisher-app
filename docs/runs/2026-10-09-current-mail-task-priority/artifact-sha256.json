@@ -1,0 +1,13 @@
+{
+  "package-inputs.json": "e5ba4379c1ae3fd7435dcac0d87d4b1516b79e2b64a4cc6d6cd357b256ee68f3",
+  "Kingfisher.dmg": "4ed0515472f630e16af25b49c2f224473882f8caa220622ee73f76258f339bcb",
+  "Dockerfile": "0e6b425e43b45ae6884190b6970ec95ceaf65431f078227cd31d9bb75537d022",
+  "probe.py": "aa3342da10ae794493cab07498bac86b2dccb6b399889370742c3d3908438995",
+  "freeze.json": "3faa8f94e7f1a219ba6fd530ed471037f33817c7fb9aaee1617453a45d01d00f",
+  "Kingfisher.app/Contents/Info.plist": "73b016b28a64387250040cf6800196ecaec735b5f1ca4c1071a9f4cd8d309eae",
+  "Kingfisher.app/Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+  "Kingfisher.app/Contents/MacOS/Kingfisher": "f71d9edd43913158dbc529b944aa02fa372508735e9dd6c89b4ec21b7a93bac3",
+  "Kingfisher.app/Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+  "Kingfisher.app/Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+  "Kingfisher.app/Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+}

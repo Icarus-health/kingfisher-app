@@ -1,0 +1,16 @@
+{
+  "version": "1.0.6-preview.8ad7828",
+  "architecture": "arm64",
+  "native_sha256": "9b535ab69e2fb4f9b637946d293450d0bba58dbb343c94978af30fec3d0dea26",
+  "dmg_sha256": "f8a1e63dd2bce199a1c7076a6da3d594f2c0cc28988556d0d7e164f7a39587b6",
+  "image_id": "sha256:c9b13d19f1873968a4da1e8c559e8653388d20d8b5b408a47580334c6bd68cd8",
+  "base_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+  "base_layers_preserved": true,
+  "installed": false,
+  "browser_rendered": false,
+  "actual_microphone_calendar_permissions": false,
+  "notarized": false,
+  "intel_verified": false,
+  "durable_copy_signature_verified": true,
+  "durable_copy_native_dmg_archive_hashes_verified": true
+}

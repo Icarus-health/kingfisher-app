@@ -1,0 +1,20 @@
+{
+  "version": "1.0.6-preview.3690733",
+  "background_paused": true,
+  "calendar_status": "granted",
+  "calendar_enabled": true,
+  "calendar_online": true,
+  "calendar_has_error": false,
+  "selected_count": 3,
+  "memory_allowed": false,
+  "filesystems": {
+    "/": {
+      "free_bytes": 1489715200,
+      "free_inodes": 3044136
+    },
+    "/data": {
+      "free_bytes": 1489715200,
+      "free_inodes": 3044136
+    }
+  }
+}

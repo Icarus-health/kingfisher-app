@@ -1,0 +1,45 @@
+{
+  "refs": {
+    "kingfisher-conditional-report:e326f81": "sha256:f9caa5537b33403f0d7beff828a20fecd4ee3458d9ac41068e40d1cf1b436a6e",
+    "kingfisher-world-validity:e2bd4c1": "sha256:fc2b486e0644fe17ad2dc4baf9d3098051ff8a6a5ded9e5db90b5d56b78ecf5f",
+    "kingfisher-source-status:a214f99": "sha256:552a7d2f6ccc6433357000c2385dfe0b034f597a8c7126ea87fca3009580937a",
+    "kingfisher-learning:9f18408": "sha256:ede4448a83055a5a1e65b4000dc39cd91f0f5d9e08bc483f88f4e96a51421187",
+    "kingfisher-current-mail:1913e26": "sha256:6b03de639866319d310581f003345c458b13e824d53bb4e76a5381c14f5c9430",
+    "kingfisher-cos-priority:83cfaa0": "sha256:4b50fb4a18b36f86c2d60de5d7eb9952a580f02baf9c67cc67791e7d935f4f62",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.e326f81": "sha256:f9caa5537b33403f0d7beff828a20fecd4ee3458d9ac41068e40d1cf1b436a6e",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.e2bd4c1": "sha256:fc2b486e0644fe17ad2dc4baf9d3098051ff8a6a5ded9e5db90b5d56b78ecf5f",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.a214f99": "sha256:552a7d2f6ccc6433357000c2385dfe0b034f597a8c7126ea87fca3009580937a",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.9f18408": "sha256:ede4448a83055a5a1e65b4000dc39cd91f0f5d9e08bc483f88f4e96a51421187",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.1913e26": "sha256:6b03de639866319d310581f003345c458b13e824d53bb4e76a5381c14f5c9430",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.83cfaa0": "sha256:4b50fb4a18b36f86c2d60de5d7eb9952a580f02baf9c67cc67791e7d935f4f62"
+  },
+  "archive_sha256": "89cfa19304524dd179ee12f946d2b0a0396b7de3e17759e383774f96a5d2d514",
+  "archive_bytes": 339782311,
+  "archive_manifest_ids_and_all_blob_hashes_verified": true,
+  "protected_images": [
+    "sha256:a8c96f76d9c5c67de4aff2ffebcd1590f95d70547cfca5760c142cd42909c45a",
+    "sha256:a3f6dc20a9b9115c0479b11fc174d4eb19ff80ab79320237efc8c99c7761d812"
+  ],
+  "productive_volumes_or_model_cache_exported": false,
+  "restore_command": "docker image load -i reviewed-test-builds.tar.gz",
+  "docker_free_before_bytes": 96178176,
+  "removed_refs": [
+    "kingfisher-conditional-report:e326f81",
+    "kingfisher-world-validity:e2bd4c1",
+    "kingfisher-source-status:a214f99",
+    "kingfisher-learning:9f18408",
+    "kingfisher-current-mail:1913e26",
+    "kingfisher-cos-priority:83cfaa0",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.e326f81",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.e2bd4c1",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.a214f99",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.9f18408",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.1913e26",
+    "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.83cfaa0"
+  ],
+  "docker_free_after_bytes": 96178176,
+  "container_identities_and_mounts_unchanged": true,
+  "volume_names_unchanged": true,
+  "current_and_rollback_images_preserved": true,
+  "backend_healthy": true
+}

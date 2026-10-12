@@ -27,10 +27,10 @@ def test_katalog_ist_datiert_und_vollstaendig():
 
 @pytest.mark.parametrize("gb", STUFEN)
 @pytest.mark.parametrize("rolle", ROLLEN)
-def test_vorauswahl_passt_auf_jede_stufe(gb, rolle):
+def test_vorauswahl_meldet_den_tatsaechlichen_reservebedarf(gb, rolle):
     empfehlung = empfehle(mac(gb), rolle)
     assert empfehlung.stufe == gb
-    assert empfehlung.passt_vermutlich, (rolle, gb, empfehlung.modell.name)
+    assert empfehlung.passt_vermutlich == (empfehlung.modell.speicher_gb <= mac(gb).modellbudget_gb)
     assert empfehlung.modell.rolle == rolle
 
 

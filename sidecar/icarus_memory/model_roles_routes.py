@@ -34,7 +34,7 @@ from .agent_verdrahtung import satzpruefung_stand
 from .model_pull import Fehlergrund, Fehlschlag, PullBelegt, PullManager, bestaetigungssatz
 from .model_recommendation import (
     KATALOG_STAND, ROLLEN as ROLLEN_NAMEN, STUFEN, Empfehlung, Geraet, KatalogEintrag, ausweichwahl, empfehle_alle,
-    festplatte_reicht, gb_text, geraet_aus_profil, kleinere_wahl, normalisiere, orchester_bedarf, orchester_hinweise,
+    model_memory_gb, festplatte_reicht, gb_text, geraet_aus_profil, kleinere_wahl, normalisiere, orchester_bedarf, orchester_hinweise,
     stufe_fuer,
 )
 from .model_roles import (
@@ -51,6 +51,7 @@ _ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mis
 class RolleIn(BaseModel):
     modell: str | None = None
     cloud: bool | None = None
+    local_only: bool = False  # explizit lokal: keine ungeprüfte Standardwahl
     anbieter: str | None = None
     einwilligung: bool | None = None  # ausdrückliche Bestätigung des Satzes zur Rolle
 
@@ -222,6 +223,8 @@ def register(app, guard, data_dir, rebuild):
             if not spec.cloud_moeglich:
                 raise HTTPException(422, f"{modell} {HINWEIS_CLOUD} {spec.cloud_satz} Bitte ein lokales Modell wählen.")
             cloud, body.anbieter = True, OLLAMA_CLOUD
+        if body.local_only and cloud:
+            raise HTTPException(422, "Bitte entweder ein lokales Modell oder die Cloud wählen.")
         if cloud:
             if not spec.cloud_moeglich:
                 raise HTTPException(422, spec.cloud_satz)
@@ -247,8 +250,15 @@ def register(app, guard, data_dir, rebuild):
             anbieter, einwilligung = "", ""  # Cloud aus: Einwilligung erlischt
             if aktuell.cloud and body.modell is None:
                 modell = ""
+        if not cloud and modell and body.modell is not None:
+            known = model_memory_gb(modell)
+            budget = geraet().modellbudget_gb
+            if known is not None and budget is not None and known > budget:
+                raise HTTPException(422, f"{modell} braucht etwa {gb_text(known)} GB Arbeitsspeicher. "
+                                         f"Für Modelle sind hier rund {gb_text(budget)} GB eingeplant; "
+                                         "die Reserve bleibt für andere Programme frei. Bitte ein kleineres Modell wählen.")
         neu = RollenWahl(modell=modell, cloud=bool(cloud), anbieter=anbieter, cloud_einwilligung=einwilligung,
-                        local_only=not bool(cloud) and (aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
+                        local_only=not bool(cloud) and (body.local_only or aktuell.local_only or aktuell.anbieter in {'mistral', 'openrouter'}))
         with app.state.conversation_lock:
             if neu.ist_leer:
                 settings.model_roles.pop(rolle, None)
@@ -373,7 +383,7 @@ def register(app, guard, data_dir, rebuild):
             raise HTTPException(422, "Dieses Modell gehört nicht zur Empfehlung für diesen Rechner.")
         if not body.bestaetigt:
             raise HTTPException(422, "Bitte zuerst bestätigen: " + bestaetigungssatz(wahl.name, wahl.groesse_gb))
-        if g.bekannt and wahl.speicher_gb > (g.modellspeicher_gb or 0) * 0.85:
+        if g.modellbudget_gb is not None and wahl.speicher_gb > g.modellbudget_gb:
             raise HTTPException(422, f"{wahl.name} braucht etwa {wahl.speicher_gb:g} GB Arbeitsspeicher und passt "
                                      "vermutlich nicht auf diesen Rechner. Bitte ein kleineres Modell wählen.")
         # Was schon auf der Festplatte liegt, braucht keinen neuen Platz (Übernehmen statt Laden).
@@ -395,6 +405,10 @@ def register(app, guard, data_dir, rebuild):
         wird nur die Empfehlung für diesen Rechner, nur nach ausdrücklicher Bestätigung."""
         g = geraet()
         alle = empfehle_alle(g)
+        bedarf = orchester_bedarf(alle, g)
+        if bedarf['passt_tag'] is False or bedarf['passt_nacht'] is False:
+            raise HTTPException(422, "Für die komplette lokale KI reicht der geplante Arbeitsspeicher nicht. "
+                                     "Bitte einzelne passende Aufgaben einrichten; das Gesamtpaket wird nicht geladen.")
         installiert = installierte()
         if installiert is None:
             raise HTTPException(503, "Das Programm, mit dem Kingfisher auf diesem Rechner denkt (Ollama), antwortet "
@@ -407,7 +421,7 @@ def register(app, guard, data_dir, rebuild):
             if status_der_rolle(rec, zustand[name], installiert) == "eingerichtet":
                 continue
             ziel = normalisiere(rec.modell.name)
-            if g.bekannt and rec.modell.speicher_gb > (g.modellspeicher_gb or 0) * 0.85:
+            if g.modellbudget_gb is not None and rec.modell.speicher_gb > g.modellbudget_gb:
                 continue  # passt nicht auf diesen Rechner; die Karte sagt das je Aufgabe
             groesse = 0.0 if ziel in da or ziel in gezaehlt else rec.modell.groesse_gb
             gezaehlt.add(ziel)

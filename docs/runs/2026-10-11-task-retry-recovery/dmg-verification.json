@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.b7cd321",
+  "architecture": "arm64",
+  "signature": "strict deep ad hoc",
+  "notarized": false,
+  "native_files": 6,
+  "read_only_mounted_bundle_matches": true,
+  "detached": true,
+  "dmg_sha256": "dd82c485c719a760b7a06bbec786175a9b78f8a88ebda35bd15e407d37d4d2f3"
+}

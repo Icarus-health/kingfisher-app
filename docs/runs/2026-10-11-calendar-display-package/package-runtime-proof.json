@@ -1,0 +1,12 @@
+{
+  "exit_code": 0,
+  "version": "1.0.6-preview.bfe555e",
+  "image_id": "sha256:e2caaa4f7d2d466cb5dac00db3dab3eeab3a3a6e39b30cc33115a81079aaafb1",
+  "network": "none",
+  "productive_mounts": false,
+  "models_configured": false,
+  "probe_sha256": "daf745ac25b510d233d4f3fd02700198fb1000232c8faa8604dd9a5f9b52e5d6",
+  "log_sha256": "9ce342c89460abbfd4f5f8b0ba085c0896397574c6a3ce07f4053a59c8d91ac0",
+  "calendar_projection_and_history_and_fold_passed": true,
+  "container_runtime_exit_observed": 0
+}

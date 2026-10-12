@@ -5,7 +5,7 @@ import Security
 // Läuft auf einer Hintergrund-Warteschlange; `say` meldet den Satz für die Ansicht.
 
 enum StartOutcome {
-    case ready(ollamaMissing: Bool)
+    case ready(ollamaHint: OllamaHintState)
     case dockerMissing
     case dockerSilent
     case composeMissing
@@ -82,8 +82,10 @@ final class Startup {
         } else {
             guard Loopback.inspectionMode(token: token) else { return .failed(Satz.falscheInstallation) }
         }
-        let ollamaMissing = !Loopback.ollamaRunning() && !FileManager.default.fileExists(atPath: "/Applications/Ollama.app")
-        return .ready(ollamaMissing: ollamaMissing)
+        let ollamaHint = OllamaHintState.select(
+            isRunning: Loopback.ollamaRunning(),
+            appInstalled: FileManager.default.fileExists(atPath: Adresse.ollamaApp.path))
+        return .ready(ollamaHint: ollamaHint)
     }
 
     // MARK: Schlüssel

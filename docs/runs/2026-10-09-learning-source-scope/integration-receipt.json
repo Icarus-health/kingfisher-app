@@ -1,0 +1,14 @@
+{
+  "merged_pr": "https://github.com/Icarus-health/kingfisher-app/pull/50",
+  "integration_pr": "https://github.com/Icarus-health/kingfisher-app/pull/46",
+  "integration_merge_commit": "dd497f179b07035f7d6461ca438ce5171705c024",
+  "tested_runtime_commit": "9f18408c8d6c8b0fd55c334cfc3ab184d933bb42",
+  "package_version": "1.0.6-preview.9f18408",
+  "runtime_ui_native_design_deployment_scripts_version_identical": true,
+  "integration_pr_state": "OPEN",
+  "integration_pr_is_draft": true,
+  "merged_to_main": false,
+  "installed": false,
+  "native_window_test": "deferred_by_user",
+  "local_image_id": "sha256:ede4448a83055a5a1e65b4000dc39cd91f0f5d9e08bc483f88f4e96a51421187"
+}

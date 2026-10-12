@@ -58,7 +58,7 @@ export function TodayPersonal() {
       <nav className="development-links" aria-label="Persönlicher Arbeitsbereich">
         <a className="today-text-link" href="/development">Ziele, Gewohnheiten & Lernen →</a>
         <a className="today-text-link" href="/world">Öffentliches Wissen & Quellen →</a>
-        <a className="today-text-link" href="/memory?area=health">Gesundheit →</a>
+        <a className="today-text-link" href="/wellbeing">Gesundheit →</a>
         <a className="today-text-link" href="/review">Gedächtnis prüfen →</a>
       </nav>
     </section>;
@@ -74,10 +74,12 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
 }) {
   const attention = todayAttention(briefing);
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
+  const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
   return <div className="today-overview">
     <TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} />
     <section className="today-panel today-attention" aria-labelledby="today-attention-title">
       <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2><img className="today-flight" src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />{zaehlerText(attention.length) ? <span className="today-count">{zaehlerText(attention.length)}</span> : null}</header>
+      {reviewStatus && <p className="today-notice" role="status">{reviewStatus.message} <a href="/vorhaben?view=mine">Aufgaben prüfen →</a></p>}
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
         const action = actionFor(item);
         return <li className="today-attention-item" key={item.id}>

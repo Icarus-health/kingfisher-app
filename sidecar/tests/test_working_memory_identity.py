@@ -319,3 +319,125 @@ def test_coselected_confirmed_claim_does_not_disable_sender_guard(core):
     scoped = prepare('Wann liefert Nora Beck von der Parkstraße 8 die Stoff-Farbmuster?', episodes, claims, provider)
     assert len(scoped['refs']) == 1
     assert scoped['uncertainty'] == 'conflict'  # A K contradiction is not silently dismissed.
+
+
+DOC_EINKAUF = 'Alex Winter arbeitet im Einkauf der Firma A. Seine E-Mail-Adresse lautet alex.winter@firma-a.invalid.'
+DOC_SCHULE = ('Eine andere Person heißt ebenfalls Alex Winter. Sie arbeitet an der Schule B. '
+              'Ihre E-Mail-Adresse lautet a.winter@schule-b.invalid.')
+
+
+def test_explicit_other_person_document_restores_omitted_original_without_sender_metadata():
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': DOC_SCHULE, 'context': DOC_SCHULE, 'participants': []}]
+    ids, forced, hint = adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                                         candidate_ids=['S1', 'S2'])
+    assert ids == ['S1', 'S2'] and forced == 'person'
+    assert hint and 'Original' in hint
+
+
+def test_explicit_document_peer_keeps_specific_question_and_does_not_invent_people():
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': DOC_SCHULE, 'context': DOC_SCHULE, 'participants': []}]
+    assert adjust_selection('Welche E-Mail-Adresse hat Alex Winter aus dem Einkauf?', rows, ['S1'],
+                            candidate_ids=['S1', 'S2']) == (['S1'], None, None)
+    for later in [
+        'Alex Winter hat seine E-Mail-Adresse geändert; seine neue Adresse lautet alex@neu.invalid.',
+        'Alex Winter verwendet beruflich und privat mehrere E-Mail-Adressen.',
+        'Es ist keine andere Person namens Alex Winter; lediglich seine E-Mail-Adresse hat sich geändert.',
+        'Es ist nicht eine andere Person namens Alex Winter; seine E-Mail-Adresse hat sich geändert.',
+        'Eine andere Person heißt ebenfalls Alex Winter ist falsch; seine E-Mail-Adresse hat sich geändert.',
+        'Eine andere Person heißt ebenfalls Jana Schmidt. Ihre E-Mail-Adresse lautet jana@schule.invalid.',
+    ]:
+        rows[1].update(text=later, context=later)
+        assert adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                                candidate_ids=['S1', 'S2']) == (['S1'], None, None)
+
+
+def test_specific_document_question_is_not_reopened_by_more_sources_from_same_context():
+    meeting = 'Heute um 14:00 Gespräch mit Alex Winter aus dem Einkauf der Firma A.'
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': DOC_SCHULE, 'context': DOC_SCHULE, 'participants': []},
+            {'id': 'S3', 'text': meeting, 'context': meeting, 'participants': []}]
+    assert adjust_selection('Welche E-Mail-Adresse hat Alex Winter aus dem Einkauf?', rows, ['S1'],
+                            candidate_ids=['S1', 'S2', 'S3']) == (['S1'], None, None)
+    ids, forced, _ = adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                                      candidate_ids=['S1', 'S2', 'S3'])
+    assert ids == ['S1', 'S2'] and forced == 'person'
+
+
+def test_lowercase_question_keeps_explicit_original_person_distinction():
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': DOC_SCHULE, 'context': DOC_SCHULE, 'participants': []}]
+    ids, forced, _ = adjust_selection('welche e-mail-adresse hat alex winter?', rows, ['S1'],
+                                      candidate_ids=['S1', 'S2'])
+    assert ids == ['S1', 'S2'] and forced == 'person'
+
+
+def test_lowercase_context_qualifier_keeps_an_already_specific_document_answer():
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': DOC_SCHULE, 'context': DOC_SCHULE, 'participants': []}]
+    for question in ['Welche E-Mail-Adresse hat Alex Winter aus dem einkauf?',
+                     'welche e-mail-adresse hat alex winter aus dem einkauf?']:
+        assert adjust_selection(question, rows, ['S1'], candidate_ids=['S1', 'S2']) == (['S1'], None, None)
+
+
+def test_explicit_document_peer_requires_full_original_and_honours_candidate_exclusions():
+    rows = [{'id': 'S1', 'text': DOC_EINKAUF, 'context': DOC_EINKAUF, 'participants': []},
+            {'id': 'S2', 'text': 'Ihre E-Mail-Adresse lautet a.winter@schule-b.invalid.',
+             'context': DOC_SCHULE, 'participants': []}]
+    ids, forced, _ = adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                                      candidate_ids=['S1', 'S2'])
+    assert ids == ['S1', 'S2'] and forced == 'person'
+    assert adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                            candidate_ids=['S1']) == (['S1'], None, None)
+    rows[1]['andere_person'] = {'gemeinte_adresse': 'alex.winter@firma-a.invalid'}
+    assert adjust_selection('Welche E-Mail-Adresse hat Alex Winter?', rows, ['S1'],
+                            candidate_ids=['S1', 'S2']) == (['S1'], None, None)
+
+
+def test_explicit_document_person_guard_reopens_legacy_and_preserves_specific_answers(tmp_path):
+    import copy
+    from icarus_memory import working_memory_answers as answers
+    from icarus_memory.claims import ClaimStore
+    from icarus_memory.episodes import EpisodeKind, EpisodeStore
+    from icarus_memory.model import Provenance, SourceType
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    from tests.test_satzantwort import Skript
+    episodes, claims = EpisodeStore(tmp_path / 'document-e.sqlite3'), ClaimStore(tmp_path / 'document-k.sqlite3')
+    try:
+        ids = []
+        for title, body in [('Einkauf', DOC_EINKAUF), ('Schule', DOC_SCHULE)]:
+            source, _ = episodes.record(EpisodeKind.DOCUMENT, title, body, Provenance(SourceType.DOCUMENT))
+            assert source.participants == []
+            assert WorkingMemoryStore(episodes).commit(episodes.support_snapshot(source.id),
+                [{'start': 0, 'end': len(body), 'kind': 'fact'}], model='synthetic')
+            ids.append(source.id)
+        provider = Skript({'status': 'nichts_vorliegend', 'saetze': []},
+                         auswahl=lambda user: [row['id'] for row in user['sources'] if row['title'] == 'Einkauf'])
+        answer = answers.prepare('Welche E-Mail-Adresse hat Alex Winter?', episodes, claims, provider,
+                                 semantic_search=None, saetze=True)
+        assert answer['status'] == 'unclear' and answer['uncertainty'] == 'person'
+        assert {ref['episode_id'] for ref in answer['refs']} == set(ids)
+        assert provider.satzanfragen == []
+        text, links, status = answers.render(answer, episodes, claims)
+        assert status == 'working_unclear' and DOC_EINKAUF in text and DOC_SCHULE in text
+        assert 'Welche der genannten Personen' in text
+        assert {link['episode_id'] for link in links} == set(ids)
+        legacy = copy.deepcopy(answer)
+        legacy.update(status='reports', uncertainty='none', refs=[ref for ref in legacy['refs'] if ref['episode_id'] == ids[0]])
+        assert not answers._fresh(legacy, episodes, claims)
+        reopened = answers.project_message({'role': 'assistant', 'content': 'Alex Winter hat alex.winter@firma-a.invalid.',
+            'metadata': {'context': {'working_answer': legacy}}}, episodes, claims)
+        assert reopened['metadata']['context']['answer_contract']['status'] == 'working_unavailable'
+        assert 'alex.winter@firma-a.invalid' not in reopened['content']
+        specific = answers.prepare('Welche E-Mail-Adresse hat Alex Winter aus dem Einkauf?', episodes, claims,
+                                   provider, semantic_search=None, saetze=True)
+        assert specific['status'] == 'reports'
+        assert [ref['episode_id'] for ref in specific['refs']] == [ids[0]]
+        assert DOC_EINKAUF in answers.render(specific, episodes, claims)[0]
+        episodes.ignore(ids[1])
+        assert answers.render(answer, episodes, claims)[2] == 'working_unavailable'
+        assert episodes.get(ids[1]).body == DOC_SCHULE
+    finally:
+        claims.close()
+        episodes.close()

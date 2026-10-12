@@ -1,0 +1,183 @@
+{
+  "code_commit": "173cef8adb39d7a5d68a6c81f3acc3c16850733b",
+  "base_main": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "previous_preview": "5f5828932c721d06d18137574d092de2f8a40212",
+  "new_pr_heads": {
+    "41": "e6cb3f1b71b2073e04577837d1cb87b0025d8521",
+    "42": "eba7cccd3abe90b015799cc07588a511d500fb10"
+  },
+  "backend_affected": {
+    "code_commit": "26e2bda2860a3c5b65c36e666d2a4344b70fd39d",
+    "tracked_backend_matches_final_code": true,
+    "passed": 195,
+    "skipped": 1,
+    "failed": 0,
+    "skip_reason": "Linux thread-priority behavior on macOS",
+    "files": [
+      "test_memory_progress_gate.py",
+      "test_memory_progress.py",
+      "test_memory_progress_freshness.py",
+      "test_source_overview_metadata.py",
+      "test_browser_feature_auth.py",
+      "test_mail_sync_status.py",
+      "test_mail_intake_lane_progress.py",
+      "test_mac_calendar.py",
+      "test_mac_calendar_background_gate.py",
+      "test_folder_sync.py",
+      "test_transkript_eingang.py",
+      "test_model_memory_reserve.py",
+      "test_health_observations.py",
+      "test_hintergrund.py",
+      "test_hintergrund_lokal.py",
+      "test_host_power.py"
+    ],
+    "full_suite": false
+  },
+  "ui_full": {
+    "initial_before_review_fix_passed": 480,
+    "intermediate_passed": 482,
+    "intermediate_failed": 1,
+    "intermediate_failure": "memory-status-view source-regex assertion for literal if(active), replaced by real handler/effect cleanup test",
+    "final_passed": 485,
+    "failed": 0
+  },
+  "review_regression": {
+    "visibility_poll_red_failed": 3,
+    "visibility_action_red_failed": 2,
+    "final_component_boundary_passed": 7,
+    "react_runtime_or_native_ui": false
+  },
+  "clean_archive": {
+    "ui_focused_passed": 28,
+    "typescript_vite": "passed",
+    "native_arm_build": "passed"
+  },
+  "review": {
+    "static_only": true,
+    "important_found": 1,
+    "important_fixed": 1,
+    "tests_by_reviewer": false,
+    "runtime_rereview": false
+  },
+  "package": {
+    "version": "1.0.6-preview.173cef8",
+    "code_commit": "173cef8adb39d7a5d68a6c81f3acc3c16850733b",
+    "image_id": "sha256:21678699de7673650fc8be2ea40ea99268aab29680b7661f241dd593a4cd4a8d",
+    "base_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+    "base_layers_verified": true,
+    "native_architecture": "arm64",
+    "native_bundle_files_sha256": {
+      "Contents/Info.plist": "97931c79e547ff4cdfcabf5fbbac268deb42c99993a704fe9505caa0e279b6a5",
+      "Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+      "Contents/MacOS/Kingfisher": "da2a283ad0340a86b46424e8b9592451346b7e61f929dcc221cc372c872285a8",
+      "Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+      "Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+      "Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+    },
+    "dmg_sha256": "971c4eeaa4f56a2710d36e5d0510002a3062bb12055b14878e7f0f6de0a5cc2e",
+    "codesign": "strict deep verified",
+    "dmg_checksum": "verified",
+    "installed": false,
+    "notarized": false,
+    "public_release": false
+  },
+  "installed_mac_metadata": {
+    "version": "1.0.6-local.3403623",
+    "native_sha256": "5366fcc6a8e9c52559b22bad103d9a3bc944d9fcb43b4b500e36fe971e15929c",
+    "unchanged": true,
+    "calendars_or_personal_sources_read": false
+  },
+  "limits": {
+    "window_deferred_by_user": true,
+    "productive_data_mounted": false,
+    "inference_or_cloud_requests": false,
+    "productive_intake_resumed": false,
+    "new_installation": false,
+    "full_goal_complete": false
+  },
+  "log_caveats": {
+    "package-smoke-first.log": "The test had cleared headers but retained the valid synthetic browser cookie from GET /wellbeing; it incorrectly expected anonymous 401. No product authorization failure. Both headers and cookie cleared on final successful run."
+  },
+  "warnings": [
+    "Existing Starlette/httpx deprecation",
+    "Existing Vite large bundle warning",
+    "macOS hdiutil create deprecation"
+  ],
+  "raw_logs": [
+    {
+      "file": "backend.log.gz",
+      "uncompressed_sha256": "797e2ae913ba8a26f5b25c9156a631680c6e31de86a94bf1377a1ee42ed38036",
+      "bytes": 811
+    },
+    {
+      "file": "ui.log.gz",
+      "uncompressed_sha256": "00b0a496e7369599491597314877cd8043ce1018e86cea07163e2dcd8d503d0c",
+      "bytes": 102930
+    },
+    {
+      "file": "ui-final.log.gz",
+      "uncompressed_sha256": "0f19e863229ebea2a91331815e35b052c0dda810478bdb8227cb961a2aacd6fd",
+      "bytes": 104198
+    },
+    {
+      "file": "build-final.log.gz",
+      "uncompressed_sha256": "189905509cdad880e2c9a54d72da22be8b200170a3fdd91c606b013dab823501",
+      "bytes": 774
+    },
+    {
+      "file": "visibility-red.log.gz",
+      "uncompressed_sha256": "118a8a17a9b3ba460195c5eb0189812f1a7862679754abee7bdebd8d4e19017a",
+      "bytes": 18054
+    },
+    {
+      "file": "visibility-action-red.log.gz",
+      "uncompressed_sha256": "d81218e7e5b070885323dbbf117be22f2049bde3f392b20843389242698ce9d9",
+      "bytes": 23112
+    },
+    {
+      "file": "visibility-green.log.gz",
+      "uncompressed_sha256": "268164f2fe31f23ed65fcfb46565bdafc4f347b84964e067a2bbb91503e33f95",
+      "bytes": 1859
+    },
+    {
+      "file": "ui-clean.log.gz",
+      "uncompressed_sha256": "822fb11797e64fca155abcb72da311b62fa7cdeb2153f395e4ec220376d46fe2",
+      "bytes": 6864
+    },
+    {
+      "file": "build-clean.log.gz",
+      "uncompressed_sha256": "6ba11e7afc3a9bf6a8c1b411e784f7c3a62a60e85a2c4949fe7514db863b26ed",
+      "bytes": 774
+    },
+    {
+      "file": "native-build.log.gz",
+      "uncompressed_sha256": "aea7426fa68e39d22d058f9b1aed3847e0ca154190129a6c3706f10b068bd2e9",
+      "bytes": 391
+    },
+    {
+      "file": "native-verify.log.gz",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "dmg-verify.log.gz",
+      "uncompressed_sha256": "bf908ec2c9294c3d57f2c650170cee08b6d871b273c6b46b50437a80b8752234",
+      "bytes": 1317
+    },
+    {
+      "file": "image-build.log.gz",
+      "uncompressed_sha256": "35477b1333361e37f536393f5296aa86c667b128e1ef3f7bc7c2fcdd6ec713be",
+      "bytes": 1356
+    },
+    {
+      "file": "package-smoke-first.log.gz",
+      "uncompressed_sha256": "d0871fb03685ede47f997c46a99d07e180a33b8580983df91e9c5490446ab36d",
+      "bytes": 347
+    },
+    {
+      "file": "package-smoke.log.gz",
+      "uncompressed_sha256": "deed638e7eed6e7948cb66b17e9c81ca270446fea4aadafc1ccb00f3ddcede3b",
+      "bytes": 693
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "runtime_commit": "634071e91d55cf5360950798cdf6ebe6cd6aebeb",
+  "final_test_commit": "fccd5360bd3d10e4ef71fd0d68262c41c761589e",
+  "runtime_identical_to_full_run": true,
+  "new_cases": 15,
+  "focused_passed": 199,
+  "updated_contract_cases_passed": 112,
+  "full_backend": {
+    "passed": 5913,
+    "failed": 13,
+    "skipped": 1,
+    "subtests_passed": 26,
+    "summary": "13 failed, 5913 passed, 1 skipped, 2 warnings, 26 subtests passed in 862.08s (0:14:22)",
+    "failed_cases": [
+      "sidecar/tests/test_bezuege.py::test_migration_baut_orte_ein_und_hebt_die_taxonomie_nur_bei_vorhandenem_bestand",
+      "sidecar/tests/test_category_diagnostics.py::test_backup_restore_preserves_failure_code",
+      "sidecar/tests/test_category_diagnostics.py::test_v19_upgrade_preserves_legacy_status_with_unknown_reason",
+      "sidecar/tests/test_compact_search_index.py::test_migration_keeps_results_and_candidate_signatures",
+      "sidecar/tests/test_episode_zugriffe.py::test_quellen_kopf_zaehlt_alle_rohquellen_und_zeigt_kopfdaten",
+      "sidecar/tests/test_mail_ingestion.py::test_existing_v1_database_gets_checkpoint_table_without_changing_sources",
+      "sidecar/tests/test_memory_areas.py::test_v18_upgrade_adds_health_but_preserves_custom_health_and_corpus_version",
+      "sidecar/tests/test_memory_areas.py::test_v18_upgrade_at_category_limit_reports_health_unavailable",
+      "sidecar/tests/test_memory_areas.py::test_restored_v18_snapshot_migrates_to_supported_schema_20",
+      "sidecar/tests/test_memory_areas.py::test_upgrade_keeps_old_current_hints_and_explicit_corrections_without_reanalysis",
+      "sidecar/tests/test_source_index.py::test_migration_fuellt_den_index_aus_dem_bestand",
+      "sidecar/tests/test_source_project_link.py::test_migration_rekeys_legacy_fingerprints_without_reinterpretation",
+      "sidecar/tests/test_update_backup.py::test_outdated_database_is_saved_before_it_is_rebuilt"
+    ],
+    "all_failed_suites_rechecked_passed": true,
+    "fresh_single_all_green_full_run": false
+  },
+  "mutations": {
+    "no_priority": {
+      "failed": 10,
+      "passed": 5
+    },
+    "unconditional_ack": {
+      "failed": 1,
+      "passed": 14
+    },
+    "lease_mistaken_for_completed": {
+      "failed": 1,
+      "passed": 14
+    }
+  },
+  "real_model_quality_tested": false,
+  "personal_data_used": false,
+  "installed": false,
+  "mac_window_deferred": true,
+  "logs_sha256": {
+    "red.log": "b2a32bb6c3b1c014aac68b23746529ef867640970de0803bd2dac8e77113c875",
+    "first-green.log": "121644a0fda2928f45de28aab1851ba4615d20d5b3c95d3ce2d03eb45764f145",
+    "focused-green.log": "f546f5eaea05b170355d07f916cc8bd536e461ec4cb06af69582228baab4d787",
+    "extra-green.log": "f48e18d5fe0b19ebbe0389ab31c5e0b467b67672e3bdf39674f2b71e633b7325",
+    "reopen-red.log": "c5c557fa449ab3ae29cfdddd00aed422f189371dcc8f29777384b166d8d64e69",
+    "final-focused.log": "04abde36657cc507c846a6b06956d23728784e006447fe225ec644f14149b641",
+    "fixture-first.log": "aea4164d9fee6af452452234881c7f5325b3d48827d27e333944db1f9a7f92e1",
+    "fixtures-final.log": "3f599a005b36fda67ce3fb954f4e48cc8dcca13dab97749a7bb5d01ea5851755",
+    "more-fixtures-final.log": "116e31016c46f56376c1e1e512e40dfc66609622b3ab7795310b6ed00b4e86f2",
+    "full-backend.log": "f9689501308eff0104cc87ae50cf7d8bd266f52c69108dfce7d33e7f101746df",
+    "mutation-no-priority.log": "cc78feb59ce5989d982a49d5c401552f3f7a445fafbf5433643766da7585c7e1",
+    "mutation-wrong-ack.log": "9f1d06de4164a2f252a7040b51212ce0f18b72e5b959eb5b7660cc0627d19be7",
+    "mutation-lease-ack.log": "b0865b09dfd923457a63cd4750209868a88a9a86286dc9ce95860b7dbc4e22fb"
+  }
+}

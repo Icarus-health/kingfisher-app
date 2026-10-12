@@ -174,6 +174,9 @@ class Proposal:
     valid_until: datetime | None = None
     depends_on: list[str] = field(default_factory=list)
 
+    task_context: str | None = None
+    """Kontextbindung automatisch erkannter Aufgaben; keine Autorisierung."""
+
     def to_dict(self) -> dict[str, Any]:
         def iso(v: datetime | None) -> str | None:
             return v.astimezone().isoformat() if v else None
@@ -202,6 +205,7 @@ class Proposal:
             "valid_from": iso(self.valid_from),
             "valid_until": iso(self.valid_until),
             "depends_on": list(self.depends_on),
+            **({"task_context": self.task_context} if self.task_context is not None else {}),
         }
 
 
@@ -533,7 +537,7 @@ class ProposalStore:
         from .memory_analysis import MemoryAnalysis
         return MemoryAnalysis(self)
 
-    def _record_task_candidates(self, episode_id, digest, items, *, proposed_by):
+    def _record_task_candidates(self, episode_id, digest, items, *, proposed_by, task_context=None):
         """Nur innerhalb der Transaktion des Aufrufers; noch kein Checkpoint."""
         at = now()
         candidates = []
@@ -541,11 +545,27 @@ class ProposalStore:
             title, quote = item["title"].strip(), item["quote"].strip()
             if not title or not quote or not episode_id or not digest:
                 raise ProposalError("Aufgabenvorschlag ohne Titel oder Quellenbeleg.")
-            finger = "task|" + hashlib.sha256(json.dumps([episode_id, digest, quote], ensure_ascii=False).encode()).hexdigest()
+            basis = [episode_id, digest, quote]
+            legacy_id = "v-" + hashlib.sha256(json.dumps(basis, ensure_ascii=False).encode()).hexdigest()[:24]
+            # Ein explizit entschiedener Altvorschlag wird nicht wieder vorgelegt.
+            legacy = self._conn.execute("SELECT state FROM proposals WHERE id=?", (legacy_id,)).fetchone()
+            if task_context is not None:
+                accepted = self._conn.execute(
+                    "SELECT 1 FROM proposals WHERE kind='task' AND state='accepted' "
+                    "AND json_extract(document,'$.evidence[0].episode_id')=? "
+                    "AND json_extract(document,'$.evidence[0].digest')=? "
+                    "AND json_extract(document,'$.evidence[0].quote')=? LIMIT 1",
+                    (episode_id, digest, quote)).fetchone()
+                if accepted or (legacy and legacy['state'] in {'accepted', 'rejected'}):
+                    continue
+                if legacy and legacy['state'] == 'pending':
+                    self.supersede(legacy_id)
+                basis.append(task_context)
+            finger = "task|" + hashlib.sha256(json.dumps(basis, ensure_ascii=False).encode()).hexdigest()
             proposal = Proposal(
                 id="v-" + finger.split("|")[1][:24], kind=ProposalKind.TASK,
                 statement=title, rationale="In der Quelle erkannte Aufgabe oder Zusage. Bitte prüfen.",
-                created_at=at, evidence=[Evidence(episode_id, quote, digest)], proposed_by=proposed_by,
+                created_at=at, evidence=[Evidence(episode_id, quote, digest)], proposed_by=proposed_by, task_context=task_context,
             )
             candidates.append((proposal, finger))
         count = 0
@@ -718,6 +738,15 @@ class ProposalStore:
             ).fetchall()
         return [self._from_row(r) for r in rows]
 
+    def from_origin_prefix(self, prefix: str) -> list[Proposal]:
+        """Alle Zustände eines exakten Herkunftspräfixes, neueste zuerst."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM proposals "
+                "WHERE substr(json_extract(document, '$.proposed_by'), 1, ?) = ? "
+                "ORDER BY created_at DESC", (len(prefix), prefix)).fetchall()
+        return [self._from_row(row) for row in rows]
+
     def counts(self) -> dict[str, int]:
         with self._lock:
             rows = self._conn.execute(
@@ -845,6 +874,7 @@ class ProposalStore:
             valid_from=_parse(d.get("valid_from")),
             valid_until=_parse(d.get("valid_until")),
             depends_on=list(d.get("depends_on", [])),
+            task_context=d.get("task_context"),
         )
 
 

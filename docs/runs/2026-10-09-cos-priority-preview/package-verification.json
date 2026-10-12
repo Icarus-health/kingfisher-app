@@ -1,0 +1,53 @@
+{
+  "version": "1.0.6-preview.83cfaa0",
+  "code_commit": "83cfaa0664f73b0d95d2535c582427814f2d24ba",
+  "image_id": "sha256:4b50fb4a18b36f86c2d60de5d7eb9952a580f02baf9c67cc67791e7d935f4f62",
+  "base_image_id": "sha256:a8d2d89e6c47c5050b779dbc0e595cb187efd9650142416cdb557dfdf8b6cfe9",
+  "base_layers_preserved": true,
+  "image_tag_local_only": "ghcr.io/icarus-health/kingfisher-app:1.0.6-preview.83cfaa0",
+  "signature": "strict deep adhoc verified on build and durable copy",
+  "dmg_verified": true,
+  "architecture": "/private/tmp/kingfisher-cos-priority-preview-20261009/source/build/mac-app/Kingfisher.app/Contents/MacOS/Kingfisher: Mach-O 64-bit executable arm64",
+  "artifacts_sha256": {
+    "app_binary": "109d33dd63ac53afc29db208f5427e387d1203b152f607bfc89fc1af359a98a7",
+    "dmg": "eb903ca3871016e99c7275feeddfdbd6e168ac8141a6a1d63107b10168b267c5",
+    "source_archive": "05f1531ca8ab0c5d0816dbdd4e1f2a8958f0ddf92d62db6940aa7eaee57f912c"
+  },
+  "durable_directory": "/Users/sorenkube/Documents/Codex/Kingfisher-Pruefpakete/2026-10-09-cos-priority-83cfaa0",
+  "package_checks": [
+    {
+      "mail_task_retry_restart_edit_preservation_changed_request_changed_source_source_withdrawal": "passed"
+    },
+    {
+      "source_context_removal_restoration_reanalysis_acceptance_preservation": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "corrected_source_priority_ignore_reopen_no_automatic_tasks": "passed",
+      "real_model_quality_tested": false
+    },
+    {
+      "synthetic_v20_to_v21_preserved_original_rows_preupgrade_backup_verified_restore": "passed",
+      "productive_database_accessed": false
+    },
+    {
+      "browser_rendered": false,
+      "calendar_route_selection_disconnect": true,
+      "health_create_retry_correct_stale_history_restart_exclude": true,
+      "models_configured": false,
+      "productive_mounts": false,
+      "python_files": 269,
+      "ram_aliases_reject_oversize": true,
+      "source_metadata_auth_pause_compact_originals": true,
+      "status": "passed",
+      "synthetic_auth": true,
+      "ui_files": 112,
+      "version": "1.0.6-preview.83cfaa0",
+      "wellbeing_served_health_preserved": true
+    }
+  ],
+  "installed": false,
+  "native_window_tested": false,
+  "real_model_quality_tested": false,
+  "personal_data_accessed": false
+}

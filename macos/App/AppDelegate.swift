@@ -6,15 +6,18 @@ import WebKit
 // Keine Fachlogik: Die steckt im Container.
 
 @available(macOS 11.3, *)
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: NSWindow!
     private var surface: WebSurface!
+    private var voice: NativeVoiceEngine?
+    private var voiceTimer: Timer?
     private let status = StatusView()
     private let hint = HintBar()
     private var paths: AppPaths?
     private var startup: Startup?
     private var updater: Updater?
     private var powerReporter: PowerReporter?
+    private var calendarReporter: CalendarReporter?
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -46,10 +49,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Die Brücke: Nur die Seite von Kingfisher selbst kann ein Update anfragen (BridgeHandler prüft das).
         let configuration = WKWebViewConfiguration()
-        let bridge = BridgeHandler(origin: AppPaths.origin) { [weak self] request in self?.requestUpdate(request) }
+        voice = NativeVoiceEngine(reader: AppleLocalVoiceReader(), speaker: AppleLocalVoiceSpeaker(), emit: { [weak self] event in
+            self?.deliverVoice(event)
+        })
+        let bridge = BridgeHandler(origin: AppPaths.origin, onUpdate: { [weak self] request in self?.requestUpdate(request) },
+                                   onCalendar: { [weak self] request in
+            guard let self = self, !self.busy else { return }
+            self.calendarReporter?.requestPermission(generation: request.generation)
+        }, onVoice: { [weak self] request in self?.requestVoice(request) })
         configuration.userContentController.add(bridge, name: UpdateRequest.bridgeName)
         surface = WebSurface(origin: AppPaths.origin, configuration: configuration)
         surface.window = window
+        window.delegate = self
+        surface.onLeave = { [weak self] in self?.stopVoice() }
         surface.onLoaded = { [weak self] in
             guard let self = self, !self.busy else { return }
             self.status.isHidden = true
@@ -134,14 +146,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         busy = false
         let again = StatusAction(title: Knopf.nochmalPruefen) { [weak self] in self?.start() }
         switch outcome {
-        case .ready(let ollamaMissing):
+        case .ready(let ollamaHint):
+            if let paths = paths, calendarReporter == nil {
+                let reporter = CalendarReporter(origin: AppPaths.origin, tokenFile: paths.envFile, reader: EventKitCalendar())
+                calendarReporter = reporter
+                reporter.start()
+            }
             if let paths = paths, powerReporter == nil {
                 let reporter = PowerReporter(origin: AppPaths.origin, tokenFile: paths.envFile)
                 powerReporter = reporter
                 reporter.start()
             }
             status.show(.working(Satz.starten))
-            if ollamaMissing { hint.show(Satz.ollamaFehlt, linkTitle: Knopf.ollamaLaden, url: Adresse.ollamaDownload) }
+            hint.isHidden = true
+            switch ollamaHint {
+            case .none:
+                break
+            case .start:
+                hint.show(Satz.ollamaStarten, linkTitle: Knopf.ollamaStarten, url: Adresse.ollamaApp)
+            case .download:
+                hint.show(Satz.ollamaFehlt, linkTitle: Knopf.ollamaLaden, url: Adresse.ollamaDownload)
+            }
             surface.load(path: AppPaths.startPage)
         case .dockerMissing:
             status.show(StatusContent(title: nil, sentence: Satz.dockerFehlt, busy: false, actions: [
@@ -185,6 +210,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !busy, let updater = updater else { return }
         busy = true
         updating = true
+        calendarReporter?.stop()
+        calendarReporter = nil
         hint.isHidden = true
         status.show(.working(Satz.platzPruefen, title: Satz.aktualisieren))
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -198,6 +225,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func finishUpdate(_ result: UpdateResult) {
         busy = false
         updating = false
+        let mayResume: Bool
+        switch result { case .updated, .storageBlocked, .notStarted: mayResume = true
+        case .rolledBack, .broken: mayResume = false }
+        if mayResume, let paths = paths {
+            let reporter = CalendarReporter(origin: AppPaths.origin, tokenFile: paths.envFile, reader: EventKitCalendar())
+            calendarReporter = reporter
+            reporter.start()
+        }
         let reload = StatusAction(title: Knopf.weiter) { [weak self] in
             guard let self = self else { return }
             self.status.show(.working(Satz.starten))
@@ -239,8 +274,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        stopVoice()
+        calendarReporter?.stop()
         powerReporter?.stop()
         surface?.cancelDownloads()
+    }
+
+    func applicationDidResignActive(_ notification: Notification) { stopVoice() }
+    func windowDidResignKey(_ notification: Notification) { stopVoice() }
+    func windowWillClose(_ notification: Notification) { stopVoice() }
+
+    private func stopVoice() {
+        voice?.suspend(); voiceTimer?.invalidate(); voiceTimer = nil
+    }
+
+    private func requestVoice(_ request: VoiceRequest) {
+        guard let page = surface?.webView.url, sameOrigin(page, AppPaths.origin), page.path.hasPrefix("/conversations/") else { return }
+        voice?.handle(request, allowed: { [weak self] in
+            guard let self = self else { return false }
+            return NSApp.isActive && self.window.isKeyWindow && self.surface.webView.url == page && !self.busy
+        })
+        guard voice?.hasWork == true, voiceTimer == nil else { return }
+        voiceTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
+            self?.voice?.tick()
+            if self?.voice?.hasWork != true { timer.invalidate(); self?.voiceTimer = nil }
+        }
+    }
+
+    private func deliverVoice(_ event: VoiceEvent) {
+        guard let data = try? JSONSerialization.data(withJSONObject: event.dictionary) else { return }
+        let encoded = data.base64EncodedString()
+        surface?.webView.evaluateJavaScript("window.dispatchEvent(new CustomEvent('kingfisher:voice',{detail:JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('\(encoded)'),c=>c.charCodeAt(0))))}))")
     }
 }
 
@@ -249,18 +313,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 final class BridgeHandler: NSObject, WKScriptMessageHandler {
     private let origin: URL
     private let onUpdate: (UpdateRequest) -> Void
+    private let onCalendar: (CalendarPermissionRequest) -> Void
+    private let onVoice: (VoiceRequest) -> Void
 
-    init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void) {
+    init(origin: URL, onUpdate: @escaping (UpdateRequest) -> Void,
+         onCalendar: @escaping (CalendarPermissionRequest) -> Void = { _ in },
+         onVoice: @escaping (VoiceRequest) -> Void = { _ in }) {
         self.origin = origin
         self.onUpdate = onUpdate
+        self.onCalendar = onCalendar
+        self.onVoice = onVoice
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let source = message.frameInfo.securityOrigin
         guard message.name == UpdateRequest.bridgeName, message.frameInfo.isMainFrame,
-              source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port,
-              let request = UpdateRequest(message: message.body) else { return }
-        onUpdate(request)
+              source.protocol == origin.scheme, source.host == origin.host, source.port == origin.port else { return }
+        if let voice = VoiceRequest(message: message.body) { onVoice(voice) }
+        else if let calendar = CalendarPermissionRequest(message: message.body) { onCalendar(calendar) }
+        else if let request = UpdateRequest(message: message.body) { onUpdate(request) }
     }
 }
 

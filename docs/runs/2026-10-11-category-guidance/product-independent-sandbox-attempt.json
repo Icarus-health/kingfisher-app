@@ -1,0 +1,29 @@
+{
+  "scope": "synthetic_independent_cases_actual_product",
+  "personal_data_used": false,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "holdout_sha256": "25104f9cdbe2774766586a862aba2a351c6e8111d1a8f00845a21630acfb9b12",
+  "product_category_sha256": "7fa1b14b9e3724800ac77d41e2fd22b5ecd3818347fd3ac48b5ca5f0b91985ed",
+  "driver_sha256": "6bc8d0e12f6df36ce9359b501663e233dfc1edfe1ae29925208763e2b833069d",
+  "results": [
+    {
+      "id": "supplier-invoice-no-person",
+      "source_status": "failed",
+      "failure_code": "provider_error",
+      "categories": [],
+      "people": [],
+      "missing_categories": [
+        "finance"
+      ],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": false,
+      "seconds": 0.124
+    }
+  ],
+  "completed": false,
+  "model_calls_attempted": 1
+}

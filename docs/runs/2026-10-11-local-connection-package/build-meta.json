@@ -1,0 +1,8 @@
+{
+  "version": "1.0.6-preview.bc21155",
+  "base_image": "sha256:a3f6dc20a9b9115c0479b11fc174d4eb19ff80ab79320237efc8c99c7761d812",
+  "code_commit": "bc211551dc46a8a9b55efb0e120d08779ec4c20f",
+  "source_tar_sha256": "b0d5a8993864b86d439e2e24a847ade34539c31d0048b09cb6171885e6f5d84d",
+  "arch": "arm64",
+  "private_data": false
+}

@@ -70,6 +70,18 @@ def _json_transport_timeout(default: float) -> float:
     return min(default, remaining)
 
 
+def _json_text_input_size(messages: list[dict[str, Any]]) -> int:
+    size = 0
+    for message in messages:
+        content = message.get("content") if isinstance(message, dict) else None
+        if isinstance(content, str):
+            size += len(content)
+        elif isinstance(content, list):
+            size += sum(len(block["text"]) for block in content
+                        if isinstance(block, dict) and isinstance(block.get("text"), str))
+    return size
+
+
 class Provider(Protocol):
     name: str
     model: str
@@ -244,7 +256,7 @@ class OpenAICompatible:
             payload["response_format"] = {"type": "json_schema", "json_schema": {
                 "name": "local_result", "strict": True, "schema": schema}}
             payload["temperature"] = 0
-        timeout = 30.0 if max_tokens <= 256 else 60.0
+        timeout = 60.0 if max_tokens > 256 or _json_text_input_size(messages) > 12_000 else 30.0
         _json_transport_timeout(timeout)  # An expired worker must not prepare a model.
         try:
             with self._ampel():

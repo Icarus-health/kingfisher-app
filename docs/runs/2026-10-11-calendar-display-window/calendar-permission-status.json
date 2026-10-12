@@ -1,0 +1,15 @@
+{
+  "version": "1.0.6-preview.45cb1c8",
+  "calendar_status": "granted",
+  "calendar_online": true,
+  "calendar_error": false,
+  "snapshot_event_count": 490,
+  "snapshot_complete": null,
+  "next_seven_days_count": 986,
+  "overview_errors_count": 0,
+  "background_paused": true,
+  "memory_allowed": false,
+  "outside_requested_window_count": 978,
+  "invalid_date_count": 2,
+  "selected_count": 3
+}

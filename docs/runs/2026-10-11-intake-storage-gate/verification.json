@@ -1,0 +1,35 @@
+{
+  "code_commit": "36907338bde9251b4f92081913327ac0d63e463c",
+  "file_sha256": {
+    "app/kingfisher/src/MailIntake.tsx": "7bf9724faf89314da476dc76c95ec7a7bfb9478f80821e7a054a251eb035460f",
+    "app/kingfisher/src/api.ts": "1d2db1a4069d1fd3fe439ae8f494479abe08e887995e45bfad879bef8d9ad16d",
+    "sidecar/icarus_memory/hintergrund.py": "9c6a10fda8ec5c0f0327e75b7fb1ddd095db01d02c23a4b04770f1303c9a3c2f",
+    "sidecar/icarus_memory/mail_intake.py": "88019f77ae17a3bebdd46fa6c199cee0cc2e25e9b5e2c8460bef2a8f4210450b",
+    "sidecar/icarus_memory/mail_intake_routes.py": "acae22b7980127e01beba592577751c20e55bd41b90ed44560933445dca22cbf",
+    "sidecar/icarus_memory/mail_stand.py": "17734915d96d92dff1de1559c8317744fa011e2c0f227f454b551bc583986c8a",
+    "sidecar/icarus_memory/scheduler.py": "5b29f69d84fb27e40d22c799f60cd92259a83fb23e4185d1a804b2738a4f1fa2",
+    "sidecar/icarus_memory/server.py": "b82988d7f2e84ecbd181f83f91e836192146481dc0aaa57194c0943d51974846",
+    "sidecar/icarus_memory/storage_capacity.py": "27e3c068ad5fe2671042a816b2ac6ad3b1c15308c12adea6d75f7b14f64e57d5",
+    "sidecar/tests/test_intake_storage_capacity.py": "95575afb315fa52b52c685b22ca5eacc36df43bf14bb48901ec23df593dea2ed"
+  },
+  "new_regression_and_policy_cases": 18,
+  "affected_backend_tests_passed": 111,
+  "platform_tests_skipped": 1,
+  "ui_tests_passed": 551,
+  "typecheck_passed": true,
+  "production_web_build_passed": true,
+  "asset_contract_passed": true,
+  "independent_review": "Two concrete bypasses reproduced before fixes, final static review without remaining blocker; reviewer did not execute tests.",
+  "synthetic_rendered_ui_passed": true,
+  "personal_runtime_modified": false,
+  "personal_import_started": false,
+  "models_started": false,
+  "cloud_calls": false,
+  "test_services_stopped": true,
+  "full_backend_suite_rerun": false,
+  "warnings": [
+    "Starlette/httpx deprecation",
+    "Node experimental type stripping and MockTimers warnings",
+    "Existing production chunk larger than 500kB"
+  ]
+}

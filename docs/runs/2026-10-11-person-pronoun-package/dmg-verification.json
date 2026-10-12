@@ -1,0 +1,7 @@
+{
+  "version": "1.0.6-preview.45cb1c8",
+  "native_files": 6,
+  "dmg_matches_native_manifest": true,
+  "strict_deep_signature": true,
+  "personal_data": false
+}

@@ -1,3 +1,4 @@
+import type {HealthPayload} from "./healthObservationForm";
 import type { AktenArt, ArtStand, KreisArt, KreisStand, KreisUebersicht } from "./kreis";
 import type { WkStand } from "./wiederkehrendes";
 import type { SuchindexStand } from "./suchindex";
@@ -269,6 +270,8 @@ export type MailIntakeStatus = {
   analysis_active?: boolean;
   /** Explicit global pause, independent of a mailbox's own paused flag. */
   background_paused?: boolean;
+  storage_blocked?: string | null;
+  storage_message?: string | null;
   accounts: MailIntakeAccount[];
   attachments_supported: boolean;
 };
@@ -276,8 +279,11 @@ export type MailIntakeStatus = {
 export type MailIntakePreview = {folders: string[]; description: string; attachments_supported: boolean; attachments_description?: string};
 
 export type CategoryTaxonomyEntry = {id: string; label: string; description: string; version: number};
+export const CATEGORY_FEEDBACK_EVENT = "kingfisher:category-feedback-saved";
 export type SourceCategoriesResult = {
   episode_id: string;
+  /** Current original, taxonomy and explicit correction; absent on older services. */
+  revision?: string | null;
   status: string;
   failure_code?: string | null;
   categories: Array<{id: string; label: string; origin: string;
@@ -446,6 +452,14 @@ export type Task = {
   wartet_seit: string | null;
   wartet_tage: number | null;
   overdue: boolean;
+};
+
+export type ProjectTaskOverview = {
+  project_id: string;
+  as_of: string;
+  counts: {mine: number; waiting: number; done: number; dropped: number; overdue: number; undated: number};
+  next_tasks: Task[];
+  waiting_tasks: Task[];
 };
 
 export type MailThreadContext = {
@@ -712,6 +726,13 @@ export type OrdnerOrte = { helfer: boolean; container: boolean; orte: OrdnerOrt[
 export type Unterordner = { pfad: string; name: string; oben: string | null; ordner: { pfad: string; name: string }[] };
 export type OrdnerPrefix = "/api/v1/transcript-sync" | "/api/v1/folder-sync";
 
+/** Local folder metadata; reading it does not scan the selected folder. */
+export type SourceFolderStatus = Pick<TranskriptOrdner, "enabled" | "root_id" | "folder" | "seen_at" | "synced_at" | "running"> & {
+  last_run: (Omit<NonNullable<TranskriptOrdner["last_run"]>, "errors"> & {errors?: string[]; error_count?: number}) | null;
+  files?: TranskriptOrdner["files"];
+  file_counts?: {recorded: number; active: number; ignored: number; unknown: number};
+};
+
 export type TranskriptUebersicht = {
   ordner: TranskriptOrdner;
   vorgabe: string;
@@ -728,6 +749,7 @@ export type NachbereitungGespeichert = {
 };
 
 export type TerminZuordnung = {
+  zuordnungskonflikt?: boolean;
   teilnehmer: TerminTeilnehmer[];
   vorschlag: { id: string; name: string; grund: string } | null;
   festgelegt: boolean;
@@ -904,16 +926,21 @@ async function request<T>(path: string, init?: RequestInit, previewError = false
 }
 
 export type MacCalendarState = {
+  generation: number;
+  memory_error?: string;
   enabled: boolean; online: boolean; status: string; authorize: boolean;
   selected: string[]; calendars: Array<{id: string; name: string; source: string}>;
   synced_at: string | null; error: string; event_count: number;
+  range_from?: string | null; range_to?: string | null; snapshot_complete?: boolean;
 };
 
 export type CalendarOverview = {
   configured: boolean; errors: string[];
+  warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
     location: string; all_day: boolean; source_id?: string; source_label?: string; attendees?: string[];
+    source_copies?: Array<{uid: string; source_id: string; source_label: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string}>;
 };
@@ -943,6 +970,8 @@ export type CalendarPreparation = {
 };
 
 export type TaskSource = {quote?: string | null; state?: string; title: string; body: string; recorded_at: string; occurred_at: string | null;
+  source_review?: {reason: string; followup_episode_id?: string | null};
+  source_review_coverage?: {complete: boolean; reason: string};
   participants: string[]; truncated: boolean; provenance: {source_ref?: string | null}};
 
 export type RecoveryJob = {id: string; status: "queued" | "running" | "completed" | "failed"; message: string; path: string | null};
@@ -968,7 +997,7 @@ export type MemoryCoverage = {
 };
 export type PostfachErreichbar = {account_id: string; label: string; erreichbar: boolean;
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
-export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null};
+export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null};
 export type MemoryTimeline = {
   basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;
@@ -1088,7 +1117,17 @@ export type MemoryQuestion = {id: string; stand: string; subject_ref: string; pr
   candidates: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>;
   active_claims: Array<{id: string; statement: string; value: string; sources: QuestionSource[]}>};
 
+export type HealthObservation = HealthPayload & {id: string; recorded_at: string; status: 'current' | 'superseded' | 'excluded'; support_fingerprint: string | null};
+export type HealthObservationPage = {items: HealthObservation[]; next_cursor: string | null; scanned_sources: number; invalid_sources: number; scan_limit: number; complete: boolean};
+
 export const api = {
+  healthObservations: (cursor?: string | null, filters: {metric?: string; unit?: string} = {}) => {
+    const query = new URLSearchParams({...cursor ? {cursor} : {}, ...filters.metric ? {metric:filters.metric} : {}, ...filters.unit ? {unit:filters.unit} : {}});
+    return request<HealthObservationPage>(`/api/v1/health/observations${query.size ? '?'+query : ''}`);
+  },
+  healthObservationHistory: (id: string, cursor?: string | null) => request<HealthObservationPage>(`/api/v1/health/observations/${encodeURIComponent(id)}/history${cursor ? '?cursor='+encodeURIComponent(cursor) : ''}`),
+  saveHealthObservation: (data: HealthPayload & {request_id: string}) => request<HealthObservation>('/api/v1/health/observations', {method:'POST',body:JSON.stringify(data)}),
+  correctHealthObservation: (id: string, data: HealthPayload & {request_id: string; expected_support_fingerprint: string}) => request<HealthObservation>(`/api/v1/health/observations/${encodeURIComponent(id)}`, {method:'PATCH',body:JSON.stringify(data)}),
   deviceProfile: () => request<DeviceProfile>("/api/v1/device/profile"),
   /** Auf welchem System Kingfisher läuft (system.ts, laufumgebung.py). */
   system: () => request<SystemAngabe>("/api/v1/system"),
@@ -1099,7 +1138,7 @@ export const api = {
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
   satzpruefungSetzen: (satzpruefung: "an" | "aus") =>
     request<SatzpruefungStand>("/api/v1/models/satzpruefung", {method: "PUT", body: JSON.stringify({satzpruefung})}),
-  saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; anbieter?: string; einwilligung?: boolean}) =>
+  saveModelRole: (rolle: string, body: {modell?: string; cloud?: boolean; local_only?: boolean; anbieter?: string; einwilligung?: boolean}) =>
     request<ModelRoles>(`/api/v1/models/roles/${encodeURIComponent(rolle)}`, {method: "PUT", body: JSON.stringify(body)}),
   cloudAccess: () => request<CloudAccessState>("/api/v1/models/cloud-access"),
   chatgpt: () => request<ChatGPTState>("/api/v1/chatgpt"),
@@ -1145,7 +1184,7 @@ export const api = {
   submitSupportReassessment: (id: string, preview_token: string) => request<SupportReassessmentResult>(`/api/v1/assertions/${encodeURIComponent(id)}/support-reassessment`, {method: "POST", body: JSON.stringify({preview_token, confirmed: true})}),
   task: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`),
   taskHistory: (id: string) => request<{items: TaskHistoryEvent[]; truncated: boolean; scope: string}>(`/api/v1/tasks/${encodeURIComponent(id)}/history`),
-  memoryCoverage: () => request<MemoryCoverage>("/api/v1/memory/coverage"),
+  memoryCoverage: (signal?: AbortSignal) => request<MemoryCoverage>("/api/v1/memory/coverage", {signal}),
   memoryAutomation: () => request<MemoryAutomation>("/api/v1/memory/automation"),
   setMemoryAutomation: (enabled: boolean, vormerken = false) => request<MemoryAutomation>("/api/v1/memory/automation", {method: "PUT", body: JSON.stringify(vormerken ? {enabled, vormerken} : {enabled})}),
   memoryTimeline: (start: string, end: string, cursor?: string, basis: "source" | "recorded" = "recorded") => request<MemoryTimeline>(`/api/v1/memory/timeline?${new URLSearchParams({start, end, basis, ...(cursor ? {cursor} : {})})}`),
@@ -1184,7 +1223,7 @@ export const api = {
   dismissWorkingMemory: (id: string) => request<{dismissed: boolean}>(`/api/v1/memory/working/${encodeURIComponent(id)}/dismiss`, {method: "POST"}),
   workingMemoryCorrection: (id: string) => request<WorkingMemoryCorrection>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`),
   saveWorkingMemoryCorrection: (id: string, body: {fingerprint: string; body: string}) => request<WorkingMemoryCorrectionResult>(`/api/v1/memory/working/${encodeURIComponent(id)}/correction`, {method: "POST", body: JSON.stringify(body)}),
-  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; source_current?: boolean; source_incomplete?: boolean; attachment_check_pending?: boolean; attachment_sources?: Array<{id: string; title: string}>; attachment_coverage?: {geprueft: boolean; vollstaendig: boolean; hinweis: string} | null; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
+  profileSource: (kind: "episode" | "note", id: string) => request<{title: string; body: string; occurred_at?: string | null; recorded_at?: string; state?: string; revision?: number; correction_id?: string; correction_current?: boolean; source_current?: boolean; source_incomplete?: boolean; attachment_check_pending?: boolean; attachment_sources?: Array<{id: string; title: string}>; attachment_coverage?: {geprueft: boolean; vollstaendig: boolean; hinweis: string} | null; project_id?: string | null; memory_status?: {state: string; label: string}; provenance?: {source_type?: string; source_ref?: string; correction_current?: boolean}}>(`/api/v1/${kind === "episode" ? "episodes" : "notes"}/${encodeURIComponent(id)}`),
   identities: () => request<{entities: Array<{id: string; label: string; kind: string}>}>("/api/v1/memory/registry"),
   correctClaim: (id: string, body: {value: string; statement: string; reason: string; scope_ref: string | null; target_ref: string | null; valid_from: string | null; valid_until: string | null}) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/correct`, {method: "POST", body: JSON.stringify(body)}),
   retractClaim: (id: string, reason: string) => request(`/api/v1/memory/claims/${encodeURIComponent(id)}/retract`, {method: "POST", body: JSON.stringify({reason})}),
@@ -1221,7 +1260,8 @@ export const api = {
   transkriptZuordnen: (id: string, termin: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "POST", body: JSON.stringify({ termin }) }),
   transkriptLoesen: (id: string) => request<TranskriptEintrag>(`/api/v1/transkripte/${encodeURIComponent(id)}/zuordnung`, { method: "DELETE" }),
   setCalendarFollowupStatus: (uid: string, start: string, nichts: boolean) => request<TerminNachbereitung>("/api/v1/calendar/nachbereitung/stand", { method: "PUT", body: JSON.stringify({ uid, start, nichts }) }),
-  macCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar"),
+  macCalendar: (signal?: AbortSignal) => request<MacCalendarState>("/api/v1/mac-calendar", {signal}),
+  sourceFolderStatus: (prefix: OrdnerPrefix, signal?: AbortSignal) => request<SourceFolderStatus>(`${prefix}?summary=true`, {signal}),
   connectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar/connect", {method: "POST"}),
   selectMacCalendars: (ids: string[]) => request<MacCalendarState>("/api/v1/mac-calendar/selection", {method: "PUT", body: JSON.stringify({ids})}),
   disconnectMacCalendar: () => request<MacCalendarState>("/api/v1/mac-calendar", {method: "DELETE"}),
@@ -1248,10 +1288,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ title }),
     }),
-  getConversation: (id: string) => request<ConversationPayload>(`/api/v1/conversations/${id}`),
+  getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
   listConversations: () => request<{ conversations: ConversationSummary[] }>("/api/v1/conversations"),
-  integrations: () => request<IntegrationOverview>("/api/v1/integrations"),
-  schedule: () => request<Schedule>("/api/v1/schedule"),
+  integrations: (signal?: AbortSignal) => request<IntegrationOverview>("/api/v1/integrations", {signal}),
+  schedule: (signal?: AbortSignal) => request<Schedule>("/api/v1/schedule", {signal}),
   saveSchedule: (data: {enabled: boolean; mail_accounts: string[]; interval_minutes: number}) => request<Schedule>("/api/v1/schedule", {method: "PUT", body: JSON.stringify(data)}),
   mailIntake: (signal?: AbortSignal) => request<MailIntakeStatus>("/api/v1/mail/intake", {signal}),
   geburtstag: (sache: string) => request<{geburtstag: null | {wert: string; text: string; aussage: string; aussage_id: string}}>(`/api/v1/geburtstag?sache=${encodeURIComponent(sache)}`),
@@ -1266,7 +1306,15 @@ export const api = {
   memoryAreas: (limit = 50, cursor?: number, area?: string) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)}), ...(area === undefined ? {} : {area})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
   sourceCategories: (id: string) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`),
-  correctSourceCategories: (id: string, categories: string[]) => request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories})}),
+  correctSourceCategories: async (id: string, categories: string[], expected_revision?: string) => {
+    const result = await request<SourceCategoriesResult>(`/api/v1/episodes/${encodeURIComponent(id)}/categories`, {method: "PUT", body: JSON.stringify({categories, expected_revision})});
+    // The committing request can outlive its editor. Notify whichever area is
+    // currently mounted, without broadcasting source contents or identifiers.
+    if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+      window.dispatchEvent(new Event(CATEGORY_FEEDBACK_EVENT));
+    }
+    return result;
+  },
   einrichtung: () => request<EinrichtungStand>("/api/v1/einrichtung"),
   einrichtungSetzen: (aenderung: EinrichtungAenderung) => request<EinrichtungStand>("/api/v1/einrichtung", { method: "PUT", body: JSON.stringify(aenderung) }),
   calendarMemory: () => request<{ mac_termine: number; quellen: Array<{ id: string; label: string; termine: number }> }>("/api/v1/calendar-memory"),
@@ -1295,6 +1343,7 @@ export const api = {
     request<IntegrationOverview>(`/api/v1/integrations/${kind}/${id}`, { method: "DELETE" }),
   tasks: (view: "mine" | "waiting" | "done", projectId = "", options: {q?: string; cursor?: string | null; limit?: number} = {}) => request<{view: string; tasks: Task[]; total: number; next_cursor: string | null; stand: string; limit: number}>(`/api/v1/tasks?${new URLSearchParams({view, limit: String(options.limit ?? 50), ...(projectId ? {project_id: projectId} : {}), ...(options.q ? {q: options.q} : {}), ...(options.cursor ? {cursor: options.cursor} : {})})}`),
   projects: () => request<Project[]>("/api/v1/projects?all=true"),
+  projectOverview: (id: string) => request<ProjectTaskOverview>(`/api/v1/projects/${encodeURIComponent(id)}/task-overview`),
   decisions: () => request<{items: Decision[]}>("/api/v1/decisions"),
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),
@@ -1304,7 +1353,7 @@ export const api = {
   assignTaskProject: (id: string, project_id: string | null) => request<Task>(`/api/v1/tasks/${id}/project`, {method: "PATCH", body: JSON.stringify({project_id})}),
   editTask: (id: string, data: {title?: string; due?: string | null; remind_at?: string | null; expected_remind_at?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
   taskReminders: (limit = 100) => request<{items: Task[]; truncated: boolean}>(`/api/v1/tasks/reminders?limit=${limit}`),
-  addTask: (data: { title: string; due?: string | null; project_id?: string; goal_id?: string | null }) =>
+  addTask: (data: { title: string; due?: string | null; project_id?: string; goal_id?: string | null; request_id?: string }) =>
     request<Task>("/api/v1/tasks", { method: "POST", body: JSON.stringify(data) }),
   waitTask: (id: string, name: string) => request<Task>(`/api/v1/tasks/${id}/warten`, {method: "POST", body: JSON.stringify({name})}),
   unwaitTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/zurueckholen`, {method: "POST"}),
@@ -1321,7 +1370,7 @@ export const api = {
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
   mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
-  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean}) =>
+  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>
     request<Task>(`/api/v1/messages/${encodeURIComponent(uid)}/task`, {method: "POST", body: JSON.stringify(data)}),
   prepareMailReply: (uid: string, data: {body: string; context_token?: string}) => request<ConversationPayload>(`/api/v1/messages/${encodeURIComponent(uid)}/reply`, {method: "POST", body: JSON.stringify(data)}),
   validateMailReplyContext: (uid: string, contextToken: string) => request<{valid: boolean}>(`/api/v1/messages/${encodeURIComponent(uid)}/reply-suggestion/validate`, {method: "POST", body: JSON.stringify({context_token: contextToken})}),

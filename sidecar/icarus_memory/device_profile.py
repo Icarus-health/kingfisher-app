@@ -21,6 +21,12 @@ _CHIP = re.compile(r'[A-Za-z0-9 ()+.,:_/-]{1,128}', re.ASCII)
 PLATFORMEN = ('macos', 'windows', 'linux')
 
 
+def memory_plan_gb(memory: float) -> tuple[float, float]:
+    """Planning reserve and model budget for shared host RAM, not current free RAM."""
+    headroom = min(memory, max(6.0, round(memory * .4, 1)))
+    return headroom, max(0.0, round(memory - headroom, 1))
+
+
 def _validate(report: Any) -> dict:
     if not isinstance(report, dict) or report.get('platform') not in PLATFORMEN:
         raise ValueError('Ein Host-Bericht für macOS, Windows oder Linux ist erforderlich.')
@@ -65,8 +71,7 @@ def _profile(report: dict | None) -> dict:
     gpu = round(report['gpu_memory_bytes'] / _GIB, 1) if 'gpu_memory_bytes' in report else None
     disk = round(report['disk_free_bytes'] / _GIB, 1) if 'disk_free_bytes' in report else None
     # A deliberately conservative planning reserve, not a measurement of free RAM.
-    headroom = min(memory, max(6.0, round(memory * .4, 1)))
-    budget = max(0.0, round(memory - headroom, 1))
+    headroom, budget = memory_plan_gb(memory)
     capacity = 'Knapp' if memory < 16 else 'Für ein kleines lokales Modell einplanbar'
     return {
         'chip': None if report['chip'].lower() == 'unknown' else report['chip'],
@@ -101,11 +106,11 @@ def mit_eigener_messung(profil: dict, eigene: dict | None = None) -> dict:
         return profil
     memory = float(eigene['memory_gb'])
     untergrenze = bool(eigene.get('untergrenze'))
-    headroom = min(memory, max(6.0, round(memory * .4, 1)))
+    headroom, budget = memory_plan_gb(memory)
     return {**profil, 'memory_gb': memory, 'platform': eigene.get('platform') or 'unknown',
             'source': 'untergrenze' if untergrenze else 'eigene',
             'guidance': {**profil['guidance'], 'capacity': 'Knapp' if memory < 16 else 'Für ein kleines lokales Modell einplanbar',
-                         'headroom_gb': headroom, 'model_budget_gb': max(0.0, round(memory - headroom, 1)),
+                         'headroom_gb': headroom, 'model_budget_gb': budget,
                          'note': ('Im Container gemessen: Der Rechner hat mindestens so viel. ' if untergrenze else
                                   'Von Kingfisher selbst gemessen. ')
                                  + 'Grobe Kapazitätsschätzung, kein Qualitätsnachweis.'}}

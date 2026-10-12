@@ -23,8 +23,8 @@ def test_tag_ist_antwort_frage_einbettung_nacht_ist_hintergrund_und_einbettung()
     b = orchester_bedarf(auswahl, mac(32, 100))
     assert b["tag_gb"] == 6 + 10 + 2 and b["nacht_gb"] == 20 + 2
     assert b["festplatte_gb"] == pytest.approx(3.4 + 8.0 + 17.0 + 1.2)
-    assert b["passt_tag"] is True and b["passt_nacht"] is True and b["passt_festplatte"] is True
-    assert b["nutzbar_gb"] == pytest.approx(32 * 0.85)
+    assert b["passt_tag"] is True and b["passt_nacht"] is False and b["passt_festplatte"] is True
+    assert b["nutzbar_gb"] == pytest.approx(19.2)
 
 
 def test_dasselbe_modell_in_zwei_rollen_wird_einmal_gezaehlt():
@@ -35,11 +35,11 @@ def test_dasselbe_modell_in_zwei_rollen_wird_einmal_gezaehlt():
 
 
 def test_passt_nicht_wenn_die_summe_die_grenze_ueberschreitet_obwohl_jedes_einzeln_passt():
-    auswahl = wahl(frage="qwen3.5:9b", antwort="qwen3.6:35b", hintergrund="qwen3.6:35b", einbettung="bge-m3")
-    b = orchester_bedarf(auswahl, mac(32, 500))
-    assert all(e.speicher_gb <= 32 * 0.85 for e in auswahl.values())  # einzeln passen alle
-    assert b["tag_gb"] == 39 and b["passt_tag"] is False
-    assert b["nacht_gb"] == 29 and b["passt_nacht"] is False
+    auswahl = wahl(frage="qwen3.5:4b", antwort="gemma4:12b", hintergrund="qwen3.5:9b", einbettung="bge-m3")
+    b = orchester_bedarf(auswahl, mac(24, 500))
+    assert all(e.speicher_gb <= 14.4 for e in auswahl.values())
+    assert b["tag_gb"] == 18 and b["passt_tag"] is False
+    assert b["nacht_gb"] == 12 and b["passt_nacht"] is True
 
 
 def test_festplatte_mit_reserve_und_nur_was_noch_fehlt():
@@ -109,11 +109,11 @@ def test_32_gb_nimmt_fuer_die_antwort_die_kleinere_alternative_mit_begruendung()
     g = mac(32, 500)
     assert empfehle(g, "antwort").modell.name == "qwen3.6:35b"  # die einzelne Rolle bleibt, wie sie war
     alle = empfehle_alle(g)
-    assert alle["antwort"].modell.name == "gemma4:12b"
+    assert alle["antwort"].modell.name == "qwen3.5:9b"
     satz = alle["antwort"].orchester_hinweis
-    assert "qwen3.6:35b" in satz and "tagsüber" in satz and "gemma4:12b" in satz
+    assert "qwen3.6:35b" in satz and "tagsüber" in satz and "qwen3.5:9b" in satz
     assert alle["antwort"].passt_vermutlich is True
-    assert "qwen3.6:35b" in {a.name for a in alle["antwort"].alternativen}  # die große Wahl bleibt wählbar
+    assert "qwen3.6:35b" in {a.name for a in alle["antwort"].alternativen}  # bleibt sichtbar, wird bei zu wenig Reserve vor dem Laden abgelehnt
     # Das Hintergrundmodell bleibt auf 32 GB bei der gemessenen 9B-Familie.
     assert alle["hintergrund"].modell.name == "qwen3.5:9b"
     assert alle["hintergrund"].orchester_hinweis == ""
@@ -128,28 +128,30 @@ def test_die_pruefung_laeuft_tagsueber_mit_und_zaehlt_zum_bedarf():
 
 
 def test_die_pruefung_gibt_zuerst_speicher_her_wenn_das_allein_reicht():
-    """24 GB: Mit dem kleinsten Prüfmodell passt es, also bleibt das Antwortmodell, wie es war."""
-    alle = empfehle_alle(mac(24, 500))
-    assert alle["antwort"].modell.name == empfehle(mac(24, 500), "antwort").modell.name
+    """Separate 24-GB-GPU: Nur die Prüfung wird kleiner, wenn das allein reicht."""
+    g = Geraet("linux", None, 64, 24, 500)  # separate GPU: 20.4 GB model budget
+    alle = empfehle_alle(g)
+    assert alle["antwort"].modell.name == empfehle(g, "antwort").modell.name
     assert alle["antwort"].orchester_hinweis == ""
     assert alle["pruefung"].modell.name == "tev1:0.8b" and "bespoke-minicheck:7b" in alle["pruefung"].orchester_hinweis
-    assert orchester_bedarf(alle, mac(24, 500))["passt_tag"] is True
+    assert orchester_bedarf(alle, g)["passt_tag"] is True
 
 
 def test_reicht_die_pruefung_allein_nicht_wird_zuerst_die_antwort_kleiner():
-    """32 GB: Das große Antwortmodell passt auch mit dem kleinsten Prüfmodell nicht; die Prüfung wird danach nur so
-    klein wie nötig (nicht bis ganz unten)."""
+    """32 GB: Gemeinsames Fragemodell spart Speicher; die Prüfung bleibt erhalten."""
     alle = empfehle_alle(mac(32, 500))
-    assert alle["antwort"].modell.name == "gemma4:12b"
-    assert alle["pruefung"].modell.name == "tev1:4b"
-    assert orchester_bedarf(alle, mac(32, 500))["tag_gb"] == pytest.approx(26.7)
+    assert alle["antwort"].modell.name == "qwen3.5:9b"
+    assert alle["pruefung"].modell.name == "bespoke-minicheck:7b"
+    assert orchester_bedarf(alle, mac(32, 500))["tag_gb"] == pytest.approx(18)
 
 
-def test_64_gb_braucht_keinen_tausch():
+def test_64_gb_reserve_verkleinert_nur_die_antwort():
     g = mac(64, 500)
     alle = empfehle_alle(g)
-    assert {r: e.orchester_hinweis for r, e in alle.items()} == {r: "" for r in ROLLEN}
-    assert alle["antwort"].modell.name == empfehle(g, "antwort").modell.name
+    assert alle["antwort"].modell.name == "qwen3.5:27b"
+    assert alle["antwort"].orchester_hinweis
+    assert all(not e.orchester_hinweis for r,e in alle.items() if r != "antwort")
+    assert orchester_bedarf(alle,g)["tag_gb"] == 38
 
 
 def test_unbekanntes_geraet_bleibt_bei_der_kleinsten_stufe():
@@ -164,7 +166,7 @@ def test_hinweise_nennen_was_nicht_passt_und_was_stattdessen():
     saetze = orchester_hinweise(auswahl, g, TITEL)
     text = " ".join(saetze)
     assert any("Tagsüber" in s and "39" in s for s in saetze)
-    assert "Antworten formulieren" in text and "gemma4:12b" in text and "statt qwen3.6:35b" in text
+    assert "Antworten formulieren" in text and "qwen3.5:9b" in text and "statt qwen3.6:35b" in text
     assert any("nachts" in s.lower() for s in saetze)
     assert orchester_hinweise(wahl(frage="qwen3.5:4b", antwort="gemma4:12b", hintergrund="gemma4:12b",
                                    einbettung="bge-m3"), mac(32, 500), TITEL) == []

@@ -104,3 +104,14 @@ test("Unbekannter Platz und unbekannte Modelle werden gesagt, nicht geraten", ()
   assert.doesNotMatch(orchesterZeile(orchester({festplatte_frei_gb: null})), /frei: /);
   assert.match(orchesterZeile(orchester({unbekannte_modelle: ["eigen:7b"]})), /Größe von eigen:7b ist nicht bekannt/);
 });
+
+test('setup blocks an oversized full plan before the first role is installed', async () => {
+  const {setupFits} = await import('../src/modelSetup.ts');
+  const rows=[{rolle:'frage',empfohlen:{passt:true}},{rolle:'antwort',empfohlen:{passt:true}}];
+  const plan={passt_tag:false,passt_nacht:true};
+  assert.equal(setupFits(rows,plan,['frage','antwort']),false);
+  assert.equal(setupFits(rows,plan,['frage']),true);
+  assert.equal(setupFits([{rolle:'antwort',empfohlen:{passt:false}}],plan,['antwort']),false);
+  assert.equal(setupFits(rows,{passt_tag:true,passt_nacht:true},['frage','antwort']),true);
+  assert.equal(setupFits(rows,undefined,['unknown']),false);
+});

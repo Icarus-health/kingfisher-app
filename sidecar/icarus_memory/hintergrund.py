@@ -87,6 +87,9 @@ GRUND_TEXT = {
     # Fremdprobe 3, Befund 8: „Wartet, solange du arbeitest.“ las sich, als solle man aufhören zu arbeiten.
     'nutzer': 'Kingfisher lernt weiter, sobald du eine Pause machst; du musst nichts tun.',
 }
+from .storage_capacity import MESSAGES as STORAGE_MESSAGES
+GRUND_TEXT.update(STORAGE_MESSAGES)
+RESOURCE_INTERRUPTS = ('akku', 'energie_unbekannt', *STORAGE_MESSAGES)
 SATZ_ANBLEIBEN = 'Es geht schneller, wenn der Rechner heute anbleibt.'
 
 
@@ -211,7 +214,7 @@ class ModellAmpel:
 def _gesperrt(sperre: Callable[[], str | None]) -> bool:
     try:
         grund = sperre()
-        if grund in ('akku', 'energie_unbekannt'):
+        if grund in RESOURCE_INTERRUPTS:
             raise BackgroundInterrupted(grund)
         return grund is not None
     except Exception:  # noqa: BLE001 - eine kaputte Sperre darf den Hintergrund nicht für immer anhalten
@@ -221,7 +224,7 @@ def _gesperrt(sperre: Callable[[], str | None]) -> bool:
 AMPEL = ModellAmpel()
 
 
-def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
+def speicher_reicht(geraet_gb: float | None, modelle: list[str], *, modellbudget_gb: float | None = None) -> bool:
     """Passen alle genannten Modelle zugleich in den Speicher dieses Rechners?
 
     Nur mit bekannten Größen aus dem Katalog (`model_recommendation.KATALOG`) und
@@ -229,7 +232,8 @@ def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
     Modell zweimal zählt einmal (es wird nur einmal geladen), teilt sich aber die
     Rechenzeit; auch dann gilt deshalb: nacheinander.
     """
-    from .model_recommendation import KATALOG, _NUTZBARER_ANTEIL, normalisiere
+    from .model_recommendation import KATALOG, normalisiere
+    from .device_profile import memory_plan_gb
     namen = [normalisiere(m) for m in modelle if m]
     if geraet_gb is None or len(namen) < 2 or len(set(namen)) < 2:
         return False
@@ -238,7 +242,8 @@ def speicher_reicht(geraet_gb: float | None, modelle: list[str]) -> bool:
         groesse[normalisiere(eintrag.name)] = max(groesse.get(normalisiere(eintrag.name), 0.0), eintrag.speicher_gb)
     if any(n not in groesse for n in namen):
         return False
-    return sum(groesse[n] for n in set(namen)) <= geraet_gb * _NUTZBARER_ANTEIL
+    budget = memory_plan_gb(geraet_gb)[1] if modellbudget_gb is None else modellbudget_gb
+    return sum(groesse[n] for n in set(namen)) <= budget
 
 
 # -- Aktivität des Menschen ---------------------------------------------------
@@ -684,7 +689,7 @@ class Steuerung:
         else:
             zustand = 'laeuft'
         schaetzung = None
-        if zustand in ('laeuft', 'wartet') and je_s and grund not in ('akku', 'energie_unbekannt'):
+        if zustand in ('laeuft', 'wartet') and je_s and grund not in RESOURCE_INTERRUPTS:
             sekunden = offen / je_s
             jetzt = self._wanduhr()
             ziel = jetzt + timedelta(seconds=sekunden)
@@ -695,7 +700,7 @@ class Steuerung:
         return {
             'zustand': zustand,
             'grund': GRUND_TEXT.get(grund or '') if (zustand in ('pausiert', 'wartet')
-                      or freigegeben and grund in ('akku', 'energie_unbekannt')) else None,
+                      or freigegeben and grund in RESOURCE_INTERRUPTS) else None,
             'pausiert': self.pausiert,
             'fortschritt': {**zahlen, 'offen': offen},
             'rate_pro_stunde': None if not je_s else round(je_s * 3600, 1),
@@ -717,8 +722,10 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     except ValueError:
         ruhe_s = RUHE_NACH_EINGABE_S
     from .host_power import install_routes as install_power_routes
+    from .storage_capacity import reason as storage_reason
     power = install_power_routes(app, guard, data_dir)
-    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s, external_gate=power.reason)
+    steuerung = Steuerung(data_dir() / 'hintergrund.json', lambda: app.state.episodes, ruhe_s=ruhe_s,
+                          external_gate=lambda: storage_reason(data_dir()) or power.reason())
     app.state.hintergrund = steuerung
     app.add_middleware(AktivitaetsMiddleware, aktivitaet=lambda: getattr(getattr(app.state, 'hintergrund', None), 'aktivitaet', None))
 
@@ -729,7 +736,8 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
         wahlen = lese_wahlen(getattr(app.state.settings, 'model_roles', None))
         standard = getattr(app.state.settings, 'model', '') or ''
         namen = [(wahlen[r].modell if r in wahlen and wahlen[r].modell else standard) for r in ('antwort', 'hintergrund')]
-        return speicher_reicht(geraet_aus_profil(load_device_profile(data_dir())).modellspeicher_gb, namen)
+        geraet = geraet_aus_profil(load_device_profile(data_dir()))
+        return speicher_reicht(geraet.modellspeicher_gb, namen, modellbudget_gb=geraet.modellbudget_gb)
 
     AMPEL.parallel = modelle_passen
 
@@ -737,6 +745,7 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     # von außen übergebener Agent in Prüfungen), bleibt es beim alten Verhalten; die Routen gehen trotzdem.
     scheduler = getattr(app.state, 'scheduler', None)
     if scheduler is not None:
+        scheduler._capacity_gate = lambda: storage_reason(data_dir())
         scheduler.anschliessen(steuerung)
 
     def stand() -> dict[str, Any]:

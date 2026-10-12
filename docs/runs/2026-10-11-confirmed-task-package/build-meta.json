@@ -1,0 +1,10 @@
+{
+  "version": "1.0.6-preview.a5787c8",
+  "code_commit": "a5787c88914400151769dae714dfd74c9ea8a0c3",
+  "source_tar_sha256": "929612b22b951baccdeda89ad9990337f6df600f3f86cf65f3c2ed21c93dc23e",
+  "base_image": "sha256:e2caaa4f7d2d466cb5dac00db3dab3eeab3a3a6e39b30cc33115a81079aaafb1",
+  "arch": "arm64",
+  "private_data": false,
+  "backend_source_unchanged": false,
+  "scope": "Confirmed-task exact-header followup hints and original-only UI; no schema/model-role changes"
+}

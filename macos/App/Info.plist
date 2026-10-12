@@ -26,8 +26,14 @@
 	<string>public.app-category.productivity</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Kingfisher liest Termine aus den Kalendern, die du anschließend auswählst. Ohne Auswahl wird kein Termin gelesen. Der Mac-Kalenderhelfer verändert keine Termine.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Kingfisher — lokale App</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Kingfisher nimmt nur auf, wenn du im Gespräch ausdrücklich ein Diktat startest. Das Audio bleibt auf diesem Mac und wird nicht gespeichert. Erst dein bestätigter Text wird als Gespräch gesendet.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Kingfisher wandelt dein Diktat ausschließlich auf diesem Mac in einen prüfbaren Entwurf um. Ist lokale Erkennung nicht verfügbar, wird keine Aufnahme gestartet und kein Cloud-Dienst verwendet.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

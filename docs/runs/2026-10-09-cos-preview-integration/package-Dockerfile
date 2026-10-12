@@ -1,0 +1,9 @@
+FROM ghcr.io/icarus-health/kingfisher-app:1.0.6-local.3403623
+USER root
+RUN rm -rf /usr/local/lib/python3.12/site-packages/icarus_memory /opt/kingfisher/ui
+COPY sidecar/icarus_memory /usr/local/lib/python3.12/site-packages/icarus_memory
+COPY ui /opt/kingfisher/ui
+COPY VERSION /opt/kingfisher/VERSION
+ENV KINGFISHER_FASSUNG=1.0.6-preview.5f58289
+LABEL org.opencontainers.image.revision=5f5828932c721d06d18137574d092de2f8a40212
+USER kingfisher

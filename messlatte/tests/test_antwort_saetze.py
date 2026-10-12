@@ -64,7 +64,15 @@ def fragen(stufe, regel):
 
 
 def test_sorgfaeltiges_modell_ergibt_einen_satz_mit_beleg_und_keine_falsche_aussage(stufe):
-    ergebnis, bewertung = fragen(stufe, sorgfaeltig)
+    # Zum sorgfältigen Modell gehört die gezielte Auswahl: „Oktober“ allein
+    # wählt auch eine Museumsführung und die alte Frist. Ein Satz zur neuen
+    # Frist darf solche zusätzlich ausgewählten Originale nicht verdecken.
+    vorher = stufe.modell.regeln
+    try:
+        stufe.modell.regeln = {'Angebot für das Klinikum Mainz raus': ['26. Oktober']}
+        ergebnis, bewertung = fragen(stufe, sorgfaeltig)
+    finally:
+        stufe.modell.regeln = vorher
     assert ergebnis.text.startswith('die Frist für das Angebot verschiebt sich. Bitte senden Sie es bis zum 26. Oktober. [')
     assert bewertung.klasse == 'richtig' and not bewertung.falsche_aussage, (ergebnis.text, bewertung)
     assert 'mainz-003' in (ergebnis.belege or ())
@@ -94,7 +102,9 @@ def test_erfundene_zahl_faellt_durch_die_satzpruefung(stufe):
     assert 'Quelle berichtet' in ergebnis.text, 'Kein Satz besteht: Zitatmodus statt einer unbelegten Antwort'
 
 
-def test_nichts_vorhanden_wird_zur_ehrlichen_antwort_ohne_raten(stufe):
+def test_satzabstention_entfernt_keine_bereits_ausgewaehlten_originale(stufe):
     ergebnis, bewertung = fragen(stufe, {'status': 'nichts_vorliegend', 'saetze': []})
-    assert ergebnis.status == 'working_unknown' and 'keine Information vor' in ergebnis.text
-    assert bewertung.erkannt == 'nicht_bekannt'
+    assert ergebnis.status == 'working_reports' and 'Quelle berichtet' in ergebnis.text
+    assert 'keine Information vor' not in ergebnis.text
+    assert '26. Oktober' in ergebnis.text
+    assert 'mainz-003' in (ergebnis.belege or ())

@@ -1,0 +1,34 @@
+{
+  "scope": "Same 125002 synthetic original rows before/after actual v21\u2192v22 migration; metadata lookup, not inference or ingestion throughput",
+  "original_rows_bytewise_unchanged": true,
+  "original_row_snapshot": {
+    "rows": 125002,
+    "rows_sha256": "ddb338062c8c4d5d37f963448ee1fb69f0eebfdc0c789c808f6d1785287e7108"
+  },
+  "old_schema_version": 21,
+  "new_schema_version": 22,
+  "migration_and_open_seconds": 1.1585868329857476,
+  "lookup_seconds": [
+    0.0010617500520311296,
+    0.00045120803406462073,
+    0.000462958007119596
+  ],
+  "exact_followup_found": true,
+  "index_rows": 125003,
+  "query_plan": [
+    [
+      3,
+      0,
+      56,
+      "SEARCH j USING COVERING INDEX sqlite_autoindex_episode_mail_headers_1 (value=?)"
+    ],
+    [
+      9,
+      0,
+      44,
+      "SEARCH e USING COVERING INDEX sqlite_autoindex_episodes_1 (id=?)"
+    ]
+  ],
+  "models": false,
+  "network": false
+}

@@ -1,0 +1,110 @@
+{
+  "runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+  "synthetic_only": true,
+  "scope": "Synthetic model-route evidence and test logs only; no personal installation receipt or databases.",
+  "artifacts": {
+    "final-e9a968f-answers-sentences.jsonl": {
+      "sha256": "55cb851b3dd2acbb421eae433be19d76f92192413caafa7d5c4398828d884b87",
+      "bytes": 84326,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-evaluation.json": {
+      "sha256": "668a91a0d8e63f69b2423b251f9fee5885c2ad2dca998d2eb182e25adc1ff14e",
+      "bytes": 3305,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-lowercase-api-results.jsonl": {
+      "sha256": "1c5d719ac6921277f7a3fd5709c117c1367364b2b5c81212098d4e7c492c4676",
+      "bytes": 1054,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-lifecycle-results.jsonl": {
+      "sha256": "bc9e205692731a48889bc0541c53ea94c39237f7571329f3b2887bf7a56f69a1",
+      "bytes": 943,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-intake-results.jsonl": {
+      "sha256": "49d533850af7b294d1029b05444b6c9d4b92838418109d40fcb1fd5057af77e9",
+      "bytes": 2799,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-intake-metadata.json": {
+      "sha256": "8dc796f329d39704edb40d0b8e92518abbc6bc3ff4d82ed3d2f0dcd88069b804",
+      "bytes": 511,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-incremental-real-results.jsonl": {
+      "sha256": "95ef7a906ac637fd8c54795276587b69291d1a5bf6998d8ab70b14154a905a4c",
+      "bytes": 1104,
+      "kind": "synthetic_model_run"
+    },
+    "final-e9a968f-incremental-rerun.log": {
+      "sha256": "520ffd91f198170cc73d2ce025b9678d228bd5ae5a8c395651ae89a7f03ce597",
+      "bytes": 567,
+      "kind": "synthetic_model_run"
+    },
+    "../scripts/probe.py": {
+      "sha256": "22d91a8834298872ecdd08a3a7adae2aaa2cd501e91890186e8d23d91603c58e",
+      "kind": "portable_script",
+      "recorded_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0"
+    },
+    "../scripts/lifecycle.py": {
+      "sha256": "e76755a340ec45be171d6b0124ad61cccedfa0b1ac3bee704fb79464e7e99e4b",
+      "kind": "portable_script",
+      "recorded_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0"
+    },
+    "../scripts/incremental.py": {
+      "sha256": "bbb8162ac4f4668d21dddf16a083a49d5ef768976d0f793a49dbe169726de7b0",
+      "kind": "portable_script",
+      "recorded_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0"
+    },
+    "../scripts/lowercase.py": {
+      "sha256": "65a3d687ffaaced16b5f0b9775c65f77f99307e78c8d95b89cd19ae1da5a7fa3",
+      "kind": "portable_script",
+      "recorded_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0"
+    },
+    "final-e9a968f-backend.log.gz": {
+      "sha256": "e3c9890a370d2f1ec19573ef8e7c8a7ff9d7f0fe2ecfbc0d7cfbb07102de70c7",
+      "kind": "test_log"
+    },
+    "final-e9a968f-other-tests.log.gz": {
+      "sha256": "48ab8817018b1b8572c09688a086f30e70d63a34e3b04ef1e79f4f03bfe2d122",
+      "kind": "test_log"
+    },
+    "final-ui-tests.log.gz": {
+      "sha256": "9046d37701385f9092cdb4f1da7ed3d8acae4af7833230ba43787d5c4cd1f13e",
+      "kind": "test_log"
+    },
+    "final-ui-build.log.gz": {
+      "sha256": "0f4e41cc0f3bd871a0d3fbfb6fbae95f15e3d0d258a1ad8778485ee2ac3f73eb",
+      "kind": "test_log"
+    },
+    "final-e9a968f-full-test-proof.json": {
+      "sha256": "41f84117350446d45afb1cb2989a9980ac33fed38d29b496a18befd455f4713e",
+      "kind": "test_summary"
+    }
+  },
+  "incremental_first_attempt": {
+    "status": "failed_before_source_change",
+    "reported_error": "httpx.ReadTimeout during embedding warm-up after 30 seconds",
+    "provenance": "coordinator tool output; original overwritten log not reconstructed",
+    "rerun": "all four phases passed without runtime change after embedding readiness checked in 1.57 seconds"
+  },
+  "semantic_review": {
+    "reviewed_cases": 15,
+    "actual_sentence_answers": 3,
+    "quote_reports": 8,
+    "clarifications": 3,
+    "unknown": 1,
+    "remaining_status_rubric_difference": "ambiguous_appointment: two correctly separated original quotes, no clinic clarification",
+    "historical_today_current_frame_removed": true,
+    "notes": "Evidence-ID retention is separate from semantic review and is not a general accuracy guarantee."
+  },
+  "delivery_status": {
+    "reported_installed_version": "1.0.7",
+    "reported_installed_runtime_commit": "e9a968f53d2c77a49dd410665c785f77bc3b59b0",
+    "private_receipt_included": false,
+    "native_window_acceptance": "pending coordinator final check",
+    "publication": "pending coordinator"
+  }
+}

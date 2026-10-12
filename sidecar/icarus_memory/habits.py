@@ -43,32 +43,10 @@ def _week(at: datetime) -> tuple[date, date]:
     return start, start + timedelta(days=6)
 
 
-def _checkin_days(episodes: Any, habit_id: str, start: date, end: date,
-                  reference: datetime) -> set[date]:
-    days: set[date] = set()
-    for episode in episodes.all_episodes(limit=-1):
-        if getattr(episode, "kind", None) is EpisodeKind.SUMMARY:
-            continue
-        if getattr(episode, "state", None) in AUSGEBLENDETE_ZUSTAENDE:
-            continue
-        if f"habit:{habit_id}" not in (getattr(episode, "tags", []) or []):
-            continue
-        try:
-            moment = _utc(episode.reference_time())
-            if moment > reference:
-                continue
-            day = moment.date()
-        except (AttributeError, TypeError, ValueError):
-            continue
-        if start <= day <= end:
-            days.add(day)
-    return days
-
-
 def _checkin_records(episodes: Any, habit_id: str, start: date, end: date,
                      reference: datetime) -> list[dict[str, str]]:
     records = {}
-    for episode in episodes.all_episodes(limit=-1):
+    for episode in episodes.tagged_raw([f"habit:{habit_id}"]):
         if getattr(episode, "kind", None) is EpisodeKind.SUMMARY or getattr(episode, "state", None) in AUSGEBLENDETE_ZUSTAENDE:
             continue
         if f"habit:{habit_id}" not in (getattr(episode, "tags", []) or []):
@@ -89,8 +67,8 @@ def list_habits(store: SelfModelStore, episodes: Any, at: datetime) -> list[dict
     result = []
     for habit in _active(store, reference):
         content = habit.structured or {}
-        days = _checkin_days(episodes, habit.id, start, end, reference)
         records = _checkin_records(episodes, habit.id, start, end, reference)
+        days = {date.fromisoformat(record['day']) for record in records}
         result.append({
             "id": habit.id,
             "label": content["label"],
@@ -120,8 +98,7 @@ def check_in(store: SelfModelStore, episodes: Any, habit_id: str, day: str,
         raise ConflictError("Diese Gewohnheit ist nicht mehr aktiv.")
     content = habit.structured or {}
     source_ref = f"habit:{habit.id}:{checked_day.isoformat()}"
-    existing = next((item for item in episodes.all_episodes(limit=-1)
-                     if (getattr(item.provenance, "source_ref", None) == source_ref)), None)
+    existing = episodes.by_source_ref(source_ref)
     if existing is not None:
         if existing.state in AUSGEBLENDETE_ZUSTAENDE:
             raise ConflictError("Dieser Check-in wurde zurückgenommen. Die Quelle muss ausdrücklich wieder zugelassen werden.")

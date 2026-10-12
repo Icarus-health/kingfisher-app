@@ -1,0 +1,8 @@
+{
+  "install_script_sha256": "de077e86dfd786a07d70b3bcedd632e202ed62c22844f95400febd22dac12c28",
+  "backup_script_sha256": "ca621a201b438ea0f83faf39f20178ae4a8094f0051e38c8049c1cc5fcb7acba",
+  "reviewed_staging_and_missing_container_fixes": true,
+  "reviewer_did_not_rerun_failure_probe": true,
+  "runtime_proof_identity_bound_before_switch": true,
+  "validated_full_run_plus_sole_environmental_recheck": true
+}

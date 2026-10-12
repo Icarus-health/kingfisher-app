@@ -1,0 +1,26 @@
+{
+  "source_sha256": "6687e729977eb967df4815bfc36d47adf1872fb6a2b638a2c42f9623a97b537d",
+  "personal_data_used": false,
+  "results": [
+    {
+      "mode": "absolute",
+      "wrong_but_source_anchored_work_hint_accepted": true,
+      "semantic_category_quality_proven": false,
+      "user_correction_survives_recheck": true,
+      "original_unchanged_before_withdrawal": true,
+      "withdrawal_hides_hints_and_keeps_body": true,
+      "nonexistent_evidence_block_rejected": true,
+      "real_model_calls": 0
+    },
+    {
+      "mode": "block_quote",
+      "wrong_but_source_anchored_work_hint_accepted": true,
+      "semantic_category_quality_proven": false,
+      "user_correction_survives_recheck": true,
+      "original_unchanged_before_withdrawal": true,
+      "withdrawal_hides_hints_and_keeps_body": true,
+      "nonexistent_evidence_block_rejected": true,
+      "real_model_calls": 0
+    }
+  ]
+}

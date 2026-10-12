@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { api, type Project, type Task } from "./api";
+import { api, ApiError, type Project, type Task } from "./api";
 import { endOfTaskDay, explicitDeadline, taskHref } from "./taskWorkflow";
 import { navigate } from "./ui";
 
@@ -10,6 +10,32 @@ type MailTaskFormProps = {
   initialSuggestion?: { title: string; quote: string; source_digest: string };
   onTaskFormProtected?: (protectedState: boolean) => void;
 };
+
+function newRequestId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  // Older native WebKit still supplies cryptographic random bytes.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
+function pendingRequestId(uid: string): string {
+  const key = `kingfisher:mail-task-request:${encodeURIComponent(uid)}`;
+  const previous = localStorage.getItem(key);
+  if (previous) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(previous)) {
+      throw new Error('Die gespeicherte Auftragskennung ist ungültig.');
+    }
+    return previous;
+  }
+  const id = newRequestId();
+  // Store only UID/opaque identity, never mail text or task fields. Persist
+  // before sending so reopening after an uncertain response retains identity.
+  localStorage.setItem(key, id);
+  return id;
+}
 
 export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
   const [open, setOpen] = useState(false);
@@ -29,7 +55,9 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
   const [suggestionsUnavailable, setSuggestionsUnavailable] = useState(false);
   const [saved, setSaved] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryReviewed, setRetryReviewed] = useState(false);
   const userChanged = useRef(false);
+  const saveAttempt = useRef<{id: string | null; inFlight: boolean; succeeded: boolean}>({id: null, inFlight: false, succeeded: false});
 
   function protectSuggestion() {
     if (userChanged.current) return;
@@ -58,7 +86,7 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
   async function submit(event: FormEvent) {
     event.preventDefault();
     const trimmedTitle = title.trim();
-    if (!trimmedTitle || saving || saved) return;
+    if (!trimmedTitle || saving || saved || saveAttempt.current.inFlight || saveAttempt.current.succeeded) return;
     if (!sourceDigest || sourceDigest !== expectedSourceDigest) {
       setError("Die gelesene Mailfassung konnte nicht bestätigt werden. Bitte die Nachricht neu öffnen und deine Eingaben mit dem Original abgleichen.");
       return;
@@ -66,8 +94,14 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
     protectSuggestion();
     setSaving(true);
     setError(null);
+    setRetryReviewed(false);
     try {
+      // Keep this identity after failure, including edits after an uncertain
+      // response. The server rejects rebinding an already committed request.
+      saveAttempt.current.id ??= pendingRequestId(uid);
+      saveAttempt.current.inFlight = true;
       const task = await api.addMailTask(uid, {
+        request_id: saveAttempt.current.id,
         title: trimmedTitle,
         project_id: projectId || null,
         due: endOfTaskDay(due),
@@ -75,11 +109,41 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
         source_digest: sourceDigest,
         ...(sourceQuote ? { source_quote: sourceQuote } : {}),
       });
+      saveAttempt.current.succeeded = true;
       setSaved(task);
-    } catch {
-      setError("Die Aufgabe konnte nicht festgehalten werden. Falls sich die Nachricht geändert hat, bitte schließen und erneut prüfen. Deine Eingaben bleiben hier erhalten.");
+      try {
+        const key = `kingfisher:mail-task-request:${encodeURIComponent(uid)}`;
+        if (localStorage.getItem(key) === saveAttempt.current.id) localStorage.removeItem(key);
+      } catch { /* Retaining a confirmed identity is safe; never retry as new. */ }
+    } catch (failure) {
+      setError(!saveAttempt.current.inFlight
+        ? "Der Speicherauftrag konnte nicht vorbereitet werden. Bitte Eingaben und lokalen Speicher prüfen. Es wurde keine Aufgabe gesendet."
+        : failure instanceof ApiError && failure.status === 409
+        ? "Quelle oder Eingaben passen nicht mehr zum Speicherauftrag. Bitte zuerst die vorhandenen Aufgaben und die Original-Mail prüfen. Deine Eingaben bleiben erhalten."
+        : "Die Speicherbestätigung fehlt. Du kannst mit denselben Eingaben erneut versuchen; dabei wird höchstens eine Aufgabe angelegt. Vor dem Schließen bitte die vorhandenen Aufgaben prüfen.");
     } finally {
+      saveAttempt.current.inFlight = false;
       setSaving(false);
+    }
+  }
+
+  function prepareNewRequest() {
+    if (!retryReviewed || saving || saved || saveAttempt.current.inFlight) return;
+    try {
+      const key = `kingfisher:mail-task-request:${encodeURIComponent(uid)}`;
+      const pending = localStorage.getItem(key);
+      if (pending && pending !== saveAttempt.current.id) {
+        setError('Eine andere Speicherung ist noch ungeklärt. Bitte zuerst die Aufgaben prüfen.');
+        return;
+      }
+      localStorage.removeItem(key);
+      saveAttempt.current = {id: null, inFlight: false, succeeded: false};
+      setRetryReviewed(false);
+      setError(null);
+      // Keep the reviewed digest and all visible fields. No automatic save or
+      // silent source rebinding; the next submit still checks the original.
+    } catch {
+      setError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher prüfen. Es wurde keine Aufgabe gesendet.');
     }
   }
 
@@ -161,7 +225,11 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
         <span className="mail-reader-status">{projectsError ? "Projekte konnten gerade nicht geladen werden." : "Nur lokal in Kingfisher festgehalten."}</span>
         <button className="mail-reader-primary" disabled={saving || Boolean(saved) || !title.trim()} type="submit">{saving ? "Wird festgehalten …" : saved ? "Aufgabe festgehalten" : "Aufgabe festhalten"}</button>
       </div>
-      {error ? <p className="mail-reader-error" role="alert">{error}</p> : null}
+      {error ? <div className="mail-reader-error" role="alert">
+        <p>{error} <a href="/vorhaben?view=mine" onClick={(event) => {event.preventDefault(); navigate('/vorhaben?view=mine');}}>Aufgaben prüfen</a></p>
+        <label className="mail-task-retry-review"><input id="mail-task-request-reviewed" type="checkbox" checked={retryReviewed} disabled={saving} onChange={(event) => setRetryReviewed(event.target.checked)} /> Ich habe die vorhandenen Aufgaben geprüft und möchte bewusst einen neuen Auftrag vorbereiten.</label>
+        <button id="mail-task-new-request" type="button" className="mail-reader-secondary" disabled={!retryReviewed || saving} onClick={prepareNewRequest}>Neuen Auftrag vorbereiten</button>
+      </div> : null}
       {saved ? <p className="mail-task-form-success" role="status">Aufgabe festgehalten. <a href={successPath} onClick={(event) => { event.preventDefault(); navigate(successPath); }}>Aufgabe ansehen</a></p> : null}
     </form>
     </> : null}

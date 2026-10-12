@@ -31,7 +31,9 @@ def abgleichen(client):
 def test_sachen_akte_und_quelle_ueber_die_routen(api):
     app, client = api
     projekt = _projekt(app, 'Mainz')
-    e = _quelle(app, 'Druckdaten', [(BITTE, 'request')], project=projekt.id, tage=3)
+    # Die Quelle ist ausdrücklich vom Samstag: Freitag ist eindeutig der 2.10.
+    e = _quelle(app, 'Druckdaten', [(BITTE, 'request')], project=projekt.id,
+                occurred_at=datetime(2026, 9, 26, 9, tzinfo=timezone.utc))
     assert abgleichen(client)['offen'] == 0
     sachen = client.get('/api/v1/akten/sachen', params={'art': 'projekt', 'warten': True}).json()
     assert sachen['gesamt'] == 1 and sachen['berechnung']['offen'] == 0

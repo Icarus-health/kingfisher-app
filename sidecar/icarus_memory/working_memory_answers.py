@@ -11,7 +11,7 @@ from .providers import ProviderError
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_identity import adjust_selection
 from . import (absatzauswahl, akten_kontext, kennzeichnung, satzantwort, source_candidates, working_memory_projects,
-               working_memory_focus, working_memory_references, zeitmessung)
+               working_memory_focus, working_memory_references, working_memory_changes, zeitmessung)
 from .knowledge_render import KnowledgeInputBuild
 from . import knowledge_history
 
@@ -484,9 +484,13 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     projects = list(projects or ())
     names = {identifier: name for identifier, name in projects if isinstance(name, str) and name.strip()}
     scope = mentioned_projects(lookup, projects)
-    from .time_scope import mentioned_period
-    found_period = mentioned_period(lookup)
-    if found_period is None and anfrage is not None and anfrage.zeitraum_text():
+    from .time_scope import has_negated_period, mentioned_period, original_time_reference
+    time_question = retrieval_query if retrieval_query is not None else question
+    negated_period = has_negated_period(time_question)
+    original_time = original_time_reference(time_question)
+    # Search representations cannot turn a negation or an original-word question into a source period.
+    found_period = mentioned_period(time_question if negated_period or original_time else lookup)
+    if found_period is None and not negated_period and not original_time and anfrage is not None and anfrage.zeitraum_text():
         found_period = mentioned_period(anfrage.zeitraum_text())
     period = found_period[:2] if found_period else None
     from . import working_memory_semantic
@@ -633,9 +637,10 @@ nach einer Uhrzeit ergibt bei einer passenden eindeutigen Quellenangabe source_r
 needs_missing_time_reference verlangt einen für diese Frage tatsächlich fehlenden Zeitbezug.
 Eine Bitte ist keine Zusage. Eine bedingte Aussage bleibt bedingt. Zitate alter Nachrichten
 sind keine neue Zusage. Gesendet ist nicht angenommen; keine Antwort ist keine Zustimmung.
-Trägt eine Quelle das Feld ueberholt, steht eine Angabe darin nicht mehr: Eine neuere Quelle (neue_quelle)
-hat sie überholt. Nenne für den aktuellen Stand die neuere Quelle und wähle die überholte nur, wenn nach dem
-früheren Stand oder nach dem Wandel gefragt ist; dann wähle beide.
+Das Feld ueberholt ist eine automatisch vermutete Beziehung, keine bestätigte Ersetzung.
+Prüfe die Originale unabhängig: Gleiche Person, Kategorie oder Veranstaltung beweisen nicht dieselbe Aufgabe.
+Lass einen passenden Beleg nicht allein wegen dieser Vermutung weg. Bei ungeklärter Zugehörigkeit
+wähle beide Originale und unresolved_conflicting_sources; behaupte keine gesicherte Absage oder Erledigung.
 Trägt eine Quelle das Feld andere_person, gehört sie einem anderen Menschen gleichen Namens (adresse_dieser_person),
 nicht der gemeinten Person (gemeinte_adresse): Wähle sie nicht für diese Person und nenne sie nie als deren Angabe.
 Trägt eine Quelle das Feld ausserhalb_zeitraum, liegt ihr Datum (datum_der_quelle) außerhalb des gefragten Zeitraums
@@ -729,6 +734,15 @@ automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend 
                             if not identifier.startswith('S') or identifier in allowed]
         if unbound and not selection['ids']:
             selection['status'] = 'unknown'
+        # A found change may not silently disappear from a current-state answer.
+        # Word overlap proves relevance, never supersession: retain the originals
+        # and ask about their relationship rather than declaring the old promise valid.
+        omitted_changes = working_memory_changes.omitted(
+            question, [row for row in volltext if row['id'] in allowed], selection['ids'], selection['status'])
+        if omitted_changes:
+            selection['ids'] += omitted_changes
+            selection['status'] = 'conflict'
+            answer['change_review'] = True
         by_id = {f'S{i}': ref for i, ref in enumerate(refs, 1)}
         selected = [by_id[i] for i in selection['ids'] if i in by_id]
         if (selection['status'] == 'unknown') != (not selection['ids']):
@@ -822,7 +836,9 @@ def choices(answer, episodes):
             or answer.get('uncertainty') not in {'person', 'scope', 'conflict'}):
         return []
     # Ein Widerspruch mit einer bestätigten Aussage wird dort geklärt, nicht per Klick.
-    if answer['uncertainty'] == 'conflict' and answer.get('claim_basis'):
+    if answer.get('change_review') or (answer['uncertainty'] == 'conflict' and answer.get('claim_basis')):
+        # This guard has not established that the reports concern one duty.
+        # Picking one quote would discard another without resolving that relation.
         return []
     store = WorkingMemoryStore(episodes)
     rows = []
@@ -911,6 +927,16 @@ def _fresh(answer, episodes, claims):
             or not isinstance(answer.get('refs'), list)
             or any(ref not in answer['basis'] for ref in answer['refs'])):
         return False
+    from .time_scope import has_negated_period, mentioned_period, original_time_reference
+    time_question = answer.get('retrieval_query', answer['query'])
+    if original_time_reference(time_question) and ('time_scope' in answer or 'time_label' in answer):
+        return False  # Old source-period captions do not answer the meaning of the original word.
+    if has_negated_period(time_question) and ('time_scope' in answer or 'time_label' in answer):
+        expected = mentioned_period(time_question)
+        # Old answers can carry the pre-fix positive label without an Anfrage.
+        # Compare its meaning, not dates: valid relative periods remain frozen after reopening.
+        if expected is None or answer.get('time_label') != expected[2]:
+            return False
     semantic_status = answer.get('semantic_search_status')
     if semantic_status is not None:
         if (semantic_status not in {'ok', 'empty', 'partial', 'unavailable', 'unobserved'}
@@ -954,7 +980,7 @@ def _fresh(answer, episodes, claims):
     try:
         scope_ids = _scope_ids(episodes, claims, answer.get('sender_scope'), answer.get('meaning_scope'))[0]
         search_stats = {}
-        refs, _, working_limited, _ = _candidates(lookup, episodes, claims, scope, semantic=semantic,
+        refs, current_rows, working_limited, _ = _candidates(lookup, episodes, claims, scope, semantic=semantic,
                                                   sender_scope=answer.get('sender_scope'),
                                                   period=_period(answer.get('time_scope')),
                                                   meaning_scope=answer.get('meaning_scope'),
@@ -979,6 +1005,22 @@ def _fresh(answer, episodes, claims):
         if answer['project_assignment_basis'] != current_projects:
             return False
     references = working_memory_references.wanted(answer['query'])
+    if answer.get('status') == 'reports' and answer['refs']:
+        # Recheck old saved selections too. Unchanged fingerprints alone do not
+        # make an omitted cancellation safe to present as the current state.
+        # The candidates were already re-read above; no model or corpus scan.
+        kontext = akten_kontext.Kontext.aus_dict(answer.get('akten')) or akten_kontext.LEER
+        rahmen = kennzeichnung.Rahmen.aus_dict(answer.get('kennzeichnung')) or kennzeichnung.LEER
+        current_rows = _kennzeichnen(current_rows, refs, kontext, rahmen, episodes)
+        current_rows = [row for row in absatzauswahl.volltext_zeilen(current_rows)
+                        if working_memory_references.permits(row, references)]
+        selected_ids = [f'S{i}' for i, ref in enumerate(refs, 1) if ref in answer['refs']]
+        from .working_memory_identity import explicit_person_selection
+        if explicit_person_selection(answer['query'], current_rows, selected_ids,
+                                     candidate_ids=[row['id'] for row in current_rows])[1] == 'person':
+            return False  # A legacy one-person answer cannot hide an explicit same-name original.
+        if working_memory_changes.omitted(answer['query'], current_rows, selected_ids, 'reports'):
+            return False
     for ref in answer['refs'] if references else ():
         episode = episodes.get(ref['episode_id'])
         row = {'id': 'S', 'context': episode.body, 'title': episode.title}
@@ -1058,16 +1100,16 @@ def _limit_count(answer):
 
 
 def _ueberholt_zeile(eintrag, episodes):
-    """Die Zeile unter einer überholten Quelle: was überholt ist, was jetzt gilt und wo es steht."""
+    """Automatisch vermutete Beziehung unter dem Original, keine bestätigte Ersetzung."""
     try:
         titel = episodes.get(eintrag.durch).title.strip()[:120]
     except Exception:  # noqa: BLE001 - ohne Titel bleibt der Hinweis ohne Namen
         titel = ''
     wo = f' (neuere Quelle: {titel})' if titel else ' (neuere Quelle vorhanden)'
     if eintrag.grund == 'frist' and eintrag.alt_wert and eintrag.neu_wert:
-        return f'Überholt: {eintrag.alt_wert}, inzwischen {eintrag.neu_wert}{wo}'
-    return {'stand': 'Überholt durch eine neuere Meldung', 'erledigt': 'Inzwischen als erledigt gemeldet',
-            'abgesagt': 'Inzwischen abgesagt', 'frist': 'Frist inzwischen geändert'}[eintrag.grund] + wo
+        return f'Vermutlich überholt: {eintrag.alt_wert}, neuere Angabe {eintrag.neu_wert}{wo}'
+    return {'stand': 'Vermutlich durch eine neuere Meldung überholt', 'erledigt': 'Vermutlich als erledigt gemeldet',
+            'abgesagt': 'Vermutlich abgesagt', 'frist': 'Frist vermutlich geändert'}[eintrag.grund] + wo
 
 
 def _zitate(answer, episodes, fallback):
@@ -1114,7 +1156,7 @@ def _zitate(answer, episodes, fallback):
         marken = kontext.ueberholt.get(episode.id, ())
         fremd = kennzeichnung.kennzeichen(episode, rahmen)
         if marken:
-            heading += ' · überholt'
+            heading += ' · vermutlich überholt'
         heading += ''.join({kennzeichnung.ANDERE_PERSON: ' · andere Person',
                             kennzeichnung.AUSSERHALB: ' · außerhalb des Zeitraums'}[m.art] for m in fremd)
         lines.extend(['', heading, episode.body,
@@ -1184,10 +1226,10 @@ def render(answer, episodes, claims, *, conflict_status=None):
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
     if satz is not None and satz.status == 'nichts':
-        coverage = ' '.join(_search_notices(answer))
-        if coverage:
-            return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
-        return satzantwort.nichts_text(answer, episodes), [], 'working_unknown'
+        # Eine leere Formulierung beweist nicht, dass die bereits ausgewählten
+        # Originale keine Antwort enthalten. Sie bleiben im Zitatmodus sichtbar;
+        # nur die vorgelagerte Quellenauswahl darf keine relevanten Quellen melden.
+        satz = None
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
              if fallback else ['Quelle berichtet · automatisch eingeordnet'])
@@ -1208,7 +1250,10 @@ def render(answer, episodes, claims, *, conflict_status=None):
                       'scope': 'Welches Projekt oder welchen Vorgang meinst du?',
                       'time': ('Der Zeitbezug ist unklar: Die Nachricht nennt eine relative Zeitangabe, '
                                'ihr eigenes Datum ist nicht bekannt. Von wann stammt sie?'),
-                      'conflict': 'Die Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?'}[answer['uncertainty']])
+                      'conflict': ('Eine mögliche Änderung wurde gefunden. Ihre Zusammengehörigkeit mit den anderen '
+                                   'Angaben ist noch nicht zuverlässig geklärt. Welche Angaben gehören zu deiner Frage?'
+                                   if answer.get('change_review') else
+                                   'Die Quellen enthalten unterschiedliche Angaben. Welche gilt für deinen Vorgang?')}[answer['uncertainty']])
     if satz is not None:
         texte, links = satzantwort.text_und_links(satz, episodes, claims)
         lines.extend(([''] if lines else []) + texte)

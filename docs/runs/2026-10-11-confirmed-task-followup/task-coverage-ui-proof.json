@@ -1,0 +1,6 @@
+{
+  "scope": "Actual Today components; explicit synthetic partial_failures fixture on real backend response",
+  "errors": [],
+  "visible": true,
+  "correct_task_action": true
+}

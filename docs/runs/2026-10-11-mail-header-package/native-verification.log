@@ -1,0 +1,12 @@
+hdiutil: WARNING: 'hdiutil attach -readonly -nobrowse ...' is deprecated. Please use 'diskutil image attach --readOnly --mountOptions nobrowse ...' instead.
+hdiutil: attach failed - Gerät wurde nicht konfiguriert
+Traceback (most recent call last):
+  File "/private/tmp/kingfisher-header-package-f858681/verify_native.py", line 9, in <module>
+    raw=subprocess.check_output(['/usr/bin/hdiutil','attach','-readonly','-nobrowse','-plist',str(root/'dist/Kingfisher.dmg')])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/hdiutil', 'attach', '-readonly', '-nobrowse', '-plist', '/private/tmp/kingfisher-header-package-f858681/dist/Kingfisher.dmg']' returned non-zero exit status 1.

@@ -1,0 +1,13 @@
+{
+  "actual_sqlite_preservation_controls": 9,
+  "actual_installer_ast_staging_cases": 4,
+  "actual_installer_ast_recovery_cases": 3,
+  "compose_environment_counterexamples_passed": true,
+  "private_data_accessed_by_tests": false,
+  "new_installer_sha256": {
+    "install.py": "c393f93e9189d99ce6a6f4d43997f2e924bf5478a0b4e93710d27f2d19cc0e13",
+    "backup.py": "0ec50de484af9f31305a0e8e1b99172975aae048a556a5e9a904f0a3baa12438",
+    "preservation_guard.py": "f776bb3164d6c3f0c7587056b4550031cb94a4074a24464d1378725722bb71c0",
+    "qualify_copy_worker.py": "5d55b01f6ec30e1f572c5a4fb8557fc3577e37f9246ef56e53e409b384f0d34d"
+  }
+}

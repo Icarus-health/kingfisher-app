@@ -1,0 +1,31 @@
+{
+  "scope": "Full App recovery after lost acknowledgement and reload; synthetic only",
+  "cases": [
+    {
+      "name": "manual-lost-response-reload-reuses-one-task-and-stores-no-private-fields",
+      "passed": true
+    },
+    {
+      "name": "close-reopen-changed-fields-conflict-and-reviewed-new-request-does-not-auto-submit",
+      "passed": true
+    },
+    {
+      "name": "goal-lost-response-reload-keeps-one-linked-task-and-separate-scope",
+      "passed": true
+    },
+    {
+      "name": "unavailable-local-retry-storage-sends-no-task",
+      "passed": true
+    }
+  ],
+  "console": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "pageerrors": [],
+  "status": "passed",
+  "built_ui": true,
+  "private_data": false
+}

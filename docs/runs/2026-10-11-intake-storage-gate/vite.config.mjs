@@ -1,0 +1,4 @@
+import {defineConfig} from '/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/node_modules/vite/dist/node/index.js';
+import react from '/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher/node_modules/@vitejs/plugin-react/dist/index.js';
+const app = '/Users/sorenkube/Documents/Codex/2026-09-19/github-plugin-github-openai-curated-remote-3/work/memory-activation-20260923/app/kingfisher';
+export default defineConfig({root:import.meta.dirname, plugins:[react()], resolve:{alias:{react:app+'/node_modules/react', 'react-dom':app+'/node_modules/react-dom'}}, publicDir:app+'/../../design-source', server:{host:'127.0.0.1',port:18766,strictPort:true,fs:{allow:[app,import.meta.dirname]},proxy:{'/api':'http://127.0.0.1:18767','/qa':'http://127.0.0.1:18767'}}});

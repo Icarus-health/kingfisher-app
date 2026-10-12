@@ -1,0 +1,11 @@
+{
+  "Kingfisher.dmg": "a81738f19d3ae185780064122498cec7abafbee3e8f1a55daff246e97fcbb458",
+  "app_files_sha256": {
+    "Contents/Info.plist": "a031318995295478bb67abec995271b2d2dbadc528793ab612c2aba6b19793c0",
+    "Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+    "Contents/MacOS/Kingfisher": "79d79252a3dc2271528d4547af364dd75f949251a331cf7589df36814713ca81",
+    "Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+    "Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+    "Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+  }
+}

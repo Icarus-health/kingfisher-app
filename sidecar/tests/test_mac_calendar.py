@@ -78,18 +78,24 @@ def test_calendar_overview_retains_partial_results(monkeypatch):
     from icarus_memory.connectors.calendar import Event
     monkeypatch.setenv(TOKEN_ENV, 'synthetic-calendar-test-token')
     app = create_app()
+    start = datetime.now(timezone.utc) + timedelta(hours=1)
     class Reader:
         last_errors = {'unavailable': 'Quelle nicht erreichbar'}
-        def events(self, days):
+        def events(self, days, at=None):
             assert days == 7
-            return [Event(uid='test', summary='Testtermin', start=None, end=None)]
+            assert at is not None and at.utcoffset() is not None
+            return [
+                Event(uid='test', summary='Testtermin', start=start, end=start + timedelta(hours=1)),
+                Event(uid='undated', summary='Ohne Datum', start=None, end=None),
+            ]
     with TestClient(app) as client:
         app.state.calendar = Reader()
         headers = {'X-Icarus-Token': 'synthetic-calendar-test-token'}
         assert client.get('/api/v1/calendar').status_code == 401
         data = client.get('/api/v1/calendar', headers=headers).json()
-        assert data['items'][0]['summary'] == 'Testtermin'
+        assert [item['summary'] for item in data['items']] == ['Testtermin']
         assert data['errors'] == ['Quelle nicht erreichbar']
+        assert len(data['warnings']) == 1 and '1' in data['warnings'][0]
         assert client.get('/api/v1/calendar?days=100', headers=headers).status_code == 422
 
 
@@ -172,3 +178,12 @@ def test_explicit_period_requires_known_snapshot_coverage(tmp_path):
     cal, _ = connected(tmp_path)
     with pytest.raises(CalendarError, match='angefragten Zeitraum'):
         cal.events(days=7, at=datetime(1999, 1, 1, tzinfo=timezone.utc))
+
+
+def test_os_permission_revocation_removes_memory_source_authority(tmp_path):
+    from icarus_memory.calendar_memory import quelle_fuer_mac
+    cal, state = connected(tmp_path)
+    source = quelle_fuer_mac('private')
+    assert cal.freigegeben(source)
+    cal.update(WorkerUpdate(generation=state['generation'], status='denied'))
+    assert not cal.freigegeben(source)

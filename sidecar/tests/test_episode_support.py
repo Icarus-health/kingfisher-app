@@ -39,7 +39,7 @@ def test_withdrawal_generation_survives_reopen_and_stale_consolidation(tmp_path)
     with pytest.raises(EpisodeError): episodes.mark_consolidated(stale.id)
     assert episodes.get(stale.id).state is EpisodeState.IGNORED
     episodes.reopen(stale.id)
-    assert episodes.support_snapshot(stale.id).generation == 1
+    assert episodes.support_snapshot(stale.id).generation == 2
 
 
 def test_failure_after_record_rolls_back_existing_supersession(tmp_path, monkeypatch):

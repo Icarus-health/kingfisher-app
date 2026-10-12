@@ -1,0 +1,29 @@
+# Calendar display package: pinned preview bfe555e
+
+Prepared native ARM64 app and netless container for the calendar display window fix and the previously tested model settings UI. Runtime sources are pinned to `bfe555e5c57358ddb6578eaefb380755fd9f97fe`; a later test-only correction is `ac908b46b229f7b421a1588fb11d3f4bb65212aa`. No new model selection, cloud request, source deletion or import restart.
+
+## Artifact and runtime evidence
+
+- All 270 packaged backend files and 112 UI files match a host-created freeze. The backend differs from the previous d092006 artifact only in `calendar_window.py` and `server.py`.
+- Rebuilt frontend from the clean Git archive using existing local dependencies. Bundle and approved assets are byte-identical to the already verified current build. This excludes 17 untracked duplicate assets. Two timed-out copies during the first preparation were recovered from the identical Git archive; the clean rebuild supersedes that attempt.
+- Container is derived from the exact installed d65a5a4b image, with the entire Python package and UI replaced; build and runtime probe use no network. Probe uses new synthetic tmpfs data, no personal volume or configured model. The real packaged ICS reader retains all three source events while default, explicit, year and dashboard routes return their appropriate window. DST-fold comparisons use UTC. The existing broader source withdrawal, restart, tasks, projects, health, feedback, storage and model-role synthetic probes also pass. These checks do not establish real model quality or user workflow completion.
+- Native app is ARM64, six files bound to a manifest, strict/deep ad hoc signature verified. Canonical DMG was mounted read-only and matched bytewise, then detached. Not notarized. DMG is kept outside Git under `Documents/Codex/Kingfisher-Pruefpakete/2026-10-11-calendar-display-bfe555e`.
+- Independent static reviewer checked freeze, source archive hashes and package configuration; no package blocker. Reviewer did not rerun the runtime probe.
+
+## Broad regression and test correction
+
+The first broad checkout run stopped after 1048 passes because an untracked `health_observations 2.py` was included by a source architecture scan. No tracked code or test was changed to hide it; the next run used a clean Git archive.
+
+That clean run stopped after 2515 passes and one skip at the partial Mac-calendar result test. Its stub supported only `events(days)` despite the production `CalendarReader` protocol accepting `at`; its sole fixture was undated, which cannot establish membership in the current window. The test-only correction retains a dated current result plus an unrelated source error, checks the aware `at` argument, and verifies an undated companion produces exactly one separate warning. Authentication and query validation checks remain. Independent review found no improper weakening. All 23 Mac-calendar/display-window tests pass on this corrected test. Runtime source and built artifact remain unchanged.
+
+The complete clean 424-test-file run on ac908b4 finished with 6234 passes, one skip and 26 passing subtests. Its sole failure was the repository quotation scanner invoking `git ls-files` in the archive without Git metadata. Added a local Git index matching the exact ac908b4 tracked file list, verified unchanged tracked contents, and reran exactly that one check: one pass. Thus all 6235 non-skipped tests have successful evidence across the full run and the isolated environmental correction. **The original full run remains exit 1, not a single green full run.** The installer explicitly binds both results and their log hashes, without masking that failure. Independent review found no concrete acceptance blocker in this result aggregation.
+
+## Installation safeguards and open checks
+
+Installer verifies the expected current 45cb1c8 app/image, candidate artifact, full-suite result, fresh cold backup with byte/metadata restore and SQLite integrity, core table/schema continuity, and the three selected calendars with memory adoption disabled. Only image selector and native Contents change. Data restore is never automatic after a candidate may have written new data.
+
+Static review found two concrete retry paths in the reused installer. Fixed in this package: staging uses an exclusively owned unique directory and cleans it after copy/signature/hash errors; recovery distinguishes a successfully confirmed absent container from unknown Docker state before restoring old code/config. Four staging and three recovery scenarios exercise the actual installer AST using artificial files, and all pass. New data writes survive; no personal app or volume is used by these failure probes.
+
+Installed `1.0.6-preview.bfe555e` locally. Fresh cold backup includes 148 files and 9 directories (281322188 bytes); all 17 root SQLite databases pass integrity checks and the restored file/directory metadata matches. All seven core table fingerprints plus 17 schemas/user_versions are unchanged after the code switch, the same personal volume is mounted, and only the env image selector changed. Native six files/signature match the canonical DMG. Old native code is retained with the backup. No automatic data restoration was performed.
+
+Fresh authenticated actual API check: three selected calendars granted/online, 490 cached Mac events, valid snapshot coverage, six displayed entries in the explicitly requested next-seven-day window, zero source errors/warnings. This is now the installed API rather than the earlier in-memory projection. Bulk mail import remains paused and memory adoption false. Native process was not restarted: window verification is still open because computer control reports the Mac locked. Reopening the app and verifying its UI remains a required separate step; no daily-use or real-model-quality completion is claimed. No main merge, registry publish or CI restart.

@@ -1,0 +1,26 @@
+{
+  "measurement": {
+    "root_available_bytes": 1568858112,
+    "root_available_inodes": 3044421,
+    "data_available_bytes": 1568858112,
+    "data_available_inodes": 3044421,
+    "backup_bytes": 52045993,
+    "backup_files": 27
+  },
+  "installed_probe_and_policy_match_repository": true,
+  "before_backup_policy_result": null,
+  "after_backup_policy_result": null,
+  "before_backup_capacity_passed": true,
+  "after_backup_capacity_passed": true,
+  "fresh_status": {
+    "version": "1.0.6-preview.bc21155",
+    "background_paused": true,
+    "calendar_status": "granted",
+    "calendar_enabled": true,
+    "calendar_online": true,
+    "calendar_has_error": false,
+    "selected_count": 3,
+    "memory_allowed": false
+  },
+  "large_import_or_full_day_qualified": false
+}

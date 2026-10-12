@@ -1,0 +1,14 @@
+{
+  "app/kingfisher/src/LocalModelSettings.tsx": "b2fb91ae30a83fbd29a5564950e10c6fcc0ec7c349cb015ce9fff372f4ca5f55",
+  "app/kingfisher/src/localAnswerConnection.ts": "073279e137ddfd8405c43952cee25030d605d5bdf26188e09dbf5fdb7f63650c",
+  "app/kingfisher/src/api.ts": "daa0c2dc271aa43b9111f60ee19c463a01bdfab70e1d1767a56c13875c0fcf70",
+  "app/kingfisher/tests/local-answer-connection.test.mjs": "218e1a0351755af833d09725bfc1adce9277fde579a403ebc6c4bcf235c37926",
+  "sidecar/icarus_memory/model_roles_routes.py": "fc72590ff6e617a8d75c8ca037afa6e7240140a3a98c6f5712187d46c8abb21d",
+  "sidecar/icarus_memory/server.py": "57e881eb7734110d72bfb35777beb000cd4dece04641a55e69307069299629cb",
+  "sidecar/tests/test_local_answer_connection.py": "05c6bc6a8fa5157f019dfcb9358efd7b1750a9d2a1f80ded782fa6b02e20bd3c",
+  "macos/App/AppDelegate.swift": "28d3f241a52315afce4cd020275c67a07ab47fdcafb6558e1478f48dd964c27e",
+  "macos/App/Startup.swift": "42f1859af4c6ee5a0bed4fbeae72d0f28fd233b55374bd8949d84bac637af62b",
+  "macos/App/Logic/Texts.swift": "c6a6c03ec3cbb3f6f798949d2f687d53ee13fef00d7f1f7837559f20e9af3d98",
+  "macos/App/Logic/OllamaHint.swift": "e8c66d8e66e78af116e77117757c805955f4d18819eaebef69d118306efb0886",
+  "macos/tests/main.swift": "416c394a92cc73944accc88789e5c3db17a381b2411e782f63834be5fc2be899"
+}

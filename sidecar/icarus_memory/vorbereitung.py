@@ -16,6 +16,7 @@ import re
 from typing import Any, Iterable
 
 from .episodes import mail_address
+from .connectors.collections import event_uids
 
 ANTEIL = 0.6
 MINDESTENS = 2
@@ -136,7 +137,10 @@ def zuordnung(event: dict[str, Any], *, episodes: Any, workspace: Any, eigene: I
     personen = teilnehmer(attendees, index=index, eigene=eigene)
     offene = [(p.id, p.name) for p in projekte if p.is_open()]
     vorschlag = projekt_vorschlag(str(event.get('summary') or ''), personen, offene, [p.id for p in projekte])
-    festgelegt, pid = workspace.event_project(str(event.get('uid') or ''))
+    choices = {pid for uid in event_uids(event) for chosen, pid in [workspace.event_project(uid)] if chosen}
+    konflikt = len(choices) > 1
+    festgelegt = bool(choices)
+    pid = next(iter(choices)) if len(choices) == 1 else None
     projekt = None
     if festgelegt and pid:
         name = next((p.name for p in projekte if p.id == pid), None)
@@ -146,7 +150,7 @@ def zuordnung(event: dict[str, Any], *, episodes: Any, workspace: Any, eigene: I
     for person in personen:
         person.pop('quellen', None)
     return {'teilnehmer': personen, 'vorschlag': vorschlag, 'festgelegt': festgelegt, 'projekt': projekt,
-            'anzahl_teilnehmer': len(personen)}
+            'anzahl_teilnehmer': len(personen), 'zuordnungskonflikt': konflikt}
 
 
 __all__ = ['projekt_vorschlag', 'teilnehmer', 'zuordnung']

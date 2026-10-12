@@ -1,0 +1,15 @@
+{
+  "version": "1.0.6-preview.45cb1c8",
+  "files": {
+    "Contents/Info.plist": "53f7b5b5b0e737634db773cffcdde99a9930f2707eb06f6ecad1d198e1c49d0e",
+    "Contents/_CodeSignature/CodeResources": "593cf101123162a8c99a3ba414278340e4ab5a8e10682ac73e0e2d97260e9126",
+    "Contents/MacOS/Kingfisher": "409f8bd64ce58bfb2d36ec7b4ca3f4c12ac7a5c8f923b00b0c09d2b2ffb1b35d",
+    "Contents/Resources/Kingfisher.icns": "9b7e69a91b7fcfe7eee5acdedaaf4dbc8aea54554d8ea9eed698d6283af8070a",
+    "Contents/Resources/update-storage-probe.py": "7ac3b425320f892971221bfb16c9b00a3d09693748a06b31d68923adb8f5ac9d",
+    "Contents/Resources/compose.yaml": "4dbd3aa8c4cb7e44d89544b96f02a5ac56e4f23be512a4ab6db26d3d9c7ecfa9"
+  },
+  "architecture": "arm64",
+  "signing": "ad hoc, not notarized",
+  "personal_data": false,
+  "dmg_sha256": "1900b2df4fceee1a53b12984f8e21c7b48a9829b992efa89de614b466f521c01"
+}

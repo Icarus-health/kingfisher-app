@@ -32,7 +32,7 @@ def _now() -> datetime:
 
 def _learning_items(app: FastAPI) -> list[dict[str, Any]]:
     result = []
-    for proposal in app.state.proposals.all_proposals(limit=-1):
+    for proposal in app.state.proposals.from_origin_prefix("habit-pattern:"):
         if not proposal.proposed_by.startswith("habit-pattern:"):
             continue
         item = proposal.to_dict()

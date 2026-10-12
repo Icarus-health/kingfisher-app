@@ -1,0 +1,87 @@
+{
+  "scope": "synthetic_schema_separation_diagnostic",
+  "personal_data_used": false,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "catalog_sha256": "ac0663b80134cf79fb799115d6c643bc00188b7b9eaecc0d3a79e4bcd97d54ae",
+  "product_category_sha256": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+  "driver_sha256": "f5d6dec4729a7035a382c2a895bf32976fed6aa94ac309ff67e7bf317977989e",
+  "instruction_unchanged": true,
+  "results": [
+    {
+      "id": "advertising-only",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 4.772
+    },
+    {
+      "id": "system-success",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "information"
+      ],
+      "people": [],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 2.681
+    },
+    {
+      "id": "specific-work",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "work"
+      ],
+      "people": [
+        "Lene Kühn"
+      ],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [],
+      "original_unchanged": true,
+      "meets_requirements": true,
+      "seconds": 5.915
+    },
+    {
+      "id": "invoice",
+      "source_status": "complete",
+      "failure_code": null,
+      "categories": [
+        "finance"
+      ],
+      "people": [
+        "Ihre"
+      ],
+      "missing_categories": [],
+      "forbidden_categories_found": [],
+      "unexpected_categories": [],
+      "missing_people": [],
+      "unexpected_people": [
+        "Ihre"
+      ],
+      "original_unchanged": true,
+      "meets_requirements": false,
+      "seconds": 4.869
+    }
+  ],
+  "completed": true,
+  "calls": 8
+}

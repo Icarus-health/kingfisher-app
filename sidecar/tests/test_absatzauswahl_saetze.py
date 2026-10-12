@@ -24,7 +24,7 @@ from tests.test_akten import STIFTUNG, einordnen, quelle  # noqa: F401 - Hilfen
 from tests.test_bezuege import JETZT, welt  # noqa: F401 - Fixture
 from tests.test_satzantwort import DIENSTAG, FRAGE, Skript, antwort, nr, raum  # noqa: F401 - Fixture und Hilfen
 
-FUELL = ('Wir melden uns, sobald es Neuigkeiten gibt, und hoffen, dass die Abstimmung in den kommenden Wochen gut '
+FUELL = ('Wir berichten über Neuigkeiten und hoffen, dass die Abstimmung in den kommenden Wochen gut '
          'verläuft. Bis dahin bleibt alles wie besprochen, und ich schicke Ihnen gern weitere Unterlagen. ')
 
 

@@ -7,12 +7,19 @@ import { SourceProject } from "./SourceProject";
 import { Herkunft } from "./HerkunftAnzeige";
 
 type Source = Awaited<ReturnType<typeof api.profileSource>>;
+function sourceTime(value: string | null | undefined) {
+  if (!value) return "unbekannt";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "unbekannt" : date.toLocaleString("de-DE");
+}
 /**
  * `eigeneFrage`: Die Quelle ist die eigene Frage im Gespräch („Gesprächsquelle ansehen“). Dann steht vorne nur ein Satz in
  * Alltagssprache, der Wortlaut und zwei Knöpfe mit erkennbarer Wirkung (berichtigen, nicht mehr verwenden); Status,
  * Themen, Bezüge, Sortierergebnis und Herkunft liegen eingeklappt unter „Für Techniker“ (Fremdprobe, Befund 15).
  */
-export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, quiet = false, eigeneFrage = false}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean}) {
+export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, originalOnly = false, quiet = false, eigeneFrage = false}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; originalOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean}) {
+  // Die reine Originalansicht lädt keine Bezüge: deren GET kann Nachläufe auslösen.
+  readOnly = readOnly || originalOnly;
   // Nur-Lesen: In der Belegprüfung darf das Ansehen einer Quelle niemals
   // Ausschluss oder Wiederzulassung auslösen. Ein unterdrückter Knopf allein
   // genügt nicht, deshalb sind beide Handler zusätzlich gesperrt.
@@ -108,7 +115,7 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
           <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(false)}>Abbrechen</button>
         </div>}
     </div> : null}
-    {data.correction_id ? <div><p>Du hast den Wortlaut berichtigt; es gilt deine Fassung.</p><ProfileSource kind="episode" id={data.correction_id} label="Deine Fassung ansehen" allowDismiss={!readOnly} readOnly={readOnly} onChange={onChange} /></div> : null}
+    {data.correction_id ? <div><p>Du hast den Wortlaut berichtigt; es gilt deine Fassung.</p><ProfileSource kind="episode" id={data.correction_id} label="Deine Fassung ansehen" allowDismiss={!readOnly} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} /></div> : null}
     {reopenError ? <p role="alert">{reopenError}</p> : null}
     {reopened && data.state !== "ignored" ? <p role="status">Kingfisher verwendet die Frage wieder.</p> : null}
     <details className="quelle-technik">
@@ -116,10 +123,10 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
       <p>Gespeicherte Quelle · keine bestätigte Aussage</p>
       {data.memory_status ? <p>{data.memory_status.label}</p> : null}
       {korrekturUngueltig ? <p>Der Quellenbezug dieser Berichtigung hat sich verändert. Sie wird nicht für Antworten verwendet.</p> : null}
-      {data.state !== "ignored" ? <SourceCategories key={id} id={id} readOnly={readOnly} /> : null}
-      {data.state !== "ignored" ? <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} /> : null}
+      {!originalOnly && data.state !== "ignored" ? <SourceCategories key={`categories:${id}`} id={id} readOnly={readOnly} /> : null}
+      {!originalOnly && data.state !== "ignored" ? <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} /> : null}
       {verwerfen}
-      {data.state !== "ignored" && !readOnly && !korrekturUngueltig ? <SourceProject key={id} id={id} projectId={data.project_id ?? null} /> : null}
+      {data.state !== "ignored" && !readOnly && !korrekturUngueltig ? <SourceProject key={`project:${id}`} id={id} projectId={data.project_id ?? null} /> : null}
       {data.provenance?.source_type === "manual_correction" ? <p>Herkunft: Deine Berichtigung</p> : data.provenance?.source_ref ? <p>Herkunft: {data.provenance.source_type === "chat" ? "Dein Gespräch mit Kingfisher" : data.provenance.source_ref}</p> : null}
     </details>
   </> : null;
@@ -128,6 +135,7 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
     {open && <section aria-label="Profilquelle">
       {!data && !error && <p role="status">Inhalt wird geladen …</p>}
       {error && <p role="alert">Dieser Inhalt ist nicht verfügbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut versuchen</button></p>}
+      {data && originalOnly && <p>Quelldatum: {sourceTime(data.occurred_at)} · Erfasst: {sourceTime(data.recorded_at)}</p>}
       {data && eigeneFrage && schlicht ? schlicht : null}
       {data && !(eigeneFrage && schlicht) && <><h3>{data.title}</h3><p>{kind === "episode" ? "Gespeicherte Quelle · keine bestätigte Aussage" : `Arbeitsnotiz · Revision ${data.revision ?? "—"}`}</p>
         {kind === "episode" && data.memory_status && <p role="status">{data.memory_status.label}</p>}
@@ -137,10 +145,10 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
         {data.attachment_check_pending && <p role="status">Die Anlagen wurden bei dieser Aufnahme nicht geprüft. Ihr Inhalt kann im Gedächtnis fehlen.</p>}
         {data.attachment_sources && data.attachment_sources.length > 0 && <details>
           <summary>Gespeicherte Anlagen ({data.attachment_sources.length})</summary>
-          {data.attachment_sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id} label={source.title} readOnly={readOnly} onChange={onChange} />)}
+          {data.attachment_sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id} label={source.title} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} />)}
         </details>}
-        {kind === "episode" && data.state !== "ignored" && <SourceCategories key={id} id={id} readOnly={readOnly} />}
-        {kind === "episode" && data.state !== "ignored" && <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} />}
+        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceCategories key={`categories:${id}`} id={id} readOnly={readOnly} />}
+        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} />}
         {data.state === "ignored" && <p role="status">Diese Quelle wurde ausgeschlossen und darf nicht als Wissensbeleg verwendet werden.</p>}
         {data.provenance?.source_type === "manual_correction" && data.correction_current === false && <p role="status">Der Quellenbezug dieser Berichtigung hat sich verändert. Sie wird nicht für Antworten verwendet.</p>}
         {kind === "episode" && data.state !== "ignored" && allowDismiss && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <div>
@@ -155,7 +163,7 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
             <button type="button" className="secondary-action" disabled={changing} onClick={() => setConfirmIgnore(false)}>Abbrechen</button>
           </div>}
         </div>}
-        {kind === "episode" && data.correction_id && <div><p>Zu dieser Quelle gibt es eine eigene Berichtigung. Das Original bleibt ausgeschlossen.</p><ProfileSource kind="episode" id={data.correction_id} label="Berichtigung öffnen" allowDismiss={!readOnly} readOnly={readOnly} onChange={onChange} /></div>}
+        {kind === "episode" && data.correction_id && <div><p>Zu dieser Quelle gibt es eine eigene Berichtigung. Das Original bleibt ausgeschlossen.</p><ProfileSource kind="episode" id={data.correction_id} label="Berichtigung öffnen" allowDismiss={!readOnly} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} /></div>}
         {kind === "episode" && data.state === "ignored" && !data.correction_id && !reopenBlocked && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <div>
           {!confirmReopen && <button className="secondary-action" type="button" disabled={changing} onClick={() => setConfirmReopen(true)}>Quelle wieder zulassen</button>}
           {confirmReopen && <div role="group" aria-label="Quelle wieder zulassen">
@@ -166,7 +174,7 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
         </div>}
         {reopenError && <p role="alert">{reopenError}</p>}
         {reopened && data.state !== "ignored" && <p role="status">Die Quelle ist wieder zur Prüfung zugelassen. Frühere Aussagen wurden nicht bestätigt.</p>}
-        {kind === "episode" && data.state !== "ignored" && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <SourceProject key={id} id={id} projectId={data.project_id ?? null} />}
+        {kind === "episode" && data.state !== "ignored" && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <SourceProject key={`project:${id}`} id={id} projectId={data.project_id ?? null} />}
         <Herkunft provenance={data.provenance} />
         <div className="task-source-body">{data.body.slice(0, 20000)}</div>
         {data.body.length > 20000 && <p>Auszug: Die Quelle ist länger als die angezeigten 20.000 Zeichen.</p>}

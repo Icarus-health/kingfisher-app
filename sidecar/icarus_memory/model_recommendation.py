@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field, replace
 from typing import Any
+from .device_profile import memory_plan_gb
 
 # Wann die Tabelle zuletzt gegen die Ollama-Bibliothek und die Messlatte geprüft
 # wurde. Bei jeder Änderung an KATALOG mitziehen.
@@ -28,9 +29,8 @@ ROLLEN = ("frage", "antwort", "pruefung", "hintergrund", "einbettung")
 # Speicherstufen in GB. Ein Gerät fällt auf die höchste Stufe, die es erreicht.
 STUFEN = (8, 16, 24, 32, 64, 128)
 
-# Ollama reserviert Speicher für Modell und Kontext; der Rest gehört dem
-# System und anderen Apps. Nur für die Warnung „passt vermutlich nicht“ gedacht.
-_NUTZBARER_ANTEIL = 0.85
+# Separater Grafikspeicher gehört nicht zum RAM-Budget anderer Programme.
+_GPU_NUTZBARER_ANTEIL = 0.85
 
 
 @dataclass(frozen=True)
@@ -132,6 +132,13 @@ class Geraet:
             return self.grafikspeicher_gb
         return self.arbeitsspeicher_gb
 
+    @property
+    def modellbudget_gb(self) -> float | None:
+        """Dieselbe RAM-Reserve wie die Gerätehilfe; separate GPUs haben ihr eigenes Budget."""
+        if self.grafikspeicher_gb is not None and self.plattform != "macos":
+            return self.grafikspeicher_gb * _GPU_NUTZBARER_ANTEIL
+        return None if self.arbeitsspeicher_gb is None else memory_plan_gb(self.arbeitsspeicher_gb)[1]
+
 
 def geraet_aus_profil(profil: dict) -> Geraet:
     """Baut ein `Geraet` aus der Antwort von `load_device_profile`."""
@@ -169,8 +176,8 @@ class Empfehlung:
 
 
 def _passt(eintrag: KatalogEintrag, geraet: Geraet) -> bool:
-    gb = geraet.modellspeicher_gb
-    return True if gb is None else eintrag.speicher_gb <= gb * _NUTZBARER_ANTEIL
+    budget = geraet.modellbudget_gb
+    return True if budget is None else eintrag.speicher_gb <= budget
 
 
 def empfehle(geraet: Geraet, rolle: str) -> Empfehlung:
@@ -261,6 +268,12 @@ def eintrag_fuer(rolle: str, name: str) -> KatalogEintrag | None:
     return None
 
 
+def model_memory_gb(name: str) -> float | None:
+    """Known model size across roles; a role switch does not reduce its footprint."""
+    sizes = [e.speicher_gb for e in KATALOG if normalisiere(e.name) == normalisiere(name)]
+    return max(sizes) if sizes else None
+
+
 def normalisiere(name: str) -> str:
     """`bge-m3` und `bge-m3:latest` sind für Ollama dasselbe Modell."""
     name = (name or "").strip()
@@ -302,8 +315,7 @@ def _modell_von(rolle: str, angabe) -> tuple[KatalogEintrag | None, str]:
 
 
 def _nutzbar_gb(geraet: Geraet) -> float | None:
-    gb = geraet.modellspeicher_gb
-    return None if gb is None else gb * _NUTZBARER_ANTEIL
+    return geraet.modellbudget_gb
 
 
 def _summe(eintraege: dict[str, KatalogEintrag], rollen: tuple[str, ...], feld: str,
@@ -427,6 +439,15 @@ def _verkleinere_tag(eintraege: dict[str, KatalogEintrag], geraet: Geraet, ferti
                 break
             rolle = max(kandidaten)[1]
         ersatz = kleinere_wahl(rolle, neu[rolle], geraet, "speicher_gb")
+        # Equal-size alternatives can have different total costs: reuse an
+        # already loaded model before shrinking unrelated roles further.
+        loaded = {normalisiere(neu[r].name) for r in TAG_ROLLEN if r in neu and r != rolle}
+        shared = [e for e in KATALOG if e.rolle == rolle and min(e.stufen) <= stufe_fuer(geraet)
+                  and e.speicher_gb == ersatz.speicher_gb and normalisiere(e.name) in loaded]
+        for candidate in shared:
+            if fertig(orchester_bedarf({**neu, rolle: candidate}, geraet, vorhanden)):
+                ersatz = candidate
+                break
         getauscht.append((rolle, neu[rolle], ersatz))
         neu[rolle] = ersatz
     return neu, getauscht
@@ -474,5 +495,5 @@ def orchester_hinweise(auswahl: Mapping[str, Any], geraet: Geraet, titel: Mappin
 __all__ = [
     "FESTPLATTE_RESERVE_GB", "KATALOG", "KATALOG_STAND", "NACHT_ROLLEN", "ROLLEN", "STUFEN", "TAG_ROLLEN", "TAG_TAUSCHBAR", "Empfehlung",
     "Geraet", "KatalogEintrag", "empfehle", "empfehle_alle", "eintrag_fuer", "festplatte_reicht", "gb_text", "geraet_aus_profil",
-    "ausweichwahl", "kleinere_wahl", "normalisiere", "orchester_bedarf", "orchester_hinweise", "stufe_fuer",
+    "ausweichwahl", "kleinere_wahl", "model_memory_gb", "normalisiere", "orchester_bedarf", "orchester_hinweise", "stufe_fuer",
 ]

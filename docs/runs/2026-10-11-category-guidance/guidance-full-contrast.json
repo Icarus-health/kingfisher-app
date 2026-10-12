@@ -1,0 +1,570 @@
+{
+  "scope": "synthetic_guidance_full_contrast",
+  "personal_data_used": false,
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "catalog_sha256": "ac0663b80134cf79fb799115d6c643bc00188b7b9eaecc0d3a79e4bcd97d54ae",
+  "holdout_sha256": "25104f9cdbe2774766586a862aba2a351c6e8111d1a8f00845a21630acfb9b12",
+  "product_category_sha256": "da9aeee60bf612c4a7ce55d588e060b193df690ef33f3153a211890bebf328ea",
+  "driver_sha256": "88c1a91b13ade7d3ea4535f07672f2e34d45894efc522438fcb8e7967d8d4490",
+  "guidance": "Prüfe die Themen unabhängig von der Entitätenerkennung anhand der Beschreibungen in taxonomy. Eine fehlende Person oder andere Entität ist kein Grund, ein im Original belegtes Thema wegzulassen.",
+  "arms": [
+    {
+      "guided": false,
+      "results": [
+        {
+          "id": "advertising-only",
+          "source_status": "empty",
+          "failure_code": null,
+          "categories": [],
+          "people": [],
+          "missing_categories": [
+            "information"
+          ],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 6.297
+        },
+        {
+          "id": "system-success",
+          "source_status": "empty",
+          "failure_code": null,
+          "categories": [],
+          "people": [],
+          "missing_categories": [
+            "information"
+          ],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 1.581
+        },
+        {
+          "id": "specific-work",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 5.129
+        },
+        {
+          "id": "newsletter-with-real-assignment",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information",
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 7.435
+        },
+        {
+          "id": "invoice",
+          "source_status": "empty",
+          "failure_code": null,
+          "categories": [],
+          "people": [],
+          "missing_categories": [
+            "finance"
+          ],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 1.779
+        },
+        {
+          "id": "booking",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 2.964
+        },
+        {
+          "id": "conditional-report",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments",
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [
+            "appointments"
+          ],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 6.694
+        },
+        {
+          "id": "cancelled-old-request",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "work"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 3.745
+        },
+        {
+          "id": "supplier-invoice-no-person",
+          "source_status": "empty",
+          "failure_code": null,
+          "categories": [],
+          "people": [],
+          "missing_categories": [
+            "finance"
+          ],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "independent",
+          "seconds": 2.232
+        },
+        {
+          "id": "automated-public-service-restored",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 3.083
+        },
+        {
+          "id": "public-audiobook-advertisement",
+          "source_status": "empty",
+          "failure_code": null,
+          "categories": [],
+          "people": [],
+          "missing_categories": [
+            "information"
+          ],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "independent",
+          "seconds": 2.016
+        },
+        {
+          "id": "theatre-seat-reservation",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments"
+          ],
+          "people": [
+            "Sie"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [
+            "Sie"
+          ],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "independent",
+          "seconds": 4.893
+        },
+        {
+          "id": "chance-meeting-no-work-evidence",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "personal",
+            "unclear"
+          ],
+          "people": [
+            "Nora Beck"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [
+            "unclear"
+          ],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "independent",
+          "seconds": 202.388
+        },
+        {
+          "id": "automated-payment-with-named-recipient",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "finance"
+          ],
+          "people": [
+            "Lea Winter"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 8.003
+        }
+      ],
+      "calls": 14
+    },
+    {
+      "guided": true,
+      "results": [
+        {
+          "id": "advertising-only",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 2.707
+        },
+        {
+          "id": "system-success",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 3.045
+        },
+        {
+          "id": "specific-work",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 4.479
+        },
+        {
+          "id": "newsletter-with-real-assignment",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments",
+            "information",
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [
+            "appointments"
+          ],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 6.246
+        },
+        {
+          "id": "invoice",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "finance"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 2.972
+        },
+        {
+          "id": "booking",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 2.956
+        },
+        {
+          "id": "conditional-report",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments",
+            "work"
+          ],
+          "people": [
+            "Lene Kühn"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [
+            "appointments"
+          ],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "development",
+          "seconds": 6.559
+        },
+        {
+          "id": "cancelled-old-request",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "work"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "development",
+          "seconds": 3.705
+        },
+        {
+          "id": "supplier-invoice-no-person",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "finance"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 3.026
+        },
+        {
+          "id": "automated-public-service-restored",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 2.996
+        },
+        {
+          "id": "public-audiobook-advertisement",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "information"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 2.927
+        },
+        {
+          "id": "theatre-seat-reservation",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "appointments"
+          ],
+          "people": [],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 3.174
+        },
+        {
+          "id": "chance-meeting-no-work-evidence",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "personal",
+            "unclear"
+          ],
+          "people": [
+            "Nora Beck"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [
+            "unclear"
+          ],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": false,
+          "dataset": "independent",
+          "seconds": 5.333
+        },
+        {
+          "id": "automated-payment-with-named-recipient",
+          "source_status": "complete",
+          "failure_code": null,
+          "categories": [
+            "finance"
+          ],
+          "people": [
+            "Lea Winter"
+          ],
+          "missing_categories": [],
+          "forbidden_categories_found": [],
+          "unexpected_categories": [],
+          "missing_people": [],
+          "unexpected_people": [],
+          "original_unchanged": true,
+          "meets_requirements": true,
+          "dataset": "independent",
+          "seconds": 4.679
+        }
+      ],
+      "calls": 14
+    }
+  ],
+  "completed": true
+}

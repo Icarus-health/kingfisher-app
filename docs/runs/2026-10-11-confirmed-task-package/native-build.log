@@ -1,0 +1,5 @@
+Übersetze für arm64 …
+build/mac-app/Kingfisher.app: replacing existing signature
+created: /private/tmp/kingfisher-task-package-a5787c8/dist/Kingfisher.dmghdiutil: WARNING: 'hdiutil create -volname -format ...' is deprecated. Please use 'diskutil image create from/blank --volumeName --format ...' instead.
+
+Fertig: dist/Kingfisher.dmg (Fassung 1.0.6-preview.a5787c8)

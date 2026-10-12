@@ -46,12 +46,15 @@ def test_ausweichwahl_passt_und_wiederholt_nichts():
     namen = [e.name for e in ausweichwahl('frage', g16, (empfohlen,))]
     assert empfohlen not in namen and len(namen) == len(set(namen)) and namen
     assert namen[0] == 'lfm2.5:8b' and 'qwen3.5:2b' in namen  # erst die Alternative, dann das kleinere
-    # Auf 8 GB nur, was hineinpasst.
+    # Auf 8 GB bleiben mindestens 6 GB für System und andere Programme frei.
     g8 = Geraet(arbeitsspeicher_gb=8)
     for rolle in ('frage', 'antwort', 'pruefung', 'hintergrund', 'einbettung'):
         for eintrag in ausweichwahl(rolle, g8):
-            assert eintrag.speicher_gb <= 8 * 0.85, (rolle, eintrag.name)
-    assert [e.name for e in ausweichwahl('pruefung', g8, ('tev1:0.8b',))] == ['tev1:4b', 'bespoke-minicheck:7b']
+            assert eintrag.speicher_gb <= 2, (rolle, eintrag.name)
+    assert ausweichwahl('pruefung', g8, ('tev1:0.8b',)) == ()
+    # Separater GPU-Speicher behält sein eigenes Budget; dort passen beide Alternativen.
+    gpu8 = Geraet('linux', None, 8, 8)
+    assert [e.name for e in ausweichwahl('pruefung', gpu8, ('tev1:0.8b',))] == ['tev1:4b', 'bespoke-minicheck:7b']
 
 
 def test_anderes_modell_nehmen_ist_erlaubt_und_die_empfehlung_nennt_es(app_und_client):

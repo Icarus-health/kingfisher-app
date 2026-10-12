@@ -10,7 +10,22 @@ def legacy_hex(key):
     return format(key % 2 ** 64, '016x') + '0' * 48
 
 
+def drop_task_rechecks(connection):
+    # v20 and earlier also lack the later derived mail-header projection.
+    from icarus_memory.mail_header_index import TABLES as HEADERS, TRIGGERS as HEADER_TRIGGERS
+    for trigger in HEADER_TRIGGERS:
+        connection.execute("DROP TRIGGER IF EXISTS " + trigger)
+    for table in HEADERS:
+        connection.execute("DROP TABLE IF EXISTS " + table)
+    from icarus_memory.task_rechecks import TABLES, TRIGGERS
+    for trigger in TRIGGERS:
+        connection.execute('DROP TRIGGER IF EXISTS ' + trigger)
+    for table in TABLES:
+        connection.execute('DROP TABLE IF EXISTS ' + table)
+
+
 def drop_intake_extensions(connection):
+    drop_task_rechecks(connection)
     from icarus_memory import akten_arten, bezuege, kreis, lage, mail_intake, memory_categories, source_index
     # Der Suchindex zuerst: Beim Löschen der virtuellen Tabelle verschwinden ihre Schattentabellen.
     for table in {**source_index.TABLES, **source_index.WOERTER_TABLES, **mail_intake.TABLES, **memory_categories.TABLES,

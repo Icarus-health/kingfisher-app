@@ -183,7 +183,7 @@ def test_nur_ueber_die_kopfzeile_gestuetzt_ist_duenn(raum):
         'duenn', 'nur über Betreff oder Absender belegt')
 
 
-def test_auch_der_vom_programm_ergaenzte_wandel_geht_durch_das_tor(raum):
+def test_keine_programminferenz_wird_dem_zweiten_tor_als_belegter_wandel_vorgelegt(raum):
     from tests.test_satzantwort import wandel
     episodes, claims, akten = raum
     wandel(episodes)
@@ -200,5 +200,9 @@ def test_auch_der_vom_programm_ergaenzte_wandel_geht_durch_das_tor(raum):
     gespeichert = wma.prepare('Bis wann ist die Einreichfrist?', episodes, claims, Skript(nur_neu), saetze=True,
                               pruefung=spm.tor('an', pruefer))
     gefragt = [spm.satz_der_anfrage(a) for a in pruefer.anfragen]
-    assert any(s and s.startswith('Die Frist gilt jetzt') for s in gefragt), gefragt
-    assert gespeichert['satzantwort']['status'] == 'zitate', 'Ein Wandel, den das Tor nicht bestätigt, gilt nicht'
+    assert not any(s and s.startswith('Die Frist gilt jetzt') for s in gefragt), gefragt
+    assert gespeichert['satzantwort']['status'] == 'saetze'
+    assert all(not s['vom_programm'] for s in gespeichert['satzantwort']['saetze'])
+    text, links, _ = wma.render(gespeichert, episodes, claims)
+    assert '18 Monate' in text and '12. November 2026' in text
+    assert len(links) == 2 and 'Die Frist gilt jetzt' not in text

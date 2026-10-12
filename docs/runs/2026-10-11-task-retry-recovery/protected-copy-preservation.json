@@ -1,0 +1,15 @@
+{
+  "database_schemas_checked": 17,
+  "preserved_tables_checked": 47,
+  "existing_episode_store_tables_unchanged": 43,
+  "old_schema": 22,
+  "new_schema": 22,
+  "sqlite_schema_and_user_version_unchanged": true,
+  "protected_local_copy": true,
+  "original_backup_readonly": true,
+  "network": "none",
+  "models": false,
+  "all_derived_headers_match_originals": true,
+  "header_rows": 74,
+  "migration_and_verification_seconds": 1.6924770590267144
+}

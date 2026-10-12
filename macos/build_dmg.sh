@@ -21,6 +21,14 @@ MINDEST_MACOS="11.3"   # wie scripts/build_mac_window.py und LSMinimumSystemVers
 
 fehler() { echo "build_dmg: $*" >&2; exit 1; }
 
+# Öffentliche Releases bleiben universal; lokale Abnahme kann ausdrücklich nur einen Mac-Typ bauen.
+case "${KINGFISHER_ARCHITEKTUR:-universal}" in
+    universal) ARCHITEKTUREN=(arm64 x86_64) ;;
+    arm64) ARCHITEKTUREN=(arm64) ;;
+    x86_64) ARCHITEKTUREN=(x86_64) ;;
+    *) fehler "Unbekannte Architektur. Erlaubt sind universal, arm64 und x86_64." ;;
+esac
+
 # -- Fassung -----------------------------------------------------------------
 FASSUNG="${KINGFISHER_FASSUNG:-}"
 if [ -z "$FASSUNG" ] && [ -f VERSION ]; then
@@ -51,13 +59,17 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" dist
 
 # -- Übersetzen: beide Architekturen, dann ein universelles Programm ---------
 QUELLEN=(macos/Shared/*.swift macos/App/Logic/*.swift macos/App/*.swift)
-for ARCH in arm64 x86_64; do
+for ARCH in "${ARCHITEKTUREN[@]}"; do
     echo "Übersetze für $ARCH …"
     xcrun swiftc -parse-as-library -O -target "$ARCH-apple-macosx$MINDEST_MACOS" \
-        -framework AppKit -framework WebKit -framework Security \
+        -framework AppKit -framework WebKit -framework Security -framework EventKit \
         "${QUELLEN[@]}" -o "$BAU/Kingfisher-$ARCH"
 done
-xcrun lipo -create -output "$APP/Contents/MacOS/Kingfisher" "$BAU/Kingfisher-arm64" "$BAU/Kingfisher-x86_64"
+if [ "${#ARCHITEKTUREN[@]}" -eq 2 ]; then
+    xcrun lipo -create -output "$APP/Contents/MacOS/Kingfisher" "$BAU/Kingfisher-arm64" "$BAU/Kingfisher-x86_64"
+else
+    cp "$BAU/Kingfisher-${ARCHITEKTUREN[0]}" "$APP/Contents/MacOS/Kingfisher"
+fi
 chmod 755 "$APP/Contents/MacOS/Kingfisher"
 
 # -- Info.plist, Compose-Datei, Icon -----------------------------------------

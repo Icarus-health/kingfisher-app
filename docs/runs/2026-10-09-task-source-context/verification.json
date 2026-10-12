@@ -1,0 +1,28 @@
+{
+  "code_commit": "d0733c6adf1e87b93548df78d9802cf43ba4a99b",
+  "base_main": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "fresh_archive_cases": 217,
+  "new_cases": 18,
+  "original_red": "4 failed, 1 passed",
+  "mutations": {
+    "constant_generation": "6 failed, 12 passed",
+    "legacy_bypass": "3 failed, 15 passed"
+  },
+  "actual_model_inference": false,
+  "personal_data": false,
+  "installed": false,
+  "sql_schema_changed": false,
+  "backend_full_suite": false,
+  "log_sha256": {
+    "red-main": "a6b8c5dc873899dedf9f0d44723c4cb22583ed752cf2df2a9e4af54905cc8e5b",
+    "first-attempt": "fff8977b151f7d4c33557a337cb537d667fa803f30f98b7c93f8fff5fa081314",
+    "legacy-red": "9a75c71fab0122572f1cc5f5f5bb5e676223f4cb26ed4311e4dd46923c8df0c0",
+    "review-red": "d628bdd18dea1af08600cb0449caccd47e743af89611a0963d304e660f477836",
+    "wrong-test-path": "ce2697373b9a5ac8e5cb8208af3d6aade7c45fcf35527e70c44b14d8419c3503",
+    "focused-green": "054a06bb99aae1665b2f2fbcd5e4f1ddf9359e4f1c540d53ce99e1ffcf899ed5",
+    "final-new": "d991a47a842eac82442858fd058699f1f81c394cad6ce17be1e27b51008593c9",
+    "final-archive": "1be34537466064609685f6f2beb7a4f98df90f34c1e6427f9b479198b8adab24",
+    "mutation-context": "6538e8fc84b1a2befb15def997b8e5fb129241e72c5d6fd7b72934da8432ebc9",
+    "mutation-legacy": "1c234847217e9b16935ca6275371b07ae5387f2eef1bfd6383c48ba9538960ba"
+  }
+}

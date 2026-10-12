@@ -1,0 +1,14 @@
+{
+  "synthetic_sources": 2000,
+  "queued_corrections": 2000,
+  "requested_limit": 100000,
+  "delivered_limit": 20,
+  "construction_seconds": 0.6647027499857359,
+  "read_samples": 100,
+  "median_queue_page_ms": 0.02606250927783549,
+  "max_queue_page_ms": 0.10437500895932317,
+  "restart_retained": true,
+  "actual_models": false,
+  "personal_data": false,
+  "proves_full_122000_source_quality": false
+}

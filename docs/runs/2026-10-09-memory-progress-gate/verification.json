@@ -1,0 +1,660 @@
+{
+  "base_commit": "3667e4e18b9e255780c755889370b46368cf0a6d",
+  "tested_code_commit": "7ef15d30c2686b54a36f1c8ae18e7cf31940aaab",
+  "backend_affected": {
+    "passed": 76,
+    "skipped": 1,
+    "skip_reason": "Linux thread priority unavailable on macOS"
+  },
+  "ui_full": {
+    "passed": 439
+  },
+  "clean_archive": {
+    "backend_new_passed": 4,
+    "ui_focused_passed": 13,
+    "typescript_vite_build": "passed",
+    "node_modules": "existing dependency directory shared; no dependency download"
+  },
+  "review": {
+    "mode": "independent read-only code review",
+    "findings": 2,
+    "resolution": "both reproduced by failing tests and corrected",
+    "final_independent_runtime_recheck": false
+  },
+  "bundle_files": [
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-1024.png",
+      "bytes": 843728,
+      "sha256": "b8915596f7649223968ed5b1e557f79b23fd28d3e44e17bdc25f61e5290e3de4"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-120.png",
+      "bytes": 10741,
+      "sha256": "25ea7ba561974df46d6d0f1d5674a790208196a384ae75a568e00a5304704bb1"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-152.png",
+      "bytes": 16790,
+      "sha256": "9429c948d0c2be83f2d532cd7deb25bd5b824010ce09cf5e655252d6a2a4be79"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-167.png",
+      "bytes": 20249,
+      "sha256": "9c380df72ac0543f880a4f44b6d906c0a4b2721bd16fb79e6d3d64d53fde3861"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-180.png",
+      "bytes": 23539,
+      "sha256": "709ce372b64a5d3035b0dfff31fc22492dd242873e10d7fe9ae7205cbae91638"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-20.png",
+      "bytes": 767,
+      "sha256": "b5a501e8dc7e2077f189fd62ae3f1cdd7ea0d0be7374dab59057f060a2e6a40b"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-256.png",
+      "bytes": 48302,
+      "sha256": "d95f8248c988151cd490a038f0cce43ec87eeb6f18fc2442e7cdc4f4a945d7b7"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-29.png",
+      "bytes": 1214,
+      "sha256": "801e1acc652b29dca5de6790295b34edbfe454ade051a5edd5033602216ff504"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-40.png",
+      "bytes": 1793,
+      "sha256": "29f62f3bd95af3a376161dd2e89b3f0cf5b8964f05ff946c51ea44fe4af5c880"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-512.png",
+      "bytes": 204633,
+      "sha256": "8490974a07ae5ac7f7cad453f3807d9e195130e410105ccc8fe2baadb7ef4fba"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-60.png",
+      "bytes": 3302,
+      "sha256": "d68c9b1499444f53c863c4f7c11609c0e48f214aaf8c188a2d4e9a7588ea6060"
+    },
+    {
+      "file": "01_Brand/Approved/App_Icon_Exports/kingfisher-app-icon-80.png",
+      "bytes": 5315,
+      "sha256": "e8946b860894fe3fed8ce9ea5bcd116f1dc4365cfb5f05a9a14e9f969a6ffa51"
+    },
+    {
+      "file": "01_Brand/Approved/kingfisher-logo-dark-approved-v1.png",
+      "bytes": 1022330,
+      "sha256": "76e8c9bcdb51af53ed6e972f498e0ad81fd2d2b32b38208a291ead364dd66666"
+    },
+    {
+      "file": "01_Brand/Approved/kingfisher-logo-light-approved-v1.png",
+      "bytes": 1291451,
+      "sha256": "45ca943b51a3e5a5b454739a99644421ec7af4a95472bdf655cacbafc65825b0"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/arrow-up.svg",
+      "bytes": 213,
+      "sha256": "8cb8896cf27f1e0a19891568f33246932f7edb524b019caa230f65f3405b9d8b"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/bell.svg",
+      "bytes": 422,
+      "sha256": "eb32d36b7ae7e6d6e18f18564fd8d39cc4b4b8bdbc68f601134acc2a15bc0fde"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/brain.svg",
+      "bytes": 612,
+      "sha256": "917599da7118bcaee2a754f3b942e07d000bcbf2e11f751d69854637568295ef"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/calendar-days.svg",
+      "bytes": 489,
+      "sha256": "ab62e3daeda16df2c3b27a0f459e8722170d521c75b0d895364f5d9b62f16168"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/check.svg",
+      "bytes": 271,
+      "sha256": "9564ad1124a7e85def24b3c24100c4328cce68f56625036d26b8570bb5e3a5c5"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/circle-alert.svg",
+      "bytes": 358,
+      "sha256": "a5a4ef9eb9009d7ee9d4669f7295134c18df1398b4829c8b9a9c1b8e15583a98"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/clock3.svg",
+      "bytes": 298,
+      "sha256": "d2ed239e934bddeb6bc411bcc75c67f0c546fa122204a6a5dee1d06eceba3703"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/download.svg",
+      "bytes": 344,
+      "sha256": "efe9ddb0a892de35c4af829d15ea54e3f666eaeb94f9270e72bdf585aa4d89a6"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/eye.svg",
+      "bytes": 389,
+      "sha256": "37be99f0c34f09ba6f298a0001767cd617fda0efed40c1f7e03cc28f5a46db3b"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/file-text.svg",
+      "bytes": 464,
+      "sha256": "ccd2308b544716b2fb647b505765d07c7cbe437d5821466edeca341fe2b5b18e"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/folder.svg",
+      "bytes": 374,
+      "sha256": "aeb3a17bf594de4adb087a2d719e77c38da0a0aef731756ec985c58caa18d854"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/funnel.svg",
+      "bytes": 402,
+      "sha256": "fb3f9f553b731f45f4548913dfd228251a073a7a0463f358cde38915fbbc3390"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/house.svg",
+      "bytes": 412,
+      "sha256": "7aa10c9cdb4d36cb2b4c37c1f3a8a69db9e5d00154cfe303a154bbb761f46c00"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/info.svg",
+      "bytes": 320,
+      "sha256": "4c4633b396b0963e7b551b2e1716af5237081f845f37a08519b2c967461a8ae8"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/link.svg",
+      "bytes": 388,
+      "sha256": "d4ac2d02bccb8508bcb3e16a35a922ebbb597c378c22e88effa07d4e1223661d"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/mail.svg",
+      "bytes": 345,
+      "sha256": "efe77c4073403b2da44401b0391b2ec9fc335a9d2841d93afe716535180dac35"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/message-circle.svg",
+      "bytes": 379,
+      "sha256": "f9721bed43e816f115b2ac51536fef726bfcca39bb774b4602ba0c3a2309dd5f"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/microphone.svg",
+      "bytes": 305,
+      "sha256": "b51d12d79ade488a020664bb6f89d03005fa4c58495169253b9528dcd1f3ec98"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/network.svg",
+      "bytes": 465,
+      "sha256": "a74ccaccf80fff313931e9c53cc8cb217af0532e7bfa2ecd24c6fbed54a1832f"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/pause.svg",
+      "bytes": 174,
+      "sha256": "b977d270959aaddaa52b423cf149c4a9f8b01e15e20ec2243a7f5ce9050003d6"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/pencil.svg",
+      "bytes": 406,
+      "sha256": "91f7dec2320182f9c328a2979c7d4d5dbd4b3f8096ac7a9e94206b0dd19872a0"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/plus.svg",
+      "bytes": 285,
+      "sha256": "039542212fc58512f89263b01d87e02d678f85b2dfb07766303c59964e221557"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/search.svg",
+      "bytes": 304,
+      "sha256": "de9579fc9f6a5fa3ea9e86a55bc347cb30fa44de923ac6cc5143193d18ee897a"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/settings.svg",
+      "bytes": 615,
+      "sha256": "6b73ede0525a83fc87961dd5ed266058fba581464ed35fbe51801b28a601e2f4"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/trash2.svg",
+      "bytes": 409,
+      "sha256": "008747433f73028db7fdaad66da8ce8ea05762fb0193353ae2f8d54e35cacd55"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/triangle-alert.svg",
+      "bytes": 371,
+      "sha256": "f0934747b2d6c9e293962304f94a85a65ed5e322120f97e57326848ec79b1c4d"
+    },
+    {
+      "file": "02_Icons/Approved/Filled/users-round.svg",
+      "bytes": 362,
+      "sha256": "3935cda0f70240c0522de4d624d410145ff4a84c4c3d4fbd1e3c38e01857bbe5"
+    },
+    {
+      "file": "02_Icons/Approved/ICON-USAGE.md",
+      "bytes": 1199,
+      "sha256": "31a20c4296aac0089fc391644deafacde76087022767d6a24728ed6a1bed949c"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/arrow-up.svg",
+      "bytes": 213,
+      "sha256": "8cb8896cf27f1e0a19891568f33246932f7edb524b019caa230f65f3405b9d8b"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/bell.svg",
+      "bytes": 422,
+      "sha256": "8768c53f1b4673767c4e78613bfc791f9efbe94331a457ed9a5cdafe6f6d753f"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/brain.svg",
+      "bytes": 612,
+      "sha256": "ce052a7a4883ad5eacc0a9c1b68d06e3ff68f9a0486d1c76ec544865ae14c492"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/calendar-days.svg",
+      "bytes": 489,
+      "sha256": "da6dd07ecaf833e7d4e1b769bbb40918dfa4f2afe35efba634afaa7e129cdd25"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/check.svg",
+      "bytes": 271,
+      "sha256": "8665cc6cee49ba08978e5f3ec4d94c8eaf6a9258800380c482c3fec150407575"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/circle-alert.svg",
+      "bytes": 358,
+      "sha256": "9cf1ef17312e7effe7565c167d6a773d214dc333ad11988936c312f94a2fe7ab"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/clock3.svg",
+      "bytes": 298,
+      "sha256": "f4bd440839da1d3cbdf11b105431d238aaad3b1abaae1d277c118dd353c51c53"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/download.svg",
+      "bytes": 344,
+      "sha256": "169cd4dbbca1d6b1088e806b0b2db3817167e4dff732b389dd1065f114f87d68"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/eye.svg",
+      "bytes": 389,
+      "sha256": "301cc404fd48e0e98c7a4bd630d9993e800d5fe8e0e2b6b2e2166d4d1d1a13ae"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/file-text.svg",
+      "bytes": 464,
+      "sha256": "176dd221123daf1b8de662132882d5677178facb4578681b577e16ab5d7fb37c"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/folder.svg",
+      "bytes": 374,
+      "sha256": "6f9c69e9c30692017753fc15a67038c091affbbeec20c7dbe3a1dedafffd2336"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/funnel.svg",
+      "bytes": 402,
+      "sha256": "426d7aad3ade1ea265a090938fd525a37a21b1d4332702ecf4da3c6a4e9b33ae"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/house.svg",
+      "bytes": 412,
+      "sha256": "db1a57af45bb90398c252f8e323967d0e422afc765f49c717185faf9159730ef"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/info.svg",
+      "bytes": 320,
+      "sha256": "a79f4274f89fbce1136e410c07efd71819eeb7b32bad6abfdd938c70663688bf"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/link.svg",
+      "bytes": 388,
+      "sha256": "7c883717fb2f0fea62435e0112c3413c6b506fdbc6fb03e5474be1c3774e7076"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/mail.svg",
+      "bytes": 345,
+      "sha256": "56bd07596ecd9a49aec012d92c160b39cacb5d82a43f01bda99b100b347eea6b"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/message-circle.svg",
+      "bytes": 379,
+      "sha256": "28ed2b21f1ab4ee327092d66ccda4293e51456ff900284e6b7942702772f657b"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/microphone.svg",
+      "bytes": 305,
+      "sha256": "b51d12d79ade488a020664bb6f89d03005fa4c58495169253b9528dcd1f3ec98"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/network.svg",
+      "bytes": 465,
+      "sha256": "0db41a2a4c1658f0087d1bf7c40bdf84be6bde85d6177c236cd2bee9bf819974"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/pause.svg",
+      "bytes": 174,
+      "sha256": "b977d270959aaddaa52b423cf149c4a9f8b01e15e20ec2243a7f5ce9050003d6"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/pencil.svg",
+      "bytes": 406,
+      "sha256": "68bde50c8eb380b27c10d3e8d36f7ec53a1512503da0e97dcad57b1439c39139"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/plus.svg",
+      "bytes": 285,
+      "sha256": "f4d85f5af0c06ddfb7ebba06a81dfed55e7275e53240a4bbe77b12ef9d4b5bb0"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/search.svg",
+      "bytes": 304,
+      "sha256": "f26d78f6005c2854b00c601632ba51c24b1dbdf8cc9133aa0f90f317d31f4cf4"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/settings.svg",
+      "bytes": 615,
+      "sha256": "4e2fc64c367f81c6cc5d10fa6e22c9365d31b5b573230dd591011f4e5cc1e03a"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/trash2.svg",
+      "bytes": 409,
+      "sha256": "ec5e5a0b073e27367966177609579ec91fbe30ff0c433c077cd614ca6ced2d5b"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/triangle-alert.svg",
+      "bytes": 371,
+      "sha256": "9ec66e608c2dbcfd87fa59526d8a26def5f01f86fa2b41f9ca8dd0bac2653d30"
+    },
+    {
+      "file": "02_Icons/Approved/Outline/users-round.svg",
+      "bytes": 362,
+      "sha256": "a25b69abbed90a418fcf7a62dfe9f8fb18d0c6c26058c2e923cfaa1ae88b7372"
+    },
+    {
+      "file": "02_Icons/Approved/kingfisher-core-icons-v1.zip",
+      "bytes": 24646,
+      "sha256": "5da33a368cf976c89b27ff399ce43aa1ce61e87745771575ef3306b267d0d352"
+    },
+    {
+      "file": "02_Icons/LUCIDE-LICENSE.txt",
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "file": "03_Media/Approved/Freigestellter Eisvogel auf Zweig.png",
+      "bytes": 1750224,
+      "sha256": "0fd953cd09be62fde7b46dbbef1bba5cd25a693cff84a0ab6d54a1e1df443826"
+    },
+    {
+      "file": "03_Media/Approved/aurora-network-tile.png",
+      "bytes": 114569,
+      "sha256": "cda8345b74d0a6a9881a9c1f74f8c38a927c47ece2f3a241c27a6d9548454b3b"
+    },
+    {
+      "file": "03_Media/Approved/calendar-lakeside-header-v1.png",
+      "bytes": 1692727,
+      "sha256": "052fa95cf56f2c8f838dbbc9e32583ec38667a0dbdcf75e8e598335708250685"
+    },
+    {
+      "file": "03_Media/Approved/data-current-dark-approved-v1.png",
+      "bytes": 1454340,
+      "sha256": "e0529c45464ec1344eaae3a2c142fbb9e51100d6c8d6fe5024e5574b51bf8cf6"
+    },
+    {
+      "file": "03_Media/Approved/ice-abstract-tile.png",
+      "bytes": 123524,
+      "sha256": "a24db944bf4014261936a5e8cf7afce6b3792f02487d28cc44ee3e65c9de57ff"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-flight-clean-v1.png",
+      "bytes": 1888556,
+      "sha256": "a714887c52a266150caa6f66fb8152ad4449710045563e243b6728af6dc061d2"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-flight-horizontal.png",
+      "bytes": 124025,
+      "sha256": "ed6d853a2ad252112048a5aaacc47196a6508e19b01844a149d0d7d6dc558a28"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-flight-transparent-approved-v1.png",
+      "bytes": 1382209,
+      "sha256": "678eaf27fe55929989c0f1e60bd7bc60af44fcce73dd0ac0eb5088f03b79836b"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-hero-dark-approved-v1.png",
+      "bytes": 1413348,
+      "sha256": "24ae7c4c7d6af7bc6a17c5c086f7604e7d400f2c993c41d03eea92f48242edbb"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-perched-branch-alt.png",
+      "bytes": 3253135,
+      "sha256": "d5551c576117d46c08a87d0cfa22639a7167cdf58bed43e3ca06d1f639102eac"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-perched-branch.png",
+      "bytes": 3320329,
+      "sha256": "f666101a5d5928dba65487d9030275cda8df976fdf50864718602824a9d4c724"
+    },
+    {
+      "file": "03_Media/Approved/kingfisher-perched-close.png",
+      "bytes": 121960,
+      "sha256": "9b35d3350fd891009d42dfe26b7cdea81cb9c0aca22ece233a92ab209a676f75"
+    },
+    {
+      "file": "03_Media/Approved/landscape-calm-page-v1.png",
+      "bytes": 1918717,
+      "sha256": "a2042852965b9f99a9c944789ad2ff2779d54bbe87863e38eb0f182a098f9b2d"
+    },
+    {
+      "file": "03_Media/Approved/morning-lake-panorama-approved-v1.png",
+      "bytes": 11822327,
+      "sha256": "28b93b9569efad85b98fdc83d6caa0e40f1194ee0a44f7815125567e07441519"
+    },
+    {
+      "file": "03_Media/Approved/network-constellation-tile.png",
+      "bytes": 148659,
+      "sha256": "0234837d04a99e548bad63ba0b447deaa7f095b958959cf799efded02a36494a"
+    },
+    {
+      "file": "03_Media/Approved/water-reflection-light-approved-v1.png",
+      "bytes": 1207330,
+      "sha256": "6c494e0c0e896dd91fb9ef704bbc13916eaf817c0496bfb0caf00f3e62f199a0"
+    },
+    {
+      "file": "04_UI_Foundation/Approved/KINGFISHER-UI-FOUNDATION-v1.md",
+      "bytes": 3304,
+      "sha256": "0e44c944a743578726826b2685b1456bbcdf0907a4e5d540ba39cd732451f1b4"
+    },
+    {
+      "file": "04_UI_Foundation/Approved/kingfisher-ui-foundation-board-v1.png",
+      "bytes": 543200,
+      "sha256": "60800159c336a435ff61933946570b09a6e8232a7c2ac70997829b5544559201"
+    },
+    {
+      "file": "04_UI_Foundation/Approved/kingfisher-ui-tokens-v1.json",
+      "bytes": 2635,
+      "sha256": "a7286629eea2a44296bc8281733de702d372d4b2f27f16f675194479be64eab1"
+    },
+    {
+      "file": "05_Components/Approved/KINGFISHER-COMPONENTS-v1.md",
+      "bytes": 1539,
+      "sha256": "14dcca055e9f1c960f00543c65fa21d8cdad8641e6496f686685af33c2d6a48c"
+    },
+    {
+      "file": "05_Components/Approved/kingfisher-components-v1.png",
+      "bytes": 544818,
+      "sha256": "c04d6c8814850f5566254214d4632cc8d7a76f9762ba7a2cb242ae905b058d4c"
+    },
+    {
+      "file": "06_Screens/Approved/MORNING-BRIEFING-CANONICAL-v1.md",
+      "bytes": 1395,
+      "sha256": "9683f4d1e9baa3783eaead17015ff89f6942869d5a0a69c7ea6930bbc2937c7b"
+    },
+    {
+      "file": "06_Screens/Approved/Mobile/MOBILE-REFERENCE-INDEX-v1.md",
+      "bytes": 1193,
+      "sha256": "93ec1dae3d66385019935f2ff8dbe5b4812f56794d96723b7883ccb76968a148"
+    },
+    {
+      "file": "06_Screens/Approved/SCREEN-REFERENCE-INDEX-v1.md",
+      "bytes": 1993,
+      "sha256": "77c92f1635a0d8a1bbb0de34fcfe55ed307f66d4666958d7cc180b3ebe939e78"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/CormorantGaramond-OFL.txt",
+      "bytes": 4387,
+      "sha256": "60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/CormorantGaramond-Regular.ttf",
+      "bytes": 290236,
+      "sha256": "6d37a86241a25d63f8fe6018b4c083449886b7165c1acb15edd0f574f690ecf7"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/CormorantGaramond-SemiBold.ttf",
+      "bytes": 290392,
+      "sha256": "69e7ae35cba23d962227b86f99217c250e642e4c6f6104b4f3ec465039e4e2d8"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/Inter-Bold.ttf",
+      "bytes": 326468,
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/Inter-Medium.ttf",
+      "bytes": 325304,
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/Inter-OFL.txt",
+      "bytes": 4380,
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/Inter-Regular.ttf",
+      "bytes": 324820,
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/Inter-SemiBold.ttf",
+      "bytes": 326048,
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7"
+    },
+    {
+      "file": "07_Coding_Package/Fonts/kingfisher-fonts.css",
+      "bytes": 990,
+      "sha256": "174195c7d51036c9b401df06892decbb53ebf6a223eb95e5bd7fa77e958fbc94"
+    },
+    {
+      "file": "07_Coding_Package/KINGFISHER-ASSET-MANIFEST-v1.json",
+      "bytes": 4061,
+      "sha256": "c8b19ca8651f9d6e62114b130ad0fd40bbb72a018754b0ce8d1336d43eaf18d3"
+    },
+    {
+      "file": "07_Coding_Package/KINGFISHER-CODING-HANDOFF-v1.md",
+      "bytes": 1488,
+      "sha256": "24e3da730989c0d04801032037ecc1bb9f80f1b5976f10ee5ea3b4a18890469f"
+    },
+    {
+      "file": "07_Coding_Package/KINGFISHER-IMPLEMENTATION-GUARDRAILS-v1.md",
+      "bytes": 1943,
+      "sha256": "cf8cf1f3f96f2e73fb08e0391eeef73a5220aad5219286557be5afebc7091c1b"
+    },
+    {
+      "file": "07_Coding_Package/KINGFISHER-UI-STATES-v1.md",
+      "bytes": 1544,
+      "sha256": "55b41bb090ec8d5554522b48cf4f7215a790ffcebd347b8660825040eacdb11b"
+    },
+    {
+      "file": "07_Coding_Package/KINGFISHER-VISUAL-ACCEPTANCE-v1.md",
+      "bytes": 945,
+      "sha256": "4b470d856ef3da9b1a8e20de4c43228880776378ccf64c59754fc0862805d734"
+    },
+    {
+      "file": "assets/index-Bl_fjuxS.css",
+      "bytes": 195683,
+      "sha256": "325a92488d8c357ec1eb001263d49fa773ea5f107f99de9f0ad42b317e20a07f"
+    },
+    {
+      "file": "assets/index-CYQJ1LQ2.js",
+      "bytes": 889922,
+      "sha256": "fd6148f439d4d7795c3daeebfeaaec1ce9aee9d6082e894b6e1c051e51c52480"
+    },
+    {
+      "file": "index.html",
+      "bytes": 539,
+      "sha256": "5eebf9421f512378e5ca26d0094405b801a6d2a2f43d0db03fe657ba40af3b58"
+    }
+  ],
+  "logs": [
+    {
+      "file": "backend-red.log.gz",
+      "raw_bytes": 6754,
+      "raw_sha256": "1cf393616b75f99dfef3e9d9dc8f57b1fc42e663899bfd13bd54cc2a8d1a137b"
+    },
+    {
+      "file": "ui-red.log.gz",
+      "raw_bytes": 5591,
+      "raw_sha256": "0c9bfd11b937f3d9593bd4730136cf2a7437ce9cf68f4a51ebd782b6933b562d"
+    },
+    {
+      "file": "automation-ui-red.log.gz",
+      "raw_bytes": 2605,
+      "raw_sha256": "4dc92ec9af5085c7835d8d5eb42215928818d73b9153da4e43b4f661d0607f6f"
+    },
+    {
+      "file": "review-gate-red.log.gz",
+      "raw_bytes": 3127,
+      "raw_sha256": "8dce11fe6c7e1590061c0acdb98835667e98abd62600dc60baef35b539ab5702"
+    },
+    {
+      "file": "review-freshness-red.log.gz",
+      "raw_bytes": 6933,
+      "raw_sha256": "76e3e0be398a6cee179df438b29bfca7e9b89bedd4c45f5ca09897989f4baeaf"
+    },
+    {
+      "file": "review-retry-red.log.gz",
+      "raw_bytes": 3040,
+      "raw_sha256": "9a81f6858a1ab8ccc5a87ddd0fd252cfe3b6fac0ebb7f49d2aef8e7e65c03e57"
+    },
+    {
+      "file": "backend-affected.log.gz",
+      "raw_bytes": 760,
+      "raw_sha256": "ad265223e5673530aca39a5644a171861b4feb819068843e21fef6ec44ba6b27"
+    },
+    {
+      "file": "review-fixes-green.log.gz",
+      "raw_bytes": 3224,
+      "raw_sha256": "f9e17a4eb59bb050809f235748f258a164c9933024dc78d37903049c11eb151b"
+    },
+    {
+      "file": "ui-final.log.gz",
+      "raw_bytes": 93379,
+      "raw_sha256": "344d8c29980574d1ed9800aa34d9f3e3eadd7ae81ee053c5c67a074e58649d95"
+    },
+    {
+      "file": "ui-build-final.log.gz",
+      "raw_bytes": 774,
+      "raw_sha256": "18247a72ecc67c4e9af756fdfa94274fa514c417fe1e2fdec1986c18186bd22a"
+    },
+    {
+      "file": "backend-clean.log.gz",
+      "raw_bytes": 637,
+      "raw_sha256": "c431eef98618e85adcd4fcc40ab78a63575ac97372458e6923878d591a345075"
+    },
+    {
+      "file": "ui-clean.log.gz",
+      "raw_bytes": 3220,
+      "raw_sha256": "d5745f3ac7d3d8b7f1cb26dc9113e20013ff2f9e5d1f70c283fbec0dc0b5c91f"
+    },
+    {
+      "file": "ui-clean-build.log.gz",
+      "raw_bytes": 774,
+      "raw_sha256": "e68309b5e35689213789bf307b836eccfccd614d9c923c5e6b3ca127844518b4"
+    }
+  ],
+  "limitations": [
+    "No full backend suite repeated",
+    "No real React DOM/native window test; user deferred window test",
+    "UI handler test uses a deterministic hook harness, not the React runtime",
+    "No model inference, cloud request, productive source reading, or installed app replacement",
+    "This is a status fix; no Atlas inventory/source intake feature delivered"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "code_commit": "9f18408c8d6c8b0fd55c334cfc3ab184d933bb42",
+  "base_commit": "a70aaf0f1dddc75e1404981634c69fd2349bf55b",
+  "source_archive_sha256": "a3a8c39d0b1bc1e9b96340dc6b8ffb2fc26488732203e50a3aa80429525186af",
+  "schema_changed": false,
+  "image_id": "sha256:ede4448a83055a5a1e65b4000dc39cd91f0f5d9e08bc483f88f4e96a51421187",
+  "image_pushed": false,
+  "installed": false
+}

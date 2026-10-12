@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {api, type Attention} from './api';
 import {taskHref} from './taskWorkflow';
 import {TaskDetail} from './TaskDetail';
+import {ProfileSource} from './ProfileSource';
 
 export function TodayTaskActions({item, onChanged}: {item: Attention; onChanged: () => void}) {
   const [expanded, setExpanded] = useState(false);
@@ -24,6 +25,7 @@ export function TodayTaskActions({item, onChanged}: {item: Attention; onChanged:
     finally {pending.current = false; if (alive.current) setBusy(false);}
   }
   return <div className="today-task-actions">
+    {item.episode_id && <ProfileSource kind="episode" id={item.episode_id} label="Weitere Nachricht im Verlauf ansehen" originalOnly />}
     <div className="task-suggestion-actions">
       <button className="today-action" type="button" disabled={busy || Boolean(notice) || expanded} onClick={() => void act()}>{busy ? 'Wird gespeichert …' : waiting ? 'Zurück zu mir' : 'Erledigen'}</button>
       <button className="today-text-link" type="button" disabled={busy} aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? 'Bearbeitung schließen' : 'Hier bearbeiten'}</button>
