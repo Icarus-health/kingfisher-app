@@ -6,7 +6,7 @@
 
 **Architektur:** Originale und bestehende abgeleitete Stores erhalten. Enge Absicherungen in der vorhandenen Quellenauswahl und Satzdarstellung, keine neue Gedächtnisengine, keine neuen Produktfunktionen oder Modelle.
 
-**Technik:** bestehendes Python/SQLite-/React-/Mac-Paket, Qwen9B lokal, bge-m3 lokal. Ausgangscode f75ccad; abschließend geprüfte Runtime `3721bc2c470ffe570df50327f2c7126a7fe10ba3`; tatsächliche synthetische Modellbelege bleiben an ihren Laufstand e9a968f gebunden. 1.0.7 ist nach kanonischer Deployment-Reparatur lokal installiert und der konkrete native Ablauf einschließlich Quellenentzug und Neustart abgenommen; GitHub-Veröffentlichung steht noch aus.
+**Technik:** bestehendes Python/SQLite-/React-/Mac-Paket, Qwen9B lokal, bge-m3 lokal. Ausgangscode f75ccad; abschließend geprüfte Runtime `3721bc2c470ffe570df50327f2c7126a7fe10ba3`; tatsächliche synthetische Modellbelege bleiben an ihren Laufstand e9a968f gebunden. 1.0.7 ist nach kanonischer Deployment-Reparatur lokal installiert und der konkrete native Ablauf einschließlich Quellenentzug und Neustart abgenommen; GitHub-Version 1.0.7 und öffentliche Auslieferungs-/Updatewege sind geprüft.
 
 **Spec:** Drei vom Nutzer freigegebene Schritte; konkret reproduzierter Auswahlfehler im Bericht docs/runs/2026-10-12-hindsight-comparison/README.md.
 
@@ -44,9 +44,9 @@ Dateien: vorhandene E2E-Probes plus enger Prüfläufer für echte Modellaufnahme
 - [x] Quelle, Erfassungszeit, ausgewählte Belege, Status und Antwortinhalt getrennt bewerten. Keine reine Auswahlquote als semantische Richtigkeit verkaufen. Bekannte Klinik-Rubrikabweichung bleibt ausgewiesen.
 - [x] Quellenentzug und spätere Änderung im gespeicherten Verlauf, fehlende Angaben und Rückfragen end-to-end prüfen. Finaler inkrementeller Wiederholungslauf auf e9a968f bestanden; vorheriger Embedding-Aufwärmfehler dokumentiert.
 - [x] Vollständige bestehende Backend-Prüfung sowie UI-/Build-/Assetchecks; feste Codeversion unabhängig prüfen. Fehlgeschlagene Erstläufe nicht verschweigen.
-- [ ] GitHub-Branch/PR und Paket auf denselben geprüften Commit binden. Keine unnötigen Actions-Neustarts bei bekanntem Minutenblock.
+- [x] GitHub-Branch/PR und Paket auf dieselbe geprüfte Runtime binden. Keine unnötigen Actions-Neustarts bei bekanntem Minutenblock.
 - [x] Kalte Sicherung und Wiederherstellbarkeits-/Paket-/Signatur-/Hashprüfung, autorisierter persönlicher Wechsel; maßgebliche Daten unverändert, Konfiguration nur Image-Selektor angepasst, frischer Appstart, echter Abruf mit Originalvergleich, Quellenentzug und Neustart geprüft.
-- [ ] Abschlussbericht unterscheidet lokale Tests, GitHub-Stand, installierte Version und tatsächliche Fensterabnahme. Kein Anspruch auf mathematische Fehlerfreiheit oder mehrtägigen Nutzerbeweis.
+- [x] Abschlussbericht unterscheidet lokale Tests, GitHub-Stand, installierte Version und tatsächliche Fensterabnahme. Kein Anspruch auf mathematische Fehlerfreiheit oder mehrtägigen Nutzerbeweis.
 
 ## Laufprotokoll
 
@@ -66,3 +66,5 @@ Dateien: vorhandene E2E-Probes plus enger Prüfläufer für echte Modellaufnahme
 - 12.10.: Kanonische Deployment-Reparatur bestanden, Runtime3721bc2/natives Bundle unverändert; nur Image-Selektor geändert, 14 maßgebliche Tabellen gleich. Tatsächlicher kombinierter Fensterabruf korrekt (46 Sekunden kalt) und angeklickter Originalbeleg deckungsgleich. Quellenausschluss sperrt alte Antwort sofort, frischer Abruf ohne Farbe mit Hinweis auf zwei ausstehende Quellen; ignoriertes Original erhalten und Aufnahme weiter pausiert. Neustart-/Altverlaufsprüfung noch offen. Öffentlicher Nachweis enthält keine privaten IDs, Texte, Pfade oder Backuphashes.
 
 - 12.10.: Finale native Fensterabnahme nach kanonischer Reparatur bestanden: kombinierter Abruf, geklicktes Original, Quellenausschluss und frischer Abruf sowie bestätigtes Prozessende/Neustart mit gesperrtem Altverlauf. Farbe und Quellenlink kommen nicht zurück; Original bleibt erhalten. Dokumentpicker menschlich unterstützt, nur eine Quelle gezielt lokal eingeordnet, Gesamtaufnahme weiter pausiert. Beobachtete kalte Abrufe ungefähr 45–54 Sekunden; keine Gesamtbewertung privater Daten. Router-Pfadprüfung der 15 e9-Katalogfragen bestätigt keine neue Ausnahme; Modelllauf bleibt e9 gebunden. GitHub-Veröffentlichung noch offen.
+
+- 12.10.: PR55/56/54/46 übernommen; Veröffentlichungsstand f7dae379 und Tag v1.0.7 haben exakt den dokumentierten f679-Tree (späterer Docsnachtrag verändert den Tag nicht), gegenüber Runtime3721 nur 13 Docsdateien. Einmaliger Release38260423499 vollständig grün; öffentliches DMG byteweise geprüft, ARM64-Image 273 Python-/112 UI-Dateien bytegleich. Manifest HTTP200 und installierte API-Updateprüfung aktuell1.0.7, Gesamtaufnahme pausiert. Kein erneuter öffentlicher DMG-Fenstertest behauptet (DiskManagement/ScreenCaptureKit nicht verfügbar); frühere native Abnahme bleibt belegt. Publikationsnachweise bereinigt gespeichert, keine persönlichen Quellen oder Konfiguration hochgeladen.

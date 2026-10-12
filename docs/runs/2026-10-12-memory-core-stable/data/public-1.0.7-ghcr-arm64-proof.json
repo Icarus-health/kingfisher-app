@@ -1,0 +1,33 @@
+{
+  "arm64_config_architecture": "arm64",
+  "arm64_config_os": "linux",
+  "authorization_material_recorded": false,
+  "config_digest": "sha256:effccf735c9b3cc0ffa4b02d6ba8eeaf63367e42934a84183bf5ffdedb02af25",
+  "config_source": "https://github.com/Icarus-health/kingfisher-app",
+  "config_version": "1.0.7",
+  "container_created": false,
+  "expected_python_file_count": 273,
+  "expected_source_tag_commit": "f7dae379add9282a1d1c6262c14270e3e9e51f78",
+  "expected_ui_file_count": 112,
+  "full_image_pulled": false,
+  "image": "ghcr.io/icarus-health/kingfisher-app",
+  "platform": "linux/arm64",
+  "platform_manifest_digest": "sha256:067163b08fbb0f93dd5a041a87267c423b1e95dcb4a2e70173f7b6ec02ad1a9b",
+  "python_copy_layer_created_by": "COPY /install /usr/local # buildkit",
+  "python_files": {
+    "files_verified": 273,
+    "layer_bytes_streamed": 16482194,
+    "layer_digest_verified": true,
+    "target_regular_files_in_layer": 545
+  },
+  "status": "passed",
+  "tag": "1.0.7",
+  "tag_index_digest": "sha256:651f3eec12208e4713726df9bb3dd0847434567ab87f18e320ff9ecc0a44a5f5",
+  "ui_copy_layer_created_by": "COPY /workspace/app/dist /opt/kingfisher/ui # buildkit",
+  "ui_files": {
+    "files_verified": 112,
+    "layer_bytes_streamed": 36855210,
+    "layer_digest_verified": true,
+    "target_regular_files_in_layer": 112
+  }
+}

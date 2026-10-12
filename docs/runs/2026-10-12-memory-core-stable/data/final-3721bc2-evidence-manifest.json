@@ -39,6 +39,14 @@
     "final-3721bc2-routing-catalog-path-proof.json": {
       "sha256": "8bee78e895c5e1e8719217ea006f220e31b3a05cd1d8b46979013cff3bbb29e9",
       "bytes": 240
+    },
+    "public-1.0.7-ghcr-arm64-proof.json": {
+      "sha256": "4bf68dc21e31cfd4d284ada7ce956226c03aed1478c660d6810280998cd738f8",
+      "bytes": 1327
+    },
+    "public-1.0.7-release-proof.json": {
+      "sha256": "b8feab49b8e11d620a46e1538a9c5d202aac1d7f844a83a086c48051205780ef",
+      "bytes": 5025
     }
   },
   "routing_regression": {
@@ -64,7 +72,6 @@
     "targeted_single_synthetic_document_classification": "existing local Qwen 9B",
     "plain_synthetic_lookup_after_classification_passed": true,
     "plain_synthetic_lookup_seconds": 11,
-    "combined_lookup_on_final_package": "pending final native-window check",
     "compound_lookup_on_final_package": true,
     "compound_lookup_seconds_cold": 46,
     "clicked_source_matches_original": true,
@@ -83,7 +90,7 @@
     "private_receipt_included": false,
     "native_repair": "passed canonical deployment repair; unchanged runtime and native bundle; config changed only image selector; 14 authoritative tables unchanged",
     "native_window_acceptance": "passed actual native compound lookup, original comparison, source exclusion, process quit/restart and persisted old-history check",
-    "publication": "pending coordinator"
+    "publication": "published v1.0.7 on GitHub main; release workflow, DMG digest, public arm64 runtime/UI hashes and installed API update check passed"
   },
   "prior_model_evidence_manifest_sha256": "88ef68badf91cce6a467d187dc5bd500283232ccd2c5b35fb39f371c55d3cfba",
   "routing_catalog_path_check": {
