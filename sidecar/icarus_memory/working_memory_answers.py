@@ -484,12 +484,13 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     projects = list(projects or ())
     names = {identifier: name for identifier, name in projects if isinstance(name, str) and name.strip()}
     scope = mentioned_projects(lookup, projects)
-    from .time_scope import has_negated_period, mentioned_period
+    from .time_scope import has_negated_period, mentioned_period, original_time_reference
     time_question = retrieval_query if retrieval_query is not None else question
     negated_period = has_negated_period(time_question)
-    # Search expansions and model period labels must not undo an explicit negation.
-    found_period = mentioned_period(time_question if negated_period else lookup)
-    if found_period is None and not negated_period and anfrage is not None and anfrage.zeitraum_text():
+    original_time = original_time_reference(time_question)
+    # Search representations cannot turn a negation or an original-word question into a source period.
+    found_period = mentioned_period(time_question if negated_period or original_time else lookup)
+    if found_period is None and not negated_period and not original_time and anfrage is not None and anfrage.zeitraum_text():
         found_period = mentioned_period(anfrage.zeitraum_text())
     period = found_period[:2] if found_period else None
     from . import working_memory_semantic
@@ -636,9 +637,10 @@ nach einer Uhrzeit ergibt bei einer passenden eindeutigen Quellenangabe source_r
 needs_missing_time_reference verlangt einen für diese Frage tatsächlich fehlenden Zeitbezug.
 Eine Bitte ist keine Zusage. Eine bedingte Aussage bleibt bedingt. Zitate alter Nachrichten
 sind keine neue Zusage. Gesendet ist nicht angenommen; keine Antwort ist keine Zustimmung.
-Trägt eine Quelle das Feld ueberholt, steht eine Angabe darin nicht mehr: Eine neuere Quelle (neue_quelle)
-hat sie überholt. Nenne für den aktuellen Stand die neuere Quelle und wähle die überholte nur, wenn nach dem
-früheren Stand oder nach dem Wandel gefragt ist; dann wähle beide.
+Das Feld ueberholt ist eine automatisch vermutete Beziehung, keine bestätigte Ersetzung.
+Prüfe die Originale unabhängig: Gleiche Person, Kategorie oder Veranstaltung beweisen nicht dieselbe Aufgabe.
+Lass einen passenden Beleg nicht allein wegen dieser Vermutung weg. Bei ungeklärter Zugehörigkeit
+wähle beide Originale und unresolved_conflicting_sources; behaupte keine gesicherte Absage oder Erledigung.
 Trägt eine Quelle das Feld andere_person, gehört sie einem anderen Menschen gleichen Namens (adresse_dieser_person),
 nicht der gemeinten Person (gemeinte_adresse): Wähle sie nicht für diese Person und nenne sie nie als deren Angabe.
 Trägt eine Quelle das Feld ausserhalb_zeitraum, liegt ihr Datum (datum_der_quelle) außerhalb des gefragten Zeitraums
@@ -925,8 +927,10 @@ def _fresh(answer, episodes, claims):
             or not isinstance(answer.get('refs'), list)
             or any(ref not in answer['basis'] for ref in answer['refs'])):
         return False
-    from .time_scope import has_negated_period, mentioned_period
+    from .time_scope import has_negated_period, mentioned_period, original_time_reference
     time_question = answer.get('retrieval_query', answer['query'])
+    if original_time_reference(time_question) and ('time_scope' in answer or 'time_label' in answer):
+        return False  # Old source-period captions do not answer the meaning of the original word.
     if has_negated_period(time_question) and ('time_scope' in answer or 'time_label' in answer):
         expected = mentioned_period(time_question)
         # Old answers can carry the pre-fix positive label without an Anfrage.
@@ -1092,16 +1096,16 @@ def _limit_count(answer):
 
 
 def _ueberholt_zeile(eintrag, episodes):
-    """Die Zeile unter einer überholten Quelle: was überholt ist, was jetzt gilt und wo es steht."""
+    """Automatisch vermutete Beziehung unter dem Original, keine bestätigte Ersetzung."""
     try:
         titel = episodes.get(eintrag.durch).title.strip()[:120]
     except Exception:  # noqa: BLE001 - ohne Titel bleibt der Hinweis ohne Namen
         titel = ''
     wo = f' (neuere Quelle: {titel})' if titel else ' (neuere Quelle vorhanden)'
     if eintrag.grund == 'frist' and eintrag.alt_wert and eintrag.neu_wert:
-        return f'Überholt: {eintrag.alt_wert}, inzwischen {eintrag.neu_wert}{wo}'
-    return {'stand': 'Überholt durch eine neuere Meldung', 'erledigt': 'Inzwischen als erledigt gemeldet',
-            'abgesagt': 'Inzwischen abgesagt', 'frist': 'Frist inzwischen geändert'}[eintrag.grund] + wo
+        return f'Vermutlich überholt: {eintrag.alt_wert}, neuere Angabe {eintrag.neu_wert}{wo}'
+    return {'stand': 'Vermutlich durch eine neuere Meldung überholt', 'erledigt': 'Vermutlich als erledigt gemeldet',
+            'abgesagt': 'Vermutlich abgesagt', 'frist': 'Frist vermutlich geändert'}[eintrag.grund] + wo
 
 
 def _zitate(answer, episodes, fallback):
@@ -1148,7 +1152,7 @@ def _zitate(answer, episodes, fallback):
         marken = kontext.ueberholt.get(episode.id, ())
         fremd = kennzeichnung.kennzeichen(episode, rahmen)
         if marken:
-            heading += ' · überholt'
+            heading += ' · vermutlich überholt'
         heading += ''.join({kennzeichnung.ANDERE_PERSON: ' · andere Person',
                             kennzeichnung.AUSSERHALB: ' · außerhalb des Zeitraums'}[m.art] for m in fremd)
         lines.extend(['', heading, episode.body,

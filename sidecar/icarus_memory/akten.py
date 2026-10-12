@@ -14,7 +14,8 @@ Abschnitte:
   vorliegt. Die Akte **behauptet nicht**, dass etwas offen ist: Es heißt
   „vermutlich offen“. Erledigt oder abgesagt gilt ein Punkt, wenn eine spätere
   Meldung derselben Sache (Art Änderung oder Stand) denselben Gegenstand nennt und
-  ein Erledigt- oder Absagewort trägt, oder wenn die Aufgabe dazu erledigt ist.
+  ein Erledigt- oder Absagewort für diesen Gegenstand trägt, oder wenn die Aufgabe
+  dazu erledigt ist.
   Nennt eine spätere Meldung den Gegenstand ohne solches Wort, bleibt der Punkt
   offen und trägt den Hinweis „danach geändert“.
 * **Fristen**: Datumsangaben in Bitten, Zusagen und Änderungen (`fristen.py`),
@@ -33,9 +34,10 @@ Abschnitte:
 Gleicher Gegenstand heißt: gemeinsame Wortstämme (mindestens zwei, ohne Monats-,
 Wochentags- und Füllwörter), wobei ein gemeinsames langes Wort („Rechnungsanschrift“)
 und ein gleiches aufgelöstes Datum doppelt zählen.
-Trägt die spätere Meldung ein Erledigt- oder Absagewort, genügt ein gemeinsamer
-Wortstamm. Bei Fristen genügt ein gemeinsames Fristwort („Einreichfrist“,
-„Anmeldeschluss“).
+Bei Erledigt- oder Absagewörtern wird zusätzlich deren Satz-/Teilsatzgegenstand
+geprüft. Eine gemeinsame Event-/Ortsangabe beendet keine andere Aufgabe; die
+Absage einer ausdrücklich genannten ganzen Veranstaltung bleibt wirksam. Bei
+Fristen genügt ein gemeinsames Fristwort („Einreichfrist“, „Anmeldeschluss“).
 Das ist bewusst grob und deshalb überall als Vermutung ausgewiesen.
 
 Zwischenspeicher: Die Akte wird nur neu berechnet, wenn sich die Eingaben
@@ -62,8 +64,9 @@ from .bezuege import ART_TEXT, Bezuege, zerlegen
 from .fristen import bezugstag, fristen_in
 from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
+from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 
-AKTEN_VERSION = 3
+AKTEN_VERSION = 4
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -214,6 +217,69 @@ def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any) ->
     return ergebnis, gefunden['truncated']
 
 
+# Ein Abschlusswort gilt nur in seinem eigenen Satz/Teilsatz. Präpositionale
+# Eventangaben („beim Herbstmarkt“) sind nicht die abgeschlossene Aufgabe.
+_ABSCHLUSS_TEILE = re.compile(r'[,;]|\b(?:aber|während|hingegen|sondern)\b|' + _SATZENDE.pattern, re.I)
+_ABSCHLUSS_UMFELD = re.compile(r'\b(?:beim|am|im|zum|zur|bei|in|auf)\b', re.I)
+_ABSCHLUSS_ALLGEMEIN = stamm_menge(
+    'meine meinen mein unsere separate separat gesamte gesamten ganz ganze vollständig '
+    'zusage zusagen bitte bitten sage sagen übernehme übernehmen passt leider davon unabhängig')
+
+
+def _abschluss_teile(text: str) -> tuple[frozenset[str], frozenset[str]]:
+    """Gegenstand vor einer Event-/Ortsangabe und deren Umfeld, ohne Abschlusswörter."""
+    text = _ABSAGE.sub('', _ERLEDIGT.sub('', text))
+    teile = _ABSCHLUSS_UMFELD.split(text, maxsplit=1)
+    gegenstand = stamm_menge(teile[0]) - _ABSCHLUSS_ALLGEMEIN
+    umfeld = stamm_menge(teile[1]) - _ABSCHLUSS_ALLGEMEIN if len(teile) > 1 else frozenset()
+    return gegenstand, umfeld
+
+
+# Dieselbe lokale Polaritätsregel wie der Änderungsbeleg-Guard; zusätzlich die
+# deutsche Nachstellung „Abgesagt ist der Standdienst nicht“.
+_ABSCHLUSS_NACHNEGATION = re.compile(
+    r'^\s+(?:ist|wurde|wird|war|sind)\b[^,;.!?\n]{0,60}\bnicht\b' + _ADDITIVE, re.I)
+
+
+def _abschluss_signal(text: str, wort: re.Pattern) -> bool:
+    for signal in wort.finditer(text):
+        intrinsisch = wort is _ABSAGE and signal.group().casefold().startswith('findet nicht')
+        if not intrinsisch and _NEGATED.search(text[:signal.start()]):
+            continue
+        danach = text[signal.end():]
+        if _FOLLOWING_NEGATION.match(danach) or _ABSCHLUSS_NACHNEGATION.match(danach):
+            continue
+        return True
+    return False
+
+
+def _abschluss_betrifft(x: Abschnitt, y: Abschnitt, wort: re.Pattern) -> bool:
+    """Nur die genannte Aufgabe oder ihre ausdrücklich abgesagte ganze Veranstaltung."""
+    gegenstand, umfeld = _abschluss_teile(x.text)
+    for teil in _ABSCHLUSS_TEILE.split(y.text):
+        if not _abschluss_signal(teil, wort):
+            continue
+        ziel, _ = _abschluss_teile(teil)
+        # Eine gemeinsame Kategorie („Aufgabe“, „Planung“) reicht nicht:
+        # alle konkreten Teile des früheren Gegenstands müssen wieder vorkommen.
+        if gegenstand and gegenstand <= ziel:
+            return True
+        # Eine ganze Veranstaltung steht selbst als Abschlussgegenstand, keine
+        # andere Aufgabe im selben Veranstaltungskontext. Nur Absagen wirken so.
+        if wort is _ABSAGE and ziel and ziel <= umfeld:
+            return True
+        # Workshop/Tagesworkshop: der ganze Abschlussgegenstand muss in der
+        # früheren Quelle genannt sein, gegebenenfalls als langes Kompositum.
+        benannt = {_stamm(w) for w in terms_v1(teil) if len(w) >= 8
+                   and any(v.endswith(w) for v in terms_v1(x.text))}
+        if wort is _ABSAGE and ziel and ziel <= benannt:
+            return True
+        # Reine Datumszusage („der 28. Oktober passt“) ohne eigenen Gegenstand.
+        if not gegenstand and x.daten & y.daten:
+            return True
+    return False
+
+
 def _offen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     """(offen, erledigt): Bitten und Zusagen, geprüft gegen spätere Änderungen und Standmeldungen."""
     spaeter = [a for a in abschnitte if a.art in STAND_ARTEN]
@@ -221,8 +287,8 @@ def _offen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     for x in sorted((a for a in abschnitte if a.art in OFFEN_ARTEN), key=lambda a: a.zeit, reverse=True):
         treffer = sorted((y for y in spaeter if y.zeit > x.zeit and (gleicher_gegenstand(x, y) or (
             x.stamm & y.stamm and (_ABSAGE.search(y.text) or _ERLEDIGT.search(y.text))))), key=lambda y: y.zeit)
-        absage = next((y for y in treffer if _ABSAGE.search(y.text)), None)
-        fertig = next((y for y in treffer if _ERLEDIGT.search(y.text)), None)
+        absage = next((y for y in treffer if _abschluss_betrifft(x, y, _ABSAGE)), None)
+        fertig = next((y for y in treffer if _abschluss_betrifft(x, y, _ERLEDIGT)), None)
         if absage or fertig:
             durch = absage or fertig
             erledigt.append({'ref': _ref(x), 'durch': _ref(durch), 'grund': 'absage' if absage else 'erledigt'})

@@ -102,7 +102,7 @@ def test_das_modell_bekommt_ueberholtes_gekennzeichnet_und_nachrangig(raum):
     titel = [z['title'] for z in zeilen]
     assert titel == ['Verlängerung', 'Ausschreibung'], 'Das Überholte steht hinten, aber es fehlt nicht'
     alt = zeilen[1]
-    assert alt['ueberholt'] == [{'grund': 'Frist verschoben', 'ueberholte_angabe': '15. Oktober 2026',
+    assert alt['ueberholt'] == [{'grund': 'Frist vermutlich verschoben', 'ueberholte_angabe': '15. Oktober 2026',
                                  'neu': '12. November 2026', 'neue_quelle': zeilen[0]['id']}]
     assert 'ueberholt' not in zeilen[0]
 
@@ -224,9 +224,9 @@ def test_aus_der_akte_steht_der_aktuelle_stand_der_genannten_sache_mit_dem_wortl
     assert '15. Oktober' not in json.dumps(akte), 'Die Akte zeigt den Stand, nie den überholten Wert'
 
 
-def test_ueberholte_frist_als_stand_wird_verworfen_und_der_wandel_vom_programm_ergaenzt(raum):
+def test_ueberholte_frist_als_stand_wird_verworfen_ohne_programminferenz(raum):
     episodes, claims, _ = raum
-    wandel(episodes)
+    alt, neu = wandel(episodes)
 
     def antwortet(nutzer):
         return {'status': 'antwort', 'saetze': [
@@ -236,13 +236,45 @@ def test_ueberholte_frist_als_stand_wird_verworfen_und_der_wandel_vom_programm_e
     gespeichert = antwort(raum, Skript(antwortet))
     satz = gespeichert['satzantwort']
     assert satz['verworfen'] == 1 and 'überholt' in satz['gruende'][0]
-    texte = [s['text'] for s in satz['saetze']]
-    assert texte[0] == 'Die Einreichfrist ist der 12. November 2026.'
-    assert texte[1] == 'Die Frist gilt jetzt für 12. November 2026; vorher hieß es 15. Oktober 2026.'
-    assert satz['saetze'][1]['vom_programm'] is True
-    text, _, _ = wma.render(gespeichert, episodes, claims)
-    assert 'Die Einreichfrist ist der 15. Oktober 2026.' not in text, 'Die alte Frist steht nie als Stand da'
-    assert '1 Satz wurde verworfen' in text
+    assert satz['status'] == 'zitate'
+    text, links, status = wma.render(gespeichert, episodes, claims)
+    assert status == 'working_reports'
+    assert '15. Oktober 2026' in text and '12. November 2026' in text
+    assert {link['episode_id'] for link in links} == {alt.id, neu.id}
+    assert 'Die Frist gilt jetzt für' not in text
+    assert wma.satz_struktur(gespeichert, episodes, claims) is None
+
+
+def test_saved_automatic_wandel_sentence_restores_originals_without_another_model_call(raum):
+    episodes, claims, _ = raum
+    alt, neu = wandel(episodes)
+    model = Skript(stand_wandel)
+    saved = antwort(raum, model)
+    assert saved['satzantwort']['status'] == 'saetze'
+    saved = json.loads(json.dumps(saved))
+    # Older saved program sentences carried the same two references and a causal assertion.
+    saved['satzantwort']['saetze'][0]['vom_programm'] = True
+    before = len(model.satzanfragen)
+    text, links, status = wma.render(saved, episodes, claims)
+    assert status == 'working_reports' and wma.satz_struktur(saved, episodes, claims) is None
+    assert 'Quelle berichtet' in text and '15. Oktober 2026' in text and '12. November 2026' in text
+    assert {link['episode_id'] for link in links} == {alt.id, neu.id}
+    reopened = wma.project_message({'role': 'assistant', 'content': 'legacy program inference',
+        'metadata': {'context': {'working_answer': saved}}}, episodes, claims)
+    assert reopened['content'] == text
+    assert 'satzantwort' not in reopened['metadata']['context']
+    assert {link['episode_id'] for link in reopened['metadata']['context']['source_links']} == {alt.id, neu.id}
+    assert len(model.satzanfragen) == before
+
+
+def test_sentence_model_is_told_that_automatic_relation_is_only_a_guess():
+    from icarus_memory.akten_kontext import Ueberholt
+    relation = Ueberholt('old', 'abgesagt', 'Standdienst', '', 'new', 'Plakatdruck abgesagt', '', 'projekt:test')
+    evidence = AntwortBeleg(1, {}, 'Quelle', 'old', '', '', 'Standdienst', None, (relation,))
+    row = evidence.fuer_modell({'new': 2})['ueberholt'][0]
+    assert row['beziehung'] == 'automatisch vermutet, nicht bestätigt'
+    assert row['angabe'] == 'Standdienst' and row['neu'] == 'Plakatdruck abgesagt'
+    assert row['neue_quelle_nr'] == 2
 
 
 def test_ohne_wandelwort_oder_ohne_neue_quelle_besteht_ein_satz_mit_dem_alten_wert_nicht(raum):
@@ -567,8 +599,8 @@ def test_auch_im_zitatmodus_steht_das_ueberholte_hinten_und_sagt_es(raum):
     gespeichert = antwort(raum, Skript({'status': 'unklar', 'saetze': []}))
     assert gespeichert['satzantwort']['status'] == 'zitate'
     text, _, _ = wma.render(gespeichert, episodes, claims)
-    assert text.index('Verlängerung') < text.index('Ausschreibung · überholt'), 'Die aktuelle Quelle steht vor der überholten'
-    assert 'Überholt: 15. Oktober 2026, inzwischen 12. November 2026 (neuere Quelle: Verlängerung)' in text
+    assert text.index('Verlängerung') < text.index('Ausschreibung · vermutlich überholt'), 'Die aktuelle Quelle steht vor der überholten'
+    assert 'Vermutlich überholt: 15. Oktober 2026, neuere Angabe 12. November 2026 (neuere Quelle: Verlängerung)' in text
 
 
 def test_die_kennzeichnung_fehlt_ohne_akten_und_nichts_wird_entfernt(raum):
@@ -594,11 +626,11 @@ def test_die_antwort_zeigt_nur_belege_auf_die_ein_satz_sich_stuetzt(raum):
             {'text': 'Die Einreichfrist ist der 12. November 2026.', 'belege': [nr(nutzer, 'Verlängerung')]}]}
 
     modell = Skript(nur_neu, auswahl=lambda nutzer: [
-        row['id'] for row in nutzer['sources'] if row['title'] != 'Nebensache'])
+        row['id'] for row in nutzer['sources'] if row['title'] == 'Verlängerung'])
     gespeichert = antwort(raum, modell)
     # The irrelevant global search hit is excluded by source selection, not silently hidden by prose.
     assert any(row['title'] == 'Nebensache' for row in modell.auswahlen[0]['sources'])
-    assert {ref['episode_id'] for ref in gespeichert['refs']} == {alt.id, neu.id}
+    assert {ref['episode_id'] for ref in gespeichert['refs']} == {neu.id}
     text, links, _ = wma.render(gespeichert, episodes, claims)
     assert [l['episode_id'] for l in links][:1] == [neu.id] and 'Nebensache' not in text
     struktur = wma.satz_struktur(gespeichert, episodes, claims)

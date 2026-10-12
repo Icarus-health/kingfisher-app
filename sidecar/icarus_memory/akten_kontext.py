@@ -527,8 +527,8 @@ def hinweis_fuer_modell(kontext: Kontext, episode_id: str, nummern: dict[str, st
     for u in kontext.ueberholt.get(episode_id, ()):
         durch = nummern.get(u.durch)
         hinweise.append({
-            'grund': {'frist': 'Frist verschoben', 'stand': 'durch neuere Meldung überholt',
-                      'erledigt': 'erledigt', 'abgesagt': 'abgesagt'}[u.grund],
+            'grund': {'frist': 'Frist vermutlich verschoben', 'stand': 'vermutlich durch neuere Meldung überholt',
+                      'erledigt': 'vermutlich erledigt', 'abgesagt': 'vermutlich abgesagt'}[u.grund],
             'ueberholte_angabe': u.alt_wert or u.alt,
             'neu': u.neu_wert or u.neu,
             'neue_quelle': durch or titel.get(u.durch, u.durch)})

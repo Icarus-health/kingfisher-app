@@ -30,13 +30,14 @@ def test_project_question_works_without_model_and_free_chat_has_honest_fallback(
         client.close()
 
 
-def _quelle(app, titel, abschnitte, absender='Anna Keller <anna@agentur.example>', project=None, tage=1):
+def _quelle(app, titel, abschnitte, absender='Anna Keller <anna@agentur.example>', project=None, tage=1,
+            occurred_at=None):
     text = ' '.join(t for t, _ in abschnitte)
     episode, _ = app.state.episodes.record(
         EpisodeKind.MESSAGE, titel, text,
         Provenance(SourceType.EMAIL, source_ref=f'work:<{titel}@example.invalid>'),
         participants=[absender], project_id=project,
-        occurred_at=datetime.now(timezone.utc) - timedelta(days=tage))
+        occurred_at=occurred_at or datetime.now(timezone.utc) - timedelta(days=tage))
     store = WorkingMemoryStore(app.state.episodes)
     pending = store.pending(episode_ids=[episode.id])[0]
     items, pos = [], 0

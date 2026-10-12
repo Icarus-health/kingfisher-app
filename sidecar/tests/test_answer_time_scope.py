@@ -261,3 +261,100 @@ def test_period_keeps_undated_person_context_behind_dated_match(tmp_path, monkey
     finally:
         claims.close()
         episodes.close()
+
+
+@pytest.mark.parametrize('question', [
+    'Auf welches Datum bezog sich heute um 14:00 in der Originalnotiz zum Einkauf-Gespräch?',
+    'Was bedeutete gestern in der alten Mail zur Orion-Freigabe?',
+    'Welches Datum war mit nächsten Freitag in der Originalmail zur Orion-Freigabe gemeint?',
+])
+def test_original_relative_word_question_does_not_set_current_source_period(tmp_path, question):
+    episodes, claims = EpisodeStore(tmp_path / 'relative-e.sqlite3'), ClaimStore(tmp_path / 'relative-k.sqlite3')
+    try:
+        body = 'Orion-Freigabe: Heute um 14:00 Gespräch im Einkauf. Die Originalnotiz stammt vom 02.09.2026.'
+        source = _mail(episodes, body, datetime(2026, 9, 2, 9, tzinfo=timezone.utc))
+        selector = Selector()
+        answer = prepare(question, episodes, claims, selector, semantic_search=None)
+        assert answer['status'] == 'reports'
+        assert 'time_scope' not in answer and 'time_label' not in answer
+        assert all('ausserhalb_zeitraum' not in row for row in selector.rows)
+        text, links, status = render(answer, episodes, claims)
+        assert status == 'working_reports' and body in text
+        assert 'Zuerst berücksichtigt:' not in text and 'Außerhalb des gefragten Zeitraums' not in text
+        assert [link['episode_id'] for link in links] == [source]
+    finally:
+        claims.close()
+        episodes.close()
+
+
+@pytest.mark.parametrize('question', [
+    'Was kam heute als Originalmail zur Orion-Freigabe?',
+    'Was wurde heute in der Originalnotiz zur Orion-Freigabe geschrieben?',
+    'Auf welches Datum bezog sich die Orion-Freigabe in der Originalnotiz von heute?',
+])
+def test_original_source_mention_alone_keeps_explicit_source_period(question):
+    found = mentioned_period(question, NOW)
+    assert found is not None and found[2] == 'von heute'
+
+
+def test_original_time_reference_does_not_allow_a_structured_current_period(tmp_path):
+    episodes, claims = EpisodeStore(tmp_path / 'original-model-e.sqlite3'), ClaimStore(tmp_path / 'original-model-k.sqlite3')
+    try:
+        _mail(episodes, 'Heute um 14:00 Gespräch im Einkauf. Originalnotiz vom 02.09.2026.',
+              datetime(2026, 9, 2, 9, tzinfo=timezone.utc))
+        selector = Selector()
+        answer = prepare('Auf welches Datum bezog sich heute um 14:00 in der Originalnotiz zum Einkauf-Gespräch?',
+                         episodes, claims, selector, semantic_search=None,
+                         anfrage=Anfrage(('Einkauf',), 'heute', 'fakt', herkunft='modell'))
+        assert answer['status'] == 'unavailable'
+        assert 'time_scope' not in answer and 'time_label' not in answer
+        assert selector.rows is None
+    finally:
+        claims.close()
+        episodes.close()
+
+
+def test_original_time_reference_cannot_be_restored_by_a_simplified_lookup(tmp_path, monkeypatch):
+    episodes, claims = EpisodeStore(tmp_path / 'original-lookup-e.sqlite3'), ClaimStore(tmp_path / 'original-lookup-k.sqlite3')
+    try:
+        _mail(episodes, 'Heute um 14:00 Gespräch im Einkauf. Originalnotiz vom 02.09.2026.',
+              datetime(2026, 9, 2, 9, tzinfo=timezone.utc))
+        # A search representation is not authority to reinterpret the original question's time intent.
+        monkeypatch.setattr(Anfrage, 'suchanfrage', lambda self, question: 'Einkauf heute')
+        selector = Selector()
+        answer = prepare('Auf welches Datum bezog sich heute um 14:00 in der Originalnotiz zum Einkauf-Gespräch?',
+                         episodes, claims, selector, semantic_search=None,
+                         anfrage=Anfrage(('Einkauf',), None, 'fakt', herkunft='modell'))
+        assert answer['status'] == 'reports'
+        assert 'time_scope' not in answer and 'time_label' not in answer
+        assert all('ausserhalb_zeitraum' not in row for row in selector.rows)
+        assert 'Zuerst berücksichtigt:' not in render(answer, episodes, claims)[0]
+    finally:
+        claims.close()
+        episodes.close()
+
+
+def test_saved_legacy_original_time_reference_with_today_scope_is_unavailable(tmp_path, monkeypatch):
+    from icarus_memory import time_scope
+    episodes, claims = EpisodeStore(tmp_path / 'original-legacy-e.sqlite3'), ClaimStore(tmp_path / 'original-legacy-k.sqlite3')
+    question = 'Auf welches Datum bezog sich heute um 14:00 in der Originalnotiz zum Einkauf-Gespräch?'
+    try:
+        _mail(episodes, 'Heute um 14:00 Gespräch im Einkauf. Originalnotiz vom 02.09.2026.',
+              datetime(2026, 9, 2, 9, tzinfo=timezone.utc))
+        today = mentioned_period('heute', NOW)
+        with monkeypatch.context() as legacy:
+            legacy.setattr(time_scope, 'mentioned_period', lambda question, now=None: today)
+            if hasattr(time_scope, 'original_time_reference'):
+                legacy.setattr(time_scope, 'original_time_reference', lambda question: False)
+            saved = prepare(question, episodes, claims, Selector(), semantic_search=None)
+        assert saved['status'] == 'reports' and saved['time_label'] == 'von heute'
+        assert not _fresh(saved, episodes, claims)
+        text, links, status = render(saved, episodes, claims)
+        assert status == 'working_unavailable' and links == []
+        reopened = working_memory_answers.project_message({'role': 'assistant', 'content': 'old today display',
+            'metadata': {'context': {'working_answer': saved}}}, episodes, claims)
+        assert reopened['metadata']['context']['answer_contract']['status'] == 'working_unavailable'
+        assert 'Zuerst berücksichtigt:' not in reopened['content']
+    finally:
+        claims.close()
+        episodes.close()

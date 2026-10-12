@@ -22,19 +22,19 @@
 
 Dateien: working_memory_answers.py, akten.py und zugehörige bestehende Module nur bei nachgewiesenem Fehler; satzantwort.py; neue/erweiterte Tests für aktuelle Auswahl und test_partial_answer_source_loss.py.
 
-- [ ] Reproduzierte rohe Auswahl s04+s05 ohne vorhandenes s06 festhalten; Akten-/Vorgangsanker im tatsächlichen Produktweg prüfen.
-- [ ] Rote Gegenfälle für verlorenen Widerruf und ausgelassene ausgewählte Originale in frischer sowie gespeicherter Satzantwort.
-- [ ] Minimal korrigieren: explizit verlinkte Änderungen nicht durch Modell-Auslassungen verlieren, keine Beziehungen aus bloßer Wortähnlichkeit behaupten; ansonsten nachvollziehbare Unsicherheit.
-- [ ] Gegenfälle für andere Menschen/Vorgänge und negierte Stornierung; betroffene Tests grün und unabhängiger Diffreview.
+- [x] Reproduzierte rohe Auswahl s04+s05 ohne vorhandenes s06 festhalten; Akten-/Vorgangsanker im tatsächlichen Produktweg prüfen.
+- [x] Rote Gegenfälle für verlorenen Widerruf und ausgelassene ausgewählte Originale in frischer sowie gespeicherter Satzantwort.
+- [x] Minimal korrigieren: explizit verlinkte Änderungen nicht durch Modell-Auslassungen verlieren, keine Beziehungen aus bloßer Wortähnlichkeit behaupten; ansonsten nachvollziehbare Unsicherheit.
+- [x] Gegenfälle für andere Menschen/Vorgänge und negierte Stornierung; betroffene Tests grün und unabhängiger Diffreview.
 
 ## Aufgabe 2: Aufnahme und fortlaufenden Bestand nachweisen
 
 Dateien: scripts/probe_memory_core_lifecycle.py, scripts/test_probe_memory_core_lifecycle.py; Laufzeitdateien nur nach roter belegter Fehlerprobe.
 
-- [ ] Mindestens 10.000 künstliche Originale durch tatsächlichen Store/Worker verarbeiten, alle IDs und Originaltexte gegen Sollbestand prüfen.
-- [ ] Prozess-/Store-Neustart, Transportfehler, Warteschlangen-Backpressure, Wiederholung, gezielter Retry und lange Quelle prüfen.
-- [ ] Neue Quellen und neue Fassung einschließlich source-head und abgeleiteter Suche prüfen; keine doppelten Originale oder verwaisten Treffer.
-- [ ] Bestanden-/offen-/fehlerhaft-Zahlen müssen dem wirklichen Bestand entsprechen; Ergebnisse und Grenzen speichern.
+- [x] Mindestens 10.000 künstliche Originale durch tatsächlichen Store/Worker verarbeiten, alle IDs und Originaltexte gegen Sollbestand prüfen.
+- [x] Prozess-/Store-Neustart, Transportfehler, Warteschlangen-Backpressure, Wiederholung, gezielter Retry und lange Quelle prüfen.
+- [x] Neue Quellen und neue Fassung einschließlich source-head und abgeleiteter Suche prüfen; keine doppelten Originale oder verwaisten Treffer.
+- [x] Bestanden-/offen-/fehlerhaft-Zahlen müssen dem wirklichen Bestand entsprechen; Ergebnisse und Grenzen speichern.
 
 ## Aufgabe 3: Abruf und Auslieferung abnehmen
 
@@ -52,3 +52,5 @@ Dateien: vorhandene E2E-Probes plus enger Prüfläufer für echte Modellaufnahme
 
 - 12.10.: Reproduzierte Auswahl s06 vorhanden aber nicht gewählt; unabhängige Darstellungprüfung reproduziert zusätzlich Verlust einer ausgewählten neueren Quelle bei null verworfenen Sätzen.
 - 12.10.: Nutzerfreigabe deckt Umsetzung und geprüfte GitHub-/Mac-Auslieferung ab; keine erneute Planfreigabe erforderlich.
+
+- 12.10.: Unabhängiger Review ergänzte historische Heute-Bezugsfrage, getrennte Aufgaben, Negation/Kontrast und allgemeine Kategorien. Konservative Gegenstandsprüfung und ausdrücklich vermutete Beziehungen mit Originalrückfall sind abgesichert; keine kategorischen Programminferenzen mehr. Letzte enge kombinierte Prüfungen: 221 und 122 bestanden, sechs unabhängige zusätzliche Gegenproben bestanden.
