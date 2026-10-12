@@ -1,4 +1,4 @@
-"""Real local-Qwen intake and authenticated conversation route; synthetic only."""
+"""Reproduce the synthetic local route used for runtime e9a968f; use an isolated probe directory."""
 import os,sys,json,time,hashlib,threading,argparse
 from pathlib import Path
 ROOT=Path(os.environ['KINGFISHER_CORE_PROBE_DIR']).resolve()

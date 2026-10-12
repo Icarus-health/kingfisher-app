@@ -6,7 +6,7 @@
 
 **Architektur:** Originale und bestehende abgeleitete Stores erhalten. Enge Absicherungen in der vorhandenen Quellenauswahl und Satzdarstellung, keine neue Gedächtnisengine, keine neuen Produktfunktionen oder Modelle.
 
-**Technik:** bestehendes Python/SQLite-/React-/Mac-Paket, Qwen9B lokal, bge-m3 lokal. Ausgangscode f75ccad; installiert preview.6940953.
+**Technik:** bestehendes Python/SQLite-/React-/Mac-Paket, Qwen9B lokal, bge-m3 lokal. Ausgangscode f75ccad; abschließend geprüfte Runtime `e9a968f53d2c77a49dd410665c785f77bc3b59b0`. Der Koordinator meldet 1.0.7 lokal installiert; tatsächliche abschließende Fensterabnahme und GitHub-Veröffentlichung stehen noch aus.
 
 **Spec:** Drei vom Nutzer freigegebene Schritte; konkret reproduzierter Auswahlfehler im Bericht docs/runs/2026-10-12-hindsight-comparison/README.md.
 
@@ -40,10 +40,10 @@ Dateien: scripts/probe_memory_core_lifecycle.py, scripts/test_probe_memory_core_
 
 Dateien: vorhandene E2E-Probes plus enger Prüfläufer für echte Modellaufnahme und Original-/Status-Sollwerte; docs/runs/2026-10-12-memory-core-stable/.
 
-- [ ] Festen künstlichen Quellen-/Fragenkatalog vor Lauf einfrieren; tatsächliche lokale Einordnung und Agent-/Gesprächsroute seriell prüfen.
-- [ ] Quelle, Erfassungszeit, ausgewählte Belege, Status und Antwortinhalt getrennt bewerten. Keine reine Auswahlquote als semantische Richtigkeit verkaufen.
-- [ ] Quellenentzug und spätere Änderung im gespeicherten Verlauf, fehlende Angaben und Rückfragen end-to-end prüfen.
-- [ ] Vollständige bestehende Backend-Prüfung sowie UI-/Build-/Assetchecks; feste Codeversion unabhängig prüfen. Fehlgeschlagene Erstläufe nicht verschweigen.
+- [x] Festen künstlichen Quellen-/Fragenkatalog vor Lauf einfrieren; tatsächliche lokale Einordnung und Agent-/Gesprächsroute seriell prüfen.
+- [x] Quelle, Erfassungszeit, ausgewählte Belege, Status und Antwortinhalt getrennt bewerten. Keine reine Auswahlquote als semantische Richtigkeit verkaufen. Bekannte Klinik-Rubrikabweichung bleibt ausgewiesen.
+- [x] Quellenentzug und spätere Änderung im gespeicherten Verlauf, fehlende Angaben und Rückfragen end-to-end prüfen. Finaler inkrementeller Wiederholungslauf auf e9a968f bestanden; vorheriger Embedding-Aufwärmfehler dokumentiert.
+- [x] Vollständige bestehende Backend-Prüfung sowie UI-/Build-/Assetchecks; feste Codeversion unabhängig prüfen. Fehlgeschlagene Erstläufe nicht verschweigen.
 - [ ] GitHub-Branch/PR und Paket auf denselben geprüften Commit binden. Keine unnötigen Actions-Neustarts bei bekanntem Minutenblock.
 - [ ] Fresh backup/restore, Paket-/Signatur-/Hashprüfung, autorisierter persönlicher Wechsel; Daten und Konfiguration unverändert, frischer Appstart und echter Abruf mit Originalvergleich.
 - [ ] Abschlussbericht unterscheidet lokale Tests, GitHub-Stand, installierte Version und tatsächliche Fensterabnahme. Kein Anspruch auf mathematische Fehlerfreiheit oder mehrtägigen Nutzerbeweis.
@@ -54,3 +54,7 @@ Dateien: vorhandene E2E-Probes plus enger Prüfläufer für echte Modellaufnahme
 - 12.10.: Nutzerfreigabe deckt Umsetzung und geprüfte GitHub-/Mac-Auslieferung ab; keine erneute Planfreigabe erforderlich.
 
 - 12.10.: Unabhängiger Review ergänzte historische Heute-Bezugsfrage, getrennte Aufgaben, Negation/Kontrast und allgemeine Kategorien. Konservative Gegenstandsprüfung und ausdrücklich vermutete Beziehungen mit Originalrückfall sind abgesichert; keine kategorischen Programminferenzen mehr. Letzte enge kombinierte Prüfungen: 221 und 122 bestanden, sechs unabhängige zusätzliche Gegenproben bestanden.
+- 12.10.: Kandidat 5007716 wurde wegen der tatsächlichen unvollständigen Alex-Winter-Antwort nicht ausgeliefert; Rohantwort und negative Bewertung bleiben erhalten. Dokumenten-Namensguard einschließlich Negation, Adresswechsel, Kontextqualifizierung, Kleinschreibung und gespeicherter Altantwort ist abgesichert.
+- 12.10.: Runtime e9a968f: 20 künstliche Originale tatsächlich lokal eingeordnet, alle 15 festen API-Antworten unabhängig inhaltlich geprüft, zusätzliche kleingeschriebene Namenfragen bestanden. Drei Satzantworten, acht Originalberichte, drei Klärungen und ein unbekannter Fakt; keine allgemeine Genauigkeitsgarantie. Klinikfall zeigt weiterhin zwei korrekte Originale ohne Rubrik-Rückfrage.
+- 12.10.: Kanonischer finaler Backend-Lauf: 6414 bestanden, 1 übersprungen, 26 Subtests bestanden; weitere Testbereiche 575 bestanden, 1 übersprungen. Unveränderte UI: 573 Tests und Build bestanden. Log-Hashes sind im finalen Nachweis gespeichert.
+- 12.10.: Quellenentzug/Wiederöffnung und Nachlieferung auf e9a968f bestanden. Erster Nachlieferungsversuch scheiterte beim Embedding-Aufwärmen mit 30-Sekunden-ReadTimeout; Wiederholung nach Bereitschaftsprüfung ohne Runtime-Änderung bestanden. Koordinator meldet lokale 1.0.7-Installation nach kalter Sicherung und unverändertem maßgeblichem Daten-/Konfigurationsbestand. Finale native Fensterabnahme und GitHub-Veröffentlichung bleiben offen.

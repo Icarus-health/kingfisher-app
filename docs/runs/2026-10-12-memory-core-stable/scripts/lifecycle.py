@@ -1,4 +1,4 @@
-"""Real local-Qwen intake and authenticated conversation route; synthetic only."""
+"""Reproduce the synthetic local route used for runtime e9a968f; use an isolated probe directory."""
 import os,sys,json,time,hashlib,threading,argparse
 from pathlib import Path
 ROOT=Path(os.environ['KINGFISHER_CORE_PROBE_DIR']).resolve()
@@ -63,11 +63,11 @@ semantic=WorkingMemorySemantic(embed);assert semantic.search_with_status(ep,'Bio
 agent._working_memory_search=semantic
 try:
  # Existing stored answer must remain accessible after an actual app/store reopen.
- old=json.loads((ROOT/'answers-sentences-before-fix.jsonl').read_text().splitlines()[1])
+ old=json.loads((ROOT/'answers-sentences.jsonl').read_text().splitlines()[1])
  r=client.get('/api/v1/conversations/'+old['conversation_id']);r.raise_for_status()
  answer=r.json()['messages'][-1]
  assert 'Angebotsliste' in answer['content'] and answer['metadata']['context']['source_links']
- emit({'phase':'reopen_pre_fix_selected_source','original_quote_preserved':True,'reply':answer['content']})
+ emit({'phase':'reopen_final_selected_source','original_quote_preserved':True,'reply':answer['content']})
  conversation=client.post('/api/v1/conversations',json={}).json()['conversation']['id']
  r=client.post(f'/api/v1/conversations/{conversation}/messages',json={'message':cat['withdrawal']['question'],'answer_mode':'auto'});r.raise_for_status()
  answer=r.json()['messages'][-1]
