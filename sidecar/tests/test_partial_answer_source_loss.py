@@ -131,6 +131,25 @@ def test_unmentioned_selected_source_without_rejection_restores_both_originals(s
     assert_originals(answer, sources)
 
 
+def test_sentence_abstention_cannot_hide_already_selected_originals(sources):
+    provider = Skript(lambda user: {'status': 'nichts_vorliegend', 'saetze': []})
+    answer = prepare(sources, provider)
+    assert len(answer['refs']) == 2
+    assert_originals(answer, sources)
+
+
+def test_saved_sentence_abstention_keeps_originals_without_a_model_call(sources):
+    provider = Skript(lambda user: {'status': 'nichts_vorliegend', 'saetze': []})
+    answer = json.loads(json.dumps(prepare(sources, provider)))
+    episodes, claims, ids = sources
+    before = len(provider.auswahlen) + len(provider.satzanfragen)
+    reopened = answers.project_message({'role': 'assistant', 'content': 'old empty display',
+        'metadata': {'context': {'working_answer': answer}}}, episodes, claims)
+    assert FIRST in reopened['content'] and UPDATE in reopened['content']
+    assert set(ids) <= {ref['episode_id'] for ref in reopened['metadata']['context']['source_links']}
+    assert len(provider.auswahlen) + len(provider.satzanfragen) == before
+
+
 def test_saved_partial_comparison_without_rejection_restores_both_originals(sources):
     provider = scripted()
     answer = prepare(sources, provider)

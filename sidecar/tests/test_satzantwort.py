@@ -304,15 +304,17 @@ def test_jeder_fehler_des_modells_fuehrt_zum_zitatmodus_nie_zu_einer_unbelegten_
     assert wma.satz_struktur(gespeichert, episodes, claims) is None
 
 
-def test_nichts_liegt_vor_sagt_die_antwort_ehrlich_ohne_zu_raten(raum):
+def test_leere_formulierung_verdeckt_keine_bereits_gewaehlten_originale(raum):
     episodes, claims, _ = raum
     wandel(episodes)
     gespeichert = antwort(raum, Skript({'status': 'nichts_vorliegend', 'saetze': []}))
     assert gespeichert['satzantwort']['status'] == 'nichts'
     text, links, status = wma.render(gespeichert, episodes, claims)
-    assert status == 'working_unknown' and links == []
-    assert text.startswith('Dazu liegt in den bisher eingeordneten Quellen keine Information vor.')
-    assert 'Geprüft, aber ohne tragfähige Angabe' in text and '12. November' not in text and '15. Oktober' not in text
+    assert status == 'working_reports'
+    assert {link['episode_id'] for link in links} == {ref['episode_id'] for ref in gespeichert['refs']}
+    assert '12. November' in text and '15. Oktober' in text
+    assert 'keine Information vor' not in text
+    assert wma.satz_struktur(gespeichert, episodes, claims) is None
 
 
 def test_relative_zeit_gilt_nur_gegen_den_stichtag_und_wenn_der_beleg_den_tag_traegt(raum):

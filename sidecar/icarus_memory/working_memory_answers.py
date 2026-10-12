@@ -1218,10 +1218,10 @@ def render(answer, episodes, claims, *, conflict_status=None):
     satz = (None if fallback or claim_basis or answer.get('status') != 'reports'
             else satzantwort.wiederherstellen(answer.get('satzantwort'), episodes, claims))
     if satz is not None and satz.status == 'nichts':
-        coverage = ' '.join(_search_notices(answer))
-        if coverage:
-            return 'Ich habe keine belegte Antwort gefunden. ' + coverage, [], 'working_unknown'
-        return satzantwort.nichts_text(answer, episodes), [], 'working_unknown'
+        # Eine leere Formulierung beweist nicht, dass die bereits ausgewählten
+        # Originale keine Antwort enthalten. Sie bleiben im Zitatmodus sichtbar;
+        # nur die vorgelagerte Quellenauswahl darf keine relevanten Quellen melden.
+        satz = None
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
              if fallback else ['Quelle berichtet · automatisch eingeordnet'])
