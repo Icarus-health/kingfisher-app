@@ -1,0 +1,105 @@
+{
+  "version": "1.0.7",
+  "status": "published_and_verified",
+  "runtime_commit": "3721bc2c470ffe570df50327f2c7126a7fe10ba3",
+  "release_commit": "f7dae379add9282a1d1c6262c14270e3e9e51f78",
+  "release_tree_equals_final_documented_acceptance_tree": true,
+  "runtime_difference_paths": [],
+  "docs_difference_count_from_runtime": 13,
+  "tag": "v1.0.7",
+  "tag_binding": "independently checked using git ls-remote; same commit as successful workflow",
+  "merged_pull_requests": [
+    55,
+    56,
+    54,
+    46
+  ],
+  "workflow": {
+    "url": "https://github.com/Icarus-health/kingfisher-app/actions/runs/38260423499",
+    "head_sha": "f7dae379add9282a1d1c6262c14270e3e9e51f78",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "Tag und VERSION",
+        "conclusion": "success",
+        "completed_at": "2026-10-12T14:06:06Z"
+      },
+      {
+        "name": "Docker-Bild (arm64, amd64)",
+        "conclusion": "success",
+        "completed_at": "2026-10-12T14:09:29Z"
+      },
+      {
+        "name": "Mac-App / dmg",
+        "conclusion": "success",
+        "completed_at": "2026-10-12T14:07:47Z"
+      },
+      {
+        "name": "GitHub-Release mit Kingfisher.dmg",
+        "conclusion": "success",
+        "completed_at": "2026-10-12T14:09:44Z"
+      },
+      {
+        "name": "Download-Seite und latest.json",
+        "conclusion": "success",
+        "completed_at": "2026-10-12T14:10:04Z"
+      }
+    ]
+  },
+  "release": {
+    "url": "https://github.com/Icarus-health/kingfisher-app/releases/tag/v1.0.7",
+    "published_at": "2026-10-12T14:09:42Z",
+    "draft": false,
+    "prerelease": false,
+    "asset": {
+      "name": "Kingfisher.dmg",
+      "bytes": 2551840,
+      "sha256": "54b070ebbe0baf25a754b37583b7b6a4f47dcd19c07456e3a6e9e4a42053c321",
+      "url": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.0.7/Kingfisher.dmg",
+      "download_matches_published_digest": true,
+      "local_mount_verified": false,
+      "local_mount_limitation": "hdiutil imageinfo failed: device not configured; no new mount or native launch claim"
+    }
+  },
+  "update_manifest": {
+    "url": "https://icarus-health.github.io/kingfisher-app/latest.json",
+    "status": 200,
+    "manifest": {
+      "fassung": "1.0.7",
+      "datum": "2026-10-12",
+      "image": "ghcr.io/icarus-health/kingfisher-app:1.0.7",
+      "dmg": "https://github.com/Icarus-health/kingfisher-app/releases/download/v1.0.7/Kingfisher.dmg",
+      "hinweise": [
+        "Bei aktuellen Fragen bleiben gefundene mögliche Änderungen und Widerrufe als Originalbelege sichtbar. Eine ungeklärte Zugehörigkeit führt zur Rückfrage; daraus werden keine neuen Fakten oder automatischen Aufgabenänderungen.",
+        "Automatische Beziehungen erscheinen ausdrücklich als Vermutung. Das Programm erzeugt daraus keine kausalen Überholungs-/Absagesätze; ältere gespeicherte Programmsätze fallen auf erneut geprüfte Originale zurück.",
+        "Eine formulierte Antwort darf ausgewählte Originalquellen nicht still auslassen. Bei fehlender Quellenabdeckung erscheint der vorhandene Zitatmodus.",
+        "Alte gespeicherte Antworten werden erneut gegen diese Absicherung und gegen negierte Zeitangaben geprüft. Ungültige Grundlagen verlangen eine neue Frage.",
+        "Absagen und Erledigungshinweise müssen die betreffende Aufgabe betreffen. Eine gemeinsame Person, Veranstaltung oder allgemeine Kategorie reicht nicht aus; Negationen und getrennte Aufgaben bleiben erhalten. Alte Akten werden mit der korrigierten Regel neu berechnet.",
+        "Fragen nach der Bedeutung von „heute“ in einer historischen Originalquelle bekommen keinen heutigen Quellenbereich.",
+        "„Nicht von heute“ und „nicht nur heute“ erzeugen keinen irreführenden Heute-Bereich; gültige gespeicherte Zeitbereiche bleiben eingefroren.",
+        "Ein klarer Suchauftrag „Suche im Gedächtnis …“ bleibt auch nach einer Sachfrage im Belegweg. Zusätzliche Änderungs-, Sende- oder Webaufträge werden dadurch nicht als reine Suche behandelt."
+      ],
+      "app_mindestens": "1.0.0"
+    },
+    "sha256": "a4841b8b7e3ab5eeef226c9715172873e618b6b5fb919cae3be8a21cabed10a5"
+  },
+  "public_arm64_image": {
+    "proof": "public-1.0.7-ghcr-arm64-proof.json",
+    "proof_sha256": "4bf68dc21e31cfd4d284ada7ce956226c03aed1478c660d6810280998cd738f8",
+    "python_files_matched": 273,
+    "ui_files_matched": 112,
+    "public_image_digest_need_not_equal_local_build": true,
+    "personal_container_changed_for_verification": false
+  },
+  "installed_api_update_check": {
+    "installed_version": "1.0.7",
+    "latest_version": "1.0.7",
+    "update_available": false,
+    "app_update_required": false,
+    "bulk_remains_paused": true,
+    "checked_at": "2026-10-12T14:11:18+00:00",
+    "native_window_rechecked_after_publication": false,
+    "window_recheck_limitation": "ScreenCaptureKit capture error; earlier completed actual native flow remains separately documented"
+  },
+  "private_source_contents_or_tokens_included": false
+}
