@@ -50,12 +50,12 @@ def _quellen(app):
     return alt, neu
 
 
-def _antwort(app, client, *, anfrage=True, saetze=_saetze, quellen=True, frage=FRAGE):
+def _antwort(app, client, *, anfrage=True, saetze=_saetze, quellen=True, frage=FRAGE, auswahl=None):
     """Zwei Mails, eine Satzantwort dazu und ein Gespräch, in dem sie steht: (Gespräch, Nachricht, Quellen)."""
     quellen = _quellen(app) if quellen else ()
     bausteine(app)[0].aktualisieren()
     episodes, claims = app.state.episodes, app.state.claims
-    gespeichert = wma.prepare(frage, episodes, claims, Skript(saetze), saetze=True,
+    gespeichert = wma.prepare(frage, episodes, claims, Skript(saetze, auswahl=auswahl), saetze=True,
                               anfrage=Anfrage(sachen=('Förderteam',), absicht='frist') if anfrage else None)
     turn = app.state.agent._working_turn(frage, gespeichert, model_called=False)
     gespraech = app.state.conversations.create('Frist')
@@ -175,7 +175,8 @@ def test_ein_satz_der_schon_in_der_akte_steht_wird_nicht_noch_einmal_vorgeschlag
     # Eine zweite Quelle sagt dasselbe; eine neue Antwort stützt sich auf sie. Der Satz steht schon in der Akte.
     mail(app.state.episodes, 'Erinnerung', [('Zur Erinnerung: ' + SATZ_NEU, 'change')], tage=3)
     g2, n2, _ = _antwort(app, client, quellen=False, frage='Was gibt es Neues beim Förderteam?', saetze=lambda nutzer: {'status': 'antwort', 'saetze': [
-        {'text': SATZ_NEU, 'belege': [nr(nutzer, 'Erinnerung')]}]})
+        {'text': SATZ_NEU, 'belege': [nr(nutzer, 'Erinnerung')]}]},
+        auswahl=lambda nutzer: [row['id'] for row in nutzer['sources'] if row['title'] == 'Erinnerung'])
     zustand = _zustand(app)
     (ergebnis,) = _vorschlagen(client, g2, n2, [1]).json()['ergebnisse']
     assert ergebnis['status'] == 'steht_schon' and ergebnis['grund'] == 'Steht schon in der Akte.'

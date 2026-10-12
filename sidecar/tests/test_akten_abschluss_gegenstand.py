@@ -135,3 +135,43 @@ def test_vollstaendiger_gleicher_gegenstand_bleibt_erkannt(welt, alt_text, neu_t
     kontext = aufbauen(episodes, None, [alt.id, neu.id], akten=akten)
     hinweise = hinweis_fuer_modell(kontext, alt.id, {alt.id: 'S1', neu.id: 'S2'}, {})
     assert [h['grund'] for h in hinweise] == ['vermutlich abgesagt']
+
+
+@pytest.mark.parametrize('neu_text,erledigt', [
+    ('Die Unterlagen sind erhalten.', True),
+    ('Der Plakatdruck ist erhalten.', False),
+])
+def test_handlungsverb_ist_nicht_der_gegenstand_der_zusage(welt, neu_text, erledigt):
+    episodes, workspace, bezuege = welt
+    projekt = workspace.add_project('Herbstmarkt', Provenance(SourceType.USER_STATED))
+    alt_text = 'Ich sende dir die Unterlagen bis zum 07.10.2026.'
+    alt = mail(episodes, 'Unterlagen', [(alt_text, 'commitment')], tage=20, projekt=projekt.id)
+    neu = mail(episodes, 'Eingang', [(neu_text, 'status')], tage=5, projekt=projekt.id)
+    bezuege.aktualisieren()
+    akten = Akten(episodes, bezuege, claims=None)
+    for sache in [SACHE, f'projekt:{projekt.id}']:
+        offen = akten.akte(sache, jetzt=JETZT)['offen']
+        assert offen['gesamt'] == (0 if erledigt else 1)
+        assert offen['erledigt']['gesamt'] == (1 if erledigt else 0)
+    hinweise = hinweis_fuer_modell(aufbauen(episodes, None, [alt.id, neu.id], akten=akten),
+                                  alt.id, {alt.id: 'S1', neu.id: 'S2'}, {})
+    assert [h['grund'] for h in hinweise] == (['vermutlich erledigt'] if erledigt else [])
+
+
+@pytest.mark.parametrize('sicht', ['person', 'projekt', 'modell'])
+def test_gleiche_aufgabe_anderer_veranstaltung_bleibt_offen(welt, sicht):
+    episodes, workspace, bezuege = welt
+    projekt = workspace.add_project('Marktdienste', Provenance(SourceType.USER_STATED))
+    alt = mail(episodes, 'Herbstmarkt', [(ZUSAGE, 'commitment')], tage=20, projekt=projekt.id)
+    neu = mail(episodes, 'Weihnachtsmarkt', [('Der Standdienst beim Weihnachtsmarkt ist abgesagt.', 'change')],
+               tage=5, projekt=projekt.id)
+    bezuege.aktualisieren()
+    akten = Akten(episodes, bezuege, claims=None)
+    if sicht == 'modell':
+        kontext = aufbauen(episodes, None, [alt.id, neu.id], akten=akten)
+        assert not kontext.gekennzeichnet(alt.id)
+        assert hinweis_fuer_modell(kontext, alt.id, {alt.id: 'S1', neu.id: 'S2'}, {}) == []
+    else:
+        offen = akten.akte(SACHE if sicht == 'person' else f'projekt:{projekt.id}', jetzt=JETZT)['offen']
+        assert [e['text'] for e in offen['eintraege']] == [ZUSAGE]
+        assert offen['erledigt']['gesamt'] == 0

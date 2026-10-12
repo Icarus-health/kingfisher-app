@@ -1015,6 +1015,10 @@ def _fresh(answer, episodes, claims):
         current_rows = [row for row in absatzauswahl.volltext_zeilen(current_rows)
                         if working_memory_references.permits(row, references)]
         selected_ids = [f'S{i}' for i, ref in enumerate(refs, 1) if ref in answer['refs']]
+        from .working_memory_identity import explicit_person_selection
+        if explicit_person_selection(answer['query'], current_rows, selected_ids,
+                                     candidate_ids=[row['id'] for row in current_rows])[1] == 'person':
+            return False  # A legacy one-person answer cannot hide an explicit same-name original.
         if working_memory_changes.omitted(answer['query'], current_rows, selected_ids, 'reports'):
             return False
     for ref in answer['refs'] if references else ():

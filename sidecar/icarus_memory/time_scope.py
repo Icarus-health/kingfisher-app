@@ -35,7 +35,7 @@ _NEGIERTE_ZEIT = re.compile(r'\bnicht\s+' + _ZEIT_VORWORTE + r'$', re.I)
 _NICHT_NUR_ZEIT = re.compile(r'\bnicht\s+(?:nur|bloß|bloss|allein|ausschließlich|ausschliesslich)\s+'
                             + _ZEIT_VORWORTE + r'$', re.I)
 _RELATIVES_WORT = r'(?:heute|gestern|vorgestern|morgen|nächste[nmr]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag))\b'
-_WORTANFANG = r'(?:(?:das\s+)?(?:wort|ausdruck)\s+)?[„"\']?'
+_WORTANFANG = r'(?:(?:das\s+)?(?:wort|ausdruck)\s+)?[\u201e"\']?'
 _QUELLENWORT = re.compile(r'\b(?:original(?:notiz|mail|nachricht|quelle|text)|notiz|mail|nachricht)\b', re.I)
 _ZEITWORTBEZUG = re.compile(
     r'\b(?:bezog|bezieht)\s+sich\s+' + _WORTANFANG + _RELATIVES_WORT + r'|'

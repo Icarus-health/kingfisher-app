@@ -221,6 +221,9 @@ def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any) ->
 # Eventangaben („beim Herbstmarkt“) sind nicht die abgeschlossene Aufgabe.
 _ABSCHLUSS_TEILE = re.compile(r'[,;]|\b(?:aber|während|hingegen|sondern)\b|' + _SATZENDE.pattern, re.I)
 _ABSCHLUSS_UMFELD = re.compile(r'\b(?:beim|am|im|zum|zur|bei|in|auf)\b', re.I)
+# In einer Ich-/Wir-Zusage ist das erste finite Verb die Handlung, nicht
+# das zugesagte Objekt. Der folgende konkrete Gegenstand bleibt vollständig.
+_ABSCHLUSS_HANDLUNG = re.compile(r'^\s*(?i:ich|wir)\s+[a-zäöüß][\w-]*\b')
 _ABSCHLUSS_ALLGEMEIN = stamm_menge(
     'meine meinen mein unsere separate separat gesamte gesamten ganz ganze vollständig '
     'zusage zusagen bitte bitten sage sagen übernehme übernehmen passt leider davon unabhängig')
@@ -228,6 +231,7 @@ _ABSCHLUSS_ALLGEMEIN = stamm_menge(
 
 def _abschluss_teile(text: str) -> tuple[frozenset[str], frozenset[str]]:
     """Gegenstand vor einer Event-/Ortsangabe und deren Umfeld, ohne Abschlusswörter."""
+    text = _ABSCHLUSS_HANDLUNG.sub('', text)
     text = _ABSAGE.sub('', _ERLEDIGT.sub('', text))
     teile = _ABSCHLUSS_UMFELD.split(text, maxsplit=1)
     gegenstand = stamm_menge(teile[0]) - _ABSCHLUSS_ALLGEMEIN
@@ -259,7 +263,11 @@ def _abschluss_betrifft(x: Abschnitt, y: Abschnitt, wort: re.Pattern) -> bool:
     for teil in _ABSCHLUSS_TEILE.split(y.text):
         if not _abschluss_signal(teil, wort):
             continue
-        ziel, _ = _abschluss_teile(teil)
+        ziel, ziel_umfeld = _abschluss_teile(teil)
+        # Dieselbe Aufgabe bei zwei ausdrücklich verschiedenen Veranstaltungen
+        # bleibt getrennt. Ein fehlendes Umfeld ist kein Widerspruch.
+        if umfeld and ziel_umfeld and not (umfeld <= ziel_umfeld or ziel_umfeld <= umfeld):
+            continue
         # Eine gemeinsame Kategorie („Aufgabe“, „Planung“) reicht nicht:
         # alle konkreten Teile des früheren Gegenstands müssen wieder vorkommen.
         if gegenstand and gegenstand <= ziel:

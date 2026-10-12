@@ -40,6 +40,14 @@ Der erste vollständige Backend-Lauf ergab 6.329 bestandene, sieben fehlgeschlag
 
 Der unabhängige Review reproduzierte zusätzlich falsche Aufgabenabsagen, Negationen, Kontraste und gemeinsame allgemeine Kategorien. Die endgültige Gegenstandsprüfung hat positive Kontrollen für tatsächlich gleiche Aufgaben und komplette Veranstaltungsabsagen. Die Abnahme verlangt sichere Quellenanzeige statt stiller kategorischer Schlussfolgerungen.
 
+## Weitere Freigabegegenfälle
+
+Der eingefrorene Kandidat `5007716` wurde trotz vieler bestandener Prüfungen nicht ausgeliefert: Im tatsächlichen Qwen-Lauf wählte das Modell bei einer allgemeinen Alex-Winter-Adressfrage nur eines der zwei ausdrücklich verschiedenen Dokumentenoriginale. Die zweite Quelle war im Kandidatenpool vorhanden. 14 von 15 erforderlichen Belegmengen blieben sichtbar; das war kein akzeptierter Gesamterfolg. Die Rohantwort und die negative Bewertung bleiben als `candidate-5007716-*` erhalten.
+
+Die enge Korrektur hält ausdrücklich getrennte gleiche Namen auch ohne Mail-Absenderdaten sichtbar und verlangt Klärung vor der Satzbildung. Sie erzeugt keine Personen oder bestätigten Identitäten. Konkrete Kontextfragen, Adresswechsel, negierte Personentrennung, ausgeschlossene Quellen und Kleinschreibung sind Gegenkontrollen; gespeicherte alte eindeutige Antworten werden erneut geprüft.
+
+Der saubere vollständige Lauf von `5007716` hatte 6.398 bestandene, vier fehlgeschlagene und einen übersprungenen Test sowie 26 bestandene Subtests. Die verbliebene echte Unterlagenzusagen-Regression wurde korrigiert, ohne allgemeine Kategorien als Gegenstand gelten zu lassen. Ein Regex-Zeichen löste die Typografieprüfung aus und wurde semantisch identisch Unicode-escaped. Zwei positive Satzübernahme-/Prüftests wurden an den abgesicherten Originalbelegvertrag angepasst. Auch gleiche Aufgaben an ausdrücklich verschiedenen Veranstaltungen bleiben getrennt.
+
 ## Noch laufende Freigabe
 
 Die abschließenden Modell-/Regressionsläufe und Paketbindung werden vor dem persönlichen Wechsel festgehalten. Bis dahin ist weder eine finale Installation noch eine Veröffentlichung behauptet. Sicherung, Daten-/Konfigurationsvergleich und tatsächlicher Fenstertest gehören zur Auslieferung, nicht nur ein erfolgreicher Build.
