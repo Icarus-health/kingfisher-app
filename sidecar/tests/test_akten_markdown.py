@@ -35,14 +35,16 @@ def beschaffen(app, *, quellen: bool = False, lage=None):
 def bestand(app, client):
     """Zwei Quellen zu einem Projekt: eine Bitte und die Erledigung, dazu ein Rest, der nie in eine Akte gehört."""
     projekt = _projekt(app, 'Mainz')
-    bitte = _quelle(app, 'Druckdaten', [(BITTE, 'request')], project=projekt.id, tage=3)
-    antwort = _quelle(app, 'Antwort', [(ERLEDIGT, 'status')], 'Ben <ben@druck.example>', projekt.id, tage=1)
+    bitte = _quelle(app, 'Druckdaten', [(BITTE, 'request')], project=projekt.id,
+                    occurred_at=JETZT - timedelta(days=3))
+    antwort = _quelle(app, 'Antwort', [(ERLEDIGT, 'status')], 'Ben <ben@druck.example>', projekt.id,
+                      occurred_at=JETZT - timedelta(days=1))
     # Eine Quelle mit Text, der in keinem Abschnitt steht: er darf nur mit „Quellen mitschreiben“ erscheinen.
     episode, _ = app.state.episodes.record(
         EpisodeKind.MESSAGE, 'Nebensache', 'Kurze Bitte zur Sache. ' + GEHEIM,
         Provenance(SourceType.EMAIL, source_ref='work:<nebensache@example.invalid>'),
         participants=['Anna Keller <anna@agentur.example>'], project_id=projekt.id,
-        occurred_at=datetime.now(timezone.utc) - timedelta(days=2))
+        occurred_at=JETZT - timedelta(days=2))
     store = WorkingMemoryStore(app.state.episodes)
     offen = store.pending(episode_ids=[episode.id])[0]
     assert store.commit(offen, [{'start': 0, 'end': len('Kurze Bitte zur Sache.'), 'kind': 'request'}], model='local-test')

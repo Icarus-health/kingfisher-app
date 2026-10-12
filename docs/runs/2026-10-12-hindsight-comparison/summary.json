@@ -1,0 +1,643 @@
+{
+  "synthetic_only": true,
+  "corpus_sha256": "7768438e8fd27fabdab0e1210b001dc474001e03f9b76025202776082e105e52",
+  "sources": 20,
+  "cases": 15,
+  "intake": {
+    "kingfisher_intake": {
+      "measured_count": 20,
+      "total_seconds": 93.3211,
+      "median_seconds": 4.6123,
+      "success_count": 20
+    },
+    "hindsight_intake": {
+      "measured_count": 20,
+      "total_seconds": 257.4507,
+      "median_seconds": 12.4986,
+      "success_count": 20
+    }
+  },
+  "query_routes": {
+    "kingfisher_answer": {
+      "measured_count": 15,
+      "total_seconds": 106.3192,
+      "median_seconds": 7.4105
+    },
+    "hindsight_recall": {
+      "measured_count": 15,
+      "total_seconds": 29.2387,
+      "median_seconds": 1.9326
+    },
+    "hindsight_reflect": {
+      "measured_count": 2,
+      "total_seconds": 362.2624,
+      "median_seconds": 181.1312
+    }
+  },
+  "warnings": [
+    "Not equivalent work: original classification/quote selection versus generative fact extraction/tool reflection.",
+    "Only two native Hindsight reflections, not a 15-case accuracy comparison.",
+    "Kingfisher no_working_answer is not a verified full-agent abstention.",
+    "One execution per normal query; no confidence intervals or large-scale performance claim.",
+    "No production changes or personal data."
+  ],
+  "case_review": [
+    {
+      "id": "exact",
+      "required_history": [
+        "s01"
+      ],
+      "kingfisher_candidate_ids": [
+        "s01",
+        "s12",
+        "s14"
+      ],
+      "kingfisher_selected": [
+        "s01"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0878,
+      "hindsight_ranked_original_ids": [
+        "s12",
+        "s02",
+        "s01",
+        "s14",
+        "s16",
+        "s20",
+        "s08",
+        "s19",
+        "s18",
+        "s13",
+        "s09",
+        "s05",
+        "s03",
+        "s06",
+        "s10",
+        "s17",
+        "s11",
+        "s15",
+        "s04",
+        "s07"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "paraphrase",
+      "required_history": [
+        "s01"
+      ],
+      "kingfisher_candidate_ids": [
+        "s01",
+        "s09",
+        "s12"
+      ],
+      "kingfisher_selected": [
+        "s01"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 1.837,
+      "hindsight_ranked_original_ids": [
+        "s08",
+        "s16",
+        "s12",
+        "s14",
+        "s01",
+        "s02",
+        "s13",
+        "s20",
+        "s18",
+        "s11",
+        "s10",
+        "s17",
+        "s19",
+        "s03",
+        "s09",
+        "s05",
+        "s15",
+        "s04",
+        "s07",
+        "s06"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "ambiguous_appointment",
+      "required_history": [
+        "s01",
+        "s12"
+      ],
+      "kingfisher_candidate_ids": [
+        "s01",
+        "s02",
+        "s03",
+        "s04",
+        "s05",
+        "s06",
+        "s07",
+        "s09",
+        "s12",
+        "s14",
+        "s15",
+        "s16"
+      ],
+      "kingfisher_selected": [
+        "s01",
+        "s12"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0649,
+      "hindsight_ranked_original_ids": [
+        "s02",
+        "s20",
+        "s12",
+        "s03",
+        "s05",
+        "s08",
+        "s06",
+        "s18",
+        "s01",
+        "s13",
+        "s04",
+        "s07",
+        "s11",
+        "s09",
+        "s17",
+        "s16",
+        "s14",
+        "s19",
+        "s10",
+        "s15"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "same_name",
+      "required_history": [
+        "s10",
+        "s11"
+      ],
+      "kingfisher_candidate_ids": [
+        "s10",
+        "s11",
+        "s13",
+        "s14",
+        "s20"
+      ],
+      "kingfisher_selected": [
+        "s10",
+        "s11"
+      ],
+      "kingfisher_status": "unclear",
+      "kingfisher_retrieval_seconds": 0.0928,
+      "hindsight_ranked_original_ids": [
+        "s20",
+        "s02",
+        "s15",
+        "s18",
+        "s13",
+        "s05",
+        "s11",
+        "s10",
+        "s12",
+        "s17",
+        "s16",
+        "s04",
+        "s09",
+        "s14",
+        "s01",
+        "s03",
+        "s19",
+        "s07",
+        "s06"
+      ],
+      "hindsight_recalled_original_count": 19
+    },
+    {
+      "id": "specific_person",
+      "required_history": [
+        "s10"
+      ],
+      "kingfisher_candidate_ids": [
+        "s10",
+        "s11",
+        "s13",
+        "s14",
+        "s20"
+      ],
+      "kingfisher_selected": [
+        "s10"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0952,
+      "hindsight_ranked_original_ids": [
+        "s02",
+        "s20",
+        "s13",
+        "s05",
+        "s10",
+        "s11",
+        "s17",
+        "s14",
+        "s18",
+        "s15",
+        "s12",
+        "s03",
+        "s01",
+        "s06",
+        "s16",
+        "s07",
+        "s19",
+        "s09",
+        "s04"
+      ],
+      "hindsight_recalled_original_count": 19
+    },
+    {
+      "id": "withdrawn_commitment",
+      "required_history": [
+        "s04",
+        "s05",
+        "s06"
+      ],
+      "kingfisher_candidate_ids": [
+        "s03",
+        "s04",
+        "s05",
+        "s06",
+        "s13",
+        "s16"
+      ],
+      "kingfisher_selected": [
+        "s04",
+        "s05"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0905,
+      "hindsight_ranked_original_ids": [
+        "s20",
+        "s02",
+        "s15",
+        "s06",
+        "s05",
+        "s18",
+        "s08",
+        "s17",
+        "s19",
+        "s13",
+        "s04",
+        "s03",
+        "s12",
+        "s11",
+        "s10",
+        "s01",
+        "s14",
+        "s16",
+        "s09",
+        "s07"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "cancelled_deadline",
+      "required_history": [
+        "s07",
+        "s08"
+      ],
+      "kingfisher_candidate_ids": [
+        "s05",
+        "s07",
+        "s08",
+        "s16"
+      ],
+      "kingfisher_selected": [
+        "s07",
+        "s08"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0876,
+      "hindsight_ranked_original_ids": [
+        "s08",
+        "s12",
+        "s02",
+        "s07",
+        "s16",
+        "s13",
+        "s20",
+        "s14",
+        "s17",
+        "s06",
+        "s04",
+        "s09",
+        "s10",
+        "s01",
+        "s05",
+        "s18",
+        "s03",
+        "s11",
+        "s19",
+        "s15"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "deadline",
+      "required_history": [
+        "s02"
+      ],
+      "kingfisher_candidate_ids": [
+        "s02",
+        "s15",
+        "s17",
+        "s18"
+      ],
+      "kingfisher_selected": [
+        "s02"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0846,
+      "hindsight_ranked_original_ids": [
+        "s02",
+        "s20",
+        "s15",
+        "s18",
+        "s17",
+        "s08",
+        "s16",
+        "s09",
+        "s13",
+        "s07",
+        "s19",
+        "s05",
+        "s06",
+        "s12",
+        "s01",
+        "s04",
+        "s14",
+        "s03"
+      ],
+      "hindsight_recalled_original_count": 18
+    },
+    {
+      "id": "historical_today",
+      "required_history": [
+        "s14"
+      ],
+      "kingfisher_candidate_ids": [
+        "s01",
+        "s10",
+        "s12",
+        "s14",
+        "s20"
+      ],
+      "kingfisher_selected": [
+        "s14"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0964,
+      "hindsight_ranked_original_ids": [
+        "s20",
+        "s02",
+        "s15",
+        "s08",
+        "s12",
+        "s14",
+        "s06",
+        "s10",
+        "s19",
+        "s04",
+        "s01",
+        "s16",
+        "s13",
+        "s18",
+        "s17",
+        "s09",
+        "s05",
+        "s07",
+        "s11",
+        "s03"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "yesterday",
+      "required_history": [
+        "s15"
+      ],
+      "kingfisher_candidate_ids": [
+        "s15"
+      ],
+      "kingfisher_selected": [
+        "s15"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.082,
+      "hindsight_ranked_original_ids": [
+        "s08",
+        "s12",
+        "s18",
+        "s01",
+        "s14",
+        "s02",
+        "s07",
+        "s16",
+        "s03",
+        "s20",
+        "s11",
+        "s17",
+        "s09",
+        "s19",
+        "s13",
+        "s04",
+        "s05",
+        "s10",
+        "s15",
+        "s06"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "missing_coverage",
+      "required_history": [
+        "s16"
+      ],
+      "kingfisher_candidate_ids": [
+        "s05",
+        "s16",
+        "s20"
+      ],
+      "kingfisher_selected": [
+        "s16"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0922,
+      "hindsight_ranked_original_ids": [
+        "s16",
+        "s20",
+        "s18",
+        "s07",
+        "s08",
+        "s17",
+        "s02",
+        "s05",
+        "s03",
+        "s11",
+        "s14",
+        "s04",
+        "s10",
+        "s15",
+        "s06",
+        "s13",
+        "s19",
+        "s01",
+        "s12",
+        "s09"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "missing_address",
+      "required_history": [
+        "s13"
+      ],
+      "kingfisher_candidate_ids": [
+        "s10",
+        "s11",
+        "s13",
+        "s19"
+      ],
+      "kingfisher_selected": [
+        "s13"
+      ],
+      "kingfisher_status": "reports",
+      "kingfisher_retrieval_seconds": 0.0801,
+      "hindsight_ranked_original_ids": [
+        "s13",
+        "s11",
+        "s18",
+        "s16",
+        "s10",
+        "s14",
+        "s02",
+        "s08",
+        "s19",
+        "s01",
+        "s17",
+        "s12",
+        "s07",
+        "s15",
+        "s04",
+        "s20",
+        "s06",
+        "s09",
+        "s03",
+        "s05"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "ambiguous_number",
+      "required_history": [
+        "s17",
+        "s18"
+      ],
+      "kingfisher_candidate_ids": [
+        "s17",
+        "s18"
+      ],
+      "kingfisher_selected": [
+        "s17",
+        "s18"
+      ],
+      "kingfisher_status": "unclear",
+      "kingfisher_retrieval_seconds": 0.0818,
+      "hindsight_ranked_original_ids": [
+        "s17",
+        "s18",
+        "s20",
+        "s08",
+        "s11",
+        "s13",
+        "s02",
+        "s19"
+      ],
+      "hindsight_recalled_original_count": 8
+    },
+    {
+      "id": "unknown_source_time",
+      "required_history": [
+        "s20"
+      ],
+      "kingfisher_candidate_ids": [
+        "s10",
+        "s11",
+        "s13",
+        "s19",
+        "s20"
+      ],
+      "kingfisher_selected": [
+        "s20"
+      ],
+      "kingfisher_status": "unclear",
+      "kingfisher_retrieval_seconds": 0.0942,
+      "hindsight_ranked_original_ids": [
+        "s20",
+        "s02",
+        "s15",
+        "s06",
+        "s05",
+        "s17",
+        "s18",
+        "s19",
+        "s08",
+        "s04",
+        "s03",
+        "s13",
+        "s12",
+        "s11",
+        "s10",
+        "s14",
+        "s01",
+        "s07",
+        "s16",
+        "s09"
+      ],
+      "hindsight_recalled_original_count": 20
+    },
+    {
+      "id": "missing_fact",
+      "required_history": [],
+      "kingfisher_candidate_ids": [],
+      "kingfisher_selected": [],
+      "kingfisher_status": "no_working_answer",
+      "kingfisher_retrieval_seconds": 0.069,
+      "hindsight_ranked_original_ids": [
+        "s12",
+        "s16",
+        "s14",
+        "s02",
+        "s08",
+        "s13",
+        "s18",
+        "s01",
+        "s07",
+        "s09",
+        "s20",
+        "s03",
+        "s05",
+        "s06",
+        "s15",
+        "s04",
+        "s17"
+      ],
+      "hindsight_recalled_original_count": 17
+    }
+  ],
+  "original_reranker": {
+    "cases_with_required_history": 14,
+    "top3_history_complete": 12,
+    "top5_history_complete": 12,
+    "median_seconds": 0.6475,
+    "rss_mib": 820.7,
+    "integration_decision": "Do not adopt this configuration: loses required originals in top five for paraphrase and withdrawal."
+  }
+}

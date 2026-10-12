@@ -72,6 +72,7 @@ BEWUSST_EIGEN = {
     'google_calendar.py': 'Terminfelder des Anbieters mit eigener Ganztagsbehandlung',
     'ingest.py': 'Metadaten aus Dateien: strip, erste lesbare Angabe, sonst Dateiname',
     'relations.py': 'wirft eigene Meldungen je Feldname',
+    'task_source_review.py': 'Aufgabenprüfung lehnt naive Zeitangaben ab statt ihnen UTC zuzuweisen',
     'transkript_zuordnung.py': 'naive Zeiten gelten in der Zeitzone des Nutzers, nicht UTC',
     'welt_feeds.py': 'RFC-822 zuerst, ISO als Rückfall',
     'world_monitor.py': 'Frische in UTC; naive und unlesbare Zeiten gelten als veraltet',

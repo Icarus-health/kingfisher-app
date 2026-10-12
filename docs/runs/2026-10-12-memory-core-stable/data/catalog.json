@@ -1,0 +1,440 @@
+{
+  "version": 1,
+  "clock": "2026-10-12T10:00:00+02:00",
+  "synthetic_only": true,
+  "sources": [
+    {
+      "id": "s01",
+      "occurred_at": "2026-09-02T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Am 20. Oktober 2026 um 10:00 habe ich das Gespräch mit Dr. Lena Berg im Klinikum Nord; bitte Angebotsliste mitbringen.",
+      "title": "Künstliche Quelle s01"
+    },
+    {
+      "id": "s02",
+      "occurred_at": "2026-09-05T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Für das BioRegio-Projekt ist der Förderantrag bis 20.10.2026 einzureichen. Einreichung wurde bisher nicht bestätigt.",
+      "title": "Künstliche Quelle s02"
+    },
+    {
+      "id": "s03",
+      "occurred_at": "2026-09-08T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Ich könnte beim Herbstmarkt am 20.09.2026 helfen, falls die Kinderbetreuung klappt. Das ist noch keine Zusage.",
+      "title": "Künstliche Quelle s03"
+    },
+    {
+      "id": "s04",
+      "occurred_at": "2026-09-09T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Ich übernehme den Standdienst am Herbstmarkt am 20.09.2026; die Kinderbetreuung ist organisiert.",
+      "title": "Künstliche Quelle s04"
+    },
+    {
+      "id": "s05",
+      "occurred_at": "2026-09-11T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Der Herbstmarkt findet nicht am 20., sondern am 27. September 2026 statt. Es ist derselbe Herbstmarkt.",
+      "title": "Künstliche Quelle s05"
+    },
+    {
+      "id": "s06",
+      "occurred_at": "2026-09-12T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Ich kann am 27.09.2026 doch nicht beim Herbstmarkt helfen; bitte meine Zusage streichen.",
+      "title": "Künstliche Quelle s06"
+    },
+    {
+      "id": "s07",
+      "occurred_at": "2026-09-01T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Bitte Rückmeldung zum Satzungsentwurf bis 15.09.2026.",
+      "title": "Künstliche Quelle s07"
+    },
+    {
+      "id": "s08",
+      "occurred_at": "2026-09-10T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Die Rückmeldung zum Satzungsentwurf wird nicht mehr benötigt; bitte nichts einreichen. Die frühere Bitte ist aufgehoben.",
+      "title": "Künstliche Quelle s08"
+    },
+    {
+      "id": "s09",
+      "occurred_at": "2026-08-30T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Mein Ziel: Unterlagen für die Vereinsversammlung am 10.10.2026 vorbereiten. Eine Einladung oder Bestätigung des Termins liegt hier nicht vor.",
+      "title": "Künstliche Quelle s09"
+    },
+    {
+      "id": "s10",
+      "occurred_at": "2026-09-03T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Alex Winter arbeitet im Einkauf der Firma A. Seine E-Mail-Adresse lautet alex.winter@firma-a.invalid.",
+      "title": "Künstliche Quelle s10"
+    },
+    {
+      "id": "s11",
+      "occurred_at": "2026-09-04T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Eine andere Person heißt ebenfalls Alex Winter. Sie arbeitet an der Schule B. Ihre E-Mail-Adresse lautet a.winter@schule-b.invalid.",
+      "title": "Künstliche Quelle s11"
+    },
+    {
+      "id": "s12",
+      "occurred_at": "2026-09-06T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Dr. Lena Berg vom Klinikum Süd hat das Gespräch am 20.10.2026 abgesagt. Gemeint ist das Gespräch im Klinikum Süd, nicht das Klinikum Nord.",
+      "title": "Künstliche Quelle s12"
+    },
+    {
+      "id": "s13",
+      "occurred_at": "2026-09-07T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Bei meiner alten Lindenstraße-Adresse bin ich mir nicht sicher; meine aktuelle Wohnadresse habe ich nicht angegeben.",
+      "title": "Künstliche Quelle s13"
+    },
+    {
+      "id": "s14",
+      "occurred_at": "2026-09-02T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Heute um 14:00 Gespräch mit Alex Winter aus dem Einkauf der Firma A. Das Wort heute stammt aus dieser Originalnotiz vom 02.09.2026.",
+      "title": "Künstliche Quelle s14"
+    },
+    {
+      "id": "s15",
+      "occurred_at": "2026-10-12T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Gestern, am 11.10.2026, habe ich den BioRegio-Entwurf verschickt. Gemeint ist der Entwurf, nicht der Förderantrag.",
+      "title": "Künstliche Quelle s15"
+    },
+    {
+      "id": "s16",
+      "occurred_at": "2026-09-01T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Im Kalenderexport vom 01.09.2026 stehen keine Termine für September. Weitere Kalender fehlen im Export; der Export ist nicht vollständig.",
+      "title": "Künstliche Quelle s16"
+    },
+    {
+      "id": "s17",
+      "occurred_at": "2026-09-11T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Die Nummer 42 bezeichnet im BioRegio-Projekt das Arbeitspaket Kommunikation.",
+      "title": "Künstliche Quelle s17"
+    },
+    {
+      "id": "s18",
+      "occurred_at": "2026-09-11T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Die Nummer 42 bezeichnet bei der Vereinsversammlung eine Sitzplatzreihe. Sie hat nichts mit dem BioRegio-Projekt zu tun.",
+      "title": "Künstliche Quelle s18"
+    },
+    {
+      "id": "s19",
+      "occurred_at": "2026-09-10T09:00:00+02:00",
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "Der ausschließlich künstliche Aufbewahrungscode für das Testobjektiv lautet 7342. Diese Quelle wird in der Entzugsphase ausgeschlossen.",
+      "title": "Künstliche Quelle s19"
+    },
+    {
+      "id": "s20",
+      "occurred_at": null,
+      "recorded_at": "2026-10-12T10:00:00+02:00",
+      "text": "In einer alten Originalmail steht: nächsten Freitag um 17 Uhr kommt der Prüfer. Das Datum dieser Originalmail ist unbekannt; das spätere Erfassungsdatum darf nicht als Bezug für nächsten Freitag benutzt werden.",
+      "title": "Künstliche Quelle s20"
+    }
+  ],
+  "cases": [
+    {
+      "id": "exact",
+      "question": "Was muss ich für das Gespräch mit Dr. Lena Berg im Klinikum Nord mitbringen?",
+      "required_source_ids": [
+        "s01"
+      ],
+      "forbidden_selected_source_ids": [
+        "s12"
+      ],
+      "expected_status": "reports",
+      "rubric": "Angebotsliste; Süd-Absage nicht auf Nord übertragen.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s01"
+        ]
+      ]
+    },
+    {
+      "id": "paraphrase",
+      "question": "Welche Unterlagen soll ich zum Austausch im Klinikum Nord dabeihaben?",
+      "required_source_ids": [
+        "s01"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "Angebotsliste aus s01 wiederfinden.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s01"
+        ]
+      ]
+    },
+    {
+      "id": "ambiguous_appointment",
+      "question": "Was ist am 20. Oktober 2026 mit Dr. Lena Berg?",
+      "required_source_ids": [
+        "s01",
+        "s12"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unclear",
+      "rubric": "Nord-Termin und Süd-Absage unterscheiden; Klinik rückfragen.",
+      "allowed_statuses": [
+        "unclear"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s01",
+          "s12"
+        ]
+      ]
+    },
+    {
+      "id": "same_name",
+      "question": "Welche E-Mail-Adresse hat Alex Winter?",
+      "required_source_ids": [
+        "s10",
+        "s11"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unclear",
+      "rubric": "Nach Einkauf oder Schule fragen; keine Identitätsverschmelzung.",
+      "allowed_statuses": [
+        "unclear"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s10",
+          "s11"
+        ]
+      ]
+    },
+    {
+      "id": "specific_person",
+      "question": "Welche E-Mail-Adresse hat Alex Winter aus dem Einkauf?",
+      "required_source_ids": [
+        "s10"
+      ],
+      "forbidden_selected_source_ids": [
+        "s11"
+      ],
+      "expected_status": "reports",
+      "rubric": "alex.winter@firma-a.invalid; keine unnötige Rückfrage.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s10"
+        ]
+      ]
+    },
+    {
+      "id": "withdrawn_commitment",
+      "question": "Was ist der aktuelle Stand meiner Hilfe beim Herbstmarkt?",
+      "required_source_ids": [
+        "s04",
+        "s05",
+        "s06"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "Zusage und Datumsänderung historisch; endgültig zurückgezogen, keine aktive Pflicht.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s06"
+        ]
+      ]
+    },
+    {
+      "id": "cancelled_deadline",
+      "question": "Muss ich noch bis zum 15. September zum Satzungsentwurf rückmelden?",
+      "required_source_ids": [
+        "s07",
+        "s08"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "Die spätere Rücknahme der Bitte berücksichtigen; keine aktuelle Abgabefrist.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s08"
+        ]
+      ]
+    },
+    {
+      "id": "deadline",
+      "question": "Welche Frist wurde für den BioRegio-Förderantrag genannt?",
+      "required_source_ids": [
+        "s02"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "20.10.2026; keine Einreichung erfinden.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s02"
+        ]
+      ]
+    },
+    {
+      "id": "historical_today",
+      "question": "Auf welches Datum bezog sich heute um 14:00 in der Originalnotiz zum Einkauf-Gespräch?",
+      "required_source_ids": [
+        "s14"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "02.09.2026, nicht Erfassungsdatum 12.10.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s14"
+        ]
+      ]
+    },
+    {
+      "id": "yesterday",
+      "question": "Was habe ich gestern verschickt?",
+      "required_source_ids": [
+        "s15"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "BioRegio-Entwurf am 11.10.2026, nicht Förderantrag.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s15"
+        ]
+      ]
+    },
+    {
+      "id": "missing_coverage",
+      "question": "Kann ich aus dem Kalenderexport schließen, dass ich im September komplett frei bin?",
+      "required_source_ids": [
+        "s16"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "reports",
+      "rubric": "Nein: unvollständiger alter Export, keine vollständige Verfügbarkeit.",
+      "allowed_statuses": [
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s16"
+        ]
+      ]
+    },
+    {
+      "id": "missing_address",
+      "question": "Wie lautet meine aktuelle Wohnadresse?",
+      "required_source_ids": [
+        "s13"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unknown",
+      "rubric": "Aktuelle Adresse unbekannt; Lindenstraße nicht als aktuell ausgeben.",
+      "allowed_statuses": [
+        "unknown",
+        "reports"
+      ],
+      "answer_evidence_sets": [
+        [],
+        [
+          "s13"
+        ]
+      ]
+    },
+    {
+      "id": "ambiguous_number",
+      "question": "Was bedeutet die Nummer 42?",
+      "required_source_ids": [
+        "s17",
+        "s18"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unclear",
+      "rubric": "Nach Projekt/Vorgang fragen; keine globale Bedeutung.",
+      "allowed_statuses": [
+        "unclear"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s17",
+          "s18"
+        ]
+      ]
+    },
+    {
+      "id": "unknown_source_time",
+      "question": "An welchem konkreten Datum kommt der Prüfer laut der alten Mail mit nächsten Freitag?",
+      "required_source_ids": [
+        "s20"
+      ],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unclear",
+      "rubric": "Originaldatum unbekannt; konkretes Freitagsdatum nicht aus Erfassung ableiten.",
+      "allowed_statuses": [
+        "unclear"
+      ],
+      "answer_evidence_sets": [
+        [
+          "s20"
+        ]
+      ]
+    },
+    {
+      "id": "missing_fact",
+      "question": "Welche Blutgruppe habe ich? ",
+      "required_source_ids": [],
+      "forbidden_selected_source_ids": [],
+      "expected_status": "unknown",
+      "rubric": "Keine Angabe im Bestand, keine Blutgruppe erfinden.",
+      "allowed_statuses": [
+        "unknown"
+      ],
+      "answer_evidence_sets": [
+        []
+      ]
+    }
+  ],
+  "withdrawal": {
+    "source_id": "s19",
+    "question": "Welcher Aufbewahrungscode gehört zum Testobjektiv?",
+    "phase1_expected": [
+      "s19"
+    ],
+    "phase2_expected": []
+  },
+  "scoring": "Recall of original IDs, selected original IDs and answer restrictions scored separately. Cancelled obligations remain evidence, source withdrawal removes availability.",
+  "source_timestamp_semantics": "occurred_at is original document/message creation time, not the event date described within it; s15 is a message from Oct12 reporting an Oct11 event."
+}
