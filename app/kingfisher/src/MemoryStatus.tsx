@@ -67,6 +67,57 @@ export function SemanticMemoryProgress({progress, stale = false}: {progress: Non
   </section>;
 }
 
+function MemoryStatusOverview({coverage, automation, stale}: {coverage: MemoryCoverage; automation: MemoryAutomation; stale: boolean}) {
+  const working = coverage.working_memory_progress;
+  const semantic = coverage.semantic_index;
+  const enabled = automation.requested || automation.state === "active" || automation.state === "legacy_active";
+  const sortingState = !working ? "Sortierstand noch nicht verfügbar"
+    : working.total === 0 ? "Noch keine Quellen zu sortieren"
+    : working.remaining === 0 ? working.skipped ? "Mit Ausnahmen abgeschlossen" : "Sortiert"
+    : enabled && !sortiertGerade(automation) ? "Automatik eingeschaltet · wartet"
+    : enabled ? "Automatik eingeschaltet"
+    : "Automatik pausiert";
+  const knownSections = semantic !== undefined && semantic.total !== null && semantic.indexed !== null;
+  const searchReady = semantic?.status === "indexed" && semantic.total !== null && semantic.total > 0
+    && semantic.indexed === semantic.total && semantic.pending === 0 && semantic.failed === 0
+    && semantic.source_pending === 0 && !semantic.pause_reason;
+  const searchState = !semantic ? "Vorbereitungsstand noch nicht verfügbar"
+    : semantic.status === "disabled" ? "Ausgeschaltet"
+    : semantic.pause_reason ? "Vorbereitung wartet"
+    : semantic.status === "unavailable" ? "Nicht bereit"
+    : searchReady ? "Bisher sortierte Abschnitte vollständig vorbereitet"
+    : semantic.total === 0 ? "Noch keine sortierten Abschnitte"
+    : "Vorbereitung noch offen";
+  return <section className="memory-status-card memory-status-overview" aria-label="Gedächtnis im Überblick">
+    <h2>Gedächtnis im Überblick</h2>
+    <div className="memory-status-stages">
+      <article aria-label="Aufnahme">
+        <h3>1 · Aufgenommen</h3>
+        <p className="memory-stage-count">{coverage.total_sources} Nachrichten und Dokumente</p>
+        <p>{stale ? "Letzter bekannter Stand · aktuell nicht bestätigt." : "Gespeichert. Der Einlesestand einzelner Zugänge steht unter Informationsquellen."}</p>
+      </article>
+      <article aria-label="Sortieren">
+        <h3>2 · Sortiert</h3>
+        <p className="memory-stage-count">{working ? `${working.done} von ${working.total} Quellen sortiert` : "Quellenzahl noch nicht verfügbar"}</p>
+        <p>{stale ? "Letzter bekannter Stand · aktuell nicht bestätigt." : sortingState}</p>
+        {!stale && working && working.remaining > 0 ? <p className="memory-status-note">{working.remaining} Quellen noch offen.{enabled && automation.execution_pause_reason ? ` ${automation.execution_pause_reason}` : ""}</p> : null}
+        {working && working.skipped > 0 ? <p className="memory-status-note">{working.skipped} Quellen nicht sortiert; im Fortschritt als übersprungen gezählt.</p> : null}
+      </article>
+      <article aria-label="Bedeutungssuche">
+        <h3>3 · Bedeutungssuche</h3>
+        <p className="memory-stage-count">{knownSections ? `${semantic.indexed} von ${semantic.total} ${semantic.total === 1 ? "Abschnitt" : "Abschnitten"}` : "Abschnittszahl noch nicht verfügbar"}</p>
+        <p>{stale ? "Letzter bekannter Stand · aktuell nicht bestätigt." : searchState}</p>
+        {!stale && semantic?.status !== "disabled" ? <>
+          {semantic?.pause_reason ? <p className="memory-status-note">{semantic.pause_reason}</p> : null}
+          {semantic?.failed ? <p className="memory-status-note">Bei {semantic.failed} Abschnitten ist ein Versuch fehlgeschlagen.</p> : null}
+          {semantic?.source_pending ? <p className="memory-status-note">Weitere Quellen werden noch sortiert; daraus können weitere Abschnitte entstehen.</p> : null}
+        </> : null}
+      </article>
+    </div>
+    <p className="memory-status-note">Gespeichert, sortiert und für Bedeutungssuche vorbereitet sind getrennte Schritte. Gefundene Angaben bleiben Hinweise mit Quelle, bis du sie bestätigst.</p>
+  </section>;
+}
+
 export function MemoryStatus() {
   const today = new Date();
   const [month, setMonth] = useState(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`);
@@ -193,8 +244,8 @@ export function MemoryStatus() {
 
   return <section className="memory-status" aria-label="Verarbeitung und Verlauf">
     <header><div><p className="eyebrow">GEDÄCHTNIS</p><h1>Verarbeitung & Verlauf</h1></div><button type="button" onClick={() => setRefresh(x => x + 1)}>Aktualisieren</button></header>
-    <SourceOverview refreshKey={refresh} />
     {coverageError && !coverage ? <p role="alert">Der Gedächtnisstand konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !coverage || !automation ? <p role="status">Gedächtnisstand wird geladen …</p> : <>
+      <MemoryStatusOverview coverage={coverage} automation={automation} stale={coverageRefreshError} />
       <section className="memory-status-card"><h2>Was wurde geprüft?</h2>
         <p>{coverage.total_sources === 0 ? "Noch keine Nachrichten oder Dokumente aufgenommen." : `${coverage.total_sources} Nachrichten und Dokumente sind aufgenommen.`}</p>
         {/* Derselbe Stand wie „Automatisches Sortieren“ darunter, damit nach dem Klick nicht „pausiert“ neben „An“ steht (Befund 12). */}
@@ -207,12 +258,20 @@ export function MemoryStatus() {
           <h3>Automatisches Sortieren</h3>
           <p>{coverageRefreshError ? "Der aktuelle Automatikstand konnte nicht geprüft werden. Bitte aktualisiere den Stand." : sortierStand(automation)}</p>
           <p>{coverageRefreshError ? "Beim Sortieren entstehen Vorschläge mit Quellen. Die aktuelle Freigabe und der Fortschritt sind gerade nicht bestätigt." : sortierWirkung(automation)}</p>
+          {!coverageRefreshError && (automation.execution_pause_reason || coverage.semantic_index?.pause_reason) ? <p className="memory-status-note">
+            Die Freigabe zum Sortieren und die Pause der gesamten Hintergrundarbeit sind getrennt.
+            {" "}<a href="/settings#technik-hintergrund" onClick={event => {
+              if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+              event.preventDefault(); navigate("/settings#technik-hintergrund");
+            }}>Verarbeitungssteuerung öffnen →</a>
+            {" "}Eine globale Pause setzt du dort unter „Ältere Mails einlesen“ mit „Verarbeitung fortsetzen“ fort.
+          </p> : null}
           {automationError ? <p role="alert">{automationError}</p> : null}
           <div className="memory-status-automation-actions">
             {automation.state === "legacy_active" ? <>
               <button type="button" disabled={automationBusy || coverageRefreshError} onClick={() => void setAutomaticClassification(true)}>{automationBusy ? "Wird gespeichert …" : "Lokal absichern"}</button>
               <button type="button" disabled={automationBusy || coverageRefreshError} onClick={() => void setAutomaticClassification(false)}>Automatik pausieren</button>
-            </> : <button type="button" disabled={automationBusy || coverageRefreshError || (!automation.requested && automation.state !== "paused")} onClick={() => void setAutomaticClassification(!automation.requested)}>{automationBusy ? "Wird gespeichert …" : automation.requested ? "Automatisches Sortieren pausieren" : "Automatisches Sortieren einschalten"}</button>}
+            </> : <button type="button" disabled={automationBusy || coverageRefreshError || (!automation.requested && automation.state !== "paused")} onClick={() => void setAutomaticClassification(!automation.requested)}>{automationBusy ? "Wird gespeichert …" : automation.requested ? !coverageRefreshError && !sortiertGerade(automation) ? "Sortierautomatik ausschalten" : "Automatisches Sortieren pausieren" : "Automatisches Sortieren einschalten"}</button>}
             {automation.state === "model_missing" || automation.state === "wrong_model" || automation.state === "cloud_ueber_ollama" || automation.state === "local_model_unavailable" ? <button type="button" onClick={() => navigate("/settings#technik-modelle")}>Lokales Modell prüfen</button> : null}
           </div>
         </section>
@@ -252,5 +311,6 @@ export function MemoryStatus() {
         <p className="memory-status-note">Je Seite bis zu 100 Einträge. „Aktualisieren“ zeigt wieder die neuesten.</p>
       </section>
     </>}
+    <details className="memory-status-sources"><summary>Informationsquellen und Einrichtung</summary><SourceOverview refreshKey={refresh} /></details>
   </section>;
 }

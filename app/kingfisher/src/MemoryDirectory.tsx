@@ -5,11 +5,16 @@ import { displayLabel } from "./displayIdentity";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 
 
-export function MemoryDirectory({ nodes, title, onOpen }: {
+export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, page: restoredPage, onQueryChange, onPageChange, hasSources = false }: {
   nodes: GraphNode[]; title: string; onOpen: (node: GraphNode) => void;
+  query?: string; page?: number; onQueryChange?: (query: string) => void; onPageChange?: (page: number) => void; hasSources?: boolean;
 }) {
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(0);
+  const [localQuery, setLocalQuery] = useState("");
+  const [localPage, setLocalPage] = useState(0);
+  const query = restoredQuery ?? localQuery;
+  const page = restoredPage === undefined ? localPage : restoredPage - 1;
+  const setQuery = (value: string) => {setLocalQuery(value); onQueryChange?.(value);};
+  const setPage = (value: number) => {setLocalPage(value); onPageChange?.(value + 1);};
   const sorted = useMemo(() => [...nodes].sort((a, b) =>
     displayLabel(a.label).name.localeCompare(displayLabel(b.label).name, "de") || a.id.localeCompare(b.id)), [nodes]);
   const matches = useMemo(() => {
@@ -34,8 +39,8 @@ export function MemoryDirectory({ nodes, title, onOpen }: {
           <small>{node.attributes.identity_resolution === "explicit_registry" ? "Eigene Akte" : node.attributes.identity_resolution === "confirmed_group" ? "Gemeinsame Ansicht · Zuordnung prüfen" : "Aus vorhandenen Quellen"}</small></span>
         <span className="directory-open">Akte öffnen <span aria-hidden="true">→</span></span>
       </button></li>;
-    })}</ul> : <div className="directory-empty"><h2>{query ? "Kein passender Eintrag" : "Hier ist noch Platz"}</h2>
-      {query ? <p>Versuche einen anderen Namen oder einen Teil der E-Mail-Adresse.</p> : <GedaechtnisLeer />}
+    })}</ul> : <div className="directory-empty"><h2>{query ? "Kein passender Eintrag" : title === "Projekte" && hasSources ? "Noch keine Projekte zugeordnet" : "Hier ist noch Platz"}</h2>
+      {query ? <p>Versuche einen anderen Namen oder einen Teil der E-Mail-Adresse.</p> : title === "Projekte" && hasSources ? <p>Quellen sind vorhanden. Sobald sie einem Projekt zugeordnet sind, erscheint es hier. <a href="/memory?view=status">Einordnung und Quellenstand ansehen</a></p> : <GedaechtnisLeer />}
       {query && <button type="button" onClick={() => { setQuery(""); setPage(0); }}>Suche zurücksetzen</button>}</div>}
     {pages > 1 && <nav className="directory-pagination" aria-label="Aktenseiten">
       <button type="button" disabled={current === 0} onClick={() => setPage(current - 1)}>Zurück</button>

@@ -12,19 +12,24 @@ import { SelfModelSupportReview } from "./SelfModelSupportReview";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
+import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
+import { MemorySearch } from "./MemorySearch";
+import "./MemoryWorkspace.css";
 
-type FilterId = "areas" | "people" | "projects" | "topics" | "decisions" | "documents" | "organizations" | "places" | "topic-files";
+type FilterId = MemoryTab;
 
 const FILTERS: Array<{ id: FilterId; label: string; icon: "people" | "project" | "brain" | "check" | "document" | "building" | "pin" }> = [
+  { id: "search", label: "Suchen", icon: "brain" },
   { id: "areas", label: "Bereiche", icon: "brain" },
   { id: "people", label: "Menschen", icon: "people" },
   { id: "projects", label: "Projekte", icon: "project" },
+  { id: "documents", label: "Dokumente", icon: "document" },
+  { id: "topic-files", label: "Themen", icon: "brain" },
+];
+const MORE_FILTERS: typeof FILTERS = [
   { id: "organizations", label: "Organisationen", icon: "building" },
   { id: "places", label: "Orte", icon: "pin" },
-  { id: "topics", label: "Themen", icon: "brain" },
-  { id: "topic-files", label: "Themenakten", icon: "brain" },
   { id: "decisions", label: "Entscheidungen", icon: "check" },
-  { id: "documents", label: "Dokumente", icon: "document" },
 ];
 
 const RING_POSITIONS = [
@@ -34,14 +39,16 @@ const RING_POSITIONS = [
 
 function openProfile(node: GraphNode) {
   if (node.kind !== "person" && node.kind !== "project") return;
+  const back = new URLSearchParams({return_to: window.location.pathname + window.location.search});
   if (node.attributes.identity_resolution === "confirmed_group") {
     navigate("/memory?people=review");
   } else if (node.attributes.identity_resolution === "explicit_registry") {
-    navigate(`/memory/registry/${encodeURIComponent(node.id)}`);
+    navigate(`/memory/registry/${encodeURIComponent(node.id)}?${back}`);
   } else if (node.kind === "person") {
-    navigate(`/memory/people/${encodeURIComponent(node.label)}?source_node=${encodeURIComponent(node.id)}`);
+    back.set("source_node", node.id);
+    navigate(`/memory/people/${encodeURIComponent(node.label)}?${back}`);
   } else {
-    navigate(`/memory/projects/${encodeURIComponent(node.id.replace(/^project:/, ""))}`);
+    navigate(`/memory/projects/${encodeURIComponent(node.id.replace(/^project:/, ""))}?${back}`);
   }
 }
 
@@ -173,12 +180,22 @@ function GraphCanvas({ graph, filter, personFilter }: { graph: MemoryGraph; filt
 export function MemoryGraph({ recentConversation }: { recentConversation: string | null }) {
   const [graph, setGraph] = useState<MemoryGraph | null>(null);
   const [error, setError] = useState(false);
-  const [filter, setFilter] = useState<FilterId>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "people" : "areas");
+  const [filter, setFilter] = useState<FilterId>(() => browseState(window.location.search).tab);
+  const [query, setQuery] = useState(() => browseState(window.location.search).q);
+  const [directoryPage, setDirectoryPage] = useState(() => browseState(window.location.search).page);
   const [section, setSection] = useState<"browse" | "status" | "support">(() =>
     memorySectionFromSearch(window.location.search));
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const reviewSubmittingRef = useRef(false);
-  const [personFilter, setPersonFilter] = useState<PersonFilter>(() => new URLSearchParams(window.location.search).get("people") === "review" ? "review" : "people");
+  const [personFilter, setPersonFilter] = useState<PersonFilter>(() => browseState(window.location.search).people);
+  function updateBrowse(change: Partial<ReturnType<typeof browseState>>, replace = false) {
+    const next = {...browseState(window.location.search), ...change};
+    const href = browseHref(next);
+    if (replace) {
+      window.history.replaceState({}, "", href);
+      setFilter(next.tab); setQuery(next.q); setDirectoryPage(next.page); setPersonFilter(next.people);
+    } else navigate(href);
+  }
 
   async function load() {
     setError(false);
@@ -198,10 +215,9 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
       // Bestätigung nicht aushängen und ihre Auditwarnung verschlucken.
       if (reviewSubmittingRef.current) return;
       setSection(memorySectionFromSearch(window.location.search));
-      const query = new URLSearchParams(window.location.search);
-      const isReview = query.get("people") === "review";
-      setFilter(isReview ? "people" : "areas");
-      setPersonFilter(isReview ? "review" : "people");
+      const restored = browseState(window.location.search);
+      setFilter(restored.tab); setQuery(restored.q); setDirectoryPage(restored.page);
+      setPersonFilter(restored.people);
     };
     window.addEventListener("popstate", applyPeopleQuery);
     return () => window.removeEventListener("popstate", applyPeopleQuery);
@@ -210,7 +226,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
-      <main className={`memory-page${section !== "browse" ? " memory-page-status" : ""}`}>
+      <main className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
           <p>GEDÄCHTNIS</p>
           <div>
@@ -220,7 +236,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
                 className={section === "browse" && filter === item.id ? "active" : ""}
                 disabled={reviewSubmitting}
                 key={item.id}
-                onClick={() => { setFilter(item.id); setSection("browse"); }}
+                onClick={() => updateBrowse({tab: item.id, q: "", page: 1, people: "people"})}
                 type="button"
               >
                 <InterfaceIcon name={item.icon} />
@@ -230,26 +246,28 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           </div>
           {section === "browse" && filter === "people" ? <div className="memory-person-filter" aria-label="Personenqualität auswählen">
             {([["people", "Personen"], ["automated", "Automatische Absender"], ["review", "Prüfen"], ["all", "Alle"]] as Array<[PersonFilter, string]>).map(([id, label]) => (
-              <button aria-pressed={personFilter === id} className={personFilter === id ? "active" : ""} disabled={reviewSubmitting} key={id} onClick={() => setPersonFilter(id)} type="button">{label}{graph ? ` (${personNodes(graph, id).length})` : ""}</button>
+              <button aria-pressed={personFilter === id} className={personFilter === id ? "active" : ""} disabled={reviewSubmitting} key={id} onClick={() => updateBrowse({tab: "people", people: id, q: "", page: 1})} type="button">{label}{graph ? ` (${personNodes(graph, id).length})` : ""}</button>
             ))}
           </div> : null}
-          <small>{filter === "areas" ? "Quellenbasierte Themenhinweise" : "Nur belegte Verbindungen"}</small>
-          <a href="/settings#ki">Mit ChatGPT einordnen & nachprüfen</a>
-          <button type="button" disabled={reviewSubmitting} className={section === "support" ? "active" : ""} aria-pressed={section === "support"} onClick={() => setSection("support")}>Aussagen prüfen</button>
-          <button type="button" disabled={reviewSubmitting} className={section === "status" ? "active" : ""} aria-pressed={section === "status"} onClick={() => setSection("status")}>Verarbeitung & Verlauf</button>
+          <details className="memory-tools" open={section !== "browse" || MORE_FILTERS.some(item => item.id === filter)}><summary>Weitere Ansichten & Pflege</summary><div>
+            {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => updateBrowse({tab:item.id,q:"",page:1,people:"people"})}>{item.label}</button>)}
+            <button type="button" disabled={reviewSubmitting} className={section === "support" ? "active" : ""} aria-pressed={section === "support"} onClick={() => navigate("/memory?view=support")}>Aussagen prüfen</button>
+            <button type="button" disabled={reviewSubmitting} className={section === "status" ? "active" : ""} aria-pressed={section === "status"} onClick={() => navigate("/memory?view=status")}>Verarbeitung & Verlauf</button>
+            <a href="/settings#ki">KI-Zugänge & Modelle</a>
+          </div></details>
         </aside>
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : error ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} documents={filter === "documents"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} /> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <p>Das Gedächtnis ist gerade nicht erreichbar.</p>
             <button onClick={load} type="button">Wiederholen</button>
           </section>
-        ) : filter === "organizations" || filter === "places" || filter === "topic-files" ? (
-          <SachenListe art={filter === "organizations" ? "organisation" : filter === "places" ? "ort" : "thema"} />
+        ) : filter === "organizations" || filter === "places" || filter === "topic-files" || filter === "topics" ? (
+          <SachenListe art={filter === "organizations" ? "organisation" : filter === "places" ? "ort" : "thema"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} />
         ) : graph ? (filter === "people" && personFilter === "review"
           ? <PeopleReview graph={graph} onGraphRefresh={load} />
           : filter === "people" || filter === "projects"
           ? <MemoryDirectory key={`${filter}:${personFilter}`} title={filter === "projects" ? "Projekte" : personFilter === "automated" ? "Automatische Absender" : personFilter === "all" ? "Alle Kontakte" : "Menschen"}
-              nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} />
+              nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={graph.nodes.some(node => node.kind === "episode")} />
           : <GraphCanvas key={`${filter}:${personFilter}`} filter={filter} personFilter={personFilter} graph={graph} />
         ) : <section className="memory-canvas memory-loading" aria-label="Gedächtnis wird geladen" />}
       </main>

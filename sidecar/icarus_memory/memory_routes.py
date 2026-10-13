@@ -207,6 +207,16 @@ def install_routes(app, guard):
     router = APIRouter(prefix='/api/v1/memory', dependencies=guard)
     automation_observation = None
 
+    @router.get('/search')
+    def read_source_search(q: str = Query(min_length=2, max_length=200),
+                           limit: int = Query(default=20, ge=1, le=50)):
+        from .memory_source_search import source_search
+        with app.state.conversation_lock:
+            try:
+                return source_search(app.state.episodes, q, limit, workspace=app.state.workspace)
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     @router.get('/coverage')
     def read_coverage():
         with app.state.conversation_lock:

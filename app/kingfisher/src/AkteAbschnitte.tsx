@@ -6,6 +6,7 @@ import { WiederkehrendKarte } from "./WiederkehrendKarte";
 import { ProfileSource } from "./ProfileSource";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
+import { memoryReturnPath } from "./profileReturn";
 import "./AkteAbschnitte.css";
 
 const TAG = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "numeric", year: "numeric" });
@@ -206,7 +207,7 @@ export function SachenAkte({ sache, recentConversation }: { sache: string; recen
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate("/memory")} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(new URLSearchParams(window.location.search).has("return_to") ? memoryReturnPath(window.location.search) : "/memory")} type="button">← Gedächtnis</button>
       <AkteAnsicht key={sache} sache={sache} mitKopf />
     </main>
   </div>;
