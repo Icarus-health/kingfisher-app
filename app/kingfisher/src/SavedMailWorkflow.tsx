@@ -12,6 +12,8 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
  const [error,setError]=useState('');
  const [busy,setBusy]=useState('');
  const [loading,setLoading]=useState(true);
+ const [readVerified,setReadVerified]=useState(false);
+ const [revision,setRevision]=useState(0);
  const epoch=useRef(0);
  const active=useRef(true);
  const draftSource=useRef('');
@@ -23,21 +25,27 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   setBusy('');
   function load() {
    controller?.abort();controller=new AbortController();const version=++epoch.current;
-   setLoading(true);setError('');setView(null);
+   setLoading(true);setReadVerified(false);setError('');setView(previous=>previous?.episode_id===episodeId ? previous : null);
    void savedMailWorkflowApi.read(episodeId,controller.signal).then(value=>{
-    if(active.current && version===epoch.current) setView(value);
-   }).catch(()=>{if(active.current && version===epoch.current) setError('Der gespeicherte Überblick konnte gerade nicht geprüft werden.');})
+    if(active.current && version===epoch.current){setView(value);setReadVerified(true);}
+   }).catch(failure=>{if(active.current && version===epoch.current){
+    if(failure instanceof Error && /^HTTP (401|403|404|409)$/.test(failure.message))setView(null);
+    setError('Der gespeicherte Überblick konnte gerade nicht geprüft werden. Bestätigung erst nach erneuter Prüfung.');
+   }})
     .finally(()=>{if(active.current && version===epoch.current) setLoading(false);});
   }
   load();window.addEventListener('focus',load);
   return ()=>{active.current=false;epoch.current++;controller?.abort();window.removeEventListener('focus',load);};
- },[episodeId,sourceDigest,sourceVerified]);
- const valid=sourceVerified && view?.source_digest===sourceDigest;
+ },[episodeId,sourceDigest,sourceVerified,revision]);
+ const valid=sourceVerified && readVerified && !loading && view?.source_digest===sourceDigest;
  async function prepare() {
   const version=epoch.current;setBusy('prepare');setError('');
-  try {const value=await savedMailWorkflowApi.prepare(episodeId);if(active.current && version===epoch.current)setView(value);}
-  catch(failure){if(active.current && version===epoch.current) setError(failure instanceof Error && failure.message==='HTTP 409'
-   ? 'Die Quelle oder Zuordnung wurde geändert. Bitte die gespeicherte Mail neu öffnen.' : 'Die lokale Vorbereitung ist gerade nicht verfügbar. Bitte erneut versuchen.');}
+  try {const value=await savedMailWorkflowApi.prepare(episodeId);if(active.current && version===epoch.current){setView(value);setReadVerified(true);}}
+  catch(failure){if(active.current && version===epoch.current){
+   if(failure instanceof Error && /^HTTP (401|403|404|409)$/.test(failure.message)){setReadVerified(false);setView(null);}
+   setError(failure instanceof Error && failure.message==='HTTP 409'
+    ? 'Die Quelle oder Zuordnung wurde geändert. Bitte die gespeicherte Mail neu öffnen.' : 'Die lokale Vorbereitung ist gerade nicht verfügbar. Bitte erneut versuchen.');
+  }}
   finally {if(active.current && version===epoch.current) setBusy('');}
  }
  async function save(id:string,draft:SavedTaskDraft) {
@@ -56,9 +64,14 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   {loading && <p role="status">Vorbereiteter Überblick wird geprüft …</p>}
   {error && <p role="alert">{error}</p>}
   {view && <>
+   {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
+   {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
    <p>{view.detail}</p><p className="saved-mail-workflow-context">{view.temporal_reason}</p>
    {view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}
    {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Wird lokal vorbereitet …':'Diese Mail lokal vorbereiten'}</button>}
+   {(view.project_preparation_status==='unprepared' || view.project_preparation_status==='unavailable') && view.status==='ready' && <>
+    <p role="status">{view.project_preparation_detail}</p><button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Projektvorschläge werden lokal geprüft …':'Projektvorschläge erneut vorbereiten'}</button>
+   </>}
    {view.status==='incomplete' && <p>Überblick über einen Ausschnitt. Aufgaben aus unvollständigem Text werden hier nicht neu vorgeschlagen.</p>}
    {view.status==='ready' && !view.items.length && <p>Keine offenen belegten Aufgabenvorschläge aus dieser Quelle.</p>}
    {view.items.map(item=>{
@@ -80,6 +93,6 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
     </form>;
    })}
   </>}
-  {!loading && !view && <button type="button" onClick={()=>void prepare()} disabled={!sourceVerified || Boolean(busy)}>Erneut lokal prüfen</button>}
+  {!loading && !view && <button type="button" onClick={()=>setRevision(value=>value+1)} disabled={!sourceVerified || Boolean(busy)}>Überblick erneut laden</button>}
  </section>;
 }

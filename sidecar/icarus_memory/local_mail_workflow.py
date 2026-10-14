@@ -100,6 +100,17 @@ class SavedMailWorkflow:
     def _hints(self):
         return TaskProjectHints(self.state.episodes,self.state.proposals,self.state.workspace,
                                 self.state.workspace_views,self.state.conversation_lock)
+    def _project_preparation(self, proposal):
+        # Ein belegter negativer/mehrdeutiger Checkpoint ist ebenfalls fertig.
+        # Fehlende oder nach Projektänderung veraltete Checkpoints bleiben erneut prüfbar.
+        hints = self._hints()
+        snapshot = hints._snapshot(proposal)
+        if snapshot is None or not snapshot[1]:
+            return 'not_needed'
+        if hints.visible(proposal) is not None:
+            return 'ready'
+        cached = self.state.workspace_views.get('project_hint', proposal.id)['data']
+        return 'ready' if cached and cached.get('fingerprint') == snapshot[2] else 'unprepared'
     def visible(self, identifier):
         with self.state.conversation_lock:
             source, context, timing, stamp = self._snapshot(identifier)
@@ -114,9 +125,16 @@ class SavedMailWorkflow:
                         or self.state.tasks.get(f't-suggestion-{proposal.id}') is not None):
                     continue
                 items.append({**proposal.to_dict(),'project_suggestion':self._hints().visible(proposal),
+                              'project_preparation_status':self._project_preparation(proposal),
                               'review_required':timing['temporal_status']!='recent' or proposal.task_context is None
                                   or not proposal.proposed_by.endswith(REVIEW_MARKER)})
-            return {'episode_id':identifier,'source_digest':source.digest,'fingerprint':stamp,
+            project_status = ('unprepared' if any(item['project_preparation_status']=='unprepared' for item in items)
+                              else 'ready' if any(item['project_preparation_status']=='ready' for item in items) else 'not_needed')
+            return {'project_preparation_status':project_status,
+                    'project_preparation_detail':'Projektvorschläge fehlen noch oder müssen nach einer Änderung erneut geprüft werden.'
+                        if project_status=='unprepared' else 'Projektzuordnung lokal geprüft; eine eindeutige Zuordnung kann fehlen.'
+                        if project_status=='ready' else 'Keine weitere Projektprüfung erforderlich.',
+                    'episode_id':identifier,'source_digest':source.digest,'fingerprint':stamp,
                     **timing,'status':cache['status'] if ready else 'unprepared',
                     'quotes':cache['quotes'] if ready else [],'items':items[:32],
                     'projects':[{'id':p.id,'name':p.name} for p in self.state.workspace.projects() if p.is_open()],
@@ -126,19 +144,25 @@ class SavedMailWorkflow:
         with self.state.conversation_lock:
             source, context, timing, stamp=self._snapshot(identifier)
             previous=self.state.workspace_views.get(CACHE,_key(identifier))
-            if previous['data'] and previous['data']['fingerprint']==stamp:
+            source_ready = bool(previous['data'] and previous['data']['fingerprint']==stamp)
+            if source_ready and (previous['data']['status']=='incomplete'
+                                 or self.visible(identifier)['project_preparation_status']!='unprepared'):
                 return self.visible(identifier)
             if not permitted():
                 raise HTTPException(409,'Die Freigabe wurde geändert.')
         if provider is None or not getattr(provider,'is_local',False):
-            return {**self.visible(identifier),'status':'unavailable','detail':'Für diesen Überblick wird ein installiertes lokales Modell benötigt.'}
+            result=self.visible(identifier)
+            return {**result,'status':result['status'] if source_ready else 'unavailable',
+                    'project_preparation_status':'unavailable' if source_ready else result['project_preparation_status'],
+                    'project_preparation_detail':'Für Projektvorschläge wird ein installiertes lokales Modell benötigt.',
+                    'detail':result['detail'] if source_ready else 'Für diesen Überblick wird ein installiertes lokales Modell benötigt.'}
         passages,incomplete=_passages(source.body)
         incomplete=incomplete or 'source:truncated' in source.tags
         try:
             identity=local_model_guard.verify_local_model(provider)
             wrapped=local_model_guard.VerifiedLocalProvider(provider,permitted=permitted)
-            quotes=[]
-            if passages:
+            quotes=previous['data']['quotes'] if source_ready else []
+            if passages and not source_ready:
                 reply=wrapped.complete_json([
                     {'role':'system','content':SYSTEM},
                     {'role':'user','content':json.dumps({'subject':source.title[:500],
@@ -151,7 +175,7 @@ class SavedMailWorkflow:
                 except HTTPException: return False
             if not fresh():
                 raise HTTPException(409,'Die Quelle oder ihr Prüfkontext wurde geändert.')
-            if not incomplete:
+            if not incomplete and not source_ready:
                 report=TaskDetector(_SingleSource(self.state.episodes,identifier),self.state.proposals,wrapped,
                                     self.state.conversation_lock,tasks=self.state.tasks).run(
                     with_model=True,limit=1,rechecks_only=True,permitted=fresh)
@@ -159,6 +183,7 @@ class SavedMailWorkflow:
                     raise HTTPException(409,'Die Quelle oder ihr Prüfkontext wurde geändert.')
                 if report.failed or (not report.analyzed and not self.state.proposals.memory_analysis.completed(source, wrapped, context=context)):
                     raise ProviderError('Die Aufgabenprüfung konnte nicht abgeschlossen werden.')
+            if not incomplete:
                 TaskProjectHints(self.state.episodes,_SourceProposals(self.state.proposals,identifier),
                                  self.state.workspace,self.state.workspace_views,self.state.conversation_lock).prepare(
                     wrapped,limit=2,permitted=fresh)
@@ -166,14 +191,22 @@ class SavedMailWorkflow:
                 raise HTTPException(409,'Das lokale Modell wurde geändert.')
             with self.state.conversation_lock:
                 if not fresh(): raise HTTPException(409,'Die Quelle oder ihr Prüfkontext wurde geändert.')
-                self.state.workspace_views.put(CACHE,_key(identifier),{'fingerprint':stamp,'source_digest':source.digest,
-                    'quotes':quotes,'status':'incomplete' if incomplete else 'ready'},previous['revision'])
-            return self.visible(identifier)
+                if not source_ready:
+                    self.state.workspace_views.put(CACHE,_key(identifier),{'fingerprint':stamp,'source_digest':source.digest,
+                        'quotes':quotes,'status':'incomplete' if incomplete else 'ready'},previous['revision'])
+                result=self.visible(identifier)
+                if not incomplete and result['project_preparation_status']=='unprepared':
+                    result.update(project_preparation_status='unavailable',
+                        project_preparation_detail='Projektvorschläge konnten noch nicht vollständig vorbereitet werden. Bitte ausdrücklich erneut versuchen.')
+                return result
         except ProviderError:
             with self.state.conversation_lock:
                 if not permitted(): raise HTTPException(409,'Die Modellfreigabe wurde geändert.') from None
-                return {**self.visible(identifier),'status':'unavailable',
-                        'detail':'Die lokale Vorbereitung konnte nicht abgeschlossen werden. Bitte erneut versuchen.'}
+                result=self.visible(identifier)
+                return {**result,'status':result['status'] if source_ready else 'unavailable',
+                        'project_preparation_status':'unavailable' if source_ready else result['project_preparation_status'],
+                        'project_preparation_detail':'Die lokale Projektprüfung konnte nicht abgeschlossen werden. Bitte erneut versuchen.',
+                        'detail':result['detail'] if source_ready else 'Die lokale Vorbereitung konnte nicht abgeschlossen werden. Bitte erneut versuchen.'}
     def accept(self, identifier, proposal_id, body):
         with self.state.conversation_lock:
             proposal=self.state.proposals.get(proposal_id)
@@ -199,7 +232,8 @@ def prepare_background(app, provider, *, limit=1, permitted=lambda:True):
     for row in rows:
         if attempted>=max(0,min(limit,2)) or not permitted(): break
         try:
-            if service.visible(row[0])['status']!='unprepared': continue
+            view=service.visible(row[0])
+            if view['status']!='unprepared' and view['project_preparation_status']!='unprepared': continue
             attempted+=1
             service.prepare(row[0],provider,permitted=permitted)
         except (HTTPException,ViewChanged):

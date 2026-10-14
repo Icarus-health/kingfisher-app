@@ -264,3 +264,85 @@ def test_incomplete_original_produces_only_original_excerpts(env):
     result=prepare(client,source)
     assert result['status']=='incomplete' and result['quotes']==[source.body] and result['items']==[]
     assert len(calls)==1 and app.state.tasks.all_tasks()==[]
+
+def test_failed_project_hint_is_visible_and_retry_reuses_successful_source_work(env):
+    app,client,source,calls,provider=env
+    project=app.state.workspace.add_project('Belege',Provenance(source_type=SourceType.USER_STATED))
+    original=provider.complete_json;project_calls=[]
+    def retryable(messages,**kwargs):
+        data=json.loads(messages[-1]['content'])
+        if 'projects' in data:
+            project_calls.append(data)
+            if len(project_calls)==1: raise ProviderError('Projektprüfung fehlt')
+            return Reply(text=json.dumps({'project_id':project.id,'new_project_name':None,'reason':'Belege prüfen','quote':source.body}))
+        return original(messages,**kwargs)
+    provider.complete_json=retryable
+    first=prepare(client,source)
+    assert first['status']=='ready'
+    assert first['project_preparation_status']=='unavailable'
+    source_calls=len(calls)
+    listed=client.get(root(source)).json()
+    assert listed['project_preparation_status']=='unprepared' and len(project_calls)==1
+    second=prepare(client,source)
+    assert second['items'][0]['project_suggestion']['project_id']==project.id
+    assert second['project_preparation_status']=='ready'
+    assert len(calls)==source_calls and len(project_calls)==2
+    assert prepare(client,source)['project_preparation_status']=='ready'
+    assert len(calls)==source_calls and len(project_calls)==2
+
+def test_stale_project_hint_retries_only_hint_after_project_inventory_change(env):
+    app,client,source,calls,provider=env
+    first_project=app.state.workspace.add_project('Belege',Provenance(source_type=SourceType.USER_STATED))
+    original=provider.complete_json;project_calls=[]
+    def hints(messages,**kwargs):
+        data=json.loads(messages[-1]['content'])
+        if 'projects' in data:
+            project_calls.append(data)
+            return Reply(text=json.dumps({'project_id':first_project.id,'new_project_name':None,'reason':'Belege prüfen','quote':source.body}))
+        return original(messages,**kwargs)
+    provider.complete_json=hints
+    first=prepare(client,source);source_calls=len(calls)
+    app.state.workspace.add_project('Weiteres Projekt',Provenance(source_type=SourceType.USER_STATED))
+    stale=client.get(root(source)).json()
+    assert stale['status']=='ready' and stale['project_preparation_status']=='unprepared'
+    assert stale['items'][0]['project_suggestion'] is None
+    second=prepare(client,source)
+    assert second['items'][0]['project_suggestion']['project_id']==first_project.id
+    assert len(calls)==source_calls and len(project_calls)==2
+
+def test_ambiguous_project_checkpoint_is_complete_without_repeated_model_work(env):
+    app,client,source,calls,provider=env
+    app.state.workspace.add_project('Belege',Provenance(source_type=SourceType.USER_STATED))
+    original=provider.complete_json;hint_calls=[]
+    def ambiguous(messages,**kwargs):
+        data=json.loads(messages[-1]['content'])
+        if 'projects' in data:
+            hint_calls.append(data)
+            return Reply(text=json.dumps({'project_id':None,'new_project_name':None,'reason':'Mehrdeutig','quote':source.body}))
+        return original(messages,**kwargs)
+    provider.complete_json=ambiguous
+    first=prepare(client,source);count=len(calls)
+    assert first['project_preparation_status']=='ready' and first['items'][0]['project_suggestion'] is None
+    second=prepare(client,source)
+    assert second['project_preparation_status']=='ready' and len(calls)==count and len(hint_calls)==1
+
+def test_background_retries_failed_hint_within_permission_and_budget(env):
+    from icarus_memory.local_mail_workflow import prepare_background
+    app,client,source,calls,provider=env
+    project=app.state.workspace.add_project('Belege',Provenance(source_type=SourceType.USER_STATED))
+    original=provider.complete_json;hint_calls=[]
+    def hints(messages,**kwargs):
+        data=json.loads(messages[-1]['content'])
+        if 'projects' in data:
+            hint_calls.append(data)
+            if len(hint_calls)==1: raise ProviderError('retry')
+            return Reply(text=json.dumps({'project_id':project.id,'new_project_name':None,'reason':'Belege','quote':source.body}))
+        return original(messages,**kwargs)
+    provider.complete_json=hints
+    assert prepare(client,source)['project_preparation_status']=='unavailable'
+    count=len(calls)
+    assert prepare_background(app,provider,limit=1,permitted=lambda:False)==0
+    assert len(hint_calls)==1
+    assert prepare_background(app,provider,limit=1)==1
+    assert client.get(root(source)).json()['project_preparation_status']=='ready'
+    assert len(hint_calls)==2 and len(calls)==count

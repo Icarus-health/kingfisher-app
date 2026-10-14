@@ -2,6 +2,7 @@ import {request, type Task, type TaskCandidate} from './api';
 export type SavedMailWorkflowView = {
  episode_id:string;source_digest:string;fingerprint:string;status:'unprepared'|'unavailable'|'ready'|'incomplete';
  quotes:string[];items:Array<TaskCandidate & {review_required:boolean}>;projects:Array<{id:string;name:string}>;
+ project_preparation_status?:'unprepared'|'unavailable'|'ready'|'not_needed';project_preparation_detail?:string;
  temporal_status:string;temporal_reason:string;detail:string;
 };
 export type SavedTaskInput = {fingerprint:string;source_digest:string;title:string;project_id:string|null;new_project_name:string|null;due:null;waiting_for:null};
