@@ -10,6 +10,7 @@ export type ViewOverview = {
   organisation_groups: ViewRecord<GroupData>[];
   places: ViewRecord<PositionData>[];
   avatars: ViewRecord<{available: boolean}>[];
+  logos?: ViewRecord<{available:boolean}>[]; truncated?:string[];
   online: {logos: boolean; maps: boolean}; online_revision: number;
 };
 const path = (kind: string, id: string) => `/api/v1/workspace-view/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`;

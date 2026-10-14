@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {after,test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'voice-hook-driver',enforce:'pre',resolveId(id){if(id==='virtual:voice-hooks')return '\0'+id;},load(id){if(id==='\0virtual:voice-hooks')return `export const useState=(...a)=>globalThis.__voiceDriver.state(...a);export const useRef=(...a)=>globalThis.__voiceDriver.ref(...a);export const useEffect=(...a)=>globalThis.__voiceDriver.effect(...a);`;},transform(code,id){if(id.endsWith('/src/ConversationVoice.tsx'))return code.replace("from 'react'","from 'virtual:voice-hooks'");}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-native-voice-lifecycle.test`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'voice-hook-driver',enforce:'pre',resolveId(id){if(id==='virtual:voice-hooks')return '\0'+id;},load(id){if(id==='\0virtual:voice-hooks')return `export const useState=(...a)=>globalThis.__voiceDriver.state(...a);export const useRef=(...a)=>globalThis.__voiceDriver.ref(...a);export const useEffect=(...a)=>globalThis.__voiceDriver.effect(...a);`;},transform(code,id){if(id.endsWith('/src/ConversationVoice.tsx'))return code.replace("from 'react'","from 'virtual:voice-hooks'");}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {useConversationVoice}=await server.ssrLoadModule('/src/ConversationVoice.tsx');
 const {api}=await server.ssrLoadModule('/src/api.ts');

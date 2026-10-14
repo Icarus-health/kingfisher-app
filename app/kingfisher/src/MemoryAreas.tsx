@@ -6,6 +6,8 @@ import { CategoryCorrection } from "./CategoryCorrection";
 import { areaEmptyText, areaLink, areaViewFromSearch, firstAreaNavigation, initialAreaPager, MEMORY_AREAS,
   nextAreaNavigation, previousAreaNavigation, receiveAreaPage, type MemoryAreaView } from "./MemoryAreaModel";
 import "./MemoryAreas.css";
+import { AreaBatchCorrection } from "./AreaBatchCorrection";
+import "./WorkspaceMemoryDetails.css";
 
 const PAGE_SIZE = 50;
 
@@ -24,16 +26,16 @@ function statusText(status: string) {
   return null;
 }
 
-function SourceHints({ source, onSaved }: { source: MemoryAreaSource; onSaved: () => void }) {
+function SourceHints({ source, onSaved, selected, onSelect }: { source: MemoryAreaSource; onSaved: () => void; selected: boolean; onSelect: (selected: boolean) => void }) {
   const date = datum(source.occurred_at);
   return <article className="memory-area-source">
-    <header><div><h3>{source.title || "Quelle ohne Titel"}</h3>{date ? <time dateTime={source.occurred_at ?? undefined}>{date}</time> : <span>Quelldatum unbekannt</span>}</div></header>
+    <header><label className="memory-area-select"><input type="checkbox" checked={selected} disabled={source.status === "excluded"} onChange={event => onSelect(event.target.checked)} aria-label={`Quelle auswählen: ${source.title || "Quelle ohne Titel"}`} />Auswählen</label><div><h3>{source.title || "Quelle ohne Titel"}</h3>{date ? <time dateTime={source.occurred_at ?? undefined}>{date}</time> : <span>Quelldatum unbekannt</span>}</div></header>
     {statusText(source.status) && <p className="memory-area-status">{statusText(source.status)}</p>}
     {source.categories.length ? <ul className="memory-area-categories">{source.categories.map(category => <li key={category.id}>
       <strong>{category.label}</strong><span>{category.origin === "user" ? "Von dir zugeordnet" : "Ungeprüfter Themenhinweis"}</span>
-      {category.evidence.map((evidence, index) => <blockquote key={`${category.id}:${evidence.start}:${index}`}>
+      {category.evidence.length > 0 && <details><summary>Belege ({category.evidence.length})</summary>{category.evidence.map((evidence, index) => <blockquote key={`${category.id}:${evidence.start}:${index}`}>
         {evidence.quote}{evidence.quote_truncated ? <small>Belegauszug gekürzt</small> : null}
-      </blockquote>)}
+      </blockquote>)}</details>}
     </li>)}</ul> : !statusText(source.status) ? <p className="memory-area-status">Für diese Quelle ist noch kein Themenhinweis verfügbar.</p> : null}
     <CategoryCorrection key={source.episode_id} id={source.episode_id} title={source.title} onSaved={onSaved} />
     <ProfileSource kind="episode" id={source.episode_id} label="Originalquelle öffnen" readOnly allowIgnore={false} />
@@ -48,6 +50,7 @@ export function MemoryAreas() {
   const [loading, setLoading] = useState(false);
   const requestVersion = useRef(0);
   const [error, setError] = useState(false);
+  const [selectedSources, setSelectedSources] = useState<Array<{id:string;title:string}>>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const visible = page?.sources ?? [];
   const nextCursor = page?.next_cursor ?? null;
@@ -69,7 +72,7 @@ export function MemoryAreas() {
   }
 
   useEffect(() => {
-    const sync = () => { void load(firstAreaNavigation(), areaViewFromSearch(window.location.search)); };
+    const sync = () => { setSelectedSources([]); void load(firstAreaNavigation(), areaViewFromSearch(window.location.search)); };
     sync();
     window.addEventListener('popstate', sync);
     return () => { ++requestVersion.current; window.removeEventListener('popstate', sync); };
@@ -82,22 +85,25 @@ export function MemoryAreas() {
   }, [retryNavigation, view]);
 
   function select(selected: MemoryAreaView) {
-    setNotice(null);
+    setNotice(null);setSelectedSources([]);
     window.history.replaceState({}, '', areaLink(selected, window.location.search));
     void load(firstAreaNavigation(), selected);
   }
 
   function olderSources() {
+    setSelectedSources([]);
     const navigation = nextAreaNavigation(pager);
     if (navigation) void load(navigation);
   }
 
   function newerSources() {
+    setSelectedSources([]);
     const navigation = previousAreaNavigation(pager);
     if (navigation) void load(navigation);
   }
 
   function refresh() {
+    setSelectedSources([]);
     void load(firstAreaNavigation());
   }
 
@@ -116,7 +122,8 @@ export function MemoryAreas() {
     {notice && <p role="status">{notice}</p>}
     {!page && !error && <p role="status">Bereiche werden geladen …</p>}
     {unavailable && <p role="status">Dieser Bereich ist im bestehenden Themenverzeichnis nicht verfügbar. Vorhandene Zuordnungen bleiben erhalten.</p>}
-    {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} onSaved={() => {
+    {(visible.length > 0 || selectedSources.length > 0) && <AreaBatchCorrection selected={selectedSources} onClear={() => setSelectedSources([])} />}
+    {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} selected={selectedSources.some(item => item.id === source.episode_id)} onSelect={checked => setSelectedSources(current => checked ? [...current.filter(item => item.id !== source.episode_id), {id: source.episode_id, title: source.title}] : current.filter(item => item.id !== source.episode_id))} onSaved={() => {
       setNotice("Deine Zuordnung wurde gespeichert. Die Quelle kann dadurch in einen anderen Bereich wechseln; ihr Original bleibt erhalten.");
     }} />)}</div>
       : <p className="memory-area-empty">{areaEmptyText(page)}</p>)}

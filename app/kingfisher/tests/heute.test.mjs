@@ -30,7 +30,7 @@ test("nach „Aktualisieren“ steht, was dabei herauskam (Fremdprobe 2, Befund 
   assert.equal(aktualisiertSatz(["a:1"], ["a:2", "a:1"], "14:43"), "Gerade abgerufen um 14:43: eine neue Nachricht.");
   assert.equal(aktualisiertSatz([], ["a:2", "a:1"], "14:43"), "Gerade abgerufen um 14:43: 2 neue Nachrichten.");
   const seite = readFileSync(new URL("Messages.tsx", SRC), "utf8");
-  assert.match(seite, /onClick=\{\(\) => void load\(true\)\}/);
+  assert.match(seite, /onClick=\{\(\) => void sync\(\)\}/);
 });
 
 test("Heute zeigt den Stand eines Postfachs, der erklärt, warum keine Mails dastehen (Befund 17)", () => {

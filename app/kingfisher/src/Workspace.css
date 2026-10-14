@@ -70,3 +70,7 @@
   .workspace-chat .message-text { font-size: 14px; }
   .workspace-chat .composer-hint { font-size: 10px; }
 }
+@media (max-width:900px) {
+  .shell:has(> main.workspace-chat) {height:100dvh;min-height:0;grid-template-rows:auto minmax(0,1fr);}
+  .shell main.workspace-chat {height:auto;min-height:0;margin:12px;width:calc(100% - 24px);}
+}

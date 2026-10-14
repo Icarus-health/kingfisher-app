@@ -1386,6 +1386,7 @@ export const api = {
   taskCandidatePage: (limit: number, offset: number, temporal: "all" | "recent" | "review", generation?: string) => request<TaskCandidatePage>(`/api/v1/task-candidates/page?${new URLSearchParams({limit: String(limit), offset: String(offset), temporal, ...(generation ? {generation} : {})})}`),
   acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
+  dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
   mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
   addMailTask: (uid: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>

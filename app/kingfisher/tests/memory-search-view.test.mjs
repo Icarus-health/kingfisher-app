@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-memory-search-view.test`,root:fileURLToPath(new URL('..',import.meta.url)),server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {MemorySearch}=await server.ssrLoadModule('/src/MemorySearch.tsx');
 const props={query:'',page:1,onQueryChange:()=>{},onPageChange:()=>{},onOpen:()=>{}};

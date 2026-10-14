@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {existsSync} from 'node:fs';
 import {createServer} from 'vite';
 
-const server = await createServer({root:fileURLToPath(new URL('..',import.meta.url)), server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-profile-return.test`,root:fileURLToPath(new URL('..',import.meta.url)), server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(() => server.close());
 const modulePath = new URL('../src/profileReturn.ts', import.meta.url);
 const loaded = existsSync(modulePath) ? await server.ssrLoadModule('/src/profileReturn.ts') : {};

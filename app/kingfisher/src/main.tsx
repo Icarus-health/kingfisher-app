@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { api } from "./api";
 import { eingabenMelden } from "./aktivitaet";
+import "./LeafletPlaces";
 import "./theme.css";
 import "./styles.css";
 import "./CalmUI.css";

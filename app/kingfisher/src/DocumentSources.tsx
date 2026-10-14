@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
+import { SourceFolderAssignment } from "./MemoryFolders";
+import { canonicalSourceId } from "./WorkspaceMemoryModel";
 import { ProfileSource } from "./ProfileSource";
 
 type Page = Awaited<ReturnType<typeof api.uploadedDocuments>>;
@@ -42,6 +44,7 @@ export function DocumentSources() {
       <h4>{item.title}</h4><p>{new Date(item.recorded_at).toLocaleString("de-DE")} · {item.state === "ignored" ? "Ausgeschlossen" : "Gespeicherte Quelle"}</p>
       {item.memory_status && <p role="status">{item.memory_status.label}</p>}
       <ProfileSource kind="episode" id={item.id} allowIgnore={false} onChange={() => setRevision(value => value + 1)} />
+      <SourceFolderAssignment sourceId={canonicalSourceId(item.id)} />
       {item.project_id && <p><a href={`/memory/projects/${encodeURIComponent(item.project_id)}`}>Projektakte öffnen</a></p>}
       {item.state !== "ignored" && <button className="secondary-action" type="button" disabled={busy} onClick={() => setSelected(item.id)}>Quelle ausschließen</button>}
       {selected === item.id && <div role="group" aria-label="Quelle ausschließen"><p>Diese Quelle wird nicht weiter als Beleg verwendet. Daraus bestätigtes und davon abhängiges Wissen wird als fraglich markiert. Der gespeicherte Inhalt bleibt im Verlauf erhalten.</p>

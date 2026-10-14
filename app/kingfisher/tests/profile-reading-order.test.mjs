@@ -3,7 +3,7 @@ import {after, test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 
-const server = await createServer({root:fileURLToPath(new URL('..',import.meta.url)),
+const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-profile-reading-order.test`,root:fileURLToPath(new URL('..',import.meta.url)),
   plugins:[{name:'profile-reading-hooks',enforce:'pre',
     resolveId(id){if(id==='virtual:profile-reading-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:profile-reading-hooks')return `export const useState=(...args)=>globalThis.__profileReadingDriver.state(...args); export const useEffect=(...args)=>globalThis.__profileReadingDriver.effect(...args); export const useMemo=fn=>fn();`;},
@@ -19,7 +19,7 @@ function driver(render){const values=[],effects=[],pending=[];let s=0,e=0;const 
   state(initial){const i=s++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return [values[i],next=>values[i]=typeof next==='function'?next(values[i]):next];},
   effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},
   render(){s=e=0;globalThis.__profileReadingDriver=d;return render();},runEffects(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(item=>item.cleanup?.());delete globalThis.__profileReadingDriver;}};return d;}
-const personData={id:'a:anna@example.test',authority:'projection',person:{name:'Anna',adressen:['anna@example.test'],letzter_kontakt:'2024-09-12T10:30:00Z',kontakt_text:'vor 2 Jahren',herkuenfte:['email'],themen:[],offene_aufgaben:[{id:'task-one',title:'Bestätigte Einladung vorbereiten',status:'open',created_at:'2026-10-12T10:00:00Z',due:'2026-10-14T10:00:00Z',notes:null,tags:[],wartet_auf:null,wartet_seit:null,wartet_tage:null,overdue:false,project_id:null,provenance:{source_ref:'episode:e1'}}],aussagen:[],nur_von_aussen:false,episoden_anzahl:1,tage_her:761},contexts:[],interactions:[],claims:[],claim_history:[]};
+const personData={id:'a:anna@example.test',authority:'projection',person:{name:'Anna',adressen:['anna@example.test'],letzter_kontakt:'2024-09-12T10:30:00Z',kontakt_text:'vor 2 Jahren',herkuenfte:['email'],themen:[],offene_aufgaben:[{id:'task-one',title:'Bestätigte Einladung vorbereiten',status:'open',created_at:'2026-10-12T10:00:00Z',due:'2026-10-14T10:00:00Z',notes:null,tags:[],wartet_auf:'Anna',wartet_seit:null,wartet_tage:null,overdue:false,project_id:null,provenance:{source_ref:'episode:e1'}}],aussagen:[],nur_von_aussen:false,episoden_anzahl:1,tage_her:761},contexts:[],interactions:[],claims:[],claim_history:[]};
 async function loadedProfile(component,props,data,run){const oldWindow=globalThis.window,oldPopStateEvent=globalThis.PopStateEvent,oldApi=component===RegistryProfile?api.registryProfile:props.kind==='project'?api.projectProfile:api.personProfile;
   const key=component===RegistryProfile?'registryProfile':props.kind==='project'?'projectProfile':'personProfile';api[key]=async()=>data;
   globalThis.window={location:{search:`?return_to=${encodeURIComponent('/memory?tab=people&q=Anna&page=3')}`},history:{pushState(_state,_title,path){globalThis.__profileReturnTarget=path;}},dispatchEvent(){}};
@@ -66,4 +66,10 @@ test('source original text precedes category, relationship and provenance detail
 }));
 test('ignored sources remain visibly excluded with no classification or relationship controls',()=>openedSource({readOnly:true}, {title:'Excluded',body:'Preserved original',state:'ignored',provenance:{}},tree=>{
   assert.match(text(tree),/ausgeschlossen.*Wissensbeleg/);assert.equal(nodes(tree,n=>['SourceCategories','SourceBezuege','SourceProject','SourceCorrection'].includes(n.type?.name)).length,0);assert.equal(nodes(tree,n=>n.type==='button').length,1);
+}));
+
+test('co-mentioned and completed tasks do not appear as explicit waiting commitments',()=>loadedProfile(MemoryProfile,{kind:'person',identifier:'Anna',recentConversation:null},{...personData,person:{...personData.person,offene_aufgaben:[{...personData.person.offene_aufgaben[0],wartet_auf:null,title:'Only co-mentioned'},{...personData.person.offene_aufgaben[0],status:'done',title:'Already done'}]}},tree=>{
+ const node=nodes(tree,n=>n.type?.name==='PersonProfile')[0],profile=node.type(node.props);
+ const current=nodes(profile,n=>n.type==='section'&&text(n).includes('Worauf ich warte'))[0];
+ assert.doesNotMatch(text(current),/Only co-mentioned|Already done/);assert.match(text(current),/Noch keine Rückmeldung/);
 }));

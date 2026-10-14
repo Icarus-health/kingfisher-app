@@ -230,7 +230,7 @@ class ConversationStore:
             ).fetchall()
         return [self._summary(row) for row in rows]
 
-    def page(self, *, q: str = "", limit: int = 30, cursor: str | None = None) -> dict[str, Any]:
+    def page(self, *, q: str = "", limit: int = 30, cursor: str | None = None, filter_summary=None) -> dict[str, Any]:
         """Bounded keyset search across titles and message bodies, without a model.
 
         Evidence-based assistant replies are placeholders until opened and
@@ -275,17 +275,38 @@ class ConversationStore:
         after = ""
         if position:
             after = " AND (kingfisher_time(c.updated_at) < ? OR (kingfisher_time(c.updated_at) = ? AND c.id < ?))"
-        with self._lock:
-            total = self._conn.execute(f"SELECT COUNT(*) FROM conversations c WHERE {match}", parameters).fetchone()[0]
-            rows = self._conn.execute(f"""SELECT c.id, c.title, c.updated_at,
+        projection = f"""SELECT c.id, c.title, c.updated_at,
                 (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) AS message_count,
                 COALESCE((SELECT CASE WHEN m.role = 'assistant' AND ({protected})
-                    THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.' ELSE m.content END
+                    THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.' ELSE substr(m.content,1,600) END
                     FROM conversation_messages m WHERE m.conversation_id = c.id
                     ORDER BY kingfisher_time(m.created_at) DESC, m.rowid DESC LIMIT 1), '') AS preview
-                FROM conversations c WHERE {match}{after}
-                ORDER BY kingfisher_time(c.updated_at) DESC, c.id DESC LIMIT ?""",
-                parameters + (list(position) if position else []) + [limit + 1]).fetchall()
+                FROM conversations c WHERE {match}"""
+        order = " ORDER BY kingfisher_time(c.updated_at) DESC, c.id DESC"
+        if filter_summary is not None and query:
+            # Revalidate all matching source lineages before deriving counts or
+            # cursors. Fetch bounded batches; do not materialize the archive.
+            with self._lock:
+                scan = self._conn.execute(projection + order, parameters)
+            total, rows = 0, []
+            while True:
+                with self._lock:
+                    batch = scan.fetchmany(100)
+                if not batch:
+                    break
+                for row in batch:
+                    if not filter_summary(self._summary(row), query):
+                        continue
+                    total += 1
+                    time = _parse(row['updated_at']).timestamp()
+                    follows = position is None or time < position[0] or (time == position[0] and row['id'] < position[2])
+                    if follows and len(rows) < limit + 1:
+                        rows.append(row)
+        else:
+            with self._lock:
+                total = self._conn.execute(f"SELECT COUNT(*) FROM conversations c WHERE {match}", parameters).fetchone()[0]
+                rows = self._conn.execute(projection + after + order + " LIMIT ?",
+                    parameters + (list(position) if position else []) + [limit + 1]).fetchall()
         more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = None

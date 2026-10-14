@@ -13,7 +13,7 @@ from .migrations import Migration, run_migrations, validate_legacy_or_empty, ver
 TABLES = {'view_records': {'kind', 'id', 'document', 'revision'},
           'view_events': {'sequence', 'kind', 'record_id', 'previous', 'revision', 'recorded_at'}}
 KEYS = {'view_records': {'kind', 'id'}, 'view_events': {'sequence'}}
-KINDS = {'folder', 'source_folder', 'organisation_group', 'place', 'avatar', 'preferences', 'project_hint'}
+KINDS = {'folder', 'source_folder', 'organisation_group', 'place', 'avatar', 'preferences', 'project_hint', 'organisation_logo'}
 
 
 def verify(conn):
@@ -60,6 +60,15 @@ class WorkspaceViews:
             rows = self._conn.execute('SELECT id FROM view_records WHERE kind=? AND document IS NOT NULL ORDER BY id LIMIT 2000', (kind,)).fetchall()
             return [self.get(kind, row['id']) for row in rows]
 
+    def index(self, kind):
+        with self._lock:
+            rows = self._conn.execute('SELECT id,revision FROM view_records WHERE kind=? AND document IS NOT NULL ORDER BY id LIMIT 2000', (kind,)).fetchall()
+        return [{'id':row['id'], 'kind':kind, 'revision':row['revision'], 'data':{'available':True}} for row in rows]
+
+    def count(self, kind):
+        with self._lock:
+            return self._conn.execute('SELECT count(*) FROM view_records WHERE kind=? AND document IS NOT NULL',(kind,)).fetchone()[0]
+
     def _validate(self, kind, identifier, data):
         if kind not in KINDS or not isinstance(identifier, str) or not 1 <= len(identifier) <= 1000:
             raise ValueError('Unbekannter Ablagebereich oder ungültige Kennung.')
@@ -95,11 +104,17 @@ class WorkspaceViews:
         elif kind == 'preferences':
             if identifier != 'online' or set(data) != {'logos', 'maps'} or any(type(v) is not bool for v in data.values()):
                 raise ValueError('Online-Bilder und Karte brauchen ausdrückliche Schalter.')
-        elif kind == 'avatar':
+        elif kind in {'avatar', 'organisation_logo'}:
+            if kind == 'organisation_logo':
+                if set(data) != {'domain','data_url'} or not isinstance(data['domain'],str) or len(data['domain']) > 253:
+                    raise ValueError('Ungültige bestätigte Domain.')
+                data = {'data_url':data['data_url']}
             if set(data) != {'data_url'} or not isinstance(data['data_url'], str):
                 raise ValueError('Ungültiges Bild.')
             header, sep, encoded = data['data_url'].partition(',')
             magic = {'data:image/png;base64': b'\x89PNG\r\n\x1a\n', 'data:image/jpeg;base64': b'\xff\xd8\xff', 'data:image/webp;base64': b'RIFF'}
+            if kind == 'organisation_logo':
+                magic['data:image/x-icon;base64'] = b'\x00\x00\x01\x00'
             if not sep or header not in magic:
                 raise ValueError('Bitte PNG, JPEG oder WebP verwenden.')
             try:
@@ -142,14 +157,15 @@ class WorkspaceViews:
             previous = json.loads(event['previous']) if event['previous'] is not None else None
             self._validate(kind, identifier, previous)
             if kind == 'folder' and previous is None:
-                if any(x['data']['parent_id'] == identifier for x in self.items('folder')) or any(x['data']['folder_id'] == identifier for x in self.items('source_folder')):
+                referenced = self._conn.execute("SELECT 1 FROM view_records WHERE document IS NOT NULL AND ((kind='folder' AND json_extract(document,'$.parent_id')=?) OR (kind='source_folder' AND json_extract(document,'$.folder_id')=?)) LIMIT 1",(identifier,identifier)).fetchone()
+                if referenced:
                     raise ViewChanged('Dieser Ordner enthält noch Unterordner oder Dokumentzuordnungen.')
             return self._write(kind, identifier, previous, current)
 
 
 def register(app, guard, data_dir):
     from fastapi import HTTPException
-    from pydantic import BaseModel, ConfigDict, StrictInt
+    from pydantic import BaseModel, ConfigDict, StrictInt, Field
 
     app.state.workspace_views = WorkspaceViews(data_dir() / 'workspace-views.sqlite3')
 
@@ -162,13 +178,35 @@ def register(app, guard, data_dir):
         model_config = ConfigDict(extra='forbid')
         revision: StrictInt
 
+    class SourceAreas(BaseModel):
+        model_config = ConfigDict(extra='forbid')
+        ids:list[str]=Field(max_length=100)
+
+    @app.post('/api/v1/workspace-source-areas',dependencies=guard)
+    def source_areas(body:SourceAreas):
+        from .memory_categories import Categories
+        from .episodes import EpisodeError
+        if any(not 1<=len(identifier)<=200 for identifier in body.ids):
+            raise HTTPException(422,'Ungültige Quellkennung.')
+        areas={}
+        with app.state.conversation_lock:
+            categories=Categories(app.state.episodes)
+            for identifier in set(body.ids):
+                try:
+                    value=categories.list_for(identifier)
+                    areas[identifier]=[item['label'] for item in value['categories']] if value['status']!='excluded' else []
+                except EpisodeError:
+                    areas[identifier]=[]
+        return {'areas':areas}
+
     @app.get('/api/v1/workspace-view', dependencies=guard)
     def overview():
         store = app.state.workspace_views
         online = store.get('preferences', 'online')
         return {key: store.items(kind) for key, kind in (('folders', 'folder'), ('source_folders', 'source_folder'),
                 ('organisation_groups', 'organisation_group'), ('places', 'place'))} | {
-                'avatars': [{**record, 'data': {'available': True}} for record in store.items('avatar')],
+                'avatars': store.index('avatar'), 'logos': store.index('organisation_logo'),
+                'truncated': [kind for kind in ('folder','source_folder','organisation_group','place','avatar','organisation_logo') if store.count(kind) > 2000],
                 'online': online['data'] or {'logos': False, 'maps': False}, 'online_revision': online['revision']}
 
     @app.get('/api/v1/workspace-view/{kind}/{identifier:path}', dependencies=guard)
@@ -179,7 +217,7 @@ def register(app, guard, data_dir):
 
     @app.put('/api/v1/workspace-view/{kind}/{identifier:path}', dependencies=guard)
     def save(kind: str, identifier: str, body: Input):
-        if kind == 'project_hint':
+        if kind in {'project_hint','organisation_logo'}:
             raise HTTPException(422, 'Projektvorschläge kommen aus der begrenzten lokalen Prüfung.')
         try:
             return app.state.workspace_views.put(kind, identifier, body.data, body.revision)

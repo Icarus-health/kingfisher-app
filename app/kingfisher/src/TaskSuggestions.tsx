@@ -3,6 +3,7 @@ import { api, ApiError, type Project, type Task, type TaskCandidate, type TaskCa
 import { candidateDeadline, localTaskDay } from "./taskWorkflow";
 import { ProfileSource } from "./ProfileSource";
 import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } from "./taskSuggestionsView";
+import {DetailPanel} from './DetailPanel';
 
 const PAGE_SIZE = 25;
 type TemporalFilter = TaskTemporalFilter;
@@ -14,7 +15,7 @@ function initialDraft(item: TaskCandidate): SuggestionDraft {
     due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : "", waiting: ""};
 }
 
-export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false}: {projects: Project[]; onAccepted: (task: Task) => void; initiallyExpanded?: boolean}) {
+export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false,onPreview}: {projects: Project[]; onAccepted: (task: Task) => void; initiallyExpanded?: boolean;onPreview?:()=>void}) {
   const requestVersion = useRef(0);
   const [page, setPage] = useState<PresentedTaskPage | null>(null);
   const [error, setError] = useState(false);
@@ -26,6 +27,12 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
   const [offset, setOffset] = useState(0);
   const [temporal, setTemporal] = useState<TemporalFilter>("all");
   const [drafts, setDrafts] = useState<Record<string, SuggestionDraft>>({});
+  const [selected,setSelected]=useState<string[]>([]);
+  const [batchPreview,setBatchPreview]=useState<Array<{item:TaskCandidate;draft:SuggestionDraft}>|null>(null);
+  const [batchBusy,setBatchBusy]=useState(false);
+  const batchPending=useRef(false);
+  const [batchResults,setBatchResults]=useState<Array<{id:string;title:string;ok:boolean}>>([]);
+  useEffect(()=>{setSelected([]);setBatchPreview(null);},[offset,temporal]);
   const generations = useRef<Record<TemporalFilter, string | undefined>>({all: undefined, recent: undefined, review: undefined});
   useEffect(() => {
     let active = true;
@@ -65,7 +72,21 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
   if (!page && !error && !notice && !initiallyExpanded) return null;
   if (visiblePage?.total === 0 && temporal === "all" && !error && !notice && !initiallyExpanded) return null;
   function changeDraft(item: TaskCandidate, patch: Partial<SuggestionDraft>) {
+    setBatchPreview(null);
     setDrafts(current => ({...current, [item.id]: {...(current[item.id] ?? initialDraft(item)), ...patch}}));
+  }
+  async function acceptBatch(){
+    if(!batchPreview||batchPending.current)return;
+    batchPending.current=true;setBatchBusy(true);setBatchResults([]);
+    const results:Array<{id:string;title:string;ok:boolean}>=[];
+    let lastTask:Task|null=null;
+    for(const {item,draft} of batchPreview){
+      try{const task=await api.acceptTaskCandidate(item.id,{title:draft.title.trim(),project_id:draft.project||null,new_project_name:draft.newProject.trim()||null,due:candidateDeadline(item,draft.due),waiting_for:draft.waiting.trim()||null});results.push({id:item.id,title:draft.title,ok:true});lastTask=task;}
+      catch{results.push({id:item.id,title:draft.title,ok:false});}
+      setBatchResults([...results]);
+    }
+    setSelected([]);setBatchPreview(null);generations.current[temporal]=undefined;setOffset(0);setRevision(n=>n+1);setBatchBusy(false);batchPending.current=false;
+    if(lastTask)onAccepted(lastTask);
   }
   return <section className="task-source" aria-label="Erkannte Aufgaben und Zusagen">
     <h2><button type="button" className="secondary-action" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Prüfung schließen" : "Zur Prüfung"}{visiblePage ? ` · ${visiblePage.total}` : ""}</button></h2>
@@ -73,6 +94,9 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">Vorschläge sind gerade nicht erreichbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
     {expanded && <>
+      {visiblePage && <div className="task-suggestion-actions"><button type="button" disabled={batchBusy||!selected.length} onClick={()=>{onPreview?.();setBatchPreview(visiblePage.items.filter(item=>selected.includes(item.id)).map(item=>({item,draft:{...(drafts[item.id]??initialDraft(item))}})));}}>Auswahl prüfen ({selected.length})</button><small>Auswahl gilt für diese Seite; jede Übernahme prüft ihre Quelle erneut.</small></div>}
+      {batchResults.length>0&&<ul aria-label="Ergebnisse der Aufgabenübernahme">{batchResults.map(result=><li key={result.id}>{result.title}: {result.ok?'Aufgabe und Zuordnung gespeichert.':'Nicht bestätigt. Bitte Quelle und Eingaben erneut prüfen; eine Wiederholung legt keine zweite Aufgabe an.'}</li>)}</ul>}
+      {batchPreview&&<DetailPanel title="Ausgewählte Vorschläge" onClose={()=>{if(!batchBusy)setBatchPreview(null);}}><p>Diese sichtbaren Angaben werden gemeinsam übernommen. Unklare oder historische Quellen bleiben ausdrücklich zu prüfen.</p>{batchPreview.map(({item,draft})=><article key={item.id}><h3>{draft.title}</h3><p>{draft.newProject?`Neues Projekt: ${draft.newProject}`:projects.find(p=>p.id===draft.project)?.name??'Ohne Projekt'} · {draft.due||'Ohne Frist'}{draft.waiting&&` · Warte auf ${draft.waiting}`}</p><p>{item.temporal_reason}</p>{item.evidence.map(e=><blockquote key={e.episode_id}>{e.quote}</blockquote>)}</article>)}<button type="button" className="primary-action" disabled={batchBusy} onClick={()=>void acceptBatch()}>{batchBusy?'Wird einzeln übernommen …':'Diese Angaben übernehmen'}</button></DetailPanel>}
       <div className="task-suggestion-actions">
         <label>Zeitraum<select value={temporal} onChange={event => {setNotice(""); setTemporal(event.target.value as TemporalFilter); setOffset(0);}}>
           <option value="all">Alle Vorschläge</option><option value="recent">Zeitnah</option><option value="review">Zeitlich prüfen</option>
@@ -83,7 +107,7 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
       </div>
       {loading && !visiblePage && <p role="status">Vorschläge werden geladen …</p>}
       {visiblePage?.total === 0 && <p>Für diesen Zeitraum gibt es keine offenen Vorschläge.</p>}
-      {visiblePage?.items.map(item => <Suggestion key={item.id} item={item} draft={drafts[item.id] ?? initialDraft(item)} onDraftChange={patch => changeDraft(item, patch)} projects={projects} onDone={task => {
+      {visiblePage?.items.map(item => <Suggestion key={item.id} item={item} disabled={batchBusy} selected={selected.includes(item.id)} onSelected={value=>{setBatchPreview(null);setSelected(ids=>value?[...new Set([...ids,item.id])]:ids.filter(id=>id!==item.id));}} draft={drafts[item.id] ?? initialDraft(item)} onDraftChange={patch => changeDraft(item, patch)} projects={projects} onDone={task => {
         requestVersion.current++;
         setDrafts(current => {const next = {...current}; delete next[item.id]; return next;});
         setPage(current => current ? {...current, items: current.items.filter(candidate => candidate.id !== item.id), total: Math.max(0, current.total - 1)} : current);
@@ -98,11 +122,11 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
   </section>;
 }
 
-function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskCandidate; draft: SuggestionDraft; onDraftChange: (patch: Partial<SuggestionDraft>) => void; projects: Project[]; onDone: (task?: Task) => void}) {
+function Suggestion({item, draft, onDraftChange, projects, onDone,selected,onSelected,disabled=false}: {item: TaskCandidate; draft: SuggestionDraft; onDraftChange: (patch: Partial<SuggestionDraft>) => void; projects: Project[]; onDone: (task?: Task) => void;selected:boolean;onSelected:(value:boolean)=>void;disabled?:boolean}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function save(accept: boolean) {
-    if (busy) return;
+    if (busy||disabled) return;
     setBusy(true); setError("");
     try {
       if (accept) {
@@ -117,6 +141,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskC
     } finally {setBusy(false);}
   }
   return <article className="mail-task-form">
+    <label><input type="checkbox" checked={selected} disabled={busy||disabled} onChange={event=>onSelected(event.target.checked)}/>Für gemeinsame Übernahme auswählen</label>
     <h3>{draft.title}</h3>
     <p>Übernahme: {draft.newProject ? `Neues Projekt „${draft.newProject}“` : draft.project ? `Projekt „${projects.find(p=>p.id===draft.project)?.name ?? 'nicht verfügbar'}“` : 'Ohne Projekt'}
       {' · '}{draft.due ? `Frist ${draft.due}` : 'Ohne Frist'}{draft.waiting && ` · Warte auf ${draft.waiting}`}</p>

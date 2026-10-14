@@ -4,7 +4,7 @@ import {InterfaceIcon} from "./InterfaceIcon";
 import {tastenHinweis} from "./system";
 import {useEingabegeraet} from "./useSystem";
 import "./CommandBar.css";
-import {conversationDraft, writeConversationDraft, clearSubmittedDraft} from "./conversationDrafts";
+import {conversationDraft, writeConversationDraft, clearSubmittedDraft, subscribeConversationDraft, conversationSending, beginConversationSend, endConversationSend} from "./conversationDrafts";
 
 export function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice, conversationId }: {
   onSubmit: (message: string) => Promise<void>;
@@ -18,6 +18,8 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
   const [message, updateMessage] = useState(() => conversationId ? conversationDraft(conversationId).text : "");
   const revision = useRef(0);
   const inFlight = useRef(false);
+  const [,draftVersion] = useState(0);
+  const sharedSending = conversationId ? conversationSending(conversationId) : false;
   function setMessage(text: string) {
     revision.current++;
     if (conversationId) writeConversationDraft(conversationId, text);
@@ -25,6 +27,12 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
   }
   const recording = voice ? recordingVoice(voice.state) : false;
   const input = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  useEffect(()=>{
+    if(!conversationId) return;
+    const refresh=()=>{updateMessage(conversationDraft(conversationId).text);draftVersion(n=>n+1);};
+    refresh();
+    return subscribeConversationDraft(conversationId,refresh);
+  },[conversationId]);
   useEffect(() => { if ((busy || disabled) && recording) voice?.cancel(); }, [busy, disabled, recording, voice]);
   // Der Hinweis passt zum Gerät: „⌘ K“ auf dem Mac, „Strg K“ sonst, keiner auf dem Telefon (Fremdprobe 2, Befund 11).
   const device = useEingabegeraet();
@@ -45,6 +53,7 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
     event.preventDefault();
     const clean = message.trim();
     if (!clean || busy || disabled || recording || inFlight.current) return;
+    if(conversationId && !beginConversationSend(conversationId)) return;
     inFlight.current = true;
     voice?.cancel();
     const submittedRevision = conversationId ? conversationDraft(conversationId).revision : revision.current;
@@ -56,7 +65,7 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
       }
     } catch {
       // Der aufrufende Screen zeigt den Fehler in der bestehenden Fläche.
-    } finally { inFlight.current = false; }
+    } finally { inFlight.current = false; if(conversationId) endConversationSend(conversationId); }
   }
 
   return (
@@ -86,7 +95,7 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
       />}
       {!conversation && taste ? <kbd>{taste}</kbd> : null}
       {voice ? <VoiceDraftControls voice={voice} disabled={busy || disabled} base={message} onDraft={setMessage} /> : null}
-      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled || recording} type="submit">
+      <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || sharedSending || disabled || recording} type="submit">
         <InterfaceIcon name="arrow-up" />
       </button>
     </form>{conversation && <p className="composer-hint" id="conversation-composer-hint">Enter sendet. Shift + Enter fügt eine Zeile hinzu. Diktat bleibt ein Entwurf bis zum Senden.</p>}</>

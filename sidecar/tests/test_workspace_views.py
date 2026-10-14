@@ -39,3 +39,21 @@ def test_group_is_reversible_metadata_and_place_is_explicit(client):
     assert client.put('/api/v1/workspace-view/place/ort-invalid', json={'revision': 0, 'data': {'lat': 500, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/place/ort-bool', json={'revision': 0, 'data': {'lat': True, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/unknown/id', json={'revision': 0, 'data': {}}).status_code == 422
+def test_metadata_backup_restores_images_folders_revisions_and_undo(tmp_path):
+    import base64
+    from icarus_memory.workspace_views import WorkspaceViews
+    from icarus_memory.backup import snapshot_all, restore_all, verify_snapshot_set
+    data=tmp_path/'data'
+    views=WorkspaceViews(data/'workspace-views.sqlite3')
+    views.put('folder','docs',{'name':'Dokumente','parent_id':None},0)
+    views.put('folder','docs',{'name':'Verträge','parent_id':None},1)
+    image='data:image/png;base64,'+base64.b64encode(b'\x89PNG\r\n\x1a\nsynthetic').decode()
+    views.put('avatar','person-test',{'data_url':image},0)
+    saved=snapshot_all(data,tmp_path/'backups')
+    assert 'workspace-views.sqlite3' in {row['name'] for row in verify_snapshot_set(saved)}
+    restore_all(saved,tmp_path/'restored')
+    restored=WorkspaceViews(tmp_path/'restored'/'workspace-views.sqlite3')
+    assert restored.get('folder','docs')['revision']==2
+    assert restored.get('avatar','person-test')['data']['data_url']==image
+    assert restored.undo('folder','docs',2)['data']['name']=='Dokumente'
+    restored.close();views.close()

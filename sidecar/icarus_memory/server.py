@@ -2594,6 +2594,7 @@ def create_app(
             if date_status(message.date, now=datetime.now().astimezone()) != 'recent':
                 raise HTTPException(409, 'Historische oder undatierte Mail. Bitte zuerst die Aufgabe ausdrücklich prüfen und vorbereiten.')
         with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
             episode = _remember_mail_message(message, source, uid)["episode"]
             if episode['state'] == 'ignored':
                 raise HTTPException(409, 'Diese Quelle wurde ausgeschlossen. Bitte zuerst die Quelle ausdrücklich prüfen.')
@@ -3250,7 +3251,7 @@ def create_app(
                 text = f"{body.notiz.strip()}\n\nMitschrift:\n{text}"
         if not text:
             raise HTTPException(status_code=422, detail="Bitte aufschreiben, was herausgekommen ist.")
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         key = schluessel(str(event["uid"]), event.get("start"))
         ende = None
         try:
@@ -4037,7 +4038,25 @@ def create_app(
         return value
 
     from .conversation_search_routes import register_conversation_search_routes
-    register_conversation_search_routes(app, guard, _safe_conversation_summary)
+    def _conversation_search_match(summary, query):
+        if query in _safe_conversation_summary(summary)['title'].casefold():
+            return True
+        messages = app.state.conversations.messages(summary.id)
+        lineages = _conversation_lineages(messages)
+        cache = {}
+        for message in messages:
+            context = message.metadata.get('context', {})
+            if not isinstance(context, dict):
+                continue
+            protected = (context.get('answer_mode') == 'memory_evidence'
+                         or bool(context.get('knowledge_claim_ids'))
+                         or any(key in context for key in ('source_answer','working_answer','mappe_answer')))
+            if (message.role in {'user','assistant'} and not (message.role == 'assistant' and protected)
+                    and query in message.content.casefold()
+                    and conversation_memory.lineage_valid(app.state.episodes, lineages[message.id], cache)):
+                return True
+        return False
+    register_conversation_search_routes(app, guard, _safe_conversation_summary, _conversation_search_match)
 
     @app.get("/api/v1/conversations", dependencies=guard)
     def list_conversations(limit: int = Query(default=100, ge=1, le=200)) -> dict[str, Any]:
@@ -4921,6 +4940,7 @@ def create_app(
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.post("/api/v1/tasks/{task_id}/drop", dependencies=guard)
     @app.post("/tasks/{task_id}/drop", dependencies=guard)
     def drop_task(task_id: str) -> dict[str, Any]:
         """Fallenlassen, nicht erledigen.
@@ -5150,7 +5170,7 @@ def create_app(
         """
         if not body.statement.strip():
             raise HTTPException(status_code=422, detail="Bitte die Entscheidung beschreiben.")
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         usable = {item.id for item in app.state.store.usable()}
         if any(ref not in usable for ref in body.derived_from):
             missing = next(ref for ref in body.derived_from if ref not in usable)
@@ -5346,7 +5366,7 @@ def create_app(
             raise HTTPException(status_code=422, detail="Die Datei muss gültigen UTF-8-Text enthalten.") from exc
         if not body.body.strip() or "\0" in body.body or size > 512 * 1024:
             raise HTTPException(status_code=422, detail="Die Textdatei darf nicht leer und höchstens 512 KiB groß sein.")
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         episode, created = app.state.episodes.record(
             kind=EpisodeKind.DOCUMENT, title=filename, body=body.body,
             provenance=Provenance(source_type=SourceType.DOCUMENT, source_ref=f"upload:{filename}",
@@ -5470,7 +5490,7 @@ def create_app(
         Eine Ablage des Nutzers, kein Fakt: Einordnung und Belege bleiben
         unverändert, deshalb ohne Rückfrage und jederzeit umkehrbar.
         """
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         try:
             episode = app.state.episodes.get(episode_id)
             if episode.project_id != body.project_id:
@@ -5518,7 +5538,7 @@ def create_app(
         from .project_suggestions import same_sender
         if body.project_id is None:
             raise HTTPException(status_code=422, detail="Bitte ein Projekt wählen.")
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         try:
             episode = app.state.episodes.get(episode_id)
         except EpisodeError as exc:
@@ -5529,7 +5549,7 @@ def create_app(
     @app.put("/api/v1/episodes/projects", dependencies=guard)
     def link_episode_projects(body: SourceProjectsIn) -> dict[str, Any]:
         """Mehrere Quellen umhängen, etwa zum Rückgängigmachen einer Sammelzuordnung."""
-        _validate_task_project(body.project_id)
+        _validate_task_project(body.project_id, allow_closed=True)
         return {"changed": _move_projects(body.episode_ids, body.project_id, body.only_if_project_id)}
 
     # -- Menschen ----------------------------------------------------------
@@ -6302,6 +6322,10 @@ def create_app(
     from .rueckmeldung_routes import register as register_rueckmeldung
     from .workspace_views import register as register_workspace_views
     register_workspace_views(app, guard, _data_dir)
+    from .workspace_logos import register as register_workspace_logos
+    register_workspace_logos(app, guard)
+    from .local_mail_routes import register as register_local_mail
+    register_local_mail(app, guard)
     register_rueckmeldung(app, guard, _data_dir)
     from .logbuch_routes import register as register_logbuch
     register_logbuch(app, guard, _data_dir)

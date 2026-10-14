@@ -3,7 +3,7 @@ import {after, test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-sachen-navigation.test`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
   name:'sachen-navigation-hooks',enforce:'pre',
   resolveId(id){if(id==='virtual:sachen-navigation-hooks')return '\0'+id;},
   load(id){if(id==='\0virtual:sachen-navigation-hooks')return `export const useState=(...args)=>globalThis.__sachenNavigation.state(...args);export const useEffect=(...args)=>globalThis.__sachenNavigation.effect(...args);export const useRef=(...args)=>globalThis.__sachenNavigation.ref(...args);`;},

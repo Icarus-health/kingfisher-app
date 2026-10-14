@@ -1,0 +1,60 @@
+.calendar-page .settings-heading { margin-bottom:18px; min-height:0; padding:4px 0; }
+.calendar-page .settings-heading h1 { font-size:25px; }
+.calendar-page .calendar-workspace-layout { display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; align-items:start; }
+.calendar-navigator { border:1px solid var(--kf-rand-d7e1df); border-radius:12px; padding:14px; background:var(--kf-flaeche-ffffff); min-width:0; }
+.calendar-navigator h2 { font-size:13px; margin:0 0 12px; }
+.calendar-navigator h2:not(:first-child) { margin-top:24px; }
+.calendar-navigator p { font-size:12px; line-height:1.6; }
+.calendar-navigator .mini-month { gap:2px; }
+.calendar-navigator .mini-month .month-day { min-height:26px; padding:0; border-radius:4px; }
+.calendar-navigator .calendar-month-date { font-size:11px; padding:5px 0; }
+.calendar-navigator .weekday { font-size:10px; }
+.calendar-date-picker { display:grid; gap:6px; font-size:12px; margin:16px 0; }
+.calendar-date-picker input { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--kf-rand-d7e1df); border-radius:6px; padding:7px; font:inherit; color:inherit; }
+.calendar-source-choice { display:flex; align-items:center; gap:7px; margin:12px 0; font-size:12px; overflow-wrap:anywhere; }
+.calendar-source-choice input { flex:0 0 auto; }
+.calendar-source-choice i { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.calendar-page .calendar-board { padding:16px; min-width:0; overflow:hidden; }
+.calendar-page .calendar-actions { gap:8px; margin-bottom:12px; }
+.calendar-page .calendar-actions .secondary-action { font-size:11px; padding:7px 9px; }
+.calendar-page .calendar-period { margin:14px 0; gap:8px; }
+.calendar-page .calendar-period h2 { font-size:17px; min-width:120px; }
+.calendar-page .calendar-period button { min-height:32px; padding:6px 10px; border-radius:6px; }
+.calendar-page .month-day { display:block; text-align:left; min-width:0; padding:4px; overflow:hidden; }
+.calendar-month-date { display:flex; width:100%; gap:5px; align-items:center; justify-content:center; border:0; background:transparent; color:inherit; padding:6px; cursor:pointer; }
+.calendar-month-event { display:block; width:100%; padding:4px; margin:3px 0; background:var(--calm-inset); border:0; border-left:3px solid; border-radius:3px; font:inherit; font-size:10px; text-align:left; cursor:pointer; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:inherit; }
+.calendar-month-more { font:inherit; font-size:10px; color:inherit; background:transparent; border:0; cursor:pointer; padding:4px; }
+.calendar-time-scroll { min-width:0; max-width:100%; max-height:620px; overflow:auto; border:1px solid var(--kf-rand-d7e1df); border-radius:7px; }
+.calendar-time-grid { display:grid; grid-template-columns:48px repeat(7,minmax(78px,1fr)); min-width:0; }
+.calendar-time-grid.single-day { grid-template-columns:48px minmax(0,1fr); min-width:0; }
+.calendar-time-corner,.calendar-all-day { position:sticky; top:0; z-index:3; padding:6px 3px; background:var(--kf-flaeche-ffffff); border-bottom:1px solid var(--kf-rand-d7e1df); font-size:10px; min-width:0; }
+.calendar-time-corner { display:flex; align-items:end; font-size:9px; }
+.calendar-all-day { border-left:1px solid var(--kf-rand-d7e1df); }
+.calendar-grid-date { border:0; background:transparent; padding:5px 0; font:inherit; font-size:11px; color:inherit; width:100%; cursor:pointer; }
+.calendar-all-day-event { display:block; width:100%; background:var(--calm-inset); border:0; border-left:3px solid; padding:4px; margin:2px 0; font:inherit; font-size:10px; color:inherit; cursor:pointer; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; text-align:left; }
+.calendar-hours { height:1152px; background:var(--kf-flaeche-ffffff); position:sticky; left:0; z-index:2; }
+.calendar-hour { height:48px; box-sizing:border-box; padding:4px 3px; font-size:10px; border-top:1px solid var(--kf-rand-d7e1df); font-variant-numeric:tabular-nums; }
+.calendar-time-day { height:1152px; position:relative; border-left:1px solid var(--kf-rand-d7e1df); background:repeating-linear-gradient(to bottom, transparent 0,transparent 47px,var(--kf-rand-d7e1df) 47px,var(--kf-rand-d7e1df) 48px); }
+.calendar-time-event { position:absolute; box-sizing:border-box; min-height:12px; overflow:hidden; padding:3px; background:var(--calm-inset); color:inherit; border:1px solid var(--kf-rand-d7e1df); border-left:3px solid; border-radius:4px; text-align:left; font:inherit; cursor:pointer; }
+.calendar-time-event strong,.calendar-time-event small { display:block; font-size:10px; line-height:1.3; overflow-wrap:anywhere; }
+.calendar-time-event small { font-size:9px; }
+.calendar-page .calendar-board .calendar-entry { grid-template-columns:100px minmax(0,1fr); padding:14px; gap:14px; border-radius:8px; }
+.calendar-page .calendar-entry h2 { font-size:15px; }
+.calendar-entry-open { border:0; border-left:3px solid; padding:3px 7px; text-align:left; font:inherit; font-weight:600; background:transparent; color:inherit; cursor:pointer; }
+.calendar-detail-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.calendar-detail-actions .secondary-action { margin:0; font-size:12px; padding:8px; }
+.calendar-page .workspace-detail p { overflow-wrap:anywhere; line-height:1.6; }
+.calendar-page button:focus-visible,.calendar-page input:focus-visible { outline:2px solid var(--kf-rand-075268); outline-offset:2px; }
+@media(max-width:1100px) {
+  .calendar-page .calendar-workspace-layout { grid-template-columns:150px minmax(0,1fr); gap:10px; }
+  .calendar-page .calendar-board { padding:10px; }
+  .calendar-navigator { padding:10px; }
+}
+@media(max-width:700px) {
+  .calendar-page .calendar-workspace-layout { grid-template-columns:minmax(0,1fr); }
+  .calendar-navigator { display:grid; grid-template-columns:minmax(120px,1fr) minmax(120px,1fr); gap:10px; }
+  .calendar-navigator h2 { margin:0; }
+  .calendar-navigator h2:not(:first-child) { margin:0; }
+  .calendar-page .calendar-board .calendar-entry { grid-template-columns:1fr; }
+}
+.calendar-clock-change { display:block; font-size:9px; line-height:1.4; text-align:center; color:var(--calm-muted); }

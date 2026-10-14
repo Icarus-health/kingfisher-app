@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-conversation-workspace.test`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
   name:'conversation-workspace-hooks',enforce:'pre',resolveId(id){if(id==='virtual:chat-hooks')return '\0'+id;},
   load(id){if(id==='\0virtual:chat-hooks')return `export const useState=(...a)=>globalThis.__chatDriver.state(...a);export const useRef=(...a)=>globalThis.__chatDriver.ref(...a);export const useEffect=(...a)=>globalThis.__chatDriver.effect(...a);export const useMemo=f=>f();`;},
   transform(code,id){if(['/src/ConversationNavigation.tsx','/src/App.tsx','/src/ConversationVoice.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:chat-hooks"')+(id.endsWith('/src/App.tsx')?'\nexport {Conversation, ConversationHistory};':'');}
@@ -51,6 +51,9 @@ test('old send cannot replace a new conversation and sources stay behind the exp
  const props=id=>({id,recentConversation:null,rememberConversation(){},chatAvailable:true});
  const a=driver(Conversation,props('first'));
  try{a.render();a.runEffects();await tick();let tree=a.render();assert.doesNotMatch(text(tree),/private source context/);
+   const toolbar=nodes(tree,n=>n.props?.className==='thread-command')[0];
+   const keys=[toolbar.props.children].flat(10).filter(n=>n&&typeof n==='object'&&n.key!=null).map(n=>n.key);
+   assert.equal(new Set(keys).size,keys.length,'siblings must not duplicate React keys after replies');
    const control=nodes(tree,n=>n.type?.name==='CommandBar')[0];assert.equal(control.props.conversationId,'first');const sent=control.props.onSubmit('send');
    a.close();const b=driver(Conversation,props('second'));try{b.render();b.runEffects();await tick();
      resolve({...payload('first'),messages:[{id:'old',role:'assistant',content:'obsolete response'}]});await sent;tree=b.render();

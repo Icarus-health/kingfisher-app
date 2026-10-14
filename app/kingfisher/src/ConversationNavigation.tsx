@@ -4,6 +4,7 @@ import {InterfaceIcon} from './InterfaceIcon';
 
 // Preserve the navigation view when the thread is remounted for another chat.
 let lastQuery = '';
+const savedViews = new Map<string,{pages:number;scroll:number}>();
 export function ConversationNavigation({activeId, revision, onSelect, onCreate}: {
   activeId?: string; revision?: string | number; onSelect: (id: string) => void; onCreate: () => Promise<void>;
 }) {
@@ -17,19 +18,34 @@ export function ConversationNavigation({activeId, revision, onSelect, onCreate}:
   const [createError, setCreateError] = useState(false);
   const [reload, setReload] = useState(0);
   const request = useRef(0);
+  const list = useRef<HTMLDivElement>(null);
+  const restoreScroll = useRef<number|null>(null);
+  const previousRevision = useRef(revision);
   const abort = useRef<AbortController | null>(null);
 
-  async function load(append = false) {
+  async function load(append = false, restore = false) {
     const version = ++request.current;
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
     setLoading(true); setError(false);
     try {
-      const page = await api.conversationPage(query, append ? cursor ?? undefined : undefined, controller.signal);
-      if (version !== request.current) return;
-      setItems(previous => append ? [...previous, ...page.conversations.filter(item => !previous.some(old => old.id === item.id))] : page.conversations);
-      setCursor(page.next_cursor); setTotal(page.total);
+      const saved=savedViews.get(query);
+      let nextCursor=append ? cursor ?? undefined : undefined;
+      const result:ConversationSummary[]=[];
+      const pages=restore ? saved?.pages ?? 1 : 1;
+      let totalCount=0,loaded=0;
+      for(let n=0;n<Math.min(pages,20);n++) {
+        const page=await api.conversationPage(query,nextCursor,controller.signal);
+        if(version!==request.current) return;
+        result.push(...page.conversations);nextCursor=page.next_cursor ?? undefined;
+        totalCount=page.total;loaded++;
+        if(!nextCursor) break;
+      }
+      setItems(previous => append ? [...previous, ...result.filter(item => !previous.some(old => old.id === item.id))] : result);
+      setCursor(nextCursor ?? null);setTotal(totalCount);
+      savedViews.set(query,{pages:append ? (saved?.pages ?? 1)+loaded : loaded,scroll:saved?.scroll ?? 0});
+      if(restore) restoreScroll.current=saved?.scroll ?? 0;
     } catch {
       if (version === request.current && !controller.signal.aborted) setError(true);
     } finally { if (version === request.current) setLoading(false); }
@@ -37,10 +53,15 @@ export function ConversationNavigation({activeId, revision, onSelect, onCreate}:
   useEffect(() => {
     ++request.current; abort.current?.abort();
     setItems([]); setCursor(null); setLoading(true); setError(false);
-    const timer = query ? setTimeout(() => void load(), 180) : null;
-    if (!query) void load();
+    const timer = query ? setTimeout(() => void load(false,true), 180) : null;
+    if (!query) void load(false,true);
     return () => { if (timer !== null) clearTimeout(timer); ++request.current; abort.current?.abort(); };
-  }, [query, revision, reload]);
+  }, [query, reload]);
+  useEffect(()=>{
+    if(previousRevision.current!==undefined && revision!==undefined && previousRevision.current!==revision) void load(false,true);
+    previousRevision.current=revision;
+  },[revision]);
+  useEffect(()=>{if(list.current && restoreScroll.current!==null && items.length){list.current.scrollTop=restoreScroll.current;restoreScroll.current=null;}},[items]);
 
   async function create() {
     if (creating) return;
@@ -52,7 +73,7 @@ export function ConversationNavigation({activeId, revision, onSelect, onCreate}:
     <label className="conversation-nav-search"><InterfaceIcon name="search" /><input aria-label="Gespräche durchsuchen" placeholder="Titel oder Inhalt suchen …" maxLength={200} value={query} onChange={event => {
       ++request.current; abort.current?.abort(); lastQuery = event.target.value; setQuery(event.target.value);
     }} /></label>
-    <div className="conversation-nav-list" aria-busy={loading}>
+    <div ref={list} className="conversation-nav-list" aria-busy={loading} onScroll={event=>{const saved=savedViews.get(query);if(saved) savedViews.set(query,{...saved,scroll:event.currentTarget.scrollTop});}}>
       {items.map(item => <button className="conversation-nav-item" type="button" aria-current={item.id === activeId ? 'page' : undefined} key={item.id} onClick={() => onSelect(item.id)}>
         <strong>{item.title}</strong>{item.preview && <span>{item.preview}</span>}<small>{new Date(item.updated_at).toLocaleDateString('de-DE', {day: '2-digit', month: 'short'})} · {item.message_count} Nachrichten</small>
       </button>)}

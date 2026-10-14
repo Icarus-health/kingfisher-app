@@ -8,6 +8,7 @@ from .conversations import ConversationSummary
 
 def register_conversation_search_routes(
     app: FastAPI, guard: list[Any], sanitize_summary: Callable[[ConversationSummary], dict[str, Any]],
+    filter_summary=None,
 ) -> None:
     @app.get('/api/v1/conversations/page', dependencies=guard)
     def conversation_page(
@@ -18,7 +19,7 @@ def register_conversation_search_routes(
         # Source validity and rows belong to one view of the conversation state.
         with app.state.conversation_lock:
             try:
-                result = app.state.conversations.page(q=q, limit=limit, cursor=cursor)
+                result = app.state.conversations.page(q=q, limit=limit, cursor=cursor, filter_summary=filter_summary)
             except ValueError as exc:
                 raise HTTPException(status_code=422, detail=str(exc)) from exc
             return {**result, 'conversations': [sanitize_summary(summary) for summary in result['conversations']]}

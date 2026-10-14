@@ -73,6 +73,7 @@ export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }>
 
 /** Die alten Reiter und ihre neue Heimat, damit jeder frühere Verweis (`#mail`, `#model`, …) weiter ankommt. */
 const ALT: Record<string, string> = {
+  'workspace-online':'darf',
   setup: "zugaenge", mail: "zugaenge", calendar: "zugaenge", documents: "zugaenge",
   world: "darf", profile: "ich", recovery: "sicherung",
   model: "ki", "technik-modelle": "ki", memory: "technik-suchindex", automation: "technik-hintergrund",

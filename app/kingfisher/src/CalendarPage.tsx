@@ -6,9 +6,12 @@ import { CalendarPreparation } from "./CalendarPreparation";
 import { CalendarActionForm } from "./CalendarActionForm";
 import { editableEventId } from "./calendarActionState";
 import { CalendarFollowup } from "./CalendarFollowup";
-import { calendarSourceVersions, calendarWindow, eventsInRange, findCalendarEvent, preparationView } from "./calendarRange";
+import { calendarSourceVersions, eventsInRange, findCalendarEvent, preparationView } from "./calendarRange";
 
-type View = "Liste" | "Woche" | "Monat" | "Jahr";
+import {calendarColor, calendarDayLayout, calendarEventKey, calendarVisibleEvents, calendarWorkspaceWindow, type WorkspaceCalendarView} from './calendarLayout';
+import {DetailPanel} from './DetailPanel';
+import './CalendarPage.css';
+type View = WorkspaceCalendarView;
 const dateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const plusDays = (d: Date, days: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
@@ -30,9 +33,13 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const today = new Date();
   const initialParams = new URLSearchParams(window.location.search);
   const initialPrepareAt = validDate(initialParams.get("prepare_at"));
-  const [view, setView] = useState<View>(() => { const saved = localStorage.getItem("kingfisher-calendar-view"); const selected: View = ["Liste", "Woche", "Monat", "Jahr"].includes(saved || "") ? saved as View : "Monat"; return preparationView(selected, initialPrepareAt, today); });
+  const [view, setView] = useState<View>(() => { let saved:string|null=null;try {saved=localStorage.getItem("kingfisher-calendar-view");} catch { /* The calendar remains usable without browser storage. */ } const selected: View = ["Tag", "Woche", "Monat", "Liste", "Jahr"].includes(saved || "") ? saved as View : "Monat"; return preparationView(selected, initialPrepareAt, today); });
   const [focus, setFocus] = useState(midnight(initialPrepareAt || today));
   const [googleSources, setGoogleSources] = useState<string[]>([]);
+  const [sourceOptions, setSourceOptions] = useState<Array<{id:string;label:string}>>([]);
+  const [hiddenSources, setHiddenSources] = useState<Set<string>>(new Set());
+  const [detailsKey, setDetailsKey] = useState<string|null>(null);
+  const timeScroll = useRef<HTMLDivElement>(null);
   const [actionTarget, setActionTarget] = useState<CalendarOverview["items"][number] | "new" | null>(null);
   const [data, setData] = useState<CalendarOverview | null>(null);
   const [loadedRangeKey, setLoadedRangeKey] = useState("");
@@ -63,7 +70,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     if (nachbereiten) url.searchParams.set("nachbereiten", nachbereiten); else url.searchParams.delete("nachbereiten");
     window.history.replaceState(window.history.state, "", url);
   }
-  const visibleWindow = calendarWindow(focus, view, today);
+  const visibleWindow = calendarWorkspaceWindow(focus, view);
   const rangeKey = `${visibleWindow.from.toISOString()}|${visibleWindow.until.toISOString()}`;
   const visibleData = loadedRangeKey === rangeKey ? data : null;
   const selectPreparation = (uid: string | null, start?: string | null) => {
@@ -88,10 +95,11 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   }, []);
   useEffect(() => {
     let active = true;
+    api.integrations().then(result => {if (active) setSourceOptions(result.calendar_sources.filter(source=>source.configured&&source.enabled).map(source=>({id:source.id,label:source.label})));}).catch(()=>{});
     api.calendarActionSources().then(result => {if (active) setGoogleSources(result.sources.map(s => s.id));}).catch(() => {});
     return () => {active = false;};
   }, []);
-  useEffect(() => { localStorage.setItem("kingfisher-calendar-view", view); }, [view]);
+  useEffect(() => {try {localStorage.setItem("kingfisher-calendar-view", view);} catch { /* This view remains usable for the current session. */ }}, [view]);
   useEffect(() => {
     let active = true;
     setLoading(true); setError(false);
@@ -131,7 +139,33 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     const timer = window.setInterval(() => setRevision(value => value + 1), 15000);
     return () => window.clearInterval(timer);
   }, []);
-  const items = visibleData?.items || [];
+  useEffect(() => {
+    if (!visibleData) return;
+    setSourceOptions(old => {
+      const all = new Map(old.map(source=>[source.id,source]));
+      for (const item of visibleData.items) for (const copy of calendarSourceVersions(item)) all.set(copy.source_id||'unknown',{id:copy.source_id||'unknown',label:copy.source_label||'Gespeicherter Kalender'});
+      return [...all.values()].sort((a,b)=>a.label.localeCompare(b.label,'de'));
+    });
+  }, [visibleData]);
+  useEffect(() => {if(timeScroll.current && (view==='Woche'||view==='Tag')) timeScroll.current.scrollTop=7*48;},[view,rangeKey]);
+  const selectedSources = new Set(sourceOptions.filter(source=>!hiddenSources.has(source.id)).map(source=>source.id));
+  const items = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
+  const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
+  const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarSourceVersions(item).find(copy=>!hiddenSources.has(copy.source_id||'unknown'))?.source_id||'unknown');
+  function eventActions(item:CalendarOverview['items'][number]) {
+    return <div className="calendar-detail-actions">{calendarSourceVersions(item).filter(copy => copy.source_id && googleSources.includes(copy.source_id) && editableEventId(copy)).map(copy => <button key={calendarEventKey(copy)} type="button" className="secondary-action" onClick={() => {setDetailsKey(null);setActionTarget(copy);}}>Bearbeiten / absagen{item.source_copies?.length ? ` · ${copy.source_label}` : ''}</button>)}
+      {item.art !== 'geburtstag' && (!item.end || new Date(item.end) > new Date()) && <button className="secondary-action" type="button" onClick={()=>selectPreparation(item.uid,item.start)}>Vorbereiten</button>}
+      {!item.all_day && item.start && new Date(item.start)<=new Date() && <button className="secondary-action" type="button" onClick={()=>{setDetailsKey(null);select(null,followupKey(item.uid,item.start!));}}>Nachbereiten</button>}
+    </div>;
+  }
+  function timeGrid() {
+    const days=Array.from({length:view==='Tag'?1:7},(_,index)=>plusDays(view==='Tag'?focus:weekStart,index));
+    return <div className="calendar-time-scroll" ref={timeScroll} aria-label={view==='Tag'?'Tageszeitraster':'Wochenzeitraster'}><div className={`calendar-time-grid ${view==='Tag'?'single-day':''}`}>
+      <div className="calendar-time-corner">Ganztägig</div>{days.map(day=><section className="calendar-all-day" key={dateKey(day)}><button className="calendar-grid-date" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>{day.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})}</button>{(+plusDays(day,1)-+midnight(day))/3600000!==24&&<small className="calendar-clock-change">Zeitumstellung · {(+plusDays(day,1)-+midnight(day))/3600000} Std.</small>}{onDay(day).filter(event=>event.all_day).map(event=><button className="calendar-all-day-event" style={{borderLeftColor:eventColor(event)}} key={calendarEventKey(event)} type="button" onClick={()=>setDetailsKey(calendarEventKey(event))}>{event.summary}</button>)}</section>)}
+      <div className="calendar-hours">{Array.from({length:24},(_,hour)=><div className="calendar-hour" key={hour}>{`${String(hour).padStart(2,'0')}:00`}</div>)}</div>
+      {days.map(day=><div className="calendar-time-day" key={dateKey(day)} aria-label={day.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}>{calendarDayLayout(onDay(day),day).map(placement=><button type="button" className="calendar-time-event" key={calendarEventKey(placement.event)} style={{top:`${placement.startMinute/1440*100}%`,height:`${(placement.endMinute-placement.startMinute)/1440*100}%`,left:`${placement.column/placement.columns*100}%`,width:`${100/placement.columns}%`,borderLeftColor:eventColor(placement.event)}} aria-label={`${placement.event.summary}, ${placement.event.start?new Date(placement.event.start).toLocaleString('de-DE',{weekday:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}):''}, ${placement.event.source_label||'Kalender'}`} title={`${placement.event.summary} · ${placement.event.source_label||'Kalender'}`} onClick={()=>setDetailsKey(calendarEventKey(placement.event))}><small>{placement.continuesBefore?'↤ ':''}{placement.event.start?time(placement.event.start):''}{placement.continuesAfter?' ↦':''}</small><strong>{placement.event.summary}</strong></button>)}</div>)}
+    </div></div>;
+  }
   const onDay = (day: Date) => eventsInRange(items, midnight(day), plusDays(day, 1));
   const weekStart = plusDays(focus, -(focus.getDay() + 6) % 7);
   const time = (value: string) => new Date(value).toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
@@ -143,15 +177,16 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {Array.from({length: offset}, (_, i) => <span key={`blank-${i}`} />)}
       {Array.from({length: count}, (_, i) => {
         const day = new Date(gridYear, month, i + 1), events = onDay(day);
-        return <button key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""}`} aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small) setView("Monat");}}>
-          <strong>{i + 1}</strong>{small ? events.length > 0 && <span className="event-dot" /> : <>{events.slice(0, 2).map(e => <span className="day-event" key={`${e.uid}|${e.start}`}>{e.all_day ? "" : e.start ? `${time(e.start)} ` : ""}{e.summary}</span>)}{events.length > 2 && <small>+{events.length - 2} weitere</small>}</>}
-        </button>;
+        return <div key={i} className={`month-day ${dateKey(day) === dateKey(today) ? "is-today" : ""} ${dateKey(day) === dateKey(focus) ? "is-selected" : ""}`}>
+          <button type="button" className="calendar-month-date" aria-label={`${day.toLocaleDateString("de-DE")}, ${events.length} Termine im geladenen Zeitraum`} aria-pressed={dateKey(day) === dateKey(focus)} onClick={() => {setFocus(day); if (small && view==='Jahr') setView('Monat');}}><strong>{i + 1}</strong>{small && events.length>0 && <span className="event-dot" />}</button>
+          {!small && <>{events.slice(0,2).map(event=><button type="button" className="calendar-month-event" style={{borderLeftColor:eventColor(event)}} key={calendarEventKey(event)} onClick={()=>setDetailsKey(calendarEventKey(event))}>{event.all_day?'':event.start?`${time(event.start)} `:''}{event.summary}</button>)}{events.length>2 && <button className="calendar-month-more" type="button" onClick={()=>{setFocus(day);setView('Tag');}}>+{events.length-2} weitere</button>}</>}
+        </div>;
       })}
     </div>;
   }
-  const shown = view === "Liste" ? eventsInRange(items, midnight(today), plusDays(today, 7)) : onDay(focus);
+  const shown = view === "Liste" ? eventsInRange(items, midnight(focus), plusDays(focus, 7)) : onDay(focus);
   function shift(direction: number) {
-    const next = view === "Woche" ? plusDays(focus, direction * 7)
+    const next = view === "Tag" ? plusDays(focus,direction) : view === "Liste" ? plusDays(focus,direction*7) : view === "Woche" ? plusDays(focus, direction * 7)
       : view === "Jahr" ? new Date(focus.getFullYear() + direction, 0, 1)
         : new Date(focus.getFullYear(), focus.getMonth() + direction, 1);
     setFocus(next);
@@ -170,24 +205,26 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   return <div className="shell tasks-shell"><Sidebar active="Kalender" recentConversation={recentConversation} />
     <main className="tasks-page calendar-page">
       <header className="settings-heading"><p className="eyebrow">DEINE ZEIT</p><h1>Kalender</h1><p>{focus.getFullYear()} · Zeiten auf diesem Gerät</p></header>
+      <div className="calendar-workspace-layout"><aside className="calendar-navigator" aria-label="Datum und Kalender"><h2>{focus.toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</h2>{grid(focus.getMonth(),true)}<label className="calendar-date-picker">Datum wählen<input type="date" value={`${focus.getFullYear()}-${String(focus.getMonth()+1).padStart(2,'0')}-${String(focus.getDate()).padStart(2,'0')}`} onChange={event=>{const [year,month,day]=event.target.value.split('-').map(Number);if(year&&month&&day)setFocus(new Date(year,month-1,day));}} /></label><h2>Kalender</h2>{sourceOptions.map(source=><label className="calendar-source-choice" key={source.id}><input type="checkbox" checked={!hiddenSources.has(source.id)} onChange={event=>{const checked=event.target.checked;setHiddenSources(old=>{const next=new Set(old);if(checked)next.delete(source.id);else next.add(source.id);return next;});}} /><i style={{background:calendarColor(source.id)}} /><span>{source.label}</span></label>)}{!sourceOptions.length&&<p>Quellen erscheinen mit den geladenen Kalendern.</p>}</aside>
       <section className="calendar-board" aria-label="Kalenderübersicht">
-      <div className="calendar-actions"><div role="group" aria-label="Kalenderansicht" className="view-switch">{(["Liste", "Woche", "Monat", "Jahr"] as View[]).map(v => <button key={v} aria-pressed={v === view} onClick={() => setView(v)}>{v}</button>)}</div><button className="secondary-action" disabled={loading} onClick={() => setRevision(value => value + 1)}>{loading ? "Wird geladen …" : "Ansicht aktualisieren"}</button><button className="secondary-action" onClick={() => setActionTarget("new")}>Termin anlegen</button><button className="secondary-action" onClick={() => navigate("/settings#zugaenge")}>Kalender verwalten</button></div>
+      <div className="calendar-actions"><div role="group" aria-label="Kalenderansicht" className="view-switch">{(["Tag", "Woche", "Monat", "Liste", "Jahr"] as View[]).map(v => <button key={v} aria-pressed={v === view} onClick={() => setView(v)}>{v}</button>)}</div><button className="secondary-action" disabled={loading} onClick={() => setRevision(value => value + 1)}>{loading ? "Wird geladen …" : "Ansicht aktualisieren"}</button><button className="secondary-action" onClick={() => {setDetailsKey(null);setActionTarget("new");}}>Termin anlegen</button><button className="secondary-action" onClick={() => navigate("/settings#zugaenge")}>Kalender verwalten</button></div>
       {error && <p role="alert">Termine konnten nicht geladen werden. Bitte erneut versuchen.</p>}
       {loading && <p role="status">Kalenderzeitraum wird geladen …</p>}
       {visibleData?.errors.map((message, index) => <p className="settings-error" role="alert" key={index}>{message}</p>)}
       {visibleData?.warnings?.map((message, index) => <p role="status" key={index}>{message}</p>)}
       {visibleData && !visibleData.configured && <p>Noch kein Kalender verbunden. Wähle unter „Kalender verwalten“ deine Quellen aus.</p>}
-      {visibleData?.configured && !loading && visibleData.items.length === 0 && visibleData.errors.length === 0 && <p role="status">Keine Termine in diesem Zeitraum.</p>}
-      {(view === "Monat" || view === "Woche" || view === "Jahr") && <div className="calendar-period"><button aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>←</button><h2>{view === "Monat" ? focus.toLocaleDateString("de-DE", {month:"long", year:"numeric"}) : view === "Jahr" ? `${focus.getFullYear()}` : `${weekStart.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})} – ${plusDays(weekStart, 6).toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})}`}</h2><button aria-label="Nächster Zeitraum" onClick={() => shift(1)}>→</button><button onClick={() => setFocus(midnight(today))}>Heute</button></div>}
+      {visibleData?.configured && !loading && items.length === 0 && visibleData.errors.length === 0 && <p role="status">{visibleData.items.length?'Keine Termine in den ausgewählten Kalendern.':'Keine Termine in diesem Zeitraum.'}</p>}
+      <div className="calendar-period"><button aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>←</button><h2>{view === "Monat" ? focus.toLocaleDateString("de-DE", {month:"long", year:"numeric"}) : view === "Jahr" ? `${focus.getFullYear()}` : view === "Tag" ? focus.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}) : view === "Liste" ? `${focus.toLocaleDateString("de-DE")} – ${plusDays(focus,6).toLocaleDateString("de-DE")}` : `${weekStart.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})} – ${plusDays(weekStart, 6).toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"})}`}</h2><button aria-label="Nächster Zeitraum" onClick={() => shift(1)}>→</button><button onClick={() => setFocus(midnight(today))}>Heute</button></div>
       {view === "Monat" && grid(focus.getMonth())}
       {view === "Jahr" && <div className="year-grid">{Array.from({length: 12}, (_, month) => <section key={month}><h2>{new Date(focus.getFullYear(), month, 1).toLocaleDateString("de-DE", {month:"long"})}</h2>{grid(month, true, focus.getFullYear())}</section>)}</div>}
-      {view === "Woche" && <div className="week-grid">{Array.from({length:7}, (_,i) => {const day=plusDays(weekStart,i);return <section key={i}><button className="week-date" onClick={() => setFocus(day)}>{day.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</button>{onDay(day).map(e=><div className="week-event" key={`${e.uid}|${e.start}`}><small>{e.all_day ? "Ganztägig" : e.start ? time(e.start) : ""}</small><strong>{e.summary}</strong></div>)}</section>;})}</div>}
-      {view !== "Jahr" && <><h2 className="agenda-heading">{view === "Liste" ? "Nächste sieben Tage" : focus.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})}</h2>
-        <div className="calendar-list">{shown.map(item => <article className="calendar-entry" key={`${item.uid}|${item.start}`}><div>{item.start && <><strong>{new Date(item.start).toLocaleDateString("de-DE", {weekday:"short", day:"2-digit", month:"short"})}</strong><p>{item.all_day ? "Ganztägig" : `${time(item.start)}${item.end ? ` – ${time(item.end)}` : ""}`}</p></>}</div><div><h2>{item.summary}</h2>{item.location && <p>{item.location}</p>}<small>{item.source_copies?.length ? item.source_copies.map(copy => copy.source_label).join(" · ") : item.source_label || "Verbundener Kalender"}</small>{calendarSourceVersions(item).filter(copy => copy.source_id && googleSources.includes(copy.source_id) && editableEventId(copy)).map(copy => <button key={copy.uid} type="button" className="secondary-action calendar-prepare-button" onClick={() => setActionTarget(copy)}>Bearbeiten / absagen{item.source_copies?.length ? ` · ${copy.source_label}` : ""}</button>)}{item.art !== "geburtstag" && (!item.end || new Date(item.end) > new Date()) && <button className="secondary-action calendar-prepare-button" type="button" onClick={() => selectPreparation(item.uid, item.start)}>Vorbereiten</button>}{!item.all_day && item.start && new Date(item.start) <= new Date() && <button className="secondary-action calendar-prepare-button" type="button" onClick={() => select(null, followupKey(item.uid, item.start!))}>Nachbereiten</button>}</div></article>)}</div>
+      {(view === 'Woche' || view === 'Tag') && timeGrid()}
+      {view !== "Jahr" && <><h2 className="agenda-heading">{view === "Liste" ? "Sieben Tage ab gewähltem Datum" : focus.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})}</h2>
+        <div className="calendar-list">{shown.map(item => <article className="calendar-entry" key={calendarEventKey(item)}><div>{item.start && <><strong>{new Date(item.start).toLocaleDateString("de-DE", {weekday:"short", day:"2-digit", month:"short"})}</strong><p>{item.all_day ? "Ganztägig" : `${time(item.start)}${item.end ? ` – ${time(item.end)}` : ""}`}</p></>}</div><div><h2><button type="button" className="calendar-entry-open" style={{borderLeftColor:eventColor(item)}} onClick={()=>setDetailsKey(calendarEventKey(item))}>{item.summary}</button></h2>{item.location && <p>{item.location}</p>}<small>{item.source_copies?.length ? item.source_copies.map(copy => copy.source_label).join(" · ") : item.source_label || "Verbundener Kalender"}</small>{eventActions(item)}</div></article>)}</div>
       </>}
-      </section>
+      </section></div>
+      {detailsEvent && <DetailPanel title="Termindetails" onClose={()=>setDetailsKey(null)}><h3>{detailsEvent.summary}</h3><p>{detailsEvent.all_day?`Ganztägig · ${detailsEvent.start?new Date(detailsEvent.start).toLocaleDateString('de-DE',{dateStyle:'full'}):'Beginn unbekannt'}`:detailsEvent.start?new Date(detailsEvent.start).toLocaleString('de-DE',{dateStyle:'full',timeStyle:'long'}):'Beginn unbekannt'}{detailsEvent.end?` – ${new Date(detailsEvent.end).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'long'})}`:''}</p>{detailsEvent.all_day&&detailsEvent.end&&<p>Die Endangabe bezeichnet den ersten Tag nach dem Termin.</p>}{detailsEvent.location&&<p>{detailsEvent.location}</p>}<p>{calendarSourceVersions(detailsEvent).map(copy=>copy.source_label||copy.source_id||'Kalender').join(' · ')}</p>{detailsEvent.attendees?.length?<p>{detailsEvent.attendees.join(', ')}</p>:null}{eventActions(detailsEvent)}{preparationEvent&&calendarEventKey(preparationEvent)===calendarEventKey(detailsEvent)&&<CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={()=>selectPreparation(null)} />}</DetailPanel>}
       {actionTarget && <CalendarActionForm key={actionTarget === "new" ? "new" : `${actionTarget.uid}|${actionTarget.start}`} event={actionTarget === "new" ? undefined : actionTarget} onClose={() => setActionTarget(null)} onDone={() => setRevision(n => n + 1)} />}
-      {preparationEvent && <div ref={preparationPanel}><CalendarPreparation key={preparationEvent.uid} event={preparationEvent} revision={loadedRevision} onClose={() => selectPreparation(null)} /></div>}
+      {preparationEvent && (!detailsEvent || calendarEventKey(preparationEvent)!==calendarEventKey(detailsEvent)) && <div ref={preparationPanel}><CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={() => selectPreparation(null)} /></div>}
       {followupTarget && <div ref={followupPanel}><CalendarFollowup key={followup!} uid={followupTarget.uid} start={followupTarget.start} onClose={() => select(null, null)} /></div>}
       {preparationUid && visibleData && !loading && !error && !preparationEvent && <p role="status">Der ausgewählte Termin ist in den aktuell geladenen Kalendern nicht verfügbar. <button className="text-action" onClick={() => selectPreparation(null)}>Auswahl schließen</button></p>}
     </main></div>;

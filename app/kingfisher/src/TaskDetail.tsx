@@ -65,6 +65,7 @@ export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () =
     {task?.goal_id && <p className="task-goal-link"><strong>Zielbezug:</strong> {goalStatement ?? "Ziel wird geladen …"}</p>}
     {projectsFailed && <p role="status">Projekte konnten nicht geladen werden. Die Projektzuordnung bleibt erhalten. <button type="button" disabled={busy} onClick={() => setProjectRevision(value => value + 1)}>Projekte erneut laden</button></p>}
     {task?.status === "dropped" && <p>Diese Aufgabe wurde verworfen: {task.title}</p>}
+    {task?.status==='open'&&<button type="button" className="text-action" disabled={busy} onClick={()=>void change(()=>api.dropTask(task.id))}>Aufgabe verwerfen</button>}
     {task && task.status !== "dropped" && <TaskRow task={task} view={task.status === 'done' ? 'done' : task.wartet_auf ? 'waiting' : 'mine'} completing={busy}
       projects={projects} projectDisabled={projectsFailed || projectsLoading} onProjectChange={id => {void change(() => api.assignTaskProject(task.id, id || null));}}
       onEdit={data => change(() => api.editTask(task.id, data))}
