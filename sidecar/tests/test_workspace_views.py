@@ -39,6 +39,41 @@ def test_group_is_reversible_metadata_and_place_is_explicit(client):
     assert client.put('/api/v1/workspace-view/place/ort-invalid', json={'revision': 0, 'data': {'lat': 500, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/place/ort-bool', json={'revision': 0, 'data': {'lat': True, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/unknown/id', json={'revision': 0, 'data': {}}).status_code == 422
+
+
+def test_group_store_undo_rechecks_members_without_writing_history_on_conflict(client):
+    from icarus_memory.workspace_views import ViewChanged
+    views = client.app.state.workspace_views
+    views.put('organisation_group', 'g1', {'name': 'Erste', 'members': ['a', 'b']}, 0)
+    views.put('organisation_group', 'g1', {'name': 'Erste', 'members': ['a', 'c']}, 1)
+    views.put('organisation_group', 'g2', {'name': 'Zweite', 'members': ['b', 'd']}, 0)
+    with pytest.raises(ViewChanged):
+        views.undo('organisation_group', 'g1', 2)
+    current = views.get('organisation_group', 'g1')
+    assert current['revision'] == 2 and current['data']['members'] == ['a', 'c']
+    # Store-Konsistenz separat von der zusätzlichen Quellenprüfung des HTTP-Undos.
+    views.undo('organisation_group', 'g2', 1)
+    restored = views.undo('organisation_group', 'g1', 2)
+    assert restored['revision'] == 3 and restored['data']['members'] == ['a', 'b']
+
+
+def test_generic_group_write_cannot_bypass_membership_guard(client):
+    body = {'revision': 0, 'data': {'name': 'Erste', 'members': ['a', 'b']}}
+    assert client.put('/api/v1/workspace-view/organisation_group/first', json=body).status_code == 200
+    body['data'] = {'name': 'Zweite', 'members': ['b', 'c']}
+    assert client.put('/api/v1/workspace-view/organisation_group/second', json=body).status_code == 409
+
+
+def test_group_membership_guard_covers_records_beyond_overview_limit(tmp_path):
+    from icarus_memory.workspace_views import WorkspaceViews, ViewChanged
+    views = WorkspaceViews(tmp_path/'views.sqlite3')
+    try:
+        for index in range(2001):
+            views.put('organisation_group', f'g-{index:04}', {'name': str(index), 'members': [f'm-{index}']}, 0)
+        with pytest.raises(ViewChanged):
+            views.put('organisation_group', 'other', {'name': 'Andere', 'members': ['m-2000']}, 0)
+    finally:
+        views.close()
 def test_metadata_backup_restores_images_folders_revisions_and_undo(tmp_path):
     import base64
     from icarus_memory.workspace_views import WorkspaceViews

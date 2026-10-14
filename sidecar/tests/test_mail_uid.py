@@ -65,7 +65,7 @@ class BatchInboxIMAP:
         if operation == 'search':
             return 'OK', [b'101 102 103 104']
         assert operation == 'fetch'
-        assert args[1] == '(UID FLAGS BODY.PEEK[])'
+        assert args[1] == '(UID FLAGS RFC822.SIZE BODY.PEEK[]<0.65536>)'
         return 'OK', self.response_rows
 
 
@@ -95,7 +95,7 @@ def test_inbox_batches_uids_and_maps_reverse_order_by_explicit_uid(monkeypatch):
     assert [message.unread for message in messages] == [True, True, False]
     assert messages[1].spam_flag and messages[1].list_mail
     fetches = [args for operation, args in BatchInboxIMAP.calls if operation == 'fetch']
-    assert fetches == [(b'102,103,104', '(UID FLAGS BODY.PEEK[])')]
+    assert fetches == [(b'102,103,104', '(UID FLAGS RFC822.SIZE BODY.PEEK[]<0.65536>)')]
 
 
 def test_inbox_skips_missing_malformed_and_foreign_uid_responses(monkeypatch):

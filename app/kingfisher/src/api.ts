@@ -527,6 +527,7 @@ export type InboxMessage = {
   sender: string;
   subject: string;
   preview: string;
+  truncated?: boolean;
   date: string | null;
   unread: boolean;
   source: string | null;

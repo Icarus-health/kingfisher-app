@@ -1,0 +1,14 @@
+.saved-mail-workflow {margin:24px 0;padding:20px;border:1px solid var(--calm-line);border-radius:10px;overflow-wrap:anywhere;min-width:0;}
+.saved-mail-workflow h2 {font-size:18px;margin:0 0 12px;}
+.saved-mail-workflow h3 {font-size:15px;}
+.saved-mail-workflow-context {font-size:13px;color:var(--calm-muted);}
+.saved-mail-workflow blockquote {margin:12px 0;padding:8px 12px;border-left:2px solid var(--calm-line);white-space:pre-wrap;font-size:14px;}
+.saved-mail-workflow-task {border-top:1px solid var(--calm-line);margin-top:20px;padding-top:12px;}
+.saved-mail-workflow-task label {display:flex;flex-direction:column;gap:6px;margin:12px 0;font-size:13px;}
+.saved-mail-workflow input,.saved-mail-workflow select {box-sizing:border-box;width:100%;min-width:0;padding:9px;border:1px solid var(--calm-line);border-radius:6px;background:var(--calm-surface);color:var(--calm-ink);font:inherit;}
+.saved-mail-workflow button {max-width:100%;white-space:normal;padding:9px 13px;border:1px solid var(--calm-line);border-radius:6px;background:var(--calm-surface);color:var(--calm-ink);font:inherit;cursor:pointer;}
+.saved-mail-workflow button:disabled {opacity:.55;cursor:default;}
+@media(max-width:900px){.saved-mail-workflow {padding:14px;margin:16px 0;}}
+
+.saved-mail-workflow a {color:var(--calm-link);text-decoration:underline;text-underline-offset:3px;}
+.saved-mail-workflow a:focus-visible {outline:2px solid var(--calm-link);outline-offset:3px;}
