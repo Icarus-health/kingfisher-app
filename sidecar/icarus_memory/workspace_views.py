@@ -112,6 +112,15 @@ class WorkspaceViews:
                     or any(not isinstance(x, str) or not 1 <= len(x) <= 1000 for x in data['members'])
                     or len(set(data['members'])) != len(data['members'])):
                 raise ValueError('Bitte einen Gruppennamen und unterschiedliche Organisationen wählen.')
+            # Auch generische Änderungen und Undo prüfen den vollständigen aktuellen Bestand.
+            # Die Übersicht ist begrenzt und darf diese Konsistenzregel nicht begrenzen.
+            occupied = self._conn.execute(
+                "SELECT 1 FROM view_records r, json_each(r.document, '$.members') member "
+                "WHERE r.kind='organisation_group' AND r.id<>? AND r.document IS NOT NULL "
+                "AND member.value IN (" + ','.join('?' for _ in data['members']) + ') LIMIT 1',
+                (identifier, *data['members'])).fetchone()
+            if occupied:
+                raise ViewChanged('Eine Organisation ist inzwischen einer anderen Gruppe zugeordnet. Bitte neu prüfen.')
         elif kind == 'place':
             if set(data) != {'lat', 'lng'} or any(type(data[k]) not in (int, float) or not math.isfinite(data[k]) for k in ('lat', 'lng')) or not -90 <= data['lat'] <= 90 or not -180 <= data['lng'] <= 180:
                 raise ValueError('Bitte eine gültige Position ausdrücklich festlegen.')

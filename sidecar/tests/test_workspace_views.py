@@ -39,6 +39,42 @@ def test_group_is_reversible_metadata_and_place_is_explicit(client):
     assert client.put('/api/v1/workspace-view/place/ort-invalid', json={'revision': 0, 'data': {'lat': 500, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/place/ort-bool', json={'revision': 0, 'data': {'lat': True, 'lng': 0}}).status_code == 422
     assert client.put('/api/v1/workspace-view/unknown/id', json={'revision': 0, 'data': {}}).status_code == 422
+
+
+def test_group_undo_rechecks_members_without_writing_history_on_conflict(client):
+    def put(identifier, revision, members):
+        return client.put(f'/api/v1/workspace-view/organisation_group/{identifier}',
+            json={'revision': revision, 'data': {'name': identifier, 'members': members}})
+    assert put('g1', 0, ['a', 'b']).status_code == 200
+    assert put('g1', 1, ['a', 'c']).status_code == 200
+    assert put('g2', 0, ['b', 'd']).status_code == 200
+    response = client.post('/api/v1/workspace-view/organisation_group/g1/undo', json={'revision': 2})
+    assert response.status_code == 409
+    current = client.get('/api/v1/workspace-view/organisation_group/g1').json()
+    assert current['revision'] == 2 and current['data']['members'] == ['a', 'c']
+    # Sobald die konkurrierende Zuordnung ausdrücklich entfernt wurde, ist derselbe Undo gültig.
+    assert client.post('/api/v1/workspace-view/organisation_group/g2/undo', json={'revision': 1}).status_code == 200
+    restored = client.post('/api/v1/workspace-view/organisation_group/g1/undo', json={'revision': 2})
+    assert restored.status_code == 200 and restored.json()['data']['members'] == ['a', 'b']
+
+
+def test_generic_group_write_cannot_bypass_membership_guard(client):
+    body = {'revision': 0, 'data': {'name': 'Erste', 'members': ['a', 'b']}}
+    assert client.put('/api/v1/workspace-view/organisation_group/first', json=body).status_code == 200
+    body['data'] = {'name': 'Zweite', 'members': ['b', 'c']}
+    assert client.put('/api/v1/workspace-view/organisation_group/second', json=body).status_code == 409
+
+
+def test_group_membership_guard_covers_records_beyond_overview_limit(tmp_path):
+    from icarus_memory.workspace_views import WorkspaceViews, ViewChanged
+    views = WorkspaceViews(tmp_path/'views.sqlite3')
+    try:
+        for index in range(2001):
+            views.put('organisation_group', f'g-{index:04}', {'name': str(index), 'members': [f'm-{index}']}, 0)
+        with pytest.raises(ViewChanged):
+            views.put('organisation_group', 'other', {'name': 'Andere', 'members': ['m-2000']}, 0)
+    finally:
+        views.close()
 def test_metadata_backup_restores_images_folders_revisions_and_undo(tmp_path):
     import base64
     from icarus_memory.workspace_views import WorkspaceViews

@@ -39,6 +39,9 @@ FULL_BODY_LIMIT = 20_000
 # Bound bytes received and parsed, including attachments. Text truncation alone
 # cannot protect the background worker from a single very large MIME message.
 MAX_MESSAGE_WIRE_BYTES = 2 * 1024 * 1024
+# Die Liste braucht nur eine Vorschau. Ganze MIME-Anlagen verzögern sonst
+# einen kleinen Posteingangsabruf bis über dessen feste Zeitgrenze hinaus.
+MAX_INBOX_PREVIEW_BYTES = 64 * 1024
 MAX_UID = 4294967295
 MAX_INVENTORY_WINDOW = 1000
 
@@ -616,7 +619,8 @@ class MailConnector:
                 if not uids:
                     return []
 
-                status, fetched = imap.uid("fetch", b",".join(uids), "(UID FLAGS BODY.PEEK[])")
+                fields = f"(UID FLAGS RFC822.SIZE BODY.PEEK[]<0.{MAX_INBOX_PREVIEW_BYTES}>)"
+                status, fetched = imap.uid("fetch", b",".join(uids), fields)
                 if status != "OK":
                     raise MailError(f"Abruf fehlgeschlagen: {status}")
                 requested = {int(uid) for uid in uids}
@@ -658,15 +662,20 @@ class MailConnector:
                     if fetched_message is None:
                         continue
                     flags_header, raw = fetched_message
-                    parsed = email.message_from_bytes(raw)
+                    parsed = email.message_from_bytes(raw[:MAX_INBOX_PREVIEW_BYTES])
+                    reported_size = _fetch_number([(flags_header, raw)], "RFC822.SIZE", 2**63 - 1, minimum=0)
+                    clipped = (len(raw) > MAX_INBOX_PREVIEW_BYTES
+                               or bool(reported_size and int(reported_size) > len(raw))
+                               or (not reported_size and len(raw) >= MAX_INBOX_PREVIEW_BYTES))
                     flags = flags_header.decode("ascii", errors="replace")
                     messages.append(Message(
                         uid=f"{validity}.{uid_number}",
                         subject=_decode(parsed.get("Subject")),
                         sender=_decode(parsed.get("From")),
                         date=self._parse_date(parsed.get("Date")),
-                        preview=" ".join(_body(parsed).split())[:300],
+                        preview=" ".join(_body(parsed, limit=1200).split())[:300],
                         unread="\\Seen" not in flags,
+                        truncated=clipped,
                         spam_flag=any(str(value).strip().lower().startswith(('yes', 'true')) for key in ('X-Spam-Flag','X-Spam-Status') for value in parsed.get_all(key, [])),
                         list_mail=bool(parsed.get('List-Id') or parsed.get('List-Unsubscribe') or str(parsed.get('Precedence','')).lower() in ('bulk','list')),
                     ))

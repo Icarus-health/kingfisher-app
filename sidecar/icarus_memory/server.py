@@ -1064,7 +1064,10 @@ def _wire_scheduler(app: FastAPI) -> None:
     def run_task_detection(with_model, *, limit=10, rechecks_only=False):
         agent = getattr(app.state, "agent", None)
         plan_at_start = asdict(app.state.settings.schedule)
-        provider = scheduled_provider(rollen_von(app).provider("hintergrund"), agent=agent,
+        raw_provider = rollen_von(app).provider("hintergrund")
+        from .memory_analysis import model_key
+        original_model = model_key(raw_provider)
+        provider = scheduled_provider(raw_provider, agent=agent,
                                       plan_at_start=plan_at_start)
         detector = TaskDetector(app.state.episodes, app.state.proposals,
                                 provider, app.state.conversation_lock,
@@ -1078,6 +1081,17 @@ def _wire_scheduler(app: FastAPI) -> None:
             TaskProjectHints(app.state.episodes, app.state.proposals, app.state.workspace,
                              app.state.workspace_views, app.state.conversation_lock).prepare(
                 provider, limit=2, permitted=permitted)
+            # Ein kleiner lokaler Überblick im bestehenden Takt, niemals durch Blättern.
+            # Der Dienst prüft die echten Gewichte selbst und benötigt den Rollenprovider.
+            from .local_mail_workflow import prepare_background
+            def mail_permitted():
+                return (permitted() and plan_at_start['enabled'] and plan_at_start['with_model']
+                    and app.state.local_model_automation_generation == generation
+                    and rollen_von(app).provider('hintergrund') is raw_provider
+                    and model_key(raw_provider) == original_model
+                    and getattr(scheduler, 'prompt_allowed', lambda: True)())
+            if getattr(raw_provider, 'is_local', False) and mail_permitted():
+                prepare_background(app, raw_provider, limit=1, permitted=mail_permitted)
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -3513,6 +3527,7 @@ def create_app(
                     "date": message.date.astimezone().isoformat() if message.date else None,
                     "preview": message.preview,
                     "unread": message.unread,
+                    "truncated": bool(getattr(message, "truncated", False)),
                     "source": message.account_label or None,
                     "account_id": message.account_id,
                     **classify_row(message, filter_settings),
@@ -6327,6 +6342,12 @@ def create_app(
     register_workspace_logos(app, guard)
     from .local_mail_routes import register as register_local_mail
     register_local_mail(app, guard)
+    from .local_mail_workflow import register as register_local_mail_workflow
+    register_local_mail_workflow(app, guard)
+    from .organisation_group_suggestions import register as register_organisation_group_suggestions
+    register_organisation_group_suggestions(app, guard)
+    from .workspace_documents import register as register_workspace_documents
+    register_workspace_documents(app, guard)
     register_rueckmeldung(app, guard, _data_dir)
     from .logbuch_routes import register as register_logbuch
     register_logbuch(app, guard, _data_dir)
