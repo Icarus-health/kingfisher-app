@@ -40,7 +40,7 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
   const pages = Math.max(1, Math.ceil(entries.length / 25));
   const current = Math.min(page, pages);
   const visible = entries.slice((current - 1) * 25, current * 25);
-  return <section className="memory-directory memory-search" aria-label={documents ? 'Dokumente' : 'Gedächtnissuche'}>
+  return <section data-memory-loading={busy || (!documents && submitted.length >= 2 && submitted === needle && !result && !error)} className="memory-directory memory-search" aria-label={documents ? 'Dokumente' : 'Gedächtnissuche'}>
     <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{documents ? 'Dokumente' : 'Was möchtest du wiederfinden?'}</h1>
       <p>{documents ? 'Gespeicherte Dokumente und Notizen. Originaltext und Aufnahmegrenzen findest du direkt beim Eintrag.' : 'Menschen, Projekte und Originalquellen an einem Ort. Quellen berichten; ihre Aussagen sind damit noch nicht bestätigt.'}</p></header>
     <form className="memory-search-form" onSubmit={event => {event.preventDefault(); setSubmitted(needle); setRetry(n => n + 1);}}>
@@ -54,7 +54,7 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
       <p className="directory-count" aria-live="polite">{entries.length} {entries.length === 1 ? 'Eintrag' : 'Einträge'}</p>
       <ul className="memory-search-results">{visible.map(node => {
         const ref = sourceReference(node); const label = displayLabel(node.label);
-        return <li key={node.id}>
+        return <li key={node.id} data-memory-row={node.id}>
           <h3>{ref ? label.name : <button className="memory-entry-link" type="button" onClick={() => onOpen(node)}>{label.name}</button>}</h3>
           <p>{documents ? sourceDate(node.attributes.occurred_at) : node.kind === 'project' ? 'Projekt' : 'Kontakt aus vorhandenen Quellen'}{label.detail ? ` · ${label.detail}` : ''}</p>
           {ref && <><ProfileSource kind={ref.kind} id={ref.id} label="Originalquelle öffnen" originalOnly />{ref.kind === 'episode' && <ProfileSource kind={ref.kind} id={ref.id} label="Zuordnung & Korrektur" allowDismiss />}</>}
@@ -73,9 +73,9 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
         <details><summary>Suchumfang ansehen</summary><p>{result.scope}</p></details>
         {result.truncated && <p role="status">Die Suche ist begrenzt oder enthält unvollständige Quellen. Weitere passende Informationen können fehlen. Bitte grenze den Begriff ein.</p>}
         {!result.items.length && !result.note_items?.length && <p>Keine passende Stelle im durchsuchten Bestand gefunden. Versuche einen anderen Begriff.</p>}
-        <ul className="memory-search-results">{result.items.map(item => <li key={item.episode_id}><h3>{item.title}</h3><p>{sourceDate(item.occurred_at)} · {item.source_type === 'chat' ? 'Gesprächseingabe · noch keine bestätigte Aussage' : 'Quelle berichtet'}</p>
+        <ul className="memory-search-results">{result.items.map(item => <li key={item.episode_id} data-memory-row={`episode:${item.episode_id}`}><h3>{item.title}</h3><p>{sourceDate(item.occurred_at)} · {item.source_type === 'chat' ? 'Gesprächseingabe · noch keine bestätigte Aussage' : 'Quelle berichtet'}</p>
           <blockquote>{item.quote}</blockquote><ProfileSource kind="episode" id={item.episode_id} label="Originalquelle öffnen" originalOnly /><ProfileSource kind="episode" id={item.episode_id} label="Zuordnung & Korrektur" allowDismiss />
-        </li>)}{result.note_items?.map(item => <li key={'note:'+item.note_id}><h3>{item.title}</h3><p>Notiz · zuletzt geändert {sourceDate(item.recorded_at)} · noch keine bestätigte Aussage</p><blockquote>{item.quote}</blockquote><ProfileSource kind="note" id={item.note_id} label="Originalquelle öffnen" originalOnly /></li>)}</ul>
+        </li>)}{result.note_items?.map(item => <li key={'note:'+item.note_id} data-memory-row={`note:${item.note_id}`}><h3>{item.title}</h3><p>Notiz · zuletzt geändert {sourceDate(item.recorded_at)} · noch keine bestätigte Aussage</p><blockquote>{item.quote}</blockquote><ProfileSource kind="note" id={item.note_id} label="Originalquelle öffnen" originalOnly /></li>)}</ul>
       </>}
     </section>}
     {!documents && !needle && <p className="memory-search-start">Gib einen Begriff ein oder wähle oben Menschen, Projekte, Dokumente oder einen Lebensbereich.</p>}

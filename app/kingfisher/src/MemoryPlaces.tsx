@@ -1,10 +1,13 @@
-import {useRef,useState} from 'react';
+import {readMemoryViewPosition,rememberMemoryPresentation} from "./MemoryViewState";
+import {MemoryEntityLink} from "./MemoryEntityLink";
+import {useEffect,useRef,useState} from 'react';
 import {workspaceViewApi,type PositionData,type ViewRecord} from './workspaceViewApi';
 import {useWorkspaceMemoryView} from './useWorkspaceMemoryView';
 import {coordinatePair,workspaceProfileHref} from './WorkspaceMemoryModel';
 import {PlacesMap} from './PlacesMap';
 import './WorkspaceMemoryDetails.css';
 export function MemoryPlaces({entries}: {entries:Array<{id:string;name:string}>}) {
+  const restoreSelected=useRef(readMemoryViewPosition()?.place?.selected??null);
   const {overview,error,refresh}=useWorkspaceMemoryView();
   const selectedRevision=useRef(0);
   const [selected,setSelected]=useState<string|null>(null);
@@ -21,6 +24,8 @@ export function MemoryPlaces({entries}: {entries:Array<{id:string;name:string}>}
     catch{setLat('');setLng('');setMessage('Aktueller Pin nicht erreichbar. Bitte Ort erneut prüfen.');}
     finally{setBusy(false);}
   }
+  useEffect(()=>{if(!overview||!restoreSelected.current)return;const id=restoreSelected.current;restoreSelected.current=null;if(entries.some(entry=>entry.id===id))void choose(id);else rememberMemoryPresentation('place',{selected:null});},[overview,entries]);
+  useEffect(()=>{if(!restoreSelected.current)rememberMemoryPresentation('place',{selected});},[selected]);
   async function save(undo=false) {
     const position=coordinatePair(lat,lng);if(!overview||!selected||busy||(!undo&&(!preview||!position)))return;
     setBusy(true);setMessage(null);
@@ -31,7 +36,7 @@ export function MemoryPlaces({entries}: {entries:Array<{id:string;name:string}>}
     {error&&<p role="alert">Ortskoordinaten nicht erreichbar. <button type="button" onClick={()=>void refresh()}>Erneut laden</button></p>}
     <PlacesMap enabled={overview?.online.maps===true} points={points} selected={selected} pinning={pinning} onSelect={id=>void choose(id)} onPin={(latitude,longitude)=>{if(!pinning||!selected)return;const pair=coordinatePair(String(latitude),String(longitude));if(pair){setLat(String(pair.lat));setLng(String(pair.lng));setPreview(true);setPinning(false);}}}/>
     <label>Ort auswählen<select value={selected??''} disabled={busy||!overview} onChange={event=>event.target.value&&void choose(event.target.value)}><option value="">Bitte Ort wählen</option>{entries.map(entry=><option key={entry.id} value={entry.id}>{entry.name}{points.some(point=>point.id===entry.id)?' · bestätigter Pin':' · ohne Pin'}</option>)}</select></label>
-    {selected&&<><p><a href={workspaceProfileHref(selected,'places',window.location?.search??'')}>Ortsakte öffnen: {entries.find(entry=>entry.id===selected)?.name}</a></p><button type="button" disabled={busy} onClick={()=>void choose(selected)}>Aktuellen Pin prüfen</button><form onSubmit={event=>{event.preventDefault();if(coordinatePair(lat,lng))setPreview(true);}}><div className="memory-view-actions"><label>Breitengrad<input inputMode="decimal" value={lat} disabled={busy} onChange={event=>{setLat(event.target.value);setPreview(false);}} placeholder="−90 bis 90"/></label><label>Längengrad<input inputMode="decimal" value={lng} disabled={busy} onChange={event=>{setLng(event.target.value);setPreview(false);}} placeholder="−180 bis 180"/></label><button type="submit" disabled={busy||!coordinatePair(lat,lng)}>Pin prüfen</button>{overview?.online.maps&&<button type="button" disabled={busy} aria-pressed={pinning} onClick={()=>setPinning(value=>!value)}>{pinning?'Pin-Auswahl beenden':'Pin setzen'}</button>}</div></form>
+    {selected&&<><p><MemoryEntityLink href={workspaceProfileHref(selected,'places',window.location?.search??'')}>Ortsakte öffnen: {entries.find(entry=>entry.id===selected)?.name}</MemoryEntityLink></p><button type="button" disabled={busy} onClick={()=>void choose(selected)}>Aktuellen Pin prüfen</button><form onSubmit={event=>{event.preventDefault();if(coordinatePair(lat,lng))setPreview(true);}}><div className="memory-view-actions"><label>Breitengrad<input inputMode="decimal" value={lat} disabled={busy} onChange={event=>{setLat(event.target.value);setPreview(false);}} placeholder="−90 bis 90"/></label><label>Längengrad<input inputMode="decimal" value={lng} disabled={busy} onChange={event=>{setLng(event.target.value);setPreview(false);}} placeholder="−180 bis 180"/></label><button type="submit" disabled={busy||!coordinatePair(lat,lng)}>Pin prüfen</button>{overview?.online.maps&&<button type="button" disabled={busy} aria-pressed={pinning} onClick={()=>setPinning(value=>!value)}>{pinning?'Pin-Auswahl beenden':'Pin setzen'}</button>}</div></form>
       {pinning&&<p role="status">Klicke die Position auf der Karte an. Danach bestätigst du den Pin.</p>}
       {preview&&<div className="memory-view-preview"><p>Pin für <strong>{entries.find(entry=>entry.id===selected)?.name}</strong>: {lat}, {lng}</p><button type="button" disabled={busy} onClick={()=>void save()}>Pin bestätigen</button><button type="button" disabled={busy} onClick={()=>setPreview(false)}>Abbrechen</button></div>}
       {!!record?.revision&&<button type="button" disabled={busy} onClick={()=>void save(true)}>Pinänderung rückgängig</button>}

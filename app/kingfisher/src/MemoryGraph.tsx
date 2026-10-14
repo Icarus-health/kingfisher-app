@@ -1,3 +1,4 @@
+import {restoreMemoryScroll} from "./MemoryViewState";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { api, type GraphNode, type MemoryGraph } from "./api";
@@ -199,6 +200,10 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
     } else navigate(href);
   }
 
+  useEffect(() => {
+    if (typeof document !== "undefined") return restoreMemoryScroll(document.querySelector<HTMLElement>(".memory-page"));
+  },[filter,query,directoryPage,section]);
+
   async function load() {
     setError(false);
     try { setGraph(await api.memoryGraph()); } catch { setError(true); }
@@ -228,7 +233,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
-      <main className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
+      <main data-memory-loading={!graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
           <p>GEDÄCHTNIS</p>
           <div>

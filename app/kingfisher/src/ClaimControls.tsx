@@ -1,3 +1,4 @@
+import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useState } from "react";
 import { ClaimEvidence } from "./ClaimEvidence";
 import { ClaimCorrection } from "./ClaimCorrection";
@@ -15,7 +16,7 @@ function Details({claim, entities}: {claim: Claim; entities: RegistryProfile["re
     {[["subject_ref", "Betrifft"], ["target_ref", "Verbindung zu"], ["scope_ref", "Kontext"]].map(([key, label]) => {
       const ref = claim[key];
       const entity = typeof ref === "string" ? entities[ref] : undefined;
-      return entity ? <p key={key}>{label}: <a href={entity.workspace_project_id ? `/memory/projects/${encodeURIComponent(entity.workspace_project_id)}` : `/memory/registry/${encodeURIComponent(entity.id)}`}>{entity.label}</a></p> : key === "scope_ref" ? <p key={key}>Kontext: {typeof ref === "string" ? ref : "Kein gesonderter Kontext angegeben"}</p> : null;
+      return entity ? <p key={key}>{label}: <MemoryEntityLink kind={entity.workspace_project_id ? "project" : "person"} href={entity.workspace_project_id ? `/memory/projects/${encodeURIComponent(entity.workspace_project_id)}` : `/memory/registry/${encodeURIComponent(entity.id)}`}>{entity.label}</MemoryEntityLink></p> : key === "scope_ref" ? <p key={key}>Kontext: {typeof ref === "string" ? ref : "Kein gesonderter Kontext angegeben"}</p> : null;
     })}
     <ClaimEvidence claim={claim} />
   </details>;

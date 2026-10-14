@@ -38,7 +38,7 @@ export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, pa
     <p className="directory-count" aria-live="polite">{matches.length} von {nodes.length} Einträgen</p>
     {visible.length ? <ul className="directory-list">{visible.map(node => {
       const label = displayLabel(node.label);
-      return <li key={node.id}><button type="button" onClick={() => onOpen(node)} aria-label={`Akte öffnen: ${node.label}`}>
+      return <li key={node.id} data-memory-row={node.id}><button type="button" onClick={() => onOpen(node)} aria-label={`Akte öffnen: ${node.label}`}>
         <MemoryAvatar id={node.id} label={label.name} available={overview?.avatars.some(record => record.id === node.id && record.data?.available) ?? false} revision={overview?.avatars.find(record => record.id === node.id)?.revision} />
         <span className="directory-label"><strong>{label.name}</strong>{label.detail && <small>{label.detail}</small>}
           <small>{node.kind === "person" ? `Letzter Kontakt: ${graph ? contactDateFromGraph(graph, node.id) : "unbekannt"}` : node.attributes.area ? String(node.attributes.area) : "Bereich unbekannt"}</small>

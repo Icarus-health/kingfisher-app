@@ -1,4 +1,5 @@
-import {useEffect,useMemo, useRef, useState} from 'react';
+import {readMemoryViewPosition,rememberMemoryPresentation} from "./MemoryViewState";
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {request} from './api';
 import {workspaceViewApi, type FolderData, type ViewRecord} from './workspaceViewApi';
 import {useWorkspaceMemoryView} from './useWorkspaceMemoryView';
@@ -35,26 +36,31 @@ export function SourceFolderAssignment({sourceId}: {sourceId:string}) {
   </details>;
 }
 export function MemoryFolders({sources}: {sources:FolderSource[]}) {
-  const {overview,error,refresh} = useWorkspaceMemoryView();
-  const [selected,setSelected] = useState<string|null>(null);
+  const restored=useRef(readMemoryViewPosition()?.folders);
+  const {overview,error,loading:metadataLoading,refresh} = useWorkspaceMemoryView();
+  const [selected,setSelected] = useState<string|null>(()=>restored.current?.selected??null);
   const [name,setName] = useState('');
   const [parent,setParent] = useState('');
   const editingRevision=useRef(0);
   const [editing,setEditing] = useState<string|null>(null);
-  const [project,setProject] = useState('');
-  const [area,setArea] = useState('');
-  const [sourceArea,setSourceArea]=useState('');
+  const [project,setProject] = useState(()=>restored.current?.project??'');
+  const [area,setArea] = useState(()=>restored.current?.area??'');
+  const [sourceArea,setSourceArea]=useState(()=>restored.current?.sourceArea??'');
+  const [sourceListOpen,setSourceListOpen]=useState(()=>restored.current?.sourceListOpen??false);
   const [assignedAreas,setAssignedAreas]=useState<Record<string,string[]>>({});
   const [areaError,setAreaError]=useState(false);
   const [areaRevision,setAreaRevision]=useState(0);
   const sourceIds=JSON.stringify(sources.filter(source=>source.kind!=='note').map(source=>source.id.replace(/^episode:/,'')));
+  const areaQueryKey=`${sourceIds}:${areaRevision}`;
+  const [finishedAreaQuery,setFinishedAreaQuery]=useState<string|null>(null);
   useEffect(()=>{
     let active=true;setAssignedAreas({});setAreaError(false);
     const ids=JSON.parse(sourceIds) as string[];
     const batches=Array.from({length:Math.ceil(ids.length/100)},(_,i)=>ids.slice(i*100,(i+1)*100));
     Promise.all(batches.map(ids=>request<{areas:Record<string,string[]>}>('/api/v1/workspace-source-areas',{method:'POST',body:JSON.stringify({ids})})))
       .then(values=>{if(active)setAssignedAreas(Object.assign({},...values.map(v=>v.areas)));})
-      .catch(()=>{if(active)setAreaError(true);});
+      .catch(()=>{if(active)setAreaError(true);})
+      .finally(()=>{if(active)setFinishedAreaQuery(areaQueryKey);});
     return()=>{active=false;};
   },[sourceIds,areaRevision]);
   const [message,setMessage] = useState<string|null>(null);
@@ -64,6 +70,7 @@ export function MemoryFolders({sources}: {sources:FolderSource[]}) {
   const descendants = useMemo(()=>selected?folderDescendants(folders,selected):new Set<string>(),[overview,selected]);
   const projects = [...new Set(sources.map(source=>source.project).filter((p):p is string=>!!p))];
   const areas = [...new Set(sources.flatMap(source=>source.areas??[]))];
+  useEffect(()=>{rememberMemoryPresentation('folders',{selected,project,area,sourceArea,sourceListOpen});},[selected,project,area,sourceArea,sourceListOpen]);
   const visible = sources.filter(source=>{
     const member = overview?.source_folders.find(item=>item.id===canonicalSourceId(source.id,source.kind))?.data?.folder_id;
     return (!selected||(selected==='unassigned'?!member:!!member&&descendants.has(member)))&&(!project||source.project===project)&&(!area||source.areas?.includes(area))&&(!sourceArea||assignedAreas[source.id.replace(/^episode:/,'')]?.includes(sourceArea));
@@ -77,17 +84,17 @@ export function MemoryFolders({sources}: {sources:FolderSource[]}) {
     }catch{setMessage('Ordneränderung nicht gespeichert. Bitte Namen, übergeordneten Ordner und aktuellen Stand prüfen. Ein neuer Ordner lässt sich erst ohne Unterordner und Quellenzuordnungen rückgängig machen.');}
     finally{setBusy(false);}
   }
-  return <section className="memory-view-panel" aria-label="Virtuelle Dokumentordner"><h2>Dokumentordner</h2><p>Ordner und Unterordner ordnen Quellen in dieser Ansicht. Originaldateien und ihre Fassungen bleiben erhalten.</p>
+  return <section className="memory-view-panel" data-memory-loading={metadataLoading || (!overview && !error) || finishedAreaQuery !== areaQueryKey} aria-label="Virtuelle Dokumentordner"><h2>Dokumentordner</h2><p>Ordner und Unterordner ordnen Quellen in dieser Ansicht. Originaldateien und ihre Fassungen bleiben erhalten.</p>
     {error&&<p role="alert">Ordneransicht nicht erreichbar. <button type="button" onClick={()=>void refresh()}>Erneut laden</button></p>}
     {!overview&&!error&&<p role="status">Ordner werden geladen …</p>}
     {overview&&<><div className="memory-folder-layout"><nav aria-label="Ordner auswählen"><button type="button" aria-pressed={selected===null} onClick={()=>setSelected(null)}>Alle Quellen dieser Ansicht</button><ul><li><button type="button" aria-pressed={selected==='unassigned'} onClick={()=>setSelected('unassigned')}>Ohne Ordner</button></li>
       {folders.filter(folder=>folder.data?.parent_id===(selected&&selected!=='unassigned'?selected:null)).map(folder=><li key={folder.id}><button type="button" aria-pressed={selected===folder.id} onClick={()=>setSelected(folder.id)}>{folder.data!.name} →</button></li>)}</ul>
       {selected&&selected!=='unassigned'&&<><p>Geöffnet: <strong>{folders.find(folder=>folder.id===selected)?.data?.name??'Ordner nicht mehr verfügbar'}</strong> · inklusive Unterordner</p><button type="button" onClick={()=>setSelected(folders.find(folder=>folder.id===selected)?.data?.parent_id??null)}>Übergeordneter Ordner</button><button type="button" onClick={()=>{const folder=folders.find(f=>f.id===selected);if(folder?.data){editingRevision.current=folder.revision;setEditing(folder.id);setName(folder.data.name);setParent(folder.data.parent_id??'');setPreview(null);}}}>Ordner bearbeiten</button><button type="button" disabled={busy} onClick={()=>void save(true,selected)}>Ordneränderung rückgängig</button></>}
-    </nav><div><div className="memory-view-actions"><label>Projektfilter<select value={project} onChange={event=>setProject(event.target.value)}><option value="">Alle vorhandenen Projekte</option>{projects.map(id=><option key={id} value={id}>{sources.find(source=>source.project===id)?.projectName??id}</option>)}</select></label><label>Bereich<select value={sourceArea} onChange={event=>setSourceArea(event.target.value)}><option value="">Alle eingeordneten Bereiche</option>{[...new Set(Object.values(assignedAreas).flat())].sort().map(label=><option key={label} value={label}>{label}</option>)}</select></label><label>Projektbereich<select value={area} onChange={event=>setArea(event.target.value)}><option value="">Alle vorhandenen Bereiche</option>{areas.map(id=><option key={id} value={id}>{id}</option>)}</select></label></div>
+    </nav><div><div className="memory-view-actions"><label>Projektfilter<select value={project} onChange={event=>setProject(event.target.value)}><option value="">Alle vorhandenen Projekte</option>{project&&!projects.includes(project)&&<option value={project}>{project} · nicht im geladenen Ausschnitt</option>}{projects.map(id=><option key={id} value={id}>{sources.find(source=>source.project===id)?.projectName??id}</option>)}</select></label><label>Bereich<select value={sourceArea} onChange={event=>setSourceArea(event.target.value)}><option value="">Alle eingeordneten Bereiche</option>{sourceArea&&!Object.values(assignedAreas).flat().includes(sourceArea)&&<option value={sourceArea}>{sourceArea} · nicht im geladenen Ausschnitt</option>}{[...new Set(Object.values(assignedAreas).flat())].sort().map(label=><option key={label} value={label}>{label}</option>)}</select></label><label>Projektbereich<select value={area} onChange={event=>setArea(event.target.value)}><option value="">Alle vorhandenen Bereiche</option>{area&&!areas.includes(area)&&<option value={area}>{area} · nicht im geladenen Ausschnitt</option>}{areas.map(id=><option key={id} value={id}>{id}</option>)}</select></label></div>
       <p>{visible.length} von {sources.length} geladenen Quellen. Diese Vorschau deckt den geladenen Ausschnitt ab; weitere Quellen können im Archiv liegen.</p>
       {areaError&&<p role="status">Bereiche konnten nicht geladen werden. Ordner und Projektfilter bleiben nutzbar. <button type="button" onClick={()=>setAreaRevision(n=>n+1)}>Bereiche neu laden</button></p>}
       {overview?.truncated?.length ? <p role="status">Die Ablageübersicht zeigt höchstens 2.000 Einträge je Art. Weitere Zuordnungen bleiben gespeichert; die Übersicht ist begrenzt.</p> : null}
-      <details><summary>Quellenvorschau ({visible.length})</summary>{visible.slice(0,25).map(source=><article key={canonicalSourceId(source.id,source.kind)} className="memory-view-row"><div><strong>{source.title}</strong><ProfileSource kind={source.kind??'episode'} id={source.id.replace(/^(episode|note):/,'')} readOnly allowIgnore={false}/><SourceFolderAssignment sourceId={canonicalSourceId(source.id,source.kind)}/></div></article>)}
+      <details open={sourceListOpen} onToggle={event=>setSourceListOpen(event.currentTarget.open)}><summary>Quellenvorschau ({visible.length})</summary>{visible.slice(0,25).map(source=><article key={canonicalSourceId(source.id,source.kind)} className="memory-view-row" data-memory-row={canonicalSourceId(source.id,source.kind)}><div><strong>{source.title}</strong><ProfileSource kind={source.kind??'episode'} id={source.id.replace(/^(episode|note):/,'')} readOnly allowIgnore={false}/><SourceFolderAssignment sourceId={canonicalSourceId(source.id,source.kind)}/></div></article>)}
       {visible.length>25&&<p>Die Vorschau zeigt die ersten 25 Treffer. Verfeinere Ordner- oder Projektfilter.</p>}
       {!visible.length&&<p>Keine passende Quelle in diesem geladenen Ausschnitt.</p>}</details>
     </div></div><details open={editing !== null}><summary>{editing?'Ordner bearbeiten':'Ordner oder Unterordner anlegen'}</summary><form onSubmit={event=>{event.preventDefault();if(name.trim())setPreview({name:name.trim(),parent_id:parent||null});}}><div className="memory-view-actions"><label>Ordnername<input required maxLength={100} value={name} disabled={busy} onChange={event=>{setName(event.target.value);setPreview(null);}}/></label><label>Übergeordneter Ordner<select value={parent} disabled={busy} onChange={event=>{setParent(event.target.value);setPreview(null);}}><option value="">Oberste Ebene</option>{folders.filter(folder=>!editing||!folderDescendants(folders,editing).has(folder.id)).map(folder=><option key={folder.id} value={folder.id}>{folder.data!.name}</option>)}</select></label><button type="submit" disabled={busy||!name.trim()}>Vorschau</button></div></form>

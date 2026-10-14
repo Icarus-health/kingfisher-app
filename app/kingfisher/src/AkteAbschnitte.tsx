@@ -1,3 +1,4 @@
+import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteLage, type AkteZeile } from "./api";
 import { displayLabel } from "./displayIdentity";
@@ -195,7 +196,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
 
     {data.beteiligte.eintraege.length ? <Teil titel="In gemeinsamen Quellen" kind="beteiligte">
       <ul className="akte-beteiligte">{data.beteiligte.eintraege.map(b => <li key={b.sache}>
-        <button type="button" onClick={() => navigate(`/memory/akte/${encodeURIComponent(b.sache)}`)} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl} gemeinsame {b.anzahl === 1 ? "Quelle" : "Quellen"}</small></button>
+        <MemoryEntityLink href={`/memory/akte/${encodeURIComponent(b.sache)}`} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl} gemeinsame {b.anzahl === 1 ? "Quelle" : "Quellen"}</small></MemoryEntityLink>
       </li>)}</ul>
       <Gesamt gezeigt={data.beteiligte.eintraege.length} gesamt={data.beteiligte.gesamt} wo="häufigste zuerst" />
     </Teil> : null}

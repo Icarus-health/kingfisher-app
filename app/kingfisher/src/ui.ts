@@ -1,3 +1,4 @@
+import {memoryNavigationState} from "./MemoryViewState";
 export const ASSET = {
   media: "/03_Media/Approved/",
   icon: "/02_Icons/Approved/",
@@ -19,6 +20,6 @@ export const NAV = [
 export type NavigationLabel = typeof NAV[number][0];
 
 export function navigate(path: string) {
-  window.history.pushState({}, "", path);
+  window.history.pushState(memoryNavigationState(path), "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }

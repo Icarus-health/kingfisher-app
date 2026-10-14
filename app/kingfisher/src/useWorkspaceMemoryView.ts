@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react';
 import {workspaceViewApi,type ViewOverview} from './workspaceViewApi';
-type Snapshot={overview:ViewOverview|null;error:boolean};
-let snapshot:Snapshot={overview:null,error:false};
+type Snapshot={overview:ViewOverview|null;error:boolean;loading:boolean};
+let snapshot:Snapshot={overview:null,error:false,loading:false};
 const subscribers=new Set<(value:Snapshot)=>void>();
 let requestVersion=0;
 let pending:Promise<void>|null=null;
@@ -9,9 +9,10 @@ function publish(value:Snapshot) {snapshot=value;subscribers.forEach(subscriber=
 async function refresh() {
   if(pending)return pending;
   const version=++requestVersion;
+  publish({...snapshot,loading:true});
   pending=(async()=>{
-    try{const overview=await workspaceViewApi.overview();if(version===requestVersion)publish({overview,error:false});}
-    catch{if(version===requestVersion)publish({...snapshot,error:true});}
+    try{const overview=await workspaceViewApi.overview();if(version===requestVersion)publish({overview,error:false,loading:false});}
+    catch{if(version===requestVersion)publish({...snapshot,error:true,loading:false});}
     finally{if(version===requestVersion)pending=null;}
   })();
   return pending;
@@ -27,7 +28,7 @@ export function useWorkspaceMemoryView() {
     if(subscribers.size===1){window.addEventListener('workspace-view-changed',changed);void refresh();}
     return()=>{
       subscribers.delete(setValue);
-      if(!subscribers.size){window.removeEventListener('workspace-view-changed',changed);++requestVersion;pending=null;snapshot={overview:null,error:false};}
+      if(!subscribers.size){window.removeEventListener('workspace-view-changed',changed);++requestVersion;pending=null;snapshot={overview:null,error:false,loading:false};}
     };
   },[]);
   return {...value,refresh};
