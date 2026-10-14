@@ -14,7 +14,7 @@ Alltagszugang und eine begrenzte, modellfreie Suche in Originaltexten.
 - Dokumente erscheinen als Liste. Ersetzte, ignorierte und archivierte
   Dokumentfassungen werden nicht als aktuelle Dokumente dargestellt. Historische
   Originale bleiben gespeichert.
-- Personenakten beginnen mit Zusammenfassung, zugeordneten offenen Aufgaben und
+- Personenakten beginnen mit Zusammenfassung, ausdrücklich vorgemerkten Rückmeldungen und
   Kontaktstand. Lange Akten-/Beziehungsansichten folgen darunter. Datumsangaben
   enthalten das Jahr.
 - Suchbegriff, Seite und bekannte Filter bleiben beim Öffnen und Zurückgehen in
@@ -47,7 +47,8 @@ den bestehenden beleggebundenen Antwortweg und bestätigt keine Tatsachen.
 
 ## Prüfung
 
-- UI: 607 Tests bestanden; TypeScript- und Produktionsbuild bestanden. Der
+- UI zunächst 607, nach den Bedienkorrekturen am 14. Oktober 609 Tests bestanden;
+  TypeScript- und Produktionsbuild bestanden. Der
   vorhandene Hinweis auf ein großes JavaScript-Bundle bleibt bestehen.
 - Fokussierte Backend-Prüfungen decken Unicode/Originaloffsets, Literalzeichen,
   Entzug, Quellenwechsel während der Anfrage, gewöhnliche Gesprächseingaben,
@@ -62,14 +63,33 @@ den bestehenden beleggebundenen Antwortweg und bestätigt keine Tatsachen.
   die endgültige Originalsuche einschließlich Notiz-/Gesprächstexten und die
   Kennzeichnung aktueller Dokumentfassungen.
 
-## Noch offene Bedienabnahme
+## Bedienabnahme am 14. Oktober
 
-Die Computersteuerung verweigert den Testzugriff durch eine gespeicherte
-Browserfreigabe, auch nach Zustimmung und erneuter Verbindung. Deshalb sind
-Screenshots, echtes Klicken, Tastatur-/Größenprüfung und ein neuer nativer
-Fensternachweis noch nicht bestätigt. Der Testbestand enthält ausschließlich
-künstliche Daten. Die installierte Mac-Fassung bleibt vorerst 1.0.7; es wurde
-kein Update, Import-Neustart oder Wechsel persönlicher Daten vorgenommen.
+Der erste Anlauf am 13. Oktober war durch eine gespeicherte Browserfreigabe
+blockiert. Nach dem App-Neustart am 14. Oktober war der Zugriff wieder möglich;
+der beendete Testdienst wurde mit neuen ausschließlich künstlichen Daten gestartet.
+
+Im In-App-Browser wurden Einstieg, Suche per Knopf und Enter, Mail-/Gesprächs-/
+Notiztreffer, exakte Originalansicht, Personenliste mit Seite 2, gefilterte
+Personenakte und Rückweg, Projektaufgaben und Rückweg, Dokumentliste mit ausschließlich
+aktueller Fassung, Themen, Bereichsauswahl nach Reload sowie Verarbeitungsstatus
+tatsächlich bedient. Browserkonsole ohne Fehler oder Warnungen, kein Fehleroverlay.
+Screenshots wurden lokal geprüft. Bei 1.280×720 und 900×760 blieb die Ansicht nutzbar;
+bei 900 Pixeln keine horizontale Überbreite. Eine mobile Produktabnahme wird daraus
+nicht abgeleitet.
+
+Die Bedienung fand drei enge Anzeigenkorrekturen: Der obere Personenblock zeigt
+nur ausdrücklich vorgemerkte `wartet_auf`-Aufgaben und heißt nun „Worauf ich warte“;
+ein leerer Block verneint keine Aufgaben aus gemeinsamen Quellen. Der Kontaktstand
+wird nicht abgeschnitten; Rückmeldeaufgaben nutzen die verfügbare Kartenbreite.
+Notizen erhalten keinen unzutreffenden Einordnungs-/Berichtigungsknopf. Zwei neue
+Regressionstests wurden vor der Korrektur fehlschlagend beobachtet; ein unabhängiges
+Review fand auch in diesen Änderungen keine offenen P1/P2.
+
+Die Backend-Dateien sind gegenüber dem vollständig geprüften Stand unverändert.
+Die Release-Metadaten nennen 1.0.8. Merge, öffentliche Veröffentlichung und
+persönliche Mac-Installation werden gesondert bestätigt; bis dahin bleibt die
+vorhandene Mac-Fassung 1.0.7 aktiv.
 
 Keine persönlichen Quellen, Zugriffsschlüssel oder privaten UI-Aufnahmen wurden
 in diesen Nachweis aufgenommen. Kein Cloudmodell wurde für diese Änderung benutzt.

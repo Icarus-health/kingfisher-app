@@ -16,3 +16,8 @@ test('unloaded graph is not a zero-count loaded document directory',()=>{
  const result=renderToStaticMarkup(createElement(MemorySearch,{...props,graph:null,documents:true}));
  assert.doesNotMatch(result,/0 Einträge|Noch keine Dokumente gespeichert/);
 });
+test('document notes offer original reading without unsupported classification controls',()=>{
+ const graph={nodes:[{id:'note:synthetic',kind:'document',label:'Meeting note',attributes:{}}],edges:[]};
+ const result=renderToStaticMarkup(createElement(MemorySearch,{...props,graph,documents:true}));
+ assert.match(result,/Originalquelle öffnen/); assert.doesNotMatch(result,/Zuordnung &amp; Korrektur/);
+});

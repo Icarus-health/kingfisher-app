@@ -57,7 +57,7 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
         return <li key={node.id}>
           <h3>{ref ? label.name : <button className="memory-entry-link" type="button" onClick={() => onOpen(node)}>{label.name}</button>}</h3>
           <p>{documents ? sourceDate(node.attributes.occurred_at) : node.kind === 'project' ? 'Projekt' : 'Kontakt aus vorhandenen Quellen'}{label.detail ? ` · ${label.detail}` : ''}</p>
-          {ref && <><ProfileSource kind={ref.kind} id={ref.id} label="Originalquelle öffnen" originalOnly /><ProfileSource kind={ref.kind} id={ref.id} label="Zuordnung & Korrektur" allowDismiss /></>}
+          {ref && <><ProfileSource kind={ref.kind} id={ref.id} label="Originalquelle öffnen" originalOnly />{ref.kind === 'episode' && <ProfileSource kind={ref.kind} id={ref.id} label="Zuordnung & Korrektur" allowDismiss />}</>}
           {!ref && documents && <p>Kein direkter Originalbezug verfügbar.</p>}
         </li>;
       })}</ul>

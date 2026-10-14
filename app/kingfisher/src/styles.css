@@ -396,8 +396,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .profile-metrics div:last-child { border-right: 0; }
 .profile-metrics strong, .profile-metrics span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .profile-metrics strong { color: var(--kf-schrift-062b3a); font-family: "Cormorant Garamond", Georgia, serif; font-size: 24px; line-height: 28px; font-weight: 600; }
+.profile-metrics strong.profile-contact-date { font-size: 18px; line-height: 1.4; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .profile-metrics span { margin-top: 4px; color: var(--kf-schrift-31535f); font-size: 10px; line-height: 14px; }
 .profile-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.profile-list.profile-waiting-list { grid-template-columns: minmax(0, 1fr); }
+.profile-waiting-list article { display: grid; gap: 8px; }
+.profile-waiting-list article > a { color: inherit; }
 .profile-list p { padding: 10px 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 7px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-f7f5ef); }
 .profile-claims { display: grid; gap: 10px; }
 .profile-claims article, .profile-list-card article { padding: 11px 0; border-top: 1px solid var(--kf-rand-d7e1df); }

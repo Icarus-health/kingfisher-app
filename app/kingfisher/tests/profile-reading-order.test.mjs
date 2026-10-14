@@ -30,8 +30,8 @@ test('person profile presents summary, actual confirmed tasks and dated contact 
   const node=nodes(tree,n=>n.type?.name==='PersonProfile')[0];assert.ok(node);const profile=node.type(node.props);
   const sections=nodes(profile,n=>n.type==='section'||n.type?.name==='AkteAnsicht'||n.type?.name==='PersonDigest');
   const fileIndex=sections.findIndex(n=>n.type?.name==='AkteAnsicht');assert.ok(fileIndex>=0);
-  for(const label of ['Zusammenfassung','Aktuelles','Letzter Kontakt']){const index=sections.findIndex(n=>text(n).includes(label));assert.ok(index>=0&&index<fileIndex,`${label} comes before the file`);}
-  const current=sections.find(n=>text(n).includes('Aktuelles'));assert.match(text(current),/Bestätigte Einladung vorbereiten/);assert.match(text(current),/2026/);
+  for(const label of ['Zusammenfassung','Worauf ich warte','Letzter Kontakt']){const index=sections.findIndex(n=>text(n).includes(label));assert.ok(index>=0&&index<fileIndex,`${label} comes before the file`);}
+  const current=sections.find(n=>text(n).includes('Worauf ich warte'));assert.match(text(current),/Bestätigte Einladung vorbereiten/);assert.match(text(current),/2026/);
   assert.match(text(sections.find(n=>text(n).includes('Zusammenfassung'))),/2024/);
   assert.ok(nodes(current,n=>n.type?.name==='TaskSource').length,'confirmed task keeps its source access');
 }));
@@ -44,15 +44,22 @@ test('person profile keeps the first five tasks upfront and all remaining tasks 
   const tasks=Array.from({length:8},(_,index)=>({...personData.person.offene_aufgaben[0],id:`task-${index+1}`,title:`Confirmed task ${index+1}`}));
   return loadedProfile(MemoryProfile,{kind:'person',identifier:'Anna',recentConversation:null},{...personData,person:{...personData.person,offene_aufgaben:tasks}},tree=>{
     const node=nodes(tree,n=>n.type?.name==='PersonProfile')[0],profile=node.type(node.props);
-    const current=nodes(profile,n=>n.type==='section'&&text(n).includes('Aktuelles'))[0];
+    const current=nodes(profile,n=>n.type==='section'&&text(n).includes('Worauf ich warte'))[0];
     const disclosure=nodes(current,n=>n.type==='details')[0];assert.ok(disclosure,'remaining tasks are expandable');
-    const upfront=nodes(current,n=>n.type==='div'&&n.props.className==='profile-list')[0];
+    const upfront=nodes(current,n=>n.type==='div'&&n.props.className?.split(' ').includes('profile-list'))[0];
     assert.equal(nodes(upfront,n=>n.type==='article').length,5);
     assert.match(text(disclosure),/Weitere offene Aufgaben \(3\)/);
     assert.deepEqual(nodes(disclosure,n=>n.type==='strong').map(text),['Confirmed task 6','Confirmed task 7','Confirmed task 8']);
     assert.deepEqual(nodes(disclosure,n=>n.type?.name==='TaskSource').map(n=>n.props.taskId),['task-6','task-7','task-8']);
   });
 });
+test('empty waiting list does not deny tasks present in shared sources',()=>loadedProfile(MemoryProfile,{kind:'person',identifier:'Anna',recentConversation:null},{...personData,person:{...personData.person,offene_aufgaben:[]}},tree=>{
+  const node=nodes(tree,n=>n.type?.name==='PersonProfile')[0],profile=node.type(node.props);
+  const current=nodes(profile,n=>n.type==='section'&&text(n).includes('Worauf ich warte'))[0];
+  assert.ok(current); assert.match(text(current),/Noch keine Rückmeldung.*vorgemerkt/);
+  assert.match(text(current),/Weitere Aufgaben.*gemeinsamen Quellen/);
+  assert.doesNotMatch(text(current),/Keine offene Aufgabe.*zugeordnet/);
+}));
 async function openedSource(props,data,run){const oldApi=api.profileSource,oldWindow=globalThis.window;api.profileSource=async()=>data;globalThis.window={setInterval:()=>0,clearInterval:()=>{}};const d=driver(()=>ProfileSource({kind:'episode',id:'source-one',...props}));try{nodes(d.render(),n=>n.type==='button')[0].props.onClick();d.render();d.runEffects();await new Promise(setImmediate);await run(d.render());}finally{d.close();api.profileSource=oldApi;globalThis.window=oldWindow;}}
 test('source original text precedes category, relationship and provenance details',()=>openedSource({}, {title:'Synthetic source',body:'Original wording for inspection',state:'new',provenance:{source_ref:'synthetic'},source_incomplete:true},tree=>{
   const order=nodes(tree,n=>n.props?.className==='task-source-body'||['SourceCategories','SourceBezuege','SourceProject','Herkunft'].includes(n.type?.name));assert.equal(order[0].props.className,'task-source-body');assert.match(text(tree),/Nur teilweise erfasst/);
