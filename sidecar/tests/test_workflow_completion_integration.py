@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from icarus_memory import MemoryBackend, SelfModelStore
 from icarus_memory.server import create_app
 from .test_memory_automation import app_client
+from .test_organisation_group_suggestions import world, preview, body
 
 
 def test_new_routes_use_real_registration_and_existing_auth(tmp_path, monkeypatch):
@@ -20,6 +21,23 @@ def test_new_routes_use_real_registration_and_existing_auth(tmp_path, monkeypatc
         path = '/api/v1/local-mail/missing/workflow'
         assert client.get(path).status_code == 401
         assert client.get(path, headers={'x-icarus-token': 'synthetic-only'}).status_code == 404
+
+
+def test_generic_group_undo_revalidates_withdrawn_source_without_mutation(world):
+    client, app, sources = world
+    state = preview(client)
+    first = client.post('/api/v1/organisation-group-suggestions/confirm', json=body(state,
+        members=['organisation:de', 'organisation:com'])).json()
+    state = preview(client)
+    payload = {'name': 'Andere Auswahl', 'members': ['organisation:com', 'organisation:digital'],
+        'source_revision': state['source_revision'], 'groups_revision': state['groups_revision'],
+        'group_id': first['id'], 'group_revision': 1}
+    assert client.post('/api/v1/organisation-group-suggestions/confirm', json=payload).status_code == 200
+    app.state.episodes.ignore(sources[0].id)
+    result = client.post(f"/api/v1/workspace-view/organisation_group/{first['id']}/undo", json={'revision': 2})
+    assert result.status_code == 409
+    current = app.state.workspace_views.get('organisation_group', first['id'])
+    assert current['revision'] == 2 and current['data']['members'] == payload['members']
 
 
 @pytest.mark.parametrize('change', ['pause', 'disabled', 'model', 'provider', 'generation', 'agent', 'scheduler_stop'])

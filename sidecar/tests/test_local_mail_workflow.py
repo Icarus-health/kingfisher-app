@@ -22,7 +22,7 @@ def env(tmp_path, monkeypatch):
               TaskStore(tmp_path/'tasks.json'), WorkspaceStore(tmp_path/'workspace.sqlite3'), WorkspaceViews(tmp_path/'views.sqlite3')]
     for key, value in zip(('episodes','proposals','tasks','workspace','workspace_views'), stores):
         setattr(app.state,key,value)
-    app.state.conversation_lock = threading.RLock()
+    app.state.conversation_lock = threading.Lock()
     app.state.settings = SimpleNamespace(mail_accounts=[], mail_sync_status={})
     app.state.mail = SimpleNamespace(message=lambda *_: pytest.fail('provider read'))
     calls=[]

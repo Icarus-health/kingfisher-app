@@ -208,3 +208,122 @@ def test_new_manual_group_cannot_rename_existing_group_implicitly(world):
                'group_revision': 0, 'source_revision': latest['source_revision'], 'groups_revision': latest['groups_revision']}
     assert client.post('/api/v1/organisation-group-suggestions/confirm', json=request).status_code == 409
     assert client.get('/api/v1/workspace-view/organisation_group/' + first['id']).json()['data']['name'] == 'Amazon'
+
+
+def edited_group(client):
+    first_response = client.post('/api/v1/organisation-group-suggestions/confirm', json=body(preview(client), members=['organisation:de', 'organisation:com']))
+    assert first_response.status_code == 200
+    first = first_response.json()
+    current = preview(client)
+    response = client.post('/api/v1/organisation-group-suggestions/confirm', json={
+        'name': 'Geänderte Ansicht', 'members': ['organisation:com', 'organisation:digital'],
+        'group_id': first['id'], 'group_revision': first['revision'],
+        'source_revision': current['source_revision'], 'groups_revision': current['groups_revision']})
+    assert response.status_code == 200
+    return first, response.json()
+
+
+def test_group_undo_rejects_restore_without_current_permitted_source_and_preserves_history(world):
+    from fastapi import HTTPException
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, episodes = world
+    first, updated = edited_group(client)
+    app.state.episodes.ignore(episodes[0].id)
+    assert 'organisation:de' not in {row['id'] for row in preview(client)['entries']}
+    before_events = app.state.workspace_views._conn.execute('SELECT count(*) FROM view_events').fetchone()[0]
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, first['id'], updated['revision'])
+    assert exc.value.status_code == 409
+    routed = client.post('/api/v1/workspace-view/organisation_group/' + first['id'] + '/undo', json={'revision': updated['revision']})
+    assert routed.status_code == 409, routed.text
+    assert app.state.workspace_views.get('organisation_group', first['id']) == updated
+    assert app.state.workspace_views._conn.execute('SELECT count(*) FROM view_events').fetchone()[0] == before_events
+
+
+def test_group_undo_can_remove_group_after_all_member_sources_are_withdrawn(world):
+    from fastapi import HTTPException
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, episodes = world
+    saved = client.post('/api/v1/organisation-group-suggestions/confirm', json=body(preview(client))).json()
+    for episode in episodes:
+        app.state.episodes.ignore(episode.id)
+    removed = undo_group(app, saved['id'], saved['revision'])
+    assert removed['data'] is None and removed['revision'] == saved['revision'] + 1
+    # Ein doppeltes Undo darf die eben entfernte Gruppe nicht wiederherstellen.
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, saved['id'], saved['revision'])
+    assert exc.value.status_code == 409
+    assert app.state.workspace_views.get('organisation_group', saved['id']) == removed
+    # Undo der Entfernung wäre eine Wiederherstellung und ist mangels Quellen gesperrt.
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, saved['id'], removed['revision'])
+    assert exc.value.status_code == 409
+    assert app.state.workspace_views.get('organisation_group', saved['id']) == removed
+
+
+def test_group_undo_uses_current_revision_and_preserves_current_cross_group_overlap_guard(world):
+    from fastapi import HTTPException
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, _ = world
+    first, updated = edited_group(client)
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, first['id'], first['revision'])
+    assert exc.value.status_code == 409
+    # Die frühere DE-Mitgliedschaft liegt inzwischen in einer anderen Gruppe.
+    app.state.workspace_views.put('organisation_group', 'other-group', {'name': 'Andere', 'members': ['organisation:de']}, 0)
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, first['id'], updated['revision'])
+    assert exc.value.status_code == 409
+    assert app.state.workspace_views.get('organisation_group', first['id']) == updated
+
+
+def test_group_undo_holds_current_source_and_group_locks_until_real_write(world, monkeypatch):
+    import threading
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, _ = world
+    first, updated = edited_group(client)
+    store = app.state.workspace_views
+    original_undo = store.undo
+    results = []
+    def checked_undo(*args):
+        # Ein anderer Thread kann weder Quelle noch Gruppe zwischen Prüfung
+        # und tatsächlichem Undo ändern; der echte Store schreibt anschließend.
+        def contender():
+            source_acquired = app.state.episodes._lock.acquire(blocking=False)
+            if source_acquired:
+                app.state.episodes._lock.release()
+            view_acquired = store._lock.acquire(blocking=False)
+            if view_acquired:
+                store._lock.release()
+            results.append((source_acquired, view_acquired))
+        worker = threading.Thread(target=contender)
+        worker.start()
+        worker.join(timeout=2)
+        assert not worker.is_alive()
+        return original_undo(*args)
+    monkeypatch.setattr(store, 'undo', checked_undo)
+    restored = undo_group(app, first['id'], updated['revision'])
+    assert results == [(False, False)]
+    assert restored['data'] == first['data'] and restored['revision'] == updated['revision'] + 1
+
+
+@pytest.mark.parametrize('revision', [True, 0, -1, '1'])
+def test_group_undo_rejects_invalid_revision_without_writing(world, revision):
+    from fastapi import HTTPException
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, _ = world
+    saved = client.post('/api/v1/organisation-group-suggestions/confirm', json=body(preview(client))).json()
+    with pytest.raises(HTTPException) as exc:
+        undo_group(app, saved['id'], revision)
+    assert exc.value.status_code == 422
+    assert app.state.workspace_views.get('organisation_group', saved['id']) == saved
+
+
+def test_group_undo_checks_restored_members_not_withdrawn_current_members(world):
+    from icarus_memory.organisation_group_suggestions import undo_group
+    client, app, episodes = world
+    first, updated = edited_group(client)
+    app.state.episodes.ignore(episodes[2].id)  # Digital gehört nur zur derzeitigen Fassung.
+    restored = undo_group(app, first['id'], updated['revision'])
+    assert restored['data'] == first['data']
+    assert restored['data']['members'] == ['organisation:com', 'organisation:de']

@@ -253,6 +253,9 @@ def register(app, guard, data_dir):
     def undo(kind: str, identifier: str, body: Undo):
         if kind in {'project_hint','saved_mail_briefing','organisation_group_dismissal'}:
             raise HTTPException(422, 'Dieser Vorschlag kann hier nicht geändert werden.')
+        if kind == 'organisation_group':
+            from .organisation_group_suggestions import undo_group
+            return undo_group(app, identifier, body.revision)
         try:
             return app.state.workspace_views.undo(kind, identifier, body.revision)
         except ViewChanged as exc:

@@ -193,3 +193,36 @@ def register(app, guard):
             raise HTTPException(409, str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
+
+
+def undo_group(app, identifier: str, revision: int) -> dict:
+    """Frühere Anzeigegruppe nur mit aktuell zulässigen Mitgliedern restaurieren.
+
+    Das Entfernen einer Gruppe bleibt auch nach Quellenentzug möglich. Geprüft
+    wird ausschließlich die tatsächlich restaurierte Fassung aus der normalen
+    Undo-Historie, niemals die noch angezeigte, möglicherweise überholte Gruppe.
+    Der bestehende Store prüft CAS und Überschneidungen beim echten Undo erneut.
+    """
+    if (not isinstance(identifier, str) or not 1 <= len(identifier) <= 1000
+            or type(revision) is not int or revision < 1):
+        raise HTTPException(422, 'Ungültige Gruppenkennung oder Gruppenrevision.')
+    with _current(app) as (snapshot, store):
+        current = store.get('organisation_group', identifier)
+        if revision != current['revision']:
+            raise HTTPException(409, 'Diese Anzeigegruppe wurde verändert. Bitte neu prüfen.')
+        event = store._conn.execute(
+            'SELECT previous FROM view_events WHERE kind=? AND record_id=? AND revision=?',
+            ('organisation_group', identifier, revision)).fetchone()
+        if event is None:
+            raise HTTPException(422, 'Keine frühere Gruppenansicht vorhanden.')
+        previous = json.loads(event['previous']) if event['previous'] is not None else None
+        if previous is not None:
+            permitted = {entry['id'] for entry in snapshot['entries']}
+            if not set(previous['members']).issubset(permitted):
+                raise HTTPException(409, 'Eine Organisation der früheren Gruppe hat keine aktuelle zulässige Quelle mehr. Die Gruppenansicht wurde nicht verändert.')
+        try:
+            return store.undo('organisation_group', identifier, revision)
+        except ViewChanged as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc

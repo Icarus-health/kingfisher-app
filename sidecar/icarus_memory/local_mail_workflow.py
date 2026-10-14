@@ -3,6 +3,7 @@
 Keine Provider-Mail wird gelesen und keine neue Originalquelle aufgenommen.
 """
 from datetime import datetime, timezone
+from contextlib import nullcontext
 import hashlib
 import json
 from fastapi import HTTPException
@@ -113,41 +114,44 @@ class SavedMailWorkflow:
         return 'ready' if cached and cached.get('fingerprint') == snapshot[2] else 'unprepared'
     def visible(self, identifier):
         with self.state.conversation_lock:
-            source, context, timing, stamp = self._snapshot(identifier)
-            cache = self.state.workspace_views.get(CACHE,_key(identifier))['data']
-            ready = cache is not None and cache['fingerprint']==stamp
-            items=[]
-            for proposal in _SourceProposals(self.state.proposals,identifier).pending(ProposalKind.TASK):
-                if (len(proposal.evidence)!=1 or proposal.evidence[0].episode_id!=identifier
-                        or proposal.evidence[0].digest!=source.digest
-                        or proposal.evidence[0].quote not in source.body
-                        or not task_context_matches(proposal,self.state.episodes)
-                        or self.state.tasks.get(f't-suggestion-{proposal.id}') is not None):
-                    continue
-                items.append({**proposal.to_dict(),'project_suggestion':self._hints().visible(proposal),
-                              'project_preparation_status':self._project_preparation(proposal),
-                              'review_required':timing['temporal_status']!='recent' or proposal.task_context is None
-                                  or not proposal.proposed_by.endswith(REVIEW_MARKER)})
-            project_status = ('unprepared' if any(item['project_preparation_status']=='unprepared' for item in items)
-                              else 'ready' if any(item['project_preparation_status']=='ready' for item in items) else 'not_needed')
-            return {'project_preparation_status':project_status,
-                    'project_preparation_detail':'Projektvorschläge fehlen noch oder müssen nach einer Änderung erneut geprüft werden.'
-                        if project_status=='unprepared' else 'Projektzuordnung lokal geprüft; eine eindeutige Zuordnung kann fehlen.'
-                        if project_status=='ready' else 'Keine weitere Projektprüfung erforderlich.',
-                    'episode_id':identifier,'source_digest':source.digest,'fingerprint':stamp,
-                    **timing,'status':cache['status'] if ready else 'unprepared',
-                    'quotes':cache['quotes'] if ready else [],'items':items[:32],
-                    'projects':[{'id':p.id,'name':p.name} for p in self.state.workspace.projects() if p.is_open()],
-                    'detail':'Ausgewählte Originalpassagen. Bitten sind Prüfhinweise; heutige Erledigung und Zuständigkeit bleiben zu prüfen.'
-                             if ready else 'Noch kein kurzer Überblick vorbereitet. Diese einzelne Quelle kann lokal geprüft werden.'}
+            return self._visible_locked(identifier)
+    def _visible_locked(self, identifier):
+        """Nur für Aufrufer, die den nicht-reentranten Gesprächslock bereits halten."""
+        source, context, timing, stamp = self._snapshot(identifier)
+        cache = self.state.workspace_views.get(CACHE,_key(identifier))['data']
+        ready = cache is not None and cache['fingerprint']==stamp
+        items=[]
+        for proposal in _SourceProposals(self.state.proposals,identifier).pending(ProposalKind.TASK):
+            if (len(proposal.evidence)!=1 or proposal.evidence[0].episode_id!=identifier
+                    or proposal.evidence[0].digest!=source.digest
+                    or proposal.evidence[0].quote not in source.body
+                    or not task_context_matches(proposal,self.state.episodes)
+                    or self.state.tasks.get(f't-suggestion-{proposal.id}') is not None):
+                continue
+            items.append({**proposal.to_dict(),'project_suggestion':self._hints().visible(proposal),
+                          'project_preparation_status':self._project_preparation(proposal),
+                          'review_required':timing['temporal_status']!='recent' or proposal.task_context is None
+                              or not proposal.proposed_by.endswith(REVIEW_MARKER)})
+        project_status = ('unprepared' if any(item['project_preparation_status']=='unprepared' for item in items)
+                          else 'ready' if any(item['project_preparation_status']=='ready' for item in items) else 'not_needed')
+        return {'project_preparation_status':project_status,
+                'project_preparation_detail':'Projektvorschläge fehlen noch oder müssen nach einer Änderung erneut geprüft werden.'
+                    if project_status=='unprepared' else 'Projektzuordnung lokal geprüft; eine eindeutige Zuordnung kann fehlen.'
+                    if project_status=='ready' else 'Keine weitere Projektprüfung erforderlich.',
+                'episode_id':identifier,'source_digest':source.digest,'fingerprint':stamp,
+                **timing,'status':cache['status'] if ready else 'unprepared',
+                'quotes':cache['quotes'] if ready else [],'items':items[:32],
+                'projects':[{'id':p.id,'name':p.name} for p in self.state.workspace.projects() if p.is_open()],
+                'detail':'Ausgewählte Originalpassagen. Bitten sind Prüfhinweise; heutige Erledigung und Zuständigkeit bleiben zu prüfen.'
+                         if ready else 'Noch kein kurzer Überblick vorbereitet. Diese einzelne Quelle kann lokal geprüft werden.'}
     def prepare(self, identifier, provider, *, permitted=lambda:True):
         with self.state.conversation_lock:
             source, context, timing, stamp=self._snapshot(identifier)
             previous=self.state.workspace_views.get(CACHE,_key(identifier))
             source_ready = bool(previous['data'] and previous['data']['fingerprint']==stamp)
             if source_ready and (previous['data']['status']=='incomplete'
-                                 or self.visible(identifier)['project_preparation_status']!='unprepared'):
-                return self.visible(identifier)
+                                 or self._visible_locked(identifier)['project_preparation_status']!='unprepared'):
+                return self._visible_locked(identifier)
             if not permitted():
                 raise HTTPException(409,'Die Freigabe wurde geändert.')
         if provider is None or not getattr(provider,'is_local',False):
@@ -194,7 +198,7 @@ class SavedMailWorkflow:
                 if not source_ready:
                     self.state.workspace_views.put(CACHE,_key(identifier),{'fingerprint':stamp,'source_digest':source.digest,
                         'quotes':quotes,'status':'incomplete' if incomplete else 'ready'},previous['revision'])
-                result=self.visible(identifier)
+                result=self._visible_locked(identifier)
                 if not incomplete and result['project_preparation_status']=='unprepared':
                     result.update(project_preparation_status='unavailable',
                         project_preparation_detail='Projektvorschläge konnten noch nicht vollständig vorbereitet werden. Bitte ausdrücklich erneut versuchen.')
@@ -202,7 +206,7 @@ class SavedMailWorkflow:
         except ProviderError:
             with self.state.conversation_lock:
                 if not permitted(): raise HTTPException(409,'Die Modellfreigabe wurde geändert.') from None
-                result=self.visible(identifier)
+                result=self._visible_locked(identifier)
                 return {**result,'status':result['status'] if source_ready else 'unavailable',
                         'project_preparation_status':'unavailable' if source_ready else result['project_preparation_status'],
                         'project_preparation_detail':'Die lokale Projektprüfung konnte nicht abgeschlossen werden. Bitte erneut versuchen.',
@@ -217,8 +221,10 @@ class SavedMailWorkflow:
                 source,_,_,stamp=self._snapshot(identifier)
                 if stamp!=body.fingerprint or source.digest!=body.source_digest:
                     raise ProposalError('Die Quelle oder ihr Prüfkontext wurde geändert. Bitte neu laden.')
+            # Der echte globale Lock bleibt vom Fingerprintcheck bis zum Schreiben gehalten.
+            # TaskCandidates delegiert innerhalb dieses Scopes ohne zweiten Lock-Erwerb.
             return TaskCandidates(self.state.episodes,self.state.proposals,self.state.tasks,self.state.workspace,
-                                  self.state.conversation_lock).accept(proposal_id,title=body.title,
+                                  nullcontext()).accept(proposal_id,title=body.title,
                 project_id=body.project_id,new_project_name=body.new_project_name,due=body.due,waiting_for=body.waiting_for).to_dict()
 
 
