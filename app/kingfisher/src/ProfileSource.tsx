@@ -130,7 +130,7 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
       {data.provenance?.source_type === "manual_correction" ? <p>Herkunft: Deine Berichtigung</p> : data.provenance?.source_ref ? <p>Herkunft: {data.provenance.source_type === "chat" ? "Dein Gespräch mit Kingfisher" : data.provenance.source_ref}</p> : null}
     </details>
   </> : null;
-  return <div className="task-source">
+  return <div className="task-source" data-memory-loading={open && !data && !error}>
     <button className={quiet ? "quiet-source-toggle" : "secondary-action"} type="button" aria-expanded={open} disabled={changing} onClick={() => setOpen(value => !value)}>{open ? "Inhalt schließen" : label}</button>
     {open && <section aria-label="Profilquelle">
       {!data && !error && <p role="status">Inhalt wird geladen …</p>}

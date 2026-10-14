@@ -1,6 +1,6 @@
+import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useState } from "react";
 import { api, type RegistryProfile, type IdentitySource } from "./api";
-import { navigate } from "./ui";
 
 export function IdentityControls({data, onChanged}: {data: RegistryProfile; onChanged: () => void}) {
   const [editing, setEditing] = useState(false);
@@ -22,7 +22,7 @@ export function IdentityControls({data, onChanged}: {data: RegistryProfile; onCh
       <button className="primary-action" disabled={busy || !name.trim()} type="submit">Name speichern</button>
       <button className="secondary-action" disabled={busy} type="button" onClick={() => setEditing(false)}>Abbrechen</button>
     </form>}
-    {data.same_name_entities.length > 0 && <div><h3>Weitere Einträge mit diesem Namen</h3><p>Dies sind eigenständige Identitäten. Öffne einen Eintrag zum Vergleich.</p>{data.same_name_entities.map(entity => <p key={entity.id}><a href={`/memory/registry/${encodeURIComponent(entity.id)}`} onClick={event => {event.preventDefault();navigate(`/memory/registry/${encodeURIComponent(entity.id)}`);}}>{entity.label} · {entity.id.slice(-8)}</a></p>)}</div>}
+    {data.same_name_entities.length > 0 && <div><h3>Weitere Einträge mit diesem Namen</h3><p>Dies sind eigenständige Identitäten. Öffne einen Eintrag zum Vergleich.</p>{data.same_name_entities.map(entity => <p key={entity.id}><MemoryEntityLink href={`/memory/registry/${encodeURIComponent(entity.id)}`}>{entity.label} · {entity.id.slice(-8)}</MemoryEntityLink></p>)}</div>}
     <h3>Verknüpfte Quellenkennungen</h3>
     {data.sources.length === 0 && <p>Keine Quellenkennung ausdrücklich zugeordnet.</p>}
     {data.sources.map(source => <div className="identity-source" key={JSON.stringify(source)}><p>{source.source} · {source.account} · {source.native_id}</p><button className="secondary-action" disabled={busy} type="button" onClick={() => setRemoving(source)}>Zuordnung lösen</button></div>)}

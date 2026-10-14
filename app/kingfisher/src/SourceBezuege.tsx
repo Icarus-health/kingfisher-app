@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type QuellenBezuege } from "./api";
-import { navigate } from "./ui";
+import {MemoryEntityLink} from "./MemoryEntityLink";
 
 const GRUNDLAGE: Record<string, string> = { anker: "aus Adresse oder Zuordnung", modell: "im Text erkannt", nutzer: "von dir" };
 
@@ -39,7 +39,7 @@ export function SourceBezuege({ id, readOnly = false }: { id: string; readOnly?:
     {fehler ? <p role="alert">Die Änderung konnte nicht gespeichert werden.</p> : null}
     {leer ? <p>{data.berechnet ? "Zu dieser Quelle ist noch nichts zugeordnet." : "Wird noch berechnet …"}</p> : null}
     {data.bezuege.length ? <ul>{data.bezuege.map(bezug => <li key={bezug.sache}>
-      <button type="button" className="text-action" onClick={() => navigate(`/memory/akte/${encodeURIComponent(bezug.sache)}`)}>{bezug.name}</button>
+      <MemoryEntityLink className="text-action" href={`/memory/akte/${encodeURIComponent(bezug.sache)}`}>{bezug.name}</MemoryEntityLink>
       {" · "}{bezug.art_text} · {bezug.grundlagen.map(g => GRUNDLAGE[g] ?? g).join(", ")}
       {bezug.zitate.map((zitat, index) => <blockquote key={index}>{zitat}</blockquote>)}
       {!readOnly ? <>{" "}<button type="button" className="text-action" disabled={beschaeftigt} onClick={() => void aendern(() => api.bezugSetzen(id, bezug.sache, "nicht"))}>Gehört nicht dazu</button></> : null}

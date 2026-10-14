@@ -1,3 +1,4 @@
+import {memoryProfileHref} from "./MemoryViewState";
 import { useEffect, useState } from "react";
 
 import { ApiError, api, type GraphNode, type MemoryGraph, type PersonMerge, type PersonMergePreview } from "./api";
@@ -11,8 +12,8 @@ import "./PeopleReview.css";
 
 function openPerson(node: GraphNode) {
   if (node.attributes.identity_resolution === "confirmed_group") navigate("/memory?people=review");
-  else if (node.attributes.identity_resolution === "explicit_registry") navigate(`/memory/registry/${encodeURIComponent(node.id)}`);
-  else navigate(`/memory/people/${encodeURIComponent(node.label)}?source_node=${encodeURIComponent(node.id)}`);
+  else if (node.attributes.identity_resolution === "explicit_registry") navigate(memoryProfileHref(`/memory/registry/${encodeURIComponent(node.id)}`));
+  else navigate(memoryProfileHref(`/memory/people/${encodeURIComponent(node.label)}?source_node=${encodeURIComponent(node.id)}`));
 }
 
 function MergeCandidate({ members, onChanged }: { members: GraphNode[]; onChanged: () => Promise<void> }) {

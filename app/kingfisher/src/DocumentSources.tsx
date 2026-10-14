@@ -1,3 +1,4 @@
+import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { SourceFolderAssignment } from "./MemoryFolders";
@@ -45,7 +46,7 @@ export function DocumentSources() {
       {item.memory_status && <p role="status">{item.memory_status.label}</p>}
       <ProfileSource kind="episode" id={item.id} allowIgnore={false} onChange={() => setRevision(value => value + 1)} />
       <SourceFolderAssignment sourceId={canonicalSourceId(item.id)} />
-      {item.project_id && <p><a href={`/memory/projects/${encodeURIComponent(item.project_id)}`}>Projektakte öffnen</a></p>}
+      {item.project_id && <p><MemoryEntityLink kind="project" href={`/memory/projects/${encodeURIComponent(item.project_id)}`}>Projektakte öffnen</MemoryEntityLink></p>}
       {item.state !== "ignored" && <button className="secondary-action" type="button" disabled={busy} onClick={() => setSelected(item.id)}>Quelle ausschließen</button>}
       {selected === item.id && <div role="group" aria-label="Quelle ausschließen"><p>Diese Quelle wird nicht weiter als Beleg verwendet. Daraus bestätigtes und davon abhängiges Wissen wird als fraglich markiert. Der gespeicherte Inhalt bleibt im Verlauf erhalten.</p>
         <button type="button" className="primary-action" disabled={busy} onClick={() => void ignore(item.id)}>Ausschluss bestätigen</button>
