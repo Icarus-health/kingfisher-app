@@ -176,7 +176,10 @@ class CalendarCollection:
                     label = (f"{source.label} · {event.source_label}"
                              if source.id == 'mac-calendar' and event.source_label else source.label)
                     events.append(replace(event, uid=f"{source.id}:{event.uid}",
-                                          source_id=source.id, source_label=label, source_copies=[]))
+                                          source_id=source.id, source_label=label, source_copies=[],
+                                          view_source_id=(f'{source.id}:{event.source_id}'
+                                                          if source.id == 'mac-calendar' and event.source_id
+                                                          else event.view_source_id)))
             except Exception as exc:  # partial failures must not hide other calendars
                 self.last_errors[source.id] = str(exc)
         if not events and self.last_errors and len(self.last_errors) == len(self._sources):
@@ -215,7 +218,8 @@ def _mirror_copies(events: list[Event]) -> list[Event]:
             result.append(group[0]); continue
         # Existing connected-feed assignments survive adding a Mac mirror.
         primary = next((e for e in group if e.source_id != 'mac-calendar'), group[0])
-        copies = [dict(uid=e.uid, source_id=e.source_id, source_label=e.source_label) for e in group]
+        copies = [dict(uid=e.uid, source_id=e.source_id, source_label=e.source_label,
+                       view_source_id=e.view_source_id or e.source_id) for e in group]
         result.append(replace(primary, source_copies=copies))
     return result
 

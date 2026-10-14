@@ -1,12 +1,12 @@
 type TimedEvent = { start?: string | null; end?: string | null };
 
-export function findCalendarEvent<T extends TimedEvent & {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string}>}>(items: T[], uid: string, start?: string | null): T | null {
+export function findCalendarEvent<T extends TimedEvent & {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>}>(items: T[], uid: string, start?: string | null): T | null {
   const stamp = start ? new Date(start).getTime() : null;
   const matches = items.flatMap(item => {
     if (stamp !== null && !(item.start && new Date(item.start).getTime() === stamp)) return [];
     if (item.uid === uid) return [item];
     const copy = item.source_copies?.find(copy => copy.uid === uid);
-    return copy ? [{...item, ...copy}] : [];
+    return copy ? [{...item, ...copy, view_source_id:copy.view_source_id??copy.source_id}] : [];
   });
   return matches.length === 1 ? matches[0] : null;
 }
@@ -53,6 +53,6 @@ export function preparationView<T extends string>(view: T, at: Date | null, toda
 }
 
 /** Preserve the source-specific destination for each action on a proven copy. */
-export function calendarSourceVersions<T extends {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string}>}>(item: T): T[] {
-  return item.source_copies?.length ? item.source_copies.map(copy => ({...item, ...copy})) : [item];
+export function calendarSourceVersions<T extends {uid: string; source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>}>(item: T): T[] {
+  return item.source_copies?.length ? item.source_copies.map(copy => ({...item, ...copy, view_source_id:copy.view_source_id??copy.source_id})) : [item];
 }

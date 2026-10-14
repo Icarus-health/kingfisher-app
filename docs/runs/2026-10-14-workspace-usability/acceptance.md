@@ -33,3 +33,9 @@ Mac-Sicherung, normaler Updateweg und abschließende Prüfung der installierten 
 ## Veröffentlichungskorrektur
 
 Der erste Release-Lauf für 1.0.9 wurde nach über 20 Minuten ohne Abschluss von `linux/arm64 ui-build npm ci` kontrolliert beendet. Es wurde keine unvollständige Fassung installiert. Der statische UI-Build verwendet in 1.0.10 `BUILDPLATFORM`; nur HTML/CSS/JavaScript werden in beide Zielbilder kopiert. Python-Build und Laufzeit bleiben auf ihrer jeweiligen Zielarchitektur. Grundlage: https://docs.docker.com/build/building/multi-platform/#cross-compilation.
+
+## Korrektur aus dem echten Mac-Fenstertest
+
+1.0.10 wurde über den normalen Knopf installiert: 18 Datenbanken intakt, 16 Bestandstabellen unverändert, Zugänge erhalten, Onlineansichten aus. Entwurf/Shift+Enter/Wechsel im nativen Fenster geprüft, Prüfentwurf anschließend entfernt. Die echte Kalenderansicht zeigte einen neuen Filterfehler: mehrere physische Mac-Kalender wurden durch die Elternkennung gemeinsam gefiltert. 1.0.11 ergänzt dafür eine separate Anzeigekennung und die Namen ausgewählter Kalender auch ohne aktuelle Termine; Provideridentität, Termin-UID und Kopienregeln bleiben unverändert. 20 gezielte UI- und 48 Backendprüfungen sowie Produktionsbuild bestanden. Die finale Filterprüfung folgt nach Installation von 1.0.11.
+
+Finaler vollständiger UI-Lauf für die Kalenderkorrektur: 653 bestanden, keine fehlgeschlagen; TypeScript und Produktionsbuild bestanden. Die gezielte Backendprüfung umfasst weiterhin 48 bestandene Prüfungen.

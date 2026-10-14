@@ -28,6 +28,21 @@ def test_mac_and_ical_copy_are_one_visible_event_with_both_original_refs():
     assert {c['uid'] for c in record['source_copies']}=={'mac-calendar:opaque-local','ical:provider-uid'}
     assert mac.uid=='opaque-local' and ical.uid=='provider-uid'  # no reader-cache mutation
 
+def test_physical_mac_calendars_keep_additive_view_identity_without_changing_action_sources():
+    private=replace(event('private','private-external'),source_id='physical-private',source_label='Privat')
+    work=replace(event('work'),source_id='physical-work',source_label='Arbeit')
+    google=event('remote')
+    result=collection(('mac-calendar',[private,work]),('google',[google])).events()
+    records=[e.to_dict() for e in result]
+    private_record=next(row for row in records if row['uid']=='mac-calendar:private')
+    assert private_record['source_id']=='mac-calendar'
+    assert private_record['view_source_id']=='mac-calendar:physical-private'
+    mirror=next(row for row in records if row['uid']=='google:remote')
+    assert mirror['source_id']=='google'
+    assert {(copy['uid'],copy['source_id'],copy['view_source_id']) for copy in mirror['source_copies']}=={
+        ('mac-calendar:work','mac-calendar','mac-calendar:physical-work'),('google:remote','google','google')}
+    assert private.source_id=='physical-private' and work.source_id=='physical-work'
+
 
 def test_similar_title_and_time_without_shared_external_id_stays_separate():
     assert len(collection(('a',[event('a','first')]),('b',[event('b','second')])).events())==2
