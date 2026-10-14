@@ -15,7 +15,6 @@ import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
 import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
 import { MemoryFolders } from "./MemoryFolders";
-import { folderSourcesFromGraph } from "./WorkspaceMemoryModel";
 import { MemorySearch } from "./MemorySearch";
 import "./MemoryWorkspace.css";
 
@@ -233,7 +232,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
-      <main data-memory-loading={!graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
+      <main data-memory-loading={filter !== "documents" && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
           <p>GEDÄCHTNIS</p>
           <div>
@@ -263,7 +262,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
             <a href="/settings#ki">KI-Zugänge & Modelle</a>
           </div></details>
         </aside>
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" && graph && <MemoryFolders sources={folderSourcesFromGraph(graph)} />}<MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} documents={filter === "documents"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} /></div> : error ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <p>Das Gedächtnis ist gerade nicht erreichbar.</p>
             <button onClick={load} type="button">Wiederholen</button>

@@ -16,6 +16,7 @@ const {MemoryFolders}=await server.ssrLoadModule('/src/MemoryFolders.tsx');
 const {OrganisationGroups}=await server.ssrLoadModule('/src/OrganisationGroups.tsx');
 const {MemoryPlaces}=await server.ssrLoadModule('/src/MemoryPlaces.tsx');
 const {workspaceViewApi}=await server.ssrLoadModule('/src/workspaceViewApi.ts');
+const {workspaceDocumentsApi}=await server.ssrLoadModule('/src/workspaceDocumentsApi.ts');
 
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children].flat(30).forEach(c=>nodes(c,p,out));return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(30).map(text).join(''):String(n);}
@@ -55,8 +56,9 @@ test('scroll restoration waits for current list data then restores the selected 
 test('malformed transient navigation is ignored and never sent as an API cursor',()=>environment('/memory?tab=areas',async({target})=>{for(const navigation of [{cursor:Infinity,history:[undefined,Infinity],index:1},{cursor:10,history:[undefined,20],index:1},{cursor:0,history:[0],index:-1}]){target.history.state={kingfisherMemoryView:{path:'/memory?tab=areas',area:{view:'work',navigation,selected:['one']}}};assert.equal(readMemoryViewPosition(),null);}target.history.state={kingfisherMemoryView:{path:'https://evil.test',scroll:{x:0,y:0,page:0,directory:0}}};assert.equal(readMemoryViewPosition(),null);}));
 
 const overview={folders:[{id:'folder-one',revision:4,data:{name:'Current folder',parent_id:null}}],source_folders:[],organisation_groups:[],places:[],avatars:[],online:{logos:false,maps:false},online_revision:0};
+function documentPage(overrides={}) {return {items:[{id:'episode:one',kind:'episode',title:'Current source',preview:'Current preview',project_id:'project-one',project_name:'Current project',project_area:'project-area',source_areas:['work'],folder_id:'folder-one',source_folder_revision:2,revision:null}],total:1,limit:25,offset:0,has_more:false,options:{folders:overview.folders,projects:[{id:'project-one',name:'Current project',status:'active'}],source_areas:[{id:'work',label:'Arbeit & Projekte'}],project_areas:['project-area']},...overrides};}
 test('document folder, stable project and both area filters restore as presentation only with fresh metadata',()=>environment('/memory?tab=documents&q=Report&page=2',async()=>{
- const old=workspaceViewApi.overview,previousFetch=globalThis.fetch;workspaceViewApi.overview=async()=>overview;globalThis.fetch=async()=>new Response(JSON.stringify({areas:{one:['work']}}),{status:200});rememberMemoryPresentation('folders',{selected:'folder-one',project:'project-one',area:'project-area',sourceArea:'work',sourceListOpen:true});navigate(memoryProfileHref('/memory/akte/person%3Ap'));navigate('/memory?tab=documents&q=Report&page=2');const d=driver(()=>MemoryFolders({sources:[{id:'episode:one',title:'Current source',kind:'episode',project:'project-one',projectName:'Current project',areas:['project-area']}]}));try{const tree=await tick(d);const selects=nodes(tree,n=>n.type==='select');assert.equal(selects[0].props.value,'project-one');assert.equal(selects[1].props.value,'work');assert.equal(selects[2].props.value,'project-area');assert.match(text(tree),/Geöffnet: Current folder/);assert.equal(nodes(tree,n=>n.type==='details'&&text(n.props.children[0]).startsWith('Quellenvorschau'))[0].props.open,true);assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Ordner bestätigen').length,0);}finally{d.close();workspaceViewApi.overview=old;globalThis.fetch=previousFetch;}
+ const old=workspaceDocumentsApi.page;const reads=[];workspaceDocumentsApi.page=async query=>{reads.push(query);return documentPage({offset:25,total:26});};rememberMemoryPresentation('folders',{selected:'folder-one',project:'project-one',area:'project-area',sourceArea:'work',sourceListOpen:true,q:'Report',offset:25,limit:25});navigate(memoryProfileHref('/memory/akte/person%3Ap'));navigate('/memory?tab=documents&q=Report&page=2');const d=driver(()=>MemoryFolders());try{const tree=await tick(d);const selects=nodes(tree,n=>n.type==='select');assert.equal(selects[0].props.value,'project-one');assert.equal(selects[1].props.value,'work');assert.equal(selects[2].props.value,'project-area');assert.match(text(tree),/Geöffnet: Current folder/);assert.equal(nodes(tree,n=>n.type==='details'&&text(n.props.children[0]).startsWith('Dokumente und Notizen'))[0].props.open,true);assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Ordner bestätigen').length,0);assert.equal(reads[0].offset,25);assert.equal(reads[0].q,'Report');}finally{d.close();workspaceDocumentsApi.page=old;}
 }));
 test('organisation selection and user group draft survive profile return without restoring a save preview',()=>environment('/memory?tab=organizations&page=2',async()=>{
  const old=workspaceViewApi.overview;workspaceViewApi.overview=async()=>overview;rememberMemoryPresentation('organisations',{members:['organisation:a','organisation:b'],name:'Own draft',editing:null});navigate(memoryProfileHref('/memory/akte/organisation%3Aa'));navigate('/memory?tab=organizations&page=2');const d=driver(()=>OrganisationGroups({entries:[{id:'organisation:a',name:'Current A'},{id:'organisation:b',name:'Current B'}]}));try{const tree=await tick(d);assert.equal(nodes(tree,n=>n.type==='input'&&n.props.type!=='checkbox')[0].props.value,'Own draft');assert.ok(nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox').every(n=>n.props.checked));assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Gruppierung bestätigen').length,0);assert.equal(JSON.stringify(readMemoryViewPosition()).includes('revision'),false);}finally{d.close();workspaceViewApi.overview=old;}
@@ -67,36 +69,33 @@ test('place selection survives return and reloads current coordinates and revisi
 
 test('history carrier discards extra response/body fields and never restores old save preview data',()=>environment('/memory?tab=areas',async({target})=>{target.history.state={kingfisherMemoryView:{path:'/memory?tab=areas',body:'old source',preview:{revision:'old'},place:{selected:'ort:one',lat:48,lng:7,revision:5},area:{view:'work',navigation:{cursor:undefined,history:[undefined],index:0},selected:['one'],response:{sources:[]}}}};assert.deepEqual(Object.keys(readMemoryViewPosition()).sort(),['area','path','place']);assert.deepEqual(readMemoryViewPosition().place,{selected:'ort:one'});navigate(memoryProfileHref('/memory/akte/person%3Ap'));assert.doesNotMatch(JSON.stringify(target.history.state),/old source|old.*revision|response|lat|lng/);}));
 
-test('document scroll waits for delayed folder metadata and source areas after graph readiness',()=>environment('/memory?tab=documents',async({target})=>{
- const oldOverview=workspaceViewApi.overview,oldFetch=globalThis.fetch,oldObserver=globalThis.MutationObserver;
- let finishFolders,finishAreas,mutation,frame,disconnected=0;
- workspaceViewApi.overview=()=>new Promise(resolve=>{finishFolders=resolve;});
- globalThis.fetch=url=>{assert.equal(url,'/api/v1/workspace-source-areas');return new Promise(resolve=>{finishAreas=resolve;});};
+test('document scroll waits for the current server page and restores its source anchor',()=>environment('/memory?tab=documents',async({target})=>{
+ const oldPage=workspaceDocumentsApi.page,oldObserver=globalThis.MutationObserver;
+ let finishPage,mutation,frame,disconnected=0;
+ workspaceDocumentsApi.page=()=>new Promise(resolve=>{finishPage=resolve;});
  globalThis.MutationObserver=class{constructor(fn){mutation=fn;}observe(){}disconnect(){disconnected++;}};
  target.requestAnimationFrame=fn=>{frame=fn;return 1;};target.cancelAnimationFrame=()=>{frame=null;};target.scrollTo=(x,y)=>{target.scrollX=x;target.scrollY=y;};
- target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:'folder-one',project:'',area:'',sourceArea:'work',sourceListOpen:true},scroll:{x:0,y:0,page:600,directory:0,anchor:{id:'episode:one',offset:40}}}};
- const d=driver(()=>MemoryFolders({sources:[{id:'episode:one',title:'Current source',kind:'episode'}]}));let tree=d.render();d.flush();
+ target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:'folder-one',project:'',area:'',sourceArea:'work',sourceListOpen:true,q:'',offset:25,limit:25},scroll:{x:0,y:0,page:600,directory:0,anchor:{id:'episode:one',offset:40}}}};
+ const d=driver(()=>MemoryFolders());let tree=d.render();d.flush();
  const root={scrollTop:0,scrollHeight:300,clientHeight:300,matches:()=>false,
   querySelector:selector=>selector==='[data-memory-loading="true"]'&&tree.props['data-memory-loading']?{}:null,
   querySelectorAll:()=>nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').map(()=>({dataset:{memoryRow:'episode:one'},getBoundingClientRect:()=>({top:700-root.scrollTop})}))};let stop;
  try{
-  stop=restoreMemoryScroll(root);frame();assert.equal(disconnected,0,'graph readiness alone must not finish restoration before metadata');assert.equal(root.scrollTop,0);
-  finishFolders({...overview,source_folders:[{id:'episode:one',revision:2,data:{folder_id:'folder-one'}}]});tree=await tick(d);mutation();frame();assert.equal(disconnected,0,'folder metadata alone must not finish while area membership is pending');assert.equal(nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').length,0);
-  finishAreas(new Response(JSON.stringify({areas:{one:['work']}}),{status:200}));tree=await tick(d);root.scrollHeight=1200;mutation();frame();assert.equal(nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').length,1);assert.equal(root.scrollTop,660,'late source row restores the original visible anchor after both responses');assert.equal(disconnected,1,'restoration finishes only after the folder/source rows are ready');
- }finally{stop?.();d.close();workspaceViewApi.overview=oldOverview;globalThis.fetch=oldFetch;globalThis.MutationObserver=oldObserver;}
+  stop=restoreMemoryScroll(root);frame();assert.equal(disconnected,0,'restoration must wait for current full-source page');assert.equal(root.scrollTop,0);
+  finishPage(documentPage({offset:25,total:26}));tree=await tick(d);root.scrollHeight=1200;mutation();frame();assert.equal(nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').length,1);assert.equal(root.scrollTop,660,'current page source restores original anchor');assert.equal(disconnected,1);
+ }finally{stop?.();d.close();workspaceDocumentsApi.page=oldPage;globalThis.MutationObserver=oldObserver;}
 }));
 
-test('document loading barrier covers metadata refresh and changed source queries, then releases on terminal errors',()=>environment('/memory?tab=documents',async({target})=>{
- const oldOverview=workspaceViewApi.overview,oldFetch=globalThis.fetch;let metadataReads=0,areaReads=0,rejectMetadata,rejectAreas;
- workspaceViewApi.overview=()=>++metadataReads===1?Promise.resolve(overview):new Promise((_resolve,reject)=>{rejectMetadata=reject;});
- globalThis.fetch=()=>++areaReads===1?Promise.resolve(new Response(JSON.stringify({areas:{one:['work']}}),{status:200})):new Promise((_resolve,reject)=>{rejectAreas=reject;});
- let props={sources:[{id:'episode:one',title:'One',kind:'episode'}]};const d=driver(()=>MemoryFolders(props));
+test('document loading barrier covers server refresh and changed filters, then releases on terminal errors',()=>environment('/memory?tab=documents',async({target})=>{
+ const oldPage=workspaceDocumentsApi.page;let reads=0,rejectPage;
+ workspaceDocumentsApi.page=()=>++reads===1?Promise.resolve(documentPage()):new Promise((_resolve,reject)=>{rejectPage=reject;});
+ const d=driver(()=>MemoryFolders());
  try{
   let tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);
-  target.dispatchEvent(new Event('workspace-view-changed'));tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'pending refresh is relevant even with a prior overview');
-  rejectMetadata(Error('metadata unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Ordneransicht nicht erreichbar/);
-  props={sources:[{id:'episode:two',title:'Two',kind:'episode'}]};tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'changed source IDs are pending before their passive effect starts');d.flush();rejectAreas(Error('areas unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Bereiche konnten nicht geladen werden/);
- }finally{d.close();workspaceViewApi.overview=oldOverview;globalThis.fetch=oldFetch;}
+  target.dispatchEvent(new Event('workspace-view-changed'));tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'pending source refresh must delay scroll restoration');d.flush();
+  rejectPage(Error('unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Dokumentablage nicht erreichbar/);assert.equal(nodes(tree,n=>n.props?.['data-memory-row']).length,0);
+  nodes(tree,n=>n.type==='input'&&n.props.type==='search')[0].props.onChange({target:{value:'new query'}});tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'changed filter is pending before its passive effect starts');d.flush();rejectPage(Error('unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Dokumentablage nicht erreichbar/);
+ }finally{d.close();workspaceDocumentsApi.page=oldPage;}
 }));
 
 test('window scrolling captures the first viewport-visible row and keeps its negative top on profile return',()=>environment('/memory?tab=areas',async({target})=>{
