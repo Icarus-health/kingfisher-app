@@ -6,6 +6,7 @@ import { eingabenMelden } from "./aktivitaet";
 import "./theme.css";
 import "./styles.css";
 import "./CalmUI.css";
+import "./Workspace.css";
 // Zuletzt: die Breitenregeln für alle Seiten (keine Seite breiter als das Fenster).
 import "./Seitenbreite.css";
 

@@ -7,10 +7,10 @@ import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } fro
 const PAGE_SIZE = 25;
 type TemporalFilter = TaskTemporalFilter;
 type PresentedTaskPage = TaskCandidatePage & {temporal: TemporalFilter};
-type SuggestionDraft = {open: boolean; title: string; project: string; due: string; waiting: string};
+type SuggestionDraft = {open: boolean; title: string; project: string; newProject: string; due: string; waiting: string};
 
 function initialDraft(item: TaskCandidate): SuggestionDraft {
-  return {open: false, title: item.statement, project: "",
+  return {open: false, title: item.statement, project: item.project_suggestion?.project_id ?? "", newProject: item.project_suggestion?.new_project_name ?? "",
     due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : "", waiting: ""};
 }
 
@@ -21,6 +21,7 @@ export function TaskSuggestions({projects, onAccepted, initiallyExpanded = false
   const [loading, setLoading] = useState(false);
   const [revision, setRevision] = useState(0);
   const [expanded, setExpanded] = useState(initiallyExpanded);
+  useEffect(()=>{if(initiallyExpanded) setExpanded(true);},[initiallyExpanded]);
   const [notice, setNotice] = useState("");
   const [offset, setOffset] = useState(0);
   const [temporal, setTemporal] = useState<TemporalFilter>("all");
@@ -105,7 +106,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskC
     setBusy(true); setError("");
     try {
       if (accept) {
-        const task = await api.acceptTaskCandidate(item.id, {title: draft.title.trim(), project_id: draft.project || null,
+        const task = await api.acceptTaskCandidate(item.id, {title: draft.title.trim(), project_id: draft.project || null, new_project_name: draft.newProject.trim() || null,
           due: candidateDeadline(item, draft.due), waiting_for: draft.waiting.trim() || null});
         onDone(task);
       } else { await api.rejectTaskCandidate(item.id); onDone(); }
@@ -116,17 +117,20 @@ function Suggestion({item, draft, onDraftChange, projects, onDone}: {item: TaskC
     } finally {setBusy(false);}
   }
   return <article className="mail-task-form">
-    <h3>{item.statement}</h3>
+    <h3>{draft.title}</h3>
+    <p>Übernahme: {draft.newProject ? `Neues Projekt „${draft.newProject}“` : draft.project ? `Projekt „${projects.find(p=>p.id===draft.project)?.name ?? 'nicht verfügbar'}“` : 'Ohne Projekt'}
+      {' · '}{draft.due ? `Frist ${draft.due}` : 'Ohne Frist'}{draft.waiting && ` · Warte auf ${draft.waiting}`}</p>
     <p>{item.temporal_reason || 'Zeitliche Einordnung bitte prüfen.'}</p>
     <p>Quelldatum: {item.received_at ? new Date(item.received_at).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}) : 'unbekannt'}
       {item.recorded_at && <> · Erfasst: {new Date(item.recorded_at).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'})}</>}</p>
     {item.followup_episode_id && <div><p>Weitere Nachricht im Verlauf:</p><ProfileSource kind="episode" id={item.followup_episode_id} allowIgnore={false} /></div>}
     {item.evidence.map(evidence => <div key={evidence.episode_id}><blockquote>{evidence.quote}</blockquote><ProfileSource kind="episode" id={evidence.episode_id} allowIgnore={false} /></div>)}
-    {!draft.open ? <div><button className="secondary-action" type="button" onClick={() => onDraftChange({open: true})}>Aufgabe prüfen</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void save(false)}>Verwerfen</button></div> :
+    {item.project_suggestion && <p className="workspace-project-hint">Projektvorschlag: <strong>{item.project_suggestion.name}</strong> · {item.project_suggestion.reason}</p>}
+    {!draft.open ? <div className="task-suggestion-actions"><button className="primary-action" type="button" disabled={busy} onClick={()=>void save(true)}>Aufgabe{draft.project || draft.newProject ? " und Projekt" : ""} übernehmen</button><button className="secondary-action" type="button" onClick={() => onDraftChange({open: true})}>Ändern</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void save(false)}>Verwerfen</button></div> :
       <form onSubmit={event => {event.preventDefault(); void save(true);}}>
         <fieldset className="task-suggestion-fields" disabled={busy}><label>Aufgabe<input value={draft.title} onChange={event => onDraftChange({title: event.target.value})} required maxLength={4096} /></label>
-          <div className="mail-task-form-fields"><label>Projekt<select value={draft.project} onChange={event => onDraftChange({project: event.target.value})}><option value="">Ohne Projekt</option>{projects.filter(value => value.open).map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
-          <label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
+          <div className="mail-task-form-fields"><label>Projekt<select value={draft.project} onChange={event => onDraftChange({project: event.target.value,newProject:""})}><option value="">Ohne Projekt</option>{projects.filter(value => value.open).map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
+          <label>Neues Projekt (optional)<input value={draft.newProject} maxLength={200} onChange={event=>onDraftChange({newProject:event.target.value,project:""})}/></label><label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
           <label>Warte auf (optional)<input value={draft.waiting} onChange={event => onDraftChange({waiting: event.target.value})} maxLength={1024} /></label></div>
           <div className="task-suggestion-actions"><button className="primary-action" type="submit" disabled={!draft.title.trim()}>Aufgabe festhalten</button>
           <button className="secondary-action" type="button" onClick={() => onDraftChange({open: false})}>Abbrechen</button></div>

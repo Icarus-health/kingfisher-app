@@ -4,16 +4,25 @@ import {InterfaceIcon} from "./InterfaceIcon";
 import {tastenHinweis} from "./system";
 import {useEingabegeraet} from "./useSystem";
 import "./CommandBar.css";
+import {conversationDraft, writeConversationDraft, clearSubmittedDraft} from "./conversationDrafts";
 
-export function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice }: {
+export function CommandBar({ onSubmit, busy = false, conversation = false, disabled = false, placeholder, voice, conversationId }: {
   onSubmit: (message: string) => Promise<void>;
   busy?: boolean;
   conversation?: boolean;
   disabled?: boolean;
   placeholder?: string;
   voice?: ConversationVoice;
+  conversationId?: string;
 }) {
-  const [message, setMessage] = useState("");
+  const [message, updateMessage] = useState(() => conversationId ? conversationDraft(conversationId).text : "");
+  const revision = useRef(0);
+  const inFlight = useRef(false);
+  function setMessage(text: string) {
+    revision.current++;
+    if (conversationId) writeConversationDraft(conversationId, text);
+    updateMessage(text);
+  }
   const recording = voice ? recordingVoice(voice.state) : false;
   const input = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   useEffect(() => { if ((busy || disabled) && recording) voice?.cancel(); }, [busy, disabled, recording, voice]);
@@ -35,14 +44,19 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
   async function submit(event: FormEvent) {
     event.preventDefault();
     const clean = message.trim();
-    if (!clean || busy || disabled || recording) return;
+    if (!clean || busy || disabled || recording || inFlight.current) return;
+    inFlight.current = true;
     voice?.cancel();
+    const submittedRevision = conversationId ? conversationDraft(conversationId).revision : revision.current;
     try {
       await onSubmit(clean);
-      setMessage("");
+      const clear = conversationId ? clearSubmittedDraft(conversationId, submittedRevision) : revision.current === submittedRevision;
+      if (clear) {
+        updateMessage("");
+      }
     } catch {
       // Der aufrufende Screen zeigt den Fehler in der bestehenden Fläche.
-    }
+    } finally { inFlight.current = false; }
   }
 
   return (
@@ -52,9 +66,13 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
         aria-label="Kingfisher fragen"
         aria-describedby="conversation-composer-hint"
         rows={2}
-        disabled={busy || disabled || recording}
+        disabled={disabled || recording}
         onChange={event=>setMessage(event.target.value)}
-        onKeyDown={event=>{if(event.key==='Enter' && (event.ctrlKey || event.metaKey)) {event.preventDefault();event.currentTarget.form?.requestSubmit();}}}
+        onKeyDown={event=>{
+          if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent?.isComposing || event.nativeEvent?.keyCode === 229) return;
+          event.preventDefault();
+          if (!busy && !disabled && !recording) event.currentTarget.form?.requestSubmit();
+        }}
         placeholder={placeholder ?? 'Nachricht, Notizen oder Befehl …'}
         ref={element=>{input.current=element;}}
         value={message}
@@ -71,6 +89,6 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
       <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || disabled || recording} type="submit">
         <InterfaceIcon name="arrow-up" />
       </button>
-    </form>{conversation && <p className="composer-hint" id="conversation-composer-hint">Enter fügt eine Zeile hinzu.{!device.nurTouch && ` ${device.mac ? '⌘' : 'Strg'} + Enter sendet.`} Diktat bleibt ein Entwurf bis zum Senden.</p>}</>
+    </form>{conversation && <p className="composer-hint" id="conversation-composer-hint">Enter sendet. Shift + Enter fügt eine Zeile hinzu. Diktat bleibt ein Entwurf bis zum Senden.</p>}</>
   );
 }

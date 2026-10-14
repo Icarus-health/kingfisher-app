@@ -412,6 +412,7 @@ class MailTaskIn(BaseModel):
 class TaskCandidateIn(BaseModel):
     title: str = Field(min_length=1, max_length=4096)
     project_id: str | None = None
+    new_project_name: str | None = Field(default=None, min_length=1, max_length=200)
     due: datetime | None = None
     waiting_for: str | None = Field(default=None, max_length=1024)
 
@@ -474,6 +475,7 @@ class WartetIn(BaseModel):
 
 
 class ProjectIn(BaseModel):
+    request_id: uuid.UUID | None = None
     name: str = Field(min_length=1)
     area: str | None = None
     status: ProjectStatus = ProjectStatus.ACTIVE
@@ -1070,6 +1072,11 @@ def _wire_scheduler(app: FastAPI) -> None:
             return (getattr(app.state, "agent", None) is agent
                     and asdict(app.state.settings.schedule) == plan_at_start)
         report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
+        if with_model and not report.cancelled and getattr(app.state, 'workspace_views', None) is not None:
+            from .task_project_hints import TaskProjectHints
+            TaskProjectHints(app.state.episodes, app.state.proposals, app.state.workspace,
+                             app.state.workspace_views, app.state.conversation_lock).prepare(
+                detector.provider, limit=2, permitted=permitted)
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -1227,7 +1234,7 @@ def _close_persistent_state(app: FastAPI) -> None:
         app.state.cloud_memory_jobs = None
     for name in (
         "semantic_search", "backend", "audit", "tasks", "workspace", "episodes", "proposals",
-        "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde",
+        "conversations", "claims", "regeln", "zuordnungen", "rueckmeldungen", "logbuch", "lint_befunde", "workspace_views",
     ):
         close = getattr(getattr(app.state, name, None), "close", None)
         if callable(close):
@@ -1259,6 +1266,9 @@ def _reopen_persistent_state(app: FastAPI) -> None:
     app.state.audit = AuditLog(data_dir / "audit.sqlite3")
     app.state.tasks = TaskStore(data_dir / "tasks.sqlite3")
     app.state.workspace = WorkspaceStore(data_dir / "workspace.sqlite3")
+    if getattr(app.state, "workspace_views", None) is not None:
+        from .workspace_views import WorkspaceViews
+        app.state.workspace_views = WorkspaceViews(data_dir / 'workspace-views.sqlite3')
     app.state.episodes = EpisodeStore(data_dir / "episodes.sqlite3")
     if getattr(app.state, "settings", None) is not None:
         from . import suchindex_routes
@@ -4014,23 +4024,27 @@ def create_app(
         conversation = app.state.conversations.create(body.title)
         return _conversation_payload(conversation.id)
 
+    def _safe_conversation_summary(summary):
+        messages = app.state.conversations.messages(summary.id)
+        lineages = _conversation_lineages(messages)
+        validity_cache = {}
+        value = summary.to_dict()
+        value["title"] = _conversation_title(summary, messages, lineages, validity_cache)["title"]
+        if messages and not conversation_memory.lineage_valid(
+            app.state.episodes, lineages[messages[-1].id], validity_cache
+        ):
+            value["preview"] = "Grundlage geändert oder ausgeschlossen; Gesprächsteil nicht mehr verwendet."
+        return value
+
+    from .conversation_search_routes import register_conversation_search_routes
+    register_conversation_search_routes(app, guard, _safe_conversation_summary)
+
     @app.get("/api/v1/conversations", dependencies=guard)
     def list_conversations(limit: int = Query(default=100, ge=1, le=200)) -> dict[str, Any]:
         """Lokale Gesprächshistorie ohne Volltexte aller Unterhaltungen."""
         with app.state.conversation_lock:
-            summaries = []
-            for summary in app.state.conversations.list(limit):
-                messages = app.state.conversations.messages(summary.id)
-                lineages = _conversation_lineages(messages)
-                validity_cache = {}
-                value = summary.to_dict()
-                value["title"] = _conversation_title(summary, messages, lineages, validity_cache)["title"]
-                if messages and not conversation_memory.lineage_valid(
-                    app.state.episodes, lineages[messages[-1].id], validity_cache
-                ):
-                    value["preview"] = "Grundlage geändert oder ausgeschlossen; Gesprächsteil nicht mehr verwendet."
-                summaries.append(value)
-            return {"conversations": summaries}
+            return {"conversations": [_safe_conversation_summary(summary)
+                                     for summary in app.state.conversations.list(limit)]}
 
     @app.get("/api/v1/conversations/latest", dependencies=guard)
     def get_latest_conversation() -> dict[str, Any]:
@@ -4643,7 +4657,7 @@ def create_app(
         """
         tasks = app.state.tasks
         if project_id:
-            _validate_task_project(project_id)
+            _validate_task_project(project_id, allow_closed=True)
             items = tasks.by_project(project_id, include_closed=True)
             if view == "mine":
                 items = [task for task in items if task.status.value == "open" and task.wartet_auf is None]
@@ -4671,7 +4685,7 @@ def create_app(
         """Liefert nur echte, lokal gespeicherte Aufgaben einer belegten Sicht."""
         from .task_pages import TaskPageChanged
         if project_id:
-            _validate_task_project(project_id)
+            _validate_task_project(project_id, allow_closed=True)
         try:
             return {'view': view, **app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)}
         except TaskPageChanged as exc:
@@ -4759,10 +4773,12 @@ def create_app(
                 project_id=body.project_id, goal_id=body.goal_id,
             ).to_dict()
 
-    def _validate_task_project(project_id: str | None) -> None:
+    def _validate_task_project(project_id: str | None, *, allow_closed: bool = False) -> None:
         if project_id is not None:
             try:
-                app.state.workspace.project(project_id)
+                project = app.state.workspace.project(project_id)
+                if not allow_closed and not project.is_open():
+                    raise HTTPException(409, "Das Projekt ist abgeschlossen. Bitte ein offenes Projekt wählen.")
             except WorkspaceError as exc:
                 raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -4791,11 +4807,12 @@ def create_app(
 
     @app.patch("/api/v1/tasks/{task_id}/project", dependencies=guard)
     def assign_task_project(task_id: str, body: TaskProjectIn) -> dict[str, Any]:
-        _validate_task_project(body.project_id)
-        try:
-            return app.state.tasks.assign_project(task_id, body.project_id).to_dict()
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        with app.state.conversation_lock:
+            _validate_task_project(body.project_id)
+            try:
+                return app.state.tasks.assign_project(task_id, body.project_id).to_dict()
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.post("/api/v1/tasks/{task_id}/done", dependencies=guard)
     def complete_kingfisher_task(task_id: str) -> dict[str, Any]:
@@ -4807,13 +4824,23 @@ def create_app(
     @app.post("/api/v1/tasks/{task_id}/reopen", dependencies=guard)
     def reopen_kingfisher_task(task_id: str) -> dict[str, Any]:
         try:
-            return app.state.tasks.reopen(task_id).to_dict()
+            with app.state.conversation_lock:
+                task = app.state.tasks.get(task_id)
+                if task is None:
+                    raise KeyError(task_id)
+                _validate_task_project(task.project_id)
+                return app.state.tasks.reopen(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     def task_candidate_service():
         return TaskCandidates(app.state.episodes, app.state.proposals, app.state.tasks,
                               app.state.workspace, app.state.conversation_lock)
+
+    def task_project_hint_service():
+        from .task_project_hints import TaskProjectHints
+        return TaskProjectHints(app.state.episodes, app.state.proposals, app.state.workspace,
+                                app.state.workspace_views, app.state.conversation_lock)
 
     @app.get("/api/v1/task-candidates/page", dependencies=guard)
     def task_candidates_page(
@@ -4843,7 +4870,8 @@ def create_app(
                     digest.update(str(status or "").encode("utf-8"))
                     digest.update(b"\n")
                     if offset <= total < offset + limit:
-                        items.append({**proposal.to_dict(), **timing})
+                        items.append({**proposal.to_dict(), **timing,
+                                      'project_suggestion': task_project_hint_service().visible(proposal)})
                     total += 1
             current_generation = digest.hexdigest()
             if generation is not None and generation != current_generation:
@@ -4863,7 +4891,8 @@ def create_app(
     def accept_task_candidate(proposal_id: str, body: TaskCandidateIn):
         try:
             return task_candidate_service().accept(proposal_id, title=body.title,
-                project_id=body.project_id, due=body.due, waiting_for=body.waiting_for).to_dict()
+                project_id=body.project_id, new_project_name=body.new_project_name,
+                due=body.due, waiting_for=body.waiting_for).to_dict()
         except (ProposalError, EpisodeError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:
@@ -5158,18 +5187,29 @@ def create_app(
     def add_project(body: ProjectIn) -> dict[str, Any]:
         if not body.name.strip():
             raise HTTPException(status_code=422, detail="Bitte einen Projektnamen eingeben.")
-        project = app.state.workspace.add_project(
+        method = app.state.workspace.add_project
+        extra = {}
+        if body.request_id is not None:
+            material = body.model_dump(mode='json', exclude={'request_id'})
+            extra = {'request_id': str(body.request_id),
+                     'fingerprint': hashlib.sha256(json.dumps(material, sort_keys=True).encode()).hexdigest()}
+            method = app.state.workspace.project_from_request
+        try:
+            project = method(
             body.name.strip(),
             Provenance(source_type=SourceType.USER_STATED,
                        captured_at=datetime.now().astimezone()),
             area=body.area, status=body.status, priority=body.priority,
             description=body.description, deadline=body.deadline, tags=body.tags,
-        )
+            **extra,
+            )
+        except WorkspaceError as exc:
+            raise HTTPException(409, str(exc)) from exc
         return project.to_dict()
 
     @app.get("/api/v1/projects/{project_id}/task-overview", dependencies=guard)
     def project_task_overview(project_id: str) -> dict[str, Any]:
-        _validate_task_project(project_id)
+        _validate_task_project(project_id, allow_closed=True)
         return app.state.tasks.project_overview(project_id)
 
     @app.get("/api/v1/projects/{project_id}", dependencies=guard)
@@ -5195,14 +5235,20 @@ def create_app(
     @app.patch("/api/v1/projects/{project_id}", dependencies=guard)
     @app.patch("/projects/{project_id}", dependencies=guard)
     def patch_project(project_id: str, body: ProjectPatch) -> dict[str, Any]:
-        try:
-            project = app.state.workspace.update_project(
-                project_id,
-                status=body.status, priority=body.priority,
-                description=body.description, deadline=body.deadline, area=body.area,
-            )
-        except WorkspaceError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        with app.state.conversation_lock:
+            try:
+                if body.status in (ProjectStatus.DONE, ProjectStatus.DROPPED):
+                    app.state.workspace.project(project_id)
+                    remaining = app.state.tasks.by_project(project_id)
+                    if remaining:
+                        raise HTTPException(409, f"Noch {len(remaining)} offene Aufgaben. Bitte zuerst erledigen, verwerfen oder einem anderen Projekt zuordnen.")
+                project = app.state.workspace.update_project(
+                    project_id,
+                    status=body.status, priority=body.priority,
+                    description=body.description, deadline=body.deadline, area=body.area,
+                )
+            except WorkspaceError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
         return project.to_dict()
 
     # -- Notizen -----------------------------------------------------------
@@ -6254,6 +6300,8 @@ def create_app(
     from .transkript_routes import register_transkript_routes
     register_transkript_routes(app, guard, _data_dir)
     from .rueckmeldung_routes import register as register_rueckmeldung
+    from .workspace_views import register as register_workspace_views
+    register_workspace_views(app, guard, _data_dir)
     register_rueckmeldung(app, guard, _data_dir)
     from .logbuch_routes import register as register_logbuch
     register_logbuch(app, guard, _data_dir)

@@ -1,6 +1,8 @@
 import {useConversationVoice, VoiceDraftStatus, VoiceReply} from "./ConversationVoice";
 import {CommandBar} from "./CommandBar";
 import {ConversationCapture} from "./ConversationCapture";
+import {ConversationNavigation} from "./ConversationNavigation";
+import {MessageText} from "./MessageText";
 import { TodayOverview, TodayPersonal, todayAttention } from "./TodayOverview";
 import { FassungHeute } from "./Fassung";
 import { InterfaceIcon } from "./InterfaceIcon";
@@ -15,7 +17,6 @@ import {
   api,
   ApiError,
   type ConversationPayload,
-  type ConversationSummary,
   type MorningBriefing,
   type Task as LocalTask,
   type Project,
@@ -29,6 +30,10 @@ import { GoalControls } from "./GoalControls";
 import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
+import {DetailPanel} from "./DetailPanel";
+import {ProjectBoard} from "./ProjectBoard";
+import {groupTasks} from "./taskWorkspaceModel";
+import "./WorkspaceTasks.css";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
@@ -75,17 +80,6 @@ function dateParts(value: string, timeZone?: string) {
   return { date: `${weekday}, ${day}`, time };
 }
 
-
-function conversationTime(value: string) {
-  const date = new Date(value);
-  const today = new Date();
-  const start = (item: Date) => new Date(item.getFullYear(), item.getMonth(), item.getDate()).getTime();
-  const days = Math.round((start(today) - start(date)) / 86_400_000);
-  const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
-  if (days === 0) return time;
-  if (days === 1) return "Gestern";
-  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short" }).format(date).replace(".", "");
-}
 
 // Antwort auf eine Zeitrückfrage: ein Datum wählen statt ein Format zu tippen.
 function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: string) => void}) {
@@ -366,7 +360,14 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   chatAvailable: boolean;
   chatPlaceholder?: string;
 }) {
-  const [data, setData] = useState<ConversationPayload | null>(null);
+  const [data, updateData] = useState<ConversationPayload | null>(null);
+  const live = useRef(true);
+  const messagesElement = useRef<HTMLDivElement | null>(null);
+  const followBottom = useRef(true);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  function setData(value: ConversationPayload) { if (live.current) updateData(value); }
+  useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
   const [error, setError] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -394,6 +395,19 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     });
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    const element = messagesElement.current;
+    if (!element || !data || !followBottom.current || window.location.hash) return;
+    element.scrollTop = element.scrollHeight;
+  }, [data?.messages.length, sending]);
+
+  async function create() {
+    const created = await api.createConversation();
+    if (!live.current) return;
+    rememberConversation(created.conversation.id);
+    navigate(`/conversations/${created.conversation.id}`);
+  }
 
   const contextLines = useMemo(
     () => data?.context.items.slice(0, 5).map((item) => item.basis?.state === "review"
@@ -519,15 +533,19 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   return (
     <div className="shell conversation-shell">
       <Sidebar active="Gespräche" recentConversation={recentConversation} />
-      <main className="conversation-page">
-        <aside className="context-panel">
-          <p className="eyebrow">KONTEXT</p><h2>{data?.conversation.title ?? "Gespräch"}</h2><p className="context-caption">Lokales Gedächtnis</p>
-          <div className="context-list">{contextLines.length ? contextLines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>) : data?.context.source_links?.length ? <p>{data.context.source_links.length} Originalquelle(n) zur Prüfung. Keine bestätigte Aussage.</p> : <p>{kontextLeerSatz(data?.messages ?? [])}</p>}</div>
-        </aside>
+      <main className={`conversation-page workspace-chat ${navigationOpen ? 'navigation-open' : ''}`}>
+        <ConversationNavigation activeId={id} revision={data?.conversation.updated_at} onCreate={create} onSelect={selected => navigate(`/conversations/${selected}`)} />
         <section className="thread">
-          <header className="thread-header"><div><p className="eyebrow">GESPRÄCH</p><h1>{data?.conversation.title ?? "Gespräch"}</h1></div><span className="local-status"><i /> Lokal gespeichert</span></header>
-          {!error && data && <ConversationCapture key={id} />}
-          <div className="messages">
+          <header className="thread-header"><button className="conversation-navigation-toggle" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}>Gespräche</button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}>Verwendete Quellen</button></header>
+          {sourcesOpen && <aside className="conversation-sources" id="conversation-sources" aria-label="Verwendete Quellen">
+            {contextLines.length ? contextLines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>) : data?.context.source_links?.length ? <p>{data.context.source_links.length} Originalquelle(n) zur Prüfung. Keine bestätigte Aussage.</p> : <p>{kontextLeerSatz(data?.messages ?? [])}</p>}
+          </aside>}
+          <div className="messages" ref={messagesElement} onScroll={event => {
+            const element = event.currentTarget;
+            followBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+          }}>
+            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2><p>Stelle eine Frage oder halte einen Gedanken fest.</p></div>}
+
             {error ? <div className="message assistant error-message"><p>Das Gespräch ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></div> : null}
             {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
             {data?.messages.map((message, messageIndex) => {
@@ -542,7 +560,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
                 <span>{message.role === "user" ? "DU" : "KINGFISHER"}</span>
-                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <p>{message.content}</p>}
+                {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
                 {message.role === "assistant" && message.metadata?.context?.quellen ? <BelegQuellen quellen={message.metadata.context.quellen} gespraech={data.conversation.id} zeigeNachricht={showMemorySource} onChange={load} /> : null}
@@ -562,7 +580,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.refresh_available && message.metadata.context.original_question ? <div className="memory-actions"><button className="memory-reject" disabled={sending || !chatAvailable} onClick={() => void send(message.metadata!.context!.original_question!, { newQuestion: true }).catch(() => undefined)} type="button">Mit aktuellem Stand neu beantworten</button></div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_date ? <SourceDateForm busy={sending || !chatAvailable} onSubmit={(value) => { const [year, month, day] = value.split("-"); void send(`Die Nachricht stammt vom ${day}.${month}.${year}.`, { date: value }).catch(() => undefined); }} /> : null}
                 {message.metadata?.context?.routing && <details><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
-                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small>Antwort fehlgeschlagen.{" "}<button disabled={sending} onClick={() => retry(message.id)} type="button">Wiederholen</button></small> : null}
+                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small>Antwort fehlgeschlagen.{" "}<button disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
                 {data.action_requests?.filter((action) => action.message_id === message.id).map((action) => <ActionApprovalCard key={action.id} action={action} busy={sending} onResolve={resolveAction} />)}
                 {candidate ? <section className="memory-candidate" aria-label="Gedächtnisvorschlag">
                   <span>GEDÄCHTNISVORSCHLAG</span>
@@ -590,7 +608,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
           <div className="thread-command">
             {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
             {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-            <VoiceDraftStatus voice={voice} /><CommandBar key={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
+            {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+            {!error && data && <ConversationCapture key={id} />}
+            <VoiceDraftStatus voice={voice} /><CommandBar key={id} conversationId={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
           </div>
         </section>
       </main>
@@ -602,64 +622,32 @@ function ConversationHistory({ recentConversation, rememberConversation }: {
   recentConversation: string | null;
   rememberConversation: (id: string) => void;
 }) {
-  const [items, setItems] = useState<ConversationSummary[] | null>(null);
-  const [error, setError] = useState(false);
-  const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
-
-  function load() {
-    setError(false);
-    api.listConversations().then(({ conversations }) => setItems(conversations)).catch(() => setError(true));
-  }
-
-  useEffect(() => { load(); }, []);
-
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase("de-DE");
-    if (!needle) return items ?? [];
-    return (items ?? []).filter((item) => `${item.title} ${item.preview}`.toLocaleLowerCase("de-DE").includes(needle));
-  }, [items, query]);
-
+  const [createError, setCreateError] = useState(false);
+  const createPending = useRef(false);
+  const live = useRef(true);
+  useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
   async function create() {
-    if (creating) return;
-    setCreating(true);
+    if (createPending.current) return;
+    createPending.current = true;
+    setCreating(true); setCreateError(false);
     try {
-      const data = await api.createConversation();
-      rememberConversation(data.conversation.id);
-      navigate(`/conversations/${data.conversation.id}`);
-    } finally {
-      setCreating(false);
-    }
+      const created = await api.createConversation();
+      if (!live.current) return;
+      rememberConversation(created.conversation.id);
+      navigate(`/conversations/${created.conversation.id}`);
+    } catch (problem) {
+      if (live.current) setCreateError(true);
+      throw problem;
+    } finally { createPending.current = false; if (live.current) setCreating(false); }
   }
-
-  return (
-    <div className="shell conversation-list-shell">
-      <Sidebar active="Gespräche" recentConversation={recentConversation} />
-      <main className="conversation-history">
-        <header className="history-heading"><h1>Gespräche</h1><p>Gedanken weiterführen. Zusammenhänge wiederfinden.</p></header>
-        <header className="history-tools">
-          <label className="history-search">
-            <img src={icon("search", "Outline")} alt="" />
-            <input aria-label="Gespräche durchsuchen" onChange={(event) => setQuery(event.target.value)} placeholder="Suche in Gesprächen…" value={query} />
-          </label>
-          <button aria-label="Neues Gespräch" className="history-create" disabled={creating} onClick={create} type="button"><InterfaceIcon name="plus" />Neues Gespräch</button>
-        </header>
-        <section className="history-list" aria-label="Gesprächshistorie">
-          {error ? <div className="history-error"><p>Die Gesprächshistorie ist gerade nicht erreichbar.</p><button onClick={load} type="button">Wiederholen</button></div> : null}
-          {!error && !items ? Array.from({ length: 6 }, (_, index) => <div className="history-row history-skeleton" key={index}><i /><i /></div>) : null}
-          {!error ? filtered.map((item) => <button className="history-row" key={item.id} onClick={() => navigate(`/conversations/${item.id}`)} type="button">
-            <span className="history-copy"><strong>{item.title}</strong>{item.preview ? <small>{item.preview}</small> : null}</span>
-            <span className="history-meta"><time dateTime={item.updated_at}>{conversationTime(item.updated_at)}</time><small>{item.message_count} {item.message_count === 1 ? "Nachricht" : "Nachrichten"}</small></span>
-          </button>) : null}
-          {!error && items && !filtered.length ? <div className="history-empty">
-            {items.length ? <p>Kein Gespräch passt zu „{query.trim()}“.</p>
-              : <><p>Noch keine Gespräche. Frag Kingfisher etwas, es antwortet mit Quellen aus deinem Bestand.</p>
-                <button className="secondary-action" disabled={creating} onClick={create} type="button">Neues Gespräch beginnen</button></>}
-          </div> : null}
-        </section>
-      </main>
-    </div>
-  );
+  return <div className="shell conversation-shell">
+    <Sidebar active="Gespräche" recentConversation={recentConversation} />
+    <main className="conversation-page workspace-chat workspace-chat-start">
+      <ConversationNavigation onCreate={create} onSelect={id => navigate(`/conversations/${id}`)} />
+      <section className="thread"><div className="conversation-empty"><h1>Was beschäftigt dich?</h1><p>Beginne ein Gespräch oder führe einen Gedanken aus der Liste weiter.</p><button className="secondary-action" type="button" disabled={creating} onClick={() => void create().catch(() => undefined)}>Neues Gespräch beginnen</button>{createError && <p role="alert">Das neue Gespräch konnte nicht angelegt werden. Bitte erneut versuchen.</p>}</div></section>
+    </main>
+  </div>;
 }
 
 type TaskView = "mine" | "waiting" | "done" | "decisions" | "goals";
@@ -673,6 +661,10 @@ const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
 ];
 
 function Tasks({ recentConversation }: { recentConversation: string | null }) {
+  const [panel,setPanel] = useState<"tasks"|"projects"|"review">("tasks");
+  const [board,setBoard] = useState(false);
+  const [groupTime,setGroupTime] = useState(()=>new Date());
+  useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
   const [view, setView] = useState<TaskView>(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
     return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
@@ -809,7 +801,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setTitle(""); setDue(""); setCreateReviewed(false);
     try {setCreateError(taskSave.current.restore() ? TASK_SAVE_PENDING : "");}
     catch (cause) {setCreateError(`${cause instanceof Error ? cause.message : 'Der lokale Speicher ist nicht verfügbar.'} Es wurde keine Aufgabe gesendet.`);}
-    if (view === "decisions") setView("mine"); setNewTaskProject(projectId); setCreating(true);
+    if (view === "decisions") setView("mine"); setPanel("tasks"); setNewTaskProject(projectId); setCreating(true);
   }
   function prepareNewTaskRequest() {
     if (!createReviewed || submitting || taskSave.current.inFlight) return;
@@ -821,21 +813,25 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
     load(nextView);
   }
-  const visibleTasks = tasks?.filter(task => task.id !== selectedTask && (!projectId || task.project_id === projectId));
+  const visibleTasks = tasks?.filter(task => (!projectId || task.project_id === projectId));
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
-    <main className="tasks-page">
-      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
-      {selectedTask && <section className="task-selected" aria-label="Ausgewählte Aufgabe">
-        <h2>Ausgewählte Aufgabe</h2>
+    <main className="tasks-page workspace-tasks">
+      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{panel === "projects" ? "Projekte" : panel === "review" ? "Zur Prüfung" : heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
+      {selectedTask && <DetailPanel title="Aufgabe" onClose={() => setSelectedTask(null)}>
         <TaskDetail key={selectedTask} taskId={selectedTask} onChanged={() => load()} />
-        <button type="button" className="secondary-action" onClick={() => {setSelectedTask(null); const url = new URL(window.location.href); url.searchParams.delete("task"); window.history.replaceState(window.history.state, "", url);}}>Zur Aufgabenliste</button>
-      </section>}
-      <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={view === item.id} className={view === item.id ? "active" : ""} key={item.id} onClick={() => setView(item.id)} type="button">{item.label}</button>)}</nav>
+      </DetailPanel>}
+      <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={panel === "tasks" && view === item.id} className={panel === "tasks" && view === item.id ? "active" : ""} key={item.id} onClick={() => {setPanel("tasks");setView(item.id);}} type="button">{item.label}</button>)}<button type="button" aria-pressed={panel === "projects"} onClick={()=>{setView("mine");setPanel("projects");}}>Projekte</button><button type="button" aria-pressed={panel === "review"} onClick={()=>{setView("mine");setPanel("review");}}>Zur Prüfung</button></nav>
       {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
-      {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
+      {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} initiallyExpanded={panel === "review" || new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { setPanel("tasks"); setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
+      {panel === "projects" && <section className="workspace-projects" aria-label="Projekte">
+        <p>Aufgaben und Gedächtnis verwenden dieselben Projekte. Abgeschlossene Projekte bleiben erhalten.</p>
+        <div className="workspace-project-list">{projects.map(project=><button type="button" key={project.id} aria-pressed={projectId===project.id} onClick={()=>setProjectId(project.id)}><strong>{project.name}</strong><span>{project.status === "done" ? "Abgeschlossen" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : "Offen"}</span>{project.description && <small>{project.description}</small>}</button>)}</div>
+        {projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>setSelectedTask(task.id)} />}
+      </section>}
       {(view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
       {(view === 'mine' || view === 'waiting' || view === 'done') && <>
@@ -849,11 +845,11 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {taskPage.notice && <p role="status">{taskPage.notice}</p>}
         {tasks && <p role="status">{taskPage.total} {search ? 'passende' : ''} Aufgaben · Seite {taskPage.page}{search ? ` · Suche: ${search}` : ''}</p>}
       </>}
-      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading}>
+      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
         <header><span>Aufgabe</span><span>Fällig</span></header>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
         {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
-        {visibleTasks?.map((task) => <TaskRow projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={(name) => wait(task.id, name)} onComplete={() => complete(task.id, task.status === "done")} task={task} view={view} />)}
+        {visibleTasks && (view === "mine" ? groupTasks(visibleTasks,groupTime) : [{label:heading,items:visibleTasks}]).map(group=><section className="workspace-task-group" key={group.label} aria-label={group.label}><h2>{group.label} <small>{group.items.length}</small></h2>{group.items.map(task=><TaskRow compact onOpen={()=>setSelectedTask(task.id)} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} task={task} view={view} />)}{group.items.length===0 && <p className="workspace-group-empty">Keine Aufgaben auf dieser Seite</p>}</section>)}
         {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}
         {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
@@ -919,7 +915,7 @@ export function App() {
   if (path === "/nachrichten") return <Messages recentConversation={recentConversation} />;
   if (path === "/conversations") return <ConversationHistory recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const match = path.match(/^\/conversations\/([^/]+)$/);
-  if (match) return <Conversation chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} id={decodeURIComponent(match[1])} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
+  if (match) return <Conversation key={decodeURIComponent(match[1])} chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} id={decodeURIComponent(match[1])} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const personMatch = path.match(/^\/memory\/people\/([^/]+)$/);
   if (personMatch) return <MemoryProfile identifier={decodeURIComponent(personMatch[1])} kind="person" recentConversation={recentConversation} />;
   const projectMatch = path.match(/^\/memory\/projects\/([^/]+)$/);

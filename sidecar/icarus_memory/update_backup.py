@@ -29,12 +29,13 @@ KEEP = 3
 
 def _targets() -> dict[str, Sequence[Migration]]:
     from . import (audit, backends, claims, conversations, episodes, lint, logbuch, proposals, regeln, rueckmeldung, tasks,
-                   transkript_zuordnung, workspace)
+                   transkript_zuordnung, workspace, workspace_views)
     return {
         "self-model.sqlite3": backends._MIGRATIONS,
         "audit.sqlite3": audit._MIGRATIONS,
         "tasks.sqlite3": tasks._MIGRATIONS,
         "workspace.sqlite3": workspace._MIGRATIONS,
+        "workspace-views.sqlite3": workspace_views._MIGRATIONS,
         "episodes.sqlite3": episodes._MIGRATIONS,
         "proposals.sqlite3": proposals._MIGRATIONS,
         "conversations.sqlite3": conversations._MIGRATIONS,

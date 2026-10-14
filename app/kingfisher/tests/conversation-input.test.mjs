@@ -35,13 +35,15 @@ test('conversation preserves multiple lines until explicit submit and retains fa
     assert.equal(nodes(d.render(),'textarea')[0].props.value,'');
   }finally{d.close();}
 });
-test('plain Enter adds a line; modified Enter requests an explicit form submit',async()=>{
+test('Enter sends; Shift and IME preserve the draft; modified Enter still sends',async()=>{
   const d=await driver('CommandBar',{conversation:true,onSubmit:async()=>{throw Error('not requested');}});
   try{let requests=0,prevented=0;const field=nodes(d.render(),'textarea')[0];
     field.props.onKeyDown({key:'Enter',ctrlKey:false,metaKey:false,preventDefault(){prevented++;},currentTarget:{form:{requestSubmit(){requests++;}}}});
-    assert.equal(requests,0);assert.equal(prevented,0);
-    field.props.onKeyDown({key:'Enter',ctrlKey:true,metaKey:false,preventDefault(){prevented++;},currentTarget:{form:{requestSubmit(){requests++;}}}});
     assert.equal(requests,1);assert.equal(prevented,1);
+    for(const nativeEvent of [{isComposing:true},{keyCode:229}]) field.props.onKeyDown({key:'Enter',nativeEvent,preventDefault(){throw Error('IME must keep composing');},currentTarget:{form:{requestSubmit(){throw Error('IME must not submit');}}}});
+    field.props.onKeyDown({key:'Enter',shiftKey:true,preventDefault(){throw Error('Shift keeps newline');},currentTarget:{form:{requestSubmit(){throw Error('newline must not submit');}}}});
+    field.props.onKeyDown({key:'Enter',ctrlKey:true,metaKey:false,preventDefault(){prevented++;},currentTarget:{form:{requestSubmit(){requests++;}}}});
+    assert.equal(requests,2);assert.equal(prevented,2);
   }finally{d.close();}
 });
 test('a dictated addition only changes the editable draft; recording and disabled state block send',async()=>{
@@ -85,4 +87,34 @@ test('closing a ready file preview needs an explicit discard; keeping it preserv
     byName(d.render(),'Weiter bearbeiten').props.onClick();assert.ok(byName(d.render(),'Datei als Quelle aufnehmen'));
     byName(d.render(),'Schließen').props.onClick();byName(d.render(),'Vorschau verwerfen und schließen').props.onClick();assert.equal(closed,1);
   }finally{d.close();api.projects=old;}
+});
+
+// A late send result must never discard a newer edit or a different conversation.
+test('conversation drafts survive unmount, isolate chats, and clear only the submitted revision',async()=>{
+  let resolve;const pending=new Promise(r=>resolve=r);
+  const a=await driver('CommandBar',{conversation:true,conversationId:'draft-a',onSubmit:()=>pending});
+  let tree=a.render();nodes(tree,'textarea')[0].props.onChange({target:{value:'erster Entwurf'}});
+  const sent=nodes(a.render(),'form')[0].props.onSubmit({preventDefault(){}});
+  nodes(a.render(),'textarea')[0].props.onChange({target:{value:'nächster Entwurf'}});a.close();
+  const b=await driver('CommandBar',{conversation:true,conversationId:'draft-b',onSubmit:async()=>{}});
+  try{assert.equal(nodes(b.render(),'textarea')[0].props.value,'');
+    nodes(b.render(),'textarea')[0].props.onChange({target:{value:'anderes Gespräch'}});
+    resolve();await sent;assert.equal(nodes(b.render(),'textarea')[0].props.value,'anderes Gespräch');
+    const restored=await driver('CommandBar',{conversation:true,conversationId:'draft-a',onSubmit:async()=>{}});
+    try{assert.equal(nodes(restored.render(),'textarea')[0].props.value,'nächster Entwurf');
+      await nodes(restored.render(),'form')[0].props.onSubmit({preventDefault(){}});
+      assert.equal(nodes(restored.render(),'textarea')[0].props.value,'');
+    }finally{restored.close();}
+  }finally{b.close();}
+});
+test('recording never requests keyboard submit',async()=>{
+  const v=voice();v.state.phase='listening';
+  const d=await driver('CommandBar',{conversation:true,voice:v,onSubmit:async()=>{throw Error('voice must not submit');}});
+  try{nodes(d.render(),'textarea')[0].props.onKeyDown({key:'Enter',ctrlKey:true,preventDefault(){},currentTarget:{form:{requestSubmit(){throw Error('recording must not request submit');}}}});}finally{d.close();}
+});
+test('two submit events during the same pending send issue only one request',async()=>{
+ let resolve,sends=0;const d=await driver('CommandBar',{conversation:true,onSubmit:()=>{sends++;return new Promise(r=>resolve=r);}});
+ try{nodes(d.render(),'textarea')[0].props.onChange({target:{value:'einmal'}});const submit=nodes(d.render(),'form')[0].props.onSubmit;
+   const first=submit({preventDefault(){}});const second=submit({preventDefault(){}});assert.equal(sends,1);resolve();await Promise.all([first,second]);
+ }finally{d.close();}
 });
