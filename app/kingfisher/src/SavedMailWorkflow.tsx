@@ -2,7 +2,6 @@ import {useEffect,useRef,useState} from 'react';
 import {savedMailWorkflowApi,type SavedMailWorkflowView} from './savedMailWorkflowApi';
 import {initialSavedTask,savedTaskPayload,type SavedTaskDraft} from './savedMailWorkflowState';
 import {navigate} from './ui';
-import './SavedMailWorkflow.css';
 
 export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,onTaskSaved}: {
  episodeId:string;sourceDigest:string;sourceVerified?:boolean;onTaskSaved?:()=>void;
@@ -61,15 +60,16 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   finally {if(active.current && version===epoch.current)setBusy('');}
  }
  return <section className="saved-mail-workflow" aria-label="Überblick und Aufgaben aus gespeicherter Mail">
-  <h2>Überblick und nächste Schritte</h2>
+  <h2>Nächste Schritte</h2>
   {loading && <p role="status">Vorbereiteter Überblick wird geprüft …</p>}
   {error && <p role="alert">{error}</p>}
   {view && <>
    {view.episode_id===episodeId && view.source_digest===sourceDigest && Object.entries(saved).map(([id,title])=><p key={id} role="status">Aufgabe gespeichert: {title} <a href="/vorhaben?view=mine" onClick={event=>{event.preventDefault();navigate('/vorhaben?view=mine');}}>Aufgaben öffnen</a></p>)}
    {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
    {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
-   <p>{view.detail}</p><p className="saved-mail-workflow-context">{view.temporal_reason}</p>
-   {view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}
+   <p className="saved-mail-workflow-context">{view.temporal_reason}</p>
+   {view.status==='unavailable' && <p role="status">{view.detail}</p>}
+   {view.quotes.length>0 && <details className="saved-mail-overview"><summary>Überblick aus Originalstellen ({view.quotes.length})</summary><p>{view.detail}</p>{view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}</details>}
    {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Wird lokal vorbereitet …':'Diese Mail lokal vorbereiten'}</button>}
    {(view.project_preparation_status==='unprepared' || view.project_preparation_status==='unavailable') && view.status==='ready' && <>
     <p role="status">{view.project_preparation_detail}</p><button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Projektvorschläge werden lokal geprüft …':'Projektvorschläge erneut vorbereiten'}</button>
@@ -81,16 +81,16 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
     const update=(change:Partial<SavedTaskDraft>)=>setDrafts(values=>({...values,[item.id]:{...draft,...change}}));
     return <form key={item.id} className="saved-mail-workflow-task" onSubmit={event=>{event.preventDefault();void save(item.id,draft);}}>
      <>
-      <h3>{item.review_required?'Bitte aus der Quelle prüfen':'Aufgabenvorschlag prüfen'}</h3>
-      <blockquote>{item.evidence[0]?.quote}</blockquote>
-      {item.project_suggestion && <p>Projektvorschlag: {item.project_suggestion.name} · {item.project_suggestion.reason}</p>}
-      <label>Aufgabe<input value={draft.title} onChange={event=>update({title:event.target.value})} maxLength={4096} disabled={Boolean(busy)}/></label>
+      <h3>{item.review_required?'Bitte auf heutige Aktualität prüfen':'Aufgabenvorschlag'}</h3>
+      <details className="saved-task-evidence"><summary>Beleg und Zuordnung prüfen</summary><blockquote>{item.evidence[0]?.quote}</blockquote>{item.project_suggestion && <p>Projektvorschlag: {item.project_suggestion.name} · {item.project_suggestion.reason}</p>}</details>
+      <div className="saved-task-fields">
+      <label>Aufgabe<textarea rows={2} value={draft.title} onChange={event=>update({title:event.target.value})} maxLength={4096} disabled={Boolean(busy)}/></label>
       <label>Projekt<select value={draft.project} onChange={event=>update({project:event.target.value})} disabled={Boolean(busy)}>
        <option value="">Ohne Projekt</option>{view.projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}<option value="new">Neues Projekt anlegen</option>
       </select></label>
       {draft.project==='new' && <label>Neues Projekt<input value={draft.newProject} onChange={event=>update({newProject:event.target.value})} maxLength={200} disabled={Boolean(busy)}/></label>}
-      <p>Speichert deine bestätigte Aufgabe{draft.project==='new'?' und das neue Projekt':''}. Keine Frist oder wartende Person wird automatisch aus der Mail übernommen.</p>
-      <button type="submit" disabled={!valid || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button>
+      </div>
+      <div className="saved-task-confirmation"><small>Ohne Frist und wartende Person{draft.project==='new'?' · Neues Projekt wird mit angelegt':''}.</small><button className="primary-action" type="submit" disabled={!valid || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button></div>
      </>
     </form>;
    })}

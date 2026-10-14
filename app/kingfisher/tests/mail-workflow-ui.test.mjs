@@ -37,8 +37,8 @@ test("mail overview keeps original mail immediately expandable and shows sender 
   assert.equal(contract(reader, /expectedSourceDigest=\{detail\.source_digest\}/), true);
   assert.equal(contract(reader, /<details[^>]*className="mail-reader-original"/), true);
   assert.equal(contract(reader, /<summary>Aus der Originalnachricht<\/summary>/), true);
-  assert.equal(contract(reader, /<dt>Von<\/dt>/), true);
-  assert.equal(contract(reader, /<dt>Datum<\/dt>/), true);
+  assert.equal(contract(reader, /<strong>\{detail\.from\}<\/strong>/), true);
+  assert.equal(contract(reader, /<time[^>]*>\{readableDate\(detail\.date\)\}<\/time>/), true);
   assert.equal(contract(reader, /onNeedsOriginal=\{openOriginalMessage\}/), true);
   assert.equal(contract(reader, /ref=\{originalMessageRef\}/), true);
   assert.equal(contract(reader, /originalMessageRef\.current\.open = true/), true);

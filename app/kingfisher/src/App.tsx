@@ -33,7 +33,6 @@ import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {ProjectBoard} from "./ProjectBoard";
 import {groupTasks} from "./taskWorkspaceModel";
-import "./WorkspaceTasks.css";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";

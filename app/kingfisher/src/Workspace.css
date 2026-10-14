@@ -35,7 +35,7 @@
 .shell main.workspace-chat .message { max-width: 720px; margin-bottom: 22px; }
 .workspace-chat .message.assistant { box-shadow: none; border: 0; padding: 8px 0; background: var(--calm-surface); }
 .workspace-chat .message.user { width: fit-content; max-width: 85%; }
-.workspace-chat .message-text { font-size: 15px; line-height: 1.75; }
+.workspace-chat .message-text { font-size: var(--calm-text); line-height: 1.75; }
 .workspace-chat .message-text > p { font-size: inherit; line-height: inherit; }
 .workspace-chat .message-text > :is(p, ul, ol, pre) + :is(p, ul, ol, pre) { margin-top: 14px; }
 .workspace-chat .message-text :is(ul, ol) { padding-left: 24px; margin-bottom: 0; }
@@ -67,7 +67,7 @@
   .workspace-chat .conversation-sources-toggle { font-size: 10px; padding: 5px 7px; }
   .shell main.workspace-chat .messages { padding: 18px 14px; }
   .shell main.workspace-chat .thread-command { padding: 8px 12px 12px; }
-  .workspace-chat .message-text { font-size: 14px; }
+  .workspace-chat .message-text { font-size: var(--calm-text); }
   .workspace-chat .composer-hint { font-size: 10px; }
 }
 @media (max-width:900px) {

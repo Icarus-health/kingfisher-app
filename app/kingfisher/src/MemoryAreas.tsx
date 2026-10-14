@@ -38,8 +38,8 @@ function SourceHints({ source, onSaved, selected, onSelect }: { source: MemoryAr
         {evidence.quote}{evidence.quote_truncated ? <small>Belegauszug gekürzt</small> : null}
       </blockquote>)}</details>}
     </li>)}</ul> : !statusText(source.status) ? <p className="memory-area-status">Für diese Quelle ist noch kein Themenhinweis verfügbar.</p> : null}
-    <CategoryCorrection key={source.episode_id} id={source.episode_id} title={source.title} onSaved={onSaved} />
-    <ProfileSource kind="episode" id={source.episode_id} label="Originalquelle öffnen" readOnly allowIgnore={false} />
+    <div className="memory-area-source-actions"><CategoryCorrection key={source.episode_id} id={source.episode_id} title={source.title} onSaved={onSaved} />
+    <ProfileSource kind="episode" id={source.episode_id} label="Originalquelle öffnen" readOnly allowIgnore={false} /></div>
   </article>;
 }
 
@@ -136,7 +136,7 @@ export function MemoryAreas() {
     {notice && <p role="status">{notice}</p>}
     {!page && !error && <p role="status">Bereiche werden geladen …</p>}
     {unavailable && <p role="status">Dieser Bereich ist im bestehenden Themenverzeichnis nicht verfügbar. Vorhandene Zuordnungen bleiben erhalten.</p>}
-    {!loading && page && (visible.length > 0 || selectedSources.length > 0) && <AreaBatchCorrection selected={selectedSources} onClear={() => setSelectedSources([])} />}
+    {!loading && page && selectedSources.length > 0 && <AreaBatchCorrection selected={selectedSources} onClear={() => setSelectedSources([])} />}
     {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} selected={selectedSources.some(item => item.id === source.episode_id)} onSelect={checked => setSelectedSources(current => checked ? [...current.filter(item => item.id !== source.episode_id), {id: source.episode_id, title: source.title}] : current.filter(item => item.id !== source.episode_id))} onSaved={() => {
       setNotice("Deine Zuordnung wurde gespeichert. Die Quelle kann dadurch in einen anderen Bereich wechseln; ihr Original bleibt erhalten.");
     }} />)}</div>
