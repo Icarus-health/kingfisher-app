@@ -12,9 +12,9 @@ function text(node){return node==null?'':typeof node==='object'?[node.props?.chi
 function button(tree,label){const result=nodes(tree,n=>n.type==='button'&&text(n)===label)[0];assert.ok(result,`button ${label}`);return result;}
 function driver(render){const states=[],refs=[],effects=[],pending=[];let s,r,e;return {state(initial){const i=s++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],v=>states[i]=typeof v==='function'?v(states[i]):v];},ref(initial){return refs[r++]??(refs[r-1]={current:initial});},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__orgDriver=this;return render();},flush(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(effect=>effect.cleanup?.());delete globalThis.__orgDriver;}};}
 const snapshot={entries:[{id:'organisation:de',name:'Amazon.de'},{id:'organisation:com',name:'Amazon.com'},{id:'organisation:digital',name:'Amazon Digital Germany'}],total:3,complete:true,source_revision:'source-r1',groups_revision:'groups-r1',groups:[],dismissals:[],suggestions:[{id:'candidate',name:'Amazon',members:['organisation:de','organisation:com','organisation:digital'],reason:'Lokale Namensregel: ähnliche Namen. Keine Prüfung von Rechtsperson oder Konzernzugehörigkeit.'}]};
-async function scenario(run){const previousWindow=globalThis.window,oldView={...workspaceViewApi},oldSuggestions={...organisationSuggestionsApi};const events=new Map(),confirmed=[],dismissed=[];globalThis.window={location:{search:''},addEventListener:(id,fn)=>events.set(id,fn),removeEventListener:id=>events.delete(id),dispatchEvent(){}};
- workspaceViewApi.overview=async()=>({folders:[],source_folders:[],organisation_groups:[],places:[],avatars:[],online:{logos:false,maps:false},online_revision:0});organisationSuggestionsApi.overview=async()=>snapshot;organisationSuggestionsApi.confirm=async body=>{confirmed.push(body);return {id:'stable',kind:'organisation_group',revision:1,data:{name:body.name,members:body.members}};};organisationSuggestionsApi.dismiss=async(...args)=>{dismissed.push(args);return {id:'candidate',revision:1,data:{dismissed:true}};};
- const d=driver(()=>OrganisationGroups({entries:[{id:'organisation:de',name:'Amazon.de'}]}));try{d.render();d.flush();await new Promise(setImmediate);d.render();d.flush();await new Promise(setImmediate);await run({d,confirmed,dismissed});}finally{d.close();globalThis.window=previousWindow;Object.assign(workspaceViewApi,oldView);Object.assign(organisationSuggestionsApi,oldSuggestions);}}
+async function scenario(run,initial=snapshot){const previousWindow=globalThis.window,oldView={...workspaceViewApi},oldSuggestions={...organisationSuggestionsApi};const events=new Map(),confirmed=[],dismissed=[];globalThis.window={location:{search:''},addEventListener:(id,fn)=>events.set(id,fn),removeEventListener:id=>events.delete(id),dispatchEvent(){}};
+ workspaceViewApi.overview=async()=>({folders:[],source_folders:[],organisation_groups:[],places:[],avatars:[],online:{logos:false,maps:false},online_revision:0});organisationSuggestionsApi.overview=async()=>initial;organisationSuggestionsApi.confirm=async body=>{confirmed.push(body);return {id:'stable',kind:'organisation_group',revision:1,data:{name:body.name,members:body.members}};};organisationSuggestionsApi.dismiss=async(...args)=>{dismissed.push(args);return {id:'candidate',revision:1,data:{dismissed:true}};};
+ const d=driver(()=>OrganisationGroups({entries:[{id:'organisation:de',name:'Amazon.de'}]}));try{d.render();d.flush();await new Promise(setImmediate);d.render();d.flush();await new Promise(setImmediate);await run({d,confirmed,dismissed,events});}finally{d.close();globalThis.window=previousWindow;Object.assign(workspaceViewApi,oldView);Object.assign(organisationSuggestionsApi,oldSuggestions);}}
 test('automatic proposal explains local names and edits full membership before explicit confirmation',()=>scenario(async({d,confirmed})=>{
  assert.match(text(d.render()),/ähnliche Namen/);assert.match(text(d.render()),/Konzernzugehörigkeit/);assert.match(text(d.render()),/Amazon Digital Germany/);
  button(d.render(),'Vorschlag bearbeiten').props.onClick();assert.equal(confirmed.length,0);
@@ -37,3 +37,38 @@ test('complete basis does not mount one logo editor per organisation while brows
  const editors=nodes(d.render(),n=>typeof n.type==='function'&&n.type.name==='MemoryAvatarEditor');
  assert.equal(editors.length,1);assert.equal(editors[0].props.id,'organisation:digital');
 }));
+function submitPreview(d){nodes(d.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});}
+function draftName(d){return nodes(d.render(),n=>n.type==='input'&&n.props.type!=='checkbox')[0];}
+async function conflict(d){organisationSuggestionsApi.confirm=async()=>{throw Object.assign(Error('changed'),{status:409});};button(d.render(),'Gruppierung bestätigen').props.onClick();await new Promise(setImmediate);}
+function recordConfirm(confirmed){organisationSuggestionsApi.confirm=async body=>{confirmed.push(body);return {id:'stable',revision:2,data:{name:body.name,members:body.members}};};}
+test('conflict reload preserves edited proposal and explicitly downgrades an obsolete candidate before fresh preview',()=>scenario(async({d,confirmed})=>{
+ button(d.render(),'Vorschlag bearbeiten').props.onClick();draftName(d).props.onChange({target:{value:'Eigener Einkaufsentwurf'}});
+ const digital=nodes(d.render(),n=>n.type==='label'&&text(n)==='Amazon Digital Germany')[0];nodes(digital,n=>n.type==='input')[0].props.onChange({target:{checked:false}});
+ submitPreview(d);await conflict(d);
+ organisationSuggestionsApi.overview=async()=>({...snapshot,source_revision:'source-r2',groups_revision:'groups-r2',suggestions:[{...snapshot.suggestions[0],id:'fresh-candidate',members:[...snapshot.suggestions[0].members,'organisation:prime']}],entries:[...snapshot.entries,{id:'organisation:prime',name:'Amazon Prime'}]});
+ const oldConfirm=button(d.render(),'Gruppierung bestätigen');button(d.render(),'Aktuellen Stand laden').props.onClick();await new Promise(setImmediate);
+ recordConfirm(confirmed);oldConfirm.props.onClick();await new Promise(setImmediate);assert.equal(confirmed.length,0);
+ assert.equal(draftName(d).props.value,'Eigener Einkaufsentwurf');assert.match(text(d.render()),/eigene Anzeigegruppe/);
+ assert.equal(nodes(d.render(),n=>n.type==='button'&&text(n)==='Gruppierung bestätigen').length,0);
+ submitPreview(d);button(d.render(),'Gruppierung bestätigen').props.onClick();await new Promise(setImmediate);
+ assert.deepEqual(confirmed[0],{source_revision:'source-r2',groups_revision:'groups-r2',candidate_id:null,group_id:null,group_revision:0,name:'Eigener Einkaufsentwurf',members:['organisation:de','organisation:com']});
+}));
+const initialGroup={id:'group-one',kind:'organisation_group',revision:1,data:{name:'Gespeichert zuvor',members:['organisation:de','organisation:com']}};
+test('conflict reload binds fresh group revision only after showing current saved group and a new preview',()=>scenario(async({d,confirmed})=>{
+ button(d.render(),'Gruppe bearbeiten').props.onClick();draftName(d).props.onChange({target:{value:'Bewahrter Gruppenentwurf'}});submitPreview(d);await conflict(d);
+ organisationSuggestionsApi.overview=async()=>({...snapshot,groups_revision:'groups-r2',groups:[{...initialGroup,revision:2,data:{name:'Anderswo geändert',members:['organisation:de','organisation:digital']}}],suggestions:[]});
+ button(d.render(),'Aktuellen Stand laden').props.onClick();await new Promise(setImmediate);
+ assert.equal(draftName(d).props.value,'Bewahrter Gruppenentwurf');recordConfirm(confirmed);
+ submitPreview(d);assert.match(text(d.render()),/Aktuell gespeichert/);assert.match(text(d.render()),/Anderswo geändert/);
+ button(d.render(),'Gruppierung bestätigen').props.onClick();await new Promise(setImmediate);
+ assert.equal(confirmed[0].group_revision,2);assert.equal(confirmed[0].groups_revision,'groups-r2');assert.equal(confirmed[0].name,'Bewahrter Gruppenentwurf');assert.deepEqual(confirmed[0].members,['organisation:de','organisation:com']);
+},{...snapshot,groups:[initialGroup],suggestions:[]}));
+test('automatic background refresh cannot silently replace a reviewed group revision during confirmation',()=>scenario(async({d,events,confirmed})=>{
+ button(d.render(),'Gruppe bearbeiten').props.onClick();draftName(d).props.onChange({target:{value:'Expliziter Entwurf'}});submitPreview(d);
+ organisationSuggestionsApi.overview=async()=>({...snapshot,groups_revision:'groups-r2',groups:[{...initialGroup,revision:2,data:{name:'Anderswo geändert',members:['organisation:de','organisation:digital']}}],suggestions:[]});
+ events.get('workspace-view-changed')();await new Promise(setImmediate);
+ organisationSuggestionsApi.confirm=async body=>{confirmed.push(body);throw Object.assign(Error('changed'),{status:409});};
+ button(d.render(),'Gruppierung bestätigen').props.onClick();await new Promise(setImmediate);
+ assert.equal(confirmed[0].groups_revision,'groups-r1');assert.equal(confirmed[0].group_revision,1);
+ submitPreview(d);assert.equal(nodes(d.render(),n=>n.type==='button'&&text(n)==='Gruppierung bestätigen').length,0);assert.match(text(d.render()),/akt[uU]ellen Stand laden/);
+},{...snapshot,groups:[initialGroup],suggestions:[]}));
