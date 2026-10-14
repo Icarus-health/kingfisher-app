@@ -425,7 +425,7 @@ def test_versioned_message_list_exposes_only_local_inbox_previews(tmp_path, monk
         "id": "mail-1", "subject": "Vertrag", "sender": "Frau Becker",
         "date": payload["messages"][0]["date"], "preview": "Bitte den Entwurf prüfen.",
         "unread": True, "source": "Arbeit", "account_id": "",
-        "category": "inbox", "filter_reason": "not_flagged",
+        "category": "inbox", "filter_reason": "not_flagged", "truncated": False,
     }
     assert datetime.fromisoformat(payload["messages"][0]["date"]).astimezone(timezone.utc) == datetime(2026, 9, 4, 10, tzinfo=timezone.utc)
     assert "Volltext" not in str(payload)
