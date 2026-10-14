@@ -81,3 +81,20 @@ test('original 404 or 409 removes retained original and workflow instead of show
   failure=true;props.localRevision=1;d.render();await d.flush();const tree=d.render();assert.doesNotMatch(text(tree),/Entzogenes Original/);assert.equal(nodes(tree,n=>n.type===SavedMailWorkflow).length,0);
  }
 }));
+
+test('successful task confirmation survives onTaskSaved refresh with no pending items and appears once before refresh',()=>harness(async(server,driver)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ let confirmed=false,refresh=false,reads=0,callbacks=0;
+ api.read=async()=>{reads++;return{...ready(),items:refresh?[]:ready().items};};
+ api.accept=async()=>{confirmed=true;return{title:'Bestätigte Prüfung'};};
+ const props={episodeId:'e1',sourceDigest:ready().source_digest,sourceVerified:true,onTaskSaved(){callbacks++;refresh=true;props.sourceVerified=false;}};
+ const d=driver(SavedMailWorkflow,props);d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});await d.flush();tree=d.render();assert.equal(confirmed,true);assert.equal(callbacks,1);assert.equal(nodes(tree,n=>n.type==='form').length,0);
+ assert.equal(nodes(tree,n=>n.props?.role==='status'&&/Aufgabe gespeichert: Bestätigte Prüfung/.test(text(n))).length,1);
+ await d.flush();props.sourceVerified=true;d.render();await d.flush();tree=d.render();
+ assert.ok(reads>=3);assert.equal(nodes(tree,n=>n.type==='form').length,0);
+ assert.equal(nodes(tree,n=>n.props?.role==='status'&&/Aufgabe gespeichert: Bestätigte Prüfung/.test(text(n))).length,1);
+ assert.equal(nodes(tree,n=>n.type==='a'&&n.props.href==='/vorhaben?view=mine'&&/Aufgaben öffnen/.test(text(n))).length,1);
+ // Ein anderer Originalstand darf die alte Bestätigung nicht unter der neuen Quelle zeigen.
+ props.sourceDigest='sha256:'+'c'.repeat(64);d.render();await d.flush();tree=d.render();assert.doesNotMatch(text(tree),/Aufgabe gespeichert: Bestätigte Prüfung/);
+}));

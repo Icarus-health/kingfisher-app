@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {savedMailWorkflowApi,type SavedMailWorkflowView} from './savedMailWorkflowApi';
 import {initialSavedTask,savedTaskPayload,type SavedTaskDraft} from './savedMailWorkflowState';
+import {navigate} from './ui';
 import './SavedMailWorkflow.css';
 
 export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,onTaskSaved}: {
@@ -64,6 +65,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   {loading && <p role="status">Vorbereiteter Überblick wird geprüft …</p>}
   {error && <p role="alert">{error}</p>}
   {view && <>
+   {view.episode_id===episodeId && view.source_digest===sourceDigest && Object.entries(saved).map(([id,title])=><p key={id} role="status">Aufgabe gespeichert: {title} <a href="/vorhaben?view=mine" onClick={event=>{event.preventDefault();navigate('/vorhaben?view=mine');}}>Aufgaben öffnen</a></p>)}
    {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
    {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
    <p>{view.detail}</p><p className="saved-mail-workflow-context">{view.temporal_reason}</p>
@@ -74,11 +76,11 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
    </>}
    {view.status==='incomplete' && <p>Überblick über einen Ausschnitt. Aufgaben aus unvollständigem Text werden hier nicht neu vorgeschlagen.</p>}
    {view.status==='ready' && !view.items.length && <p>Keine offenen belegten Aufgabenvorschläge aus dieser Quelle.</p>}
-   {view.items.map(item=>{
+   {view.items.filter(item=>!saved[item.id]).map(item=>{
     const draft=drafts[item.id] || initialSavedTask(item,view.projects);
     const update=(change:Partial<SavedTaskDraft>)=>setDrafts(values=>({...values,[item.id]:{...draft,...change}}));
     return <form key={item.id} className="saved-mail-workflow-task" onSubmit={event=>{event.preventDefault();void save(item.id,draft);}}>
-     {saved[item.id] ? <p role="status">Aufgabe gespeichert: {saved[item.id]}</p> : <>
+     <>
       <h3>{item.review_required?'Bitte aus der Quelle prüfen':'Aufgabenvorschlag prüfen'}</h3>
       <blockquote>{item.evidence[0]?.quote}</blockquote>
       {item.project_suggestion && <p>Projektvorschlag: {item.project_suggestion.name} · {item.project_suggestion.reason}</p>}
@@ -89,7 +91,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
       {draft.project==='new' && <label>Neues Projekt<input value={draft.newProject} onChange={event=>update({newProject:event.target.value})} maxLength={200} disabled={Boolean(busy)}/></label>}
       <p>Speichert deine bestätigte Aufgabe{draft.project==='new'?' und das neue Projekt':''}. Keine Frist oder wartende Person wird aus der historischen Mail übernommen.</p>
       <button type="submit" disabled={!valid || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button>
-     </>}
+     </>
     </form>;
    })}
   </>}
