@@ -29,3 +29,7 @@ Isolierter lokaler Dienst mit deterministischem künstlichem Antwortmodell, 35 K
 Die Prüfungen belegen die genannten Arbeitsabläufe; sie sind kein vollständiges Barrierefreiheitszertifikat und kein Lasttest des gesamten persönlichen Mailarchivs. Modellvorschläge werden weiterhin geprüft und bestätigt; ohne vorhandenes Vergleichsprojekt wird kein automatischer Erstprojektvorschlag berechnet. Große Listen zeigen ausdrücklich geladene Seiten; Metadatenübersichten melden ihre Begrenzung. Aktivierung von Cloudmodellen und Fortsetzung des Großimports sind nicht Teil dieser Lieferung.
 
 Mac-Sicherung, normaler Updateweg und abschließende Prüfung der installierten Fassung werden nach der Veröffentlichung separat dokumentiert.
+
+## Veröffentlichungskorrektur
+
+Der erste Release-Lauf für 1.0.9 wurde nach über 20 Minuten ohne Abschluss von `linux/arm64 ui-build npm ci` kontrolliert beendet. Es wurde keine unvollständige Fassung installiert. Der statische UI-Build verwendet in 1.0.10 `BUILDPLATFORM`; nur HTML/CSS/JavaScript werden in beide Zielbilder kopiert. Python-Build und Laufzeit bleiben auf ihrer jeweiligen Zielarchitektur. Grundlage: https://docs.docker.com/build/building/multi-platform/#cross-compilation.
