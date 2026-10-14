@@ -55,9 +55,16 @@ export function rememberMemoryArea(view:MemoryAreaView,navigation:MemoryAreaNavi
 export function rememberMemoryPresentation<K extends keyof Presentation>(kind:K,value:Presentation[K]) {write({[kind]:value});}
 function captureScroll():ScrollPosition {
   const element=(selector:string)=>typeof document==='undefined'?null:document.querySelector<HTMLElement>(selector);
-  const root=element('.memory-page');
-  const row=root&&Array.from(root.querySelectorAll<HTMLElement>('[data-memory-row]')).find(row=>(!row.getClientRects||row.getClientRects().length>0)&&row.getBoundingClientRect().bottom>root.getBoundingClientRect().top);
-  return {x:window.scrollX??0,y:window.scrollY??0,page:root?.scrollTop??0,directory:element('.memory-directory')?.scrollTop??0,...(row?{anchor:{id:row.dataset.memoryRow!,offset:Math.max(0,root.getBoundingClientRect().top,row.getBoundingClientRect().top)}}:{})};
+  const root=element('.memory-page'),directory=element('.memory-directory');
+  const bounds=root?.getBoundingClientRect();
+  const row=root&&bounds&&Array.from(root.querySelectorAll<HTMLElement>('[data-memory-row]')).find(row=>{
+    if(row.getClientRects&&row.getClientRects().length===0)return false;
+    const clip=directory?.contains(row)?directory.getBoundingClientRect():bounds;
+    const top=Math.max(0,bounds.top,clip.top),bottom=Math.min(window.innerHeight,bounds.bottom,clip.bottom);
+    const rect=row.getBoundingClientRect();
+    return top<bottom&&rect.bottom>top&&rect.top<bottom;
+  });
+  return {x:window.scrollX??0,y:window.scrollY??0,page:root?.scrollTop??0,directory:directory?.scrollTop??0,...(row?{anchor:{id:row.dataset.memoryRow!,offset:row.getBoundingClientRect().top}}:{})};
 }
 /** Carry only presentation state inside this tab's History API. No source bodies, storage or API cache. */
 export function memoryNavigationState(target:string):Record<string,unknown> {
