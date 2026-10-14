@@ -46,8 +46,10 @@ import type {MemoryGraph} from './api';
 import type {FolderSource} from './MemoryFolders';
 export function contactDateFromGraph(graph: MemoryGraph, id: string): string {
   // Being mentioned in a source does not establish actual contact.
-  const sources = new Set(graph.edges.filter(edge=>edge.source===id&&edge.relation==='participated_in').map(edge=>edge.target));
-  const dates = graph.nodes.filter(node=>sources.has(node.id)).map(node=>node.attributes.occurred_at)
+  const sources = new Set(graph.edges.filter(edge=>edge.source===id&&edge.relation==='participated_in'&&edge.actual_contact===true).map(edge=>edge.target));
+  const at = Date.parse(graph.generated_at);
+  const dates = graph.nodes.filter(node=>sources.has(node.id)&&node.attributes.source_current!==false&&node.attributes.state!=='ignored'
+    &&(node.attributes.episode_kind!=='event'||(typeof node.attributes.occurred_at==='string'&&Date.parse(node.attributes.occurred_at)<=at))).map(node=>node.attributes.occurred_at)
     .filter((value):value is string=>typeof value==='string'&&Number.isFinite(Date.parse(value)));
   if(!dates.length)return 'unbekannt';
   return new Date(Math.max(...dates.map(Date.parse))).toLocaleDateString('de-DE');

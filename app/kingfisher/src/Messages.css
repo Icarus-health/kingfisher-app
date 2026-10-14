@@ -27,6 +27,8 @@
 .mail-pagination { display:flex; gap:8px; align-items:center; justify-content:space-between; padding:12px; font-size:11px; }
 .mail-pagination button:disabled { opacity:.45; cursor:default; }
 .mail-reading-column { min-width:0; overflow:hidden; }
+.mail-reader-local .mail-reader-meta dl div { grid-template-columns:110px minmax(0,1fr); }
+.mail-reader-local .mail-reader-meta dt { overflow-wrap:normal; word-break:normal; }
 .mail-reader-placeholder { color:var(--kf-schrift-53635f); padding:28px; font-size:13px; }
 .mail-reading-column .mail-reader { padding:20px; border:0; border-radius:0; box-shadow:none; min-width:0; }
 .mail-reading-column .mail-reader h1 { font-size:22px; overflow-wrap:anywhere; }

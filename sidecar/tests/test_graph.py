@@ -44,6 +44,19 @@ def _stores(tmp_path: Path):
     )
 
 
+def test_graph_contact_flag_reuses_actual_contact_semantics(tmp_path):
+    episodes, workspace, tasks, store = _stores(tmp_path)
+    chat, _ = episodes.record(EpisodeKind.INTERACTION, 'Nur erwähnt', 'Lea Sommer ist ein Kontakt.',
+                             _prov(SourceType.CHAT, 'chat:mention'), participants=['Lea Sommer'], occurred_at=JETZT)
+    mail, _ = episodes.record(EpisodeKind.MESSAGE, 'Direkte Mail', 'Originalnachricht',
+                             _prov(SourceType.EMAIL, 'mail:contact'), participants=['Lea Sommer'], occurred_at=JETZT)
+    result = build(episodes=episodes, workspace=workspace, tasks=tasks, store=store, at=JETZT).to_dict()
+    edges = {edge['target']: edge for edge in result['edges'] if edge['relation'] == 'participated_in'}
+    assert edges[f'episode:{chat.id}'].get('actual_contact', False) is False
+    assert edges[f'episode:{mail.id}']['actual_contact'] is True
+    assert edges[f'episode:{chat.id}']['evidence_refs'] == [f'episode:{chat.id}']
+
+
 def test_eine_person_kann_mehrere_belegte_projektkontexte_haben(tmp_path: Path) -> None:
     episodes, workspace, tasks, store = _stores(tmp_path)
     vdd = workspace.add_project("VDD Digitalisierung", _prov(SourceType.USER_STATED))

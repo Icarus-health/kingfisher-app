@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, type Project, type Task} from './api';
 import {TaskRow} from './TaskRow';
+import {navigate} from './ui';
 
 /** Exact lookup also works when a task is outside the current list/filter. */
 export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () => void}) {
@@ -60,11 +61,13 @@ export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () =
     } finally {if (version === lifecycle.current) {pending.current = false; if (alive.current) setBusy(false);}}
   }
   return <div className="task-detail">
+    {new URLSearchParams(window.location.search).get('from')==='memory'&&<button type="button" className="text-action" onClick={()=>window.history.back()}>Zur vorherigen Gedächtnisansicht</button>}
     {!task && !error && <p role="status">Aufgabe wird geladen …</p>}
     {error && <p role="alert">{error}{!task && <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut laden</button>}</p>}
     {task?.goal_id && <p className="task-goal-link"><strong>Zielbezug:</strong> {goalStatement ?? "Ziel wird geladen …"}</p>}
     {projectsFailed && <p role="status">Projekte konnten nicht geladen werden. Die Projektzuordnung bleibt erhalten. <button type="button" disabled={busy} onClick={() => setProjectRevision(value => value + 1)}>Projekte erneut laden</button></p>}
-    {task?.status === "dropped" && <p>Diese Aufgabe wurde verworfen: {task.title}</p>}
+    {task?.project_id&&<button type="button" className="text-action" onClick={()=>navigate(`/memory/projects/${encodeURIComponent(task.project_id!)}?${new URLSearchParams({return_to:'/memory?tab=projects'})}`)}>Projekt im Gedächtnis öffnen</button>}
+    {task?.status === "dropped" && <><p>Diese Aufgabe wurde verworfen: {task.title}</p><button type="button" disabled={busy} onClick={()=>void change(()=>api.reopenTask(task.id))}>Aufgabe wieder aufnehmen</button></>}
     {task?.status==='open'&&<button type="button" className="text-action" disabled={busy} onClick={()=>void change(()=>api.dropTask(task.id))}>Aufgabe verwerfen</button>}
     {task && task.status !== "dropped" && <TaskRow task={task} view={task.status === 'done' ? 'done' : task.wartet_auf ? 'waiting' : 'mine'} completing={busy}
       projects={projects} projectDisabled={projectsFailed || projectsLoading} onProjectChange={id => {void change(() => api.assignTaskProject(task.id, id || null));}}

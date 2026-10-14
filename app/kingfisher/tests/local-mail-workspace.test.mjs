@@ -50,3 +50,15 @@ test('source exclusion immediately clears the saved body and only the original-o
  nodes(tree,n=>n.type==='button'&&text(n)==='Quelle zuordnen oder ausschließen')[0].props.onClick();tree=d.render();const management=nodes(tree,n=>n.type?.name==='ProfileSource'&&!n.props.originalOnly)[0];assert.ok(management);
  excluded=true;management.props.onChange();tree=d.render();assert.doesNotMatch(text(tree),/Sensitive original/);await d.flush();tree=d.render();assert.match(text(tree),/ausgeschlossen/);
 }));
+test('explicit list refresh revalidates an open saved source even when it is no longer in the page',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');let excluded=false,reads=0;
+ localMailApi.page=async()=>({items:excluded?[]:[{episode_id:'saved',subject:'Saved subject',sender:'Anna'}],accounts:[],total:excluded?0:1,limit:40,has_more:false});
+ localMailApi.detail=async()=>{reads++;if(excluded)throw Error('HTTP 409');return{uid:'saved',episode_id:'saved',subject:'Saved subject',body:'Withdrawn original',remote_uid:'a:1.2'};};
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();nodes(tree,n=>n.type==='button'&&/Saved subject/.test(text(n)))[0].props.onClick({currentTarget:{focus(){}}});tree=d.render();
+ const entry=MailReader(nodes(tree,n=>n.type?.name==='MailReader')[0].props),savedProps={...entry.props},reader=driver(entry.type,savedProps);reader.render();await reader.flush();let opened=reader.render();assert.match(text(opened),/Withdrawn original/);
+ nodes(opened,n=>n.type==='button'&&/Aktuelle Mail und Aktionen laden/.test(text(n)))[0].props.onClick();assert.equal(nodes(reader.render(),n=>n.type?.name==='RemoteMailReader').length,1);
+ excluded=true;nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Lokale Nachrichtenliste aktualisieren')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();
+ const selected=nodes(tree,n=>n.type?.name==='MailReader')[0];assert.equal(selected.props.localEpisodeId,'saved');Object.assign(savedProps,MailReader(selected.props).props);reader.render();await reader.flush();const refreshed=reader.render();
+ assert.equal(reads,2);assert.doesNotMatch(text(refreshed),/Withdrawn original/);assert.match(text(refreshed),/ausgeschlossen/);
+ assert.equal(nodes(refreshed,n=>n.type?.name==='RemoteMailReader').length,0);
+}));

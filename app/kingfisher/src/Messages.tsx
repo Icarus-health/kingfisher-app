@@ -83,7 +83,7 @@ export function Messages({recentConversation}: {recentConversation:string|null})
           </div>
           <nav className="mail-pagination" aria-label="Nachrichtenseiten"><button type="button" disabled={loading||offset===0} onClick={()=>setOffset(n=>Math.max(0,n-40))}>Zurück</button><span>{visiblePage?.total ? `${offset+1}–${Math.min(offset+(visiblePage.items.length||0),visiblePage.total)} von ${visiblePage.total}`:'0 Nachrichten'}</span><button type="button" disabled={loading||!visiblePage?.has_more} onClick={()=>setOffset(n=>n+40)}>Weiter</button></nav>
         </section>
-        <section className="mail-reading-column" aria-label="Lesebereich" ref={readerRegion}>{selectedId?<MailReader key={`${selectedMode}:${selectedId}`} uid={selectedId} localEpisodeId={selectedMode==='local'?selectedId:undefined} onClose={close} onTaskSaved={sourceChanged} />:<p className="mail-reader-placeholder">Wähle eine Nachricht zum Lesen.</p>}</section>
+        <section className="mail-reading-column" aria-label="Lesebereich" ref={readerRegion}>{selectedId?<MailReader key={`${selectedMode}:${selectedId}`} uid={selectedId} localEpisodeId={selectedMode==='local'?selectedId:undefined} localRevision={revision} onClose={close} onTaskSaved={sourceChanged} />:<p className="mail-reader-placeholder">Wähle eine Nachricht zum Lesen.</p>}</section>
       </div>
     </main></div>;
 }

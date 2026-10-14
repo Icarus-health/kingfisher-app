@@ -76,6 +76,7 @@ class GraphEdge:
     confidence: float = 1.0
     state: str = "observed"
     original_edges: tuple[dict[str, Any], ...] = ()
+    actual_contact: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -87,6 +88,7 @@ class GraphEdge:
             "confidence": self.confidence,
             "state": self.state,
             "evidence_refs": list(self.evidence_refs),
+            **({"actual_contact": True} if self.actual_contact else {}),
             **({"original_edges": list(self.original_edges)} if self.original_edges else {}),
         }
 
@@ -194,6 +196,7 @@ class _Builder:
         scope: str | None = None,
         confidence: float = 1.0,
         state: str = "observed",
+        actual_contact: bool = False,
     ) -> None:
         key = (source, target, relation, scope)
         existing = self.edges.get(key)
@@ -210,6 +213,7 @@ class _Builder:
             scope=scope,
             confidence=min(existing.confidence, confidence) if existing else confidence,
             state=existing.state if existing and existing.state == state else state,
+            actual_contact=actual_contact or bool(existing and existing.actual_contact),
         )
 
 
@@ -355,6 +359,7 @@ def build(
                 "participated_in",
                 f"episode:{episode.id}",
                 scope=episode.project_id,
+                actual_contact=personen.ist_kontakt(episode, nennung),
             )
             if project_node_id and episode.project_id in projects:
                 builder.edge(

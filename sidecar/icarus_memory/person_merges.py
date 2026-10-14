@@ -149,6 +149,7 @@ def project(raw, records):
         combined[key] = replace(edge, id=_stable('edge', json.dumps([*key, *refs])),
                                 source=source, target=target, evidence_refs=refs,
                                 confidence=min(edge.confidence, existing.confidence) if existing else edge.confidence,
+                                actual_contact=edge.actual_contact or bool(existing and existing.actual_contact),
                                 original_edges=originals)
     groups = [replace(node, attributes={**node.attributes,
               'internal_relations': internal.get(node.id, [])}) for node in groups]

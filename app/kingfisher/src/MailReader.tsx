@@ -11,7 +11,7 @@ import { MailStyle } from "./MailStyle";
 import "./MailReader.css";
 import {localMailApi, type LocalMailDetail} from "./localMailApi";
 
-type MailReaderProps = { uid: string; onClose: () => void; onTaskSaved?: () => void; localEpisodeId?: string };
+type MailReaderProps = { uid: string; onClose: () => void; onTaskSaved?: () => void; localEpisodeId?: string; localRevision?: number };
 
 const draftKey = (uid: string) => `kingfisher-mail-draft:${uid}`;
 const draftFormat = 1;
@@ -277,7 +277,7 @@ export function MailReader(props: MailReaderProps) {
   return props.localEpisodeId ? <SavedMailReader {...props} episodeId={props.localEpisodeId} /> : <RemoteMailReader {...props} />;
 }
 
-function SavedMailReader({episodeId, onClose, onTaskSaved}: MailReaderProps & {episodeId:string}) {
+function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailReaderProps & {episodeId:string}) {
   const [detail, setDetail] = useState<LocalMailDetail | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -309,7 +309,7 @@ function SavedMailReader({episodeId, onClose, onTaskSaved}: MailReaderProps & {e
     const escape = (event:KeyboardEvent) => {if (event.key === 'Escape') onClose();};
     window.addEventListener('focus', focus); window.addEventListener('keydown', escape);
     return () => {active = false; version++; controller?.abort(); window.removeEventListener('focus',focus); window.removeEventListener('keydown',escape);};
-  }, [episodeId, revision]);
+  }, [episodeId, revision, localRevision]);
   return <article className="mail-reader mail-reader-local" aria-label="Gespeicherte Nachricht lesen">
     <header className="mail-reader-header"><button className="mail-reader-close" type="button" onClick={onClose}>Zur Nachrichtenliste</button><span className="mail-reader-source">Gespeicherte Originalquelle · Mail</span></header>
     {loading && <p role="status">Gespeicherte Quelle wird geprüft …</p>}

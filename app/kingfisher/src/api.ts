@@ -556,6 +556,7 @@ export type GraphEdge = {
   confidence: number;
   state: string;
   evidence_refs: string[];
+  actual_contact?: boolean;
 };
 
 export type MemoryGraph = {

@@ -189,7 +189,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
     </Teil> : null}
 
     {data.aufgaben.eintraege.length ? <Teil titel="Aufgaben" kind="aufgaben">
-      {data.aufgaben.eintraege.map(a => <article key={a.id}><strong>{a.title}</strong><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}</small></article>)}
+      {data.aufgaben.eintraege.map(a => <article key={a.id}><button type="button" className="task-title-link" onClick={()=>navigate(`/vorhaben?${new URLSearchParams({task:a.id,from:'memory'})}`)}>{a.title}</button><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}</small></article>)}
       <Gesamt gezeigt={data.aufgaben.eintraege.length} gesamt={data.aufgaben.gesamt} />
     </Teil> : null}
 

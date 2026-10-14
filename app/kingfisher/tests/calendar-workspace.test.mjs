@@ -14,5 +14,12 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  d.render();await d.flush();let tree=d.render();await d.flush();tree=d.render();
  assert.equal(nodes(tree,n=>n.props?.className==='calendar-hour').length,24);assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Tag')[0]);assert.ok(nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0]);
  const event=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-time-event')[0];assert.ok(event);event.props.onClick();tree=d.render();const details=nodes(tree,n=>n.type?.name==='DetailPanel')[0];assert.ok(details);assert.match(text(details),/Workshop/);assert.match(text(details),/Vorbereiten/);
+ const oldZone=process.env.TZ;process.env.TZ='Europe/Berlin';
+ try {
+  api.calendar=async()=>({items:[{...item,uid:'clock',start:'2026-10-25T02:50:00+02:00',end:'2026-10-25T02:10:00+01:00'}],configured:true,errors:[]});
+  nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0].props.onChange({target:{value:'2026-10-25'}});d.render();await d.flush();tree=d.render();await d.flush();tree=d.render();
+  const parts=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-time-event');assert.equal(parts.length,2);assert.equal(new Set(parts.map(p=>p.key)).size,2);
+  assert.ok(parts.some(p=>p.props['aria-label'].includes('02:50–03:00 UTC+02:00')));assert.ok(parts.some(p=>p.props['aria-label'].includes('02:00–02:10 UTC+01:00')));
+ }finally{if(oldZone===undefined)delete process.env.TZ;else process.env.TZ=oldZone;}
  }finally{globalThis.window=oldWindow;globalThis.localStorage=oldStorage;globalThis.__calendarDriver=oldDriver;await server.close();}
 });

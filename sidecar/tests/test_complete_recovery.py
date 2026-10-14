@@ -93,6 +93,10 @@ def test_every_backup_store_and_encrypted_key_survives_separate_restore(tmp_path
     config.write_text('ICARUS_SECRETS_PASSPHRASE=synthetic-key-passphrase\nICARUS_SIDECAR_TOKEN=synthetic-token\n')
     from icarus_memory.calendar_actions import CalendarActions
     CalendarActions(data/'calendar-actions.sqlite3', lambda: None, None)
+    from icarus_memory.workspace_views import WorkspaceViews
+    views = WorkspaceViews(data/'workspace-views.sqlite3')
+    views.put('folder', 'docs', {'name': 'Dokumente', 'parent_id': None}, 0)
+    views.close()
     with sqlite3.connect(data/'calendar-actions.sqlite3') as db:
         db.execute('INSERT INTO actions VALUES (?, ?, ?)', ('completed-draft', 'done', json.dumps({'id':'completed-draft','status':'done','provider_event_id':'confirmed-event'})))
     assert all((data/name).is_file() for name in BACKUP_DATA_FILES)

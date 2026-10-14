@@ -1064,9 +1064,10 @@ def _wire_scheduler(app: FastAPI) -> None:
     def run_task_detection(with_model, *, limit=10, rechecks_only=False):
         agent = getattr(app.state, "agent", None)
         plan_at_start = asdict(app.state.settings.schedule)
+        provider = scheduled_provider(rollen_von(app).provider("hintergrund"), agent=agent,
+                                      plan_at_start=plan_at_start)
         detector = TaskDetector(app.state.episodes, app.state.proposals,
-                                scheduled_provider(rollen_von(app).provider("hintergrund"), agent=agent,
-                                                   plan_at_start=plan_at_start), app.state.conversation_lock,
+                                provider, app.state.conversation_lock,
                                 tasks=app.state.tasks)
         def permitted():
             return (getattr(app.state, "agent", None) is agent
@@ -1076,7 +1077,7 @@ def _wire_scheduler(app: FastAPI) -> None:
             from .task_project_hints import TaskProjectHints
             TaskProjectHints(app.state.episodes, app.state.proposals, app.state.workspace,
                              app.state.workspace_views, app.state.conversation_lock).prepare(
-                detector.provider, limit=2, permitted=permitted)
+                provider, limit=2, permitted=permitted)
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:

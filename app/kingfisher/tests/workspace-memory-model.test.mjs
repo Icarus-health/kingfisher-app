@@ -27,8 +27,12 @@ test('excluded or revisionless previews never write',async()=>{
 });
 import {contactDateFromGraph,folderSourcesFromGraph} from '../src/WorkspaceMemoryModel.ts';
 test('mentions do not establish contact and missing occurrence date stays unknown',()=>{
- const graph={nodes:[{id:'episode:one',attributes:{occurred_at:'2026-10-14T12:00:00Z'}},{id:'episode:two',attributes:{recorded_at:'2026-10-14T12:00:00Z'}}],edges:[{source:'person:p',target:'episode:one',relation:'mentioned_in_context'},{source:'person:p',target:'episode:two',relation:'participated_in'}]};
- assert.equal(contactDateFromGraph(graph,'person:p'),'unbekannt');graph.edges.push({source:'person:p',target:'episode:one',relation:'participated_in'});assert.match(contactDateFromGraph(graph,'person:p'),/2026/);
+ const graph={generated_at:'2026-10-14T15:00:00Z',nodes:[{id:'episode:one',attributes:{occurred_at:'2026-10-14T12:00:00Z'}},{id:'episode:two',attributes:{recorded_at:'2026-10-14T12:00:00Z'}}],edges:[{source:'person:p',target:'episode:one',relation:'participated_in'},{source:'person:p',target:'episode:two',relation:'participated_in',actual_contact:true}]};
+ assert.equal(contactDateFromGraph(graph,'person:p'),'unbekannt');graph.edges[0].actual_contact=true;assert.match(contactDateFromGraph(graph,'person:p'),/2026/);
+});
+test('future events and withdrawn sources do not become last contact',()=>{
+ const graph={generated_at:'2026-10-14T15:00:00Z',nodes:[{id:'episode:future',attributes:{episode_kind:'event',occurred_at:'2026-10-15T12:00:00Z'}},{id:'episode:ignored',attributes:{state:'ignored',occurred_at:'2026-10-14T12:00:00Z'}},{id:'episode:old',attributes:{source_current:false,occurred_at:'2026-10-14T12:00:00Z'}}],edges:['future','ignored','old'].map(id=>({source:'person:p',target:`episode:${id}`,relation:'participated_in',actual_contact:true}))};
+ assert.equal(contactDateFromGraph(graph,'person:p'),'unbekannt');graph.nodes.push({id:'episode:past',attributes:{episode_kind:'event',occurred_at:'2026-10-13T12:00:00Z'}});graph.edges.push({source:'person:p',target:'episode:past',relation:'participated_in',actual_contact:true});assert.equal(contactDateFromGraph(graph,'person:p'),'13.10.2026');
 });
 test('document preview retains source keys and excludes ignored, superseded and archived originals',()=>{
  const nodes=[{id:'note:n',kind:'document',label:'Note',attributes:{}},{id:'episode:e',kind:'episode',label:'File',attributes:{episode_kind:'document'}},...['ignored','archived'].map(state=>({id:`episode:${state}`,kind:'episode',label:state,attributes:{episode_kind:'document',state}})),{id:'episode:old',kind:'episode',label:'Old',attributes:{episode_kind:'document',source_current:false}},{id:'project:p',kind:'project',label:'Project',attributes:{area:'Arbeit'}}];
