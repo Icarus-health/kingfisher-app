@@ -1,14 +1,18 @@
 import { useMemo, useState } from "react";
-import type { GraphNode } from "./api";
+import type { GraphNode, MemoryGraph as MemoryGraphData } from "./api";
 import "./MemoryDirectory.css";
 import { displayLabel } from "./displayIdentity";
+import { MemoryAvatar } from "./MemoryAvatar";
+import { useWorkspaceMemoryView } from "./useWorkspaceMemoryView";
+import { contactDateFromGraph } from "./WorkspaceMemoryModel";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 
 
-export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, page: restoredPage, onQueryChange, onPageChange, hasSources = false }: {
-  nodes: GraphNode[]; title: string; onOpen: (node: GraphNode) => void;
+export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, page: restoredPage, onQueryChange, onPageChange, hasSources = false, graph }: {
+  graph?: MemoryGraphData; nodes: GraphNode[]; title: string; onOpen: (node: GraphNode) => void;
   query?: string; page?: number; onQueryChange?: (query: string) => void; onPageChange?: (page: number) => void; hasSources?: boolean;
 }) {
+  const {overview, error: imageError, refresh: retryImages} = useWorkspaceMemoryView();
   const [localQuery, setLocalQuery] = useState("");
   const [localPage, setLocalPage] = useState(0);
   const query = restoredQuery ?? localQuery;
@@ -30,12 +34,14 @@ export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, pa
     <label className="directory-search">{title === "Projekte" ? "Projekt suchen" : "Name oder E-Mail suchen"}
       <input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Suchen …" />
     </label>
+    {imageError && <p role="alert">Eigene Bilder konnten nicht geladen werden. <button type="button" onClick={() => void retryImages()}>Bilder erneut laden</button></p>}
     <p className="directory-count" aria-live="polite">{matches.length} von {nodes.length} Einträgen</p>
     {visible.length ? <ul className="directory-list">{visible.map(node => {
       const label = displayLabel(node.label);
       return <li key={node.id}><button type="button" onClick={() => onOpen(node)} aria-label={`Akte öffnen: ${node.label}`}>
-        <span className="directory-monogram" aria-hidden="true">{label.name.slice(0, 1).toLocaleUpperCase("de")}</span>
+        <MemoryAvatar id={node.id} label={label.name} available={overview?.avatars.some(record => record.id === node.id && record.data?.available) ?? false} revision={overview?.avatars.find(record => record.id === node.id)?.revision} />
         <span className="directory-label"><strong>{label.name}</strong>{label.detail && <small>{label.detail}</small>}
+          <small>{node.kind === "person" ? `Letzter Kontakt: ${graph ? contactDateFromGraph(graph, node.id) : "unbekannt"}` : node.attributes.area ? String(node.attributes.area) : "Bereich unbekannt"}</small>
           <small>{node.attributes.identity_resolution === "explicit_registry" ? "Eigene Akte" : node.attributes.identity_resolution === "confirmed_group" ? "Gemeinsame Ansicht · Zuordnung prüfen" : "Aus vorhandenen Quellen"}</small></span>
         <span className="directory-open">Akte öffnen <span aria-hidden="true">→</span></span>
       </button></li>;

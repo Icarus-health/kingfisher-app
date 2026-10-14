@@ -58,7 +58,10 @@
      nicht für alle Namen (unter 700 px), trägt nur der aktive Bereich seinen Namen (Fremdprobe 2, Befund 25). Wird es
      noch enger, bricht die Reihe um, statt seitlich zu rollen. */
   .shell > .sidebar { position: static; width: auto; inset: auto; flex-direction: row; align-items: stretch; flex-wrap: nowrap; gap: 2px; padding: 6px 8px; }
-  .shell > .sidebar .brand-lockup, .shell > .sidebar [class*="clock"] { display: none; }
+  .shell > .sidebar .brand-lockup { display: none; }
+  .shell > .sidebar { flex-wrap: wrap; }
+  .shell > .sidebar .sidebar-clock { display:flex;flex:1 1 100%;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:0 6px;font-size:11px; }
+  .shell > .sidebar .sidebar-clock strong {font-size:13px;}
   .shell > .sidebar nav { display: flex; flex: 1 1 auto; flex-wrap: wrap; justify-content: space-around; gap: 2px; margin: 0; min-width: 0; overflow: visible; }
   .shell > .sidebar .nav-item { flex: 0 0 auto; flex-direction: column; justify-content: center; gap: 2px; width: auto; min-width: 44px; min-height: 48px; padding: 4px 6px; font-size: 11px; line-height: 14px; text-align: center; }
   .shell > .sidebar .nav-item span { white-space: nowrap; }

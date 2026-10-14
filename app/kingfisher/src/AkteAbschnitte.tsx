@@ -75,6 +75,17 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
   const [data, setData] = useState<Akte | null>(null);
   const [zustand, setZustand] = useState<"laedt" | "keine" | "fehler" | "ok">("laedt");
   const [alle, setAlle] = useState(false);
+  const [avatarId,setAvatarId]=useState<string|null>(null);
+  useEffect(()=>{
+    let active=true;setAvatarId(null);
+    if(!mitKopf||!data) return;
+    if(data.art==='organisation'){setAvatarId(data.sache);return;}
+    if(data.art==='person') {
+      const identity=data.sache.startsWith('person:a:') ? data.sache.slice('person:a:'.length) : data.name;
+      api.personProfile(identity).then(profile=>{if(active)setAvatarId(profile.id);}).catch(()=>{});
+    }
+    return()=>{active=false;};
+  },[mitKopf,data?.art,data?.sache]);
   const version = useRef(0);
   const versuche = useRef(0);
   const lageVersuche = useRef(0);
@@ -116,6 +127,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
   const stand = data.stand_der_dinge;
   return <section className="profile-card profile-wide mappe akte">
     <h2>{mitKopf ? data.name : "Akte"}</h2>
+    {mitKopf&&avatarId&&<MemoryAvatarEditor id={avatarId} label={data.name} logo={data.art==='organisation'}/>}
     <p className="mappe-hinweis">
       {mitKopf ? `${data.art_text} · ` : ""}Aus {data.quellen.gesamt === 1 ? "einer Quelle" : `${data.quellen.gesamt} Quellen`} zusammengestellt. Jede Zeile führt zur Quelle.
       {data.quellen.begrenzt ? ` Ausgewertet sind die jüngsten ${data.quellen.beruecksichtigt}.` : ""}
@@ -177,7 +189,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
     </Teil> : null}
 
     {data.aufgaben.eintraege.length ? <Teil titel="Aufgaben" kind="aufgaben">
-      {data.aufgaben.eintraege.map(a => <article key={a.id}><strong>{a.title}</strong><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}</small></article>)}
+      {data.aufgaben.eintraege.map(a => <article key={a.id}><button type="button" className="task-title-link" onClick={()=>navigate(`/vorhaben?${new URLSearchParams({task:a.id,from:'memory'})}`)}>{a.title}</button><small className={a.overdue ? "mappe-ueberfaellig" : undefined}>{a.due ? `${a.overdue ? "Überfällig seit" : "Fällig"} ${tag(a.due)}` : "Ohne Termin"}{a.wartet_auf ? ` · wartet auf ${displayLabel(a.wartet_auf).name}` : ""}</small></article>)}
       <Gesamt gezeigt={data.aufgaben.eintraege.length} gesamt={data.aufgaben.gesamt} />
     </Teil> : null}
 
@@ -212,3 +224,4 @@ export function SachenAkte({ sache, recentConversation }: { sache: string; recen
     </main>
   </div>;
 }
+import {MemoryAvatarEditor} from './MemoryAvatar';

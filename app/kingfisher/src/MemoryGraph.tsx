@@ -13,6 +13,8 @@ import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
 import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
+import { MemoryFolders } from "./MemoryFolders";
+import { folderSourcesFromGraph } from "./WorkspaceMemoryModel";
 import { MemorySearch } from "./MemorySearch";
 import "./MemoryWorkspace.css";
 
@@ -24,9 +26,9 @@ const FILTERS: Array<{ id: FilterId; label: string; icon: "people" | "project" |
   { id: "people", label: "Menschen", icon: "people" },
   { id: "projects", label: "Projekte", icon: "project" },
   { id: "documents", label: "Dokumente", icon: "document" },
-  { id: "topic-files", label: "Themen", icon: "brain" },
 ];
 const MORE_FILTERS: typeof FILTERS = [
+  { id: "topic-files", label: "Themen", icon: "brain" },
   { id: "organizations", label: "Organisationen", icon: "building" },
   { id: "places", label: "Orte", icon: "pin" },
   { id: "decisions", label: "Entscheidungen", icon: "check" },
@@ -256,7 +258,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
             <a href="/settings#ki">KI-Zugänge & Modelle</a>
           </div></details>
         </aside>
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} documents={filter === "documents"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} /> : error ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" && graph && <MemoryFolders sources={folderSourcesFromGraph(graph)} />}<MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} documents={filter === "documents"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} /></div> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <p>Das Gedächtnis ist gerade nicht erreichbar.</p>
             <button onClick={load} type="button">Wiederholen</button>
@@ -267,7 +269,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           ? <PeopleReview graph={graph} onGraphRefresh={load} />
           : filter === "people" || filter === "projects"
           ? <MemoryDirectory key={`${filter}:${personFilter}`} title={filter === "projects" ? "Projekte" : personFilter === "automated" ? "Automatische Absender" : personFilter === "all" ? "Alle Kontakte" : "Menschen"}
-              nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={graph.nodes.some(node => node.kind === "episode")} />
+              graph={graph} nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={graph.nodes.some(node => node.kind === "episode")} />
           : <GraphCanvas key={`${filter}:${personFilter}`} filter={filter} personFilter={personFilter} graph={graph} />
         ) : <section className="memory-canvas memory-loading" aria-label="Gedächtnis wird geladen" />}
       </main>

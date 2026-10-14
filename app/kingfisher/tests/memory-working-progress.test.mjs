@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 
 // Expose the existing private component only in the test transform.
-const server = await createServer({
+const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-memory-working-progress.test`,
   root: fileURLToPath(new URL('..', import.meta.url)),
   plugins: [{name: 'test-working-progress', enforce: 'pre', transform(code, id) {
     if (id.endsWith('/src/MemoryStatus.tsx')) return code + '\nexport { WorkingMemoryProgress };';

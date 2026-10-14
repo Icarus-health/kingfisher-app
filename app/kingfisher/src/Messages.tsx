@@ -1,91 +1,89 @@
-import { useEffect, useRef, useState } from "react";
-import { api, type InboxMessage, type MailAccount } from "./api";
-import { Sidebar } from "./chrome";
-import { MailReader } from "./MailReader";
-import { aktualisiertSatz } from "./heute";
-import "./Messages.css";
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {api, type InboxMessage} from './api';
+import {Sidebar} from './chrome';
+import {MailReader} from './MailReader';
+import {localMailApi, type LocalMailPage} from './localMailApi';
+import './Messages.css';
+import {aktualisiertSatz} from './heute';
 
-type Tab = "inbox" | "unread" | "newsletter" | "spam" | "all";
-const tabs: Array<{ id: Tab; label: string }> = [
-  { id: "inbox", label: "Posteingang" }, { id: "unread", label: "Ungelesen" },
-  { id: "newsletter", label: "Newsletter" }, { id: "spam", label: "Spamverdacht" }, { id: "all", label: "Alle" },
-];
-const reasons: Record<string, string> = {
-  content_incomplete: "Mailinhalt für die automatische KI-Prüfung zu lang oder unvollständig",
-  spam_header: "Spam-Markierung im Mailkopf", newsletter: "Newsletter erkannt", blocked: "Absender blockiert",
-  ai_spam: "Lokale KI erkennt möglichen Spam", ai_newsletter: "Lokale KI erkennt einen Newsletter",
-  ai_unclear: "Lokale KI konnte die Mail nicht sicher sortieren", ai_unavailable: "Lokale KI war nicht verfügbar",
-};
-function categoryLabel(category: InboxMessage["category"]) {
-  return category === "newsletter" ? "Newsletter" : category === "spam" || category === "blocked" ? "Spamverdacht" : category === "unclear" ? "Zur Prüfung" : "Posteingang";
-}
-function matches(message: InboxMessage, tab: Tab) {
-  if (tab === "all") return true;
-  if (tab === "unread") return message.unread;
-  if (tab === "newsletter") return message.category === "newsletter";
-  if (tab === "spam") return message.category === "spam" || message.category === "blocked";
-  return message.category !== "newsletter" && message.category !== "spam" && message.category !== "blocked";
-}
-
-export function Messages({ recentConversation }: { recentConversation: string | null }) {
-  const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [messages, setMessages] = useState<InboxMessage[] | null>(null);
-  const [accounts, setAccounts] = useState<MailAccount[]>([]);
-  const [accountId, setAccountId] = useState("");
-  const [tab, setTab] = useState<Tab>("inbox");
-  const [failure, setFailure] = useState("");
-  // Wohin der Nutzer gehen kann, wenn das Postfach selbst nicht antwortet (Einstellungen → Zugänge, Befund 14).
-  const [failureZiel, setFailureZiel] = useState("");
-  const [notice, setNotice] = useState("");
-  const [abgerufen, setAbgerufen] = useState("");
-  const [busy, setBusy] = useState(false);
-  const requestVersion = useRef(0);
-  async function loadAccounts() {
-    try { const overview = await api.integrations(); setAccounts(overview.mail_accounts); } catch { /* Messages load reports the useful failure. */ }
-  }
-  async function load(aktualisieren = false) {
-    const version = ++requestVersion.current;
-    // Nach „Aktualisieren“ ein Satz, was dabei herauskam (Fremdprobe 2, Befund 18); beim ersten Laden keiner.
-    const vorher = aktualisieren ? (messages ?? []).map(message => `${message.account_id}:${message.id}`) : null;
-    setBusy(true); setFailure(""); setFailureZiel(""); setNotice(""); setAbgerufen(""); setMessages(null);
+export function Messages({recentConversation}: {recentConversation:string|null}) {
+  const [selectedId,setSelectedId] = useState<string|null>(null);
+  const [selectedMode,setSelectedMode] = useState<'local'|'live'>('local');
+  const [freshMessages,setFreshMessages] = useState<InboxMessage[]>([]);
+  const [page,setPage] = useState<LocalMailPage|null>(null);
+  const [pageKey,setPageKey] = useState('');
+  const [accountId,setAccountId] = useState<string|undefined>(undefined);
+  const [query,setQuery] = useState('');
+  const [offset,setOffset] = useState(0);
+  const [revision,setRevision] = useState(0);
+  const [loading,setLoading] = useState(false);
+  const [failure,setFailure] = useState('');
+  const [syncing,setSyncing] = useState(false);
+  const [syncNotice,setSyncNotice] = useState('');
+  const opened = useRef<HTMLButtonElement|null>(null);
+  const readerRegion = useRef<HTMLElement|null>(null);
+  const syncBaselines = useRef(new Map<string,string[]>());
+  const selectionKey = JSON.stringify([accountId??null,query,offset]);
+  const visiblePage = pageKey===selectionKey?page:null;
+  const sourceChanged = useCallback(()=>setRevision(n=>n+1),[]);
+  const close = useCallback(() => {setSelectedId(null);},[]);
+  useEffect(() => {
+    if(selectedId) readerRegion.current?.querySelector<HTMLButtonElement>('button')?.focus({preventScroll:true});
+    else opened.current?.focus({preventScroll:true});
+    const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&selectedId)close();};
+    window.addEventListener('keydown',escape);
+    return()=>window.removeEventListener('keydown',escape);
+  },[selectedId,close]);
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setLoading(true);setFailure('');
+    localMailApi.page({q:query,account_id:accountId,offset},controller.signal).then(value => {
+      if(active) {setPage(value);setPageKey(selectionKey);if(offset && value.total <= offset) setOffset(0);}
+    }).catch(() => {if(active) setFailure('Gespeicherte Nachrichten konnten gerade nicht geladen werden.');})
+      .finally(() => {if(active) setLoading(false);});
+    return () => {active=false;controller.abort();};
+  },[accountId,query,offset,revision]);
+  async function sync() {
+    if(syncing) return;
+    setSyncing(true);setSyncNotice('');
     try {
-      const payload = await api.messages(accountId || undefined);
-      if (version !== requestVersion.current) return;
-      setMessages(payload.messages);
-      const uhrzeit = payload.abgerufen_um ?? new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-      if (!payload.partial_failure) setAbgerufen(aktualisiertSatz(vorher, payload.messages.map(message => `${message.account_id}:${message.id}`), uhrzeit) ?? "");
-      if (payload.partial_failure?.code === "unavailable") { setFailure(payload.partial_failure.message); setFailureZiel(payload.partial_failure.ziel ?? ""); }
-      if (payload.partial_failure?.code === "not_configured") setNotice(payload.partial_failure.message);
-    } catch { if (version === requestVersion.current) setFailure("Kingfisher selbst antwortet gerade nicht. Bitte gleich noch einmal versuchen."); }
-    finally { if (version === requestVersion.current) setBusy(false); }
+      const result = await api.messages(accountId || undefined);
+      if (!result.partial_failure || result.messages.length) setFreshMessages(old => accountId === undefined ? result.messages : [...old.filter(message=>message.account_id!==accountId),...result.messages]);
+      const syncKey=accountId??'*', ids=result.messages.map(message=>JSON.stringify([message.account_id,message.id]));
+      const outcome=aktualisiertSatz(syncBaselines.current.get(syncKey)??null,ids,result.abgerufen_um||new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}));
+      if(!result.partial_failure)syncBaselines.current.set(syncKey,ids);
+      setSyncNotice(result.partial_failure?.message || outcome || `Posteingang abgerufen: ${ids.length} Nachrichten in diesem Ausschnitt. Gespeicherte Quellen bleiben lokal angezeigt.`);
+      setRevision(n => n+1);
+    } catch {setSyncNotice('Das Postfach antwortet gerade nicht. Deine gespeicherten Nachrichten bleiben lesbar.');}
+    finally {setSyncing(false);}
   }
-  useEffect(() => { void loadAccounts(); }, []);
-  useEffect(() => { void load(); }, [accountId]);
-  const visible = messages?.filter(message => matches(message, tab)) ?? null;
-  return <div className="shell inbox-shell">
-    <Sidebar active="Nachrichten" recentConversation={recentConversation} />
-    <main className="inbox-page">
-      <header className="inbox-heading"><h1>Nachrichten</h1><p>Deine Post, mit dem Zusammenhang, der zählt.</p><button className="text-action" type="button" disabled={busy} onClick={() => void load(true)}>{busy ? "Wird abgerufen …" : "Aktualisieren"}</button></header>
-      {abgerufen ? <p className="inbox-abgerufen" role="status">{abgerufen}</p> : null}
-      <div className="inbox-content">
-      <p className="inbox-count">Filter gelten für die bis zu 30 neuesten Mails des gewählten Posteingangs; Spamordner nicht enthalten.</p>
-      <div className="inbox-filter" role="group" aria-label="Nachrichtenfilter">
-        {tabs.map(item => <button key={item.id} type="button" aria-pressed={tab === item.id} onClick={() => { setSelectedUid(null); setTab(item.id); }}>{item.label}{messages ? ` (${messages.filter(message => matches(message, item.id)).length})` : ""}</button>)}
-        <select className="inbox-account" aria-label="Posteingang auswählen" value={accountId} onChange={event => { setSelectedUid(null); setAccountId(event.target.value); }}><option value="">Alle Konten</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.label}</option>)}</select>
+  const freshVisible = freshMessages.filter(message=>(accountId===undefined||message.account_id===accountId)&&`${message.subject} ${message.sender} ${message.preview}`.toLocaleLowerCase('de').includes(query.toLocaleLowerCase('de')));
+  const account = page?.accounts.find(item => item.id===accountId);
+  return <div className="shell inbox-shell"><Sidebar active="Nachrichten" recentConversation={recentConversation} />
+    <main className="inbox-page mail-workspace">
+      <header className="inbox-heading"><h1>Nachrichten</h1><p>Gespeicherte Post und ihre Originalquellen.</p><button className="text-action" type="button" disabled={syncing} onClick={() => void sync()}>{syncing?'Wird abgerufen …':'Neue Mails abrufen'}</button></header>
+      {syncNotice && <p className="inbox-abgerufen" role="status">{syncNotice}</p>}
+      <div className={`inbox-content mailbox-columns ${selectedId?'has-reader':''}`}>
+        <aside className="mail-accounts" aria-label="Postfächer"><h2>Postfächer</h2><button type="button" aria-pressed={accountId===undefined} onClick={() => {setAccountId(undefined);setOffset(0);close();}}>Alle gespeicherten Mails</button>
+          {page?.accounts.map(item => <button key={item.id} type="button" aria-pressed={accountId===item.id} onClick={() => {setAccountId(item.id);setOffset(0);close();}}><span>{item.label}</span><small>{item.count}</small></button>)}
+          <a className="text-action" href="/settings#zugaenge">Konten verwalten</a>
+          <p>{account?.last_sync ? `Letzter bekannter Abruf: ${new Date(account.last_sync).toLocaleString('de-DE')}` : 'Letzter erfolgreicher Abruf: unbekannt'}</p>
+          {!account && page?.accounts.filter(item=>item.last_sync).map(item=><p key={item.id}>{item.label}: zuletzt {new Date(item.last_sync!).toLocaleString('de-DE')}</p>)}
+        </aside>
+        <section className="mail-list-column" aria-label="Gespeicherte Nachrichten">
+          <div className="mail-list-tools"><label>Nachrichten durchsuchen<input type="search" value={query} placeholder="Betreff, Absender oder Inhalt" onChange={event=>{setQuery(event.target.value);setOffset(0);close();}} /></label><button type="button" disabled={loading} onClick={()=>setRevision(n=>n+1)} aria-label="Lokale Nachrichtenliste aktualisieren">↻</button></div>
+          <p className="inbox-count">{visiblePage?.detail || 'Bereits gespeicherte Mailquellen; kein vollständiger Postfachstand.'}</p>
+          {failure && <p className="inbox-error" role="alert">{failure} <button type="button" onClick={()=>setRevision(n=>n+1)}>Wiederholen</button></p>}
+          {loading && <p role="status">Lokale Nachrichten werden geladen …</p>}
+          {freshVisible.length>0 && <section className="mail-fresh-results" aria-label="Ausdrücklich abgerufener Posteingang"><h2>Aktueller Abruf</h2><p>Bis zu 30 neueste Mails je Posteingang. Hier sucht die Suche nur in Kopfdaten und Vorschau. Diese Ansicht speichert keine neuen Quellen.</p>{freshVisible.map(message=><button type="button" className="inbox-row inbox-open mail-list-item" key={JSON.stringify([message.account_id,message.id])} aria-pressed={selectedMode==='live'&&selectedId===message.id} onClick={event=>{opened.current=event.currentTarget;setSelectedMode('live');setSelectedId(message.id);}}><span className="inbox-copy"><strong>{message.sender}</strong><span className="mail-subject">{message.subject||'(Ohne Betreff)'}</span><small>{message.preview}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.source}</small></span></button>)}</section>}
+          <div className="inbox-list" aria-busy={loading}>
+            {visiblePage?.items.map(message=><button className="inbox-row inbox-open mail-list-item" type="button" key={message.episode_id} aria-pressed={selectedMode==='local'&&selectedId===message.episode_id} onClick={event=>{opened.current=event?.currentTarget??null;setSelectedMode('local');setSelectedId(message.episode_id);}}><span className="inbox-copy"><strong>{message.sender}</strong><span className="mail-subject">{message.subject || '(Ohne Betreff)'}</span><small>{message.preview}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.account_label}</small></span></button>)}
+            {visiblePage && visiblePage.items.length===0 && !loading && <p className="inbox-empty">Keine gespeicherten Nachrichten in dieser Ansicht.</p>}
+          </div>
+          <nav className="mail-pagination" aria-label="Nachrichtenseiten"><button type="button" disabled={loading||offset===0} onClick={()=>setOffset(n=>Math.max(0,n-40))}>Zurück</button><span>{visiblePage?.total ? `${offset+1}–${Math.min(offset+(visiblePage.items.length||0),visiblePage.total)} von ${visiblePage.total}`:'0 Nachrichten'}</span><button type="button" disabled={loading||!visiblePage?.has_more} onClick={()=>setOffset(n=>n+40)}>Weiter</button></nav>
+        </section>
+        <section className="mail-reading-column" aria-label="Lesebereich" ref={readerRegion}>{selectedId?<MailReader key={`${selectedMode}:${selectedId}`} uid={selectedId} localEpisodeId={selectedMode==='local'?selectedId:undefined} localRevision={revision} onClose={close} onTaskSaved={sourceChanged} />:<p className="mail-reader-placeholder">Wähle eine Nachricht zum Lesen.</p>}</section>
       </div>
-      {failure ? <p className="inbox-error" role="alert">{failure} {failureZiel ? <a className="text-action" href={failureZiel}>Postfach prüfen →</a> : null} <button onClick={() => void load()} type="button">Wiederholen</button></p> : null}
-      <section aria-label="Lokaler Posteingang" className="inbox-list">
-        {selectedUid ? <MailReader key={selectedUid} uid={selectedUid} onClose={() => setSelectedUid(null)} /> : <>
-          {!messages && !failure ? Array.from({ length: 4 }, (_, index) => <div className="inbox-row inbox-skeleton" key={index}><i /><i /></div>) : null}
-          {visible?.map(message => <article className={`inbox-row ${message.unread ? "unread" : ""}`} key={`${message.account_id}:${message.id}`}>
-            <span className="inbox-copy"><button className="inbox-open" type="button" onClick={() => setSelectedUid(message.id)}><strong>{message.sender}</strong><small>{message.subject}{message.category !== "inbox" ? <span className="inbox-category">{categoryLabel(message.category)}</span> : null}</small></button>{message.preview ? <p>{message.preview}</p> : null}{message.filter_reason && message.filter_reason !== "not_flagged" ? <small className="inbox-reason">{reasons[message.filter_reason] ?? "Automatische Filterprüfung"}</small> : null}</span>
-            <span className="inbox-meta">{message.date ? <time dateTime={message.date}>{new Date(message.date).toLocaleDateString("de-DE")}</time> : null}{message.source ? <small>{message.source}</small> : null}</span>
-          </article>)}
-          {visible && visible.length === 0 && !failure ? <p className="inbox-empty">{notice || "Keine Nachrichten in dieser Ansicht."}</p> : null}
-        </>}
-      </section>
-      <p><a className="text-action" href="/settings#technik-filter">Automatische Mailfilter in den Einstellungen öffnen</a></p>
-      </div>
-    </main>
-  </div>;
+    </main></div>;
 }

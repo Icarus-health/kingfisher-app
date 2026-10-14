@@ -190,6 +190,10 @@ export type ConversationSummary = {
   message_count: number;
 };
 
+export type ConversationPage = {
+  conversations: ConversationSummary[]; next_cursor: string | null; total: number;
+};
+
 export type Schedule = {
   enabled: boolean; interval_minutes: number; with_model: boolean; backup: boolean;
   mail_accounts: string[]; sources: Record<string, string>;
@@ -494,7 +498,7 @@ export type MailDetail = {
 };
 
 /** `valid_until`: vorgeschlagene Fälligkeit (bei Fristen aus privaten Mails, sidecar: akten_arten.py), sonst null. */
-export type TaskCandidate = { received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
+export type TaskCandidate = { project_suggestion?: {project_id:string|null;new_project_name:string|null;name:string;reason:string;origin:string;source_digest:string}|null; received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
 export type TaskCandidatePage = {items: TaskCandidate[]; total: number; offset: number; limit: number; has_more: boolean; generation: string};
 
 export type MailTaskSuggestions = {
@@ -552,6 +556,7 @@ export type GraphEdge = {
   confidence: number;
   state: string;
   evidence_refs: string[];
+  actual_contact?: boolean;
 };
 
 export type MemoryGraph = {
@@ -914,7 +919,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit, previewError = false): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit, previewError = false): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: {
@@ -1298,6 +1303,11 @@ export const api = {
       body: JSON.stringify({ title }),
     }),
   getConversation: (id: string, signal?: AbortSignal) => request<ConversationPayload>(`/api/v1/conversations/${id}`, {signal}),
+  conversationPage: (q = "", cursor?: string, signal?: AbortSignal) => {
+    const params = new URLSearchParams({q, limit: "30"});
+    if (cursor) params.set("cursor", cursor);
+    return request<ConversationPage>(`/api/v1/conversations/page?${params}`, {signal});
+  },
   listConversations: () => request<{ conversations: ConversationSummary[] }>("/api/v1/conversations"),
   integrations: (signal?: AbortSignal) => request<IntegrationOverview>("/api/v1/integrations", {signal}),
   schedule: (signal?: AbortSignal) => request<Schedule>("/api/v1/schedule", {signal}),
@@ -1357,7 +1367,7 @@ export const api = {
   decisionBasis: () => request<{items: DecisionBasis[]}>("/api/v1/decision-basis"),
   addDecision: (data: {statement: string; derived_from: string[]; claim_ids: string[]; project_id?: string}) => request<Decision>("/api/v1/decisions", {method: "POST", body: JSON.stringify(data)}),
   retractDecision: (id: string) => request<Decision>(`/api/v1/decisions/${id}/retract`, {method: "POST"}),
-  addProject: (data: { name: string; description?: string }) => request<Project>("/api/v1/projects", {method: "POST", body: JSON.stringify(data)}),
+  addProject: (data: { name: string; description?: string; request_id?: string }) => request<Project>("/api/v1/projects", {method: "POST", body: JSON.stringify(data)}),
   updateProject: (id: string, data: { status: Project["status"] }) => request<Project>(`/api/v1/projects/${id}`, {method: "PATCH", body: JSON.stringify(data)}),
   assignTaskProject: (id: string, project_id: string | null) => request<Task>(`/api/v1/tasks/${id}/project`, {method: "PATCH", body: JSON.stringify({project_id})}),
   editTask: (id: string, data: {title?: string; due?: string | null; remind_at?: string | null; expected_remind_at?: string | null; notes?: string | null}) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}`, {method: "PATCH", body: JSON.stringify(data)}),
@@ -1375,11 +1385,12 @@ export const api = {
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),
   taskCandidatePage: (limit: number, offset: number, temporal: "all" | "recent" | "review", generation?: string) => request<TaskCandidatePage>(`/api/v1/task-candidates/page?${new URLSearchParams({limit: String(limit), offset: String(offset), temporal, ...(generation ? {generation} : {})})}`),
-  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
+  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
+  dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
   mailBriefing: (uid: string, signal?: AbortSignal, refresh = false) => request<MailBriefing>(`/api/v1/messages/${encodeURIComponent(uid)}/briefing`, {method: "POST", body: JSON.stringify({refresh}), signal}),
-  addMailTask: (uid: string, data: {title: string; project_id: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>
+  addMailTask: (uid: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null; source_digest: string; source_quote?: string | null; quick_accept?: boolean; request_id?: string}) =>
     request<Task>(`/api/v1/messages/${encodeURIComponent(uid)}/task`, {method: "POST", body: JSON.stringify(data)}),
   prepareMailReply: (uid: string, data: {body: string; context_token?: string}) => request<ConversationPayload>(`/api/v1/messages/${encodeURIComponent(uid)}/reply`, {method: "POST", body: JSON.stringify(data)}),
   validateMailReplyContext: (uid: string, contextToken: string) => request<{valid: boolean}>(`/api/v1/messages/${encodeURIComponent(uid)}/reply-suggestion/validate`, {method: "POST", body: JSON.stringify({context_token: contextToken})}),

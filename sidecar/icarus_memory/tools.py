@@ -432,6 +432,8 @@ def _workspace_tools(workspace: Any, tasks: Any, tools: list[Tool]) -> None:
         p = workspace.find_project(projekt)
         if p is None:
             return f"Kein Projekt gefunden, auf das {projekt!r} passt."
+        if status in ('done','dropped') and tasks is not None and tasks.by_project(p.id):
+            return 'Das Projekt hat offene Aufgaben. Bitte zuerst erledigen, verwerfen oder einem anderen Projekt zuordnen.'
         updated = workspace.update_project(p.id, status=ProjectStatus(status))
         return f"{updated.name} steht jetzt auf {updated.status.value}."
 

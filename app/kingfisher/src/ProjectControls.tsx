@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { api, type Project } from "./api";
+import { useRef, useState, type FormEvent } from "react";
+import { api, ApiError, type Project } from "./api";
 import "./ProjectControls.css";
 
 type ProjectStatus = "idea" | "active" | "paused" | "done" | "dropped";
@@ -23,9 +23,12 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pending = useRef(false);
+  const requestId = useRef<string | null>(null);
   const selectedProject = projects.find((project) => project.id === selectedId);
 
   function clearCreateForm() {
+    requestId.current = null;
     setCreating(false);
     setName("");
     setDescription("");
@@ -34,19 +37,22 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
   async function createProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanName = name.trim();
-    if (!cleanName || busy) return;
+    if (!cleanName || busy || pending.current) return;
 
     setBusy(true);
+    pending.current = true;
+    requestId.current ??= crypto.randomUUID();
     setError(null);
     try {
-      const project = await api.addProject({ name: cleanName, description: description.trim() });
+      const project = await api.addProject({ name: cleanName, description: description.trim(), request_id: requestId.current });
       onChanged();
       onSelect(project.id);
       clearCreateForm();
-    } catch {
-      setError("Das Projekt konnte nicht angelegt werden. Bitte erneut versuchen.");
+    } catch (failure) {
+      setError(failure instanceof ApiError && failure.detail ? failure.detail : "Speichern wurde nicht bestätigt. Prüfe vorhandene Projekte oder wiederhole mit denselben Angaben.");
     } finally {
       setBusy(false);
+      pending.current = false;
     }
   }
 
@@ -58,8 +64,8 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
     try {
       await api.updateProject(selectedProject.id, { status });
       onChanged();
-    } catch {
-      setError("Der Status konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    } catch (failure) {
+      setError(failure instanceof ApiError && failure.detail ? failure.detail : "Der Status konnte nicht gespeichert werden. Bitte erneut versuchen.");
     } finally {
       setBusy(false);
     }

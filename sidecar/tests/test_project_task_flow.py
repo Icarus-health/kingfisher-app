@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from icarus_memory import MemoryBackend, SelfModelStore
 from icarus_memory.server import create_app
 from icarus_memory.tasks import TaskStore
-from icarus_memory.workspace import WorkspaceStore
+from icarus_memory.workspace import WorkspaceStore, ProjectStatus
 
 
 def test_project_task_lifecycle_and_restart(tmp_path, monkeypatch):
@@ -27,7 +27,10 @@ def test_project_task_lifecycle_and_restart(tmp_path, monkeypatch):
     assert waiting['project_id'] is None
     assert client.get(f'/api/v1/tasks?view=waiting&project_id={project_id}').json()['tasks'] == []
     client.patch(f'/api/v1/tasks/{task_id}/project', json={'project_id': project_id})
-    client.patch(f'/api/v1/projects/{project_id}', json={'status': 'done'})
+    assert client.patch(f'/api/v1/projects/{project_id}', json={'status': 'done'}).status_code == 409
+    # Simuliert den bereits vorhandenen historischen Ausnahmebestand:
+    # eine alte Fassung durfte ein Projekt mit offenen Aufgaben schließen.
+    app.state.workspace.update_project(project_id, status=ProjectStatus.DONE)
     assert client.get('/api/v1/projects').json() == []
     assert client.get('/api/v1/projects?all=true').json()[0]['status'] == 'done'
     assert client.get(f'/api/v1/tasks?view=waiting&project_id={project_id}').json()['tasks'][0]['id'] == task_id

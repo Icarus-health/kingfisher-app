@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-native-voice-controls.test`,root:fileURLToPath(new URL('..',import.meta.url)),server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {VoiceDraftControls,VoiceDraftStatus,VoiceReply}=await server.ssrLoadModule('/src/ConversationVoice.tsx');
 const {emptyVoice,createVoiceSession}=await server.ssrLoadModule('/src/nativeVoice.ts');

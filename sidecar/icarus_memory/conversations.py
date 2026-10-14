@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import json
+import base64
+import hashlib
+import math
+import re
 import copy
 import sqlite3
 import threading
@@ -148,6 +152,7 @@ class ConversationStore:
         # Mac- und Container-Bestände können verschiedene UTC-Offsets tragen.
         # Python erhält dabei auch Mikrosekunden, die SQLite julianday rundet.
         self._conn.create_function("kingfisher_time", 1, lambda value: _parse(value).timestamp(), deterministic=True)
+        self._conn.create_function("kingfisher_casefold", 1, lambda value: str(value or "").casefold(), deterministic=True)
         self._conn.execute("PRAGMA foreign_keys = ON")
         self._lock = threading.Lock()
         try:
@@ -224,6 +229,92 @@ class ConversationStore:
                 (safe_limit,),
             ).fetchall()
         return [self._summary(row) for row in rows]
+
+    def page(self, *, q: str = "", limit: int = 30, cursor: str | None = None, filter_summary=None) -> dict[str, Any]:
+        """Bounded keyset search across titles and message bodies, without a model.
+
+        Evidence-based assistant replies are placeholders until opened and
+        revalidated, so their old raw bodies are excluded from search too.
+        HTTP callers must apply the same lineage sanitizer as the older list.
+        """
+        if not isinstance(q, str) or len(q) > 200:
+            raise ValueError("Suchtext darf höchstens 200 Zeichen enthalten")
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("Limit muss zwischen 1 und 100 liegen")
+        query = q.strip().casefold()
+        fingerprint = hashlib.sha256(query.encode("utf-8")).hexdigest()
+        position = None
+        if cursor is not None:
+            try:
+                if len(cursor) > 1000:
+                    raise ValueError()
+                decoded = json.loads(base64.b64decode(cursor + "=" * (-len(cursor) % 4), altchars=b"-_", validate=True))
+                if (not isinstance(decoded, dict) or set(decoded) != {"v", "q", "t", "id"}
+                        or type(decoded["v"]) is not int or decoded["v"] != 1 or decoded["q"] != fingerprint
+                        or isinstance(decoded["t"], bool) or not isinstance(decoded["t"], (int, float))
+                        or not math.isfinite(decoded["t"])
+                        or not isinstance(decoded["id"], str) or not re.fullmatch(r"c-[0-9a-f]{12}", decoded["id"])):
+                    raise ValueError()
+                position = (decoded["t"], decoded["t"], decoded["id"])
+            except (ValueError, TypeError, KeyError, UnicodeError) as exc:
+                raise ValueError("Cursor ist ungültig oder gehört zu einer anderen Suche") from exc
+        pattern = "%" + query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        # CASE guards json_extract for malformed imported metadata.
+        protected = """CASE WHEN json_valid(m.metadata) THEN
+            (COALESCE(json_extract(m.metadata, '$.context.answer_mode') = 'memory_evidence', 0)
+             OR COALESCE(json_array_length(json_extract(m.metadata, '$.context.knowledge_claim_ids')), 0) > 0
+             OR json_type(m.metadata, '$.context.source_answer') IS NOT NULL
+             OR json_type(m.metadata, '$.context.working_answer') IS NOT NULL
+             OR json_type(m.metadata, '$.context.mappe_answer') IS NOT NULL)
+            ELSE 1 END"""
+        match = f"""(kingfisher_casefold(c.title) LIKE ? ESCAPE '\\' OR EXISTS (
+            SELECT 1 FROM conversation_messages m WHERE m.conversation_id = c.id
+              AND (m.role = 'user' OR (m.role = 'assistant' AND NOT ({protected})))
+              AND kingfisher_casefold(m.content) LIKE ? ESCAPE '\\'))"""
+        parameters: list[Any] = [pattern, pattern]
+        after = ""
+        if position:
+            after = " AND (kingfisher_time(c.updated_at) < ? OR (kingfisher_time(c.updated_at) = ? AND c.id < ?))"
+        projection = f"""SELECT c.id, c.title, c.updated_at,
+                (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) AS message_count,
+                COALESCE((SELECT CASE WHEN m.role = 'assistant' AND ({protected})
+                    THEN 'Gedächtnisantwort — beim Öffnen erneut geprüft.' ELSE substr(m.content,1,600) END
+                    FROM conversation_messages m WHERE m.conversation_id = c.id
+                    ORDER BY kingfisher_time(m.created_at) DESC, m.rowid DESC LIMIT 1), '') AS preview
+                FROM conversations c WHERE {match}"""
+        order = " ORDER BY kingfisher_time(c.updated_at) DESC, c.id DESC"
+        if filter_summary is not None and query:
+            # Revalidate all matching source lineages before deriving counts or
+            # cursors. Fetch bounded batches; do not materialize the archive.
+            with self._lock:
+                scan = self._conn.execute(projection + order, parameters)
+            total, rows = 0, []
+            while True:
+                with self._lock:
+                    batch = scan.fetchmany(100)
+                if not batch:
+                    break
+                for row in batch:
+                    if not filter_summary(self._summary(row), query):
+                        continue
+                    total += 1
+                    time = _parse(row['updated_at']).timestamp()
+                    follows = position is None or time < position[0] or (time == position[0] and row['id'] < position[2])
+                    if follows and len(rows) < limit + 1:
+                        rows.append(row)
+        else:
+            with self._lock:
+                total = self._conn.execute(f"SELECT COUNT(*) FROM conversations c WHERE {match}", parameters).fetchone()[0]
+                rows = self._conn.execute(projection + after + order + " LIMIT ?",
+                    parameters + (list(position) if position else []) + [limit + 1]).fetchall()
+        more = len(rows) > limit
+        rows = rows[:limit]
+        next_cursor = None
+        if more:
+            last = rows[-1]
+            value = {"v": 1, "q": fingerprint, "t": _parse(last["updated_at"]).timestamp(), "id": last["id"]}
+            next_cursor = base64.urlsafe_b64encode(json.dumps(value, separators=(",", ":")).encode()).decode().rstrip("=")
+        return {"conversations": [self._summary(row) for row in rows], "next_cursor": next_cursor, "total": total}
 
     def messages(self, conversation_id: str) -> list[Message]:
         # Bei gleichem Zeitstempel (feste Uhr, Uhrsprung, gesetztes `at`) entscheidet die Einfügereihenfolge,

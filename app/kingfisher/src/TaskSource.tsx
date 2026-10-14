@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, type TaskSource as Source } from "./api";
 import { Herkunft } from "./HerkunftAnzeige";
 import { ProfileSource } from "./ProfileSource";
+import {navigate} from './ui';
 
 function timestamp(value: string | null | undefined) {
   if (!value) return null;
@@ -36,7 +37,7 @@ export function TaskSource({taskId}: {taskId: string}) {
         {source.quote && <div><p>Übernommene Textstelle</p><blockquote>{source.quote}</blockquote></div>}
         <p>Quelldatum: {timestamp(source.occurred_at) ?? "unbekannt"}</p>
         <p>Erfasst: {timestamp(source.recorded_at) ?? "Zeitpunkt unbekannt"}</p>
-        {source.participants.length > 0 && <p>In der Quelle genannt: {source.participants.join(", ")}</p>}
+        {source.participants.length > 0 && <p>In der Quelle genannt: {source.participants.map((person,index)=><span key={`${index}:${person}`}>{index>0?', ':''}<button type="button" className="text-action" onClick={()=>navigate(`/memory/people/${encodeURIComponent(person)}?${new URLSearchParams({return_to:'/memory?tab=people'})}`)}>{person}</button></span>)}</p>}
         <Herkunft provenance={source.provenance} />
         <div className="task-source-body">{source.body}</div>
         {source.truncated && <p>Auszug: Die Quelle ist länger als die angezeigten 20.000 Zeichen.</p>}

@@ -46,6 +46,7 @@ SQLITE_DATA_FILES = (
     "audit.sqlite3",
     "tasks.sqlite3",
     "workspace.sqlite3",
+    "workspace-views.sqlite3",
     "episodes.sqlite3",
     "proposals.sqlite3",
     "conversations.sqlite3",

@@ -16,6 +16,8 @@ import { GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { kontakteText, kreisSache } from "./kreis";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
+import { MemoryAvatarEditor } from "./MemoryAvatar";
+import "./WorkspaceMemoryDetails.css";
 import { memoryReturnPath } from "./profileReturn";
 
 type ProfileKind = "person" | "project";
@@ -61,16 +63,18 @@ function PersonKarten({ person }: { person: PersonProfileData["person"] }) {
   return <section className="profile-card profile-wide mappe"><KreisKarte sache={sache} /><GeburtstagKarte sache={sache} /></section>;
 }
 
-function PersonProfile({ data, tab, setTab }: { data: PersonProfileData; tab: PersonTab; setTab: (tab: PersonTab) => void }) {
+function PersonProfile({ data, tab, setTab, avatarId }: { avatarId: string; data: PersonProfileData; tab: PersonTab; setTab: (tab: PersonTab) => void }) {
   const person = data.person;
   const documents = data.interactions.filter(item => item.kind === "document");
   const conversations = data.interactions.filter(item => item.kind !== "document");
-  const taskCards = person.offene_aufgaben.map(task => <article key={task.id}><a href={`/vorhaben?view=${task.wartet_auf ? "waiting" : "mine"}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ""}`}><strong>{task.title}</strong></a><small>{task.due ? `Fällig ${profileDate(task.due)}` : "Ohne Termin"}{task.wartet_auf ? ` · wartet auf ${displayLabel(task.wartet_auf).name}` : ""}</small>{task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}</article>);
+  const taskCards = person.offene_aufgaben.filter(task => !!task.wartet_auf && task.status === "open").map(task => <article key={task.id}><a href={`/vorhaben?view=${task.wartet_auf ? "waiting" : "mine"}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ""}`}><strong>{task.title}</strong></a><small>{task.due ? `Fällig ${profileDate(task.due)}` : "Ohne Termin"}{task.wartet_auf ? ` · wartet auf ${displayLabel(task.wartet_auf).name}` : ""}</small>{task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}</article>);
   const tabs: Array<[PersonTab, string]> = [["overview", "Übersicht"], ["projects", "Projekte"], ["conversations", "Gespräche"], ["documents", "Dokumente"], ["notes", "Notizen"]];
   return <>
+    <MemoryAvatarEditor id={avatarId} label={person.anzeige ?? displayLabel(person.name).name} />
     <header className="profile-heading"><p className="eyebrow">PERSONENPROFIL</p><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header>
     <nav aria-label="Personenprofilbereiche" className="profile-tabs">{tabs.map(([id, label]) => <button aria-pressed={tab === id} className={tab === id ? "active" : ""} key={id} onClick={() => setTab(id)} type="button">{label}</button>)}</nav>
     {tab === "overview" ? <div className="profile-grid">
+      <section className="profile-card profile-wide memory-profile-identity"><section><h2>Wer ist das?</h2><p>{person.anzeige ?? displayLabel(person.name).name}</p><p>{person.adressen?.length ? person.adressen.join(", ") : "Keine bestätigte Kontaktadresse."}</p></section><section><h2>Wie verbunden?</h2><p>{person.nur_von_aussen ? "Bisher aus Erwähnungen in fremden Quellen bekannt." : `${person.kontakte ?? data.interactions.length} Quellenkontakte`}</p><p>{data.contexts.length ? `${data.contexts.length} belegte Projektbezüge · Details unter Projekte` : "Noch kein belegter Projektbezug."}</p></section></section>
       <section className="profile-card"><h2>Zusammenfassung</h2><p>{profileDate(person.letzter_kontakt) !== "—" ? `Letzter Kontakt ${profileDate(person.letzter_kontakt)}${person.kontakt_text ? ` (${person.kontakt_text})` : ""}.` : "Noch kein Kontaktdatum belegt."}</p><p>{person.herkuenfte.length ? `Quellen: ${person.herkuenfte.map(sourceLabel).join(", ")}.` : "Keine Quelle angegeben."}</p></section>
       <section className="profile-card"><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <p>Noch keine Rückmeldung von dieser Person vorgemerkt. Weitere Aufgaben können in gemeinsamen Quellen stehen.</p>}</section>
       <section className="profile-metrics"><div><strong>{data.contexts.length}</strong><span>Projekte</span></div><div><strong>{person.themen.length}</strong><span>Themen</span></div><div><strong>{person.kontakte ?? data.interactions.length}</strong><span>Kontakte</span></div><div><strong className="profile-contact-date">{profileDate(person.letzter_kontakt)}</strong><span>Letzter Kontakt</span></div></section>
@@ -142,7 +146,7 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
         <p>Technischer oder ungeklärter Absender · keine bestätigte Personenidentität.</p>
         {contactSources.sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id.slice(8)} label={source.label} readOnly allowIgnore={false} />)}
       </section> : null}
-      {data && kind === "person" ? <PersonProfile data={data as PersonProfileData} setTab={setPersonTab} tab={personTab} /> : null}
+      {data && kind === "person" ? <PersonProfile avatarId={sourceNodeId ?? data.id} data={data as PersonProfileData} setTab={setPersonTab} tab={personTab} /> : null}
       {data && kind === "project" ? <ProjectProfile data={data as ProjectProfileData} setTab={setProjectTab} tab={projectTab} /> : null}
     </main>
   </div>;
@@ -169,6 +173,7 @@ export function RegistryProfile({ identifier, recentConversation }: { identifier
       {!error && !data ? <section className="profile-state profile-loading" aria-label="Profil wird geladen"><i /><i /><i /></section> : null}
       {data ? <>
         <header className="profile-heading"><p className="eyebrow">{({person: "PERSONENPROFIL", project: "PROJEKTPROFIL", organization: "ORGANISATION", topic: "THEMA", place: "ORT", document: "DOKUMENT"} as Record<string, string>)[data.entity.kind] || "PROFIL"}</p><h1>{data.entity.label}</h1><span>Ausdrücklich zugeordneter Wissensstand</span></header>
+        {["person","organization"].includes(data.entity.kind) ? <MemoryAvatarEditor id={data.entity.id} label={data.entity.label} logo={data.entity.kind === "organization"} /> : null}
         {data.entity.kind === "person" ? <PersonDigest personId={data.entity.id} /> : null}
         <section className="profile-card"><h2>Bestätigte Beziehungen und Aussagen</h2><ClaimControls entities={data.related_entities ?? {}} claims={data.claims} history={data.claim_history} onChanged={() => setRevision(value => value + 1)} /></section>
         <IdentityControls key={identifier} data={data} onChanged={() => setRevision(value => value + 1)} />

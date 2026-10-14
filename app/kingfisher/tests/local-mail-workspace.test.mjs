@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {createServer} from 'vite';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('..',import.meta.url));
+function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children].flat(10))nodes(c,p,out);return out;}
+function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(10).map(text).join(''):String(n);}
+async function harness(run){
+ const server=await createServer({root,cacheDir:`/private/tmp/kf-mail-ssr-${process.pid}`,configFile:false,plugins:[{name:'local-mail-hooks',enforce:'pre',resolveId(id){if(id==='virtual:local-mail-hooks')return '\0'+id;},load(id){if(id==='\0virtual:local-mail-hooks')return 'export const useState=(...a)=>globalThis.__mailDriver.state(...a);export const useRef=(...a)=>globalThis.__mailDriver.ref(...a);export const useEffect=(...a)=>globalThis.__mailDriver.effect(...a);export const useCallback=f=>f;';},transform(code,id){if(/\/(Messages|MailReader)\.tsx$/.test(id))return code.replace(/from ["']react["']/g,'from "virtual:local-mail-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+ const oldWindow=globalThis.window,oldDriver=globalThis.__mailDriver;
+ globalThis.window={location:{search:'',pathname:'/messages',href:'http://synthetic/messages'},localStorage:{getItem(){return null;},setItem(){}},addEventListener(){},removeEventListener(){}};
+ function driver(Component,props){const values=[],refs=[],deps=[],pending=[];let si=0,ri=0,ei=0;const d={state(initial){const i=si++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return[values[i],v=>values[i]=typeof v==='function'?v(values[i]):v];},ref(initial){return refs[ri++]??=({current:initial});},effect(fn,next){const i=ei++;if(!deps[i]||next.some((v,j)=>v!==deps[i][j])){deps[i]=next;pending.push(fn);}},render(){si=ri=ei=0;globalThis.__mailDriver=d;return Component(props);},async flush(){while(pending.length)pending.shift()();await new Promise(r=>setImmediate(r));}};return d;}
+ try{await run(server,driver);}finally{globalThis.window=oldWindow;globalThis.__mailDriver=oldDriver;await server.close();}
+}
+test('saved mail reader loads local original and never starts provider or model actions on browsing',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ let remote=0;api.mailMessage=async()=>{remote++;throw Error('must not read');};
+ const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');let reads=0;localMailApi.detail=async()=>{reads++;return{episode_id:'e-local',uid:'e-local',subject:'Saved',from:'Anna',body:'Original body',date:null,recorded_at:'2020-01-01T00:00:00Z',source_current:true,remote_uid:null,can_reply:false};};
+ const entry=MailReader({uid:'e-local',localEpisodeId:'e-local',onClose(){}});
+ const d=driver(entry.type,entry.props);d.render();await d.flush();const tree=d.render();
+ assert.equal(reads,1);assert.equal(remote,0);assert.match(text(tree),/Original body/);assert.match(text(tree),/Datum unbekannt/);
+ assert.equal(nodes(tree,n=>n.type?.name==='MailBriefing').length,0);
+ assert.equal(nodes(tree,n=>n.type==='button'&&/Aktuelle Mail/.test(text(n)))[0].props.disabled,true);
+}));
+test('mail workspace keeps list next to selection and searches pages locally without retrieving provider mail',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ let remote=0;api.messages=async()=>{remote++;throw Error('offline');};api.integrations=async()=>({mail_accounts:[]});
+ const calls=[];localMailApi.page=async(args)=>{calls.push(args);return{items:[{episode_id:'e-a',account_id:'a',subject:'Budget',sender:'Anna',date:null,preview:'saved text'}],accounts:[{id:'a',label:'Privat',count:41,last_sync:null}],total:41,offset:args.offset,limit:40,has_more:args.offset===0,detail:'Saved scope'};};
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();
+ assert.equal(remote,0);nodes(tree,n=>n.type==='button'&&/Budget/.test(text(n)))[0].props.onClick();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type?.name==='MailReader').length,1);assert.match(text(tree),/Budget/);
+ nodes(tree,n=>n.type==='button'&&text(n)==='Weiter')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();assert.equal(calls.at(-1).offset,40);
+ const input=nodes(tree,n=>n.type==='input'&&n.props.type==='search')[0];input.props.onChange({target:{value:'Rechnung'}});tree=d.render();await d.flush();assert.equal(calls.at(-1).q,'Rechnung');assert.equal(calls.at(-1).offset,0);assert.equal(remote,0);
+ nodes(d.render(),n=>n.type==='button'&&/Neue Mails abrufen/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();assert.equal(remote,1);assert.match(text(tree),/Budget/);
+}));
+test('explicit fresh retrieval exposes its current rows while a later provider failure preserves saved originals',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ localMailApi.page=async()=>({items:[{episode_id:'saved',account_id:'a',subject:'Historical',sender:'Anna',date:null,preview:'Original'}],accounts:[],total:1,offset:0,limit:40,has_more:false});
+ let remote=0;api.messages=async()=>{if(remote++)throw Error('offline');return{messages:[{id:'a:9.1',account_id:'a',subject:'Fresh incoming',sender:'Anna',date:null,preview:'Fresh'}],partial_failure:null};};
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();
+ nodes(tree,n=>n.type==='button'&&/Neue Mails abrufen/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();assert.match(text(tree),/Fresh incoming/);assert.match(text(tree),/Historical/);
+ nodes(tree,n=>n.type==='button'&&/Fresh incoming/.test(text(n)))[0].props.onClick({currentTarget:{focus(){}}});tree=d.render();const reader=nodes(tree,n=>n.type?.name==='MailReader')[0];assert.equal(reader.props.uid,'a:9.1');assert.equal(reader.props.localEpisodeId,undefined);
+ nodes(tree,n=>n.type==='button'&&/Neue Mails abrufen/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();assert.match(text(tree),/Fresh incoming/);assert.match(text(tree),/Historical/);
+}));
+test('source exclusion immediately clears the saved body and only the original-only view is mounted during browsing',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');let excluded=false;
+ localMailApi.detail=async()=>{if(excluded)throw Error('HTTP 409');return{uid:'saved',episode_id:'saved',subject:'Saved',from:'Anna',body:'Sensitive original',date:null,recorded_at:'2020-01-01',remote_uid:null};};
+ const entry=MailReader({uid:'saved',localEpisodeId:'saved',onClose(){}}),d=driver(entry.type,entry.props);d.render();await d.flush();let tree=d.render();
+ const original=nodes(tree,n=>n.type?.name==='ProfileSource')[0];assert.equal(original.props.originalOnly,true);
+ nodes(tree,n=>n.type==='button'&&text(n)==='Quelle zuordnen oder ausschließen')[0].props.onClick();tree=d.render();const management=nodes(tree,n=>n.type?.name==='ProfileSource'&&!n.props.originalOnly)[0];assert.ok(management);
+ excluded=true;management.props.onChange();tree=d.render();assert.doesNotMatch(text(tree),/Sensitive original/);await d.flush();tree=d.render();assert.match(text(tree),/ausgeschlossen/);
+}));
+test('explicit list refresh revalidates an open saved source even when it is no longer in the page',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');let excluded=false,reads=0;
+ localMailApi.page=async()=>({items:excluded?[]:[{episode_id:'saved',subject:'Saved subject',sender:'Anna'}],accounts:[],total:excluded?0:1,limit:40,has_more:false});
+ localMailApi.detail=async()=>{reads++;if(excluded)throw Error('HTTP 409');return{uid:'saved',episode_id:'saved',subject:'Saved subject',body:'Withdrawn original',remote_uid:'a:1.2'};};
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();nodes(tree,n=>n.type==='button'&&/Saved subject/.test(text(n)))[0].props.onClick({currentTarget:{focus(){}}});tree=d.render();
+ const entry=MailReader(nodes(tree,n=>n.type?.name==='MailReader')[0].props),savedProps={...entry.props},reader=driver(entry.type,savedProps);reader.render();await reader.flush();let opened=reader.render();assert.match(text(opened),/Withdrawn original/);
+ nodes(opened,n=>n.type==='button'&&/Aktuelle Mail und Aktionen laden/.test(text(n)))[0].props.onClick();assert.equal(nodes(reader.render(),n=>n.type?.name==='RemoteMailReader').length,1);
+ excluded=true;nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Lokale Nachrichtenliste aktualisieren')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();
+ const selected=nodes(tree,n=>n.type?.name==='MailReader')[0];assert.equal(selected.props.localEpisodeId,'saved');Object.assign(savedProps,MailReader(selected.props).props);reader.render();await reader.flush();const refreshed=reader.render();
+ assert.equal(reads,2);assert.doesNotMatch(text(refreshed),/Withdrawn original/);assert.match(text(refreshed),/ausgeschlossen/);
+ assert.equal(nodes(refreshed,n=>n.type?.name==='RemoteMailReader').length,0);
+}));

@@ -336,7 +336,7 @@ class WorkspaceStore:
         # Wie SqliteBackend und TaskStore: FastAPI bedient aus einem Threadpool.
         self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         try:
             with self._lock:
                 run_migrations(
@@ -351,6 +351,23 @@ class WorkspaceStore:
 
     # -- Projekte ----------------------------------------------------------
 
+    def project_from_task_suggestion(self, suggestion_id: str, name: str, provenance: Provenance) -> Project:
+        """An explicitly confirmed new project survives interrupted task acceptance."""
+        import hashlib
+        identifier = 'p-task-' + hashlib.sha256(suggestion_id.encode()).hexdigest()[:24]
+        with self._lock:
+            try:
+                existing = self.project(identifier)
+            except WorkspaceError:
+                existing = None
+            if existing is not None:
+                if existing.name != name or not existing.is_open():
+                    raise WorkspaceError('Das bereits angelegte Projekt prüfen; es wurde nicht erneut angelegt.')
+                return existing
+            project = Project(id=identifier, name=name, provenance=provenance, created_at=now())
+            self._put_project(project)
+            return project
+
     def add_project(
         self,
         name: str,
@@ -363,9 +380,10 @@ class WorkspaceStore:
         deadline: datetime | None = None,
         tags: list[str] | None = None,
         at: datetime | None = None,
+        _identifier: str | None = None,
     ) -> Project:
         project = Project(
-            id=f"p-{uuid.uuid4().hex[:12]}",
+            id=_identifier or f"p-{uuid.uuid4().hex[:12]}",
             name=name,
             provenance=provenance,
             created_at=ensure_aware(at) or now(),
@@ -378,6 +396,22 @@ class WorkspaceStore:
         )
         self._put_project(project)
         return project
+
+    def project_from_request(self, name: str, provenance: Provenance, *, request_id: str, fingerprint: str, **fields) -> Project:
+        import hashlib
+        identifier = 'p-request-' + hashlib.sha256(request_id.encode()).hexdigest()[:24]
+        marker = f'project-request:{request_id}:{fingerprint}'
+        with self._lock:
+            try:
+                existing = self.project(identifier)
+            except WorkspaceError:
+                existing = None
+            if existing:
+                if existing.provenance.source_ref != marker:
+                    raise WorkspaceError('Dieser Speicherauftrag enthält andere Angaben. Bitte vorhandene Projekte prüfen.')
+                return existing
+            provenance.source_ref = marker
+            return self.add_project(name, provenance, _identifier=identifier, **fields)
 
     def update_project(
         self,

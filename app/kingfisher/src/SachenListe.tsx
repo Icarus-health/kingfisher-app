@@ -4,6 +4,9 @@ import { api, type AkteSachen, type AkteSachenArt } from "./api";
 import { navigate } from "./ui";
 import { memoryReturnPath } from "./profileReturn";
 import "./MemoryDirectory.css";
+import { OrganisationGroups } from "./OrganisationGroups";
+import { MemoryPlaces } from "./MemoryPlaces";
+import { WorkspaceAvatar } from "./MemoryAvatar";
 
 const SEITE = 50;
 const TEXTE: Record<AkteSachenArt, { titel: string; suche: string; leer: string }> = {
@@ -71,10 +74,12 @@ export function SachenListe({ art, query: restoredQuery, page: restoredPage, onQ
     {data ? <p className="directory-count" aria-live="polite">{data.gesamt} {data.gesamt === 1 ? "Eintrag" : "Einträge"}{data.berechnung.offen ? ` · für ${data.berechnung.offen} Quellen wird noch berechnet, wozu sie gehören` : ""}</p> : <p className="directory-count" aria-busy="true">Wird geladen …</p>}
     {data && data.sachen.length ? <ul className="directory-list">{data.sachen.map(sache => <li key={sache.sache}>
       <button type="button" onClick={() => openAkte(sache.sache)} aria-label={`Akte öffnen: ${sache.name}`}>
-        <span className="directory-monogram" aria-hidden="true">{sache.name.slice(0, 1).toLocaleUpperCase("de")}</span>
+        <WorkspaceAvatar id={sache.sache} label={sache.name} />
         <span className="directory-label"><strong>{sache.name}</strong><small>{sache.quellen} {sache.quellen === 1 ? "Quelle" : "Quellen"}{sache.letzte ? ` · zuletzt ${tag(sache.letzte)}` : ""}</small></span>
         <span className="directory-open">Akte öffnen <span aria-hidden="true">→</span></span>
       </button></li>)}</ul> : data && !fehler ? <div className="directory-empty"><h2>{suche ? "Kein passender Eintrag" : "Hier ist noch Platz"}</h2>{suche ? <p>Versuche einen anderen Namen.</p> : <GedaechtnisLeer satz={text.leer} />}</div> : null}
+    {data && art === "organisation" && <OrganisationGroups entries={data.sachen.map(sache => ({id:sache.sache,name:sache.name}))} />}
+    {data && art === "ort" && <MemoryPlaces entries={data.sachen.map(sache => ({id:sache.sache,name:sache.name}))} />}
     {seiten > 1 ? <nav className="directory-pagination" aria-label="Aktenseiten">
       <button type="button" disabled={seite === 0} onClick={() => setSeite(seite - 1)}>Zurück</button>
       <span>Seite {seite + 1} von {seiten}</span>

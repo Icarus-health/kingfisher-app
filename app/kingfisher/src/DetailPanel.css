@@ -1,0 +1,8 @@
+.workspace-detail {position:fixed;z-index:35;inset:20px 20px 20px auto;width:min(530px,calc(100vw - 40px));display:flex;flex-direction:column;background:var(--calm-surface);color:var(--calm-ink);border:1px solid var(--calm-line);border-radius:16px;box-shadow:-12px 0 40px rgba(19,39,44,.18);}
+.workspace-detail > header {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--calm-line);}
+.workspace-detail > header h2 {font:600 17px/1.4 Inter,sans-serif;margin:0;}
+.workspace-detail > header button {border:1px solid var(--calm-line);border-radius:8px;background:var(--calm-inset);padding:8px 12px;color:var(--calm-ink);}
+.workspace-detail-body {padding:20px;overflow-y:auto;min-height:0;}
+.workspace-detail-body .task-row {display:flex;flex-wrap:wrap;gap:12px;}
+.workspace-detail-body .task-row > div {flex:1 1 100%;}
+@media(max-width:900px){.workspace-detail {inset:0;width:100%;border-radius:0;}}
