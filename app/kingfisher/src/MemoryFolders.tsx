@@ -37,7 +37,7 @@ export function SourceFolderAssignment({sourceId}: {sourceId:string}) {
 }
 export function MemoryFolders({sources}: {sources:FolderSource[]}) {
   const restored=useRef(readMemoryViewPosition()?.folders);
-  const {overview,error,refresh} = useWorkspaceMemoryView();
+  const {overview,error,loading:metadataLoading,refresh} = useWorkspaceMemoryView();
   const [selected,setSelected] = useState<string|null>(()=>restored.current?.selected??null);
   const [name,setName] = useState('');
   const [parent,setParent] = useState('');
@@ -51,13 +51,16 @@ export function MemoryFolders({sources}: {sources:FolderSource[]}) {
   const [areaError,setAreaError]=useState(false);
   const [areaRevision,setAreaRevision]=useState(0);
   const sourceIds=JSON.stringify(sources.filter(source=>source.kind!=='note').map(source=>source.id.replace(/^episode:/,'')));
+  const areaQueryKey=`${sourceIds}:${areaRevision}`;
+  const [finishedAreaQuery,setFinishedAreaQuery]=useState<string|null>(null);
   useEffect(()=>{
     let active=true;setAssignedAreas({});setAreaError(false);
     const ids=JSON.parse(sourceIds) as string[];
     const batches=Array.from({length:Math.ceil(ids.length/100)},(_,i)=>ids.slice(i*100,(i+1)*100));
     Promise.all(batches.map(ids=>request<{areas:Record<string,string[]>}>('/api/v1/workspace-source-areas',{method:'POST',body:JSON.stringify({ids})})))
       .then(values=>{if(active)setAssignedAreas(Object.assign({},...values.map(v=>v.areas)));})
-      .catch(()=>{if(active)setAreaError(true);});
+      .catch(()=>{if(active)setAreaError(true);})
+      .finally(()=>{if(active)setFinishedAreaQuery(areaQueryKey);});
     return()=>{active=false;};
   },[sourceIds,areaRevision]);
   const [message,setMessage] = useState<string|null>(null);
@@ -81,7 +84,7 @@ export function MemoryFolders({sources}: {sources:FolderSource[]}) {
     }catch{setMessage('Ordneränderung nicht gespeichert. Bitte Namen, übergeordneten Ordner und aktuellen Stand prüfen. Ein neuer Ordner lässt sich erst ohne Unterordner und Quellenzuordnungen rückgängig machen.');}
     finally{setBusy(false);}
   }
-  return <section className="memory-view-panel" aria-label="Virtuelle Dokumentordner"><h2>Dokumentordner</h2><p>Ordner und Unterordner ordnen Quellen in dieser Ansicht. Originaldateien und ihre Fassungen bleiben erhalten.</p>
+  return <section className="memory-view-panel" data-memory-loading={metadataLoading || (!overview && !error) || finishedAreaQuery !== areaQueryKey} aria-label="Virtuelle Dokumentordner"><h2>Dokumentordner</h2><p>Ordner und Unterordner ordnen Quellen in dieser Ansicht. Originaldateien und ihre Fassungen bleiben erhalten.</p>
     {error&&<p role="alert">Ordneransicht nicht erreichbar. <button type="button" onClick={()=>void refresh()}>Erneut laden</button></p>}
     {!overview&&!error&&<p role="status">Ordner werden geladen …</p>}
     {overview&&<><div className="memory-folder-layout"><nav aria-label="Ordner auswählen"><button type="button" aria-pressed={selected===null} onClick={()=>setSelected(null)}>Alle Quellen dieser Ansicht</button><ul><li><button type="button" aria-pressed={selected==='unassigned'} onClick={()=>setSelected('unassigned')}>Ohne Ordner</button></li>

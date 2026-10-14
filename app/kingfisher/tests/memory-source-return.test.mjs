@@ -66,3 +66,35 @@ test('place selection survives return and reloads current coordinates and revisi
 }));
 
 test('history carrier discards extra response/body fields and never restores old save preview data',()=>environment('/memory?tab=areas',async({target})=>{target.history.state={kingfisherMemoryView:{path:'/memory?tab=areas',body:'old source',preview:{revision:'old'},place:{selected:'ort:one',lat:48,lng:7,revision:5},area:{view:'work',navigation:{cursor:undefined,history:[undefined],index:0},selected:['one'],response:{sources:[]}}}};assert.deepEqual(Object.keys(readMemoryViewPosition()).sort(),['area','path','place']);assert.deepEqual(readMemoryViewPosition().place,{selected:'ort:one'});navigate(memoryProfileHref('/memory/akte/person%3Ap'));assert.doesNotMatch(JSON.stringify(target.history.state),/old source|old.*revision|response|lat|lng/);}));
+
+test('document scroll waits for delayed folder metadata and source areas after graph readiness',()=>environment('/memory?tab=documents',async({target})=>{
+ const oldOverview=workspaceViewApi.overview,oldFetch=globalThis.fetch,oldObserver=globalThis.MutationObserver;
+ let finishFolders,finishAreas,mutation,frame,disconnected=0;
+ workspaceViewApi.overview=()=>new Promise(resolve=>{finishFolders=resolve;});
+ globalThis.fetch=url=>{assert.equal(url,'/api/v1/workspace-source-areas');return new Promise(resolve=>{finishAreas=resolve;});};
+ globalThis.MutationObserver=class{constructor(fn){mutation=fn;}observe(){}disconnect(){disconnected++;}};
+ target.requestAnimationFrame=fn=>{frame=fn;return 1;};target.cancelAnimationFrame=()=>{frame=null;};target.scrollTo=(x,y)=>{target.scrollX=x;target.scrollY=y;};
+ target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:'folder-one',project:'',area:'',sourceArea:'work',sourceListOpen:true},scroll:{x:0,y:0,page:600,directory:0,anchor:{id:'episode:one',offset:40}}}};
+ const d=driver(()=>MemoryFolders({sources:[{id:'episode:one',title:'Current source',kind:'episode'}]}));let tree=d.render();d.flush();
+ const root={scrollTop:0,scrollHeight:300,clientHeight:300,matches:()=>false,
+  querySelector:selector=>selector==='[data-memory-loading="true"]'&&tree.props['data-memory-loading']?{}:null,
+  querySelectorAll:()=>nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').map(()=>({dataset:{memoryRow:'episode:one'},getBoundingClientRect:()=>({top:700-root.scrollTop})}))};let stop;
+ try{
+  stop=restoreMemoryScroll(root);frame();assert.equal(disconnected,0,'graph readiness alone must not finish restoration before metadata');assert.equal(root.scrollTop,0);
+  finishFolders({...overview,source_folders:[{id:'episode:one',revision:2,data:{folder_id:'folder-one'}}]});tree=await tick(d);mutation();frame();assert.equal(disconnected,0,'folder metadata alone must not finish while area membership is pending');assert.equal(nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').length,0);
+  finishAreas(new Response(JSON.stringify({areas:{one:['work']}}),{status:200}));tree=await tick(d);root.scrollHeight=1200;mutation();frame();assert.equal(nodes(tree,n=>n.props?.['data-memory-row']==='episode:one').length,1);assert.equal(root.scrollTop,660,'late source row restores the original visible anchor after both responses');assert.equal(disconnected,1,'restoration finishes only after the folder/source rows are ready');
+ }finally{stop?.();d.close();workspaceViewApi.overview=oldOverview;globalThis.fetch=oldFetch;globalThis.MutationObserver=oldObserver;}
+}));
+
+test('document loading barrier covers metadata refresh and changed source queries, then releases on terminal errors',()=>environment('/memory?tab=documents',async({target})=>{
+ const oldOverview=workspaceViewApi.overview,oldFetch=globalThis.fetch;let metadataReads=0,areaReads=0,rejectMetadata,rejectAreas;
+ workspaceViewApi.overview=()=>++metadataReads===1?Promise.resolve(overview):new Promise((_resolve,reject)=>{rejectMetadata=reject;});
+ globalThis.fetch=()=>++areaReads===1?Promise.resolve(new Response(JSON.stringify({areas:{one:['work']}}),{status:200})):new Promise((_resolve,reject)=>{rejectAreas=reject;});
+ let props={sources:[{id:'episode:one',title:'One',kind:'episode'}]};const d=driver(()=>MemoryFolders(props));
+ try{
+  let tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);
+  target.dispatchEvent(new Event('workspace-view-changed'));tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'pending refresh is relevant even with a prior overview');
+  rejectMetadata(Error('metadata unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Ordneransicht nicht erreichbar/);
+  props={sources:[{id:'episode:two',title:'Two',kind:'episode'}]};tree=d.render();assert.equal(tree.props['data-memory-loading'],true,'changed source IDs are pending before their passive effect starts');d.flush();rejectAreas(Error('areas unavailable'));tree=await tick(d);assert.equal(tree.props['data-memory-loading'],false);assert.match(text(tree),/Bereiche konnten nicht geladen werden/);
+ }finally{d.close();workspaceViewApi.overview=oldOverview;globalThis.fetch=oldFetch;}
+}));
