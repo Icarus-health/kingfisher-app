@@ -26,6 +26,16 @@ test('source colors and identity stay stable for same title and proven copies st
  assert.deepEqual(layout.calendarVisibleEvents([a,b],new Set(['b'])),[b]);
  const copy={...a,source_copies:[{uid:'a:1',source_id:'a',source_label:'A'},{uid:'b:1',source_id:'b',source_label:'B'}]};assert.equal(layout.calendarVisibleEvents([copy],new Set(['b']))[0],copy);
 });
+test('physical Mac calendar view keys filter independently while mirror action IDs remain canonical',async()=>{
+ const {calendarSourceVersions}=await import('../src/calendarRange.ts');
+ const privateEvent={uid:'mac-calendar:p',source_id:'mac-calendar',view_source_id:'mac-calendar:private',start:date(9)};
+ const work={uid:'google:w',source_id:'google',start:date(10),source_copies:[
+  {uid:'google:w',source_id:'google',source_label:'Google',view_source_id:'google'},
+  {uid:'mac-calendar:w',source_id:'mac-calendar',source_label:'Arbeit',view_source_id:'mac-calendar:work'}]};
+ assert.deepEqual(layout.calendarVisibleEvents([privateEvent,work],new Set(['mac-calendar:work'])),[work]);
+ assert.deepEqual(layout.calendarVisibleEvents([privateEvent,work],new Set(['mac-calendar:private'])),[privateEvent]);
+ assert.deepEqual(calendarSourceVersions(work).map(copy=>copy.source_id),['google','mac-calendar']);
+});
 test('autumn clock crossing splits into exact wall intervals and separates the real overlap',()=>{
  const previousZone=process.env.TZ;process.env.TZ='Europe/Berlin';
  try {

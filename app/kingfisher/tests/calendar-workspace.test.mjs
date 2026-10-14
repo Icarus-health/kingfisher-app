@@ -9,7 +9,7 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  try{
  const {CalendarPage}=await server.ssrLoadModule('/src/CalendarPage.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
  const now=new Date(),start=now.toISOString();const item={uid:'source:123',source_id:'source',source_label:'Arbeit',summary:'Workshop',start,end:new Date(+new Date(start)+3600000).toISOString(),all_day:false,location:'Zimmer'};
- api.calendar=async()=>({items:[item],configured:true,errors:[]});api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[{id:'source',label:'Arbeit',configured:true,enabled:true}]});
+ api.calendar=async()=>({items:[item],configured:true,errors:[]});api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[{id:'source',label:'Arbeit',configured:true,enabled:true}]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
  const values=[],deps=[],pending=[];let si=0,ei=0;const d={state(initial){const i=si++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return[values[i],v=>values[i]=typeof v==='function'?v(values[i]):v];},effect(fn,next){const i=ei++;if(!deps[i]||!next||next.some((v,j)=>v!==deps[i][j])){deps[i]=next;pending.push(fn);}},render(){si=ei=0;globalThis.__calendarDriver=d;return CalendarPage({recentConversation:null});},async flush(){while(pending.length)pending.shift()();await new Promise(r=>setImmediate(r));}};
  d.render();await d.flush();let tree=d.render();await d.flush();tree=d.render();
  assert.equal(nodes(tree,n=>n.props?.className==='calendar-hour').length,24);assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Tag')[0]);assert.ok(nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0]);
@@ -21,5 +21,22 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
   const parts=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-time-event');assert.equal(parts.length,2);assert.equal(new Set(parts.map(p=>p.key)).size,2);
   assert.ok(parts.some(p=>p.props['aria-label'].includes('02:50–03:00 UTC+02:00')));assert.ok(parts.some(p=>p.props['aria-label'].includes('02:00–02:10 UTC+01:00')));
  }finally{if(oldZone===undefined)delete process.env.TZ;else process.env.TZ=oldZone;}
+ let finishIntegrations;api.integrations=()=>new Promise(resolve=>{finishIntegrations=resolve;});
+ api.macCalendar=async()=>({enabled:true,selected:['private','work','empty'],calendars:[{id:'private',name:'Privat'},{id:'work',name:'Arbeit'},{id:'empty',name:'Ohne Termine'},{id:'unselected',name:'Nicht ausgewählt'}]});
+ api.calendarActionSources=async()=>({sources:[{id:'google'}]});
+ const localStart=new Date(2026,9,25,10).toISOString();
+ const privateEvent={...item,uid:'mac-calendar:private-event',source_id:'mac-calendar',view_source_id:'mac-calendar:private',source_label:'Mac · Privat',summary:'Privater Termin',start:localStart,end:new Date(+new Date(localStart)+3600000).toISOString()};
+ const workEvent={...privateEvent,uid:'google:work-event',source_id:'google',view_source_id:undefined,source_label:'Google',summary:'Arbeitstermin',source_copies:[{uid:'google:work-event',source_id:'google',source_label:'Google',view_source_id:'google'},{uid:'mac-calendar:work-event',source_id:'mac-calendar',source_label:'Mac · Arbeit',view_source_id:'mac-calendar:work'}]};
+ api.calendar=async()=>({items:[privateEvent,workEvent],configured:true,errors:[]});
+ nodes(tree,n=>n.type==='button'&&text(n)==='Ansicht aktualisieren')[0].props.onClick();d.render();await d.flush();tree=d.render();
+ let choices=nodes(tree,n=>n.props?.className==='calendar-source-choice');assert.ok(choices.some(n=>text(n)==='Ohne Termine'));assert.ok(choices.some(n=>text(n)==='Privat'));assert.ok(choices.some(n=>text(n)==='Arbeit'));assert.ok(!choices.some(n=>text(n)==='Nicht ausgewählt'));
+ assert.equal(nodes(tree,n=>n.props?.className==='calendar-time-event').length,2);
+ finishIntegrations({calendar_sources:[{id:'mac-calendar',label:'Mac-Kalender',configured:true,enabled:true},{id:'google',label:'Google',configured:true,enabled:true}]});await d.flush();tree=d.render();
+ choices=nodes(tree,n=>n.props?.className==='calendar-source-choice');assert.ok(choices.some(n=>text(n)==='Ohne Termine'));assert.ok(!choices.some(n=>text(n)==='Mac-Kalender'));
+ const toggle=label=>{const choice=nodes(tree,n=>n.props?.className==='calendar-source-choice'&&text(n)===label)[0];nodes(choice,n=>n.type==='input')[0].props.onChange({target:{checked:false}});tree=d.render();};
+ toggle('Privat');let visible=nodes(tree,n=>n.props?.className==='calendar-time-event');assert.equal(visible.length,1);assert.match(text(visible[0]),/Arbeitstermin/);
+ toggle('Google');visible=nodes(tree,n=>n.props?.className==='calendar-time-event');assert.equal(visible.length,1);assert.match(text(visible[0]),/Arbeitstermin/);
+ visible[0].props.onClick();tree=d.render();const mirrorDetails=nodes(tree,n=>n.type?.name==='DetailPanel')[0];nodes(mirrorDetails,n=>n.type==='button'&&/Bearbeiten/.test(text(n)))[0].props.onClick();tree=d.render();const form=nodes(tree,n=>n.type?.name==='CalendarActionForm')[0];assert.equal(form.props.event.source_id,'google');assert.equal(form.props.event.uid,'google:work-event');
+ toggle('Arbeit');assert.equal(nodes(tree,n=>n.props?.className==='calendar-time-event').length,0);
  }finally{globalThis.window=oldWindow;globalThis.localStorage=oldStorage;globalThis.__calendarDriver=oldDriver;await server.close();}
 });

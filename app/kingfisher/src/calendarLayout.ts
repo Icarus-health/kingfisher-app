@@ -1,6 +1,8 @@
 import {calendarWindow, eventsInRange} from './calendarRange.ts';
 export type WorkspaceCalendarView = 'Tag'|'Woche'|'Monat'|'Liste'|'Jahr';
-type Event = {uid:string;start?:string|null;end?:string|null;all_day?:boolean;source_id?:string;source_copies?:Array<{uid:string;source_id:string;source_label:string}>};
+type DisplaySource = {source_id?:string;view_source_id?:string};
+type Event = DisplaySource & {uid:string;start?:string|null;end?:string|null;all_day?:boolean;source_copies?:Array<{uid:string;source_id:string;source_label:string;view_source_id?:string}>};
+export const calendarDisplaySource=(source:DisplaySource)=>source.view_source_id??source.source_id??'unknown';
 export const calendarEventKey=(event:Event)=>JSON.stringify([event.source_id||'',event.uid,event.start||'']);
 export function calendarColor(id:string):string {
   const colors=['#075268','#95642f','#486e3a','#795497','#a54854','#326c9e','#786128'];
@@ -8,7 +10,7 @@ export function calendarColor(id:string):string {
   return colors[(hash>>>0)%colors.length];
 }
 export function calendarVisibleEvents<T extends Event>(events:T[], selected:Set<string>|null):T[] {
-  return selected===null?events:events.filter(event=>(event.source_copies?.length?event.source_copies.map(copy=>copy.source_id):[event.source_id||'unknown']).some(id=>selected.has(id)));
+  return selected===null?events:events.filter(event=>(event.source_copies?.length?event.source_copies.map(calendarDisplaySource):[calendarDisplaySource(event)]).some(id=>selected.has(id)));
 }
 export function calendarWorkspaceWindow(focus:Date, view:WorkspaceCalendarView):{from:Date;until:Date} {
   const from=new Date(focus.getFullYear(),focus.getMonth(),focus.getDate());

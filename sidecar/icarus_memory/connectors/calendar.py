@@ -57,6 +57,8 @@ class Event:
     external_uid: str = ""
     """Provider/ICS identity for recognizing copies; never replaces the source-scoped UID."""
     source_copies: list[dict[str, str]] = field(default_factory=list)
+    view_source_id: str = ""
+    """Display filter/color identity only; never a provider or permission destination."""
 
     def to_dict(self) -> dict[str, Any]:
         def iso(v: datetime | None) -> str | None:
@@ -76,6 +78,8 @@ class Event:
             result["source_label"] = self.source_label
         if self.source_copies:
             result["source_copies"] = [dict(copy) for copy in self.source_copies]
+        if self.view_source_id:
+            result["view_source_id"] = self.view_source_id
         return result
 
 

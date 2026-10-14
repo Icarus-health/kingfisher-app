@@ -8,7 +8,7 @@ import { editableEventId } from "./calendarActionState";
 import { CalendarFollowup } from "./CalendarFollowup";
 import { calendarSourceVersions, eventsInRange, findCalendarEvent, preparationView } from "./calendarRange";
 
-import {calendarColor, calendarDayLayout, calendarEventKey, calendarPlacementKey, calendarVisibleEvents, calendarWorkspaceWindow, type WorkspaceCalendarView} from './calendarLayout';
+import {calendarColor, calendarDayLayout, calendarDisplaySource, calendarEventKey, calendarPlacementKey, calendarVisibleEvents, calendarWorkspaceWindow, type WorkspaceCalendarView} from './calendarLayout';
 import {DetailPanel} from './DetailPanel';
 import './CalendarPage.css';
 type View = WorkspaceCalendarView;
@@ -36,7 +36,8 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const [view, setView] = useState<View>(() => { let saved:string|null=null;try {saved=localStorage.getItem("kingfisher-calendar-view");} catch { /* The calendar remains usable without browser storage. */ } const selected: View = ["Tag", "Woche", "Monat", "Liste", "Jahr"].includes(saved || "") ? saved as View : "Monat"; return preparationView(selected, initialPrepareAt, today); });
   const [focus, setFocus] = useState(midnight(initialPrepareAt || today));
   const [googleSources, setGoogleSources] = useState<string[]>([]);
-  const [sourceOptions, setSourceOptions] = useState<Array<{id:string;label:string}>>([]);
+  const [configuredSources, setConfiguredSources] = useState<Array<{id:string;label:string}>>([]);
+  const [macSources, setMacSources] = useState<Array<{id:string;label:string}>>([]);
   const [hiddenSources, setHiddenSources] = useState<Set<string>>(new Set());
   const [detailsKey, setDetailsKey] = useState<string|null>(null);
   const timeScroll = useRef<HTMLDivElement>(null);
@@ -95,10 +96,11 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   }, []);
   useEffect(() => {
     let active = true;
-    api.integrations().then(result => {if (active) setSourceOptions(result.calendar_sources.filter(source=>source.configured&&source.enabled).map(source=>({id:source.id,label:source.label})));}).catch(()=>{});
+    api.integrations().then(result => {if (active) setConfiguredSources(result.calendar_sources.filter(source=>source.configured&&source.enabled&&source.id!=='mac-calendar').map(source=>({id:source.id,label:source.label})));}).catch(()=>{});
+    api.macCalendar().then(result=>{if(active)setMacSources(result.enabled?result.calendars.filter(calendar=>result.selected.includes(calendar.id)).map(calendar=>({id:`mac-calendar:${calendar.id}`,label:calendar.name})):[]);}).catch(()=>{});
     api.calendarActionSources().then(result => {if (active) setGoogleSources(result.sources.map(s => s.id));}).catch(() => {});
     return () => {active = false;};
-  }, []);
+  }, [revision]);
   useEffect(() => {try {localStorage.setItem("kingfisher-calendar-view", view);} catch { /* This view remains usable for the current session. */ }}, [view]);
   useEffect(() => {
     let active = true;
@@ -139,19 +141,20 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
     const timer = window.setInterval(() => setRevision(value => value + 1), 15000);
     return () => window.clearInterval(timer);
   }, []);
-  useEffect(() => {
-    if (!visibleData) return;
-    setSourceOptions(old => {
-      const all = new Map(old.map(source=>[source.id,source]));
-      for (const item of visibleData.items) for (const copy of calendarSourceVersions(item)) all.set(copy.source_id||'unknown',{id:copy.source_id||'unknown',label:copy.source_label||'Gespeicherter Kalender'});
-      return [...all.values()].sort((a,b)=>a.label.localeCompare(b.label,'de'));
-    });
-  }, [visibleData]);
+  // Derive one merged universe on the same render as the events. Independent
+  // metadata responses cannot overwrite another provider's calendars.
+  const sourceUniverse = new Map<string,{id:string;label:string}>();
+  for(const item of visibleData?.items||[])for(const copy of calendarSourceVersions(item)){
+    const id=calendarDisplaySource(copy);
+    if(id!=='mac-calendar')sourceUniverse.set(id,{id,label:copy.source_label||'Gespeicherter Kalender'});
+  }
+  for(const source of [...configuredSources,...macSources])sourceUniverse.set(source.id,source);
+  const sourceOptions=[...sourceUniverse.values()].sort((a,b)=>a.label.localeCompare(b.label,'de'));
   useEffect(() => {if(timeScroll.current && (view==='Woche'||view==='Tag')) timeScroll.current.scrollTop=7*48;},[view,rangeKey]);
   const selectedSources = new Set(sourceOptions.filter(source=>!hiddenSources.has(source.id)).map(source=>source.id));
   const items = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
   const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
-  const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarSourceVersions(item).find(copy=>!hiddenSources.has(copy.source_id||'unknown'))?.source_id||'unknown');
+  const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarDisplaySource(calendarSourceVersions(item).find(copy=>!hiddenSources.has(calendarDisplaySource(copy)))||item));
   function eventActions(item:CalendarOverview['items'][number]) {
     return <div className="calendar-detail-actions">{calendarSourceVersions(item).filter(copy => copy.source_id && googleSources.includes(copy.source_id) && editableEventId(copy)).map(copy => <button key={calendarEventKey(copy)} type="button" className="secondary-action" onClick={() => {setDetailsKey(null);setActionTarget(copy);}}>Bearbeiten / absagen{item.source_copies?.length ? ` · ${copy.source_label}` : ''}</button>)}
       {item.art !== 'geburtstag' && (!item.end || new Date(item.end) > new Date()) && <button className="secondary-action" type="button" onClick={()=>selectPreparation(item.uid,item.start)}>Vorbereiten</button>}
