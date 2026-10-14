@@ -561,6 +561,15 @@ export type MemoryGraph = {
   edges: GraphEdge[];
 };
 
+export type MemorySearchResult = {
+  query: string;
+  items: Array<{episode_id: string; title: string; quote: string; start: number; end: number;
+    occurred_at: string | null; recorded_at: string; source_type: string}>;
+  truncated: boolean; scope: string; scanned?: number; scan_limit?: number;
+  note_items?: Array<{note_id: string; title: string; quote: string; start: number; end: number;
+    occurred_at: string | null; recorded_at: string; source_type: string}>;
+};
+
 export type SupportReviewItem = {
   id: string;
   statement: string;
@@ -1408,6 +1417,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ reason: "Im Gespräch ausdrücklich als falsch widerrufen." }) },
     ),
   memoryGraph: () => request<MemoryGraph>("/api/v1/memory/graph"),
+  memorySearch: (q: string, signal?: AbortSignal) => request<MemorySearchResult>(`/api/v1/memory/search?${new URLSearchParams({q, limit: "20"})}`, {signal}),
   personMerges: () => request<{merges: PersonMerge[]}>("/api/v1/memory/person-merges"),
   previewPersonMerge: (member_ids: string[], label: string) => request<PersonMergePreview>("/api/v1/memory/person-merges/preview", {
     method: "POST", body: JSON.stringify({member_ids, label}),

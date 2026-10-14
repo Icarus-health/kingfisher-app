@@ -16,6 +16,7 @@ import { GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { kontakteText, kreisSache } from "./kreis";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
+import { memoryReturnPath } from "./profileReturn";
 
 type ProfileKind = "person" | "project";
 type PersonTab = "overview" | "projects" | "conversations" | "documents" | "notes";
@@ -23,7 +24,9 @@ type ProjectTab = "overview" | "tasks" | "documents" | "decisions" | "team";
 
 function profileDate(value: string | null | undefined) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value)).replace(".", "");
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(date).replace(".", "");
 }
 
 function sourceLabel(value: string) {
@@ -62,16 +65,17 @@ function PersonProfile({ data, tab, setTab }: { data: PersonProfileData; tab: Pe
   const person = data.person;
   const documents = data.interactions.filter(item => item.kind === "document");
   const conversations = data.interactions.filter(item => item.kind !== "document");
+  const taskCards = person.offene_aufgaben.map(task => <article key={task.id}><a href={`/vorhaben?view=${task.wartet_auf ? "waiting" : "mine"}${task.project_id ? `&project=${encodeURIComponent(task.project_id)}` : ""}`}><strong>{task.title}</strong></a><small>{task.due ? `Fällig ${profileDate(task.due)}` : "Ohne Termin"}{task.wartet_auf ? ` · wartet auf ${displayLabel(task.wartet_auf).name}` : ""}</small>{task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}</article>);
   const tabs: Array<[PersonTab, string]> = [["overview", "Übersicht"], ["projects", "Projekte"], ["conversations", "Gespräche"], ["documents", "Dokumente"], ["notes", "Notizen"]];
   return <>
     <header className="profile-heading"><p className="eyebrow">PERSONENPROFIL</p><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header>
     <nav aria-label="Personenprofilbereiche" className="profile-tabs">{tabs.map(([id, label]) => <button aria-pressed={tab === id} className={tab === id ? "active" : ""} key={id} onClick={() => setTab(id)} type="button">{label}</button>)}</nav>
     {tab === "overview" ? <div className="profile-grid">
-      {(person.adressen ?? []).length ? (person.adressen ?? []).slice(0, 3).map((adresse, index) => <AkteAnsicht key={adresse} sache={`person:a:${adresse.toLowerCase()}`} fallback={index === 0 ? <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></> : null} />) : <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></>}
+      <section className="profile-card"><h2>Zusammenfassung</h2><p>{profileDate(person.letzter_kontakt) !== "—" ? `Letzter Kontakt ${profileDate(person.letzter_kontakt)}${person.kontakt_text ? ` (${person.kontakt_text})` : ""}.` : "Noch kein Kontaktdatum belegt."}</p><p>{person.herkuenfte.length ? `Quellen: ${person.herkuenfte.map(sourceLabel).join(", ")}.` : "Keine Quelle angegeben."}</p></section>
+      <section className="profile-card"><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <p>Noch keine Rückmeldung von dieser Person vorgemerkt. Weitere Aufgaben können in gemeinsamen Quellen stehen.</p>}</section>
+      <section className="profile-metrics"><div><strong>{data.contexts.length}</strong><span>Projekte</span></div><div><strong>{person.themen.length}</strong><span>Themen</span></div><div><strong>{person.kontakte ?? data.interactions.length}</strong><span>Kontakte</span></div><div><strong className="profile-contact-date">{profileDate(person.letzter_kontakt)}</strong><span>Letzter Kontakt</span></div></section>
       <PersonDigest personId={data.id} />
-      <section className="profile-card"><h2>Zusammenfassung</h2><p>{person.kontakt_text ? `Letzter Kontakt ${person.kontakt_text}.` : "Noch kein Kontaktdatum belegt."}</p><p>{person.herkuenfte.length ? `Quellen: ${person.herkuenfte.map(sourceLabel).join(", ")}.` : "Keine Quelle angegeben."}</p></section>
-      <section className="profile-card"><h2>Aktuelles</h2><p>{person.offene_aufgaben.length ? `${person.offene_aufgaben.length} offene Aufgabe${person.offene_aufgaben.length === 1 ? "" : "n"} wartet auf Bearbeitung.` : "Keine offene Aufgabe ist dieser Person zugeordnet."}</p></section>
-      <section className="profile-metrics"><div><strong>{data.contexts.length}</strong><span>Projekte</span></div><div><strong>{person.themen.length}</strong><span>Themen</span></div><div><strong>{person.kontakte ?? data.interactions.length}</strong><span>Kontakte</span></div><div><strong>{profileDate(person.letzter_kontakt)}</strong><span>Letzter Kontakt</span></div></section>
+      {(person.adressen ?? []).length ? (person.adressen ?? []).slice(0, 3).map((adresse, index) => <AkteAnsicht key={adresse} sache={`person:a:${adresse.toLowerCase()}`} fallback={index === 0 ? <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></> : null} />) : <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></>}
       <section className="profile-card profile-wide"><h2>Verbindungen</h2>{person.themen.length ? <div className="profile-list">{person.themen.map((topic) => <p key={topic}>{topic}</p>)}</div> : <EmptyProfileSection>Noch keine belegten Themen.</EmptyProfileSection>}</section>
       <section className="profile-card profile-wide"><h2>Bestätigter Wissensstand</h2><ClaimList claims={data.claims} history={data.claim_history} /></section>
     </div> : null}
@@ -130,7 +134,7 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate("/memory")} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">← Gedächtnis</button>
       {error ? <section className="profile-state"><h1>{title}</h1><p>Dieses Profil ist gerade nicht erreichbar oder nicht belegt.</p><button onClick={() => window.location.reload()} type="button">Wiederholen</button></section> : null}
       {!error && !data && !contactSources ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
       {contactSources ? <section className="profile-card profile-wide">
@@ -160,7 +164,7 @@ export function RegistryProfile({ identifier, recentConversation }: { identifier
   return <div className="shell profile-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
-      <button className="profile-back" onClick={() => navigate("/memory")} type="button">← Gedächtnis</button>
+      <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">← Gedächtnis</button>
       {error ? <section className="profile-state"><h1>Profil</h1><p>Dieses Profil ist gerade nicht erreichbar oder nicht belegt.</p><button onClick={() => window.location.reload()} type="button">Wiederholen</button></section> : null}
       {!error && !data ? <section className="profile-state profile-loading" aria-label="Profil wird geladen"><i /><i /><i /></section> : null}
       {data ? <>

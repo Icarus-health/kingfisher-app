@@ -147,10 +147,12 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
           <summary>Gespeicherte Anlagen ({data.attachment_sources.length})</summary>
           {data.attachment_sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id} label={source.title} readOnly={readOnly} originalOnly={originalOnly} onChange={onChange} />)}
         </details>}
-        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceCategories key={`categories:${id}`} id={id} readOnly={readOnly} />}
-        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} />}
         {data.state === "ignored" && <p role="status">Diese Quelle wurde ausgeschlossen und darf nicht als Wissensbeleg verwendet werden.</p>}
         {data.provenance?.source_type === "manual_correction" && data.correction_current === false && <p role="status">Der Quellenbezug dieser Berichtigung hat sich verändert. Sie wird nicht für Antworten verwendet.</p>}
+        <div className="task-source-body">{data.body.slice(0, 20000)}</div>
+        {data.body.length > 20000 && <p>Auszug: Die Quelle ist länger als die angezeigten 20.000 Zeichen.</p>}
+        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceCategories key={`categories:${id}`} id={id} readOnly={readOnly} />}
+        {!originalOnly && kind === "episode" && data.state !== "ignored" && <SourceBezuege key={`bezuege:${id}`} id={id} readOnly={readOnly} />}
         {kind === "episode" && data.state !== "ignored" && allowDismiss && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <div>
           <SourceCorrection key={id} id={id} onChange={berichtigt} />
           {verwerfen}
@@ -176,8 +178,6 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
         {reopened && data.state !== "ignored" && <p role="status">Die Quelle ist wieder zur Prüfung zugelassen. Frühere Aussagen wurden nicht bestätigt.</p>}
         {kind === "episode" && data.state !== "ignored" && !readOnly && !(data.provenance?.source_type === "manual_correction" && data.correction_current === false) && <SourceProject key={`project:${id}`} id={id} projectId={data.project_id ?? null} />}
         <Herkunft provenance={data.provenance} />
-        <div className="task-source-body">{data.body.slice(0, 20000)}</div>
-        {data.body.length > 20000 && <p>Auszug: Die Quelle ist länger als die angezeigten 20.000 Zeichen.</p>}
       </>}
     </section>}
   </div>;

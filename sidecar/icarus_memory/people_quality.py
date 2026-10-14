@@ -11,8 +11,9 @@ import re
 AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|do[._-]not[._-]reply|notifications?|mailer[._-]?daemon|postmaster)(?:$|[._-])', re.I)
 GENERIC = {
     'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
-    'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen',
+    'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen', 'message',
 }
+_COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
     r'rechnungs?[-_.]?(?:stelle|service|team)|zahlungs?[-_.]?(?:stelle|service|update)|'
@@ -59,6 +60,8 @@ def annotate_people(nodes):
         category, reason = 'person', ''
         if re.search(r'\(Integrationstest\)', label, re.I):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
+        elif not explicit and name and _COMPANY_NAME.search(name):
+            category, reason = 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and address and ist_sammelpostfach(local):
             if AUTOMATED.search(local):
                 category, reason = 'automated', 'Technische Benachrichtigungsadresse; der Anzeigename belegt keine Personenidentität.'

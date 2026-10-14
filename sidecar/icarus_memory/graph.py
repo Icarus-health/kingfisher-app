@@ -213,7 +213,7 @@ class _Builder:
         )
 
 
-def _episode_node(episode: Episode) -> GraphNode:
+def _episode_node(episode: Episode, *, source_current: bool | None = None) -> GraphNode:
     return GraphNode(
         id=f"episode:{episode.id}",
         kind="episode",
@@ -226,6 +226,7 @@ def _episode_node(episode: Episode) -> GraphNode:
             "source_type": episode.provenance.source_type.value,
             "source_ref": episode.provenance.source_ref,
             "digest": episode.digest,
+            **({'source_current': source_current} if source_current is not None else {}),
         },
     )
 
@@ -321,7 +322,14 @@ def build(
     for episode in episodes.each_episode():
         if episode.state is EpisodeState.IGNORED:
             continue
-        episode_node = _episode_node(episode)
+        source_current = None
+        if episode.kind.value == 'document':
+            try:
+                snapshot = episodes.support_snapshot(episode.id)
+                source_current = bool(snapshot and snapshot.current())
+            except ValueError:
+                source_current = False
+        episode_node = _episode_node(episode, source_current=source_current)
         builder.node(episode_node)
         project_node_id = f"project:{episode.project_id}" if episode.project_id else None
         if project_node_id and episode.project_id in projects:
