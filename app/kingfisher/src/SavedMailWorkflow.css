@@ -9,3 +9,6 @@
 .saved-mail-workflow button {max-width:100%;white-space:normal;padding:9px 13px;border:1px solid var(--calm-line);border-radius:6px;background:var(--calm-surface);color:var(--calm-ink);font:inherit;cursor:pointer;}
 .saved-mail-workflow button:disabled {opacity:.55;cursor:default;}
 @media(max-width:900px){.saved-mail-workflow {padding:14px;margin:16px 0;}}
+
+.saved-mail-workflow a {color:var(--calm-link);text-decoration:underline;text-underline-offset:3px;}
+.saved-mail-workflow a:focus-visible {outline:2px solid var(--calm-link);outline-offset:3px;}

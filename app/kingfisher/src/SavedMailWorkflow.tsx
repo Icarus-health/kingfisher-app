@@ -89,7 +89,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
        <option value="">Ohne Projekt</option>{view.projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}<option value="new">Neues Projekt anlegen</option>
       </select></label>
       {draft.project==='new' && <label>Neues Projekt<input value={draft.newProject} onChange={event=>update({newProject:event.target.value})} maxLength={200} disabled={Boolean(busy)}/></label>}
-      <p>Speichert deine bestätigte Aufgabe{draft.project==='new'?' und das neue Projekt':''}. Keine Frist oder wartende Person wird aus der historischen Mail übernommen.</p>
+      <p>Speichert deine bestätigte Aufgabe{draft.project==='new'?' und das neue Projekt':''}. Keine Frist oder wartende Person wird automatisch aus der Mail übernommen.</p>
       <button type="submit" disabled={!valid || Boolean(busy) || !draft.title.trim() || (draft.project==='new' && !draft.newProject.trim())}>{busy===item.id?'Wird gespeichert …':draft.project==='new'?'Aufgabe und Projekt bestätigen':'Aufgabe bestätigen'}</button>
      </>
     </form>;
