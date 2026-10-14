@@ -1,0 +1,31 @@
+# Abnahme der vertrauten Arbeitsflächen
+
+Basis 1.0.8; Implementierung und Reviewkorrekturen bis 370599c. Persönliche Daten wurden nicht als Entwicklungsfixture verwendet.
+
+## Automatisierte Prüfung
+
+- Finale Backendprüfung: 6.518 bestanden, eine bestehende Prüfung übersprungen, 26 Unterprüfungen bestanden. Der Lauf nutzt künstliche Daten und lokale Testserver; Swift-/Clang-Modulcaches liegen in einem separaten temporären Ordner.
+- UI: 652 bestanden; TypeScript und Produktionsbuild bestanden. Die bestehende Warnung zur Größe des Hauptbundles bleibt sichtbar.
+- Vorheriger Sandboxlauf: lokale Server/Swift blockiert; zusätzlich zwei Integrationsbefunde korrigiert (gesicherter Modellprovider an Projektvorschläge, Wiederherstellungsfixture mit neuem Metadatenspeicher). Betroffene Prüfungen danach bestanden.
+- Unabhängige Reviews reproduzierten und korrigierten Mail-Task-Projektabschluss-Race, entzogene Gesprächstreffer, falsche Kontaktdatierung, veralteten geöffneten Mailinhalt und Zeitumstellungsdarstellung. Das abschließende unabhängige Review von 370599c fand keine weitere konkrete Regression.
+
+## Tatsächliche Bedienprüfung
+
+Isolierter lokaler Dienst mit deterministischem künstlichem Antwortmodell, 35 Kontakten, Projekt, verschiedenen Aufgabenfristen, 85 gespeicherten Mails, Dokumentfassungen, Orten und vier überlappenden Terminen.
+
+- Gespräche: mehrzeiliger Entwurf bleibt beim Wechsel erhalten; Shift+Enter sendet nicht; Enter erzeugt genau eine Eingabe und Antwort. Aufnahmeaktionen vervielfachen sich nicht nach Antworten. Eingabe und Datum/Uhr bleiben bei 900 Pixeln sichtbar.
+- Aufgaben: Fristgruppen, Detailöffnung, Escape und Fokuszurückgabe geprüft. Aufgabe und Projekt mit einem Klick übernommen; Originalquelle angezeigt. Sammelvorschau mit zwei Einträgen übernommen und zwei Einzelergebnisse angezeigt. Projektabschluss mit neun offenen Aufgaben abgewiesen. Board verwendet dieselben Aufgaben und zeigt Offen/Wartend/Erledigt.
+- Menschen: Suche erhalten beim Zurückgehen; Akte mit Kontakt, Aufgaben, Projekt und Originalquellen geöffnet. Aufgabe aus Akte geöffnet und zur vorherigen Akte zurückgekehrt.
+- Bereiche: zwei Quellen gemeinsam um einen Bereich ergänzt; bestehende Bereiche und Einzelergebnisse blieben sichtbar.
+- Dokumente: virtuellen Ordner mit Vorschau angelegt, aktuelle Dokumentfassung zugeordnet, gefiltert und Zuordnung rückgängig gemacht. Alte Originalfassung wird nicht als aktuelle Dokumentquelle angeboten.
+- Organisationen: explizite Testgruppe mit zwei Einzelakten angelegt, Einzelakten erreichbar, Gruppierung rückgängig gemacht.
+- Orte: Koordinaten geprüft und bestätigt. Karte ausschließlich im künstlichen Bestand eingeschaltet; Kacheln/Attribution/Marker und Ortsauswahl sichtbar geprüft; danach wieder ausgeschaltet.
+- Eigenes Bild: künstliche lokale PNG-Datei ausgewählt, Vorschau gespeichert und Bildänderung rückgängig gemacht.
+- Nachrichten: Kontofilter und Suche im Mailinhalt über mehrere Seiten des Bestands; historische Mail im Lesebereich. Ohne verbundenen Provider blieb sie lesbar. Quellenverwaltung/Ausschluss entfernte den Inhalt aus Lesebereich und Liste. Bei 900 Pixeln vollständiger Lesebereich mit Rückweg, kein horizontaler Seitenüberlauf.
+- Kalender: Monats- und Wochenansicht, überlappende Zeitrastertermine, Detailöffnung und Escape/Fokus geprüft. Bei 900 und 1.280 Pixeln kein horizontaler Seitenüberlauf; das Raster scrollt innerhalb seiner Fläche.
+
+## Umfang und Grenzen
+
+Die Prüfungen belegen die genannten Arbeitsabläufe; sie sind kein vollständiges Barrierefreiheitszertifikat und kein Lasttest des gesamten persönlichen Mailarchivs. Modellvorschläge werden weiterhin geprüft und bestätigt; ohne vorhandenes Vergleichsprojekt wird kein automatischer Erstprojektvorschlag berechnet. Große Listen zeigen ausdrücklich geladene Seiten; Metadatenübersichten melden ihre Begrenzung. Aktivierung von Cloudmodellen und Fortsetzung des Großimports sind nicht Teil dieser Lieferung.
+
+Mac-Sicherung, normaler Updateweg und abschließende Prüfung der installierten Fassung werden nach der Veröffentlichung separat dokumentiert.
