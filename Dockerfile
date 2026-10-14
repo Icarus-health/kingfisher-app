@@ -1,6 +1,7 @@
 # Kingfisher: statische React-Oberfläche plus lokaler FastAPI-/SQLite-Prozess.
 
-FROM node:22-alpine AS ui-build
+# Only static browser assets leave this stage; build them natively, not under target emulation.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS ui-build
 WORKDIR /workspace
 COPY app/kingfisher/package.json app/kingfisher/package-lock.json app/kingfisher/
 RUN cd app/kingfisher && npm ci
