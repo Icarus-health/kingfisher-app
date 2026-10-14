@@ -9,6 +9,7 @@ import { MailReplySuggestion, type Suggestion } from "./MailReplySuggestion";
 import { ProfileSource } from "./ProfileSource";
 import { MailStyle } from "./MailStyle";
 import "./MailReader.css";
+import {SavedMailWorkflow} from "./SavedMailWorkflow";
 import {localMailApi, type LocalMailDetail} from "./localMailApi";
 
 type MailReaderProps = { uid: string; onClose: () => void; onTaskSaved?: () => void; localEpisodeId?: string; localRevision?: number };
@@ -291,7 +292,7 @@ function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailR
     async function load() {
       controller?.abort(); controller = new AbortController();
       const request = ++version;
-      setLoading(true); setError(''); setDetail(null); setOnline(false); setManageSource(false);
+      setLoading(true); setError(''); setDetail(previous => previous?.episode_id === episodeId ? previous : null); setOnline(false); setManageSource(false);
       try {
         const value = await localMailApi.detail(episodeId, controller.signal);
         if (active && request === version) setDetail(value);
@@ -317,6 +318,7 @@ function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailR
     {detail && <>
       <section className="mail-reader-meta"><h1>{detail.subject || '(Ohne Betreff)'}</h1><dl><div><dt>Von</dt><dd>{detail.from}</dd></div><div><dt>Quelldatum</dt><dd>{readableDate(detail.date)}</dd></div><div><dt>Gespeichert</dt><dd>{readableDate(detail.recorded_at)}</dd></div><div><dt>Postfach</dt><dd>{detail.account_label}</dd></div></dl></section>
       <p className="mail-reader-status">Historische Quelle vom letzten Speichern. Aktueller Postfachstand, Erledigung und Antwortstatus sind hier unbekannt.</p>
+      <SavedMailWorkflow key={episodeId} episodeId={episodeId} sourceDigest={detail.source_digest} sourceVerified={!loading && !error} onTaskSaved={onTaskSaved} />
       <section className="mail-reader-body" aria-label="Originaltext der gespeicherten Nachricht"><pre>{detail.body || detail.preview || 'Kein lesbarer Text gespeichert.'}</pre></section>
       {detail.truncated && <p role="status">Gespeicherter Ausschnitt; weitere Textteile oder Anlagen können fehlen.</p>}
       <ProfileSource kind="episode" id={episodeId} label="Gespeicherte Originalquelle prüfen" originalOnly readOnly />

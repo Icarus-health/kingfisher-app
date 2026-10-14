@@ -2,6 +2,7 @@
 import base64
 import json
 import math
+import re
 import sqlite3
 import threading
 from datetime import datetime, timezone
@@ -13,7 +14,7 @@ from .migrations import Migration, run_migrations, validate_legacy_or_empty, ver
 TABLES = {'view_records': {'kind', 'id', 'document', 'revision'},
           'view_events': {'sequence', 'kind', 'record_id', 'previous', 'revision', 'recorded_at'}}
 KEYS = {'view_records': {'kind', 'id'}, 'view_events': {'sequence'}}
-KINDS = {'folder', 'source_folder', 'organisation_group', 'place', 'avatar', 'preferences', 'project_hint', 'organisation_logo'}
+KINDS = {'folder', 'source_folder', 'organisation_group', 'place', 'avatar', 'preferences', 'project_hint', 'organisation_logo', 'saved_mail_briefing', 'organisation_group_dismissal'}
 
 
 def verify(conn):
@@ -72,11 +73,24 @@ class WorkspaceViews:
     def _validate(self, kind, identifier, data):
         if kind not in KINDS or not isinstance(identifier, str) or not 1 <= len(identifier) <= 1000:
             raise ValueError('Unbekannter Ablagebereich oder ungültige Kennung.')
+        if kind in {'saved_mail_briefing', 'organisation_group_dismissal'} and not re.fullmatch(r'[a-f0-9]{64}', identifier):
+            raise ValueError('Ungültige Cachekennung.')
         if data is None:
             return
         if not isinstance(data, dict) or len(json.dumps(data)) > 1_500_000:
             raise ValueError('Die Ablageangabe ist ungültig oder zu groß.')
-        if kind == 'folder':
+        if kind == 'organisation_group_dismissal':
+            if set(data) != {'dismissed'} or data['dismissed'] is not True:
+                raise ValueError('Ungültige Ablehnung.')
+        elif kind == 'saved_mail_briefing':
+            if (set(data) != {'fingerprint', 'source_digest', 'quotes', 'status'}
+                    or not isinstance(data['fingerprint'], str) or not re.fullmatch(r'[a-f0-9]{64}', data['fingerprint'])
+                    or not isinstance(data['source_digest'], str) or not re.fullmatch(r'sha256:[a-f0-9]{64}', data['source_digest'])
+                    or data['status'] not in {'ready', 'incomplete'}
+                    or not isinstance(data['quotes'], list) or len(data['quotes']) > 3
+                    or any(not isinstance(q, str) or not 1 <= len(q) <= 1200 for q in data['quotes'])):
+                raise ValueError('Ungültiger gespeicherter Mailüberblick.')
+        elif kind == 'folder':
             if set(data) != {'name', 'parent_id'} or not isinstance(data['name'], str) or not 1 <= len(data['name'].strip()) <= 200:
                 raise ValueError('Ordnername fehlt oder ist zu lang.')
             parent = data['parent_id']
@@ -211,13 +225,13 @@ def register(app, guard, data_dir):
 
     @app.get('/api/v1/workspace-view/{kind}/{identifier:path}', dependencies=guard)
     def record(kind: str, identifier: str):
-        if kind not in KINDS or kind == 'project_hint':
+        if kind not in KINDS or kind in {'project_hint','saved_mail_briefing','organisation_group_dismissal'}:
             raise HTTPException(422, 'Unbekannter Ablagebereich.')
         return app.state.workspace_views.get(kind, identifier)
 
     @app.put('/api/v1/workspace-view/{kind}/{identifier:path}', dependencies=guard)
     def save(kind: str, identifier: str, body: Input):
-        if kind in {'project_hint','organisation_logo'}:
+        if kind in {'project_hint','organisation_logo','saved_mail_briefing','organisation_group_dismissal'}:
             raise HTTPException(422, 'Projektvorschläge kommen aus der begrenzten lokalen Prüfung.')
         try:
             return app.state.workspace_views.put(kind, identifier, body.data, body.revision)
@@ -228,7 +242,7 @@ def register(app, guard, data_dir):
 
     @app.post('/api/v1/workspace-view/{kind}/{identifier:path}/undo', dependencies=guard)
     def undo(kind: str, identifier: str, body: Undo):
-        if kind == 'project_hint':
+        if kind in {'project_hint','saved_mail_briefing','organisation_group_dismissal'}:
             raise HTTPException(422, 'Dieser Vorschlag kann hier nicht geändert werden.')
         try:
             return app.state.workspace_views.undo(kind, identifier, body.revision)
