@@ -17,7 +17,7 @@ function sourceTime(value: string | null | undefined) {
  * Alltagssprache, der Wortlaut und zwei Knöpfe mit erkennbarer Wirkung (berichtigen, nicht mehr verwenden); Status,
  * Themen, Bezüge, Sortierergebnis und Herkunft liegen eingeklappt unter „Für Techniker“ (Fremdprobe, Befund 15).
  */
-export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, originalOnly = false, quiet = false, eigeneFrage = false}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; originalOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean}) {
+export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, originalOnly = false, quiet = false, eigeneFrage = false, sourceRevision}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; originalOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean; sourceRevision?: number}) {
   // Die reine Originalansicht lädt keine Bezüge: deren GET kann Nachläufe auslösen.
   readOnly = readOnly || originalOnly;
   // Nur-Lesen: In der Belegprüfung darf das Ansehen einer Quelle niemals
@@ -25,7 +25,9 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
   // genügt nicht, deshalb sind beide Handler zusätzlich gesperrt.
   const mayIgnore = !readOnly && allowIgnore;
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<Source | null>(null);
+  const [storedData, setData] = useState<Source | null>(null);
+  // Eine frische Listenrevision darf vor dem Leseeffekt keinen alten Body zeigen.
+  const data = kind === 'note' && sourceRevision !== undefined && storedData?.revision !== sourceRevision ? null : storedData;
   const [error, setError] = useState(false);
   const [confirmIgnore, setConfirmIgnore] = useState(false);
   const [confirmReopen, setConfirmReopen] = useState(false);
@@ -43,14 +45,18 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
     async function refresh() {
       if (loading) return;
       loading = true;
-      try {const result = await api.profileSource(kind, id); if (active) {setData(result); setError(false);}}
+      try {const result = await api.profileSource(kind, id); if (active) {
+        if (kind === 'note' && sourceRevision !== undefined && result.revision !== sourceRevision) {
+          setData(null); setError(true); onChange?.();
+        } else {setData(result); setError(false);}
+      }}
       catch {if (active) setError(true);}
       finally {loading = false;}
     }
     void refresh();
     const timer = kind === "episode" ? window.setInterval(() => {if (!document.hidden) void refresh();}, 5000) : undefined;
     return () => {active = false; window.clearInterval(timer);};
-  }, [kind, id, open, revision]);
+  }, [kind, id, open, revision, sourceRevision]);
   async function ignore() {
     if (changing || readOnly) return;
     setChanging(true); setReopenError(null);
