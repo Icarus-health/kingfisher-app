@@ -72,7 +72,7 @@ function Lage({ lage }: { lage: AkteLage }) {
 }
 
 /** Die Akte einer Sache (Ebene 2): Stand, Offen, Fristen, Termine, Beteiligte, Verlauf. Jede Zeile führt zur Quelle. */
-export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean }) {
+export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean; compact?: boolean }) {
   const [data, setData] = useState<Akte | null>(null);
   const [zustand, setZustand] = useState<"laedt" | "keine" | "fehler" | "ok">("laedt");
   const [alle, setAlle] = useState(false);
@@ -126,20 +126,27 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
   const zeigeAlle = () => { setAlle(true); void laden(true); };
   const f = data.fristen;
   const stand = data.stand_der_dinge;
-  return <section className="profile-card profile-wide mappe akte">
+  return <section className={`profile-card profile-wide mappe akte${compact ? " akte-compact" : ""}`}>
     <h2>{mitKopf ? data.name : "Akte"}</h2>
     {mitKopf&&avatarId&&<MemoryAvatarEditor id={avatarId} label={data.name} logo={data.art==='organisation'}/>}
-    <p className="mappe-hinweis">
+    {compact ? <details className="akte-coverage quiet-details"><summary>{data.quellen.gesamt} {data.quellen.gesamt === 1 ? "Quelle" : "Quellen"}{data.quellen.begrenzt ? ` · jüngste ${data.quellen.beruecksichtigt} ausgewertet` : ''}{data.berechnung.offen ? ` · ${data.berechnung.offen} noch in Arbeit` : ''}</summary>    <p className="mappe-hinweis">
       {mitKopf ? `${data.art_text} · ` : ""}Aus {data.quellen.gesamt === 1 ? "einer Quelle" : `${data.quellen.gesamt} Quellen`} zusammengestellt. Jede Zeile führt zur Quelle.
       {data.quellen.begrenzt ? ` Ausgewertet sind die jüngsten ${data.quellen.beruecksichtigt}.` : ""}
       {data.berechnung.offen ? ` Für ${data.berechnung.offen} weitere Quellen wird noch berechnet, wozu sie gehören.` : ""}
-    </p>
+    </p></details> : <>    <p className="mappe-hinweis">
+      {mitKopf ? `${data.art_text} · ` : ""}Aus {data.quellen.gesamt === 1 ? "einer Quelle" : `${data.quellen.gesamt} Quellen`} zusammengestellt. Jede Zeile führt zur Quelle.
+      {data.quellen.begrenzt ? ` Ausgewertet sind die jüngsten ${data.quellen.beruecksichtigt}.` : ""}
+      {data.berechnung.offen ? ` Für ${data.berechnung.offen} weitere Quellen wird noch berechnet, wozu sie gehören.` : ""}
+    </p></>}
 
+
+    {!compact && <>
     {data.art === "person" ? <KreisKarte sache={data.sache} /> : null}
     {data.art === "person" ? <GeburtstagKarte sache={data.sache} /> : null}
     {data.art === "organisation" ? <ArtKarte sache={data.sache} /> : null}
     {data.art === "person" || data.art === "organisation" || data.art === "thema" ? <WiederkehrendKarte sache={data.sache} /> : null}
 
+    </>}
     {data.lage ? <Lage lage={data.lage} /> : null}
 
     {data.aussagen?.eintraege.length ? <Teil titel="Angenommen" kind="angenommen">
@@ -194,13 +201,23 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
       <Gesamt gezeigt={data.aufgaben.eintraege.length} gesamt={data.aufgaben.gesamt} />
     </Teil> : null}
 
-    {data.beteiligte.eintraege.length ? <Teil titel="In gemeinsamen Quellen" kind="beteiligte">
+    {compact ? <details className="quiet-details"><summary>Gemeinsame Verbindungen ({data.beteiligte.gesamt})</summary>    {data.beteiligte.eintraege.length ? <Teil titel="In gemeinsamen Quellen" kind="beteiligte">
       <ul className="akte-beteiligte">{data.beteiligte.eintraege.map(b => <li key={b.sache}>
         <MemoryEntityLink href={`/memory/akte/${encodeURIComponent(b.sache)}`} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl} gemeinsame {b.anzahl === 1 ? "Quelle" : "Quellen"}</small></MemoryEntityLink>
       </li>)}</ul>
       <Gesamt gezeigt={data.beteiligte.eintraege.length} gesamt={data.beteiligte.gesamt} wo="häufigste zuerst" />
     </Teil> : null}
 
+</details> : <>    {data.beteiligte.eintraege.length ? <Teil titel="In gemeinsamen Quellen" kind="beteiligte">
+      <ul className="akte-beteiligte">{data.beteiligte.eintraege.map(b => <li key={b.sache}>
+        <MemoryEntityLink href={`/memory/akte/${encodeURIComponent(b.sache)}`} aria-label={`Akte öffnen: ${b.name}`}>{displayLabel(b.name).name}<small>{b.art === "person" ? "Person" : b.art === "organisation" ? "Organisation" : b.art === "projekt" ? "Projekt" : b.art === "ort" ? "Ort" : "Thema"} · {b.anzahl} gemeinsame {b.anzahl === 1 ? "Quelle" : "Quellen"}</small></MemoryEntityLink>
+      </li>)}</ul>
+      <Gesamt gezeigt={data.beteiligte.eintraege.length} gesamt={data.beteiligte.gesamt} wo="häufigste zuerst" />
+    </Teil> : null}
+
+</>}
+
+    <details className="akte-history quiet-details" open={!compact}><summary>Verlauf ({data.verlauf.gesamt})</summary>
     <Teil titel="Verlauf" kind="verlauf">
       {data.verlauf.eintraege.map((e, index) => <article key={`${index}:${e.episode_id}`}>
         <small>{tag(e.datum)}{e.art ? ` · ${e.art}` : ""}{e.archiviert ? " · verdichteter Monat" : ""} · {e.grundlagen.map(g => GRUNDLAGE[g] ?? g).join(", ")}</small>
@@ -211,6 +228,13 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false }: { sache: strin
       <Gesamt gezeigt={data.verlauf.eintraege.length} gesamt={data.verlauf.gesamt} />
       {!alle && data.verlauf.gesamt > data.verlauf.eintraege.length ? <button className="chronik-mehr" onClick={zeigeAlle} type="button">Alle zeigen</button> : null}
     </Teil>
+    </details>
+    {compact ? <details className="akte-personal quiet-details"><summary>Beziehung & persönliche Angaben</summary>    {data.art === "person" ? <KreisKarte sache={data.sache} /> : null}
+    {data.art === "person" ? <GeburtstagKarte sache={data.sache} /> : null}
+    {data.art === "organisation" ? <ArtKarte sache={data.sache} /> : null}
+    {data.art === "person" || data.art === "organisation" || data.art === "thema" ? <WiederkehrendKarte sache={data.sache} /> : null}
+
+</details> : null}
     {data.einordnung.offen ? <p className="mappe-mehr">{data.einordnung.offen === 1 ? "Eine Quelle wird noch sortiert und ist" : `${data.einordnung.offen} Quellen werden noch sortiert und sind`} hier nur mit Titel berücksichtigt.</p> : null}
   </section>;
 }

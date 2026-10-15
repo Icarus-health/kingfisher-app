@@ -17,14 +17,14 @@ function sourceTime(value: string | null | undefined) {
  * Alltagssprache, der Wortlaut und zwei Knöpfe mit erkennbarer Wirkung (berichtigen, nicht mehr verwenden); Status,
  * Themen, Bezüge, Sortierergebnis und Herkunft liegen eingeklappt unter „Für Techniker“ (Fremdprobe, Befund 15).
  */
-export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, originalOnly = false, quiet = false, eigeneFrage = false, sourceRevision}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; originalOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean; sourceRevision?: number}) {
+export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, allowIgnore = true, allowDismiss = false, readOnly = false, originalOnly = false, quiet = false, eigeneFrage = false, sourceRevision, embedded = false}: {kind: "episode" | "note"; id: string; label?: string; onChange?: (change?: "correction") => void; allowIgnore?: boolean; allowDismiss?: boolean; readOnly?: boolean; originalOnly?: boolean; quiet?: boolean; eigeneFrage?: boolean; sourceRevision?: number; embedded?: boolean}) {
   // Die reine Originalansicht lädt keine Bezüge: deren GET kann Nachläufe auslösen.
   readOnly = readOnly || originalOnly;
   // Nur-Lesen: In der Belegprüfung darf das Ansehen einer Quelle niemals
   // Ausschluss oder Wiederzulassung auslösen. Ein unterdrückter Knopf allein
   // genügt nicht, deshalb sind beide Handler zusätzlich gesperrt.
   const mayIgnore = !readOnly && allowIgnore;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(embedded);
   const [storedData, setData] = useState<Source | null>(null);
   // Eine frische Listenrevision darf vor dem Leseeffekt keinen alten Body zeigen.
   const data = kind === 'note' && sourceRevision !== undefined && storedData?.revision !== sourceRevision ? null : storedData;
@@ -136,8 +136,8 @@ export function ProfileSource({kind, id, label = "Inhalt öffnen", onChange, all
       {data.provenance?.source_type === "manual_correction" ? <p>Herkunft: Deine Berichtigung</p> : data.provenance?.source_ref ? <p>Herkunft: {data.provenance.source_type === "chat" ? "Dein Gespräch mit Kingfisher" : data.provenance.source_ref}</p> : null}
     </details>
   </> : null;
-  return <div className="task-source" data-memory-loading={open && !data && !error}>
-    <button className={quiet ? "quiet-source-toggle" : "secondary-action"} type="button" aria-expanded={open} disabled={changing} onClick={() => setOpen(value => !value)}>{open ? "Inhalt schließen" : label}</button>
+  return <div className={`task-source${embedded ? " embedded-source" : ""}`} data-memory-loading={open && !data && !error}>
+    {!embedded && <button className={quiet ? "quiet-source-toggle" : "secondary-action"} type="button" aria-expanded={open} disabled={changing} onClick={() => setOpen(value => !value)}>{open ? "Inhalt schließen" : label}</button>}
     {open && <section aria-label="Profilquelle">
       {!data && !error && <p role="status">Inhalt wird geladen …</p>}
       {error && <p role="alert">Dieser Inhalt ist nicht verfügbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut versuchen</button></p>}

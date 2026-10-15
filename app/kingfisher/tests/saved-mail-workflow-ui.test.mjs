@@ -6,6 +6,7 @@ const root=fileURLToPath(new URL('..',import.meta.url));
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children].flat(10))nodes(c,p,out);return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(10).map(text).join(''):String(n);}
 const ready=()=>({episode_id:'e1',source_digest:'sha256:'+'b'.repeat(64),fingerprint:'a'.repeat(64),status:'ready',quotes:['Bitte prüfe die Belege.'],items:[{id:'v1',statement:'Belege prüfen',evidence:[{quote:'Bitte prüfe die Belege.'}],review_required:true}],projects:[],temporal_reason:'Historische Quelle.',detail:'Originalpassagen.'});
+function shownText(n){if(n==null)return '';if(typeof n!=='object')return String(n);const children=[n.props?.children].flat(10);return (n.type==='details'&&!n.props.open?children.filter(c=>c?.type==='summary'):children).map(shownText).join('');}
 async function harness(run){
  const server=await createServer({root,cacheDir:`/private/tmp/kf-saved-mail-ui-${process.pid}`,configFile:false,plugins:[{name:'saved-mail-hooks',enforce:'pre',resolveId(id){if(id==='virtual:saved-mail-hooks')return '\0'+id;},load(id){if(id==='\0virtual:saved-mail-hooks')return 'export const useState=(...a)=>globalThis.__savedMailDriver.state(...a);export const useRef=(...a)=>globalThis.__savedMailDriver.ref(...a);export const useEffect=(...a)=>globalThis.__savedMailDriver.effect(...a);export const useCallback=f=>f;';},transform(code,id){if(/\/(SavedMailWorkflow|MailReader)\.tsx$/.test(id))return code.replace(/from ["']react["']/g,'from "virtual:saved-mail-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
  const oldWindow=globalThis.window,oldDriver=globalThis.__savedMailDriver;const listeners={};
@@ -19,16 +20,16 @@ test('browsing and focus only read prepared original passages, source preparatio
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
  assert.equal(prepares,0);assert.equal(reads,1);listeners.focus();await d.flush();tree=d.render();assert.equal(reads,2);assert.equal(prepares,0);
  nodes(tree,n=>n.type==='button'&&/Diese Mail lokal vorbereiten/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();
- assert.equal(prepares,1);assert.match(text(tree),/Bitte prüfe die Belege/);assert.match(nodes(tree,n=>n.type==='input')[0].props.value,/Aktualität der Bitte prüfen/);
+ assert.equal(prepares,1);assert.match(text(tree),/Bitte prüfe die Belege/);assert.match(nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.value,/Aktualität der Bitte prüfen/);
 }));
 test('single visible confirmation sends task plus project, errors keep edited draft and retry identity',()=>harness(async(server,driver)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  api.read=async()=>ready();const calls=[];api.accept=async(...args)=>{calls.push(args);if(calls.length===1)throw Error('HTTP 500');return{title:args[2].title};};
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
- nodes(tree,n=>n.type==='input')[0].props.onChange({target:{value:'Eigene Prüfung'}});tree=d.render();nodes(tree,n=>n.type==='select')[0].props.onChange({target:{value:'new'}});tree=d.render();
- nodes(tree,n=>n.type==='input')[1].props.onChange({target:{value:'Prüfprojekt'}});tree=d.render();
+ nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.onChange({target:{value:'Eigene Prüfung'}});tree=d.render();nodes(tree,n=>n.type==='select')[0].props.onChange({target:{value:'new'}});tree=d.render();
+ nodes(tree,n=>n.type==='input'||n.type==='textarea')[1].props.onChange({target:{value:'Prüfprojekt'}});tree=d.render();
  const submit=()=>nodes(d.render(),n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});
- submit();await d.flush();tree=d.render();assert.match(text(tree),/Eingaben bleiben erhalten/);assert.equal(nodes(tree,n=>n.type==='input')[0].props.value,'Eigene Prüfung');assert.equal(nodes(tree,n=>n.type==='input')[1].props.value,'Prüfprojekt');
+ submit();await d.flush();tree=d.render();assert.match(text(tree),/Eingaben bleiben erhalten/);assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Eigene Prüfung');assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea')[1].props.value,'Prüfprojekt');
  assert.equal(calls[0][2].new_project_name,'Prüfprojekt');assert.equal(calls[0][2].due,null);assert.equal(calls[0][2].waiting_for,null);
  submit();await d.flush();tree=d.render();assert.deepEqual(calls[0],calls[1]);assert.match(text(tree),/Aufgabe gespeichert: Eigene Prüfung/);
 }));
@@ -36,6 +37,15 @@ test('unverified source disables confirmation and preparation',()=>harness(async
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  api.read=async()=>ready();const props={episodeId:'e1',sourceDigest:ready().source_digest,sourceVerified:false};const d=driver(SavedMailWorkflow,props);d.render();await d.flush();
  assert.equal(nodes(d.render(),n=>n.type==='button'&&/Aufgabe bestätigen/.test(text(n)))[0].props.disabled,true);
+}));
+
+test('task and project remain directly editable and confirmable while lengthy evidence stays under details',()=>harness(async(server,driver)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ const quote='Originalbeleg mit langen Absätzen. '.repeat(80);api.read=async()=>({...ready(),quotes:[quote],items:[{...ready().items[0],evidence:[{quote}]}]});
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();const tree=d.render();
+ assert.doesNotMatch(shownText(tree),/Originalbeleg mit langen Absätzen/);assert.match(text(tree),/Originalbeleg mit langen Absätzen/);
+ assert.match(shownText(tree),/Historische Quelle/);assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea').length,1);assert.equal(nodes(tree,n=>n.type==='select').length,1);
+ assert.equal(nodes(tree,n=>n.type==='button'&&/Aufgabe bestätigen/.test(text(n)))[0].props.disabled,false);
 }));
 
 test('transient original revalidation preserves mounted edited draft, labels stale and blocks confirmation until retry',()=>harness(async(server,driver)=>{
@@ -47,16 +57,16 @@ test('transient original revalidation preserves mounted edited draft, labels sta
  const parent=driver(Parent,parentProps);parent.render();await parent.flush();let tree=parent.render();
  const childElement=nodes(tree,n=>n.type===SavedMailWorkflow)[0];assert.ok(childElement);
  const childProps={...childElement.props};const child=driver(SavedMailWorkflow,childProps);child.render();await child.flush();let form=child.render();
- nodes(form,n=>n.type==='input')[0].props.onChange({target:{value:'Meine bearbeitete Prüfung'}});form=child.render();nodes(form,n=>n.type==='select')[0].props.onChange({target:{value:'new'}});form=child.render();nodes(form,n=>n.type==='input')[1].props.onChange({target:{value:'Mein Prüfprojekt'}});
+ nodes(form,n=>n.type==='input'||n.type==='textarea')[0].props.onChange({target:{value:'Meine bearbeitete Prüfung'}});form=child.render();nodes(form,n=>n.type==='select')[0].props.onChange({target:{value:'new'}});form=child.render();nodes(form,n=>n.type==='input'||n.type==='textarea')[1].props.onChange({target:{value:'Mein Prüfprojekt'}});
  unavailable=true;parentProps.localRevision=1;parent.render();await parent.flush();tree=parent.render();
  assert.match(text(tree),/Zuletzt geladene Vorschau/);assert.match(text(tree),/Originaltext/);
  const retained=nodes(tree,n=>n.type===SavedMailWorkflow)[0];assert.ok(retained,'State-bearing child must stay mounted');assert.equal(retained.props.sourceVerified,false);
  Object.assign(childProps,retained.props);child.render();await child.flush();form=child.render();
- assert.equal(nodes(form,n=>n.type==='input')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input')[1].props.value,'Mein Prüfprojekt');
+ assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[1].props.value,'Mein Prüfprojekt');
  assert.equal(nodes(form,n=>n.type==='button'&&/Aufgabe und Projekt bestätigen/.test(text(n)))[0].props.disabled,true);
  assert.equal(nodes(tree,n=>n.type==='button'&&/Aktuelle Mail/.test(text(n)))[0].props.disabled,true);
  unavailable=false;nodes(tree,n=>n.type==='button'&&text(n)==='Wiederholen')[0].props.onClick();parent.render();await parent.flush();tree=parent.render();Object.assign(childProps,nodes(tree,n=>n.type===SavedMailWorkflow)[0].props);child.render();await child.flush();form=child.render();
- assert.equal(nodes(form,n=>n.type==='input')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input')[1].props.value,'Mein Prüfprojekt');assert.equal(nodes(form,n=>n.type==='button'&&/Aufgabe und Projekt bestätigen/.test(text(n)))[0].props.disabled,false);
+ assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[1].props.value,'Mein Prüfprojekt');assert.equal(nodes(form,n=>n.type==='button'&&/Aufgabe und Projekt bestätigen/.test(text(n)))[0].props.disabled,false);
 }));
 test('ready source exposes deliberate project-hint retry and GET still does not prepare',()=>harness(async(server,driver)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
@@ -69,9 +79,9 @@ test('transient workflow-read failure retains edited fields and cached quotes bu
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  let failure='';let prepares=0;api.read=async()=>{if(failure)throw Error(failure);return ready();};api.prepare=async()=>{prepares++;return ready();};
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
- nodes(tree,n=>n.type==='input')[0].props.onChange({target:{value:'Bearbeitete Prüfung'}});
- failure='HTTP 503';listeners.focus();await d.flush();tree=d.render();assert.match(text(tree),/Quellenstand ungeprüft/);assert.match(text(tree),/Bitte prüfe die Belege/);assert.equal(nodes(tree,n=>n.type==='input')[0].props.value,'Bearbeitete Prüfung');assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe bestätigen')[0].props.disabled,true);assert.equal(prepares,0);
- failure='HTTP 409';listeners.focus();await d.flush();tree=d.render();assert.doesNotMatch(text(tree),/Bitte prüfe die Belege/);assert.equal(nodes(tree,n=>n.type==='input').length,0);assert.equal(prepares,0);
+ nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.onChange({target:{value:'Bearbeitete Prüfung'}});
+ failure='HTTP 503';listeners.focus();await d.flush();tree=d.render();assert.match(text(tree),/Quellenstand ungeprüft/);assert.match(text(tree),/Bitte prüfe die Belege/);assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Bearbeitete Prüfung');assert.equal(nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe bestätigen')[0].props.disabled,true);assert.equal(prepares,0);
+ failure='HTTP 409';listeners.focus();await d.flush();tree=d.render();assert.doesNotMatch(text(tree),/Bitte prüfe die Belege/);assert.equal(nodes(tree,n=>n.type==='input'||n.type==='textarea').length,0);assert.equal(prepares,0);
 }));
 test('original 404 or 409 removes retained original and workflow instead of showing stale content',()=>harness(async(server,driver)=>{
  const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');

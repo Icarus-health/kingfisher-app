@@ -22,6 +22,39 @@ test('saved mail reader loads local original and never starts provider or model 
  assert.equal(nodes(tree,n=>n.type?.name==='MailBriefing').length,0);
  assert.equal(nodes(tree,n=>n.type==='button'&&/Aktuelle Mail/.test(text(n)))[0].props.disabled,true);
 }));
+
+test('mail opens as readable original with compact sender and source details rather than a metadata form',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ localMailApi.detail=async()=>({episode_id:'e-read',uid:'e-read',subject:'Projektabstimmung',from:'Anna <anna@example.invalid>',body:'Hallo,\n\nbitte prüfe den Entwurf.',date:'2020-01-01',recorded_at:'2026-10-14',account_label:'Privat',remote_uid:null});
+ const entry=MailReader({uid:'e-read',localEpisodeId:'e-read',onClose(){}}),d=driver(entry.type,entry.props);d.render();await d.flush();const tree=d.render();
+ const sourceDetails=nodes(tree,n=>n.type==='details'&&n.props.className==='mail-source-details')[0];assert.ok(sourceDetails);assert.equal(Boolean(sourceDetails.props.open),false);
+ assert.match(text(sourceDetails),/Gespeichert/);assert.match(text(sourceDetails),/Privat/);
+ const body=nodes(tree,n=>n.type==='section'&&n.props.className==='mail-reader-body')[0];assert.match(text(body),/bitte prüfe den Entwurf/);
+ assert.equal(nodes(sourceDetails,n=>n===body).length,0,'The mail text must be readable without opening source details');
+ const order=nodes(tree,n=>n===body||n.type?.name==='SavedMailWorkflow');assert.equal(order[0],body,'Read the actual message before the workflow form');
+ assert.match(text(tree),/aktueller Postfachstand unbekannt/i);
+}));
+
+test('compact account choice filters only local mail and resets pagination without provider retrieval',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ let remote=0;api.messages=async()=>{remote++;throw Error('must not fetch');};const calls=[];
+ localMailApi.page=async args=>{calls.push(args);return{items:[],accounts:[{id:'private',label:'Privat',count:3}],total:0,offset:args.offset,has_more:false};};
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();
+ const account=nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Postfach auswählen')[0];assert.ok(account);account.props.onChange({target:{value:'private'}});d.render();await d.flush();
+ assert.equal(calls.at(-1).account_id,'private');assert.equal(calls.at(-1).offset,0);assert.equal(remote,0);
+ tree=d.render();nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Postfach auswählen')[0].props.onChange({target:{value:''}});d.render();await d.flush();assert.equal(calls.at(-1).account_id,undefined);assert.equal(remote,0);
+}));
+
+test('opening a different mail resets its reading scroll while the return only restores list focus',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ localMailApi.page=async()=>({items:[{episode_id:'saved',subject:'Deep mail',sender:'Anna'},{episode_id:'next',subject:'Next mail',sender:'Anna'}],accounts:[],total:2,has_more:false});
+ const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();let readerFocus=0,listFocus=0,returnedOptions;
+ const region=nodes(tree,n=>n.type==='section'&&n.props['aria-label']==='Lesebereich')[0];const scroller={scrollTop:420,querySelector(){return{focus(){readerFocus++;}};}};region.props.ref.current=scroller;
+ nodes(tree,n=>n.type==='button'&&/Deep mail/.test(text(n)))[0].props.onClick({currentTarget:{focus(){listFocus++;}}});d.render();await d.flush();tree=d.render();
+ assert.equal(scroller.scrollTop,0,'A newly selected mail must begin at the top of its reading column');assert.ok(readerFocus>=1);
+ scroller.scrollTop=280;nodes(tree,n=>n.type==='button'&&/Next mail/.test(text(n)))[0].props.onClick({currentTarget:{focus(options){listFocus++;returnedOptions=options;}}});d.render();await d.flush();tree=d.render();assert.equal(scroller.scrollTop,0);
+ nodes(tree,n=>n.type?.name==='MailReader')[0].props.onClose();d.render();await d.flush();assert.ok(listFocus>=1);assert.deepEqual(returnedOptions,{preventScroll:true});
+}));
 test('mail workspace keeps list next to selection and searches pages locally without retrieving provider mail',()=>harness(async(server,driver)=>{
  const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
  let remote=0;api.messages=async()=>{remote++;throw Error('offline');};api.integrations=async()=>({mail_accounts:[]});
@@ -61,4 +94,23 @@ test('explicit list refresh revalidates an open saved source even when it is no 
  const selected=nodes(tree,n=>n.type?.name==='MailReader')[0];assert.equal(selected.props.localEpisodeId,'saved');Object.assign(savedProps,MailReader(selected.props).props);reader.render();await reader.flush();const refreshed=reader.render();
  assert.equal(reads,2);assert.doesNotMatch(text(refreshed),/Withdrawn original/);assert.match(text(refreshed),/ausgeschlossen/);
  assert.equal(nodes(refreshed,n=>n.type?.name==='RemoteMailReader').length,0);
+}));
+
+test('remote action panels keep reply drafts and a briefing suggestion opens and focuses the task editor without submitting',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ let writes=0;api.mailMessage=async()=>({uid:'live',subject:'Projektbrief',from:'Anna',body:'Original',source_digest:'d',can_reply:true});
+ api.prepareMailReply=async()=>{writes++;};window.localStorage={getItem(){return null;},setItem(){}};
+ const entry=MailReader({uid:'live',onClose(){}}),d=driver(entry.type,entry.props);d.render();await d.flush();let tree=d.render();
+ const findPanel=(t,label)=>nodes(t,n=>n.type==='details'&&text(nodes(n,x=>x.type==='summary')[0]).startsWith(label))[0];
+ assert.equal(Boolean(findPanel(tree,'Antwort schreiben').props.open),false);assert.equal(Boolean(findPanel(tree,'Aufgabe aus dieser Mail').props.open),false);
+ assert.equal(nodes(tree,n=>n.type?.name==='MailTaskForm')[0].props.initiallyOpen,true,'outer action opens the usable form in one step');
+ nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.onChange({target:{value:'Mein Antwortentwurf'}});tree=d.render();
+ assert.equal(findPanel(tree,'Antwort schreiben').props.open,true);assert.equal(nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.value,'Mein Antwortentwurf');
+ let focused=0,scrolled=0;const panel={open:false,scrollIntoView(){scrolled++;},querySelector(){return{focus(){focused++;}};}};
+ findPanel(tree,'Aufgabe aus dieser Mail').props.ref.current=panel;
+ const suggestion={title:'Belege prüfen',quote:'Bitte die Belege prüfen.',source_digest:'d'};
+ nodes(tree,n=>n.type?.name==='MailBriefing')[0].props.onPrepareTask(suggestion);tree=d.render();
+ assert.equal(panel.open,true);assert.equal(focused,1);assert.equal(scrolled,1);assert.equal(writes,0);
+ assert.deepEqual(nodes(tree,n=>n.type?.name==='MailTaskForm')[0].props.initialSuggestion,suggestion);
+ assert.equal(nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.value,'Mein Antwortentwurf');
 }));

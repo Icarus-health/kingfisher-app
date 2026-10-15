@@ -112,3 +112,29 @@
 .calendar-action-form fieldset { display: grid; gap: 16px; border: 0; padding: 0; margin: 20px 0; }
 .calendar-action-form label { display: grid; gap: 6px; }
 .calendar-action-form input, .calendar-action-form select { max-width: 100%; min-width: 0; }
+
+/* Variante 3: die gemeinsame Navigation bleibt auch schmal eindeutig und erreichbar. */
+@media (max-width: 900px) {
+  .shell > .sidebar { padding: 6px 8px; overflow: visible; }
+  .shell > .sidebar::before { display: none; }
+  .shell > .sidebar .sidebar-clock { order: 0; padding: 0 6px; margin: 0; }
+  .shell > .sidebar .sidebar-clock strong { font-size: 13px; }
+  .shell > .sidebar .sidebar-clock span { font-size: 10px; }
+  .shell > .sidebar nav { order: 1; gap: 2px; }
+  .shell > .sidebar .sidebar-foot { order: 2; padding: 0; margin: 0; }
+  .shell > .sidebar .nav-item { min-height: 46px; padding: 4px 6px; gap: 2px; font-size: 11px; }
+}
+@media (max-height: 600px) and (min-width: 901px) {
+  .shell > .sidebar .brand-lockup { height: 90px; margin-bottom: 4px; }
+  .shell > .sidebar .nav-item { min-height: 40px; }
+  .shell > .sidebar .sidebar-foot { padding-top: 16px; margin-bottom: 12px; }
+  .shell > .sidebar .sidebar-clock { padding-bottom: 4px; }
+}
+@media (max-height: 450px) and (min-width: 901px) {
+  .shell > .sidebar { padding: 8px 14px; }
+  .shell > .sidebar .brand-lockup { display: none; }
+  .shell > .sidebar nav { margin: 8px 0 0; gap: 2px; }
+  .shell > .sidebar .nav-item { min-height: 36px; }
+  .shell > .sidebar .sidebar-clock { order: 0; padding: 0 12px; }
+  .shell > .sidebar .sidebar-foot { padding-top: 4px; margin: 0; }
+}

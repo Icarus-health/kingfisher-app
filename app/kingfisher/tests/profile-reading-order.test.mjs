@@ -73,3 +73,13 @@ test('co-mentioned and completed tasks do not appear as explicit waiting commitm
  const current=nodes(profile,n=>n.type==='section'&&text(n).includes('Worauf ich warte'))[0];
  assert.doesNotMatch(text(current),/Only co-mentioned|Already done/);assert.match(text(current),/Noch keine Rückmeldung/);
 }));
+
+function visibleText(n){if(n==null)return '';if(typeof n!=='object')return String(n);const children=[n.props?.children].flat(20);return(n.type==='details'&&!n.props.open?children.filter(c=>c?.type==='summary'):children).map(visibleText).join('');}
+test('person overview uses one identity, retains contact and uncertainty, and starts its tools closed',()=>loadedProfile(MemoryProfile,{kind:'person',identifier:'Anna',recentConversation:null},{...personData,person:{...personData.person,nur_von_aussen:true}},tree=>{
+ const node=nodes(tree,n=>n.type?.name==='PersonProfile')[0],profile=node.type(node.props);
+ assert.equal(visibleText(profile).split('anna@example.test').length-1,1,'contact address must not be repeated across cards');
+ assert.match(visibleText(profile),/Nur aus fremden Quellen bekannt/);assert.match(visibleText(profile),/2024/);
+ const file=nodes(profile,n=>n.type?.name==='AkteAnsicht')[0];assert.equal(file.props.compact,true);
+ const digest=nodes(profile,n=>n.type?.name==='PersonDigest')[0];assert.equal(digest.props.compact,true);
+ assert.equal(nodes(profile,n=>n.props?.className==='profile-metrics').length,0,'no second row of duplicate metrics');
+}));

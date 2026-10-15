@@ -32,9 +32,10 @@ Gegenstand der Ansicht ist, ist es zu laut. Genau ein gefüllter Knopf je
 Ansicht. Die Akzentfarbe erscheint ein- bis zweimal auf dem Schirm, nicht
 fünfmal.
 
-**Ist es Material oder Farbe?** Eine Fläche liegt auf einem Grund: Lichtkante
-oben, haarfeine Fassung, zwei Schatten — einer eng für die Kante, einer weit
-für den Raum. Eine flache Farbe mit Rahmen sieht nach Formular aus.
+**Ist die Hierarchie klar?** Die dunkle Navigation trägt die Marke. Der helle
+Arbeitsplatz gehört dem Inhalt. Dünne Trennlinien ordnen Listen und Spalten;
+Schatten sind auf seitliche Detailansichten begrenzt. Nicht jede Information
+braucht eine eigene Karte.
 
 **Trägt die Schrift?** Hierarchie entsteht über Größe und Strichstärke, nie
 über einen Schriftwechsel. Eine zweite Familie in einer Anwendung sieht nach
@@ -60,38 +61,41 @@ stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift; u
 seinen Namen (Fremdprobe 3, Befund 14). Wer eine Seite baut, prüft sie bei 390, 768 und
 1280 px (`scripts/probe_seiten_ui.py`).
 
-## Die Werte
+## Freigegebene Gestaltung vom 15.10.2026
 
-Alles steht in `app/kingfisher/src/theme.css` als Token. Keine Farbe, kein Abstand, keine
-Schriftgröße außerhalb davon — ein Festwert im Verlauf ist genau die Stelle,
-an der eine Palette beim nächsten Wechsel auseinanderfällt und nachts hell aus
-einer dunklen Fläche leuchtet.
+Der Nutzer hat die dritte Bildvariante gewählt: dunkle Kingfisher-Navigation,
+helle Arbeitsflächen und Landschaft nur als ruhiger Akzent im Kopf. Diese
+Entscheidung ersetzt die bisherige automatische Tag-/Nachtpalette. Auch bei
+dunkler Systemeinstellung bleiben die Arbeitsflächen hell; die Navigation
+bleibt dunkel. Dadurch ändern sich Leseflächen und ausgewählte Zustände nicht
+unbemerkt mit dem Systemmodus.
 
-| | Tag | Nacht |
-| --- | --- | --- |
-| Grund | `#f4f4f1` → `#e7e8e3` | `#16191a` → `#101314` |
-| Fläche | `#fcfcfa` | `#212527` |
-| Tinte | `#171a1a` | `#e9ecea` |
-| Akzent | `#2f5069` | `#7ba7c4` |
-| Warnung | `#8a6a2c` | `#c2a061` |
-| Gefahr | `#8f403a` | `#cc8078` |
-| Bestätigt | `#3d6b52` | `#6ea88a` |
+| Rolle | Wert |
+| --- | --- |
+| Arbeitsgrund | `#f5f6f8` |
+| Lesefläche | `#ffffff` |
+| Navigation | `#082a3d` |
+| Tinte | `#172635` |
+| Hauptaktion | `#103e5c` |
+| Auswahl | `#e8f2fd` mit Kante `#2869aa` |
 
-Der Akzent ist **Eisen und kaltes Wasser**, kein Weblau. Er soll nach Tinte
-aussehen und nicht nach Verweis. Warnung, Gefahr und Bestätigt sind Ocker,
-Ochsenblut und Flechte — gedeckt, keine Signalfarben.
+Die semantischen Farbrollen stehen in `CalmUI.css`, die gemeinsame neue
+Gestaltung in `NordicWorkspace.css`. `theme.css` erhält die bestehenden
+Farbvariablen für ältere Komponenten. Keine neue Palette je Ansicht anlegen.
+Navigation bleibt in `styles.css`; zentrale Breitenregeln in
+`Seitenbreite.css`, die weiterhin zuletzt geladen wird.
 
-Die Kingfisher-Oberfläche (`app/kingfisher/src/theme.css`) führt ihre Farben
-ebenfalls als Variablen, getrennt nach Rolle: `--kf-flaeche-…`, `--kf-schrift-…`,
-`--kf-rand-…`. Dieselbe Farbe braucht nachts als Fläche einen anderen Wert als
-als Schrift. Der Nachtmodus folgt der Systemeinstellung und setzt die Tabelle
-oben um: kühler Grund, helle Tinte, kräftige Akzentflächen bleiben. Schrift
-über dem Landschaftsfoto bleibt dunkel, weil das Foto hell bleibt. Neue Farben
-kommen als Variable mit Tag- und Nachtwert dazu, nie als Festwert.
+Inter und die vorhandenen System-Fallbacks tragen die Oberfläche. Überschriften
+liegen auf dem Desktop überwiegend bei 32 px, Lesetext bei 16 px; kleine
+Metadaten treten zurück. Auswahl, Fokus, Warnung und Fehler bleiben unabhängig
+von der dekorativen Landschaft erkennbar. Eigene Elemente brauchen geeignete
+Tastaturziele und ausreichenden Kontrast.
 
-**Neun Schriftstufen**, benannt, keine dazwischen. **Vier Radien.** Abstände
-auf einem 4-Punkt-Raster. **44 px** ist die kleinste Fläche, die ein Finger
-sicher trifft.
+Die freigegebenen Eisvogel-, Landschafts- und Symbolassets werden wiederverwendet.
+Keine erdachten Vorschaubilder oder Dateigrößen: Ein Dokument zeigt den wirklich
+gespeicherten Originaltext. Quellenstand, Originaldatum und Erfassungszeit
+bleiben unterscheidbar. Auf schmalen Fenstern öffnet die Quelle allein; ein
+sichtbarer Rückknopf und Escape führen zur ausgewählten Listenzeile zurück.
 
 ## Wo der Grundsatz vorgeht
 

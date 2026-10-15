@@ -30,7 +30,7 @@ export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, pa
   const visible = matches.slice(current * 25, (current + 1) * 25);
   return <section className="memory-directory" aria-label={title}>
     <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{title}</h1>
-      <p>Eine Akte pro Eintrag. Beziehungen und Originalquellen findest du in der jeweiligen Akte.</p></header>
+      <details className="quiet-details"><summary>Über diese Akten</summary><p>Eine Akte pro Eintrag. Beziehungen und Originalquellen findest du in der jeweiligen Akte.</p></details></header>
     <label className="directory-search">{title === "Projekte" ? "Projekt suchen" : "Name oder E-Mail suchen"}
       <input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Suchen …" />
     </label>

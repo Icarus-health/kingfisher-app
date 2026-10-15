@@ -18,7 +18,7 @@ function todayBefunde(befunde: BefundMitQuellen[]) {
 }
 
 /** Kleine, handlungsfähige Auswahl offener Gedächtnisfragen für „Heute“. */
-export function MemoryQuestions({ active, onOpenAll }: { active: boolean; onOpenAll: () => void }) {
+export function MemoryQuestions({ active, compact = false, onOpenAll }: { active: boolean; compact?: boolean; onOpenAll: () => void }) {
   const [befunde, setBefunde] = useState<BefundMitQuellen[] | null>(null);
   const [fehler, setFehler] = useState("");
   const [aktionFehler, setAktionFehler] = useState("");
@@ -88,10 +88,10 @@ export function MemoryQuestions({ active, onOpenAll }: { active: boolean; onOpen
   }
 
   const auswahl = (befunde ?? []).slice(0, 5);
-  if (!active) return null;
+  if (!active || (compact && befunde?.length === 0 && !fehler && !aktionFehler && !meldung && !arbeitet)) return null;
   return <section className="source-section befunde memory-questions" aria-label="Gedächtnisfragen">
     <div className="memory-questions-kopf">
-      <div><h2>Gedächtnisfragen</h2><p>Wichtige offene Punkte mit ihren Quellen. Erst deine Entscheidung macht daraus Wissen.</p></div>
+      <div><h2>Gedächtnisfragen</h2>{!compact && <p>Wichtige offene Punkte mit ihren Quellen. Erst deine Entscheidung macht daraus Wissen.</p>}</div>
       <button type="button" className="text-action" onClick={onOpenAll}>Alle öffnen</button>
     </div>
     {befunde === null && !fehler ? <p role="status">Wird geladen …</p> : null}

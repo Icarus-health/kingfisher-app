@@ -15,7 +15,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     credentials: "same-origin", ...init,
     headers: { ...(init?.body ? { "content-type": "application/json" } : {}), ...init?.headers },
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) throw Object.assign(new Error("Anfrage fehlgeschlagen"),{status:response.status});
   return response.json() as Promise<T>;
 }
 
@@ -33,30 +33,38 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
   const [url, setUrl] = useState("");
   const [topics, setTopics] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+  const [reloadOffered,setReloadOffered] = useState(true);
   const [open, setOpen] = useState(initiallyOpen);
   const load = async () => {
-    setError(false);
-    try { setPayload(await request<WorldPayload>("/api/v1/world")); } catch { setError(true); }
+    setError("");
+    setReloadOffered(true);
+    try { setPayload(await request<WorldPayload>("/api/v1/world")); } catch { setError("Die Quellenliste konnte nicht geladen werden. Bitte erneut laden."); }
   };
   useEffect(() => { void load(); }, []);
   async function add(event: FormEvent) {
     event.preventDefault();
     if (busy) return;
-    if (!url.trim().toLowerCase().startsWith("https://")) { setError(true); return; }
-    setBusy(true); setError(false);
+    setReloadOffered(false);
+    if (!url.trim().toLowerCase().startsWith("https://")) { setError("Bitte eine öffentliche HTTPS-Adresse eingeben. Deine Eingabe bleibt erhalten."); return; }
+    setBusy(true); setError("");
     try {
       await request<WorldSource>("/api/v1/world", { method: "POST", body: JSON.stringify({
         url: url.trim(), label: label.trim(), topics: topics.split(",").map(item => item.trim()).filter(Boolean),
       }) });
       setLabel(""); setUrl(""); setTopics(""); await load();
-    } catch { setError(true); } finally { setBusy(false); }
+    } catch (failure) {
+      const status=(failure as {status?:number}).status;
+      setError(status===400 || status===422 ? "Bitte Bezeichnung, öffentliche HTTPS-Adresse und Themen prüfen (höchstens 10, je 80 Zeichen). Prüfe auch, ob diese Quelle bereits in der Liste steht. Deine Eingabe bleibt erhalten."
+        : status===409 ? "Die Quelle konnte nicht bestätigt werden. Bitte zuerst die vorhandene Quellenliste prüfen. Deine Eingabe bleibt erhalten."
+        : "Die Quelle wurde nicht bestätigt. Deine Eingabe bleibt erhalten; bitte erneut hinzufügen.");
+    } finally { setBusy(false); }
   }
   async function mutate(source: WorldSource, action: "refresh" | "disable") {
     if (busy) return;
-    setBusy(true); setError(false);
+    setBusy(true); setError("");
     try { await request(`/api/v1/world/${encodeURIComponent(source.id)}/${action}`, { method: "POST" }); await load(); }
-    catch { setError(true); } finally { setBusy(false); }
+    catch { setReloadOffered(true);setError("Die Änderung wurde nicht bestätigt. Lade die Quellenliste neu, bevor du erneut handelst."); } finally { setBusy(false); }
   }
   return <details className="profile-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>Aktuelle Quellen</summary>
@@ -71,7 +79,7 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
     {payload?.items.length === 0 ? <p>Noch keine von dir ausgewählten Quellen.</p> : null}
     {payload?.items.map(source => <article className="identity-source-row" key={source.id}>
       <h3>{source.label}</h3>
-      <p>{freshness(source.last_success)} · {sourceStatus(source)}</p>
+      <p>{!source.last_success&&source.status==="pending"?"Noch nicht abgerufen":`${freshness(source.last_success)} · ${sourceStatus(source)}`}</p>
       <a href={source.url} target="_blank" rel="noopener noreferrer">Eingetragene Adresse öffnen</a>
       {source.fetched_url || source.source_sha256 ? <details style={{overflowWrap: "anywhere"}}><summary>Herkunft und Version des Auszugs</summary>
         {source.fetched_url && source.fetched_url !== source.url ? <p>Endgültige Abrufadresse: <a href={source.fetched_url} target="_blank" rel="noopener noreferrer">{source.fetched_url}</a></p> : null}
@@ -82,7 +90,7 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
       {source.error ? <p role="alert">Die Quelle konnte nicht aktualisiert werden. <button type="button" disabled={busy} onClick={() => void mutate(source, "refresh")}>Erneut versuchen</button></p> : null}
       {source.enabled ? <><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "refresh")}>Jetzt abrufen</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "disable")}>Deaktivieren</button></> : null}
     </article>)}
-    {error ? <p role="alert">Die Quellen konnten nicht geladen oder geändert werden. <button type="button" disabled={busy} onClick={() => void load()}>Erneut versuchen</button></p> : null}
+    {error ? <p role="alert">{error}{reloadOffered && <> <button type="button" disabled={busy} onClick={() => void load()}>Liste neu laden</button></>}</p> : null}
   </details>;
 }
 

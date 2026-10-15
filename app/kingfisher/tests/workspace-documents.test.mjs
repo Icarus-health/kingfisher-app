@@ -2,10 +2,12 @@ import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-documents-cache-${process.pid}`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'document-hooks',enforce:'pre',resolveId(id){if(id==='virtual:document-hooks')return '\0'+id;},load(id){if(id==='\0virtual:document-hooks')return 'export const useState=(...a)=>globalThis.__docDriver.state(...a);export const useRef=(...a)=>globalThis.__docDriver.ref(...a);export const useEffect=(...a)=>globalThis.__docDriver.effect(...a);export const useMemo=fn=>fn();';},transform(code,id){if(id.endsWith('/src/MemoryFolders.tsx')||id.endsWith('/src/useWorkspaceMemoryView.ts')||id.endsWith('/src/ProfileSource.tsx'))return code.replace(/from (['"])react\1/,'from "virtual:document-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-documents-cache-${process.pid}`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'document-hooks',enforce:'pre',resolveId(id){if(id==='virtual:document-hooks')return '\0'+id;},load(id){if(id==='\0virtual:document-hooks')return 'export const useState=(...a)=>globalThis.__docDriver.state(...a);export const useRef=(...a)=>globalThis.__docDriver.ref(...a);export const useEffect=(...a)=>globalThis.__docDriver.effect(...a);export const useMemo=fn=>fn();';},transform(code,id){if(id.endsWith('/src/MemoryFolders.tsx')||id.endsWith('/src/useWorkspaceMemoryView.ts')||id.endsWith('/src/ProfileSource.tsx')||id.endsWith('/src/MemoryGraph.tsx')||id.endsWith('/src/DocumentImport.tsx'))return code.replace(/from (['"])react\1/,'from "virtual:document-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 globalThis.PopStateEvent=class extends Event {};
 const {MemoryFolders,SourceFolderAssignment}=await server.ssrLoadModule('/src/MemoryFolders.tsx');
+const {MemoryGraph}=await server.ssrLoadModule('/src/MemoryGraph.tsx');
+const {DocumentImport}=await server.ssrLoadModule('/src/DocumentImport.tsx');
 const {ProfileSource}=await server.ssrLoadModule('/src/ProfileSource.tsx');
 const {api}=await server.ssrLoadModule('/src/api.ts');
 const {workspaceViewApi}=await server.ssrLoadModule('/src/workspaceViewApi.ts');
@@ -41,7 +43,7 @@ test('slow prior page cannot replace current filter result and failures clear st
 }));
 test('folder history validates pagination bounds and whitelists fields',()=>scenario(async({target})=>{
  for(const folders of [{offset:-1},{offset:1.5},{offset:Infinity},{limit:101},{q:'x'.repeat(201)}]){target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:null,project:'',area:'',...folders}}};assert.equal(readMemoryViewPosition(),null);}
- target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:null,project:'',area:'',q:'Übergabe',offset:25,limit:25,body:'secret',response:page(),revision:999}}};assert.deepEqual(Object.keys(readMemoryViewPosition().folders).sort(),['area','limit','offset','project','q','selected','sourceArea','sourceListOpen']);
+ target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{selected:null,project:'',area:'',q:'Übergabe',offset:25,limit:25,body:'secret',response:page(),revision:999}}};assert.deepEqual(Object.keys(readMemoryViewPosition().folders).sort(),['area','documentId','documentOpen','limit','listScroll','offset','project','q','selected','sourceArea','sourceListOpen']);
 }));
 
 test('background metadata refresh retains mounted source rows until the current result settles',()=>scenario(async({d,events,setRead})=>{
@@ -62,10 +64,10 @@ test('opened note follows the real folder list revision without closing and hide
  let tree=await tick(d),props=nodes(tree,n=>n.type===ProfileSource)[0].props;
  const child=driver(()=>ProfileSource(props));
  try{
-  let pane=await tick(child);button(pane,'Inhalt öffnen').props.onClick();pane=await tick(child);assert.match(text(pane),/Alter Notizinhalt/);assert.equal(reads,1);
+  let pane=await tick(child);assert.equal(props.embedded,true);assert.match(text(pane),/Alter Notizinhalt/);assert.equal(reads,1);
   current=2;setRead(()=>page(0,{items:[{...page().items[0],revision:2,preview:'Aktueller Notizinhalt'}]}));events.get('workspace-view-changed')();tree=await tick(d);assert.match(text(tree),/Aktueller Notizinhalt/);
-  props=nodes(tree,n=>n.type===ProfileSource)[0].props;pane=child.render();assert.equal(button(pane,'Inhalt schließen').props['aria-expanded'],true);assert.doesNotMatch(text(pane),/Alter Notizinhalt/,'old body is hidden before the revision read effect runs');child.flush();assert.equal(reads,2);
-  finish({title:'Notiz',body:'Aktueller Notizinhalt',revision:2});pane=await tick(child);assert.match(text(pane),/Aktueller Notizinhalt/);assert.match(text(pane),/Revision 2/);assert.equal(button(pane,'Inhalt schließen').props['aria-expanded'],true);
+  props=nodes(tree,n=>n.type===ProfileSource)[0].props;pane=child.render();assert.equal(props.embedded,true);assert.doesNotMatch(text(pane),/Alter Notizinhalt/,'old body is hidden before the revision read effect runs');child.flush();assert.equal(reads,2);
+  finish({title:'Notiz',body:'Aktueller Notizinhalt',revision:2});pane=await tick(child);assert.match(text(pane),/Aktueller Notizinhalt/);assert.match(text(pane),/Revision 2/);assert.equal(props.embedded,true);
  }finally{child.close();api.profileSource=old;}
 }));
 
@@ -93,5 +95,78 @@ test('source views without a list revision keep their existing one-read note beh
 test('a concurrent note edit revalidates the actual folder list and the same open source instance together',()=>scenario(async({d,setRead,calls})=>{
  const old=api.profileSource;let snapshot=2,reads=0;setRead(()=>page(0,{items:[{...page().items[0],revision:snapshot,preview:snapshot===2?'Zweiter Inhalt':'Dritter Inhalt'}]}));
  api.profileSource=async()=>{reads++;snapshot=3;return {title:'Notiz',body:'Dritter Inhalt',revision:3};};let tree=await tick(d),props=nodes(tree,n=>n.type===ProfileSource)[0].props;const child=driver(()=>ProfileSource(props));
- try{let pane=await tick(child);button(pane,'Inhalt öffnen').props.onClick();pane=await tick(child);assert.doesNotMatch(text(pane),/Dritter Inhalt/,'body newer than the displayed list is held back');tree=await tick(d);assert.match(text(tree),/Dritter Inhalt/);assert.equal(calls.length,2,'the real embedding refreshes its current page');props=nodes(tree,n=>n.type===ProfileSource)[0].props;pane=await tick(child);assert.match(text(pane),/Dritter Inhalt/);assert.match(text(pane),/Revision 3/);assert.equal(reads,2);assert.equal(button(pane,'Inhalt schließen').props['aria-expanded'],true);}finally{child.close();api.profileSource=old;}
+ try{let pane=await tick(child);assert.equal(props.embedded,true);assert.doesNotMatch(text(pane),/Dritter Inhalt/,'body newer than the displayed list is held back');tree=await tick(d);assert.match(text(tree),/Dritter Inhalt/);assert.equal(calls.length,2,'the real embedding refreshes its current page');props=nodes(tree,n=>n.type===ProfileSource)[0].props;pane=await tick(child);assert.match(text(pane),/Dritter Inhalt/);assert.match(text(pane),/Revision 3/);assert.equal(reads,2);assert.equal(props.embedded,true);}finally{child.close();api.profileSource=old;}
+}));
+
+test('document selection opens only its read-only original and a list return preserves the selection',()=>scenario(async({d,setRead})=>{
+ const first=page().items[0],second={...first,id:'note:second',title:'Zweites Dokument'};
+ setRead(()=>page(0,{items:[first,second]}));let tree=await tick(d);
+ const select=nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Dokument öffnen: Zweites Dokument')[0];assert.ok(select,'one clear row action opens a document');
+ select.props.onClick();tree=await tick(d);const sources=nodes(tree,n=>n.type===ProfileSource);assert.equal(sources.length,1);assert.equal(sources[0].props.id,'second');assert.equal(sources[0].props.originalOnly,true);assert.equal(sources[0].props.readOnly,true);assert.equal(sources[0].props.embedded,true);assert.equal(tree.props['data-document-open'],true);
+ button(tree,'Zurück zur Liste').props.onClick();tree=await tick(d);assert.equal(tree.props['data-document-open'],false);assert.equal(nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Dokument öffnen: Zweites Dokument')[0].props['aria-pressed'],true);
+}));
+
+test('changing document search immediately hides the old preview and a withdrawn selection cannot survive refresh',()=>scenario(async({d,setRead,events})=>{
+ let tree=await tick(d),finish;assert.equal(nodes(tree,n=>n.type===ProfileSource).length,1);
+ setRead(()=>new Promise(resolve=>{finish=resolve;}));nodes(tree,n=>n.type==='input'&&n.props.type==='search')[0].props.onChange({target:{value:'andere'}});tree=d.render();d.flush();assert.equal(nodes(tree,n=>n.type===ProfileSource).length,0,'never show previous-query source beside a new query');
+ finish(page());tree=await tick(d);assert.equal(nodes(tree,n=>n.type===ProfileSource).length,1);setRead(()=>page(0,{items:[],total:0,has_more:false}));events.get('workspace-view-changed')();tree=await tick(d);assert.equal(nodes(tree,n=>n.type===ProfileSource).length,0);
+}));
+
+test('embedded original loads without an extra click and never mounts classification or mutable controls',()=>scenario(async()=>{
+ const old=api.profileSource;let reads=0;api.profileSource=async()=>{reads++;return {title:'Original',body:'Unveränderter Originaltext',state:'new',revision:2};};const child=driver(()=>ProfileSource({kind:'note',id:'original',sourceRevision:2,embedded:true,originalOnly:true,allowDismiss:true}));
+ try{const pane=await tick(child);assert.equal(reads,1);assert.match(text(pane),/Unveränderter Originaltext/);assert.equal(nodes(pane,n=>['SourceCategories','SourceBezuege','SourceProject','SourceCorrection'].includes(n.type?.name)).length,0);assert.equal(nodes(pane,n=>n.type==='button'&&/Inhalt öffnen|Inhalt schließen/.test(text(n))).length,0);}finally{child.close();api.profileSource=old;}
+}));
+
+test('folder return retains only bounded document presentation and no source content',()=>scenario(async({target})=>{
+ const folders={selected:null,project:'',area:'',documentId:'note:selected',documentOpen:true,listScroll:120};rememberMemoryPresentation('folders',folders);assert.equal(readMemoryViewPosition().folders.documentId,'note:selected');assert.equal(readMemoryViewPosition().folders.documentOpen,true);assert.equal(readMemoryViewPosition().folders.listScroll,120);
+ for(const invalid of [{listScroll:-1},{listScroll:Infinity},{documentOpen:'true'},{documentId:'x'.repeat(2049)}]){target.history.state={kingfisherMemoryView:{path:'/memory?tab=documents',folders:{...folders,...invalid}}};assert.equal(readMemoryViewPosition(),null);}
+}));
+
+test('a removed explicit selection never silently displays a different source',()=>scenario(async({d,setRead,events})=>{
+ const first=page().items[0],second={...first,id:'note:second',title:'Zweites Dokument'};setRead(()=>page(0,{items:[first,second]}));let tree=await tick(d);
+ nodes(tree,n=>n.type==='button'&&n.props['aria-label']==='Dokument öffnen: Zweites Dokument')[0].props.onClick();tree=await tick(d);assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'second');
+ setRead(()=>page(0,{items:[first]}));events.get('workspace-view-changed')();tree=await tick(d);assert.equal(nodes(tree,n=>n.type===ProfileSource).length,0);assert.match(text(tree),/nicht mehr in dieser Auswahl/);
+}));
+
+test('folder navigation keeps sibling folders visible while showing children of the selected path',()=>scenario(async({d,setRead})=>{
+ setRead(()=>page(0,{options:{...page().options,folders:[...folders,{id:'other',kind:'folder',revision:1,data:{name:'Privat',parent_id:null}}]}}));let tree=await tick(d);button(tree,'Akten →').props.onClick();tree=await tick(d);
+ assert.ok(button(tree,'Akten →'));assert.ok(button(tree,'Unterordner →'));assert.ok(button(tree,'Privat →'));assert.equal(button(tree,'Akten →').props['aria-pressed'],true);
+}));
+
+
+test('automatic first selection survives insertion and reports withdrawal instead of changing source',()=>scenario(async({d,setRead,events})=>{
+ const first=page().items[0],second={...first,id:'note:second',title:'Zweites Dokument'};
+ setRead(()=>page(0,{items:[first,second]}));let tree=await tick(d);
+ assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'current-0');
+ assert.equal(readMemoryViewPosition().folders.documentId,first.id,'the visible default has a stable identity');
+ setRead(()=>page(0,{items:[second,first]}));events.get('workspace-view-changed')();tree=await tick(d);
+ assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'current-0','insertion or reordering does not change the original');
+ setRead(()=>page(0,{items:[second]}));events.get('workspace-view-changed')();tree=await tick(d);
+ assert.equal(nodes(tree,n=>n.type===ProfileSource).length,0);assert.match(text(tree),/nicht mehr in dieser Auswahl/);
+}));
+
+test('intentional document pagination selects from the new page instead of keeping the previous page identity',()=>scenario(async({d})=>{
+ let tree=await tick(d);button(tree,'Nächste Seite').props.onClick();tree=await tick(d);
+ assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'current-25');
+ button(tree,'Vorherige Seite').props.onClick();tree=await tick(d);
+ assert.equal(nodes(tree,n=>n.type===ProfileSource)[0].props.id,'current-0');
+}));
+
+test('memory tab changes preserve the same importer with its preview, project and pending save outcome',()=>scenario(async()=>{
+ const old={memoryGraph:api.memoryGraph,projects:api.projects,importDocument:api.importDocument};
+ api.memoryGraph=async()=>({nodes:[],edges:[]});api.projects=async()=>[{id:'project-1',name:'Polarstern'}];let finish;
+ api.importDocument=()=>new Promise(resolve=>{finish=resolve;});
+ const parent=driver(()=>MemoryGraph({recentConversation:null}));let child;
+ try{
+  let tree=await tick(parent);button(tree,'Dokument hinzufügen').props.onClick();tree=await tick(parent);
+  let importer=nodes(tree,n=>n.type===DocumentImport)[0];assert.ok(importer,'importer is mounted above the switching memory subtree');
+  let props=importer.props;child=driver(()=>DocumentImport(props));let pane=await tick(child);
+  nodes(pane,n=>n.type==='input'&&n.props.type==='file')[0].props.onChange({target:{files:[new File(['Unveränderter Entwurf'],'review.txt')],value:'file'}});pane=await tick(child);
+  nodes(pane,n=>n.type==='select')[0].props.onChange({target:{value:'project-1'}});
+  button(tree,'Menschen').props.onClick();tree=await tick(parent);importer=nodes(tree,n=>n.type===DocumentImport)[0];assert.ok(importer,'tab switch does not unmount the prepared import');props=importer.props;pane=await tick(child);
+  assert.match(text(pane),/review.txt/);assert.equal(nodes(pane,n=>n.type==='select')[0].props.value,'project-1');
+  button(pane,'Datei als Quelle aufnehmen').props.onClick();pane=await tick(child);assert.equal(button(pane,'Schließen').props.disabled,true);
+  button(tree,'Dokumente').props.onClick();tree=await tick(parent);assert.ok(nodes(tree,n=>n.type===DocumentImport)[0],'pending import remains mounted');
+  finish({id:'saved',created:true,title:'review.txt',project_id:'project-1'});pane=await tick(child);assert.match(text(pane),/Datei als Quelle aufgenommen/);
+ }finally{child?.close();parent.close();Object.assign(api,old);}
 }));

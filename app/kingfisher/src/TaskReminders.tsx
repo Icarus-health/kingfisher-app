@@ -7,7 +7,7 @@ type ReminderTask = Task;
 const reminderApi = api;
 
 /** A bounded, independently refreshed list; completing a reminder never completes its task. */
-export function TaskReminders({active = true, onChanged}: {active?: boolean; onChanged?: () => void}) {
+export function TaskReminders({active = true, compact = false, onChanged}: {active?: boolean; compact?: boolean; onChanged?: () => void}) {
   const [items, setItems] = useState<ReminderTask[] | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -83,9 +83,10 @@ export function TaskReminders({active = true, onChanged}: {active?: boolean; onC
   }
 
   if (!active) return null;
+  if (compact && items?.length === 0 && !truncated && !loading && !error && !actionError && !message && !workingId) return null;
   const visibleItems = (items ?? []).slice(0, expanded ? 100 : 5);
   return <section className="source-section task-reminders" aria-label="Wiedervorlagen">
-    <div className="memory-questions-kopf"><div><h2>Wiedervorlagen</h2><p>Aufgaben, die du dir für später vorgemerkt hast.</p></div>
+    <div className="memory-questions-kopf"><div><h2>Wiedervorlagen</h2>{!compact && <p>Aufgaben, die du dir für später vorgemerkt hast.</p>}</div>
       {items && items.length > 5 && <button type="button" className="text-action" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "Weniger anzeigen" : `Alle ${items.length} anzeigen`}</button>}
     </div>
     {loading && <p role="status">Wiedervorlagen werden geladen …</p>}

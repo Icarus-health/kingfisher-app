@@ -12,6 +12,7 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  api.calendar=async()=>({items:[item],configured:true,errors:[]});api.calendarActionSources=async()=>({sources:[]});api.integrations=async()=>({calendar_sources:[{id:'source',label:'Arbeit',configured:true,enabled:true}]});api.macCalendar=async()=>({enabled:false,selected:[],calendars:[]});
  const values=[],deps=[],pending=[];let si=0,ei=0;const d={state(initial){const i=si++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return[values[i],v=>values[i]=typeof v==='function'?v(values[i]):v];},effect(fn,next){const i=ei++;if(!deps[i]||!next||next.some((v,j)=>v!==deps[i][j])){deps[i]=next;pending.push(fn);}},render(){si=ei=0;globalThis.__calendarDriver=d;return CalendarPage({recentConversation:null});},async flush(){while(pending.length)pending.shift()();await new Promise(r=>setImmediate(r));}};
  d.render();await d.flush();let tree=d.render();await d.flush();tree=d.render();
+ const agenda=nodes(tree,n=>n.type==='details'&&n.props.className==='calendar-agenda quiet-details')[0];assert.ok(agenda,'Secondary agenda must start collapsed beside the grid');assert.equal(Boolean(agenda.props.open),false);assert.match(text(agenda),/Workshop/);
  assert.equal(nodes(tree,n=>n.props?.className==='calendar-hour').length,24);assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Tag')[0]);assert.ok(nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0]);
  const event=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-time-event')[0];assert.ok(event);event.props.onClick();tree=d.render();const details=nodes(tree,n=>n.type?.name==='DetailPanel')[0];assert.ok(details);assert.match(text(details),/Workshop/);assert.match(text(details),/Vorbereiten/);
  const oldZone=process.env.TZ;process.env.TZ='Europe/Berlin';
@@ -38,5 +39,8 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  toggle('Google');visible=nodes(tree,n=>n.props?.className==='calendar-time-event');assert.equal(visible.length,1);assert.match(text(visible[0]),/Arbeitstermin/);
  visible[0].props.onClick();tree=d.render();const mirrorDetails=nodes(tree,n=>n.type?.name==='DetailPanel')[0];nodes(mirrorDetails,n=>n.type==='button'&&/Bearbeiten/.test(text(n)))[0].props.onClick();tree=d.render();const form=nodes(tree,n=>n.type?.name==='CalendarActionForm')[0];assert.equal(form.props.event.source_id,'google');assert.equal(form.props.event.uid,'google:work-event');
  toggle('Arbeit');assert.equal(nodes(tree,n=>n.props?.className==='calendar-time-event').length,0);
+ nodes(tree,n=>n.type==='button'&&text(n)==='Liste')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();
+ assert.ok(nodes(tree,n=>n.type==='section'&&n.props['aria-label']==='Terminliste')[0],'Explicit list view keeps its primary list visible');
+ assert.equal(nodes(tree,n=>n.type==='details'&&n.props.className==='calendar-agenda quiet-details').length,0);
  }finally{globalThis.window=oldWindow;globalThis.localStorage=oldStorage;globalThis.__calendarDriver=oldDriver;await server.close();}
 });

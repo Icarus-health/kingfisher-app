@@ -7,6 +7,7 @@ type MailTaskFormProps = {
   uid: string;
   subject: string;
   expectedSourceDigest: string | null;
+  initiallyOpen?: boolean;
   initialSuggestion?: { title: string; quote: string; source_digest: string };
   onTaskFormProtected?: (protectedState: boolean) => void;
 };
@@ -37,8 +38,8 @@ function pendingRequestId(uid: string): string {
   return id;
 }
 
-export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSuggestion, onTaskFormProtected }: MailTaskFormProps) {
-  const [open, setOpen] = useState(false);
+export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSuggestion, onTaskFormProtected, initiallyOpen = false }: MailTaskFormProps) {
+  const [open, setOpen] = useState(initiallyOpen);
   const [title, setTitle] = useState(subject || "(Ohne Betreff)");
   const [projectId, setProjectId] = useState("");
   const [due, setDue] = useState("");

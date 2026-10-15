@@ -1,33 +1,22 @@
 /* SDR-015: Die freigegebene Heute-Gestaltung in den übrigen Arbeitsbereichen.
    Gemeinsam benannte Materialwerte; bestehende Zustände und Aktionen bleiben erhalten. */
 :root {
-  --calm-surface: #fffefa;
-  --calm-inset: #f2f5f2;
-  --calm-soft: #e3eef0;
-  --calm-ink: #102c3a;
-  --calm-muted: #48616d;
-  --calm-line: #dce3e0;
-  --calm-primary: #063e55;
+  --calm-surface: #ffffff;
+  --calm-inset: #f5f6f8;
+  --calm-soft: #e7eff8;
+  --calm-ink: #172635;
+  --calm-muted: #5e6c7c;
+  --calm-line: #dfe5eb;
+  --calm-primary: #103e5c;
   --calm-on-primary: #f4faf9;
-  --calm-link: #145769;
-  --calm-shadow: 0 2px 5px rgba(5,32,44,.08), 0 14px 32px rgba(5,32,44,.13), inset 0 1px 0 rgba(255,255,255,.8);
-  --calm-radius: 16px;
+  --calm-link: #18578c;
+  --calm-shadow: 0 1px 3px rgba(19,39,58,.04);
+  --calm-radius: 12px;
+  --calm-text: 16px;
+  --calm-control: 14px;
+  --calm-caption: 13px;
+  --calm-heading: 26px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --calm-surface: #172d36;
-    --calm-inset: #1c3540;
-    --calm-soft: #284650;
-    --calm-ink: #eef4f3;
-    --calm-muted: #b8cbd1;
-    --calm-line: #36505a;
-    --calm-primary: #d6e9ed;
-    --calm-on-primary: #102c3a;
-    --calm-link: #a2d8de;
-    --calm-shadow: 0 2px 5px rgba(0,0,0,.2), 0 14px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-}
-
 /* Die Landschaft bleibt zwischen deckenden Leseflächen sichtbar. */
 .shell { isolation: isolate; }
 .shell:not(:has(.today-page)) { background: #a9c2cc; }
@@ -47,16 +36,16 @@
   --kf-schrift-062b3a: var(--calm-ink);
   --kf-schrift-31535f: var(--calm-muted);
   --kf-schrift-007e92: var(--calm-link);
-  background: transparent; color: var(--calm-ink);
+  background: transparent; color: var(--calm-ink); font-size: var(--calm-text); line-height: 1.6;
 }
 .tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history {
   width: 100%; max-width: 1440px; padding: 32px 36px 56px;
 }
 .tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading {
-  min-height: 120px; max-width: none; margin: 0 0 24px; padding: 16px 0;
+  min-height: 64px; max-width: none; margin: 0 0 16px; padding: 8px 0;
 }
 .tasks-heading h1, .settings-heading h1, .inbox-heading h1, .history-heading h1, .profile-heading h1 {
-  margin: 0; font: 600 36px/1.2 'Inter', sans-serif; letter-spacing: -1px; color: var(--calm-ink);
+  margin: 0; font: 600 var(--calm-heading)/1.3 'Inter', sans-serif; letter-spacing: -.5px; color: var(--calm-ink);
 }
 .tasks-heading .eyebrow, .settings-heading .eyebrow, .profile-heading .eyebrow { font-size: 11px; letter-spacing: 1.3px; }
 .settings-heading > span, .settings-heading > p:last-child, .inbox-heading > p, .history-heading > p, .profile-heading > span {
@@ -66,12 +55,12 @@
 .inbox-heading { position: relative; padding-right: 135px; }
 .inbox-heading > button { position: absolute; right: 0; top: 20px; }
 .profile-back { min-height: 40px; font-size: 13px; }
-.profile-heading { min-height: 100px; }
+.profile-heading { min-height: 64px; }
 
 /* Einheitliche Bedienelemente. Destruktive Bestätigungen behalten ihre Farbe. */
 .shell :is(.primary-action, .secondary-action, .tasks-add, .mail-reader-primary, .mail-reader-secondary,
   .mail-reader-close, .memory-actions button, .people-review-action, .people-review-secondary, .chronik-mehr) {
-  min-height: 42px; border-radius: 18px; padding: 9px 18px; font-size: 13px; line-height: 1.5; font-weight: 500;
+  min-height: 42px; border-radius: 10px; padding: 9px 14px; font-size: var(--calm-control); line-height: 1.5; font-weight: 500;
 }
 .shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action) {
   background: var(--calm-primary); color: var(--calm-on-primary); border-color: var(--calm-primary); box-shadow: 0 2px 5px rgba(5,32,44,.10);
@@ -103,7 +92,7 @@
   font: 600 20px/1.35 'Inter', sans-serif; letter-spacing: -.4px;
 }
 .shell main :is(.profile-card p, .profile-claims strong, .profile-list-card strong, .decision-statement) { font-size: 14px; line-height: 1.7; }
-.shell main :is(.profile-card small, .profile-claims details, .profile-list-card small, .source-section-heading span, .settings-data-row span, .settings-data > p) { font-size: 12px; line-height: 1.6; }
+.shell main :is(.profile-card small, .profile-claims details, .profile-list-card small, .source-section-heading span, .settings-data-row span, .settings-data > p) { font-size: var(--calm-caption); line-height: 1.6; }
 .profile-grid { gap: 22px; }
 .profile-metrics div { border: 0; padding: 24px; }
 .profile-metrics strong { font: 600 28px/1.3 'Inter', sans-serif; }
@@ -125,7 +114,7 @@
 }
 .project-controls { margin-bottom: 22px; }
 .task-table > header { text-transform: none; font-size: 13px; letter-spacing: 0; font-weight: 500; min-height: 54px; }
-.task-row { padding: 20px 24px; min-height: 96px; }
+.task-row { padding: 12px 18px; min-height: 68px; }
 .task-copy strong { font-size: 16px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
 .task-copy small, .task-row time, .task-copy select { font-size: 13px; line-height: 1.5; }
 .shell main .task-copy select { min-height: 32px; width: fit-content; padding: 3px 5px; background: transparent; }
@@ -213,7 +202,7 @@
 .local-status { flex-shrink: 0; font-size: 11px; }
 .messages { width: 100%; padding: 24px 0 130px; }
 .message { border-radius: 16px; padding: 24px; max-width: 92%; }
-.message p { font-size: 15px; line-height: 1.75; }
+.message p { font-size: var(--calm-text); line-height: 1.75; }
 .message.assistant { background: var(--calm-surface); box-shadow: var(--calm-shadow); }
 .message.user { background: #063e55; color: #f4faf9; }
 .thread-command { left: 498px; right: 24px; bottom: 24px; }
@@ -273,12 +262,6 @@
 .briefing-drawer { background: var(--calm-inset); color: var(--calm-ink); }
 .drawer-heading h2 { font: 600 36px/1.3 'Inter', sans-serif; }
 .drawer-card { border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
-@media (prefers-color-scheme: dark) {
-  .shell:not(:has(.today-page))::before { filter: brightness(.62) saturate(.65); }
-  .tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading, .profile-back { text-shadow: 0 1px 5px rgba(5,32,44,.5); }
-  .tasks-add img { filter: brightness(0) saturate(100%); }
-  .drawer-heading p, .drawer-heading h2, .drawer-heading span { color: #102c3a; text-shadow: 0 1px 8px #fffefa; }
-}
 @media (max-width: 1350px) {
   .tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history { padding: 28px; }
   .settings-layout { grid-template-columns: minmax(0,1fr) 250px; gap: 20px; }

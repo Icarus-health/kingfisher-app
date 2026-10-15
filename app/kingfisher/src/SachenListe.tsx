@@ -66,7 +66,7 @@ export function SachenListe({ art, query: restoredQuery, page: restoredPage, onQ
   }
   return <section className="memory-directory" data-memory-loading={!data && !fehler} aria-label={text.titel}>
     <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{text.titel}</h1>
-      <p>Eine Akte pro Eintrag, aus den Quellen abgeleitet. Jede Zeile in der Akte führt zur Quelle.</p></header>
+      <details className="quiet-details"><summary>Über diese Akten</summary><p>Eine Akte pro Eintrag, aus den Quellen abgeleitet. Jede Zeile in der Akte führt zur Quelle.</p></details></header>
     <label className="directory-search">{text.suche}
       <input type="search" value={suche} onChange={event => { setSuche(event.target.value); setSeite(0); }} placeholder="Suchen …" />
     </label>

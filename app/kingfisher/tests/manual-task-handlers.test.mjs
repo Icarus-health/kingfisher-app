@@ -18,6 +18,11 @@ try {
  let tree=d.render();const pageSlot=values.findIndex(v=>v && typeof v==='object' && 'selectionKey' in v);assert.notEqual(pageSlot,-1);values[pageSlot]={...values[pageSlot],selectionKey:JSON.stringify({view:'mine',projectId:'',q:''}),tasks:[{id:'existing-task',title:'Existing',status:'open'}]};tree=d.render();
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  const form=nodes(tree,n=>n.type==='form'&&n.props.className==='task-create')[0];nodes(form,n=>n.type==='input')[0].props.onChange({target:{value:'Unsubmitted new draft'}});tree=d.render();
+ nodes(tree,n=>n.type==='button'&&text(n)==='Zur Prüfung')[0].props.onClick();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type?.name==='ProjectControls').length,1,'project creation remains mounted while the global review is open');
+ nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type==='section'&&n.props.className==='task-table')[0].props.hidden,false,'the primary action reopens an existing draft instead of staying in the review panel');
+ assert.equal(nodes(tree,n=>n.type==='form'&&n.props.className==='task-create').flatMap(f=>nodes(f,n=>n.type==='input'))[0].props.value,'Unsubmitted new draft');
  await nodes(tree,n=>n.type?.name==='TaskRow')[0].props.onComplete();tree=d.render();
  const retry=nodes(tree,n=>n.type==='button'&&text(n)==='Wiederholen')[0];assert.ok(retry);assert.match(text(tree),/Aufgabenstatus konnte nicht gespeichert/);
  // HTML form association determines which real handler the button invokes.
