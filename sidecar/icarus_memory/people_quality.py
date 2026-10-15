@@ -66,8 +66,10 @@ def annotate_people(nodes):
         category, reason = 'person', ''
         if re.search(r'\(Integrationstest\)', label, re.I):
             category, reason = 'review', 'Als Integrationstest bezeichnet; Herkunft vor Bereinigung prüfen.'
-        elif not explicit and name and _COMPANY_NAME.search(name):
+        elif not explicit and ist_firmenbezeichnung(name or label):
             category, reason = 'review', 'Firmenbezeichnung im Anzeigenamen; eine Personenidentität ist noch nicht bestätigt.'
+        elif not explicit and not address and ist_sammelpostfach(label):
+            category, reason = 'review', 'Allgemeine Servicebezeichnung; eine Personenidentität ist noch nicht bestätigt.'
         elif not explicit and address and ist_sammelpostfach(local):
             if AUTOMATED.search(local):
                 category, reason = 'automated', 'Technische Benachrichtigungsadresse; der Anzeigename belegt keine Personenidentität.'
