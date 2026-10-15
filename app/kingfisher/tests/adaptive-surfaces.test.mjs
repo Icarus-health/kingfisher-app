@@ -2,7 +2,7 @@ import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),cacheDir:`/private/tmp/kingfisher-adaptive-tests-${process.pid}`,configFile:false,plugins:[{name:'adaptive-hooks',enforce:'pre',resolveId(id){if(id==='virtual:adaptive-hooks')return '\0'+id;},load(id){if(id==='\0virtual:adaptive-hooks')return `export const useState=(v)=>globalThis.__adaptiveState(v);export const useRef=v=>({current:v});export const useEffect=()=>{};export const useCallback=f=>f;export const useMemo=f=>f();`;},transform(code,id){if(['/App.tsx','/TodayOverview.tsx','/TodaySourceStatus.tsx','/TodayTaskActions.tsx','/TaskReminders.tsx','/KnowledgeQuestions.tsx','/MemoryQuestions.tsx','/TaskSuggestions.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:adaptive-hooks"')+(id.endsWith('/TaskSuggestions.tsx')?'\nexport {Suggestion,initialDraft};':id.endsWith('/App.tsx')?'\nexport {Morning};':'\n');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),cacheDir:`/private/tmp/kingfisher-adaptive-tests-${process.pid}`,configFile:false,plugins:[{name:'adaptive-hooks',enforce:'pre',resolveId(id){if(id==='virtual:adaptive-hooks')return '\0'+id;},load(id){if(id==='\0virtual:adaptive-hooks')return `export const useState=(v)=>globalThis.__adaptiveState(v);export const useRef=v=>({current:v});export const useEffect=()=>{};export const useCallback=f=>f;export const useMemo=f=>f();`;},transform(code,id){if(['/App.tsx','/TodayOverview.tsx','/TodaySourceStatus.tsx','/TodayTaskActions.tsx','/TaskReminders.tsx','/KnowledgeQuestions.tsx','/MemoryQuestions.tsx','/TaskSuggestions.tsx','/PersonDigest.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:adaptive-hooks"')+(id.endsWith('/TaskSuggestions.tsx')?'\nexport {Suggestion,initialDraft};':id.endsWith('/App.tsx')?'\nexport {Morning};':'\n');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {Morning}=await server.ssrLoadModule('/src/App.tsx');
 const {TodayOverview}=await server.ssrLoadModule('/src/TodayOverview.tsx');
@@ -12,6 +12,7 @@ const {TaskReminders}=await server.ssrLoadModule('/src/TaskReminders.tsx');
 const {KnowledgeQuestions}=await server.ssrLoadModule('/src/KnowledgeQuestions.tsx');
 const {Suggestion,initialDraft}=await server.ssrLoadModule('/src/TaskSuggestions.tsx');
 const {MemoryQuestions}=await server.ssrLoadModule('/src/MemoryQuestions.tsx');
+const {PersonDigest}=await server.ssrLoadModule('/src/PersonDigest.tsx');
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children].flat(50).forEach(c=>nodes(c,p,out));return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(50).map(text).join(''):String(n);}
 function render(fn,seeds=[]){let i=0;globalThis.__adaptiveState=v=>{const slot=i++;return [slot in seeds?seeds[slot]:(typeof v==='function'?v():v),value=>seeds[slot]=typeof value==='function'?value(seeds[slot]):value];};try{return fn();}finally{delete globalThis.__adaptiveState;}}
@@ -75,4 +76,13 @@ test('activity is first read only on opening its disclosure and keeps its editor
  tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);
  nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0].props.onToggle({currentTarget:{open:false}});
  tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1,'an already opened activity keeps local drafts');
+});
+
+test('compact person digest keeps stale status and errors visible outside its closed tools',()=>{
+ const stale={status:'stale',digest:{points:[],questions:[],conflicts:[],generated_at:'2026-10-15T09:00:00Z'},source_count:1,total_source_count:2};
+ let tree=render(()=>PersonDigest({personId:'test',compact:true}),[stale,false,false,'']);
+ assert.match(firstLayer(tree),/Quellen geändert/);assert.match(firstLayer(tree),/veraltet/);assert.doesNotMatch(firstLayer(tree),/Eine Interpretation/);
+ assert.equal(Boolean(nodes(tree,n=>n.type==='details')[0].props.open),false);
+ tree=render(()=>PersonDigest({personId:'test',compact:true}),[null,false,false,'Quellen nicht erreichbar.']);
+ assert.match(firstLayer(tree),/Quellen nicht erreichbar/);assert.equal(nodes(tree,n=>n.props?.role==='alert').length,1);
 });

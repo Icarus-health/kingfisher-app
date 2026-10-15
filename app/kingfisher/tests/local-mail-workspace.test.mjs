@@ -31,6 +31,7 @@ test('mail opens as readable original with compact sender and source details rat
  assert.match(text(sourceDetails),/Gespeichert/);assert.match(text(sourceDetails),/Privat/);
  const body=nodes(tree,n=>n.type==='section'&&n.props.className==='mail-reader-body')[0];assert.match(text(body),/bitte prüfe den Entwurf/);
  assert.equal(nodes(sourceDetails,n=>n===body).length,0,'The mail text must be readable without opening source details');
+ const order=nodes(tree,n=>n===body||n.type?.name==='SavedMailWorkflow');assert.equal(order[0],body,'Read the actual message before the workflow form');
  assert.match(text(tree),/aktueller Postfachstand unbekannt/i);
 }));
 
@@ -93,4 +94,23 @@ test('explicit list refresh revalidates an open saved source even when it is no 
  const selected=nodes(tree,n=>n.type?.name==='MailReader')[0];assert.equal(selected.props.localEpisodeId,'saved');Object.assign(savedProps,MailReader(selected.props).props);reader.render();await reader.flush();const refreshed=reader.render();
  assert.equal(reads,2);assert.doesNotMatch(text(refreshed),/Withdrawn original/);assert.match(text(refreshed),/ausgeschlossen/);
  assert.equal(nodes(refreshed,n=>n.type?.name==='RemoteMailReader').length,0);
+}));
+
+test('remote action panels keep reply drafts and a briefing suggestion opens and focuses the task editor without submitting',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ let writes=0;api.mailMessage=async()=>({uid:'live',subject:'Projektbrief',from:'Anna',body:'Original',source_digest:'d',can_reply:true});
+ api.prepareMailReply=async()=>{writes++;};window.localStorage={getItem(){return null;},setItem(){}};
+ const entry=MailReader({uid:'live',onClose(){}}),d=driver(entry.type,entry.props);d.render();await d.flush();let tree=d.render();
+ const findPanel=(t,label)=>nodes(t,n=>n.type==='details'&&text(nodes(n,x=>x.type==='summary')[0]).startsWith(label))[0];
+ assert.equal(Boolean(findPanel(tree,'Antwort schreiben').props.open),false);assert.equal(Boolean(findPanel(tree,'Aufgabe aus dieser Mail').props.open),false);
+ assert.equal(nodes(tree,n=>n.type?.name==='MailTaskForm')[0].props.initiallyOpen,true,'outer action opens the usable form in one step');
+ nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.onChange({target:{value:'Mein Antwortentwurf'}});tree=d.render();
+ assert.equal(findPanel(tree,'Antwort schreiben').props.open,true);assert.equal(nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.value,'Mein Antwortentwurf');
+ let focused=0,scrolled=0;const panel={open:false,scrollIntoView(){scrolled++;},querySelector(){return{focus(){focused++;}};}};
+ findPanel(tree,'Aufgabe aus dieser Mail').props.ref.current=panel;
+ const suggestion={title:'Belege prüfen',quote:'Bitte die Belege prüfen.',source_digest:'d'};
+ nodes(tree,n=>n.type?.name==='MailBriefing')[0].props.onPrepareTask(suggestion);tree=d.render();
+ assert.equal(panel.open,true);assert.equal(focused,1);assert.equal(scrolled,1);assert.equal(writes,0);
+ assert.deepEqual(nodes(tree,n=>n.type?.name==='MailTaskForm')[0].props.initialSuggestion,suggestion);
+ assert.equal(nodes(tree,n=>n.type==='textarea'&&n.props.id==='mail-reply')[0].props.value,'Mein Antwortentwurf');
 }));

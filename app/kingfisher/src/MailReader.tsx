@@ -48,6 +48,16 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
   const requestVersion = useRef(0);
   const validationVersion = useRef(0);
   const originalMessageRef = useRef<HTMLDetailsElement | null>(null);
+  const taskPanelRef = useRef<HTMLDetailsElement | null>(null);
+  const prepareTask = (value: MailTaskSuggestion) => {
+    setTaskSuggestion(value);
+    const panel = taskPanelRef.current;
+    if (panel) {
+      panel.open = true;
+      panel.scrollIntoView({block: "start"});
+      panel.querySelector<HTMLInputElement>("input")?.focus({preventScroll: true});
+    }
+  };
 
   const openOriginalMessage = useCallback(() => {
     if (originalMessageRef.current) originalMessageRef.current.open = true;
@@ -247,16 +257,19 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
         <section className="mail-reader-body" aria-label="Originaltext der Nachricht"><pre>{detail.body || detail.preview}</pre></section>
         {detail.truncated ? <p className="mail-reader-status">Die Nachricht ist sehr lang. Hier werden die ersten 20.000 Zeichen angezeigt.</p> : null}
       </details>
-      <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={setTaskSuggestion} onTaskSaved={onTaskSaved} />
-      <MailThread key={`thread:${uid}:${detail.source_digest ?? "missing"}:${remembered}`} uid={uid} expectedDigest={detail.source_digest} onPrepareTask={setTaskSuggestion} taskDisabled={taskSuggestionProtected} />
+      <MailBriefing key={`briefing:${uid}:${detail.source_digest ?? "missing"}`} uid={uid} expectedSourceDigest={detail.source_digest} taskSelectionDisabled={taskSuggestionProtected} onNeedsOriginal={openOriginalMessage} onPrepareTask={prepareTask} onTaskSaved={onTaskSaved} />
+      <MailThread key={`thread:${uid}:${detail.source_digest ?? "missing"}:${remembered}`} uid={uid} expectedDigest={detail.source_digest} onPrepareTask={prepareTask} taskDisabled={taskSuggestionProtected} />
       <section className="mail-reader-actions" aria-label="Nachrichtenaktionen">
         <button className="mail-reader-secondary" disabled={remembering || remembered} onClick={remember} type="button">{remembering ? "Wird gemerkt …" : remembered ? "Als Quelle gemerkt" : "Als Quelle merken"}</button>
         {rememberNotice ? <p className="mail-reader-status" role="status">{rememberNotice}</p> : null}
       </section>
-      <MailCalendarPreparation key={`calendar:${uid}`} uid={uid} expectedBinding={detail.calendar_source_digest} onDone={onTaskSaved} />
-      <MailTaskForm key={`task:${uid}`} uid={uid} subject={detail.subject} expectedSourceDigest={detail.source_digest ?? null} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
+      <details className="mail-action-panel quiet-details" ref={taskPanelRef}><summary>Aufgabe aus dieser Mail</summary>
+      <MailTaskForm initiallyOpen key={`task:${uid}`} uid={uid} subject={detail.subject} expectedSourceDigest={detail.source_digest ?? null} initialSuggestion={taskSuggestion ?? undefined} onTaskFormProtected={setTaskSuggestionProtected} />
+      </details>
+      <details className="mail-action-panel quiet-details"><summary>Termin aus dieser Mail</summary><MailCalendarPreparation key={`calendar:${uid}`} uid={uid} expectedBinding={detail.calendar_source_digest} onDone={onTaskSaved} /></details>
+      <details className="mail-action-panel quiet-details" open={Boolean(draft.trim()) || Boolean(draftNotice) || Boolean(replyNotice)}><summary>Antwort schreiben{draft.trim() ? ' · Entwurf vorhanden' : ''}</summary>
       <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} />
-      <MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} />
+      <details className="quiet-details"><summary>Schreibstil</summary><MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} /></details>
       {<form className="mail-reader-reply" onSubmit={prepareReply}>
         <label htmlFor="mail-reply">Antwort</label>
         <p className="mail-reader-reply-target">Antwort an {detail.answer_to || detail.from}{` · von ${detail.sending_account}`}</p>
@@ -265,6 +278,7 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
         <div className="mail-reader-reply-footer"><span>{draftNotice || (draftVisible ? "Wird erst nach deiner Freigabe versendet." : "Quellenbezug wird geprüft …")}</span><button className="mail-reader-primary" disabled={preparing || !draftVisible || !detail.can_reply || !draft.trim()} type="submit">{preparing ? "Wird vorbereitet …" : "Antwort zur Freigabe vorbereiten"}</button></div>
         {replyNotice ? <p className="mail-reader-error" role="alert">{replyNotice}</p> : null}
       </form>}
+      </details>
       {!detail.can_reply ? <p className="mail-reader-status">Für dieses Postfach ist kein Versand eingerichtet. Du kannst deinen Antwortentwurf hier bearbeiten und kopieren.</p> : null}
     </> : null}
   </article>;
@@ -317,10 +331,10 @@ function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailR
     {error && <p role="alert">{error} <button type="button" onClick={() => setRevision(n => n + 1)}>Wiederholen</button></p>}
     {detail && <>
       <section className="mail-reader-meta"><h1>{detail.subject || '(Ohne Betreff)'}</h1><p className="mail-sender-line"><strong>{detail.from}</strong><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p><p className="mail-source-state">Gespeichert · aktueller Postfachstand unbekannt</p><details className="mail-source-details"><summary>Details zur Quelle</summary><dl><div><dt>Gespeichert</dt><dd>{readableDate(detail.recorded_at)}</dd></div><div><dt>Postfach</dt><dd>{detail.account_label}</dd></div></dl><p className="mail-reader-status">Quelle vom letzten Speichern. Heutige Erledigung und Antwortstatus sind unbekannt.</p></details></section>
-      <SavedMailWorkflow key={episodeId} episodeId={episodeId} sourceDigest={detail.source_digest} sourceVerified={!loading && !error} onTaskSaved={onTaskSaved} />
       {error && <p className="mail-reader-status">Zuletzt geladene Vorschau · Quellenstand ungeprüft. Deine bearbeiteten Aufgaben bleiben erhalten.</p>}
       <section className="mail-reader-body" aria-label={error ? "Zuletzt geladener Originaltext, Quellenstand ungeprüft" : "Originaltext der gespeicherten Nachricht"}><pre>{detail.body || detail.preview || 'Kein lesbarer Text gespeichert.'}</pre></section>
       {detail.truncated && <p role="status">Gespeicherter Ausschnitt; weitere Textteile oder Anlagen können fehlen.</p>}
+      <SavedMailWorkflow key={episodeId} episodeId={episodeId} sourceDigest={detail.source_digest} sourceVerified={!loading && !error} onTaskSaved={onTaskSaved} />
       <details className="mail-source-management"><summary>Quelle prüfen und verwalten</summary><ProfileSource kind="episode" id={episodeId} label="Gespeicherte Originalquelle prüfen" originalOnly readOnly />
       <button className="mail-reader-secondary" type="button" disabled={loading || Boolean(error)} onClick={()=>setManageSource(value=>!value)}>Quelle zuordnen oder ausschließen</button>
       {manageSource && <ProfileSource kind="episode" id={episodeId} label="Quellenverwaltung öffnen" onChange={()=>{setDetail(null);setOnline(false);setRevision(value=>value+1);onTaskSaved?.();}} />}

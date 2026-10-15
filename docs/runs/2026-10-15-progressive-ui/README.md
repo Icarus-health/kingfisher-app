@@ -23,3 +23,13 @@ Keine neuen Modelle, automatischen Entscheidungen oder Hintergrundaufrufe hinzug
 - Der Backendkern blieb unverändert; seine große Suite aus der vorangehenden Abnahme wurde nicht ohne Anlass wiederholt. Bestehende Bundlewarnung bleibt offen.
 
 Die Vorschau ist aktualisiert. Kein Merge, kein persönliches Mac-Update, keine Aktivierung eines Providers und keine Fortsetzung des Großimports. Reale Konten und native Berechtigungen behalten die Grenzen der vorangehenden Prüfung.
+
+## Erweiterung: Mail, Kalender und Personenprofile
+
+Der Originaltext steht im Mailleser vor dem Arbeitsformular. Antwort, Aufgaben- und Terminvorbereitung sind klar benannte Klappbereiche. Ein aus dem Überblick übernommener Aufgabenvorschlag öffnet und fokussiert das bereits eingebundene Formular; Antworten bleiben beim Bearbeiten einer Aufgabe erhalten. Die Mailliste zeigt den Namen kompakt, die vollständige Adresse bleibt am Namen und im Lesebereich erreichbar.
+
+Die Rasteransichten des Kalenders haben eine geschlossene zusätzliche Tagesliste; die ausdrücklich gewählte Listenansicht bleibt offen. Datums- und Kalendernavigation klappt auf kleinen Fenstern ein und bei Wechsel auf Desktopbreite auf. Filter, Zeitraster, Termindetail, Teilnehmende und belegte Kalenderkopien bleiben erreichbar. Es wird kein Termin wegen seines Titels zusammengeführt.
+
+Personenprofile wiederholen Namen und Kontaktadresse nicht in mehreren Karten. Belegter Kontakt, Projektverbindungen und ausdrückliche wartende Aufgaben stehen vor ausführlicher Akte und Pflege. Verlauf, Beziehungskreis, zusätzliche Verbindungen und KI-Überblick sind gezielt aufklappbar. Unbekannte Zuordnungen und veraltete KI-Überblicke bleiben erkennbar.
+
+Prüfung der Erweiterung: 725/725 UI-Tests einschließlich Regressionen für Lesereihenfolge, einzelne Identität, sichtbare Unsicherheiten, Entwurfserhalt und Fokusübergang. Die drei anfänglichen Verhaltensregressionen wurden vor der Korrektur rot beobachtet. Produktionsbuild, Assetvertrag und Diffprüfung bestanden; unabhängiges Code- und Nachreview ohne wichtige offene Befunde. Browserprüfung mit ausschließlich künstlichen Daten bei 1280×900, 900×900, 390×844 und 1280×360: Mail lesen/bearbeiten, Quellen öffnen, Details per Tastatur, Profilrückweg mit Suche, Kalenderfilter, Raster und Listenansicht. Keine erfassten Konsolenwarnungen oder -fehler. Echte Mailübertragung und Terminänderungen gehören nicht zu dieser Oberflächenprüfung.

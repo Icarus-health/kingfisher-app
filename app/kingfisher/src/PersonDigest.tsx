@@ -38,7 +38,7 @@ function errorText(error: unknown) {
   return "Der KI-Überblick konnte nicht geladen werden. Bitte versuche es erneut.";
 }
 
-export function PersonDigest({personId}: {personId: string}) {
+export function PersonDigest({personId, compact = false}: {personId: string; compact?: boolean}) {
   const [result, setResult] = useState<PersonDigestResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -83,18 +83,18 @@ export function PersonDigest({personId}: {personId: string}) {
     }
   }
   const digest = result?.digest;
-  return <section className="profile-card profile-wide person-digest" aria-labelledby={`person-digest-${personId}`}>
+  const content = <>
     <div className="person-digest-heading"><div><p className="person-digest-kicker">LOKALE KI-AUSWERTUNG</p><h2 id={`person-digest-${personId}`}>KI-Überblick</h2></div>
       {result?.status !== "no_sources" ? <button type="button" disabled={loading || generating} onClick={() => void generate()}>{generating ? <><span className="person-digest-spinner" aria-hidden="true" />Wird lokal erstellt …</> : digest ? "Neu erstellen" : "KI-Überblick erstellen"}</button> : null}
     </div>
     <p className="person-digest-note">Eine Interpretation des lokalen KI-Modells. Sie wird nicht als bestätigtes Wissen gespeichert.</p>
     {loading && !result ? <p className="person-digest-state" role="status">Vorhandener Überblick wird geprüft …</p> : null}
     {generating ? <p className="sr-only" role="status">Der KI-Überblick wird mit dem lokalen Modell erstellt.</p> : null}
-    {error ? <p className="person-digest-error" role="alert">{error}</p> : null}
+    {!compact && error ? <p className="person-digest-error" role="alert">{error}</p> : null}
     {!loading && !error && result?.status === "missing" ? <p className="person-digest-state">Noch kein KI-Überblick vorhanden. Du kannst ihn mit dem lokalen Modell erstellen.</p> : null}
     {!loading && !error && result?.status === "no_sources" ? <p className="person-digest-state">Für diese Person gibt es noch keine geeigneten Quellen für einen KI-Überblick.</p> : null}
     {!loading && !error && result?.status === "unavailable" ? <p className="person-digest-error" role="status">Kein lokales Modell verbunden.</p> : null}
-    {result?.status === "stale" ? <p className="person-digest-stale" role="status">Die Quellen oder das lokale Modell haben sich seit diesem Überblick geändert. Erstelle ihn neu, um den aktuellen Stand zu sehen.</p> : null}
+    {!compact && result?.status === "stale" ? <p className="person-digest-stale" role="status">Die Quellen oder das lokale Modell haben sich seit diesem Überblick geändert. Erstelle ihn neu, um den aktuellen Stand zu sehen.</p> : null}
     {digest ? <><p className="person-digest-meta">Lokales Modell: {digest.model || result?.model || "—"} · Erstellt {digestDate(digest.generated_at)}</p>
       {result ? <p className="person-digest-coverage">Berücksichtigt: {result.source_count} von {result.total_source_count} Quellen{result.truncated ? " · teilweise als Auszüge" : ""}.</p> : null}
       {digest.source_period ? <p className="person-digest-coverage">Zeitraum datierter Quellen: {periodDate(digest.source_period.from)} bis {periodDate(digest.source_period.to)}.</p> : null}
@@ -102,5 +102,11 @@ export function PersonDigest({personId}: {personId: string}) {
       <section><h3>Überblick</h3><DigestItems items={digest.points} empty="Keine Punkte genannt." onSourceChange={() => void load(true)} /></section>
       <section><h3>Offene Fragen</h3><DigestItems items={digest.questions} empty="Keine offenen Fragen genannt." onSourceChange={() => void load(true)} /></section>
       <section><h3>Mögliche Widersprüche</h3><DigestItems items={digest.conflicts} empty="Keine möglichen Widersprüche genannt." onSourceChange={() => void load(true)} /></section></> : null}
+  </>;
+  const status = generating ? "Wird erstellt …" : result?.status === "stale" ? "Quellen geändert" : digest ? "Vorhanden" : result?.status === "unavailable" ? "Kein lokales Modell" : result?.status === "no_sources" ? "Keine geeigneten Quellen" : "Noch nicht erstellt";
+  return <section className="profile-card profile-wide person-digest" aria-label="KI-Überblick">
+    {compact ? <details className="quiet-details"><summary>KI-Überblick <span className="disclosure-meta">{status}</span></summary>{content}</details> : content}
+    {compact && error && <p className="person-digest-error" role="alert">{error}</p>}
+    {compact && result?.status === "stale" && <p className="person-digest-stale" role="status">KI-Überblick veraltet · Quellen haben sich geändert.</p>}
   </section>;
 }

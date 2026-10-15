@@ -67,7 +67,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
    {view.episode_id===episodeId && view.source_digest===sourceDigest && Object.entries(saved).map(([id,title])=><p key={id} role="status">Aufgabe gespeichert: {title} <a href="/vorhaben?view=mine" onClick={event=>{event.preventDefault();navigate('/vorhaben?view=mine');}}>Aufgaben öffnen</a></p>)}
    {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
    {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
-   <p className="saved-mail-workflow-context">{view.temporal_reason}</p>
+   {view.temporal_status==='recent' ? <details className="quiet-details"><summary>Zeitliche Einordnung</summary><p className="saved-mail-workflow-context">{view.temporal_reason}</p></details> : <p className="saved-mail-workflow-context" role="status">{view.temporal_reason || 'Zeitliche Einordnung unbekannt · Aktualität prüfen.'}</p>}
    {view.status==='unavailable' && <p role="status">{view.detail}</p>}
    {view.quotes.length>0 && <details className="saved-mail-overview"><summary>Überblick aus Originalstellen ({view.quotes.length})</summary><p>{view.detail}</p>{view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}</details>}
    {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Wird lokal vorbereitet …':'Diese Mail lokal vorbereiten'}</button>}
