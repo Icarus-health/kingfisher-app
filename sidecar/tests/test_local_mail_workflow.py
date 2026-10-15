@@ -194,6 +194,43 @@ def test_guard_precedes_saved_source_reads():
         assert client.post('/api/v1/local-mail/x/workflow/prepare',json={}).status_code==403
         assert client.post('/api/v1/local-mail/x/workflow/tasks/v/accept',json={'title':'Prüfen','fingerprint':'a'*64,'source_digest':'sha256:'+'b'*64}).status_code==403
 
+
+def test_archived_mail_reads_without_model_but_cannot_prepare_or_accept_old_tasks(env):
+    from icarus_memory.task_review import current_task_context
+    app,client,source,calls,_=env
+    prepared=prepare(client,source)
+    proposal=prepared['items'][0]
+    app.state.episodes.mark_consolidated(source.id)
+    app.state.episodes.archive_before(datetime(2021,1,1,tzinfo=timezone.utc))
+    assert app.state.episodes.get(source.id).state.value=='archived'
+    before=app.state.episodes.get(source.id).to_dict()
+    count=len(calls)
+    response=client.get(root(source))
+    assert response.status_code==200,response.text
+    view=response.json()
+    assert view['status']=='archived' and view['items']==[] and view['projects']==[]
+    assert view['temporal_status']=='old' and view['source_digest']==source.digest
+    assert view['project_preparation_status']=='not_needed'
+    assert current_task_context(app.state.episodes,source.id) is None
+    assert client.post(root(source)+'/prepare',json={}).status_code==409
+    assert client.post(root(source)+f"/tasks/{proposal['id']}/accept",json=accept_payload(prepared,proposal)).status_code==409
+    assert len(calls)==count and app.state.tasks.all_tasks()==[]
+    assert app.state.episodes.get(source.id).to_dict()==before
+    app.state.episodes.ignore(source.id)
+    assert client.get(root(source)).status_code==409
+
+
+def test_archived_mail_with_superseded_source_head_is_not_read_as_current(env):
+    app,client,source,_,_=env
+    old=app.state.episodes.record(EpisodeKind.MESSAGE,'Alt','Bitte prüfe die Belege.',
+        Provenance(SourceType.EMAIL),occurred_at=datetime(2020,1,1,tzinfo=timezone.utc),source_key='mail:version')[0]
+    app.state.episodes.advance_source_head('mail:version',None,old.id)
+    app.state.episodes.mark_consolidated(old.id)
+    app.state.episodes.archive_before(datetime(2021,1,1,tzinfo=timezone.utc))
+    new=app.state.episodes.record(EpisodeKind.MESSAGE,'Neu','Nicht mehr prüfen.',Provenance(SourceType.EMAIL),source_key='mail:version')[0]
+    app.state.episodes.advance_source_head('mail:version',old.id,new.id)
+    assert client.get(root(old)).status_code==409
+
 def test_cache_cannot_be_read_or_written_through_generic_view_api(tmp_path):
     from icarus_memory.workspace_views import register
     app=FastAPI();register(app,[],lambda:tmp_path)

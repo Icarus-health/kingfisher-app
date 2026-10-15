@@ -9,7 +9,7 @@ import json
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from . import local_model_guard
-from .episodes import EpisodeKind, EpisodeError
+from .episodes import EpisodeKind, EpisodeError, EpisodeState
 from .model import SourceType
 from .mail_briefing import _passages, _selected, SYSTEM, SCHEMA
 from .mail_timeline import timings
@@ -80,7 +80,7 @@ class SavedMailWorkflow:
     def __init__(self, app):
         self.app = app
         self.state = app.state
-    def _source(self, identifier):
+    def _source(self, identifier, *, read_archived=False):
         try:
             source = self.state.episodes.get(identifier)
         except (EpisodeError, KeyError):
@@ -88,11 +88,18 @@ class SavedMailWorkflow:
         if source.kind is not EpisodeKind.MESSAGE or source.provenance.source_type is not SourceType.EMAIL:
             raise HTTPException(404, 'Gespeicherte Mail nicht gefunden.')
         context = current_task_context(self.state.episodes, identifier)
+        if context is None and read_archived and source.state is EpisodeState.ARCHIVED:
+            try:
+                snapshot = self.state.episodes.support_snapshot(identifier)
+            except (ValueError, LookupError):
+                snapshot = None
+            if snapshot is not None and snapshot.current():
+                context = snapshot.support_fingerprint()
         if context is None:
             raise HTTPException(409, 'Diese Mailquelle wurde verändert oder ausgeschlossen. Bitte neu laden.')
         return source, context
-    def _snapshot(self, identifier):
-        source, context = self._source(identifier)
+    def _snapshot(self, identifier, *, read_archived=False):
+        source, context = self._source(identifier, read_archived=read_archived)
         timing = timings(self.state.episodes, [source], now=datetime.now(timezone.utc))[identifier]
         # Die Zeitklassifikation und Folgemails sind Teil des Prüfschritts, nicht des Originaltexts.
         material = ['saved-mail-v1',identifier,source.digest,context,source.project_id,timing['temporal_status'],timing['followup_episode_id']]
@@ -117,7 +124,15 @@ class SavedMailWorkflow:
             return self._visible_locked(identifier)
     def _visible_locked(self, identifier):
         """Nur für Aufrufer, die den nicht-reentranten Gesprächslock bereits halten."""
-        source, context, timing, stamp = self._snapshot(identifier)
+        source, context, timing, stamp = self._snapshot(identifier, read_archived=True)
+        if source.state is EpisodeState.ARCHIVED:
+            # Reading the archive is allowed; task preparation/confirmation keeps
+            # using the strict context guard and never revives archived requests.
+            return {'episode_id':identifier,'source_digest':source.digest,'fingerprint':stamp,
+                    **timing,'status':'archived','quotes':[],'items':[],'projects':[],
+                    'project_preparation_status':'not_needed',
+                    'detail':'Archivierte Mail. Hier werden keine aktuellen Aufgabenvorschläge angezeigt. '
+                             'Der Originaltext und seine frühere Einordnung bleiben im Gedächtnis erhalten.'}
         cache = self.state.workspace_views.get(CACHE,_key(identifier))['data']
         ready = cache is not None and cache['fingerprint']==stamp
         items=[]

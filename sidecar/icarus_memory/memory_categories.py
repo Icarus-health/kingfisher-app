@@ -7,6 +7,7 @@ corrections have their own fingerprint and cannot be overwritten by a model.
 from __future__ import annotations
 
 import hashlib
+from html import unescape
 import json
 import re
 import sqlite3
@@ -263,7 +264,10 @@ def _contact_names(episode):
 
 
 def _not_person(name, banned, contact_names=()):
+    name = unescape(name)
     normalized = _normal(name)
+    banned = {_normal(unescape(value)) for value in banned}
+    contact_names = {_normal(unescape(value)) for value in contact_names}
     return (normalized in banned or ist_sammelpostfach(normalized) or ist_firmenbezeichnung(name)
             or (normalized in _PERSON_PRONOUNS and normalized not in contact_names)
             or any(_generic_address(match[0]) for match in _ADDRESS.finditer(name)))
@@ -971,11 +975,12 @@ class Categories:
                 start,end = row["start"],row["end"]
                 if not 0 <= start < end <= len(body):
                     continue
-                name = body[start:end]
-                if row["kind"] == "person" and _not_person(name, banned, contact_names):
+                quote = body[start:end]
+                name = unescape(quote) if row["kind"] == "person" else quote
+                if row["kind"] == "person" and _not_person(quote, banned, contact_names):
                     continue
                 result["entities"].append({"kind": row["kind"], "name": name, "role": row["role"],
-                    "start": start, "end": end, "quote": name, "origin": "automatic"})
+                    "start": start, "end": end, "quote": quote, "origin": "automatic"})
             if result["status"] == "complete" and not result["categories"] and not result["entities"]:
                 result["status"] = "empty"
             return result

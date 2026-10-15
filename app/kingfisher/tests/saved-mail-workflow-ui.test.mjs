@@ -14,6 +14,14 @@ async function harness(run){
  function driver(Component,props){const values=[],refs=[],deps=[],pending=[];let si=0,ri=0,ei=0;const d={state(initial){const i=si++;if(!(i in values))values[i]=typeof initial==='function'?initial():initial;return[values[i],v=>values[i]=typeof v==='function'?v(values[i]):v];},ref(initial){return refs[ri++]??=({current:initial});},effect(fn,next){const i=ei++;if(!deps[i]||next.some((v,j)=>v!==deps[i][j])){deps[i]=next;pending.push(fn);}},render(){si=ri=ei=0;globalThis.__savedMailDriver=d;return Component(props);},async flush(){while(pending.length)pending.shift()();await new Promise(r=>setImmediate(r));}};return d;}
  try{await run(server,driver,listeners);}finally{globalThis.window=oldWindow;globalThis.__savedMailDriver=oldDriver;await server.close();}
 }
+test('archived mail explains historical state without preparation or task confirmation controls',()=>harness(async(server,driver)=>{
+ const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
+ api.read=async()=>({...ready(),status:'archived',project_preparation_status:'unprepared',detail:'Archivierte Mail. Keine aktuellen Aufgabenvorschläge.'});
+ const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();const tree=d.render();
+ assert.match(shownText(tree),/Archivierte Mail/);
+ assert.equal(nodes(tree,n=>n.type==='form').length,0);
+ assert.equal(nodes(tree,n=>n.type==='button'&&/vorbereiten|bestätigen/i.test(text(n))).length,0);
+}));
 test('browsing and focus only read prepared original passages, source preparation is deliberate',()=>harness(async(server,driver,listeners)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  let reads=0,prepares=0;api.read=async()=>{reads++;return{...ready(),status:'unprepared',quotes:[],items:[]};};api.prepare=async()=>{prepares++;return ready();};
