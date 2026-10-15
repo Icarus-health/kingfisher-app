@@ -149,9 +149,28 @@ _BETRAG = re.compile(r'(?<![\d,.])(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})\s?(?:€
                      r'|(?:€|EUR)\s?(\d{1,3}(?:\.\d{3})*,\d{2})(?![\d])')
 _BETRAGSZEILE = re.compile(r'(?:rechnungsbetrag|gesamtbetrag|betrag|summe|zu zahlen|endbetrag|nachzahlung)', re.I)
 #: Sätze, die eine erledigte Sache melden, sind keine Frist („Ihre Zahlung ist eingegangen“, „wurde gekündigt“).
-_ERLEDIGT = re.compile(r'gekündigt|gekuendigt|kündigungsbestätigung|kuendigungsbestaetigung|eingegangen|gutgeschrieben|'
-                       r'beglichen|bezahlt\b|vielen dank für ihre zahlung|(?:zahlung|betrag|überweisung) (?:dankend )?erhalten',
+_ERLEDIGT = re.compile(r'\b(?:gekündigt|gekuendigt|kündigungsbestätigung|kuendigungsbestaetigung|eingegangen|gutgeschrieben|'
+                       r'beglichen|bezahlt|vielen dank für ihre zahlung|(?:zahlung|betrag|überweisung) (?:dankend )?erhalten)\b',
                        re.I)
+_NICHT_ERLEDIGT = re.compile(r'\b(?:noch\s+)?nicht\s+(?:vollständig\s+)?(?:bezahlt|beglichen|eingegangen|gutgeschrieben)\b', re.I)
+_BEDINGTE_ZAHLUNG = re.compile(r'\b(?:falls|sofern|wenn)\b', re.I)
+_UNKLARE_FRIST = re.compile(r'\b(?:ungeklärt|unklar|vorläufig|voraussichtlich)\b', re.I)
+_FRIST_DAVOR = re.compile(r'\b(?:bis(?:\s+spätestens)?(?:\s+zum)?|spätestens(?:\s+(?:am|zum))?'
+                          r'|(?:fällig|faellig|zahlbar|zahlungsziel)\s*:?(?:\s+(?:am|zum))?)\s*$', re.I)
+_AM_DAVOR = re.compile(r'\b(?:am|zum)\s*$', re.I)
+_ZAHLUNG_AM = re.compile(r'\b(?:überweisen|ueberweisen|bezahlen|begleichen)\s+'
+                        r'(?:(?:Sie|du|bitte)\s+)*(?:(?:den\s+Betrag|die\s+(?:Summe|Rechnung)|'
+                        r'[\d.,]+\s*(?:EUR|Euro|€))\s+)?am\s*$', re.I)
+
+
+def _ist_zahlungsdatum(satz, frist):
+    """Invoice/issue dates are evidence, but not payment deadlines by proximity."""
+    davor, danach = satz[:frist.start], satz[frist.ende:]
+    if _FRIST_DAVOR.search(davor):
+        return True
+    # A payment verb somewhere earlier cannot bind a later service/issue date.
+    return bool(_ZAHLUNG_AM.search(davor) or (_AM_DAVOR.search(davor)
+        and re.match(r'\s+(?:(?:zur\s+Zahlung\s+)?(?:fällig|faellig)|zahlbar|zu\s+zahlen)\b', danach, re.I)))
 _SATZENDE = re.compile(r'[.!?](?=\s|$)|\n')
 _ABKUERZUNG = re.compile(r'(?:\b(?:Dr|Nr|Str|ca|bzw|usw|Hr|Fr|St|Tel|inkl|zzgl|evtl)|\b[a-z]\.[a-z])$')
 #: Ein ausgeschriebenes Kalenderdatum: Tag und Monat als Ziffern oder Name. „bis Freitag“ zählt nicht.
@@ -198,7 +217,7 @@ def _saetze(text: str) -> list[str]:
 def fristen_finden(text: str, bezug: datetime | date | None) -> list[FristVorschlag]:
     """Kündigungs- und Zahlungsfristen eines Textes. Rein, ohne Modell.
 
-    Je Satz mit Kündigungs- oder Zahlungswort und ausgeschriebenem Kalenderdatum, das noch nicht verstrichen ist (weder
+    Je Satz mit eindeutigem Fristbezug und ausgeschriebenem Kalenderdatum, das noch nicht verstrichen ist (weder
     am Tag der Quelle noch heute), eine Frist; fehlt das Quelldatum, gilt nur der heutige Stand. Sätze, die Erledigtes
     melden („eingegangen“, „gekündigt“), nicht. Der
     Betrag kommt aus demselben Satz, sonst aus einer Zeile wie „Rechnungsbetrag: 86,40 €“ derselben Mail; fehlt er,
@@ -220,11 +239,17 @@ def fristen_finden(text: str, bezug: datetime | date | None) -> list[FristVorsch
     ergebnis: list[FristVorschlag] = []
     for satz in _saetze(text):
         art = 'kuendigung' if _KUENDIGUNG.search(satz) else 'zahlung' if _ZAHLUNG.search(satz) else ''
-        if not art or _ERLEDIGT.search(satz):
+        if not art or _ERLEDIGT.search(_NICHT_ERLEDIGT.sub('', satz)):
             continue
-        for frist in fristen_in(satz, bezug).fristen:
+        fristen = fristen_in(satz, bezug).fristen
+        if art == 'zahlung' and (_BEDINGTE_ZAHLUNG.search(satz) or _UNKLARE_FRIST.search(satz)
+                                or (len(fristen) > 1 and re.search(r'\boder\b', satz, re.I))):
+            continue  # Keep unresolved/conditional obligations in their original, not as definite tasks.
+        for frist in fristen:
             # Nur ein ausgeschriebenes Datum, und nur, was noch kommt: Eine verstrichene Frist ist keine Aufgabe mehr.
             if frist.art != 'datum' or not _AUSGESCHRIEBEN.search(frist.ausdruck) or frist.datum < heute:
+                continue
+            if art == 'zahlung' and not _ist_zahlungsdatum(satz, frist):
                 continue
             betrag = ''
             if art == 'zahlung':

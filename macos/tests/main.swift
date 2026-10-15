@@ -1,5 +1,7 @@
 import Foundation
 
+var failures = 0
+
 // MARK: Native Energiebericht
 
 do {
@@ -18,13 +20,22 @@ do {
     expect(request?.url?.absoluteString == "http://127.0.0.1:8890/api/v1/device/power", "nur freigegebener Power-Endpunkt")
     expect(request?.httpMethod == "POST" && request?.value(forHTTPHeaderField: "x-icarus-token") == "secret",
            "authentifizierter POST")
-    expect(request?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } == ["source": "battery"],
-           "nur Quelle im Request senden")
+    expect(request?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } == ["source": "battery", "memory_pressure": "unknown"],
+           "ohne Speichermessung nie normalen Speicherdruck behaupten")
     expect(PowerReportRequest.make(origin: URL(string: "http://localhost:8890")!, source: .ac, token: "secret") == nil,
            "localhost-Alias ablehnen")
     expect(PowerReportRequest.make(origin: URL(string: "http://127.0.0.1:8890/andere")!, source: .ac, token: "secret") == nil,
            "Origin mit Pfad ablehnen")
     expect(PowerReportRequest.make(origin: origin, source: .ac, token: "\n") == nil, "ungültigen Token ablehnen")
+    let pressureLevels: [(UInt32?, MemoryPressure)] = [(1, .normal), (2, .warning), (4, .critical), (0, .unknown), (3, .unknown), (nil, .unknown)]
+    for (level, expected) in pressureLevels {
+        expect(MemoryPressure.fromKernelLevel(level) == expected, "nur bekannte Kernel-Druckstufen übernehmen")
+    }
+    for pressure in [MemoryPressure.normal, .warning, .critical, .unknown] {
+        let measured = PowerReportRequest.make(origin: origin, source: .ac, memoryPressure: pressure, token: "secret")
+        let payload = measured?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
+        expect(payload == ["source": "ac", "memory_pressure": pressure.rawValue], "gemessenen Speicherdruck im authentifizierten Bericht übertragen")
+    }
 }
 
 // Prüfprogramm für die reine Logik der Mac-App (macos/App/Logic). Läuft überall, wo swiftc da ist, auch
@@ -34,8 +45,6 @@ do {
 //
 // Ausgeführt von macos/test_mac_app_logic.py und in .github/workflows/mac-app.yml. Jede Abweichung beendet
 // das Programm mit einem Fehler und nennt die Stelle.
-
-var failures = 0
 
 func expect(_ condition: Bool, _ what: String, line: Int = #line) {
     if !condition {

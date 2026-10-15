@@ -489,6 +489,17 @@ def _woerter(text: str) -> list[str]:
     return teile
 
 
+def mehrteilige_namen_belegt(text: str, quelle: str) -> bool:
+    """Conservative task guard, reusing the existing name/generic-word boundary.
+
+    Only consecutive multiword name candidates are literal constraints here;
+    a standalone capitalised task noun may be a valid nominalisation.
+    """
+    return all(re.search(r'(?<!\w)' + r'[\s\-–/&]+'.join(re.escape(original) for _, original in folge)
+                         + r'(?!\w)', quelle, re.I)
+               for folge in _namensfolgen(text) if len(folge) >= 2)
+
+
 def _gleiches_wort(a: str, b: str) -> bool:
     """Gleiches Wort bis auf Beugung und Ableitung (Vorsilbe gleich, Rest höchstens vier Zeichen)."""
     if a == b:

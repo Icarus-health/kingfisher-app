@@ -4,13 +4,13 @@ from . import abschnitte
 from .working_memory_analysis import UnsupportedSource, abschnitte_der, interpret_abschnitt
 from .working_memory_store import WorkingMemoryStore, source_fingerprint
 from .scheduler import JobResult
-from .hintergrund import BackgroundInterrupted
+from .hintergrund import BackgroundInterrupted, im_hintergrund
 from collections import OrderedDict, deque
 import threading
 import time
 
-#: So viele Abschnitte (Modellaufrufe) darf ein Paket mindestens bearbeiten; ein Paket mit mehr Quellen darf je Quelle
-#: einen. Eine lange Quelle bekommt damit nie alle ihre Abschnitte in einem Paket, sondern Häppchen über mehrere.
+#: Budget direkter Läufe; bei mehr Quellen mindestens ein Abschnitt je Quelle.
+#: Automatischer Hintergrund bearbeitet unabhängig davon nur einen Abschnitt je Paket.
 ABSCHNITTE_JE_PAKET = 8
 
 
@@ -92,7 +92,7 @@ class Pace:
 
 def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitted, initial_model,
                           processing_policy=None):
-    """Gibt Ergebnisse, Verbrauch, gestoppt und ggf. den geordneten Abbruch zurück."""
+    """Gibt Ergebnisse, Verbrauch, gestoppt und ggf. Fehler oder geordneten Abbruch zurück."""
     ergebnisse = list(bisher)
     verbraucht = 0
     while len(ergebnisse) < len(plan) and verbraucht < rest:
@@ -105,6 +105,13 @@ def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitte
         except BackgroundInterrupted as interruption:
             # Save completed sections in the caller before unwinding job locks.
             return ergebnisse, verbraucht, True, interruption
+        except UnsupportedSource as error:
+            # Deterministic source checks reject input before calling a model.
+            return ergebnisse, verbraucht, False, error
+        except Exception as error:
+            # A failed answer still spent this section's model attempt. Keep
+            # the preceding successful attempts in the packet's total as well.
+            return ergebnisse, verbraucht + 1, False, error
         verbraucht += 1
     return ergebnisse, verbraucht, False, None
 
@@ -119,6 +126,7 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
     merkt sich `stand` die fertigen Abschnitte, und die Quelle kommt im nächsten Paket zuerst wieder dran; in den
     Bestand geschrieben wird erst, wenn der letzte Abschnitt fertig ist. Ein Fehler oder eine Änderung der Quelle
     wirft den Zwischenstand der Quelle weg.
+    Automatischer Hintergrund gibt nach einem Abschnitt an die Pausensteuerung zurück.
     """
     local = provider is not None and getattr(provider, 'is_local', False)
     scoped_remote = (provider is not None and callable(processing_policy)
@@ -129,6 +137,10 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
     store = WorkingMemoryStore(episodes)
     initial_model = model_key(provider)
     rest = max(ABSCHNITTE_JE_PAKET, limit) if abschnitte_je_lauf is None else max(1, abschnitte_je_lauf)
+    # Automatic work yields after one section, even when a caller requests a
+    # larger batch. Explicit direct runs keep their selected budget.
+    if im_hintergrund():
+        rest = 1
     with lock:
         if not permitted():
             return JobResult('gedaechtnis', True, 'Einordnung nach geänderter Freigabe gestoppt.')
@@ -164,6 +176,9 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
             ergebnisse, verbraucht, gestoppt, interruption = _abschnitte_einordnen(
                 snapshot, provider, plan, bisher, rest, lock, permitted, initial_model,
                 processing_policy=policy)
+            rest -= verbraucht
+            if isinstance(interruption, Exception):
+                raise interruption
         except UnsupportedSource:
             stand.verwerfen(episode.id)
             with lock:
@@ -179,7 +194,6 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
                     store.fail(snapshot)
             failed += 1
             continue
-        rest -= verbraucht
         if gestoppt:
             stand.ablegen(episode.id, fingerprint, initial_model, ergebnisse)
             if interruption is not None:

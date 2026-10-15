@@ -18,7 +18,7 @@ from .providers import ProviderError
 from .task_detection import TaskDetector
 from .task_candidates import TaskCandidates
 from .task_project_hints import TaskProjectHints
-from .task_review import current_task_context, task_context_matches, REVIEW_MARKER
+from .task_review import current_task_context, hard_details_supported, task_context_matches, REVIEW_MARKER
 from .workspace import WorkspaceError
 from .workspace_views import ViewChanged
 
@@ -131,7 +131,8 @@ class SavedMailWorkflow:
             items.append({**proposal.to_dict(),'project_suggestion':self._hints().visible(proposal),
                           'project_preparation_status':self._project_preparation(proposal),
                           'review_required':timing['temporal_status']!='recent' or proposal.task_context is None
-                              or not proposal.proposed_by.endswith(REVIEW_MARKER)})
+                              or not proposal.proposed_by.endswith(REVIEW_MARKER)
+                              or not hard_details_supported(proposal.statement, proposal.evidence[0].quote)})
         project_status = ('unprepared' if any(item['project_preparation_status']=='unprepared' for item in items)
                           else 'ready' if any(item['project_preparation_status']=='ready' for item in items) else 'not_needed')
         return {'project_preparation_status':project_status,

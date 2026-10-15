@@ -149,8 +149,83 @@ def test_pause_bei_eingabe_antwort_und_durch_den_menschen():
 
 def test_drosselung_ruht_nach_jedem_haeppchen():
     assert Steuerung.pause_nach(0.1) == hintergrund.PAUSE_MIN_S
-    assert Steuerung.pause_nach(10) == pytest.approx(10 * (1 - hintergrund.ARBEITSANTEIL) / hintergrund.ARBEITSANTEIL)
-    assert Steuerung.pause_nach(600) == hintergrund.PAUSE_MAX_S
+    assert Steuerung.pause_nach(10) == pytest.approx(40)
+    assert Steuerung.pause_nach(600) == pytest.approx(2400)
+
+
+@pytest.mark.parametrize('wake_every', [None, 0.25])
+def test_zeitplan_haelt_lange_arbeitspause_auch_ueber_ticks_und_wecksignale(monkeypatch, wake_every):
+    clock = Uhr()
+    clock.wert = 0
+    monkeypatch.setattr('icarus_memory.scheduler.time.monotonic', clock)
+    monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 1)
+    control = Steuerung(None, lambda: None, uhr=clock, ruhe_s=0)
+    control.probe = lambda: None
+    control.dringend_offen = lambda: False
+    control.naechste_quellen = lambda *a, **kw: []
+    started = []
+    scheduler = Scheduler()
+    scheduler.configure(enabled=True, with_model=True)
+    scheduler.anschliessen(control)
+    scheduler._last_at = datetime.now().astimezone()
+
+    class Wake:
+        def wait(self, timeout):
+            clock.wert += min(timeout, wake_every) if wake_every is not None else timeout
+        def clear(self):
+            pass
+
+    def work(*args, **kwargs):
+        started.append(clock.wert)
+        clock.wert += 10
+        if len(started) == 2:
+            scheduler._stop.set()
+        return JobResult('synthetic')
+
+    scheduler._wake = Wake()
+    scheduler._run_working_memory = work
+    scheduler._loop_until_interrupted()
+    assert len(started) == 2
+    assert started[1] - started[0] >= 50, '10 seconds work requires at least 40 seconds rest'
+
+
+@pytest.mark.parametrize('finish', ['interrupt', 'stop'])
+def test_geleistete_arbeit_behaelt_ihre_pause_nach_abbruch_oder_neuem_loop(monkeypatch, finish):
+    clock = Uhr(0)
+    monkeypatch.setattr('icarus_memory.scheduler.time.monotonic', clock)
+    monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 1)
+    control = Steuerung(None, lambda: None, uhr=clock, ruhe_s=0)
+    control.probe = lambda: None
+    control.dringend_offen = lambda: False
+    control.naechste_quellen = lambda *a, **kw: []
+    started = []
+    scheduler = Scheduler()
+    scheduler.configure(enabled=True, with_model=True)
+    scheduler.anschliessen(control)
+    scheduler._last_at = datetime.now().astimezone()
+
+    class Wake:
+        def wait(self, timeout):
+            clock.wert += timeout
+        def clear(self):
+            pass
+
+    def work(*args, **kwargs):
+        started.append(clock.wert)
+        clock.wert += 10
+        if len(started) == 1 and finish == 'interrupt':
+            raise hintergrund.BackgroundInterrupted('speicherdruck')
+        scheduler._stop.set()
+        return JobResult('synthetic')
+
+    scheduler._wake = Wake()
+    scheduler._run_working_memory = work
+    scheduler._loop()
+    if finish == 'stop':
+        scheduler._stop.clear()
+        scheduler._loop()
+    assert len(started) == 2
+    assert started[1] - started[0] >= 50, '10 seconds completed work still earns 40 seconds rest after interruption'
 
 
 def test_welche_anfragen_als_eingabe_zaehlen():

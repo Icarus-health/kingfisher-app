@@ -158,6 +158,8 @@ class Scheduler:
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
         self._wake = threading.Event()
+        # Earned rest survives resource interruptions and restarts of this scheduler.
+        self._background_pause_until = 0.0
         self._lock = threading.Lock()
         self._run_lock = threading.Lock()
         self._lifecycle_lock = threading.Lock()
@@ -486,6 +488,9 @@ class Scheduler:
                 delay = max(0.0, self._next_memory_at - time.monotonic()) if self._memory_pending else TICK_SECONDS
             if pause is not None:
                 delay = pause
+            rest = self._background_pause_until - time.monotonic()
+            if rest > 0:
+                delay = rest
             self._wake.wait(min(TICK_SECONDS, delay))
             self._wake.clear()
             pause = None
@@ -497,6 +502,10 @@ class Scheduler:
                     nebenbei()
                 except Exception:  # noqa: BLE001 - der Thread darf nie sterben
                     pass
+            # A timer tick or fresh host report may wake the thread, but must
+            # not erase the remaining rest after an expensive packet.
+            if time.monotonic() < self._background_pause_until:
+                continue
             steuerung = self._steuerung
             if self._enabled and self._capacity_gate() is not None:
                 pause = TICK_SECONDS
@@ -509,71 +518,76 @@ class Scheduler:
                     pause = steuerung.wartezeit()
                     continue
             begonnen = time.monotonic()
-            # Was morgen zählt, geht auch neuen Uploads vor (Reihenfolge nach Nutzen).
-            vorrang = bool(steuerung is not None and self._enabled and self._with_model
-                           and self._run_working_memory is not None and steuerung.dringend_offen())
-            with self._lock:
-                prompt = (not vorrang and bool(self._memory_pending) and self._enabled and self._with_model
-                          and time.monotonic() >= self._next_memory_at)
+            try:
+                # Was morgen zählt, geht auch neuen Uploads vor (Reihenfolge nach Nutzen).
+                vorrang = bool(steuerung is not None and self._enabled and self._with_model
+                               and self._run_working_memory is not None and steuerung.dringend_offen())
+                with self._lock:
+                    prompt = (not vorrang and bool(self._memory_pending) and self._enabled and self._with_model
+                              and time.monotonic() >= self._next_memory_at)
+                    if prompt:
+                        ids = list(self._memory_pending)[:PROMPT_BATCH_SIZE]
+                        for episode_id in ids:
+                            del self._memory_pending[episode_id]
+                        self._memory_active.update(ids)
+                        self._next_memory_at = time.monotonic() + PROMPT_PAUSE_SECONDS
                 if prompt:
-                    ids = list(self._memory_pending)[:PROMPT_BATCH_SIZE]
-                    for episode_id in ids:
-                        del self._memory_pending[episode_id]
-                    self._memory_active.update(ids)
-                    self._next_memory_at = time.monotonic() + PROMPT_PAUSE_SECONDS
-            if prompt:
-                try:
-                    self._run_prompt_once(ids)
-                except Exception:  # noqa: BLE001 - next scheduled pass may retry
-                    pass
-                finally:
-                    with self._lock:
-                        self._memory_active.difference_update(ids)
-                # A steady stream of uploads must not starve an already due
-                # ordinary pass (intake and backup share this same thread).
-            if self._stop.is_set():
-                return
-            if not self._enabled:
-                continue
-            intake = getattr(self, '_run_mail_intake', None)
-            if intake is not None and time.monotonic() >= getattr(self, '_next_intake_at', 0):
-                self._next_intake_at = time.monotonic() + TICK_SECONDS
-                try:
-                    self._run_background_mail_intake()
-                except Exception:
-                    pass  # Restore boundary can reject work while recovery is pending.
-            faellig = self.next_run()
-            voller_lauf = faellig is not None and now() >= faellig
-            if voller_lauf:
-                try:
-                    self.run_once()
-                except Exception:  # noqa: BLE001 - der Thread darf nie sterben
-                    # run_once fängt bereits jeden Schritt einzeln ab; was hier
-                    # ankommt, wäre ein Fehler im Berichten selbst. Weiterlaufen
-                    # ist trotzdem richtig: Ein Zeitplan, der nach einem
-                    # Ausrutscher still aufhört, ist schlimmer als einer, der
-                    # es erneut versucht.
-                    with self._lock:
-                        self._last_at = now()
-            else:
-                # Neue/korrigierte Aufgaben warten weder auf den großen Lauf noch auf die Upload-Schlange.
-                try:
-                    self._run_background_tasks()
-                except Exception:
-                    pass  # Auch die Restore-Sperre vor dem Aufruf darf den Zeitplanfaden nicht beenden.
-            if not prompt and not voller_lauf:
-                # Rückstände der lokalen Quellen-Einordnung laufen in kleinen
-                # Batches zwischen den regulären (teuren) Aufnahme-/Sicherungs-
-                # Durchgängen. Upload-Signale haben Vorrang; die Store-Seite
-                # begrenzt den Batch und steuert Scan-Cursor sowie Backoff.
-                self._run_background_working_memory(vorrang=vorrang)
-                if not vorrang:
-                    self._run_background_lage()
-            if steuerung is not None:
-                # Drosselung: Wer gearbeitet hat, ruht danach (höchstens die Hälfte der Zeit Arbeit).
-                dauer = time.monotonic() - begonnen
-                if dauer >= 0.5:
-                    pause = steuerung.pause_nach(dauer)
+                    try:
+                        self._run_prompt_once(ids)
+                    except Exception:  # noqa: BLE001 - next scheduled pass may retry
+                        pass
+                    finally:
+                        with self._lock:
+                            self._memory_active.difference_update(ids)
+                    # A steady stream of uploads must not starve an already due
+                    # ordinary pass (intake and backup share this same thread).
+                if self._stop.is_set():
+                    return
+                if not self._enabled:
+                    continue
+                intake = getattr(self, '_run_mail_intake', None)
+                if intake is not None and time.monotonic() >= getattr(self, '_next_intake_at', 0):
+                    self._next_intake_at = time.monotonic() + TICK_SECONDS
+                    try:
+                        self._run_background_mail_intake()
+                    except Exception:
+                        pass  # Restore boundary can reject work while recovery is pending.
+                faellig = self.next_run()
+                voller_lauf = faellig is not None and now() >= faellig
+                if voller_lauf:
+                    try:
+                        self.run_once()
+                    except Exception:  # noqa: BLE001 - der Thread darf nie sterben
+                        # run_once fängt bereits jeden Schritt einzeln ab; was hier
+                        # ankommt, wäre ein Fehler im Berichten selbst. Weiterlaufen
+                        # ist trotzdem richtig: Ein Zeitplan, der nach einem
+                        # Ausrutscher still aufhört, ist schlimmer als einer, der
+                        # es erneut versucht.
+                        with self._lock:
+                            self._last_at = now()
+                else:
+                    # Neue/korrigierte Aufgaben warten weder auf den großen Lauf noch auf die Upload-Schlange.
+                    try:
+                        self._run_background_tasks()
+                    except Exception:
+                        pass  # Auch die Restore-Sperre vor dem Aufruf darf den Zeitplanfaden nicht beenden.
+                if not prompt and not voller_lauf:
+                    # Rückstände der lokalen Quellen-Einordnung laufen in kleinen
+                    # Batches zwischen den regulären (teuren) Aufnahme-/Sicherungs-
+                    # Durchgängen. Upload-Signale haben Vorrang; die Store-Seite
+                    # begrenzt den Batch und steuert Scan-Cursor sowie Backoff.
+                    self._run_background_working_memory(vorrang=vorrang)
+                    if not vorrang:
+                        self._run_background_lage()
+            finally:
+                # Even an interrupted packet consumed resources. Charge its full
+                # elapsed work before unwinding, and retain the deadline on self.
+                if steuerung is not None:
+                    beendet = time.monotonic()
+                    dauer = beendet - begonnen
+                    if dauer >= 0.5:
+                        self._background_pause_until = max(
+                            self._background_pause_until, beendet + steuerung.pause_nach(dauer))
 
     @guarded
     def _run_background_mail_intake(self):

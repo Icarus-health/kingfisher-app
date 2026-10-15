@@ -11,6 +11,7 @@ import uuid
 
 from .providers import ProviderError
 from .migrations import IndexContract
+from .task_review import hard_details_supported
 
 VERSION = "requests-v3"
 MAX_CHARS = 8000
@@ -116,7 +117,7 @@ Keine weiteren Felder. Leere Liste, wenn nichts belegt ist. Maximal 32 Einträge
                 or quote not in body):
             raise ProviderError("Ein Vorschlag hat keinen gültigen Originalbeleg.")
         candidate = {"title": title.strip(), "quote": quote}
-        if candidate not in result:
+        if hard_details_supported(title, quote) and candidate not in result:
             result.append(candidate)
     return result
 

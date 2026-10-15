@@ -1,0 +1,45 @@
+{
+  "model": "kingfisher-qwen3.5:9b-32k",
+  "transport": "unchanged production OpenAICompatible",
+  "personal_data": false,
+  "settings_changed": false,
+  "cases": [
+    {
+      "id": "review-request",
+      "expected_keep": true,
+      "actual_keep": true,
+      "passed": true,
+      "seconds": 8.702
+    }
+  ],
+  "calls": [
+    {
+      "seconds": 8.681,
+      "reply": "{\"reviews\":[{\"id\":0,\"kind\":\"request_to_recipient\",\"title_supported\":true}]}",
+      "after": {
+        "pressure": 2,
+        "swap_used_mib": 32517.31,
+        "sysctl_latency_ms": 8.12
+      }
+    }
+  ],
+  "status": "interrupted",
+  "model_digest": "4b44ba7611d862092ee5ea1fe4fbf3c127613ea7721bf762de348d5ff9d65de3",
+  "reason": "Pause: memory pressure not normal",
+  "resources": {
+    "max_ollama_allocation_gib": 6.219,
+    "pressure_levels": [
+      1,
+      2,
+      4
+    ],
+    "swap_change_mib": 3285.93,
+    "sysctl_latency_p95_ms": 50.49,
+    "samples": 6
+  },
+  "final_host": {
+    "pressure": 2,
+    "swap_used_mib": 32517.31,
+    "sysctl_latency_ms": 5.61
+  }
+}
