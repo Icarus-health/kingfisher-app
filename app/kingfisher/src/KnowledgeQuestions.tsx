@@ -41,7 +41,7 @@ function SourceEvidence({source}: {source: MemoryQuestion["candidates"][number][
 }
 
 /** Source-current, explicit decisions about durable knowledge conflicts. */
-export function KnowledgeQuestions({active, onChanged}: {active: boolean; onChanged?: () => void}) {
+export function KnowledgeQuestions({active, compact = false, onChanged}: {active: boolean; compact?: boolean; onChanged?: () => void}) {
   const [questions, setQuestions] = useState<MemoryQuestion[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -135,11 +135,12 @@ export function KnowledgeQuestions({active, onChanged}: {active: boolean; onChan
   }
 
   if (!active) return null;
+  if (compact && questions?.length === 0 && !truncated && !loading && !loadError && !actionError && !notice && !pendingQuestion) return null;
   const displayed = visibleMemoryQuestions(questions ?? [], visibleLimit);
   const total = Math.min(questions?.length ?? 0, MAX_QUESTIONS);
   return <section className="task-source knowledge-questions" aria-label="Wissensklärungen">
     <h2>Wissensklärungen</h2>
-    <p>Widersprüchliche Angaben bleiben offen, bis du eine ausdrücklich bestätigst oder eine bestehende bestätigte Angabe beibehältst.</p>
+    {!compact && <p>Widersprüchliche Angaben bleiben offen, bis du eine ausdrücklich bestätigst oder eine bestehende bestätigte Angabe beibehältst.</p>}
     {loading && questions === null && <p role="status">Wissensklärungen werden geladen …</p>}
     {loadError && <p role="alert">{loadError} <button type="button" className="secondary-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
     {actionError && <p role="alert">{actionError}</p>}

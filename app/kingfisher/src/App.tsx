@@ -57,7 +57,6 @@ import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg"
 import { AntwortZeile } from "./AntwortZeiten";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
-import { verbindungenPruefen } from "./verbindungen";
 import { Verweis } from "./VerweisLink";
 import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
@@ -325,7 +324,6 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   );
 
   const attentionCount = todayAttention(briefing).length;
-  const connectionFailures = briefing.partial_failures.filter(failure => failure.section !== "source_review");
   return (
     <div className="shell">
       <Sidebar active="Heute" navigationDisabled={briefingOpen} briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
@@ -358,11 +356,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           </HeuteLeer>
           <TodayPersonal />
           <FassungHeute />
-          {briefing.post_ausstehend ? <p className="today-post-laedt" role="status">Deine Post wird gerade geholt …</p> : <PostfachStand />}
-          {connectionFailures.length > 0 && <details className="today-connection-note"><summary>Quellen teilweise nicht verfügbar ({connectionFailures.length})</summary>
-            {connectionFailures.map(failure => <p key={failure.section}>{failure.message}</p>)}
-            <a className="today-text-link" href={verbindungenPruefen(connectionFailures)}>Verbindungen prüfen →</a>
-          </details>}
+          <details className="quiet-details today-runtime"><summary>Postfachstand</summary>
+          {briefing.post_ausstehend ? <p className="today-post-laedt" role="status">Deine Post wird gerade geholt …</p> : <PostfachStand />}</details>
         </section>
       </main>
       <BriefingDrawer briefing={briefing} onClose={() => setBriefingOpen(false)} onChange={load} open={briefingOpen} />

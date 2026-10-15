@@ -76,7 +76,6 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
   return <div className="today-overview">
-    <TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} />
     <section className="today-panel today-attention" aria-labelledby="today-attention-title">
       <header className="today-panel-heading"><h2 id="today-attention-title">Braucht dich</h2><img className="today-flight" src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />{zaehlerText(attention.length) ? <span className="today-count">{zaehlerText(attention.length)}</span> : null}</header>
       {reviewStatus && <p className="today-notice" role="status">{reviewStatus.message} <a href="/vorhaben?view=mine">Aufgaben prüfen →</a></p>}
@@ -84,7 +83,9 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
         const action = actionFor(item);
         return <li className="today-attention-item" key={item.id}>
           <div className="today-item-meta"><span>{kindLabel(item)}</span>{item.priority && <span>{item.priority}</span>}</div>
-          <h3>{item.title}</h3><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p>
+          <h3>{item.title}</h3>
+          {(item.action === 'Verlauf prüfen' || item.review_required) && <span className="today-review-badge">{item.action === 'Verlauf prüfen' ? 'Verlauf ungeprüft' : 'Original prüfen'}</span>}
+          {item.source !== 'aufgabe' && item.source !== 'wartet' && (item.reason || item.detail) && <details className="quiet-details"><summary>Hintergrund</summary><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p></details>}
           {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : (item.source === "aufgabe" || item.source === "wartet") && item.source_ref ? <TodayTaskActions key={item.source_ref} item={item} onChanged={onChange} /> : action ? <a className="today-action" href={action.href}>{action.label}<span aria-hidden="true">→</span></a> : null}
         </li>;
       })}</ul> : <div className="today-empty"><h3>{briefing.partial_failures.length ? "Noch kein offener Punkt sichtbar." : "Gerade braucht dich nichts."}</h3><p>In den verfügbaren Quellen sind keine offenen Punkte für dich aufgeführt.</p></div>}
@@ -105,16 +106,16 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
     </section>
 
     <div className="today-followups">
-      <TaskReminders onChanged={onChange} />
+      <TaskReminders compact onChanged={onChange} />
       <div id="memory-questions">
-        <h2>Deine Rückfragen</h2>
-        <p>Prüfe widersprüchliche Angaben und wichtige Hinweise mit ihren Originalstellen. <a className="today-text-link" href="/review">Alle Rückfragen prüfen →</a></p>
-        <KnowledgeQuestions active onChanged={onChange} />
-        <MemoryQuestions active onOpenAll={() => navigate('/review')} />
+        <KnowledgeQuestions active compact onChanged={onChange} />
+        <MemoryQuestions active compact onOpenAll={() => navigate('/review')} />
       </div>
     </div>
 
-    <section className="today-panel today-memory" aria-labelledby="today-memory-title">
+    {(briefing.happening_now.length > 0 || briefing.working_memory_more) && <details className="today-panel today-memory quiet-details">
+      <summary>Neu im Gedächtnis <span>{briefing.happening_now.length} Meldungen</span></summary>
+    <section aria-labelledby="today-memory-title">
       <header className="today-panel-heading"><h2 id="today-memory-title">Neu im Blick</h2><a className="today-text-link" href="/memory">Gedächtnis öffnen <span aria-hidden="true">→</span></a></header>
       {briefing.happening_now.length ? <div className="today-source-grid">{briefing.happening_now.map(item => <article className="today-source" key={item.id}>
         <div className="today-source-heading"><h3>{item.title}</h3><p>{item.detail}</p>{(item.source === "mail" || item.source === "working_memory") && activityDates(item, briefing.timezone)}</div>
@@ -122,7 +123,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
         {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss onChange={onChange} /> : null}
       </article>)}</div> : <p className="today-notice">Gerade gibt es keine neuen Hinweise aus deinen Quellen.</p>}
       {briefing.working_memory_more && <p className="today-context-note">Dieser Überblick zeigt eine Auswahl. Weitere Quellen können noch aufs Sortieren warten.</p>}
-      {correctionSaved && <p className="today-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
-    </section>
+    </section></details>}
+    {correctionSaved && <p className="today-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
+    <details className="today-activity quiet-details"><summary>Tageslage & Verlauf</summary><TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} /></details>
   </div>;
 }

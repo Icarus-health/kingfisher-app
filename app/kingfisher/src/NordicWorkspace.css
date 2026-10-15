@@ -249,3 +249,70 @@
 .workspace-tasks .task-source .mail-task-form > label > input[type="checkbox"] { width: 18px; height: 18px; min-height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: var(--calm-link); }
 .workspace-tasks .task-source .mail-task-form > p { margin: 0; }
 .workspace-tasks .task-source .mail-task-form blockquote { margin: 8px 0; padding-inline-start: 12px; border-inline-start: 3px solid var(--calm-line); font-size: 14px; line-height: 1.6; }
+
+/* Erst Überblick, dann Vertiefung: Inhalte werden bei Bedarf geöffnet. */
+.shell main .quiet-details { font-size: 13px; color: var(--calm-muted); }
+.shell main .quiet-details > summary { cursor: pointer; min-height: 36px; padding: 8px 0; color: var(--calm-link); font-weight: 500; }
+.shell main .quiet-details[open] > summary { margin-bottom: 8px; }
+.shell main .quiet-details :is(p,blockquote) { line-height: 1.6; }
+.shell .today-source-status { display: block; margin-bottom: 14px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--calm-inset); font-size: 12px; }
+.shell .today-source-status > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 38px; padding: 8px 0; cursor: pointer; color: var(--calm-muted); }
+.shell .today-source-status > summary::before { content: '›'; color: var(--calm-link); font-size: 18px; line-height: 1; }
+.shell .today-source-status[open] > summary::before { transform: rotate(90deg); }
+.shell .today-source-status > summary > span:first-child { font-weight: 600; color: var(--calm-ink); }
+.shell .today-source-status > summary > time { margin-left: auto; font-variant-numeric: tabular-nums; }
+.shell .today-source-status[open] { padding-bottom: 12px; }
+.shell .today-source-status > div { margin: 8px 0; }
+.shell .today-source-status ul { padding-left: 18px; }
+.shell .today-source-status .today-context-note { padding: 0; border: 0; }
+.shell .today-review-badge, .shell .suggestion-time-badge { display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px; background: #fff2d8; color: #704b0b; font-size: 12px; line-height: 1.5; margin-top: 6px; }
+.shell .today-task-actions { margin-top: 10px; }
+.shell .today-task-actions > .task-suggestion-actions { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; align-items: start; }
+.shell .today-task-actions .today-task-more { min-width: 0; }
+.shell .today-task-actions .today-task-more[open] { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid var(--calm-line); padding-top: 6px; }
+.shell .today-task-actions .today-task-more > :is(button,a) { margin: 4px 12px 4px 0; }
+.shell .today-task-actions .today-task-more p { margin: 4px 0 12px; font-size: 13px; }
+.shell .today-followups { grid-template-columns: repeat(auto-fit,minmax(min(360px,100%),1fr)); }
+.shell .today-followups > #memory-questions:empty { display: none; }
+.shell .today-followups:has(> #memory-questions:empty):not(:has(> section)) { display: none; }
+.shell .today-memory > summary { padding: 14px 20px; color: var(--calm-ink); }
+.shell .today-memory > summary > span { float: right; color: var(--calm-muted); font-size: 12px; }
+.shell .today-activity { grid-column: 1 / -1; padding-inline: 4px; }
+.shell .today-activity .tageslage { margin-top: 0; }
+.shell .today-runtime { margin-top: 12px; padding: 0 4px; }
+.shell .today-personal { margin-top: 18px; border: 0; background: transparent; }
+.shell .today-personal .today-panel-heading { min-height: 0; padding: 0; }
+.shell .today-personal .today-panel-heading h2 { font-size: 14px; letter-spacing: 0; color: var(--calm-muted); }
+.shell .today-personal .development-links { margin: 4px 0 0; gap: 8px 24px; }
+.shell .today-attention .today-item-meta { justify-content: start; gap: 12px; font-size: 12px; margin-bottom: 4px; }
+.shell .today-attention-item h3 { font-size: 16px; }
+.shell .today-attention-item { padding-block: 10px 16px; }
+.shell .today-attention-item + .today-attention-item { padding-top: 16px; }
+.shell .workspace-tasks .suggestion-evidence { padding: 0; border: 0; }
+.shell .workspace-tasks .suggestion-evidence p { margin: 8px 0; }
+.shell .workspace-tasks .suggestion-time-badge { margin: 0; }
+.shell .memory-search-help { margin: 6px 0 16px; }
+@media (max-width: 700px) {
+  .shell .today-source-status > summary > time { margin-left: 0; }
+  .shell .today-memory > summary > span { float: none; margin-left: 10px; }
+}
+/* Der Tageskopf lässt den eigentlichen Aufgaben und Terminen den Platz. */
+.shell .today-page .hero { height: 190px; min-height: 190px; }
+.shell .today-page .hero-copy { top: 20px; left: 32px; }
+.shell .today-page .hero-copy h1 { font-size: 34px; }
+.shell .today-page .hero-copy .today-hero-label { margin-bottom: 7px; }
+.shell .today-page .hero-copy .today-hero-summary { margin: 8px 0 12px; font-size: 14px; }
+.shell .today-page .hero-bird { width: 185px; height: 145px; top: 32px; right: 22px; }
+.shell .today-page .weather { top: 64px; right: 200px; }
+.shell .today-page .today-landscape { height: 220px; }
+.shell .today-page .briefing-area { margin-top: -8px; }
+.shell .today-page .today-panel-heading { min-height: 72px; padding-block: 16px; }
+.shell .today-page .today-panel-heading h2 { font-size: 24px; }
+.shell .today-page .today-flight { width: 90px; height: 70px; top: 0; }
+.shell .today-page .today-count { top: 20px; }
+@media (max-width: 700px) {
+  .shell .today-page .hero { height: auto; min-height: 170px; padding-bottom: 18px; }
+  .shell .today-page .hero-copy { top: auto; left: auto; padding: 18px 16px 0; }
+  .shell .today-page .hero-copy h1 { font-size: 28px; }
+  .shell .today-page .briefing-area { margin-top: 0; }
+}

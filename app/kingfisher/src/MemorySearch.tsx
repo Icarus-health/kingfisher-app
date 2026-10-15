@@ -42,15 +42,15 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
   const visible = entries.slice((current - 1) * 25, current * 25);
   return <section data-memory-loading={busy || (!documents && submitted.length >= 2 && submitted === needle && !result && !error)} className="memory-directory memory-search" aria-label={documents ? 'Dokumente' : 'Gedächtnissuche'}>
     <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{documents ? 'Dokumente' : 'Was möchtest du wiederfinden?'}</h1>
-      <p>{documents ? 'Gespeicherte Dokumente und Notizen. Originaltext und Aufnahmegrenzen findest du direkt beim Eintrag.' : 'Menschen, Projekte und Originalquellen an einem Ort. Quellen berichten; ihre Aussagen sind damit noch nicht bestätigt.'}</p></header>
+      </header>
     <form className="memory-search-form" onSubmit={event => {event.preventDefault(); setSubmitted(needle); setRetry(n => n + 1);}}>
       <label className="directory-search">{documents ? 'Dokumenttitel suchen' : 'Gedächtnis durchsuchen'}
         <input type="search" maxLength={200} value={query} onChange={event => onQueryChange(event.target.value)} placeholder={documents ? 'Titel oder Teil des Dateinamens …' : 'Name, Projekt oder Begriff, z. B. Redaktionsschluss …'} /></label>
       {!documents && <button type="submit" disabled={needle.length < 2 || busy}>{busy ? 'Suche läuft …' : 'Suchen'}</button>}
     </form>
-    {!documents && <p className="directory-count">Einträge werden nach Namen und Titeln gefiltert. „Suchen“ durchsucht zusätzlich wörtlich gespeicherte Originaltexte, ohne KI-Aufruf.</p>}
+    <details className="quiet-details memory-search-help"><summary>So funktioniert die Suche</summary><p>Einträge werden nach Namen und Titeln gefiltert. „Suchen“ durchsucht zusätzlich wörtlich gespeicherte Originaltexte, ohne KI-Aufruf.</p><p>Quellen berichten; ihre Aussagen sind damit noch nicht bestätigt.</p></details>
     {!graph && <p role={graphError ? 'alert' : 'status'}>{graphError ? 'Die Eintragsübersicht konnte nicht geladen werden.' : 'Eintragsübersicht wird geladen …'}{!documents && ' Die Quellensuche kann separat verwendet werden.'}{graphError && <button type="button" onClick={onGraphRetry}>Erneut laden</button>}</p>}
-    {graph && (documents || needle) && <><h2>{documents ? 'Gespeicherte Dokumente' : 'Menschen und Projekte'}</h2>
+    {graph && (documents || (needle && entries.length > 0)) && <><h2>{documents ? 'Gespeicherte Dokumente' : 'Menschen und Projekte'}</h2>
       <p className="directory-count" aria-live="polite">{entries.length} {entries.length === 1 ? 'Eintrag' : 'Einträge'}</p>
       <ul className="memory-search-results">{visible.map(node => {
         const ref = sourceReference(node); const label = displayLabel(node.label);

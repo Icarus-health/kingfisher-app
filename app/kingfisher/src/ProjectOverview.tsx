@@ -41,11 +41,11 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
         <button type="button" onClick={()=>onView('waiting')}><strong>{data.counts.waiting}</strong>Warte auf andere</button>
         <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigte Aufgaben<small>{data.counts.dropped} verworfen</small></button>
       </div>
-      <div className="project-next">
+      <details className="quiet-details"><summary>Nächste Schritte & Projektstand</summary><div className="project-next">
         <div><h3>Nächste eigene Aufgaben</h3><p className="project-overview-help">Früheste Fristen zuerst · bis zu drei Aufgaben</p>{data.next_tasks.length ? preview(data.next_tasks,'mine') : <p>Keine eigenen offenen Aufgaben.</p>}</div>
         <div><h3>Wartende Punkte</h3><p className="project-overview-help">Am längsten wartende zuerst · bis zu drei Aufgaben</p>{data.waiting_tasks.length ? preview(data.waiting_tasks,'waiting') : <p>Keine wartenden Aufgaben.</p>}</div>
       </div>
-      <p className="project-overview-help">Gesamter Projektbestand · unabhängig von der Listensuche · Stand: <time dateTime={data.as_of}>{dateLabel(data.as_of)}</time></p>
+      <p className="project-overview-help">Gesamter Projektbestand · unabhängig von der Listensuche · Stand: <time dateTime={data.as_of}>{dateLabel(data.as_of)}</time></p></details>
     </>}
   </section>;
 }

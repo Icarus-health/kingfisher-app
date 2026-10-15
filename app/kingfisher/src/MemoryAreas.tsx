@@ -124,14 +124,14 @@ export function MemoryAreas() {
   const heading = view === "other" ? "Weitere Hinweise" : MEMORY_AREAS.find(area => area.id === view)?.label ?? "Gedächtnisbereich";
   return <section className="memory-areas" data-memory-loading={loading || (!page && !error)} aria-label="Gedächtnisbereiche">
     <header className="memory-areas-heading"><p className="eyebrow">GEDÄCHTNIS</p><h1>Bereiche</h1>
-      <p>Deine Quellen nach Lebensbereichen. Eine Quelle kann zu mehreren Bereichen gehören. Automatische Zuordnungen sind ungeprüfte Vorschläge.</p>
+      <details className="quiet-details"><summary>Über die Zuordnung</summary><p>Deine Quellen nach Lebensbereichen. Eine Quelle kann zu mehreren Bereichen gehören. Automatische Zuordnungen sind ungeprüfte Vorschläge.</p></details>
     </header>
     <nav className="memory-area-tabs" aria-label="Bereichsansichten">
       {MEMORY_AREAS.map(area => <button key={area.id} type="button" disabled={loading} aria-pressed={view === area.id} className={view === area.id ? "active" : ""} onClick={() => select(area.id)}>{area.label}</button>)}
       <button type="button" disabled={loading} aria-pressed={view === "other"} className={view === "other" ? "active" : ""} onClick={() => select("other")}>Weitere Hinweise</button>
     </nav>
     <div className="memory-areas-title"><h2>{heading}</h2><p>{page ? `${visible.length} Quellen angezeigt` : "Quellenhinweise"}</p></div>
-    {page && <p className="memory-area-meta">Bereichsauswahl im gesamten Bestand · Seite {pageIndex + 1}{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}. Angezeigt werden vorhandene Zuordnungen, keine neue Auswertung.</p>}
+    {page && <details className="quiet-details"><summary>Quellenstand</summary><p className="memory-area-meta">Bereichsauswahl im gesamten Bestand · Seite {pageIndex + 1}{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}. Angezeigt werden vorhandene Zuordnungen, keine neue Auswertung.</p></details>}
     {error && <p role="alert">Die Themenhinweise konnten nicht geladen werden. <button type="button" disabled={loading} onClick={() => void load(retryNavigation)}>Erneut versuchen</button></p>}
     {notice && <p role="status">{notice}</p>}
     {!page && !error && <p role="status">Bereiche werden geladen …</p>}
