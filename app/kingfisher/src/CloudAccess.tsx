@@ -75,7 +75,7 @@ export function CloudAccess() {
 
   return <section className="source-section cloud-access" aria-labelledby="cloud-access-heading">
     <div className="compact-integration-heading"><div><h2 id="cloud-access-heading">Cloud-Zugänge</h2>
-      <p>Schlüssel und Modell werden nur auf diesem Rechner gespeichert. Das verbindet Kingfisher nicht mit dem Anbieter.</p></div></div>
+      <p>Mistral und OpenRouter · optional</p></div></div>
     <p className="source-hint">Speichern schaltet Cloud nicht ein und sendet keine Fragen oder Quellen. Dafür brauchst du zusätzlich die Zustimmung unter „Was Kingfisher darf“.</p>
     {loadingError ? <p role="alert">Die Cloud-Einstellungen konnten nicht geladen werden. <button type="button" className="secondary-action" onClick={() => void load()}>Erneut versuchen</button></p> : null}
     {state && !state.storage_available ? <p className="model-rec-warn" role="status">Der sichere Schlüsselspeicher ist auf diesem Rechner nicht verfügbar. Schlüssel können hier nicht gespeichert werden.</p> : null}
@@ -83,7 +83,9 @@ export function CloudAccess() {
     {state?.providers.map(provider => {
       const draft = drafts[provider.id] ?? {apiKey: "", model: provider.model};
       const disabled = busy !== null;
-      return <fieldset className="cloud-access-provider" key={provider.id}>
+      return <details className="cloud-access-entry" key={provider.id}>
+        <summary><strong>{provider.label}</strong><span>{draft.apiKey || draft.model !== provider.model ? "Ungespeichert" : provider.key_present ? "Schlüssel hinterlegt" : "Nicht eingerichtet"}</span></summary>
+        <fieldset className="cloud-access-provider">
         <legend>{provider.label}</legend>
         <p className="source-hint">EU-Endpunkt: <code>{provider.endpoint}</code></p>
         <label>Modell
@@ -98,7 +100,8 @@ export function CloudAccess() {
           <button className="primary-action" type="button" disabled={disabled || !state.storage_available || (!provider.key_present && !draft.apiKey.trim())} onClick={() => void save(provider)}>Speichern</button>
           {provider.key_present ? <button className="secondary-action" type="button" disabled={disabled || !state.storage_available} onClick={() => void remove(provider)}>Schlüssel entfernen</button> : null}
         </div>
-      </fieldset>;
+        </fieldset>
+      </details>;
     })}
     {busy ? <p role="status">Wird lokal gespeichert …</p> : null}
     {notice ? <p role={notice.ok ? "status" : "alert"}>{notice.text}</p> : null}

@@ -49,16 +49,19 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
   const active = running || job?.state === "paused";
   const ready = connected && Boolean(model);
   return <section className="cloud-memory" aria-label="Gedächtnis mit ChatGPT einordnen">
-    <h3>Deine Mails sauber einordnen</h3>
-    <p>ChatGPT prüft Aussagen, Themen und erwähnte Menschen anhand der Originalmails. Ergebnisse bleiben Quellenbefunde; sie werden nicht automatisch zu bestätigten Fakten oder erledigten Aufgaben.</p>
-    <p className="source-hint">Deine Originale und bestätigten Korrekturen bleiben erhalten. Der bestehende Mailabruf und seine Pause werden hierdurch nicht geändert.</p>
-    {!ready ? <p>Melde dich oben an und wähle ein verfügbares Modell. Die Vorschau kannst du bereits ohne Cloud-Zugriff ansehen.</p> : null}
+    <details className="cloud-memory-tools"><summary>Mails prüfen oder neu einordnen</summary>
+    <details className="quiet-details"><summary>Wie die Einordnung funktioniert</summary>
+      <p>ChatGPT prüft Aussagen, Themen und erwähnte Menschen anhand der Originalmails. Ergebnisse bleiben Quellenbefunde; sie werden nicht automatisch zu bestätigten Fakten oder erledigten Aufgaben.</p>
+      <p>Deine Originale und bestätigten Korrekturen bleiben erhalten. Der bestehende Mailabruf und seine Pause werden hierdurch nicht geändert.</p>
+      <p>Größere Pakete enthalten höchstens 1.000 Mails und werden erst nach einer vollständig verarbeiteten Qualitätsprobe freigegeben. Nachprüfen kannst du auch bereits eingeordnete Mails.</p>
+    </details>
+    {!ready ? <p className="source-hint">Für die Auswertung anmelden und ein Modell wählen. Vorschau ohne Cloud-Zugriff möglich.</p> : null}
     <div className="source-form-actions">
       <button type="button" className="primary-action" disabled={busy||active} onClick={()=>prepare("pilot")}>100 Mails prüfen</button>
       <button type="button" className="secondary-action" disabled={busy||active} onClick={()=>prepare("bulk")}>Größeren Bestand vorbereiten</button>
       <button type="button" className="secondary-action" disabled={busy||active} onClick={()=>prepare("recheck")}>Bestehende Einordnung nachprüfen</button>
     </div>
-    <p className="source-hint">Größere Pakete enthalten höchstens 1.000 Mails und werden erst nach einer vollständig verarbeiteten Qualitätsprobe freigegeben. Nachprüfen kannst du auch bereits eingeordnete Mails.</p>
+    </details>
     {preview ? <div className="cloud-memory-preview">
       <h4>{preview.purpose === "pilot" ? "Qualitätsprobe" : preview.purpose === "recheck" ? "Nachprüfung" : "Nächstes Paket"}: {preview.count} Mails</h4>
       <p>Diese Vorschau hat noch nichts an OpenAI gesendet.</p>

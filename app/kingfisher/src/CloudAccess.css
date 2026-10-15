@@ -7,3 +7,10 @@
 .cloud-access-provider input { width: 100%; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-fffefa); font: inherit; }
 .cloud-access-provider input:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; }
 .cloud-access-provider code { overflow-wrap: anywhere; }
+.cloud-access-entry { border: 1px solid var(--kf-rand-d7e1df); border-radius: 10px; }
+.cloud-access-entry > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 48px; padding: 12px 16px; cursor: pointer; }
+.cloud-access-entry > summary::before { content: '›'; }
+.cloud-access-entry[open] > summary::before { transform: rotate(90deg); }
+.cloud-access-entry > summary > span { margin-left: auto; color: var(--kf-schrift-31535f); font-size: 12px; }
+.cloud-access-entry > summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; border-radius: 10px; }
+.cloud-access-entry .cloud-access-provider { border: 0; }

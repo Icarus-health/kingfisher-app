@@ -19,7 +19,7 @@ function restoreFlow(kind: "mail"|"calendar"|"calendar_write"): Flow|null {
   return null;
 }
 
-export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calendar"|"calendar_write"; active: boolean; onConnected: () => void}) {
+export function GoogleSignIn({kind, active, onConnected, compact=false}: {kind: "mail"|"calendar"|"calendar_write"; active: boolean; onConnected: () => void; compact?: boolean}) {
   const [config, setConfig] = useState<{configured:boolean; secure_storage:boolean}|null>(null);
   const [flow, setFlow] = useState<Flow|null>(() => restoreFlow(kind));
   const [session, setSession] = useState<GoogleSession|null>(null);
@@ -82,15 +82,18 @@ export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calenda
   const terminal = session && ["expired", "failed", "connected"].includes(session.status);
   return <section className="source-section" aria-label={kind === "mail" ? "Google Mail verbinden" : "Google Kalender verbinden"}>
     <h2>{kind === "mail" ? "Gmail" : kind === "calendar_write" ? "Kalenderänderungen freigeben" : "Google-Kalender"}</h2>
+    <details className="quiet-details" open={compact ? undefined : true}><summary>Konto bei Google anmelden</summary>
     <p className="source-hint">{kind === "mail" ? "Die Anmeldung erfolgt bei Google im Browser. Dafür verlangt Google vollen Zugriff auf dein Postfach. Kingfisher versendet weiterhin nur nach deiner ausdrücklichen Freigabe. Automatischen Abruf richtest du anschließend separat ein." : kind === "calendar_write" ? "Eine zusätzliche Freigabe erlaubt Terminänderungen. Wähle nur Kalender, die du bereits mit diesem Konto verbunden hast. Jede Änderung verlangt weiterhin eine eigene Vorschau und Bestätigung." : "Melde dich bei Google im Browser an und wähle anschließend die Kalender aus. Kingfisher fordert ausschließlich Lesezugriff an."}</p>
-    {config && !config.configured && <p>Noch nicht freigeschaltet: Google verlangt eine einmalige Vorbereitung, die ein Techniker unter <a href="/settings#technik-google">Für Techniker</a> erledigt. Bis dahin kannst du dein Postfach oder deinen Kalender auch anders verbinden.</p>}
-    {config && !config.secure_storage && <p role="alert">Auf diesem Rechner fehlt der geschützte Speicher für Zugänge. Die Google-Anmeldung ist deshalb gesperrt.</p>}
     <button type="button" className="secondary-action" disabled={busy || !config?.configured || !config.secure_storage} onClick={() => run(async current => {
       progress.current?.stop(); setFlow(null); setSession(null); setSelected([]); rememberFlow(kind);
       const next = await api.googleBegin(kind);
       if (!current()) return;
       rememberFlow(kind, next.session_id); setFlow(next);
     })}>{flow && session?.status !== "connected" ? "Anmeldung neu starten" : "Mit Google anmelden"}</button>
+    <p className="source-hint">Trennen beendet die Nutzung durch Kingfisher; die Freigabe kannst du zusätzlich in deinem Google-Konto widerrufen.</p>
+    </details>
+    {config && !config.configured && <p>Noch nicht freigeschaltet: Google verlangt eine einmalige Vorbereitung, die ein Techniker unter <a href="/settings#technik-google">Für Techniker</a> erledigt. Bis dahin kannst du dein Postfach oder deinen Kalender auch anders verbinden.</p>}
+    {config && !config.secure_storage && <p role="alert">Auf diesem Rechner fehlt der geschützte Speicher für Zugänge. Die Google-Anmeldung ist deshalb gesperrt.</p>}
     {flow && <div>
       {pending && <div>
         <p><strong>1. Bei Google anmelden</strong></p>
@@ -114,7 +117,6 @@ export function GoogleSignIn({kind, active, onConnected}: {kind: "mail"|"calenda
       </div>}
       {terminal && <p role={session.status === "connected" ? "status" : "alert"}>{session.status === "connected" ? "Diese Verbindung wurde bereits gespeichert." : session.status === "failed" ? "Google-Anmeldung wurde nicht abgeschlossen. Starte sie erneut und bestätige die benötigten Berechtigungen bei Google." : "Diese Anmeldung ist abgelaufen. Wähle „Anmeldung neu starten“."}</p>}
     </div>}
-    <p className="source-hint">Trennen beendet die Nutzung durch Kingfisher; die Freigabe kannst du zusätzlich in deinem Google-Konto widerrufen.</p>
     {message && <p role="status">{message}</p>}
   </section>;
 }

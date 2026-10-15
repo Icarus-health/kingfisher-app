@@ -52,7 +52,7 @@ export function Ich() {
       <label htmlFor="ich-name">{ICH.name.frage}</label>
       <div><input id="ich-name" value={name} maxLength={80} autoComplete="given-name" placeholder="Dein Vorname" disabled={arbeitet !== "" || (!stand && !einrichtungFehler)} onChange={event => setName(event.target.value)} />
         <button type="submit" className="secondary-action" disabled={arbeitet !== "" || gespeichertName === null || name.trim() === gespeichertName}>Speichern</button></div>
-      <p className="source-hint">{ICH.name.hilfe}</p>
+      <details className="quiet-details"><summary>Wo erscheint dein Name?</summary><p className="source-hint">{ICH.name.hilfe}</p></details>
     </form>
     <form className="ich-feld" onSubmit={event => { event.preventDefault(); void ortSpeichern(); }}>
       <label htmlFor="ich-startort">{ICH.startort.frage}</label>
@@ -66,8 +66,8 @@ export function Ich() {
     </div>
     <div className="ich-feld">
       <strong>{ICH.kreis.titel}</strong>
-      <p className="source-hint">{ICH.kreis.text}</p>
       <KreisStandAnzeige />
+      <details className="quiet-details"><summary>Was bedeutet der Kreis?</summary><p className="source-hint">{ICH.kreis.text}</p></details>
     </div>
     <FassungEinstellung />
     <Aufklapp id="antwort" praefix="ich" titel={ICH.antwort.titel} satz={ICH.antwort.hilfe}><WorkingProfileSettings /></Aufklapp>

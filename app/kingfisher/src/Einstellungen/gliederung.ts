@@ -8,17 +8,17 @@ export type Bereich = "zugaenge" | "ki" | "darf" | "ich" | "sicherung" | "techni
 
 export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string; hinten?: boolean }> = [
   { id: "zugaenge", label: "Zugänge",
-    satz: "Woher Kingfisher seine Informationen holt: deine Post, deine Kalender und deine Ordner. Du verbindest, was du willst, und trennst es jederzeit wieder." },
+    satz: "Postfächer, Kalender und Dateien." },
   { id: "ki", label: "KI & Modelle",
-    satz: "Richte ein Modell auf diesem Rechner ein oder speichere Zugangsdaten für einen optionalen Cloudanbieter." },
+    satz: "Lokal arbeiten, Cloud bei Bedarf ergänzen." },
   { id: "darf", label: "Was Kingfisher darf",
-    satz: "Fünf Schalter, alle aus, bis du sie einschaltest. Bei jedem steht, was dabei deinen Rechner verlässt." },
+    satz: "Du entscheidest, welche Dienste Kingfisher nutzen darf." },
   { id: "ich", label: "Kingfisher und du",
-    satz: "Wie Kingfisher dich nennt, von wo du meistens losfährst, wie es dir antworten soll und welche Fassung läuft." },
+    satz: "Persönliche Angaben, Antworten und Updates." },
   { id: "sicherung", label: "Sicherung",
-    satz: "Sichere alles, was Kingfisher über dich weiß, verschlüsselt auf diesem {Rechner}, und stelle es bei Bedarf wieder her." },
+    satz: "Verschlüsselt sichern und bei Bedarf wiederherstellen." },
   { id: "technik", label: "Für Techniker", hinten: true,
-    satz: "Hier muss nichts geändert werden. Kingfisher arbeitet auch so, mit den Vorgaben. Die Abschnitte sind für alle, die wissen wollen, wie es innen läuft." },
+    satz: "Hier muss nichts geändert werden." },
 ];
 
 /** Die fünf Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
@@ -49,7 +49,7 @@ export const ICH = {
 export const ZUGAENGE = {
   postfaecher: { titel: "Postfächer", leer: "Noch kein Postfach verbunden." },
   kalender: { titel: "Kalender", leer: "Noch kein Kalender verbunden." },
-  ordner: { titel: "Ordner und Dateien", satz: "Meeting-Mitschriften und Dokumente, die Kingfisher lesen soll. Es liest nur Ordner, die du hier ausgewählt hast." },
+  ordner: { titel: "Ordner und Dateien", satz: "Kingfisher liest nur ausgewählte Ordner." },
 } as const;
 
 /** Die Abschnitte hinter „Für Techniker“, in der Reihenfolge, in der sie eingeklappt erscheinen. */

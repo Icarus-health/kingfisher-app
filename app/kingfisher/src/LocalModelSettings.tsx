@@ -157,7 +157,7 @@ export function LocalModelSettings() {
     </select></label>
     {manual ? <label>Ollama-Modell<input value={model} required disabled={loading || busy || loadError} onChange={(event) => changeSelection(event.target.value, true)} /></label> : null}
     {cloudModels.length ? <p className="source-hint" role="status">Läuft in Ollamas Cloud, nicht auf diesem Rechner: {cloudModels.join(", ")}. Diese Modelle werden hier nicht angeboten; die Anfragen gingen über Ollama an dessen Server in den USA.</p> : null}
-    <p className="source-hint">{loading ? "Installierte Modelle werden gesucht …" : models.length ? `${models.length} installierte Modelle gefunden. Es wird nichts heruntergeladen.` : lage?.erreichbar ? "Ollama läuft, hat aber noch kein Modell. Die Vorauswahl oben lädt die passenden mit einem Klick." : "Ollama antwortet gerade nicht. Starte Ollama und suche erneut."}</p>
+    <p className="source-hint">{loading ? "Installierte Modelle werden gesucht …" : models.length ? `${models.length} installierte Modelle gefunden. Es wird nichts heruntergeladen.` : lage?.erreichbar ? "Ollama läuft, hat aber noch kein Modell. Öffne die Modellempfehlungen unten, um ein passendes auszuwählen." : "Ollama antwortet gerade nicht. Starte Ollama und suche erneut."}</p>
     <p role="status" aria-live="polite">{loading ? "Modelleinrichtung wird geladen …" : message}</p>
     <div className="source-form-actions">
       <button className="secondary-action" disabled={loading || busy} type="button" onClick={() => { setConnected(false); setAttempt(attempt + 1); }}>Erneut suchen</button>

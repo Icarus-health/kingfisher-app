@@ -56,7 +56,7 @@ test("kein fester Mac-Satz in der Oberfläche: Texte gehen durch fuerSystem oder
   assert.deepEqual(funde, []);
   // Die Stellen aus der Fremdprobe gehen durch die Hilfsfunktion.
   const quelle = (datei) => readFileSync(new URL(datei, SRC), "utf8");
-  assert.match(quelle("Einstellungen/Seite.tsx"), /fuerSystem\("Auf diesem \{Rechner\} gespeichert", system\)/);
+  assert.match(quelle("Einstellungen/Seite.tsx"), /fuerSystem\("Kingfisher speichert Quellen und Einstellungen auf diesem \{Rechner\}\.", system\)/);
   assert.match(quelle("RecoverySettings.tsx"), /nurAufDemMac\(system, "Die Sicherung"\)/);
   assert.match(quelle("DeviceModelHelp.tsx"), /ausstattungUnbekannt\(system\)/);
   assert.match(quelle("Einstellungen/Zugaenge.tsx"), /system\.mac_helfer \? <MacCalendarSettings \/> : null/);

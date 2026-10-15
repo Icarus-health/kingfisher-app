@@ -8,7 +8,6 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 .settings-shell .settings-page { min-width: 0; max-width: 1280px; padding: 48px clamp(16px, 4vw, 64px) 72px; }
 .settings-shell .settings-heading h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.1; }
 .settings-shell .settings-layout { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 1100px) { .settings-shell .settings-layout { grid-template-columns: minmax(0, 1fr) 336px; } }
 .settings-shell .settings-sources > * { min-width: 0; }
 .settings-shell .source-section, .settings-shell .source-form, .settings-shell .darf-zeile { min-width: 0; max-width: 100%; }
 .settings-shell .source-row { flex-wrap: wrap; }
@@ -98,3 +97,44 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 .speicherorte ul { margin: 0; padding: 16px 20px 0 36px; display: grid; gap: 8px; font-size: 14px; line-height: 1.6; }
 .speicherorte .source-hint { padding: 12px 20px 16px; }
 @media (prefers-reduced-motion: reduce) { .einstellungen-aufklapp > summary > span::before { transition: none; } }
+
+/* Eine ruhige Arbeitsfläche: Zustand und Aktion vorne, Erklärungen auf Wunsch. */
+.shell.settings-shell .settings-page { max-width: 1240px; padding-top: 20px; }
+.shell.settings-shell .settings-heading { min-height: 0; padding-block: 8px 18px; margin-bottom: 20px; }
+.shell.settings-shell .settings-heading h1 { font-size: 28px; }
+.shell.settings-shell button { min-height: 44px; }
+.shell.settings-shell .settings-layout { display: block; }
+.shell.settings-shell .settings-sections { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; align-items: start; }
+.shell.settings-shell .settings-section-nav { display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0; border: 0; position: sticky; top: 24px; }
+.shell.settings-shell .settings-section-nav button { flex: none; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 8px; text-align: left; font-size: 14px; }
+.shell.settings-shell .settings-section-nav button[aria-pressed="true"] { background: var(--calm-inset); color: var(--calm-primary); }
+.shell.settings-shell .settings-section-nav .settings-section-hinten { margin: 20px 0 0; border-top: 1px solid var(--calm-line); border-radius: 0; color: var(--calm-muted); }
+.shell.settings-shell .settings-section-panel { grid-column: 2; grid-row: 1; min-width: 0; }
+.shell.settings-shell .settings-section-panel > header { margin-bottom: 16px; padding: 8px 0 12px; background: transparent; }
+.shell.settings-shell .settings-section-panel > header h2 { font-size: 18px; margin-bottom: 4px; }
+.shell.settings-shell .settings-sources { gap: 14px; }
+.shell.settings-shell .settings-sources .source-section { padding: 18px; }
+.shell.settings-shell .settings-sources .source-section:has(> .source-section-heading) { padding: 0; }
+.shell.settings-shell .source-section-heading { min-height: 68px; padding: 12px 18px; }
+.shell.settings-shell .source-empty { padding: 14px 18px; }
+.shell.settings-shell .source-section > .source-section-heading > div { flex: 1; }
+.shell.settings-shell .source-section > .source-section-heading .source-add { margin-left: auto; }
+.shell.settings-shell .settings-sources :is(.source-section,.einrichtung-assistent) h2 { font-size: 17px; line-height: 1.35; margin: 0; }
+.shell.settings-shell .settings-sources :is(.compact-integration-heading,.chatgpt-access > header) p { font-size: 13px; margin-block: 4px 0; }
+.shell.settings-shell .settings-sources .compact-model .source-form { padding: 12px 0 0; }
+.shell.settings-shell .chatgpt-access .cloud-memory { padding: 14px; }
+.shell.settings-shell .chatgpt-access .cloud-memory h3 { font-size: 16px; margin-block: 0 8px; }
+.shell.settings-shell .settings-storage { margin: 24px 0 0 194px; max-width: 720px; }
+.shell.settings-shell .settings-storage p { font-size: 13px; color: var(--calm-muted); line-height: 1.6; }
+.shell.settings-shell .einrichtung-assistent { padding: 16px 18px; }
+.shell.settings-shell .einrichtung-assistent p { font-size: 13px; margin-top: 4px; }
+.shell.settings-shell .einstellungen-aufklapp:not([open]) > summary > small { display: none; }
+.settings-section-picker { display: none; }
+@media (max-width: 1000px) {
+  .shell.settings-shell .settings-sections { display: block; }
+  .shell.settings-shell .settings-section-nav { display: none; }
+  .settings-section-picker { display: grid; gap: 6px; margin-bottom: 18px; font-size: 12px; color: var(--calm-muted); }
+  .settings-section-picker select { min-height: 46px; width: 100%; padding: 10px 12px; border: 1px solid var(--calm-line); border-radius: 10px; font: inherit; font-size: 15px; color: var(--calm-ink); background: var(--nordic-paper); }
+  .settings-section-picker select:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; }
+  .shell.settings-shell .settings-storage { margin-left: 0; }
+}

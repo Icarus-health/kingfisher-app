@@ -42,7 +42,7 @@ function Zeile({ eintrag, busy, onZuordnen, onLoesen }: { eintrag: TranskriptEin
 // des Mac gewählt (der Vorgabeordner braucht keinen); ohne Helfer im Browser, aus bekannten Orten oder mit geprüftem Pfad
 // (Befund 6). „Trennen“ nimmt die Mitschriften wieder aus dem Gedächtnis, die Dateien bleiben liegen. `beiAenderung` meldet
 // jede Änderung des Menschen (der Assistent zeigt dann „Weiter“, Fremdprobe 3, Befund 4).
-export function TranscriptSettings({ beiAenderung }: { beiAenderung?: () => void } = {}) {
+export function TranscriptSettings({ beiAenderung, compact = false }: { beiAenderung?: () => void; compact?: boolean } = {}) {
   const system = useSystem();
   const [daten, setDaten] = useState<TranskriptUebersicht | null>(null);
   const [fehler, setFehler] = useState("");
@@ -80,7 +80,7 @@ export function TranscriptSettings({ beiAenderung }: { beiAenderung?: () => void
   const fehlerLauf = ordner?.last_run?.errors ?? [];
 
   return <section className="source-section document-import transkript-eingang" aria-label="Meetings: Mitschriften">
-    <div className="compact-integration-heading"><div><h2>Meetings</h2><p>Exportiere Mitschriften aus MacWhisper, Teams oder Meet in einen Ordner. Kingfisher liest sie und ordnet sie dem passenden Termin zu.</p></div></div>
+    <div className="compact-integration-heading"><div><h2>Meetings</h2><p>{compact ? "Mitschriften aus einem ausgewählten Ordner aufnehmen." : "Exportiere Mitschriften aus MacWhisper, Teams oder Meet in einen Ordner. Kingfisher liest sie und ordnet sie dem passenden Termin zu."}</p></div></div>
     {!daten && !fehler ? <p role="status">Wird geladen …</p> : null}
     {daten && ordner ? <>
       {wartet ? <div className="transkript-status" role="status">
@@ -89,13 +89,15 @@ export function TranscriptSettings({ beiAenderung }: { beiAenderung?: () => void
         <button className="secondary-action" type="button" disabled={busy} onClick={() => void tun(() => api.transkriptAuswahlAbbrechen())}>Abbrechen</button>
       </div> : null}
 
-      {!ordner.folder && !wartet && weg === "helfer" ? <div className="transkript-status">
+      {!ordner.folder && !wartet ? <details className="quiet-details" open={compact ? undefined : true}><summary>Mitschriften einrichten</summary>
+      {weg === "helfer" ? <div className="transkript-status">
         <p>Noch kein Ordner. Kingfisher liest nur den Ordner, den du hier auswählst.</p>
         <button className="primary-action" type="button" disabled={busy} onClick={() => void tun(() => api.transkriptOrdnerWaehlen("vorgabe"))}>Ordner „{daten.vorgabe}“ verwenden</button>
         <button className="secondary-action" type="button" disabled={busy} onClick={() => void tun(() => api.transkriptOrdnerWaehlen("waehlen"))}>Anderen Ordner wählen …</button>
         <small>Der Vorgabeordner wird ohne Rückfrage angelegt, falls es ihn nicht gibt. Für einen anderen zeigt die App einen normalen Auswahldialog.</small>
       </div> : null}
-      {!ordner.folder && !wartet && weg === "browser" ? <div className="transkript-status"><OrdnerImBrowser prefix="/api/v1/transcript-sync" beiGewaehlt={gewaehlt} /></div> : null}
+      {weg === "browser" ? <div className="transkript-status"><OrdnerImBrowser prefix="/api/v1/transcript-sync" beiGewaehlt={gewaehlt} /></div> : null}
+      </details> : null}
 
       {ordner.folder ? <div className="transkript-status">
         <p><strong>Ordner</strong> <span className="transkript-pfad" title={ordner.folder}>{kurzerPfad(ordner.folder)}</span></p>

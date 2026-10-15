@@ -39,7 +39,7 @@ export function MicrosoftZugang({ aktiv, beiAenderung }: { aktiv: boolean; beiAe
   const liste = konten?.konten ?? [];
   return <section className="source-section ms-zugang" aria-label="Microsoft 365">
     <h2>Microsoft 365</h2>
-    <p className="source-hint">Für Hochschulen und Firmen mit Outlook und Teams: eine Anmeldung bei Microsoft bringt Post, Kalender und auf Wunsch die Mitschriften deiner Teams-Besprechungen.</p>
+    <p className="source-hint">Outlook, Kalender und Teams-Mitschriften</p>
     {liste.map(konto => <div key={konto.adresse} className="ms-konto">
       <strong>{konto.adresse}</strong>
       <span className="source-hint">{konto.verbunden ? [konto.post ? "Post" : "", konto.kalender ? "Kalender" : "", konto.mitschriften ? "Teams-Mitschriften" : ""].filter(Boolean).join(", ") + " · nur lesen" : konto.satz}</span>
@@ -54,7 +54,7 @@ export function MicrosoftZugang({ aktiv, beiAenderung }: { aktiv: boolean; beiAe
       </> : null}
     </div>)}
     {neu ? <MicrosoftAnmeldung beiVerbunden={verbunden} /> : <button type="button" className="secondary-action" onClick={() => setNeu(true)}>{liste.length ? "Weiteres Microsoft-Konto anmelden" : "Mit Microsoft anmelden"}</button>}
-    <p className="source-hint">{SAETZE.bleibt}</p>
+    <details className="quiet-details"><summary>Was wird verbunden?</summary><p className="source-hint">{SAETZE.bleibt}</p></details>
     {satz ? <p role="status">{satz}</p> : null}
   </section>;
 }

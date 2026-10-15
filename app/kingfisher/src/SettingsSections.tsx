@@ -12,13 +12,19 @@ export function SettingsSections({ sections, selected, onSelect }: { sections: S
   const [besucht, setBesucht] = useState<ReadonlySet<string>>(() => new Set([selected]));
   useEffect(() => { setBesucht(alt => alt.has(selected) ? alt : new Set(alt).add(selected)); }, [selected]);
   return <div className="settings-sections">
+    <label className="settings-section-picker">Bereich
+      <select aria-label="Einstellungsbereich" value={selected} onChange={event => onSelect(event.target.value)}>
+        <optgroup label="Alltag">{sections.filter(section => !section.hinten).map(section => <option key={section.id} value={section.id}>{section.label}</option>)}</optgroup>
+        <optgroup label="Für Techniker">{sections.filter(section => section.hinten).map(section => <option key={section.id} value={section.id}>{section.label}</option>)}</optgroup>
+      </select>
+    </label>
     <nav className="settings-section-nav" aria-label="Einstellungsbereiche">
       {sections.map(section => <button key={section.id} type="button" className={section.hinten ? "settings-section-hinten" : undefined}
         aria-pressed={selected === section.id} aria-controls={`settings-${section.id}`}
         onClick={() => onSelect(section.id)}>{section.label}</button>)}
     </nav>
     {sections.map(section => <section key={section.id} id={`settings-${section.id}`}
-      className="settings-section-panel" aria-label={section.label} hidden={selected !== section.id}>
+      className="settings-section-panel" aria-label={section.label} hidden={selected !== section.id} aria-hidden={selected !== section.id ? true : undefined}>
       <header><h2>{section.label}</h2><p>{section.description}</p></header>
       <div className="settings-sources">{besucht.has(section.id) || selected === section.id ? section.content : null}</div>
     </section>)}
