@@ -210,5 +210,6 @@ def interpret_abschnitt(provider, episode, abschnitt, von=1, *, policy=None):
                 or block_id not in valid_ids or block_id in found or kind not in KINDS):
             raise ProviderError("Ein Quellenblock hat eine unbekannte oder doppelte Zuordnung.")
         found[block_id] = kind
-    return [{"start": start, "end": end, "kind": found[f"B{i}"]}
-            for i, (start, end) in enumerate(blocks, 1)]
+    from .mail_quote_history import guard
+    return guard(episode, [{"start": start, "end": end, "kind": found[f"B{i}"]}
+                           for i, (start, end) in enumerate(blocks, 1)])

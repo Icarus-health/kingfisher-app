@@ -238,7 +238,7 @@ def modell_prueft(anbieter: Any, t: Treffer) -> bool | None:
                    {'role': 'user', 'content': wrap_untrusted(fremd, f'Nachrichtenquelle {t.quelle_name}')
                     + f'\n\nSache aus den Akten: {t.sache.name} ({ART_TEXT.get(t.sache.art, t.sache.art)})'}]
     try:
-        antwort = anbieter.complete_json(nachrichten, max_tokens=40, schema=SCHEMA)
+        antwort = anbieter.complete_json(nachrichten, max_tokens=64, schema=SCHEMA)
         if getattr(antwort, 'tool_calls', None):
             return None
         roh = json.loads(getattr(antwort, 'text', None))
