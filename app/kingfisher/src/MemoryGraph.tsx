@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api, type GraphNode, type MemoryGraph } from "./api";
 import { Sidebar } from "./chrome";
 import { PeopleReview, personNodes, type PersonFilter } from "./PeopleReview";
-import { navigate } from "./ui";
+import { icon, navigate } from "./ui";
 import { InterfaceIcon } from "./InterfaceIcon";
 import { MemoryStatus } from "./MemoryStatus";
 import { MemoryDirectory } from "./MemoryDirectory";
@@ -14,6 +14,7 @@ import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
 import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
+import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
 import "./MemoryWorkspace.css";
@@ -180,6 +181,7 @@ function GraphCanvas({ graph, filter, personFilter }: { graph: MemoryGraph; filt
 }
 
 export function MemoryGraph({ recentConversation }: { recentConversation: string | null }) {
+  const [documentImportOpen,setDocumentImportOpen] = useState(false);
   const [graph, setGraph] = useState<MemoryGraph | null>(null);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<FilterId>(() => browseState(window.location.search).tab);
@@ -234,7 +236,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
       <main data-memory-loading={filter !== "documents" && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
-          <p>GEDÄCHTNIS</p>
+          <div className="memory-heading-row"><h1>Gedächtnis</h1>{section === "browse" && filter === "documents" && <button className="primary-action document-add" type="button" onClick={()=>setDocumentImportOpen(true)}><img src={icon("plus","Outline")} alt=""/>Dokument hinzufügen</button>}</div>
           <div>
             {FILTERS.map((item) => (
               <button
@@ -262,6 +264,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
             <a href="/settings#ki">KI-Zugänge & Modelle</a>
           </div></details>
         </aside>
+        {documentImportOpen && <DocumentImport initiallyExpanded showLibrary={false} title="Dokument hinzufügen" onClose={()=>{setDocumentImportOpen(false);window.dispatchEvent(new Event("workspace-view-changed"));}} />}
         {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <p>Das Gedächtnis ist gerade nicht erreichbar.</p>

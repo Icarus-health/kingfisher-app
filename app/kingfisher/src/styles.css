@@ -1103,3 +1103,17 @@ details.calendar-preparation-item > small { display: block; margin-top: 6px; ove
 .classification-offer { grid-column: 1 / -1; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-eef3f1); }
 .classification-offer p { margin: 0 0 12px; font-size: 13px; line-height: 20px; }
 .classification-offer-note { grid-column: 1 / -1; margin-top: 12px; font-size: 13px; line-height: 20px; }
+
+/* Die Marke steht am Rand; die Arbeitsflächen gehören dem Inhalt. */
+.shell > .sidebar { background: var(--nordic-nav); padding: 12px 14px 22px; overflow-y: auto; isolation: isolate; }
+.shell > .sidebar::before { content: ''; position: absolute; z-index: -1; inset: 42% 0 0; background: url('/03_Media/Approved/landscape-calm-page-v1.png') center bottom / auto 100% no-repeat; opacity: .17; pointer-events: none; }
+.shell > .sidebar .brand-lockup { width: 176px; height: 128px; margin: 0 auto 12px; object-fit: cover; mask-image: none; }
+.shell > .sidebar nav { order: 1; gap: 6px; }
+.shell > .sidebar .nav-item { min-height: 49px; padding: 0 14px; gap: 16px; font-size: 15px; font-weight: 400; color: #d6e3ed; border-radius: 8px; }
+.shell > .sidebar .nav-item.active { background: var(--nordic-nav-active); color: #fff; font-weight: 500; box-shadow: none; }
+.shell > .sidebar .nav-item:not(:disabled):hover { background: #17445e; }
+.shell > .sidebar .interface-icon { width: 22px; height: 22px; }
+.shell > .sidebar .sidebar-foot { order: 2; margin: auto 0 18px; padding-top: 32px; }
+.shell > .sidebar .sidebar-clock { order: 3; margin: 0; padding: 0 14px; gap: 6px; }
+.shell > .sidebar .sidebar-clock strong { font-size: 18px; line-height: 24px; }
+.shell > .sidebar .sidebar-clock span { color: #c5d5e2; font-size: 11px; }

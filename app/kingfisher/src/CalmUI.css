@@ -1,37 +1,22 @@
 /* SDR-015: Die freigegebene Heute-Gestaltung in den übrigen Arbeitsbereichen.
    Gemeinsam benannte Materialwerte; bestehende Zustände und Aktionen bleiben erhalten. */
 :root {
-  --calm-surface: #fffefa;
-  --calm-inset: #f2f5f2;
-  --calm-soft: #e3eef0;
-  --calm-ink: #102c3a;
-  --calm-muted: #48616d;
-  --calm-line: #dce3e0;
-  --calm-primary: #063e55;
+  --calm-surface: #ffffff;
+  --calm-inset: #f5f6f8;
+  --calm-soft: #e7eff8;
+  --calm-ink: #172635;
+  --calm-muted: #5e6c7c;
+  --calm-line: #dfe5eb;
+  --calm-primary: #103e5c;
   --calm-on-primary: #f4faf9;
-  --calm-link: #145769;
-  --calm-shadow: 0 2px 5px rgba(5,32,44,.08), 0 14px 32px rgba(5,32,44,.13), inset 0 1px 0 rgba(255,255,255,.8);
-  --calm-radius: 16px;
+  --calm-link: #18578c;
+  --calm-shadow: 0 1px 3px rgba(19,39,58,.04);
+  --calm-radius: 12px;
   --calm-text: 16px;
   --calm-control: 14px;
   --calm-caption: 13px;
   --calm-heading: 26px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --calm-surface: #172d36;
-    --calm-inset: #1c3540;
-    --calm-soft: #284650;
-    --calm-ink: #eef4f3;
-    --calm-muted: #b8cbd1;
-    --calm-line: #36505a;
-    --calm-primary: #d6e9ed;
-    --calm-on-primary: #102c3a;
-    --calm-link: #a2d8de;
-    --calm-shadow: 0 2px 5px rgba(0,0,0,.2), 0 14px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-}
-
 /* Die Landschaft bleibt zwischen deckenden Leseflächen sichtbar. */
 .shell { isolation: isolate; }
 .shell:not(:has(.today-page)) { background: #a9c2cc; }
@@ -277,12 +262,6 @@
 .briefing-drawer { background: var(--calm-inset); color: var(--calm-ink); }
 .drawer-heading h2 { font: 600 36px/1.3 'Inter', sans-serif; }
 .drawer-card { border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
-@media (prefers-color-scheme: dark) {
-  .shell:not(:has(.today-page))::before { filter: brightness(.62) saturate(.65); }
-  .tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading, .profile-back { text-shadow: 0 1px 5px rgba(5,32,44,.5); }
-  .tasks-add img { filter: brightness(0) saturate(100%); }
-  .drawer-heading p, .drawer-heading h2, .drawer-heading span { color: #102c3a; text-shadow: 0 1px 8px #fffefa; }
-}
 @media (max-width: 1350px) {
   .tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history { padding: 28px; }
   .settings-layout { grid-template-columns: minmax(0,1fr) 250px; gap: 20px; }

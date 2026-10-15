@@ -3,7 +3,7 @@ import type {MemoryAreaNavigation,MemoryAreaView} from './MemoryAreaModel';
 
 type ScrollPosition={x:number;y:number;page:number;directory:number;anchor?:{id:string;offset:number}};
 type AreaPosition={view:MemoryAreaView;navigation:MemoryAreaNavigation;selected:string[]};
-type Presentation={folders:{selected:string|null;project:string;area:string;sourceArea?:string;sourceListOpen?:boolean;q?:string;offset?:number;limit?:number};organisations:{members:string[];name:string;editing:string|null};place:{selected:string|null}};
+type Presentation={folders:{selected:string|null;project:string;area:string;sourceArea?:string;sourceListOpen?:boolean;q?:string;offset?:number;limit?:number;documentId?:string|null;documentOpen?:boolean;listScroll?:number};organisations:{members:string[];name:string;editing:string|null};place:{selected:string|null}};
 export type MemoryViewPosition={path:string;area?:AreaPosition;scroll?:ScrollPosition}&Partial<Presentation>;
 const STATE_KEY='kingfisherMemoryView';
 const profileRoute=/^\/memory\/(?:akte|people|projects|registry)\/([^/?#]+)(?:\?[^#]*)?$/;
@@ -26,6 +26,7 @@ function position(value:unknown):MemoryViewPosition|null {
   if(!safeText(data.path,4000)||memoryListPath(data.path)!==data.path)return null;
   if(data.scroll&&(![data.scroll.x,data.scroll.y,data.scroll.page,data.scroll.directory].every(n=>typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=1e8)||(data.scroll.anchor&&(!safeText(data.scroll.anchor.id,2048)||!Number.isFinite(data.scroll.anchor.offset)||Math.abs(data.scroll.anchor.offset)>1e8))))return null;
   if(data.folders&&((data.folders.q!==undefined&&!safeText(data.folders.q,200))||(data.folders.offset!==undefined&&(!Number.isSafeInteger(data.folders.offset)||data.folders.offset<0||data.folders.offset>1e8))||(data.folders.limit!==undefined&&(!Number.isInteger(data.folders.limit)||data.folders.limit<1||data.folders.limit>100))||(data.folders.sourceListOpen!==undefined&&typeof data.folders.sourceListOpen!=='boolean')||![data.folders.project,data.folders.area,data.folders.sourceArea??''].every(value=>safeText(value,1000))||(data.folders.selected!==null&&!safeText(data.folders.selected,1000))))return null;
+  if(data.folders&&((data.folders.documentId!=null&&!safeText(data.folders.documentId,2048))||(data.folders.documentOpen!==undefined&&typeof data.folders.documentOpen!=='boolean')||(data.folders.listScroll!==undefined&&(!Number.isFinite(data.folders.listScroll)||data.folders.listScroll<0||data.folders.listScroll>1e8))))return null;
   if(data.place&&data.place.selected!==null&&!safeText(data.place.selected,1000))return null;
   if(data.organisations&&(!Array.isArray(data.organisations.members)||data.organisations.members.length>200||!data.organisations.members.every(id=>safeText(id,1000))||!safeText(data.organisations.name,200)||(data.organisations.editing!==null&&!safeText(data.organisations.editing,1000))))return null;
   if(data.area){const a=data.area,n=a.navigation;
@@ -35,7 +36,7 @@ function position(value:unknown):MemoryViewPosition|null {
   }
   return {path:data.path,
     ...(data.area?{area:{view:data.area.view,navigation:{cursor:data.area.navigation.cursor,index:data.area.navigation.index,history:[...data.area.navigation.history]},selected:[...data.area.selected]}}:{}),
-    ...(data.folders?{folders:{selected:data.folders.selected,project:data.folders.project,area:data.folders.area,sourceArea:data.folders.sourceArea??'',sourceListOpen:data.folders.sourceListOpen??false,q:data.folders.q??'',offset:data.folders.offset??0,limit:data.folders.limit??25}}:{}),
+    ...(data.folders?{folders:{selected:data.folders.selected,project:data.folders.project,area:data.folders.area,sourceArea:data.folders.sourceArea??'',sourceListOpen:data.folders.sourceListOpen??false,q:data.folders.q??'',offset:data.folders.offset??0,limit:data.folders.limit??25,documentId:data.folders.documentId??null,documentOpen:data.folders.documentOpen??false,listScroll:data.folders.listScroll??0}}:{}),
     ...(data.organisations?{organisations:{members:[...data.organisations.members],name:data.organisations.name,editing:data.organisations.editing}}:{}),
     ...(data.place?{place:{selected:data.place.selected}}:{}),
     ...(data.scroll?{scroll:{x:data.scroll.x,y:data.scroll.y,page:data.scroll.page,directory:data.scroll.directory,...(data.scroll.anchor?{anchor:{id:data.scroll.anchor.id,offset:data.scroll.anchor.offset}}:{})}}:{})};
