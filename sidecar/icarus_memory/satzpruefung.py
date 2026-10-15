@@ -1414,6 +1414,12 @@ def belegte_daten(belege: Iterable[Beleg]) -> set[date]:
     return set(_pool(list(belege), ()).daten_voll)
 
 
+def kalenderdaten_belegt(text: str, belege: Iterable[Beleg]) -> bool:
+    """Prüft nur genaue Kalendertage, auch beim Lesen früher gespeicherter Sätze."""
+    daten, _ = daten_in(text)
+    return not daten or not _pruefe_daten(daten, _pool(list(belege), ()))[0]
+
+
 def pruefen(saetze: Iterable[Satz], belege: Mapping[str, Beleg], *, zusatz_woerter: Iterable[str] = (),
             relative_zeit_erlaubt: bool = False) -> list[Urteil]:
     """Prüft alle Sätze; die Reihenfolge bleibt, nichts wird verbessert oder umgestellt."""
@@ -1421,4 +1427,4 @@ def pruefen(saetze: Iterable[Satz], belege: Mapping[str, Beleg], *, zusatz_woert
     return [satz_pruefen(s, belege, zusatz_woerter=zusatz, relative_zeit_erlaubt=relative_zeit_erlaubt) for s in saetze]
 
 
-__all__ = ['Beleg', 'Datum', 'Satz', 'Urteil', 'bedingte_regeln', 'belegte_daten', 'daten_in', 'falten', 'pruefen', 'satz_pruefen', 'zahlen_in', 'zeiten_in']
+__all__ = ['Beleg', 'Datum', 'Satz', 'Urteil', 'bedingte_regeln', 'belegte_daten', 'daten_in', 'falten', 'kalenderdaten_belegt', 'pruefen', 'satz_pruefen', 'zahlen_in', 'zeiten_in']

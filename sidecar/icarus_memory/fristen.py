@@ -1,10 +1,11 @@
 """Fristen aus Text: Datumsangaben deterministisch auflösen, ohne Modell.
 
 Ein Abschnitt sagt „bis Freitag“, „bis zum 12.10.“, „Ende Oktober“ oder „in zwei
-Wochen“. Gemeint ist ein Kalendertag, aber nur relativ zu dem Zeitpunkt, an dem
-die Quelle entstand. Dieses Modul löst solche Angaben auf und nur solche, die
+Wochen“. Ein Kalendertag wird nur relativ zu dem Zeitpunkt aufgelöst, an dem
+die Quelle entstand, und nur aus Angaben, die
 sich **eindeutig** auflösen lassen. Alles andere („nächste Woche“, „Mitte
-Oktober“, ein Datum ohne Jahr, das ebenso gut vergangen wie künftig sein kann)
+Oktober“, „Ende Oktober“, „Monatsende“, „Jahresende“ oder ein Datum ohne Jahr,
+das ebenso gut vergangen wie künftig sein kann)
 bleibt Text und bekommt kein Datum: Eine falsche Frist ist schlimmer als keine.
 
 Regeln:
@@ -72,7 +73,7 @@ class Frist:
     start: int
     ende: int
     art: str
-    """`datum`, `monatsende`, `wochentag` oder `relativ`."""
+    """`datum`, `wochentag` oder `relativ`."""
 
     def to_dict(self) -> dict:
         return {'datum': self.datum.isoformat(), 'ausdruck': self.ausdruck, 'start': self.start,
@@ -119,8 +120,9 @@ def ohne_jahr(monat: int, tag: int, bezug: date) -> date | None:
     return _ohne_jahr(monat, tag, bezug)
 
 
-def _monatsletzter(jahr: int, monat: int) -> date:
-    return date(jahr, monat, calendar.monthrange(jahr, monat)[1])
+def ungenaues_ende(text: str) -> bool:
+    """Nennt der Text ein Monats-/Jahresende ohne ausdrücklich genannten Tag?"""
+    return any(muster.search(text) for muster in (_MONATSENDE, _ENDE_MONAT, _JAHRESENDE))
 
 
 def _plus_monate(tag: date, monate: int) -> date:
@@ -176,24 +178,11 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
         jahr = _jahr(treffer[3])
         nehmen(_tag(jahr, monat, tag) if jahr else (_ohne_jahr(monat, tag, heute) if heute else None),
                treffer, 'datum')
-    for treffer in _MONATSENDE.finditer(text):
-        monat, jahr = _MONATE[treffer[1].lower()], _jahr(treffer[2])
-        if jahr is None and heute is None:
-            letzter = None
-        elif jahr is None:
-            letzter = _monatsletzter(heute.year, monat)
-            if letzter < heute:
-                # Wie ein Datum ohne Jahr: nur eindeutig, wenn das Folgejahr die einzige Lesart ist.
-                folgend = _monatsletzter(heute.year + 1, monat)
-                letzter = folgend if (heute - letzter).days > _JAHRESGRENZE and \
-                    (folgend - heute).days <= _JAHRESGRENZE else None
-        else:
-            letzter = _monatsletzter(jahr, monat)
-        nehmen(letzter, treffer, 'monatsende')
-    for treffer in _ENDE_MONAT.finditer(text):
-        nehmen(_monatsletzter(heute.year, heute.month) if heute else None, treffer, 'monatsende')
-    for treffer in _JAHRESENDE.finditer(text):
-        nehmen(date(heute.year, 12, 31) if heute else None, treffer, 'monatsende')
+    # An end-of-month/year expression does not state a particular day. Keep
+    # the original even when the year or source date is known.
+    for muster in (_MONATSENDE, _ENDE_MONAT, _JAHRESENDE):
+        for treffer in muster.finditer(text):
+            nehmen(None, treffer, 'uneindeutig')
     for treffer in _WOCHENTAG.finditer(text):
         ziel = _WOCHENTAGE[treffer[2].lower()]
         abstand = (ziel - heute.weekday()) % 7 if heute else 0
@@ -226,4 +215,4 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
 #: Monatsnamen und -kürzel (klein) mit Nummer; dieselbe Tabelle für die Satzprüfung.
 MONATE = _MONATE
 
-__all__ = ['Frist', 'Fristensuche', 'MONATE', 'bezugstag', 'fristen_in', 'ohne_jahr']
+__all__ = ['Frist', 'Fristensuche', 'MONATE', 'bezugstag', 'fristen_in', 'ohne_jahr', 'ungenaues_ende']
