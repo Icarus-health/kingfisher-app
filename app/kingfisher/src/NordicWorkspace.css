@@ -203,3 +203,49 @@
   .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) button { font-size: 12px; }
   .today-page .hero-copy h1 { font-size: 32px; }
 }
+
+/* Die ergänzenden Arbeitsbereiche verwenden dieselben lesbaren Formulare. */
+.shell .development-page :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea) { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--calm-line); border-radius: 8px; padding: 10px 12px; background: var(--nordic-paper); color: var(--calm-ink); font: inherit; }
+.shell .development-page .decision-create-form { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(210px,100%),1fr)); align-items: end; gap: 14px; border: 0; background: var(--calm-inset); padding: 16px; border-radius: 8px; }
+.shell .development-page .decision-create-form > label { display: grid; gap: 6px; min-width: 0; }
+.shell .development-page .decision-create-form button { width: auto; min-height: 44px; margin: 0; }
+.shell .development-page .decision-create-form > span { align-self: center; font-size: 13px; color: var(--calm-muted); }
+.shell .development-page a { color: var(--calm-link); text-underline-offset: 3px; }
+.shell .development-page .decision-row { margin-block: 16px; }
+
+/* Das Briefing ist ein vorübergehender Dialog und bleibt auch mit längeren Hinweisen lesbar. */
+.briefing-drawer { font-family: Inter,-apple-system,BlinkMacSystemFont,sans-serif; color: var(--calm-ink); }
+.briefing-drawer .drawer-heading h2 { font: 650 34px/1.2 Inter,sans-serif; letter-spacing: -.6px; }
+.briefing-drawer .drawer-heading > span { font: 400 14px/1.5 Inter,sans-serif; }
+.briefing-drawer .drawer-grid { align-items: start; }
+.briefing-drawer .drawer-card { box-shadow: none; border-color: var(--calm-line); background: var(--nordic-paper); }
+.briefing-drawer .drawer-card header { font-size: 12px; }
+.briefing-drawer :is(.drawer-row,.message-row) strong { font-size: 14px; line-height: 1.5; }
+.briefing-drawer :is(.drawer-row,.message-row) small { margin-top: 5px; color: var(--calm-muted); font-size: 13px; line-height: 1.6; }
+.briefing-drawer .drawer-row em { font-size: 12px; color: var(--calm-muted); }
+.briefing-drawer :is(.drawer-empty,.meeting-time,.meeting-context p,.drawer-card a) { font-size: 14px; line-height: 1.65; }
+.briefing-drawer .meeting-context strong { font-size: 13px; }
+.briefing-drawer .meeting-card h3 { font: 600 22px/1.3 Inter,sans-serif; }
+.briefing-drawer :is(button,a):focus-visible { outline: 3px solid var(--nordic-selection-edge); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .briefing-drawer, .scrim { transition: none; }
+}
+@media (max-width: 700px) {
+  .shell .development-page .decision-create-form { grid-template-columns: minmax(0,1fr); }
+  .briefing-drawer .drawer-heading h2 { font-size: 28px; }
+}
+/* Autoren bleiben auch auf der hellen eigenen Sprechblase eindeutig lesbar. */
+.workspace-chat .message > span { font-size: 11px; line-height: 1.5; color: var(--calm-muted); }
+.workspace-chat .message.user > span { color: var(--calm-primary); }
+
+.shell main a:not([class]) { color: var(--calm-link); text-underline-offset: 3px; }
+
+/* Auswahl und Belege bleiben in der Prüfliste kompakt und zusammen lesbar. */
+.workspace-tasks .task-source > h2 { margin: 12px 0 8px; }
+.workspace-tasks .task-source > .task-suggestion-actions { align-items: center; gap: 10px; margin-block: 10px; }
+.workspace-tasks .task-source .task-suggestion-actions > label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.workspace-tasks .task-source .mail-task-form { padding: 16px; gap: 10px; background: var(--nordic-paper); }
+.workspace-tasks .task-source .mail-task-form > label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: 10px; min-height: 32px; cursor: pointer; font-size: 13px; }
+.workspace-tasks .task-source .mail-task-form > label > input[type="checkbox"] { width: 18px; height: 18px; min-height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: var(--calm-link); }
+.workspace-tasks .task-source .mail-task-form > p { margin: 0; }
+.workspace-tasks .task-source .mail-task-form blockquote { margin: 8px 0; padding-inline-start: 12px; border-inline-start: 3px solid var(--calm-line); font-size: 14px; line-height: 1.6; }

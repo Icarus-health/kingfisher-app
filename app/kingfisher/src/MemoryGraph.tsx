@@ -88,7 +88,7 @@ function GraphCanvas({ graph, filter, personFilter }: { graph: MemoryGraph; filt
   const [page, setPage] = useState(0);
   const canvasLabel = filter === "people"
     ? ({ people: "Personen", automated: "automatische Absender", review: "Prüffälle", all: "Einträge" }[personFilter])
-    : FILTERS.find(item => item.id === filter)?.label;
+    : [...FILTERS, ...MORE_FILTERS].find(item => item.id === filter)?.label ?? "Einträge";
   const { nodes, edges, total, currentPage, pageCount } = useMemo(() => {
     const primary = filter === "people"
       ? personNodes(graph, personFilter)

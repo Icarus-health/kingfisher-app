@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError, type Project } from "./api";
 import "./ProjectControls.css";
 
@@ -12,11 +12,12 @@ const PROJECT_STATUSES: Array<{ value: ProjectStatus; label: string }> = [
   { value: "dropped", label: "Verworfen" },
 ];
 
-export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
+export function ProjectControls({ projects, selectedId, onSelect, onChanged, contextRevision=0 }: {
   projects: Project[];
   selectedId: string;
   onSelect: (id: string) => void;
-  onChanged: () => void;
+  onChanged: () => void | Promise<void>;
+  contextRevision?: number;
 }) {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -25,6 +26,7 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
   const [error, setError] = useState<string | null>(null);
   const pending = useRef(false);
   const requestId = useRef<string | null>(null);
+  useEffect(()=>setError(null),[selectedId,contextRevision]);
   const selectedProject = projects.find((project) => project.id === selectedId);
 
   function clearCreateForm() {
@@ -45,7 +47,7 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
     setError(null);
     try {
       const project = await api.addProject({ name: cleanName, description: description.trim(), request_id: requestId.current });
-      onChanged();
+      await onChanged();
       onSelect(project.id);
       clearCreateForm();
     } catch (failure) {
@@ -57,17 +59,19 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged }: {
   }
 
   async function changeStatus(status: ProjectStatus) {
-    if (!selectedProject || status === selectedProject.status || busy) return;
+    if (!selectedProject || status === selectedProject.status || busy || pending.current) return;
 
     setBusy(true);
+    pending.current = true;
     setError(null);
     try {
       await api.updateProject(selectedProject.id, { status });
-      onChanged();
+      await onChanged();
     } catch (failure) {
-      setError(failure instanceof ApiError && failure.detail ? failure.detail : "Der Status konnte nicht gespeichert werden. Bitte erneut versuchen.");
+      setError(failure instanceof ApiError && failure.detail ? failure.detail : "Der aktuelle Projektstand konnte nicht bestätigt werden. Bitte erneut laden.");
     } finally {
       setBusy(false);
+      pending.current = false;
     }
   }
 

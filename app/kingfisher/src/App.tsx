@@ -109,12 +109,26 @@ function LoadingMorning() {
 }
 
 
-function BriefingDrawer({ briefing, open, onClose, onChange }: {
+export function BriefingDrawer({ briefing, open, onClose, onChange }: {
   briefing: MorningBriefing;
   open: boolean;
   onClose: () => void;
   onChange: (change?: "correction") => void;
 }) {
+  const panel = useRef<HTMLElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus({preventScroll:true});
+    return () => {
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus({preventScroll:true});
+    };
+  }, [open]);
+  const sourceLabels: Record<string,string> = {termin:"Kalender",aufgabe:"Aufgabe",wartet:"Rückmeldung",zusage:"Zusage",mail:"Mail",working_memory:"gespeicherte Quelle",akte:"Gedächtnis"};
   const [correctionSaved, setCorrectionSaved] = useState(false);
   function sourceChanged(change?: "correction") {
     if (change === "correction") setCorrectionSaved(true);
@@ -131,9 +145,16 @@ function BriefingDrawer({ briefing, open, onClose, onChange }: {
 
   return (
     <>
-      <button aria-label="Briefing schließen" className={`scrim ${open ? "open" : ""}`} onClick={onClose} type="button" />
-      <section aria-hidden={!open} aria-label="Briefing" className={`briefing-drawer ${open ? "open" : ""}`}>
-        <button className="drawer-close" onClick={onClose} type="button">
+      <button aria-label="Briefing schließen" aria-hidden={!open} inert={!open} tabIndex={-1} className={`scrim ${open ? "open" : ""}`} onClick={onClose} type="button" />
+      <section ref={panel} role="dialog" aria-modal={open || undefined} inert={!open} aria-hidden={!open} aria-label="Briefing" className={`briefing-drawer ${open ? "open" : ""}`} onKeyDown={event => {
+        if (event.key === "Escape") {event.preventDefault();onClose();return;}
+        if (event.key !== "Tab" || !panel.current) return;
+        const fields = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex]')).filter(node => node.tabIndex >= 0 && node.getClientRects().length > 0);
+        const first=fields[0],last=fields.at(-1);
+        if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
+        else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
+      }}>
+        <button ref={closeButton} className="drawer-close" onClick={onClose} type="button">
           <img src={icon("house", "Outline")} alt="" /><span>Zurück zu Heute</span>
         </button>
         <div className="drawer-hero">
@@ -152,7 +173,7 @@ function BriefingDrawer({ briefing, open, onClose, onChange }: {
               <header><span>HEUTIGE TOP-PRIORITÄTEN</span><Zaehler anzahl={briefing.needs_you.length} /></header>
               {briefing.needs_you.length ? briefing.needs_you.map((item) => (
                 <div className="drawer-row" key={item.id}>
-                  <span><strong>{item.title}</strong>{item.reason && item.reason !== item.title && <small>{item.reason}</small>}<small>{item.detail}</small></span><em>{item.priority}</em>
+                  <span><strong>{item.title}</strong>{[...new Set([item.reason,item.detail])].filter((line):line is string=>Boolean(line)&&line!==item.title).map(line=><small key={line}>{line===`Quelle: ${item.source}`?`Quelle: ${sourceLabels[item.source??""]??"gespeicherte Quelle"}`:line}</small>)}</span><em>{item.priority}</em>
                 </div>
               )) : <p className="drawer-empty">Keine offenen Prioritäten</p>}
             </article>
@@ -307,8 +328,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   const connectionFailures = briefing.partial_failures.filter(failure => failure.section !== "source_review");
   return (
     <div className="shell">
-      <Sidebar active="Heute" briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
-      <main className="morning-page today-page">
+      <Sidebar active="Heute" navigationDisabled={briefingOpen} briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
+      <main inert={briefingOpen} className="morning-page today-page">
         <div className="today-landscape" aria-hidden="true" />
         <section className="hero">
           <img className="hero-bird" src={`${ASSET.media}Freigestellter Eisvogel auf Zweig.png`} alt="" />
@@ -701,7 +722,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   function loadProjects() {
     const version = ++projectRequestVersion.current;
     setProjectError(false);
-    api.projects().then(items => {
+    return api.projects().then(items => {
       if (version === projectRequestVersion.current) setProjects(items);
     }).catch(() => {
       if (version === projectRequestVersion.current) setProjectError(true);
@@ -795,7 +816,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
 
   function startTask() {
-    if (creating || taskSave.current.inFlight) return;
+    if (creating || taskSave.current.inFlight) { setPanel("tasks"); return; }
     taskSave.current = new TaskSaveAttempt(undefined, MANUAL_TASK_REQUEST_KEY);
     setTitle(""); setDue(""); setCreateReviewed(false);
     try {setCreateError(taskSave.current.restore() ? TASK_SAVE_PENDING : "");}
@@ -823,7 +844,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         <TaskDetail key={selectedTask} taskId={selectedTask} onChanged={() => load()} />
       </DetailPanel>}
       <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={panel === "tasks" && view === item.id} className={panel === "tasks" && view === item.id ? "active" : ""} key={item.id} onClick={() => {setPanel("tasks");setView(item.id);}} type="button">{item.label}</button>)}<button type="button" aria-pressed={panel === "projects"} onClick={()=>{setView("mine");setPanel("projects");}}>Projekte</button><button type="button" aria-pressed={panel === "review"} onClick={()=>{setSelectedTask(null);setView("mine");setPanel("review");}}>Zur Prüfung</button></nav>
-      {view !== "goals" && (projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}
+      {view !== "goals" && <div hidden={panel === "review"}>{(projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}</div>}
       {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} onPreview={()=>setSelectedTask(null)} initiallyExpanded={panel === "review" || new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { loadProjects(); setPanel("tasks"); setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
       {panel === "projects" && <section className="workspace-projects" aria-label="Projekte">
         <p>Aufgaben und Gedächtnis verwenden dieselben Projekte. Abgeschlossene Projekte bleiben erhalten.</p>
@@ -831,9 +852,9 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
         {projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
         {projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>setSelectedTask(task.id)} />}
       </section>}
-      {(view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      {panel !== "review" && (view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
-      {(view === 'mine' || view === 'waiting' || view === 'done') && <>
+      {panel !== 'review' && (view === 'mine' || view === 'waiting' || view === 'done') && <>
         <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
           <label>Aufgaben durchsuchen<input type="search" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Titel, Notiz oder wartende Person" /></label>
           <button type="submit" className="secondary-action">Suchen</button>
