@@ -24,16 +24,20 @@ def test_cached_ready_model_does_not_hide_global_pause_or_resume(app_client, mon
     assert app.state.settings.schedule.with_model is True
 
 
-@pytest.mark.parametrize('power, text', [('battery', 'Akkubetrieb'), ('unknown', 'Energiestatus')])
-def test_cached_ready_model_does_not_hide_energy_gate(app_client, monkeypatch, power, text):
+@pytest.mark.parametrize('power, pressure, text', [
+    ('battery', 'normal', 'Akkubetrieb'), ('unknown', 'normal', 'Energiestatus'),
+    ('ac', 'warning', 'Arbeitsspeicher'), ('ac', 'critical', 'Arbeitsspeicher'),
+    ('ac', 'unknown', 'Speicherlast'),
+])
+def test_cached_ready_model_does_not_hide_energy_or_memory_gate(app_client, monkeypatch, power, pressure, text):
     app, client = app_client
     enabled(app, client)
     monkeypatch.setattr('icarus_memory.local_model_guard.verify_local_model',
                         lambda *_: pytest.fail('automatic progress must not probe a model'))
-    assert client.post('/api/v1/device/power', json={'source': power}).status_code == 200
+    assert client.post('/api/v1/device/power', json={'source': power, 'memory_pressure': pressure}).status_code == 200
     status = client.get('/api/v1/memory/coverage').json()['automation']
     assert text in (status.get('execution_pause_reason') or '')
-    assert client.post('/api/v1/device/power', json={'source': 'ac'}).status_code == 200
+    assert client.post('/api/v1/device/power', json={'source': 'ac', 'memory_pressure': 'normal'}).status_code == 200
     assert client.get('/api/v1/memory/coverage').json()['automation'].get('execution_pause_reason') is None
 
 

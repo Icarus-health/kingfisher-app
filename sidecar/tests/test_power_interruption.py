@@ -16,12 +16,12 @@ from icarus_memory.scheduler import JobResult, Scheduler
 from icarus_memory.task_detection import TaskDetector
 
 
-@pytest.mark.parametrize('interruption', ['battery', 'missing'])
+@pytest.mark.parametrize('interruption', ['battery', 'missing', 'warning', 'critical', 'unknown'])
 @pytest.mark.parametrize('manual_pause', [False, True])
 def test_energy_between_model_steps_releases_schedule_and_restore_locks(tmp_path, interruption, manual_pause):
     clock = [100.0]
     power = HostPower(tmp_path, expected=lambda: True, clock=lambda: clock[0])
-    power.report('ac')
+    power.report('ac', memory_pressure='normal')
     ampel = ModellAmpel()
     scheduler = Scheduler()
     boundary = RuntimeBoundary(tmp_path)
@@ -40,8 +40,10 @@ def test_energy_between_model_steps_releases_schedule_and_restore_locks(tmp_path
             control.pausieren(True)
         if interruption == 'battery':
             power.report('battery')
-        else:
+        elif interruption == 'missing':
             clock[0] += 91
+        else:
+            power.report('ac', memory_pressure=interruption)
         first.set()
         with ampel.aufruf():
             calls.append('second')
@@ -64,7 +66,7 @@ def test_energy_between_model_steps_releases_schedule_and_restore_locks(tmp_path
         # Direct scheduler execution remains possible even while automatic work waits.
         assert scheduler.run_once(with_model=False).finished_at is not None
     finally:
-        power.report('ac')
+        power.report('ac', memory_pressure='normal')
         scheduler.stop()
 
 
@@ -137,12 +139,12 @@ def test_task_detector_releases_analysis_lease_on_energy_pause_and_retries(tmp_p
         state = proposals.memory_analysis.snapshot(episode.id)
         assert (state['state'], state['lease_until']) == ('cancelled', 0)
         assert not proposals.task_analysis_done(episode.id, episode.digest)
-        power.report('ac')
+        power.report('ac', memory_pressure='normal')
         with als_hintergrund(power.reason):
             report = detector.run(with_model=True)
         assert (report.analyzed, report.failed) == (1, 0)
     finally:
-        power.report('ac')
+        power.report('ac', memory_pressure='normal')
         worker.join(2)
         episodes.close()
         proposals.close()
@@ -156,13 +158,14 @@ def test_direct_model_request_ignores_automatic_energy_pause(tmp_path):
         assert ampel.belegt() == {'vorne': 1, 'hinten': 0}
 
 
-def test_memory_pause_preserves_committed_sources_and_retries_pending_without_backoff(tmp_path):
+@pytest.mark.parametrize('pause_source, pause_pressure', [('battery', 'normal'), ('ac', 'warning'), ('ac', 'critical')])
+def test_memory_pause_preserves_committed_sources_and_retries_pending_without_backoff(tmp_path, pause_source, pause_pressure):
     from icarus_memory.hintergrund import BackgroundInterrupted
     from icarus_memory.working_memory_store import WorkingMemoryStore
     from icarus_memory.working_memory_worker import Zwischenstand, run
 
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('ac')
+    power.report('ac', memory_pressure='normal')
     ampel = ModellAmpel()
 
     class Local:
@@ -175,7 +178,7 @@ def test_memory_pause_preserves_committed_sources_and_retries_pending_without_ba
                 items = [{'block_id': f'B{number}', 'kind': 'fact'}
                          for number, _ in enumerate(payload['blocks'], 1)]
                 if self.calls == 1:
-                    power.report('battery')
+                    power.report(pause_source, memory_pressure=pause_pressure)
                 return Reply(text=json.dumps({'items': items}))
 
     episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
@@ -187,13 +190,14 @@ def test_memory_pause_preserves_committed_sources_and_retries_pending_without_ba
     try:
         with pytest.raises(BackgroundInterrupted), als_hintergrund(power.reason):
             run(episodes, provider, threading.RLock(), stand=Zwischenstand())
+            run(episodes, provider, threading.RLock(), stand=Zwischenstand())
         assert provider.calls == 1
         coverage = memory.coverage()
         assert (coverage['complete'], coverage['failed']) == (1, 0)
         assert len(memory.pending()) == 1
         assert [episodes.get(item.id).body for item in originals] == [
             'Synthetic first source.', 'Synthetic second source.']
-        power.report('ac')
+        power.report('ac', memory_pressure='normal')
         with als_hintergrund(power.reason):
             run(episodes, provider, threading.RLock(), stand=Zwischenstand())
         assert provider.calls == 2
@@ -202,7 +206,8 @@ def test_memory_pause_preserves_committed_sources_and_retries_pending_without_ba
         episodes.close()
 
 
-def test_memory_pause_keeps_finished_sections_for_ac_resume(tmp_path):
+@pytest.mark.parametrize('pause_source, pause_pressure', [('battery', 'normal'), ('ac', 'warning'), ('ac', 'critical')])
+def test_memory_pause_keeps_finished_sections_for_ac_resume(tmp_path, pause_source, pause_pressure):
     from icarus_memory.hintergrund import BackgroundInterrupted
     from icarus_memory.working_memory_analysis import abschnitte_der
     from icarus_memory.working_memory_store import WorkingMemoryStore, source_fingerprint
@@ -210,7 +215,7 @@ def test_memory_pause_keeps_finished_sections_for_ac_resume(tmp_path):
     from icarus_memory.memory_analysis import model_key
 
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('ac')
+    power.report('ac', memory_pressure='normal')
     ampel = ModellAmpel()
 
     class Local:
@@ -224,7 +229,7 @@ def test_memory_pause_keeps_finished_sections_for_ac_resume(tmp_path):
                 items = [{'block_id': f'B{number}', 'kind': 'fact'}
                          for number, _ in enumerate(payload['blocks'], 1)]
                 if len(self.sections) == 1:
-                    power.report('battery')
+                    power.report(pause_source, memory_pressure=pause_pressure)
                 return Reply(text=json.dumps({'items': items}))
 
     episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
@@ -241,12 +246,14 @@ def test_memory_pause_keeps_finished_sections_for_ac_resume(tmp_path):
     try:
         with pytest.raises(BackgroundInterrupted), als_hintergrund(power.reason):
             run(episodes, provider, threading.RLock(), stand=stand)
+            run(episodes, provider, threading.RLock(), stand=stand)
         assert len(stand.holen(episode.id, source_fingerprint(snapshot), model_key(provider))) == 1
         assert memory.coverage()['failed'] == 0
         assert episodes.get(episode.id).body == body
-        power.report('ac')
+        power.report('ac', memory_pressure='normal')
         with als_hintergrund(power.reason):
-            run(episodes, provider, threading.RLock(), stand=stand, abschnitte_je_lauf=section_count)
+            for _ in range(section_count):
+                run(episodes, provider, threading.RLock(), stand=stand, abschnitte_je_lauf=section_count)
         assert provider.sections == list(range(1, section_count + 1))
         assert memory.coverage()['complete'] == 1
     finally:

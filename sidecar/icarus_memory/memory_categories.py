@@ -19,7 +19,7 @@ from .kontakte import absender_text
 from .episodes import IGNORIERTE_ZUSTAENDE, sql_geltend, sql_rohquelle
 from .memory_analysis import model_key
 from .model import SourceType
-from .people_quality import ist_sammelpostfach, lokalteil
+from .people_quality import ist_firmenbezeichnung, ist_sammelpostfach, lokalteil
 from .providers import ProviderError
 from .scheduler import JobResult
 from .working_memory_analysis import (
@@ -264,7 +264,7 @@ def _contact_names(episode):
 
 def _not_person(name, banned, contact_names=()):
     normalized = _normal(name)
-    return (normalized in banned or ist_sammelpostfach(normalized)
+    return (normalized in banned or ist_sammelpostfach(normalized) or ist_firmenbezeichnung(name)
             or (normalized in _PERSON_PRONOUNS and normalized not in contact_names)
             or any(_generic_address(match[0]) for match in _ADDRESS.finditer(name)))
 

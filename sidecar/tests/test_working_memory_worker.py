@@ -4,6 +4,8 @@ import threading
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
+import pytest
+
 from icarus_memory import EpisodeKind, EpisodeStore, Provenance, SourceType
 from icarus_memory.working_memory_store import WorkingMemoryStore
 from icarus_memory.working_memory_worker import run
@@ -54,6 +56,61 @@ def add_source(episodes, body, *, tags=()):
 
 def refs(memory, query="source"):
     return memory.search(query)["refs"]
+
+
+@pytest.mark.parametrize('failure', ['malformed', 'exception'])
+@pytest.mark.parametrize('background, budget, expected', [(True, 3, 1), (False, 2, 2)])
+def test_failed_model_attempts_consume_the_packet_budget(tmp_path, failure, background, budget, expected):
+    from contextlib import nullcontext
+    from icarus_memory.hintergrund import als_hintergrund
+    from icarus_memory.working_memory_worker import Zwischenstand
+
+    class Failing(FakeLocalProvider):
+        def complete_json(self, messages, *, max_tokens, schema):
+            self.calls.append(json.loads(messages[1]['content']))
+            if failure == 'exception':
+                raise RuntimeError('synthetic model failure after generation')
+            return SimpleNamespace(text='invalid JSON after expensive model generation', tool_calls=[])
+
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    originals = [add_source(episodes, f'Synthetic source {number}.') for number in range(5)]
+    provider = Failing()
+    stand = Zwischenstand()
+    try:
+        with als_hintergrund() if background else nullcontext():
+            report = run(episodes, provider, threading.RLock(), stand=stand, abschnitte_je_lauf=budget)
+        assert not report.ok
+        assert len(provider.calls) == expected
+        memory = WorkingMemoryStore(episodes)
+        assert memory.coverage()['failed'] == expected
+        assert len(memory.pending()) == 5 - expected
+        assert [episodes.get(item.id).body for item in originals] == [f'Synthetic source {number}.' for number in range(5)]
+        resumed = FakeLocalProvider()
+        with als_hintergrund():
+            run(episodes, resumed, threading.RLock(), stand=stand)
+        assert len(resumed.calls) == 1
+        assert memory.coverage()['complete'] == 1
+    finally:
+        episodes.close()
+
+
+def test_unsupported_source_without_a_model_call_does_not_consume_background_budget(tmp_path):
+    from icarus_memory.hintergrund import als_hintergrund
+    from icarus_memory.working_memory_worker import Zwischenstand
+
+    episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    truncated = add_source(episodes, 'Truncated synthetic source.', tags=['source:truncated'])
+    supported = add_source(episodes, 'Supported synthetic source.')
+    provider = FakeLocalProvider()
+    try:
+        with als_hintergrund():
+            run(episodes, provider, threading.RLock(), stand=Zwischenstand(), source_ids=[truncated.id, supported.id])
+        assert len(provider.calls) == 1
+        memory = WorkingMemoryStore(episodes)
+        assert memory.source_state(truncated.id) == 'deferred'
+        assert memory.source_state(supported.id) == 'complete'
+    finally:
+        episodes.close()
 
 
 def test_revoked_during_model_call_never_writes_references(tmp_path):

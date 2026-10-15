@@ -26,6 +26,35 @@ enum PowerSource: String {
     }
 }
 
+enum MemoryPressure: String {
+    case normal
+    case warning
+    case critical
+    case unknown
+
+    /// XNU returns the dispatch pressure flags (1/2/4), not its internal enum.
+    static func fromKernelLevel(_ level: UInt32?) -> MemoryPressure {
+        switch level {
+        case 1: return .normal
+        case 2: return .warning
+        case 4: return .critical
+        default: return .unknown
+        }
+    }
+
+    static func current() -> MemoryPressure {
+        #if canImport(Darwin)
+        var level: UInt32 = 0
+        var size = MemoryLayout<UInt32>.size
+        guard sysctlbyname("kern.memorystatus_vm_pressure_level", &level, &size, nil, 0) == 0,
+              size == MemoryLayout<UInt32>.size else { return .unknown }
+        return fromKernelLevel(level)
+        #else
+        return .unknown
+        #endif
+    }
+}
+
 enum PowerReportRequest {
     static let path = "/api/v1/device/power"
     static let interval: TimeInterval = 30
@@ -48,11 +77,12 @@ enum PowerReportRequest {
         return value
     }
 
-    static func make(origin: URL, source: PowerSource, token: String) -> URLRequest? {
+    static func make(origin: URL, source: PowerSource, memoryPressure: MemoryPressure = .unknown, token: String) -> URLRequest? {
         guard origin.scheme == "http", origin.host == "127.0.0.1", origin.user == nil, origin.password == nil,
               ["", "/"].contains(origin.path), origin.query == nil, origin.fragment == nil, validToken(token),
               let url = URL(string: path, relativeTo: origin)?.absoluteURL,
-              let body = try? JSONSerialization.data(withJSONObject: ["source": source.rawValue]) else { return nil }
+              let body = try? JSONSerialization.data(withJSONObject: ["source": source.rawValue,
+                                                                      "memory_pressure": memoryPressure.rawValue]) else { return nil }
         var request = URLRequest(url: url, timeoutInterval: 3)
         request.httpMethod = "POST"
         request.httpBody = body
@@ -67,8 +97,8 @@ enum PowerReportRequest {
     }
 }
 
-/// Sendet die knappe Energiequelle in festen Abständen an den lokalen Sidecar.
-/// Es werden weder Prozentwerte noch andere Geräte- oder Nutzungsdaten erfasst.
+/// Sendet Energiequelle und Speicherdruck in festen Abständen an den lokalen Sidecar.
+/// Es werden weder Prozesslisten noch Nutzungsdaten erfasst; fehlende Messungen bleiben unbekannt.
 final class PowerReporter: NSObject, URLSessionDataDelegate {
     private let origin: URL
     private let tokenFile: URL
@@ -126,7 +156,8 @@ final class PowerReporter: NSObject, URLSessionDataDelegate {
 
         guard let text = try? String(contentsOf: tokenFile, encoding: .utf8),
               let token = PowerReportRequest.token(from: text),
-              let request = PowerReportRequest.make(origin: origin, source: Self.currentSource(), token: token) else {
+              let request = PowerReportRequest.make(origin: origin, source: Self.currentSource(),
+                                                    memoryPressure: MemoryPressure.current(), token: token) else {
             finishRequest()
             return
         }

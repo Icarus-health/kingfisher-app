@@ -9,7 +9,7 @@ from typing import Callable
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
 from .memory_analysis import interpret, segment, model_key
 from .proposals import ProposalKind
-from .task_review import REVIEW_MARKER, current_task_context, task_context_matches
+from .task_review import REVIEW_MARKER, current_task_context, hard_details_supported, task_context_matches
 from .model import SourceType
 from .hintergrund import BackgroundInterrupted
 
@@ -234,8 +234,9 @@ def for_briefing(proposals, episodes, *, limit: int = BRIEFING_ITEMS, now=None) 
             items.append({
                 'id': proposal.id, 'statement': proposal.statement, 'quote': proposal.evidence[0].quote,
                 'episode_id': episode.id, 'sender': _absender(episode), **timing,
-                'review_required': episode.provenance.source_type is SourceType.EMAIL
-                    and (proposal.task_context is None or not proposal.proposed_by.endswith(REVIEW_MARKER)),
+                'review_required': not hard_details_supported(proposal.statement, proposal.evidence[0].quote)
+                    or (episode.provenance.source_type is SourceType.EMAIL
+                        and (proposal.task_context is None or not proposal.proposed_by.endswith(REVIEW_MARKER))),
             })
             # Keep memory bounded even when a large inventory produced many candidates.
             items.sort(key=lambda item: item['received_at'] or '', reverse=True)

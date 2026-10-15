@@ -12,6 +12,7 @@ AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|do[._-]not[._-]reply|notifi
 GENERIC = {
     'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
     'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen', 'message',
+    'rechnungsstellung', 'rechnungsabteilung', 'customer service', 'customer support',
 }
 _COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
 _COMPOSED_GENERIC = re.compile(
@@ -20,6 +21,11 @@ _COMPOSED_GENERIC = re.compile(
     r'payments?[-_.]update|orders?[-_.]update|shipments?[-_.]tracking|'
     r'marketplace[-_.]messages?|cs[-_.]auto)$'
 )
+
+
+def ist_firmenbezeichnung(name):
+    """A legal company suffix is not an automatically established human identity."""
+    return bool(_COMPANY_NAME.search(str(name or '')))
 
 
 def lokalteil(adresse):

@@ -124,6 +124,43 @@ def test_direkt_an_der_obergrenze_wird_noch_eingeordnet(raum):
 # -- 2. Häppchen ----------------------------------------------------------------------------------------------------
 
 
+def test_automatischer_hintergrund_bearbeitet_nur_einen_abschnitt_und_setzt_fort(raum):
+    from icarus_memory.hintergrund import als_hintergrund
+    episodes, store, hilfe = raum
+    episode = quelle(episodes, transkript(40))
+    plan = ab.bilden(episode.body, 'transkript')
+    assert len(plan) > 2
+    provider = Zaehler()
+    with als_hintergrund():
+        lauf(raum, provider, abschnitte_je_lauf=50)
+    assert len(provider.calls) == 1
+    assert store.source_state(episode.id) != 'complete'
+    assert hilfe.stand.offene() == [episode.id]
+    with als_hintergrund():
+        lauf(raum, provider)
+    assert [call['abschnitt']['nr'] for call in provider.calls] == [1, 2]
+    # An explicit direct run retains the requested budget and completes the source.
+    lauf(raum, provider, abschnitte_je_lauf=50)
+    assert len(provider.calls) == len(plan)
+    assert store.source_state(episode.id) == 'complete'
+
+
+def test_automatischer_hintergrund_bearbeitet_nur_eine_kurze_quelle_je_paket(raum):
+    from icarus_memory.hintergrund import als_hintergrund
+    episodes, store, _ = raum
+    for number in range(3):
+        quelle(episodes, f'Synthetische Quelle {number}.', tags=(), titel=str(number))
+    provider = Zaehler()
+    with als_hintergrund():
+        lauf(raum, provider, limit=100)
+    assert len(provider.calls) == 1
+    assert store.coverage()['complete'] == 1
+    with als_hintergrund():
+        lauf(raum, provider, limit=100)
+    assert len(provider.calls) == 2
+    assert store.coverage()['complete'] == 2
+
+
 def test_ein_paket_gibt_einer_langen_quelle_nie_alle_abschnitte(raum):
     episodes, store, hilfe = raum
     body = transkript(115)  # rund 100.000 Zeichen
@@ -260,6 +297,24 @@ def test_ein_fehler_im_dritten_abschnitt_wirft_den_zwischenstand_weg_und_schreib
     ergebnis = lauf(raum, anbieter)
     assert not ergebnis.ok and len(anbieter.calls) == 2
     assert hilfe.stand.offene() == [] and store.source_state(episode.id) == 'failed'
+    assert not store.search('Quasarantrag')['refs']
+
+
+def test_drei_modellversuche_mit_fehler_verbrauchen_das_manuelle_paketbudget(raum):
+    episodes, store, hilfe = raum
+    long = quelle(episodes, transkript(40), titel='Long')
+    short = quelle(episodes, 'Weitere synthetische Quelle.', tags=(), titel='Short')
+
+    def fail_on_third(payload):
+        if payload.get('abschnitt', {}).get('nr') == 3:
+            raise ProviderError('synthetic failure after generation')
+
+    provider = Zaehler(on_call=fail_on_third)
+    report = lauf(raum, provider, source_ids=[long.id, short.id], abschnitte_je_lauf=3)
+    assert not report.ok
+    assert len(provider.calls) == 3
+    assert store.source_state(long.id) == 'failed'
+    assert store.source_state(short.id) == 'pending'
     assert not store.search('Quasarantrag')['refs']
 
 

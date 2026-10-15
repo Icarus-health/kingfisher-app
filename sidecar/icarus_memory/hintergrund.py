@@ -46,8 +46,8 @@ RUHE_NACH_EINGABE_S = 20.0
 #: als die Rücksicht, und deshalb nicht 20 s nach jeder Anfrage warten sollen.
 RUHE_ENV = 'KINGFISHER_HINTERGRUND_RUHE_S'
 #: Anteil der Zeit, in der der Hintergrund höchstens arbeitet; der Rest ist Pause.
-ARBEITSANTEIL = 0.5
-#: Kürzeste und längste Pause zwischen zwei Häppchen.
+ARBEITSANTEIL = 0.2
+#: Kürzeste Arbeitspause und längster Abstand zur erneuten Prüfung einer Sperre.
 PAUSE_MIN_S = 2.0
 PAUSE_MAX_S = 30.0
 #: Wie lange nach dem Start der erste volle Durchgang frühestens läuft, wenn noch keiner gemerkt ist.
@@ -82,6 +82,8 @@ STUFEN_TEXT = {
 GRUND_TEXT = {
     'akku': 'Die automatische Hintergrundverarbeitung pausiert im Akkubetrieb. Am Netzteil geht es weiter; Lesen und direkte Anfragen bleiben möglich.',
     'energie_unbekannt': 'Der aktuelle Energiestatus des Macs fehlt. Die automatische Hintergrundverarbeitung wartet auf die Meldung der App.',
+    'speicherdruck': 'Der Arbeitsspeicher des Macs ist stark ausgelastet. Die automatische Hintergrundverarbeitung pausiert, bis sich die Speicherlast normalisiert.',
+    'speicher_unbekannt': 'Die aktuelle Speicherlast des Macs fehlt. Die automatische Hintergrundverarbeitung wartet auf eine frische Meldung der App.',
     'pausiert': 'Pausiert. Kingfisher lernt weiter, wenn du „Weiter“ wählst.',
     'antwort': 'Kingfisher lernt weiter, sobald die Antwort fertig ist; du musst nichts tun.',
     # Fremdprobe 3, Befund 8: „Wartet, solange du arbeitest.“ las sich, als solle man aufhören zu arbeiten.
@@ -89,7 +91,7 @@ GRUND_TEXT = {
 }
 from .storage_capacity import MESSAGES as STORAGE_MESSAGES
 GRUND_TEXT.update(STORAGE_MESSAGES)
-RESOURCE_INTERRUPTS = ('akku', 'energie_unbekannt', *STORAGE_MESSAGES)
+RESOURCE_INTERRUPTS = ('akku', 'energie_unbekannt', 'speicherdruck', 'speicher_unbekannt', *STORAGE_MESSAGES)
 SATZ_ANBLEIBEN = 'Es geht schneller, wenn der Rechner heute anbleibt.'
 
 
@@ -598,7 +600,7 @@ class Steuerung:
     @staticmethod
     def pause_nach(dauer_s: float) -> float:
         """Drosselung: nach einem Häppchen so lange ruhen, dass höchstens `ARBEITSANTEIL` der Zeit gearbeitet wird."""
-        return min(PAUSE_MAX_S, max(PAUSE_MIN_S, dauer_s * (1 - ARBEITSANTEIL) / ARBEITSANTEIL))
+        return max(PAUSE_MIN_S, dauer_s * (1 - ARBEITSANTEIL) / ARBEITSANTEIL)
 
     # -- Voller Durchgang --------------------------------------------------
 
