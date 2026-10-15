@@ -204,6 +204,9 @@ def timeline(episodes, claims, start, end, limit, cursor=None, basis="recorded")
 
 
 def install_routes(app, guard):
+    from .semantic_prepare_routes import register as register_semantic_prepare
+    from .server import _data_dir
+    register_semantic_prepare(app, guard, _data_dir)
     router = APIRouter(prefix='/api/v1/memory', dependencies=guard)
     automation_observation = None
 

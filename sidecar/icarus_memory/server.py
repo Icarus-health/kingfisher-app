@@ -2909,7 +2909,14 @@ def create_app(
                 # Die Startseite wartet nicht auf ein Postfach, das nicht antwortet; schwieg es eben schon, gar nicht.
                 messages = postfach_lage(app).lesen("alle", lambda: mail.inbox(limit=8), host=host, name=name,
                                                     sekunden=POSTFACH_ZEITGRENZE)
-                result["mail"]["items"] = [m.to_dict() for m in messages]
+                from copy import deepcopy
+                from types import SimpleNamespace
+                from .inbox_filter import classify_row
+                with app.state.conversation_lock:
+                    filter_settings = SimpleNamespace(mail_filter=deepcopy(app.state.settings.mail_filter))
+                result["mail"]["items"] = [
+                    {**m.to_dict(), **classify_row(m, filter_settings)} for m in messages
+                ]
                 result["mail"]["unread"] = sum(1 for m in messages if m.unread)
                 if len(messages) < 8:  # nur ein vollständiger Blick sagt, ob ein Postfach leer ist
                     from .mail_stand import merke_gelesen

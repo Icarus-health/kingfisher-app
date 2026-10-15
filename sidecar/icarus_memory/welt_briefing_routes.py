@@ -15,6 +15,7 @@ Modellprüfung im Zeitplan freigegeben wurde (dieselbe Freigabe wie für die Ein
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from typing import Any
 
 from fastapi import HTTPException
@@ -25,6 +26,37 @@ from .akten_routes import bausteine
 from .welt_feeds import FeedFehler
 from .welt_meldungen import WeltDienst
 from .welt_vorgaben import ABGERUFEN, STAND, mit_zustand
+from .local_model_guard import VerifiedLocalProvider
+
+
+class _WorldProvider(VerifiedLocalProvider):
+    """News stays interruptible while waiting for the shared local model slot."""
+
+    def __init__(self, provider, *, permitted):
+        super().__init__(provider, permitted=permitted)
+        original_gate = getattr(self._provider, '_ampel', None)
+        if original_gate is not None:
+            @contextmanager
+            def checked_gate():
+                with original_gate():
+                    # Model memory preparation may itself wait. Recheck after
+                    # it finishes, before the adapter opens its transport.
+                    if not self._permitted():
+                        from .providers import ProviderError
+                        raise ProviderError('Die Modellprüfung der Weltmeldung ist pausiert.')
+                    yield
+            self._provider._ampel = checked_gate
+
+    def complete_json(self, messages, **kwargs):
+        from .hintergrund import BackgroundInterrupted, als_hintergrund
+        from .providers import ProviderError
+        try:
+            with als_hintergrund(stopped=lambda: not self._permitted()):
+                return super().complete_json(messages, **kwargs)
+        except BackgroundInterrupted as exc:
+            # News selection treats an unavailable model as a name-match
+            # fallback. Never let its separate worker swallow a pause signal.
+            raise ProviderError('Die Modellprüfung der Weltmeldung ist pausiert.') from exc
 
 
 class BriefingIn(BaseModel):
@@ -76,7 +108,21 @@ def dienst(app, data_dir=None) -> WeltDienst:
         if not (plan.enabled and plan.with_model):
             return None
         from .model_roles import rollen_von
-        return rollen_von(app).provider('hintergrund')
+        from .memory_analysis import model_key
+        provider = rollen_von(app).provider('hintergrund')
+        if provider is None or not getattr(provider, 'is_local', False):
+            return None
+        identity = model_key(provider)
+
+        def erlaubt():
+            current = app.state.settings.schedule
+            control = getattr(app.state, 'hintergrund', None)
+            return (current.enabled and current.with_model
+                    and rollen_von(app).provider('hintergrund') is provider
+                    and model_key(provider) == identity
+                    and control is not None and control.sperre() is None)
+
+        return _WorldProvider(provider, permitted=erlaubt) if erlaubt() else None
 
     neu = WeltDienst(lesen=lambda: app.state.settings.welt, speichern=speichern,
                      bezuege=lambda: bausteine(app)[0], episodes=lambda: app.state.episodes,

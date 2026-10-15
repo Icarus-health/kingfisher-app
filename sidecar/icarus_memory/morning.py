@@ -298,7 +298,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
 
     happening: list[dict[str, Any]] = []
     for mail in (dashboard.get("mail", {}).get("items") or []):
-        if not mail.get("unread"):
+        if not mail.get("unread") or mail.get("category") in ("newsletter", "spam", "blocked"):
             continue
         title = str(mail.get("subject") or "Neue E-Mail")
         happening.append({

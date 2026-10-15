@@ -1,4 +1,6 @@
 """Read-only inbox labels from current rules and existing review hints."""
+from email.utils import parseaddr
+
 from .mail_filter import classify, policy
 
 
@@ -8,6 +10,12 @@ def classify_row(message, settings):
     decision = classify(message, selected)
     if not decision.include:
         return {'category': decision.category, 'filter_reason': decision.reason}
+    # Current explicit permission outranks old advisory hints; the classifier
+    # has already applied blocked senders and spam headers above.
+    address = parseaddr(message.sender)[1].lower()
+    domain = '@' + address.rsplit('@', 1)[-1] if '@' in address else ''
+    if address and any(value in (address, domain) for value in selected.get('allowed', [])):
+        return {'category': 'inbox', 'filter_reason': 'allowed'}
     # Advisory labels only; never grant permission or write evidence here.
     for item in settings.mail_filter.get('pending', {}).values():
         if (message.account_id and item.get('account_id') == message.account_id
