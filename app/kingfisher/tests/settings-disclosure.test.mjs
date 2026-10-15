@@ -7,7 +7,7 @@ const server = await createServer({root:fileURLToPath(new URL('..', import.meta.
   cacheDir:`/private/tmp/kingfisher-settings-tests-${process.pid}`,
   plugins:[{name:'settings-hooks', enforce:'pre', resolveId(id){if(id==='virtual:settings-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:settings-hooks')return `export const useState=v=>globalThis.__settingsState(v);export const useEffect=()=>{};export const useRef=v=>({current:v});export const useCallback=f=>f;`;},
-    transform(code,id){if(['/SettingsSections.tsx','/CloudAccess.tsx','/ChatGPTAccess.tsx','/CloudMemory.tsx','/GoogleSignIn.tsx','/ModelRecommendation.tsx','/Einstellungen/Aufklapp.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:settings-hooks"');}}],
+    transform(code,id){if(['/SettingsSections.tsx','/CloudAccess.tsx','/ChatGPTAccess.tsx','/CloudMemory.tsx','/GoogleSignIn.tsx','/ModelRecommendation.tsx','/WeltSettings.tsx','/Einstellungen/Aufklapp.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:settings-hooks"');}}],
   server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {SettingsSections}=await server.ssrLoadModule('/src/SettingsSections.tsx');
@@ -17,6 +17,7 @@ const {ChatGPTAccess}=await server.ssrLoadModule('/src/ChatGPTAccess.tsx');
 const {CloudMemory}=await server.ssrLoadModule('/src/CloudMemory.tsx');
 const {GoogleSignIn}=await server.ssrLoadModule('/src/GoogleSignIn.tsx');
 const {ModelRecommendation}=await server.ssrLoadModule('/src/ModelRecommendation.tsx');
+const {Nachrichten}=await server.ssrLoadModule('/src/WeltSettings.tsx');
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children].flat(50).forEach(c=>nodes(c,p,out));return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(50).map(text).join(''):String(n);}
 function render(fn,seeds=[]){let i=0;globalThis.__settingsState=v=>{const slot=i++;if(!(slot in seeds))seeds[slot]=typeof v==='function'?v():v;return [seeds[slot],value=>seeds[slot]=typeof value==='function'?value(seeds[slot]):value];};try{return fn();}finally{delete globalThis.__settingsState;}}
@@ -91,4 +92,14 @@ test('model downloads and their errors are visible while the model catalogue is 
   assert.match(firstLayer(tree),/Ollama fehlt/);assert.ok(nodes(tree,n=>n.props?.role==='alert').length);
   tree=render(()=>ModelRecommendation({compact:true}),[null,true,null,null,{ok:true,text:'Eingerichtet und geprüft.'}]);
   assert.match(firstLayer(tree),/Eingerichtet und geprüft/);assert.match(firstLayer(tree),/konnte nicht geladen/);
+});
+
+const news={aktiv:true,feeds:[{id:'feed-test',label:'Testzeitung',enabled:true,fehler:'Abruf fehlgeschlagen'}],weltquellen:[],vorschlaege:[],vorschlaege_stand:{stand:'2026-09-30',abgerufen:null},abbestellt:[],modell:false};
+test('news source choices start closed, with current selection and source failures still visible',()=>{
+  const state=[news,'https://draft.invalid/feed','Entwurf',false,'',''];
+  let tree=render(()=>Nachrichten(),state);
+  const choices=nodes(tree,n=>n.type==='details'&&text(n).includes('Quellen ändern'))[0];assert.ok(choices);assert.equal(Boolean(choices.props.open),false);
+  assert.match(firstLayer(tree),/Testzeitung/);assert.match(firstLayer(tree),/Abruf fehlgeschlagen/);assert.doesNotMatch(firstLayer(tree),/Eigene Quelle: Adresse/);
+  assert.equal(nodes(tree,n=>n.type==='input'&&n.props.id==='welt-feed-url')[0].props.value,'https://draft.invalid/feed');
+  tree=render(()=>Nachrichten(),[null,'','',false,'Einstellung nicht erreichbar','']);assert.match(firstLayer(tree),/Einstellung nicht erreichbar/);
 });
