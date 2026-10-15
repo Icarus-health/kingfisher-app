@@ -137,8 +137,6 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
   const calendars = overview?.calendar_sources ?? [];
 
   return <>
-    {googleVorne ? <GoogleSignIn active={aktiv} kind="mail" onConnected={load} /> : null}
-    <MicrosoftZugang aktiv={aktiv} beiAenderung={load} />
     <div className="source-section" aria-label={ZUGAENGE.postfaecher.titel}>
       <div className="source-section-heading"><InterfaceIcon name="mail" /><div><h2>{ZUGAENGE.postfaecher.titel}</h2><span>{zaehlen(accounts.length, "Postfach", "Postfächer") || "Mehrere sind möglich"}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button"><img src={icon("plus", "Outline")} alt="" />Postfach hinzufügen</button></div>
       {!overview ? <div className="source-loading"><i /><i /></div> : null}
@@ -157,7 +155,6 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
       <div className="source-form-actions"><button className="secondary-action" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
     </div> : null}
 
-    {googleVorne ? <GoogleSignIn active={aktiv} kind="calendar" onConnected={load} /> : null}
     <div className="source-section" aria-label={ZUGAENGE.kalender.titel}>
       <div className="source-section-heading"><InterfaceIcon name="calendar-days" /><div><h2>{ZUGAENGE.kalender.titel}</h2><span>{zaehlen(calendars.length, "Kalender", "Kalender") || (system.mac_helfer ? "Google, Mac oder ein Kalender-Abo" : "Google oder ein Kalender-Abo")}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button"><img src={icon("plus", "Outline")} alt="" />Kalender hinzufügen</button></div>
       {!overview ? <div className="source-loading"><i /><i /></div> : null}
@@ -175,9 +172,12 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
       <div className="source-form-actions"><button className="secondary-action" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
     </div> : null}
     {system.mac_helfer ? <MacCalendarSettings /> : null}
+    {googleVorne ? <GoogleSignIn compact active={aktiv} kind="mail" onConnected={load} /> : null}
+    {googleVorne ? <GoogleSignIn compact active={aktiv} kind="calendar" onConnected={load} /> : null}
+    <MicrosoftZugang aktiv={aktiv} beiAenderung={load} />
 
     <header className="zugang-kopf"><h2>{ZUGAENGE.ordner.titel}</h2><p>{ZUGAENGE.ordner.satz}</p></header>
-    <TranscriptSettings />
+    <TranscriptSettings compact />
     <FolderSyncSettings />
     <DocumentImport />
   </>;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { EinrichtungKopf } from "../Einrichtung/EinrichtungKopf";
 import { RecoverySettings } from "../RecoverySettings";
 import { SettingsSections } from "../SettingsSections";
+import { Aufklapp } from "./Aufklapp";
 import { Sidebar } from "../chrome";
 import { Darf } from "./Darf";
 import {WorkspaceOnlineSettings} from '../WorkspaceOnlineSettings';
@@ -39,11 +40,13 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
     const neu = zielAus(kennung);
     setZiel(neu);
     window.location.hash = kennungVon(neu);
-  }, []);
+    if (neu.bereich !== ziel.bereich) window.scrollTo({top: 0, behavior: "auto"});
+  }, [ziel.bereich]);
 
   const inhalt: Record<Bereich, ReactNode> = {
     zugaenge: <><EinrichtungKopf /><Zugaenge integrationen={integrationen} aktiv={ziel.bereich === "zugaenge"} /></>,
-    ki: <><ChatGPTAccess /><CloudAccess /><ModelRecommendation /><LocalModelSettings /><DeviceModelHelp /></>,
+    ki: <><LocalModelSettings /><ChatGPTAccess /><CloudAccess />
+      <ModelRecommendation compact><Aufklapp id="geraet" praefix="ki" titel="Gerät und installierte Modelle" satz="Speicherbedarf und vorhandene Modelle."><DeviceModelHelp /></Aufklapp></ModelRecommendation></>,
     darf: <><Darf /><WorkspaceOnlineSettings /></>,
     ich: <Ich />,
     sicherung: <RecoverySettings />,
@@ -53,19 +56,16 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
   return <div className="shell settings-shell">
     <Sidebar active="Einstellungen" recentConversation={recentConversation} />
     <main className="settings-page">
-      <header className="settings-heading"><p className="eyebrow">EINSTELLUNGEN</p><h1>Dein Kingfisher</h1><span>Was Kingfisher darf, woher es seine Informationen holt und wie es dich kennt.</span></header>
+      <header className="settings-heading"><h1>Einstellungen</h1></header>
       {integrationen.error ? <p className="settings-error">{integrationen.error} <button onClick={integrationen.load} type="button">Wiederholen</button></p> : null}
       <div className="settings-layout">
         <SettingsSections selected={ziel.bereich} onSelect={waehlen}
           sections={BEREICHE.map(b => ({ id: b.id, label: b.label, description: fuerSystem(b.satz, system), hinten: b.hinten, content: inhalt[b.id] }))} />
-        <aside className="settings-data">
-          <h2>Deine Daten bleiben bei dir</h2>
-          <div className="settings-data-row"><strong>Lokale Speicherung</strong><span>{fuerSystem("Auf diesem {Rechner} gespeichert", system)}</span></div>
-          <div className="settings-data-row"><strong>Notizen</strong><span>Nur ausdrücklich freigegebene Ordner</span></div>
-          <div className="settings-data-row"><strong>Kalender-Abos</strong><span>Keine automatische Standort- oder Cloud-Freigabe</span></div>
-          <p>Eine Quelle wird nie automatisch hinzugefügt. Trennen löscht nur die lokale Zugangskonfiguration, nicht die Daten beim jeweiligen Anbieter.</p>
-        </aside>
       </div>
+      <details className="settings-storage quiet-details"><summary>Datenschutz & Speicherung</summary>
+        <p>{fuerSystem("Kingfisher speichert Quellen und Einstellungen auf diesem {Rechner}.", system)} Externe Dienste und Cloud-Verarbeitung benötigen eine gesonderte Freigabe.</p>
+        <p>Ordner und Kalender wählst du selbst. Trennen entfernt den lokalen Zugang, keine Daten beim Anbieter.</p>
+      </details>
     </main>
   </div>;
 }

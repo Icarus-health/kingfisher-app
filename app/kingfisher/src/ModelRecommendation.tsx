@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState, type ReactNode} from "react";
 import { pruefRolleOhneModell } from "./pruefHinweis";
 import { ausstattungSatz, type AusstattungQuelle } from "./system";
 import {api, ApiError, type ModelPullState, type ModelRecommendation as Recommendation, type ModelRecommendationRow} from "./api";
@@ -23,7 +23,7 @@ const failure = (error: unknown) => error instanceof ApiError && error.detail ? 
   : "Kingfisher ist gerade nicht erreichbar. Bitte in einem Moment erneut versuchen.";
 
 /** „Für diesen Rechner empfohlen“: je Aufgabe ein Modell, ein Klick richtet es ein. Vorauswahl, keine Messung. */
-export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) {
+export function ModelRecommendation({beiFertig, compact=false, children}: {beiFertig?: () => void; compact?: boolean; children?: ReactNode} = {}) {
   const [data, setData] = useState<Recommendation | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [confirm, setConfirm] = useState<Confirm>(null);
@@ -104,12 +104,7 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
     else setConfirm({kind: "one", rolle: row.rolle});
   }
 
-  return <section className="source-section model-recommendation" aria-label="Für diesen Rechner empfohlen">
-    <div className="compact-integration-heading"><div><h2>Für diesen Rechner empfohlen</h2>
-      <p>{data ? deviceLine(data) : loadError ? "Empfehlung gerade nicht erreichbar" : "Wird geladen …"}</p></div></div>
-    {loadError && !data ? <p role="alert">Die Empfehlung konnte nicht geladen werden. <button className="secondary-action" type="button" onClick={() => void load()}>Erneut versuchen</button></p> : null}
-    {data && !data.ollama.erreichbar ? <p className="source-hint" role="status">Ollama antwortet nicht. Starte Ollama auf diesem Rechner; danach kannst du hier einrichten.
-      {" "}<button className="secondary-action" type="button" disabled={busy} onClick={() => void load()}>Erneut prüfen</button></p> : null}
+  const selection = <>
     {data ? <ul className="model-rec-list">
       {rows.map(row => {
         const action = actionLabel(row.status);
@@ -146,6 +141,19 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
       <button className="primary-action" type="button" disabled={!setupFits(rows, data.orchester, pending)} onClick={() => void setUp(pending)}>Laden und einrichten</button>
       <button className="secondary-action" type="button" onClick={() => setConfirm(null)}>Abbrechen</button>
     </div> : null}
+    {data ? <p className="source-hint">{data.hinweis} Stand der Empfehlungen: {new Date(data.stand).toLocaleDateString("de-DE")}. Es wird nichts ohne deine Bestätigung geladen, und es werden keine deiner Inhalte gesendet.</p> : null}
+    {data ? <details className="model-rec-expert"><summary>Für Fortgeschrittene: Modell je Aufgabe wählen</summary>
+      <ModelRolesExpert installed={data.ollama.installiert} rows={rows} onChanged={() => void load()} /></details> : null}
+    {children}
+  </>;
+
+  return <section className="source-section model-recommendation" aria-label="Für diesen Rechner empfohlen">
+    <div className="compact-integration-heading"><div><h2>Für diesen Rechner empfohlen</h2>
+      <p>{data ? deviceLine(data) : loadError ? "Empfehlung gerade nicht erreichbar" : "Wird geladen …"}</p></div></div>
+    {loadError && !data ? <p role="alert">Die Empfehlung konnte nicht geladen werden. <button className="secondary-action" type="button" onClick={() => void load()}>Erneut versuchen</button></p> : null}
+    {data && !data.ollama.erreichbar ? <p className="source-hint" role="status">Ollama antwortet nicht. Starte Ollama auf diesem Rechner; danach kannst du hier einrichten.
+      {" "}<button className="secondary-action" type="button" disabled={busy} onClick={() => void load()}>Erneut prüfen</button></p> : null}
+    {compact ? <details className="quiet-details model-rec-selection"><summary>Passendes Modell auswählen</summary>{selection}</details> : selection}
     {run?.state ? <div className={`model-rec-progress${failed ? " is-failed" : ""}`} role={failed ? "alert" : "status"} aria-live="polite">
       <strong>{run.titel}</strong>
       {!failed && isRunning(run.state) ? <progress max={100} value={percent ?? undefined} aria-label={`Fortschritt ${run.titel}`} /> : null}
@@ -153,8 +161,5 @@ export function ModelRecommendation({beiFertig}: {beiFertig?: () => void} = {}) 
       {failed ? <button className="secondary-action" type="button" onClick={() => void setUp([run.rolle])}>Erneut versuchen</button> : null}
     </div> : null}
     {note ? <p className="model-rec-note" role={note.ok ? "status" : "alert"}>{note.text}</p> : null}
-    {data ? <p className="source-hint">{data.hinweis} Stand der Empfehlungen: {new Date(data.stand).toLocaleDateString("de-DE")}. Es wird nichts ohne deine Bestätigung geladen, und es werden keine deiner Inhalte gesendet.</p> : null}
-    {data ? <details className="model-rec-expert"><summary>Für Fortgeschrittene: Modell je Aufgabe wählen</summary>
-      <ModelRolesExpert installed={data.ollama.installiert} rows={rows} onChanged={() => void load()} /></details> : null}
   </section>;
 }

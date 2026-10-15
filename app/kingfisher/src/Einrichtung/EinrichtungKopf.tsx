@@ -11,10 +11,10 @@ export function EinrichtungKopf() {
   return <div className="einrichtung-kopf">
     <section className="einrichtung-assistent" aria-label="Einrichtungsassistent">
       <div>
-        <h2>Einrichtung in einem Durchgang</h2>
+        <h2>Einrichtung</h2>
         <p>{!stand ? "Der Stand wird geladen …" : offen.length
-          ? `Noch offen: ${offen.join(", ")}. Der Assistent führt dich Schritt für Schritt und lässt sich jederzeit unterbrechen.`
-          : "Alles Wesentliche ist durchgegangen. Du kannst den Assistenten jederzeit noch einmal öffnen."}</p>
+          ? `Noch offen: ${offen.join(", ")}.`
+          : "Einrichtung durchgesehen."}</p>
       </div>
       <button className={offen.length ? "primary-action" : "secondary-action"} type="button" disabled={!stand}
         onClick={() => navigate(offen.length ? "/willkommen" : "/willkommen?schritt=name")}>{offen.length ? "Einrichtung fortsetzen" : "Assistenten öffnen"}</button>
