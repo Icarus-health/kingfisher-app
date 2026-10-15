@@ -40,6 +40,7 @@ from typing import Any, Callable
 
 from . import satzpruefung
 from .datumstext import iso_versuchen_utc as _zeit
+from .fristen import ungenaues_ende
 from .memory_analysis import model_key
 from .satzpruefung import Beleg, Satz
 from .security import wrap_untrusted
@@ -366,6 +367,8 @@ class Lagen:
         if not saetze:
             return None
         titel: dict[str, str | None] = {}
+        originale: dict[str, Beleg] = {}
+        ungenau: set[str] = set()
         geltend = self.episodes.usable_ids(b['episode_id'] for s in saetze for b in s['belege'])
         for satz in saetze:
             for beleg in satz['belege']:
@@ -374,10 +377,20 @@ class Lagen:
                         titel[beleg['episode_id']] = None
                         continue
                     try:
-                        titel[beleg['episode_id']] = self.episodes.get(beleg['episode_id']).title[:200]
+                        episode = self.episodes.get(beleg['episode_id'])
+                        titel[beleg['episode_id']] = episode.title[:200]
+                        originale[episode.id] = Beleg(episode.id, episode.body, episode.occurred_at, episode.title)
+                        if ungenaues_ende(episode.body):
+                            ungenau.add(episode.id)
                     except Exception:  # noqa: BLE001 - die Quelle ist weg: Satz nicht zeigen
                         titel[beleg['episode_id']] = None
         saetze = [s for s in saetze if all(titel.get(b['episode_id']) is not None for b in s['belege'])]
+        # Earlier model evidence headers could inject a guessed month-end day.
+        # Recheck affected cached sentences against the originals, never those
+        # generated headers. Hide only unsupported days; keep storage intact.
+        saetze = [s for s in saetze if not any(b['episode_id'] in ungenau for b in s['belege'])
+                  or satzpruefung.kalenderdaten_belegt(
+                      s['text'], [originale[b['episode_id']] for b in s['belege']])]
         if not saetze:
             return None
         quellen = len({b['episode_id'] for s in saetze for b in s['belege']})

@@ -21,14 +21,11 @@ def _tage(text, bezug=BEZUG):
     ('bis zum 12.10.26', date(2026, 10, 12)),
     ('Die neue Einreichfrist ist der 12. November 2026, 12 Uhr.', date(2026, 11, 12)),
     ('bis 29. Oktober', date(2026, 10, 29)),
-    ('Ende Oktober', date(2026, 10, 31)),
-    ('Ende Februar 2028', date(2028, 2, 29)),
     ('in zwei Wochen', date(2026, 9, 17)),
     ('in 3 Tagen', date(2026, 9, 6)),
     ('in einem Monat', date(2026, 10, 3)),
     ('in einer Woche', date(2026, 9, 10)),
     ('bis morgen', date(2026, 9, 4)),
-    ('Ende des Monats', date(2026, 9, 30)),
 ])
 def test_eindeutige_angaben_werden_aufgeloest(text, erwartet):
     tage, offen = _tage(text)
@@ -37,7 +34,7 @@ def test_eindeutige_angaben_werden_aufgeloest(text, erwartet):
 
 @pytest.mark.parametrize('text', [
     'nächste Woche', 'nächsten Freitag', 'Mitte Oktober', 'Anfang November', 'KW 42', 'zeitnah',
-    'in drei bis vier Wochen',
+    'in drei bis vier Wochen', 'Ende Oktober', 'Ende Februar 2028', 'Ende des Monats',
     'bis Donnerstag',   # am selben Wochentag: heute oder in einer Woche?
     'am 25.08.',        # 9 Tage zurück: vergangen oder nächstes Jahr, nicht zu entscheiden
     'am 3. Mai',
@@ -56,7 +53,7 @@ def test_wochentag_am_selben_tag_ist_uneindeutig_und_wird_genannt():
 def test_bezug_ist_die_quelle_nicht_heute():
     maerz = datetime(2025, 3, 5, 9, 0, tzinfo=timezone.utc)  # Mittwoch
     assert _tage('bis Freitag', maerz)[0] == [date(2025, 3, 7)]
-    assert _tage('Ende Oktober', maerz)[0] == [date(2025, 10, 31)]
+    assert _tage('bis 31. Oktober', maerz)[0] == [date(2025, 10, 31)]
 
 
 def test_ohne_quelldatum_bleiben_relative_angaben_offen_absolute_jahresdaten_gelten():
@@ -82,7 +79,8 @@ def test_ausdruck_und_stelle_stimmen_mit_dem_text_ueberein():
     text = 'Bitte bis zum 12.10. antworten, Rest Ende Oktober.'
     suche = fristen_in(text, BEZUG)
     assert [text[f.start:f.ende].strip() for f in suche.fristen] == [f.ausdruck for f in suche.fristen]
-    assert [f.datum for f in suche.fristen] == [date(2026, 10, 12), date(2026, 10, 31)]
+    assert [f.datum for f in suche.fristen] == [date(2026, 10, 12)]
+    assert suche.ohne_datum == ['Ende Oktober.']
 
 
 def test_zeitzone_des_nutzers_bestimmt_den_bezugstag(monkeypatch):
