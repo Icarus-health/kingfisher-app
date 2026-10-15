@@ -99,6 +99,7 @@ export function Nachrichten() {
   const quellenVorhanden = stand !== null && (stand.feeds.some(f => f.enabled) || stand.weltquellen.some(q => q.gewaehlt));
   const eigene = stand ? eigeneQuellen(stand.feeds, stand.vorschlaege) : [];
   const adresse = normiereAdresse(url);
+  const ausgewaehlt = stand ? [...stand.feeds.filter(f => f.enabled), ...stand.weltquellen.filter(q => q.gewaehlt)] : [];
 
   return <section className="darf-zeile" aria-label={SCHALTER.welt.titel}>
     {!stand ? <p>Wird geladen …</p> : <>
@@ -108,17 +109,18 @@ export function Nachrichten() {
       {stand.aktiv && <>
         <p className="source-hint">Höchstens eine Meldung am Tag, und nur, wenn sie zu etwas aus deinen Akten passt. Zu jeder steht, warum sie da ist.</p>
         {!quellenVorhanden && <p className="source-hint" role="status">Wähle mindestens eine Quelle, sonst gibt es nichts zu lesen.</p>}
+        {ausgewaehlt.length > 0 && <p className="source-hint">{ausgewaehlt.slice(0, 3).map(q => q.label).join(" · ")}{ausgewaehlt.length > 3 ? ` · +${ausgewaehlt.length - 3} weitere` : ""}</p>}
+        {stand.feeds.filter(feed => feed.fehler).map(feed => <p key={feed.id} className="settings-error" role="status">{feed.label}: {feed.fehler}</p>)}
+        <details className="quiet-details"><summary>Quellen ändern ({ausgewaehlt.length})</summary>
         <div className="welt-vorschlaege" role="group" aria-label="Quellen zum Anklicken">
           {stand.vorschlaege.map(v => {
             const zustand = vorgabeZustand(v, stand.feeds);
-            const feed = stand.feeds.find(f => f.id === v.feed_id);
             return <div key={v.id} className="welt-vorgabe">
               <button type="button" className="welt-vorgabe-knopf" aria-pressed={zustand === "an"} disabled={arbeitet}
                 onClick={() => void ausfuehren(() => zustand === "an" ? api.weltFeedWeg(v.feed_id as string)
                   : zustand === "abbestellt" ? api.weltFeedSchalter(v.feed_id as string, true) : api.weltFeedNeu(v.url, v.label),
                 zustand === "an" ? `${v.label} ist entfernt.` : `${v.label} ist dabei.`)}>
                 <strong>{v.label}</strong><small>{zustand === "abbestellt" ? "abbestellt, Klick schaltet wieder ein" : v.beschreibung}</small></button>
-              {feed?.fehler ? <span className="settings-error" role="status">{feed.fehler}</span> : null}
             </div>;
           })}
         </div>
@@ -129,7 +131,6 @@ export function Nachrichten() {
             <span>{feed.label}</span></label>
           <button type="button" className="secondary-action" disabled={arbeitet}
             onClick={() => void ausfuehren(() => api.weltFeedWeg(feed.id), `${feed.label} wurde entfernt.`)}>Entfernen</button>
-          {feed.fehler && <span className="settings-error" role="status">{feed.fehler}</span>}
         </li>)}</ul>}
         {stand.weltquellen.length > 0 && <fieldset className="welt-liste"><legend>Quellen, die du schon eingerichtet hast</legend>
           {stand.weltquellen.map(q => <label key={q.id}><input type="checkbox" checked={q.gewaehlt} disabled={arbeitet}
@@ -144,6 +145,7 @@ export function Nachrichten() {
           <button type="submit" className="secondary-action" disabled={arbeitet || adresse === ""}>Quelle hinzufügen</button>
           <p className="source-hint">Die Adresse findest du meist auf der Seite der Zeitung unter „Abonnieren“. Kingfisher liest sie einmal zur Probe; öffentliche Adressen genügen, Anmeldedaten sind nicht nötig.</p>
         </form>
+        </details>
       </>}
       {stand.abbestellt.length > 0 && <div className="welt-abbestellt"><h3>Abbestellt</h3>
         <ul className="welt-liste">{stand.abbestellt.map(a => <li key={a.sache}><span>Keine Meldungen mehr zu {a.name}</span>
