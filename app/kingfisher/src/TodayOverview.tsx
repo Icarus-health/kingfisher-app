@@ -1,4 +1,5 @@
 import "./TodayOverview.css";
+import {useState} from "react";
 import { TodayTaskActions } from "./TodayTaskActions";
 import { taskHref } from "./taskWorkflow";
 import { zaehlerText } from "./heute";
@@ -72,6 +73,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   correctionSaved: boolean;
   onOpenMail: (uid: string) => void;
 }) {
+  const [activityLoaded,setActivityLoaded] = useState(false);
   const attention = todayAttention(briefing);
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
@@ -125,6 +127,6 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       {briefing.working_memory_more && <p className="today-context-note">Dieser Überblick zeigt eine Auswahl. Weitere Quellen können noch aufs Sortieren warten.</p>}
     </section></details>}
     {correctionSaved && <p className="today-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
-    <details className="today-activity quiet-details"><summary>Tageslage & Verlauf</summary><TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} /></details>
+    <details className="today-activity quiet-details" onToggle={event=>{if(event.currentTarget.open)setActivityLoaded(true);}}><summary>Tageslage & Verlauf</summary>{activityLoaded && <TagesLage sourcesIncomplete={briefing.partial_failures.length > 0 || Boolean(briefing.post_ausstehend)} />}</details>
   </div>;
 }

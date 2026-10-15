@@ -67,3 +67,12 @@ test('one-time update results are not mounted inside a closed disclosure',()=>{
   for(const detail of nodes(tree,n=>n.type==='details'))assert.equal(nodes(detail,n=>n.type?.name==='FassungHeute').length,0,'update result must be visible before it is consumed');
  } finally {globalThis.window=before;}
 });
+
+test('activity is first read only on opening its disclosure and keeps its editor mounted after closing',()=>{
+ const state=[];const draw=()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false});
+ let tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,0,'closed activity must not consume the since-last-view marker');
+ const panel=nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0];panel.props.onToggle({currentTarget:{open:true}});
+ tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);
+ nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0].props.onToggle({currentTarget:{open:false}});
+ tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1,'an already opened activity keeps local drafts');
+});
