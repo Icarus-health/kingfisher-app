@@ -7,7 +7,7 @@ const server = await createServer({root:fileURLToPath(new URL('..', import.meta.
   cacheDir:`/private/tmp/kingfisher-settings-tests-${process.pid}`,
   plugins:[{name:'settings-hooks', enforce:'pre', resolveId(id){if(id==='virtual:settings-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:settings-hooks')return `export const useState=v=>globalThis.__settingsState(v);export const useEffect=()=>{};export const useRef=v=>({current:v});export const useCallback=f=>f;`;},
-    transform(code,id){if(['/SettingsSections.tsx','/CloudAccess.tsx','/ChatGPTAccess.tsx','/CloudMemory.tsx','/GoogleSignIn.tsx','/ModelRecommendation.tsx','/WeltSettings.tsx','/Einstellungen/Aufklapp.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:settings-hooks"');}}],
+    transform(code,id){if(['/SettingsSections.tsx','/CloudAccess.tsx','/ChatGPTAccess.tsx','/CloudMemory.tsx','/GoogleSignIn.tsx','/ModelRecommendation.tsx','/WeltSettings.tsx','/Einrichtung/KingfisherLernt.tsx','/Einstellungen/Aufklapp.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:settings-hooks"');}}],
   server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {SettingsSections}=await server.ssrLoadModule('/src/SettingsSections.tsx');
@@ -18,6 +18,7 @@ const {CloudMemory}=await server.ssrLoadModule('/src/CloudMemory.tsx');
 const {GoogleSignIn}=await server.ssrLoadModule('/src/GoogleSignIn.tsx');
 const {ModelRecommendation}=await server.ssrLoadModule('/src/ModelRecommendation.tsx');
 const {Nachrichten}=await server.ssrLoadModule('/src/WeltSettings.tsx');
+const {KingfisherLernt}=await server.ssrLoadModule('/src/Einrichtung/KingfisherLernt.tsx');
 function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children].flat(50).forEach(c=>nodes(c,p,out));return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(50).map(text).join(''):String(n);}
 function render(fn,seeds=[]){let i=0;globalThis.__settingsState=v=>{const slot=i++;if(!(slot in seeds))seeds[slot]=typeof v==='function'?v():v;return [seeds[slot],value=>seeds[slot]=typeof value==='function'?value(seeds[slot]):value];};try{return fn();}finally{delete globalThis.__settingsState;}}
@@ -102,4 +103,47 @@ test('news source choices start closed, with current selection and source failur
   assert.match(firstLayer(tree),/Testzeitung/);assert.match(firstLayer(tree),/Abruf fehlgeschlagen/);assert.doesNotMatch(firstLayer(tree),/Eigene Quelle: Adresse/);
   assert.equal(nodes(tree,n=>n.type==='input'&&n.props.id==='welt-feed-url')[0].props.value,'https://draft.invalid/feed');
   tree=render(()=>Nachrichten(),[null,'','',false,'Einstellung nicht erreichbar','']);assert.match(firstLayer(tree),/Einstellung nicht erreichbar/);
+});
+
+const pausedWork={pausiert:true,zustand:'pausiert',grund:'Pausiert. Kingfisher lernt weiter, wenn du „Weiter“ wählst.',fortschritt:{fertig:329,gesamt:347,offen:18}};
+const workRows=[{id:'einordnen',fertig:329,gesamt:347,text:'329 von 347 Quellen, pausiert'},
+  {id:'mail',fertig:1587,gesamt:122399,text:'Postfach Test: Einlesen pausiert. Bereits 1.587 von 122.399 Mails gelesen.'}];
+test('paused work starts with a single source progress and moves mail details and explanations behind Details',()=>{
+  const tree=render(()=>KingfisherLernt({}),[workRows,pausedWork,false,'',false,0]);
+  const details=nodes(tree,n=>n.type==='details')[0];assert.ok(details);assert.equal(Boolean(details.props.open),false);
+  assert.match(firstLayer(tree),/Verarbeitung pausiert/);assert.match(firstLayer(tree),/329 von 347 Quellen/);assert.match(firstLayer(tree),/Weiter/);
+  assert.doesNotMatch(firstLayer(tree),/Postfach Test|1\.587|Du kannst Kingfisher|lernt weiter/);
+  assert.match(text(details),/Postfach Test/);assert.match(text(details),/Pausiert\. Kingfisher lernt weiter/);
+  const summary=nodes(details,n=>n.type==='summary')[0];assert.equal(nodes(summary,n=>n.type==='progress').length,1);assert.equal(nodes(summary,n=>n.type==='progress')[0].props.value,94);
+  assert.equal(nodes(details,n=>n.type==='button'&&text(n)==='Weiter').length,0,'resume remains outside disclosure');
+});
+test('mail-only work shows its own unit and never combines it with source counts',()=>{
+  const tree=render(()=>KingfisherLernt({kompakt:true}),[[workRows[1]],{...pausedWork,pausiert:false,zustand:'ohne_modell',grund:null},false,'',false,0]);
+  assert.match(firstLayer(tree),/1\.587 von 122\.399 Mails/);assert.doesNotMatch(firstLayer(tree),/347 Quellen|Postfach Test/);
+  assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Pausieren').length);
+});
+test('unknown mail totals remain unknown and never acquire a percentage',()=>{
+  const tree=render(()=>KingfisherLernt({}),[[{...workRows[1],gesamt:null}],pausedWork,false,'',false,0]);
+  assert.match(firstLayer(tree),/1\.587 Mails bisher gelesen/);
+  const summary=nodes(tree,n=>n.type==='summary')[0];assert.equal(nodes(summary,n=>n.type==='progress').length,0);
+});
+test('mail failures, retry controls and failed pause actions stay outside the closed work details',()=>{
+  const row={id:'mail_fehler',text:'Testpostfach ist nicht erreichbar.',konto:'test-account',fertig:null,gesamt:null};
+  const tree=render(()=>KingfisherLernt({}),[[...workRows,row],pausedWork,false,'Änderung fehlgeschlagen',false,0]);
+  assert.match(firstLayer(tree),/Testpostfach ist nicht erreichbar/);assert.match(firstLayer(tree),/Änderung fehlgeschlagen/);
+  const details=nodes(tree,n=>n.type==='details')[0];assert.equal(nodes(details,n=>n.type?.name==='MailErneut').length,0);
+  assert.equal(nodes(tree,n=>n.type?.name==='MailErneut').length,1);
+});
+
+test('explicit pause keeps known source coverage visible even when automatic classification is disabled',()=>{
+  const tree=render(()=>KingfisherLernt({}),[[],{...pausedWork,zustand:'aus'},false,'',false,0]);
+  assert.match(firstLayer(tree),/329 von 347 Quellen/);assert.match(firstLayer(tree),/Weiter/);
+  assert.doesNotMatch(firstLayer(tree),/nicht verfügbar|fertig etwa/);
+});
+
+test('a mail failure alone never claims ongoing classification from inactive coverage counts',()=>{
+  const row={id:'mail_fehler',text:'Testpostfach ist nicht erreichbar.',konto:'test-account',fertig:null,gesamt:null};
+  const tree=render(()=>KingfisherLernt({}),[[row],{...pausedWork,pausiert:false,zustand:'aus',grund:null},false,'',false,0]);
+  assert.match(firstLayer(tree),/Verarbeitung braucht Aufmerksamkeit/);assert.match(firstLayer(tree),/Testpostfach ist nicht erreichbar/);
+  assert.doesNotMatch(firstLayer(tree),/Kingfisher lernt gerade|329 von 347/);
 });

@@ -84,6 +84,19 @@ html:has(.erststart-shell), body:has(.erststart-shell), #root:has(.erststart-she
 .mail-erneut-technik p { margin: 4px 0 0; overflow-wrap: anywhere; }
 .lernt-kompakt { margin: 0 0 14px; padding: 10px 16px; }
 .lernt-kompakt h2 { display: inline; margin-right: 8px; }
+.lernt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; }
+.lernt .lernt-kopf h2 { margin: 0; }
+.lernt .lernt-kopf .lernt-knopf { min-height: 32px; margin: 0; padding: 4px 10px; font-size: 13px; }
+.lernt-details > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-height: 44px; cursor: pointer; list-style: none; font-size: 13px; }
+.lernt-details > summary::-webkit-details-marker { display: none; }
+.lernt-details > summary > progress { flex: 1 1 100px; min-width: 60px; width: auto; max-width: 360px; }
+.lernt-mehr { margin-left: auto; color: var(--calm-primary); white-space: nowrap; }
+.lernt-mehr::after { content: ' ›'; display: inline-block; margin-left: 4px; }
+.lernt-details[open] > summary .lernt-mehr::after { transform: rotate(90deg); }
+.lernt-details > summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; border-radius: 6px; }
+.lernt-einzelheiten { padding: 12px 0 4px; border-top: 1px solid var(--calm-line); }
+.lernt .lernt-probleme { margin-top: 10px; }
+@media (pointer: coarse) { .lernt .lernt-kopf .lernt-knopf { min-height: 44px; } }
 .einrichtung-kopf { display: grid; gap: 14px; margin-bottom: 18px; }
 .einrichtung-assistent { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-surface); }
 .einrichtung-assistent h2 { margin: 0 0 4px; font-size: 17px; }

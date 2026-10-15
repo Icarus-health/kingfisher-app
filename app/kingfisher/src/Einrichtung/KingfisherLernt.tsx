@@ -4,6 +4,15 @@ import {abfrageAbstandMs, lerntFuss, lerntZeilen, prozent, type LerntZeile} from
 import {MailErneut} from "./MailErneut";
 import "./Einrichtung.css";
 
+function kurzerFortschritt(zeile: LerntZeile) {
+  const zahl = (wert: number) => wert.toLocaleString("de-DE");
+  if (zeile.id === "modell") return zeile.fertig === null ? "Sprachmodell wird geladen" : `Sprachmodell: ${zahl(zeile.fertig)} %`;
+  const einheit = zeile.id === "mail" || zeile.id === "sortieren" ? "Mails" : "Quellen";
+  if (zeile.fertig !== null && zeile.gesamt !== null) return `${zahl(zeile.fertig)} von ${zahl(zeile.gesamt)} ${einheit}`;
+  if (zeile.id === "mail" && zeile.fertig !== null) return `${zahl(zeile.fertig)} Mails bisher gelesen`;
+  return zeile.id === "nachtrag" ? "Absender und Empfänger ergänzen" : "Fortschritt noch unklar";
+}
+
 /** Current work, plus an explicit pause that must remain possible to release. */
 export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   kompakt?: boolean;
@@ -70,23 +79,40 @@ export function KingfisherLernt({kompakt = false, beiAenderung, leerText}: {
   if (zeilen === null) return null;
   const fuss = lerntFuss(hintergrund, zeilen.some(zeile => zeile.id === "mail"));
   if (zeilen.length === 0 && !hintergrund?.pausiert) return leerText ? <p className="lernt-leer" role="status">{leerText}</p> : null;
-  const titel = hintergrund?.pausiert ? "Verarbeitung pausiert" : fuss.grund ? "Verarbeitung wartet" : "Kingfisher lernt gerade";
+  const schritte = zeilen.filter(zeile => zeile.id !== "mail_fehler");
+  const probleme = zeilen.filter(zeile => zeile.id === "mail_fehler");
+  // Quellen und Mailaufnahme haben unterschiedliche Gesamtzahlen; niemals zusammenrechnen.
+  const haupt: LerntZeile | undefined = schritte.find(zeile => zeile.id === "einordnen") ?? schritte[0]
+    ?? (hintergrund?.pausiert && hintergrund.fortschritt.gesamt > 0 ? {id: "einordnen", text: "", fertig: hintergrund.fortschritt.fertig, gesamt: hintergrund.fortschritt.gesamt} : undefined);
+  const titel = hintergrund?.pausiert ? "Verarbeitung pausiert" : probleme.length && !haupt ? "Verarbeitung braucht Aufmerksamkeit" : fuss.grund ? "Verarbeitung wartet" : "Kingfisher lernt gerade";
   return <section className={`lernt${kompakt ? " lernt-kompakt" : ""}`} aria-label={titel} aria-live="polite">
-    <h2>{titel}</h2>
-    <ul>{zeilen.map(zeile => {
+    <div className="lernt-kopf"><h2>{titel}</h2>
+      {fuss.knopf ? <button type="button" className="text-action lernt-knopf" disabled={arbeitet}
+        onClick={() => void umschalten(fuss.knopf === "Pausieren")}>{fuss.knopf}</button> : null}
+    </div>
+    <details className="lernt-details">
+      <summary><span>{haupt ? kurzerFortschritt(haupt) : "Fortschritt derzeit nicht verfügbar"}</span>
+        {haupt && haupt.gesamt !== null && haupt.gesamt > 0 ? <progress max={100} value={prozent(haupt) ?? undefined} aria-label={kurzerFortschritt(haupt)} /> : null}
+        <span className="lernt-mehr">Details</span>
+      </summary>
+    <div className="lernt-einzelheiten">
+    <ul>{schritte.map(zeile => {
       const wert = prozent(zeile);
-      return <li key={`${zeile.id}-${zeile.konto ?? ""}`} className={zeile.id === "mail_fehler" ? "lernt-fehler" : undefined}>
+      return <li key={`${zeile.id}-${zeile.konto ?? ""}`}>
         <span>{zeile.text}</span>
         {zeile.gesamt !== null ? <progress max={100} value={wert ?? undefined} aria-label={zeile.text} /> : null}
-        {zeile.id === "mail_fehler" && zeile.konto ? <MailErneut konto={zeile.konto} technik={zeile.technik} beiErgebnis={nachErneut} /> : null}
       </li>;
     })}</ul>
-    {erneut && zeilen.some(zeile => zeile.id === "mail") ? <p className="lernt-grund" role="status">Kingfisher versucht es jetzt noch einmal. Scheitert es wieder, steht hier der Grund.</p> : null}
     {fuss.grund ? <p className="lernt-grund">{fuss.grund}</p> : null}
     {fuss.satz ? <p className="lernt-hinweis">{fuss.satz}</p> : null}
     {kompakt ? null : <p className="lernt-hinweis">{fuss.grund ? "Du kannst Kingfisher weiter benutzen." : "Das läuft im Hintergrund weiter. Du kannst Kingfisher schon benutzen."}</p>}
-    {fuss.knopf ? <button type="button" className="text-action lernt-knopf" disabled={arbeitet}
-      onClick={() => void umschalten(fuss.knopf === "Pausieren")}>{fuss.knopf}</button> : null}
+    </div>
+    </details>
+    {probleme.length ? <ul className="lernt-probleme">{probleme.map(zeile => <li key={`${zeile.id}-${zeile.konto ?? ""}`} className="lernt-fehler">
+      <span>{zeile.text}</span>
+      {zeile.konto ? <MailErneut konto={zeile.konto} technik={zeile.technik} beiErgebnis={nachErneut} /> : null}
+    </li>)}</ul> : null}
+    {erneut && zeilen.some(zeile => zeile.id === "mail") ? <p className="lernt-grund" role="status">Kingfisher versucht es jetzt noch einmal. Scheitert es wieder, steht hier der Grund.</p> : null}
     {fehler ? <p role="alert" className="settings-error">{fehler}</p> : null}
   </section>;
 }
