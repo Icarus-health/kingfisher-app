@@ -37,7 +37,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   load();window.addEventListener('focus',load);
   return ()=>{active.current=false;epoch.current++;controller?.abort();window.removeEventListener('focus',load);};
  },[episodeId,sourceDigest,sourceVerified,revision]);
- const valid=sourceVerified && readVerified && !loading && view?.source_digest===sourceDigest;
+ const valid=sourceVerified && readVerified && !loading && view?.source_digest===sourceDigest && view.status!=='archived';
  async function prepare() {
   const version=epoch.current;setBusy('prepare');setError('');
   try {const value=await savedMailWorkflowApi.prepare(episodeId);if(active.current && version===epoch.current){setView(value);setReadVerified(true);}}
@@ -68,7 +68,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
    {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
    {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
    {view.temporal_status==='recent' ? <details className="quiet-details"><summary>Zeitliche Einordnung</summary><p className="saved-mail-workflow-context">{view.temporal_reason}</p></details> : <p className="saved-mail-workflow-context" role="status">{view.temporal_reason || 'Zeitliche Einordnung unbekannt · Aktualität prüfen.'}</p>}
-   {view.status==='unavailable' && <p role="status">{view.detail}</p>}
+   {(view.status==='unavailable' || view.status==='archived') && <p role="status">{view.detail}</p>}
    {view.quotes.length>0 && <details className="saved-mail-overview"><summary>Überblick aus Originalstellen ({view.quotes.length})</summary><p>{view.detail}</p>{view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}</details>}
    {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Wird lokal vorbereitet …':'Diese Mail lokal vorbereiten'}</button>}
    {(view.project_preparation_status==='unprepared' || view.project_preparation_status==='unavailable') && view.status==='ready' && <>
@@ -76,7 +76,7 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
    </>}
    {view.status==='incomplete' && <p>Überblick über einen Ausschnitt. Aufgaben aus unvollständigem Text werden hier nicht neu vorgeschlagen.</p>}
    {view.status==='ready' && !view.items.length && <p>Keine offenen belegten Aufgabenvorschläge aus dieser Quelle.</p>}
-   {view.items.filter(item=>!saved[item.id]).map(item=>{
+   {view.status!=='archived' && view.items.filter(item=>!saved[item.id]).map(item=>{
     const draft=drafts[item.id] || initialSavedTask(item,view.projects);
     const update=(change:Partial<SavedTaskDraft>)=>setDrafts(values=>({...values,[item.id]:{...draft,...change}}));
     return <form key={item.id} className="saved-mail-workflow-task" onSubmit={event=>{event.preventDefault();void save(item.id,draft);}}>

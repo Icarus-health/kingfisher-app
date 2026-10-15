@@ -1,4 +1,5 @@
 import json
+import pytest
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
@@ -118,3 +119,47 @@ def test_people_mentions_reports_bounded_scan_and_rejects_unbounded_limit(tmp_pa
     assert result["limited"] is True
     with pytest.raises(ValueError):
         categories.person_mentions(MAX_PERSON_MENTIONS + 1)
+
+
+@pytest.mark.parametrize(('literal','label','person'), [
+    ('S&ouml;ren Kube', 'Sören Kube', True),
+    ('Ren&#233;e M&#252;ller', 'Renée Müller', True),
+    ('Anna &amp; Ben', 'Anna & Ben', True),
+    ('Beispiel Gm&#98;H', 'Beispiel GmbH', False),
+    ('Kundenserv&#105;ce', 'Kundenservice', False),
+])
+def test_encoded_person_labels_are_readable_without_changing_original_evidence(tmp_path, literal, label, person):
+    episodes, categories = setup(tmp_path)
+    item = email(episodes, body=literal+' schreibt.', participants=['Maildienst <noreply@example.org>'])
+    before = episodes.get(item.id).to_dict()
+    class Names:
+        is_local = True
+        name = model = 'synthetic'
+        def complete_json(self, messages, **kwargs):
+            return Reply(text=json.dumps({'categories':[], 'entities':[
+                {'kind':'person','name':literal,'start':0,'end':len(literal),'role':'mentioned'}]}))
+    assert categories.run(Names(), source_ids=[item.id]).ok
+    entities = categories.list_for(item.id)['entities']
+    mentions = categories.person_mentions()['items']
+    assert [entity['name'] for entity in entities] == ([label] if person else [])
+    assert [mention['name'] for mention in mentions] == ([label] if person else [])
+    if person:
+        assert entities[0]['quote'] == mentions[0]['quote'] == literal
+        assert item.body[entities[0]['start']:entities[0]['end']] == literal
+    assert episodes.get(item.id).to_dict() == before
+    episodes.ignore(item.id)
+    assert categories.person_mentions()['items'] == []
+
+
+def test_encoded_generic_sender_label_cannot_become_a_person_after_decoding(tmp_path):
+    episodes, categories = setup(tmp_path)
+    item = email(episodes, body='Acme &amp; Co schreibt.', participants=['"Acme &amp; Co" <info@example.org>'])
+    class Sender:
+        is_local = True
+        name = model = 'synthetic'
+        def complete_json(self, messages, **kwargs):
+            return Reply(text=json.dumps({'categories':[], 'entities':[
+                {'kind':'person','name':'Acme &amp; Co','start':0,'end':13,'role':'mentioned'}]}))
+    assert categories.run(Sender(), source_ids=[item.id]).ok
+    assert categories.list_for(item.id)['entities'] == []
+    assert categories.person_mentions()['items'] == []
