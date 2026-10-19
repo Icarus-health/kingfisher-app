@@ -603,6 +603,22 @@ def woerter(frage: str) -> tuple[list[str], bool]:
     return gefaltet[:MAX_WOERTER], len(gefaltet) > MAX_WOERTER
 
 
+def umschrift_woerter(frage: str, ausgewaehlt: list[str]) -> dict[str, list[str]]:
+    """Je Suchwort die Schreibweisen mit Umlaut-Umschrift, gefaltet („mueller“ -> „muller“, „müller“ -> „mueller“)."""
+    from .word_forms import umschriften
+    gewaehlt = set(ausgewaehlt)
+    ergebnis: dict[str, list[str]] = {}
+    for roh in terms_v1(frage):
+        wort = falte(roh)
+        if wort not in gewaehlt:
+            continue
+        varianten = {falte(v) for v in umschriften(roh)} - gewaehlt - FUNKTIONSWOERTER - {wort}
+        if varianten:
+            ergebnis.setdefault(wort, [])
+            ergebnis[wort] += sorted(varianten - set(ergebnis[wort]))
+    return ergebnis
+
+
 def suchen(connection: sqlite3.Connection, frage: str, *, limit: int = 64,
            episode_ids=None, arten=None) -> Suchergebnis:
     """Quellen zur Frage in BM25-Reihenfolge; nur, was ``episodes`` jetzt als verwendbar ausweist.
@@ -622,17 +638,19 @@ def suchen(connection: sqlite3.Connection, frage: str, *, limit: int = 64,
     vorkommt = _Vorkommen(connection)
     zusatz: list[str] = []
     ohne_treffer: list[str] = []
+    umschrift = umschrift_woerter(frage, ausgewaehlt)
     for wort in ausgewaehlt:
-        gefunden = vorkommt(wort)
+        gefunden = vorkommt(wort) or any(vorkommt(v) for v in umschrift.get(wort, ()))
         if not gefunden:
             ohne_treffer.append(wort)
         teile = _zerlegen(wort, vorkommt)
         if teile:
             zusatz.extend(teil for teil in teile if teil not in ausgewaehlt and teil not in zusatz)
-    ausdruecke = {"source_index": " OR ".join([*(_quote(wort) for wort in ausgewaehlt),
+    varianten = [v for liste in umschrift.values() for v in liste]
+    ausdruecke = {"source_index": " OR ".join([*(_quote(wort) for wort in [*ausgewaehlt, *varianten]),
                                               *(_quote(teil, anfang=True) for teil in zusatz)])}
     if vorkommt.woerter:
-        ausdruecke["source_index_woerter"] = " OR ".join(_wort_ausdruck(wort) for wort in [*ausgewaehlt, *zusatz])
+        ausdruecke["source_index_woerter"] = " OR ".join(_wort_ausdruck(wort) for wort in [*ausgewaehlt, *varianten, *zusatz])
 
     bereich, parameter = "", []
     if episode_ids is not None:

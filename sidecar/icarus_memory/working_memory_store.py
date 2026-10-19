@@ -19,7 +19,7 @@ from . import logbuch
 from .lexical import terms_v1
 from .source_index import FUNKTIONSWOERTER
 from .source_snapshot import EpisodeSupportSnapshot, canonical_instant, read_snapshot
-from .word_forms import alternatives, synonym_alternatives
+from .word_forms import alternatives, synonym_alternatives, umschriften
 from .working_memory_words import candidate_words, query_words
 
 
@@ -893,6 +893,9 @@ class WorkingMemoryStore:
         # Nur die Anfrage ändern; gespeicherte Tokens und Originale bleiben gleich.
         all_terms = sorted(terms_v1(query) - FUNKTIONSWOERTER)
         terms = all_terms[:MAX_QUERY_TERMS]
+        # „Mueller“ findet „Müller“ und umgekehrt: gleiche Stufe wie das Wort selbst, ohne einen Platz zu kosten.
+        umschrift = set().union(*(umschriften(term) for term in terms)) - set(terms)
+        terms = terms + sorted(umschrift)
         forms = set().union(*(alternatives(term) for term in terms)) - set(terms)
         synonyms = set().union(*(synonym_alternatives(term) for term in terms)) - set(terms) - forms
         return terms, forms | synonyms, len(all_terms) > MAX_QUERY_TERMS
