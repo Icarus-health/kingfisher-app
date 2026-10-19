@@ -63,6 +63,52 @@ _UNEINDEUTIG = re.compile(
     r'|Ende\s+(?:der|nächster)\s+Woche|KW\s?\d{1,2}|in\s+' + _ZAHL + r'\s+bis\s+' + _ZAHL + r'\s+(?:Tagen|Wochen|Monaten)'
     r'|bald|zeitnah|kurzfristig)\b', re.I)
 
+# A resolved date is not yet a deadline. The relation must be local to that
+# expression, never inherited from the kind of a whole paragraph. In
+# particular, "Tagung am 16. April ... Anmeldung bis 7. April" has two dates
+# but only one explicit cutoff. These small grammatical links deliberately
+# leave unbound dates undecided; event knowledge stays in the source.
+_SATZTEIL = re.compile(r'(?<=[a-zäöüß)\]])[.!?](?:\s|$)|[,;\n]', re.I)
+_FRIST_VOR = re.compile(
+    r'\b(?:bis(?:\s+spätestens)?|spätestens(?:\s+bis)?|vor)\s+'
+    r'(?:(?:zum|zur|am|den|dem|kommenden|diesen)\s+)?$', re.I)
+_FRIST_IM_AUSDRUCK = re.compile(r'^(?:bis|spätestens|vor)\b', re.I)
+# Match a cutoff headword, not any word containing one: an
+# Abschlussveranstaltung or an Abgabeformular is not itself a due date.
+_FRISTNAME = re.compile(
+    r'\b(?:\w*(?:frist(?:en|ende)?|deadline(?:s)?|abgabe(?:n|termin(?:e)?)?|fälligkeit(?:en)?)|'
+    r'(?:anmelde|redaktions|einsende|bewerbungs|annahme|abgabe|einreich(?:ungs)?|teilnahme|melde)schluss|fällig)\b', re.I)
+_FRIST_LINK = re.compile(
+    r'(?:\s|[:=–-]|\b(?:ist|sind|der|die|das|den|dem|am|zum|auf|bis|nun|jetzt|'
+    r'neue?|wurde|wird|endet|erfolgt|gilt|verschoben|verlängert|festgelegt|verschiebt|sich)\b)*', re.I)
+_ZEITRAUM_ANFANG = re.compile(r'\b(?:von|vom|ab|zwischen)\s*$', re.I)
+_ZEITRAUM_LINK = re.compile(r'\s*(?:bis(?:\s+zum)?|und|[–-])\s*', re.I)
+_ZEITRAUM_KURZ = re.compile(r'\b(?:von|vom|ab)\s+\d{1,2}\.\s*$', re.I)
+_DAUER_VOR = re.compile(
+    r'\b(?:dauer(?:t|n)|andauer(?:t|n)|läuft|laufen)\s*'
+    r'(?:(?:noch|weiter|voraussichtlich|planmäßig|regulär)\s+)?$', re.I)
+_ZUSTAND = r'(?:bin|bist|ist|sind|seid|bleibe|bleibst|bleibt|bleiben)'
+_ABWESEND = r'(?:im\s+Urlaub|abwesend|krank|nicht\s+erreichbar)'
+_ZUSTAND_VOR = re.compile(r'\b' + _ZUSTAND + r'\s+(?:noch\s+)?$', re.I)
+_ABWESEND_VOR = re.compile(r'\b' + _ZUSTAND + r'\s+(?:noch\s+)?' + _ABWESEND + r'\s*$', re.I)
+_ABWESEND_NACH = re.compile(r'^\s*' + _ABWESEND + r'\b', re.I)
+# A bare invitation schedules attendance, not an action cutoff. Without an
+# explicit cutoff word, recognise only direct reply/delivery requests here.
+_ANTWORT_ABGABE_VOR = re.compile(
+    r'\bbitte\s+(?:antworte[n]?|melde[n]?|sende[n]?|schicke[n]?|reiche[n]?|einreiche[n]?)\s+'
+    r'(?:Sie\s+)?(?:sich\s+)?$', re.I)
+# "bis" also ends events and absences. It needs positive action evidence,
+# rather than an expanding list of event verbs to veto. Unrecognised wording
+# stays in the original and broad date API instead of becoming a deadline.
+_FRISTHANDLUNG = re.compile(
+    r'\b(?:antworte[n]?|beantworte[n]?|antwort|rückmeldung|anmeldung|melde[n]?|sende[n]?|'
+    r'sendet|schick(?:e|en|t)?|einreiche[n]?|reiche[n]?|kündig(?:e|en|t)|'
+    r'bestätig(?:e|en|t)|überweis(?:e|en|t)|zahl(?:e|en|t)|zahlung|liefer(?:e|n|t))\b', re.I)
+_ZUSTELLUNG_VOR = re.compile(
+    r'\b(?:\w*erklärung|unterlagen|dokumente?|muster|rechnung|daten|bericht)\s+komm(?:t|en)\s*$', re.I)
+_FERTIG_NACH = re.compile(r'^\s*(?:fertig|einzureichen|abzugeben|erledigt)\b', re.I)
+_FRIST_FORTSETZUNG = re.compile(r'\s*,\s*spätestens\s*(?:(?:am|zum)\s+)?', re.I)
+
 
 @dataclass(frozen=True)
 class Frist:
@@ -85,6 +131,8 @@ class Fristensuche:
     fristen: list[Frist] = field(default_factory=list)
     ohne_datum: list[str] = field(default_factory=list)
     """Zeitangaben, die sich nicht eindeutig auflösen ließen, wörtlich."""
+    ohne_datum_stellen: list[tuple[int, int]] = field(default_factory=list)
+    """Passende Originalposition je Eintrag in `ohne_datum`, auch bei gleichem Wortlaut."""
 
 
 def bezugstag(bezug: datetime | date) -> date:
@@ -160,6 +208,7 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
         ausdruck = treffer.group(0).strip()
         if datum is None:
             ergebnis.ohne_datum.append(ausdruck)
+            ergebnis.ohne_datum_stellen.append((treffer.start(), treffer.end()))
         else:
             ergebnis.fristen.append(Frist(datum, ausdruck, treffer.start(), treffer.end(), art))
 
@@ -212,7 +261,89 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
     return ergebnis
 
 
+def fristangaben_in(text: str, bezug: datetime | date | None) -> Fristensuche:
+    """Dates explicitly bound to a cutoff, for deadline consumers such as Akten.
+
+    ``fristen_in`` remains the broad date API for source checking, matching and
+    retrieval. Here, cutoff words must bind a local deadline action, or a deadline
+    noun must be joined by a grammatical link in the same clause. A direct
+    reply/delivery request ("Bitte melden Sie sich nächste Woche") also binds its time. Another date
+    always bounds the link, so event dates cannot borrow a neighbouring cutoff.
+    Event/absence durations and source date ranges are not due dates. The same
+    relation check applies to unresolved expressions, whose exact original
+    positions remain available even when the wording occurs more than once.
+
+    This deliberately supports a bounded set of reply, registration, delivery,
+    payment and cancellation wording. Other or syntactically complex wording
+    may remain source evidence without a derived deadline; it is not a general
+    German semantic parser and does not establish attendance or responsibility.
+    """
+    suche = fristen_in(text, bezug)
+    grenzen = list(_SATZTEIL.finditer(text))
+    angaben = sorted(
+        [(f.start, f.ende, f.ausdruck) for f in suche.fristen]
+        + [(start, ende, ausdruck) for ausdruck, (start, ende)
+           in zip(suche.ohne_datum, suche.ohne_datum_stellen)])
+    gebunden: set[tuple[int, int]] = set()
+
+    def fristbezug(nummer: int, angabe: tuple[int, int, str]) -> bool:
+        start, ende, ausdruck = angabe
+        links = max((m.end() for m in grenzen if m.end() <= start), default=0)
+        rechts = next((m.start() for m in grenzen if m.start() >= ende), len(text))
+        vorher = angaben[nummer - 1] if nummer else None
+        nachher = angaben[nummer + 1] if nummer + 1 < len(angaben) else None
+        # "vom 7. April bis zum 16. April" describes a range, even inside a
+        # paragraph classified as a request. Its endpoint supplies no deadline.
+        if vorher and _ZEITRAUM_LINK.fullmatch(text[vorher[1]:start]):
+            if _ZEITRAUM_ANFANG.search(text[links:vorher[0]]):
+                return False
+        if vorher:
+            links = max(links, vorher[1])
+        if nachher:
+            rechts = min(rechts, nachher[0])
+        vor, nach = text[links:start], text[ende:rechts]
+        cutoff = _FRIST_VOR.search(vor)
+        if cutoff or _FRIST_IM_AUSDRUCK.match(ausdruck):
+            # A directly linked duration predicate owns its endpoint, even in
+            # a request paragraph. A deadline noun ("Einreichfrist läuft bis")
+            # still names a cutoff. Other dates/clauses cannot donate context.
+            davor = vor[:cutoff.start()] if cutoff else vor
+            if _ZEITRAUM_KURZ.search(davor):
+                return False
+            dauer = _DAUER_VOR.search(davor)
+            if dauer:
+                subjekt = davor[:dauer.start()]
+                if not any(_FRIST_LINK.fullmatch(subjekt[m.end():]) for m in _FRISTNAME.finditer(subjekt)):
+                    return False
+                return True
+            if (_ABWESEND_VOR.search(davor)
+                    or (_ZUSTAND_VOR.search(davor) and _ABWESEND_NACH.match(nach))):
+                return False
+            if (_FRISTHANDLUNG.search(davor) or _ZUSTELLUNG_VOR.search(davor)
+                    or _FERTIG_NACH.match(nach) or _FRISTHANDLUNG.match(nach.lstrip())):
+                return True
+            if (vorher and vorher[:2] in gebunden
+                    and _FRIST_FORTSETZUNG.fullmatch(text[vorher[1]:start])):
+                return True
+        if _ANTWORT_ABGABE_VOR.search(vor):
+            return True
+        return (any(_FRIST_LINK.fullmatch(vor[m.end():]) for m in _FRISTNAME.finditer(vor))
+                or any(_FRIST_LINK.fullmatch(nach[:m.start()])
+                       and not (nachher and rechts == nachher[0]
+                                and _FRIST_LINK.fullmatch(nach[m.end():]))
+                       for m in _FRISTNAME.finditer(nach)))
+
+    for nummer, angabe in enumerate(angaben):
+        if fristbezug(nummer, angabe):
+            gebunden.add(angabe[:2])
+    offen = [(ausdruck, stelle) for ausdruck, stelle in zip(suche.ohne_datum, suche.ohne_datum_stellen)
+             if stelle in gebunden]
+    return Fristensuche([frist for frist in suche.fristen if (frist.start, frist.ende) in gebunden],
+                        [ausdruck for ausdruck, _ in offen], [stelle for _, stelle in offen])
+
+
 #: Monatsnamen und -kürzel (klein) mit Nummer; dieselbe Tabelle für die Satzprüfung.
 MONATE = _MONATE
 
-__all__ = ['Frist', 'Fristensuche', 'MONATE', 'bezugstag', 'fristen_in', 'ohne_jahr', 'ungenaues_ende']
+__all__ = ['Frist', 'Fristensuche', 'MONATE', 'bezugstag', 'fristen_in', 'fristangaben_in', 'ohne_jahr',
+           'ungenaues_ende']

@@ -18,7 +18,7 @@ Abschnitte:
   dazu erledigt ist.
   Nennt eine spätere Meldung den Gegenstand ohne solches Wort, bleibt der Punkt
   offen und trägt den Hinweis „danach geändert“.
-* **Fristen**: Datumsangaben in Bitten, Zusagen und Änderungen (`fristen.py`),
+* **Fristen**: ausdrücklich als Frist gebundene Datumsangaben in Bitten, Zusagen und Änderungen (`fristen.py`),
   kommend und verstrichen, jede mit Textstelle. Eine Frist, die eine spätere
   Quelle für denselben Gegenstand verschiebt, steht unter „ersetzt“ und nennt die
   neue.
@@ -61,12 +61,12 @@ from typing import Any, Callable, Iterable
 
 from . import mappe
 from .bezuege import ART_TEXT, Bezuege, zerlegen
-from .fristen import bezugstag, fristen_in
+from .fristen import bezugstag, fristen_in, fristangaben_in
 from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 
-AKTEN_VERSION = 6
+AKTEN_VERSION = 7
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -327,30 +327,63 @@ def _offen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     return offen, erledigt
 
 
+_FRIST_UMFELD = re.compile(r'\b(?:für|beim|am|im|zum|zur|bei|in|auf)\b', re.I)
+_FRISTVERSCHIEBUNG = re.compile(
+    r'(?P<gegenstand>[^,;.!?\n]+?)\s+verschieb(?:t|en)\s+sich\s+'
+    r'(?:(?:deshalb|daher|nun|jetzt)\s+)*(?:auf|zum)\s+(?:den\s+)?$', re.I)
+
+
+def _fristaufgabe(a: Abschnitt, start: int) -> frozenset[str]:
+    """The task before a cutoff, excluding preceding dates and event context."""
+    breit = fristen_in(a.text, a.bezug)
+    stellen = [(f.start, f.ende) for f in breit.fristen] + breit.ohne_datum_stellen
+    links = max([0, *(ende for _, ende in stellen if ende <= start),
+                 *(m.end() for m in _SATZENDE.finditer(a.text, 0, start))])
+    kern = _FRIST_UMFELD.split(a.text[links:start], maxsplit=1)[0]
+    return _gegenstand(kern)
+
+
 def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     """(fristen, ohne_datum): aufgelöste Datumsangaben mit Textstelle; überholte tragen `ersetzt_durch`."""
     alle: list[dict] = []
     ohne: list[dict] = []
     for a in (x for x in abschnitte if x.art in FRIST_ARTEN):
-        suche = fristen_in(a.text, a.bezug)
+        suche = fristangaben_in(a.text, a.bezug)
         for f in suche.fristen:
             umfeld = _umfeld(a.text, f.start, f.ende)
             alle.append({'ref': _ref(a), 'start': f.start, 'ende': f.ende, 'datum': f.datum.isoformat(),
-                         'art': f.art, 'ersetzt_durch': None, '_zeit': a.zeit, '_stamm': _gegenstand(umfeld)})
-        for ausdruck in suche.ohne_datum:
-            beginn = a.text.find(ausdruck)
-            ohne.append({'ref': _ref(a), 'start': max(beginn, 0), 'ende': max(beginn, 0) + len(ausdruck)})
+                         'art': f.art, 'ersetzt_durch': None, '_zeit': a.zeit, '_stamm': _gegenstand(umfeld),
+                         '_aufgabe': _fristaufgabe(a, f.start)})
+        for beginn, ende in suche.ohne_datum_stellen:
+            ohne.append({'ref': _ref(a), 'start': beginn, 'ende': ende})
+    # "Der Belegungsplan verschiebt sich auf ..." can carry forward a known
+    # task deadline without repeating "Frist". Require an earlier bound cutoff
+    # for that task; a shared event in its context cannot supply this relation.
+    for a in sorted((x for x in abschnitte if x.art == 'change'), key=lambda x: x.zeit):
+        for f in fristen_in(a.text, a.bezug).fristen:
+            if any(g['ref'] == _ref(a) and g['start'] == f.start for g in alle):
+                continue
+            verschiebung = _FRISTVERSCHIEBUNG.search(a.text[:f.start])
+            if not verschiebung:
+                continue
+            ziel = _gegenstand(verschiebung['gegenstand'])
+            if len(ziel) < 2 or not any(g['_zeit'] < a.zeit and ziel <= g['_aufgabe'] for g in alle):
+                continue
+            alle.append({'ref': _ref(a), 'start': f.start, 'ende': f.ende, 'datum': f.datum.isoformat(),
+                         'art': f.art, 'ersetzt_durch': None, '_zeit': a.zeit,
+                         '_stamm': _gegenstand(_umfeld(a.text, f.start, f.ende)), '_aufgabe': ziel})
     # Angaben mit Fristwort („Einreichfrist“, „Anmeldeschluss“) in Absätzen der Art Angabe oder Stand: Eine Ausschreibung
     # nennt die Frist als Angabe, nicht als Bitte. Sie erscheint nur unter „ersetzt“, wenn eine spätere Zusage, Bitte oder
     # Änderung denselben Gegenstand (dieselben Wortstämme, wie bei jeder Frist) mit einem anderen Datum nennt; sonst wäre jedes Datum in jeder Angabe eine „Frist“.
     fakten: list[dict] = []
     for a in (x for x in abschnitte if x.art in FAKT_ARTEN):
-        for f in fristen_in(a.text, a.bezug).fristen:
+        for f in fristangaben_in(a.text, a.bezug).fristen:
             umfeld = _umfeld(a.text, f.start, f.ende)
             wort = frozenset(m.group(0).casefold() for m in _FRISTWORT.finditer(umfeld))
             if wort:
                 fakten.append({'ref': _ref(a), 'start': f.start, 'ende': f.ende, 'datum': f.datum.isoformat(),
-                               'art': f.art, 'ersetzt_durch': None, '_zeit': a.zeit, '_stamm': _gegenstand(umfeld)})
+                               'art': f.art, 'ersetzt_durch': None, '_zeit': a.zeit, '_stamm': _gegenstand(umfeld),
+                               '_aufgabe': _fristaufgabe(a, f.start)})
 
     def neuere_von(f: dict) -> list[dict]:
         return [g for g in alle if g['_zeit'] > f['_zeit'] and g['datum'] != f['datum']
@@ -370,7 +403,7 @@ def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
                                   'datum': neueste['datum']}
             alle.append(f)
     for f in alle:
-        for privat in ('_zeit', '_stamm'):
+        for privat in ('_zeit', '_stamm', '_aufgabe'):
             f.pop(privat)
     alle.sort(key=lambda f: (f['datum'], f['ref']['episode_id'], f['start']))
     return alle, ohne

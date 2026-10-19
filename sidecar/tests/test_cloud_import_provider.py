@@ -97,3 +97,88 @@ def test_anthropic_rechecks_permission_and_revision_after_request_counting(monke
         revision[0] = 'revision-two'
     with pytest.raises(ProviderError):
         provider.complete_json_guarded([],max_tokens=100,schema={'type':'object'},before_send=revoke,still_permitted=lambda:permitted[0])
+
+
+def test_sonnet_55_uses_bounded_json_output_instead_of_unsupported_forced_tool(monkeypatch):
+    calls, events = [], []
+    schema = {'type': 'object', 'additionalProperties': False, 'required': ['items'],
+              'properties': {'items': {'type': 'object', 'additionalProperties': False,
+                                      'required': ['B1'], 'properties': {'B1': {'type': 'string'}}}}}
+
+    def handler(request):
+        calls.append(request)
+        payload = json.loads(request.content)
+        assert events == ['counted']
+        assert payload['model'] == 'claude-sonnet-5-5'
+        assert payload['max_tokens'] == 300
+        assert payload['output_config'] == {'effort': 'medium',
+                                            'format': {'type': 'json_schema', 'schema': schema}}
+        assert payload['thinking'] == {'type': 'between_tools'}
+        assert 'tools' not in payload and 'tool_choice' not in payload
+        assert payload['system'] == 'Synthetic instructions'
+        assert payload['messages'] == [{'role': 'user', 'content': 'Synthetic original'}]
+        return httpx.Response(200, json={'stop_reason': 'end_turn',
+            'content': [{'type': 'text', 'text': '{"items":{"B1":"fact"}}'}]})
+
+    monkeypatch.setattr(AnthropicImportProvider, '_client', lambda self: httpx.Client(
+        transport=httpx.MockTransport(handler), follow_redirects=False, trust_env=False))
+    provider = AnthropicImportProvider('claude-sonnet-5-5', 'synthetic-secret', 'one', lambda: 'one')
+    result = provider.complete_json_guarded([
+        {'role': 'system', 'content': 'Synthetic instructions'},
+        {'role': 'user', 'content': 'Synthetic original'}], max_tokens=300, schema=schema,
+        before_send=lambda: events.append('counted'), still_permitted=lambda: True)
+    assert json.loads(result.text) == {'items': {'B1': 'fact'}}
+    assert result.model == 'claude-sonnet-5-5'
+    assert len(calls) == 1
+    assert str(calls[0].url) == 'https://api.anthropic.com/v1/messages'
+
+
+@pytest.mark.parametrize('response', [
+    {'stop_reason': 'max_tokens', 'content': [{'type': 'text', 'text': '{"items":{}}'}]},
+    {'stop_reason': 'refusal', 'content': [{'type': 'text', 'text': '{"items":{}}'}]},
+    {'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': 'not JSON'}]},
+    {'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': '[]'}]},
+    {'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': None}]},
+    {'stop_reason': 'end_turn', 'content': [
+        {'type': 'text', 'text': '{}'}, {'type': 'text', 'text': '{}'}]},
+    {'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': '{}'},
+        {'type': 'tool_use', 'name': 'memory_result', 'input': {}}]},
+])
+def test_sonnet_55_rejects_incomplete_or_ambiguous_json_without_retry(monkeypatch, response):
+    calls = []
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, json=response)
+    monkeypatch.setattr(AnthropicImportProvider, '_client', lambda self: httpx.Client(
+        transport=httpx.MockTransport(handler)))
+    provider = AnthropicImportProvider('claude-sonnet-5-5', 'synthetic-secret', 'one', lambda: 'one')
+    with pytest.raises(ProviderError):
+        provider.complete_json_guarded([], max_tokens=100, schema={'type': 'object'},
+                                       before_send=lambda: None, still_permitted=lambda: True)
+    assert len(calls) == 1
+
+
+def test_sonnet_55_preserves_duplicate_keys_for_existing_source_validator(monkeypatch):
+    # Parsing and reserializing here would silently discard the duplicate B1.
+    text = '{"items":{"B1":"fact","B1":"request"}}'
+    monkeypatch.setattr(AnthropicImportProvider, '_client', lambda self: httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json={
+            'stop_reason': 'end_turn', 'content': [{'type': 'text', 'text': text}]}))))
+    provider = AnthropicImportProvider('claude-sonnet-5-5', 'synthetic-secret', 'one', lambda: 'one')
+    result = provider.complete_json_guarded([], max_tokens=100, schema={'type': 'object'},
+                                           before_send=lambda: None, still_permitted=lambda: True)
+    assert result.text == '{"items":{"B1":"fact","B1":"request"}}'
+
+
+def test_sonnet_55_revocation_during_request_does_not_return_a_result(monkeypatch):
+    permitted = [True]
+    def handler(_):
+        permitted[0] = False
+        return httpx.Response(200, json={'stop_reason': 'end_turn',
+            'content': [{'type': 'text', 'text': '{"items":{}}'}]})
+    monkeypatch.setattr(AnthropicImportProvider, '_client', lambda self: httpx.Client(
+        transport=httpx.MockTransport(handler)))
+    provider = AnthropicImportProvider('claude-sonnet-5-5', 'synthetic-secret', 'one', lambda: 'one')
+    with pytest.raises(ProviderError):
+        provider.complete_json_guarded([], max_tokens=100, schema={'type': 'object'},
+                                       before_send=lambda: None, still_permitted=lambda: permitted[0])

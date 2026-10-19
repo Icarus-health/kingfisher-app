@@ -906,19 +906,22 @@ def test_existing_job_keeps_its_original_stored_budget_after_schema_upgrade(tmp_
     assert legacy['requests'] == 5
 
 
-def test_anthropic_transport_uses_remote_quote_schema_and_preserves_original_person_offsets(tmp_path, monkeypatch):
+@pytest.mark.parametrize('model', ['claude-synthetic', 'claude-sonnet-5-5'])
+def test_anthropic_transport_uses_remote_quote_schema_and_preserves_original_person_offsets(tmp_path, monkeypatch, model):
     import httpx
     from icarus_memory.cloud_import_provider import AnthropicImportProvider
     episodes, jobs, credential, _ = api_setup(tmp_path)
+    credential['model'] = model
     original_body = 'Erster Abschnitt mit Umlauten und Vogel 🐦.\n\nAda Beispiel koordiniert das Projekt Atlas.'
     episode = add_email(episodes, original_body)
-    provider = AnthropicImportProvider('claude-synthetic','synthetic-key','revision-one',
+    provider = AnthropicImportProvider(model,'synthetic-key','revision-one',
                                        lambda:credential['credential_revision'])
     jobs.api_provider_factory = lambda identifier, model:provider
     requests = []
     def handler(request):
         payload = json.loads(request.content)
-        schema = payload['tools'][0]['input_schema']
+        schema = (payload['output_config']['format']['schema'] if model == 'claude-sonnet-5-5'
+                  else payload['tools'][0]['input_schema'])
         source = json.loads(payload['messages'][-1]['content'])
         requests.append(payload)
         if 'items' in schema['properties']:
@@ -931,6 +934,9 @@ def test_anthropic_transport_uses_remote_quote_schema_and_preserves_original_per
             block = next(block for block in source['blocks'] if 'Ada Beispiel' in block['text'])
             result = {'categories':[], 'entities':[{'kind':'person','name':'Ada Beispiel',
                       'block_id':block['block_id'],'occurrence':1,'role':'mentioned'}]}
+        if model == 'claude-sonnet-5-5':
+            return httpx.Response(200,json={'stop_reason':'end_turn','content':[
+                {'type':'text','text':json.dumps(result, ensure_ascii=False)}]})
         return httpx.Response(200,json={'stop_reason':'tool_use','content':[
             {'type':'tool_use','name':'memory_result','input':result}]})
     monkeypatch.setattr(AnthropicImportProvider,'_client',lambda self:httpx.Client(transport=httpx.MockTransport(handler)))
@@ -946,7 +952,9 @@ def test_anthropic_transport_uses_remote_quote_schema_and_preserves_original_per
     started = jobs.start(preview['preview_id'],provider.model,True,provider='anthropic')
     job = finish(jobs,started['job']['id'])
     assert len(requests) == 2
-    assert requests[-1]['tools'][0]['input_schema']['properties']['entities']['items']['required'] == [
+    last_schema = (requests[-1]['output_config']['format']['schema'] if model == 'claude-sonnet-5-5'
+                   else requests[-1]['tools'][0]['input_schema'])
+    assert last_schema['properties']['entities']['items']['required'] == [
         'kind','name','block_id','occurrence','role']
     assert job['state'] == 'complete', job
     assert job['requests'] == len(requests) == 2

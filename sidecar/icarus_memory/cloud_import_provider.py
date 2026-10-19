@@ -86,10 +86,18 @@ class AnthropicImportProvider:
         payload = {
             'model': self.model, 'max_tokens': max_tokens,
             'messages': [m for m in messages if m.get('role') != 'system'],
-            'tools': [{'name': 'memory_result', 'description': 'Quellengebundene Einordnung als JSON.',
-                       'strict': True, 'input_schema': _strict_schema(schema)}],
-            'tool_choice': {'type': 'tool', 'name': 'memory_result'},
         }
+        structured_output = self.model == 'claude-sonnet-5-5'
+        if structured_output:
+            # Sonnet 5.5 rejects forced tools. With no tools and no up-front
+            # thinking, the existing output cap remains the full JSON budget.
+            payload['thinking'] = {'type': 'between_tools'}
+            payload['output_config'] = {'effort': 'medium',
+                'format': {'type': 'json_schema', 'schema': _strict_schema(schema)}}
+        else:
+            payload['tools'] = [{'name': 'memory_result', 'description': 'Quellengebundene Einordnung als JSON.',
+                                 'strict': True, 'input_schema': _strict_schema(schema)}]
+            payload['tool_choice'] = {'type': 'tool', 'name': 'memory_result'}
         if system:
             payload['system'] = system
         try:
@@ -113,9 +121,24 @@ class AnthropicImportProvider:
             raise ProviderError('API-Verbindung unterbrochen.') from None
         except (ValueError, TypeError):
             raise ProviderError('Ungültiges API-Antwortformat.') from None
+        if not still_permitted() or not self.available():
+            raise ProviderError('Die Freigabe oder der API-Zugang hat sich geändert.')
         if not isinstance(data, dict) or not isinstance(data.get('content'), list):
             raise ProviderError('Ungültiges API-Antwortformat.')
         blocks = data['content']
+        if structured_output:
+            if (data.get('stop_reason') != 'end_turn' or len(blocks) != 1
+                    or not isinstance(blocks[0], dict) or blocks[0].get('type') != 'text'
+                    or not isinstance(blocks[0].get('text'), str)):
+                raise ProviderError('Die API hat keine vollständige strukturierte Einordnung geliefert.')
+            text = blocks[0]['text']
+            try:
+                if not isinstance(json.loads(text), dict):
+                    raise ValueError
+            except ValueError:
+                raise ProviderError('Ungültiges API-Antwortformat.') from None
+            # Keep raw JSON so caller validators can reject duplicate keys.
+            return Reply(text=text, model=self.model)
         results = [block for block in blocks if isinstance(block, dict) and block.get('type') == 'tool_use']
         if (data.get('stop_reason') != 'tool_use' or len(results) != 1
                 or results[0].get('name') != 'memory_result' or not isinstance(results[0].get('input'), dict)):
