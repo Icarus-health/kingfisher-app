@@ -75,8 +75,8 @@ export function CloudAccess() {
 
   return <section className="source-section cloud-access" aria-labelledby="cloud-access-heading">
     <div className="compact-integration-heading"><div><h2 id="cloud-access-heading">Cloud-Zugänge</h2>
-      <p>Mistral und OpenRouter · optional</p></div></div>
-    <p className="source-hint">Speichern schaltet Cloud nicht ein und sendet keine Fragen oder Quellen. Dafür brauchst du zusätzlich die Zustimmung unter „Was Kingfisher darf“.</p>
+      <p>Anthropic, OpenAI, Mistral und OpenRouter · optional</p></div></div>
+    <p className="source-hint">Speichern schaltet Cloud nicht ein und sendet keine Fragen oder Quellen. Dafür brauchst du eine gesonderte Zustimmung zur jeweiligen Rolle oder zum konkreten Importpaket.</p>
     {loadingError ? <p role="alert">Die Cloud-Einstellungen konnten nicht geladen werden. <button type="button" className="secondary-action" onClick={() => void load()}>Erneut versuchen</button></p> : null}
     {state && !state.storage_available ? <p className="model-rec-warn" role="status">Der sichere Schlüsselspeicher ist auf diesem Rechner nicht verfügbar. Schlüssel können hier nicht gespeichert werden.</p> : null}
     {state?.notice ? <p className="source-hint">{state.notice}</p> : null}
@@ -87,7 +87,11 @@ export function CloudAccess() {
         <summary><strong>{provider.label}</strong><span>{draft.apiKey || draft.model !== provider.model ? "Ungespeichert" : provider.key_present ? "Schlüssel hinterlegt" : "Nicht eingerichtet"}</span></summary>
         <fieldset className="cloud-access-provider">
         <legend>{provider.label}</legend>
-        <p className="source-hint">EU-Endpunkt: <code>{provider.endpoint}</code></p>
+        <p className="source-hint">Endpunkt: <code>{provider.endpoint}</code></p>
+        {provider.privacy ? <details className="quiet-details"><summary>Datenschutz, Region und Kosten</summary>
+          <p>{provider.privacy.region}</p><p>{provider.privacy.training}</p><p>{provider.privacy.retention}</p><p>{provider.privacy.billing}</p>
+          <p>Geprüft am {provider.privacy.checked_at}. {provider.privacy.sources.map(source=><span key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a>{" · "}</span>)}</p>
+        </details>:null}
         <label>Modell
           <input value={draft.model} disabled={disabled} onChange={event => change(provider, "model", event.target.value)} autoComplete="off" />
         </label>

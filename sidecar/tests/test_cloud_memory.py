@@ -490,8 +490,9 @@ def test_bulk_accepts_101_sources_after_pilot_and_uses_larger_budget(tmp_path):
 
     assert result["state"] == "complete"
     assert result["selected"] == 101
-    assert result["source_limit"] == 1000
-    assert result["request_limit"] == 4000
+    assert preview["source_limit"] == 1000
+    assert result["source_limit"] == 101
+    assert result["request_limit"] == 404
     assert result["requests"] == 202
     assert len(provider.calls) == 202
 
@@ -649,3 +650,310 @@ def test_remote_provider_is_never_accepted_by_local_worker_without_scope(tmp_pat
     provider = SubscriptionProvider()
     run(episodes, provider, threading.RLock())
     assert provider.calls == []
+
+class ApiImportProvider(SubscriptionProvider):
+    name = "anthropic"
+    model = "claude-synthetic"
+    grant_id = None
+
+    def __init__(self, revision="revision-one", on_call=None):
+        super().__init__(on_call)
+        self.grant_id = None
+        self.credential_revision = revision
+
+
+def api_setup(tmp_path):
+    episodes, _, grant, _ = setup(tmp_path)
+    credential = {"available": True, "credential_revision": "revision-one", "model": "claude-synthetic"}
+    provider = ApiImportProvider()
+    jobs = CloudMemoryJobs(episodes, tmp_path / "api-jobs.sqlite3", lambda _model: SubscriptionProvider(),
+                          lambda: grant, api_provider_factory=lambda identifier, model: provider,
+                          credential_status=lambda identifier: dict(credential))
+    return episodes, jobs, credential, provider
+
+
+def test_api_preview_does_not_send_and_job_records_provider_without_oauth_grant(tmp_path):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    episode = add_email(episodes)
+    preview = jobs.preview(provider="anthropic")
+    assert preview["provider"] == "anthropic"
+    assert provider.calls == []
+    started = jobs.start(preview["preview_id"], provider.model, True, provider="anthropic")
+    result = finish(jobs, started["job"]["id"])
+    assert result["state"] == "complete"
+    assert result["provider"] == "anthropic"
+    assert result["quality_verified"] is False
+    assert jobs._job(result["id"])["grant_id"] == ""
+    assert jobs._job(result["id"])["credential_revision"] == "revision-one"
+    with episodes._lock:
+        model = episodes._conn.execute("SELECT model FROM working_memory_sources WHERE episode_id=?", (episode.id,)).fetchone()[0]
+    assert model == "anthropic:claude-synthetic"
+    assert jobs.preview("bulk", provider="anthropic")["count"] == 0
+
+
+@pytest.mark.parametrize("change", ["key", "model", "revoke"])
+def test_api_credential_changes_after_preview_require_new_consent(tmp_path, change):
+    episodes, jobs, credential, provider = api_setup(tmp_path)
+    add_email(episodes)
+    preview = jobs.preview(provider="anthropic")
+    if change == "key":
+        credential["credential_revision"] = "revision-two"
+    elif change == "model":
+        credential["model"] = "other-model"
+    else:
+        credential["available"] = False
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview["preview_id"], provider.model, True, provider="anthropic")
+    assert provider.calls == []
+
+
+def test_api_change_during_request_stops_without_committing_or_second_send(tmp_path):
+    episodes, jobs, credential, provider = api_setup(tmp_path)
+    episode = add_email(episodes)
+    provider.on_call = lambda _: credential.update(credential_revision="revision-two")
+    preview = jobs.preview(provider="anthropic")
+    started = jobs.start(preview["preview_id"], provider.model, True, provider="anthropic")
+    result = finish(jobs, started["job"]["id"])
+    assert result["state"] == "stopped"
+    assert len(provider.calls) == 1
+    assert WorkingMemoryStore(episodes).source_state(episode.id) == "pending"
+
+
+@pytest.mark.parametrize("wrong", ["chatgpt", "mistral", "openai", "unknown"])
+def test_api_preview_cannot_be_started_as_another_provider(tmp_path, wrong):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    add_email(episodes)
+    preview = jobs.preview(provider="anthropic")
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview["preview_id"], provider.model, True, provider=wrong)
+    assert provider.calls == []
+
+
+def test_api_provider_factory_must_match_exact_identity_model_and_revision(tmp_path):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    add_email(episodes)
+    preview = jobs.preview(provider="anthropic")
+    provider.name = "openai"
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview["preview_id"], provider.model, True, provider="anthropic")
+    provider.name = "anthropic"
+    provider.model = "other"
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview["preview_id"], "claude-synthetic", True, provider="anthropic")
+    provider.model = "claude-synthetic"
+    provider.credential_revision = "revision-two"
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview["preview_id"], provider.model, True, provider="anthropic")
+    assert provider.calls == []
+
+
+def test_api_pause_resume_does_not_repeat_completed_sources(tmp_path, monkeypatch):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    ids = [add_email(episodes, f'Synthetic {i}').id for i in range(2)]
+    save = jobs._save
+    def pause_after_first(job_id, **changes):
+        save(job_id, **changes)
+        if changes.get('position') == 1:
+            jobs.pause(job_id)
+    monkeypatch.setattr(jobs, '_save', pause_after_first)
+    preview = jobs.preview(source_ids=ids, provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    job_id = started['job']['id']
+    assert finish(jobs, job_id)['state'] == 'paused'
+    assert len(provider.calls) == 2
+    monkeypatch.setattr(jobs, '_save', save)
+    jobs.resume(job_id)
+    assert finish(jobs, job_id)['state'] == 'complete'
+    assert len(provider.calls) == 4
+
+
+def test_api_resume_changed_key_revokes_old_job_instead_of_fallback(tmp_path):
+    episodes, jobs, credential, provider = api_setup(tmp_path)
+    add_email(episodes)
+    provider.on_call = lambda _: jobs.pause(jobs._latest_id())
+    preview = jobs.preview(provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    job_id = started['job']['id']
+    assert finish(jobs, job_id)['state'] == 'paused'
+    credential['credential_revision'] = 'revision-two'
+    with pytest.raises(CloudMemoryError):
+        jobs.resume(job_id)
+    assert jobs.status(job_id)['job']['state'] == 'stopped'
+    assert jobs._job(job_id)['consent'] == 0
+    assert len(provider.calls) == 1
+
+
+def test_api_revoke_during_client_preparation_blocks_late_send(tmp_path):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    add_email(episodes)
+    def guarded(messages, *, max_tokens, schema, before_send, still_permitted):
+        jobs.pause(jobs._latest_id(), revoke=True)
+        assert not still_permitted()
+        before_send()
+        pytest.fail('No model send after revocation')
+    provider.complete_json_guarded = guarded
+    preview = jobs.preview(provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    result = finish(jobs, started['job']['id'])
+    assert result['state'] == 'stopped'
+    assert result['requests'] == 0
+    assert provider.calls == []
+
+
+def test_api_resume_missing_prepared_credentials_stops_and_revokes_before_factory_error(tmp_path):
+    episodes, jobs, credential, provider = api_setup(tmp_path)
+    add_email(episodes)
+    provider.on_call = lambda _: jobs.pause(jobs._latest_id())
+    preview = jobs.preview(provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    job_id = started['job']['id']
+    assert finish(jobs, job_id)['state'] == 'paused'
+    credential['available'] = False
+    def unavailable(*args):
+        raise CloudMemoryError('API-Zugang nicht vorbereitet')
+    jobs.api_provider_factory = unavailable
+    with pytest.raises(CloudMemoryError):
+        jobs.resume(job_id)
+    assert jobs._job(job_id)['state'] == 'stopped'
+    assert jobs._job(job_id)['consent'] == 0
+    assert len(provider.calls) == 1
+
+
+def test_api_start_consumes_preview_so_replayed_request_cannot_charge_twice(tmp_path):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    add_email(episodes)
+    preview = jobs.preview(provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    assert finish(jobs, started['job']['id'])['state'] == 'complete'
+    with pytest.raises(CloudMemoryError):
+        jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    assert len(provider.calls) == 2
+
+
+def test_api_resume_cannot_overlap_another_running_job(tmp_path):
+    episodes, jobs, _, provider = api_setup(tmp_path)
+    first = add_email(episodes, 'Synthetic first source')
+    provider.on_call = lambda _: jobs.pause(jobs._latest_id())
+    preview = jobs.preview(source_ids=[first.id], provider='anthropic')
+    started = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    old_id = started['job']['id']
+    assert finish(jobs, old_id)['state'] == 'paused'
+    second = add_email(episodes, 'Synthetic second source')
+    entered, release = threading.Event(), threading.Event()
+    def wait(_):
+        entered.set()
+        assert release.wait(3)
+    provider.on_call = wait
+    preview = jobs.preview(source_ids=[second.id], provider='anthropic')
+    current = jobs.start(preview['preview_id'], provider.model, True, provider='anthropic')
+    assert entered.wait(2)
+    try:
+        with pytest.raises(CloudMemoryError, match='bereits'):
+            jobs.resume(old_id)
+    finally:
+        release.set()
+        jobs._threads[current['job']['id']].join(5)
+        jobs._threads[old_id].join(5)
+
+
+@pytest.mark.parametrize('provider_name', ['chatgpt', 'anthropic'])
+def test_new_job_budget_uses_actual_selected_sources_and_remains_cumulative_on_resume(tmp_path, provider_name):
+    if provider_name == 'anthropic':
+        episodes, jobs, _, provider = api_setup(tmp_path)
+    else:
+        episodes, jobs, _, provider = setup(tmp_path)
+    selected = add_email(episodes, 'Synthetic selected source')
+    add_email(episodes, 'Synthetic preview source not selected')
+    preview = jobs.preview(provider=provider_name)
+    assert preview['source_limit'] == 100
+    provider.on_call = lambda _: (_ for _ in ()).throw(RuntimeError('quota reached'))
+    started = jobs.start(preview['preview_id'], provider.model, True, source_ids=[selected.id], provider=provider_name)
+    job_id = started['job']['id']
+    first = finish(jobs, job_id)
+    assert first['state'] == 'paused'
+    assert first['selected'] == first['source_limit'] == 1
+    assert first['request_limit'] == 4
+    assert first['requests'] == 1
+    for expected_requests in (2, 3, 4):
+        jobs.resume(job_id)
+        result = finish(jobs, job_id)
+        assert result['state'] == 'paused'
+        assert result['requests'] == expected_requests
+        assert result['request_limit'] == 4
+    jobs.resume(job_id)
+    exhausted = finish(jobs, job_id)
+    assert exhausted['state'] == 'stopped'
+    assert exhausted['requests'] == 4
+    assert len(provider.calls) == 4
+
+
+def test_existing_job_keeps_its_original_stored_budget_after_schema_upgrade(tmp_path):
+    episodes, jobs, grant, provider = setup(tmp_path)
+    episode = add_email(episodes)
+    snapshot = jobs._snapshot(episode.id)
+    with jobs._connect() as db:
+        db.execute('''INSERT INTO cloud_memory_jobs
+            (id,purpose,model,grant_id,source_ids,fingerprints,source_limit,state,consent,
+             position,requests,completed,failed,stop_reason,created_at,updated_at)
+            VALUES(?,?,?,?,?,?,100,'paused',1,0,5,0,0,'',1,1)''',
+            ('legacy-budget','pilot',provider.model,grant['grant_id'],json.dumps([episode.id]),
+             json.dumps({episode.id:source_fingerprint(snapshot)})))
+    recovered = CloudMemoryJobs(episodes,jobs.path,lambda model:provider,lambda:dict(grant))
+    legacy = recovered.status('legacy-budget')['job']
+    assert legacy['selected'] == 1
+    assert legacy['source_limit'] == 100
+    assert legacy['request_limit'] == 400
+    assert legacy['requests'] == 5
+
+
+def test_anthropic_transport_uses_remote_quote_schema_and_preserves_original_person_offsets(tmp_path, monkeypatch):
+    import httpx
+    from icarus_memory.cloud_import_provider import AnthropicImportProvider
+    episodes, jobs, credential, _ = api_setup(tmp_path)
+    original_body = 'Erster Abschnitt mit Umlauten und Vogel 🐦.\n\nAda Beispiel koordiniert das Projekt Atlas.'
+    episode = add_email(episodes, original_body)
+    provider = AnthropicImportProvider('claude-synthetic','synthetic-key','revision-one',
+                                       lambda:credential['credential_revision'])
+    jobs.api_provider_factory = lambda identifier, model:provider
+    requests = []
+    def handler(request):
+        payload = json.loads(request.content)
+        schema = payload['tools'][0]['input_schema']
+        source = json.loads(payload['messages'][-1]['content'])
+        requests.append(payload)
+        if 'items' in schema['properties']:
+            result = {'items':[{'block_id':block['block_id'],'kind':'fact'} for block in source['blocks']]}
+        else:
+            entity_schema = schema['properties']['entities']['items']
+            assert entity_schema['required'] == ['kind','name','block_id','occurrence','role']
+            assert 'start' not in entity_schema['properties'] and 'end' not in entity_schema['properties']
+            assert all('start' not in block and 'end' not in block for block in source['blocks'])
+            block = next(block for block in source['blocks'] if 'Ada Beispiel' in block['text'])
+            result = {'categories':[], 'entities':[{'kind':'person','name':'Ada Beispiel',
+                      'block_id':block['block_id'],'occurrence':1,'role':'mentioned'}]}
+        return httpx.Response(200,json={'stop_reason':'tool_use','content':[
+            {'type':'tool_use','name':'memory_result','input':result}]})
+    monkeypatch.setattr(AnthropicImportProvider,'_client',lambda self:httpx.Client(transport=httpx.MockTransport(handler)))
+    from icarus_memory.providers import ProviderError
+    scoped, unapproved_policy = jobs._scoped('no-approved-job',provider,jobs._snapshot(episode.id))
+    with pytest.raises(ProviderError):
+        _interpret(scoped,episode,[],policy=unapproved_policy)
+    with pytest.raises(ProviderError):
+        _interpret(scoped,episode,[])
+    assert requests == []
+    preview = jobs.preview(source_ids=[episode.id],provider='anthropic')
+    assert requests == []
+    started = jobs.start(preview['preview_id'],provider.model,True,provider='anthropic')
+    job = finish(jobs,started['job']['id'])
+    assert len(requests) == 2
+    assert requests[-1]['tools'][0]['input_schema']['properties']['entities']['items']['required'] == [
+        'kind','name','block_id','occurrence','role']
+    assert job['state'] == 'complete', job
+    assert job['requests'] == len(requests) == 2
+    entities = Categories(episodes).list_for(episode.id)['entities']
+    assert len(entities) == 1
+    expected_start = original_body.index('Ada Beispiel')
+    assert entities[0]['start'] == expected_start
+    assert entities[0]['end'] == expected_start + len('Ada Beispiel')
+    assert entities[0]['quote'] == 'Ada Beispiel'
+    assert episodes.get(episode.id).body == original_body

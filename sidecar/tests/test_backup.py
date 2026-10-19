@@ -63,7 +63,7 @@ def test_cloud_job_history_is_backed_up_and_restore_keeps_inspection_boundary(tm
     episodes=EpisodeStore(data/'episodes.sqlite3')
     jobs=CloudMemoryJobs(episodes,data/'cloud-memory-jobs.sqlite3',None,lambda:{})
     with jobs._connect() as db:
-        db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",('sample','pilot','catalog',None,'[]',0))
+        db.execute("INSERT INTO cloud_memory_previews (id,purpose,model_scope,grant_id,sources,expires_at) VALUES(?,?,?,?,?,?)",('sample','pilot','catalog',None,'[]',0))
     saved=snapshot_all(data,tmp_path/'backups')
     assert 'cloud-memory-jobs.sqlite3' in {row['name'] for row in verify_snapshot_set(saved)}
     restored=tmp_path/'restored'

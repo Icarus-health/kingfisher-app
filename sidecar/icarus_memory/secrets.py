@@ -40,6 +40,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from .cloud_credentials import PREPARED_CLOUD_KEYS
 from .atomic import write_text_atomic
 from .crypto import DecryptionError, seal_json, unseal_json
 
@@ -52,6 +53,7 @@ PASSPHRASE_ENV = "ICARUS_SECRETS_PASSPHRASE"
 
 #: Schlüssel, die aus dem Schlüsselbund kommen dürfen.
 KNOWN = (
+    *PREPARED_CLOUD_KEYS.values(),
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "MISTRAL_API_KEY",

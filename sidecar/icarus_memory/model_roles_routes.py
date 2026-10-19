@@ -28,6 +28,7 @@ import httpx
 from fastapi import HTTPException
 from pydantic import BaseModel
 
+from .cloud_credentials import PREPARED_CLOUD_KEYS
 from . import config, logbuch
 from . import device_profile
 from .agent_verdrahtung import satzpruefung_stand
@@ -45,7 +46,7 @@ from .ollama_inventar import CLOUD, HINWEIS_CLOUD, LOKAL, inventar_von
 from .providers import OpenAICompatible
 
 _MODELLNAME = re.compile(r"[A-Za-z0-9._:/-]{1,128}")
-_ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mistral (EU-Endpunkt)", "openrouter": "OpenRouter (EU-Endpunkt)"}
+_ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mistral (EU/EFTA-Inferenz)", "openrouter": "OpenRouter (Europa-Region)"}
 
 
 class RolleIn(BaseModel):
@@ -162,7 +163,7 @@ def register(app, guard, data_dir, rebuild):
     def _schluessel_da(anbieter: str) -> bool:
         import os
         name = CLOUD_ANBIETER[anbieter][0]
-        return bool(os.environ.get(name) or (anbieter == "openai" and os.environ.get("LLM_API_KEY")))
+        return bool(os.environ.get(PREPARED_CLOUD_KEYS.get(anbieter, "")) or os.environ.get(name) or (anbieter == "openai" and os.environ.get("LLM_API_KEY")))
 
     def anbieter_liste() -> list[dict[str, Any]]:
         return [{"id": k, "label": _ANBIETER_LABEL[k], "schluessel_da": _schluessel_da(k),
