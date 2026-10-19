@@ -434,7 +434,7 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
 
 
 def _beruehrt(beginn: datetime, ende: datetime | None, von: datetime, bis: datetime) -> bool:
-    """Wie im Gedächtnis: Der Termin überschneidet `von`..`bis`; ohne Dauer zählt sein Beginn."""
+    """Der Termin überschneidet `von`..`bis`; einer ohne Dauer zählt, wenn er darin beginnt."""
     if beginn >= bis:
         return False
     return ende > von if ende is not None and ende > beginn else beginn >= von

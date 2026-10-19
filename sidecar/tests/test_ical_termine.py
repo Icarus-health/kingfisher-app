@@ -231,6 +231,20 @@ def test_rdate_fuegt_einen_termin_hinzu():
     assert termine[-1].end == utc(2026, 11, 5, 9)
 
 
+def test_schon_ausgeklappte_serie_hat_dieselben_kennungen_wie_eine_hier_ausgeklappte():
+    """Falls ein Server doch ausklappt (RFC 4791, 9.6.5): Einzeltermine in UTC, der erste darf ohne RECURRENCE-ID sein."""
+    hier = parse_events(ics(serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;COUNT=3')), VON, BIS)
+
+    def instanz(beginn: str, mit_kennung: bool = True) -> list[str]:
+        ende = beginn[:9] + f'{int(beginn[9:11]) + 1:02d}' + beginn[11:]
+        return serie(*([f'RECURRENCE-ID:{beginn}'] if mit_kennung else []), f'DTSTART:{beginn}', f'DTEND:{ende}')
+
+    for erster_mit_kennung in (True, False):
+        vom_server = parse_events(ics(instanz('20261019T070000Z', erster_mit_kennung), instanz('20261026T080000Z'),
+                                      instanz('20261102T080000Z')), VON, BIS)
+        assert [(t.uid, t.start, t.end) for t in vom_server] == [(t.uid, t.start, t.end) for t in hier]
+
+
 def test_beginn_ist_immer_ein_termin_auch_wenn_er_nicht_zur_regel_passt():
     """RFC 5545, 3.8.5.3: DTSTART zählt als erster Termin. dateutil allein ließe ihn hier (ein Dienstag) weg."""
     termine = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20261020T090000', 'DURATION:PT1H',
