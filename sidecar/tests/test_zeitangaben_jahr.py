@@ -18,14 +18,17 @@ from tests.test_answer_time_scope import NOW, Selector, _mail
 
 
 @pytest.mark.parametrize('question,expected', [
-    ('Was war letztes Jahr mit der Akademie?', ('2025-01-01', '2026-01-01', 'des Jahres 2025')),
-    ('Was war im Vorjahr mit der Akademie?', ('2025-01-01', '2026-01-01', 'des Jahres 2025')),
-    ('Was hat Silke dieses Jahr geschrieben?', ('2026-01-01', '2026-09-27', 'des Jahres 2026')),
-    ('Was schrieb Ben vor zwei Wochen?', ('2026-09-07', '2026-09-14', 'der Woche ab 7. September')),
-    ('Was kam vor 3 Tagen von der Stiftung?', ('2026-09-23', '2026-09-24', 'vom 23. September')),
-    ('Was war vor einem Monat?', ('2026-08-01', '2026-09-01', 'aus dem August 2026')),
-    ('Welche Rechnungen kamen in den letzten drei Monaten?', ('2026-06-29', '2026-09-27', 'der letzten 3 Monate')),
-    ('Was kam nicht letztes Jahr, sondern dieses Jahr?', ('2026-01-01', '2026-09-27', 'des Jahres 2026')),
+    ('Was war letztes Jahr mit der Akademie?', ('2025-01-01', '2026-01-01', 'des letzten Jahres')),
+    ('Was war im Vorjahr mit der Akademie?', ('2025-01-01', '2026-01-01', 'des letzten Jahres')),
+    ('Was hat Silke dieses Jahr geschrieben?', ('2026-01-01', '2026-09-27', 'dieses Jahres')),
+    ('Was schrieb Ben vor zwei Wochen?', ('2026-09-07', '2026-09-14', 'von vor 2 Wochen')),
+    ('Was kam vor 3 Tagen von der Stiftung?', ('2026-09-23', '2026-09-24', 'von vor 3 Tagen')),
+    ('Was war vor einem Monat?', ('2026-08-01', '2026-09-01', 'von vor einem Monat')),
+    ('Welche Rechnungen kamen in den letzten drei Monaten?', ('2026-06-27', '2026-09-27', 'der letzten 3 Monate')),
+    ('Was kam in den letzten 12 Monaten?', ('2025-09-27', '2026-09-27', 'der letzten 12 Monate')),
+    ('Was hat Frau Heuer zum Angebot gesagt?', None),
+    ('Was kam nicht im letzten Jahr?', None),
+    ('Was kam nicht letztes Jahr, sondern dieses Jahr?', ('2026-01-01', '2026-09-27', 'dieses Jahres')),
     ('Wann treffen wir uns in zwei Wochen?', None),
     ('Was steht im Jahresbericht?', None),
     ('Wann ist der Termin vor dem Workshop?', None),
@@ -39,6 +42,7 @@ def test_zeitwoerter_sind_keine_suchwoerter():
     assert ohne_zeitraum('Was war letztes Jahr mit der Akademie?').split() == ['Was', 'war', 'mit', 'der', 'Akademie?']
     # Bleibt nichts übrig, gilt die Frage unverändert.
     assert ohne_zeitraum('Was war letzte Woche?') == 'Was war letzte Woche?'
+    assert ohne_zeitraum('Was war letztes Jahr los?') == 'Was war letztes Jahr los?'
 
 
 @pytest.fixture
@@ -63,11 +67,11 @@ def test_letztes_jahr_findet_die_alte_quelle_trotz_vieler_neuer(akademie):
     assert alt not in {ref['episode_id'] for ref in ohne['basis']}
     antwort = prepare('Was war letztes Jahr mit der Akademie?', episodes, claims, Selector())
     basis = [ref['episode_id'] for ref in antwort['basis']]
-    assert basis[0] == alt and antwort['time_label'] == 'des Jahres 2025'
+    assert basis[0] == alt and antwort['time_label'] == 'des letzten Jahres'
     # Nichts ausgeschlossen: Die neueren Quellen bleiben Kandidaten.
     assert set(neu) & set(basis)
     text, _, _ = render(antwort, episodes, claims)
-    assert 'Zuerst berücksichtigt: Quellen des Jahres 2025.' in text
+    assert 'Zuerst berücksichtigt: Quellen des letzten Jahres.' in text
 
 
 def test_zeitwoerter_verdraengen_keinen_treffer_im_zeitraum(tmp_path, monkeypatch):

@@ -3999,7 +3999,12 @@ def create_app(
                     rendered = None
                     if neu_berechnet:
                         mappen_neu += 1
-                        rendered = app.state.agent.render_offene_punkte(stored)
+                        # Je Art einmal je Aufruf, und beim Öffnen wird nur gelesen, nichts nachgerechnet.
+                        art = stored.get('kind') if isinstance(stored, dict) else None
+                        if ('offene_punkte', art) not in mappen_memo:
+                            mappen_memo[('offene_punkte', art)] = app.state.agent.render_offene_punkte(
+                                stored, nachfuehren=False)
+                        rendered = mappen_memo[('offene_punkte', art)]
                     current = {k: v for k, v in stored_context.items() if k != 'offene_punkte_answer'}
                     if isinstance(stored, dict):
                         current['offene_punkte_answer'] = {k: stored.get(k) for k in ('version', 'kind', 'query')}
@@ -4310,7 +4315,10 @@ def create_app(
                 # Die Frage in eine strukturierte Anfrage übersetzen (Modell der Rolle
                 # „frage“, sonst Rückfall); sie gilt für Weg und Antwort dieser Nachricht.
                 # Die Umschreibungen gehören zur Suche: „Catering“ findet „Verpflegung“.
-                anfrage = rueckfall(body.message) if literal_lookup else _frage_verstehen(app, body.message)
+                from .offene_punkte import art_der_frage
+                # Eine feste Frageform nach offenen Punkten braucht kein Fragenverständnis (kein Modellaufruf).
+                anfrage = (rueckfall(body.message) if literal_lookup or art_der_frage(body.message)
+                           else _frage_verstehen(app, body.message))
                 working_available = bool(WorkingMemoryStore(app.state.episodes).search(
                     anfrage.suchanfrage(body.message), limit=1)['refs'])
                 if not working_available:

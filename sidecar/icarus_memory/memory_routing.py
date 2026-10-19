@@ -77,7 +77,9 @@ _DELIVERY_QUESTION = re.compile(
 # ist Teil der Frage, kein Auftrag. Nur ein einzelner Fragesatz.
 _ZIEL_FRAGE = re.compile(
     r'^(?:an\s+welche|an\s+wen|wohin|unter\s+welcher|an\s+welcher)\b[^.!?\n]*'
-    r'\b(?:soll|sollen|muss|müssen|kann|können|darf)\s+(?:ich|wir)\b[^.!?\n]*\?$', re.I)
+    r'\b(?:soll|sollen|muss|müssen)\s+(?:ich|wir)\b[^.!?\n]*'
+    r'\b(?:schicken|senden|versenden|verschicken|liefern|überweisen|ueberweisen|zahlen|bezahlen|adressieren|richten)'
+    r'\s*\?$', re.I)
 _PREPARATION_TIME = re.compile(
     r'^(?:(?:bitte\s+)?bereite\s+mich|wie\s+bereite\s+ich\s+mich)'
     r'\s+auf\s+[^.!?\n]{1,200}\s+vor[.!?]\s*'
@@ -158,6 +160,7 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     # send. Keep a second command in the same sentence on the action path.
     if delivery and not _NEW_TURN.search(delivery['rest']):
         return 'memory_evidence'
+    # Die Frage endet mit dem Versandverb: „… schicken und schick sie gleich an Ben?“ ist ein Auftrag und passt nicht.
     if _ZIEL_FRAGE.fullmatch(text):
         return 'memory_evidence'
     if _NEW_TURN.search(text):

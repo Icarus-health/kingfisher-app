@@ -87,6 +87,19 @@ jemandem jemanden etwas alles alle allen allem wieder immer denn doch also sowie
 dass daß weil wenn ob als wie wohl gern gerne ganz nun jetzt
 """.split())
 
+def _gleich(wort: str) -> str:
+    from .word_forms import umschrift_gleich
+    return umschrift_gleich(wort)
+
+
+#: Dieselben Funktionswörter in Umschrift („koennen“ ist „können“): Wer ohne Umlaute tippt, sucht nicht nach ihnen.
+FUNKTIONSWOERTER_GLEICH = frozenset(_gleich(wort) for wort in FUNKTIONSWOERTER)
+
+
+def funktionswort(wort: str) -> bool:
+    """Ein Funktionswort, gleich in welcher Schreibweise („können“, „koennen“, „konnen“ zählen nicht)."""
+    return wort in FUNKTIONSWOERTER or _gleich(wort) in FUNKTIONSWOERTER_GLEICH
+
 _KOMBINIEREND = re.compile("[\u0300-\u036f]")  # kombinierende Akzentzeichen
 
 TABLES = {
@@ -599,7 +612,7 @@ def _zerlegen(wort: str, vorkommt) -> tuple[str, str] | None:
 
 def woerter(frage: str) -> tuple[list[str], bool]:
     """Suchwörter einer Frage: gefaltet, ohne Funktionswörter, höchstens MAX_WOERTER."""
-    gefaltet = sorted({falte(wort) for wort in terms_v1(frage)} - FUNKTIONSWOERTER)
+    gefaltet = sorted({falte(wort) for wort in terms_v1(frage) if not funktionswort(wort)} - FUNKTIONSWOERTER)
     return gefaltet[:MAX_WOERTER], len(gefaltet) > MAX_WOERTER
 
 
@@ -612,7 +625,7 @@ def umschrift_woerter(frage: str, ausgewaehlt: list[str]) -> dict[str, list[str]
         wort = falte(roh)
         if wort not in gewaehlt:
             continue
-        varianten = {falte(v) for v in umschriften(roh)} - gewaehlt - FUNKTIONSWOERTER - {wort}
+        varianten = {falte(v) for v in umschriften(roh) if not funktionswort(v)} - gewaehlt - FUNKTIONSWOERTER - {wort}
         if varianten:
             ergebnis.setdefault(wort, [])
             ergebnis[wort] += sorted(varianten - set(ergebnis[wort]))

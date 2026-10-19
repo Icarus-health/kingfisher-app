@@ -26,7 +26,9 @@ from tests.test_mappe import _quelle
     ('Worauf warte ich noch?', 'wartet_auf'), ('Auf was warten wir eigentlich?', 'wartet_auf'),
     ('Auf was warte ich noch?', 'wartet_auf'), ('Wer schuldet mir noch etwas?', 'wartet_auf'),
     ('Was habe ich noch zugesagt?', 'zugesagt'), ('Welche Zusagen habe ich offen?', 'zugesagt'),
-    ('Was muss ich noch schicken?', 'zugesagt'), ('Was hat Silke zugesagt?', None),
+    ('Was muss ich noch schicken?', None), ('Was hat Silke zugesagt?', None),
+    ('Worauf warte ich noch von Silke Vogt?', None), ('Was schuldet mir Ben noch?', None),
+    ('Merk dir: wer schuldet mir noch etwas? Ben, 50 Euro.', None), ('Schreib Silke: Worauf warte ich noch?', None),
     ('Worauf wartet Silke?', None),
 ])
 def test_feste_frageformen(frage, art):
@@ -56,7 +58,7 @@ def test_worauf_warte_ich_und_was_habe_ich_zugesagt(welt, akten):
         'In deinen Akten finde ich nichts, worauf du noch wartest')
 
 
-@pytest.mark.parametrize('frage', ['Worauf warte ich noch?', 'Was muss ich noch schicken?',
+@pytest.mark.parametrize('frage', ['Worauf warte ich noch?', 'Wer schuldet mir noch etwas?',
                                    'Was habe ich zugesagt?'])
 def test_nie_im_freien_chat(frage):
     assert route(frage) == 'memory_evidence'
@@ -91,6 +93,11 @@ def test_im_gespraech_ohne_modell_ohne_zitat_im_verlauf(api):
     ('An wen muss ich die Kündigung senden?', 'memory_evidence'),
     ('Schick die Rechnung an Frau Krüger.', 'chat'),
     ('An welche Adresse soll ich schicken? Schick sie gleich los.', 'chat'),
+    ('Wohin soll ich die Rechnung schicken und schick sie gleich an Ben?', 'chat'),
+    ('Wohin können wir im Sommer in den Urlaub fahren?', 'chat'),
+    ('An wen kann ich mich bei Problemen mit dem Finanzamt wenden?', 'chat'),
+    ('Merk dir: wer schuldet mir noch etwas? Ben, 50 Euro.', 'chat'),
+    ('Schreib Silke: Worauf warte ich noch?', 'chat'),
 ])
 def test_zielfrage_mit_handlungswort_ist_eine_frage(frage, weg):
     assert route(frage) == weg
@@ -102,3 +109,20 @@ def test_ein_zitat_bleibt_eine_zeile_der_liste():
                                           'occurred_at': None, 'recorded_at': None, 'episode_id': 'e-1'}]}
     text, _ = offene_punkte.als_text(gesammelt, 'wartet_auf')
     assert '1. Ben, Zusage: „Erste Zeile zweite Zeile“ [Quelle 1]' in text.split('\n')
+
+
+def test_unvollstaendige_akten_und_grenzen_stehen_in_der_antwort():
+    leer = {'punkte': [], 'gesamt': 0, 'noch_offen': 12, 'akten_gesamt': 75, 'akten_gelesen': 60}
+    text, _ = offene_punkte.als_text(leer, 'wartet_auf')
+    assert 'Die Akten werden noch aufgebaut (12 Quellen fehlen noch); die Liste kann unvollständig sein.' in text
+    assert 'Durchgesehen: die 60 zuletzt aktiven von 75 Akten.' in text
+
+
+def test_feste_frageform_ruft_kein_modell(api, monkeypatch):
+    app, client = api
+    from icarus_memory import server as server_modul
+    aufrufe = []
+    monkeypatch.setattr(server_modul, '_frage_verstehen', lambda *a, **k: aufrufe.append(a) or None)
+    gespraech = client.post('/api/v1/conversations', json={}).json()['conversation']['id']
+    antwort = client.post(f'/api/v1/conversations/{gespraech}/messages', json={'message': 'Worauf warte ich noch?'})
+    assert antwort.status_code == 201 and aufrufe == []

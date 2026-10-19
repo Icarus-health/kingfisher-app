@@ -9,6 +9,7 @@ nach dem Inhalt, nicht nach dem Eingang der Mail.
 Der Zeitraum ordnet nur um, er schließt nichts aus. Eine Quelle außerhalb
 bleibt Kandidat, wenn Platz ist.
 """
+import calendar
 from datetime import datetime, timedelta, timezone
 import re
 
@@ -29,7 +30,7 @@ PATTERNS = [
     ('months', re.compile(r'\b(?:in\s+den\s+)?(?:letzten|vergangenen)\s+' + _NUMBER + r'\s+monaten?\b', re.I)),
     ('ago', re.compile(r'\bvor\s+' + _NUMBER_EIN + r'\s+(tag(?:en)?|wochen?|monat(?:en)?)\b', re.I)),
     ('last_year', re.compile(r'\b(?:(?:letzte[sn]?|vorige[sn]?|vergangene[sn]?)\s+jahr(?:es)?|im\s+vorjahr)\b', re.I)),
-    ('this_year', re.compile(r'\b(?:diese[sm]?\s+jahr(?:es)?|heuer)\b', re.I)),
+    ('this_year', re.compile(r'\bdiese[sm]?\s+jahr(?:es)?\b', re.I)),
     ('last_month', re.compile(r'\b(?:letzte[nm]?|vorige[nm]?|vergangene[nm]?)\s+monat\b', re.I)),
     ('this_month', re.compile(r'\b(?:diese[nm]?)\s+monat\b', re.I)),
     ('day_before', re.compile(r'\bvorgestern\b', re.I)),
@@ -37,7 +38,7 @@ PATTERNS = [
     ('today', re.compile(r'\bheute\b', re.I)),
 ]
 # Only immediate negation of a recognized period, not an unrelated "nicht" elsewhere.
-_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|am|der|den|dem)\s+)*'
+_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|im|am|der|den|dem)\s+)*'
 _NEGIERTE_ZEIT = re.compile(r'\bnicht\s+' + _ZEIT_VORWORTE + r'$', re.I)
 _NICHT_NUR_ZEIT = re.compile(r'\bnicht\s+(?:nur|bloß|bloss|allein|ausschließlich|ausschliesslich)\s+'
                             + _ZEIT_VORWORTE + r'$', re.I)
@@ -110,7 +111,9 @@ def ohne_zeitraum(text):
     for _, pattern in PATTERNS:
         rest = pattern.sub(' ', rest)
     rest = re.sub(r'\b(?:in|im|aus|von|vom|seit)\s+(?=[?.!,]|\s*$)', ' ', rest)
-    return rest if re.search(r'\w{3,}', re.sub(r'\b(?:was|war|wer|wie|wann|ist|sind|gab|es)\b', '', rest, flags=re.I)) else text
+    from .lexical import terms_v1
+    from .source_index import funktionswort
+    return rest if any(not funktionswort(wort) for wort in terms_v1(rest)) else text
 
 
 def mentioned_period(question, now=None):
@@ -142,26 +145,30 @@ def mentioned_period(question, now=None):
         count = zahl(match.group(1))
         if not count or not 1 <= count <= 24:
             return None
-        return today - timedelta(days=30 * count - 1), today + timedelta(days=1), f'der letzten {count} Monate'
+        erster = _monate_zurueck(_month_start(now), count)
+        # Derselbe Tag vor `count` Monaten (am Monatsende der letzte Tag des kürzeren Monats).
+        tag = min(today.day, calendar.monthrange(erster.year, erster.month)[1])
+        return erster.replace(day=tag) + timedelta(days=1), today + timedelta(days=1), f'der letzten {count} Monate'
     if kind == 'ago':
         count = zahl(match.group(1))
         einheit = match.group(2).lower()
         if not count or not 1 <= count <= 120:
             return None
+        # Beschriftungen ohne Datum: Eine gespeicherte Antwort bleibt am nächsten Tag gleich beschriftet.
         if einheit.startswith('tag'):
             tag = today - timedelta(days=count)
-            return tag, tag + timedelta(days=1), f'vom {tag.day}. {_MONATE[tag.month - 1].capitalize()}'
+            return tag, tag + timedelta(days=1), 'von vor einem Tag' if count == 1 else f'von vor {count} Tagen'
         if einheit.startswith('woche'):
             montag = today - timedelta(days=7 * count + today.weekday())
-            return montag, montag + timedelta(days=7), f'der Woche ab {montag.day}. {_MONATE[montag.month - 1].capitalize()}'
+            return montag, montag + timedelta(days=7), 'von vor einer Woche' if count == 1 else f'von vor {count} Wochen'
         erster = _monate_zurueck(_month_start(now), count)
-        return erster, _monate_spaeter(erster, 1), f'aus dem {_MONATE[erster.month - 1].capitalize()} {erster.year}'
+        return erster, _monate_spaeter(erster, 1), 'von vor einem Monat' if count == 1 else f'von vor {count} Monaten'
     if kind == 'last_year':
         anfang = today.replace(month=1, day=1)
-        return anfang.replace(year=anfang.year - 1), anfang, f'des Jahres {anfang.year - 1}'
+        return anfang.replace(year=anfang.year - 1), anfang, 'des letzten Jahres'
     if kind == 'this_year':
         anfang = today.replace(month=1, day=1)
-        return anfang, today + timedelta(days=1), f'des Jahres {anfang.year}'
+        return anfang, today + timedelta(days=1), 'dieses Jahres'
     if kind == 'today':
         return today, today + timedelta(days=1), 'von heute'
     if kind == 'yesterday':

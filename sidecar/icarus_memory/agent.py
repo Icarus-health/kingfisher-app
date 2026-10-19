@@ -727,14 +727,14 @@ class Agent:
             text += '\n\nAuch gefunden: ' + ' · '.join(also)
         return text, links
 
-    def render_offene_punkte(self, answer):
+    def render_offene_punkte(self, answer, *, nachfuehren=True):
         """Text und Quellen von „Worauf warte ich?“ / „Was habe ich zugesagt?“, jedes Mal frisch aus den Akten."""
         from . import offene_punkte
         sammler = getattr(self, '_offene_punkte', None)
         if (not callable(sammler) or not isinstance(answer, dict) or answer.get('version') != 1
                 or answer.get('kind') not in offene_punkte.ARTEN):
             return None
-        gesammelt = sammler(answer['kind'])
+        gesammelt = sammler(answer['kind'], nachfuehren=nachfuehren)
         if gesammelt is None:
             return None
         return offene_punkte.als_text(gesammelt, answer['kind'])
@@ -1977,6 +1977,7 @@ class Agent:
                           or 'working_answer' in message['context']
                           or 'meaning_choice' in message['context']
                           or 'mappe_answer' in message['context']
+                          or 'offene_punkte_answer' in message['context']
                           or message["context"].get("answer_mode") == "calendar_data"
                           or (isinstance(message["context"].get("calendar"), dict)
                               and message["context"].get("calendar_model_context") is not False)))

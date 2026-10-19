@@ -60,3 +60,10 @@ def test_person_in_der_frage_mit_anderer_schreibweise(episodes, gespeichert, gef
     erwaehnt = personenfrage.erwaehnte(f'Was hat {gefragt} zur Rechnung geschrieben?', episodes)
     assert [k.adresse for k in erwaehnt[0].kandidaten] == ['s.mueller@praxis.example']
     assert e.id in erwaehnt[0].kandidaten[0].quellen
+
+
+def test_umlautlos_getippte_funktionswoerter_sind_keine_suchwoerter():
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    worte, varianten, _ = WorkingMemoryStore._query_terms('Was koennen wir der Akademie liefern?')
+    assert 'koennen' not in worte and 'können' not in worte and 'akademie' in worte
+    assert source_index.woerter('Was koennen und muessen wir der Akademie liefern?')[0] == ['akademie', 'liefern']

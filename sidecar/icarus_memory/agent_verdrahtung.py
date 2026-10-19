@@ -123,14 +123,16 @@ def _search_calendar(app: FastAPI):
     return lesen
 
 
-def _offene_punkte(app: FastAPI, art: str):
-    """„Worauf warte ich?“ / „Was habe ich zugesagt?“ aus den Akten (`offene_punkte.py`); None ohne Akten."""
-    from .akten_routes import bausteine, nachfuehren
+def _offene_punkte(app: FastAPI, art: str, *, nachfuehren: bool = True):
+    """„Worauf warte ich?“ / „Was habe ich zugesagt?“ aus den Akten (`offene_punkte.py`); None, wenn sie nicht
+    lesbar sind. `nachfuehren=False` beim bloßen Öffnen eines Gesprächs: nur lesen, nichts nachrechnen."""
+    from .akten_routes import bausteine, nachfuehren as bezuege_nachfuehren
     from .offene_punkte import sammeln
     try:
-        nachfuehren(app)
+        berechnung = bezuege_nachfuehren(app) if nachfuehren else {}
         bezuege, akten = bausteine(app)
-        return sammeln(akten, bezuege, art)
+        noch_offen = berechnung.get('offen', 0) if isinstance(berechnung, dict) else 0
+        return sammeln(akten, bezuege, art, noch_offen=noch_offen)
     except Exception:  # noqa: BLE001 - ohne lesbare Akten gibt es diese Antwort nicht; der übliche Weg folgt
         logger.exception('Offene Punkte konnten nicht gelesen werden')
         return None
@@ -160,7 +162,7 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     app.state.episodes._working_project_name = lambda identifier: app.state.workspace.project(identifier).name
     agent._termine = _search_calendar(app)
     agent._mappe = lambda project_id: _projekt_mappe(app, project_id)
-    agent._offene_punkte = lambda art: _offene_punkte(app, art)
+    agent._offene_punkte = lambda art, nachfuehren=True: _offene_punkte(app, art, nachfuehren=nachfuehren)
     agent._eigene = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
     agent._frage_anbieter = lambda: anbieter_fuer_frage(rollen_von(app))
     # Sätze an oder aus: dieselbe Stelle wie `Agent._saetze_an`; eine Änderung baut den Agenten neu.

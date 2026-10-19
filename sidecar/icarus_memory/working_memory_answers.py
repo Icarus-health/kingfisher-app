@@ -174,10 +174,14 @@ MAX_IM_ZEITRAUM = 500
 def _ids_im_zeitraum(episodes, period):
     """Geltende Quellen mit eigenem Datum im Zeitraum, jüngste zuerst: (IDs, mehr als die Grenze?)."""
     from .episodes import sql_geltend
+    from .source_index import CHAT_LOOKUP_TAG
     start, end = period
     with episodes._lock:
         rows = episodes._conn.execute(
             "SELECT e.id FROM episodes e WHERE " + sql_geltend('e') + " AND e.occurred_at IS NOT NULL "
+            # Eigene Suchfragen im Gespräch sind keine Quellen des Zeitraums.
+            "AND NOT EXISTS (SELECT 1 FROM json_each(e.document, '$.tags') tag WHERE tag.value = '"
+            + CHAT_LOOKUP_TAG + "') "
             "AND julianday(e.occurred_at) >= julianday(?) AND julianday(e.occurred_at) < julianday(?) "
             "ORDER BY julianday(e.occurred_at) DESC, e.id LIMIT ?",
             (start.isoformat(), end.isoformat(), MAX_IM_ZEITRAUM + 1)).fetchall()
