@@ -50,6 +50,43 @@ def test_personliche_aehnliche_adressen_bleiben_personen(lokal):
     assert markiert.attributes["quality_category"] == "person"
 
 
+@pytest.mark.parametrize("lokal", [
+    "auftragsplanung", "auftrags-planung", "auftrags_planung", "auftrags.planung",
+    "auftragabwicklung", "auftragsabwicklung", "auftrags-abwicklung", "auftrag_abwicklung",
+])
+def test_auftragsfunktionspostfaecher_belegen_keine_person(lokal):
+    adresse = f"{lokal}+vorgang@firma.example"
+    [markiert] = annotate_people([_person("postfach", adresse)])
+
+    assert ist_sammelpostfach(lokalteil(adresse))
+    assert markiert.attributes["quality_category"] == "review"
+    assert markiert.attributes["duplicate_ids"] == []
+
+
+@pytest.mark.parametrize("lokal", [
+    "anna.auftragsplanung", "auftragsplanung.anna", "anna.auftragsabwicklung",
+    "auftragsabwicklung.anna", "auftragsplanungen",
+])
+def test_auftragswort_als_teil_einer_persoenlichen_adresse_bleibt_person(lokal):
+    adresse = f"{lokal}@firma.example"
+    [markiert] = annotate_people([_person("person", f"Anna Beispiel <{adresse}>")])
+
+    assert not ist_sammelpostfach(lokalteil(adresse))
+    assert markiert.attributes["quality_category"] == "person"
+
+
+@pytest.mark.parametrize("lokal", ["auftragsplanung", "auftragsabwicklung"])
+@pytest.mark.parametrize("aufloesung", ["explicit_registry", "confirmed_group"])
+def test_bestaetigte_person_an_auftragsfunktionspostfach_bleibt_person(lokal, aufloesung):
+    [markiert] = annotate_people([
+        _person("confirmed", f"Anna Beispiel <{lokal}@firma.example>", aufloesung),
+    ])
+
+    assert markiert.attributes["quality_category"] == "person"
+    assert markiert.attributes["quality_reason"] == ""
+    assert markiert.attributes["duplicate_ids"] == []
+
+
 @pytest.mark.parametrize("lokal, erwartet", [
     ("do_not_reply", "automated"), ("cs-auto", "review"),
     ("do-not-reply", "automated"), ("cs_auto", "review"),

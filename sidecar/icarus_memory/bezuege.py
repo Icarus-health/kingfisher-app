@@ -375,10 +375,15 @@ GUELTIG_PARAMS = (CHAT_LOOKUP_TAG,)
 #: Fingerabdruck der Quelle, in SQL: Text, Metadaten, Bearbeitungszähler (Kontakte, Projekt), Länge.
 FINGERABDRUCK = ("e.digest || ':' || e.metadata_digest || ':' || e.support_generation || ':' "
                  "|| length(e.document)")
+# Rule changes must also refresh address-only anchors with no register
+# dependency. Version only the derived input; user decisions retain the
+# unchanged source fingerprint above.
+_REGELVERSION = 2
 #: Alles, was in die Bezüge einer Quelle eingeht (ohne das Verzeichnis).
 _EINGABE = (FINGERABDRUCK + " || '|' || COALESCE(c.fingerprint,'') || ':' || COALESCE(c.status,'') || ':' "
             "|| COALESCE(c.taxonomy_version,'') || '|' || COALESCE(k.fingerprint,'') || ':' "
-            "|| COALESCE(k.updated_at,'') || '|' || COALESCE(e.project_id,'')")
+            "|| COALESCE(k.updated_at,'') || '|' || COALESCE(e.project_id,'')"
+            f" || '|regeln:{_REGELVERSION}'")
 _NICHT_ABGELEHNT = ("NOT EXISTS (SELECT 1 FROM sach_nutzer u WHERE u.episode_id = b.episode_id "
                     "AND u.sache = b.sache AND u.aktion = 'nicht' AND u.fingerprint = " + FINGERABDRUCK + ")")
 GUELTIG = _GUELTIG

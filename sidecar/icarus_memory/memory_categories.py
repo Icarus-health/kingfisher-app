@@ -274,7 +274,7 @@ def _not_person(name, banned, contact_names=()):
 
 
 def _mailbox_names(episode):
-    """Reject generic sender names wherever repeated in the body, not just From."""
+    """Reject service labels; personal display names may remain body mentions."""
     # Bei Mail ist nur der Beteiligte mit Rolle `von` der Absender; Empfänger und
     # Cc sind erwähnte Personen, aber keine Postfachnamen des Absenders.
     sender = (_decoded_header(absender_text(episode.participants, episode.contacts))
@@ -302,11 +302,24 @@ def _mailbox_names(episode):
         for name, address in getaddresses([label]):
             name = _decoded_header(name.strip().strip('"'))
             if address and _ADDRESS.fullmatch(address):
+                generic = _generic_address(address)
+                words = unescape(name).split()
+                # A shared address cannot establish an identity. A literal,
+                # multiword personal name can still be an unconfirmed body
+                # mention; known service/company markers stay banned.
+                mention_only = (generic and len(words) >= 2
+                                and all(re.fullmatch(r"[^\W\d_]+(?:[-'’][^\W\d_]+)*", word) for word in words)
+                                and sum(word[0].isupper() for word in words) >= 2
+                                and not any(ist_sammelpostfach(word.casefold()) for word in words)
+                                and not ist_sammelpostfach(''.join(words).casefold())
+                                and not ist_firmenbezeichnung(unescape(name)))
                 if is_sender:
-                    senders.update((_normal(address), _normal(name)))
-                if _generic_address(address):
+                    senders.add(_normal(address))
+                    if not mention_only:
+                        senders.add(_normal(name))
+                if generic:
                     banned.add(_normal(address))
-                    if name:
+                    if name and not mention_only:
                         banned.add(_normal(name))
     for match in _ADDRESS.finditer(episode.body):
         if _generic_address(match[0]):
@@ -975,7 +988,7 @@ class Categories:
                         "origin": "automatic", "evidence": [], "taxonomy_version": row["taxonomy_version"]})
                     item["evidence"].append({"start": start, "end": end, "quote": body[start:end]})
                 result["categories"] = list(grouped.values())
-            banned, _ = _mailbox_names(snapshot.episode)
+            banned, senders = _mailbox_names(snapshot.episode)
             contact_names = _contact_names(snapshot.episode)
             for row in self.connection.execute("SELECT * FROM memory_category_entities WHERE episode_id=? AND fingerprint=? ORDER BY rowid", (episode_id, fingerprint)):
                 start,end = row["start"],row["end"]
@@ -985,7 +998,12 @@ class Categories:
                 name = unescape(quote) if row["kind"] == "person" else quote
                 if row["kind"] == "person" and _not_person(quote, banned, contact_names):
                     continue
-                result["entities"].append({"kind": row["kind"], "name": name, "role": row["role"],
+                role = row['role']
+                if row['kind'] == 'person' and role == 'sender' and _normal(name) not in senders:
+                    # Old saved spans can predate the shared-mailbox rule.
+                    # Retain only their literal body mention, never an identity.
+                    role = 'mentioned'
+                result["entities"].append({"kind": row["kind"], "name": name, "role": role,
                     "start": start, "end": end, "quote": quote, "origin": "automatic"})
             if result["status"] == "complete" and not result["categories"] and not result["entities"]:
                 result["status"] = "empty"

@@ -83,6 +83,8 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
     {preview ? <div className="cloud-memory-preview">
       <h4>{preview.purpose === "pilot" ? "Erstes Paket" : preview.purpose === "recheck" ? "Nachprüfung" : "Nächstes Paket"}: {preview.count} Mails</h4>
       <p>Diese Vorschau hat noch nichts an {recipient} gesendet.</p>
+      {preview.request_limit!==undefined&&preview.count>0 ? <p className="source-hint">Für dieses Paket sind höchstens {preview.request_limit} Modellaufrufe freigegeben. Längere Mailverläufe werden in Abschnitten geprüft.</p>:null}
+      {(preview.filtered_count||preview.review_count) ? <p className="source-hint">{preview.filtered_count||0} Mails durch Filter zurückgehalten{preview.review_count ? ` · ${preview.review_count} zur Prüfung zurückgestellt`:""}. Dafür erfolgt kein Cloud-Aufruf. Originalmails bleiben erhalten; gewünschte Absender kannst du im Mailfilter erlauben.</p>:null}
       {preview.sampling_note ? <p className="source-hint">{preview.sampling_note}</p> : null}
       {!preview.count ? <p>In diesem Quellenabschnitt stehen keine passenden Mails aus.{preview.next_cursor ? " Ältere Quellen können noch geprüft werden." : " Dieser Durchgang hat das Ende des Bestands erreicht."}</p>:null}
       {!preview.count&&preview.next_cursor ? <button type="button" className="secondary-action" disabled={busy} onClick={()=>prepare(preview.purpose,preview.next_cursor!)}>Nächsten Quellenabschnitt prüfen</button>:null}

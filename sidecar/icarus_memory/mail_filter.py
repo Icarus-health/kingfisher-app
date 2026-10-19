@@ -1,10 +1,13 @@
 """Bounded local intake screening. Decisions are hints, never mail instructions."""
 from copy import deepcopy
 from dataclasses import dataclass
-from email.utils import parseaddr
+from email.errors import HeaderParseError
+from email.header import decode_header, make_header
+from email.utils import getaddresses
 import hashlib
 import json
 import re
+from types import SimpleNamespace
 from .providers import ProviderError
 from .decision_models import decision_model, read_choice
 
@@ -42,8 +45,68 @@ class Decision:
     reason: str = 'rule'
 
 
-def classify(message, selected, provider=None):
-    address=parseaddr(message.sender)[1].lower()
+# Only actual mailboxes participate, never a display name or a domain fragment.
+_ADDRESS = re.compile(r"[\w.!#$%&'*+/=?^`{|}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}")
+_MARKETING_MAILBOXES = {'newsletter', 'newsletters', 'marketing', 'deals', 'promotions', 'promo'}
+_SOCIAL_DOMAINS = {'facebookmail.com', 'facebook.com', 'linkedin.com', 'linkedinmail.com',
+                   'instagram.com', 'pinterest.com'}
+_SOCIAL_MAILBOXES = {'noreply', 'no-reply', 'notifications', 'notifications-noreply',
+                     'messages-noreply', 'friendupdates', 'suggestions', 'recommendations'}
+_SOCIAL_SUBJECT = re.compile(r'\b(?:people you may know|friend suggestions?|suggested connections|'
+                             r'freundschaftsvorschläge|kontaktvorschläge)\b')
+_FACEBOOK_UPDATE = re.compile(r'update(?:\+[a-z0-9._-]{1,128})?')
+_FACEBOOK_FRIEND_SUBJECT = re.compile(r'^kennst du [^,?]{1,120}, [^,?]{1,120} und [^,?]{1,120}\?$')
+_PERCENT = re.compile(r'(?<![\w.])\d{1,2}\s*%')
+_DISCOUNT = re.compile(r'\b(?:rabatt|discount|sale|sparen|spare|save|off|gutschein|coupon)\b')
+_REPLY_SUBJECT = re.compile(r'^\s*(?:re|aw|fw|fwd|wg)\s*(?:\[\d+\])?\s*:')
+_SERVICE_SUBJECT = re.compile(
+    r'\b(?:rechnung\w*|invoice\w*|receipt\w*|quittung\w*|buchung\w*|booking\w*|'
+    r'reservierung\w*|reservation\w*|bestellung\w*|order\w*|auftrag\w*|termin\w*|'
+    r'appointment\w*|zahlung\w*|payment\w*|projekt\w*|project\w*|job\w*|work|'
+    r'stellenangebot\w*|arbeitsangebot\w*|bewerbung\w*|vertrag\w*|contract\w*|'
+    r'proposal\w*|quote\w*|passwort\w*|password\w*|security|sicherheit\w*)\b')
+
+
+def _sender_address(sender):
+    if not isinstance(sender, str) or len(sender) > 2000 or '\0' in sender:
+        return ''
+    # Only RFC folding is whitespace. Remaining line breaks can introduce a
+    # different header and must never establish an allow/block identity.
+    sender = re.sub(r'\r\n[ \t]+', ' ', sender)
+    if any(c in sender for c in '\r\n'):
+        return ''
+    try:
+        addresses = getaddresses([sender])
+    except (ValueError, HeaderParseError):
+        return ''
+    if len(addresses) != 1:
+        return ''
+    address = addresses[0][1].lower()
+    local = address.partition('@')[0]
+    return address if (_ADDRESS.fullmatch(address) and not local.startswith('.')
+                       and not local.endswith('.') and '..' not in local) else ''
+
+
+def _subject_text(subject):
+    if not isinstance(subject, str) or len(subject) > 2000:
+        return ''
+    try:
+        text = str(make_header(decode_header(subject)))
+    except (LookupError, UnicodeError, ValueError, HeaderParseError):
+        return ''
+    if any(ord(c) < 32 and c not in '\r\n\t' for c in text):
+        return ''
+    return ' '.join(text.casefold().split())
+
+
+def prefilter(message, selected):
+    """Cheap deterministic rules; None means metadata did not settle relevance.
+
+    Exclusion is a review decision, never permission to remove an original.
+    Marketing requires independent mailbox and subject signals; broad service
+    addresses, names, replies and transactional/work subjects prove no marketing.
+    """
+    address = _sender_address(getattr(message, 'sender', ''))
     domain='@'+address.rsplit('@',1)[-1] if '@' in address else ''
     matches=lambda entries: bool(address) and any(value in (address,domain) for value in entries)
     if matches(selected.get('blocked',[])):return Decision(False,'blocked','blocked')
@@ -51,6 +114,54 @@ def classify(message, selected, provider=None):
     if matches(selected.get('allowed',[])):return Decision(True)
     if selected.get('block_newsletters',True) and getattr(message,'list_mail',False):
         return Decision(False,'newsletter','newsletter')
+    if not address or not selected.get('block_newsletters', True):
+        return None
+    subject = _subject_text(getattr(message, 'subject', ''))
+    if (not subject or _REPLY_SUBJECT.search(subject) or _SERVICE_SUBJECT.search(subject)
+            or getattr(message, 'in_reply_to', '') or getattr(message, 'references', ())):
+        return None
+    local, host = address.rsplit('@', 1)
+    social = (local in _SOCIAL_MAILBOXES
+              and any(host == known or host.endswith('.' + known) for known in _SOCIAL_DOMAINS)
+              and _SOCIAL_SUBJECT.search(subject))
+    facebook_update = (host == 'facebookmail.com' and _FACEBOOK_UPDATE.fullmatch(local)
+                       and _FACEBOOK_FRIEND_SUBJECT.fullmatch(subject))
+    discount = local in _MARKETING_MAILBOXES and _PERCENT.search(subject) and _DISCOUNT.search(subject)
+    if social or facebook_update or discount:
+        return Decision(False, 'newsletter', 'sender_subject_marketing')
+    return None
+
+
+def classify_episode(episode, selected):
+    """Read-only preflight for stored mail, with no source fetch or model call.
+
+    Provenance establishes source type only: source_ref is an opaque identity,
+    never a sender. Contact roles (or one legacy participant) establish sender.
+    Mail list/spam headers were not stored on older episodes and are not guessed.
+    Unknowns keep the intake default: eligible with AI off, review with AI on.
+    Eligibility is not a guarantee of personal relevance.
+    """
+    from .kontakte import absender_text
+    from .model import SourceType
+    from .episodes import EpisodeState
+    if episode.state == EpisodeState.IGNORED:
+        return Decision(False, 'blocked', 'source_ignored')
+    if episode.provenance.source_type != SourceType.EMAIL:
+        return Decision(True)
+    tags = episode.tags or []
+    message = SimpleNamespace(sender=absender_text(episode.participants, episode.contacts),
+                              subject=episode.title,
+                              in_reply_to=any(t.startswith('mail:reply:') for t in tags))
+    decided = prefilter(message, selected)
+    if decided is not None:
+        return decided
+    return Decision(False, 'unclear', 'ai_unavailable') if selected.get('ai_enabled') else Decision(True)
+
+
+def classify(message, selected, provider=None):
+    decided = prefilter(message, selected)
+    if decided is not None:
+        return decided
     if not selected.get('ai_enabled'):return Decision(True)
     if provider is None or not getattr(provider,'is_local',False):return Decision(False,'unclear','ai_unavailable')
     if getattr(message,'truncated',False) or len(message.body or message.preview)>8000:

@@ -12,17 +12,21 @@ from pathlib import Path
 from . import abschnitte
 from .memory_categories import Categories
 from .memory_categories import SourceValidationError
+from .memory_categories import _blocks, _quote_sections, _remote_fragments
 from .model import SourceType
 from .providers import ProviderError
 from .restore_boundary import guarded
 from .source_processing_policy import ExplicitSourcePolicy
 from .working_memory_analysis import UnsupportedSource, abschnitte_der, interpret_abschnitt
 from .working_memory_store import WorkingMemoryStore, source_fingerprint
+from .mail_filter import Decision
 
 MAX_SOURCES = 100
 MAX_BULK_SOURCES = 1000
-# Gesamtbudget des Auftrags: Faktor mal tatsächlich ausgewählten Quellen; keine Einzelquellenquote.
+# Minimum for short-source jobs; longer jobs pin their actual section plan.
+# Legacy stored jobs keep their original four-per-source ceiling.
 REQUEST_BUDGET_FACTOR = 4
+MAX_JOB_REQUESTS = 4000
 MAX_CANDIDATES = 2000
 PREVIEW_TTL = 15 * 60
 
@@ -59,7 +63,8 @@ class _ScopedProvider:
 
 class CloudMemoryJobs:
     def __init__(self, episodes, database: Path, provider_factory, grant_status,
-                 permission_lock=None, runtime_boundary=None, *, api_provider_factory=None, credential_status=None):
+                 permission_lock=None, runtime_boundary=None, *, api_provider_factory=None, credential_status=None,
+                 source_screen=None):
         self.episodes = episodes
         self.memory = WorkingMemoryStore(episodes)
         self.categories = Categories(episodes)
@@ -69,6 +74,7 @@ class CloudMemoryJobs:
         self.grant_status = grant_status
         self.api_provider_factory = api_provider_factory
         self.credential_status = credential_status
+        self.source_screen = source_screen
         self.permission_lock = permission_lock or threading.RLock()
         self._runtime_boundary = runtime_boundary
         self.lock = threading.RLock()
@@ -104,6 +110,8 @@ class CloudMemoryJobs:
                     db.execute(f"ALTER TABLE {table} ADD COLUMN provider TEXT NOT NULL DEFAULT 'chatgpt'")
                 if "credential_revision" not in existing:
                     db.execute(f"ALTER TABLE {table} ADD COLUMN credential_revision TEXT")
+            if 'request_limit' not in columns:
+                db.execute('ALTER TABLE cloud_memory_jobs ADD COLUMN request_limit INTEGER')
             # Recovery never resumes unattended; the user must press Resume.
             db.execute("UPDATE cloud_memory_jobs SET state='paused',stop_reason=?,updated_at=? WHERE state='running'",
                        ("App-Neustart; bitte ausdrücklich fortsetzen.", time.time()))
@@ -112,6 +120,42 @@ class CloudMemoryJobs:
         db = sqlite3.connect(self.path, timeout=10)
         db.row_factory = sqlite3.Row
         return db
+
+    @staticmethod
+    def _planned_requests(episode):
+        """Count bounded classification and quote stages without calling a model."""
+        try:
+            classifications = len(abschnitte_der(episode))
+            categories = len(_quote_sections(episode.body, _remote_fragments(episode.body, _blocks(episode.body))))
+            return classifications + categories
+        except UnsupportedSource:
+            # The normal source validator reports unsupported originals; no
+            # request limit is enlarged merely for an unprocessable source.
+            return 0
+
+    @staticmethod
+    def _limit(job):
+        stored = job.get('request_limit')
+        return stored if isinstance(stored, int) else job['source_limit'] * REQUEST_BUDGET_FACTOR
+
+    @staticmethod
+    def _budget(sources):
+        result = max(len(sources) * REQUEST_BUDGET_FACTOR,
+                     sum(source.get('planned_requests', 0) for source in sources))
+        if result > MAX_JOB_REQUESTS:
+            raise CloudMemoryError('Dieses Paket benötigt zu viele Modellaufrufe. Bitte ein kleineres Mailpaket wählen.')
+        return result
+
+    def _screen(self, snapshot):
+        if self.source_screen is None:
+            return Decision(True)
+        try:
+            result = self.source_screen(snapshot.episode)
+            if isinstance(result, Decision) and type(result.include) is bool:
+                return result
+        except Exception:
+            pass
+        return Decision(False, 'unclear', 'filter_unavailable')
 
     def _grant(self):
         status = self.grant_status() if callable(self.grant_status) else {}
@@ -220,9 +264,14 @@ class CloudMemoryJobs:
             has_more = False
             next_cursor = None
         candidates = []
+        filtered = []
         for episode_id in ids:
             snapshot = self._snapshot(episode_id)
             if snapshot is None:
+                continue
+            decision = self._screen(snapshot)
+            if not decision.include:
+                filtered.append({'id': episode_id, 'category': decision.category, 'reason': decision.reason})
                 continue
             fp = source_fingerprint(snapshot)
             # The pilot must include sources already classified locally. Bulk skips only
@@ -232,7 +281,8 @@ class CloudMemoryJobs:
             episode = snapshot.episode
             candidate = {"id": episode.id, "fingerprint": fp,
                          "title": (episode.title or "")[:240],
-                         "occurred_at": episode.occurred_at.isoformat() if episode.occurred_at else None}
+                         "occurred_at": episode.occurred_at.isoformat() if episode.occurred_at else None,
+                         "planned_requests": self._planned_requests(episode)}
             if source_ids is None:
                 candidate["_rowid"] = rowids[episode_id]
             candidates.append(candidate)
@@ -246,6 +296,7 @@ class CloudMemoryJobs:
         preview_id = uuid.uuid4().hex
         expires = time.time() + PREVIEW_TTL
         model_scope = "subscription-catalog-at-start" if provider == "chatgpt" else credential.get("model", "")
+        request_limit = self._budget(sources)
         with self._connect() as db:
             db.execute("INSERT INTO cloud_memory_previews "
                        "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision) VALUES(?,?,?,?,?,?,?,?)",
@@ -253,7 +304,11 @@ class CloudMemoryJobs:
                         json.dumps(sources, separators=(",", ":")), expires, provider, revision))
         return {"preview_id": preview_id, "purpose": purpose, "provider": provider, "count": len(sources),
                 "source_limit": source_limit,
-                "sources": [{k: v for k, v in source.items() if k not in {"fingerprint", "_rowid"}}
+                "request_limit": request_limit,
+                "filtered_count": sum(item['category'] != 'unclear' for item in filtered),
+                "review_count": sum(item['category'] == 'unclear' for item in filtered),
+                "filtered": filtered[:10],
+                "sources": [{k: v for k, v in source.items() if k not in {"fingerprint", "_rowid", "planned_requests"}}
                             for source in sources[:10]],
                 "candidate_count": len(candidates),
                 "candidate_scan_limit": MAX_CANDIDATES,
@@ -312,6 +367,12 @@ class CloudMemoryJobs:
                 snapshot = self._snapshot(episode_id)
                 if snapshot is None or source_fingerprint(snapshot) != allowed[episode_id]["fingerprint"]:
                     raise CloudMemoryError("Eine Quelle wurde geändert oder zurückgezogen. Bitte neu prüfen.")
+                if not self._screen(snapshot).include:
+                    raise CloudMemoryError('Die Mailauswahl ist nach den aktuellen Filterregeln nicht mehr freigegeben. Bitte neu prüfen.')
+            # A new release must not silently widen an old preview's consent.
+            if any('planned_requests' not in allowed[i] for i in chosen):
+                raise CloudMemoryError('Die Vorschau stammt aus einer älteren Fassung. Bitte neu prüfen.')
+            request_limit = self._budget([allowed[i] for i in chosen])
             selected_provider = self._build_provider(provider, model)
             if getattr(selected_provider, "is_local", True) or not getattr(selected_provider, "is_remote", False):
                 raise CloudMemoryError("Der ausgewählte Anbieter ist kein expliziter Cloudanbieter.")
@@ -324,11 +385,11 @@ class CloudMemoryJobs:
             with self._connect() as db:
                 db.execute("""INSERT INTO cloud_memory_jobs
                     (id,purpose,model,grant_id,source_ids,fingerprints,source_limit,state,consent,
-                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision,request_limit)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                            (job_id, preview["purpose"], model, grant_id,
                             json.dumps(chosen), json.dumps(fingerprints), len(chosen),
-                            "running", 1, 0, 0, 0, 0, "", now, now, provider, revision))
+                            "running", 1, 0, 0, 0, 0, "", now, now, provider, revision, request_limit))
                 # Ein erneut zugestellter Start darf kein zweites bezahltes Paket erzeugen.
                 db.execute("UPDATE cloud_memory_previews SET expires_at=0 WHERE id=?", (preview_id,))
             thread = threading.Thread(target=self._run, args=(job_id, selected_provider),
@@ -370,7 +431,7 @@ class CloudMemoryJobs:
                          "state": job["state"], "selected": len(ids), "position": job["position"],
                          "completed": job["completed"], "failed": job["failed"],
                          "requests": job["requests"],
-                         "request_limit": job["source_limit"] * REQUEST_BUDGET_FACTOR,
+                         "request_limit": self._limit(job),
                          "source_limit": job["source_limit"], "stop_reason": job["stop_reason"],
                          "issue_count": issue_count,
                          "issues": [{"episode_id": row["episode_id"], "stage": row["stage"],
@@ -386,6 +447,7 @@ class CloudMemoryJobs:
         return bool(job and job["state"] == "running" and job["consent"] == 1
                     and self._identity_current(job, provider)
                     and callable(getattr(provider, "available", None)) and provider.available()
+                    and self._screen(snapshot).include
                     and self.memory.is_current(snapshot)
                     and source_fingerprint(snapshot) == json.loads(job["fingerprints"])[snapshot.episode.id])
 
@@ -516,7 +578,7 @@ class CloudMemoryJobs:
             if not self._permitted(job_id, provider, snapshot):
                 raise ProviderError("Die Freigabe oder Quellenfassung hat sich geändert.")
             job = self._job(job_id)
-            request_limit = job["source_limit"] * REQUEST_BUDGET_FACTOR
+            request_limit = self._limit(job)
             if job["requests"] >= request_limit:
                 self._save(job_id, state="stopped", stop_reason=f"Das Anfragebudget von {request_limit} wurde erreicht.")
                 raise ProviderError("Das Anfragebudget wurde erreicht.")
