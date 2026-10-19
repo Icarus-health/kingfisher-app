@@ -10,6 +10,7 @@ from .cloud_import_provider import AnthropicImportProvider, credential_status
 import os
 import threading
 from .cloud_credentials import PREPARED_CLOUD_KEYS
+from .mail_filter import classify_episode, policy
 
 
 class PreviewIn(BaseModel):
@@ -75,7 +76,8 @@ def register(app, guard, data_dir, provider_factory):
                                         build_provider, grant_status,
                                         getattr(app.state, "conversation_lock", None),
                                         getattr(app.state, "runtime_boundary", None),
-                                        api_provider_factory=build_api_provider, credential_status=api_credential)
+                                        api_provider_factory=build_api_provider, credential_status=api_credential,
+                                        source_screen=lambda episode: classify_episode(episode, policy(app.state.settings)))
                 app.state.cloud_memory_jobs = value
             return value
 

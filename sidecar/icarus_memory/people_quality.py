@@ -12,11 +12,13 @@ AUTOMATED = re.compile(r'(?:^|[._-])(?:no[._-]?reply|do[._-]not[._-]reply|notifi
 GENERIC = {
     'support', 'info', 'team', 'learn', 'newsletter', 'news', 'office', 'service', 'kontakt', 'mail', 'hello',
     'billing', 'invoice', 'invoices', 'payments', 'accounting', 'rechnung', 'rechnungen', 'message',
-    'rechnungsstellung', 'rechnungsabteilung', 'customer service', 'customer support',
+    'rechnungsstellung', 'rechnungsabteilung', 'customer service', 'customer support', 'update',
 }
 _COMPANY_NAME = re.compile(r'\b(?:gmbh|inc|ltd|llc)\b', re.I)
 _COMPOSED_GENERIC = re.compile(
     r'^(?:versand[-_.]?service|kunden[-_.]?(?:service|dienst)|'
+    r'auftrags?[-_.]?(?:planung|abwicklung)|'
+    r'anbieter-(?=[a-z0-9]{13}$)(?=[a-z0-9]*[a-z])(?=[a-z0-9]*[0-9])[a-z0-9]+|'
     r'rechnungs?[-_.]?(?:stelle|service|team)|zahlungs?[-_.]?(?:stelle|service|update)|'
     r'payments?[-_.]update|orders?[-_.]update|shipments?[-_.]tracking|'
     r'marketplace[-_.]messages?|cs[-_.]auto)$'

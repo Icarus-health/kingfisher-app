@@ -16,6 +16,31 @@ REVISION_KEY = 'CLOUD_IMPORT_ANTHROPIC_REVISION'
 ENDPOINT = 'https://api.anthropic.com/v1'
 
 
+def _strict_schema(schema):
+    """Copy to Anthropic's supported grammar subset, retaining caller validators.
+
+    Array sizes, string lengths and numerical ranges are checked by the existing
+    source validators. Sending these unsupported keywords with strict=true
+    causes rejection before inference. Property names are data, not keywords.
+    """
+    unsupported = {'minLength', 'maxLength', 'minimum', 'maximum', 'exclusiveMinimum',
+                   'exclusiveMaximum', 'multipleOf', 'maxItems', 'uniqueItems',
+                   'minProperties', 'maxProperties'}
+    result = {}
+    for key, value in schema.items():
+        if key in unsupported or (key == 'minItems' and value not in (0, 1)):
+            continue
+        if key in {'properties', '$defs', 'definitions'}:
+            result[key] = {name: _strict_schema(child) for name, child in value.items()}
+        elif isinstance(value, dict):
+            result[key] = _strict_schema(value)
+        elif key in {'anyOf', 'allOf', 'oneOf', 'prefixItems'} and isinstance(value, list):
+            result[key] = [_strict_schema(child) for child in value]
+        else:
+            result[key] = value
+    return result
+
+
 def credential_status(keychain, settings, environment=None):
     """Undurchsichtige Freigabefassung; weder Schlüssel noch Schlüsselhash ausgeben."""
     unavailable = {'available': False, 'credential_revision': None, 'model': ''}
@@ -61,7 +86,8 @@ class AnthropicImportProvider:
         payload = {
             'model': self.model, 'max_tokens': max_tokens,
             'messages': [m for m in messages if m.get('role') != 'system'],
-            'tools': [{'name': 'memory_result', 'description': 'Quellengebundene Einordnung als JSON.', 'input_schema': schema}],
+            'tools': [{'name': 'memory_result', 'description': 'Quellengebundene Einordnung als JSON.',
+                       'strict': True, 'input_schema': _strict_schema(schema)}],
             'tool_choice': {'type': 'tool', 'name': 'memory_result'},
         }
         if system:

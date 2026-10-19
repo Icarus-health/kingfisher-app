@@ -1075,6 +1075,7 @@ export type ChatGPTModel = {id:string; label:string};
 export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
 export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
   sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
+  request_limit?:number;filtered_count?:number;review_count?:number;
   scanned_count:number;next_cursor:number|null};
 export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;

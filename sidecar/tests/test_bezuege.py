@@ -92,6 +92,100 @@ def test_automatisches_postfach_ist_eine_organisation_kein_mensch(welt):
     assert set(sachen(bezuege)) == {'organisation:meinshop'}
 
 
+@pytest.mark.parametrize('adresse', [
+    'auftragsplanung@firma.example', 'auftragsabwicklung@firma.example',
+    'auftrag-abwicklung+vorgang@firma.example',
+])
+def test_auftragsfunktionspostfach_ohne_absendernamen_ist_keine_person(welt, adresse):
+    episodes, _, bezuege = welt
+    e = quelle(episodes, 'Auftragsstand', 'Der Auftrag ist eingeplant.', [adresse])
+    original = episodes.get(e.id).to_dict()
+
+    bezuege.aktualisieren()
+
+    daten = bezuege.bezuege_der_quelle(e.id)
+    assert {b['sache']: b['grundlagen'] for b in daten['bezuege']} == {
+        'organisation:firma': ['anker'],
+    }
+    assert daten['offen'] == []
+    assert episodes.get(e.id).to_dict() == original
+
+
+def test_personenname_im_text_vom_auftragsfunktionspostfach_bleibt_belegt(welt):
+    episodes, _, bezuege = welt
+    text = 'Anna Beispiel übernimmt den Termin.'
+    e = quelle(episodes, 'Auftragsstand', text, ['Anna Beispiel <auftragsplanung@firma.example>'])
+    modell_lauf(episodes, {'categories': [], 'entities': [stelle(text, 'Anna Beispiel')]})
+
+    bezuege.aktualisieren()
+
+    daten = bezuege.bezuege_der_quelle(e.id)
+    assert {b['sache']: b['grundlagen'] for b in daten['bezuege']} == {
+        'organisation:firma': ['anker'], 'person:n:anna beispiel': ['modell'],
+    }
+    person = next(b for b in daten['bezuege'] if b['art'] == 'person')
+    beleg = person['stellen'][0]
+    assert bezuege.zitat(e.id, beleg['start'], beleg['ende']) == 'Anna Beispiel'
+
+
+def test_nutzer_bestaetigte_person_am_auftragsfunktionspostfach_bleibt_zugeordnet(welt):
+    episodes, _, bezuege = welt
+    e = quelle(episodes, 'Auftragsstand', 'Der Auftrag ist eingeplant.', ['auftragsplanung@firma.example'])
+    bezuege.aktualisieren()
+
+    bezuege.nutzer_setzen(e.id, 'person:a:auftragsplanung@firma.example', 'zu')
+    bezuege.aktualisieren()
+
+    daten = bezuege.bezuege_der_quelle(e.id)
+    assert {b['sache']: b['grundlagen'] for b in daten['bezuege']} == {
+        'organisation:firma': ['anker'], 'person:a:auftragsplanung@firma.example': ['nutzer'],
+    }
+
+
+@pytest.mark.parametrize('person_bestaetigt', [False, True])
+def test_alter_postfach_personenanker_wird_nach_neustart_einmalig_neuberechnet(
+        tmp_path, monkeypatch, person_bestaetigt):
+    from icarus_memory import bezuege as bezuege_modul
+
+    path = tmp_path / 'episodes.sqlite3'
+    episodes = EpisodeStore(path)
+    e = quelle(episodes, 'Alter Auftragsstand', 'Der Auftrag ist eingeplant.', ['auftragsplanung@firma.example'])
+    person = 'person:a:auftragsplanung@firma.example'
+    alt = Bezuege(episodes)
+    # Reproduce the prior rule and its persisted, unversioned address-only
+    # cache. No category output or name-dependent register was involved.
+    with monkeypatch.context() as vorher:
+        vorher.setattr(bezuege_modul, 'maschinell', lambda adresse: False)
+        alt.aktualisieren()
+        alt.nutzer_setzen(e.id, 'thema:work', 'zu')
+        if person_bestaetigt:
+            alt.nutzer_setzen(e.id, person, 'zu')
+    row = episodes._conn.execute('SELECT * FROM episodes WHERE id=?', (e.id,)).fetchone()
+    alter_eingabewert = (
+        f"{row['digest']}:{row['metadata_digest']}:{row['support_generation']}:{len(row['document'])}|::|:|"
+    )
+    with episodes.transaction():
+        episodes._conn.execute('UPDATE sach_quellen SET eingabe=?, register=\'\' WHERE episode_id=?',
+                               (alter_eingabewert, e.id))
+    original = tuple(episodes._conn.execute('SELECT * FROM episodes WHERE id=?', (e.id,)).fetchone())
+    entscheidungen = [tuple(row) for row in episodes._conn.execute('SELECT * FROM sach_nutzer ORDER BY sache')]
+    episodes.close()
+
+    episodes = EpisodeStore(path)
+    try:
+        aktuell = Bezuege(episodes)
+        assert aktuell.aktualisieren()['berechnet'] == 1
+        erwartet = {'organisation:firma': ['anker'], 'thema:work': ['nutzer']}
+        if person_bestaetigt:
+            erwartet[person] = ['nutzer']
+        assert {b['sache']: b['grundlagen'] for b in aktuell.bezuege_der_quelle(e.id)['bezuege']} == erwartet
+        assert aktuell.aktualisieren()['berechnet'] == 0
+        assert tuple(episodes._conn.execute('SELECT * FROM episodes WHERE id=?', (e.id,)).fetchone()) == original
+        assert [tuple(row) for row in episodes._conn.execute('SELECT * FROM sach_nutzer ORDER BY sache')] == entscheidungen
+    finally:
+        episodes.close()
+
+
 def test_projektzuordnung_der_quelle_ist_ein_ankerbezug(welt):
     episodes, workspace, bezuege = welt
     projekt = workspace.add_project('Atlas', Provenance(SourceType.USER_STATED))
