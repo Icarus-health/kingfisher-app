@@ -805,7 +805,9 @@ export type Akte = {
   offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null }>; gesamt: number; vermutlich: boolean;
     erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null }>; gesamt: number } };
   fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number };
-    ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number } };
+    ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number };
+    quellenangaben?: { eintraege: Array<AkteFrist & { einordnung: "fact" | "status" | "historical" | "uncertain";
+      zeitbezug: "vergangen" | "kommend"; zustaendigkeit: "ungeklaert"; nur_quellenangabe: true }>; gesamt: number } };
   stand_der_dinge: { aktuell: AkteZeile | null; vorher: AkteZeile[]; vorher_gesamt: number; weitere: Array<{ aktuell: AkteZeile; vorher: AkteZeile[]; vorher_gesamt: number }>; weitere_gesamt: number };
   beteiligte: { eintraege: Array<{ sache: string; art: AkteSachenArt; anzahl: number; name: string }>; gesamt: number };
   termine: { kommend: AkteTermin[]; vergangen: AkteTermin[]; gesamt: { kommend: number; vergangen: number } };

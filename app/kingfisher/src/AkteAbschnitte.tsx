@@ -190,6 +190,19 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {f.ohne_datum.gesamt ? <p className="mappe-mehr">Zeitangaben ohne festes Datum ({f.ohne_datum.gesamt}): {f.ohne_datum.eintraege.map(x => `„${x.ausdruck}“`).join(", ")}{f.ohne_datum.gesamt > f.ohne_datum.eintraege.length ? " …" : ""}</p> : null}
     </Teil> : null}
 
+    {f.quellenangaben?.gesamt ? <details className="quiet-details akte-quellenfristen">
+      <summary>Fristen laut Quelle ({f.quellenangaben.gesamt}) · Zuständigkeit ungeklärt</summary>
+      <Teil titel="Fristen laut Quelle" kind="fristen">
+        <p className="mappe-hinweis">Quellenangaben, keine bestätigten eigenen Aufgaben. Vorbehalte stehen im Originalzitat.</p>
+        {f.quellenangaben.eintraege.map(e => <article key={`${e.episode_id}:${e.datum}:${e.ausdruck}:${e.text}`}>
+          <strong>{tag(e.datum)}{e.zeitbezug === "vergangen" ? " · Historie" : ""}</strong>
+          <small>{e.art} · Quelle vom {datum(e)} · Zuständigkeit ungeklärt</small>
+          <blockquote>{e.text}</blockquote><Quelle zeile={e} />
+        </article>)}
+        <Gesamt gezeigt={f.quellenangaben.eintraege.length} gesamt={f.quellenangaben.gesamt} />
+      </Teil>
+    </details> : null}
+
     {data.termine.kommend.length || data.termine.vergangen.length ? <Teil titel="Termine" kind="termine">
       {data.termine.kommend.map(t => <article key={`k:${t.episode_id}`}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}</small>{t.vermutlich_abgesagt ? <p className="mappe-mehr">Vermutlich abgesagt laut „{t.vermutlich_abgesagt.text}“ ({datum(t.vermutlich_abgesagt)}). Der Kalendereintrag steht noch. <Quelle zeile={t.vermutlich_abgesagt} /></p> : null}<Quelle zeile={t} /></article>)}
       <Gesamt gezeigt={data.termine.kommend.length} gesamt={data.termine.gesamt.kommend} wo="kommende Termine" />

@@ -15,6 +15,10 @@ test('week has 24 hour labels, selectable calendars, event detail action and day
  const agenda=nodes(tree,n=>n.type==='details'&&n.props.className==='calendar-agenda quiet-details')[0];assert.ok(agenda,'Secondary agenda must start collapsed beside the grid');assert.equal(Boolean(agenda.props.open),false);assert.match(text(agenda),/Workshop/);
  assert.equal(nodes(tree,n=>n.props?.className==='calendar-hour').length,24);assert.ok(nodes(tree,n=>n.type==='button'&&text(n)==='Tag')[0]);assert.ok(nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0]);
  const event=nodes(tree,n=>n.type==='button'&&n.props.className==='calendar-time-event')[0];assert.ok(event);event.props.onClick();tree=d.render();const details=nodes(tree,n=>n.type?.name==='DetailPanel')[0];assert.ok(details);assert.match(text(details),/Workshop/);assert.match(text(details),/Vorbereiten/);
+ // Establish a different week explicitly. Otherwise this test depends on the
+ // wall clock: during 19–25 October the target is already in the cached week,
+ // so changing only the selected day correctly does not fetch again.
+ nodes(tree,n=>n.type==='input'&&n.props.type==='date')[0].props.onChange({target:{value:'2026-10-12'}});d.render();await d.flush();tree=d.render();await d.flush();tree=d.render();
  const oldZone=process.env.TZ;process.env.TZ='Europe/Berlin';
  try {
   api.calendar=async()=>({items:[{...item,uid:'clock',start:'2026-10-25T02:50:00+02:00',end:'2026-10-25T02:10:00+01:00'}],configured:true,errors:[]});
