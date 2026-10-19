@@ -15,7 +15,7 @@ Sonnet 5.5 nutzt die vom Anbieter unterstützte strukturierte JSON-Ausgabe; ande
 - Gedächtnisdiagnosen unter `scripts/`: 235 bestanden.
 - Messlatte und Mac-App einschließlich Swift-Logik: 330 bestanden, 1 übersprungen. Der Swift-Modulcache lag im beschreibbaren temporären Verzeichnis.
 - Oberflächenbau, Asset-Vertrag sowie Profil-Schema und Beispiel bestanden. Bestehender Hinweis auf große JavaScript-Pakete bleibt.
-- Vollständige Backend-Prüfung: Ergebnis wird vor Veröffentlichung ergänzt.
+- Vollständige Backend-Prüfung des endgültigen Codes: 7.205 bestanden, 1 übersprungen, 26 Unterfälle bestanden (pytest, zwei getrennte Prozesse; 655,81 s). Bestehende Starlette- und Escape-Sequenz-Warnungen bleiben.
 
 Der erste vollständige Lauf fand zwei bestehende Fristgegenstands-Regressionsfälle (7.197 andere Tests bestanden); beide wurden vor Veröffentlichung korrigiert und unabhängig geprüft. Die bestehende Testsuite wurde dafür nicht abgeschwächt. Der abschließende vollständige Lauf verwendet zwei getrennte, niedrig priorisierte pytest-Prozesse.
 
@@ -33,7 +33,7 @@ Ein unabhängiger zweiter Prüfer hat die neun Quellen fachlich gegengeprüft. E
 
 Produktive Originale, Aufgaben, Projekte, Notizen, bestätigte Wissensaussagen und Nutzerentscheidungen blieben vor und nach der Probe zeilenweise gleich. Während der Probe war kein lokales Ollama-Modell geladen; lokale Leseanfragen antworteten in 5,6–278,5 ms, der App-Container lag bei einer Momentaufnahme bei rund 216 MiB. Das ist keine allgemeine Leistungsgarantie für andere Mac-Programme.
 
-Private Originale, Modellantworten und Belege bleiben außerhalb des öffentlichen Repositorys. Die Mac-Installation wird vor Abschluss mit Sicherung, Datenprüfung und Modulprüfsummen gegen den hier getesteten Code bestätigt.
+Private Originale, Modellantworten und Belege bleiben außerhalb des öffentlichen Repositorys. Die Mac-Installation wird nach Veröffentlichung getrennt mit Sicherung, Datenprüfung und Modulprüfsummen gegen den hier getesteten Code bestätigt. Das Ergebnis wird in [PR #75](https://github.com/Icarus-health/kingfisher-app/pull/75) und im privaten Prüfordner festgehalten.
 
 ## Grenzen
 
