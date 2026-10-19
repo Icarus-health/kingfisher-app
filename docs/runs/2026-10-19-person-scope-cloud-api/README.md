@@ -1,6 +1,6 @@
 # Quellengebundene Personenakten und vorbereiteter Claude-Import
 
-Stand: 19. Oktober 2026. Ausgangspunkt: `746ac048`.
+Stand: 19. Oktober 2026. Ausgangspunkt: `746ac048`; geprüfter Produktcode: `1f2df0a` (nachfolgende Ergänzungen betreffen nur diesen Nachweis).
 Alle Beispiele und automatisierten Nachweise dieses Pakets sind künstlich.
 Es wurden weder echte Anbieteranfragen gesendet noch persönliche Mails oder Schlüssel veröffentlicht.
 
@@ -53,4 +53,13 @@ Quellen, am 19.10.2026 geprüft:
 
 Neue Personen- und Zitatfälle wurden zuerst gegen den ungeänderten Code reproduziert; unabhängige Reviews fanden zusätzlich Aufgaben-Verwechslung, top-postierte Bedingungen, Vorschau-Wiederverwendung und gleichzeitiges Fortsetzen. Diese Fälle haben eigene Regressionstests.
 
-Die Endergebnisse und die Grenze der Bedienprobe werden nach Abschluss unten ergänzt. Ein Test mit künstlichen Daten ersetzt weder die Modellgüteprobe an echten Mails noch die Abnahme einer installierten Mac-Fassung.
+Bisher nachgewiesen:
+
+- Die letzten 127 Cloud-/Kategorieprüfungen umfassen den endgültigen Claude-Pfad mit wörtlichem Namen, Block-ID und Vorkommensnummer. Zeichenpositionen werden vom vorhandenen Validator im Original bestimmt, nicht vom Modell gezählt.
+- 78 Personen-/Mailprüfungen, 26 Sicherungs-/Wiederherstellungsprüfungen und 11 Diagnoseprüfungen im sauberen Checkout bestanden.
+- 744 UI-Prüfungen unter dem vorgeschriebenen `TZ=UTC`; Build, Asset-Vertrag und Diff-Prüfung bestanden. Der bekannte zeitzonenabhängige Kalender-Test wurde nicht verändert.
+- Unabhängige Reviews prüften Personenabgrenzung und Cloud-/Zugangsschutz; ein zusätzlicher synthetischer Alt-Schema-Test bestätigte den Erhalt alter ChatGPT-Aufträge mit pausierter Wiederaufnahme.
+- Bedienprobe im In-App-Browser auf getrenntem lokalem Bestand: Zugang speichern und entfernen, Vorschau ohne Versand, ausdrückliche Paketfreigabe, simulierter Verbindungsabbruch, Widerruf und erneut entfernter Schlüssel. Nach Testserver-Neustart zeigte eine ausgewählte Mail höchstens vier Anfragen. Der Transport war technisch blockiert; kein echter Anbieteraufruf.
+- Absenderakte und nur in der Signatur erwähnte Person durch die sichtbaren Verbindungen geöffnet: Anfrage und unbestimmte Frist bleiben beim Absender; bei der Erwähnung bleibt der Quellenverweis ohne fremde Bitte. Keine relevanten Browserwarnungen/-fehler. Die Zugänge bleiben bei 900 und 1.280 Pixeln erreichbar; bei 900 Pixeln kein horizontaler Seitenüberlauf.
+
+Der vollständige Backend-Lauf bestand mit **6.875 Tests und 26 Subtests**, ein plattformspezifischer Fall wurde ausgelassen (Python 3.12, UTC). Er begann vor der letzten einzeiligen Umstellung auf den bestehenden Claude-Zitatmodus; dessen endgültiger Stand ist zusätzlich durch den oben genannten frischen 127er-Lauf geprüft. Ein Test mit künstlichen Daten ersetzt weder die Modellgüteprobe an echten Mails noch die Abnahme einer installierten Mac-Fassung. Noch kein Mac-Update oder Importstart.
