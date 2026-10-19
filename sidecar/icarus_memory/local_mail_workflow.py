@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from . import local_model_guard
 from .episodes import EpisodeKind, EpisodeError, EpisodeState
 from .model import SourceType
-from .mail_briefing import _passages, _selected, SYSTEM, SCHEMA
+from .mail_briefing import _passages, _selected, SYSTEM, SCHEMA, BRIEFING_VERSION
 from .mail_timeline import timings
 from .proposals import ProposalKind, ProposalState, ProposalError
 from .providers import ProviderError
@@ -102,7 +102,7 @@ class SavedMailWorkflow:
         source, context = self._source(identifier, read_archived=read_archived)
         timing = timings(self.state.episodes, [source], now=datetime.now(timezone.utc))[identifier]
         # Die Zeitklassifikation und Folgemails sind Teil des Prüfschritts, nicht des Originaltexts.
-        material = ['saved-mail-v1',identifier,source.digest,context,source.project_id,timing['temporal_status'],timing['followup_episode_id']]
+        material = ['saved-mail-v1',BRIEFING_VERSION,identifier,source.digest,context,source.project_id,timing['temporal_status'],timing['followup_episode_id']]
         stamp = hashlib.sha256(json.dumps(material,ensure_ascii=False).encode()).hexdigest()
         return source, context, timing, stamp
     def _hints(self):

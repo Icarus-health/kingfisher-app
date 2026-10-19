@@ -66,7 +66,7 @@ from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 
-AKTEN_VERSION = 5
+AKTEN_VERSION = 6
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -215,6 +215,28 @@ def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any) ->
             daten = frozenset(f.datum for f in fristen_in(voll, episode.occurred_at).fristen)
         ergebnis.append(Abschnitt(ref, zeit, voll, stamm_menge(voll), daten, episode.occurred_at))
     return ergebnis, gefunden['truncated']
+
+
+def _personen_abschnitte(sache: str, quellen: list[dict], abschnitte: list[Abschnitt]) -> list[Abschnitt]:
+    """Eine Modell-Erwähnung erschließt nur ihren belegten Absatz, nicht die ganze Mail.
+
+    Absender-/Teilnehmeranker und ausdrückliche Nutzerzuordnungen bleiben
+    Korrespondenzkontext. Auch dort sind offene Punkte keine bestätigte
+    Zuständigkeit. Quellenverweise und Originale bleiben vollständig erhalten.
+    """
+    if not sache.startswith('person:'):
+        return abschnitte
+    nach_id = {q['episode_id']: q for q in quellen}
+    ergebnis = []
+    for abschnitt in abschnitte:
+        quelle = nach_id.get(abschnitt.ref['episode_id'])
+        if quelle is None:
+            continue
+        if {'anker', 'nutzer'}.intersection(quelle['grundlagen']) or any(
+                abschnitt.ref['start'] <= start < ende <= abschnitt.ref['end']
+                for start, ende in quelle.get('stellen', [])):
+            ergebnis.append(abschnitt)
+    return ergebnis
 
 
 # Ein Abschlusswort gilt nur in seinem eigenen Satz/Teilsatz. Präpositionale
@@ -419,7 +441,7 @@ class Akten:
         ids = [q['episode_id'] for q in quellen[:MAX_QUELLEN]]
         einordnung = self.store.einordnungsstand(ids)
         inhalt = [AKTEN_VERSION, sache, _wissensstand(self.claims), len(quellen),
-                  [(q['episode_id'], q['fp'], q['grundlagen'], q['archiviert'], einordnung.get(q['episode_id'], ''))
+                  [(q['episode_id'], q['fp'], q['grundlagen'], q.get('stellen', []), q['archiviert'], einordnung.get(q['episode_id'], ''))
                    for q in quellen[:MAX_QUELLEN]]]
         return hashlib.sha256(json.dumps(inhalt, ensure_ascii=False, default=str).encode()).hexdigest()
 
@@ -456,6 +478,7 @@ class Akten:
         ids = [q['episode_id'] for q in genutzt]
         claims = _MerkeFrei(self.claims) if self.claims is not None else None
         abschnitte, abgeschnitten = _abschnitte_lesen(ids, self.store, claims)
+        abschnitte = _personen_abschnitte(sache, genutzt, abschnitte)
         offen, erledigt = _offen(abschnitte)
         fristen, ohne_datum = _fristen(abschnitte)
         gemeinsam = self.bezuege.gemeinsame(sache, ids)
@@ -508,7 +531,12 @@ class Akten:
         leser = _Leser(self.store, claims)
         art, _ = zerlegen(sache) or ('', '')
         ids = [v['episode_id'] for v in roh['verlauf']]
-        aufgaben = list(self._aufgaben(sache, ids))
+        # Eine bloße Modell-Erwähnung begründet keine Aufgaben-Zuständigkeit.
+        # Explizites wartet_auf wird vom Callback weiterhin unabhängig von ids gelesen.
+        aufgaben_ids = ([q['episode_id'] for q in quellen[:MAX_QUELLEN]
+                         if {'anker', 'nutzer'}.intersection(q['grundlagen'])]
+                        if art == 'person' else ids)
+        aufgaben = list(self._aufgaben(sache, aufgaben_ids))
         erledigt_aufgaben = self._durch_aufgaben(roh, aufgaben)
         offen = [e for e in roh['offen'] if e['ref']['episode_id'] not in erledigt_aufgaben]
         erledigt = [*roh['erledigt'], *({'ref': e['ref'], 'durch': None, 'grund': erledigt_aufgaben[e['ref']['episode_id']]}

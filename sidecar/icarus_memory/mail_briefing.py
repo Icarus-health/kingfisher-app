@@ -14,6 +14,7 @@ from .mail_task_suggestions import source_digest
 from .providers import ProviderError
 from .task_review import review_tasks
 
+BRIEFING_VERSION = 2
 MAX_INPUT = 8000
 MAX_PASSAGE = 1200
 MAX_PASSAGES = 64
@@ -71,29 +72,46 @@ def _provider(app):
 def _fingerprint(message):
     values = {key: getattr(message, key, None) for key in
               ('uid', 'account_id', 'message_id', 'sender', 'reply_to', 'subject', 'body', 'preview', 'date', 'truncated', 'own_addresses', 'recipients', 'list_mail', 'in_reply_to', 'references')}
-    return hashlib.sha256(json.dumps(values, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
+    return hashlib.sha256(json.dumps([BRIEFING_VERSION, values], ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
 def _passages(body):
-    """Never cut a passage mid-sentence or fabricate a quote from model output."""
+    """Wählt unveränderte Absätze der aktuellen Mail; belegte Zitate bleiben im Original.
+
+    Die bereits vorhandene Historienerkennung verlangt vollständige datierte
+    Mailheader. Unklare Grenzen bleiben sichtbar. Getrennte aktuelle Antworten
+    werden nicht zu einer vermeintlich zusammenhängenden Passage verbunden.
+    """
+    from .mail_quote_history import _ranges
+    ranges = _ranges(body)
+    segments, position = [], 0
+    for start, end in ranges:
+        if position < start:
+            segment = body[position:start]
+            segments.append(segment)
+        position = max(position, end)
+    if position < len(body):
+        segment = body[position:]
+        segments.append(segment)
     result = []
-    incomplete = len(body) > MAX_INPUT
-    # Only include complete paragraphs within the input window. The last partial
-    # paragraph is excluded instead of turning a cropped condition into a fact.
-    for match in re.finditer(r'[^\r\n](?:.*?)(?=\r?\n[ \t]*\r?\n|\Z)', body, re.S):
-        if match.end() > MAX_INPUT:
-            incomplete = True
-            break
-        paragraph = match.group().strip()
-        if not paragraph:
-            continue
-        if len(paragraph) > MAX_PASSAGE:
-            incomplete = True
-            continue
-        if len(result) == MAX_PASSAGES:
-            incomplete = True
-            break
-        result.append(paragraph)
+    # Auch eine Antwort VOR einem Zitat kann auf dessen Bedingung beruhen.
+    # Ohne diesen Kontext ist der Überblick unvollständig und erzeugt keine Aufgaben.
+    incomplete = bool(ranges) or sum(len(segment) for segment in segments) > MAX_INPUT
+    consumed = 0
+    for segment in segments:
+        for match in re.finditer(r'[^\r\n](?:.*?)(?=\r?\n[ \t]*\r?\n|\Z)', segment, re.S):
+            if consumed + match.end() > MAX_INPUT:
+                return result, True
+            paragraph = match.group().strip()
+            if not paragraph:
+                continue
+            if len(paragraph) > MAX_PASSAGE:
+                incomplete = True
+                continue
+            if len(result) == MAX_PASSAGES:
+                return result, True
+            result.append(paragraph)
+        consumed += len(segment)
     return result, incomplete
 
 
