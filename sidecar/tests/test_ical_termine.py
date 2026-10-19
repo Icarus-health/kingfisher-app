@@ -499,3 +499,45 @@ def test_zu_grosses_abo_bricht_frueh_ab_und_sagt_es_in_einem_satz(monkeypatch):
     with pytest.raises(Anmeldefehler) as fehler:
         kalender_abo.pruefe('https://kalender.example.test/riesig.ics', transport=transport)
     assert (fehler.value.grund, fehler.value.satz) == ('zu_gross', satz)
+
+
+# -- Robustheit: unmögliche Daten, unerfüllbare und zu dichte Regeln (Review) ----------
+
+
+EXTREM = [['UID:x1', 'SUMMARY:Letzter Tag', 'DTSTART;VALUE=DATE:99991231'],
+          ['UID:x2', 'SUMMARY:Westküste', 'DTSTART;TZID=America/Los_Angeles:99991231T230000'],
+          ['UID:x3', 'SUMMARY:Ewig', 'DTSTART:20261020T090000Z', 'DURATION:P999999999W'],
+          ['UID:x4', 'SUMMARY:Lange Serie', 'DTSTART:20261020T090000Z', 'DURATION:P150000W', 'RRULE:FREQ=WEEKLY'],
+          ['UID:x5', 'SUMMARY:Bis zum Schluss', 'DTSTART;VALUE=DATE:20261020', 'RRULE:FREQ=YEARLY;UNTIL=99991231T235959Z']]
+NORMAL = ['UID:normal', 'SUMMARY:Normal', 'DTSTART:20261021T090000Z', 'DTEND:20261021T100000Z']
+
+
+def test_ein_termin_mit_unmoeglichem_datum_kippt_die_quelle_nicht():
+    """Ein Datum am Rand des Darstellbaren (Jahr 9999, riesige Dauer): Der Termin bleibt, was sich nicht darstellen
+    lässt (Ende, Beginn in UTC), ist unbekannt; die anderen Termine der Quelle bleiben unberührt."""
+    import httpx
+
+    from icarus_memory import kalender_abo
+    kalender = ics(*EXTREM, NORMAL)
+    for fenster in ((), (VON, BIS)):
+        termine = {t.uid.partition('#')[0]: t for t in parse_events(kalender, *fenster)}
+        assert set(termine) == {'x1', 'x2', 'x3', 'x4', 'x5', 'normal'}
+        assert termine['x1'].end is None and termine['x2'].start is None and termine['x3'].end is None
+    assert 'Normal' in [t.summary for t in Feed(kalender).leser.events(days=30, at=utc(2026, 10, 15))]
+    # „Kalender verbinden“ zählt die Termine; das darf nicht mit einem Serverfehler enden.
+    _, abo = kalender_abo.pruefe('https://kalender.example.test/rand.ics',
+                                 transport=httpx.MockTransport(lambda anfrage: httpx.Response(200, text=kalender)))
+    assert abo.termine >= 1
+
+
+def test_ein_unerwarteter_fehler_in_einem_termin_nimmt_die_anderen_nicht_mit(monkeypatch):
+    from icarus_memory.connectors import calendar
+    echt = calendar._termin
+
+    def kaputt(termin, uid, *rest):
+        if uid.startswith('x1'):
+            raise OverflowError('Probe')
+        return echt(termin, uid, *rest)
+
+    monkeypatch.setattr(calendar, '_termin', kaputt)
+    assert [t.uid for t in parse_events(ics(EXTREM[0], NORMAL))] == ['normal']

@@ -28,11 +28,12 @@ from __future__ import annotations
 
 import hashlib
 import heapq
+import logging
 import re
 import uuid
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from functools import cached_property
 from typing import Any, Iterator, NamedTuple
 
@@ -41,6 +42,8 @@ from dateutil.rrule import rrulestr
 
 from ..model import user_timezone
 from . import zeitzonen
+
+logger = logging.getLogger(__name__)
 
 
 class CalendarError(Exception):
@@ -227,7 +230,18 @@ def _dauer(value: str) -> timedelta | None:
     if treffer is None or not any(treffer.groups()):
         return None
     wochen, tage, stunden, minuten, sekunden = (int(teil or 0) for teil in treffer.groups())
-    return timedelta(weeks=wochen, days=tage, hours=stunden, minutes=minuten, seconds=sekunden)
+    try:
+        return timedelta(weeks=wochen, days=tage, hours=stunden, minutes=minuten, seconds=sekunden)
+    except OverflowError:
+        return None  # länger als Python darstellen kann (über 2,7 Millionen Jahre)
+
+
+def _plus(moment: datetime, dauer: timedelta) -> datetime | None:
+    """`moment + dauer`, oder None, wenn das Ergebnis jenseits des Jahres 9999 läge."""
+    try:
+        return moment + dauer
+    except OverflowError:
+        return None
 
 
 def _ende(termin: "_Komponente", beginn: _Zeit | None) -> datetime | None:
@@ -243,12 +257,16 @@ def _ende(termin: "_Komponente", beginn: _Zeit | None) -> datetime | None:
         return None
     if "DURATION" in termin.felder:
         dauer = _dauer(termin.wert("DURATION"))
-        return beginn.moment + dauer if dauer is not None else None
-    return beginn.moment + (timedelta(days=1) if beginn.ganztags else timedelta(0))
+        return _plus(beginn.moment, dauer) if dauer is not None else None
+    return _plus(beginn.moment, timedelta(days=1) if beginn.ganztags else timedelta(0))
 
 
 def _utc(moment: datetime | None) -> datetime | None:
-    return moment.astimezone(timezone.utc) if moment is not None else None
+    """In UTC; None, wenn das nicht mehr darstellbar ist (31.12.9999 abends westlich von UTC)."""
+    try:
+        return moment.astimezone(timezone.utc) if moment is not None else None
+    except OverflowError:
+        return None
 
 
 def _text_aus_ical(wert: str) -> str:
@@ -355,7 +373,10 @@ def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
     if zeit.schwebend:
         return zeit.moment.replace(tzinfo=beginn.moment.tzinfo)
     if beginn.ganztags:
-        tag = zeit.moment.astimezone(user_timezone() or timezone.utc).date()
+        try:
+            tag = zeit.moment.astimezone(user_timezone() or timezone.utc).date()
+        except OverflowError:
+            tag = date.max  # die Grenze fällt beim Nutzer schon ins Jahr 10000: kein Ende
         return datetime.combine(tag, time(23, 59, 59), timezone.utc)
     return zeit.moment
 
@@ -483,7 +504,10 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
         ende = _ende(serie, beginn)
         dauer = ende - beginn.moment if ende is not None and beginn is not None else None
         # Was vor `ab` beginnt, endet vor dem Fenster (ein Tag Spielraum für die Zeitumstellung).
-        ab = von - (dauer if dauer is not None and dauer > timedelta(0) else timedelta(0)) - timedelta(days=1)
+        try:
+            ab = von - (dauer if dauer is not None and dauer > timedelta(0) else timedelta(0)) - timedelta(days=1)
+        except OverflowError:
+            ab = datetime.min.replace(tzinfo=timezone.utc)
         folge = _wiederholungen(serie, beginn, ab, bis) if beginn is not None else None
         try:
             treffer = None if folge is None else [
@@ -507,6 +531,21 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
     return ergebnis
 
 
+def _gruppe(uid: str, gruppe: list[_Komponente], fenster: tuple[datetime, datetime] | None) -> list[Event]:
+    """Die Termine aller Komponenten mit derselben UID: Hauptkomponente(n) und geänderte Einzeltermine."""
+    haupt = [t for t in gruppe if "RECURRENCE-ID" not in t.felder]
+    einzeln = [t for t in gruppe if "RECURRENCE-ID" in t.felder]
+    serie = next((t for t in haupt if t.wiederholt), None)
+    if serie is None and einzeln and haupt:
+        # Ein Termin ohne Regel, aber mit Einzelterminen: der erste Termin einer
+        # Serie, die schon ein Server ausgeklappt hat (RFC 4791, 9.6.5).
+        serie = haupt[0]
+    ergebnis = [_termin(t, uid) for t in haupt if t is not serie and not t.abgesagt]
+    if serie is not None or einzeln:
+        ergebnis += _serie(serie, einzeln, uid, fenster)
+    return ergebnis
+
+
 def parse_events(ical: str, von: datetime | None = None, bis: datetime | None = None) -> list[Event]:
     """Zieht die Termine aus iCalendar-Text.
 
@@ -527,16 +566,12 @@ def parse_events(ical: str, von: datetime | None = None, bis: datetime | None = 
         gruppen.setdefault(termin.uid, []).append(termin)
     events: list[Event] = []
     for uid, gruppe in gruppen.items():
-        haupt = [t for t in gruppe if "RECURRENCE-ID" not in t.felder]
-        einzeln = [t for t in gruppe if "RECURRENCE-ID" in t.felder]
-        serie = next((t for t in haupt if t.wiederholt), None)
-        if serie is None and einzeln and haupt:
-            # Ein Termin ohne Regel, aber mit Einzelterminen: der erste Termin einer
-            # Serie, die schon ein Server ausgeklappt hat (RFC 4791, 9.6.5).
-            serie = haupt[0]
-        events += [_termin(t, uid) for t in haupt if t is not serie and not t.abgesagt]
-        if serie is not None or einzeln:
-            events += _serie(serie, einzeln, uid, fenster)
+        try:
+            events += _gruppe(uid, gruppe, fenster)
+        except (ValueError, OverflowError):
+            # Ein Termin, der sich nicht rechnen lässt (etwa am Rand des Jahres 9999), fehlt allein;
+            # er darf die anderen Termine der Quelle nicht mitnehmen.
+            logger.warning("Ein Termin ließ sich nicht lesen und wurde übersprungen.")
     return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
 
 
