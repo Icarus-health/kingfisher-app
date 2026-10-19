@@ -193,3 +193,28 @@ def test_gleichzeitige_anstoesse_starten_nur_einen_hintergrundneuaufbau(api, mon
     finally:
         frei.set()
         app.state.akten_faden.join(10)
+
+
+def test_entscheidung_ueber_die_routen_setzen_pruefen_und_zuruecknehmen(api):
+    app, client = api
+    _quelle(app, 'Druckdaten', [(BITTE, 'request')], tage=3)
+    abgleichen(client)
+    sache = 'person:a:anna@agentur.example'
+    akte = client.get('/api/v1/akten/akte', params={'sache': sache}).json()
+    # Die eigene Seite der Akte trägt „Braucht dich“ und den Zeitstrahl.
+    assert 'braucht_dich' in akte and akte['zeitstrahl']['quellen'] == 1
+    ziel = akte['offen']['eintraege'][0]['ziel']
+    # Nur, was in dieser Akte steht, und nur, was dazu passt.
+    fremd = {'sache': 'ort:mainz', 'ziel': ziel, 'entscheidung': 'erledigt'}
+    assert client.put('/api/v1/akten/entscheidung', json=fremd).status_code == 404
+    assert client.put('/api/v1/akten/entscheidung', json={'sache': sache, 'ziel': 'a:e-x:1:2:fp',
+                                                           'entscheidung': 'erledigt'}).status_code == 404
+    assert client.put('/api/v1/akten/entscheidung', json={'sache': sache, 'ziel': ziel,
+                                                           'entscheidung': 'vielleicht'}).status_code == 422
+    antwort = client.put('/api/v1/akten/entscheidung', json={'sache': sache, 'ziel': ziel, 'entscheidung': 'erledigt'})
+    assert antwort.status_code == 200 and antwort.json()['entscheidung'] == 'erledigt'
+    akte = client.get('/api/v1/akten/akte', params={'sache': sache}).json()
+    assert akte['offen']['gesamt'] == 0 and akte['offen']['erledigt']['eintraege'][0]['grund'] == 'nutzer_erledigt'
+    assert client.delete('/api/v1/akten/entscheidung', params={'sache': sache, 'ziel': ziel}).status_code == 200
+    assert client.delete('/api/v1/akten/entscheidung', params={'sache': sache, 'ziel': ziel}).status_code == 404
+    assert client.get('/api/v1/akten/akte', params={'sache': sache}).json()['offen']['gesamt'] == 1
