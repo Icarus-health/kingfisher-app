@@ -1,5 +1,5 @@
 import {MemoryEntityLink} from "./MemoryEntityLink";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteZeile, type AkteZeitpunkt } from "./api";
 import { displayLabel } from "./displayIdentity";
 import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
@@ -120,6 +120,8 @@ const QUELLE_ART: Record<string, string> = { message: "Mail", document: "Notiz",
 /** Der Zeitstrahl: Quellen, Termine und Fristen auf einer Achse, „heute“ als Linie. Ein Punkt öffnet seine Quelle. */
 function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
   const [gewaehlt, setGewaehlt] = useState<AkteZeitpunkt | null>(null);
+  const [fokus, setFokus] = useState(0);
+  const bahnRef = useRef<HTMLDivElement | null>(null);
   const punkte = strahl.punkte.map(p => ({ p, zeit: zeitpunkt(p.datum) })).filter((x): x is { p: AkteZeitpunkt; zeit: Date } => x.zeit !== null);
   const heute = zeitpunkt(strahl.heute) ?? new Date();
   if (punkte.length < 2) return null;
@@ -149,14 +151,29 @@ function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
       ebenen.set(x.p, ebene);
     }
   }
+  // Ein Tab-Stopp für den ganzen Strahl; die Pfeiltasten gehen von Punkt zu Punkt in der Zeitfolge.
+  const folge = [...punkte].sort((a, b) => a.zeit.getTime() - b.zeit.getTime()).map(x => x.p);
+  const nummer = new Map(folge.map((p, i) => [p, i]));
+  const aktiv = Math.min(fokus, folge.length - 1);
+  const tasten = (ereignis: KeyboardEvent) => {
+    const ziel = ereignis.key === "ArrowRight" || ereignis.key === "ArrowDown" ? aktiv + 1
+      : ereignis.key === "ArrowLeft" || ereignis.key === "ArrowUp" ? aktiv - 1
+      : ereignis.key === "Home" ? 0 : ereignis.key === "End" ? folge.length - 1 : null;
+    if (ziel === null) return;
+    ereignis.preventDefault();
+    const neu = Math.max(0, Math.min(folge.length - 1, ziel));
+    setFokus(neu);
+    bahnRef.current?.querySelector<HTMLButtonElement>(`[data-punkt="${neu}"]`)?.focus();
+  };
   const beschreibung = (p: AkteZeitpunkt) => `${p.art === "frist" ? "Frist" : p.art === "termin" ? "Termin" : (QUELLE_ART[p.quelle_art] ?? "Quelle")} ${tag(p.datum)}: ${p.titel}${p.abgesagt ? " (vermutlich abgesagt)" : ""}${p.art === "frist" && p.offen ? " (offen)" : ""}`;
   return <section className="mappe-teil akte-teil akte-zeitstrahl" aria-label="Zeitstrahl">
     <h3>Zeitstrahl</h3>
-    <div className="akte-strahl">
+    <div className="akte-strahl" ref={bahnRef} onKeyDown={tasten} role="group" aria-label="Zeitstrahl: mit den Pfeiltasten von Punkt zu Punkt">
       {SPUREN.filter(spur => punkte.some(x => x.p.art === spur.art)).map(spur => <div className="akte-spur" key={spur.art}>
         <span className="akte-spur-name">{spur.text}</span>
         <div className="akte-spur-bahn">
-          {punkte.filter(x => x.p.art === spur.art).map(x => <button key={`${x.p.art}:${x.p.episode_id}:${x.p.datum}`} type="button"
+          {punkte.filter(x => x.p.art === spur.art).map(x => <button key={nummer.get(x.p)} type="button" data-punkt={nummer.get(x.p)}
+            tabIndex={nummer.get(x.p) === aktiv ? 0 : -1} onFocus={() => setFokus(nummer.get(x.p) ?? 0)}
             className={`akte-punkt akte-punkt-${x.p.art}${x.p.abgesagt ? " akte-punkt-abgesagt" : ""}${x.p.offen ? " akte-punkt-offen" : ""}${x.p.abschnitt === "Zusage" || x.p.abschnitt === "Bitte" ? " akte-punkt-zusage" : ""}${gewaehlt === x.p ? " akte-punkt-gewaehlt" : ""}`}
             style={{ left: `${lage(x.zeit.getTime())}%`, top: `${8 + (ebenen.get(x.p) ?? 0) * 9}px` }}
             aria-label={beschreibung(x.p)} title={beschreibung(x.p)} aria-pressed={gewaehlt === x.p}
@@ -177,7 +194,7 @@ function Zeitstrahl({ strahl }: { strahl: NonNullable<Akte["zeitstrahl"]> }) {
 }
 
 /** Ein offener Punkt: wer, wann, das Zitat, die Quelle und ein Klick für „erledigt“. */
-function OffenZeile({ e, arbeitet, entscheiden }: { e: Akte["offen"]["eintraege"][number]; arbeitet: string | null; entscheiden: Entscheiden }) {
+function OffenZeile({ e, arbeitet, entscheiden, zuruecknehmen }: { e: Akte["offen"]["eintraege"][number]; arbeitet: string | null; entscheiden: Entscheiden; zuruecknehmen: (ziel: string) => void }) {
   return <article aria-busy={arbeitet === e.ziel}>
     <small>{herkunft(e)} · {datum(e)}{e.aufgabe ? ` · Aufgabe: ${e.aufgabe.title}` : ""}{e.bestaetigt ? " · laut dir weiter offen" : ""}</small>
     <blockquote>{e.text}</blockquote>
@@ -185,6 +202,7 @@ function OffenZeile({ e, arbeitet, entscheiden }: { e: Akte["offen"]["eintraege"
     <div className="akte-zeile-fuss">
       <Quelle zeile={e} />
       {e.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "erledigt")}>Erledigt</button> : null}
+      {e.ziel && e.bestaetigt ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => zuruecknehmen(e.ziel!)} title="„Gilt weiter“ zurücknehmen">Rückgängig</button> : null}
     </div>
   </article>;
 }
@@ -233,7 +251,8 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     return()=>{active=false;};
   },[mitKopf,data?.art,data?.sache]);
   const [arbeitet, setArbeitet] = useState<string | null>(null);
-  const [meldung, setMeldung] = useState<{ text: string; ziel: string | null } | null>(null);
+  const [meldung, setMeldung] = useState<{ text: string; ziel: string | null; vorher?: AkteEntscheidung | null } | null>(null);
+  const meldungRef = useRef<HTMLParagraphElement | null>(null);
   const version = useRef(0);
   const versuche = useRef(0);
   const lageVersuche = useRef(0);
@@ -255,8 +274,8 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     setArbeitet(ziel);
     void (async () => {
       try {
-        await api.akteEntscheiden(sache, ziel, entscheidung);
-        setMeldung({ text: (termin ? GEMERKT_TERMIN : GEMERKT)[entscheidung], ziel });
+        const antwort = await api.akteEntscheiden(sache, ziel, entscheidung);
+        setMeldung({ text: (termin ? GEMERKT_TERMIN : GEMERKT)[entscheidung], ziel, vorher: antwort.vorher });
         await laden(alle);
       } catch {
         setMeldung({ text: "Das ließ sich gerade nicht merken. Bitte die Akte neu laden und noch einmal versuchen.", ziel: null });
@@ -265,11 +284,13 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       }
     })();
   };
-  async function zuruecknehmen(ziel: string) {
+  // „Rückgängig“ stellt den Zustand vor dem Klick wieder her: die frühere Entscheidung oder die Vermutung.
+  async function zuruecknehmen(ziel: string, vorher: AkteEntscheidung | null = null) {
     if (arbeitet) return;
     setArbeitet(ziel);
     try {
-      await api.akteEntscheidungZuruecknehmen(sache, ziel);
+      if (vorher) await api.akteEntscheiden(sache, ziel, vorher);
+      else await api.akteEntscheidungZuruecknehmen(sache, ziel);
       setMeldung({ text: "Zurückgenommen. Es gilt wieder, was die Quellen nahelegen.", ziel: null });
       await laden(alle);
     } catch {
@@ -279,9 +300,11 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     }
   }
   useEffect(() => { setMeldung(null); }, [sache]);
-  // Die Meldung bleibt so lange, dass man „Rückgängig“ in Ruhe findet, und geht dann von selbst.
+  // Die Meldung bleibt so lange, dass man „Rückgängig“ in Ruhe findet, und geht dann von selbst. Der Fokus geht zu
+  // ihr: Der Knopf, der eben gedrückt wurde, ist mit seinem Punkt verschwunden.
   useEffect(() => {
     if (!meldung) return;
+    meldungRef.current?.focus();
     const timer = window.setTimeout(() => setMeldung(null), 12000);
     return () => window.clearTimeout(timer);
   }, [meldung]);
@@ -341,7 +364,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {!compact ? <Blick data={data} /> : null}
     </header>
 
-    {meldung ? <p className="akte-meldung" role="status">{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
+    {meldung ? <p className="akte-meldung" role="status" tabIndex={-1} ref={meldungRef}>{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!, meldung.vorher ?? null)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
 
     {braucht ? <BrauchtDich punkte={braucht.eintraege} gesamt={braucht.gesamt} arbeitet={arbeitet} entscheiden={entscheiden} /> : null}
 
@@ -352,10 +375,10 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     {data.offen.eintraege.length || data.offen.erledigt.gesamt ? <Teil titel="Vermutlich offen" kind="offen">
       {data.offen.eintraege.length ? <p className="mappe-hinweis">Keine spätere Erledigung oder Absage gefunden. Ob es wirklich offen ist, steht in den Quellen nicht; ein Klick auf „Erledigt“ legt es ab.</p> : <p className="profile-empty">Nichts mehr offen, soweit die Quellen es zeigen.</p>}
       {offenGruppen.map(g => g.eintraege.length ? <div className="akte-gruppe" key={g.titel}><h4>{g.titel}</h4>
-        {g.eintraege.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} />)}
+        {g.eintraege.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
       </div> : null)}
       {uebrige.length ? <div className="akte-gruppe">{offenGruppen.some(g => g.eintraege.length) ? <h4>Weitere</h4> : null}
-        {uebrige.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} />)}
+        {uebrige.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
       </div> : null}
       <Gesamt gezeigt={data.offen.eintraege.length} gesamt={data.offen.gesamt} />
       {data.offen.erledigt.gesamt ? <details><summary>Vermutlich erledigt oder abgesagt ({data.offen.erledigt.gesamt})</summary>

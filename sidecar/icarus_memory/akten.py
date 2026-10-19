@@ -546,13 +546,51 @@ def _nach_absage(offen: list[dict], abschnitte: list[Abschnitt], termine: list[d
                    and ((faden is not None and faeden.get(absage['episode_id']) == faden)
                         or (abschnitt is not None and tag in abschnitt.daten))]
         if passend:
-            absage, termin = min(passend, key=lambda p: p[0]['zeit'])
+            absage, termin = min(passend, key=lambda p: _zeit(p[0]['zeit']))
             ergebnis.append({'ref': ref, 'absage': absage, 'termin': termin})
     return ergebnis
 
 
-def _entschieden(offen: list[dict], erledigt: list[dict],
-                 gesagt: dict[str, dict[str, Any]]) -> tuple[list[dict], list[dict]]:
+class _Ziele:
+    """Kennungen für Entscheidungen (`akten_entscheidungen.ziel_abschnitt`): Textstelle samt Inhaltsdigest der Quelle.
+
+    Die Digests werden einmal je Darstellung gelesen (eine Abfrage), nicht je Zeile.
+    """
+
+    def __init__(self, episodes: Any, ids: Iterable[str]) -> None:
+        self._digest: dict[str, str] = {}
+        liste = sorted(set(ids))
+        with episodes._lock:
+            for anfang in range(0, len(liste), 400):
+                teil = liste[anfang:anfang + 400]
+                for zeile in episodes._conn.execute(
+                        'SELECT id, digest FROM episodes WHERE id IN (' + ','.join('?' for _ in teil) + ')', teil):
+                    self._digest[zeile[0]] = zeile[1]
+
+    def __call__(self, ref: dict[str, Any]) -> str:
+        return ziel_abschnitt(ref, self._digest.get(ref['episode_id'], ''))
+
+
+def _kopfdaten(episodes: Any, ids: Iterable[str]) -> dict[str, tuple[str, str]]:
+    """Titel und Art je Quelle, in einer Abfrage (für den Zeitstrahl)."""
+    ergebnis: dict[str, tuple[str, str]] = {}
+    liste = sorted(set(ids))
+    with episodes._lock:
+        for anfang in range(0, len(liste), 400):
+            teil = liste[anfang:anfang + 400]
+            for zeile in episodes._conn.execute(
+                    "SELECT id, kind, json_extract(document, '$.title') FROM episodes WHERE id IN ("
+                    + ','.join('?' for _ in teil) + ')', teil):
+                ergebnis[zeile[0]] = (str(zeile[2] or '')[:120], zeile[1])
+    return ergebnis
+
+
+def _alle_refs(roh: dict[str, Any]) -> list[dict[str, Any]]:
+    return [e['ref'] for e in (*roh['offen'], *roh['erledigt'])] + [f['ref'] for f in roh['fristen']]
+
+
+def _entschieden(offen: list[dict], erledigt: list[dict], gesagt: dict[str, dict[str, Any]],
+                 ziel: Callable[[dict], str]) -> tuple[list[dict], list[dict]]:
     """Die Entscheidungen des Nutzers über die Vermutung legen: (offen, erledigt).
 
     „Erledigt“ und „Gilt nicht mehr“ legen einen offenen Punkt ab. „Gilt weiter“ hält ihn offen und holt ihn
@@ -561,14 +599,14 @@ def _entschieden(offen: list[dict], erledigt: list[dict],
     """
     neu_offen, neu_erledigt = [], []
     for eintrag in offen:
-        gesagt_ = gesagt.get(ziel_abschnitt(eintrag['ref']))
+        gesagt_ = gesagt.get(ziel(eintrag['ref']))
         if gesagt_ and gesagt_['entscheidung'] in ('erledigt', 'gilt_nicht'):
             neu_erledigt.append({'ref': eintrag['ref'], 'durch': None, 'grund': 'nutzer_' + gesagt_['entscheidung'],
                                  'entschieden_am': gesagt_['entschieden_am']})
         else:
             neu_offen.append({**eintrag, 'bestaetigt': bool(gesagt_)})
     for eintrag in erledigt:
-        gesagt_ = gesagt.get(ziel_abschnitt(eintrag['ref']))
+        gesagt_ = gesagt.get(ziel(eintrag['ref']))
         if gesagt_ and gesagt_['entscheidung'] == 'offen' and eintrag['grund'] in ('absage', 'erledigt'):
             neu_offen.append({'ref': eintrag['ref'], 'danach': eintrag.get('durch'), 'bestaetigt': True})
         else:
@@ -701,14 +739,36 @@ class Akten:
         roh = self.roh(sache)
         if roh is None:
             return set()
-        ziele = {ziel_abschnitt(e['ref']) for e in (*roh['offen'], *roh['erledigt'])}
-        for t in roh['termine']:
-            try:
-                episode = self.episodes.get(t['episode_id'])
-            except Exception:  # noqa: BLE001
-                continue
-            ziele.add(ziel_termin(episode.id, episode.digest))
-        return ziele
+        ziel = _Ziele(self.episodes, [r['episode_id'] for r in _alle_refs(roh)])
+        return ({ziel(e['ref']) for e in (*roh['offen'], *roh['erledigt'])}
+                | {ziel_termin(t['episode_id']) for t in roh['termine']})
+
+    def _entscheidungen(self, roh: dict[str, Any], offen: list[dict], erledigt: list[dict]) -> dict[str, Any]:
+        """Die Entscheidungen des Nutzers zu dieser Akte, über die Vermutung gelegt (eine Stelle für alle Leser)."""
+        ziel = _Ziele(self.episodes, [r['episode_id'] for r in _alle_refs(roh)])
+        termin_ziele = {t['episode_id']: ziel_termin(t['episode_id']) for t in roh['termine']}
+        ablage = Entscheidungen(self.episodes)
+        gesagt = ablage.zu([*(ziel(e['ref']) for e in (*offen, *erledigt)), *termin_ziele.values()])
+        offen, erledigt = _entschieden(offen, erledigt, gesagt, ziel)
+        termine = {eid: (z, gesagt.get(z)) for eid, z in termin_ziele.items()}
+        abgelegt = {ziel(e['ref']) for e in erledigt if e['grund'].startswith('nutzer_')}
+        return {'ziel': ziel, 'gesagt': gesagt, 'offen': offen, 'erledigt': erledigt, 'termine': termine,
+                'abgelegt': abgelegt}
+
+    def roh_entschieden(self, sache: str) -> dict[str, Any] | None:
+        """Die Akte (nur Verweise) mit den Entscheidungen des Nutzers: für Leser, die nicht `akte()` nehmen.
+
+        Abgelegte Punkte stehen unter „erledigt“ (ohne „durch“), ihre Fristen fehlen; ein Termin, der laut
+        Nutzer doch stattfindet, trägt keine Absage mehr. So sieht der Antwortkontext dasselbe wie die Akte.
+        """
+        roh = self.roh(sache)
+        if roh is None:
+            return None
+        e = self._entscheidungen(roh, roh['offen'], roh['erledigt'])
+        termine = [{**t, 'abgesagt': None} if (e['termine'].get(t['episode_id'], ('', None))[1] or {}).get(
+            'entscheidung') == 'offen' else t for t in roh['termine']]
+        return {**roh, 'offen': e['offen'], 'erledigt': e['erledigt'], 'termine': termine,
+                'fristen': [f for f in roh['fristen'] if e['ziel'](f['ref']) not in e['abgelegt']]}
 
     def akte(self, sache: str, *, jetzt: datetime | None = None, alle: bool = False,
              ansicht: bool = False) -> dict[str, Any] | None:
@@ -738,8 +798,9 @@ class Akten:
         erledigt = [*roh['erledigt'], *({'ref': e['ref'], 'durch': None, 'grund': erledigt_aufgaben[e['ref']['episode_id']]}
                                         for e in roh['offen'] if e['ref']['episode_id'] in erledigt_aufgaben)]
         # Was der Nutzer selbst entschieden hat, gilt vor der Vermutung (nur bei der Anzeige, `akten_entscheidungen.py`).
-        gesagt = Entscheidungen(self.episodes).zu(ziel_abschnitt(e['ref']) for e in (*offen, *erledigt))
-        offen, erledigt = _entschieden(offen, erledigt, gesagt)
+        entschieden = self._entscheidungen(roh, offen, erledigt)
+        offen, erledigt, ziel = entschieden['offen'], entschieden['erledigt'], entschieden['ziel']
+        termin_gesagt = entschieden['termine']
         eigene = self.bezuege.eigene_adressen()
         offene_aufgaben = {a.provenance.source_ref[len('episode:'):]: a for a in aufgaben
                            if getattr(a.status, 'value', a.status) == 'open'
@@ -752,17 +813,16 @@ class Akten:
                         'abschnitte_abgeschnitten': roh['abschnitte_abgeschnitten']},
             'aus_zwischenspeicher': roh.pop('_gespeichert', False),
             # Fingerabdruck der Eingaben: Ebene 3 (Lage) merkt sich, für welchen Stand sie geschrieben wurde.
-            # Eine Entscheidung des Nutzers ändert, was offen ist; dann gilt auch die Lage als veraltet.
-            'eingabestand': _mit_entscheidungen(roh.pop('_eingabe', ''), gesagt),
+            # Eine Entscheidung des Nutzers ändert, was offen oder abgesagt ist; dann gilt auch die Lage als veraltet.
+            'eingabestand': _mit_entscheidungen(roh.pop('_eingabe', ''), entschieden['gesagt']),
         }
-        abgelegt = {ziel_abschnitt(e['ref']) for e in erledigt if e['grund'].startswith('nutzer_')}
         daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
-        daten['offen'] = self._offen_zeigen(offen, erledigt, offene_aufgaben, leser, lang, eigene)
+        daten['offen'] = self._offen_zeigen(offen, erledigt, offene_aufgaben, leser, lang, eigene, ziel)
         daten['fristen'] = self._fristen_zeigen(roh['fristen'], roh['ohne_datum'], leser, jetzt, lang,
-                                                quellenangaben=roh.get('quellenfristen', []), abgelegt=abgelegt)
+                                                quellenangaben=roh.get('quellenfristen', []),
+                                                abgelegt=entschieden['abgelegt'], ziel=ziel)
         daten['stand_der_dinge'] = self._stand_zeigen(roh['stand'], leser, kurz)
         daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang)
-        termin_gesagt = self._termin_entscheidungen(roh['termine'])
         daten['termine'] = self._termine_zeigen(roh['termine'], jetzt, kurz, leser, termin_gesagt)
         daten['aufgaben'] = mappe._aufgaben(aufgaben, jetzt, lang)
         daten['einordnung'] = self.store.classification_state(ids)
@@ -779,84 +839,79 @@ class Akten:
             fest = ArtAblage(self.episodes).bestaetigt(sache)
             daten['akten_art'] = fest['art'] if fest and fest['art'] != 'keine' else ''
         if ansicht:
-            daten['braucht_dich'] = self._braucht_dich(roh, offen, leser, jetzt, eigene, termin_gesagt)
-            daten['zeitstrahl'] = self._zeitstrahl(roh, offen, jetzt, termin_gesagt)
+            daten['braucht_dich'] = self._braucht_dich(roh, offen, leser, jetzt, eigene, termin_gesagt, ziel)
+            daten['zeitstrahl'] = self._zeitstrahl(roh, offen, jetzt, termin_gesagt, ziel)
         return daten
 
     # -- Entscheidungen, Braucht dich, Zeitstrahl --
 
-    def _termin_entscheidungen(self, termine: list[dict]) -> dict[str, tuple[str, dict[str, Any] | None]]:
-        """Je Termin-Quelle: (Ziel, Entscheidung oder None). Nur Termine, die eine Absage tragen, fragen."""
-        ziele: dict[str, str] = {}
-        for t in termine:
-            try:
-                episode = self.episodes.get(t['episode_id'])
-            except Exception:  # noqa: BLE001
-                continue
-            ziele[t['episode_id']] = ziel_termin(episode.id, episode.digest)
-        gesagt = Entscheidungen(self.episodes).zu(ziele.values()) if ziele else {}
-        return {episode_id: (ziel, gesagt.get(ziel)) for episode_id, ziel in ziele.items()}
-
     def _braucht_dich(self, roh: dict[str, Any], offen: list[dict], leser: '_Leser', jetzt: datetime,
-                      eigene: list[str], termin_gesagt: dict[str, tuple[str, dict | None]]) -> dict[str, Any]:
+                      eigene: list[str], termin_gesagt: dict[str, tuple[str, dict | None]],
+                      ziel: Callable[[dict], str]) -> dict[str, Any]:
         """Was eine Entscheidung des Nutzers braucht: je ein Satz, das Zitat, die Wahl. Dringendes zuerst."""
-        from .fristlage import Frist, beschreibung, quelle_art, richtung
+        from .fristlage import Frist, beschreibung, quelle_art
         from .kontakte import anzeigename
         from .episodes import mail_address
         punkte: dict[str, dict[str, Any]] = {}
 
-        def merken(ziel: str, rang: tuple, punkt: dict[str, Any]) -> None:
-            if ziel not in punkte or rang < punkte[ziel]['_rang']:
-                punkte[ziel] = {**punkt, 'ziel': ziel, '_rang': rang}
+        def merken(ziel_: str, rang: tuple, punkt: dict[str, Any], *, vorrang: bool = False) -> None:
+            # „Gilt das noch?“ geht einer Frist desselben Punkts vor: Bei einer abgesagten Sache ist „Erledigt“
+            # die falsche Wahl.
+            alt = punkte.get(ziel_)
+            if alt is not None and (alt['_vorrang'] and not vorrang or (alt['_vorrang'] == vorrang and alt['_rang'] <= rang)):
+                return
+            punkte[ziel_] = {**punkt, 'ziel': ziel_, '_rang': rang, '_vorrang': vorrang}
+
+        def termin_findet_statt(episode_id: str) -> bool:
+            return (termin_gesagt.get(episode_id, ('', None))[1] or {}).get('entscheidung') == 'offen'
 
         heute = jetzt.astimezone(_zone()).date() if jetzt.tzinfo else jetzt.date()
+        titel = _kopfdaten(self.episodes, [t['episode_id'] for t in roh['termine']]
+                           + [h['termin'] for h in roh.get('nach_absage', [])])
         # 1. Abgesagt, aber noch im Kalender: kommende Termine mit Absage und ohne Entscheidung.
         for t in roh['termine']:
             beginn = _zeit(t['start'])
-            ziel, gesagt = termin_gesagt.get(t['episode_id'], ('', None))
-            if not t.get('abgesagt') or beginn < jetzt or not ziel or gesagt:
+            ziel_, gesagt = termin_gesagt.get(t['episode_id'], ('', None))
+            if not t.get('abgesagt') or beginn < jetzt or not ziel_ or gesagt or t['episode_id'] not in titel:
                 continue
             laut = leser.zeile(t['abgesagt'])
             if laut is None:
                 continue
-            episode = self.episodes.get(t['episode_id'])
-            merken(ziel, (0, beginn.timestamp()), {
+            merken(ziel_, (0, beginn.timestamp()), {
                 'art': 'abgesagter_termin',
-                'satz': (f'„{episode.title[:120]}“ am {_tag(beginn)} ist laut „{laut["titel"]}“ vom '
+                'satz': (f'„{titel[t["episode_id"]][0]}“ am {_tag(beginn)} ist laut „{laut["titel"]}“ vom '
                          f'{_tag(_zeit(laut["occurred_at"] or laut["recorded_at"]))} abgesagt, steht aber noch in '
                          'deinem Kalender.'),
-                'zeile': None, 'laut': laut, 'episode_id': episode.id,
+                'zeile': None, 'laut': laut, 'episode_id': t['episode_id'],
                 'wahl': [{'entscheidung': 'erledigt', 'text': 'Erledigt'},
                          {'entscheidung': 'offen', 'text': 'Findet doch statt'}]})
-        offen_ziele = {ziel_abschnitt(e['ref']): e for e in offen}
-        # 2. Vor einer Absage im selben Verlauf: gilt das noch? Nur, solange niemand „gilt weiter“ gesagt hat.
+        offen_ziele = {ziel(e['ref']): e for e in offen}
+        # 2. Vor einer Absage im selben Verlauf: gilt das noch? Nur, solange niemand „gilt weiter“ gesagt hat und
+        #    der Termin nicht laut Nutzer doch stattfindet.
         for hinweis in roh.get('nach_absage', []):
-            ziel = ziel_abschnitt(hinweis['ref'])
-            eintrag = offen_ziele.get(ziel)
-            if eintrag is None or eintrag.get('bestaetigt'):
+            ziel_ = ziel(hinweis['ref'])
+            eintrag = offen_ziele.get(ziel_)
+            if (eintrag is None or eintrag.get('bestaetigt') or termin_findet_statt(hinweis['termin'])
+                    or hinweis['termin'] not in titel):
                 continue
             zeile, laut = leser.zeile(hinweis['ref']), leser.zeile(hinweis['absage'])
             if zeile is None or laut is None:
                 continue
-            try:
-                termin = self.episodes.get(hinweis['termin'])
-            except Exception:  # noqa: BLE001
-                continue
-            wer = richtung(zeile['participants'], eigene)
+            wer = _richtung(leser, hinweis['ref'], zeile, eigene)
             was = {'Zusage': 'Zusage', 'Bitte': 'Bitte'}.get(zeile['art'], 'Angabe')
-            merken(ziel, (2, -_zeit(hinweis['absage']['zeit']).timestamp()), {
+            merken(ziel_, (2, -_zeit(hinweis['absage']['zeit']).timestamp()), {
                 'art': 'gilt_noch',
-                'satz': (f'„{termin.title[:120]}“ ist seit {_tag(_zeit(hinweis["absage"]["zeit"]))} abgesagt. '
-                         f'Gilt {"deine" if wer == "von_mir" else "diese"} frühere {was} noch?'),
+                'satz': (f'„{titel[hinweis["termin"]][0]}“ ist seit {_tag(_zeit(hinweis["absage"]["zeit"]))} '
+                         f'abgesagt. Gilt {"deine" if wer == "von_mir" else "diese"} frühere {was} noch?'),
                 'zeile': zeile, 'laut': laut, 'episode_id': zeile['episode_id'],
                 'wahl': [{'entscheidung': 'gilt_nicht', 'text': 'Gilt nicht mehr'},
-                         {'entscheidung': 'offen', 'text': 'Gilt weiter'}]})
+                         {'entscheidung': 'offen', 'text': 'Gilt weiter'}]}, vorrang=True)
         # 3. Fristen offener Punkte: in den nächsten Tagen oder verstrichen (wie im Briefing, `fristlage.py`).
         for f in roh['fristen']:
             if f['ersetzt_durch']:
                 continue
-            ziel = ziel_abschnitt(f['ref'])
-            if ziel not in offen_ziele:
+            ziel_ = ziel(f['ref'])
+            if ziel_ not in offen_ziele:
                 continue
             datum = date.fromisoformat(f['datum'])
             tage = (datum - heute).days
@@ -865,7 +920,7 @@ class Akten:
             zeile, voll = leser.zeile(f['ref']), leser.voll(f['ref'])
             if zeile is None or voll is None:
                 continue
-            wer = richtung(zeile['participants'], eigene)
+            wer = _richtung(leser, f['ref'], zeile, eigene)
             absender = (zeile['participants'] or [''])[0]
             status = 'kommend' if tage >= 0 else 'verstrichen'
             frist = Frist(datum=datum, text=zeile['text'], ausdruck=voll[f['start']:f['ende']].strip(),
@@ -877,49 +932,43 @@ class Akten:
             if status == 'verstrichen':
                 wahl.append({'entscheidung': 'gilt_nicht', 'text': 'Gilt nicht mehr'})
             rang = (1, tage) if 0 <= tage <= 1 else (3, -tage) if tage < 0 else (4, tage)
-            merken(ziel, rang, {'art': 'frist' if status == 'kommend' else 'frist_verstrichen',
-                                'satz': beschreibung(frist), 'zeile': zeile, 'laut': None, 'datum': f['datum'],
-                                'episode_id': zeile['episode_id'], 'wahl': wahl})
+            merken(ziel_, rang, {'art': 'frist' if status == 'kommend' else 'frist_verstrichen',
+                                 'satz': beschreibung(frist), 'zeile': zeile, 'laut': None, 'datum': f['datum'],
+                                 'episode_id': zeile['episode_id'], 'wahl': wahl})
         geordnet = sorted(punkte.values(), key=lambda p: p['_rang'])
         for punkt in geordnet:
             punkt.pop('_rang')
+            punkt.pop('_vorrang')
         return {'eintraege': geordnet[:6], 'gesamt': len(geordnet)}
 
     def _zeitstrahl(self, roh: dict[str, Any], offen: list[dict], jetzt: datetime,
-                    termin_gesagt: dict[str, tuple[str, dict | None]]) -> dict[str, Any]:
-        """Quellen, Termine und Fristen als Punkte auf einer Zeitachse (jüngste 150 Quellen)."""
+                    termin_gesagt: dict[str, tuple[str, dict | None]], ziel: Callable[[dict], str]) -> dict[str, Any]:
+        """Quellen, Termine und Fristen als Punkte auf einer Zeitachse (jüngste 150 Quellen, eine Abfrage)."""
         punkte: list[dict[str, Any]] = []
         termine = {t['episode_id']: t for t in roh['termine']}
-        for v in roh['verlauf'][:150]:
-            if v['episode_id'] in termine:
+        verlauf = [v for v in roh['verlauf'][:150] if v['episode_id'] not in termine]
+        kopf = _kopfdaten(self.episodes, [v['episode_id'] for v in verlauf] + list(termine)
+                          + [f['ref']['episode_id'] for f in roh['fristen'] if not f['ersetzt_durch']])
+        for v in verlauf:
+            if v['episode_id'] not in kopf:
                 continue
-            try:
-                episode = self.episodes.get(v['episode_id'])
-            except Exception:  # noqa: BLE001
-                continue
-            punkte.append({'art': 'quelle', 'datum': v['zeit'], 'episode_id': episode.id,
-                           'titel': episode.title[:120], 'quelle_art': episode.kind.value,
-                           'abschnitt': mappe.ARTEN.get(v['ref']['kind']) if v['ref'] else None})
+            titel, art = kopf[v['episode_id']]
+            punkte.append({'art': 'quelle', 'datum': v['zeit'], 'episode_id': v['episode_id'], 'titel': titel,
+                           'quelle_art': art, 'abschnitt': mappe.ARTEN.get(v['ref']['kind']) if v['ref'] else None})
         for t in roh['termine']:
-            try:
-                episode = self.episodes.get(t['episode_id'])
-            except Exception:  # noqa: BLE001
+            if t['episode_id'] not in kopf:
                 continue
             _, gesagt = termin_gesagt.get(t['episode_id'], ('', None))
             abgesagt = bool(t.get('abgesagt')) and not (gesagt and gesagt['entscheidung'] == 'offen')
-            punkte.append({'art': 'termin', 'datum': t['start'], 'episode_id': episode.id,
-                           'titel': episode.title[:120], 'quelle_art': 'event', 'abgesagt': abgesagt})
-        offen_ziele = {ziel_abschnitt(e['ref']) for e in offen}
+            punkte.append({'art': 'termin', 'datum': t['start'], 'episode_id': t['episode_id'],
+                           'titel': kopf[t['episode_id']][0], 'quelle_art': 'event', 'abgesagt': abgesagt})
+        offen_ziele = {ziel(e['ref']) for e in offen}
         for f in roh['fristen']:
-            if f['ersetzt_durch']:
+            if f['ersetzt_durch'] or f['ref']['episode_id'] not in kopf:
                 continue
-            try:
-                episode = self.episodes.get(f['ref']['episode_id'])
-            except Exception:  # noqa: BLE001
-                continue
-            punkte.append({'art': 'frist', 'datum': f['datum'], 'episode_id': episode.id,
-                           'titel': episode.title[:120], 'quelle_art': episode.kind.value,
-                           'offen': ziel_abschnitt(f['ref']) in offen_ziele})
+            titel, art = kopf[f['ref']['episode_id']]
+            punkte.append({'art': 'frist', 'datum': f['datum'], 'episode_id': f['ref']['episode_id'],
+                           'titel': titel, 'quelle_art': art, 'offen': ziel(f['ref']) in offen_ziele})
         return {'punkte': punkte, 'quellen': len(roh['verlauf']), 'gezeigt': min(len(roh['verlauf']), 150),
                 'heute': jetzt.isoformat()}
 
@@ -959,8 +1008,7 @@ class Akten:
         return {'eintraege': eintraege, 'gesamt': len(verlauf)}
 
     def _offen_zeigen(self, offen: list[dict], erledigt: list[dict], aufgaben: dict[str, Any], leser: '_Leser',
-                      anzahl: int, eigene: list[str]) -> dict[str, Any]:
-        from .fristlage import richtung
+                      anzahl: int, eigene: list[str], ziel: Callable[[dict], str]) -> dict[str, Any]:
         def zeigen(liste: list[dict], bauen: Callable[[dict, dict], dict]) -> list[dict]:
             ergebnis = []
             for eintrag in liste:
@@ -977,19 +1025,20 @@ class Akten:
             # `richtung`: von_mir (deine Zusage oder Bitte), an_mich (von jemand anderem), unklar (Notiz, Termin).
             return {**zeile, 'vermutlich': True, 'danach_geaendert': danach,
                     'aufgabe': {'id': aufgabe.id, 'title': aufgabe.title} if aufgabe else None,
-                    'ziel': ziel_abschnitt(eintrag['ref']), 'richtung': richtung(zeile['participants'], eigene),
+                    'ziel': ziel(eintrag['ref']), 'richtung': _richtung(leser, eintrag['ref'], zeile, eigene),
                     'bestaetigt': bool(eintrag.get('bestaetigt'))}
 
         def erledigt_bauen(eintrag: dict, zeile: dict) -> dict:
             return {**zeile, 'grund': eintrag['grund'], 'durch': leser.zeile(eintrag['durch']) if eintrag['durch'] else None,
-                    'ziel': ziel_abschnitt(eintrag['ref']), 'richtung': richtung(zeile['participants'], eigene)}
+                    'ziel': ziel(eintrag['ref']), 'richtung': _richtung(leser, eintrag['ref'], zeile, eigene)}
 
         return {'eintraege': zeigen(offen, offen_bauen), 'gesamt': len(offen), 'vermutlich': True,
                 'erledigt': {'eintraege': zeigen(erledigt, erledigt_bauen), 'gesamt': len(erledigt)}}
 
     def _fristen_zeigen(self, fristen: list[dict], ohne: list[dict], leser: '_Leser', jetzt: datetime,
                         anzahl: int, *, quellenangaben: list[dict] | None = None,
-                        abgelegt: set[str] = frozenset()) -> dict[str, Any]:
+                        abgelegt: set[str] = frozenset(),
+                        ziel: Callable[[dict], str] = ziel_abschnitt) -> dict[str, Any]:
         heute = jetzt.astimezone(_zone()).date() if jetzt.tzinfo else jetzt.date()
 
         def bauen(f: dict) -> dict | None:
@@ -1001,13 +1050,13 @@ class Akten:
             # `satz`: der Satz um die Datumsangabe, wörtlich (das Briefing zitiert ihn statt des ganzen Absatzes).
             return {**zeile, 'datum': f['datum'], 'ausdruck': voll[f['start']:f['ende']].strip() if voll else '',
                     'satz': _umfeld(voll, f['start'], f['ende']).strip() if voll else '',
-                    'art_der_angabe': f['art'], 'ziel': ziel_abschnitt(f['ref']),
+                    'art_der_angabe': f['art'], 'ziel': ziel(f['ref']),
                     'ersetzt_durch': ({'datum': ersetzt['datum'], 'episode_id': ersetzt['ref']['episode_id'],
                                        'ausdruck': (leser.voll(ersetzt['ref']) or '')[ersetzt['start']:ersetzt['ende']].strip()}
                                       if ersetzt else None)}
 
         # Was der Nutzer als erledigt abgelegt hat, mahnt keine Frist mehr an (weder hier noch im Briefing).
-        gueltig = [f for f in fristen if not f['ersetzt_durch'] and ziel_abschnitt(f['ref']) not in abgelegt]
+        gueltig = [f for f in fristen if not f['ersetzt_durch'] and ziel(f['ref']) not in abgelegt]
         kommend = [f for f in gueltig if date.fromisoformat(f['datum']) >= heute]
         verstrichen = sorted((f for f in gueltig if date.fromisoformat(f['datum']) < heute),
                              key=lambda f: f['datum'], reverse=True)
@@ -1086,7 +1135,7 @@ class Akten:
                     episode = self.episodes.get(t['episode_id'])
                 except Exception:  # noqa: BLE001
                     continue
-                ziel, entscheidung = (gesagt or {}).get(t['episode_id'], (ziel_termin(episode.id, episode.digest), None))
+                ziel, entscheidung = (gesagt or {}).get(t['episode_id'], (ziel_termin(episode.id), None))
                 entscheidung = entscheidung['entscheidung'] if entscheidung else None
                 # „Findet doch statt“ hebt die Vermutung auf; „Erledigt“ bestätigt die Absage.
                 laut = leser.zeile(t['abgesagt']) if t.get('abgesagt') and entscheidung != 'offen' else None
@@ -1102,6 +1151,15 @@ class Akten:
 def _zone():
     from .model import user_timezone
     return user_timezone() or timezone.utc
+
+
+def _richtung(leser: '_Leser', ref: dict[str, Any], zeile: dict[str, Any], eigene: list[str]) -> str:
+    """Von wem ein Punkt stammt: nur bei Mails aus dem Absender; Termine, Notizen und Mitschriften sind `unklar`."""
+    from .fristlage import richtung
+    gelesen = leser._lesen(ref)
+    if gelesen is None or getattr(gelesen[0].kind, 'value', gelesen[0].kind) != 'message':
+        return 'unklar'
+    return richtung(zeile['participants'], eigene)
 
 
 class _Leser:

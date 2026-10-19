@@ -211,3 +211,15 @@ def test_gekennzeichnetes_steht_nachrangig_und_nichts_faellt_weg(welt, akten):
     reihe = nachrangig_sortiert([alt.id, neue.id], kontext, lambda x: x)
     assert reihe == [neue.id, alt.id]
     assert nachrangig_sortiert(['a', 'b'], akten_kontext.LEER, lambda x: x) == ['a', 'b']
+
+
+def test_abgelegter_punkt_steht_nicht_mehr_als_offen_oder_frist_im_kontext(welt, akten):
+    """Die Entscheidungen des Nutzers gelten auch für den Antwortkontext (`Akten.roh_entschieden`)."""
+    from icarus_memory.akten_entscheidungen import Entscheidungen
+    episodes, _, _ = welt
+    mail(episodes, 'Zusage', [('Wir schicken Ihnen den Bericht bis 2. Oktober.', 'commitment')], tage=3)
+    kontext = aufbauen(episodes, None, [], [SACHE], akten=neu(akten))
+    assert sorted(z.rolle for z in kontext.zeilen) == ['Frist · Vermutlich offen']
+    eintrag = akten.akte(SACHE, jetzt=JETZT)['offen']['eintraege'][0]
+    Entscheidungen(episodes).setzen(eintrag['ziel'], 'erledigt')
+    assert aufbauen(episodes, None, [], [SACHE], akten=akten).zeilen == ()

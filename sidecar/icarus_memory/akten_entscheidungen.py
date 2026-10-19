@@ -8,9 +8,11 @@ Was eine Entscheidung ist und was nicht:
 * Sie ist eine **Einordnung durch den Nutzer**, keine Tatsache über die Welt und kein Fakt im Bestand. Sie
   ändert keine Quelle, keine Einordnung (Ebene 1) und keinen Bezug. Die Akte liest sie nur bei der Anzeige
   (offen oder erledigt, abgesagt oder nicht); der Zwischenspeicher der Akte bleibt unberührt.
-* Sie gilt für **eine Textstelle** (Quelle, Fassung, Anfang, Ende) oder **einen Termin** (Quelle, Fassung) und
+* Sie gilt für **eine Textstelle** (Quelle, Anfang, Ende, Inhalt der Quelle) oder **einen Termin** (Quelle) und
   damit in jeder Akte, in der diese vorkommt: Was bei der Person erledigt ist, ist es auch bei ihrer Firma.
-* Ändert sich die Quelle (neue Fassung), gilt die Entscheidung nicht mehr; die Akte vermutet dann wieder neu.
+* Ändert sich der Text der Quelle (neue Fassung), gilt die Entscheidung nicht mehr; die Akte vermutet dann wieder
+  neu. Nachgetragene Kontakte, Kopfzeilen oder Anhänge ändern den Text nicht und lassen sie stehen. Ein geänderter
+  Termin ist eine neue Quelle (`calendar_memory.py`) und fragt deshalb neu.
 * Gespeichert werden **nur Verweise** (Kennung der Quelle, Fingerabdruck, Stellen) und der Zeitpunkt. Kein Text,
   keine Sache, keine Adresse.
 * Jede Entscheidung lässt sich mit einem Klick zurücknehmen (`zuruecknehmen`); danach gilt wieder die Vermutung.
@@ -32,8 +34,8 @@ ENTSCHEIDUNGEN = ('erledigt', 'gilt_nicht', 'offen')
 TABLES = {'akten_entscheidungen': {'ziel', 'entscheidung', 'entschieden_am'}}
 PRIMARY_KEYS = {'akten_entscheidungen': {'ziel'}}
 
-# Die Fassung steht zuletzt: Sie darf Doppelpunkte tragen („sha256:…“).
-_ZIEL = re.compile(r'^(?:a:[^:\s]{1,200}:\d{1,9}:\d{1,9}|t:[^:\s]{1,200}):\S{1,200}$')
+# Der Inhaltsdigest steht zuletzt: Er darf Doppelpunkte tragen („sha256:…“).
+_ZIEL = re.compile(r'^(?:a:[^:\s]{1,200}:\d{1,9}:\d{1,9}:\S{1,200}|t:[^:\s]{1,200})$')
 
 
 def migrate(connection: sqlite3.Connection) -> None:
@@ -44,14 +46,18 @@ def migrate(connection: sqlite3.Connection) -> None:
         entschieden_am REAL NOT NULL)""")
 
 
-def ziel_abschnitt(ref: dict[str, Any]) -> str:
-    """Die Kennung einer Textstelle: Quelle, Fassung, Anfang und Ende."""
-    return f"a:{ref['episode_id']}:{int(ref['start'])}:{int(ref['end'])}:{ref['fingerprint']}"
+def ziel_abschnitt(ref: dict[str, Any], digest: str = '') -> str:
+    """Die Kennung einer Textstelle: Quelle, Anfang, Ende und Inhalt der Quelle (Digest des Textes).
+
+    Nicht der Fingerabdruck der Einordnung: Der ändert sich mit jedem Nachtrag an der Quelle (Kontakte,
+    Kopfzeilen), der Text nicht. Ohne Digest gilt ersatzweise der Fingerabdruck.
+    """
+    return f"a:{ref['episode_id']}:{int(ref['start'])}:{int(ref['end'])}:{digest or ref['fingerprint']}"
 
 
-def ziel_termin(episode_id: str, fassung: str) -> str:
-    """Die Kennung eines Termins: Quelle und Fassung (ändert sich der Termin, gilt die Entscheidung nicht mehr)."""
-    return f't:{episode_id}:{fassung}'
+def ziel_termin(episode_id: str) -> str:
+    """Die Kennung eines Termins: die Quelle (ein geänderter Termin ist eine neue Quelle und fragt neu)."""
+    return f't:{episode_id}'
 
 
 def ist_termin(ziel: str) -> bool:
@@ -83,6 +89,7 @@ class Entscheidungen:
         return ergebnis
 
     def setzen(self, ziel: str, entscheidung: str) -> dict[str, Any]:
+        """Hält die Entscheidung fest; `vorher` ist die bisherige (oder None), damit „Rückgängig“ sie zurückholt."""
         if not gueltiges_ziel(ziel):
             raise ValueError('Unbekanntes Ziel.')
         erlaubt = FUER_TERMIN if ist_termin(ziel) else FUER_ABSCHNITT
@@ -90,11 +97,14 @@ class Entscheidungen:
             raise ValueError('Diese Entscheidung passt hier nicht.')
         jetzt = time.time()
         with self.episodes.transaction():
+            alt = self.episodes._conn.execute(
+                'SELECT entscheidung FROM akten_entscheidungen WHERE ziel = ?', (ziel,)).fetchone()
             self.episodes._conn.execute(
                 'INSERT INTO akten_entscheidungen VALUES (?,?,?) ON CONFLICT(ziel) DO UPDATE SET '
                 'entscheidung=excluded.entscheidung, entschieden_am=excluded.entschieden_am',
                 (ziel, entscheidung, jetzt))
-        return {'ziel': ziel, 'entscheidung': entscheidung, 'entschieden_am': jetzt}
+        return {'ziel': ziel, 'entscheidung': entscheidung, 'entschieden_am': jetzt,
+                'vorher': alt['entscheidung'] if alt else None}
 
     def zuruecknehmen(self, ziel: str) -> bool:
         with self.episodes.transaction():

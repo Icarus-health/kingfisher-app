@@ -483,7 +483,8 @@ def _aufbauen(episodes: Any, claims: Any, akten: Any, ids: list[str], sachen: li
     gelesen = 0
     idsatz = set(ids)
     for sache in reihenfolge:
-        roh = akten.roh(sache)
+        # Mit den Entscheidungen des Nutzers: Abgelegtes ist hier so wenig offen wie in der Akte.
+        roh = akten.roh_entschieden(sache)
         if roh is None:
             continue
         gelesen += 1

@@ -61,7 +61,8 @@ _VERBOTEN = re.compile(r'[\\/:*?"<>|#^\[\]\x00-\x1f\x7f]')
 _RESERVIERT = frozenset({'con', 'prn', 'aux', 'nul', *(f'com{i}' for i in range(1, 10)),
                          *(f'lpt{i}' for i in range(1, 10))})
 _GRUND = {'absage': 'abgesagt', 'erledigt': 'erledigt', 'aufgabe_erledigt': 'Aufgabe erledigt',
-          'aufgabe_verworfen': 'Aufgabe verworfen'}
+          'aufgabe_verworfen': 'Aufgabe verworfen', 'nutzer_erledigt': 'von dir als erledigt abgelegt',
+          'nutzer_gilt_nicht': 'gilt laut dir nicht mehr'}
 
 
 # -- Eingaben --
