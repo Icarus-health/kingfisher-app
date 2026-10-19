@@ -241,7 +241,8 @@ class Intake:
                     qualified=replace(message,account_id=account,uid=f'{account}:{message.uid}')
                     beim_speichern=True
                     with self.episodes.transaction():
-                        result=remember(self.episodes,qualified,claims=claims,source_identity=identity)
+                        result=remember(self.episodes,qualified,claims=claims,source_identity=identity,
+                                        frueher=lambda episode_id,item=item:self._frueher_geholt(item,episode_id))
                         self._captured(item,result['episode']['id'],result['new'])
                     captured.append(result['episode']['id']); neu+=bool(result['new'])
                     captured.extend(result.get('anhaenge') or ())
@@ -253,6 +254,17 @@ class Intake:
                         (time.time()+min(3600,30*2**min(item['attempts'],7)),grund,technik,account,item['folder'],item['generation'],item['uid']))
         if neu:logbuch.vermerke('quellen',sorte='mail',anzahl=neu)
         return captured
+
+    def _frueher_geholt(self, item, episode_id):
+        """Ob die Aufnahme diese Quelle aus demselben Ordner unter einer früheren Postfachkennung geholt hat.
+
+        Vergibt der Server die Nummern neu (UIDVALIDITY, bei Microsoft eine verlorene Ablage), beginnt die
+        Bestandsaufnahme von vorn. Dieselbe Mail wird dann mit der vorhandenen Quelle verknüpft statt doppelt angelegt
+        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen.
+        """
+        with self.episodes._lock:
+            return self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
+                                   (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
 
     def _history_backlog(self, account):
         """Same bounded, content-free backlog check for capture and its status."""

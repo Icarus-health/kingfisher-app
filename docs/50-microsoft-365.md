@@ -119,8 +119,10 @@ Kennungen (`IdType="ImmutableId"`), Seiten zu 100 Nachrichten, bis zu drei Seite
 der Eingangszeit (Sekunden seit 1970, bei Gleichstand eins daneben), damit „Rückstand von neu nach alt“ stimmt, und
 eine Laufnummer in der Reihenfolge der Delta-Abfrage, die als Fortschritt dient: der Bestand 1, 2, 3 …, neue Post
 nach der ersten vollständigen Abfrage ab 2.000.000.001 (Spur „neu“). Geht die Ablage verloren, entsteht eine neue
-Generation, und die Aufnahme beginnt die Bestandsaufnahme neu (wie bei geändertem UIDVALIDITY; Dubletten erkennt die
-Episodenschicht). Verfällt der Stand der Delta-Abfrage bei Microsoft (410), beginnt sie neu; Bekanntes bleibt.
+Generation, und die Aufnahme beginnt die Bestandsaufnahme neu (wie bei geändertem UIDVALIDITY). Dieselbe Mail
+(gleiche Message-ID, gleicher Text, Absender, Betreff und Zeitpunkt) wird dabei mit der Quelle verknüpft, die die
+Aufnahme unter der früheren Generation desselben Ordners geholt hat, statt ein zweites Mal angelegt
+([`46-hintergrund.md`](46-hintergrund.md#neue-postfachkennung)). Verfällt der Stand der Delta-Abfrage bei Microsoft (410), beginnt sie neu; Bekanntes bleibt.
 
 **Drosselung durch Microsoft.** 429/503/504 mit `Retry-After`: Bis dahin geht keine Anfrage hinaus (Test); die
 Aufnahme vermerkt den Ordner und versucht es im nächsten Takt.

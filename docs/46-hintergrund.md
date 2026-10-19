@@ -195,6 +195,28 @@ darin enthalten und erscheint dann nicht doppelt.
 **Autostart** ist eine Frage im Assistenten, siehe
 [`09-einrichtung.md`](09-einrichtung.md#autostart).
 
+### Neue Postfachkennung
+
+Vergibt der Server die Nummern eines Ordners neu (UIDVALIDITY; bei Microsoft
+geht die Ablage der Nummern verloren), beginnt die Bestandsaufnahme von vorn.
+Früher legte sie dabei jede schon gespeicherte Mail ein zweites Mal an, und
+eine ausgeschlossene Mail kam zurück. Jetzt gleicht die Aufnahme vor dem
+Anlegen ab (`mail_ingestion._dieselbe_mail_im_konto`): gleiche Message-ID im
+selben Konto (über den kontogebundenen Kopfindex `episode_mail_headers`),
+gleiche Prüfsumme des Textes, dazu gleicher Absender, Betreff und Zeitpunkt.
+Trifft das auf eine Quelle zu, die die Aufnahme unter einer **früheren**
+Generation **desselben Ordners** geholt hat (`Intake._frueher_geholt`), zeigt
+der neue Eintrag auf diese Quelle (Status „schon bekannt“), statt eine zweite
+anzulegen; eine ausgeschlossene bleibt ausgeschlossen.
+
+Bewusst nicht verknüpft wird: gleiche Message-ID mit anderem Text, Absender
+oder Betreff (die Message-ID ist ein fremdes Kopffeld); eine Mail ohne
+Message-ID; dieselbe Mail in einem anderen Konto; und zwei Nachrichten
+derselben Generation (zwei UIDs, gleicher Inhalt). Diese bleiben zwei Quellen
+mit je eigenem Beleg, wie `test_mail_ingestion.py::test_mail_identity_and_versions_keep_independent_evidence`
+es festhält. Der regelmäßige Abruf ohne Aufnahme (`sync_account`) führt keine
+Generationen und verknüpft deshalb nicht.
+
 ## Prüfungen
 
 - `sidecar/tests/test_hintergrund.py`: Reihenfolge, erledigte Quellen, Ausgabe
@@ -205,6 +227,8 @@ darin enthalten und erscheint dann nicht doppelt.
 - `sidecar/tests/test_autostart.py`: plist-Inhalt, ohne Antwort keine Datei,
   Aus entfernt nur die eigene Datei, der ganze Weg vom Klick bis zur Datei.
 - `sidecar/tests/test_mail_intake.py::test_verlauf_von_neu_nach_alt`.
+- `sidecar/tests/test_mail_intake.py` (neue Postfachkennung, Gegenbeispiele) und
+  `sidecar/tests/test_neue_postfachkennung.py` (API gegen die IMAP-Attrappe).
 - `sidecar/tests/test_bestand_neueste_zuerst.py`: großes Postfach neueste
   zuerst, Fenster von oben nach unten, Abbruch und Neustart ohne Lücke und
   Doppelung, aufsteigend begonnene Aufnahme nach dem Update.
@@ -216,7 +240,9 @@ Sabotageproben (jeweils die Zusicherung gebrochen, die genannten Tests fielen):
 Reihenfolge nach Kennung statt nach Nutzen (4 Tests), Verlauf der Mailaufnahme
 wieder alt nach neu (1), Bestandsaufnahme wieder aufsteigend (3), Fenster unter
 die alte untere Grenze (2), Zeiger rückt bei gescheiterter Suche weiter (2),
-absteigender Zeiger nicht gespeichert (2), Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
+absteigender Zeiger nicht gespeichert (2), Abgleich bei neuer Postfachkennung
+abgeschaltet (3), Prüfsumme, Absender oder Betreff nicht verglichen (je 1),
+jede gleiche Mail im Konto oder dieselbe Generation als „früher“ (je 1), Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
 und Eingabe in der Middleware ignoriert (2), Anbieter ohne Ampel (1), plist ohne
 Antwort geschrieben (2).
 
