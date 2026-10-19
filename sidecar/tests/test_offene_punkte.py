@@ -94,3 +94,11 @@ def test_im_gespraech_ohne_modell_ohne_zitat_im_verlauf(api):
 ])
 def test_zielfrage_mit_handlungswort_ist_eine_frage(frage, weg):
     assert route(frage) == weg
+
+
+def test_ein_zitat_bleibt_eine_zeile_der_liste():
+    gesammelt = {'gesamt': 1, 'punkte': [{'text': 'Erste Zeile\nzweite Zeile', 'art': 'Zusage', 'richtung': 'an_mich',
+                                          'participants': ['Ben <ben@druck.example>'], 'sache_name': 'Ben',
+                                          'occurred_at': None, 'recorded_at': None, 'episode_id': 'e-1'}]}
+    text, _ = offene_punkte.als_text(gesammelt, 'wartet_auf')
+    assert '1. Ben, Zusage: „Erste Zeile zweite Zeile“ [Quelle 1]' in text.split('\n')

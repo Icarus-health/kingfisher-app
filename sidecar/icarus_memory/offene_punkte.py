@@ -104,7 +104,9 @@ def als_text(gesammelt: dict[str, Any], art: str) -> tuple[str, list[dict[str, A
     zeilen = [kopf]
     for nummer, punkt in enumerate(punkte, 1):
         wann = tag_text(punkt.get('occurred_at') or punkt.get('recorded_at'))
-        zeilen.append(f'{nummer}. {_wer(punkt)}{f" vom {wann}" if wann else ""}: „{punkt["text"]}“ [Quelle {nummer}]')
+        # Zeilenumbrüche des Originals würden die nummerierte Liste zerreißen: ein Zitat, eine Zeile.
+        zitat = ' '.join(str(punkt['text']).split())
+        zeilen.append(f'{nummer}. {_wer(punkt)}{f" vom {wann}" if wann else ""}: „{zitat}“ [Quelle {nummer}]')
         links.append({'episode_id': punkt['episode_id'], 'label': f'Quelle {nummer} öffnen', 'automatic_memory': True})
     if gesamt > len(punkte):
         zeilen.append(f'Die jüngsten {len(punkte)} von {gesamt}; die übrigen stehen in den Akten.')
