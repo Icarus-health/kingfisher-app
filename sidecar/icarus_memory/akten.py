@@ -1041,8 +1041,9 @@ class Akten:
                                        'zeitbezug': 'vergangen' if date.fromisoformat(f['datum']) < heute else 'kommend',
                                        'zustaendigkeit': 'ungeklaert', 'nur_quellenangabe': True})
         return {'kommend': zeigen(kommend), 'verstrichen': zeigen(verstrichen), 'ersetzt': zeigen(ersetzt),
-                'gesamt': {'kommend': len(kommend), 'verstrichen': len(verstrichen), 'ersetzt': len(ersetzt),
-                           'abgelegt': sum(1 for f in fristen if not f['ersetzt_durch']) - len(gueltig)},
+                'gesamt': {'kommend': len(kommend), 'verstrichen': len(verstrichen), 'ersetzt': len(ersetzt)},
+                # Fristen von Punkten, die der Nutzer als erledigt abgelegt hat (sie mahnen nicht mehr).
+                'abgelegt': sum(1 for f in fristen if not f['ersetzt_durch']) - len(gueltig),
                 'ohne_datum': {'eintraege': ohne_zeigen, 'gesamt': len(ohne)},
                 'quellenangaben': {'eintraege': quellen_zeigen, 'gesamt': len(quellenangaben or [])}}
 

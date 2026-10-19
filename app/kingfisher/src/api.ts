@@ -818,7 +818,7 @@ export type Akte = {
   verlauf: { eintraege: Array<{ episode_id: string; titel: string; datum: string; grundlagen: string[]; archiviert: boolean; art: string | null; text: string | null; gekuerzt: boolean; quelle_art: string }>; gesamt: number };
   offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
     erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null; ziel?: string; richtung?: AkteRichtung }>; gesamt: number } };
-  fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number; abgelegt?: number };
+  fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number }; abgelegt?: number;
     ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number };
     quellenangaben?: { eintraege: Array<AkteFrist & { einordnung: "fact" | "status" | "historical" | "uncertain";
       zeitbezug: "vergangen" | "kommend"; zustaendigkeit: "ungeklaert"; nur_quellenangabe: true }>; gesamt: number } };

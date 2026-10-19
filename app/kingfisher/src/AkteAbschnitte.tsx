@@ -377,7 +377,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
         <strong>{tag(e.datum)}</strong><small>{e.ausdruck ? `„${e.ausdruck}“ · ` : ""}{e.art} vom {datum(e)}</small><blockquote>{e.text}</blockquote><Quelle zeile={e} /></article>)}</details> : null}
       {f.ersetzt.length ? <details><summary>Überholt ({f.gesamt.ersetzt})</summary>{f.ersetzt.map((e, index) => <article key={`e${index}:${e.episode_id}:${e.datum}`}>
         <strong className="akte-alt">{tag(e.datum)}</strong><small>ersetzt durch {tag(e.ersetzt_durch?.datum)}{e.ersetzt_durch?.ausdruck ? ` („${e.ersetzt_durch.ausdruck}“)` : ""}</small><blockquote>{e.text}</blockquote><Quelle zeile={e} /></article>)}</details> : null}
-      {f.gesamt.abgelegt ? <p className="mappe-mehr">{f.gesamt.abgelegt === 1 ? "Eine Frist gehört" : `${f.gesamt.abgelegt} Fristen gehören`} zu Punkten, die du als erledigt abgelegt hast.</p> : null}
+      {f.abgelegt ? <p className="mappe-mehr">{f.abgelegt === 1 ? "Eine Frist gehört" : `${f.abgelegt} Fristen gehören`} zu Punkten, die du als erledigt abgelegt hast.</p> : null}
       {f.ohne_datum.gesamt ? <p className="mappe-mehr">Zeitangaben ohne festes Datum ({f.ohne_datum.gesamt}): {f.ohne_datum.eintraege.map(x => `„${x.ausdruck}“`).join(", ")}{f.ohne_datum.gesamt > f.ohne_datum.eintraege.length ? " …" : ""}</p> : null}
     </Teil> : null}
 

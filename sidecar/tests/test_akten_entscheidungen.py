@@ -115,7 +115,7 @@ def test_abgelegter_punkt_mahnt_keine_frist_mehr_an_auch_nicht_im_briefing(welt,
         Entscheidungen(episodes).setzen(eintrag['ziel'], 'erledigt')
     daten = akten.akte(PERSON, jetzt=JETZT, alle=True)
     assert daten['fristen']['kommend'] == [] and daten['fristen']['verstrichen'] == []
-    assert daten['fristen']['gesamt']['abgelegt'] == 2
+    assert daten['fristen']['abgelegt'] == 2
     assert aus_akte(daten, heute=JETZT.date(), eigene=[ICH]) == []
 
 
