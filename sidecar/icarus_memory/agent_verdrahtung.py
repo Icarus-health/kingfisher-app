@@ -12,6 +12,7 @@ Einordnung) die Rolle `hintergrund`, und die ist immer lokal.
 """
 from __future__ import annotations
 
+import logging
 import threading
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
@@ -27,6 +28,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from fastapi import FastAPI
 
     from .agent import Agent
+
+logger = logging.getLogger(__name__)
 
 
 def _project_directory(app: FastAPI):
@@ -120,6 +123,19 @@ def _search_calendar(app: FastAPI):
     return lesen
 
 
+def _offene_punkte(app: FastAPI, art: str):
+    """„Worauf warte ich?“ / „Was habe ich zugesagt?“ aus den Akten (`offene_punkte.py`); None ohne Akten."""
+    from .akten_routes import bausteine, nachfuehren
+    from .offene_punkte import sammeln
+    try:
+        nachfuehren(app)
+        bezuege, akten = bausteine(app)
+        return sammeln(akten, bezuege, art)
+    except Exception:  # noqa: BLE001 - ohne lesbare Akten gibt es diese Antwort nicht; der übliche Weg folgt
+        logger.exception('Offene Punkte konnten nicht gelesen werden')
+        return None
+
+
 def _projekt_mappe(app: FastAPI, project_id: str, *, alle: bool = False):
     """Ebene 2 der Projektmappe, für Profil und Gespräch dieselbe. None ohne Projekt."""
     from .mappe import einzelheiten
@@ -144,6 +160,7 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     app.state.episodes._working_project_name = lambda identifier: app.state.workspace.project(identifier).name
     agent._termine = _search_calendar(app)
     agent._mappe = lambda project_id: _projekt_mappe(app, project_id)
+    agent._offene_punkte = lambda art: _offene_punkte(app, art)
     agent._eigene = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
     agent._frage_anbieter = lambda: anbieter_fuer_frage(rollen_von(app))
     # Sätze an oder aus: dieselbe Stelle wie `Agent._saetze_an`; eine Änderung baut den Agenten neu.

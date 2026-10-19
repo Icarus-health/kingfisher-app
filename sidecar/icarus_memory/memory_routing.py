@@ -7,7 +7,7 @@ import re
 
 _MEMORY_QUESTION = re.compile(
     r'^(?:was (?:weißt du|wissen wir|hast du dir gemerkt|haben wir festgehalten) (?:über|zu)\b'
-    r'|welche (?:adresse|e-mail-adresse|mailadresse|telefonnummer|frist|entscheidung)\b'
+    r'|welche (?:adresse|e-mail-adresse|mailadresse|telefonnummer|fristen|frist|entscheidung)\b'
     r'|(?:was|wie) ist (?:der (?:aktuelle )?stand|es um)\b'
     r'|was steht (?:in (?:der|dem|den)|zu|über)\b'
     r'|wann (?:ist|war|findet|beginnt|endet)\b'
@@ -143,6 +143,11 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     previous = previous_context if isinstance(previous_context, dict) else {}
     if not new_question and is_working_followup(text, previous):
         return 'memory_followup'
+    # „Worauf warte ich noch?“, „Was muss ich noch schicken?“: die Akten, nie der freie Chat (auch wenn ein
+    # Handlungswort wie „schicken“ darin steht; gefragt ist nach dem Stand, nicht nach einer Handlung).
+    from .offene_punkte import art_der_frage
+    if art_der_frage(text):
+        return 'memory_evidence'
     delivery = _DELIVERY_QUESTION.fullmatch(text)
     # A question about somebody else's delivery is not an instruction to
     # send. Keep a second command in the same sentence on the action path.

@@ -3992,6 +3992,29 @@ def create_app(
                         value["content"], current['source_links'] = rendered
                     value["metadata"] = {**value["metadata"], "context": current}
                 elif (message.role == 'assistant' and isinstance(stored_context, dict)
+                        and 'offene_punkte_answer' in stored_context):
+                    # Wie die Mappe: beim Öffnen neu aus den Akten, höchstens fünf je Aufruf (dieselbe Grenze).
+                    stored = stored_context['offene_punkte_answer']
+                    neu_berechnet = mappen_neu < 5
+                    rendered = None
+                    if neu_berechnet:
+                        mappen_neu += 1
+                        rendered = app.state.agent.render_offene_punkte(stored)
+                    current = {k: v for k, v in stored_context.items() if k != 'offene_punkte_answer'}
+                    if isinstance(stored, dict):
+                        current['offene_punkte_answer'] = {k: stored.get(k) for k in ('version', 'kind', 'query')}
+                    if rendered is None:
+                        value["content"] = ("Die offenen Punkte sind gerade nicht lesbar." if neu_berechnet
+                                            else "Älterer Stand: Bitte erneut danach fragen.")
+                        current['source_links'] = []
+                        query = stored.get('query') if isinstance(stored, dict) else None
+                        if isinstance(query, str) and query.strip():
+                            current['original_question'] = query
+                            current['refresh_available'] = True
+                    else:
+                        value["content"], current['source_links'] = rendered
+                    value["metadata"] = {**value["metadata"], "context": current}
+                elif (message.role == 'assistant' and isinstance(stored_context, dict)
                         and 'meaning_choice' in stored_context):
                     from .bedeutungen import meaning_choice_current
                     if not meaning_choice_current(stored_context['meaning_choice'], app.state.episodes):

@@ -406,6 +406,12 @@ class ConversationStore:
             metadata = copy.deepcopy(metadata)
             metadata['context'].pop('source_links', None)
         elif (role == 'assistant' and isinstance(metadata, dict)
+                and isinstance(metadata.get('context'), dict) and 'offene_punkte_answer' in metadata['context']):
+            # Wie die Mappe: eine Ansicht der Akten, gespeichert wird nur die Frage, nie ein Zitat.
+            content = 'Offene Punkte; wird beim Öffnen neu aus den Akten zusammengestellt.'
+            metadata = copy.deepcopy(metadata)
+            metadata['context'].pop('source_links', None)
+        elif (role == 'assistant' and isinstance(metadata, dict)
                 and isinstance(metadata.get('context'), dict)
                 and ('source_answer' in metadata['context'] or 'working_answer' in metadata['context'])):
             from .source_answers import NEUTRAL as SOURCE_NEUTRAL
