@@ -204,11 +204,24 @@ def test_terminort_ist_ein_ortsbezug_ohne_modell(welt):
     bezuege.aktualisieren()
     daten = bezuege.bezuege_der_quelle(e.id)
     orte = {b['sache'] for b in daten['bezuege'] if b['art'] == 'ort'}
-    assert orte == {'ort:akademietaunus', 'ort:badhomburg'}
+    # „Akademie Taunus“ ist die Organisation der Teilnehmerin: kein zweiter, gleichnamiger Ort.
+    assert orte == {'ort:badhomburg'}
+    akademie = next(b for b in daten['bezuege'] if b['sache'] == 'organisation:akademietaunus')
+    assert akademie['grundlagen'] == ['anker'] and 'terminort' in akademie['rollen']
+    assert bezuege.zitat(e.id, akademie['stellen'][0]['start'], akademie['stellen'][0]['ende']) == 'Akademie Taunus'
     assert all(b['grundlagen'] == ['anker'] for b in daten['bezuege'] if b['art'] == 'ort')
     stelle_ = next(b for b in daten['bezuege'] if b['sache'] == 'ort:badhomburg')['stellen'][0]
     assert bezuege.zitat(e.id, stelle_['start'], stelle_['ende']) == 'Bad Homburg'
     assert bezuege.beschriftung('ort:badhomburg') == 'Bad Homburg'
+
+
+def test_terminort_ohne_gleichnamige_organisation_bleibt_ein_ort(welt):
+    episodes, _, bezuege = welt
+    e = quelle(episodes, 'Forum', 'Termin: Forum\nOrt: Haus der Verbände, Frankfurt',
+               art=EpisodeKind.EVENT, teilnehmer=['Miriam <miriam@kessler-diaet.example>'])
+    bezuege.aktualisieren()
+    sachen_ = {b['sache'] for b in bezuege.bezuege_der_quelle(e.id)['bezuege']}
+    assert {'ort:hausderverbände', 'ort:frankfurt', 'organisation:kesslerdiaet'} <= sachen_
 
 
 def test_orte_im_termin_regeln():
@@ -375,6 +388,41 @@ def test_zuordnung_des_nutzers_veraltet_mit_der_quelle(welt):
     stand = bezuege.aktualisieren()
     assert stand['berechnet'] == 1 and stand['offen'] == 0
     assert 'person:a:cem@druck.example' in sachen(bezuege)
+
+
+def test_entscheidung_des_nutzers_ueberlebt_projektzuordnung_und_archiv(welt):
+    episodes, workspace, bezuege = welt
+    # Wie eine aufgenommene Mail: mit Quellenschlüssel und damit mit Quellenangaben-Digest.
+    e, _ = episodes.record(EpisodeKind.MESSAGE, 'Notiz', 'Text zum Thema', Provenance(SourceType.EMAIL, source_ref='m:1'),
+                           participants=['Ben <ben@druck.example>'], occurred_at=JETZT, source_key='mail:test:1')
+    episodes.advance_source_head('mail:test:1', None, e.id)
+    bezuege.aktualisieren()
+    bezuege.nutzer_setzen(e.id, 'person:a:ben@druck.example', 'nicht')
+    bezuege.nutzer_setzen(e.id, 'thema:finance', 'zu')
+    assert 'person:a:ben@druck.example' not in sachen(bezuege) and 'thema:finance' in sachen(bezuege)
+    # Eine Projektzuordnung ist Ablage, keine neue Fassung: Beide Entscheidungen bleiben.
+    projekt = workspace.add_project('Atlas', Provenance(SourceType.USER_STATED))
+    episodes.link_project(e.id, projekt.id)
+    bezuege.aktualisieren()
+    assert 'person:a:ben@druck.example' not in sachen(bezuege) and 'thema:finance' in sachen(bezuege)
+    daten = bezuege.bezuege_der_quelle(e.id)
+    assert daten['veraltet'] == [] and daten['abgelehnt'] == [{'sache': 'person:a:ben@druck.example', 'art': 'person'}]
+    # Auch die Akte der Person bleibt ohne diese Quelle.
+    assert bezuege.quellen_von('person:a:ben@druck.example') == []
+    assert [q['episode_id'] for q in bezuege.quellen_von('thema:finance')] == [e.id]
+    # Verdichten und Archivieren sind ebenso Ablage.
+    episodes.mark_consolidated(e.id)
+    assert episodes.archive_before(JETZT + timedelta(days=1)) == 1
+    bezuege.aktualisieren()
+    assert bezuege.bezuege_der_quelle(e.id)['veraltet'] == []
+    assert bezuege.quellen_von('person:a:ben@druck.example') == []
+    # Nachgetragene Kontakte bleiben eine Änderung an der Quelle: Dann fragt die Ablage neu.
+    episodes.add_contacts(e.id, [{'name': 'Ben', 'adresse': 'ben@druck.example', 'rolle': 'von', 'ich': False},
+                                 {'name': 'Cem', 'adresse': 'cem@druck.example', 'rolle': 'an', 'ich': False}],
+                          ['Ben <ben@druck.example>', 'Cem <cem@druck.example>'])
+    bezuege.aktualisieren()
+    assert {v['sache'] for v in bezuege.bezuege_der_quelle(e.id)['veraltet']} == {
+        'person:a:ben@druck.example', 'thema:finance'}
 
 
 def test_themenkorrektur_des_nutzers_hat_die_grundlage_nutzer(welt):

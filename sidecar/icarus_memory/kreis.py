@@ -230,10 +230,10 @@ _ICH_SQL = ("EXISTS (SELECT 1 FROM json_each(e.document, '$.contacts') c WHERE j
 
 def _zeilen(bezuege: Any, sache: str | None) -> list[Any]:
     """Je Quelle mit Adressbezug einer Person: Sache, Quelle, Art, Zeit, Rolle der Person, Absender der Quelle."""
-    from .bezuege import FINGERABDRUCK, GUELTIG, GUELTIG_PARAMS
+    from .bezuege import GUELTIG, GUELTIG_PARAMS, NUTZER_GILT
     bedingung = 'b.sache = ?' if sache else "b.sache LIKE 'person:a:%'"
     abgelehnt = ("NOT EXISTS (SELECT 1 FROM sach_nutzer u WHERE u.episode_id = b.episode_id AND u.sache = b.sache "
-                 "AND u.aktion = 'nicht' AND u.fingerprint = " + FINGERABDRUCK + ")")
+                 "AND u.aktion = 'nicht' AND " + NUTZER_GILT + ")")
     with bezuege.episodes._lock:
         return bezuege.episodes._conn.execute(
             "SELECT b.sache AS sache, e.id AS id, e.kind AS kind, COALESCE(e.occurred_at, e.recorded_at) AS zeit, "
