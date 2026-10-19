@@ -39,6 +39,7 @@ class _ScopedProvider:
     """Count each request and recheck consent, source, and OAuth grant at send time."""
     is_local = False
     is_remote = True
+    category_evidence_repair = True
 
     def __init__(self, provider, policy, before_request):
         self._provider = provider
@@ -123,11 +124,11 @@ class CloudMemoryJobs:
 
     @staticmethod
     def _planned_requests(episode):
-        """Count bounded classification and quote stages without calling a model."""
+        """Reserve classification and quote calls, including one anchor correction per quote section."""
         try:
             classifications = len(abschnitte_der(episode))
             categories = len(_quote_sections(episode.body, _remote_fragments(episode.body, _blocks(episode.body))))
-            return classifications + categories
+            return classifications + 2 * categories
         except UnsupportedSource:
             # The normal source validator reports unsupported originals; no
             # request limit is enlarged merely for an unprocessable source.

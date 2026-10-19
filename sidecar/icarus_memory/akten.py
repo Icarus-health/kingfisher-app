@@ -21,7 +21,9 @@ Abschnitte:
 * **Fristen**: ausdrücklich als Frist gebundene Datumsangaben in Bitten, Zusagen und Änderungen (`fristen.py`),
   kommend und verstrichen, jede mit Textstelle. Eine Frist, die eine spätere
   Quelle für denselben Gegenstand verschiebt, steht unter „ersetzt“ und nennt die
-  neue.
+  neue. Ausdrückliche Fristen aus Angaben, Status, früheren oder unklar
+  eingeordneten Absätzen stehen separat unter „Quellenangaben“; sie belegen
+  keine eigene Aufgabe oder bestätigte Zuständigkeit.
 * **Stand**: je Gegenstand die jüngste Änderung oder Statusmeldung; ältere nur
   als „vorher“. Aktualität schlägt Ähnlichkeit: Die Reihenfolge entscheidet die
   Zeit der Quelle, nicht die Nähe zu einer Frage.
@@ -66,7 +68,7 @@ from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 
-AKTEN_VERSION = 7
+AKTEN_VERSION = 9
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -78,6 +80,8 @@ OFFEN_ARTEN = ('request', 'commitment')
 FRIST_ARTEN = ('request', 'commitment', 'conditional', 'change')
 #: Auch eine Angabe („Einreichfrist ist der 15. Oktober“) nennt Fristen, zählt aber nur, wenn sie überholt ist.
 FAKT_ARTEN = ('fact', 'status', 'historical', 'uncertain')
+QUELLENFRIST_ARTEN = {'fact': 'Angabe', 'status': 'Statusmeldung', 'historical': 'Frühere Nachricht',
+                     'uncertain': 'Unklare Einordnung'}
 STAND_ARTEN = ('change', 'status')
 VERLAUF_ARTEN = ('request', 'commitment', 'conditional', 'change', 'status', 'fact')
 #: Welche Art einer Quelle die Verlaufszeile stellt, wichtigste zuerst.
@@ -199,9 +203,11 @@ def _wissensstand(claims: Any) -> str:
 # -- Berechnung (ohne Uhrzeit) -----------------------------------------------
 
 
-def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any) -> tuple[list[Abschnitt], bool]:
+def _abschnitte_lesen(ids: list[str], store: WorkingMemoryStore, claims: Any,
+                      *, arten: Iterable[str] = VERLAUF_ARTEN,
+                      include_archived: bool = False) -> tuple[list[Abschnitt], bool]:
     """Alle gültigen Abschnitte der Quellen mit Text, Wortstämmen und aufgelösten Daten."""
-    gefunden = store.items_all(ids, VERLAUF_ARTEN, limit=MAX_ABSCHNITTE)
+    gefunden = store.items_all(ids, arten, limit=MAX_ABSCHNITTE, include_archived=include_archived)
     ergebnis: list[Abschnitt] = []
     for ref in gefunden['refs']:
         gelesen = mappe.lesen(store, ref, claims)
@@ -409,6 +415,25 @@ def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
     return alle, ohne
 
 
+def _quellenfristen(abschnitte: list[Abschnitt]) -> list[dict]:
+    """Explicit source cutoffs, without inferring validity, ownership or tasks.
+
+    This channel does not participate in action deadlines, supersession, open
+    items, current state or briefing selection. The full original quote retains
+    qualifications such as uncertainty, a reservation or a cancellation.
+    """
+    ergebnis = []
+    for a in sorted(abschnitte, key=lambda a: a.zeit, reverse=True):
+        if a.art not in FAKT_ARTEN:
+            continue
+        for f in fristangaben_in(a.text, a.bezug).fristen:
+            if not _FRISTWORT.search(_umfeld(a.text, f.start, f.ende)):
+                continue
+            ergebnis.append({'ref': _ref(a), 'start': f.start, 'ende': f.ende,
+                             'datum': f.datum.isoformat(), 'art': f.art})
+    return ergebnis
+
+
 def _stand(abschnitte: list[Abschnitt]) -> list[dict]:
     """Je Gegenstand die jüngste Änderung oder Statusmeldung; ältere gleichen Gegenstands als „vorher“."""
     gruppen: list[dict[str, Any]] = []
@@ -512,16 +537,23 @@ class Akten:
         claims = _MerkeFrei(self.claims) if self.claims is not None else None
         abschnitte, abgeschnitten = _abschnitte_lesen(ids, self.store, claims)
         abschnitte = _personen_abschnitte(sache, genutzt, abschnitte)
+        # Read uncertain/history only for source-cutoff evidence. They must not
+        # be introduced into the existing timeline, open items or current state.
+        quellenabschnitte, quellen_abgeschnitten = _abschnitte_lesen(
+            ids, self.store, claims, arten=FAKT_ARTEN, include_archived=True)
+        quellenabschnitte = _personen_abschnitte(sache, genutzt, quellenabschnitte)
         offen, erledigt = _offen(abschnitte)
         fristen, ohne_datum = _fristen(abschnitte)
         gemeinsam = self.bezuege.gemeinsame(sache, ids)
         rang = sorted(gemeinsam.items(), key=lambda p: (-p[1], p[0]))
         return {
             'version': AKTEN_VERSION,
-            'gesamt': len(quellen), 'beruecksichtigt': len(genutzt), 'abschnitte_abgeschnitten': abgeschnitten,
+            'gesamt': len(quellen), 'beruecksichtigt': len(genutzt),
+            'abschnitte_abgeschnitten': abgeschnitten or quellen_abgeschnitten,
             'archiviert': sum(1 for q in quellen if q['archiviert']),
             'verlauf': _verlauf(genutzt, abschnitte),
             'offen': offen, 'erledigt': erledigt, 'fristen': fristen, 'ohne_datum': ohne_datum,
+            'quellenfristen': _quellenfristen(quellenabschnitte),
             'stand': _stand(abschnitte),
             'beteiligte': {'gesamt': len(rang), 'eintraege': [{'sache': s, 'anzahl': n} for s, n in rang[:40]]},
             'termine': _termine(genutzt, abschnitte),
@@ -589,7 +621,8 @@ class Akten:
         }
         daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
         daten['offen'] = self._offen_zeigen(offen, erledigt, offene_aufgaben, leser, lang)
-        daten['fristen'] = self._fristen_zeigen(roh['fristen'], roh['ohne_datum'], leser, jetzt, lang)
+        daten['fristen'] = self._fristen_zeigen(roh['fristen'], roh['ohne_datum'], leser, jetzt, lang,
+                                                quellenangaben=roh.get('quellenfristen', []))
         daten['stand_der_dinge'] = self._stand_zeigen(roh['stand'], leser, kurz)
         daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang)
         daten['termine'] = self._termine_zeigen(roh['termine'], jetzt, kurz, leser)
@@ -669,7 +702,7 @@ class Akten:
                 'erledigt': {'eintraege': zeigen(erledigt, erledigt_bauen), 'gesamt': len(erledigt)}}
 
     def _fristen_zeigen(self, fristen: list[dict], ohne: list[dict], leser: '_Leser', jetzt: datetime,
-                        anzahl: int) -> dict[str, Any]:
+                        anzahl: int, *, quellenangaben: list[dict] | None = None) -> dict[str, Any]:
         heute = jetzt.astimezone(_zone()).date() if jetzt.tzinfo else jetzt.date()
 
         def bauen(f: dict) -> dict | None:
@@ -709,9 +742,20 @@ class Akten:
             if voll and zeile:
                 ohne_zeigen.append({'ausdruck': voll[eintrag['start']:eintrag['ende']].strip(),
                                     'episode_id': zeile['episode_id'], 'titel': zeile['titel']})
+        quellen_zeigen = []
+        for f in (quellenangaben or [])[:anzahl]:
+            zeile = bauen(f)
+            voll = leser.voll(f['ref'])
+            if zeile and voll is not None:
+                einordnung = f['ref']['kind']
+                quellen_zeigen.append({**zeile, 'text': voll, 'gekuerzt': False,
+                                       'art': QUELLENFRIST_ARTEN[einordnung], 'einordnung': einordnung,
+                                       'zeitbezug': 'vergangen' if date.fromisoformat(f['datum']) < heute else 'kommend',
+                                       'zustaendigkeit': 'ungeklaert', 'nur_quellenangabe': True})
         return {'kommend': zeigen(kommend), 'verstrichen': zeigen(verstrichen), 'ersetzt': zeigen(ersetzt),
                 'gesamt': {'kommend': len(kommend), 'verstrichen': len(verstrichen), 'ersetzt': len(ersetzt)},
-                'ohne_datum': {'eintraege': ohne_zeigen, 'gesamt': len(ohne)}}
+                'ohne_datum': {'eintraege': ohne_zeigen, 'gesamt': len(ohne)},
+                'quellenangaben': {'eintraege': quellen_zeigen, 'gesamt': len(quellenangaben or [])}}
 
     def _stand_zeigen(self, stand: list[dict], leser: '_Leser', anzahl: int) -> dict[str, Any]:
         gegenstaende = []

@@ -676,18 +676,23 @@ class WorkingMemoryStore:
                 for row in rows[offset:offset + limit]]
         return {"refs": refs, "total": total, "archived": archived}
 
-    def items_all(self, episode_ids: Sequence[str], kinds: Sequence[str], *, limit: int = 5000) -> dict[str, Any]:
+    def items_all(self, episode_ids: Sequence[str], kinds: Sequence[str], *, limit: int = 5000,
+                  include_archived: bool = False) -> dict[str, Any]:
         """Alle eingeordneten Abschnitte dieser Quellen in einem Durchgang, neueste Quelle zuerst.
 
         Wie :meth:`items_for` (gleiche Bedingungen), aber ohne Seiten: Die Akte
         einer Sache braucht jeden Abschnitt, um Erledigtes und Überholtes zu
         erkennen. `truncated` sagt, ob `limit` erreicht wurde; die Verweise
         sind dann die jüngsten. Aufrufer prüfen jede Referenz mit :meth:`resolve`.
+        Nur ausdrücklich angeforderte historische Quellenbelege dürfen mit
+        `include_archived` auch archivierte Originale lesen. Entzug, aktuelle
+        Fassung, Elternquelle und alle übrigen Belegsperren gelten weiter.
         """
         wanted = [kind for kind in kinds if kind in KINDS]
         ids = list(dict.fromkeys(value for value in episode_ids if isinstance(value, str)))
         if not wanted or not ids or type(limit) is not int or limit < 1:
             return {"refs": [], "truncated": False}
+        eligible = sql_geltend('e') if include_archived else sql_sichtbar('e')
         rows: list[Any] = []
         with self.episodes._lock:
             for start in range(0, len(ids), 500):
@@ -697,7 +702,7 @@ class WorkingMemoryStore:
                     "julianday(COALESCE(e.occurred_at,e.recorded_at)) AS moment "
                     "FROM working_memory_items i JOIN working_memory_sources s ON s.episode_id=i.episode_id "
                     "JOIN episodes e ON e.id=i.episode_id WHERE s.status='complete' "
-                    f"AND s.fingerprint=i.fingerprint AND {sql_sichtbar('e')} "
+                    f"AND s.fingerprint=i.fingerprint AND {eligible} "
                     f"AND {sql_aktuelle_fassung('e')} "
                     "AND NOT EXISTS (SELECT 1 FROM json_each(e.document, '$.tags') AS tag WHERE tag.value = ?) "
                     "AND NOT EXISTS (SELECT 1 FROM episode_produced_assertions p WHERE p.episode_id = e.id) "
