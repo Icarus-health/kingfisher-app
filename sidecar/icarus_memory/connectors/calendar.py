@@ -164,37 +164,70 @@ def _text_aus_ical(wert: str) -> str:
     return re.sub(r"\\([nN,;\\])", lambda m: "\n" if m.group(1) in "nN" else m.group(1), wert).strip()
 
 
-def parse_events(ical: str) -> list[Event]:
-    """Zieht VEVENT-Blöcke aus iCalendar-Text."""
-    events = []
+@dataclass
+class _Komponente:
+    """Ein VEVENT, in Eigenschaften zerlegt."""
+
+    felder: dict[str, tuple[str, dict[str, str]]]
+    """Je Eigenschaft das erste Vorkommen: Wert und Parameter."""
+    teilnehmer: list[str]
+
+    def wert(self, name: str, vorgabe: str = "") -> str:
+        return self.felder.get(name, (vorgabe, {}))[0]
+
+    @property
+    def abgesagt(self) -> bool:
+        return self.wert("STATUS").strip().upper() == "CANCELLED"
+
+
+def _komponenten(ical: str) -> list[_Komponente]:
+    """Die VEVENTs des Textes. Zeilen eingebetteter Komponenten (Erinnerungen, VALARM) gehören nicht dazu."""
+    ergebnis = []
     for block in re.findall(r"BEGIN:VEVENT(.*?)END:VEVENT", _unfold(ical), re.DOTALL):
-        fields: dict[str, tuple[str, str]] = {}
-        attendees = []
+        felder: dict[str, tuple[str, dict[str, str]]] = {}
+        teilnehmer: list[str] = []
+        tiefe = 0
         for line in block.strip().splitlines():
             zerlegt = _zeile(line)
             if zerlegt is None:
                 continue
             name, params, value = zerlegt
-            if name == "ATTENDEE":
+            if name in ("BEGIN", "END"):
+                tiefe = tiefe + 1 if name == "BEGIN" else max(0, tiefe - 1)
+            elif tiefe:
+                continue
+            elif name == "ATTENDEE":
                 adresse = re.sub(r"(?i)^mailto:", "", value)
                 anzeige = params.get("CN", "").strip()
-                attendees.append(f"{anzeige} <{adresse}>" if anzeige and anzeige != adresse else adresse)
+                teilnehmer.append(f"{anzeige} <{adresse}>" if anzeige and anzeige != adresse else adresse)
             else:
-                fields[name] = (value, params)
+                felder.setdefault(name, (value, params))
+        ergebnis.append(_Komponente(felder, teilnehmer))
+    return ergebnis
 
-        start, all_day = _parse_dt(*fields["DTSTART"]) if "DTSTART" in fields else (None, False)
-        end, _ = _parse_dt(*fields["DTEND"]) if "DTEND" in fields else (None, False)
 
+def parse_events(ical: str) -> list[Event]:
+    """Zieht die Termine aus iCalendar-Text.
+
+    Abgesagte Termine (`STATUS:CANCELLED`) fehlen, wie bei Google und Microsoft:
+    Für das Gedächtnis ist eine Absage damit eine entzogene Quelle.
+    """
+    events = []
+    for termin in _komponenten(ical):
+        if termin.abgesagt:
+            continue
+        start, all_day = _parse_dt(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else (None, False)
+        end, _ = _parse_dt(*termin.felder["DTEND"]) if "DTEND" in termin.felder else (None, False)
         events.append(Event(
-            uid=fields.get("UID", (str(uuid.uuid4()), ""))[0],
-            summary=_text_aus_ical(fields.get("SUMMARY", ("(ohne Titel)", ""))[0]),
+            uid=termin.wert("UID") or str(uuid.uuid4()),
+            summary=_text_aus_ical(termin.wert("SUMMARY", "(ohne Titel)")),
             start=start,
             end=end,
-            location=_text_aus_ical(fields.get("LOCATION", ("", ""))[0]),
-            attendees=attendees,
+            location=_text_aus_ical(termin.wert("LOCATION")),
+            attendees=termin.teilnehmer,
             all_day=all_day,
-            notes=_text_aus_ical(fields.get("DESCRIPTION", ("", ""))[0]),
-            external_uid=fields.get("UID", ("", ""))[0],
+            notes=_text_aus_ical(termin.wert("DESCRIPTION")),
+            external_uid=termin.wert("UID"),
         ))
     return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
 

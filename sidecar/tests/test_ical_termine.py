@@ -107,3 +107,49 @@ def test_doppelpunkt_und_semikolon_in_anfuehrungszeichen_gehoeren_zum_parameter(
     (termin,) = parse_events(ics(['UID:q', 'SUMMARY:Runde', 'DTSTART:20261020T090000Z',
                                   'ATTENDEE;CN="Keller: Anna; Büro";RSVP=TRUE:mailto:anna@x.example']))
     assert termin.attendees == ['Keller: Anna; Büro <anna@x.example>']
+
+
+# -- Absagen und Erinnerungen ----------------------------------------------------
+
+
+@pytest.fixture
+def gedaechtnis(tmp_path):
+    from icarus_memory.calendar_memory import KalenderGedaechtnis
+    from icarus_memory.claims import ClaimStore
+    from icarus_memory.episodes import EpisodeStore
+    episodes, claims = EpisodeStore(tmp_path / 'episodes.sqlite3'), ClaimStore(tmp_path / 'knowledge.sqlite3')
+    yield KalenderGedaechtnis(episodes, claims)
+    episodes.close()
+    claims.close()
+
+
+def test_abgesagter_termin_wird_nicht_uebernommen():
+    termine = parse_events(ics(
+        ['UID:a', 'SUMMARY:Abgesagt', 'STATUS:CANCELLED', 'DTSTART:20261020T090000Z', 'DTEND:20261020T100000Z'],
+        ['UID:b', 'SUMMARY:Klein geschrieben', 'STATUS:cancelled', 'DTSTART:20261021T090000Z'],
+        ['UID:c', 'SUMMARY:Bestätigt', 'STATUS:CONFIRMED', 'DTSTART:20261022T090000Z', 'DTEND:20261022T100000Z'],
+        ['UID:d', 'SUMMARY:Vorläufig', 'STATUS:TENTATIVE', 'DTSTART:20261023T090000Z', 'DTEND:20261023T100000Z']))
+    assert [t.summary for t in termine] == ['Bestätigt', 'Vorläufig']
+
+
+def test_abgesagter_termin_wird_im_gedaechtnis_entzogen(gedaechtnis):
+    """Wie bei Google und Microsoft: Eine Absage ist für das Gedächtnis eine entzogene Quelle."""
+    von, bis = utc(2026, 10, 1), utc(2026, 12, 30)
+    runde = ['UID:runde', 'SUMMARY:Runde', 'DTSTART:20261020T090000Z', 'DTEND:20261020T100000Z']
+    andere = ['UID:andere', 'SUMMARY:Andere', 'DTSTART:20261021T090000Z', 'DTEND:20261021T100000Z']
+    assert gedaechtnis.abgleichen('abo', 'Abo', parse_events(ics(runde, andere)), von, bis).neu == 2
+    ergebnis = gedaechtnis.abgleichen('abo', 'Abo', parse_events(ics(runde + ['STATUS:CANCELLED'], andere)), von, bis)
+    assert (ergebnis.entzogen, ergebnis.unveraendert) == (1, 1)
+    assert gedaechtnis.anzahl('abo') == 1
+
+
+def test_erinnerung_ueberschreibt_titel_und_notiz_nicht():
+    """Google schreibt in jede Erinnerung (VALARM) „This is an event reminder“; das ist nicht die Notiz des Termins."""
+    (termin,) = parse_events(ics(['UID:e', 'SUMMARY:Jour fixe', 'DESCRIPTION:Agenda', 'DTSTART:20261020T090000Z',
+                                  'BEGIN:VALARM', 'ACTION:EMAIL', 'SUMMARY:Erinnerung',
+                                  'DESCRIPTION:This is an event reminder', 'TRIGGER:-P0DT0H30M0S',
+                                  'ATTENDEE:mailto:ich@x.example', 'END:VALARM']))
+    assert (termin.summary, termin.notes, termin.attendees) == ('Jour fixe', 'Agenda', [])
+    (ohne_notiz,) = parse_events(ics(['UID:o', 'DTSTART:20261020T090000Z', 'BEGIN:VALARM', 'ACTION:DISPLAY',
+                                      'DESCRIPTION:This is an event reminder', 'END:VALARM', 'SUMMARY:Danach']))
+    assert (ohne_notiz.summary, ohne_notiz.notes) == ('Danach', '')
