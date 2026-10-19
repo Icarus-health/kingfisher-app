@@ -156,6 +156,19 @@ def test_invitations_with_a_time_are_not_cutoff_instructions(welt, akten, text):
 
 
 @pytest.mark.parametrize('text', [
+    'Die Frist für den Jahresbericht ist vorbei und der Workshop ist am 16. April 2030.',
+    'Die Frist für den Jahresbericht betrifft den Workshop am 16. April 2030.',
+    'Die Frist für den Workshop am 16. April 2030 wird noch geklärt.',
+])
+def test_named_deadline_subject_does_not_donate_its_role_to_an_event(welt, akten, text):
+    source(welt[0], text)
+    profile = neu_rechnen(akten).akte(PERSON, jetzt=NOW)
+    assert profile['fristen']['gesamt'] == {'kommend': 0, 'verstrichen': 0, 'ersetzt': 0}
+    assert profile['fristen']['ohne_datum']['gesamt'] == 0
+    assert [item.datum for item in fristen_in(text, REFERENCE).fristen] == [date(2030, 4, 16)]
+
+
+@pytest.mark.parametrize('text', [
     'Die Tagung ist Ende Oktober. Bitte Manuskriptabgabe Ende Oktober.',
     'Die Tagung ist Ende Oktober und die Manuskriptabgabe ist bis Ende Oktober.',
 ])
@@ -207,6 +220,9 @@ def test_imprecise_deadline_stays_verbatim_while_event_date_is_not_a_deadline(we
     ('request', 'Die Fälligkeit ist am 09. April 2030.', '2030-04-09'),
     ('request', 'Bitte antworten Sie am Montag.', '2030-03-04'),
     ('request', 'Bitte senden Sie am Montag die Unterlagen.', '2030-03-04'),
+    ('request', 'Die Frist für den Jahresbericht ist der 09. April 2030.', '2030-04-09'),
+    ('request', 'Die Frist für die Steuererklärung ist der 09. April 2030.', '2030-04-09'),
+    ('change', 'Die Frist für den Jahresbericht wird auf den 09. April 2030 verschoben.', '2030-04-09'),
 ])
 def test_explicit_request_commitment_and_changed_deadlines_remain_available(welt, akten, kind, text, expected):
     source(welt[0], text, kind=kind)

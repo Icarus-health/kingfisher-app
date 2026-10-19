@@ -81,6 +81,10 @@ _FRISTNAME = re.compile(
 _FRIST_LINK = re.compile(
     r'(?:\s|[:=–-]|\b(?:ist|sind|der|die|das|den|dem|am|zum|auf|bis|nun|jetzt|'
     r'neue?|wurde|wird|endet|erfolgt|gilt|verschoben|verlängert|festgelegt|verschiebt|sich)\b)*', re.I)
+_FRIST_GEGENSTAND_LINK = re.compile(
+    r'\s+(?i:für)\s+(?:(?i:den|die|das)\s+)?'
+    r'[A-ZÄÖÜ][a-zäöüß]*(?:-[A-ZÄÖÜ]?[a-zäöüß]+)*'
+    r'(?P<link>\s+(?i:ist|sind|wird|wurde|gilt|endet)\b.*)')
 _ZEITRAUM_ANFANG = re.compile(r'\b(?:von|vom|ab|zwischen)\s*$', re.I)
 _ZEITRAUM_LINK = re.compile(r'\s*(?:bis(?:\s+zum)?|und|[–-])\s*', re.I)
 _ZEITRAUM_KURZ = re.compile(r'\b(?:von|vom|ab)\s+\d{1,2}\.\s*$', re.I)
@@ -108,6 +112,19 @@ _ZUSTELLUNG_VOR = re.compile(
     r'\b(?:\w*erklärung|unterlagen|dokumente?|muster|rechnung|daten|bericht)\s+komm(?:t|en)\s*$', re.I)
 _FERTIG_NACH = re.compile(r'^\s*(?:fertig|einzureichen|abzugeben|erledigt)\b', re.I)
 _FRIST_FORTSETZUNG = re.compile(r'\s*,\s*spätestens\s*(?:(?:am|zum)\s+)?', re.I)
+
+
+def _frist_link(text: str) -> bool:
+    """A plain date link, or one explicit "für <noun> ist/wird ..." subject.
+
+    The noun is followed immediately by a finite date predicate and the same
+    restricted date-link grammar. No free words, extra clauses or event context
+    can be inserted to donate a distant deadline noun to an unrelated date.
+    """
+    if _FRIST_LINK.fullmatch(text):
+        return True
+    gegenstand = _FRIST_GEGENSTAND_LINK.fullmatch(text)
+    return bool(gegenstand and _FRIST_LINK.fullmatch(gegenstand['link']))
 
 
 @dataclass(frozen=True)
@@ -327,10 +344,10 @@ def fristangaben_in(text: str, bezug: datetime | date | None) -> Fristensuche:
                 return True
         if _ANTWORT_ABGABE_VOR.search(vor):
             return True
-        return (any(_FRIST_LINK.fullmatch(vor[m.end():]) for m in _FRISTNAME.finditer(vor))
+        return (any(_frist_link(vor[m.end():]) for m in _FRISTNAME.finditer(vor))
                 or any(_FRIST_LINK.fullmatch(nach[:m.start()])
                        and not (nachher and rechts == nachher[0]
-                                and _FRIST_LINK.fullmatch(nach[m.end():]))
+                                and _frist_link(nach[m.end():]))
                        for m in _FRISTNAME.finditer(nach)))
 
     for nummer, angabe in enumerate(angaben):
