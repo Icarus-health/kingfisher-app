@@ -406,6 +406,10 @@ class _Sitzung:
 class MailConnector:
     """Liest Nachrichten und versendet sie — Versand nur über die Freigabe."""
 
+    #: Die Bestandsaufnahme kann von oben nach unten gehen (`inventory_page(…, absteigend=True)`): Die Aufnahme
+    #: erfasst so die neuesten Mails zuerst. Leser ohne diese Angabe (Microsoft, Attrappen) bleiben aufsteigend.
+    bestand_neueste_zuerst = True
+
     def __init__(self, config: MailConfig) -> None:
         self._config = config
         self._context: ssl.SSLContext | None = None
@@ -537,7 +541,7 @@ class MailConnector:
 
     def inventory_page(
         self, folder: str, after_uid: int = 0, before_uid: int | None = None,
-        limit: int = 100, *, uidvalidity: str | None = None,
+        limit: int = 100, *, uidvalidity: str | None = None, absteigend: bool = False,
     ) -> dict[str, Any]:
         """Ein begrenztes UID-Fenster für eine fortsetzbare Bestandsaufnahme.
 
@@ -549,6 +553,15 @@ class MailConnector:
         Seite darf der Aufrufer sie speichern; `done` richtet sich nach der
         Scan-Grenze. Bei Fortsetzungen kann `uidvalidity` eine alte Generation
         vor jeder Suche zurückweisen.
+
+        `absteigend=True`: Neueste zuerst. Offen ist der Bereich (`after_uid`,
+        obere Grenze]; das Fenster liegt an seinem oberen Ende, also
+        (max(`after_uid`, obere Grenze − `limit`), obere Grenze]. Dessen untere
+        Grenze kommt als `next_before_uid` zurück und ist die obere Grenze des
+        nächsten Aufrufs; `next_uid` bleibt `after_uid`. `done`, sobald sie
+        `after_uid` erreicht. So bleibt eine aufsteigend begonnene
+        Bestandsaufnahme (unten bis `after_uid` erfasst) ohne Lücke und ohne
+        Doppelung fortsetzbar.
         """
         selected_folder = _folder_argument(folder)
         if type(after_uid) is not int:
@@ -561,6 +574,8 @@ class MailConnector:
         if uidvalidity is not None and (not isinstance(uidvalidity, str) or not uidvalidity.isascii()
                                        or not uidvalidity.isdigit() or not 0 < int(uidvalidity) <= MAX_UID):
             raise ValueError("Ungültige Postfachgeneration.")
+        if type(absteigend) is not bool:
+            raise ValueError("Ungültige Richtung der Bestandsaufnahme.")
         def lesen(imap, waehle):
             # Frisch wählen: UIDNEXT muss den heutigen Stand zeigen, nicht den der Sitzung.
             if waehle(selected_folder, True) != "OK":
@@ -571,20 +586,28 @@ class MailConnector:
             upper = _mailbox_number(imap, "UIDNEXT", MAX_UID + 1) - 1
             if before_uid is not None:
                 upper = min(upper, before_uid)
-            next_uid = min(after_uid + limit, upper) if after_uid < upper else after_uid
+            if absteigend:
+                # Das Fenster am oberen Ende des offenen Bereichs: die jüngsten Nummern zuerst.
+                unten = max(after_uid, upper - limit) if after_uid < upper else min(after_uid, upper)
+                von, bis = unten, upper
+            else:
+                von, bis = after_uid, (min(after_uid + limit, upper) if after_uid < upper else after_uid)
             numbers = set()
-            if after_uid < upper:
-                status, data = imap.uid("search", None, "UID", f"{after_uid + 1}:{next_uid}")
+            if von < bis:
+                status, data = imap.uid("search", None, "UID", f"{von + 1}:{bis}")
                 if status != "OK":
                     raise MailError("Nachrichtenbestand konnte nicht ermittelt werden.")
                 for raw in (data[0].split() if data and data[0] else []):
                     if not raw.isdigit() or not 0 < int(raw) <= MAX_UID:
                         raise MailError("Ungültige Nachrichtenkennung vom Mailserver.")
                     number = int(raw)
-                    if after_uid < number <= next_uid:
+                    if von < number <= bis:
                         numbers.add(number)
+            if absteigend:
+                return {"folder": folder, "uidvalidity": validity, "upper_uid": upper, "uids": sorted(numbers),
+                        "next_uid": after_uid, "next_before_uid": von, "done": von <= after_uid}
             return {"folder": folder, "uidvalidity": validity, "upper_uid": upper,
-                    "uids": sorted(numbers), "next_uid": next_uid, "done": next_uid >= upper}
+                    "uids": sorted(numbers), "next_uid": bis, "done": bis >= upper}
 
         try:
             return self._with_imap(lesen)

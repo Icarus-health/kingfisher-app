@@ -115,6 +115,19 @@ tagelang ein Briefing aus 2019. Aus demselben Grund holt die Mailaufnahme den
 Verlauf eines Postfachs jetzt mit der höchsten UID zuerst; neue Post (Spur
 `live`) bleibt in Eingangsreihenfolge und hat weiter Vorrang.
 
+Auch die Bestandsaufnahme selbst (welche Nummern es im Postfach gibt) geht bei
+IMAP von oben nach unten, in Fenstern von 200 Nummern
+(`MailConnector.inventory_page(…, absteigend=True)`). Vorher lief sie
+aufsteigend: Bei 5.000 Mails waren zuerst nur die ältesten Nummern bekannt, und
+„höchste UID zuerst“ wählte unter diesen. Offen ist immer
+(`scan_uid`, `upper_uid`]; `upper_uid` sinkt mit jedem Fenster und wird erst
+zusammen mit den gefundenen Nummern gespeichert. Ein Abbruch wiederholt also
+das Fenster, statt es zu überspringen; eine vor dem Update aufsteigend
+begonnene Aufnahme (unten bis `scan_uid` erfasst) geht ohne Lücke und ohne
+Doppelung weiter. Microsoft (Laufnummern der Delta-Abfrage) bleibt
+aufsteigend, weil seine Nummern keine dichte Reihe sind. Die Gegendruck-Grenze
+(höchstens 200 erfasste, noch nicht eingeordnete Altmails) gilt unverändert.
+
 Die Schlange braucht keinen eigenen Speicher. Was offen ist, steht in
 `working_memory_sources`; die Reihenfolge wird daraus höchstens jede Minute neu
 gebildet. Eine ausgegebene, aber nicht erledigte Quelle ruht eine Stunde (der
@@ -192,13 +205,18 @@ darin enthalten und erscheint dann nicht doppelt.
 - `sidecar/tests/test_autostart.py`: plist-Inhalt, ohne Antwort keine Datei,
   Aus entfernt nur die eigene Datei, der ganze Weg vom Klick bis zur Datei.
 - `sidecar/tests/test_mail_intake.py::test_verlauf_von_neu_nach_alt`.
+- `sidecar/tests/test_bestand_neueste_zuerst.py`: großes Postfach neueste
+  zuerst, Fenster von oben nach unten, Abbruch und Neustart ohne Lücke und
+  Doppelung, aufsteigend begonnene Aufnahme nach dem Update.
 - `app/kingfisher/tests/hintergrund.test.mjs`: Gesamtzeile, kein Doppel,
   Pause, gedrosselte Meldung, Autostart-Texte.
 - Browserprobe `scripts/probe_hintergrund_ui.py --ausgabe DIR`.
 
 Sabotageproben (jeweils die Zusicherung gebrochen, die genannten Tests fielen):
 Reihenfolge nach Kennung statt nach Nutzen (4 Tests), Verlauf der Mailaufnahme
-wieder alt nach neu (1), Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
+wieder alt nach neu (1), Bestandsaufnahme wieder aufsteigend (3), Fenster unter
+die alte untere Grenze (2), Zeiger rückt bei gescheiterter Suche weiter (2),
+absteigender Zeiger nicht gespeichert (2), Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
 und Eingabe in der Middleware ignoriert (2), Anbieter ohne Ampel (1), plist ohne
 Antwort geschrieben (2).
 

@@ -13,7 +13,9 @@ from .connectors.mail import MailboxGenerationChanged, MailError
 from .mail_intake_grund import einordnen as grund_einordnen
 from .migrations import IndexContract
 
-#: Der Stand nach Migration 11 (bis Schema 16).
+#: Der Stand nach Migration 11 (bis Schema 16). `upper_uid` ist die obere Grenze des noch nicht erfassten Verlaufs:
+#: anfangs UIDNEXT−1, bei der Bestandsaufnahme von oben nach unten sinkt sie mit jedem Fenster; `scan_uid` ist die
+#: untere (aufsteigend erfasst bis hier). Offen ist immer (scan_uid, upper_uid].
 TABLES_V11 = {
     'mail_intake_analysis': {'episode_id','generation','status'},
     'mail_intake_folders': {'account','folder','generation','upper_uid','scan_uid','live_uid','inventory_complete','paused','error','updated'},
@@ -114,10 +116,14 @@ class Intake:
         with gate:
             if not self._active(account,permitted):return
         folder=row['folder']; generation=row['generation']
+        # Der Verlauf von oben nach unten, wo der Leser das kann (IMAP): Bei 5.000 Mails sind so zuerst die jüngsten
+        # erfasst, nicht die ältesten. Offen ist dann (scan_uid, upper_uid]; `upper_uid` sinkt mit jedem Fenster.
+        # Eine vor dem Update aufsteigend begonnene Aufnahme (unten bis scan_uid erfasst) geht so lückenlos weiter.
+        absteigend=not live and bool(getattr(reader,'bestand_neueste_zuerst',False))
         page=reader.inventory_page(folder,
             after_uid=row['live_uid'] if live else row['scan_uid'],
             before_uid=None if live or generation is None else row['upper_uid'],
-            limit=200, uidvalidity=generation)
+            limit=200, uidvalidity=generation, **({'absteigend':True} if absteigend else {}))
         with gate:
             if not self._active(account,permitted):return
             with self.episodes.transaction():
@@ -133,6 +139,9 @@ class Intake:
                 if live:
                     self.db.execute('UPDATE mail_intake_folders SET live_uid=?,error=NULL,updated=? WHERE account=? AND folder=?',
                                     (page['next_uid'],time.time(),account,folder))
+                elif absteigend:
+                    self.db.execute('UPDATE mail_intake_folders SET upper_uid=?,inventory_complete=?,error=NULL,updated=? WHERE account=? AND folder=?',
+                                    (page['next_before_uid'],int(page['done']),time.time(),account,folder))
                 else:
                     self.db.execute('UPDATE mail_intake_folders SET scan_uid=?,inventory_complete=?,error=NULL,updated=? WHERE account=? AND folder=?',
                                     (page['next_uid'],int(page['done']),time.time(),account,folder))
