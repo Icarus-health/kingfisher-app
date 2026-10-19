@@ -161,7 +161,11 @@ def _selected(reply, passages):
     if (reply.tool_calls or not isinstance(reply.text, str)
             or len(reply.text.encode('utf-8')) > MAX_REPLY):
         raise ValueError('Invalid thread selection')
-    data = json.loads(reply.text, object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
+    try:
+        data = json.loads(reply.text, object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
+    except RecursionError as error:
+        # Python 3.10 gives up on deep nesting within MAX_REPLY; that reply is invalid too.
+        raise ValueError('Invalid thread selection') from error
     if (not isinstance(data, dict) or set(data) != {'selections'}
             or not isinstance(data['selections'], list) or len(data['selections']) > MAX_SELECTIONS):
         raise ValueError('Invalid thread selection')

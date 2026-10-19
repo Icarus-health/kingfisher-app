@@ -27,7 +27,7 @@ dependencies = [
 [project.optional-dependencies]
 # Semantische Suche. Zieht ~950 MB nach — siehe docs/adr/0005-cognee-statt-mem0.md.
 cognee = ["cognee>=1.4.0"]
-dev = ["pytest>=8.0", "jsonschema>=4.20", "httpx>=0.27"]
+dev = ["pytest>=8.0", "pytest-xdist>=3.5", "jsonschema>=4.20", "httpx>=0.27"]
 
 [project.scripts]
 icarus-sidecar = "icarus_memory.server:main"
