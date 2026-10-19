@@ -31,6 +31,9 @@ Regeln:
 * **Nur bei Eindeutigkeit.** Ein Name ohne Adresse (Notiz, Transkript, Erwähnung im
   Text) wird einer Person nur zugeordnet, wenn genau eine Adresse ihn als Alias
   trägt. Sonst bleibt er **offen** und nennt seine Kandidaten. Geraten wird nie.
+  Kurznamen einer Mail bekommen nur bei eindeutiger aktueller Anrede oder
+  Absendersignatur deren Kontaktanker. In Prosa und Zitaten bleiben passende
+  Kontakte offene Vorschläge; daraus entstehen keine globalen Teilnamen-Aliasse.
 * **Nichts still begrenzen.** Listen nennen ihre Gesamtzahl.
 
 Das Verzeichnis (`Register`) wird aus dem Bestand gebaut, wenn er sich geändert
@@ -298,6 +301,78 @@ def projekte_aus(workspace: Any) -> dict[str, str]:
 # -- Berechnung einer Quelle -------------------------------------------------
 
 
+_ANREDE = re.compile(r'^(?:herrn?|frau)\s+', re.I)
+_BEGRUESSUNG = re.compile(
+    r'\A\s*(?:sehr geehrte[rn]?|liebe[rn]?|hallo|guten tag|guten morgen|guten abend|dear|hello)'
+    r'[ \t]+(?P<name>[^\r\n,!:]{1,100})[ \t]*[,!]', re.I)
+_GRUSS = re.compile(r'(?:mit freundlichen grüßen|freundliche grüße|viele grüße|beste grüße|'
+                    r'herzliche grüße|liebe grüße|kind regards|best regards|regards)[,!]?', re.I)
+_ZITATANFANG = re.compile(r'^[ \t]*(?:>|(?:am\b[^\r\n]*\bschrieb\b|on\b[^\r\n]*\bwrote\b)|'
+                          r'(?:von|from|an|to|betreff|subject):|[-_]{2,})', re.I | re.M)
+
+
+def _namenswoerter(name: str) -> list[str]:
+    text = name.strip()
+    # Nur ein geschlossenes äußeres ASCII-Quote-Paar ist Namensrahmen.
+    # Apostrophe innerhalb eines Namens bleiben Teil des Vergleichsworts.
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
+        text = text[1:-1].strip()
+    return name_schluessel(_ANREDE.sub('', text)).split()
+
+
+def _quellen_kurzname(episode: Episode, name: str, start: int, ende: int,
+                     beteiligte: list[Nennung]) -> tuple[str, tuple[str, ...], bool] | None:
+    """Kurznamen dieser Mail: klare Anrede/Signatur oder nur offene Kandidaten.
+
+    Teilnamen werden niemals Aliasse im globalen Verzeichnis. Ein gleicher
+    Nachname in Prosa oder einer zitierten Mail beweist keine Identität; auch
+    ein einzelner Kandidat bleibt dort offen. Rollen stammen aus dem Mailkopf,
+    nicht aus einer Behauptung des Modells. Die Originalstelle bleibt erhalten.
+    """
+    if (episode.provenance.source_type.value != 'email' or not 0 <= start < ende <= len(episode.body)
+            or episode.body[start:ende] != name):
+        return None
+    kurz = _namenswoerter(name)
+    if not kurz:
+        return None
+    passend = []
+    hat_kurzname = False
+    for person in beteiligte:
+        voll = _namenswoerter(person.name)
+        # Keine Initialen, Ähnlichkeit oder beliebigen inneren Wortteile.
+        if (person.adresse and not maschinell(person.adresse) and len(voll) >= len(kurz)
+                and (kurz == voll[:len(kurz)] or kurz == voll[-len(kurz):])):
+            passend.append(person)
+            hat_kurzname = hat_kurzname or len(voll) > len(kurz)
+    # Exakte Namen gehören ebenfalls zu den Kandidaten. Nur ein längerer
+    # Kontaktname löst diese Zusatzregel aus; sonst gilt das exakte Verzeichnis.
+    if not hat_kurzname:
+        return None
+
+    rolle = ''
+    anrede = _BEGRUESSUNG.match(episode.body)
+    if (anrede and anrede.start('name') <= start < ende <= anrede.end('name')
+            and _namenswoerter(anrede['name']) == kurz):
+        rolle = 'an'
+    else:
+        zeilenanfang = episode.body.rfind('\n', 0, start) + 1
+        zeilenende = episode.body.find('\n', ende)
+        zeilenende = len(episode.body) if zeilenende < 0 else zeilenende
+        davor = episode.body[:zeilenanfang]
+        vorzeilen = [zeile.strip() for zeile in davor.splitlines() if zeile.strip()]
+        if (episode.body[zeilenanfang:zeilenende].strip() == name
+                and vorzeilen and _GRUSS.fullmatch(vorzeilen[-1])
+                and not _ZITATANFANG.search(davor)
+                and not episode.body[zeilenende:].strip()):
+            rolle = 'von'
+    belegte = {p.adresse: p for p in passend if p.rolle == rolle} if rolle else {}
+    if len(belegte) == 1 and len({p.adresse for p in passend}) == 1:
+        adresse, person = next(iter(belegte.items()))
+        return sache_id('person', 'a:' + adresse), (), person.ich
+    kandidaten = tuple(sorted({sache_id('person', 'a:' + p.adresse) for p in passend}))
+    return '', kandidaten, False
+
+
 def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
               eigene: Iterable[str] = ()) -> list[Bezug]:
     """Alle Bezüge einer Quelle. Rein: nur Quelle, Themenauszug und Verzeichnis gehen ein.
@@ -306,7 +381,8 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
     erwähnte Entitäten mit Textstelle.
     """
     gefunden: list[Bezug] = []
-    for nennung in nennungen(episode, eigene):
+    beteiligte = nennungen(episode, eigene)
+    for nennung in beteiligte:
         if nennung.ich:
             continue
         if nennung.adresse:
@@ -331,9 +407,17 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
             continue
         if art == 'person':
             # Der Absender ist über seine Adresse schon verknüpft; der Nutzer selbst ist keine Sache.
-            if eintrag.get('role') == 'sender' or name_schluessel(name) in register.ich_namen:
+            if eintrag.get('role') == 'sender':
                 continue
-            sache, kandidaten = register.person(name)
+            kurzname = _quellen_kurzname(episode, name, start, ende, beteiligte)
+            if kurzname is not None:
+                sache, kandidaten, ich = kurzname
+                if ich:
+                    continue
+            else:
+                if name_schluessel(name) in register.ich_namen:
+                    continue
+                sache, kandidaten = register.person(name)
             gefunden.append(Bezug(sache, art, 'modell', start, ende, 'erwaehnt', kandidaten, abhaengig=True))
         elif art == 'organisation':
             kennung = org_kennung(name)
@@ -378,7 +462,7 @@ FINGERABDRUCK = ("e.digest || ':' || e.metadata_digest || ':' || e.support_gener
 # Rule changes must also refresh address-only anchors with no register
 # dependency. Version only the derived input; user decisions retain the
 # unchanged source fingerprint above.
-_REGELVERSION = 2
+_REGELVERSION = 3
 #: Alles, was in die Bezüge einer Quelle eingeht (ohne das Verzeichnis).
 _EINGABE = (FINGERABDRUCK + " || '|' || COALESCE(c.fingerprint,'') || ':' || COALESCE(c.status,'') || ':' "
             "|| COALESCE(c.taxonomy_version,'') || '|' || COALESCE(k.fingerprint,'') || ':' "
