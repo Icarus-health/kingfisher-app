@@ -100,7 +100,7 @@ function ProjectProfile({ data, tab, setTab }: { data: ProjectProfileData; tab: 
     {tab === "overview" ? <div className="profile-grid">
       <section className="profile-card"><h2>Ziel</h2><p>{field(project, "description")}</p></section>
       <section className="profile-card"><h2>Status</h2><p>{status}</p><small>Priorität: {priority}</small></section>
-      <AkteAnsicht sache={`projekt:${String(project.id)}`} fallback={<MappeDetails kind="project" id={String(project.id)} />} />
+      <AkteAnsicht key={`projekt:${String(project.id)}`} sache={`projekt:${String(project.id)}`} fallback={<MappeDetails kind="project" id={String(project.id)} />} />
       <section className="profile-metrics"><div><strong>{data.tasks.filter((task) => task.status !== "done").length}</strong><span>Offene Aufgaben</span></div><div><strong>{data.people.length}</strong><span>Team</span></div><div><strong>{data.episodes.length}</strong><span>Belege</span></div><div><strong>{data.notes.length}</strong><span>Notizen</span></div></section>
       <section className="profile-card profile-wide"><h2>Bestätigter Wissensstand</h2><ClaimList claims={data.claims} history={data.claim_history} /></section>
     </div> : null}

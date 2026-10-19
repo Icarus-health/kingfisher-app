@@ -1484,7 +1484,7 @@ export const api = {
   aktenArt: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`),
   aktenArtBestaetigen: (sache: string, art: AktenArt) => request<ArtStand>("/api/v1/akten/art", { method: "PUT", body: JSON.stringify({ sache, art }) }),
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
-  akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
+  akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
   akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),

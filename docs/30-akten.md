@@ -175,24 +175,34 @@ eigenen Seite, `akte(..., ansicht=True)`), dringendes zuerst, höchstens sechs P
 
 **Entscheidungen** (`akten_entscheidungen.py`, Tabelle `akten_entscheidungen`): „erledigt“,
 „gilt nicht mehr“, „gilt weiter“, bei Terminen „erledigt“ und „findet doch statt“.
-Gespeichert sind nur Verweise (Quelle, Stellen, Fassung) und der Zeitpunkt, kein Text,
-keine Sache, keine Adresse. Eine Entscheidung gilt für die Textstelle und damit in jeder
-Akte, in der sie vorkommt; ändert sich die Quelle, gilt sie nicht mehr. Sie wirkt nur bei
-der Anzeige: „Erledigt“ und „gilt nicht mehr“ legen einen offenen Punkt ab, seine Fristen
-mahnen weder in der Akte noch im Briefing; „gilt weiter“ hält ihn offen und holt ihn
-zurück, wenn die Akte ihn nur vermutlich für erledigt hielt. Der Zwischenspeicher der
-Akte bleibt unberührt; der Eingabestand der Lage ändert sich, damit sie neu geschrieben
-wird. Jede Entscheidung lässt sich mit einem Klick zurücknehmen. Sie ist eine Einordnung
-durch den Nutzer, kein Fakt im Bestand (Regel des Gedächtnisses unberührt).
+Gespeichert sind nur Verweise (Quelle, Stellen, Inhaltsdigest der Quelle) und der
+Zeitpunkt, kein Text, keine Sache, keine Adresse. Eine Entscheidung gilt für die
+Textstelle und damit in jeder Akte, in der sie vorkommt. Sie hängt am Text der Quelle,
+nicht am Fingerabdruck der Einordnung: Nachgetragene Kontakte, Kopfzeilen oder Anhänge
+lassen sie stehen, eine neue Fassung des Textes fragt neu. Ein Termin wird über seine
+Quelle angesprochen; ein geänderter Termin ist eine neue Quelle und fragt neu. Die
+Entscheidung wirkt nur bei der Anzeige: „Erledigt“ und „gilt nicht mehr“ legen einen
+offenen Punkt ab, seine Fristen mahnen weder in der Akte noch im Briefing; „gilt weiter“
+hält ihn offen und holt ihn zurück, wenn die Akte ihn nur vermutlich für erledigt hielt;
+„findet doch statt“ beendet auch die Frage „gilt das noch?“ zu diesem Termin. Der
+Antwortkontext liest dieselben Entscheidungen (`Akten.roh_entschieden`), damit eine
+Antwort nichts Abgelegtes als offen nennt. Der Zwischenspeicher der Akte bleibt
+unberührt; der Eingabestand der Lage ändert sich (auch bei Termin-Entscheidungen), damit
+sie neu geschrieben wird. Jede Entscheidung lässt sich mit einem Klick zurücknehmen;
+„Rückgängig“ stellt die vorige Entscheidung wieder her, nicht nur die Vermutung. Sie ist
+eine Einordnung durch den Nutzer, kein Fakt im Bestand (Regel des Gedächtnisses
+unberührt).
 
 **Richtung.** Jeder offene Punkt sagt, von wem er stammt (`richtung`: `von_mir`,
-`an_mich`, `unklar`; Absender der Quelle gegen die eigenen Adressen). Die Oberfläche
+`an_mich`, `unklar`; bei Mails der Absender gegen die eigenen Adressen, bei Terminen,
+Notizen und Mitschriften `unklar`). Die Oberfläche
 gruppiert danach: „Du hast zugesagt“, „Du wartest auf“ (Zusagen anderer und deine
 Bitten), „Bitten an dich“.
 
 **Zeitstrahl.** Quellen (jüngste 150), Termine und Fristen als Punkte auf drei Spuren,
 „heute“ als Linie; Zusagen und Bitten dunkel, abgesagte Termine durchgestrichen, offene
-Fristen dunkel. Jeder Punkt ist ein Knopf und öffnet seine Quelle.
+Fristen dunkel. Jeder Punkt ist ein Knopf und öffnet seine Quelle; der Strahl ist ein
+einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
 
 ## Schnittstelle
 

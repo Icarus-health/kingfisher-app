@@ -8,6 +8,7 @@ from icarus_memory.akten_entscheidungen import Entscheidungen, gueltiges_ziel, z
 from icarus_memory.fristlage import aus_akte
 from tests.test_akten import akten, einordnen, mail, neu_rechnen  # noqa: F401 - Fixture und Hilfen
 from tests.test_bezuege import ICH, JETZT, quelle, welt  # noqa: F401 - Fixture und Hilfen
+from icarus_memory.working_memory_store import WorkingMemoryStore
 
 SILKE = 'Silke Vogt <s.vogt@akademie.example>'
 LEA = f'Lea Hartmann <{ICH}>'
@@ -56,11 +57,12 @@ def test_ablage_nimmt_nur_gueltige_ziele_und_passende_entscheidungen(welt):
     with pytest.raises(ValueError):
         ablage.setzen('irgendwas', 'erledigt')
     with pytest.raises(ValueError):
-        ablage.setzen(ziel_termin('e-1', 'fassung'), 'gilt_nicht')   # ein Termin „gilt“ nicht, er findet statt
+        ablage.setzen(ziel_termin('e-1'), 'gilt_nicht')   # ein Termin „gilt“ nicht, er findet statt
     with pytest.raises(ValueError):
         ablage.setzen('a:e-1:1:5:fp', 'vielleicht')
-    ablage.setzen('a:e-1:1:5:fp', 'erledigt')
-    ablage.setzen('a:e-1:1:5:fp', 'gilt_nicht')
+    assert ablage.setzen('a:e-1:1:5:fp', 'erledigt')['vorher'] is None
+    # „Rückgängig“ braucht den Vorwert: Er kommt mit jeder neuen Entscheidung zurück.
+    assert ablage.setzen('a:e-1:1:5:fp', 'gilt_nicht')['vorher'] == 'erledigt'
     assert ablage.zu(['a:e-1:1:5:fp', 'a:e-2:1:5:fp'])['a:e-1:1:5:fp']['entscheidung'] == 'gilt_nicht'
     assert ablage.zuruecknehmen('a:e-1:1:5:fp') is True and ablage.zuruecknehmen('a:e-1:1:5:fp') is False
     # Gespeichert sind nur Verweise: kein Text, keine Sache, keine Adresse.
@@ -251,3 +253,78 @@ def test_zeitstrahl_zeigt_quellen_termine_und_fristen(welt, akten):
     frist = next(p for p in strahl['punkte'] if p['art'] == 'frist')
     assert frist['datum'] == '2026-10-20' and frist['offen'] is True
     assert strahl['quellen'] == 5 and strahl['heute'] == JETZT.isoformat()
+
+
+# -- Befunde des Reviews ------------------------------------------------------
+
+
+def test_entscheidung_ueberlebt_nachgetragene_kontakte_der_quelle(welt, akten):
+    """Das Ziel hängt am Text der Quelle, nicht am Fingerabdruck der Einordnung (der ändert sich mit jedem Nachtrag)."""
+    episodes, _, _ = welt
+    ablauf, _ = workshop(episodes)
+    eintrag = next(e for e in neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT)['offen']['eintraege'] if e['text'] == ABLAUF)
+    Entscheidungen(episodes).setzen(eintrag['ziel'], 'erledigt')
+    episodes.add_contacts(ablauf.id, [{'name': 'Silke Vogt', 'adresse': 's.vogt@akademie.example', 'rolle': 'von',
+                                       'ich': False}], [SILKE, LEA, 'Team <team@akademie.example>'])
+    store = WorkingMemoryStore(episodes)
+    for offen in store.pending(episode_ids=[ablauf.id]):
+        start = offen.episode.body.index(ABLAUF)
+        assert store.commit(offen, [{'start': start, 'end': start + len(ABLAUF), 'kind': 'commitment'}], model='test')
+    daten = neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT, ansicht=True)
+    assert ABLAUF not in [e['text'] for e in daten['offen']['eintraege']]
+    assert braucht(daten, 'gilt_noch') == []
+
+
+def test_findet_doch_statt_beendet_auch_die_frage_gilt_das_noch(welt, akten):
+    episodes, _, _ = welt
+    workshop(episodes)
+    daten = neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT, ansicht=True)
+    termin = braucht(daten, 'abgesagter_termin')[0]
+    Entscheidungen(episodes).setzen(termin['ziel'], 'offen')
+    assert braucht(akten.akte(AKADEMIE, jetzt=JETZT, ansicht=True)) == []
+
+
+def test_termin_entscheidung_macht_die_lage_veraltet(welt, akten):
+    episodes, _, _ = welt
+    workshop(episodes)
+    vorher = neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT, ansicht=True)
+    Entscheidungen(episodes).setzen(braucht(vorher, 'abgesagter_termin')[0]['ziel'], 'offen')
+    assert akten.akte(AKADEMIE, jetzt=JETZT)['eingabestand'] != vorher['eingabestand']
+
+
+def test_antwortkontext_liest_die_entscheidungen_mit(welt, akten):
+    episodes, _, _ = welt
+    ablauf, _ = workshop(episodes)
+    daten = neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT, ansicht=True)
+    assert [o['ref']['episode_id'] for o in akten.roh_entschieden(AKADEMIE)['offen']] == [ablauf.id]
+    Entscheidungen(episodes).setzen(braucht(daten, 'gilt_noch')[0]['ziel'], 'gilt_nicht')
+    Entscheidungen(episodes).setzen(braucht(daten, 'abgesagter_termin')[0]['ziel'], 'offen')
+    roh = akten.roh_entschieden(AKADEMIE)
+    assert roh['offen'] == []
+    assert [e['grund'] for e in roh['erledigt'] if e['ref']['episode_id'] == ablauf.id] == ['nutzer_gilt_nicht']
+    assert [t['abgesagt'] for t in roh['termine']] == [None]
+    # Der Zwischenspeicher selbst bleibt unberührt.
+    assert [o['ref']['episode_id'] for o in akten.roh(AKADEMIE)['offen']] == [ablauf.id]
+
+
+def test_richtung_nur_bei_mails(welt, akten):
+    episodes, _, _ = welt
+    notiz, _ = episodes.record(EpisodeKind.DOCUMENT, 'Notiz', 'Ich schicke Silke die Folien bis 5. Oktober.',
+                               Provenance(SourceType.DOCUMENT, source_ref='test:notiz'), participants=[SILKE],
+                               occurred_at=JETZT - timedelta(days=1))
+    einordnen(episodes, notiz, [('Ich schicke Silke die Folien bis 5. Oktober.', 'commitment')])
+    daten = neu_rechnen(akten).akte(PERSON, jetzt=JETZT)
+    assert [e['richtung'] for e in daten['offen']['eintraege']] == ['unklar']
+
+
+def test_gilt_das_noch_geht_einer_nahen_frist_vor(welt, akten):
+    episodes, _, _ = welt
+    verlaufsmail(episodes, 'Anfrage Referentin', [(ANFRAGE, 'request')], 80, kennung='a1')
+    verlaufsmail(episodes, 'Honorar und Ablauf', [('Den Ablauf schicken wir Ihnen bis 30. September.', 'commitment')],
+                 75, kennung='a2', antwort_auf='a1')
+    quelle(episodes, 'Workshop Mangelernährung', 'Termin: Workshop Mangelernährung\nOrt: Bad Homburg',
+           [SILKE, LEA], art=EpisodeKind.EVENT, tage=-29)
+    verlaufsmail(episodes, 'Absage Workshop', [(ABSAGE, 'change')], 12, kennung='a3', antwort_auf='a2')
+    punkte = braucht(neu_rechnen(akten).akte(AKADEMIE, jetzt=JETZT, ansicht=True))
+    zusage = [p for p in punkte if p['zeile'] and p['zeile']['text'].startswith('Den Ablauf')]
+    assert [p['art'] for p in zusage] == ['gilt_noch']
