@@ -33,6 +33,7 @@ import uuid
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, time, timedelta, timezone
+from functools import cached_property
 from typing import Any, Iterator, NamedTuple
 
 import httpx
@@ -271,6 +272,12 @@ class _Komponente:
     def wert(self, name: str, vorgabe: str = "") -> str:
         return self.felder.get(name, (vorgabe, {}))[0]
 
+    @cached_property
+    def texte(self) -> tuple[str, str, str]:
+        """Titel, Ort und Notiz, einmal entmaskiert (eine Serie teilt sie mit allen Einzelterminen)."""
+        return (_text_aus_ical(self.wert("SUMMARY", "(ohne Titel)")), _text_aus_ical(self.wert("LOCATION")),
+                _text_aus_ical(self.wert("DESCRIPTION")))
+
     def alle(self, name: str) -> list[tuple[str, dict[str, str]]]:
         return self.mehrfach.get(name, [])
 
@@ -381,11 +388,13 @@ def _regel(wert: str, beginn: _Zeit):
         return None
 
 
-def _wiederholungen(serie: _Komponente, beginn: _Zeit, bis: datetime) -> Iterator[tuple[str, datetime]] | None:
-    """(Kennung, Beginn) jeder Wiederholung vor `bis`, ohne die ausgenommenen (EXDATE).
+def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
+                    bis: datetime) -> Iterator[tuple[str, datetime]] | None:
+    """(Kennung, Beginn) jeder Wiederholung von `ab` bis vor `bis`, ohne die ausgenommenen (EXDATE).
 
     DTSTART ist immer der erste Termin (RFC 5545, 3.8.5.3), RDATE fügt Termine
-    hinzu. None, wenn eine Regel unlesbar ist.
+    hinzu. Gerechnet wird ab dem ersten Termin (die Grenze zählt jeden Schritt),
+    eine Kennung aber nur ab `ab`. None, wenn eine Regel unlesbar ist.
     """
     regeln = [_regel(wert, beginn) for wert, _ in serie.alle("RRULE")]
     if any(regel is None for regel in regeln):
@@ -411,9 +420,11 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, bis: datetime) -> Iterato
             if moment >= bis:
                 return
             if schritt >= MAX_SCHRITTE_JE_SERIE:
-                titel = _text_aus_ical(serie.wert("SUMMARY", "(ohne Titel)"))
+                titel = serie.texte[0]
                 raise CalendarError(f"Die Terminserie „{titel}“ wiederholt sich zu dicht, um sie auszuklappen.")
-            kennung = _kennung(beginn._replace(moment=moment), beginn)
+            if moment < ab:
+                continue
+            kennung = _kennung(_Zeit(moment, beginn.ganztags, beginn.schwebend), beginn)
             if kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
                 continue
             gesehen.add(kennung)
@@ -434,15 +445,16 @@ def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: da
     if beginn is None:
         beginn = _zeit(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else None
         ende = _ende(termin, beginn)
+    titel, ort, notiz = termin.texte
     return Event(
         uid=uid,
-        summary=_text_aus_ical(termin.wert("SUMMARY", "(ohne Titel)")),
+        summary=titel,
         start=_utc(beginn.moment) if beginn else None,
         end=_utc(ende),
-        location=_text_aus_ical(termin.wert("LOCATION")),
+        location=ort,
         attendees=list(termin.teilnehmer),
         all_day=bool(beginn and beginn.ganztags),
-        notes=_text_aus_ical(termin.wert("DESCRIPTION")),
+        notes=notiz,
         external_uid=termin.wert("UID"),
     )
 
@@ -470,7 +482,9 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
     if serie is not None and not serie.abgesagt:
         ende = _ende(serie, beginn)
         dauer = ende - beginn.moment if ende is not None and beginn is not None else None
-        folge = _wiederholungen(serie, beginn, bis) if beginn is not None else None
+        # Was vor `ab` beginnt, endet vor dem Fenster (ein Tag Spielraum für die Zeitumstellung).
+        ab = von - (dauer if dauer is not None and dauer > timedelta(0) else timedelta(0)) - timedelta(days=1)
+        folge = _wiederholungen(serie, beginn, ab, bis) if beginn is not None else None
         try:
             treffer = None if folge is None else [
                 (kennung, moment, schluss) for kennung, moment in folge
@@ -482,7 +496,7 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
             # Kein lesbarer Beginn oder eine unlesbare Regel: wie bisher nur der erste Termin.
             ergebnis.append(_termin(serie, uid))
         else:
-            ergebnis += [_termin(serie, f"{uid}#{kennung}", beginn._replace(moment=moment), schluss)
+            ergebnis += [_termin(serie, f"{uid}#{kennung}", _Zeit(moment, beginn.ganztags, beginn.schwebend), schluss)
                          for kennung, moment, schluss in treffer]
     for kennung, termin in ersatz.items():
         if termin.abgesagt:
