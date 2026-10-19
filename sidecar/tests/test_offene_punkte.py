@@ -83,3 +83,14 @@ def test_im_gespraech_ohne_modell_ohne_zitat_im_verlauf(api):
     letzte = geoeffnet['messages'][-1]
     assert 'Ich schicke Ihnen die Druckdaten bis Freitag.' in letzte['content']
     assert letzte['metadata']['context']['source_links'][0]['label'] == 'Quelle 1 öffnen'
+
+
+@pytest.mark.parametrize('frage,weg', [
+    ('An welche Adresse soll ich die Rechnung für Frau Krüger schicken?', 'memory_evidence'),
+    ('Wohin soll ich die Unterlagen schicken?', 'memory_evidence'),
+    ('An wen muss ich die Kündigung senden?', 'memory_evidence'),
+    ('Schick die Rechnung an Frau Krüger.', 'chat'),
+    ('An welche Adresse soll ich schicken? Schick sie gleich los.', 'chat'),
+])
+def test_zielfrage_mit_handlungswort_ist_eine_frage(frage, weg):
+    assert route(frage) == weg

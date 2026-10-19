@@ -45,9 +45,11 @@ def test_zeitwoerter_sind_keine_suchwoerter():
 def akademie(tmp_path, monkeypatch):
     episodes = EpisodeStore(tmp_path / 'e.sqlite3')
     claims = ClaimStore(tmp_path / 'k.sqlite3')
-    neu = [_mail(episodes, f'Akademie Rundbrief {n}: Termine im Jahr, letztes Treffen, neues Jahr.',
-                 NOW - timedelta(days=1 + n)) for n in range(70)]
-    alt = _mail(episodes, 'Die Akademie hat die Rechnung für den Kurs bezahlt.', datetime(2025, 5, 12, tzinfo=timezone.utc))
+    # Viele kurze neue Quellen zum Wort „Akademie“; die alte ist länger und stünde ohne Zeitraumsuche hinter allen.
+    neu = [_mail(episodes, f'Akademie Rundbrief {n}.', NOW - timedelta(days=1 + n)) for n in range(80)]
+    alt = _mail(episodes, 'Die Akademie hat die Rechnung für den Kurs im Frühjahr bezahlt, die Teilnehmerliste '
+                'kam mit separater Post, und das Zertifikat folgt nach der Prüfung durch die Kammer.',
+                datetime(2025, 5, 12, tzinfo=timezone.utc))
     monkeypatch.setattr('icarus_memory.time_scope.datetime',
                         type('Fixed', (datetime,), {'now': classmethod(lambda cls, tz=None: NOW)}))
     yield episodes, claims, alt, neu
@@ -66,3 +68,21 @@ def test_letztes_jahr_findet_die_alte_quelle_trotz_vieler_neuer(akademie):
     assert set(neu) & set(basis)
     text, _, _ = render(antwort, episodes, claims)
     assert 'Zuerst berücksichtigt: Quellen des Jahres 2025.' in text
+
+
+def test_zeitwoerter_verdraengen_keinen_treffer_im_zeitraum(tmp_path, monkeypatch):
+    """Im Zeitraum stehen viele Rundschreiben mit „letztes Jahr“: Sie dürfen die eine Quelle zur Sache nicht verdrängen."""
+    episodes = EpisodeStore(tmp_path / 'e.sqlite3')
+    claims = ClaimStore(tmp_path / 'k.sqlite3')
+    try:
+        for n in range(30):
+            _mail(episodes, f'Rundschreiben {n}: Letztes Jahr war ein gutes Jahr, letztes Treffen im Jahr.',
+                  datetime(2025, 3, 1, tzinfo=timezone.utc) + timedelta(days=n))
+        ziel = _mail(episodes, 'Die Akademie hat die Rechnung bezahlt.', datetime(2025, 2, 1, tzinfo=timezone.utc))
+        monkeypatch.setattr('icarus_memory.time_scope.datetime',
+                            type('Fixed', (datetime,), {'now': classmethod(lambda cls, tz=None: NOW)}))
+        antwort = prepare('Was war letztes Jahr mit der Akademie?', episodes, claims, Selector())
+        assert [ref['episode_id'] for ref in antwort['basis']][0] == ziel
+    finally:
+        claims.close()
+        episodes.close()

@@ -73,6 +73,11 @@ _PERSONAL_FACT = re.compile(
 _DELIVERY_QUESTION = re.compile(
     r'^(?:wann|bis wann|wer|was) (?:schickt|sendet|verschickt|versendet|liefert)\b'
     r'(?P<rest>[^.!?\n]*)\??$', re.I)
+# „An welche Adresse soll ich die Rechnung schicken?“ fragt nach einem Ziel aus dem Bestand; das Handlungswort
+# ist Teil der Frage, kein Auftrag. Nur ein einzelner Fragesatz.
+_ZIEL_FRAGE = re.compile(
+    r'^(?:an\s+welche|an\s+wen|wohin|unter\s+welcher|an\s+welcher)\b[^.!?\n]*'
+    r'\b(?:soll|sollen|muss|müssen|kann|können|darf)\s+(?:ich|wir)\b[^.!?\n]*\?$', re.I)
 _PREPARATION_TIME = re.compile(
     r'^(?:(?:bitte\s+)?bereite\s+mich|wie\s+bereite\s+ich\s+mich)'
     r'\s+auf\s+[^.!?\n]{1,200}\s+vor[.!?]\s*'
@@ -152,6 +157,8 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     # A question about somebody else's delivery is not an instruction to
     # send. Keep a second command in the same sentence on the action path.
     if delivery and not _NEW_TURN.search(delivery['rest']):
+        return 'memory_evidence'
+    if _ZIEL_FRAGE.fullmatch(text):
         return 'memory_evidence'
     if _NEW_TURN.search(text):
         return 'chat'

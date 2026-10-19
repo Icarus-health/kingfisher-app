@@ -167,6 +167,32 @@ Anfrage verändert oder passt sie nicht mehr zur Frage (Sache, Suchwort, Absicht
 sie ungültig und die Antwort gilt als nicht mehr frisch. Eine Nachfrage im Gespräch
 bringt ihren Suchtext (`retrieval_query`) mit; er hat Vorrang.
 
+## Namen, Zeitangaben, offene Punkte (19.10.2026)
+
+Drei Lücken, die ein Stabschef nicht hätte, ohne Modell geschlossen:
+
+* **Umlaut-Umschrift.** „Frau Mueller“ findet „Müller“ und umgekehrt („Ärztekammer“ und
+  „Aerztekammer“ ebenso). Nur zur Fragezeit (`word_forms.umschriften`, höchstens drei Stellen,
+  höchstens sieben Formen): in der Wortsuche als gleichrangige Wörter, im Volltextindex als
+  zusätzliche gefaltete Wörter (`source_index.umschrift_woerter`), bei Personen in der Frage im
+  Vorfilter und im Namensvergleich (`umschrift_gleich`). Index und Originale bleiben unverändert;
+  eine falsche Rückumschrift („neue“ → „neü“) findet nichts und schadet nicht.
+* **Zeitangaben.** `time_scope.mentioned_period` kennt zusätzlich „letztes/voriges Jahr“, „im
+  Vorjahr“, „dieses Jahr“, „heuer“, „in den letzten N Monaten“ sowie „vor N Tagen/Wochen/Monaten“
+  (der Tag, die Kalenderwoche, der Kalendermonat). Beschriftungen für Menschen („Quellen des
+  Jahres 2025“, „der Woche ab 5. Oktober“). Bei erkanntem Zeitraum sind seine Wörter keine
+  Suchwörter (`ohne_zeitraum`), und die Suche läuft **zusätzlich unter den Quellen des
+  Zeitraums** (höchstens die jüngsten 500, `MAX_IM_ZEITRAUM`): Eine alte Quelle kommt nach vorn,
+  auch wenn viele neuere dasselbe Wort tragen. Ausgeschlossen wird nach wie vor nichts.
+* **Worauf warte ich noch?** Feste Frageformen (`offene_punkte.art_der_frage`: „Worauf warte
+  ich?“, „Wer schuldet mir noch etwas?“, „Was habe ich zugesagt?“, „Was muss ich noch schicken?“)
+  antwortet der Agent aus den Akten, ohne Modell und vor jeder Suche: Zusagen anderer an dich und
+  deine Bitten, bzw. deine Zusagen, jeweils nur vermutlich offene (Richtung und Entscheidungen
+  wie in der Akte, `30-akten.md`), jüngste zuerst, jede mit Quelle. Die Frage geht nie in den
+  freien Chat, auch nicht mit einem Handlungswort („schicken“). Wie die Mappe ist die Antwort
+  eine Ansicht: Im Gesprächsverlauf steht nur die Frage, nie ein Zitat; beim Öffnen wird sie neu
+  zusammengestellt. „Welche Fristen …“ geht nun ebenfalls in den Belegweg.
+
 ## Messlatte
 
 `python -m messlatte lauf … --modell-frage ollama:NAME` (oder `kompatibel:URL:NAME`,
