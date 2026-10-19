@@ -7,7 +7,7 @@ Aufbau wie bei einem echten Anbieter, damit Kingfisher den Kalender selbst finde
 * der Principal nennt sein `calendar-home-set` `/dav/calendars/<benutzer>/`;
 * darunter zwei Sammlungen: `privat/` (Termine, Anzeigename „Privat“) und `aufgaben/` (nur Aufgaben, VTODO);
 * `REPORT` auf `privat/` liefert `kalenderdaten` (Vorgabe: ein Termin, `TERMIN`); jeder Anfragetext steht in
-  `berichte`.
+  `berichte`. Mit `cr_als_zeichenreferenz` steht jedes CR als `&#13;` im XML, wie es libxml2-Schreiber tun.
 
 `start` ist die Adresse, die der Katalog für den Probe-Anbieter nennt (`/dav/`). Verhalten je `modus`:
 
@@ -55,6 +55,7 @@ class CaldavAttrappe:
         self.anfragen_an: list[tuple[str, str, bool]] = []
         self.kalenderdaten = TERMIN
         self.berichte: list[str] = []
+        self.cr_als_zeichenreferenz = False
         self._ordner = Path(tempfile.mkdtemp(prefix='caldav-attrappe-'))
         self.zertifikat, schluessel = _zertifikat(self._ordner)
         kontext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -142,6 +143,8 @@ class CaldavAttrappe:
                     self._senden(207, _multistatus())
                     return
                 daten = attrappe.kalenderdaten.replace('&', '&amp;').replace('<', '&lt;')
+                if attrappe.cr_als_zeichenreferenz:
+                    daten = daten.replace('\r', '&#13;')
                 self._senden(207, _multistatus(f'<d:response><d:href>{self.path}probe-1.ics</d:href><d:propstat>'
                                                f'<d:prop><c:calendar-data>{daten}</c:calendar-data></d:prop>'
                                                '<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>'))

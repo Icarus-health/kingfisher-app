@@ -414,3 +414,21 @@ def test_obergrenze_gilt_beim_abo_je_abschnitt(gedaechtnis, monkeypatch):
     taeglich = Feed(ics(serie('DTSTART:20261115T100000Z', 'DURATION:PT1H', 'RRULE:FREQ=DAILY;COUNT=6')))
     ergebnis = calendar_memory.kalender_job(gedaechtnis, [NamedCalendar('dicht', 'D', taeglich.leser)], at=JETZT)
     assert (ergebnis['dicht'].neu, ergebnis['dicht'].fehler) == (0, ['zu viele Termine im Abschnitt'])
+
+
+@pytest.mark.parametrize('cr_als_zeichenreferenz', [False, True])
+def test_caldav_liest_den_kalender_aus_dem_xml_nicht_aus_dem_rohtext(monkeypatch, cr_als_zeichenreferenz):
+    """Im REPORT steht der Kalender als XML-Text: „&“ kommt als „&amp;“, manche Server schreiben CR als „&#13;“."""
+    from icarus_memory.connectors.calendar import CalendarConfig, CalendarConnector
+    from tests.caldav_attrappe import PASSWORT, CaldavAttrappe
+    with CaldavAttrappe() as attrappe:
+        monkeypatch.setenv('SSL_CERT_FILE', str(attrappe.zertifikat))
+        attrappe.cr_als_zeichenreferenz = cr_als_zeichenreferenz
+        attrappe.kalenderdaten = ics(['UID:steuer', 'SUMMARY:Steuer & Recht <Jahresabschluss>',
+                                      'LOCATION:Müller & Söhne', 'DTSTART;TZID=Europe/Berlin:20261020T090000',
+                                      'DTEND;TZID=Europe/Berlin:20261020T100000'])
+        leser = CalendarConnector(CalendarConfig(f'{attrappe.start}calendars/lena.probe/privat/', 'lena.probe',
+                                                 PASSWORT))
+        (termin,) = leser.events(days=10, at=utc(2026, 10, 19))
+    assert (termin.summary, termin.location) == ('Steuer & Recht <Jahresabschluss>', 'Müller & Söhne')
+    assert (termin.start, termin.end) == (utc(2026, 10, 20, 7), utc(2026, 10, 20, 8))

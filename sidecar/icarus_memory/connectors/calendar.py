@@ -30,6 +30,7 @@ import hashlib
 import heapq
 import re
 import uuid
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, time, timedelta, timezone
 from typing import Any, Iterator, NamedTuple
@@ -567,6 +568,24 @@ _REPORT = """<?xml version="1.0" encoding="utf-8"?>
 </C:calendar-query>"""
 
 
+_CALDAV = "urn:ietf:params:xml:ns:caldav"
+
+
+def _kalenderdaten(antwort: bytes) -> str:
+    """Der iCalendar-Text aus einer CalDAV-Antwort (`multistatus`, RFC 4791, 9.6).
+
+    Dort steht er als XML-Text: „&“ als `&amp;`, und manche Server schreiben
+    jedes CR als `&#13;`. Aus dem Rohtext gelesen hießen Termine dann
+    „Steuer &amp; Recht“, und Zeiten mit angehängtem `&#13;` waren unlesbar.
+    Ist die Antwort kein XML, bleibt es beim Rohtext.
+    """
+    try:
+        wurzel = ET.fromstring(antwort)
+    except ET.ParseError:
+        return antwort.decode("utf-8", errors="replace")
+    return "\n".join(knoten.text or "" for knoten in wurzel.iter(f"{{{_CALDAV}}}calendar-data"))
+
+
 class CalendarConnector:
     def __init__(self, config: CalendarConfig) -> None:
         self._config = config
@@ -596,7 +615,7 @@ class CalendarConnector:
 
         # Der Server liefert jede Serie, die das Fenster berührt, als Ganzes (Regel und Ausnahmen);
         # ausgeklappt wird hier, auf demselben Weg wie beim Abo (siehe Modulbeschreibung).
-        return parse_events(response.text, von, bis)
+        return parse_events(_kalenderdaten(response.content), von, bis)
 
     def create(
         self,
