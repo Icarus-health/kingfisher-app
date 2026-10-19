@@ -15,10 +15,13 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import httpx
+
+from ..model import user_timezone
+from . import zeitzonen
 
 
 class CalendarError(Exception):
@@ -91,20 +94,69 @@ def _unfold(text: str) -> str:
     return re.sub(r"\r?\n[ \t]", "", text)
 
 
-def _parse_dt(value: str, params: str) -> tuple[datetime | None, bool]:
-    """Liest DTSTART/DTEND. Gibt Zeitpunkt und Ganztags-Flag zurück."""
+def _zeile(zeile: str) -> tuple[str, dict[str, str], str] | None:
+    """Zerlegt eine Inhaltszeile in Name, Parameter und Wert (RFC 5545, 3.1).
+
+    Doppelpunkt und Semikolon in Anführungszeichen gehören zum Parameterwert:
+    Outlook schreibt etwa `TZID="(UTC+01:00) Amsterdam, Berlin, …"`, und ein
+    Name kann `CN="Keller; Anna"` lauten. Ohne Doppelpunkt ist es keine Zeile.
+    """
+    teile: list[str] = []
+    anfang, in_zitat = 0, False
+    for stelle, zeichen in enumerate(zeile):
+        if zeichen == '"':
+            in_zitat = not in_zitat
+        elif not in_zitat and zeichen in ";:":
+            teile.append(zeile[anfang:stelle])
+            anfang = stelle + 1
+            if zeichen == ":":
+                break
+    else:
+        return None
+    name, *roh = teile
+    parameter: dict[str, str] = {}
+    for eintrag in roh:
+        schluessel, _, wert = eintrag.partition("=")
+        wert = wert.strip()
+        if len(wert) >= 2 and wert[0] == wert[-1] == '"':
+            wert = wert[1:-1]
+        parameter[schluessel.strip().upper()] = wert
+    return name.strip().upper(), parameter, zeile[anfang:].strip()
+
+
+_DATUM = re.compile(r"^(\d{4})(\d{2})(\d{2})$")
+_ZEITPUNKT = re.compile(r"^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$", re.IGNORECASE)
+
+
+def _parse_dt(value: str, params: dict[str, str]) -> tuple[datetime | None, bool]:
+    """Liest DTSTART/DTEND (RFC 5545, 3.3.4 und 3.3.5). Gibt Zeitpunkt (in UTC) und Ganztags-Flag zurück.
+
+    * `…Z` ist UTC.
+    * `TZID=…` ist die Uhrzeit in dieser Zone (`zeitzonen.zone`: IANA-Name oder
+      Windows-Name aus Outlook). Ist der Name unbekannt, wird nicht geraten: Es
+      bleibt bei der bisherigen Regel, die Uhrzeit gilt als UTC.
+    * Ohne Zone („floating“) ist es die Ortszeit dessen, der den Kalender liest,
+      also die Zeitzone des Nutzers (`KINGFISHER_TIMEZONE`).
+    * Ein Datum (`VALUE=DATE`) ist ganztägig und wird wie bisher als Mitternacht
+      UTC geführt; die Anzeige rechnet es nicht in eine andere Zone um.
+    """
     value = value.strip()
-    if "VALUE=DATE" in params.upper() and len(value) == 8:
-        parsed = datetime.combine(
-            date(int(value[0:4]), int(value[4:6]), int(value[6:8])), time.min
-        )
-        return parsed.replace(tzinfo=timezone.utc), True
     try:
-        if value.endswith("Z"):
-            return datetime.strptime(value, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc), False
-        return datetime.strptime(value, "%Y%m%dT%H%M%S").replace(tzinfo=timezone.utc), False
+        if treffer := _DATUM.match(value):
+            return datetime(*map(int, treffer.groups()), tzinfo=timezone.utc), True
+        treffer = _ZEITPUNKT.match(value)
+        if treffer is None:
+            return None, False
+        wandzeit = datetime(*map(int, treffer.groups()[:6]))
     except ValueError:
         return None, False
+    if treffer.group(7):
+        zone = timezone.utc
+    elif params.get("TZID"):
+        zone = zeitzonen.zone(params["TZID"]) or timezone.utc
+    else:
+        zone = user_timezone() or timezone.utc
+    return wandzeit.replace(tzinfo=zone).astimezone(timezone.utc), False
 
 
 def _text_aus_ical(wert: str) -> str:
@@ -119,18 +171,16 @@ def parse_events(ical: str) -> list[Event]:
         fields: dict[str, tuple[str, str]] = {}
         attendees = []
         for line in block.strip().splitlines():
-            if ":" not in line:
+            zerlegt = _zeile(line)
+            if zerlegt is None:
                 continue
-            head, _, value = line.partition(":")
-            name, _, params = head.partition(";")
-            name = name.strip().upper()
+            name, params, value = zerlegt
             if name == "ATTENDEE":
-                adresse = re.sub(r"(?i)^mailto:", "", value.strip())
-                anzeige = re.search(r'(?i)(?:^|;)CN=("[^"]*"|[^;]*)', params)
-                anzeige = anzeige.group(1).strip('"').strip() if anzeige else ""
+                adresse = re.sub(r"(?i)^mailto:", "", value)
+                anzeige = params.get("CN", "").strip()
                 attendees.append(f"{anzeige} <{adresse}>" if anzeige and anzeige != adresse else adresse)
             else:
-                fields[name] = (value.strip(), params)
+                fields[name] = (value, params)
 
         start, all_day = _parse_dt(*fields["DTSTART"]) if "DTSTART" in fields else (None, False)
         end, _ = _parse_dt(*fields["DTEND"]) if "DTEND" in fields else (None, False)
