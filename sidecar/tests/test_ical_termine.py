@@ -153,3 +153,27 @@ def test_erinnerung_ueberschreibt_titel_und_notiz_nicht():
     (ohne_notiz,) = parse_events(ics(['UID:o', 'DTSTART:20261020T090000Z', 'BEGIN:VALARM', 'ACTION:DISPLAY',
                                       'DESCRIPTION:This is an event reminder', 'END:VALARM', 'SUMMARY:Danach']))
     assert (ohne_notiz.summary, ohne_notiz.notes) == ('Danach', '')
+
+
+# -- Ende aus DURATION und nach RFC 5545 ----------------------------------------------
+
+
+def test_ende_aus_dauer_oder_nach_der_regel_des_standards(gedaechtnis):
+    """RFC 5545, 3.6.1: ohne DTEND gilt DURATION; fehlt beides, dauert ein Datum einen Tag, eine Uhrzeit null."""
+    dauer, tag, tage, punkt = parse_events(ics(
+        ['UID:d', 'SUMMARY:Mit Dauer', 'DTSTART;TZID=Europe/Berlin:20261020T090000', 'DURATION:PT1H30M'],
+        ['UID:t', 'SUMMARY:Steuertermin', 'DTSTART;VALUE=DATE:20261021'],
+        ['UID:w', 'SUMMARY:Urlaub', 'DTSTART;VALUE=DATE:20261022', 'DURATION:P1W'],
+        ['UID:p', 'SUMMARY:Erinnerung', 'DTSTART:20261023T090000Z']))
+    assert (dauer.start, dauer.end) == (utc(2026, 10, 20, 7), utc(2026, 10, 20, 8, 30))
+    assert (tag.start, tag.end, tag.all_day) == (utc(2026, 10, 21), utc(2026, 10, 22), True)
+    assert (tage.start, tage.end) == (utc(2026, 10, 22), utc(2026, 10, 29))
+    assert punkt.end == punkt.start
+    # Ohne Ende fehlten solche Termine bisher still im Gedächtnis.
+    ergebnis = gedaechtnis.abgleichen('abo', 'Abo', [dauer, tag, tage, punkt], utc(2026, 10, 1), utc(2026, 12, 1))
+    assert (ergebnis.neu, ergebnis.ausserhalb) == (4, 0)
+
+
+def test_kaputte_dauer_ist_kein_ende():
+    (termin,) = parse_events(ics(['UID:k', 'DTSTART:20261020T090000Z', 'DURATION:eine Stunde']))
+    assert termin.start == utc(2026, 10, 20, 9) and termin.end is None

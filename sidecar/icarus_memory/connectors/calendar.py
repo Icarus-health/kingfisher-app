@@ -128,8 +128,11 @@ _DATUM = re.compile(r"^(\d{4})(\d{2})(\d{2})$")
 _ZEITPUNKT = re.compile(r"^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$", re.IGNORECASE)
 
 
-def _parse_dt(value: str, params: dict[str, str]) -> tuple[datetime | None, bool]:
-    """Liest DTSTART/DTEND (RFC 5545, 3.3.4 und 3.3.5). Gibt Zeitpunkt (in UTC) und Ganztags-Flag zurück.
+def _zeit(value: str, params: dict[str, str]) -> tuple[datetime, bool] | None:
+    """Liest einen DATE- oder DATE-TIME-Wert (RFC 5545, 3.3.4 und 3.3.5): Zeitpunkt und Ganztags-Flag.
+
+    Der Zeitpunkt trägt seine Zone, damit Dauer und Wiederholung in der Ortszeit
+    des Termins rechnen (09:00 bleibt über die Zeitumstellung 09:00).
 
     * `…Z` ist UTC.
     * `TZID=…` ist die Uhrzeit in dieser Zone (`zeitzonen.zone`: IANA-Name oder
@@ -146,17 +149,50 @@ def _parse_dt(value: str, params: dict[str, str]) -> tuple[datetime | None, bool
             return datetime(*map(int, treffer.groups()), tzinfo=timezone.utc), True
         treffer = _ZEITPUNKT.match(value)
         if treffer is None:
-            return None, False
+            return None
         wandzeit = datetime(*map(int, treffer.groups()[:6]))
     except ValueError:
-        return None, False
+        return None
     if treffer.group(7):
         zone = timezone.utc
     elif params.get("TZID"):
         zone = zeitzonen.zone(params["TZID"]) or timezone.utc
     else:
         zone = user_timezone() or timezone.utc
-    return wandzeit.replace(tzinfo=zone).astimezone(timezone.utc), False
+    return wandzeit.replace(tzinfo=zone), False
+
+
+_DAUER = re.compile(r"^\+?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$", re.IGNORECASE)
+
+
+def _dauer(value: str) -> timedelta | None:
+    """Eine DURATION (RFC 5545, 3.3.6) wie `PT1H30M` oder `P1D`; None, wenn sie unlesbar oder negativ ist."""
+    treffer = _DAUER.match(value.strip())
+    if treffer is None or not any(treffer.groups()):
+        return None
+    wochen, tage, stunden, minuten, sekunden = (int(teil or 0) for teil in treffer.groups())
+    return timedelta(weeks=wochen, days=tage, hours=stunden, minutes=minuten, seconds=sekunden)
+
+
+def _ende(termin: "_Komponente", beginn: tuple[datetime, bool] | None) -> datetime | None:
+    """Ende eines Termins (RFC 5545, 3.6.1): DTEND, sonst DTSTART plus DURATION.
+
+    Fehlt beides, dauert ein ganztägiger Termin einen Tag, einer mit Uhrzeit
+    endet, wo er beginnt. Ein unlesbares Ende bleibt unbekannt (None).
+    """
+    if "DTEND" in termin.felder:
+        ende = _zeit(*termin.felder["DTEND"])
+        return ende[0] if ende else None
+    if beginn is None:
+        return None
+    if "DURATION" in termin.felder:
+        dauer = _dauer(termin.wert("DURATION"))
+        return beginn[0] + dauer if dauer is not None else None
+    return beginn[0] + (timedelta(days=1) if beginn[1] else timedelta(0))
+
+
+def _utc(moment: datetime | None) -> datetime | None:
+    return moment.astimezone(timezone.utc) if moment is not None else None
 
 
 def _text_aus_ical(wert: str) -> str:
@@ -216,16 +252,15 @@ def parse_events(ical: str) -> list[Event]:
     for termin in _komponenten(ical):
         if termin.abgesagt:
             continue
-        start, all_day = _parse_dt(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else (None, False)
-        end, _ = _parse_dt(*termin.felder["DTEND"]) if "DTEND" in termin.felder else (None, False)
+        beginn = _zeit(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else None
         events.append(Event(
             uid=termin.wert("UID") or str(uuid.uuid4()),
             summary=_text_aus_ical(termin.wert("SUMMARY", "(ohne Titel)")),
-            start=start,
-            end=end,
+            start=_utc(beginn[0]) if beginn else None,
+            end=_utc(_ende(termin, beginn)),
             location=_text_aus_ical(termin.wert("LOCATION")),
             attendees=termin.teilnehmer,
-            all_day=all_day,
+            all_day=bool(beginn and beginn[1]),
             notes=_text_aus_ical(termin.wert("DESCRIPTION")),
             external_uid=termin.wert("UID"),
         ))
