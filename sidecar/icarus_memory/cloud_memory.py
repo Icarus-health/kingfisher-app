@@ -1,4 +1,4 @@
-"""Explicitly scoped, bounded processing through a ChatGPT subscription."""
+"""Ausdrücklich freigegebene, begrenzte Cloud-Einordnung einzelner Quellen."""
 from __future__ import annotations
 
 import json
@@ -21,7 +21,8 @@ from .working_memory_store import WorkingMemoryStore, source_fingerprint
 
 MAX_SOURCES = 100
 MAX_BULK_SOURCES = 1000
-REQUESTS_PER_SOURCE = 4
+# Gesamtbudget des Auftrags: Faktor mal tatsächlich ausgewählten Quellen; keine Einzelquellenquote.
+REQUEST_BUDGET_FACTOR = 4
 MAX_CANDIDATES = 2000
 PREVIEW_TTL = 15 * 60
 
@@ -58,7 +59,7 @@ class _ScopedProvider:
 
 class CloudMemoryJobs:
     def __init__(self, episodes, database: Path, provider_factory, grant_status,
-                 permission_lock=None, runtime_boundary=None):
+                 permission_lock=None, runtime_boundary=None, *, api_provider_factory=None, credential_status=None):
         self.episodes = episodes
         self.memory = WorkingMemoryStore(episodes)
         self.categories = Categories(episodes)
@@ -66,6 +67,8 @@ class CloudMemoryJobs:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.provider_factory = provider_factory
         self.grant_status = grant_status
+        self.api_provider_factory = api_provider_factory
+        self.credential_status = credential_status
         self.permission_lock = permission_lock or threading.RLock()
         self._runtime_boundary = runtime_boundary
         self.lock = threading.RLock()
@@ -94,6 +97,13 @@ class CloudMemoryJobs:
             columns = {row[1] for row in db.execute("PRAGMA table_info(cloud_memory_jobs)")}
             if "source_limit" not in columns:
                 db.execute("ALTER TABLE cloud_memory_jobs ADD COLUMN source_limit INTEGER NOT NULL DEFAULT 100")
+            # Bestehende Aufträge bleiben dem bisherigen ChatGPT-Zugang zugeordnet.
+            for table in ("cloud_memory_previews", "cloud_memory_jobs"):
+                existing = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+                if "provider" not in existing:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN provider TEXT NOT NULL DEFAULT 'chatgpt'")
+                if "credential_revision" not in existing:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN credential_revision TEXT")
             # Recovery never resumes unattended; the user must press Resume.
             db.execute("UPDATE cloud_memory_jobs SET state='paused',stop_reason=?,updated_at=? WHERE state='running'",
                        ("App-Neustart; bitte ausdrücklich fortsetzen.", time.time()))
@@ -109,6 +119,44 @@ class CloudMemoryJobs:
             return None
         available = status.get("available", status.get("active", False))
         return status.get("grant_id") if available and isinstance(status.get("grant_id"), str) else None
+
+    @staticmethod
+    def _check_provider(identifier):
+        if identifier not in {"chatgpt", "anthropic"}:
+            raise CloudMemoryError("Dieser Anbieter ist für Cloud-Einordnung nicht freigegeben.")
+
+    def _credential(self, identifier):
+        self._check_provider(identifier)
+        if identifier == "chatgpt":
+            grant = self._grant()
+            return {"available": bool(grant), "grant_id": grant}
+        value = self.credential_status(identifier) if callable(self.credential_status) else {}
+        return value if isinstance(value, dict) else {}
+
+    def _build_provider(self, identifier, model):
+        if identifier == "chatgpt":
+            return self.provider_factory(model)
+        if not callable(self.api_provider_factory):
+            raise CloudMemoryError("Der API-Zugang ist nicht vorbereitet.")
+        return self.api_provider_factory(identifier, model)
+
+    def _identity_current(self, job, provider):
+        identifier = job["provider"]
+        if (getattr(provider, "name", None) != identifier
+                or getattr(provider, "model", None) != job["model"]
+                or getattr(provider, "is_local", True)
+                or not getattr(provider, "is_remote", False)):
+            return False
+        credential = self._credential(identifier)
+        if not credential.get("available"):
+            return False
+        if identifier == "chatgpt":
+            return bool(job["grant_id"] and job["grant_id"] == credential.get("grant_id")
+                        and job["grant_id"] == getattr(provider, "grant_id", None))
+        return bool(job["credential_revision"]
+                    and credential.get("model") == job["model"]
+                    and job["credential_revision"] == credential.get("credential_revision")
+                    and job["credential_revision"] == getattr(provider, "credential_revision", None))
 
     @staticmethod
     def _source_type(snapshot):
@@ -129,12 +177,13 @@ class CloudMemoryJobs:
             row = self.episodes._conn.execute(
                 "SELECT fingerprint,status,model FROM working_memory_sources WHERE episode_id=?",
                 (episode_id,)).fetchone()
-            if not row or row[0] != fingerprint or row[1] != "complete" or not row[2].startswith("chatgpt:"):
+            if not row or row[0] != fingerprint or row[1] != "complete" or not row[2].startswith(("chatgpt:", "anthropic:")):
                 return False
         return self.categories.list_for(episode_id)["status"] in {"complete", "empty"}
 
     @guarded
-    def preview(self, purpose="pilot", source_ids=None, limit=None, cursor=None):
+    def preview(self, purpose="pilot", source_ids=None, limit=None, cursor=None, *, provider="chatgpt"):
+        self._check_provider(provider)
         if purpose not in {"pilot", "bulk", "recheck"}:
             raise CloudMemoryError("Unbekannter Verarbeitungsumfang.")
         source_limit = MAX_SOURCES if purpose == "pilot" else MAX_BULK_SOURCES
@@ -147,7 +196,9 @@ class CloudMemoryJobs:
             raise CloudMemoryError(f"Bitte höchstens {source_limit} konkrete Quellen auswählen.")
         if cursor is not None and (source_ids is not None or type(cursor) is not int or cursor < 1):
             raise CloudMemoryError("Der Seitenzeiger gilt nur für eine ungefilterte Vorschau.")
-        grant_id = self._grant()
+        credential = self._credential(provider)
+        grant_id = credential.get("grant_id") if provider == "chatgpt" else None
+        revision = credential.get("credential_revision") if credential.get("available") else None
         rowids = {}
         if source_ids is None:
             with self.episodes._lock:
@@ -194,12 +245,13 @@ class CloudMemoryJobs:
             sources = candidates[:limit]
         preview_id = uuid.uuid4().hex
         expires = time.time() + PREVIEW_TTL
-        model_scope = "subscription-catalog-at-start"
+        model_scope = "subscription-catalog-at-start" if provider == "chatgpt" else credential.get("model", "")
         with self._connect() as db:
-            db.execute("INSERT INTO cloud_memory_previews VALUES(?,?,?,?,?,?)",
+            db.execute("INSERT INTO cloud_memory_previews "
+                       "(id,purpose,model_scope,grant_id,sources,expires_at,provider,credential_revision) VALUES(?,?,?,?,?,?,?,?)",
                        (preview_id, purpose, model_scope, grant_id,
-                        json.dumps(sources, separators=(",", ":")), expires))
-        return {"preview_id": preview_id, "purpose": purpose, "count": len(sources),
+                        json.dumps(sources, separators=(",", ":")), expires, provider, revision))
+        return {"preview_id": preview_id, "purpose": purpose, "provider": provider, "count": len(sources),
                 "source_limit": source_limit,
                 "sources": [{k: v for k, v in source.items() if k not in {"fingerprint", "_rowid"}}
                             for source in sources[:10]],
@@ -215,11 +267,12 @@ class CloudMemoryJobs:
                 "expires_at": expires}
 
     @guarded
-    def start(self, preview_id, model, consent, source_ids=None):
+    def start(self, preview_id, model, consent, source_ids=None, *, provider="chatgpt"):
+        self._check_provider(provider)
         if consent is not True:
             raise CloudMemoryError("Für die Cloudverarbeitung ist eine ausdrückliche Zustimmung erforderlich.")
         if type(model) is not str or not 1 <= len(model) <= 128:
-            raise CloudMemoryError("Bitte ein gültiges ChatGPT-Modell auswählen.")
+            raise CloudMemoryError("Bitte ein gültiges Modell auswählen.")
         with self.lock:
             if any(thread.is_alive() for thread in self._threads.values()):
                 raise CloudMemoryError("Es läuft bereits ein Cloud-Gedächtnisauftrag.")
@@ -227,16 +280,27 @@ class CloudMemoryJobs:
                 preview = db.execute("SELECT * FROM cloud_memory_previews WHERE id=?", (preview_id,)).fetchone()
             if not preview or preview["expires_at"] < time.time():
                 raise CloudMemoryError("Die Vorschau ist abgelaufen. Bitte neu prüfen.")
+            if preview["provider"] != provider:
+                raise CloudMemoryError("Der Anbieter stimmt nicht mit der geprüften Vorschau überein.")
             if preview["purpose"] == "bulk":
                 with self._connect() as db:
                     pilot = db.execute(
-                        "SELECT state FROM cloud_memory_jobs WHERE purpose='pilot' ORDER BY created_at DESC LIMIT 1"
+                        "SELECT state FROM cloud_memory_jobs WHERE purpose='pilot' AND provider=? AND model=? "
+                        "AND COALESCE(credential_revision,grant_id)=? ORDER BY created_at DESC LIMIT 1",
+                        (provider, model, preview["credential_revision"] or self._grant())
                     ).fetchone()
                 if not pilot or pilot["state"] != "complete":
                     raise CloudMemoryError("Der 100-Mail-Pilot muss abgeschlossen sein, bevor der Bulk-Lauf startet.")
-            grant_id = self._grant()
-            if not grant_id or (preview["grant_id"] and grant_id != preview["grant_id"]):
-                raise CloudMemoryError("Das angemeldete ChatGPT-Konto hat sich geändert. Bitte neu prüfen.")
+            credential = self._credential(provider)
+            grant_id = credential.get("grant_id") if provider == "chatgpt" else ""
+            revision = credential.get("credential_revision") if provider != "chatgpt" else None
+            if provider == "chatgpt":
+                if not grant_id or (preview["grant_id"] and grant_id != preview["grant_id"]):
+                    raise CloudMemoryError("Das angemeldete ChatGPT-Konto hat sich geändert. Bitte neu prüfen.")
+            elif (not credential.get("available") or not revision
+                  or revision != preview["credential_revision"]
+                  or model != preview["model_scope"] or model != credential.get("model")):
+                raise CloudMemoryError("API-Zugang oder Modell wurde geändert. Bitte Zugang speichern und neu prüfen.")
             sources = json.loads(preview["sources"])
             allowed = {item["id"]: item for item in sources}
             chosen = list(dict.fromkeys(source_ids if source_ids is not None else allowed))
@@ -248,23 +312,26 @@ class CloudMemoryJobs:
                 snapshot = self._snapshot(episode_id)
                 if snapshot is None or source_fingerprint(snapshot) != allowed[episode_id]["fingerprint"]:
                     raise CloudMemoryError("Eine Quelle wurde geändert oder zurückgezogen. Bitte neu prüfen.")
-            provider = self.provider_factory(model)
-            if getattr(provider, "is_local", True) or not getattr(provider, "is_remote", False):
+            selected_provider = self._build_provider(provider, model)
+            if getattr(selected_provider, "is_local", True) or not getattr(selected_provider, "is_remote", False):
                 raise CloudMemoryError("Der ausgewählte Anbieter ist kein expliziter Cloudanbieter.")
-            if getattr(provider, "grant_id", None) != grant_id:
-                raise CloudMemoryError("Die ChatGPT-Freigabe hat sich geändert. Bitte neu prüfen.")
+            identity = {"provider": provider, "model": model, "grant_id": grant_id, "credential_revision": revision}
+            if not self._identity_current(identity, selected_provider):
+                raise CloudMemoryError("Anbieter, Modell oder Freigabe hat sich geändert. Bitte neu prüfen.")
             job_id = uuid.uuid4().hex
             now = time.time()
             fingerprints = {i: allowed[i]["fingerprint"] for i in chosen}
             with self._connect() as db:
                 db.execute("""INSERT INTO cloud_memory_jobs
                     (id,purpose,model,grant_id,source_ids,fingerprints,source_limit,state,consent,
-                     position,requests,completed,failed,stop_reason,created_at,updated_at)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     position,requests,completed,failed,stop_reason,created_at,updated_at,provider,credential_revision)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                            (job_id, preview["purpose"], model, grant_id,
-                            json.dumps(chosen), json.dumps(fingerprints), source_limit,
-                            "running", 1, 0, 0, 0, 0, "", now, now))
-            thread = threading.Thread(target=self._run, args=(job_id, provider),
+                            json.dumps(chosen), json.dumps(fingerprints), len(chosen),
+                            "running", 1, 0, 0, 0, 0, "", now, now, provider, revision))
+                # Ein erneut zugestellter Start darf kein zweites bezahltes Paket erzeugen.
+                db.execute("UPDATE cloud_memory_previews SET expires_at=0 WHERE id=?", (preview_id,))
+            thread = threading.Thread(target=self._run, args=(job_id, selected_provider),
                                       name="cloud-memory-job", daemon=True)
             self._threads[job_id] = thread
             thread.start()
@@ -299,10 +366,11 @@ class CloudMemoryJobs:
             issue_rows = db.execute("SELECT episode_id,stage,code,reason FROM cloud_memory_issues "
                                     "WHERE job_id=? ORDER BY rowid LIMIT 10", (job["id"],)).fetchall()
         return {"job": {"id": job["id"], "purpose": job["purpose"], "model": job["model"],
+                         "provider": job["provider"], "quality_verified": False,
                          "state": job["state"], "selected": len(ids), "position": job["position"],
                          "completed": job["completed"], "failed": job["failed"],
                          "requests": job["requests"],
-                         "request_limit": job["source_limit"] * REQUESTS_PER_SOURCE,
+                         "request_limit": job["source_limit"] * REQUEST_BUDGET_FACTOR,
                          "source_limit": job["source_limit"], "stop_reason": job["stop_reason"],
                          "issue_count": issue_count,
                          "issues": [{"episode_id": row["episode_id"], "stage": row["stage"],
@@ -316,8 +384,7 @@ class CloudMemoryJobs:
     def _permitted(self, job_id, provider, snapshot):
         job = self._job(job_id)
         return bool(job and job["state"] == "running" and job["consent"] == 1
-                    and job["grant_id"] == self._grant()
-                    and job["grant_id"] == getattr(provider, "grant_id", None)
+                    and self._identity_current(job, provider)
                     and callable(getattr(provider, "available", None)) and provider.available()
                     and self.memory.is_current(snapshot)
                     and source_fingerprint(snapshot) == json.loads(job["fingerprints"])[snapshot.episode.id])
@@ -407,7 +474,7 @@ class CloudMemoryJobs:
                 if current and current["state"] == "running":
                     retryable = self._retryable(exc)
                     self._save(job_id, state="paused" if retryable else "stopped",
-                               consent=0 if self._grant() != current["grant_id"] else current["consent"],
+                               consent=0 if not self._identity_current(current, provider) else current["consent"],
                                failed=current["failed"] + int(not retryable),
                                stop_reason=self._stop_reason(exc))
 
@@ -424,9 +491,9 @@ class CloudMemoryJobs:
         name = type(exc).__name__.lower()
         message = str(exc).lower()
         if "quota" in name or "quota" in message or "kontingent" in message:
-            return "ChatGPT-Kontingent erreicht; Auftrag gestoppt."
+            return "Kontingent des Anbieters erreicht; Auftrag gestoppt."
         if "rate" in name or "rate limit" in message or "anfragelimit" in message:
-            return "ChatGPT hat die Anfrage begrenzt; Auftrag gestoppt."
+            return "Der Anbieter hat die Anfrage begrenzt; Auftrag gestoppt."
         if "auth" in name or "unauthor" in name or "grant" in message or "anmeldung" in message:
             return "Die Anmeldung oder Freigabe ist nicht mehr gültig."
         if isinstance(exc, UnsupportedSource):
@@ -449,7 +516,7 @@ class CloudMemoryJobs:
             if not self._permitted(job_id, provider, snapshot):
                 raise ProviderError("Die Freigabe oder Quellenfassung hat sich geändert.")
             job = self._job(job_id)
-            request_limit = job["source_limit"] * REQUESTS_PER_SOURCE
+            request_limit = job["source_limit"] * REQUEST_BUDGET_FACTOR
             if job["requests"] >= request_limit:
                 self._save(job_id, state="stopped", stop_reason=f"Das Anfragebudget von {request_limit} wurde erreicht.")
                 raise ProviderError("Das Anfragebudget wurde erreicht.")
@@ -467,7 +534,7 @@ class CloudMemoryJobs:
         with self.permission_lock:
             if not self._permitted(job_id, provider, snapshot) or not self.memory.is_current(snapshot):
                 raise ProviderError("Freigabe oder Quelle vor dem Speichern geändert.")
-            self.memory.commit(snapshot, merged, model=f"chatgpt:{getattr(provider, 'model', '')}",
+            self.memory.commit(snapshot, merged, model=f"{getattr(provider, 'name', '')}:{getattr(provider, 'model', '')}",
                                explicit_recheck=explicit_recheck)
 
     def _categories_one(self, job_id, provider, snapshot):
@@ -513,16 +580,26 @@ class CloudMemoryJobs:
             job = self._job(job_id) if job_id else self._job(self._latest_id())
             if not job or job["state"] != "paused" or not job["consent"]:
                 raise CloudMemoryError("Dieser Auftrag kann nicht fortgesetzt werden.")
+            if any(identifier != job["id"] and thread.is_alive()
+                   for identifier, thread in self._threads.items()):
+                raise CloudMemoryError("Es läuft bereits ein Cloud-Gedächtnisauftrag.")
             old_thread = self._threads.get(job["id"])
             if old_thread is not None and old_thread.is_alive():
                 raise CloudMemoryError("Der pausierte Auftrag beendet noch eine laufende Anfrage. Bitte gleich erneut versuchen.")
-            provider = self.provider_factory(job["model"])
+            try:
+                provider = self._build_provider(job["provider"], job["model"])
+            except (CloudMemoryError, ProviderError):
+                if job["provider"] == "anthropic":
+                    with self.permission_lock:
+                        self._save(job["id"], state="stopped", consent=0,
+                                   stop_reason="API-Zugang nicht mehr verfügbar; Vorschau und Zustimmung erneut erforderlich.")
+                    raise CloudMemoryError("Bitte API-Zugang prüfen und eine neue Vorschau freigeben.") from None
+                raise
             with self.permission_lock:
                 job = self._job(job["id"])
                 if job["state"] != "paused" or not job["consent"]:
                     raise CloudMemoryError("Dieser Auftrag kann nicht fortgesetzt werden.")
-                if (getattr(provider, "grant_id", None) != job["grant_id"] or
-                        self._grant() != job["grant_id"] or not provider.available()):
+                if (not self._identity_current(job, provider) or not provider.available()):
                     self._save(job["id"], state="stopped", consent=0,
                                stop_reason="Die Anmeldung hat sich geändert; Vorschau und Zustimmung erneut erforderlich.")
                     raise CloudMemoryError("Die Anmeldung hat sich geändert. Bitte eine neue Vorschau und Zustimmung erteilen.")

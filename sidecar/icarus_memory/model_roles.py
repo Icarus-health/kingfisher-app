@@ -42,6 +42,7 @@ from typing import Any
 
 from .ollama_inventar import CLOUD, LOKAL, OllamaInventar, inventar_von
 from .providers import Anthropic, OpenAICompatible, Provider
+from .cloud_credentials import PREPARED_CLOUD_KEYS
 
 STANDARD_EINBETTUNG = "bge-m3:latest"
 
@@ -185,7 +186,7 @@ def _lokal(standard: Provider | None, modell: str, umgebung: Mapping[str, str]) 
 
 def _cloud(wahl: RollenWahl, umgebung: Mapping[str, str]) -> Provider | None:
     schluessel_name, standardmodell = CLOUD_ANBIETER[wahl.anbieter]
-    schluessel = umgebung.get(schluessel_name) or (
+    schluessel = umgebung.get(PREPARED_CLOUD_KEYS.get(wahl.anbieter, "")) or umgebung.get(schluessel_name) or (
         umgebung.get("LLM_API_KEY") if wahl.anbieter == "openai" else None)
     if not schluessel:
         return None

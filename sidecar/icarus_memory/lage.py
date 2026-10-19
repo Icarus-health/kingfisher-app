@@ -364,6 +364,15 @@ class Lagen:
             aktuell = {q['episode_id']: q['fp'] for q in quellen}
             saetze = [s for s in saetze if all(aktuell.get(b['episode_id']) == b['fp'] for b in s['belege'])]
             saetze = self._ohne_ueberholte(sache, saetze, quellen, gespeichert)
+            if sache.startswith('person:'):
+                # Eine unveränderte Mail allein trägt keine persönliche Aussage.
+                # Nach geänderter Absatzzuordnung muss eine alte Modell-Lage
+                # für bloße Erwähnungen neu geprüft werden, statt den alten
+                # fremden Kontext wieder in die bereinigte Akte einzublenden.
+                nur_erwaehnt = {q['episode_id'] for q in quellen
+                                if not {'anker', 'nutzer'}.intersection(q['grundlagen'])}
+                saetze = [s for s in saetze if all(b['episode_id'] not in nur_erwaehnt for b in s['belege'])]
+
         if not saetze:
             return None
         titel: dict[str, str | None] = {}

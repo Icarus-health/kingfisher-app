@@ -1065,16 +1065,18 @@ export type ModelRoleState = {
 };
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
   ollama_cloud?: {modelle: string[]; hinweis: string}};
-export type CloudProviderAccess = {id: "mistral" | "openrouter"; label: string; endpoint: string; key_present: boolean; model: string};
+export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
+export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
+export type CloudMemoryProvider = "chatgpt" | "anthropic";
 export type CloudAccessState = {storage_available: boolean; providers: CloudProviderAccess[]; notice: string};
 export type ChatGPTState = {connected:boolean; plan_usage:boolean; available:boolean; secure_storage:boolean;
   active_account:string|null; accounts:Array<{id:string; label:string; active:boolean; plan_usage:boolean}>};
 export type ChatGPTModel = {id:string; label:string};
 export type CloudMemoryPurpose = "pilot"|"bulk"|"recheck";
-export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose; count:number;
+export type CloudMemoryPreview = {preview_id:string; purpose:CloudMemoryPurpose; provider?:CloudMemoryProvider; count:number;
   sources:Array<{id:string;title:string;occurred_at:string|null}>; expires_at:number; sampling_note?:string;
   scanned_count:number;next_cursor:number|null};
-export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
+export type CloudMemoryJob = {id:string;purpose:CloudMemoryPurpose;provider?:CloudMemoryProvider;quality_verified?:boolean;model:string;state:"running"|"paused"|"complete"|"stopped"|"complete_with_gaps";
   selected:number;position:number;completed:number;failed:number;requests:number;request_limit:number;source_limit:number;
   stop_reason:string;updated_at:number;issue_count?:number;
   issues?:Array<{episode_id:string;stage:string;code:string;reason?:string}>};
@@ -1163,10 +1165,10 @@ export const api = {
   chatgptModels: () => request<{models:ChatGPTModel[]}>("/api/v1/chatgpt/models"),
   chatgptDisconnect: () => request<{remote_revoked:boolean;notice:string}>("/api/v1/chatgpt",{method:"DELETE"}),
   cloudMemoryStatus: () => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/status"),
-  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number) => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
-    {method:"POST",body:JSON.stringify({purpose,cursor,limit:purpose === "pilot" ? 100 : 1000})}),
-  cloudMemoryStart: (preview_id:string,model:string) => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
-    {method:"POST",body:JSON.stringify({preview_id,model,consent:true})}),
+  cloudMemoryPreview: (purpose:CloudMemoryPurpose,cursor?:number,provider:CloudMemoryProvider="chatgpt") => request<CloudMemoryPreview>("/api/v1/memory/cloud/preview",
+    {method:"POST",body:JSON.stringify({purpose,cursor,provider,limit:purpose === "pilot" ? 100 : 1000})}),
+  cloudMemoryStart: (preview_id:string,model:string,provider:CloudMemoryProvider="chatgpt") => request<{job:CloudMemoryJob|null}>("/api/v1/memory/cloud/start",
+    {method:"POST",body:JSON.stringify({preview_id,model,provider,consent:true})}),
   cloudMemoryAction: (action:"pause"|"resume"|"revoke",job_id:string) => request<{job:CloudMemoryJob|null}>(`/api/v1/memory/cloud/${action}`,
     {method:"POST",body:JSON.stringify({job_id})}),
   saveCloudAccess: (provider: CloudProviderAccess["id"], body: {api_key?: string; model: string}) =>

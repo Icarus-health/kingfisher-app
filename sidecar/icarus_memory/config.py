@@ -427,7 +427,7 @@ class Settings:
             model_roles={str(k): dict(v) for k, v in (data.get("model_roles") or {}).items()
                          if isinstance(v, dict)} if isinstance(data.get("model_roles"), dict) else {},
             cloud_models={k: v for k, v in data.get('cloud_models', {}).items()
-                          if k in {'mistral', 'openrouter'} and isinstance(v, str)}
+                          if k in {'mistral', 'openrouter', 'anthropic', 'openai'} and isinstance(v, str)}
                          if isinstance(data.get('cloud_models'), dict) else {},
             antwort_saetze="aus" if data.get("antwort_saetze") == "aus" else "an",
             satzpruefung_modell="aus" if data.get("satzpruefung_modell") == "aus" else "an",

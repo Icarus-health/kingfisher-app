@@ -47,3 +47,16 @@ Für eine spätere echte Erstaufbereitung braucht es einen getrennten, begrenzte
 ## Bereit für den späteren Test
 
 Künstliche Fälle: Frist nur relativ („bis Freitag“); zwei Personen mit gleichem Namen; Termin abgesagt ohne Ersatz; Hotel noch nicht gebucht und Freigabe erforderlich; widersprüchliche neue/alte Quelle; als Anweisung getarnter Mailtext. Bewertet werden korrekte Zuordnung, Auslassungen, falsche Behauptungen, Rückfragen, Laufzeit und Kosten. Das Ergebnis bestimmt die Modellauswahl; der Modellname wird nicht vorab als Qualitätsbeweis behandelt.
+
+## Entwicklungsstand vom 19. Oktober 2026: Paketbudget
+
+Neue ausdrücklich freigegebene Cloud-Einordnungen über das ChatGPT-Abo oder die
+Claude API erhalten ein gemeinsames Anfragebudget von vier mal der tatsächlich
+ausgewählten Mailzahl. Ein Paket mit einer Mail erlaubt also insgesamt höchstens
+vier Aufrufe; Pausieren und Fortsetzen setzen den Zähler nicht zurück. Dies ist
+ein Gesamtbudget des Pakets, keine separate Vier-Aufrufe-Quote je Mail: Eine
+aufwendige Quelle kann mehr davon beanspruchen. Vorschauen bleiben auf höchstens
+100 Mails für das erste Paket und 1.000 Mails für größere Pakete begrenzt.
+Bestehende Aufträge behalten ihre bereits gespeicherten Grenzen. Anfrage- und
+Ausgabetokenlimits garantieren keine Euro-Obergrenze; eine fachliche Abnahme der
+Ergebnisse ist ein eigener, nachgelagerter Schritt.

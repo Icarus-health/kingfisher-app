@@ -1,5 +1,6 @@
 """Write-only regional credentials. Preparation never calls or enables a model."""
 import os
+import secrets
 from copy import deepcopy
 
 from fastapi import HTTPException, Request
@@ -8,9 +9,14 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 
 from . import config
 from .secrets import KeychainError
+from .cloud_import_provider import REVISION_KEY, credential_status
+from .cloud_provider_facts import FACTS
+from .cloud_credentials import PREPARED_CLOUD_KEYS
 
 
 PROVIDERS = {
+    'anthropic': ('Anthropic (Claude API)', PREPARED_CLOUD_KEYS['anthropic'], 'https://api.anthropic.com/v1'),
+    'openai': ('OpenAI API', PREPARED_CLOUD_KEYS['openai'], 'https://api.openai.com/v1'),
     'mistral': ('Mistral', 'MISTRAL_API_KEY', 'https://api.eu.mistral.ai/v1'),
     'openrouter': ('OpenRouter', 'OPENROUTER_API_KEY', 'https://eu.openrouter.ai/api/v1'),
 }
@@ -35,7 +41,10 @@ def register(app, guard, data_dir, rebuild):
         return {'storage_available': bool(keychain and keychain.available),
                 'providers': [{'id': identifier, 'label': label, 'endpoint': endpoint,
                                'key_present': bool(os.environ.get(name)),
-                               'model': app.state.settings.cloud_models.get(identifier, '')}
+                               'model': app.state.settings.cloud_models.get(identifier, ''),
+                               'privacy': FACTS[identifier],
+                               'import_available': (credential_status(keychain, app.state.settings)['available']
+                                                    if identifier == 'anthropic' else False)}
                               for identifier, (label, name, endpoint) in PROVIDERS.items()],
                 'notice': 'Speichern bereitet den Zugang vor. Es aktiviert keine Cloud-Nutzung und überträgt keine Quellen. Der Zugang ist noch nicht getestet.'}
 
@@ -61,6 +70,7 @@ def register(app, guard, data_dir, rebuild):
         with app.state.conversation_lock:
             try:
                 old_key = keychain.get(name)
+                old_revision = keychain.get(REVISION_KEY) if identifier == 'anthropic' else None
             except KeychainError:
                 raise HTTPException(409, 'Der Schlüsselspeicher konnte nicht gelesen werden.') from None
             old_env = os.environ.get(name)
@@ -69,14 +79,18 @@ def register(app, guard, data_dir, rebuild):
             new_key = body.api_key.get_secret_value() if body and body.api_key else old_env or old_key
             if body and not new_key:
                 raise HTTPException(422, 'Bitte zuerst einen API-Schlüssel eingeben.')
+            changed = not body or new_key != old_env or body.model != old_models.get(identifier, '')
             try:
                 if body:
                     keychain.set(name, new_key)
                     settings.cloud_models[identifier] = body.model
+                    if identifier == 'anthropic' and (changed or not old_revision):
+                        keychain.set(REVISION_KEY, secrets.token_hex(32))
                 else:
                     keychain.delete(name)
                     settings.cloud_models.pop(identifier, None)
-                changed = not body or new_key != old_env or body.model != old_models.get(identifier, '')
+                    if identifier == 'anthropic':
+                        keychain.delete(REVISION_KEY)
                 if changed:
                     # Changing credentials or the prepared model requires fresh role consent.
                     settings.model_roles = {role: ({'local_only': True} if value.get('anbieter') == identifier else value)
@@ -85,6 +99,11 @@ def register(app, guard, data_dir, rebuild):
             except (KeychainError, OSError, ValueError):
                 settings.cloud_models, settings.model_roles = old_models, old_roles
                 try:
+                    if identifier == 'anthropic':
+                        if old_revision is None:
+                            keychain.delete(REVISION_KEY)
+                        else:
+                            keychain.set(REVISION_KEY, old_revision)
                     if old_key is None:
                         keychain.delete(name)
                     else:

@@ -147,3 +147,28 @@ test('a mail failure alone never claims ongoing classification from inactive cov
   assert.match(firstLayer(tree),/Verarbeitung braucht Aufmerksamkeit/);assert.match(firstLayer(tree),/Testpostfach ist nicht erreichbar/);
   assert.doesNotMatch(firstLayer(tree),/Kingfisher lernt gerade|329 von 347/);
 });
+
+test('Anthropic import has separate provider consent and cost limits without claiming quality approval',()=>{
+  const preview={preview_id:'synthetic',provider:'anthropic',purpose:'pilot',count:2,sources:[],next_cursor:null};
+  const access={storage_available:true,providers:[{id:'anthropic',label:'Anthropic',key_present:true,import_available:true,model:'claude-synthetic'}]};
+  const seeds=[null,preview,false,false,'',undefined,'anthropic',access];
+  const tree=render(()=>CloudMemory({model:'subscription-model',connected:false}),seeds);
+  assert.match(text(tree),/an Anthropic/);
+  assert.match(text(tree),/keine garantierte Euro/);
+  assert.doesNotMatch(text(tree),/an OpenAI zu senden/);
+  const consent=nodes(tree,n=>n.type==='input'&&n.props.type==='checkbox')[0];
+  assert.equal(consent.props.checked,false);
+  const start=nodes(tree,n=>n.type==='button'&&text(n).includes('mit Claude API auswerten'))[0];
+  assert.ok(start);assert.equal(start.props.disabled,true);
+  consent.props.onChange({target:{checked:true}});
+  const approved=render(()=>CloudMemory({model:'subscription-model',connected:false}),seeds);
+  assert.equal(nodes(approved,n=>n.type==='button'&&text(n).includes('mit Claude API auswerten'))[0].props.disabled,false);
+  assert.match(text(tree),/fachliche Qualität/);
+});
+
+test('paused Anthropic job lets the user select its original provider to resume after restart',()=>{
+  const job={id:'synthetic',state:'paused',provider:'anthropic',selected:2,position:1,completed:1,failed:0,requests:2,request_limit:8,model:'claude-synthetic',stop_reason:'App-Neustart',issues:[]};
+  const tree=render(()=>CloudMemory({model:'subscription-model',connected:true}),[job,null,false,false,'']);
+  const provider=nodes(tree,n=>n.type==='select')[0];
+  assert.equal(provider.props.disabled,false);
+});

@@ -94,7 +94,7 @@ export function ChatGPTAccess() {
 
   const active=state?.accounts.find(a=>a.id===state.active_account);
   return <section className="source-section chatgpt-access" aria-labelledby="chatgpt-title">
-    <header><h2 id="chatgpt-title">ChatGPT für dein Gedächtnis</h2><p>Optional · Mails mit deinem ChatGPT-Abo einordnen.</p></header>
+    <header><h2 id="chatgpt-title">Cloud für dein Gedächtnis</h2><p>Optional · Mails nach Freigabe über dein ChatGPT-Abo oder die Claude API einordnen.</p></header>
     {state?.connected ? <div className="chatgpt-connected">
       <strong>{state.plan_usage ? "ChatGPT-Abo verbunden" : "Konto verbunden · Abo-Nutzung nicht freigegeben"}</strong>
       <span>{active?.label??"ChatGPT-Konto"}</span>

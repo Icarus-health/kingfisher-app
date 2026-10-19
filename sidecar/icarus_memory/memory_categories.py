@@ -816,6 +816,12 @@ class Categories:
                 [(episode_id, fingerprint, category, version, start, end) for category,start,end in topics])
             self.connection.executemany("INSERT INTO memory_category_entities VALUES(?,?,?,?,?,?)",
                 [(episode_id, fingerprint, kind, start, end, role) for kind,start,end,role in entities])
+            # Eine erneute Einordnung kann bei unveränderter Originalfassung
+            # andere Personen/Textstellen liefern. Alte automatische Bezüge
+            # dürfen bis zum nächsten Abgleich nicht weiter als aktuell gelten.
+            # Nutzerzuordnungen und Originalquellen werden nicht verändert.
+            self.connection.execute("DELETE FROM sach_bezuege WHERE episode_id=? AND grundlage='modell'", (episode_id,))
+            self.connection.execute("DELETE FROM sach_quellen WHERE episode_id=?", (episode_id,))
             self.connection.execute("DELETE FROM memory_category_recheck WHERE episode_id=? AND taxonomy_version<=?", (episode_id, version))
             return True
 
