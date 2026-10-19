@@ -10,8 +10,9 @@ Was hier geschieht, und nur das:
   `https://calendar.google.com/calendar/ical/<kalender>/private-<schlüssel>/basic.ics`. Die öffentliche Adresse
   (`…/public/basic.ics`) geht nur bei öffentlichen Kalendern; eine Einbettungs- oder Einstellungsseite ist gar kein
   Kalender. `webcal://` wird `https://`.
-* `pruefe`: Die Adresse wird einmal abgerufen, mit Wanduhr (10 s), ohne Weiterleitung, höchstens 5 MB, und muss ein
-  gültiges iCalendar sein (`BEGIN:VCALENDAR`). Sonst ein Satz mit Grund. Hinaus geht nichts außer diesem Abruf.
+* `pruefe`: Die Adresse wird einmal abgerufen, mit Wanduhr (10 s), ohne Weiterleitung, höchstens `GROESSE` (25 MB,
+  dieselbe Grenze wie beim Lesen danach, `connectors.collections.ABO_GROESSE`), und muss ein gültiges iCalendar sein
+  (`BEGIN:VCALENDAR`). Sonst ein Satz mit Grund. Hinaus geht nichts außer diesem Abruf.
 
 Die Adresse ist ein Schlüssel zum ganzen Kalender: Sie liegt im Schlüsselbund wie ein Passwort (`server.py`), in den
 Einstellungen steht nur `https://calendar.google.com/` ohne den geheimen Teil. Die zwei Sätze der Karte, wo man die
@@ -27,12 +28,13 @@ from urllib.parse import unquote, urlsplit
 import httpx
 
 from .connectors.calendar import parse_events
+from .connectors.collections import ABO_GROESSE, zu_gross
 from .mail_anmeldung import Anmeldefehler
 from .zeitgrenze import mit_zeitgrenze
 
 #: So lange wartet „Kalender verbinden“ höchstens auf den Abruf (Sekunden, Wanduhr).
 ZEITGRENZE = 10.0
-GROESSE = 5_000_000
+GROESSE = ABO_GROESSE
 GOOGLE = 'calendar.google.com'
 #: Was in den Einstellungen statt der geheimen Adresse steht.
 GOOGLE_ANZEIGE = 'https://calendar.google.com/'
@@ -94,8 +96,7 @@ def _abrufen(url: str, transport: Any = None) -> tuple[int, str]:
             for stueck in antwort.iter_bytes():
                 groesse += len(stueck)
                 if groesse > GROESSE:
-                    raise Anmeldefehler('zu_gross', 'Dieser Kalender ist größer als 5 MB; so viel liest Kingfisher '
-                                                    'über eine Adresse nicht.')
+                    raise Anmeldefehler('zu_gross', zu_gross(GROESSE))
                 teile.append(stueck)
             return 200, b''.join(teile).decode(antwort.encoding or 'utf-8', errors='replace')
 

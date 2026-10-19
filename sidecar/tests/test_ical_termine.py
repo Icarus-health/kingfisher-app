@@ -432,3 +432,56 @@ def test_caldav_liest_den_kalender_aus_dem_xml_nicht_aus_dem_rohtext(monkeypatch
         (termin,) = leser.events(days=10, at=utc(2026, 10, 19))
     assert (termin.summary, termin.location) == ('Steuer & Recht <Jahresabschluss>', 'Müller & Söhne')
     assert (termin.start, termin.end) == (utc(2026, 10, 20, 7), utc(2026, 10, 20, 8))
+
+
+# -- Größe eines Abos ----------------------------------------------------------------
+
+
+def grosser_kalender(megabyte: float) -> str:
+    """Termine wie in Googles Datei (Teilnehmer, Notiz), bis die Datei `megabyte` groß ist."""
+    termin = ['SUMMARY:Abstimmung', 'DESCRIPTION:' + 'Agenda und Protokoll\\n' * 40,
+              *[f'ATTENDEE;CN=Person {k};PARTSTAT=ACCEPTED:mailto:person{k}@example.org' for k in range(5)]]
+    eins = len(ics([*termin, 'UID:x', 'DTSTART:20200101T090000Z']).encode())
+    anzahl = int(megabyte * 1_000_000 / (eins - 60)) + 1
+    return ics(*([*termin, f'UID:t{n}', f'DTSTART:{20200101 + n % 28:08d}T090000Z', 'DURATION:PT1H']
+                 for n in range(anzahl)))
+
+
+def test_ein_abo_ueber_fuenf_mb_wird_gelesen_beim_einrichten_und_danach():
+    """Googles geheime Adresse liefert die ganze Geschichte des Kalenders; fünf MB sind wenige Jahre."""
+    import httpx
+
+    from icarus_memory import kalender_abo
+    text = grosser_kalender(6)
+    assert len(text.encode()) > 6_000_000
+    transport = httpx.MockTransport(lambda anfrage: httpx.Response(200, text=text))
+    _, abo = kalender_abo.pruefe('https://kalender.example.test/gross.ics', transport=transport)
+    feed = Feed(text)
+    assert abo.termine == len(feed.leser.events(days=1, at=utc(2020, 1, 1))) > 3000
+
+
+def test_zu_grosses_abo_bricht_frueh_ab_und_sagt_es_in_einem_satz(monkeypatch):
+    import httpx
+
+    from icarus_memory import kalender_abo
+    from icarus_memory.connectors import collections
+    from icarus_memory.connectors.calendar import CalendarError
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    monkeypatch.setattr(collections, 'ABO_GROESSE', 2_000_000)
+    monkeypatch.setattr(kalender_abo, 'GROESSE', 2_000_000)
+    gelesen = []
+
+    def zehn_mb():
+        for _ in range(2000):
+            gelesen.append(1)
+            yield b'BEGIN:VEVENT\r\nUID:x\r\nDTSTART:20261020T090000Z\r\nEND:VEVENT\r\n' * 100
+
+    transport = httpx.MockTransport(lambda anfrage: httpx.Response(200, content=zehn_mb()))
+    satz = 'Dieser Kalender ist größer als 2 MB; so viel liest Kingfisher über eine Adresse nicht.'
+    with pytest.raises(CalendarError) as fehler:
+        collections.ICalendarSubscription('https://kalender.example.test/riesig.ics', transport=transport).events()
+    assert str(fehler.value) == satz
+    assert len(gelesen) < 500  # nicht erst alles laden und dann ablehnen
+    with pytest.raises(Anmeldefehler) as fehler:
+        kalender_abo.pruefe('https://kalender.example.test/riesig.ics', transport=transport)
+    assert (fehler.value.grund, fehler.value.satz) == ('zu_gross', satz)
