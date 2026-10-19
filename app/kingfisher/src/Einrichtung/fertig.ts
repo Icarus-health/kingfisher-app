@@ -61,8 +61,9 @@ export function liestSatz({mail, kalender}: {mail: boolean; kalender: boolean}):
   return was ? `Kingfisher liest ${was}. Das bleibt auf diesem Rechner.` : null;
 }
 
-/** Pausieren ist Alltag: Es steht auf Heute in „Kingfisher lernt gerade“, nicht unter „Für Techniker“ (Fremdprobe 3, Befund 5). */
-export const PAUSIEREN_AUF_HEUTE = "Anhalten kannst du beides jederzeit auf Heute mit „Pausieren“.";
+/** Pausieren ist Alltag: Es steht auf Heute in „Kingfisher lernt gerade“, nicht unter „Für Techniker“ (Fremdprobe 3, Befund 5).
+ * Die Pause hält ältere Mails und das Sortieren an; neue Post holt Kingfisher weiter (docs/46-hintergrund.md). */
+export const PAUSIEREN_AUF_HEUTE = "Anhalten kannst du beides jederzeit auf Heute mit „Pausieren“; neue Post holt Kingfisher dann weiter.";
 
 export type Zahl = {titel: string; wert: number | null};
 

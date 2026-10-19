@@ -12,7 +12,7 @@ Geprüft in Chromium:
   Servers; „Einstellungen → Zugänge“ ist ein Verweis. Er führt zu Zugänge, dort steht am Postfach „Neu anmelden“. Ein
   falsches Passwort wird mit Satz am Knopf abgelehnt, das richtige sagt „Angemeldet“, kein zweites Postfach entsteht;
   nach dem nächsten Abruf ist der Satz weg. 390 px ohne seitliches Scrollen; die Konsole bleibt leer.
-* Pause (falls `--pause`): siehe `pause_pruefen`.
+* Pause: siehe `pause_pruefen`.
 
 Aufruf: `python scripts/probe_hereinholen_ui.py --ausgabe DIR [--chromium PFAD]`; vorher `npm run build` in
 `app/kingfisher`. Bilder und `hereinholen-probe.json` liegen danach in DIR.
@@ -39,6 +39,60 @@ from probe_satzantwort_ui import CHROMIUM, freier_port  # noqa: E402
 ADRESSE = 'lena.probe@example.org'
 SATZ = ('Postfach Probe-Post lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen oder das Passwort hat '
         'sich geändert. Melde dich unter Einstellungen → Zugänge neu an.')
+
+
+SATZ_PAUSE = ('Postfach Probe-Post: Neue Post wird weiter geholt; ältere Mails sind pausiert (bisher 0 Mails gelesen). '
+              'Auf Heute geht es mit „Weiter“ weiter.')
+GRUND_PAUSE = ('Pausiert. Neue Post und Termine kommen weiter an; ältere Mails und das Lernen warten, bis du „Weiter“ '
+               'wählst.')
+
+
+def pause_pruefen(seite, api, basis, app, attrappe, bild, pruef) -> None:
+    """Pause in der Oberfläche: neue Post kommt weiter an, die älteren Mails warten, und das steht so da.
+
+    Auf Heute „Pausieren“ in „Kingfisher lernt gerade“; die Karte heißt „Verarbeitung pausiert“, nennt als Grund, was
+    weiterläuft, und je Postfach den Satz des Sidecars. Eine neue Mail kommt in der Pause ins Gedächtnis (der leichte
+    Takt des Zeitplans, hier im Takt der Probe), die fünf älteren nicht. „Weiter“ hebt die Pause auf.
+    """
+    from tests.imap_attrappe import probe_mail
+    app.state.scheduler.stop()  # im Takt der Probe
+    seite.goto(basis + '/today')
+    karte = seite.get_by_role('region', name='Kingfisher lernt gerade')
+    karte.get_by_role('button', name='Pausieren', exact=True).click()
+    karte = seite.get_by_role('region', name='Verarbeitung pausiert')
+    karte.wait_for(timeout=20000)
+    karte.locator('summary').first.click()
+    karte.get_by_text('Neue Post und Termine kommen weiter an').wait_for(timeout=20000)
+    text = karte.inner_text()
+    pruef['pause_karte'] = text
+    assert GRUND_PAUSE in text and SATZ_PAUSE in text, text
+    assert karte.get_by_role('button', name='Weiter', exact=True).count() == 1
+    bild('0-pause')
+
+    app.state.scheduler._run_neue_post()  # in der Pause begonnen: nur die Grenze für neue Post
+    attrappe.nachrichten.append(probe_mail('Anna Berg <anna.berg@example.org>', 'Neu: Treffpunkt geändert',
+                                           'Lena, wir treffen uns am Eingang.\n\nAnna', minuten=90))
+    app.state.scheduler._run_neue_post()
+    titel = {e.title for e in app.state.episodes.all_episodes(50)}
+    pruef['pause_im_gedaechtnis'] = sorted(titel)
+    assert titel == {'Neu: Treffpunkt geändert'}, titel
+    seite.reload()
+    karte = seite.get_by_role('region', name='Verarbeitung pausiert')
+    karte.wait_for(timeout=20000)
+    karte.locator('summary').first.click()
+    karte.get_by_text('Neue Post wird weiter geholt').wait_for(timeout=20000)
+    seite.set_viewport_size({'width': 390, 'height': 844})
+    seite.wait_for_timeout(500)
+    breite = seite.evaluate('() => [document.documentElement.scrollWidth, window.innerWidth]')
+    pruef['pause_390'] = breite
+    assert breite[0] <= breite[1], breite
+    bild('0-pause-390')
+    seite.set_viewport_size({'width': 1280, 'height': 900})
+
+    karte.get_by_role('button', name='Weiter', exact=True).click()
+    seite.get_by_role('region', name='Verarbeitung pausiert').wait_for(state='detached', timeout=20000)
+    assert api.get(basis + '/api/v1/hintergrund').json()['pausiert'] is False
+    pruef['pause_weiter'] = True
 
 
 def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
@@ -99,8 +153,11 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
         konto = api.get(basis + '/api/v1/integrations').json()['mail_accounts'][0]['id']
         umfang = api.get(f'{basis}/api/v1/mail/intake/{konto}/preview').json()
         assert api.post(f'{basis}/api/v1/mail/intake/{konto}/start', data={'folders': umfang['folders']}).ok
-        takte()
+        pause_pruefen(seite, api, basis, app, attrappe, bild, pruef)
+        takte(3)
         assert api.get(basis + '/api/v1/mail/stand').json()['accounts'][0]['zustand'] == 'aktuell'
+        titel = {e.title for e in app.state.episodes.all_episodes(50)}
+        assert 'Treffen am Montag' in titel and 'Neu: Treffpunkt geändert' in titel, titel
 
         # -- Das Passwort wird beim Anbieter geändert ----------------------------------------------------------------
         attrappe.passwort = 'neues-geheimnis'

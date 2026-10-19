@@ -228,11 +228,45 @@ def _verbunden(app: Any, konto: str) -> bool:
     return True
 
 
+#: Was in der Pause und im Akkubetrieb mit den älteren Mails ist, und wie es weitergeht (`nur_neue_post_satz`).
+_AELTERE = {
+    'pausiert': ('sind pausiert', ' Auf Heute geht es mit „Weiter“ weiter.'),
+    'akku': ('warten, bis der Mac am Netzteil ist', ''),
+    'energie_unbekannt': ('warten, bis die App meldet, dass der Mac am Netzteil ist', ''),
+}
+
+
+def nur_neue_post_satz(name: str, gelesen_n: int | None, gesamt: int | None, grund: str, ki_filter: bool) -> str:
+    """Pause oder Akku: Neue Post wird weiter geholt, die älteren Mails warten (docs/46-hintergrund.md).
+
+    Ist der KI-Filter an, prüft die lokale KI jede neue Mail vor dem Speichern; ohne Modell wartet dann auch sie, und
+    der Satz sagt das, statt „neue Post wird weiter geholt“ zu versprechen.
+    """
+    verb, wann = _AELTERE[grund]
+    zahlen = (f'bereits {zahl(gelesen_n or 0)} von {_mails(gesamt)} gelesen' if gesamt is not None
+              else f'bisher {_mails(gelesen_n or 0)} gelesen')
+    if ki_filter:
+        return (f'Postfach {name}: Neue Post und ältere Mails {verb}, weil die lokale KI neue Post vor dem Speichern '
+                f'prüft ({zahlen}).{wann}')
+    return f'Postfach {name}: Neue Post wird weiter geholt; ältere Mails {verb} ({zahlen}).{wann}'
+
+
 def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """Der Stand aller eingerichteten Postfächer, je mit `account_id`, `label` und der einen Aussage."""
+    from .hintergrund import NEUE_POST_WEITER
+    from .mail_filter import policy
     from .mail_intake import Intake
     settings = app.state.settings
-    global_pause = bool(getattr(getattr(app.state, 'hintergrund', None), 'pausiert', False))
+    steuerung = getattr(app.state, 'hintergrund', None)
+    global_pause = bool(getattr(steuerung, 'pausiert', False))
+    # Akku oder unbekannte Energie: wie die Pause. Speicherdruck hält dagegen auch neue Post an; dann gilt der Satz nicht.
+    try:
+        extern = steuerung.external_gate() if callable(getattr(steuerung, 'external_gate', None)) else None
+    except Exception:  # noqa: BLE001 - ohne Auskunft wird nichts versprochen
+        extern = 'unbekannt'
+    neue_post_weiter = extern is None or extern in NEUE_POST_WEITER
+    grund_nur_neu = 'pausiert' if global_pause else extern if extern in NEUE_POST_WEITER else None
+    ki_filter = bool(policy(settings).get('ai_enabled')) if hasattr(settings, 'mail_filter') else False
     from .storage_capacity import reason, MESSAGES
     storage_blocked = reason(app.state.episodes._path.parent)
     ergebnis = []
@@ -250,20 +284,25 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
         aussage = konto_stand(eintrag.label, intake=intake,
                                        abruf=(getattr(settings, 'mail_sync_status', None) or {}).get(eintrag.id),
                                        blick=gelesen(app, eintrag.id), verbunden=_verbunden(app, eintrag.id))
-        # Only explicit global pause changes active intake. Do not overwrite
-        # completion/errors or conflate temporary resource waits with user intent.
-        if global_pause and aussage['zustand'] in {'liest','wartet'}:
+        # Pause und Akku ändern nur den Satz eines Postfachs, das gerade liest; Fertiges und Fehler bleiben. Knapper
+        # Speicherplatz hält alles an, auch neue Post, und geht deshalb vor.
+        if storage_blocked and aussage['zustand'] in {'liest', 'wartet'}:
+            aussage = {**aussage, 'zustand': 'wartet',
+                       'satz': f'Postfach {eintrag.label}: {MESSAGES[storage_blocked]}'}
+        elif grund_nur_neu and neue_post_weiter and aussage['zustand'] in {'liest', 'wartet'}:
+            aussage = {**aussage, 'zustand': 'pausiert' if grund_nur_neu == 'pausiert' else 'wartet',
+                       'satz': nur_neue_post_satz(eintrag.label, aussage['gelesen'], aussage['gesamt'], grund_nur_neu,
+                                                  ki_filter)}
+        elif global_pause and aussage['zustand'] in {'liest','wartet'}:
+            # Pause und dazu Speicherdruck: Dann wartet auch neue Post; nichts versprechen.
             gelesen_n, gesamt = aussage['gelesen'], aussage['gesamt']
             zahlen = (f'Bereits {zahl(gelesen_n)} von {_mails(gesamt)} gelesen.' if gesamt is not None
                       else f'Bisher {_mails(gelesen_n)} gelesen.')
             aussage = {**aussage, 'zustand': 'pausiert',
                        'satz': f'Postfach {eintrag.label}: Einlesen pausiert. {zahlen} '
                                'Auf Heute geht es mit „Weiter“ weiter.'}
-        elif storage_blocked and aussage['zustand'] in {'liest', 'wartet'}:
-            aussage = {**aussage, 'zustand': 'wartet',
-                       'satz': f'Postfach {eintrag.label}: {MESSAGES[storage_blocked]}'}
         ergebnis.append({'account_id': eintrag.id, 'label': eintrag.label, **aussage})
     return ergebnis
 
 
-__all__ = ['GRUND', 'gelesen', 'konto_stand', 'merke_gelesen', 'stand', 'zeit_text']
+__all__ = ['GRUND', 'gelesen', 'konto_stand', 'merke_gelesen', 'nur_neue_post_satz', 'stand', 'zeit_text']

@@ -148,6 +148,13 @@ class Scheduler:
         self._run_priority_tasks: Callable[[], JobResult] | None = None
         #: Lagen (Ebene 3) in kleinen Paketen; wie die Einordnung nur mit Modellprüfung und Freigabe.
         self._run_lage: Callable[[bool], JobResult] | None = None
+        #: Was in der Pause und im Akkubetrieb ohne Modell weiterläuft (`_leichter_takt`, docs/46-hintergrund.md):
+        #: neue Post (nur die Spur „neu“ der Aufnahme) und der Kalenderabgleich; dazu `_run_backup`.
+        self._run_neue_post: Callable[[], None] | None = None
+        self._run_kalender: Callable[[], list[JobResult]] | None = None
+        #: Wann Kalender und Sicherung zuletzt ohne den vollen Durchgang liefen. `_last_at` bleibt dabei stehen, damit
+        #: der volle Durchgang nach der Pause fällig ist.
+        self._leicht_at: datetime | None = None
 
         self._enabled = False
         self._interval = timedelta(minutes=DEFAULT_INTERVAL_MINUTES)
@@ -513,8 +520,12 @@ class Scheduler:
             if steuerung is not None and self._enabled:
                 if self._with_model:
                     steuerung.probe()
-                # Pausiert, jemand arbeitet, eine Antwort entsteht: dieser Takt tut nichts.
+                # Jemand arbeitet, eine Antwort entsteht, der Mac hat Speicherdruck: dieser Takt tut nichts. Pause und
+                # Akku halten nur ältere Mails und jede Modellarbeit an; neue Post, Kalender und Sicherung laufen weiter.
                 if steuerung.sperre() is not None:
+                    ohne_modell = getattr(steuerung, 'sperre_ohne_modell', None)
+                    if callable(ohne_modell) and ohne_modell() is None:
+                        self._leichter_takt()
                     pause = steuerung.wartezeit()
                     continue
             begonnen = time.monotonic()
@@ -588,6 +599,67 @@ class Scheduler:
                     if dauer >= 0.5:
                         self._background_pause_until = max(
                             self._background_pause_until, beendet + steuerung.pause_nach(dauer))
+
+    def _leichter_takt(self) -> None:
+        """Was ohne Modell weiterläuft, wenn der Mensch pausiert hat oder der Mac im Akkubetrieb ist.
+
+        Neue Post (nur die Spur „neu“ der Aufnahme, im Takt der Aufnahme), dazu im Abstand des Zeitplans der
+        Kalenderabgleich und die geplante Sicherung (die selbst höchstens alle vier Stunden sichert). Ältere Mails,
+        der übrige volle Durchgang (Ordner, öffentliche Quellen, Beobachtungen, Verdichtung) und jede Modellarbeit
+        warten. Fehler eines Schritts halten die anderen nicht an, und der Faden stirbt nie.
+        """
+        neue_post = self._run_neue_post
+        if neue_post is not None and time.monotonic() >= getattr(self, '_next_intake_at', 0):
+            self._next_intake_at = time.monotonic() + TICK_SECONDS
+            try:
+                self._run_light(neue_post)
+            except Exception:  # noqa: BLE001 - die Aufnahme merkt ihre Gründe selbst; die Restore-Sperre darf ablehnen
+                pass
+        with self._lock:
+            zuletzt = max((t for t in (self._last_at, self._leicht_at) if t is not None), default=None)
+            faellig = zuletzt is None or now() >= zuletzt + self._interval
+        if faellig and (self._run_kalender is not None or self._run_backup is not None):
+            try:
+                self._run_light(self._leichter_lauf)
+            except Exception:  # noqa: BLE001
+                with self._lock:
+                    self._leicht_at = now()
+
+    @guarded
+    def _run_light(self, aufgabe: Callable[[], Any]) -> Any:
+        """Eine Arbeit des leichten Takts unter derselben Sperre wie alle Hintergrundläufe (nicht blockierend)."""
+        if not self._run_lock.acquire(blocking=False):
+            return None
+        try:
+            if not self._enabled or self._stop.is_set():
+                return None
+            return aufgabe()
+        finally:
+            self._run_lock.release()
+
+    def _leichter_lauf(self) -> RunReport:
+        """Kalenderabgleich und geplante Sicherung ohne den vollen Durchgang; der Bericht steht unter „Was zuletzt lief“."""
+        report = RunReport(started_at=now())
+        if self._capacity_wait(report):
+            return report
+        if self._run_kalender is not None:
+            try:
+                report.jobs.extend(self._run_kalender())
+            except Exception:  # noqa: BLE001 - keine Kalenderdaten in Statusmeldungen
+                report.jobs.append(JobResult('kalender', False, 'Termine konnten nicht ins Gedächtnis übernommen werden.'))
+        if self._capacity_wait(report):
+            return report
+        if self._run_backup is not None:
+            try:
+                report.jobs.append(self._run_backup())
+            except Exception as exc:  # noqa: BLE001
+                report.jobs.append(JobResult('sicherung', False, f'{type(exc).__name__}: {exc}'))
+        report.finished_at = now()
+        logbuch.fehler_des_laufs(report.jobs)
+        with self._lock:
+            self._last = report
+            self._leicht_at = report.finished_at
+        return report
 
     @guarded
     def _run_background_mail_intake(self):

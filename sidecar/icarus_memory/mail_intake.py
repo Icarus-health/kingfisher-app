@@ -37,6 +37,8 @@ CATEGORY_DIAGNOSTIC_BUDGET=16
 #: dass der Takt die Nachanalyse neuer Uploads (teilt sich dessen Sperre) nur Sekunden warten lässt. Abgerufen wird
 #: außerhalb jeder Sperre, `conversation_lock` gilt nur für das Schreiben der einzelnen Nachricht.
 BACKGROUND_BATCH=25
+#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`), bevor sie wieder geholt wird.
+ZURUECKGESTELLT_S=600
 PRIMARY_KEYS = {'mail_intake_analysis': {'episode_id'},'mail_intake_folders': {'account','folder'}, 'mail_intake_items': {'account','folder','generation','uid'}}
 INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account','status','retry_at','lane','uid')),
            'idx_mail_intake_episode': IndexContract('mail_intake_items',('episode_id',))}
@@ -173,32 +175,56 @@ class Intake:
             from .task_rechecks import enqueue
             enqueue(self.episodes, episode_id)
 
-    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None):
+    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None,
+                        nur_neu=False, zurueckstellen=None):
         """Ein Hintergrundtakt mit den Filterregeln der Einstellungen (`mail_filter.intake_screen`)."""
         # AI screening is bounded to two messages; the ordinary no-model fetch stays fast.
         batch = 2 if settings.mail_filter.get('ai_enabled') else BACKGROUND_BATCH
         return self.step(account,reader,batch=batch,permitted=permitted,permission_lock=permission_lock,
-                         claims=claims,screen=intake_screen(settings,provider),hold=hold)
+                         claims=claims,screen=intake_screen(settings,provider),hold=hold,nur_neu=nur_neu,
+                         zurueckstellen=zurueckstellen)
 
     def _filtered(self, item, category):
         # Kein Fakt im Bestand: Nur der Vermerk, warum. „Erneut versuchen“ prüft es noch einmal.
         self.db.execute("UPDATE mail_intake_items SET status=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         (FILTERED+category,item['account'],item['folder'],item['generation'],item['uid']))
 
-    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None, hold=None):
+    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None, hold=None,
+             nur_neu=False, zurueckstellen=None):
         """Ein begrenzter Durchgang; Bestandsaufnahme und Abrufe teilen sich eine Verbindung.
 
         `screen(message)` liefert eine `mail_filter.Decision`. Ausgefilterte Nachrichten werden
         nicht aufgenommen, aber gezählt (Status `filtered:<Kategorie>`) und im Status gezeigt.
+
+        `nur_neu`: Pause oder Akkubetrieb (docs/46-hintergrund.md). Nur neue Post (Spur „neu“) wird geholt; die
+        älteren Mails bleiben, wo sie stehen, auch ihre Bestandsaufnahme. Ein in der Pause begonnenes Einlesen merkt
+        sich nur die Grenze für neue Post (`_grundlinie`). `zurueckstellen(message)`: Diese Mail jetzt nicht speichern
+        (etwa ein gescannter Anhang, solange die Texterkennung ein Modell bräuchte); sie bleibt offen, ohne als
+        gescheitert zu zählen, und kommt nach `ZURUECKGESTELLT_S` wieder dran.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
         with (permission_lock if permission_lock is not None else nullcontext()):
             if not self._active(account,permitted):return []
         sitzung=getattr(reader,'session',None)
         with (sitzung() if sitzung is not None else nullcontext()):
-            return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold)
+            return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold,nur_neu,zurueckstellen)
 
-    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen, hold):
+    def _grundlinie(self, account, reader, row, permitted, gate):
+        """Nur die Grenze für neue Post: Generation und höchste Nummer jetzt, ohne einen älteren Eintrag anzulegen.
+
+        Offen bleibt der ganze Verlauf (scan_uid, upper_uid]; nach der Pause erfasst ihn die Bestandsaufnahme wie
+        sonst, und was ab jetzt kommt, ist neue Post.
+        """
+        with gate:
+            if not self._active(account,permitted):return
+        page=reader.inventory_page(row['folder'],after_uid=0,limit=1)
+        with gate:
+            if not self._active(account,permitted):return
+            with self.episodes.transaction():
+                self.db.execute('UPDATE mail_intake_folders SET generation=?,upper_uid=?,live_uid=?,error=NULL,updated=? WHERE account=? AND folder=? AND generation IS NULL',
+                                (page['uidvalidity'],page['upper_uid'],page['upper_uid'],time.time(),account,row['folder']))
+
+    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen, hold, nur_neu=False, zurueckstellen=None):
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
@@ -209,7 +235,9 @@ class Intake:
             try:
                 if row['generation'] is not None:
                     self._inventory(account,reader,row,True,permitted,gate)
-                if not row['inventory_complete']:
+                elif nur_neu:
+                    self._grundlinie(account,reader,row,permitted,gate)
+                if not row['inventory_complete'] and not nur_neu:
                     self._inventory(account,reader,row,False,permitted,gate)
             except MailboxGenerationChanged:
                 with self.episodes.transaction():
@@ -221,10 +249,10 @@ class Intake:
                 with self.episodes.transaction():
                     self.db.execute("UPDATE mail_intake_folders SET error=?,updated=? WHERE account=? AND folder=?",(bestandsfehler(fehler),time.time(),account,row['folder']))
         with self.episodes._lock:
-            # Reserve at least half for history; a single bad UID never blocks either lane.
-            history_quota = 0 if self._history_backlog(account) > 200 else batch
+            # Reserve at least half for history; a single bad UID never blocks either lane. In der Pause nur neue Post.
+            history_quota = 0 if nur_neu or self._history_backlog(account) > 200 else batch
             selected=[]
-            lanes=[('live',max(1,batch//2)),('history',history_quota)]
+            lanes=[('live',batch if nur_neu else max(1,batch//2)),('history',history_quota)]
             # Nur bei Einzelschritten wechselt die Reihenfolge; den Zähler über alle Erledigten sonst nicht bilden (O(Bestand) je Schritt).
             if batch==1 and history_quota and self.db.execute("SELECT COUNT(*) FROM mail_intake_items WHERE account=? AND status IN ('captured','duplicate')",(account,)).fetchone()[0]%2:
                 lanes=[('history',1),('live',1)]
@@ -248,6 +276,11 @@ class Intake:
                 with gate:
                     if not self._active(account,permitted):break
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
+                if zurueckstellen is not None and zurueckstellen(message):
+                    with self.episodes.transaction():
+                        self.db.execute('UPDATE mail_intake_items SET retry_at=? WHERE account=? AND folder=? AND generation=? AND uid=?',
+                                        (time.time()+ZURUECKGESTELLT_S,account,item['folder'],item['generation'],item['uid']))
+                    continue
                 # Model/network calls must not hold the conversation/permission lock.
                 decision=screen(message) if screen is not None else None
                 with gate:

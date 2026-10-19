@@ -54,7 +54,7 @@ export function lerntZeilen(intake: MailIntakeStatus | null, akten: {offen: numb
     zeilen.push({
       id: "mail", fertig, gesamt: alle,
       text: saetze.length === liest.length ? saetze.join(" ")
-        : pausiert ? `Einlesen pausiert: ${zahl(fertig)}${alle === null ? " Mails bisher gelesen" : ` von ${zahl(alle)} Mails gelesen`}`
+        : pausiert ? `Ältere Mails pausiert: ${zahl(fertig)}${alle === null ? " Mails bisher gelesen" : ` von ${zahl(alle)} Mails gelesen`}`
         : alle === null ? `Deine Mails werden gelesen: bisher ${zahl(fertig)} gefunden`
         : `Deine Mails werden gelesen: ${zahl(fertig)} von ${zahl(alle)}`,
     });

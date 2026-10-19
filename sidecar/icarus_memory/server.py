@@ -1048,15 +1048,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                 results.append(JobResult('world:' + source['id'], True, 'Öffentliche Quelle aktualisiert.'))
             except (ValueError, KeyError):
                 results.append(JobResult('world:' + source['id'], False, 'Öffentliche Quelle gerade nicht erreichbar.'))
-        from .calendar_memory_routes import abgleichen as kalender_abgleichen
-        try:
-            kalender = kalender_abgleichen(app, erlaubt=lambda: not was_enabled or app.state.settings.schedule.enabled)
-            for quelle, r in kalender['quellen'].items():
-                summe = ', '.join(f'{r[name]} {name}' for name in ('neu', 'geaendert', 'entzogen') if r[name])
-                results.append(JobResult(f'kalender:{quelle}', not r['fehler'],
-                    (summe or 'Termine unverändert') + ('. Lesefehler; Termine unberührt.' if r['fehler'] else '')))
-        except Exception:  # Keine Kalenderdaten in Statusmeldungen.
-            results.append(JobResult('kalender', False, 'Termine konnten nicht ins Gedächtnis übernommen werden.'))
+        results.extend(run_kalender(was_enabled))
         with app.state.conversation_lock:
             if not was_enabled or app.state.settings.schedule.enabled:
                 from .learning_service import propose_patterns
@@ -1067,6 +1059,21 @@ def _wire_scheduler(app: FastAPI) -> None:
                 except ValueError:
                     results.append(JobResult('lernen', False, 'Beobachtungen konnten nicht vollständig geprüft werden.'))
         return results
+    def run_kalender(was_enabled=None):
+        """Termine ins Gedächtnis abgleichen, ohne Modell; im vollen Durchgang und in der Pause (`Scheduler._leichter_takt`)."""
+        was_enabled = app.state.settings.schedule.enabled if was_enabled is None else was_enabled
+        results = []
+        from .calendar_memory_routes import abgleichen as kalender_abgleichen
+        try:
+            kalender = kalender_abgleichen(app, erlaubt=lambda: not was_enabled or app.state.settings.schedule.enabled)
+            for quelle, r in kalender['quellen'].items():
+                summe = ', '.join(f'{r[name]} {name}' for name in ('neu', 'geaendert', 'entzogen') if r[name])
+                results.append(JobResult(f'kalender:{quelle}', not r['fehler'],
+                    (summe or 'Termine unverändert') + ('. Lesefehler; Termine unberührt.' if r['fehler'] else '')))
+        except Exception:  # Keine Kalenderdaten in Statusmeldungen.
+            results.append(JobResult('kalender', False, 'Termine konnten nicht ins Gedächtnis übernommen werden.'))
+        return results
+
     def run_task_detection(with_model, *, limit=10, rechecks_only=False):
         agent = getattr(app.state, "agent", None)
         plan_at_start = asdict(app.state.settings.schedule)
@@ -1160,7 +1167,13 @@ def _wire_scheduler(app: FastAPI) -> None:
     if nachtrag is None:
         nachtrag = app.state.nachtrag = NachtragLauf()
 
-    def run_mail_intake():
+    def run_mail_intake(nur_neue_post=False):
+        """Ein Takt der Mailaufnahme. `nur_neue_post` (Pause, Akku): nur die Spur „neu“, ohne jedes Modell.
+
+        Ohne Modell heißt auch: keine Texterkennung gescannter Anhänge (sie läuft in Ollama). Eine neue Mail mit
+        gescanntem Anhang wartet dann, wenn ein OCR-Modell da ist, statt ohne Text gespeichert zu werden. Ist der
+        KI-Filter an, prüft die lokale KI jede neue Mail vor dem Speichern; dann wartet in der Pause auch die neue Post.
+        """
         from .mail_intake import Intake
         from . import mail_filter
         store = Intake(app.state.episodes)
@@ -1169,15 +1182,22 @@ def _wire_scheduler(app: FastAPI) -> None:
                 continue
             try:
                 reader = app.state.mail.reader_for(account_id)
+                zurueckstellen = None
                 if hasattr(reader, 'ocr'):
                     # Gescannte Anhänge nur mit einem lokalen OCR-Modell (`anhaenge.ocr_fuer`), nie über die Cloud.
-                    from .anhaenge import ocr_fuer
-                    reader.ocr = ocr_fuer(app)
+                    from .anhaenge import GESCANNT, ocr_fuer
+                    ocr = ocr_fuer(app)
+                    reader.ocr = None if nur_neue_post else ocr
+                    if nur_neue_post and ocr is not None:
+                        zurueckstellen = lambda nachricht: any(  # noqa: E731
+                            getattr(anhang, 'status', '') == GESCANNT for anhang in getattr(nachricht, 'anhaenge', ()) or ())
                 with app.state.conversation_lock:
                     selected_filter = mail_filter.policy(app.state.settings)
                     selected_settings = SimpleNamespace(mail_filter=selected_filter)
                     screening_agent = app.state.agent
                     screening_with_model = app.state.settings.schedule.with_model
+                if nur_neue_post and selected_filter['ai_enabled']:
+                    continue  # Die lokale KI prüft neue Post vor dem Speichern; ohne Modell wartet sie (mail_stand sagt es).
                 def allowed():
                     current = app.state.settings.schedule
                     return (current.enabled and account_id in current.mail_accounts
@@ -1192,10 +1212,14 @@ def _wire_scheduler(app: FastAPI) -> None:
                 ids = store.background_step(account_id, reader, selected_settings, permitted=allowed,
                     permission_lock=app.state.conversation_lock, claims=app.state.claims, provider=screening_provider,
                     hold=lambda message, decision, folder: mail_filter.hold(app, message, decision,
-                        lambda: config.save(_data_dir(), app.state.settings), folder=folder))
+                        lambda: config.save(_data_dir(), app.state.settings), folder=folder),
+                    nur_neu=nur_neue_post, zurueckstellen=zurueckstellen)
                 if ids:
                     for episode_id in ids:
+                        # Nur vorgemerkt; eingeordnet wird erst, wenn Modellarbeit wieder erlaubt ist.
                         scheduler.request_working_memory(episode_id)
+                if nur_neue_post:
+                    continue  # Empfänger älterer Mails nachtragen gehört zum Altbestand.
                 # Nachrangig: Empfänger für ältere Mails nachtragen, gedrosselt und mit derselben Freigabe.
                 nachtrag.schritt(app.state.episodes, reader, account_id,
                                  permitted=lambda: store.aktiv(account_id, allowed),
@@ -1205,6 +1229,8 @@ def _wire_scheduler(app: FastAPI) -> None:
                 pass  # Per-account safe error states are persisted by intake; der Nachtrag ist wiederholbar.
 
     scheduler._run_mail_intake = run_mail_intake
+    scheduler._run_neue_post = lambda: run_mail_intake(nur_neue_post=True)
+    scheduler._run_kalender = run_kalender
     scheduler._run_working_memory = run_working_memory
     scheduler._run_lage = run_lage  # noqa: SLF001
     scheduler._run_prompt_working_memory = lambda ids: run_working_memory(True, prompt=True, source_ids=ids)

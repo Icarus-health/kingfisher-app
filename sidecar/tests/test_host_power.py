@@ -158,6 +158,8 @@ def test_battery_reason_is_visible_when_only_mail_intake_needs_work(tmp_path, mo
 
 @pytest.mark.parametrize('source, pressure', [('battery', 'normal'), ('ac', 'warning'), ('ac', 'critical'), ('ac', 'unknown')])
 def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory(tmp_path, monkeypatch, source, pressure):
+    # Bewusst geändert (docs/46-hintergrund.md): Auf Akku holt der Zeitplan neue Post ohne Modell weiter; ältere Mails
+    # und jede Modellarbeit warten bis zum Netzteil. Speicherdruck hält weiter alles an.
     monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 0.02)
     power = HostPower(tmp_path, expected=lambda: True)
     control = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
@@ -174,6 +176,7 @@ def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_mem
         return JobResult('synthetic')
     scheduler._run_working_memory = model
     scheduler._run_mail_intake = lambda: calls.append('intake')
+    scheduler._run_neue_post = lambda: calls.append('neue_post')
     scheduler.configure(enabled=True, with_model=True)
     scheduler.anschliessen(control)
     scheduler._last_at = datetime.now().astimezone()
@@ -181,9 +184,17 @@ def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_mem
     scheduler.start()
     try:
         time.sleep(0.12)
-        assert calls == []
+        if source == 'battery':
+            assert calls and set(calls) == {'neue_post'}, calls
+        else:
+            assert calls == []
+        calls.clear()
         power.report('ac', memory_pressure='normal'); scheduler.wecken()
         assert resumed.wait(2)
+        # Die Aufnahme läuft im eigenen Takt; nach neuer Post auf Akku kann sie einen Takt später dran sein.
+        ende = time.monotonic() + 2
+        while 'intake' not in calls and time.monotonic() < ende:
+            time.sleep(0.01)
         assert 'intake' in calls and 'model' in calls
     finally:
         scheduler.stop()
