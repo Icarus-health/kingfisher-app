@@ -8,7 +8,7 @@ Antwort muss später ein explizit gewähltes Absenderkonto mitbringen.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 import httpx
@@ -54,6 +54,8 @@ class ICalendarSubscription:
         """Nur für Tests und Proben (Attrappe statt Netz)."""
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
+        """Alle Termine der Datei; Serien ausgeklappt im Fenster `at` bis `at + days` (`parse_events`)."""
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
         if not self._url.startswith("https://"):
             raise CalendarError("iCalendar-Abonnements benötigen eine HTTPS-Adresse.")
         try:
@@ -65,7 +67,7 @@ class ICalendarSubscription:
                     raise CalendarError("Das iCalendar-Abo ist größer als 5 MB.")
         except httpx.HTTPError as exc:
             raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
-        return parse_events(response.text)
+        return parse_events(response.text, von, von + timedelta(days=days))
 
 
 class MailCollection:

@@ -6,7 +6,8 @@ Aufbau wie bei einem echten Anbieter, damit Kingfisher den Kalender selbst finde
 * `PROPFIND /dav/` nennt den `current-user-principal` `/dav/principals/<benutzer>/`;
 * der Principal nennt sein `calendar-home-set` `/dav/calendars/<benutzer>/`;
 * darunter zwei Sammlungen: `privat/` (Termine, Anzeigename „Privat“) und `aufgaben/` (nur Aufgaben, VTODO);
-* `REPORT` auf `privat/` liefert einen Termin.
+* `REPORT` auf `privat/` liefert `kalenderdaten` (Vorgabe: ein Termin, `TERMIN`); jeder Anfragetext steht in
+  `berichte`.
 
 `start` ist die Adresse, die der Katalog für den Probe-Anbieter nennt (`/dav/`). Verhalten je `modus`:
 
@@ -52,6 +53,8 @@ class CaldavAttrappe:
         self.passwort = passwort
         self.anmeldungen: list[tuple[str, str]] = []
         self.anfragen_an: list[tuple[str, str, bool]] = []
+        self.kalenderdaten = TERMIN
+        self.berichte: list[str] = []
         self._ordner = Path(tempfile.mkdtemp(prefix='caldav-attrappe-'))
         self.zertifikat, schluessel = _zertifikat(self._ordner)
         kontext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -85,10 +88,9 @@ class CaldavAttrappe:
                     return None
                 return benutzer
 
-            def _laenge_lesen(self) -> None:
+            def _laenge_lesen(self) -> str:
                 laenge = int(self.headers.get('Content-Length') or 0)
-                if laenge:
-                    self.rfile.read(laenge)
+                return self.rfile.read(laenge).decode('utf-8', 'replace') if laenge else ''
 
             def do_PROPFIND(self) -> None:  # noqa: N802 - Name aus http.server
                 self._laenge_lesen()
@@ -129,7 +131,7 @@ class CaldavAttrappe:
                 self._senden(207, koerper)
 
             def do_REPORT(self) -> None:  # noqa: N802
-                self._laenge_lesen()
+                attrappe.berichte.append(self._laenge_lesen())
                 if attrappe.modus == 'stumm':
                     attrappe._halt.wait(60)
                     return
@@ -139,7 +141,7 @@ class CaldavAttrappe:
                 if not self.path.endswith('/privat/'):
                     self._senden(207, _multistatus())
                     return
-                daten = TERMIN.replace('&', '&amp;').replace('<', '&lt;')
+                daten = attrappe.kalenderdaten.replace('&', '&amp;').replace('<', '&lt;')
                 self._senden(207, _multistatus(f'<d:response><d:href>{self.path}probe-1.ics</d:href><d:propstat>'
                                                f'<d:prop><c:calendar-data>{daten}</c:calendar-data></d:prop>'
                                                '<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>'))

@@ -1,24 +1,41 @@
-"""Kalender über CalDAV.
+"""Kalender über CalDAV, und der iCalendar-Leser dazu (auch für Abos, `collections.py`).
 
 Wie bei Mail bewusst das offene Protokoll statt Anbieter-APIs: CalDAV
 funktioniert mit iCloud, Nextcloud, Fastmail, Radicale und Google. Kein OAuth,
 keine Schnittstelle, die in zwei Jahren abgekündigt wird.
 
-Der iCalendar-Parser ist absichtlich klein gehalten und deckt das ab, was für
-Anzeige und Anlegen nötig ist: Zeitpunkt, Titel, Ort, Teilnehmer. Ein
-vollständiger RFC-5545-Parser samt Wiederholungsregeln ist ein eigenes Projekt;
-was hier fehlt, ist unten benannt.
+Der iCalendar-Leser deckt ab, was Anzeige, Gedächtnis und Anlegen brauchen:
+Zeitpunkt samt Zeitzone (`zeitzonen.py`), Titel, Ort, Teilnehmer, Notiz,
+Absagen (`STATUS:CANCELLED` fehlt) und Serien. Serien werden im gelesenen
+Zeitfenster ausgeklappt (`parse_events`); die Regeln rechnet `dateutil.rrule`,
+hier stehen nur Ausnahmen (EXDATE, geänderte Einzeltermine per RECURRENCE-ID),
+Kennungen und Grenzen.
+
+Auch bei CalDAV wird hier ausgeklappt, nicht mit `<C:expand>` auf dem Server:
+Server setzen das nicht einheitlich um, und RFC 4791 (9.6.5) lässt dem ersten
+Termin einer ausgeklappten Serie sogar die RECURRENCE-ID offen. Die Kennung
+eines Einzeltermins, an der das Gedächtnis Änderungen erkennt, soll nicht davon
+abhängen, welcher Server ihn liefert. Kommt trotzdem schon Ausgeklapptes an,
+wird es als Einzeltermine derselben Serie gelesen.
+
+Was fehlt: Zeitzonen, die nur in der Datei als VTIMEZONE beschrieben sind (ihr
+Name ist weder IANA noch in der Outlook-Tabelle; sie gelten als unbekannt),
+`RANGE=THISANDFUTURE` (ein geänderter Termin gilt nur für sich), EXRULE
+(von RFC 5545 gestrichen) und Aufgaben (VTODO).
 """
 
 from __future__ import annotations
 
+import hashlib
+import heapq
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import datetime, time, timedelta, timezone
+from typing import Any, Iterator, NamedTuple
 
 import httpx
+from dateutil.rrule import rrulestr
 
 from ..model import user_timezone
 from . import zeitzonen
@@ -128,11 +145,22 @@ _DATUM = re.compile(r"^(\d{4})(\d{2})(\d{2})$")
 _ZEITPUNKT = re.compile(r"^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$", re.IGNORECASE)
 
 
-def _zeit(value: str, params: dict[str, str]) -> tuple[datetime, bool] | None:
-    """Liest einen DATE- oder DATE-TIME-Wert (RFC 5545, 3.3.4 und 3.3.5): Zeitpunkt und Ganztags-Flag.
+class _Zeit(NamedTuple):
+    """Ein gelesener Zeitwert.
 
-    Der Zeitpunkt trägt seine Zone, damit Dauer und Wiederholung in der Ortszeit
-    des Termins rechnen (09:00 bleibt über die Zeitumstellung 09:00).
+    `moment` trägt seine Zone, damit Dauer und Wiederholung in der Ortszeit des
+    Termins rechnen: 09:00 bleibt über die Zeitumstellung 09:00.
+    """
+
+    moment: datetime
+    ganztags: bool = False
+    """Ein Datum ohne Uhrzeit, geführt als Mitternacht UTC."""
+    schwebend: bool = False
+    """Eine Uhrzeit ohne Zone („floating“), gelesen in der Zeitzone des Nutzers."""
+
+
+def _zeit(value: str, params: dict[str, str]) -> _Zeit | None:
+    """Liest einen DATE- oder DATE-TIME-Wert (RFC 5545, 3.3.4 und 3.3.5).
 
     * `…Z` ist UTC.
     * `TZID=…` ist die Uhrzeit in dieser Zone (`zeitzonen.zone`: IANA-Name oder
@@ -146,7 +174,7 @@ def _zeit(value: str, params: dict[str, str]) -> tuple[datetime, bool] | None:
     value = value.strip()
     try:
         if treffer := _DATUM.match(value):
-            return datetime(*map(int, treffer.groups()), tzinfo=timezone.utc), True
+            return _Zeit(datetime(*map(int, treffer.groups()), tzinfo=timezone.utc), ganztags=True)
         treffer = _ZEITPUNKT.match(value)
         if treffer is None:
             return None
@@ -154,12 +182,38 @@ def _zeit(value: str, params: dict[str, str]) -> tuple[datetime, bool] | None:
     except ValueError:
         return None
     if treffer.group(7):
-        zone = timezone.utc
-    elif params.get("TZID"):
-        zone = zeitzonen.zone(params["TZID"]) or timezone.utc
-    else:
-        zone = user_timezone() or timezone.utc
-    return wandzeit.replace(tzinfo=zone), False
+        return _Zeit(wandzeit.replace(tzinfo=timezone.utc))
+    if params.get("TZID"):
+        return _Zeit(wandzeit.replace(tzinfo=zeitzonen.zone(params["TZID"]) or timezone.utc))
+    return _Zeit(wandzeit.replace(tzinfo=user_timezone() or timezone.utc), schwebend=True)
+
+
+def _zeit_zur_serie(value: str, params: dict[str, str], beginn: _Zeit) -> _Zeit | None:
+    """Ein Zeitwert, der sich auf eine Serie bezieht (EXDATE, RDATE, RECURRENCE-ID).
+
+    Eine Uhrzeit ohne Zone gilt dabei in der Zone des Serienbeginns.
+    """
+    zeit = _zeit(value, params)
+    if zeit is not None and zeit.schwebend and not (beginn.schwebend or beginn.ganztags):
+        return _Zeit(zeit.moment.replace(tzinfo=beginn.moment.tzinfo))
+    return zeit
+
+
+def _kennung(zeit: _Zeit, beginn: _Zeit) -> str:
+    """Eine RECURRENCE-ID als Text, in der Form des Serienbeginns: Datum, Ortszeit ohne Zone oder UTC.
+
+    Daraus wird die Kennung des Einzeltermins (`UID#…`). Sie hängt am
+    ursprünglichen Beginn, nicht am tatsächlichen: Ein verschobener Termin
+    behält sie und ist im Gedächtnis eine neue Fassung, kein neuer Termin. Die
+    UTC-Form ist dieselbe, die ein CalDAV-Server beim Ausklappen schreibt.
+    """
+    if beginn.ganztags:
+        tag = zeit.moment.date() if zeit.ganztags else zeit.moment.astimezone(user_timezone() or timezone.utc).date()
+        return f"{tag:%Y%m%d}"
+    if beginn.schwebend:
+        ortszeit = zeit.moment if zeit.schwebend else zeit.moment.astimezone(beginn.moment.tzinfo)
+        return f"{ortszeit:%Y%m%dT%H%M%S}"
+    return f"{zeit.moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
 
 
 _DAUER = re.compile(r"^\+?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$", re.IGNORECASE)
@@ -174,7 +228,7 @@ def _dauer(value: str) -> timedelta | None:
     return timedelta(weeks=wochen, days=tage, hours=stunden, minutes=minuten, seconds=sekunden)
 
 
-def _ende(termin: "_Komponente", beginn: tuple[datetime, bool] | None) -> datetime | None:
+def _ende(termin: "_Komponente", beginn: _Zeit | None) -> datetime | None:
     """Ende eines Termins (RFC 5545, 3.6.1): DTEND, sonst DTSTART plus DURATION.
 
     Fehlt beides, dauert ein ganztägiger Termin einen Tag, einer mit Uhrzeit
@@ -182,13 +236,13 @@ def _ende(termin: "_Komponente", beginn: tuple[datetime, bool] | None) -> dateti
     """
     if "DTEND" in termin.felder:
         ende = _zeit(*termin.felder["DTEND"])
-        return ende[0] if ende else None
+        return ende.moment if ende else None
     if beginn is None:
         return None
     if "DURATION" in termin.felder:
         dauer = _dauer(termin.wert("DURATION"))
-        return beginn[0] + dauer if dauer is not None else None
-    return beginn[0] + (timedelta(days=1) if beginn[1] else timedelta(0))
+        return beginn.moment + dauer if dauer is not None else None
+    return beginn.moment + (timedelta(days=1) if beginn.ganztags else timedelta(0))
 
 
 def _utc(moment: datetime | None) -> datetime | None:
@@ -200,6 +254,10 @@ def _text_aus_ical(wert: str) -> str:
     return re.sub(r"\\([nN,;\\])", lambda m: "\n" if m.group(1) in "nN" else m.group(1), wert).strip()
 
 
+_MEHRFACH = ("RRULE", "RDATE", "EXDATE")
+"""Eigenschaften, die mehrmals vorkommen dürfen und alle zählen."""
+
+
 @dataclass
 class _Komponente:
     """Ein VEVENT, in Eigenschaften zerlegt."""
@@ -207,21 +265,42 @@ class _Komponente:
     felder: dict[str, tuple[str, dict[str, str]]]
     """Je Eigenschaft das erste Vorkommen: Wert und Parameter."""
     teilnehmer: list[str]
+    mehrfach: dict[str, list[tuple[str, dict[str, str]]]] = field(default_factory=dict)
 
     def wert(self, name: str, vorgabe: str = "") -> str:
         return self.felder.get(name, (vorgabe, {}))[0]
 
+    def alle(self, name: str) -> list[tuple[str, dict[str, str]]]:
+        return self.mehrfach.get(name, [])
+
     @property
     def abgesagt(self) -> bool:
         return self.wert("STATUS").strip().upper() == "CANCELLED"
+
+    @property
+    def wiederholt(self) -> bool:
+        return bool(self.alle("RRULE") or self.alle("RDATE"))
+
+    @property
+    def uid(self) -> str:
+        """Die UID; fehlt sie, eine feste Ersatzkennung aus dem Inhalt.
+
+        Ohne DTSTAMP, das Google bei jedem Abruf neu setzt: Bei unverändertem
+        Termin bleibt die Kennung dieselbe (eine zufällige wäre bei jedem Abruf
+        ein neuer Termin im Gedächtnis und der alte gelöscht).
+        """
+        if self.wert("UID"):
+            return self.wert("UID")
+        inhalt = repr((sorted((name, wert, sorted(params.items())) for name, (wert, params) in self.felder.items()
+                              if name != "DTSTAMP"), self.teilnehmer))
+        return "ohne-uid-" + hashlib.sha256(inhalt.encode()).hexdigest()[:16]
 
 
 def _komponenten(ical: str) -> list[_Komponente]:
     """Die VEVENTs des Textes. Zeilen eingebetteter Komponenten (Erinnerungen, VALARM) gehören nicht dazu."""
     ergebnis = []
     for block in re.findall(r"BEGIN:VEVENT(.*?)END:VEVENT", _unfold(ical), re.DOTALL):
-        felder: dict[str, tuple[str, dict[str, str]]] = {}
-        teilnehmer: list[str] = []
+        termin = _Komponente({}, [])
         tiefe = 0
         for line in block.strip().splitlines():
             zerlegt = _zeile(line)
@@ -235,35 +314,214 @@ def _komponenten(ical: str) -> list[_Komponente]:
             elif name == "ATTENDEE":
                 adresse = re.sub(r"(?i)^mailto:", "", value)
                 anzeige = params.get("CN", "").strip()
-                teilnehmer.append(f"{anzeige} <{adresse}>" if anzeige and anzeige != adresse else adresse)
+                termin.teilnehmer.append(f"{anzeige} <{adresse}>" if anzeige and anzeige != adresse else adresse)
             else:
-                felder.setdefault(name, (value, params))
-        ergebnis.append(_Komponente(felder, teilnehmer))
+                termin.felder.setdefault(name, (value, params))
+                if name in _MEHRFACH:
+                    termin.mehrfach.setdefault(name, []).append((value, params))
+        ergebnis.append(termin)
     return ergebnis
 
 
-def parse_events(ical: str) -> list[Event]:
+# -- Serien ------------------------------------------------------------------
+
+MAX_SCHRITTE_JE_SERIE = 100_000
+"""So viele Wiederholungen rechnet das Ausklappen einer Serie höchstens durch,
+gezählt ab ihrem ersten Termin (täglich seit 1900 sind rund 46.000). Eine
+dichtere Serie (etwa jede Sekunde) wird mit einem Satz abgelehnt statt still
+gekürzt: Ein gekürzter Abschnitt sähe für das Gedächtnis aus wie gelöschte Termine."""
+
+
+def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
+    """UNTIL einer Regel in der Form des Serienbeginns (das verlangt dateutil, und RFC 5545 auch).
+
+    Kalender halten sich nicht immer daran. Ein Datum zählt mit seinem ganzen
+    Tag; eine Ortszeit ohne Zone gilt in der Zone des Beginns; bei einer
+    ganztägigen Serie zählt der Tag, auf den eine UTC-Grenze beim Nutzer fällt.
+    """
+    zeit = _zeit(wert, {})
+    if zeit is None:
+        return None
+    if zeit.ganztags:
+        return datetime.combine(zeit.moment.date(), time(23, 59, 59), beginn.moment.tzinfo)
+    if zeit.schwebend:
+        return zeit.moment.replace(tzinfo=beginn.moment.tzinfo)
+    if beginn.ganztags:
+        tag = zeit.moment.astimezone(user_timezone() or timezone.utc).date()
+        return datetime.combine(tag, time(23, 59, 59), timezone.utc)
+    return zeit.moment
+
+
+def _regel(wert: str, beginn: _Zeit):
+    """Eine RRULE ab `beginn` als `dateutil.rrule.rrule`, oder None, wenn sie unlesbar ist.
+
+    Die Regel rechnet dateutil (RFC 5545, 3.3.10, samt BYSETPOS und WKST); hier
+    wird nur vorbereitet: Zusätze (`X-…`) entfallen, UNTIL kommt in die Form
+    des Beginns (`_regel_ende`).
+    """
+    teile, bis = [], None
+    for teil in wert.split(";"):
+        name, _, inhalt = teil.partition("=")
+        name = name.strip().upper()
+        if not name or name.startswith("X-"):
+            continue
+        if name == "UNTIL":
+            bis = _regel_ende(inhalt.strip(), beginn)
+            if bis is None:
+                return None
+            continue
+        if name == "INTERVAL" and not (inhalt.strip().isdigit() and int(inhalt) > 0):
+            return None  # nur positive Abstände (RFC 5545); 0 wiederholte denselben Termin ohne Ende
+        teile.append(f"{name}={inhalt.strip()}")
+    try:
+        regel = rrulestr(";".join(teile), dtstart=beginn.moment)
+        return regel.replace(until=bis) if bis is not None else regel
+    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
+        return None
+
+
+def _wiederholungen(serie: _Komponente, beginn: _Zeit, bis: datetime) -> Iterator[tuple[str, datetime]] | None:
+    """(Kennung, Beginn) jeder Wiederholung vor `bis`, ohne die ausgenommenen (EXDATE).
+
+    DTSTART ist immer der erste Termin (RFC 5545, 3.8.5.3), RDATE fügt Termine
+    hinzu. None, wenn eine Regel unlesbar ist.
+    """
+    regeln = [_regel(wert, beginn) for wert, _ in serie.alle("RRULE")]
+    if any(regel is None for regel in regeln):
+        return None
+    dazu = [beginn.moment]
+    for wert, params in serie.alle("RDATE"):
+        for teil in wert.split(","):
+            zeit = _zeit_zur_serie(teil.split("/")[0], params, beginn)  # PERIOD: nur der Beginn
+            if zeit is not None:
+                dazu.append(zeit.moment)
+    ohne, ohne_tage = set(), set()
+    for wert, params in serie.alle("EXDATE"):
+        for teil in wert.split(","):
+            zeit = _zeit_zur_serie(teil, params, beginn)
+            if zeit is not None and zeit.ganztags and not beginn.ganztags:
+                ohne_tage.add(zeit.moment.date())  # ein ganzer Tag einer Serie mit Uhrzeit
+            elif zeit is not None:
+                ohne.add(_kennung(zeit, beginn))
+
+    def folge() -> Iterator[tuple[str, datetime]]:
+        gesehen: set[str] = set()
+        for schritt, moment in enumerate(heapq.merge(*regeln, sorted(dazu))):
+            if moment >= bis:
+                return
+            if schritt >= MAX_SCHRITTE_JE_SERIE:
+                titel = _text_aus_ical(serie.wert("SUMMARY", "(ohne Titel)"))
+                raise CalendarError(f"Die Terminserie „{titel}“ wiederholt sich zu dicht, um sie auszuklappen.")
+            kennung = _kennung(beginn._replace(moment=moment), beginn)
+            if kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
+                continue
+            gesehen.add(kennung)
+            yield kennung, moment
+
+    return folge()
+
+
+def _beruehrt(beginn: datetime, ende: datetime | None, von: datetime, bis: datetime) -> bool:
+    """Wie im Gedächtnis: Der Termin überschneidet `von`..`bis`; ohne Dauer zählt sein Beginn."""
+    if beginn >= bis:
+        return False
+    return ende > von if ende is not None and ende > beginn else beginn >= von
+
+
+def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: datetime | None = None) -> Event:
+    """Ein Event aus einer Komponente; `beginn` und `ende` setzen eine Wiederholung an ihre Stelle."""
+    if beginn is None:
+        beginn = _zeit(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else None
+        ende = _ende(termin, beginn)
+    return Event(
+        uid=uid,
+        summary=_text_aus_ical(termin.wert("SUMMARY", "(ohne Titel)")),
+        start=_utc(beginn.moment) if beginn else None,
+        end=_utc(ende),
+        location=_text_aus_ical(termin.wert("LOCATION")),
+        attendees=list(termin.teilnehmer),
+        all_day=bool(beginn and beginn.ganztags),
+        notes=_text_aus_ical(termin.wert("DESCRIPTION")),
+        external_uid=termin.wert("UID"),
+    )
+
+
+def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
+           fenster: tuple[datetime, datetime] | None) -> list[Event]:
+    """Die Termine einer Serie: Hauptkomponente `serie` und ihre geänderten Einzeltermine (`RECURRENCE-ID`)."""
+    beginn = _zeit(*serie.felder["DTSTART"]) if serie is not None and "DTSTART" in serie.felder else None
+    ersatz: dict[str, _Komponente] = {}
+    ergebnis: list[Event] = []
+    for termin in einzeln:
+        kennung = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
+                   else _zeit(*termin.felder["RECURRENCE-ID"]))
+        if kennung is None:
+            if not termin.abgesagt:
+                ergebnis.append(_termin(termin, uid))
+            continue
+        ersatz[_kennung(kennung, beginn or kennung)] = termin
+    if fenster is None:
+        # Ohne Fenster nichts ausklappen: Die Serie bleibt ein Termin, wie bisher.
+        if serie is not None and not serie.abgesagt:
+            ergebnis.append(_termin(serie, uid))
+        return ergebnis + [_termin(t, f"{uid}#{k}") for k, t in ersatz.items() if not t.abgesagt]
+    von, bis = fenster
+    if serie is not None and not serie.abgesagt:
+        ende = _ende(serie, beginn)
+        dauer = ende - beginn.moment if ende is not None and beginn is not None else None
+        folge = _wiederholungen(serie, beginn, bis) if beginn is not None else None
+        try:
+            treffer = None if folge is None else [
+                (kennung, moment, schluss) for kennung, moment in folge
+                if kennung not in ersatz
+                and _beruehrt(moment, schluss := moment + dauer if dauer is not None else None, von, bis)]
+        except (ValueError, TypeError, OverflowError):
+            treffer = None  # manche unlesbare Regel fällt dateutil erst beim Rechnen auf
+        if treffer is None:
+            # Kein lesbarer Beginn oder eine unlesbare Regel: wie bisher nur der erste Termin.
+            ergebnis.append(_termin(serie, uid))
+        else:
+            ergebnis += [_termin(serie, f"{uid}#{kennung}", beginn._replace(moment=moment), schluss)
+                         for kennung, moment, schluss in treffer]
+    for kennung, termin in ersatz.items():
+        if termin.abgesagt:
+            continue
+        einzel = _termin(termin, f"{uid}#{kennung}")
+        if einzel.start is not None and _beruehrt(einzel.start, einzel.end, von, bis):
+            ergebnis.append(einzel)
+    return ergebnis
+
+
+def parse_events(ical: str, von: datetime | None = None, bis: datetime | None = None) -> list[Event]:
     """Zieht die Termine aus iCalendar-Text.
 
     Abgesagte Termine (`STATUS:CANCELLED`) fehlen, wie bei Google und Microsoft:
     Für das Gedächtnis ist eine Absage damit eine entzogene Quelle.
+
+    **Serien** (`RRULE`, `RDATE`, mit `EXDATE` und geänderten Einzelterminen per
+    `RECURRENCE-ID`) werden nur mit Fenster ausgeklappt: Geliefert wird jeder
+    Einzeltermin, der `von`..`bis` berührt, mit der Kennung `UID#<ursprünglicher
+    Beginn>` (`_kennung`). Ohne Fenster bleibt eine Serie ein Termin, ihr
+    erster, wie bisher; eine Serie ohne Ende hätte sonst keines. Termine ohne
+    Wiederholung kommen unabhängig vom Fenster; das Filtern ist Sache des
+    Aufrufers (Anzeige, Gedächtnis), so wie bisher.
     """
-    events = []
+    fenster = (von, bis) if von is not None and bis is not None else None
+    gruppen: dict[str, list[_Komponente]] = {}
     for termin in _komponenten(ical):
-        if termin.abgesagt:
-            continue
-        beginn = _zeit(*termin.felder["DTSTART"]) if "DTSTART" in termin.felder else None
-        events.append(Event(
-            uid=termin.wert("UID") or str(uuid.uuid4()),
-            summary=_text_aus_ical(termin.wert("SUMMARY", "(ohne Titel)")),
-            start=_utc(beginn[0]) if beginn else None,
-            end=_utc(_ende(termin, beginn)),
-            location=_text_aus_ical(termin.wert("LOCATION")),
-            attendees=termin.teilnehmer,
-            all_day=bool(beginn and beginn[1]),
-            notes=_text_aus_ical(termin.wert("DESCRIPTION")),
-            external_uid=termin.wert("UID"),
-        ))
+        gruppen.setdefault(termin.uid, []).append(termin)
+    events: list[Event] = []
+    for uid, gruppe in gruppen.items():
+        haupt = [t for t in gruppe if "RECURRENCE-ID" not in t.felder]
+        einzeln = [t for t in gruppe if "RECURRENCE-ID" in t.felder]
+        serie = next((t for t in haupt if t.wiederholt), None)
+        if serie is None and einzeln and haupt:
+            # Ein Termin ohne Regel, aber mit Einzelterminen: der erste Termin einer
+            # Serie, die schon ein Server ausgeklappt hat (RFC 4791, 9.6.5).
+            serie = haupt[0]
+        events += [_termin(t, uid) for t in haupt if t is not serie and not t.abgesagt]
+        if serie is not None or einzeln:
+            events += _serie(serie, einzeln, uid, fenster)
     return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
 
 
@@ -321,12 +579,10 @@ class CalendarConnector:
         )
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
-        """Termine im Zeitfenster ab jetzt."""
-        at = at or datetime.now(timezone.utc)
-        body = _REPORT.format(
-            start=at.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
-            end=(at + timedelta(days=days)).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
-        )
+        """Termine im Zeitfenster ab jetzt; Serien ausgeklappt (`parse_events`)."""
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        bis = von + timedelta(days=days)
+        body = _REPORT.format(start=von.strftime("%Y%m%dT%H%M%SZ"), end=bis.strftime("%Y%m%dT%H%M%SZ"))
         try:
             with self._client() as client:
                 response = client.request(
@@ -338,7 +594,9 @@ class CalendarConnector:
         except httpx.HTTPError as exc:
             raise CalendarError(f"CalDAV-Zugriff fehlgeschlagen: {exc}") from exc
 
-        return parse_events(response.text)
+        # Der Server liefert jede Serie, die das Fenster berührt, als Ganzes (Regel und Ausnahmen);
+        # ausgeklappt wird hier, auf demselben Weg wie beim Abo (siehe Modulbeschreibung).
+        return parse_events(response.text, von, bis)
 
     def create(
         self,
