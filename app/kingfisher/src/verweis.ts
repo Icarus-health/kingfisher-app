@@ -17,3 +17,19 @@ export function verweis(kennung: string): Verweis {
   const teile = ["Einstellungen", bereich?.label ?? "", ...(technik ? [technik.titel] : [])];
   return {href: `/settings#${kennung}`, text: teile.join(" → ")};
 }
+
+/**
+ * Ein Satz des Sidecars, der den Weg schon im Wortlaut nennt („… Melde dich unter Einstellungen → Zugänge neu an.“):
+ * zerlegt in den Text davor, den Verweis und den Text danach, damit genau dieser Wortlaut zum Klick wird. Der Satz
+ * bleibt so auch dort richtig, wo er nur als Text steht. Nennt er den Weg nicht oder kennt die Gliederung das Ziel
+ * nicht (ein älterer Sidecar), bleibt er ganz Text: Ein fehlender Klick ist besser als eine kaputte Seite.
+ */
+export function satzMitVerweis(satz: string, kennung?: string | null): {vor: string; verweis: Verweis | null; nach: string} {
+  const ganz = {vor: satz, verweis: null, nach: ""};
+  if (!kennung) return ganz;
+  let ziel: Verweis;
+  try { ziel = verweis(kennung); } catch { return ganz; }
+  const stelle = satz.indexOf(ziel.text);
+  if (stelle < 0) return ganz;
+  return {vor: satz.slice(0, stelle), verweis: ziel, nach: satz.slice(stelle + ziel.text.length)};
+}

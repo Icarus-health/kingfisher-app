@@ -6,7 +6,8 @@ bestätigt.“ Der Grund: Das Einlesen (`mail_intake.py`) führt seinen eigenen 
 (`mail_sync_status.py`) überspringt Postfächer, die eingelesen werden, und ein Abruf über „Nachrichten“ hinterließ gar
 nichts. Jetzt gibt es je Postfach genau eine Aussage, gebildet aus allen drei:
 
-* `fehler`: der Grund in Alltagssprache und ob der Mensch etwas tun muss,
+* `fehler`: der Grund in Alltagssprache und ob der Mensch etwas tun muss; muss er unter Einstellungen → Zugänge etwas
+  tun (Passwort fehlt, Anmeldung abgelaufen), steht dazu `verweis: 'zugaenge'`,
 * `liest`: „wird gelesen: 120 von 4.300 Mails“ (oder „wird durchgesehen: bisher 12 Mails gefunden“),
 * `leer`: „ist verbunden und leer, abgerufen um 14:43“,
 * `aktuell`: „ist gelesen: 4.300 Mails, zuletzt abgerufen um 14:43“,
@@ -31,9 +32,16 @@ GRUND = {
     'generation_changed': ('wurde beim Anbieter neu angelegt. Du musst nichts tun: Kingfisher liest es noch einmal '
                            'von vorn'),
     'credentials_missing': 'lässt Kingfisher nicht hinein: Das Passwort fehlt. Trage es unter Einstellungen → Zugänge ein',
+    # Passwort geändert, Microsoft-Anmeldung abgelaufen oder zurückgezogen (`mail_intake.bestandsfehler`). Von selbst
+    # wird das nicht besser; unter Zugänge steht „Neu anmelden“ (Passwort bzw. Microsoft).
+    'anmeldung': ('lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen oder das Passwort hat sich '
+                  'geändert. Melde dich unter Einstellungen → Zugänge neu an'),
     'cancelled': 'wurde beim letzten Mal nicht fertig abgerufen. Du musst nichts tun: Kingfisher versucht es erneut',
 }
 SONST = 'meldet einen Fehler. Kingfisher versucht es von selbst noch einmal; bleibt es dabei, prüfe es unter Einstellungen → Zugänge'
+#: Gründe, deren Satz auf Einstellungen → Zugänge verweist und dort etwas zu tun gibt; die Oberfläche macht aus dem
+#: Wortlaut „Einstellungen → Zugänge“ einen Verweis (`verweis.ts`, Kennung `zugaenge`).
+ZU_DEN_ZUGAENGEN = frozenset({'credentials_missing', 'anmeldung'})
 
 _gelesen: dict[int, dict[str, dict[str, Any]]] = {}
 _sperre = threading.Lock()
@@ -90,9 +98,14 @@ def gelesen(app: Any, konto: str) -> dict[str, Any] | None:
 
 
 def _ergebnis(zustand: str, satz: str, *, gelesen_n: int | None = None, gesamt: int | None = None,
-              zuletzt: datetime | None = None, technik: str | None = None) -> dict[str, Any]:
+              zuletzt: datetime | None = None, technik: str | None = None, verweis: str | None = None) -> dict[str, Any]:
     return {'zustand': zustand, 'satz': satz, 'gelesen': gelesen_n, 'gesamt': gesamt,
-            'zuletzt': zuletzt.isoformat() if zuletzt else None, 'technik': technik}
+            'zuletzt': zuletzt.isoformat() if zuletzt else None, 'technik': technik, 'verweis': verweis}
+
+
+def _fehler(postfach: str, grund: str, **mehr: Any) -> dict[str, Any]:
+    return _ergebnis('fehler', f'{postfach} {GRUND.get(grund, SONST)}.',
+                     verweis='zugaenge' if grund in ZU_DEN_ZUGAENGEN else None, **mehr)
 
 
 def _gescheitert(ordner: list[dict[str, Any]]) -> tuple[dict[str, int], int, str | None]:
@@ -124,11 +137,11 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
     `verbunden=False`: Das Postfach ist eingetragen, aber Kingfisher kann es nicht öffnen (meist fehlt das Passwort)."""
     postfach = f'Postfach {name}'
     if not verbunden:
-        return _ergebnis('fehler', f'{postfach} {GRUND["credentials_missing"]}.')
+        return _fehler(postfach, 'credentials_missing')
     blick_zeit = _zeit((blick or {}).get('zeit'))
     if intake and intake.get('started'):
         if intake.get('error'):
-            return _ergebnis('fehler', f'{postfach} {GRUND.get(str(intake["error"]), SONST)}.')
+            return _fehler(postfach, str(intake['error']))
         if intake.get('paused'):
             return _ergebnis('pausiert', f'Das Einlesen von {postfach} ist angehalten. Du startest es unter '
                                          'Einstellungen → Für Techniker → Zeitplan und Hintergrund wieder.')
@@ -180,7 +193,7 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
     if abruf and (abruf.get('last_success') or abruf.get('last_failure')):
         erfolg = _zeit(abruf.get('last_success'))
         if abruf.get('last_failure'):
-            return _ergebnis('fehler', f'{postfach} {GRUND.get(str(abruf["last_failure"]), SONST)}.', zuletzt=erfolg)
+            return _fehler(postfach, str(abruf['last_failure']), zuletzt=erfolg)
         zuletzt = max(filter(None, (erfolg, blick_zeit)), default=None)
         wann = zeit_text(zuletzt, jetzt)
         bericht = abruf.get('last_report') or {}

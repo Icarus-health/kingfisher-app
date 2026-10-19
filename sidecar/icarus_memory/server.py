@@ -570,6 +570,12 @@ class MailAccountIn(BaseModel):
     password: str | None = Field(default=None, max_length=4096)
 
 
+class PasswortIn(BaseModel):
+    """Das neue Passwort eines schon verbundenen Postfachs (Neu anmelden unter Zugänge)."""
+    model_config = ConfigDict(extra="forbid")
+    password: str = Field(min_length=1, max_length=4096)
+
+
 class KalenderAnmeldungIn(BaseModel):
     """Kalender wie Mail (`kalender_anmeldung.py`): die Mailadresse, dazu das Passwort oder das Postfach, dessen
     Passwort gelten soll; eine eigene Adresse nur, wenn der Anbieter unbekannt ist."""
@@ -1751,7 +1757,8 @@ def create_app(
                 "secret_present": bool(_integration_secret(app, "mail", entry.id)) or (
                     entry.auth_method == "microsoft_graph" and microsoft_zugang(entry.user)),
                 "can_send": bool(entry.smtp_host),
-                **({"auth": "microsoft"} if entry.auth_method == "microsoft_graph" else {}),
+                **({"auth": "microsoft"} if entry.auth_method == "microsoft_graph" else
+                   {"auth": "google"} if entry.auth_method == "google_oauth" else {}),
             })
         calendars = []
         for entry in settings.calendar_sources:
@@ -1828,6 +1835,36 @@ def create_app(
         settings.mail_accounts.append(entry)
         config.save(_data_dir(), settings)
         _build_agent(app)
+        return integration_overview()
+
+    @app.post("/api/v1/integrations/mail/{account_id}/anmelden", dependencies=guard)
+    def mail_neu_anmelden(account_id: str, body: PasswortIn) -> Any:
+        """Neu anmelden: das neue Passwort eines verbundenen Postfachs, nachdem die alte Anmeldung nicht mehr gilt.
+
+        Die Adresse und der Server bleiben, nur das Passwort ist einzugeben. Erst anmelden, dann speichern, wie beim
+        Hinzufügen; abgelehnt heißt: ein Satz, nichts gespeichert. Kein zweites Konto, also kein zweites Einlesen. Für
+        Microsoft und Google gilt deren eigene Anmeldung.
+        """
+        settings: config.Settings = app.state.settings
+        entry = next((e for e in settings.mail_accounts if e.id == account_id), None)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="Dieses Postfach gibt es nicht.")
+        if entry.auth_method != "password":
+            raise HTTPException(status_code=409, detail="Dieses Postfach meldet sich beim Anbieter an, nicht mit Passwort.")
+        from . import mail_anmeldung
+        probe = MailConnector(MailConfig(imap_host=entry.imap_host, imap_port=entry.imap_port,
+                                         username=entry.user, password=body.password))
+        try:
+            mail_anmeldung.pruefe(probe, entry.imap_host)
+        except mail_anmeldung.Anmeldefehler as exc:
+            return JSONResponse({"detail": exc.satz, "grund": exc.grund}, status_code=exc.status)
+        config.store_secret(getattr(app.state, "keychain", Keychain()),
+                            config.integration_secret_name("mail", account_id), body.password)
+        _build_agent(app)
+        # Gleich weiterlesen; der nächste Takt der Aufnahme löscht den gemerkten Grund.
+        wecken = getattr(getattr(app.state, "scheduler", None), "aufnahme_wecken", None)
+        if callable(wecken):
+            wecken()
         return integration_overview()
 
     @app.post("/api/v1/integrations/calendar", dependencies=guard, status_code=201)

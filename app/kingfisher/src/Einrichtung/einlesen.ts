@@ -11,7 +11,10 @@ export const einlesenVerweis = (konto: MailIntakeAccount): string | null =>
 /** Ein Satz zum Stand eines gestarteten Kontos: gezählt, gelesen, oder warum es gerade nicht weitergeht. */
 export function einlesenStand(konto: MailIntakeAccount): string {
   const stand = deriveIntakeProgress(konto);
-  if (konto.error) return `${konto.label}: Das Einlesen stockt gerade. Kingfisher versucht es von selbst wieder.`;
+  // Eine Aussage je Postfach (Fremdprobe 2, Befund 17): Den Fehler sagt der Sidecar in einem Satz, etwa dass die
+  // Anmeldung abgelaufen ist und wohin man zum Neu-Anmelden geht; „stockt gerade“ nur, wenn er (noch) keinen hat.
+  if (konto.error) return konto.stand?.zustand === "fehler" ? konto.stand.satz
+    : `${konto.label}: Das Einlesen stockt gerade. Kingfisher versucht es von selbst wieder.`;
   // Gescheiterte heißen nie „gelesen“: Der Satz des Sidecars nennt den Grund (Fremdprobe 3, Befund 2).
   if (konto.stand?.zustand === "gescheitert") return konto.stand.satz;
   // Global pause has its own resume action; never describe it as active

@@ -54,6 +54,15 @@ class MailboxGenerationChanged(MailError):
     """Der gespeicherte UID-Bestand gehört zu einer alten Postfachgeneration."""
 
 
+class AnmeldungAbgelehnt(imaplib.IMAP4.error):
+    """Der Server hat die Anmeldung abgelehnt (LOGIN oder XOAUTH2), nicht einen späteren Befehl.
+
+    Unterklasse von `imaplib.IMAP4.error` mit dem Text des Servers, damit `mail_anmeldung.einordnen` sie wie bisher
+    einordnet. Die Aufnahme erkennt daran, dass nur eine neue Anmeldung hilft (`mail_intake`, Grund `anmeldung`);
+    ein BAD auf eine Suche ist dagegen kein Anmeldefehler.
+    """
+
+
 @dataclass
 class MailConfig:
     imap_host: str
@@ -479,19 +488,27 @@ class MailConnector:
             self._login(imap)
 
     def _login(self, imap):
-        if self._config.access_token:
-            token = self._config.access_token()
-            payload = f"user={self._config.username}\x01auth=Bearer {token}\x01\x01".encode()
-            sent = False
-            def response(_challenge):
-                nonlocal sent
-                if sent:
-                    return b""
-                sent = True
-                return payload
-            imap.authenticate("XOAUTH2", response)
-        else:
-            imap.login(self._config.username, self._config.password)
+        try:
+            if self._config.access_token:
+                token = self._config.access_token()
+                payload = f"user={self._config.username}\x01auth=Bearer {token}\x01\x01".encode()
+                sent = False
+                def response(_challenge):
+                    nonlocal sent
+                    if sent:
+                        return b""
+                    sent = True
+                    return payload
+                imap.authenticate("XOAUTH2", response)
+            else:
+                imap.login(self._config.username, self._config.password)
+        except imaplib.IMAP4.abort:
+            raise  # Verbindung abgebrochen: keine Aussage über die Anmeldung.
+        except AnmeldungAbgelehnt:
+            raise
+        except imaplib.IMAP4.error as exc:
+            # Gekennzeichnet, nicht umgedeutet: Text und Klasse von `imaplib` bleiben (`mail_anmeldung.einordnen`).
+            raise AnmeldungAbgelehnt(*exc.args) from exc
 
     # -- Lesen -------------------------------------------------------------
 

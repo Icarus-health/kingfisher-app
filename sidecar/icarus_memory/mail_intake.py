@@ -42,6 +42,26 @@ INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account'
            'idx_mail_intake_episode': IndexContract('mail_intake_items',('episode_id',))}
 
 
+#: Gründe aus `mail_anmeldung.einordnen` und `MicrosoftFehler`, bei denen nur eine neue Anmeldung hilft.
+ANMELDE_GRUENDE = frozenset({'passwort', 'app_passwort', 'imap_aus', 'abgemeldet'})
+
+
+def bestandsfehler(fehler):
+    """Der gemerkte Grund, wenn die Bestandsaufnahme scheitert: `anmeldung` oder `inventory_unavailable`.
+
+    Anmeldefehler erkennt die vorhandene Einordnung: Microsoft meldet `MicrosoftFehler` (ein `Anmeldefehler`), IMAP
+    eine vom Server abgelehnte Anmeldung (`connectors.mail.AnmeldungAbgelehnt`, als Ursache am `MailError`). Alles
+    andere (Netz, Zeitgrenze, `[UNAVAILABLE]`, ein BAD auf eine spätere Suche) bleibt vorübergehend. Gemerkt wird nur
+    das Kürzel, nie Text vom Server.
+    """
+    from .connectors.mail import AnmeldungAbgelehnt
+    from .mail_anmeldung import Anmeldefehler, einordnen
+    for kandidat in (fehler, fehler.__cause__):
+        if isinstance(kandidat, (Anmeldefehler, AnmeldungAbgelehnt)) and einordnen(kandidat, '').grund in ANMELDE_GRUENDE:
+            return 'anmeldung'
+    return 'inventory_unavailable'
+
+
 def migrate(conn):
     conn.execute("CREATE TABLE mail_intake_analysis(episode_id TEXT PRIMARY KEY,generation INTEGER NOT NULL,status TEXT NOT NULL)")
     conn.execute('''CREATE TABLE mail_intake_folders (
@@ -195,9 +215,11 @@ class Intake:
                 with self.episodes.transaction():
                     # Old sources survive; old pending work cannot be fetched under a new generation.
                     self.db.execute("UPDATE mail_intake_folders SET generation=NULL,upper_uid=0,scan_uid=0,live_uid=0,inventory_complete=0,error='generation_changed',updated=? WHERE account=? AND folder=?",(time.time(),account,row['folder']))
-            except Exception:
+            except Exception as fehler:
+                # Eine abgelaufene Anmeldung ist kein schweigendes Postfach: Dann hilft nur, sich neu anzumelden, und der
+                # Stand sagt das (`mail_stand.GRUND['anmeldung']`), statt „Du musst nichts tun“.
                 with self.episodes.transaction():
-                    self.db.execute("UPDATE mail_intake_folders SET error='inventory_unavailable',updated=? WHERE account=? AND folder=?",(time.time(),account,row['folder']))
+                    self.db.execute("UPDATE mail_intake_folders SET error=?,updated=? WHERE account=? AND folder=?",(bestandsfehler(fehler),time.time(),account,row['folder']))
         with self.episodes._lock:
             # Reserve at least half for history; a single bad UID never blocks either lane.
             history_quota = 0 if self._history_backlog(account) > 200 else batch
@@ -247,6 +269,13 @@ class Intake:
                     captured.append(result['episode']['id']); neu+=bool(result['new'])
                     captured.extend(result.get('anhaenge') or ())
             except Exception as fehler:
+                if not beim_speichern and bestandsfehler(fehler)=='anmeldung':
+                    # Die Anmeldung gilt nicht mehr: Das betrifft das ganze Postfach, nicht diese Mail. Sie bleibt offen
+                    # (kein Versuch gezählt) und kommt nach der neuen Anmeldung dran; der Stand sagt, was zu tun ist.
+                    with self.episodes.transaction():
+                        self.db.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE account=? AND folder=?",
+                                        (time.time(),account,item['folder']))
+                    break
                 # Nie still: Grund und technische Angabe bleiben am Eintrag (Fremdprobe 3, Befund 2), der Stand sagt sie.
                 grund,technik=grund_einordnen(fehler,beim_speichern=beim_speichern)
                 with self.episodes.transaction():
