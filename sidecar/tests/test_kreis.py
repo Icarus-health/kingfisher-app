@@ -145,6 +145,12 @@ def test_abgelehnte_quellen_zaehlen_nicht_fuer_den_kreis(api):
     # „Gehört nicht dazu“ gilt auch für die Merkmale des Kreises.
     merkmale = kreise(app).vorschlag(sache).merkmale
     assert (merkmale.von_ihr, merkmale.von_dir, merkmale.termine) == (2, 4, 1)
+    # Ablegen in einem Projekt ändert nichts daran: Die Entscheidung gilt für den Text, nicht für die Ablage.
+    projekt = app.state.workspace.add_project('Familie', Provenance(SourceType.USER_STATED))
+    for episode_id in von_ihr:
+        app.state.episodes.link_project(episode_id, projekt.id)
+    merkmale = kreise(app).vorschlag(sache).merkmale
+    assert (merkmale.von_ihr, merkmale.von_dir, merkmale.termine) == (2, 4, 1)
 
 
 def test_ein_fremder_landet_nie_im_inneren_kreis(api):

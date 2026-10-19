@@ -43,14 +43,15 @@ Regeln:
   betroffenen Quellen werden neu bestimmt, sobald sich das Verzeichnis ändert).
 * **Nutzer überschreibt.** `zu` fügt hinzu, `nicht` lehnt eine gefundene Verknüpfung
   ab (Anker wie Modell), Entfernen der Entscheidung stellt den Fund des Programms
-  wieder her. Die Entscheidung trägt den Fingerabdruck der Quelle; ändert sich die
-  Quelle, gilt sie als **veraltet** (wie Themenkorrekturen) und wird als solche gezeigt.
-  „Ändert sich“ heißt: anderer Text oder andere Quellenangaben (Absender, Empfänger,
-  Titel, Zeit, nachgetragene Kontakte). Eine Projektzuordnung, Verdichten oder
-  Archivieren ist Ablage, keine neue Fassung: Die Entscheidung bleibt (`NUTZER_GILT`
-  vergleicht den Anfang des gespeicherten Fingerabdrucks, Inhalts- und
-  Quellenangaben-Digest). Quellen ohne Quellenschlüssel vergleichen wie bisher den
-  ganzen Fingerabdruck. Dieselbe Regel gilt für den Kreis einer Person (`kreis.py`).
+  wieder her. Die Entscheidung trägt den Fingerabdruck der Quelle und gilt für ihren
+  **Text**: Nur wenn der Inhaltsdigest am Anfang des gespeicherten Fingerabdrucks nicht
+  mehr passt, gilt sie als **veraltet** (wie Themenkorrekturen) und wird als solche
+  gezeigt (`NUTZER_GILT`, `nutzer_gilt`). Projektzuordnung, Verdichten, Archivieren,
+  nachgetragene Kontakte, Kopfzeilen und Anhangberichte ändern nur Quellenangaben und
+  Ablage: Der Nutzer hat über den Inhalt entschieden, die Entscheidung bleibt; neue
+  Kontakte kommen beim nächsten Abgleich als eigene Bezüge dazu. Ein anderer Text ist
+  in der Praxis eine neue Fassung (neue Episode) und wird neu eingeordnet. Dieselbe
+  Regel gilt für den Kreis einer Person (`kreis.py`).
 * **Entzug wirkt sofort.** Jede Lesung verbindet mit den geltenden Quellen
   (nicht ausgeschlossen, aktuelle Fassung, keine Suchfrage des Gesprächs). Der nächste
   Abgleich löscht die Zeilen entzogener Quellen.
@@ -62,10 +63,15 @@ Orte kommen auf zwei Wegen: als **Terminort** ohne Modell (Feld „Ort:“ einer
 Termin-Episode: ohne Komma der ganze Eintrag, mit Komma der erste Teil, der Ort hinter
 einer Postleitzahl und ein letzter Teil, der wie ein Ortsname aussieht; „online“ und
 „Zoom“ sind kein Ort) und als **Erwähnung** durch `memory_categories` (neue Art
-`place`, Prompt und JSON-Schema angepasst). Trägt ein Teil der Ortsangabe den Namen
-einer Organisation, die im selben Termin über eine Adresse beteiligt ist („Ort: Akademie
-Taunus, Seminarraum 3“ mit jemandem von akademie-taunus), gehört der Termin dieser
-Organisation (Rolle `terminort`) statt einem gleichnamigen zweiten Ort (Regelversion 4).
+`place`, Prompt und JSON-Schema angepasst). Trägt der **erste Teil** der Ortsangabe
+(Haus oder Träger: mit Komma dahinter oder aus mindestens zwei Wörtern) den Namen einer
+Organisation, die im selben Termin über eine **Adresse** beteiligt ist („Ort: Akademie
+Taunus GmbH, Seminarraum 3“ mit jemandem von akademie-taunus), gehört der Termin dieser
+Organisation (Rolle `terminort`) statt einem gleichnamigen zweiten Ort. Ein einzelner
+Ortsname bleibt Ort, auch wenn eine Domäne so heißt („Ort: Mainz“ mit mainz.de), ebenso
+der Ort hinter der Postleitzahl; eine nur vom Modell erwähnte Organisation zählt nicht.
+Termine haben dafür eine eigene Regelfassung (4, Mails 3): Nach dem Update werden nur
+Termine neu berechnet, nicht der ganze Bestand.
 
 Speicherung (abgeleitet, neu berechenbar), Migration 13 im Episoden-Store:
 
@@ -219,14 +225,14 @@ Proben waren zuerst wirkungslos (`F4`, `A3`) und führten zu je einem neuen Test
 | F5 | Uneindeutiges bleibt Text | `test_fristen` (nächste Woche) |
 | B1 | Erwähnung nur bei Eindeutigkeit, sonst offen | `test_bezuege` (gleichnamige) |
 | B2 | Ablehnung des Nutzers entfernt den Bezug | `test_bezuege`, `test_akten_routes` |
-| B3 | Zuordnung des Nutzers veraltet mit der Quelle | `test_bezuege` |
+| B3 | Zuordnung des Nutzers gilt für den Text; Entscheidung über einen anderen Text ist veraltet | `test_bezuege` |
 | B4 | Entzug entfernt den Bezug sofort | `test_bezuege`, `test_akten_routes` |
 | B5 | Eigene Adresse ist keine Sache | `test_bezuege` |
 | B6 | Änderung der Quelle führt zur Neuberechnung | `test_bezuege` |
 | B7 | Neue gleichnamige Adresse macht die Zuordnung wieder offen (Verzeichnis-Kennung) | `test_bezuege` |
 | B8 | Projektzuordnung ist ein Ankerbezug | `test_bezuege`, `test_akten_routes` |
-| B9 | Terminort ist ein Ortsbezug; trägt er den Namen einer beteiligten Organisation, gehört er zu ihr | `test_bezuege` |
-| B10 | Entscheidung des Nutzers überlebt Projektzuordnung und Archiv, nicht aber nachgetragene Kontakte | `test_bezuege`, `test_kreis` |
+| B9 | Terminort ist ein Ortsbezug; trägt sein erster Teil den Namen einer über eine Adresse beteiligten Organisation, gehört er zu ihr; Ortsnamen und Modell-Erwähnungen nicht; nur Termine werden neu berechnet | `test_bezuege` |
+| B10 | Entscheidung des Nutzers überlebt Projektzuordnung, Archiv, nachgetragene Kontakte, Kopfzeilen und Anhangberichte (auch ohne Quellenschlüssel, auch im Kreis) | `test_bezuege`, `test_kreis` |
 | M1 | Orte sind als Erwähnungsart zulässig (Schema) | `test_bezuege` |
 | A1 | Stand zeigt den neuen Wert (jüngste zuerst) | `test_akten`, `test_akten_routes`, Messlatte |
 | A2 | Erledigtes gilt nicht als offen | `test_akten`, `test_akten_routes`, Messlatte |
