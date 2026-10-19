@@ -77,7 +77,13 @@ braucht einen neuen, noch ungesehenen Prüfsatz.
   Binnenfrist mit Ereignis aufgelöst; Werktage gezählt; „nicht vor“; „nicht zu“; Bedarf an
   beliebigen Dingen; Verb am Satzende ohne Modalverb (erst nach einem zusätzlichen Gegenbeispiel);
   Komma nach dem Einschub; Akten-Cacheversion nicht erhöht.
-* Vollständige Backend-Suite: siehe PR.
+* Vollständige Backend-Suite (Python 3.13, UTC, vier parallele Prozesse): 7.356 bestanden,
+  3 übersprungen, 26 Unterfälle bestanden. Ein Test schlug fehl,
+  `test_microsoft_anmeldung.py::test_ein_netzversuch_in_tests_wird_gefangen`; er schlägt im
+  selben Container auch auf `main` fehl, weil dort schon die Namensauflösung scheitert, bevor
+  die Netzsperre greift. Er hängt nicht mit dieser Änderung zusammen.
+* Messlatte-Rahmenwerk 303 bestanden; synthetische Gedächtnisdiagnostik 235 bestanden (auf
+  sauberem Git-Stand, den acht dieser Tests verlangen).
 
 ## Grenzen
 
