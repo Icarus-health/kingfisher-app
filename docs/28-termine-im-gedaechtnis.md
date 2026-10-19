@@ -1,7 +1,8 @@
 # Termine im Gedächtnis (Etappe C1)
 
-Stand: 29. September 2026. Umsetzung von C1 aus
-[`26-plan-stabschef.md`](26-plan-stabschef.md). Code:
+Stand: 29. September 2026, ergänzt am 19. Oktober 2026 um Zeit, Serie und Absage aus
+CalDAV und Abo ([Abschnitt unten](#zeit-serie-und-absage-aus-caldav-und-abo-oktober-2026)).
+Umsetzung von C1 aus [`26-plan-stabschef.md`](26-plan-stabschef.md). Code:
 `sidecar/icarus_memory/calendar_memory.py` (Regeln),
 `calendar_memory_routes.py` (Verdrahtung, Auskunft), `mac_calendar.py`
 (Route für den Mac-Arbeiter), `scripts/mac_calendar_worker.py` und
@@ -78,8 +79,10 @@ Tage, Jahresansicht des Mac-Adapters) bleibt unverändert.
   Verschiebung ein neuer Termin statt einer neuen Fassung.
 * **Google, CalDAV, iCalendar-Abo:** der Zeitplanlauf liest dasselbe Fenster in
   Abschnitten zu 90 Tagen (das Abo liefert immer die ganze Datei und wird einmal
-  gelesen). Google liefert Notiz und Teilnehmernamen (`description`,
-  `displayName`), CalDAV `DESCRIPTION` und `CN`.
+  gelesen; die Obergrenze `MAX_TERMINE_JE_ABSCHNITT` gilt trotzdem je 90 Tage, nicht
+  für alle Jahre zusammen). Google liefert Notiz und Teilnehmernamen (`description`,
+  `displayName`), CalDAV und Abo `DESCRIPTION` und `CN`. CalDAV und Abo klappen
+  Serien im gelesenen Zeitraum aus (siehe unten).
 * **Einordnung:** Termine laufen durch dieselbe Einordnung wie jede Quelle
   (`working_memory_*`). Dazu steht `event` jetzt überall, wo Rohquellenarten
   aufgezählt werden: `episodes.ROHQUELLEN` und alle SQL-Bedingungen
@@ -90,9 +93,10 @@ Tage, Jahresansicht des Mac-Adapters) bleibt unverändert.
 
 ## Grenzen (offen)
 
-* **Serientermine** über CalDAV und Abo erscheinen nur einmal (der Parser klappt
-  Wiederholungen nicht aus, siehe `connectors/calendar.py`). Mac und Google liefern
-  jede Instanz.
+* **CalDAV und Abo:** Eine Zeitzone, die nur als VTIMEZONE in der Datei beschrieben
+  ist (weder IANA-Name noch in der Outlook-Tabelle), bleibt unbekannt; die Uhrzeit gilt
+  dann wie bisher als UTC. `RANGE=THISANDFUTURE` gilt nur für den einen geänderten
+  Termin. Siehe unten.
 * **Zeitzone:** Der Text nennt Zeiten in `KINGFISHER_TIMEZONE` (Vorgabe
   Europe/Berlin). Ändert sich die Einstellung, ändern sich die Texte, und jeder
   Termin wird einmal als neue Fassung abgelegt.
@@ -199,3 +203,97 @@ grün.
 des Arbeiters (`scripts/mac_calendar_worker.py`) wurden in dieser Umgebung weder
 gebaut noch gegen einen echten Kalender gestartet (kein macOS); die Route, gegen die
 der Arbeiter sendet, ist getestet. Das Bauen und ein Lauf auf dem Mac stehen aus.
+
+## Zeit, Serie und Absage aus CalDAV und Abo (Oktober 2026)
+
+Über CalDAV und die geheime iCal-Adresse (der Weg für Google ohne Cloud-Projekt) las
+ein kleiner eigener Parser die Termine. `DTSTART;TZID=Europe/Berlin` galt als UTC
+(Termine um ein bis zwei Stunden verschoben), `STATUS:CANCELLED` als normaler Termin,
+und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
+(`parse_events`), `connectors/zeitzonen.py`, `connectors/collections.py`
+(`ICalendarSubscription`, `ABO_GROESSE`), Zählgrenze je Abschnitt in
+`calendar_memory.kalender_job`. Tests: `sidecar/tests/test_ical_termine.py`.
+
+* **Zeitzonen.** `TZID` gilt über `zoneinfo`; Outlook-Namen („W. Europe Standard
+  Time“) über eine Tabelle der 51 häufigsten Zonen nach CLDR `windowsZones.xml`
+  (Gebiet „001“). Ein unbekannter Name wird nicht geraten: Die Uhrzeit gilt wie bisher
+  als UTC. Eine Uhrzeit ohne Zone („floating“) ist nach RFC 5545 die Ortszeit des
+  Lesers, also `KINGFISHER_TIMEZONE` (bisher UTC). Ganztägige Termine und `…Z` bleiben
+  wie bisher. Parameter in Anführungszeichen (`TZID="(UTC+01:00) …"`) zerbrechen die
+  Zeile nicht mehr.
+* **Ende.** DTEND, sonst DTSTART plus DURATION, sonst ein Tag (Datum) oder kein
+  Zeitraum (Uhrzeit), wie RFC 5545 es vorgibt. Termine ohne DTEND fehlten bisher still
+  im Gedächtnis.
+* **Absagen und Erinnerungen.** Abgesagte Termine fehlen (wie bei Google und
+  Microsoft); das Gedächtnis entzieht sie wie gelöschte. Zeilen einer Erinnerung
+  (VALARM) überschreiben Titel und Notiz nicht mehr (Google: „This is an event
+  reminder“).
+* **Serien.** Im gelesenen Zeitraum ausgeklappt, mit RDATE, EXDATE und geänderten
+  oder abgesagten Einzelterminen (RECURRENCE-ID); DTSTART ist immer ein Termin. Die
+  Regeln rechnet `python-dateutil`. Ohne Zeitraum bleibt eine Serie ein Termin (so
+  zählt `kalender_abo.pruefe`). Eine Serie, die mehr als 100.000 Wiederholungen bis
+  zum Fenster braucht, wird mit einem Satz abgelehnt statt still gekürzt.
+* **Kennung eines Einzeltermins:** `UID#<ursprünglicher Beginn>` (UTC, bei
+  ganztägigen das Datum, ohne Zone die Ortszeit), gleich bei jedem Abruf und in jedem
+  Fenster. Ein verschobener Termin behält sie und ist eine neue Fassung; ein per
+  EXDATE oder Absage herausgenommener wird entzogen. Ein Termin ohne UID bekommt eine
+  feste Ersatzkennung aus seinem Inhalt (ohne DTSTAMP) statt einer zufälligen.
+* **CalDAV** klappt ebenfalls lokal aus, nicht mit `<C:expand>`: Server setzen das
+  uneinheitlich um, und RFC 4791 (9.6.5) lässt dem ersten Termin die RECURRENCE-ID
+  offen; die Kennung soll nicht vom Server abhängen. Die Antwort wird als XML gelesen
+  (vorher als Rohtext: `&amp;` im Titel, `&#13;` an jedem Wert).
+* **Abo-Größe:** höchstens 25 MB statt 5 MB, beim Einrichten und beim Lesen dieselbe
+  Grenze und derselbe Satz; gelesen wird nur bis zur Grenze.
+
+**Einmalig nach dem Update.** Beim ersten Abgleich wird die bisherige einzige
+Episode jeder CalDAV- oder Abo-Serie entzogen (ihre Kennung war die blanke UID), die
+Einzeltermine kommen neu hinzu; eine Zuordnung oder Nachbereitung am ersten Termin
+einer solchen Serie hängt an der alten Kennung. Termine mit TZID oder ohne Zone und
+Termine, deren Notiz bisher „This is an event reminder“ war, werden einmal neue
+Fassungen; Termine ohne DTEND kommen neu hinzu; abgesagte werden entzogen.
+
+**Gemessen** (synthetische Datei nach Googles Aufbau, rund 1,8 KB je Termin mit fünf
+Teilnehmern, Meet-Text und Erinnerung; jede 200. ist eine offene Wochenserie seit
+2016; in dieser Umgebung, nicht auf einem Mac):
+
+| Datei | Termine | Anzeige (30 Tage) | Gedächtnisfenster (4 Jahre) |
+|---|---|---|---|
+| 5 MB | 2.812, davon 14 Serien | 0,5 s | 0,6 s (5.932 Termine) |
+| 25 MB | 14.053, davon 70 Serien | 2,6 s | 2,9 s (28.821 Termine), rund 110 MB Speicher zusätzlich |
+| 5 MB, jede 20. eine Serie | 2.810, davon 140 Serien | 0,9 s | 1,3 s (32.138 Termine) |
+
+**Sabotageprobe.** Je Zusicherung absichtlich gebrochen, `test_ical_termine.py` lief,
+danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
+
+| Gebrochene Zusicherung | Rot wurde |
+|---|---|
+| TZID wird übergangen | `…tzid_wird_in_die_richtige_zeit…`, `…outlook_zeitzonennamen…`, `…ende_in_einer_anderen_zone…` |
+| Outlook-Tabelle fehlt | `…outlook_zeitzonennamen…`, `…zuordnung_der_windows_zonen…` |
+| unbekannte Zone wird geraten (Zone des Nutzers) | `…unbekannte_zeitzone_behaelt_die_bisherige_rueckfallregel` |
+| Uhrzeit ohne Zone gilt als UTC | `…termin_ohne_zeitzone…` |
+| Anführungszeichen in Parametern übergangen | `…doppelpunkt_und_semikolon…`, `…unbekannte_zeitzone…` |
+| Absage wird übernommen | `…abgesagter_termin_wird_nicht_uebernommen`, `…im_gedaechtnis_entzogen` |
+| VALARM-Zeilen zählen zum Termin | `…erinnerung_ueberschreibt…` |
+| DURATION übergangen; kein Ende ohne DTEND | `…ende_aus_dauer…` |
+| RRULE nicht ausgeklappt | 14 Tests |
+| EXDATE übergangen | `…exdate…`, `…kennungen_sind_stabil…`, `…serie_im_gedaechtnis…` |
+| geänderter Einzeltermin ersetzt den ursprünglichen nicht | `…verschobener_einzeltermin…`, `…abgesagter_einzeltermin…`, `…caldav_klappt…`, `…serie_im_gedaechtnis…` |
+| Kennung am tatsächlichen statt am ursprünglichen Beginn | `…verschobener_einzeltermin…`, `…serie_im_gedaechtnis…` |
+| Kennung in Ortszeit statt UTC | `…serie_wird_im_fenster…`, `…exdate…`, `…abgesagter_einzeltermin…` |
+| Ausklappen in UTC statt in der Ortszeit | 7 Tests, u. a. `…bleibt_ueber_die_zeitumstellung_um_neun` |
+| Fenster übergangen; Fensterbeginn ohne Spielraum | `…vor_dem_fenster_beginnt…` |
+| DTSTART nicht als erster Termin | `…beginn_ist_immer_ein_termin…` |
+| ohne Fenster ausgeklappt | `…ohne_fenster_bleibt_eine_serie_ein_termin` |
+| zu dichte Serie still gekürzt | `…zu_dichte_serie_wird_ehrlich_abgelehnt` |
+| UNTIL in anderer Form (Datum, Ortszeit, ganztägig mit UTC) | `…until_in_anderer_form…` |
+| Ortszeit ohne Zone nicht in der Zone der Serie | `…exdate…` |
+| unlesbare Regel oder Zusatz `X-…` kippt die Datei | `…kaputte_oder_fremde_regel…` |
+| zufällige Ersatzkennung ohne UID | `…termin_ohne_uid…` |
+| Obergrenze für die ganze Abo-Datei | `…obergrenze_gilt_beim_abo_je_abschnitt` |
+| CalDAV aus dem Rohtext statt aus dem XML | `…caldav_liest_den_kalender_aus_dem_xml…` (beide Fälle) |
+| Abo-Grenze wieder 5 MB (Lesen oder Einrichten) | `…abo_ueber_fuenf_mb…` |
+| erst alles laden, dann prüfen | `…zu_grosses_abo_bricht_frueh_ab…` |
+
+**Nicht geprüft:** gegen echte Server (Google, iCloud, Nextcloud, Outlook); die
+Attrappen bilden deren Antworten nach. Die Zeiten oben sind keine Messung auf einem
+Mac.
