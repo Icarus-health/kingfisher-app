@@ -21,7 +21,7 @@ export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string;
     satz: "Hier muss nichts geändert werden." },
 ];
 
-/** Die fünf Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
+/** Die sechs Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
 export const SCHALTER = {
   wetter: { titel: "Morgens das Wetter holen",
     verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo. Termine, Namen und Adressen bleiben bei dir." },
@@ -34,6 +34,11 @@ export const SCHALTER = {
   cloud: { titel: "Cloud für Fragen und Antworten nutzen",
     verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
     zustimmung: "Deine Fragen und die dazu gefundenen Textstellen gehen an den Cloudanbieter, den du gewählt hast. Ich willige ein." },
+  // Der Satz zur Einwilligung kommt vom Sidecar (`cloud_satz` der Rolle hintergrund, GET /roles) und wird hier nur um
+  // das „Ich willige ein.“ ergänzt, damit er nicht zweimal gepflegt wird (cloudEinordnung.ts).
+  cloud_einordnung: { titel: "Neue Mails in der Cloud einordnen",
+    verlaesst: "Jede neue Mail verlässt den Rechner vollständig, an Anthropic (Claude). Aus: Einordnen läuft nur mit einem Modell auf diesem Rechner.",
+    zustimmung: "Ich willige ein." },
 } as const;
 
 export const ICH = {
@@ -126,6 +131,7 @@ export function vordereTexte(): string[] {
 /** Die Dateien, deren sichtbare Texte vorne stehen (für den Wortlistentest). Ausnahmen stehen in AUSNAHMEN. */
 export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/Zugaenge.tsx", "Einstellungen/NeuAnmelden.tsx", "Einstellungen/neuAnmeldenWeg.ts", "Einstellungen/Darf.tsx", "Einstellungen/Ich.tsx", "Einstellungen/CloudSchalter.tsx",
+  "Einstellungen/CloudEinordnungSchalter.tsx", "Einstellungen/cloudEinordnung.ts",
   "Einstellungen/Seite.tsx", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
   "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "KreisKarten.tsx",
   // Google ohne Cloud-Projekt (Fremdprobe, Befund 2): Post und Kalender vorne, in Alltagsworten.
