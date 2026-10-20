@@ -339,10 +339,27 @@ def test_kaputte_oder_fremde_regel_kippt_nichts():
     assert beginne(fremd) == [utc(2026, 10, 19, 7), utc(2026, 10, 20, 7), utc(2026, 10, 23, 9)]
 
 
-def test_zu_dichte_serie_wird_ehrlich_abgelehnt():
-    from icarus_memory.connectors.calendar import CalendarError
-    with pytest.raises(CalendarError, match='zu dicht'):
-        parse_events(ics(serie('DTSTART:20200101T000000Z', 'RRULE:FREQ=SECONDLY')), VON, BIS)
+def test_zu_dichte_serie_bleibt_ein_termin_mit_hinweis_statt_die_quelle_zu_kippen(caplog):
+    """Mehr als 48 Termine am Tag (im Mittel ab dem ersten Termin) gelten als zu dicht; die anderen Termine bleiben."""
+    import time
+    for regel in ('FREQ=SECONDLY', 'FREQ=MINUTELY'):
+        beginn = time.perf_counter()
+        termine = parse_events(ics(serie('DTSTART:20200101T000000Z', f'RRULE:{regel}'), NORMAL), VON, BIS)
+        assert time.perf_counter() - beginn < 1
+        assert [t.uid for t in termine] == ['serie@probe', 'normal']
+    assert 'zu dicht' in caplog.text
+
+
+def test_dichte_aber_zulaessige_serie_kippt_nicht_mit_der_zeit():
+    """Gezählt wird die Dichte, nicht die Zahl seit Serienbeginn: Stündlich seit 2015 und halbstündlich seit 2021
+    bleiben auch Jahre später ausgeklappt (vorher fielen sie nach 100.000 Wiederholungen mit einem Fehler aus)."""
+    from datetime import timedelta
+    stuendlich = serie('DTSTART:20150101T000000Z', 'DURATION:PT15M', 'RRULE:FREQ=HOURLY')
+    halbstuendlich = serie('DTSTART:20210101T000000Z', 'DURATION:PT15M', 'RRULE:FREQ=MINUTELY;INTERVAL=30', uid='halb')
+    for von in (utc(2026, 10, 20), utc(2040, 1, 1)):
+        termine = parse_events(ics(stuendlich, halbstuendlich), von, von + timedelta(days=1))
+        assert sum(t.uid.startswith('serie@probe#') for t in termine) == 24
+        assert sum(t.uid.startswith('halb#') for t in termine) == 48
 
 
 # -- Serien in Abo, CalDAV und Gedächtnis -------------------------------------------

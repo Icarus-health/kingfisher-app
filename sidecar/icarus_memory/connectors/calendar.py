@@ -352,11 +352,26 @@ def _komponenten(ical: str) -> list[_Komponente]:
 
 # -- Serien ------------------------------------------------------------------
 
-MAX_SCHRITTE_JE_SERIE = 100_000
+DICHTE_JE_TAG = 48
+"""Eine Serie mit mehr Terminen am Tag (im Mittel ab ihrem ersten Termin, mit
+einem Spielraum von `PUFFER_DICHTE`) ist zu dicht, etwa jede Minute. Sie bleibt
+wie eine unlesbare Regel ihr erster Termin, mit einem Hinweis im Protokoll,
+statt die ganze Quelle mit einem Fehler zu kippen. Gemessen wird die Dichte,
+nicht die Zahl seit Serienbeginn: Eine stündliche Serie kippt nicht nach
+Jahren von selbst, und Anzeige und Gedächtnis entscheiden gleich."""
+
+PUFFER_DICHTE = 1000
+
+MAX_SCHRITTE_JE_SERIE = 1_000_000
 """So viele Wiederholungen rechnet das Ausklappen einer Serie höchstens durch,
-gezählt ab ihrem ersten Termin (täglich seit 1900 sind rund 46.000). Eine
-dichtere Serie (etwa jede Sekunde) wird mit einem Satz abgelehnt statt still
-gekürzt: Ein gekürzter Abschnitt sähe für das Gedächtnis aus wie gelöschte Termine."""
+vom ersten Termin bis zum Ende des Fensters (rund 2,5 s). Halbstündlich reicht
+das 57 Jahre, stündlich 114; darüber gilt die Serie ebenfalls als zu dicht.
+Gekürzt wird nie: Ein gekürzter Abschnitt sähe für das Gedächtnis aus wie
+gelöschte Termine."""
+
+
+class _ZuDicht(Exception):
+    """Eine Serie wiederholt sich zu dicht, um sie auszuklappen (`DICHTE_JE_TAG`)."""
 
 
 def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
@@ -529,9 +544,9 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
         for schritt, moment in enumerate(heapq.merge(*regeln, sorted(dazu))):
             if moment >= bis:
                 return
-            if schritt >= MAX_SCHRITTE_JE_SERIE:
-                titel = serie.texte[0]
-                raise CalendarError(f"Die Terminserie „{titel}“ wiederholt sich zu dicht, um sie auszuklappen.")
+            if schritt >= MAX_SCHRITTE_JE_SERIE or schritt > PUFFER_DICHTE + DICHTE_JE_TAG * (
+                    moment - beginn.moment).total_seconds() / 86400:
+                raise _ZuDicht
             if moment < ab:
                 continue
             kennung = _kennung(_Zeit(moment, beginn.ganztags, beginn.schwebend), beginn)
@@ -605,6 +620,10 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
                 and _beruehrt(moment, schluss := moment + dauer if dauer is not None else None, von, bis)]
         except (ValueError, TypeError, OverflowError):
             treffer = None  # manche unlesbare Regel fällt dateutil erst beim Rechnen auf
+        except _ZuDicht:
+            treffer = None
+            logger.warning("Eine Terminserie wiederholt sich zu dicht (mehr als %s-mal am Tag); "
+                           "sie erscheint nur mit ihrem ersten Termin.", DICHTE_JE_TAG)
         if treffer is None:
             # Kein lesbarer Beginn oder eine unlesbare Regel: wie bisher nur der erste Termin.
             ergebnis.append(_termin(serie, uid))
