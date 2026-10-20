@@ -114,8 +114,12 @@ class Event:
 
 
 def _unfold(text: str) -> str:
-    """iCalendar bricht lange Zeilen um; Fortsetzungen beginnen mit Leerzeichen."""
-    return re.sub(r"\r?\n[ \t]", "", text)
+    """iCalendar bricht lange Zeilen um; Fortsetzungen beginnen mit Leerzeichen (auch nach CR allein, altes Mac-Format)."""
+    return re.sub(r"(?:\r\n|\r|\n)[ \t]", "", text)
+
+
+_FALTUNG = re.compile(rb"(?:\r\n|\r|\n)[ \t]")
+"""Dasselbe auf Bytes: vor dem Dekodieren entfalten, denn die Faltung darf mitten in einem Mehrbyte-Zeichen liegen."""
 
 
 def _zeile(zeile: str) -> tuple[str, dict[str, str], str] | None:
@@ -337,6 +341,18 @@ def ical_kodierung(kodierung: str | None) -> str:
         return "utf-8"
 
 
+_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8-sig"),
+         (codecs.BOM_UTF16_LE, "utf-16"), (codecs.BOM_UTF16_BE, "utf-16"))
+
+
+def kodierung_der_daten(daten: bytes, angegeben: str | None) -> str:
+    """Die Kodierung eines Kalenders: ein BOM am Anfang zählt vor dem Zeichensatz der Antwort (oft fehlt er)."""
+    for bom, name in _BOMS:  # UTF-32 zuerst: sein BOM beginnt wie der von UTF-16
+        if daten.startswith(bom):
+            return name
+    return ical_kodierung(angegeben)
+
+
 def ascii_kompatibel(kodierung: str | None) -> bool:
     """Ob ASCII-Zeichen in dieser Kodierung ihre eigenen Bytes sind (UTF-8, Latin-1, …; nicht UTF-16 oder UTF-32)."""
     try:
@@ -353,12 +369,12 @@ def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[str]:
     mit vier Byte je Zeichen, ein 25-MB-Abo also mit 100 MB je Kopie.
     """
     if isinstance(ical, bytes):
-        kodierung = ical_kodierung(kodierung)
+        kodierung = kodierung_der_daten(ical, kodierung)
         if not ascii_kompatibel(kodierung):
             ical = ical.decode(kodierung, errors="replace")
         else:
             for treffer in re.finditer(rb"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
-                yield _unfold(treffer.group(1).decode(kodierung, errors="replace"))
+                yield _FALTUNG.sub(b"", treffer.group(1)).decode(kodierung, errors="replace")
             return
     for treffer in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
         yield _unfold(treffer.group(1))

@@ -27,7 +27,7 @@ from urllib.parse import unquote, urlsplit
 
 import httpx
 
-from .connectors.calendar import ascii_kompatibel, ical_kodierung, parse_events
+from .connectors.calendar import ascii_kompatibel, kodierung_der_daten, parse_events
 from .connectors.collections import ABO_GROESSE, zu_gross
 from .mail_anmeldung import Anmeldefehler
 from .zeitgrenze import mit_zeitgrenze
@@ -128,15 +128,17 @@ def pruefe(roh: str, *, transport: Any = None, sekunden: float = ZEITGRENZE) -> 
         raise Anmeldefehler('kein_kalender', f'{wer} liefert unter dieser Adresse keinen Kalender (Antwort {status}).')
     # Die ganze Datei wird nicht als Text gehalten (ein Emoji vervierfachte sonst den Speicher, `parse_events`):
     # Geprüft werden Anfang, Ende und Name, gezählt wird je Termin.
-    kodierung = ical_kodierung(kodierung)
+    kodierung = kodierung_der_daten(daten, kodierung)
     if not ascii_kompatibel(kodierung):
         daten, kodierung = daten.decode(kodierung, errors='replace').encode('utf-8'), 'utf-8'
-    kopf = daten[:8000].decode(kodierung, errors='replace')
+    kopf = re.sub(r'\r\n?', '\n', daten[:8000].decode(kodierung, errors='replace'))  # auch CR allein (altes Mac)
     if not re.search(r'^BEGIN:VCALENDAR\s*$', kopf[:2000].lstrip('﻿'), re.MULTILINE) or b'END:VCALENDAR' not in daten:
         raise Anmeldefehler('kein_kalender', 'Unter dieser Adresse liegt kein Kalender; bitte kopiere die Adresse '
                                              'noch einmal vollständig.')
-    name = re.search(rb'^X-WR-CALNAME:(.*)$', daten, re.MULTILINE)
-    anzeige = ' '.join((name.group(1).decode(kodierung, errors='replace') if name else '').split())[:80]
+    name = re.search(rb'(?:^|[\r\n])X-WR-CALNAME(?:;[^:\r\n]*)?:([^\r\n]*(?:(?:\r\n|\r|\n)[ \t][^\r\n]*)*)', daten,
+                     re.IGNORECASE)
+    roh = re.sub(rb'(?:\r\n|\r|\n)[ \t]', b'', name.group(1)) if name else b''  # gefaltet: vor dem Dekodieren
+    anzeige = ' '.join(roh.decode(kodierung, errors='replace').split())[:80]
     return einordnung, Abo(name=anzeige, termine=len(parse_events(daten, kodierung=kodierung)))
 
 

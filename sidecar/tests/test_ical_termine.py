@@ -742,3 +742,38 @@ def test_exdate_oder_recurrence_id_am_rand_des_jahres_9999_nimmt_die_serie_nicht
                           'DTSTART:20261021T090000Z', 'DURATION:PT1H'])
         termine = parse_events(ics(*teile), VON, BIS)
         assert {utc(2026, 10, 19, 7), utc(2026, 10, 26, 8), utc(2026, 11, 2, 8)} <= set(beginne(termine)), zusatz
+
+
+def _abo_aus_bytes(daten: bytes, kopf: dict[str, str] | None = None):
+    import httpx
+
+    from icarus_memory import kalender_abo
+    from icarus_memory.connectors.collections import ICalendarSubscription
+    transport = httpx.MockTransport(lambda anfrage: httpx.Response(200, content=daten, headers=kopf or {}))
+    termine = ICalendarSubscription('https://kalender.example.test/b.ics', transport=transport).events()
+    _, abo = kalender_abo.pruefe('https://kalender.example.test/b.ics', transport=transport)
+    return [t.summary for t in termine], (abo.name, abo.termine)
+
+
+def test_faltung_mitten_in_einem_mehrbyte_zeichen():
+    daten = ('BEGIN:VCALENDAR\r\nX-WR-CALNAME:Büro M'.encode() + b'\xc3\r\n \xbcller\r\n'
+             + 'BEGIN:VEVENT\r\nUID:f\r\nDTSTART:20261020T090000Z\r\nSUMMARY:Besprechung mit Herrn M'.encode()
+             + b'\xc3\r\n \xbcller\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n')
+    assert _abo_aus_bytes(daten, {'Content-Type': 'text/calendar; charset=utf-8'}) == (
+        ['Besprechung mit Herrn Müller'], ('Büro Müller', 1))
+
+
+def test_utf16_mit_bom_ohne_zeichensatz_in_der_antwort():
+    text = ('BEGIN:VCALENDAR\r\nX-WR-CALNAME:Büro\r\nBEGIN:VEVENT\r\nUID:u\r\nDTSTART:20261020T090000Z\r\n'
+            'SUMMARY:Grüße \U0001F389\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n')
+    for daten in (text.encode('utf-16'), text.encode('utf-32')):  # beide mit BOM
+        assert _abo_aus_bytes(daten, {'Content-Type': 'text/calendar'}) == (['Grüße \U0001F389'], ('Büro', 1))
+
+
+def test_abo_name_gefaltet_und_nur_cr_als_zeilenende():
+    text = ('BEGIN:VCALENDAR\r\nX-WR-CALNAME:Sehr langer Kalendername der\r\n  umgebrochen wurde\r\nBEGIN:VEVENT\r\n'
+            'UID:c\r\nDTSTART:20261020T090000Z\r\nSUMMARY:Altes Mac-\r\n Format\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n')
+    assert _abo_aus_bytes(text.encode())[1] == ('Sehr langer Kalendername der umgebrochen wurde', 1)
+    nur_cr = text.replace('\r\n', '\r').encode()
+    assert _abo_aus_bytes(nur_cr) == (['Altes Mac-Format'], ('Sehr langer Kalendername der umgebrochen wurde', 1))
+    assert [t.summary for t in parse_events(nur_cr.decode())] == ['Altes Mac-Format']
