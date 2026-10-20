@@ -181,7 +181,9 @@ def test_morgen_in_fester_reihenfolge_jede_zeile_mit_quelle_nichts_ausserhalb(ap
     bitte = _mail(app, 'Daten', [(f'Bitte schick mir die Druckdaten bis zum {tag(1)}.', 'request')], [ANNA, ICH], tage=3)
     zusage = _mail(app, 'Muster', [(f'Ich schicke die Muster bis zum {tag(1)}.', 'commitment')], [ICH, BEN], tage=2)
     _mail(app, 'Spaeter', [(f'Bitte schick die Rechnung bis zum {tag(6)}.', 'request')], [ANNA, ICH], tage=3)
+    _mail(app, 'Heute', [(f'Bitte schick die Teilnehmerliste bis zum {tag(0)}.', 'request')], [ANNA, ICH], tage=3)
     aufgabe(app, 'Folien fertig machen', tage=1)
+    aufgabe(app, 'Schon heute fällig', tage=0)
     aufgabe(app, 'Angebot von Ben', tage=1, wartet_auf='Ben')
     aufgabe(app, 'Erst nächste Woche', tage=5)
     a = antwort(app, 'Was brauche ich morgen?')
@@ -197,7 +199,7 @@ def test_morgen_in_fester_reihenfolge_jede_zeile_mit_quelle_nichts_ausserhalb(ap
     assert 'Druckerei Braun, Werkstraße 4, Mainz' in text and 'Anna Keller' in text and 'Ben Braun' in text
     assert 'Anna Keller bittet um etwas bis' in text and 'Du hast bis' in text and 'zugesagt' in text
     # Nichts außerhalb des Zeitraums.
-    for fremd in ('Weit weg', 'Rechnung', 'Erst nächste Woche'):
+    for fremd in ('Weit weg', 'Rechnung', 'Erst nächste Woche', 'Teilnehmerliste', 'Schon heute fällig'):
         assert fremd not in text, fremd
     # Jede Zeile mit Quelle, fortlaufend nummeriert; die Links zeigen auf die Episoden.
     assert quellen(text) == [1, 2] and sorted(l['episode_id'] for l in a.links) == sorted([bitte.id, zusage.id])
@@ -335,7 +337,9 @@ def test_im_gespraech_ohne_modell_und_vor_dem_fragenverstaendnis(api, monkeypatc
     monkeypatch.setattr(app.state.agent._provider, 'complete', kaputt)
     monkeypatch.setattr(app.state.agent._provider, 'complete_json', kaputt, raising=False)
     verstanden = []
-    monkeypatch.setattr(server_modul, '_frage_verstehen', lambda app_, text: verstanden.append(text) or None)
+    # Weder der Server noch der Agent verstehen die Frage erst mit dem Fragenmodell: Der neue Weg kommt davor.
+    monkeypatch.setattr(server_modul, '_frage_verstehen', lambda app_, text: verstanden.append(('server', text)) or None)
+    monkeypatch.setattr(app.state.agent, 'frage_verstehen', lambda text: verstanden.append(('agent', text)) or None)
     kalender(app, termin(tage=1, stunde=14))
     _mail(app, 'Daten', [(f'Bitte schick mir die Druckdaten bis zum {tag(1)}.', 'request')], [ANNA, ICH], tage=3)
     client.post('/api/v1/akten/aktualisieren')
