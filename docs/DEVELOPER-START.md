@@ -1,11 +1,12 @@
 # Einstieg für Entwickler und Claude Code
 
-**Aktueller Stand (19.10.):** `main` und die veröffentlichte Fassung sind **1.0.25**
-(Release mit `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
+**Aktueller Stand (20.10.):** `main` ist **1.0.26**; veröffentlicht wird sie wie jede
+Fassung mit dem Release-Workflow (Tag `v1.0.26`, `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
 und die Alltagsabläufe (#54) sind seit dem 12.10. in `main`, ebenso alle Commits der
 früheren Entwürfe #43 (lokaler Sprachentwurf) und #48 (korrigierte Quellen erneut
 prüfen). Neue Arbeit beginnt auf `main`, nicht auf älteren Vorschau-Branches. Die vier
-Fassungen vom 19.10. sichern vor allem die Mailaufnahme ab:
+Fassungen vom 19.10. sichern vor allem die Mailaufnahme ab, 1.0.26 bringt die
+Gedächtnis-Durchsicht „wie ein guter Stabschef“ (fünf Pakete):
 
 | Fassung | PR | Inhalt | Nachweis |
 |---|---|---|---|
@@ -13,14 +14,18 @@ Fassungen vom 19.10. sichern vor allem die Mailaufnahme ab:
 | 1.0.23 | #74 | Sammelpostfächer, bedingte Angebote, Anfragebudget, Werbevorfilter | [Protokoll](runs/2026-10-19-mail-import-quality/README.md) |
 | 1.0.24 | #75 | Kurznamen und Fristrollen in Personenakten; Sonnet 5.5 für den Mailimport | [Protokoll](runs/2026-10-19-personen-fristen-sonnet/README.md) |
 | 1.0.25 | #76 | Einmalige Belegkorrektur im Cloudpaket; historische Quellenfristen sichtbar | [Protokoll](runs/2026-10-19-belege-fristen-sonnet/README.md) |
+| 1.0.26 | #78–#84 | Deutsche Fristformulierungen; Akte mit „Braucht dich“, Entscheidungen und Zeitstrahl; Abrufen mit Umschrift, Zeitangaben und „Worauf warte ich noch?“; Ablage merkt sich Entscheidungen; neue Post trotz Pause, ehrliche Anmeldung, neueste zuerst; Kalender aus CalDAV und Abo; CI wieder grün | [Protokoll](runs/2026-10-20-stabschef-pakete/README.md) |
 
 Offen laut diesen Protokollen: die Prüfung des normalen Mac-Updates seit 1.0.22, eine
 Probe mit aktuellen, handlungsrelevanten Mails statt der überwiegend historischen
-Stichprobe und eine Abnahme über das ganze Postfach. Der große Mailimport bleibt
-pausiert, bis eine solche Probe trägt
-([Reihenfolge](64-cos-abnahme-status-2026-10-09.md#reihenfolge-bis-zum-brauchbaren-alltag)).
-Bekannte Grenze: Komplexe deutsche Fristformulierungen bleiben teils ohne abgeleitete
-Frist. Zuletzt protokolliert ist auf dem persönlichen Mac die Fassung 1.0.12
+Stichprobe und eine Abnahme über das ganze Postfach. Der große Import älterer Mails
+bleibt pausiert, bis eine solche Probe trägt
+([Reihenfolge](64-cos-abnahme-status-2026-10-09.md#reihenfolge-bis-zum-brauchbaren-alltag));
+seit 1.0.26 kommt neue Post in der Pause ohne Modell weiter an
+([Pause und Akku](46-hintergrund.md#pause-und-akku)). Seit 1.0.26 erkennt die Akte die
+häufigen deutschen Fristformulierungen; seltene bleiben teils ohne abgeleitete Frist.
+Die Pakete von 1.0.26 sind nur mit synthetischen Daten geprüft; die Abnahme am Mac
+steht aus. Zuletzt protokolliert ist auf dem persönlichen Mac die Fassung 1.0.12
 ([14.10.](runs/2026-10-14-workflow-completion/README.md)); spätere Installationen sind
 nicht protokolliert. Seit 1.0.18 tragen die Notizen „App mindestens: 1.0.18“: Läuft
 eine ältere Fassung, zeigt Heute statt „Jetzt aktualisieren“ den Weg zur Download-Seite.
@@ -84,14 +89,14 @@ des vorhandenen Kerns; dessen Paketnamen müssen nicht umbenannt werden.
 | Aktuelle Oberfläche | `app/kingfisher/src/` (React/TypeScript/Vite) |
 | API und Verdrahtung | `sidecar/icarus_memory/server.py` |
 | Wiederaufnehmbare Mailaufnahme | `mail_intake.py`, `mail_intake_routes.py`, `connectors/mail.py` im Python-Paket |
-| Termine im Gedächtnis (Episoden der Art `event`) | `calendar_memory.py`, `calendar_memory_routes.py`, [Doku](28-termine-im-gedaechtnis.md) |
+| Termine im Gedächtnis (Episoden der Art `event`); CalDAV und Abo mit Zeitzonen (IANA, Outlook-Namen, libical-Präfixe), Serien im Zeitfenster (RRULE über `python-dateutil`, unerfüllbare und zu dichte Regeln erkannt), Absagen, Abo bis 25 MB (Oktober 2026) | `calendar_memory.py`, `calendar_memory_routes.py`, `connectors/calendar.py` (`parse_events`, `_erfuellbar`), `connectors/zeitzonen.py`, `connectors/collections.py` (`ICalendarSubscription`, `ABO_GROESSE`), `kalender_abo.py`; Tests `test_ical_termine.py`; [Doku](28-termine-im-gedaechtnis.md#zeit-serie-und-absage-aus-caldav-und-abo-oktober-2026) |
 | Suchindex über alle Rohquellen (FTS5, Wortteile, BM25) und Fusion mit der Wortsuche; Einstellung „Wortteile für die letzten N Jahre“ (zweiter, wortbasierter Index für ältere Quellen) | `source_index.py`, `source_candidates.py`, `suchindex_routes.py`, [Doku](29-suchindex.md); Oberfläche `SuchindexSettings.tsx` (Einstellungen → Gedächtnis) |
-| Frage verstehen (strukturierte Anfrage mit Modell der Rolle `frage` oder Rückfall), Auflösen der Sachen, Rückfrage mit allen Bedeutungen, Weg der Frage | `frage.py`, `frage_weg.py`, `bedeutungen.py`, `memory_routing.py`, [Doku](31-frageverstaendnis.md) |
+| Frage verstehen (strukturierte Anfrage mit Modell der Rolle `frage` oder Rückfall), Auflösen der Sachen, Rückfrage mit allen Bedeutungen, Weg der Frage; Umlaut-Umschrift zur Fragezeit, Zeitangaben („letztes Jahr“, „vor 2 Wochen“) mit Suche im Zeitraum, „Worauf warte ich noch?“/„Was habe ich zugesagt?“ aus den Akten ohne Modell (Oktober 2026) | `frage.py`, `frage_weg.py`, `bedeutungen.py`, `memory_routing.py`, `word_forms.umschriften`, `time_scope.py`, `offene_punkte.py`; Tests `test_umschrift.py`, `test_zeitangaben_jahr.py`, `test_offene_punkte.py`; [Doku](31-frageverstaendnis.md#namen-zeitangaben-offene-punkte-19102026) |
 | Lokal oder Cloud über Ollama (Inventar je Modell aus `/api/tags`, 30 s gemerkt, fail closed; Rollenanbieter `ollama-cloud` nur mit Einwilligung, nie für Hintergrund und Einbettung) | `ollama_inventar.py`, `model_roles.py`, `model_roles_routes.py`, `local_model_guard.py`; [Doku](40-messplan-modelle.md#cloud-über-ollama) |
 | Speicherbedarf des Orchesters (Tag, Nacht, Festplatte; Ausweichwahl in `empfehle_alle`; freier Platz vom Helfer auf dem Rechner, Platzprüfung vor dem Laden) | `model_recommendation.py` (`orchester_bedarf`), `device_profile.py`, `scripts/report_device.py`, `model_roles_routes.py`; Oberfläche `ModelRecommendation.tsx`, `modelSetup.ts`; [Doku](40-messplan-modelle.md#speicherbedarf-des-orchesters) |
 | Kategorien und belegte Hinweise | `sidecar/icarus_memory/memory_categories.py` |
 | Beteiligte und Identität (Adresse als Anker, Aliasse, „ich“) | `kontakte.py`, `identitaet.py`, `personen.py`, `personenfrage.py`; Nachweis in `docs/evaluations/messlatte/C3-identitaet.md` |
-| Bezüge und Akten je Sache (Person, Organisation, Projekt, Ort, Thema), Fristen | `bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`; [Doku](30-akten.md); Oberfläche `AkteAbschnitte.tsx`, `SachenListe.tsx`, `SourceBezuege.tsx` |
+| Bezüge und Akten je Sache (Person, Organisation, Projekt, Ort, Thema), Fristen; „Braucht dich“, Entscheidungen des Nutzers je Textstelle oder Termin (Migration 23, nur Verweise), Richtung `von_mir`/`an_mich`, Zeitstrahl, Mailverläufe über Kopfzeilen (Akte 11); Entscheidungen der Ablage gelten für den Text der Quelle (`NUTZER_GILT`), Terminort einer beteiligten Organisation (Oktober 2026) | `bezuege.py`, `akten.py`, `akten_entscheidungen.py`, `fristen.py`, `akten_routes.py` (`PUT`/`DELETE /api/v1/akten/entscheidung`), `kreis.py`; Tests `test_akten_entscheidungen.py`, `test_bezuege.py`; [Doku](30-akten.md); Oberfläche `AkteAbschnitte.tsx`, `SachenListe.tsx`, `SourceBezuege.tsx` |
 | Akten als Markdown-Ordner (nur lesend, für Obsidian; Klartext, aus bis zur Wahl eines Ordners; nichts fließt zurück) | `akten_markdown.py`, `akten_export_routes.py`, `atomic.ordner_tauschen`, Mac-Helfer `scripts/mac_folder_worker.py --role akten`; [Doku](43-akten-als-ordner.md); Oberfläche `AktenOrdnerSettings.tsx` (Einstellungen → Erweitert → Für Techniker); Browserprobe `scripts/probe_akten_ordner_ui.py` |
 | Gespräche und Meetings (Transkript-Eingangsordner, Zuordnung zum Termin, Nachfrage ohne Mitschrift) | `transkript_eingang.py`, `transkript_zuordnung.py`, `transkript_routes.py`, `folder_sync.py`, `scripts/mac_folder_worker.py`, `nachbereitung.py`; [Doku](34-gespraeche.md); Oberfläche `TranscriptSettings.tsx`, `CalendarFollowup.tsx` |
 | Morgenbriefing (Tageslage), Terminvorbereitung aus Akten, Fristen, Packliste, Wegezeit (Apple Karten, Kartendienst) | `terminvorbereitung.py`, `tagesbriefing.py`, `fristlage.py`, `einpacken.py`, `wegezeit.py`, `tag_routes.py`, `wegezeit_routes.py`; [Doku](33-briefing-und-vorbereitung.md); Oberfläche `TagesLage.tsx` |
