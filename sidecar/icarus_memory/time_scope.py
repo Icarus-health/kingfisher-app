@@ -16,8 +16,8 @@ from .model import user_timezone
 NUMBERS = {'zwei': 2, 'drei': 3, 'vier': 4, 'fünf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8,
            'neun': 9, 'zehn': 10, 'vierzehn': 14}
 _NUMBER = r'(\d{1,3}|' + '|'.join(NUMBERS) + r')'
-# Unbestimmter Artikel als Zahl: „in einer Woche“, „in einem Monat“ (nur für künftige Angaben).
-_EINS = frozenset({'ein', 'eine', 'einer', 'einem', 'einen'})
+# Unbestimmter Artikel als Zahl: „in einer Woche“, „in einem Monat“, „innerhalb eines Monats“ (nur für künftige Angaben).
+_EINS = frozenset({'ein', 'eine', 'einer', 'einem', 'einen', 'eines'})
 PATTERNS = [
     ('days', re.compile(r'\b(?:in\s+den\s+)?(?:letzten|vergangenen)\s+' + _NUMBER + r'\s+(tagen?|wochen)\b', re.I)),
     ('days', re.compile(r'\bseit\s+' + _NUMBER + r'\s+(tagen|wochen)\b', re.I)),

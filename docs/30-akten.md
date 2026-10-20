@@ -88,6 +88,31 @@ ihre Textstelle. Zahlwörter liest `time_scope.zahl` (dieselbe Stelle wie bei
 Zeiträumen in Fragen). Aufgelöst werden Abschnitte der Art Bitte, Zusage, bedingte
 Aussage und Änderung.
 
+Seit Fassung 1.0.26 kommen hinzu:
+
+* **Binnenfristen:** „innerhalb von 14 Tagen“, „binnen zwei Wochen“, „innerhalb eines
+  Monats“ zählen ab der Quelle wie „in 14 Tagen“. Werktage und eine Frist ab einem
+  anderen Ereignis („nach Erhalt der Ware“, „ab Rechnungsdatum“, „drei Werktage vor
+  Ihrem Termin“, „24 Stunden vorher“) bleiben Text ohne Datum.
+* **Wochentag mit Datum:** „bis Freitag, den 11. September“ ist eine Angabe; es gilt
+  das Datum. Passt der Wochentag nicht zum Datum, bleibt sie ohne Datum. Vorher wurde
+  daraus der nächste Freitag.
+
+Welches Datum eine Frist ist, entscheidet `fristangaben_in`: Ein Wort wie „bis“,
+„spätestens“, „innerhalb“ braucht eine Handlung im selben Satzteil. Erkannt werden
+dafür Antworten, Anmelden, Senden und Einreichen, Zahlen (auch „zahlbar“,
+„Zahlungsziel“, „begleichen“), Unterschreiben, Kündigen und Widerrufen, trennbare
+Verben („füllen Sie den Bogen bis Freitag aus“, „geben Sie bis Freitag Bescheid“),
+Pflichten mit Modalverb („muss bis … beim Finanzamt eingegangen sein“, „können Sie
+… kündigen“), benötigte Unterlagen („Wir benötigen die Unterlagen bis …“) und eine
+Bitte oder Zusage mit „zu“-Infinitiv („Wir bitten Sie, … bis … nachzureichen“). Nie
+eine Frist sind ein Zustand nach dem Datum („bis 18.09. geschlossen“, „die bis
+30.09. gültigen Preise“), ein gemeldeter Eingang ohne Modalverb („sind bis 18.09.
+eingegangen“), „nicht vor Montag“ und „nicht zu betreten“. Was keine dieser Formen
+hat, bleibt Quelle ohne abgeleitete Frist. Die Messung mit zwei unabhängig
+geschriebenen Prüfsätzen steht im
+[Prüfprotokoll](runs/2026-10-19-fristen-formulierungen/README.md).
+
 ## D2: Akten
 
 Eine Akte je Sache; `mappe.py` liefert die gemeinsamen Bausteine (`lesen` prüft, ob ein
