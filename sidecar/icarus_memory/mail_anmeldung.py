@@ -16,6 +16,10 @@ Die Gründe, jeweils ein Satz für den Nutzer:
 * `passwort`: die Anmeldung wurde abgelehnt. Bei Anbietern, bei denen IMAP erst eingeschaltet werden muss (WEB.DE,
   GMX), sagt der Server dann dasselbe wie bei einem falschen Passwort; der Satz nennt deshalb beides.
 * `unsicher`: die Verbindung ließ sich nicht verschlüsselt aufbauen (Zertifikat).
+
+`[UNAVAILABLE]` (RFC 5530: der Server kann die Anmeldung vorübergehend nicht prüfen) heißt `nicht_erreichbar`, nicht
+„Passwort stimmt nicht“. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
+schweigenden Postfach zu unterscheiden (`mail_intake.ANMELDE_GRUENDE`).
 """
 from __future__ import annotations
 
@@ -89,8 +93,13 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
     wer = anbieter_name(imap_host, name)
     if isinstance(fehler, Anmeldefehler):
         return fehler
+    schweigt = Anmeldefehler('nicht_erreichbar', f'{wer} antwortet gerade nicht. Prüfe die Internetverbindung und '
+                                                 'versuche es gleich noch einmal.')
     if isinstance(fehler, imaplib.IMAP4.error) and not isinstance(fehler, imaplib.IMAP4.abort):
         text = str(fehler).lower()
+        if '[unavailable]' in text:
+            # RFC 5530: Der Server kann die Anmeldung gerade nicht prüfen. Das Passwort ist nicht das Problem.
+            return schweigt
         if any(merkmal in text for merkmal in _IMAP_AUS):
             return Anmeldefehler('imap_aus', f'{wer} lässt die Anmeldung über IMAP nicht zu: Schalte IMAP in den '
                                              'Einstellungen deines Postfachs ein und versuche es dann noch einmal.')
@@ -108,8 +117,7 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
         return Anmeldefehler('unsicher', f'{wer} ließ sich nicht sicher (verschlüsselt) erreichen; '
                                          'bitte später noch einmal versuchen.')
     # Zeitgrenze, Namensauflösung, abgelehnte Verbindung, Abbruch mitten im Gespräch: keine Antwort.
-    return Anmeldefehler('nicht_erreichbar', f'{wer} antwortet gerade nicht. Prüfe die Internetverbindung und '
-                                             'versuche es gleich noch einmal.')
+    return schweigt
 
 
 def pruefe(connector: Any, imap_host: str, *, name: str = '', sekunden: float | None = None) -> None:

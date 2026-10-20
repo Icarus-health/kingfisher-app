@@ -258,6 +258,37 @@ führte aus dem Assistenten in die Einstellungen zu „IMAP-Server“ und „IMA
   `test_mail_anmeldung.py`, `test_ordner_lokal.py`, `postfach-weg.test.mjs`, `kalender-weg.test.mjs`; Browserprobe
   `scripts/probe_fremdprobe2_einrichtung_ui.py`. Sabotageproben stehen in docs/51 unter „Stand je Befund“.
 
+## Neu anmelden, wenn die Anmeldung nicht mehr gilt (Oktober 2026)
+
+Ändert jemand sein Passwort beim Anbieter, oder läuft die Microsoft-Anmeldung ab, ließ die Mailaufnahme das Postfach
+bisher als „antwortet gerade nicht. Du musst nichts tun“ stehen, für immer. Jetzt:
+
+* **Erkennen.** Scheitert die Bestandsaufnahme oder das Abholen an der Anmeldung, merkt die Aufnahme den Grund
+  `anmeldung` (`mail_intake.bestandsfehler`). Erkannt mit der vorhandenen Einordnung: `mail_anmeldung.einordnen` für
+  eine vom IMAP-Server abgelehnte Anmeldung (`connectors.mail.AnmeldungAbgelehnt`, nur LOGIN bzw. XOAUTH2, nicht ein
+  BAD auf eine spätere Suche) und `MicrosoftFehler('abgemeldet')`. `[UNAVAILABLE]` (Server kann gerade nicht prüfen),
+  Netz und Zeitgrenze bleiben „antwortet gerade nicht“. Eine Mail, deren Abholen an der Anmeldung scheitert, zählt
+  nicht als gescheitert; sie bleibt offen und kommt nach der neuen Anmeldung dran. Nie Text vom Server.
+* **Sagen.** Eine Aussage an allen Stellen (`mail_stand.GRUND['anmeldung']`, Heute unter „Postfachstand“, Assistent,
+  „Für Techniker“): „Postfach Privat lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen oder das
+  Passwort hat sich geändert. Melde dich unter Einstellungen → Zugänge neu an.“ Dazu `verweis: 'zugaenge'`; die
+  Oberfläche macht aus dem Wortlaut „Einstellungen → Zugänge“ einen Klick (`verweis.satzMitVerweis`,
+  `SatzMitVerweis`). Auf Heute klappt „Postfachstand“ dann von selbst auf.
+* **Tun.** Unter Zugänge steht am Postfach derselbe Satz und „Neu anmelden“: nur das neue Passwort
+  (`POST /api/v1/integrations/mail/{id}/anmelden`). Kingfisher meldet sich vorher an; abgelehnt heißt ein Satz am Knopf,
+  nichts gespeichert. Kein zweites Postfach, also kein zweites Einlesen. Danach „Angemeldet. Kingfisher liest … gleich
+  weiter.“, und der nächste Takt löscht den Grund. Ein Microsoft-Konto gilt dann als nicht verbunden und zeigt seine
+  „Neu anmelden“-Karte (`microsoft_routes`).
+* **Tests:** `sidecar/tests/test_anmeldung_abgelaufen.py` (Einordnung, Gegenbeispiele, Satz, IMAP-Attrappe vom
+  geänderten Passwort bis zur neuen Anmeldung, Graph-Attrappe), `app/kingfisher/tests/anmeldung-abgelaufen.test.mjs`;
+  Browserprobe `scripts/probe_hereinholen_ui.py`. Sabotageproben: Erkennung abgeschaltet (7 Tests), Ursache am
+  `MailError` übersehen (4), Connector kennzeichnet nicht (2), `[UNAVAILABLE]` als Passwortfehler (2), jeder IMAP-Fehler
+  als Anmeldung (1), Neu anmelden ohne Prüfung (1), Abholfehler als gescheitert (1), Microsoft bleibt verbunden (1),
+  Satz ohne Verweis (3); in der Oberfläche Einrichtung mit „stockt gerade“, Weg nicht erkannt, Heute ohne Verweis (je 1).
+* **Offen:** Der regelmäßige Abruf ohne Einlesen (`sync_account`) merkt weiter nur `unavailable`. Ein Google-Zugang
+  über „Mit Google anmelden“ meldet Fehler beim Erneuern ohne Unterscheidung zwischen Netz und abgelaufener Anmeldung
+  (`GoogleError`); er bleibt deshalb „antwortet gerade nicht“.
+
 ## Quellen zum Anklicken (Feed-Vorgaben)
 
 `sidecar/icarus_memory/welt_vorgaben.py` ist die Liste: tagesschau, Deutschlandfunk, heise online, ZEIT ONLINE, je mit

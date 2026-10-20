@@ -95,6 +95,18 @@ def kalender_leser(app, entry: Any) -> MicrosoftKalender | None:
     return MicrosoftKalender(client(app, entry.user))
 
 
+def _anmeldung_abgelaufen(app, konten: list[str]) -> bool:
+    """Ob die Mailaufnahme eines dieser Konten zuletzt an der Anmeldung gescheitert ist (Grund `anmeldung`)."""
+    episodes = getattr(app.state, 'episodes', None)
+    if episodes is None or not konten:
+        return False
+    platz = ','.join('?' * len(konten))
+    with episodes._lock:
+        return episodes._conn.execute(
+            f"SELECT 1 FROM mail_intake_folders WHERE error='anmeldung' AND account IN ({platz}) LIMIT 1",
+            konten).fetchone() is not None
+
+
 def adressen(app) -> list[str]:
     """Die Adressen aller Microsoft-Konten in den Einstellungen (Post oder Kalender), ohne Doppelte."""
     settings = app.state.settings
@@ -297,13 +309,17 @@ def install_routes(app, guard, data_dir, rebuild) -> None:
                                           'satz': zeile['satz']})
             except Exception:  # noqa: BLE001 - die Auskunft ist Beiwerk
                 logger.exception('Mitschriften nicht lesbar')
+            # Abgelaufen, obwohl der Zugang noch gespeichert ist (Microsoft lehnt das Erneuern ab): Das merkt die
+            # Mailaufnahme (`mail_intake.bestandsfehler`). Dann gilt das Konto als nicht verbunden, und die Oberfläche
+            # bietet „Neu anmelden“ an, wie der Stand des Postfachs es sagt.
+            abgelaufen = _anmeldung_abgelaufen(app, [e.id for e in eigene if getattr(e, 'auth_method', '') == AUTH])
             ergebnis.append({
-                'adresse': adresse, 'verbunden': zugang is not None,
+                'adresse': adresse, 'verbunden': zugang is not None and not abgelaufen,
                 'post': any(getattr(e, 'auth_method', '') == AUTH for e in eigene),
                 'kalender': any(getattr(e, 'kind', '') == KALENDER for e in eigene),
                 'mitschriften': bool(zugang and MITSCHRIFT_SCOPE in zugang['scopes']),
                 'besprechungen': besprechungen,
-                'satz': None if zugang else GRUENDE['abgemeldet'],
+                'satz': None if zugang and not abgelaufen else GRUENDE['abgemeldet'],
             })
         return {'konten': ergebnis, **anmeldung.stand()}
 

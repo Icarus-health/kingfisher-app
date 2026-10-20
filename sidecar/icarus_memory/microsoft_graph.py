@@ -19,7 +19,8 @@ Dieses Modul baut keine eigene Aufnahme. Es übersetzt Graph in die Formen, die 
 Reihenfolge, in der die Delta-Abfrage sie liefert. Die Laufnummer ist der Fortschritt, den die Aufnahme speichert:
 Der Bestand bekommt 1, 2, 3 …, was nach der ersten vollständigen Abfrage neu kommt, `GRENZE + 1`, `GRENZE + 2` …
 Geht die Ablage verloren, entsteht eine neue Generation, und die Aufnahme beginnt die Bestandsaufnahme neu
-(wie bei einem geänderten UIDVALIDITY; schon aufgenommene Mails bleiben, Dubletten erkennt die Episodenschicht).
+(wie bei einem geänderten UIDVALIDITY; schon aufgenommene Mails bleiben, und dieselbe Mail wird mit ihrer Quelle
+verknüpft statt doppelt angelegt, `Intake._frueher_geholt`).
 """
 from __future__ import annotations
 

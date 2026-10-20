@@ -6,7 +6,8 @@ bestätigt.“ Der Grund: Das Einlesen (`mail_intake.py`) führt seinen eigenen 
 (`mail_sync_status.py`) überspringt Postfächer, die eingelesen werden, und ein Abruf über „Nachrichten“ hinterließ gar
 nichts. Jetzt gibt es je Postfach genau eine Aussage, gebildet aus allen drei:
 
-* `fehler`: der Grund in Alltagssprache und ob der Mensch etwas tun muss,
+* `fehler`: der Grund in Alltagssprache und ob der Mensch etwas tun muss; muss er unter Einstellungen → Zugänge etwas
+  tun (Passwort fehlt, Anmeldung abgelaufen), steht dazu `verweis: 'zugaenge'`,
 * `liest`: „wird gelesen: 120 von 4.300 Mails“ (oder „wird durchgesehen: bisher 12 Mails gefunden“),
 * `leer`: „ist verbunden und leer, abgerufen um 14:43“,
 * `aktuell`: „ist gelesen: 4.300 Mails, zuletzt abgerufen um 14:43“,
@@ -31,9 +32,16 @@ GRUND = {
     'generation_changed': ('wurde beim Anbieter neu angelegt. Du musst nichts tun: Kingfisher liest es noch einmal '
                            'von vorn'),
     'credentials_missing': 'lässt Kingfisher nicht hinein: Das Passwort fehlt. Trage es unter Einstellungen → Zugänge ein',
+    # Passwort geändert, Microsoft-Anmeldung abgelaufen oder zurückgezogen (`mail_intake.bestandsfehler`). Von selbst
+    # wird das nicht besser; unter Zugänge steht „Neu anmelden“ (Passwort bzw. Microsoft).
+    'anmeldung': ('lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen oder das Passwort hat sich '
+                  'geändert. Melde dich unter Einstellungen → Zugänge neu an'),
     'cancelled': 'wurde beim letzten Mal nicht fertig abgerufen. Du musst nichts tun: Kingfisher versucht es erneut',
 }
 SONST = 'meldet einen Fehler. Kingfisher versucht es von selbst noch einmal; bleibt es dabei, prüfe es unter Einstellungen → Zugänge'
+#: Gründe, deren Satz auf Einstellungen → Zugänge verweist und dort etwas zu tun gibt; die Oberfläche macht aus dem
+#: Wortlaut „Einstellungen → Zugänge“ einen Verweis (`verweis.ts`, Kennung `zugaenge`).
+ZU_DEN_ZUGAENGEN = frozenset({'credentials_missing', 'anmeldung'})
 
 _gelesen: dict[int, dict[str, dict[str, Any]]] = {}
 _sperre = threading.Lock()
@@ -90,9 +98,14 @@ def gelesen(app: Any, konto: str) -> dict[str, Any] | None:
 
 
 def _ergebnis(zustand: str, satz: str, *, gelesen_n: int | None = None, gesamt: int | None = None,
-              zuletzt: datetime | None = None, technik: str | None = None) -> dict[str, Any]:
+              zuletzt: datetime | None = None, technik: str | None = None, verweis: str | None = None) -> dict[str, Any]:
     return {'zustand': zustand, 'satz': satz, 'gelesen': gelesen_n, 'gesamt': gesamt,
-            'zuletzt': zuletzt.isoformat() if zuletzt else None, 'technik': technik}
+            'zuletzt': zuletzt.isoformat() if zuletzt else None, 'technik': technik, 'verweis': verweis}
+
+
+def _fehler(postfach: str, grund: str, **mehr: Any) -> dict[str, Any]:
+    return _ergebnis('fehler', f'{postfach} {GRUND.get(grund, SONST)}.',
+                     verweis='zugaenge' if grund in ZU_DEN_ZUGAENGEN else None, **mehr)
 
 
 def _gescheitert(ordner: list[dict[str, Any]]) -> tuple[dict[str, int], int, str | None]:
@@ -124,11 +137,11 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
     `verbunden=False`: Das Postfach ist eingetragen, aber Kingfisher kann es nicht öffnen (meist fehlt das Passwort)."""
     postfach = f'Postfach {name}'
     if not verbunden:
-        return _ergebnis('fehler', f'{postfach} {GRUND["credentials_missing"]}.')
+        return _fehler(postfach, 'credentials_missing')
     blick_zeit = _zeit((blick or {}).get('zeit'))
     if intake and intake.get('started'):
         if intake.get('error'):
-            return _ergebnis('fehler', f'{postfach} {GRUND.get(str(intake["error"]), SONST)}.')
+            return _fehler(postfach, str(intake['error']))
         if intake.get('paused'):
             return _ergebnis('pausiert', f'Das Einlesen von {postfach} ist angehalten. Du startest es unter '
                                          'Einstellungen → Für Techniker → Zeitplan und Hintergrund wieder.')
@@ -180,7 +193,7 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
     if abruf and (abruf.get('last_success') or abruf.get('last_failure')):
         erfolg = _zeit(abruf.get('last_success'))
         if abruf.get('last_failure'):
-            return _ergebnis('fehler', f'{postfach} {GRUND.get(str(abruf["last_failure"]), SONST)}.', zuletzt=erfolg)
+            return _fehler(postfach, str(abruf['last_failure']), zuletzt=erfolg)
         zuletzt = max(filter(None, (erfolg, blick_zeit)), default=None)
         wann = zeit_text(zuletzt, jetzt)
         bericht = abruf.get('last_report') or {}
@@ -215,11 +228,45 @@ def _verbunden(app: Any, konto: str) -> bool:
     return True
 
 
+#: Was in der Pause und im Akkubetrieb mit den älteren Mails ist, und wie es weitergeht (`nur_neue_post_satz`).
+_AELTERE = {
+    'pausiert': ('sind pausiert', ' Auf Heute geht es mit „Weiter“ weiter.'),
+    'akku': ('warten, bis der Mac am Netzteil ist', ''),
+    'energie_unbekannt': ('warten, bis die App meldet, dass der Mac am Netzteil ist', ''),
+}
+
+
+def nur_neue_post_satz(name: str, gelesen_n: int | None, gesamt: int | None, grund: str, ki_filter: bool) -> str:
+    """Pause oder Akku: Neue Post wird weiter geholt, die älteren Mails warten (docs/46-hintergrund.md).
+
+    Ist der KI-Filter an, prüft die lokale KI jede neue Mail vor dem Speichern; ohne Modell wartet dann auch sie, und
+    der Satz sagt das, statt „neue Post wird weiter geholt“ zu versprechen.
+    """
+    verb, wann = _AELTERE[grund]
+    zahlen = (f'bereits {zahl(gelesen_n or 0)} von {_mails(gesamt)} gelesen' if gesamt is not None
+              else f'bisher {_mails(gelesen_n or 0)} gelesen')
+    if ki_filter:
+        return (f'Postfach {name}: Neue Post und ältere Mails {verb}, weil die lokale KI neue Post vor dem Speichern '
+                f'prüft ({zahlen}).{wann}')
+    return f'Postfach {name}: Neue Post wird weiter geholt; ältere Mails {verb} ({zahlen}).{wann}'
+
+
 def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """Der Stand aller eingerichteten Postfächer, je mit `account_id`, `label` und der einen Aussage."""
+    from .hintergrund import NEUE_POST_WEITER
+    from .mail_filter import policy
     from .mail_intake import Intake
     settings = app.state.settings
-    global_pause = bool(getattr(getattr(app.state, 'hintergrund', None), 'pausiert', False))
+    steuerung = getattr(app.state, 'hintergrund', None)
+    global_pause = bool(getattr(steuerung, 'pausiert', False))
+    # Akku oder unbekannte Energie: wie die Pause. Speicherdruck hält dagegen auch neue Post an; dann gilt der Satz nicht.
+    try:
+        extern = steuerung.external_gate() if callable(getattr(steuerung, 'external_gate', None)) else None
+    except Exception:  # noqa: BLE001 - ohne Auskunft wird nichts versprochen
+        extern = 'unbekannt'
+    neue_post_weiter = extern is None or extern in NEUE_POST_WEITER
+    grund_nur_neu = 'pausiert' if global_pause else extern if extern in NEUE_POST_WEITER else None
+    ki_filter = bool(policy(settings).get('ai_enabled')) if hasattr(settings, 'mail_filter') else False
     from .storage_capacity import reason, MESSAGES
     storage_blocked = reason(app.state.episodes._path.parent)
     ergebnis = []
@@ -237,20 +284,25 @@ def stand(app: Any, *, intake_status: dict[str, dict[str, Any]] | None = None) -
         aussage = konto_stand(eintrag.label, intake=intake,
                                        abruf=(getattr(settings, 'mail_sync_status', None) or {}).get(eintrag.id),
                                        blick=gelesen(app, eintrag.id), verbunden=_verbunden(app, eintrag.id))
-        # Only explicit global pause changes active intake. Do not overwrite
-        # completion/errors or conflate temporary resource waits with user intent.
-        if global_pause and aussage['zustand'] in {'liest','wartet'}:
+        # Pause und Akku ändern nur den Satz eines Postfachs, das gerade liest; Fertiges und Fehler bleiben. Knapper
+        # Speicherplatz hält alles an, auch neue Post, und geht deshalb vor.
+        if storage_blocked and aussage['zustand'] in {'liest', 'wartet'}:
+            aussage = {**aussage, 'zustand': 'wartet',
+                       'satz': f'Postfach {eintrag.label}: {MESSAGES[storage_blocked]}'}
+        elif grund_nur_neu and neue_post_weiter and aussage['zustand'] in {'liest', 'wartet'}:
+            aussage = {**aussage, 'zustand': 'pausiert' if grund_nur_neu == 'pausiert' else 'wartet',
+                       'satz': nur_neue_post_satz(eintrag.label, aussage['gelesen'], aussage['gesamt'], grund_nur_neu,
+                                                  ki_filter)}
+        elif global_pause and aussage['zustand'] in {'liest','wartet'}:
+            # Pause und dazu Speicherdruck: Dann wartet auch neue Post; nichts versprechen.
             gelesen_n, gesamt = aussage['gelesen'], aussage['gesamt']
             zahlen = (f'Bereits {zahl(gelesen_n)} von {_mails(gesamt)} gelesen.' if gesamt is not None
                       else f'Bisher {_mails(gelesen_n)} gelesen.')
             aussage = {**aussage, 'zustand': 'pausiert',
                        'satz': f'Postfach {eintrag.label}: Einlesen pausiert. {zahlen} '
                                'Auf Heute geht es mit „Weiter“ weiter.'}
-        elif storage_blocked and aussage['zustand'] in {'liest', 'wartet'}:
-            aussage = {**aussage, 'zustand': 'wartet',
-                       'satz': f'Postfach {eintrag.label}: {MESSAGES[storage_blocked]}'}
         ergebnis.append({'account_id': eintrag.id, 'label': eintrag.label, **aussage})
     return ergebnis
 
 
-__all__ = ['GRUND', 'gelesen', 'konto_stand', 'merke_gelesen', 'stand', 'zeit_text']
+__all__ = ['GRUND', 'gelesen', 'konto_stand', 'merke_gelesen', 'nur_neue_post_satz', 'stand', 'zeit_text']

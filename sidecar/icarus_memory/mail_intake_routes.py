@@ -74,7 +74,7 @@ def register(app, guard, data_dir, wire):
         saetze={eintrag['account_id']:eintrag for eintrag in mail_stand(app,intake_status={s['account_id']:s for s in result})}
         for state in result:
             eintrag=saetze.get(state['account_id'])
-            state['stand']={k:eintrag.get(k) for k in ('zustand','satz','gelesen','gesamt','zuletzt','technik')} if eintrag else None
+            state['stand']={k:eintrag.get(k) for k in ('zustand','satz','gelesen','gesamt','zuletzt','technik','verweis')} if eintrag else None
         provider=hintergrund_anbieter(app)
         plan=app.state.settings.schedule
         from .model_roles import rollen_von

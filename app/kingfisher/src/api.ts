@@ -211,6 +211,9 @@ export type MailStand = {
   satz: string; gelesen: number | null; gesamt: number | null; zuletzt: string | null;
   /** Nur für „Für Techniker“: Ordner, Grund je Anzahl und Fehlerklasse (Fremdprobe 3, Befund 2). */
   technik?: string | null;
+  /** Muss der Mensch in den Einstellungen etwas tun (`zugaenge`: neu anmelden), nennt der Satz den Weg; die
+   * Oberfläche macht ihn klickbar (`SatzMitVerweis`). */
+  verweis?: string | null;
 };
 
 export type MailAccount = {
@@ -221,6 +224,8 @@ export type MailAccount = {
   configured: boolean;
   secret_present: boolean;
   can_send: boolean;
+  /** Ohne Angabe: Anmeldung mit Passwort. Microsoft und Google melden sich beim Anbieter an. */
+  auth?: "microsoft" | "google";
 };
 
 export type MailIntakeFolder = {
@@ -1374,6 +1379,8 @@ export const api = {
     label: string; imap_host: string; imap_port: number; smtp_host: string; smtp_port: number;
     user: string; sender: string; password?: string;
   }) => request<IntegrationOverview>("/api/v1/integrations/mail", { method: "POST", body: JSON.stringify(data) }),
+  mailNeuAnmelden: (id: string, password: string) =>
+    request<IntegrationOverview>(`/api/v1/integrations/mail/${encodeURIComponent(id)}/anmelden`, { method: "POST", body: JSON.stringify({ password }) }),
   addCalendarSource: (data: { label: string; kind: "caldav" | "ical"; url: string; user?: string; password?: string }) =>
     request<IntegrationOverview>("/api/v1/integrations/calendar", { method: "POST", body: JSON.stringify(data) }),
   erkenneAnbieter: (adresse: string) =>

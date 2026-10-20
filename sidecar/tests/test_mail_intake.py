@@ -103,19 +103,96 @@ def test_gmail_labels_deduplicate_account_scoped_provider_id(tmp_path):
     assert sum(ep.counts().values())==2
 
 
-def test_generation_reset_preserves_originals_and_restarts_inventory(tmp_path):
-    from icarus_memory.connectors.mail import MailboxGenerationChanged
-    ep=EpisodeStore(tmp_path/'episodes.sqlite3'); intake=Intake(ep);intake.start('a',['INBOX'])
-    class Reset(Reader):
-        count=1
-        def inventory_page(self,*a,**kw):
-            if kw.get('uidvalidity') and kw['uidvalidity']!=self.generation:raise MailboxGenerationChanged('reset')
-            return super().inventory_page(*a,**kw)
-    r=Reset();intake.step('a',r);r.generation='8';intake.step('a',r)
+class NeueKennung(Reader):
+    """Ein Postfach, das seine Kennung (UIDVALIDITY) neu vergibt; die Mail darin bleibt dieselbe.
+
+    `inhalt[Generation]` ändert einzelne Felder der Mail in dieser Generation (für die Gegenbeispiele)."""
+    count=1
+    def __init__(self, **inhalt):
+        self.inhalt=inhalt
+    def inventory_page(self,*a,**kw):
+        from icarus_memory.connectors.mail import MailboxGenerationChanged
+        if kw.get('uidvalidity') and kw['uidvalidity']!=self.generation:raise MailboxGenerationChanged('reset')
+        return super().inventory_page(*a,**kw)
+    def message_in_folder(self, folder, uid):
+        from dataclasses import replace
+        felder={'subject':'Angebot Vereinsfest','body':'Kannst du mir bis Freitag das Angebot schicken?',
+                'preview':'Kannst du mir bis Freitag das Angebot schicken?','message_id':'<angebot-1@example.org>',
+                **self.inhalt.get('g'+self.generation,{})}
+        return replace(super().message_in_folder(folder,uid),**felder)
+
+
+def _nach_neuer_kennung(ep, reader, konto='a'):
+    intake=Intake(ep);intake.start(konto,['INBOX'])
+    intake.step(konto,reader);reader.generation='8'
+    intake.step(konto,reader)  # erkennt die neue Kennung und beginnt die Bestandsaufnahme neu
+    intake.step(konto,reader)
+    return intake
+
+
+def test_generation_reset_preserves_originals_and_links_the_same_mail(tmp_path):
+    # Bewusst geändert: Früher hielt dieser Test fest, dass nach einer neuen Postfachkennung (UIDVALIDITY) derselbe
+    # Bestand ein zweites Mal gespeichert wird (2 Quellen). Jetzt gleicht die Aufnahme vor dem Anlegen im selben Konto
+    # über Message-ID und Prüfsumme des Textes ab und verknüpft die neue Kennung mit der vorhandenen Quelle.
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3')
+    intake=_nach_neuer_kennung(ep,NeueKennung())
     assert sum(ep.counts().values())==1
-    intake.step('a',r)
+    ordner=intake.status('a')['folders'][0]
+    assert ordner['duplicates']==1 and ordner['captured']==0 and ordner['failed']==0
+    with ep._lock:
+        zeilen=ep._conn.execute('SELECT generation,episode_id FROM mail_intake_items ORDER BY generation').fetchall()
+    assert [z[0] for z in zeilen]==['7','8'] and zeilen[0][1]==zeilen[1][1]
+    ep.close()
+
+
+@pytest.mark.parametrize('anders',[
+    {'body':'Das Angebot kommt erst nächste Woche.','preview':'Das Angebot kommt erst nächste Woche.'},
+    {'sender':'Mallory <mallory@example.org>'},
+    {'subject':'Angebot Vereinsfest (geändert)'},
+])
+def test_gleiche_message_id_mit_anderem_inhalt_ist_keine_dublette(tmp_path,anders):
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3')
+    intake=_nach_neuer_kennung(ep,NeueKennung(g8=anders))
     assert sum(ep.counts().values())==2
     assert intake.status('a')['folders'][0]['captured']==1
+    ep.close()
+
+
+def test_zwei_nachrichten_derselben_generation_bleiben_zwei_quellen(tmp_path):
+    # Gegenbeispiel: Liegt dieselbe Mail zweimal im Postfach (zwei UIDs, eine Generation), bleiben es zwei Quellen mit
+    # je eigenem Beleg (test_mail_ingestion.py::test_mail_identity_and_versions_keep_independent_evidence). Verknüpft
+    # wird nur mit einer Quelle, die unter einer früheren Postfachkennung desselben Ordners geholt wurde.
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=NeueKennung();r.count=2
+    intake=Intake(ep);intake.start('a',['INBOX']);intake.step('a',r)
+    assert sum(ep.counts().values())==2
+    assert intake.status('a')['folders'][0]['captured']==2
+    ep.close()
+
+
+def test_ohne_message_id_wird_nicht_geraten(tmp_path):
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3')
+    _nach_neuer_kennung(ep,NeueKennung(g7={'message_id':''},g8={'message_id':''}))
+    assert sum(ep.counts().values())==2
+    ep.close()
+
+
+def test_dieselbe_mail_in_einem_anderen_konto_bleibt_eigene_quelle(tmp_path):
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=NeueKennung()
+    for konto in ('a','b'):
+        intake=Intake(ep);intake.start(konto,['INBOX']);intake.step(konto,r)
+    assert sum(ep.counts().values())==2
+    ep.close()
+
+
+def test_ausgeschlossene_mail_bleibt_nach_neuer_kennung_ausgeschlossen(tmp_path):
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=NeueKennung()
+    intake=Intake(ep);intake.start('a',['INBOX'])
+    [quelle]=intake.step('a',r)
+    ep.ignore(quelle)
+    r.generation='8'
+    for _ in range(2):intake.step('a',r)
+    assert ep.counts()=={'ignored':1}
+    ep.close()
 
 
 def test_analysis_progress_is_invalidated_on_withdrawal(tmp_path):

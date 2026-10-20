@@ -225,9 +225,12 @@ def install_routes(app, guard, calendar, refresh, memory=None):
     prefix = '/api/v1/mac-calendar'
 
     def memory_allowed():
-        # Aktueller Zustand, keine persistierte Freigabe aus einem alten Poll.
+        # Aktueller Zustand, keine persistierte Freigabe aus einem alten Poll. Der Kalenderabgleich braucht kein Modell
+        # und läuft deshalb auch in der Pause und im Akkubetrieb weiter (docs/46-hintergrund.md); er wartet weiter bei
+        # Eingabe, Antwort, Speicherdruck und knappem Speicherplatz. Ohne Steuerung: nicht freigegeben; eine Steuerung
+        # ohne diese Unterscheidung gilt streng (`sperre`).
         controller = getattr(app.state, 'hintergrund', None)
-        gate = getattr(controller, 'sperre', None)
+        gate = getattr(controller, 'sperre_ohne_modell', None) or getattr(controller, 'sperre', None)
         return callable(gate) and gate() is None
 
     def entziehen():
