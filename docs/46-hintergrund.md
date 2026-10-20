@@ -214,20 +214,38 @@ Energiemeldung, die wie Akku zählt; `hintergrund.NEUE_POST_WEITER`):
 | der übrige volle Durchgang: Ordner, öffentliche Quellen, Beobachtungen | geplante Sicherung (höchstens alle vier Stunden) |
 
 Unverändert halten **alles** an: knapper Speicherplatz (`_capacity_gate`),
-Speicherdruck des Macs und die Rücksicht auf den Menschen (Eingabe, Antwort);
-`Steuerung.sperre_ohne_modell()` sagt das. Speicherdruck geht dabei der
-Energiequelle vor (`host_power.reason`): Akku mit Speicherdruck hält alles an.
+Speicherdruck des Macs, eine frische Meldung der App ohne Speicherlast
+(`speicher_unbekannt`) und die Rücksicht auf den Menschen (Eingabe, Antwort);
+`Steuerung.sperre_ohne_modell()` sagt das. Speicher geht dabei der
+Energiequelle vor (`host_power.reason`): Akku mit Speicherdruck oder mit
+unbekannter Speicherlast hält alles an, ebenso am Netzteil. Nur ganz ohne
+frische Meldung (App geschlossen oder eben gestartet) gilt
+`energie_unbekannt`, das wie Akku nur ältere Mails und Modellarbeit anhält;
+sonst stünde bei geschlossener App auch die neue Post.
+
 Wird mitten in einem Paket pausiert, wartet der nächste Modellaufruf nicht an
 der Ampel bis „Weiter“, sondern gibt den Faden frei (`BackgroundInterrupted`,
 wie bei Akku); Sperren und Wiederherstellungsgrenze werden frei, der nächste
 Takt ist schon der leichte. Anbieter, die nicht über die Ampel laufen, fragen
 zwischen den Quellen `permitted()`, und das enthält jetzt
 `hintergrund.modellarbeit_frei` (im Faden des Zeitplans: nicht pausiert, keine
-Energie- oder Speichersperre; ein ausdrücklicher Lauf bleibt erlaubt). Der Zeitplan ruft dann je Takt
+Energie- oder Speichersperre; ein ausdrücklicher Lauf bleibt erlaubt). Auch
+der volle Durchgang prüft vor jedem Schritt (`Scheduler._zwischen_schritten`,
+`hintergrund.unterbrechen_wenn_gesperrt`) und gibt den Faden frei, statt die
+übrigen Schritte leer laufen zu lassen; unter „Was zuletzt lief“ steht dann
+kein „… nach geänderter Freigabe gestoppt“. Der Zeitplan ruft dann je Takt
 `Scheduler._leichter_takt`: neue Post über `Intake.step(nur_neu=True)`,
 Kalender und Sicherung über `_leichter_lauf` im Abstand des Zeitplans. Der
 volle Durchgang bleibt dabei fällig (`_last_at` rückt nicht vor) und läuft nach
-„Weiter“. Ein in der Pause begonnenes Einlesen merkt sich nur die Grenze für
+„Weiter“.
+
+Nach einem teuren Paket ruht der Hintergrund (Drosselung, die vierfache Dauer
+des Pakets, auch wenn es abgebrochen wurde). Diese Ruhe gilt nur der
+Modellarbeit und dem vollen Durchgang: Der leichte Takt (neue Post, Kalender,
+Sicherung) läuft auch in ihr, sonst hieße ein 30-Minuten-Paket zwei Stunden
+ohne neue Post. „Weiter“ (`Scheduler.ruhe_aufheben`), „Erneut versuchen“ und
+eine neue Anmeldung (`aufnahme_wecken`) heben die Ruhe auf; ein Takt oder eine
+Meldung der App weckt nur. Ein in der Pause begonnenes Einlesen merkt sich nur die Grenze für
 neue Post (`Intake._grundlinie`); die älteren Mails kommen nach der Pause ohne
 Lücke. Neue Post wird nur vorgemerkt, eingeordnet wird sie nach der Pause.
 

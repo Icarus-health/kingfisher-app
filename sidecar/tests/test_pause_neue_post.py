@@ -466,6 +466,83 @@ def test_pausieren_mitten_in_einer_modellarbeit_gibt_den_zeitplan_frei(monkeypat
         s.stop()
 
 
+def _paket_mit_dauer(monkeypatch, *, dauer, pausieren):
+    """Ein Zeitplan mit einem Modellpaket, dessen erster Aufruf `dauer` Sekunden braucht; danach optional „Pausieren“."""
+    from icarus_memory.hintergrund import ModellAmpel
+    monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 0.02)
+    ampel = ModellAmpel()
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0)
+    steuerung.wartezeit = lambda: 0.02
+    s = Scheduler()
+    s.anschliessen(steuerung)
+    s.configure(enabled=True, with_model=True)
+    s._last_at = now()
+    aufrufe = []
+    s._run_neue_post = lambda: aufrufe.append(('neue_post', time.monotonic()))
+    s._run_mail_intake = lambda *a, **k: aufrufe.append(('aeltere_mails', time.monotonic()))
+
+    def paket(ids):
+        with ampel.aufruf():
+            time.sleep(dauer)
+            aufrufe.append(('erster', time.monotonic()))
+        if pausieren:
+            steuerung.pausieren(True)
+        with ampel.aufruf():
+            aufrufe.append(('zweiter', time.monotonic()))
+        return JobResult('synthetisch')
+    s._run_prompt_working_memory = paket
+    return s, steuerung, aufrufe
+
+
+def _nach(aufrufe, name, ab):
+    return [t for n, t in aufrufe if n == name and t >= ab]
+
+
+def test_pausieren_nach_einem_langen_paket_haelt_neue_post_nicht_auf(monkeypatch):
+    # Nach-Review 1: Das abgebrochene Paket rechnete sich die vierfache Dauer als Ruhe an, und die Ruhe übersprang auch
+    # den leichten Takt. Ein 30-Minuten-Paket hieß zwei Stunden ohne neue Post. Hier 0,6 s Paket, also 2,4 s Ruhe.
+    s, _, aufrufe = _paket_mit_dauer(monkeypatch, dauer=0.6, pausieren=True)
+    s.start()
+    try:
+        assert s.request_working_memory('synthetische-quelle')
+        assert _warten(lambda: any(n == 'erster' for n, _ in aufrufe), 3)
+        erster = next(t for n, t in aufrufe if n == 'erster')
+        assert _warten(lambda: _nach(aufrufe, 'neue_post', erster), 2), aufrufe
+        assert _nach(aufrufe, 'neue_post', erster)[0] - erster < 0.5, 'neue Post wartet nicht auf die Ruhe des Pakets'
+        # Die Ruhe selbst bleibt (geleistete Arbeit, test_hintergrund.py); sie hält nur Modell und vollen Durchgang an.
+        assert s._background_pause_until > time.monotonic()
+    finally:
+        s.stop()
+
+
+def test_ruhe_nach_einem_paket_laesst_neue_post_laufen_und_wecken_hebt_sie_auf(monkeypatch):
+    # Ohne Pause: Nach einem teuren Paket ruht nur, was ein Modell oder den vollen Durchgang braucht. Neue Post ist
+    # billig und kommt weiter; „Erneut versuchen“ und eine neue Anmeldung (`aufnahme_wecken`) heben die Ruhe auf.
+    s, steuerung, aufrufe = _paket_mit_dauer(monkeypatch, dauer=0.6, pausieren=False)
+    steuerung.pause_nach = lambda dauer: 3600.0
+    s.start()
+    try:
+        assert s.request_working_memory('synthetische-quelle')
+        assert _warten(lambda: any(n == 'zweiter' for n, _ in aufrufe), 3)
+        zweiter = next(t for n, t in aufrufe if n == 'zweiter')
+        assert _warten(lambda: _nach(aufrufe, 'neue_post', zweiter), 1), aufrufe
+        ruhe = time.monotonic()
+        time.sleep(0.15)
+        assert not _nach(aufrufe, 'aeltere_mails', ruhe), 'die Ruhe gilt dem vollen Durchgang'
+        s.aufnahme_wecken()
+        assert _warten(lambda: _nach(aufrufe, 'aeltere_mails', ruhe), 1), aufrufe
+    finally:
+        s.stop()
+
+
+def test_weiter_hebt_die_ruhe_auf(client):
+    zeitplan = client.app.state.scheduler
+    zeitplan._background_pause_until = time.monotonic() + 3600
+    client.post('/api/v1/hintergrund/pause')
+    client.post('/api/v1/hintergrund/weiter')
+    assert zeitplan._background_pause_until <= time.monotonic()
+
+
 @pytest.mark.parametrize('quelle, druck', [('battery', 'critical'), ('battery', 'warning'), ('unknown', 'critical')])
 def test_speicherdruck_geht_der_energiequelle_vor(tmp_path, monkeypatch, quelle, druck):
     power = HostPower(tmp_path, expected=lambda: True)
@@ -473,6 +550,26 @@ def test_speicherdruck_geht_der_energiequelle_vor(tmp_path, monkeypatch, quelle,
     assert power.reason() == 'speicherdruck'
     steuerung = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
     assert steuerung.sperre_ohne_modell() == 'speicherdruck'
+    aufrufe = []
+    s = _zeitplan(monkeypatch, steuerung, aufrufe)
+    s.start()
+    try:
+        time.sleep(0.3)
+    finally:
+        s.stop()
+    assert aufrufe == []
+
+
+@pytest.mark.parametrize('quelle', ['ac', 'battery', 'unknown'])
+def test_unbekannte_speicherlast_haelt_alles_an_gleich_welche_energiequelle(tmp_path, monkeypatch, quelle):
+    # Nach-Review 6: Meldete die App frisch, aber ohne Speicherlast, lief im Akkubetrieb neue Post weiter, am Netzteil
+    # hielt alles. Jetzt einheitlich: Speicher geht vor, unbekannte Speicherlast hält auch die leichte Arbeit an. (Ganz
+    # ohne frische Meldung, etwa bei geschlossener App, bleibt es bei „energie_unbekannt“; docs/46.)
+    power = HostPower(tmp_path, expected=lambda: True)
+    power.report(quelle, memory_pressure='unknown')
+    assert power.reason() == 'speicher_unbekannt'
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
+    assert steuerung.sperre_ohne_modell() == 'speicher_unbekannt'
     aufrufe = []
     s = _zeitplan(monkeypatch, steuerung, aufrufe)
     s.start()
@@ -540,3 +637,40 @@ def test_modellarbeit_im_hintergrund_haelt_nach_pausieren_an_auch_ohne_ampel(cli
     # Ein ausdrücklicher Lauf („Jetzt ausführen“) außerhalb des Zeitplanfadens bleibt erlaubt.
     assert all(erlaubt() for erlaubt in gesehen)
     steuerung.pausieren(False)
+
+
+def test_pausieren_mitten_im_vollen_durchgang_laesst_ihn_faellig(tmp_path, monkeypatch):
+    # Nach-Review 7: Wer mitten im vollen Durchgang „Pausieren“ wählte, bekam Schritte mit „… nach geänderter Freigabe
+    # gestoppt“ unter „Was zuletzt lief“, und der Durchgang galt als erledigt. Jetzt gibt der nächste Schritt den Faden
+    # frei; der Durchgang bleibt fällig und läuft nach „Weiter“.
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0)
+    aufrufe = []
+    s = _zeitplan(monkeypatch, steuerung, aufrufe)
+    letzter_voller = s._last_at
+
+    def aufnahme():
+        aufrufe.append('voller_lauf')
+        steuerung.pausieren(True)
+        return []
+    s._run_ingest = aufnahme
+    s.start()
+    try:
+        assert _warten(lambda: 'voller_lauf' in aufrufe)
+        assert _warten(lambda: 'neue_post' in aufrufe[aufrufe.index('voller_lauf'):]), aufrufe
+    finally:
+        s.stop()
+    nach = aufrufe[aufrufe.index('voller_lauf') + 1:]
+    assert 'modell' not in nach and 'aeltere_mails' not in nach, aufrufe
+    assert s._last_at == letzter_voller, 'der volle Durchgang bleibt fällig'
+    assert s.state()['last_run'] is None or not any(
+        'gestoppt' in (j.get('detail') or '') for j in s.state()['last_run']['jobs'])
+
+
+def test_ein_ausdruecklicher_voller_lauf_geht_trotz_pause_durch(tmp_path, monkeypatch):
+    # Gegenbeispiel: „Jetzt ausführen“ (nicht im Faden des Zeitplans) wird nicht unterbrochen.
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0)
+    steuerung.pausieren(True)
+    aufrufe = []
+    s = _zeitplan(monkeypatch, steuerung, aufrufe)
+    bericht = s.run_once()
+    assert 'voller_lauf' in aufrufe and 'sicherung' in aufrufe and bericht.finished_at is not None

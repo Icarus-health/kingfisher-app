@@ -219,6 +219,26 @@ class ModellAmpel:
             return {'vorne': self._vorne, 'hinten': self._hinten}
 
 
+def unterbrechen_wenn_gesperrt() -> None:
+    """Zwischen zwei Schritten eines Hintergrundlaufs: Pause, Energie oder Speicher geben den Faden frei.
+
+    Dieselben Gründe wie an der Ampel (`_gesperrt`). Sonst liefen nach „Pausieren“ die übrigen Schritte des vollen
+    Durchgangs ohne Modell leer, meldeten „… nach geänderter Freigabe gestoppt“, und der Durchgang galt als erledigt.
+    Ein ausdrücklicher Lauf (nicht im Faden des Zeitplans) wird nie unterbrochen.
+    """
+    if not im_hintergrund():
+        return
+    sperre = getattr(_ORT, 'sperre', None)
+    if sperre is None:
+        return
+    try:
+        grund = sperre()
+    except Exception:  # noqa: BLE001 - eine kaputte Sperre hält den Lauf nicht an
+        return
+    if grund in RESOURCE_INTERRUPTS or grund == 'pausiert':
+        raise BackgroundInterrupted(grund)
+
+
 def _gesperrt(sperre: Callable[[], str | None]) -> bool:
     try:
         grund = sperre()
@@ -855,7 +875,9 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     @app.post('/api/v1/hintergrund/weiter', dependencies=guard)
     def hintergrund_weiter() -> dict[str, Any]:
         steuerung.pausieren(False)
-        wecken = getattr(getattr(app.state, 'scheduler', None), 'wecken', None)
+        # „Weiter“ heißt jetzt: auch die Ruhe nach dem letzten Paket gilt nicht mehr (`Scheduler.ruhe_aufheben`).
+        zeitplan = getattr(app.state, 'scheduler', None)
+        wecken = getattr(zeitplan, 'ruhe_aufheben', None) or getattr(zeitplan, 'wecken', None)
         if callable(wecken):
             wecken()
         return stand()

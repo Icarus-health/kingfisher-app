@@ -39,7 +39,7 @@ def test_energy_between_model_steps_releases_schedule_and_restore_locks(tmp_path
         if manual_pause:
             control.pausieren(True)
         if interruption == 'battery':
-            power.report('battery')
+            power.report('battery', memory_pressure='normal')
         elif interruption == 'missing':
             clock[0] += 91
         else:
@@ -105,7 +105,7 @@ def test_stop_unwinds_a_model_wait_without_waiting_for_manual_resume(tmp_path):
 
 def test_task_detector_releases_analysis_lease_on_energy_pause_and_retries(tmp_path):
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     ampel = ModellAmpel()
 
     class Local:
@@ -152,7 +152,7 @@ def test_task_detector_releases_analysis_lease_on_energy_pause_and_retries(tmp_p
 
 def test_direct_model_request_ignores_automatic_energy_pause(tmp_path):
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     ampel = ModellAmpel()
     with ampel.aufruf():
         assert ampel.belegt() == {'vorne': 1, 'hinten': 0}

@@ -203,10 +203,21 @@ class Scheduler:
     def wecken(self) -> None:
         self._wake.set()
 
-    def aufnahme_wecken(self) -> None:
-        """Die Mailaufnahme beim nächsten Durchgang der Schleife laufen lassen, nicht erst nach dem Takt („Erneut versuchen“)."""
-        self._next_intake_at = 0.0
+    def ruhe_aufheben(self) -> None:
+        """„Weiter“: Der Mensch will, dass es weitergeht; die Ruhe nach dem letzten Paket gilt dann nicht mehr.
+
+        Ein Takt oder eine Meldung der App weckt dagegen nur (`wecken`) und lässt die Ruhe stehen.
+        """
+        self._background_pause_until = 0.0
         self._wake.set()
+
+    def aufnahme_wecken(self) -> None:
+        """Die Mailaufnahme beim nächsten Durchgang der Schleife laufen lassen, nicht erst nach dem Takt („Erneut versuchen“).
+
+        Wie „Weiter“ eine Handlung des Menschen (Erneut versuchen, neu angemeldet): Die Ruhe nach einem Paket fällt weg.
+        """
+        self._next_intake_at = 0.0
+        self.ruhe_aufheben()
 
     # -- Einstellen --------------------------------------------------------
 
@@ -328,7 +339,7 @@ class Scheduler:
         report = RunReport(started_at=now())
         modell = self._with_model if with_model is None else with_model
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_ingest is not None:
             try:
                 report.jobs.extend(self._run_ingest())
@@ -337,32 +348,32 @@ class Scheduler:
                     JobResult("aufnahme", False, f"{type(exc).__name__}: {exc}")
                 )
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_working_memory is not None:
             try:
                 report.jobs.append(self._run_working_memory(modell))
             except Exception:
                 report.jobs.append(JobResult("gedaechtnis", False, "Quellen konnten noch nicht eingeordnet werden."))
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if any((self._run_task_detection, self._run_consolidation, self._run_summary)):
             self._serve_waiting_uploads(report, modell)
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_lage is not None:
             try:
                 report.jobs.append(self._run_lage(modell))
             except Exception:  # Keine Quelldaten oder Modellantworten im Status.
                 report.jobs.append(JobResult("lage", False, "Lagen konnten noch nicht erstellt werden."))
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_task_detection is not None:
             try:
                 report.jobs.append(self._run_task_detection(modell))
             except Exception:  # Keine fremden Quellen oder Modellantworten im Status.
                 report.jobs.append(JobResult("zusagen", False, "Zusagen konnten nicht geprüft werden. Bitte erneut versuchen."))
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_consolidation is not None:
             try:
                 report.jobs.append(self._run_consolidation(modell))
@@ -371,7 +382,7 @@ class Scheduler:
                     JobResult("verdichtung", False, f"{type(exc).__name__}: {exc}")
                 )
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_summary is not None:
             try:
                 report.jobs.append(self._run_summary(modell))
@@ -380,7 +391,7 @@ class Scheduler:
                     JobResult("zusammenfassung", False, f"{type(exc).__name__}: {exc}")
                 )
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         if self._run_backup is not None:
             try:
                 report.jobs.append(self._run_backup())
@@ -389,7 +400,7 @@ class Scheduler:
                     JobResult("sicherung", False, f"{type(exc).__name__}: {exc}")
                 )
 
-        if self._capacity_wait(report):return report
+        if self._zwischen_schritten(report):return report
         report.finished_at = now()
         logbuch.fehler_des_laufs(report.jobs)
         with self._lock:
@@ -399,6 +410,13 @@ class Scheduler:
         if steuerung is not None:
             steuerung.voller_lauf_fertig(report.finished_at)
         return report
+
+    def _zwischen_schritten(self, report: RunReport) -> bool:
+        """Vor jedem Schritt des vollen Durchgangs: Pause oder Energie geben den Faden frei (der Durchgang bleibt
+        fällig, `hintergrund.unterbrechen_wenn_gesperrt`), knapper Speicher beendet ihn mit Bericht."""
+        from .hintergrund import unterbrechen_wenn_gesperrt
+        unterbrechen_wenn_gesperrt()
+        return self._capacity_wait(report)
 
     def _capacity_wait(self, report: RunReport) -> bool:
         """Keep committed work, but never call an interrupted pass complete."""
@@ -511,9 +529,16 @@ class Scheduler:
                     pass
             # A timer tick or fresh host report may wake the thread, but must
             # not erase the remaining rest after an expensive packet.
-            if time.monotonic() < self._background_pause_until:
-                continue
             steuerung = self._steuerung
+            if time.monotonic() < self._background_pause_until:
+                # Die Ruhe gilt der Modellarbeit und dem vollen Durchgang. Neue Post, Kalender und Sicherung brauchen
+                # kein Modell und sind billig; sie laufen auch in der Ruhe, sonst hieße ein 30-Minuten-Paket zwei
+                # Stunden ohne neue Post (docs/46-hintergrund.md).
+                if (steuerung is not None and self._enabled and self._capacity_gate() is None
+                        and callable(getattr(steuerung, 'sperre_ohne_modell', None))
+                        and steuerung.sperre_ohne_modell() is None):
+                    self._leichter_takt()
+                continue
             if self._enabled and self._capacity_gate() is not None:
                 pause = TICK_SECONDS
                 continue
@@ -593,6 +618,8 @@ class Scheduler:
             finally:
                 # Even an interrupted packet consumed resources. Charge its full
                 # elapsed work before unwinding, and retain the deadline on self.
+                # Die Ruhe hält nur Modellarbeit und den vollen Durchgang an (der
+                # leichte Takt läuft oben weiter); „Weiter“ hebt sie auf.
                 if steuerung is not None:
                     beendet = time.monotonic()
                     dauer = beendet - begonnen
