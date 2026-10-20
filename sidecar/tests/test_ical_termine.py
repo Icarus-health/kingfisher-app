@@ -777,3 +777,12 @@ def test_abo_name_gefaltet_und_nur_cr_als_zeilenende():
     nur_cr = text.replace('\r\n', '\r').encode()
     assert _abo_aus_bytes(nur_cr) == (['Altes Mac-Format'], ('Sehr langer Kalendername der umgebrochen wurde', 1))
     assert [t.summary for t in parse_events(nur_cr.decode())] == ['Altes Mac-Format']
+
+
+def test_dateien_des_rechners_sind_keine_zeitzone_des_termins():
+    for name in ('localtime', 'posixrules', 'Factory', 'posix/Europe/Berlin', 'right/Europe/Berlin', 'right/UTC'):
+        assert zone(name) is None, name
+    for name in ('Europe/Berlin', 'Europe/Kiev', 'US/Eastern', 'UTC', 'Etc/GMT-1'):
+        assert zone(name) is not None, name
+    (termin,) = parse_events(ics(['UID:l', 'DTSTART;TZID=localtime:20261020T090000']))
+    assert termin.start == utc(2026, 10, 20, 9)  # unbekannt: die bisherige Regel, nicht die Zone des Rechners

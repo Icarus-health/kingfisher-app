@@ -18,7 +18,9 @@ None zurück, und der Aufrufer wendet seine Rückfallregel an. Geraten wird nich
 from __future__ import annotations
 
 from datetime import tzinfo
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from functools import lru_cache
+from importlib.resources import files
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
 
 WINDOWS_ZONEN: dict[str, str] = {
     # Europa
@@ -79,11 +81,29 @@ WINDOWS_ZONEN: dict[str, str] = {
 """Windows-Name → IANA-Name (CLDR `windowsZones.xml`, Gebiet „001“)."""
 
 
+@lru_cache(maxsize=1)
+def _iana_namen() -> frozenset[str]:
+    """Die IANA-Namen, die als Zone eines Termins gelten.
+
+    Aus der Liste des Pakets `tzdata` (auch ältere Namen wie `Europe/Kiev`,
+    `US/Eastern`), ohne `Factory`. Nicht dazu gehören Dateien der
+    Zeitzonendatenbank des Rechners wie `localtime` oder `posixrules` und die
+    Unterbäume `posix/` und `right/` (mit Schaltsekunden): `ZoneInfo` nähme sie
+    an, aber sie beschreiben den Rechner, nicht den Termin.
+    """
+    try:
+        namen = set(files("tzdata").joinpath("zones").read_text(encoding="utf-8").split())
+    except (ModuleNotFoundError, FileNotFoundError, OSError):
+        namen = {name for name in available_timezones() if not name.startswith(("posix/", "right/"))}
+    return frozenset(namen - {"Factory", "localtime", "posixrules"})
+
+
 def _zoneinfo(name: str) -> tzinfo | None:
+    if name not in _iana_namen():
+        return None
     try:
         return ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError):
-        # ValueError: kein gültiger Schlüssel (etwa absolute Pfade oder „..“).
         return None
 
 
