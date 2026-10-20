@@ -638,3 +638,49 @@ def test_count_zaehlt_den_beginn_mit_auch_wenn_er_nicht_zur_regel_passt():
     assert beginne(einer) == [utc(2026, 10, 20, 7)]
     passend = parse_events(ics(serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=2')), VON, BIS)
     assert beginne(passend) == [utc(2026, 10, 19, 7), utc(2026, 10, 26, 8)]
+
+
+def test_abo_wird_je_termin_dekodiert_ein_emoji_vervierfacht_den_speicher_nicht():
+    """Python hält einen Text mit einem einzigen Zeichen außerhalb von Latin-1 mit vier Byte je Zeichen."""
+    import tracemalloc
+
+    import httpx
+
+    from icarus_memory import kalender_abo
+    spitzen: dict[str, list[int]] = {'lesen': [], 'einrichten': []}
+    for emoji in ('', ' \U0001F389'):
+        text = grosser_kalender(3).replace('SUMMARY:Abstimmung', 'SUMMARY:Abstimmung' + emoji, 1)
+        feed = Feed(text)
+        tracemalloc.start()
+        termine = feed.leser.events(days=1, at=utc(2020, 1, 1))
+        spitzen['lesen'].append(tracemalloc.get_traced_memory()[1])
+        tracemalloc.stop()
+        assert len(termine) > 2000 and (not emoji or any('\U0001F389' in t.summary for t in termine))
+        transport = httpx.MockTransport(lambda anfrage, text=text: httpx.Response(200, text=text))
+        tracemalloc.start()
+        kalender_abo.pruefe('https://kalender.example.test/gross.ics', transport=transport, sekunden=60)
+        spitzen['einrichten'].append(tracemalloc.get_traced_memory()[1])
+        tracemalloc.stop()
+    for weg, (ohne, mit) in spitzen.items():
+        assert mit < ohne * 1.1, (weg, ohne, mit)
+
+
+@pytest.mark.parametrize('zeichensatz', ['utf-8', 'iso-8859-1', 'utf-16', 'erfunden-123'])
+def test_abo_und_einrichten_lesen_den_zeichensatz_der_antwort(zeichensatz):
+    import httpx
+
+    from icarus_memory import kalender_abo
+    from icarus_memory.connectors.collections import ICalendarSubscription
+    text = ('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nX-WR-CALNAME:Büro Müller\r\n' + ''.join(
+        f'BEGIN:VEVENT\r\nUID:z{n}\r\nSUMMARY:Grüße {n}\r\nDTSTART:2026102{n}T090000Z\r\nEND:VEVENT\r\n'
+        for n in range(3)) + 'END:VCALENDAR\r\n')
+    daten = text.encode('utf-8' if zeichensatz == 'erfunden-123' else zeichensatz)
+    transport = httpx.MockTransport(lambda anfrage: httpx.Response(
+        200, content=daten, headers={'Content-Type': f'text/calendar; charset={zeichensatz}'}))
+    termine = ICalendarSubscription('https://kalender.example.test/z.ics', transport=transport).events()
+    assert [t.summary for t in termine] == ['Grüße 0', 'Grüße 1', 'Grüße 2']
+    _, abo = kalender_abo.pruefe('https://kalender.example.test/z.ics', transport=transport)
+    assert (abo.name, abo.termine) == ('Büro Müller', 3)
+    # httpx ersetzt einen unbekannten Zeichensatz selbst; wer parse_events direkt aufruft, bekommt UTF-8.
+    if zeichensatz == 'erfunden-123':
+        assert [t.summary for t in parse_events(daten, kodierung=zeichensatz)] == ['Grüße 0', 'Grüße 1', 'Grüße 2']

@@ -50,9 +50,14 @@ das Fenster des Gedächtnisses. Ein Termin mit fünf Teilnehmern, Meet-Link und
 Erinnerung braucht dort rund 1,8 KB; die frühere Grenze von 5 MB waren damit
 keine 3.000 Termine, bei sechs Besprechungen am Arbeitstag gut zwei Jahre.
 25 MB sind rund 14.000 Termine, etwa zehn Jahre. Gemessen an einer solchen
-synthetischen Datei: rund 3 s zum Lesen und rund 110 MB zusätzlicher
-Speicher. Darüber wird mit einem Satz abgelehnt statt still gekürzt, und
-gelesen wird nur bis zur Grenze.
+synthetischen Datei: rund 3 s zum Lesen und rund 105 MB Speicher an der
+Spitze (Python-Objekte, mit `tracemalloc`), beim Einrichten rund 100 MB.
+Das gilt auch, wenn ein Emoji darin steht: Die Datei bleibt Bytes und wird
+je Termin dekodiert (`parse_events`); vorher vervierfachte ein einziges
+Zeichen außerhalb von Latin-1 den Text und brachte die Spitze auf über
+200 MB. Mehr brauchen nur Felder, die selbst viel solchen Text enthalten
+(zwei bis vier Byte je Zeichen). Darüber wird mit einem Satz abgelehnt statt
+still gekürzt, und gelesen wird nur bis zur Grenze.
 """
 
 
@@ -89,10 +94,11 @@ class ICalendarSubscription:
                         if groesse > ABO_GROESSE:
                             raise CalendarError(zu_gross(ABO_GROESSE))
                         teile.append(stueck)
-                    text = b"".join(teile).decode(response.encoding or "utf-8", errors="replace")
+                    kodierung = response.encoding or "utf-8"
         except httpx.HTTPError as exc:
             raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
-        return parse_events(text, von, von + timedelta(days=days))
+        # Als Bytes weitergeben: `parse_events` dekodiert je Termin, nicht die ganze Datei auf einmal.
+        return parse_events(b"".join(teile), von, von + timedelta(days=days), kodierung=kodierung)
 
 
 class MailCollection:

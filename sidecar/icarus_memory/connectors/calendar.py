@@ -26,6 +26,7 @@ Name ist weder IANA noch in der Outlook-Tabelle; sie gelten als unbekannt),
 
 from __future__ import annotations
 
+import codecs
 import hashlib
 import heapq
 import logging
@@ -323,10 +324,45 @@ class _Komponente:
         return "ohne-uid-" + hashlib.sha256(inhalt.encode()).hexdigest()[:16]
 
 
-def _komponenten(ical: str) -> list[_Komponente]:
+def ical_kodierung(kodierung: str | None) -> str:
+    """Die Kodierung, mit der ein Kalender gelesen wird: die genannte, wenn Python sie kennt, sonst UTF-8."""
+    try:
+        return codecs.lookup(kodierung or "utf-8").name
+    except LookupError:
+        return "utf-8"
+
+
+def ascii_kompatibel(kodierung: str | None) -> bool:
+    """Ob ASCII-Zeichen in dieser Kodierung ihre eigenen Bytes sind (UTF-8, Latin-1, …; nicht UTF-16 oder UTF-32)."""
+    try:
+        return "BEGIN:VEVENT".encode(ical_kodierung(kodierung)) == b"BEGIN:VEVENT"
+    except UnicodeError:
+        return False
+
+
+def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[str]:
+    """Der Text jedes VEVENT, entfaltet.
+
+    Bytes werden je Termin dekodiert, nicht als ganze Datei: Python hält einen
+    Text mit einem einzigen Zeichen außerhalb von Latin-1 (etwa einem Emoji)
+    mit vier Byte je Zeichen, ein 25-MB-Abo also mit 100 MB je Kopie.
+    """
+    if isinstance(ical, bytes):
+        kodierung = ical_kodierung(kodierung)
+        if not ascii_kompatibel(kodierung):
+            ical = ical.decode(kodierung, errors="replace")
+        else:
+            for treffer in re.finditer(rb"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
+                yield _unfold(treffer.group(1).decode(kodierung, errors="replace"))
+            return
+    for treffer in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
+        yield _unfold(treffer.group(1))
+
+
+def _komponenten(ical: str | bytes, kodierung: str = "utf-8") -> list[_Komponente]:
     """Die VEVENTs des Textes. Zeilen eingebetteter Komponenten (Erinnerungen, VALARM) gehören nicht dazu."""
     ergebnis = []
-    for block in re.findall(r"BEGIN:VEVENT(.*?)END:VEVENT", _unfold(ical), re.DOTALL):
+    for block in _bloecke(ical, kodierung):
         termin = _Komponente({}, [])
         tiefe = 0
         for line in block.strip().splitlines():
@@ -663,8 +699,9 @@ def _gruppe(uid: str, gruppe: list[_Komponente], fenster: tuple[datetime, dateti
     return ergebnis
 
 
-def parse_events(ical: str, von: datetime | None = None, bis: datetime | None = None) -> list[Event]:
-    """Zieht die Termine aus iCalendar-Text.
+def parse_events(ical: str | bytes, von: datetime | None = None, bis: datetime | None = None, *,
+                 kodierung: str = "utf-8") -> list[Event]:
+    """Zieht die Termine aus iCalendar-Text (oder seinen Bytes in `kodierung`, dann je Termin dekodiert).
 
     Abgesagte Termine (`STATUS:CANCELLED`) fehlen, wie bei Google und Microsoft:
     Für das Gedächtnis ist eine Absage damit eine entzogene Quelle.
@@ -679,7 +716,7 @@ def parse_events(ical: str, von: datetime | None = None, bis: datetime | None = 
     """
     fenster = (von, bis) if von is not None and bis is not None else None
     gruppen: dict[str, list[_Komponente]] = {}
-    for termin in _komponenten(ical):
+    for termin in _komponenten(ical, kodierung):
         gruppen.setdefault(termin.uid, []).append(termin)
     events: list[Event] = []
     for uid, gruppe in gruppen.items():
