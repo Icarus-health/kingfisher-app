@@ -952,6 +952,7 @@ def _wire_scheduler(app: FastAPI) -> None:
     neues Objekt, und ein Zeitplan, der auf den alten zeigt, würde weiter das
     abgemeldete Modell fragen.
     """
+    from .hintergrund import modellarbeit_frei
     settings: config.Settings = app.state.settings
     plan = settings.schedule
     roots = file_roots_from_env(os.environ.get(ROOTS_ENV))
@@ -1086,8 +1087,11 @@ def _wire_scheduler(app: FastAPI) -> None:
                                 provider, app.state.conversation_lock,
                                 tasks=app.state.tasks)
         def permitted():
+            # `modellarbeit_frei`: Nach „Pausieren“ (oder bei Energie- und Speichersperre) hält auch ein Paket an,
+            # dessen Anbieter nicht über die Ampel läuft.
             return (getattr(app.state, "agent", None) is agent
-                    and asdict(app.state.settings.schedule) == plan_at_start)
+                    and asdict(app.state.settings.schedule) == plan_at_start
+                    and modellarbeit_frei(app))
         report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
         if with_model and not report.cancelled and getattr(app.state, 'workspace_views', None) is not None:
             from .task_project_hints import TaskProjectHints
@@ -1129,14 +1133,14 @@ def _wire_scheduler(app: FastAPI) -> None:
             pace=None if prompt else _working_memory_pace(app),
             permitted=lambda: (app.state.agent is agent
                                and asdict(app.state.settings.schedule) == plan_at_start
-                               and (not prompt or scheduler.prompt_allowed())))
+                               and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app)))
         from .memory_categories import Categories
         Categories(app.state.episodes).run(
             scheduled_provider(rollen_von(app).provider('hintergrund'), agent=agent, plan_at_start=plan_at_start), limit=1 if prompt else 2,
             permission_lock=app.state.conversation_lock, source_ids=source_ids if prompt else None,
             permitted=lambda: (app.state.agent is agent
                 and asdict(app.state.settings.schedule) == plan_at_start
-                and (not prompt or scheduler.prompt_allowed())))
+                and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app)))
         semantic = working_memory_semantic_runtime.search(app)
         if semantic is not None and plan_at_start['enabled'] and plan_at_start['with_model']:
             # Always take one global batch: a stream of newly uploaded IDs
@@ -1146,7 +1150,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                 and app.state.agent is agent
                 and getattr(app.state, 'semantic_search', None) is semantic
                 and asdict(app.state.settings.schedule) == plan_at_start
-                and (not prompt or scheduler.prompt_allowed())))
+                and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app)))
             return JobResult(result.name, result.ok and indexed.ok, result.detail + ' ' + indexed.detail)
         return result
 
@@ -1159,7 +1163,8 @@ def _wire_scheduler(app: FastAPI) -> None:
         plan_at_start = asdict(app.state.settings.schedule)
         return lage_lauf(
             app, scheduled_provider(rollen_von(app).provider('hintergrund'), agent=agent, plan_at_start=plan_at_start),
-            permitted=lambda: app.state.agent is agent and asdict(app.state.settings.schedule) == plan_at_start,
+            permitted=lambda: (app.state.agent is agent and asdict(app.state.settings.schedule) == plan_at_start
+                               and modellarbeit_frei(app)),
             permission_lock=app.state.conversation_lock)
 
     from .teilnehmer_nachtrag import Lauf as NachtragLauf

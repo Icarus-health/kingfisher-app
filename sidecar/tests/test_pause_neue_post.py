@@ -367,3 +367,114 @@ def test_ohne_modell_auch_keine_texterkennung_und_gescanntes_wartet(client, post
     # Gegenbeispiel: ohne Pause liest die Texterkennung mit, und nichts wird zurückgestellt.
     zeitplan._run_mail_intake()
     assert gesehen[-1] == (texterkennung, False, None)
+
+
+# -- Befunde des Reviews: Pausieren mitten in einer Modellarbeit, Speicherdruck, ehrlicher Grund ------------------------
+
+def test_pausieren_mitten_in_einer_modellarbeit_gibt_den_zeitplan_frei(monkeypatch):
+    # Vorher wartete der zweite Ampel-Aufruf bis „Weiter“: Sperren blieben gehalten, und keine neue Post kam.
+    from icarus_memory.hintergrund import ModellAmpel
+    monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 0.02)
+    ampel = ModellAmpel()
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0)
+    steuerung.wartezeit = lambda: 0.02
+    s = Scheduler()
+    s.anschliessen(steuerung)
+    s.configure(enabled=True, with_model=True)
+    s._last_at = now()
+    aufrufe = []
+    s._run_neue_post = lambda: aufrufe.append('neue_post')
+
+    def paket(ids):
+        with ampel.aufruf():
+            aufrufe.append('erster')
+        steuerung.pausieren(True)
+        with ampel.aufruf():
+            aufrufe.append('zweiter')
+        return JobResult('synthetisch')
+    s._run_prompt_working_memory = paket
+    s.start()
+    try:
+        assert s.request_working_memory('synthetische-quelle')
+        assert _warten(lambda: 'neue_post' in aufrufe, 2), aufrufe
+        assert 'zweiter' not in aufrufe
+        assert s._run_lock.acquire(timeout=1)
+        s._run_lock.release()
+    finally:
+        s.stop()
+
+
+@pytest.mark.parametrize('quelle, druck', [('battery', 'critical'), ('battery', 'warning'), ('unknown', 'critical')])
+def test_speicherdruck_geht_der_energiequelle_vor(tmp_path, monkeypatch, quelle, druck):
+    power = HostPower(tmp_path, expected=lambda: True)
+    power.report(quelle, memory_pressure=druck)
+    assert power.reason() == 'speicherdruck'
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
+    assert steuerung.sperre_ohne_modell() == 'speicherdruck'
+    aufrufe = []
+    s = _zeitplan(monkeypatch, steuerung, aufrufe)
+    s.start()
+    try:
+        time.sleep(0.3)
+    finally:
+        s.stop()
+    assert aufrufe == []
+
+
+@pytest.mark.parametrize('extern, ki, erwartet, nicht', [
+    (None, False, 'Neue Post und Termine kommen weiter an', None),
+    ('speicherdruck', False, 'Arbeitsspeicher', 'Neue Post und Termine kommen weiter an'),
+    ('storage_low', False, None, 'Neue Post und Termine kommen weiter an'),
+    ('speicher_unbekannt', False, 'Speicherlast', 'Neue Post und Termine kommen weiter an'),
+    (None, True, 'Termine kommen weiter an; neue Post', 'Neue Post und Termine kommen weiter an'),
+])
+def test_der_grund_der_pause_verspricht_nur_was_weiterlaeuft(extern, ki, erwartet, nicht):
+    from icarus_memory.storage_capacity import MESSAGES
+    if extern == 'storage_low':
+        extern = next(iter(MESSAGES))
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0, external_gate=lambda: extern)
+    steuerung.pausieren(True)
+    satz = steuerung.grund_text('pausiert', ki_filter=ki)
+    assert satz.startswith('Pausiert')
+    if erwartet:
+        assert erwartet in satz, satz
+    if nicht:
+        assert nicht not in satz, satz
+    stand = steuerung.stand(freigegeben=True, mit_modell=False, ki_filter=ki)
+    assert stand['grund'] == satz
+
+
+def test_akku_mit_ki_filter_verspricht_keine_neue_post():
+    steuerung = Steuerung(None, lambda: None, ruhe_s=0, external_gate=lambda: 'akku')
+    satz = steuerung.grund_text('akku', ki_filter=True)
+    assert 'Termine weiter an' in satz and 'neue Post' in satz and 'Neue Post und Termine' not in satz
+
+
+def test_modellarbeit_im_hintergrund_haelt_nach_pausieren_an_auch_ohne_ampel(client, monkeypatch):
+    # Anbieter, die nicht über die Ampel laufen (etwa entfernte), fragen `permitted()` zwischen den Quellen.
+    from icarus_memory.hintergrund import als_hintergrund
+    gesehen = []
+    monkeypatch.setattr('icarus_memory.working_memory_worker.run',
+                        lambda *a, **k: gesehen.append(k['permitted']) or JobResult('gedaechtnis'))
+    monkeypatch.setattr('icarus_memory.memory_categories.Categories.run',
+                        lambda self, *a, **k: gesehen.append(k['permitted']))
+    monkeypatch.setattr('icarus_memory.lage_routes.lauf', lambda *a, **k: gesehen.append(k['permitted']) or JobResult('lage'))
+    zeitplan = client.app.state.scheduler
+    zeitplan.stop()
+    steuerung = client.app.state.hintergrund
+    ergebnis = {}
+
+    def im_faden():
+        with als_hintergrund(steuerung.sperre):
+            zeitplan._run_working_memory(True)
+            zeitplan._run_lage(True)
+            ergebnis['frei'] = [erlaubt() for erlaubt in gesehen]
+            steuerung.pausieren(True)
+            ergebnis['pausiert'] = [erlaubt() for erlaubt in gesehen]
+    faden = threading.Thread(target=im_faden)
+    faden.start()
+    faden.join(5)
+    assert len(gesehen) == 3 and all(ergebnis['frei']) and not any(ergebnis['pausiert'])
+    # Ein ausdrücklicher Lauf („Jetzt ausführen“) außerhalb des Zeitplanfadens bleibt erlaubt.
+    assert all(erlaubt() for erlaubt in gesehen)
+    steuerung.pausieren(False)

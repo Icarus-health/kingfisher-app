@@ -63,13 +63,18 @@ class HostPower:
             if not self.required:
                 return None
             age = None if self.received_at is None else self.clock() - self.received_at
-            if age is None or not 0 <= age <= MAX_AGE or self.source == 'unknown':
+            if age is None or not 0 <= age <= MAX_AGE:
+                return 'energie_unbekannt'
+            # Speicherdruck geht der Energiequelle vor: Akku lässt neue Post weiterlaufen, Speicherdruck nichts.
+            if self.memory_pressure in ('warning', 'critical'):
+                return 'speicherdruck'
+            if self.source == 'unknown':
                 return 'energie_unbekannt'
             if self.source == 'battery':
                 return 'akku'
             if self.memory_pressure == 'unknown':
                 return 'speicher_unbekannt'
-            return 'speicherdruck' if self.memory_pressure != 'normal' else None
+            return None
 
     def public(self):
         with self.lock:

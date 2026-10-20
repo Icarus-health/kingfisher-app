@@ -215,7 +215,15 @@ Energiemeldung, die wie Akku zählt; `hintergrund.NEUE_POST_WEITER`):
 
 Unverändert halten **alles** an: knapper Speicherplatz (`_capacity_gate`),
 Speicherdruck des Macs und die Rücksicht auf den Menschen (Eingabe, Antwort);
-`Steuerung.sperre_ohne_modell()` sagt das. Der Zeitplan ruft dann je Takt
+`Steuerung.sperre_ohne_modell()` sagt das. Speicherdruck geht dabei der
+Energiequelle vor (`host_power.reason`): Akku mit Speicherdruck hält alles an.
+Wird mitten in einem Paket pausiert, wartet der nächste Modellaufruf nicht an
+der Ampel bis „Weiter“, sondern gibt den Faden frei (`BackgroundInterrupted`,
+wie bei Akku); Sperren und Wiederherstellungsgrenze werden frei, der nächste
+Takt ist schon der leichte. Anbieter, die nicht über die Ampel laufen, fragen
+zwischen den Quellen `permitted()`, und das enthält jetzt
+`hintergrund.modellarbeit_frei` (im Faden des Zeitplans: nicht pausiert, keine
+Energie- oder Speichersperre; ein ausdrücklicher Lauf bleibt erlaubt). Der Zeitplan ruft dann je Takt
 `Scheduler._leichter_takt`: neue Post über `Intake.step(nur_neu=True)`,
 Kalender und Sicherung über `_leichter_lauf` im Abstand des Zeitplans. Der
 volle Durchgang bleibt dabei fällig (`_last_at` rückt nicht vor) und läuft nach
@@ -236,10 +244,15 @@ zudem die Energiemeldung, was wie Akku zählt.
 Was der Mensch liest (eine Aussage je Postfach, `mail_stand.nur_neue_post_satz`,
 und `GRUND_TEXT`):
 
-* Grund in der Karte: „Pausiert. Neue Post und Termine kommen weiter an; ältere
+* Grund in der Karte (`Steuerung.grund_text`, auch unter Gedächtnis →
+  Verarbeitung): „Pausiert. Neue Post und Termine kommen weiter an; ältere
   Mails und das Lernen warten, bis du „Weiter“ wählst.“ (auch ohne Modell, wenn
   nur Mails eingelesen werden); im Akkubetrieb „… warten, bis der Mac am
-  Netzteil ist.“
+  Netzteil ist.“ Der Satz verspricht nur, was wirklich läuft: Hält zugleich
+  Speicherplatz, Speicherdruck oder eine fehlende Speichermeldung alles an,
+  heißt es „Pausiert, bis du „Weiter“ wählst.“ mit diesem Grund; ist der
+  KI-Filter an, „Termine kommen weiter an; neue Post, ältere Mails und das
+  Lernen warten …, denn die lokale KI prüft neue Post vor dem Speichern.“
 * Je Postfach: „Postfach Privat: Neue Post wird weiter geholt; ältere Mails
   sind pausiert (bereits 120 von 4.300 Mails gelesen). Auf Heute geht es mit
   „Weiter“ weiter.“ Im Akkubetrieb „… ältere Mails warten, bis der Mac am
