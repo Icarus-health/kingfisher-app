@@ -273,6 +273,12 @@ export type MailIntakeAccount = {
   scope: string;
   empfaengernachtrag?: { offen: number; ergaenzt: number; ohne_kopfzeilen: number; gedrosselt: boolean; fertig: boolean } | null;
   stand?: MailStand | null;
+  /** Was gelesen wird, in einem Satz (Gesamtbestand, „Posteingang und Gesendet“, „Nur der Posteingang“). */
+  umfang?: string | null;
+  /** Ob gesendete Mails dabei sind (Gesendet-Ordner, Gmail-Gesamtbestand oder Microsoft). */
+  gesendet_dabei?: boolean;
+  /** Ergebnis der letzten Ordnersuche: Gibt es einen Gesendet-Ordner, den Kingfisher erkennt? `null`: noch nicht nachgesehen. */
+  gesendet_erkennbar?: boolean | null;
 };
 
 export type MailIntakeStatus = {
@@ -1350,6 +1356,8 @@ export const api = {
   startMailIntake: (accountId: string, folders: string[], signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/start`, {method: "POST", body: JSON.stringify({folders}), signal}),
   pauseMailIntake: (accountId: string, paused: boolean, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/pause`, {method: "POST", body: JSON.stringify({paused}), signal}),
   retryMailIntake: (accountId: string, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/retry`, {method: "POST", body: JSON.stringify({}), signal}),
+  // „Gesendete Mails auch einlesen“: Ordner eines laufenden Kontos nachtragen; die Antwort sagt in einem Satz, was geschah.
+  ordnerErgaenzen: (accountId: string, signal?: AbortSignal) => request<MailIntakeStatus & {ergaenzt: string[]; satz: string}>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/ordner-ergaenzen`, {method: "POST", body: JSON.stringify({}), signal}),
   categoryTaxonomy: () => request<{version: number; items: CategoryTaxonomyEntry[]}>("/api/v1/memory/categories"),
   memoryAreas: (limit = 50, cursor?: number, area?: string) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)}), ...(area === undefined ? {} : {area})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
