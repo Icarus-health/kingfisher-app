@@ -342,8 +342,10 @@ def ical_kodierung(kodierung: str | None) -> str:
         return "utf-8"
 
 
-_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8-sig"),
+_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8"),
          (codecs.BOM_UTF16_LE, "utf-16"), (codecs.BOM_UTF16_BE, "utf-16"))
+"""Ein UTF-8-BOM heißt UTF-8, nicht `utf-8-sig`: Das ist nicht ASCII-kompatibel im Sinn von `ascii_kompatibel`
+und zwänge zum Dekodieren der ganzen Datei. Das BOM selbst steht vor BEGIN:VCALENDAR und stört keinen Termin."""
 
 
 def kodierung_der_daten(daten: bytes, angegeben: str | None) -> str:
@@ -412,16 +414,19 @@ def _komponenten(ical: str | bytes, kodierung: str = "utf-8") -> list[_Komponent
 
 DICHTE_JE_TAG = 48
 """Mehr Termine am Tag hat keine Serie, die hier ausgeklappt wird (jede halbe
-Stunde ist die Grenze). Gemessen wird über `PROBE_TERMINE` Termine ab dem Punkt,
-von dem an gerechnet wird (`_zu_dicht`), also aus der Regel allein: gleich für
-Anzeige und Gedächtnis und unabhängig davon, wie lange die Serie schon läuft."""
+Stunde ist die Grenze). Gemessen wird über die ersten `PROBE_TERMINE` Termine der
+Regel ab DTSTART (`_zu_dicht`), also aus der Regel allein: gleich für Anzeige und
+Gedächtnis, gleich in jedem Fenster, auch kurz vor UNTIL. Eine Regel mit höchstens
+`PROBE_TERMINE` Terminen insgesamt ist nie zu dicht."""
 
 PROBE_TERMINE = 1000
 
 MAX_SCHRITTE_JE_SERIE = 150_000
 """So viele Termine rechnet das Ausklappen einer Serie bis zum Ende des Fensters
 höchstens durch. Gemessen wurden je nach Rechner 2,5 bis 7 µs je Schritt; die
-Grenze hält eine Serie auch auf einem langsamen Rechner unter einer Sekunde.
+Grenze hält die Rechnung je Serie bei rund einer Sekunde. Unter einer Sekunde
+liegt die Entscheidung, ob und ab wo ausgeklappt wird, nicht das Erzeugen einer
+großen erlaubten Serie (halbstündlich über vier Jahre: rund 70.000 Termine, 1,2 s).
 Wöchentliche, tägliche und feinere Regeln ohne COUNT und ohne Datumsfilter
 rechnen ab kurz vor dem Fenster (`_rechenbeginn`), nicht ab ihrem ersten Termin,
 und erreichen die Grenze nie. Gekürzt wird nie: Ein gekürzter Abschnitt sähe
@@ -482,6 +487,11 @@ _ZYKLUS_JAHRE = 400
 Kalenderwochen (146.097 Tage sind 20.871 Wochen)."""
 _EINHEITEN_JE_ZYKLUS = {"YEARLY": 400, "MONTHLY": 4800, "WEEKLY": 20871, "DAILY": 146097}
 _PERIODEN_JE_JAHR = {"YEARLY": 1, "MONTHLY": 12, "WEEKLY": 52.18, "DAILY": 365.25}
+_BEREICHE = {"BYMONTH": (1, 12, False), "BYMONTHDAY": (1, 31, True), "BYYEARDAY": (1, 366, True),
+             "BYWEEKNO": (1, 53, True), "BYHOUR": (0, 23, False), "BYMINUTE": (0, 59, False),
+             "BYSECOND": (0, 60, False), "BYSETPOS": (1, 366, True)}
+"""Erlaubte Werte nach RFC 5545, 3.3.10: (kleinster, größter, auch negativ). dateutil prüft sie nicht; mit
+`BYMONTH=13` trifft eine Regel dort nie, und dateutil rechnet dafür bis ins Jahr 9999."""
 
 
 def _zahlen(wert: str) -> list[int]:
@@ -499,13 +509,67 @@ def _wochentage(teile: dict[str, str]) -> list[str]:
     return [teil.strip().upper() for teil in teile.get("BYDAY", "").split(",") if teil.strip()]
 
 
+def _im_bereich(name: str, inhalt: str) -> bool:
+    """Ob jeder Wert von `name` ganzzahlig ist und in seinem Bereich liegt (`_BEREICHE`)."""
+    kleinster, groesster, negativ = _BEREICHE[name]
+    try:
+        werte = [int(teil) for teil in inhalt.split(",")]
+    except ValueError:
+        return False
+    return all(kleinster <= wert <= groesster or (negativ and -groesster <= wert <= -kleinster) for wert in werte)
+
+
+def _zaehlung(tag: str) -> int | None:
+    """Die Zahl vor einem Wochentag (`-2FR`: -2), 0 ohne Zahl, None, wenn der Wert kein Wochentag ist."""
+    if tag[-2:] not in _WOCHENTAGE:
+        return None
+    try:
+        return int(tag[:-2]) if tag[:-2] not in ("", "+") else 0
+    except ValueError:
+        return None
+
+
+def _hoechste_zaehlung(teile: dict[str, str]) -> int | None:
+    """Wie weit ein gezählter Wochentag reichen kann: im Monat bis zum fünften, im Jahr bis zum 53."""
+    freq = teile.get("FREQ", "").upper()
+    if freq == "MONTHLY" or (freq == "YEARLY" and "BYMONTH" in teile):
+        return 5
+    return 53 if freq == "YEARLY" else None
+
+
 @lru_cache(maxsize=512)
 def _probe_trifft(regel: str, start: datetime) -> bool:
-    """Ob dateutil für `regel` ab `start` überhaupt einen Termin findet (zwischengespeichert: ohne Uhr gleich)."""
-    try:
-        return next(iter(rrulestr(regel, dtstart=start)), None) is not None
-    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
-        return False
+    """Ob dateutil für `regel` ab `start` überhaupt einen Termin findet (zwischengespeichert: ohne Uhr gleich).
+
+    Ein Fehler von dateutil heißt nicht „trifft nie“: Er geht an den Aufrufer (unlesbare Regel). Sonst verwarf
+    die Probe den gültigen Teil einer Vereinigung, an deren anderem Teil dateutil scheiterte.
+    """
+    return next(iter(rrulestr(regel, dtstart=start)), None) is not None
+
+
+def _raster_trifft(teile: dict[str, str], beginn: _Zeit) -> bool:
+    """Ob eine tägliche, stündliche oder minütliche Regel innerhalb einer Periode aus Abstand und Woche einen Schritt
+    hat, den BYDAY (stündlich auch BYHOUR, minütlich BYHOUR und BYMINUTE) durchlässt.
+
+    dateutil geht die Schritte in Ortszeit ab DTSTART und filtert sie. Die Folge der Minuten in der Woche
+    wiederholt sich nach `lcm(Abstand, Woche)`, also nach höchstens 10.080 Schritten. Trifft dort keiner, trifft
+    nie einer, und dateutil rechnete bis ins Jahr 9999 (`HOURLY;INTERVAL=28;BYDAY=SU` ab Montag 00:00: fünf
+    Sekunden). Datumsfilter bleiben außen vor; für sie ist das Raster nur eine notwendige Bedingung.
+    """
+    freq = teile.get("FREQ", "").upper()
+    schritt = int(teile.get("INTERVAL", "1")) * _SEKUNDEN_JE_SCHRITT[freq] // 60
+    woche = 7 * 1440
+    tage = {_WOCHENTAGE.index(tag[-2:]) for tag in _wochentage(teile)}
+    stunden = set(_zahlen(teile["BYHOUR"])) if freq != "DAILY" and "BYHOUR" in teile else None
+    minuten = set(_zahlen(teile["BYMINUTE"])) if freq == "MINUTELY" and "BYMINUTE" in teile else None
+    wandzeit = beginn.moment
+    erste = wandzeit.weekday() * 1440 + wandzeit.hour * 60 + wandzeit.minute
+    for nummer in range(woche // math.gcd(schritt, woche)):
+        tag, minute = divmod((erste + nummer * schritt) % woche, 1440)
+        if ((not tage or tag in tage) and (stunden is None or minute // 60 in stunden)
+                and (minuten is None or minute % 60 in minuten)):
+            return True
+    return False
 
 
 def _probe_voll(teile: dict[str, str], beginn: _Zeit) -> bool | None:
@@ -536,19 +600,22 @@ def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool | None:
     dateutil rechnet eine Regel, die nie trifft, bis ins Jahr 9999 durch, ohne
     einen Termin zu liefern: `FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30` kostete
     Minuten je Aufruf. Deshalb vorher, alles ohne Uhr, also bei jedem Abruf
-    gleich:
+    gleich (Werte außerhalb ihres Bereichs und unmögliche gezählte Wochentage
+    hat `_regel` schon aussortiert):
 
     * **Nicht unterstützt:** FREQ=SECONDLY; stündlich oder minütlich mit
       Datumsfilter oder BYSETPOS (dateutil rechnet dann je Tag bis zu 1.440
       Schritte ohne Treffer); BYWEEKNO außer jährlich (so RFC 5545). Kalender
       schreiben solche Regeln nicht.
-    * **Phase:** Eine tägliche oder feinere Regel, deren Abstand ganze Wochen
-      sind, trifft nur den Wochentag ihres Beginns; eine monatliche mit Abstand
-      nur Monate derselben Restklasse.
+    * **Raster:** Eine tägliche oder feinere Regel muss in einer Periode aus
+      Abstand und Woche einen Schritt haben, den Wochentag und Uhrzeit
+      durchlassen (`_raster_trifft`); stündlich und minütlich ist das die ganze
+      Antwort. Eine monatliche mit Abstand trifft nur Monate derselben Restklasse.
+    * **BYSETPOS wöchentlich oder täglich:** Eine Position muss innerhalb der
+      Menge je Periode liegen (Wochentage mal Uhrzeiten); Datumsfilter machen
+      die Menge nur kleiner, dann entscheidet die Probe.
     * **Ohne Probe erfüllbar:** wöchentlich oder täglich mit Abstand bis 28 Tage
-      und nur BYMONTH (jeder Monat wird erreicht); wöchentlich oder täglich mit
-      BYSETPOS ohne Datumsfilter, wenn eine Position innerhalb der Wochentage
-      mal Uhrzeiten liegt.
+      und nur BYMONTH (jeder Monat wird erreicht).
     * **Probe:** Kann ein Filter sonst ins Leere greifen (Monatstag über 28, auch
       der vom Beginn übernommene, Jahrestag, Kalenderwoche, BYSETPOS, ab dem
       fünften Wochentag im Monat, ein gezählter Wochentag zusammen mit
@@ -564,22 +631,30 @@ def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool | None:
         return None
     if freq != "YEARLY" and "BYWEEKNO" in teile:
         return None
-    if freq in _SEKUNDEN_JE_SCHRITT and tage and intervall * _SEKUNDEN_JE_SCHRITT[freq] % (7 * 86400) == 0:
-        if _WOCHENTAGE[beginn.moment.weekday()] not in {tag[-2:] for tag in tage}:
-            return False
+    if freq in _SEKUNDEN_JE_SCHRITT and not _raster_trifft(teile, beginn):
+        return False
     if freq == "MONTHLY" and intervall > 1 and "BYMONTH" in teile:
         rest = math.gcd(intervall, 12)
         if all((monat - beginn.moment.month) % rest for monat in _zahlen(teile["BYMONTH"])):
             return False
     if freq in ("WEEKLY", "DAILY"):
-        if "BYSETPOS" in teile and not datumsfilter:
-            groesse = ((len({tag[-2:] for tag in tage}) or 1) if freq == "WEEKLY" else 1) * math.prod(
-                _anzahl(teile, name, 1) for name in ("BYHOUR", "BYMINUTE", "BYSECOND"))
-            return any(1 <= abs(position) <= groesse for position in _zahlen(teile["BYSETPOS"]))
+        if "BYSETPOS" in teile:
+            je_tag = math.prod(_anzahl(teile, name, 1) for name in ("BYHOUR", "BYMINUTE", "BYSECOND"))
+            tage_je_periode = (len({tag[-2:] for tag in tage}) or 1) if freq == "WEEKLY" else 1
+            positionen = [abs(position) for position in _zahlen(teile["BYSETPOS"])]
+            if not any(1 <= position <= tage_je_periode * je_tag for position in positionen):
+                return False
+            if not datumsfilter:
+                return True
+            if not any(1 <= position <= je_tag for position in positionen):
+                return _probe_voll(teile, beginn)
+            # Ein Tag, den die Filter durchlassen, bringt alle seine Uhrzeiten mit: Diese Position trifft in
+            # jeder Periode mit einem solchen Tag, BYSETPOS ändert an der Erfüllbarkeit nichts.
+            teile = {name: inhalt for name, inhalt in teile.items() if name != "BYSETPOS"}
         schritt_tage = intervall * (7 if freq == "WEEKLY" else 1)
         if intervall > 1 and datumsfilter == {"BYMONTH"} and schritt_tage <= 28:
             return True
-        if (intervall > 1 and datumsfilter) or "BYSETPOS" in teile:
+        if intervall > 1 and datumsfilter:
             return _probe_voll(teile, beginn)
     monatstage = _zahlen(teile.get("BYMONTHDAY", ""))
     try:
@@ -668,15 +743,39 @@ def _zu_dicht(termine: Callable[[], Iterator[datetime]]) -> bool:
             and erste[-1] - erste[0] < timedelta(days=PROBE_TERMINE / DICHTE_JE_TAG))
 
 
+def _vereint(regeln: list) -> Callable[[], Iterator[datetime]]:
+    """Die Termine mehrerer Regeln als eine aufsteigende Folge, jeden Termin einmal (`BYDAY=MO,1MO`)."""
+    if len(regeln) == 1:
+        return lambda: iter(regeln[0])
+
+    def folge() -> Iterator[datetime]:
+        letzter = None
+        for moment in heapq.merge(*regeln):
+            if moment != letzter:
+                letzter = moment
+                yield moment
+
+    return folge
+
+
+def _trifft_nie() -> Callable[[], Iterator[datetime]]:
+    """Eine Regel ohne Termine: Die Serie besteht dann aus DTSTART und RDATE (RFC 5545), mit den üblichen Kennungen."""
+    logger.warning("%s; es bleiben ihr Beginn und ihre einzeln genannten Termine.", _NIE)
+    return lambda: iter(())
+
+
 def _regel(wert: str, beginn: _Zeit, ziel: datetime) -> Callable[[], Iterator[datetime]]:
     """Die Termine einer RRULE (aufsteigend, ab dem Rechenbeginn), als Fabrik für frische Durchläufe.
 
     Die Regel rechnet dateutil (RFC 5545, 3.3.10, samt BYSETPOS und WKST); hier
-    wird vorbereitet und begrenzt: Zusätze (`X-…`) entfallen, UNTIL kommt in die
-    Form des Beginns (`_regel_ende`), gemischte Wochentage werden vereinigt
-    (`_varianten`), was nie trifft oder nicht unterstützt ist, wird vorher
-    erkannt (`_erfuellbar`), zu dichte Serien gemessen (`_zu_dicht`). Wirft
-    `_NichtAusgeklappt` mit dem Satz fürs Protokoll.
+    wird vorbereitet und begrenzt: Zusätze (`X-…`) entfallen, Werte außerhalb
+    ihres Bereichs machen die Regel unlesbar, unmögliche gezählte Wochentage
+    (`16MO` im Monat) entfallen, UNTIL kommt in die Form des Beginns
+    (`_regel_ende`), gemischte Wochentage werden vereinigt (`_varianten`), was
+    nie trifft oder nicht unterstützt ist, wird vorher erkannt (`_erfuellbar`),
+    zu dichte Serien gemessen (`_zu_dicht`, ab DTSTART). Wirft
+    `_NichtAusgeklappt` mit dem Satz fürs Protokoll; eine Regel, die nie trifft,
+    liefert keine Termine (`_trifft_nie`).
     """
     teile: dict[str, str] = {}
     bis = None
@@ -692,39 +791,54 @@ def _regel(wert: str, beginn: _Zeit, ziel: datetime) -> Callable[[], Iterator[da
             continue
         if name in ("INTERVAL", "COUNT") and not (inhalt.isdigit() and int(inhalt) > (0 if name == "INTERVAL" else -1)):
             raise _NichtAusgeklappt(_UNLESBAR)  # INTERVAL nur positiv (RFC 5545); 0 wiederholte ohne Ende
+        if name in _BEREICHE and not _im_bereich(name, inhalt):
+            raise _NichtAusgeklappt(_UNLESBAR)
         teile[name] = inhalt
     freq = teile.get("FREQ", "").upper()
     anzahl = int(teile["COUNT"]) if "COUNT" in teile else None
     if freq in _UNTER_TAG and anzahl is not None and anzahl > MAX_COUNT_UNTER_TAG:
         raise _NichtAusgeklappt(_AUFWAND)
+    if "BYDAY" in teile:
+        tage = _wochentage(teile)
+        zaehlungen = [_zaehlung(tag) for tag in tage]
+        if not tage or None in zaehlungen:
+            raise _NichtAusgeklappt(_UNLESBAR)
+        # Einen 16. Montag im Monat gibt es nicht; dateutil bricht daran mit IndexError ab.
+        grenze = _hoechste_zaehlung(teile)
+        moeglich = [tag for tag, zahl in zip(tage, zaehlungen) if grenze is None or abs(zahl) <= grenze]
+        if not moeglich:
+            return _trifft_nie()
+        teile["BYDAY"] = ",".join(moeglich)
     varianten = _varianten(teile)
     if varianten is None:
         raise _NichtAusgeklappt(_FORM)
+
+    def bauen(ab: datetime) -> list:
+        regeln = []
+        for variante in varianten:
+            text = ";".join(f"{name}={inhalt}" for name, inhalt in variante.items()
+                            if not (name == "COUNT" and len(varianten) > 1))
+            regel = rrulestr(text, dtstart=ab)
+            regeln.append(regel.replace(until=bis) if bis is not None else regel)
+        return regeln
+
     try:
         pruefungen = [_erfuellbar(variante, beginn) for variante in varianten]
         if any(pruefung is None for pruefung in pruefungen):
             raise _NichtAusgeklappt(_FORM)
         varianten = [variante for variante, pruefung in zip(varianten, pruefungen) if pruefung]
         if not varianten:
-            raise _NichtAusgeklappt(_NIE)
+            return _trifft_nie()
         start = _rechenbeginn(teile, beginn, ziel)
-        regeln = []
-        for variante in varianten:
-            text = ";".join(f"{name}={inhalt}" for name, inhalt in variante.items()
-                            if not (name == "COUNT" and len(varianten) > 1))
-            regel = rrulestr(text, dtstart=start)
-            regeln.append(regel.replace(until=bis) if bis is not None else regel)
+        regeln = bauen(start)
+        # Die Dichte gilt ab DTSTART, nicht ab dem Rechenbeginn: Sonst blieben kurz vor UNTIL weniger als
+        # `PROBE_TERMINE` übrig, und das Fenster entschiede mit, ob eine Serie zu dicht ist.
+        dichte = _hoechstens_je_tag(teile) > DICHTE_JE_TAG
+        ab_beginn = regeln if start == beginn.moment or not dichte else bauen(beginn.moment)
     except (ValueError, TypeError, KeyError, IndexError, OverflowError):
         raise _NichtAusgeklappt(_UNLESBAR) from None
 
-    def vereint() -> Iterator[datetime]:
-        letzter = None
-        for moment in heapq.merge(*regeln):
-            if moment != letzter:
-                letzter = moment
-                yield moment
-
-    termine: Callable[[], Iterator[datetime]] = (lambda: iter(regeln[0])) if len(regeln) == 1 else vereint
+    termine = _vereint(regeln)
     if anzahl is not None and next(termine(), None) != beginn.moment:
         # RFC 5545, 3.3.10: DTSTART zählt als erster Termin, auch wenn er nicht zur Regel passt
         # (`_wiederholungen` nimmt ihn immer dazu); die Regel liefert dann einen weniger.
@@ -734,7 +848,7 @@ def _regel(wert: str, beginn: _Zeit, ziel: datetime) -> Callable[[], Iterator[da
     if anzahl is not None and len(regeln) > 1:
         ungezaehlt = termine
         termine = lambda: islice(ungezaehlt(), max(0, anzahl))  # noqa: E731 - COUNT gilt für die Vereinigung
-    if _hoechstens_je_tag(teile) > DICHTE_JE_TAG and _zu_dicht(termine):
+    if dichte and _zu_dicht(termine if ab_beginn is regeln else _vereint(ab_beginn)):
         raise _NichtAusgeklappt(_DICHT)
     return termine
 
@@ -847,7 +961,7 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
                            and _beruehrt(moment, schluss := moment + dauer if dauer is not None else None, von, bis)]
         except _NichtAusgeklappt as grund:
             satz = grund.satz
-        except (ValueError, TypeError, OverflowError):
+        except (ValueError, TypeError, KeyError, IndexError, OverflowError):
             satz = _UNLESBAR  # manche unlesbare Regel fällt dateutil erst beim Rechnen auf
         if treffer is None:
             # Kein lesbarer Beginn, oder die Regel wird nicht ausgeklappt: nur der erste Termin.
@@ -904,10 +1018,10 @@ def parse_events(ical: str | bytes, von: datetime | None = None, bis: datetime |
     for uid, gruppe in gruppen.items():
         try:
             events += _gruppe(uid, gruppe, fenster)
-        except (ValueError, OverflowError):
-            # Ein Termin, der sich nicht rechnen lässt (etwa am Rand des Jahres 9999), fehlt allein;
-            # er darf die anderen Termine der Quelle nicht mitnehmen.
-            logger.warning("Ein Termin ließ sich nicht lesen und wurde übersprungen.")
+        except Exception as fehler:  # noqa: BLE001 - ein Termin darf die Quelle nicht mitnehmen
+            # Ein Termin, der sich nicht rechnen lässt (etwa am Rand des Jahres 9999, oder ein Fehler in dateutil),
+            # fehlt allein; die anderen Termine der Quelle bleiben. Ins Protokoll nur die Art, kein Inhalt.
+            logger.warning("Ein Termin ließ sich nicht lesen und wurde übersprungen (%s).", type(fehler).__name__)
     return sorted(events, key=lambda e: (e.start is None, e.start or datetime.max.replace(tzinfo=timezone.utc)))
 
 

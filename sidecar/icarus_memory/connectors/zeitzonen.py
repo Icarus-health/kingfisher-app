@@ -82,8 +82,11 @@ WINDOWS_ZONEN: dict[str, str] = {
 
 
 @lru_cache(maxsize=1)
-def _iana_namen() -> frozenset[str]:
-    """Die IANA-Namen, die als Zone eines Termins gelten.
+def _iana_namen() -> dict[str, str]:
+    """Die IANA-Namen, die als Zone eines Termins gelten, kleingeschrieben → in ihrer Schreibweise.
+
+    Groß- und Kleinschreibung zählt nicht (`europe/berlin`): Auf einem Mac fand
+    `ZoneInfo` solche Namen über das Dateisystem schon immer, auf Linux nicht.
 
     Aus der Liste des Pakets `tzdata` (auch ältere Namen wie `Europe/Kiev`,
     `US/Eastern`), ohne `Factory`. Nicht dazu gehören Dateien der
@@ -95,14 +98,18 @@ def _iana_namen() -> frozenset[str]:
         namen = set(files("tzdata").joinpath("zones").read_text(encoding="utf-8").split())
     except (ModuleNotFoundError, FileNotFoundError, OSError):
         namen = {name for name in available_timezones() if not name.startswith(("posix/", "right/"))}
-    return frozenset(namen - {"Factory", "localtime", "posixrules"})
+    return {name.lower(): name for name in namen - {"Factory", "localtime", "posixrules"}}
+
+
+_WINDOWS_KLEIN = {name.lower(): iana for name, iana in WINDOWS_ZONEN.items()}
 
 
 def _zoneinfo(name: str) -> tzinfo | None:
-    if name not in _iana_namen():
+    kanonisch = _iana_namen().get(name.lower())
+    if kanonisch is None:
         return None
     try:
-        return ZoneInfo(name)
+        return ZoneInfo(kanonisch)
     except (ZoneInfoNotFoundError, ValueError):
         return None
 
@@ -121,7 +128,7 @@ def zone(tzid: str | None) -> tzinfo | None:
     name = (tzid or "").strip().strip('"').strip()
     if not name:
         return None
-    gefunden = _zoneinfo(WINDOWS_ZONEN.get(name, name))
+    gefunden = _zoneinfo(_WINDOWS_KLEIN.get(name.lower(), name))
     if gefunden is None and name.startswith("/"):
         teile = [teil for teil in name.split("/") if teil]
         for anzahl in (3, 2):

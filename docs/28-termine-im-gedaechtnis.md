@@ -226,6 +226,8 @@ und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
   wäre die Zone des Rechners). Als Zone gilt nur ein IANA-Name aus der Liste des
   Pakets `tzdata` (mit älteren Namen wie `Europe/Kiev`), nicht `localtime`,
   `posixrules`, `Factory`, `posix/…` oder `right/…`, die `ZoneInfo` sonst annähme.
+  Groß- und Kleinschreibung zählen nicht (`europe/berlin`, auch bei Outlook-Namen):
+  Auf dem Mac fand `ZoneInfo` solche Namen über das Dateisystem, seit der Liste nicht.
 * **Ende.** DTEND, sonst DTSTART plus DURATION, sonst ein Tag (Datum) oder kein
   Zeitraum (Uhrzeit), wie RFC 5545 es vorgibt. Termine ohne DTEND fehlten bisher still
   im Gedächtnis.
@@ -248,36 +250,65 @@ und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
   Ortszeit), nicht ab ihrem ersten Termin. Die Arbeit hängt am Fenster, nicht am Alter
   der Serie. Alle anderen rechnen ab ihrem ersten Termin, höchstens 150.000 Schritte
   bis zum Fensterende (gemessen 2,5 bis 7 µs je Schritt, je nach Rechner).
+* **Regel, die nie trifft.** Vorher erkannt (`_erfuellbar`, ohne Uhr): ein Raster aus
+  Abstand und Woche für tägliche und feinere Regeln (`_raster_trifft`, höchstens
+  10.080 Schritte; `HOURLY;INTERVAL=28;BYDAY=SU` ab Montag 00:00 erreicht nie einen
+  Sonntag), die Phase von INTERVAL bei monatlichen Regeln, eine Position von BYSETPOS
+  jenseits der Menge je Woche oder Tag (Wochentage mal Uhrzeiten), gezählte
+  Wochentage, die es nicht gibt (`16MO` im Monat, `54MO` im Jahr: Sie entfallen,
+  dateutil brach an ihnen mit IndexError ab; bleibt keiner, trifft die Regel nie),
+  und, wo ein Filter sonst ins Leere greifen kann, eine Probe mit dateutil über einen
+  400-Jahre-Zyklus vor dem Jahr 9999, so oft vorgerückt, dass auch die Phase von
+  INTERVAL bleibt (zwischengespeichert). Ohne das rechnete dateutil bis 9999
+  (`FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30`: 160 s je Aufruf). Die Serie besteht dann,
+  wie RFC 5545 es vorgibt, aus DTSTART und RDATE ohne EXDATE, mit den üblichen
+  Kennungen; im Protokoll steht ein Satz. Bis zum dritten Review blieb nur DTSTART,
+  ohne Kennung und ohne RDATE.
 * **Was eine Serie zu einem einzigen Termin macht.** Die Quelle bleibt; die Serie
-  erscheint mit ihrem ersten Termin, und ein Satz steht im Protokoll:
-  * **trifft nie:** vorher erkannt (`_erfuellbar`, ohne Uhr): Phase von INTERVAL
-    (Wochentag, Monat) und, wo ein Filter ins Leere greifen kann, eine Probe mit
-    dateutil über einen 400-Jahre-Zyklus vor dem Jahr 9999, so oft vorgerückt, dass
-    auch die Phase von INTERVAL bleibt (zwischengespeichert). Ohne sie rechnete
-    dateutil bis 9999 (`FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30`: 160 s je Aufruf).
+  erscheint mit ihrem ersten Termin (Kennung: die blanke UID), und ein Satz steht im
+  Protokoll:
   * **nicht unterstützt:** `FREQ=SECONDLY`; stündlich oder minütlich mit
-    Datumsfilter oder BYSETPOS (dateutil rechnet dann je Tag bis zu 1.440 Schritte
-    ohne Treffer); BYWEEKNO außer jährlich; gemischte Wochentage mit BYSETPOS; eine
-    Probe, die mehr als 100.000 Perioden bräuchte (etwa `DAILY;INTERVAL=2;
-    BYMONTHDAY=1`). Ohne Probe erfüllbar und damit ausgeklappt: wöchentlich oder
-    täglich mit Abstand bis 28 Tage und nur BYMONTH, wöchentlich oder täglich mit
-    BYSETPOS ohne Datumsfilter, wenn eine Position innerhalb von Wochentagen mal
-    Uhrzeiten liegt.
-  * **zu dicht:** mehr als 48 Termine am Tag, gemessen an den ersten 1.000 Terminen
-    ab dem Rechenbeginn (`_zu_dicht`), also aus der Regel allein: gleich für Anzeige
-    und Gedächtnis und gleich, wie lange die Serie schon läuft.
+    Datumsfilter (BYMONTH, BYMONTHDAY, BYYEARDAY, BYWEEKNO) oder BYSETPOS (dateutil
+    rechnet dann je Tag bis zu 1.440 Schritte ohne Treffer); BYWEEKNO außer
+    jährlich; gemischte Wochentage mit BYSETPOS; eine Probe, die mehr als 100.000
+    Perioden bräuchte (etwa `DAILY;INTERVAL=2;BYMONTHDAY=1`). Ohne Probe erfüllbar
+    und damit ausgeklappt: wöchentlich oder täglich mit Abstand bis 28 Tage und nur
+    BYMONTH; wöchentlich oder täglich mit BYSETPOS ohne Datumsfilter, wenn eine
+    Position innerhalb von Wochentagen mal Uhrzeiten liegt; mit Datumsfilter, wenn
+    eine Position innerhalb der Uhrzeiten eines Tages liegt (dann ändert BYSETPOS
+    an der Erfüllbarkeit nichts).
+  * **zu dicht:** mehr als 48 Termine am Tag im Mittel über die ersten 1.001 Termine
+    der Regel ab DTSTART (`_zu_dicht`), also aus der Regel allein: gleich für Anzeige
+    und Gedächtnis, gleich in jedem Fenster und auch kurz vor UNTIL. Bis zum dritten
+    Review wurde ab dem Rechenbeginn gemessen; kurz vor UNTIL blieben dort weniger als
+    1.000 Termine, und die Anzeige klappte eine Serie aus, die das Gedächtnis als zu
+    dicht verwarf. Eine Regel mit höchstens 1.000 Terminen insgesamt ist nie zu dicht.
   * **zu aufwendig:** stündlich oder minütlich mit COUNT über 2.000, oder mehr als
     150.000 Schritte bis zum Fensterende.
-  * **unlesbar:** was dateutil ablehnt, oder INTERVAL nicht positiv.
+  * **unlesbar:** was dateutil ablehnt oder woran es beim Rechnen scheitert (auch
+    IndexError und KeyError, in der Probe ebenso: ein Fehler heißt dort nicht mehr
+    „trifft nie“); INTERVAL nicht positiv; ein BYDAY-Wert, der kein Wochentag ist;
+    ein Wert außerhalb seines Bereichs nach RFC 5545 (BYMONTH 1 bis 12, BYMONTHDAY
+    ±1 bis 31, BYYEARDAY ±1 bis 366, BYWEEKNO ±1 bis 53, BYHOUR 0 bis 23, BYMINUTE
+    0 bis 59, BYSECOND 0 bis 60, BYSETPOS ±1 bis 366). dateutil prüft die Bereiche
+    nicht und rechnete mit `BYMONTH=13` bis 9999.
 
   **Was der Nutzer davon sieht:** In der Anzeige erscheint eine solche Serie nur,
   wenn ihr erster Termin im angezeigten Zeitraum liegt; meist liegt er davor, und sie
   fehlt dort ganz. Im Gedächtnis steht sie als ein Termin am Tag ihres Beginns. Den
   Grund nennt nur das Protokoll, nicht die Oberfläche. Vorher warf eine zu dichte
   Serie einen Fehler, und die ganze Quelle fiel aus.
+
+  **Bewusst in Kauf genommen** (die Serie bleibt ihr erster Termin, ihre übrigen
+  Termine fehlen in Anzeige und Gedächtnis): stündliche und minütliche Regeln mit
+  Datumsfilter oder BYSETPOS, stündliche und minütliche mit COUNT über 2.000, und
+  Regeln mit mehr als 48 Terminen am Tag im Mittel über ihre ersten 1.001 Termine ab
+  DTSTART. Kalender schreiben die ersten beiden nicht; die dritte wäre in der Anzeige
+  eine Wand aus Terminen.
 * **Unmögliche Daten.** Ein Termin am Rand des Jahres 9999 oder mit riesiger Dauer
   behält, was sich darstellen lässt (Ende oder Beginn unbekannt); was sich gar nicht
-  rechnen lässt, fehlt allein (`parse_events` fängt je Termingruppe ab). Vorher warf
+  rechnen lässt, fehlt allein (`parse_events` fängt je Termingruppe jeden Fehler ab und
+  schreibt nur dessen Art ins Protokoll, keinen Inhalt). Vorher warf
   er `OverflowError`: Anzeige ohne die Quelle, Abgleich abgebrochen, „Kalender
   verbinden“ mit Serverfehler. Ein EXDATE jenseits des Jahres 9999 nimmt nichts
   heraus, eine solche RECURRENCE-ID macht ihren Termin zu einem eigenen; die Serie
@@ -319,7 +350,10 @@ Teilnehmern, Meet-Text und Erinnerung; jede 200. ist eine offene Wochenserie sei
 Speicher an der Spitze (Python-Objekte, `tracemalloc`) bei 25 MB: Lesen rund 105 MB,
 Einrichten rund 100 MB, mit und ohne Emoji (vorher bei 23 MB 121 MB, mit einem Emoji
 213 MB). Mehr brauchen nur Felder, die selbst viel Text außerhalb von Latin-1
-enthalten (zwei bis vier Byte je Zeichen).
+enthalten (zwei bis vier Byte je Zeichen). Ein UTF-8-BOM machte die Kodierung bis zum
+dritten Review zu `utf-8-sig`, und die Datei wurde wieder ganz dekodiert; jetzt wird
+der BOM übersprungen (23,6 MB mit einem Emoji: Lesen und Einrichten je 53 MB an der
+Spitze, mit und ohne BOM gleich).
 
 Regeln, die vorher Sekunden bis Minuten je Serie und Aufruf kosteten (Fenster 30 Tage,
 in dieser Umgebung; vorher laut Review gemessen):
@@ -335,6 +369,24 @@ in dieser Umgebung; vorher laut Review gemessen):
 | `DAILY;BYMONTH=2;BYMONTHDAY=30` | 4,7 s | 0,04 s (trifft nie) |
 | `MINUTELY;BYHOUR=9;BYMINUTE=0;BYMONTH=2;BYMONTHDAY=30` | 160 s | 0,00 s (nicht unterstützt) |
 | `MONTHLY;INTERVAL=7;BYMONTH=2;BYMONTHDAY=31` | — | 0,05 s (trifft nie) |
+| *Drittes Review, Beginn 6.1.2025 bzw. 19./20.10.2026:* | | |
+| `WEEKLY;INTERVAL=2;BYMONTH=9,11;BYSETPOS=3` | 0,88 s | 0,01 s (trifft nie) |
+| `DAILY;INTERVAL=2;BYMONTH=4,8;BYSETPOS=2` | 2,79 s | 0,00 s (trifft nie) |
+| `HOURLY;INTERVAL=28;BYDAY=SU` ab Montag 00:00 | 5,4 s | 0,00 s (trifft nie) |
+| `HOURLY;INTERVAL=7;BYDAY=WE;BYHOUR=9,10,11,12;BYMINUTE=5` | 5,7 s | 0,00 s (trifft nie) |
+| `HOURLY;INTERVAL=56;BYDAY=MO` | 3,7 s | 0,01 s (trifft nie) |
+| `MINUTELY;INTERVAL=3360;BYDAY=MO` | 3,3 s | 0,00 s (trifft nie) |
+| `DAILY;BYMONTH=13`, `DAILY;BYMONTH=0`, `WEEKLY;BYMONTH=13` | 3,8 s, 4,1 s, 1,3 s | 0,00 s (unlesbar) |
+| `YEARLY;BYDAY=1MO,16MO;BYMONTH=1,10` seit 2010 | IndexError, Quelle fiel aus | 0,00 s, erster Montag im Januar und Oktober |
+| gegnerisch: BYSETPOS wöchentlich mit Abstand und unmöglichem Monatstag | — | höchstens 0,27 s (trifft nie, Probe) |
+
+**Was „unter einer Sekunde“ heißt.** Unter einer Sekunde liegt die Entscheidung, ob
+und ab wo eine Serie ausgeklappt wird (trifft nie, nicht unterstützt, zu dicht,
+Rechenbeginn). Das Erzeugen einer großen erlaubten Serie kann länger dauern: im
+Gedächtnisfenster von vier Jahren halbstündlich seit 1990 (`MINUTELY;INTERVAL=30` oder
+`HOURLY;BYMINUTE=0,30`) rund 70.000 Termine in 1,0 bis 1,2 s, `MINUTELY;INTERVAL=31`
+67.821 Termine in 1,1 s (in dieser Umgebung). Die Grenze von 150.000 Schritten hält
+auch das bei rund einer Sekunde.
 
 **Sabotageprobe.** Je Zusicherung absichtlich gebrochen, `test_ical_termine.py` lief,
 danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
@@ -402,6 +454,30 @@ danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
 | CalDAV aus dem Rohtext statt aus dem XML | `…caldav_liest_den_kalender_aus_dem_xml…` (beide Fälle) |
 | Abo-Grenze wieder 5 MB (Lesen oder Einrichten) | `…abo_ueber_fuenf_mb…` |
 | erst alles laden, dann prüfen | `…zu_grosses_abo_bricht_frueh_ab…` |
+| *Drittes Review (Sabotage nur in einer Kopie; jeder Test hat eine harte Zeitgrenze, 60 s, Laufzeitprüfungen 10 s):* | |
+| BYMONTH-Abkürzung vor der BYSETPOS-Prüfung (M1) | 2 Fälle von `…in_unter_einer_sekunde…` |
+| Größe der Menge je Periode nicht geprüft, nur Probe | `…unerfuellbare_regel…[WEEKLY;BYDAY=MO;BYSETPOS=2]`, 1 Fall von `…in_unter_einer_sekunde…` |
+| BYSETPOS täglich mit Datumsfilter immer zur Probe | `…in_unter_einer_sekunde…[DAILY;INTERVAL=2;BYMONTH=10,11;BYSETPOS=1]` |
+| Rechenbeginn ohne INTERVAL (M2) | 7 Fälle von `…rechenbeginn_haelt_die_phase_von_interval` (jede Regel mindestens einmal) |
+| Rechenbeginn in UTC statt Ortszeit | 11 Tests |
+| UTF-8-BOM wieder als `utf-8-sig` (M3) | `…utf8_mit_bom_wird_ebenfalls_je_termin_dekodiert` |
+| unmögliche gezählte Wochentage bleiben (M4) | `…gezaehlte_wochentage_jenseits_des_moeglichen_fallen_weg` |
+| Probe hält einen Fehler für „trifft nie“ | `…fehler_in_der_probe_heisst_unlesbar_nicht_trifft_nie` |
+| Serie fängt IndexError, KeyError nicht; Termingruppe nur ValueError, OverflowError | `…fehler_von_dateutil_beim_rechnen…` (2); `…unerwarteter_fehler_in_einem_termin…` (3) |
+| keine Bereichsprüfung (M5) | 16 Tests, u. a. `…werte_ausserhalb_ihres_bereichs…` |
+| kein Raster; Raster ohne BYHOUR; Raster nur über drei Schritte | 6 Tests; 1 Fall; 4 Fälle (Gegenproben `aus`) |
+| Probe ohne Phase von INTERVAL (in der Prüfung grün) | `…probe_haelt_die_phase_von_interval` |
+| Dichte ab dem Rechenbeginn (N1) | `…dichte_mit_until_entscheidet_unabhaengig_vom_fenster` |
+| trifft nie: wieder nur der erste Termin (N2) | 24 Tests |
+| Vereinigung ohne Entdoppeln; Schrittgrenze entfernt; BYSETPOS ohne Uhrzeiten (N3) | `…vereinigung_zaehlt_jeden_termin_einmal`; `…zu_aufwendige_serie…`; `…bysetpos_woechentlich…` |
+| SECONDLY erlaubt (hing in der Prüfung über 15 Minuten) | 4 Tests, Lauf 33 s statt 10 s |
+| TZID nur in genauer Schreibweise (N5) | `…zeitzone_unabhaengig_von_gross_und_kleinschreibung` |
+
+Grün blieben zwei Sabotagen, die nichts ändern, was sich beobachten ließe: Der
+Rechenbeginn ohne die zusätzliche Periode Spielraum (der Fensterbeginn hat schon einen
+Tag Spielraum; was in der Stunde einer Zeitumstellung fehlen könnte, endet vor dem
+Fenster) und COUNT zusätzlich je Teilregel einer Vereinigung (die ersten n Termine der
+Vereinigung enthalten von jeder Teilregel höchstens ihre ersten n).
 
 **Offen:** Eine nicht ausgeklappte Serie fehlt in der Anzeige meist ganz (ihr erster
 Termin liegt vor dem angezeigten Zeitraum); den Grund nennt nur das Protokoll. Regeln,
@@ -409,8 +485,9 @@ die ab ihrem ersten Termin rechnen (COUNT, Datumsfilter, BYSETPOS, monatlich, j�
 können mit den Jahren die 150.000 Schritte erreichen und werden dann zu aufwendig; das
 braucht eine sehr dichte Regel über Jahrzehnte (etwa täglich 24 Uhrzeiten mit BYMONTH
 seit 2010). Nicht unterstützt bleiben SECONDLY, stündlich oder minütlich mit
-Datumsfilter oder BYSETPOS, gemischte Wochentage mit BYSETPOS, Zonen nur als VTIMEZONE
-und `RANGE=THISANDFUTURE`.
+Datumsfilter oder BYSETPOS, gemischte Wochentage mit BYSETPOS, eine Probe über mehr als
+100.000 Perioden, Zonen nur als VTIMEZONE und `RANGE=THISANDFUTURE`. Die bewusst in Kauf
+genommenen Verluste stehen oben unter „Was eine Serie zu einem einzigen Termin macht“.
 
 **Nicht geprüft:** gegen echte Server (Google, iCloud, Nextcloud, Outlook); die
 Attrappen bilden deren Antworten nach. Die Zeiten oben sind keine Messung auf einem
