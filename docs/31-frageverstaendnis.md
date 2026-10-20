@@ -202,6 +202,50 @@ Drei Lücken, die ein Stabschef nicht hätte, ohne Modell geschlossen:
   nun ebenfalls in den Belegweg, ebenso eine einzelne Zielfrage wie „An welche Adresse soll ich
   die Rechnung schicken?“ (Versandverb am Ende, sonst bleibt ein Handlungswort ein Auftrag).
 
+## Zukunft: „Was brauche ich morgen?“ (20.10.2026)
+
+Bisher gab es im Gespräch für „morgen“ keine Antwort aus Kalender und Akten, nur die Wortsuche; die
+Heute-Seite konnte es, das Gespräch nicht. Jetzt geht eine Frage nach dem, was ansteht, **deterministisch
+und ohne Modell** denselben Weg wie „Worauf warte ich noch?“ (`kommendes.py`, im Agenten vor dem
+Fragenverständnis, nach den offenen Punkten; `memory_routing.route` schickt sie nie in den freien Chat).
+
+* **Der kommende Zeitraum** (`time_scope.kommender_zeitraum`): „morgen“, „übermorgen“, „heute“ (der Rest des
+  Tages), „diese Woche“ (der Rest), „nächste/kommende Woche“ (Montag bis Sonntag), „nächsten Monat“, „in N
+  Tagen/Wochen/Monaten“ (der Tag), „am Freitag“, „nächsten Freitag“, „am kommenden Freitag“ (der nächste
+  kommende Wochentag), „am 24.10.“, „am 24. Oktober“ (ein Jahr ohne Angabe ist das nächste, an dem der Tag noch
+  kommt), dazu „bis Freitag“/„bis zum 24.10.“ (von jetzt an). Tage gelten in der Zeitzone des Nutzers. **Der
+  gleiche Wochentag wie heute ist mehrdeutig**: Die Antwort fragt in einem Satz nach („Meinst du heute oder
+  nächsten Freitag?“) statt zu raten; „nächsten Freitag“ am Freitag meint die kommende Woche. Vergangenes
+  („letzte Woche“, „gestern“, „vor zwei Wochen“) bleibt Sache von `mentioned_period`, das die Suche nach
+  Eingangsdatum ordnet und bewusst keine Zukunft kennt („Was ist nächste Woche?“ ordnet weiterhin nichts).
+  `relative_zeit.aufloesen` (Satzprüfung) ist unverändert.
+* **Die Frageform** (`kommendes.ist_frage`): nur die ganze Frage ohne Sache, nach Abzug des Zeitraums und
+  der Füllwörter: „Was steht … an?“, „Was brauche ich …?“, „Was habe ich … (vor)?“, „Was ist … los?“, „Welche
+  Termine …?“, „Was muss ich … erledigen/vorbereiten?“, „Bin ich … frei?“, „Was kommt … auf mich zu?“. „Was habe
+  ich morgen geschrieben?“, „Was steht morgen beim Klinikum an?“ gehen den üblichen Weg.
+* **Die Antwort** in fester Reihenfolge, jede Zeile mit Quelle: (a) Termine im Zeitraum aus
+  `app.state.calendar` (`calendar_window.display_events`; Ort, Teilnehmer mit Namen aus dem Bestand, „vorbereitet:
+  N Teilnehmer in den Akten“ aus der Terminvorbereitung; Quelle ist der Termin im Gedächtnis, sonst der Name des
+  Kalenders), (b) Fristen und eigene Zusagen über `fristlage.sammeln(…, tage_voraus=…)` (der Parameter wird bis
+  `aus_akte` durchgereicht; das Briefing behält sieben Tage), (c) Aufgaben mit Fälligkeit, „Wartet auf“
+  getrennt, (d) an einem einzelnen Tag die Wegezeit, **nur gelesen** aus dem Zwischenspeicher der Heute-Seite
+  (`WegezeitDienst.auskunft(nur_lesen=True)`): Für die Antwort wird kein Kartendienst angefragt, keine Adresse
+  verlässt den Rechner; was nicht berechnet ist, heißt „Fahrzeit noch nicht berechnet“.
+* **Ehrlich, nie „frei“.** Ist nichts da: „Für morgen steht nichts im Kalender und keine Frist an.“ Ohne
+  Kalender oder bei einem Kalenderfehler sagt die Antwort das und nennt die Fristen trotzdem. Dass jemand frei
+  ist, behauptet sie nie (`calendar_answers` hält es genauso): Ein Kalender kann unvollständig sein.
+* **Nie weiter als `MAX_CALENDAR_WINDOW`** (400 Tage, echte Dauer): Ein Tag dahinter bekommt einen ehrlichen
+  Satz, ein Zeitraum darüber hinaus wird gekürzt, und die Antwort sagt es.
+* **Nichts veraltet still.** Wie die offenen Punkte ist die Antwort eine Ansicht: Im Gesprächsverlauf steht nur
+  die Frage und der Tag, an dem sie gestellt wurde (`kommendes_answer`); beim Öffnen wird sie neu aus Kalender,
+  Akten und Aufgaben zusammengestellt, aber nur am selben Tag. Danach heißt es „Diese Antwort galt für den 20.
+  Oktober 2026. Bitte erneut fragen“, denn „morgen“ meint dann einen anderen Tag.
+
+Grenzen: nur, was im Kalender, in den Akten und in den Aufgaben steht; keine Modellantwort, keine Suche in
+Mails nach „morgen“; Wochentag gleich heute fragt nach; „in N Wochen“ ist der Tag, nicht die Woche. Nachweis:
+`test_kommendes.py`, Browserprobe `scripts/probe_kommendes_ui.py`, Protokoll
+[`runs/2026-10-20-kommendes/`](runs/2026-10-20-kommendes/README.md).
+
 ## Messlatte
 
 `python -m messlatte lauf … --modell-frage ollama:NAME` (oder `kompatibel:URL:NAME`,
