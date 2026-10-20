@@ -56,8 +56,9 @@ Geprüft wurde der Baum dieses Release-Branches: alle acht PRs in ihrem Endstand
 zusammengeführt mit Merge-Commits, keine Konflikte. Das ist der Stand, der nach allen
 Merges auf `main` liegt.
 
-* Volle Backend-Suite unter **Python 3.10** (wie die CI): folgt (Vorlauf vor den Korrekturen an #83: 7.571 bestanden, 0 fehlgeschlagen).
-* Volle Backend-Suite unter Python 3.13: folgt (Vorlauf ohne #83 und #84: 7.447 bestanden, 0 fehlgeschlagen).
+* Volle Backend-Suite unter **Python 3.10** (wie die CI): **7.731 bestanden, 0 fehlgeschlagen**, 3 übersprungen, 26 Unterfälle.
+* Volle Backend-Suite unter Python 3.13: **7.731 bestanden, 0 fehlgeschlagen**, 3 übersprungen, 26 Unterfälle.
+* Geprüfter Code-Stand: `583d7ea` (danach nur dieses Protokoll geändert).
 * Oberfläche: `tsc` ohne Fehler, **763 von 763** Oberflächentests, Produktionsbau erfolgreich.
 * Browser (echtes Chromium, synthetische Messlatte-Welt bzw. Attrappe, auf diesem Baum):
   Akte 24 von 24 Prüfungen (Braucht dich, Erledigt/Rückgängig, Zeitstrahl mit Tastatur,
