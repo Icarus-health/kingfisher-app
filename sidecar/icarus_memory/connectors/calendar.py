@@ -206,21 +206,26 @@ def _zeit_zur_serie(value: str, params: dict[str, str], beginn: _Zeit) -> _Zeit 
     return zeit
 
 
-def _kennung(zeit: _Zeit, beginn: _Zeit) -> str:
+def _kennung(zeit: _Zeit, beginn: _Zeit) -> str | None:
     """Eine RECURRENCE-ID als Text, in der Form des Serienbeginns: Datum, Ortszeit ohne Zone oder UTC.
 
     Daraus wird die Kennung des Einzeltermins (`UID#…`). Sie hängt am
     ursprünglichen Beginn, nicht am tatsächlichen: Ein verschobener Termin
     behält sie und ist im Gedächtnis eine neue Fassung, kein neuer Termin. Die
     UTC-Form ist dieselbe, die ein CalDAV-Server beim Ausklappen schreibt.
+    None, wenn der Zeitpunkt umgerechnet jenseits des Jahres 9999 läge.
     """
-    if beginn.ganztags:
-        tag = zeit.moment.date() if zeit.ganztags else zeit.moment.astimezone(user_timezone() or timezone.utc).date()
-        return f"{tag:%Y%m%d}"
-    if beginn.schwebend:
-        ortszeit = zeit.moment if zeit.schwebend else zeit.moment.astimezone(beginn.moment.tzinfo)
-        return f"{ortszeit:%Y%m%dT%H%M%S}"
-    return f"{zeit.moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+    try:
+        if beginn.ganztags:
+            tag = (zeit.moment.date() if zeit.ganztags
+                   else zeit.moment.astimezone(user_timezone() or timezone.utc).date())
+            return f"{tag:%Y%m%d}"
+        if beginn.schwebend:
+            ortszeit = zeit.moment if zeit.schwebend else zeit.moment.astimezone(beginn.moment.tzinfo)
+            return f"{ortszeit:%Y%m%dT%H%M%S}"
+        return f"{zeit.moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+    except OverflowError:
+        return None
 
 
 _DAUER = re.compile(r"^\+?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$", re.IGNORECASE)
@@ -579,8 +584,8 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
             zeit = _zeit_zur_serie(teil, params, beginn)
             if zeit is not None and zeit.ganztags and not beginn.ganztags:
                 ohne_tage.add(zeit.moment.date())  # ein ganzer Tag einer Serie mit Uhrzeit
-            elif zeit is not None:
-                ohne.add(_kennung(zeit, beginn))
+            elif zeit is not None and (kennung := _kennung(zeit, beginn)) is not None:
+                ohne.add(kennung)  # ein Wert jenseits des Jahres 9999 nimmt nichts heraus
 
     def folge() -> Iterator[tuple[str, datetime]]:
         gesehen: set[str] = set()
@@ -593,7 +598,7 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
             if moment < ab:
                 continue
             kennung = _kennung(_Zeit(moment, beginn.ganztags, beginn.schwebend), beginn)
-            if kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
+            if kennung is None or kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
                 continue
             gesehen.add(kennung)
             yield kennung, moment
@@ -636,13 +641,15 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
     ersatz: dict[str, _Komponente] = {}
     ergebnis: list[Event] = []
     for termin in einzeln:
-        kennung = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
-                   else _zeit(*termin.felder["RECURRENCE-ID"]))
+        rid = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
+               else _zeit(*termin.felder["RECURRENCE-ID"]))
+        kennung = _kennung(rid, beginn or rid) if rid is not None else None
         if kennung is None:
+            # Unlesbar oder jenseits des Jahres 9999: ein Termin für sich, die Serie bleibt.
             if not termin.abgesagt:
                 ergebnis.append(_termin(termin, uid))
             continue
-        ersatz[_kennung(kennung, beginn or kennung)] = termin
+        ersatz[kennung] = termin
     if fenster is None:
         # Ohne Fenster nichts ausklappen: Die Serie bleibt ein Termin, wie bisher.
         if serie is not None and not serie.abgesagt:

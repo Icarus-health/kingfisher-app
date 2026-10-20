@@ -728,3 +728,17 @@ def test_verschobener_einzeltermin_einer_ganztaegigen_serie():
     assert [(t.uid, t.start, t.all_day) for t in termine] == [
         ('serie@probe#20261019', utc(2026, 10, 19), True), ('serie@probe#20261026', utc(2026, 10, 27), True),
         ('serie@probe#20261102', utc(2026, 11, 2), True)]
+
+
+# -- Zweites Review ------------------------------------------------------------------
+
+
+def test_exdate_oder_recurrence_id_am_rand_des_jahres_9999_nimmt_die_serie_nicht_mit():
+    rand = 'TZID=America/Los_Angeles:99991231T230000'
+    for zusatz in ([f'EXDATE;{rand}'], []):
+        teile = [serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;COUNT=3', *zusatz)]
+        if not zusatz:
+            teile.append(['UID:serie@probe', f'RECURRENCE-ID;{rand}', 'SUMMARY:Ganz am Ende',
+                          'DTSTART:20261021T090000Z', 'DURATION:PT1H'])
+        termine = parse_events(ics(*teile), VON, BIS)
+        assert {utc(2026, 10, 19, 7), utc(2026, 10, 26, 8), utc(2026, 11, 2, 8)} <= set(beginne(termine)), zusatz
