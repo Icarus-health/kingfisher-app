@@ -160,7 +160,7 @@ dann nur auf dem Mac. `tests/system.test.mjs` prüft alle Dateien unter `src/`, 
     (`GoogleKalenderAdresse.tsx`, `googleWeg.ts`, `kalender_abo.py`, `POST /api/v1/integrations/calendar/abo`). Die
     Karte sagt in zwei Sätzen, wo die Adresse steht und dass nichts hinausgeht außer dem Abruf dieser Adresse.
     Kingfisher erkennt die Adresse (geheim, öffentlich, eine Einbettungs- oder Einstellungsseite, `webcal://`), ruft sie
-    vor dem Speichern einmal ab (Wanduhr 10 s, keine Weiterleitung, höchstens 5 MB, gültiges iCalendar) und nennt sonst
+    vor dem Speichern einmal ab (Wanduhr 10 s, keine Weiterleitung, höchstens 25 MB, gültiges iCalendar) und nennt sonst
     den Grund in einem Satz. Die Adresse ist ein Schlüssel zum Kalender: Sie liegt im Schlüsselbund wie ein Passwort; in
     den Einstellungen steht nur `https://calendar.google.com/`. Wer bei „Kalender hinzufügen“ eine Gmail- oder
     Workspace-Adresse eingibt, landet bei demselben Feld.

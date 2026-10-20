@@ -8,7 +8,7 @@ Antwort muss später ein explizit gewähltes Absenderkonto mitbringen.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 import httpx
@@ -42,6 +42,31 @@ class NamedCalendar:
     reader: CalendarReader
 
 
+ABO_GROESSE = 25_000_000
+"""So viele Bytes liest Kingfisher höchstens über eine Kalenderadresse, beim Einrichten (`kalender_abo`) und danach.
+
+Googles geheime Adresse liefert die ganze Geschichte des Kalenders, nicht nur
+das Fenster des Gedächtnisses. Ein Termin mit fünf Teilnehmern, Meet-Link und
+Erinnerung braucht dort rund 1,8 KB; die frühere Grenze von 5 MB waren damit
+keine 3.000 Termine, bei sechs Besprechungen am Arbeitstag gut zwei Jahre.
+25 MB sind rund 14.000 Termine, etwa zehn Jahre. Gemessen an einer solchen
+synthetischen Datei: rund 3 s zum Lesen und rund 105 MB Speicher an der
+Spitze (Python-Objekte, mit `tracemalloc`), beim Einrichten rund 100 MB.
+Das gilt auch, wenn ein Emoji darin steht: Die Datei bleibt Bytes und wird
+je Termin dekodiert (`parse_events`); vorher vervierfachte ein einziges
+Zeichen außerhalb von Latin-1 den Text und brachte die Spitze auf über
+200 MB. Mehr brauchen nur Felder, die selbst viel solchen Text enthalten
+(zwei bis vier Byte je Zeichen). Darüber wird mit einem Satz abgelehnt statt
+still gekürzt, und gelesen wird nur bis zur Grenze.
+"""
+
+
+def zu_gross(grenze: int) -> str:
+    """Der Satz für einen Kalender über `grenze` Bytes; beim Einrichten und danach derselbe."""
+    return (f"Dieser Kalender ist größer als {grenze // 1_000_000} MB; "
+            "so viel liest Kingfisher über eine Adresse nicht.")
+
+
 class ICalendarSubscription:
     """Ein bewusst nur lesendes, HTTPS-basiertes iCalendar-Abo."""
 
@@ -54,18 +79,26 @@ class ICalendarSubscription:
         """Nur für Tests und Proben (Attrappe statt Netz)."""
 
     def events(self, days: int = 7, at: datetime | None = None) -> list[Event]:
+        """Alle Termine der Datei; Serien ausgeklappt im Fenster `at` bis `at + days` (`parse_events`)."""
+        von = (at or datetime.now(timezone.utc)).astimezone(timezone.utc)
         if not self._url.startswith("https://"):
             raise CalendarError("iCalendar-Abonnements benötigen eine HTTPS-Adresse.")
         try:
             optionen = {"transport": self._transport} if self._transport is not None else {}
             with httpx.Client(timeout=30.0, follow_redirects=True, **optionen) as client:
-                response = client.get(self._url, headers={"Accept": "text/calendar"})
-                response.raise_for_status()
-                if len(response.content) > 5_000_000:
-                    raise CalendarError("Das iCalendar-Abo ist größer als 5 MB.")
+                with client.stream("GET", self._url, headers={"Accept": "text/calendar"}) as response:
+                    response.raise_for_status()
+                    teile, groesse = [], 0
+                    for stueck in response.iter_bytes():
+                        groesse += len(stueck)
+                        if groesse > ABO_GROESSE:
+                            raise CalendarError(zu_gross(ABO_GROESSE))
+                        teile.append(stueck)
+                    kodierung = response.encoding or "utf-8"
         except httpx.HTTPError as exc:
             raise CalendarError(f"iCalendar-Abo nicht erreichbar: {exc}") from exc
-        return parse_events(response.text)
+        # Als Bytes weitergeben: `parse_events` dekodiert je Termin, nicht die ganze Datei auf einmal.
+        return parse_events(b"".join(teile), von, von + timedelta(days=days), kodierung=kodierung)
 
 
 class MailCollection:
@@ -241,6 +274,7 @@ def event_copy(item: dict, uid: str) -> dict | None:
 
 
 __all__ = [
+    "ABO_GROESSE",
     "CalendarCollection",
     "ICalendarSubscription",
     "MailCollection",

@@ -40,8 +40,9 @@ Ein Abgleich arbeitet in Abschnitten (`ABSCHNITT_TAGE`) mit höchstens
 `MAX_TERMINE_JE_ABSCHNITT` Terminen. Nur ein **vollständig gelesener** Abschnitt
 darf Termine entziehen: Was darin fehlt, gilt als gelöscht. Ein leerer
 Abschnitt entzieht nichts, weil er ebenso von einem stillen Lesefehler stammen
-kann. CalDAV und Abonnements liefern Wiederholungen nicht ausgeklappt (siehe
-`connectors/calendar.py`): Serientermine erscheinen dort nur einmal.
+kann. CalDAV und Abonnements klappen Serien im gelesenen Zeitraum aus
+(`connectors/calendar.py`); jeder Einzeltermin hat eine feste Kennung
+(`UID#<ursprünglicher Beginn>`), ein verschobener ist eine neue Fassung.
 """
 from __future__ import annotations
 
@@ -253,8 +254,7 @@ class KalenderGedaechtnis:
         at = at or now()
         praefix = schluessel_praefix(quelle)
         bekannt = {kopf[0]: kopf for kopf in self.episodes.heads_with_prefix(praefix)}
-        im_fenster = [t for t in termine if t.start is not None and t.end is not None
-                      and ensure_aware(t.end) > von and ensure_aware(t.start) < bis]
+        im_fenster = [t for t in termine if _beruehrt(t, von, bis)]
         ergebnis.ausserhalb = len(termine) - len(im_fenster)
         gesehen: set[str] = set()
         schluessel_je_termin = _schluessel_je_termin(quelle, im_fenster)
@@ -361,6 +361,26 @@ class KalenderGedaechtnis:
         return sum(1 for kopf in self.episodes.heads_with_prefix(praefix) if kopf[3] != EpisodeState.IGNORED.value)
 
 
+def _beruehrt(termin: Event, von: datetime, bis: datetime) -> bool:
+    """Der Termin überschneidet `von`..`bis` (ohne Beginn oder Ende gehört er nirgends hin)."""
+    return (termin.start is not None and termin.end is not None
+            and ensure_aware(termin.end) > von and ensure_aware(termin.start) < bis)
+
+
+def _zu_viele(termine: Sequence[Event], von: datetime, bis: datetime, gesamt: bool) -> bool:
+    """Mehr als `MAX_TERMINE_JE_ABSCHNITT` Termine in einem Abschnitt.
+
+    Ein Abo liefert alle Jahre auf einmal; die Grenze gilt trotzdem je Abschnitt.
+    Für die ganze Datei gezählt fiele ein großer Kalender ganz aus, sobald seine
+    Serien ausgeklappt sind (eine tägliche Serie allein sind über das Fenster
+    rund 1.500 Termine).
+    """
+    if not gesamt:
+        return len(termine) > MAX_TERMINE_JE_ABSCHNITT
+    return any(sum(1 for t in termine if _beruehrt(t, a, b)) > MAX_TERMINE_JE_ABSCHNITT
+               for a, b in abschnitte(von, bis))
+
+
 def _schluessel_je_termin(quelle: str, termine: Sequence[Event]) -> list[str]:
     """Quellenschlüssel je Termin. Doppelte UIDs (Serie mit Ausnahme) bekommen den Beginn dazu."""
     zaehler: dict[str, int] = {}
@@ -391,7 +411,7 @@ def kalender_job(gedaechtnis: KalenderGedaechtnis, quellen: Iterable, *, at: dat
             except Exception as exc:  # noqa: BLE001 - eine Quelle darf die anderen nicht anhalten
                 summe.fehler.append(type(exc).__name__)
                 continue
-            if len(termine) > MAX_TERMINE_JE_ABSCHNITT:
+            if _zu_viele(termine, a, b, gesamt):
                 summe.fehler.append("zu viele Termine im Abschnitt")
                 continue
             summe += gedaechtnis.abgleichen(quelle.id, quelle.label, termine, a, b,
