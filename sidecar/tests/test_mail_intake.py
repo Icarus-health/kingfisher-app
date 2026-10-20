@@ -149,6 +149,7 @@ def test_generation_reset_preserves_originals_and_links_the_same_mail(tmp_path):
     {'body':'Das Angebot kommt erst nächste Woche.','preview':'Das Angebot kommt erst nächste Woche.'},
     {'sender':'Mallory <mallory@example.org>'},
     {'subject':'Angebot Vereinsfest (geändert)'},
+    {'date':datetime(2026,1,2,tzinfo=timezone.utc)},
 ])
 def test_gleiche_message_id_mit_anderem_inhalt_ist_keine_dublette(tmp_path,anders):
     ep=EpisodeStore(tmp_path/'episodes.sqlite3')
@@ -166,6 +167,59 @@ def test_zwei_nachrichten_derselben_generation_bleiben_zwei_quellen(tmp_path):
     intake=Intake(ep);intake.start('a',['INBOX']);intake.step('a',r)
     assert sum(ep.counts().values())==2
     assert intake.status('a')['folders'][0]['captured']==2
+    ep.close()
+
+
+def test_zwei_neue_uids_verknuepfen_nie_mit_derselben_alten_quelle(tmp_path):
+    # Lagen zwei gleiche Mails unter der alten Kennung (zwei Quellen), findet jede neue UID ihre eigene; keine alte
+    # Quelle wird zweimal vergeben, keine bleibt verwaist.
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=NeueKennung();r.count=2
+    intake=_nach_neuer_kennung(ep,r)
+    assert sum(ep.counts().values())==2
+    with ep._lock:
+        alt=sorted(e for (e,) in ep._conn.execute("SELECT episode_id FROM mail_intake_items WHERE generation='7'"))
+        neu=sorted(e for (e,) in ep._conn.execute("SELECT episode_id FROM mail_intake_items WHERE generation='8'"))
+    assert len(set(neu))==2 and neu==alt
+    assert intake.status('a')['folders'][0]['duplicates']==2
+    ep.close()
+
+
+def test_eine_alte_quelle_fuer_zwei_neue_gleiche_mails_gibt_eine_neue_quelle(tmp_path):
+    # Liegt dieselbe Mail nach dem Wechsel zweimal im Postfach, verknüpft die erste UID mit der alten Quelle; die
+    # zweite bleibt eine eigene Quelle, wie zwei Nachrichten derselben Generation.
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=NeueKennung()
+    intake=Intake(ep);intake.start('a',['INBOX']);intake.step('a',r)
+    r.generation='8';r.count=2
+    for _ in range(3):intake.step('a',r)
+    assert sum(ep.counts().values())==2
+    ordner=intake.status('a')['folders'][0]
+    assert ordner['duplicates']==1 and ordner['captured']==1
+    ep.close()
+
+
+class OrdnerKennungen(NeueKennung):
+    """Jeder Ordner hat seine eigene Kennung (UIDVALIDITY gilt je Ordner); in beiden liegt dieselbe Mail."""
+    kennungen={'Archiv':'5','INBOX':'7'}
+    def inventory_page(self,folder,*a,**kw):
+        self.generation=self.kennungen[folder]
+        return super().inventory_page(folder,*a,**kw)
+    def message_in_folder(self,folder,uid):
+        self.generation=self.kennungen[folder]
+        return super().message_in_folder(folder,uid)
+
+
+def test_dieselbe_mail_in_einem_anderen_ordner_ist_keine_fruehere_kennung(tmp_path):
+    # Eine Quelle aus „Archiv“ unter Kennung 5 ist keine frühere Fassung der Mail in INBOX unter Kennung 7, auch wenn
+    # Message-ID, Text, Absender, Betreff und Zeit gleich sind. Ordnerübergreifend verknüpft nur der Anbieter.
+    ep=EpisodeStore(tmp_path/'episodes.sqlite3');r=OrdnerKennungen()
+    intake=Intake(ep);intake.start('a',['Archiv'])
+    intake.step('a',r)
+    intake=Intake(ep);intake.start('a',['Archiv','INBOX'])
+    for _ in range(3):intake.step('a',r)
+    with ep._lock:
+        zeilen=dict(ep._conn.execute("SELECT folder,episode_id FROM mail_intake_items WHERE status IN ('captured','duplicate')"))
+    assert set(zeilen)=={'Archiv','INBOX'} and zeilen['Archiv']!=zeilen['INBOX']
+    assert sum(ep.counts().values())==2
     ep.close()
 
 

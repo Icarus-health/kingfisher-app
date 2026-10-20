@@ -213,19 +213,40 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
         pruef['zugaenge'] = seite.locator('.neu-anmelden-stand').inner_text()
         assert SATZ in pruef['zugaenge']
         bild('4-zugaenge')
+        fokus = "() => { const e = document.activeElement; return e ? [e.tagName, e.getAttribute('type'), e.getAttribute('role'), e.textContent.trim()] : null; }"
+        # Neu anmelden: Fokus im Feld; Escape schließt und bringt den Fokus zurück auf „Neu anmelden“.
         knopf.click()
         formular = seite.get_by_role('form', name='Probe-Post neu anmelden')
+        formular.wait_for(timeout=10000)
+        seite.wait_for_timeout(200)
+        pruef['fokus_offen'] = seite.evaluate(fokus)
+        assert pruef['fokus_offen'][:2] == ['INPUT', 'password'], pruef['fokus_offen']
+        seite.keyboard.press('Escape')
+        formular.wait_for(state='detached', timeout=10000)
+        seite.wait_for_timeout(200)
+        pruef['fokus_escape'] = seite.evaluate(fokus)
+        assert pruef['fokus_escape'][0] == 'BUTTON' and pruef['fokus_escape'][3] == 'Neu anmelden', pruef['fokus_escape']
+        knopf.click()
         formular.get_by_label(f'Neues Passwort für {ADRESSE}').fill('immer-noch-falsch')
         formular.get_by_role('button', name='Anmelden').click()
         abgelehnt = formular.get_by_role('alert')
         abgelehnt.wait_for(timeout=20000)
+        seite.wait_for_timeout(300)
         pruef['falsch'] = abgelehnt.inner_text()
         assert 'abgelehnt' in pruef['falsch'] and 'AUTHENTICATIONFAILED' not in pruef['falsch'], pruef['falsch']
+        pruef['fokus_falsch'] = seite.evaluate(fokus)
+        assert pruef['fokus_falsch'][:2] == ['INPUT', 'password'], 'nach der Ablehnung bleibt der Fokus im Feld'
         bild('5-falsch')
         formular.get_by_label(f'Neues Passwort für {ADRESSE}').fill('neues-geheimnis')
         formular.get_by_role('button', name='Anmelden').click()
         bestaetigt = seite.get_by_text('Angemeldet. Kingfisher liest Probe-Post gleich weiter.')
         bestaetigt.wait_for(timeout=20000)
+        seite.wait_for_timeout(300)
+        pruef['fokus_angemeldet'] = seite.evaluate(fokus)
+        assert pruef['fokus_angemeldet'][2] == 'status' and 'Angemeldet' in pruef['fokus_angemeldet'][3], pruef['fokus_angemeldet']
+        # Kein Rahmen um den Satz (kein Bedienelement), auch nicht nach Tastaturbedienung.
+        pruef['fokus_rahmen'] = seite.evaluate('getComputedStyle(document.activeElement).outlineStyle')
+        assert pruef['fokus_rahmen'] == 'none', pruef['fokus_rahmen']
         pruef['angemeldet'] = True
         assert seite.get_by_role('button', name='Neu anmelden').count() == 0
         konten = api.get(basis + '/api/v1/integrations').json()['mail_accounts']

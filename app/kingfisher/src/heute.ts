@@ -12,6 +12,12 @@ export function postfachAufHeute(zustand: string): boolean {
   return zustand === "leer" || zustand === "nicht_abgerufen" || zustand === "pausiert" || zustand === "fehler";
 }
 
+/** Ob der eingeklappte „Postfachstand“ auf Heute von selbst aufgeht: wenn ein Postfach den Menschen braucht (sein Satz
+ * verweist in die Einstellungen, etwa „Melde dich unter Einstellungen → Zugänge neu an.“). */
+export function postfachMussHandeln(staende: ReadonlyArray<{zustand: string; verweis?: string | null}>): boolean {
+  return staende.some(stand => postfachAufHeute(stand.zustand) && Boolean(stand.verweis));
+}
+
 /**
  * Was nach „Aktualisieren“ unter „Nachrichten“ steht (Fremdprobe 2, Befund 18): wann abgerufen wurde und ob etwas
  * Neues kam. `vorher` ist die Liste vor dem Klick (null beim ersten Laden: dann kein Satz).

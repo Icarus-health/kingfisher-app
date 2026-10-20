@@ -37,8 +37,14 @@ CATEGORY_DIAGNOSTIC_BUDGET=16
 #: dass der Takt die Nachanalyse neuer Uploads (teilt sich dessen Sperre) nur Sekunden warten lässt. Abgerufen wird
 #: außerhalb jeder Sperre, `conversation_lock` gilt nur für das Schreiben der einzelnen Nachricht.
 BACKGROUND_BATCH=25
-#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`), bevor sie wieder geholt wird.
-ZURUECKGESTELLT_S=600
+#: So lange probiert die Aufnahme ein Postfach mit abgelehnter Anmeldung nicht neu (Sekunden), für alle Ordner zusammen.
+#: Jeder Versuch ist eine Anmeldung beim Anbieter; viele abgelehnte in Folge führen dort zur Kontosperre. „Neu
+#: anmelden“ hebt das sofort auf. Dieselbe Frist gilt im Connector für jede andere Verbindung (`ANMELDUNG_RUHT_S`).
+from .connectors.mail import ANMELDUNG_RUHT_S as ANMELDUNG_WIEDERVERSUCH_S  # noqa: E402
+#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`) höchstens. Gemeint ist: bis zum nächsten
+#: vollen Durchgang nach Pause oder Akku, der sie sofort freigibt. Vorher kam sie alle zehn Minuten wieder dran und wurde
+#: samt Anhang neu geladen, ohne gespeichert werden zu können; jetzt in einer langen Pause einmal in sechs Stunden.
+ZURUECKGESTELLT_S=6*3600
 PRIMARY_KEYS = {'mail_intake_analysis': {'episode_id'},'mail_intake_folders': {'account','folder'}, 'mail_intake_items': {'account','folder','generation','uid'}}
 INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account','status','retry_at','lane','uid')),
            'idx_mail_intake_episode': IndexContract('mail_intake_items',('episode_id',))}
@@ -62,6 +68,25 @@ def bestandsfehler(fehler):
         if isinstance(kandidat, (Anmeldefehler, AnmeldungAbgelehnt)) and einordnen(kandidat, '').grund in ANMELDE_GRUENDE:
             return 'anmeldung'
     return 'inventory_unavailable'
+
+
+def nach_neuer_anmeldung(app, konto):
+    """Die Anmeldung gilt wieder (Neu anmelden, Microsoft, Google): gemerkten Grund löschen, Aufnahme gleich wecken.
+
+    Geweckt wird nur, wenn ein Postfach an der Anmeldung stand. Eine erste Verbindung oder ein vorsorglich neu
+    eingegebenes Passwort hat nichts fortzusetzen; dann bleibt der Zeitplan in seinem Takt.
+    """
+    # Auch jede andere Verbindung darf sofort wieder (bei Google bleibt der Fingerabdruck des Tokens gleich).
+    from .connectors.mail import ANMELDERUHE
+    eintrag = next((e for e in getattr(getattr(app.state, 'settings', None), 'mail_accounts', []) if e.id == konto), None)
+    if eintrag is not None:
+        ANMELDERUHE.vergessen(getattr(eintrag, 'user', ''))
+    episodes = getattr(getattr(app, 'state', None), 'episodes', None)
+    if episodes is None or not Intake(episodes).anmeldung_erneuert(konto):
+        return
+    wecken = getattr(getattr(app.state, 'scheduler', None), 'aufnahme_wecken', None)
+    if callable(wecken):
+        wecken()
 
 
 def migrate(conn):
@@ -122,6 +147,11 @@ class Intake:
             for table in ('working_memory_sources','memory_category_sources'):
                 self.db.execute(f"UPDATE {table} SET retry_after=0 WHERE status='failed' AND episode_id IN (SELECT episode_id FROM mail_intake_items WHERE account=?)",(account,))
 
+    def anmeldung_erneuert(self, account):
+        """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg; ob es ihn gab (dann wecken)."""
+        with self.episodes.transaction():
+            return self.db.execute("UPDATE mail_intake_folders SET error=NULL WHERE account=? AND error='anmeldung'",(account,)).rowcount>0
+
     def _active(self, account, permitted):
         if not permitted():return False
         from .storage_capacity import reason
@@ -131,8 +161,14 @@ class Intake:
         return row is not None and row[0]==0
 
     def aktiv(self, account, permitted):
-        """Ob die Aufnahme des Kontos läuft (freigegeben und nicht pausiert); für nachrangige Hintergrundarbeit."""
-        return self._active(account,permitted)
+        """Ob die Aufnahme des Kontos läuft (freigegeben, nicht pausiert, Anmeldung ruht nicht); für Nachrangiges."""
+        return self._active(account,permitted) and not self.anmeldung_ruht(account)
+
+    def anmeldung_ruht(self, account):
+        """Ob ein Ordner des Kontos in der letzten Stunde an der Anmeldung scheiterte: Dann ruht das ganze Postfach."""
+        with self.episodes._lock:
+            return self.db.execute("SELECT 1 FROM mail_intake_folders WHERE account=? AND error='anmeldung' AND updated>? LIMIT 1",
+                                   (account,time.time()-ANMELDUNG_WIEDERVERSUCH_S)).fetchone() is not None
 
     def _inventory(self, account, reader, row, live, permitted, gate):
         with gate:
@@ -200,7 +236,8 @@ class Intake:
         älteren Mails bleiben, wo sie stehen, auch ihre Bestandsaufnahme. Ein in der Pause begonnenes Einlesen merkt
         sich nur die Grenze für neue Post (`_grundlinie`). `zurueckstellen(message)`: Diese Mail jetzt nicht speichern
         (etwa ein gescannter Anhang, solange die Texterkennung ein Modell bräuchte); sie bleibt offen, ohne als
-        gescheitert zu zählen, und kommt nach `ZURUECKGESTELLT_S` wieder dran.
+        gescheitert zu zählen (`grund='zurueckgestellt'`), und kommt beim nächsten vollen Durchgang sofort dran,
+        spätestens nach `ZURUECKGESTELLT_S`.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
         with (permission_lock if permission_lock is not None else nullcontext()):
@@ -228,9 +265,18 @@ class Intake:
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
+        if not nur_neu:
+            # Der volle Durchgang nach Pause oder Akku: Was nur auf die Texterkennung wartete, kommt jetzt gleich dran.
+            with self.episodes.transaction():
+                self.db.execute("UPDATE mail_intake_items SET retry_at=0,grund=NULL WHERE account=? AND status='pending' AND grund='zurueckgestellt'",(account,))
+        # Wurde die Anmeldung abgelehnt, ruht das ganze Postfach bis zur neuen Anmeldung (höchstens ein Versuch je
+        # Stunde, nicht je Ordner): weder Bestandsaufnahme noch Abholen offener Mails.
+        if self.anmeldung_ruht(account):
+            return []
         with self.episodes._lock:
             # Least-recently updated folder first; bounded calls even for many folders.
-            rows=[dict(r) for r in self.db.execute('SELECT * FROM mail_intake_folders WHERE account=? AND paused=0 ORDER BY updated,folder LIMIT 2',(account,))]
+            rows=[dict(r) for r in self.db.execute("""SELECT * FROM mail_intake_folders WHERE account=? AND paused=0
+                ORDER BY updated,folder LIMIT 2""",(account,))]
         for row in rows:
             try:
                 if row['generation'] is not None:
@@ -246,8 +292,14 @@ class Intake:
             except Exception as fehler:
                 # Eine abgelaufene Anmeldung ist kein schweigendes Postfach: Dann hilft nur, sich neu anzumelden, und der
                 # Stand sagt das (`mail_stand.GRUND['anmeldung']`), statt „Du musst nichts tun“.
-                with self.episodes.transaction():
-                    self.db.execute("UPDATE mail_intake_folders SET error=?,updated=? WHERE account=? AND folder=?",(bestandsfehler(fehler),time.time(),account,row['folder']))
+                grund=bestandsfehler(fehler)
+                with gate:
+                    # Gilt dieser Leser nicht mehr (etwa nach „Neu anmelden“), sagt sein Scheitern nichts mehr.
+                    if not self._active(account,permitted):return []
+                    with self.episodes.transaction():
+                        self.db.execute("UPDATE mail_intake_folders SET error=?,updated=? WHERE account=? AND folder=?",(grund,time.time(),account,row['folder']))
+                if grund=='anmeldung':
+                    return []  # kein zweiter Ordner, keine offene Mail mit denselben Zugangsdaten
         with self.episodes._lock:
             # Reserve at least half for history; a single bad UID never blocks either lane. In der Pause nur neue Post.
             history_quota = 0 if nur_neu or self._history_backlog(account) > 200 else batch
@@ -262,7 +314,8 @@ class Intake:
                 reihenfolge='i.uid' if lane=='live' else 'i.uid DESC'
                 selected += [dict(r) for r in self.db.execute(f'''SELECT i.* FROM mail_intake_items i
                     JOIN mail_intake_folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
-                    WHERE i.account=? AND f.paused=0 AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
+                    WHERE i.account=? AND f.paused=0
+                      AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
                     ORDER BY i.attempts,{reihenfolge} LIMIT ?''',(account,lane,time.time(),min(quota,batch-len(selected))))]
         captured=[]; neu=0
         for item in selected:
@@ -278,7 +331,7 @@ class Intake:
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
                 if zurueckstellen is not None and zurueckstellen(message):
                     with self.episodes.transaction():
-                        self.db.execute('UPDATE mail_intake_items SET retry_at=? WHERE account=? AND folder=? AND generation=? AND uid=?',
+                        self.db.execute("UPDATE mail_intake_items SET retry_at=?,grund='zurueckgestellt' WHERE account=? AND folder=? AND generation=? AND uid=?",
                                         (time.time()+ZURUECKGESTELLT_S,account,item['folder'],item['generation'],item['uid']))
                     continue
                 # Model/network calls must not hold the conversation/permission lock.
@@ -305,9 +358,11 @@ class Intake:
                 if not beim_speichern and bestandsfehler(fehler)=='anmeldung':
                     # Die Anmeldung gilt nicht mehr: Das betrifft das ganze Postfach, nicht diese Mail. Sie bleibt offen
                     # (kein Versuch gezählt) und kommt nach der neuen Anmeldung dran; der Stand sagt, was zu tun ist.
-                    with self.episodes.transaction():
-                        self.db.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE account=? AND folder=?",
-                                        (time.time(),account,item['folder']))
+                    with gate:
+                        if not self._active(account,permitted):break  # inzwischen neu angemeldet
+                        with self.episodes.transaction():
+                            self.db.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE account=? AND folder=?",
+                                            (time.time(),account,item['folder']))
                     break
                 # Nie still: Grund und technische Angabe bleiben am Eintrag (Fremdprobe 3, Befund 2), der Stand sagt sie.
                 grund,technik=grund_einordnen(fehler,beim_speichern=beim_speichern)
@@ -322,11 +377,16 @@ class Intake:
 
         Vergibt der Server die Nummern neu (UIDVALIDITY, bei Microsoft eine verlorene Ablage), beginnt die
         Bestandsaufnahme von vorn. Dieselbe Mail wird dann mit der vorhandenen Quelle verknüpft statt doppelt angelegt
-        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen.
+        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen. Darum
+        nimmt eine Quelle, die schon eine andere UID der aktuellen Generation für sich hat, keine zweite: Jede alte
+        Quelle geht an höchstens eine neue UID, gleiche Mails finden der Reihe nach je ihre eigene.
         """
         with self.episodes._lock:
-            return self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
-                                   (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
+            frueher=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
+                                    (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
+            vergeben=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation=? AND uid<>? LIMIT 1',
+                                     (episode_id,item['account'],item['folder'],item['generation'],item['uid'])).fetchone() is not None
+            return frueher and not vergeben
 
     def _history_backlog(self, account):
         """Same bounded, content-free backlog check for capture and its status."""

@@ -140,10 +140,13 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 }
 /* Neu anmelden am Postfach, wenn die Anmeldung nicht mehr gilt (NeuAnmelden.tsx): unter der Zeile, gleicher Rand. */
 .neu-anmelden-stand { padding: 0 24px 16px 56px; display: grid; gap: 12px; justify-items: start; border-bottom: 1px solid var(--kf-rand-d7e1df); }
-p.neu-anmelden-stand { padding-top: 12px; }
+.neu-anmelden-status { margin: 0; padding: 12px 24px 12px 56px; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.neu-anmelden-status:empty { padding: 0; border: 0; }
+/* Der Fokus landet hier nur, damit Bildschirmleser „Angemeldet“ vorlesen; ein Satz ist kein Bedienelement. */
+.neu-anmelden-status:focus, .neu-anmelden-status:focus-visible { outline: none; }
 .neu-anmelden { width: 100%; display: grid; gap: 12px; }
 .neu-anmelden label { display: grid; gap: 8px; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; font-weight: 600; }
 .neu-anmelden input { width: 100%; max-width: 360px; height: 40px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 0 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 12px "Inter", sans-serif; }
 .neu-anmelden input:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
 .neu-anmelden .source-form-actions { justify-content: flex-start; }
-@media (max-width: 700px) { .neu-anmelden-stand { padding-left: 24px; } }
+@media (max-width: 700px) { .neu-anmelden-stand, .neu-anmelden-status { padding-left: 24px; } .neu-anmelden-status:empty { padding: 0; } }

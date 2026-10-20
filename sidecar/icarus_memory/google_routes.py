@@ -86,17 +86,33 @@ def install_routes(app, guard, data_dir, rebuild):
             original = copy.deepcopy(settings)
             created = []
             replaced = {}
+            neu_angemeldet = None
             try:
                 if item['kind'] == 'mail':
-                    if any(m.user.casefold() == item['email'].casefold() for m in settings.mail_accounts):
+                    vorhanden = next((m for m in settings.mail_accounts
+                                      if m.user.casefold() == item['email'].casefold()), None)
+                    if vorhanden is not None and vorhanden.auth_method != 'google_oauth':
                         raise HTTPException(409, 'Dieses Mailkonto ist bereits eingerichtet. Entferne den alten Zugang vor einer neuen Verbindung.')
-                    entry = config.MailAccountSettings(id='mail-' + uuid.uuid4().hex,
-                        label=item['email'], user=item['email'], sender=item['email'],
-                        imap_host='imap.gmail.com', smtp_host='smtp.gmail.com', auth_method='google_oauth')
-                    key = config.integration_secret_name('mail', entry.id)
-                    created.append(key)
-                    oauth.keychain.set(key, json.dumps(item['grant']))
-                    settings.mail_accounts.append(entry)
+                    if vorhanden is not None:
+                        # Neu anmelden: dasselbe Google-Postfach bekommt die neue Anmeldung. Kein zweites Konto, also
+                        # kein zweites Einlesen; Fortschritt und Quellen bleiben (docs/47-einstellungen.md).
+                        key = config.integration_secret_name('mail', vorhanden.id)
+                        previous = oauth.keychain.get(key)
+                        if previous:
+                            replaced[key] = previous
+                        else:
+                            created.append(key)
+                        oauth.keychain.set(key, json.dumps(item['grant']))
+                        oauth.tokens.pop(key, None)
+                        neu_angemeldet = vorhanden.id
+                    else:
+                        entry = config.MailAccountSettings(id='mail-' + uuid.uuid4().hex,
+                            label=item['email'], user=item['email'], sender=item['email'],
+                            imap_host='imap.gmail.com', smtp_host='smtp.gmail.com', auth_method='google_oauth')
+                        key = config.integration_secret_name('mail', entry.id)
+                        created.append(key)
+                        oauth.keychain.set(key, json.dumps(item['grant']))
+                        settings.mail_accounts.append(entry)
                 elif item['kind'] == 'calendar_write':
                     # A write grant is an explicit upgrade of selected read sources only.
                     matches = []
@@ -135,4 +151,7 @@ def install_routes(app, guard, data_dir, rebuild):
             item.pop('grant', None)
             item['status'] = 'connected'
             rebuild()
-            return {'connected': True, 'kind': item['kind']}
+            if neu_angemeldet:
+                from .mail_intake import nach_neuer_anmeldung
+                nach_neuer_anmeldung(app, neu_angemeldet)
+            return {'connected': True, 'kind': item['kind'], **({'neu_angemeldet': True} if neu_angemeldet else {})}

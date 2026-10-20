@@ -2,6 +2,7 @@
 // dass „Pausieren“ alles anhält, und die Karte zeigt den Satz des Sidecars. Synthetische Daten.
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {einlesenFrage} from "../src/Einrichtung/postfach.ts";
 import {PAUSIEREN_AUF_HEUTE} from "../src/Einrichtung/fertig.ts";
 import {lerntFuss, lerntZeilen} from "../src/Einrichtung/lernt.ts";
@@ -36,4 +37,13 @@ test("In der Karte steht der Satz des Sidecars über das Postfach, darunter der 
 test("Ohne Satz des Sidecars heißt die Zeile „Ältere Mails pausiert“, nicht „Einlesen pausiert“", () => {
   const zeilen = lerntZeilen({accounts: [konto(null)], analysis_active: false, background_paused: true}, null, pausiert);
   assert.equal(zeilen.find(zeile => zeile.id === "mail")?.text, "Ältere Mails pausiert: 20 von 100 Mails gelesen");
+});
+
+test("Heute baut die Lernkarte nicht neu, wenn die Karten nachkommen (aufgeklappte Details bleiben offen)", () => {
+  // In der Browserprobe klappten „Details“ der pausierten Karte von selbst zu: Sobald die Post geladen war, wechselte
+  // Heute vom leeren in den gefüllten Zweig, und die Karte entstand an anderer Stelle neu.
+  const quelle = readFileSync(new URL("../src/Einrichtung/HeuteLeer.tsx", import.meta.url), "utf8");
+  const karten = quelle.match(/<KingfisherLernt\b[^>]*\/>/g) ?? [];
+  assert.equal(karten.length, 2);
+  for (const karte of karten) assert.match(karte, /key="lernt"/);
 });

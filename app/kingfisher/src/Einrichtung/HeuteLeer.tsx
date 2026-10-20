@@ -13,8 +13,10 @@ import "./Einrichtung.css";
 export function HeuteLeer({leer, children}: {leer: boolean; children: ReactNode}) {
   const {stand} = useEinrichtung();
   const [laeuft, setLaeuft] = useState<boolean | null>(null);
+  // Dieselbe Karte in beiden Fällen (Schlüssel „lernt“): Kommen die Karten nach, darf sie nicht neu entstehen, sonst
+  // klappten aufgeklappte „Details“ von selbst wieder zu.
   if (!leer) return <>
-    <KingfisherLernt kompakt />
+    <KingfisherLernt key="lernt" kompakt />
     {children}
   </>;
 
@@ -30,7 +32,7 @@ export function HeuteLeer({leer, children}: {leer: boolean; children: ReactNode}
         <button className="primary-action" type="button" onClick={() => navigate(`/willkommen?schritt=${hinweis.schritt}`)}>{hinweis.knopf}</button>
       </div>
     </section> : null}
-    <KingfisherLernt beiAenderung={setLaeuft} />
+    <KingfisherLernt key="lernt" beiAenderung={setLaeuft} />
     {karten ? children : null}
   </>;
 }

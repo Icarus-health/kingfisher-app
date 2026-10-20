@@ -199,3 +199,36 @@ def test_ablage_verliert_sich_und_beginnt_neu(tmp_path):
     a.zuordnen('k', 'INBOX', [('x', datetime(2026, 1, 1, tzinfo=timezone.utc)), ('y', datetime(2026, 1, 1, tzinfo=timezone.utc))], neu=False)
     assert [u for _, u in a.seite('k', 'INBOX', 0, mg.GRENZE, 10)] == [1767225600, 1767225599]
     assert mg.Postablage(tmp_path / 'm.sqlite3').generation() == g
+
+
+def test_in_der_pause_listet_outlook_nur_kennungen_und_holt_neue_post(konto, graph, tmp_path):
+    # Review N4, bewusst so (docs/46-hintergrund.md, „Pause und Akku“): Graph trennt neue von alter Post erst, wenn die
+    # erste Delta-Auflistung fertig ist. Sie geht deshalb in der Pause weiter, aber nur mit Kennung und Eingangszeit:
+    # kein Inhalt, kein Eintrag für ältere Mails, kein Modell. Die älteren Mails holt die Aufnahme erst nach der Pause.
+    _, client, ablage = konto
+    graph.seite = 1
+    post = mg.MicrosoftPost(ADRESSE, client, ablage)
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('ms', ['INBOX'])
+    for _ in range(4):
+        post._zuletzt.clear()
+        intake.step('ms', post, batch=4, nur_neu=True)
+    assert ablage.ordnerstand(post.konto, 'INBOX')[1], 'die Auflistung ist fertig'
+    assert not [a for a in graph.anfragen if a['pfad'].startswith('/v1.0/me/messages/')], 'kein Inhalt in der Pause'
+    with ep._lock:
+        assert ep._conn.execute('SELECT COUNT(*) FROM mail_intake_items').fetchone()[0] == 0
+    graph.neue_post()
+    post._zuletzt.clear()
+    intake.step('ms', post, batch=4, nur_neu=True)
+    with ep._lock:
+        zeilen = ep._conn.execute('SELECT lane, uid, status FROM mail_intake_items').fetchall()
+    assert [(z[0], z[2]) for z in zeilen] == [('live', 'captured')]
+    assert ablage.kennung(post.konto, 'INBOX', zeilen[0][1]) == 'neu-7'
+    # Nach der Pause: die älteren, von neu nach alt, ohne die neue doppelt.
+    for _ in range(6):
+        intake.step('ms', post, batch=4)
+    stand = intake.status('ms')['folders'][0]
+    assert stand['inventory_complete'] and (stand['total'], stand['captured'], stand['pending']) == (7, 7, 0)
+    assert sum(ep.counts().values()) == 8
+    ep.close()

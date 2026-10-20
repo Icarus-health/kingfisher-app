@@ -266,28 +266,82 @@ bisher als „antwortet gerade nicht. Du musst nichts tun“ stehen, für immer.
 * **Erkennen.** Scheitert die Bestandsaufnahme oder das Abholen an der Anmeldung, merkt die Aufnahme den Grund
   `anmeldung` (`mail_intake.bestandsfehler`). Erkannt mit der vorhandenen Einordnung: `mail_anmeldung.einordnen` für
   eine vom IMAP-Server abgelehnte Anmeldung (`connectors.mail.AnmeldungAbgelehnt`, nur LOGIN bzw. XOAUTH2, nicht ein
-  BAD auf eine spätere Suche) und `MicrosoftFehler('abgemeldet')`. `[UNAVAILABLE]` (Server kann gerade nicht prüfen),
-  Netz und Zeitgrenze bleiben „antwortet gerade nicht“. Eine Mail, deren Abholen an der Anmeldung scheitert, zählt
+  BAD auf eine spätere Suche) und `MicrosoftFehler('abgemeldet')`. Was RFC 5530 als vorübergehend kennzeichnet
+  (`[UNAVAILABLE]`, `[INUSE]`, `[LIMIT]`, `[SERVERBUG]`, „too many“, „temporar…“, ein erschöpftes Gmail-Kontingent,
+  `mail_anmeldung._VORUEBERGEHEND`), Netz und Zeitgrenze bleiben „antwortet gerade nicht“. Ein ausdrücklicher Code
+  einer echten Ablehnung (`[AUTHENTICATIONFAILED]`, `[AUTHORIZATIONFAILED]`, `[EXPIRED]`) geht dem Freitext vor:
+  „[AUTHENTICATIONFAILED] Too many failed login attempts, try again later“ ist eine Ablehnung. Eine Mail, deren Abholen an der Anmeldung scheitert, zählt
   nicht als gescheitert; sie bleibt offen und kommt nach der neuen Anmeldung dran. Nie Text vom Server.
+* **Nicht weiter anklopfen.** Nach einer abgelehnten Anmeldung ruht das ganze Postfach bis zu einer Stunde, statt das
+  alte Passwort weiter zu schicken; manche Anbieter sperren ein Konto nach wiederholten Fehlversuchen. Die Ruhe gilt
+  für jede Verbindung mit denselben Zugangsdaten (`connectors.mail.ANMELDERUHE`, vor jedem Verbindungsaufbau): die
+  Aufnahme in allen Ordnern zusammen (`Intake.anmeldung_ruht`, nicht je Ordner), offene Mails, den Nachtrag der
+  Beteiligten (`Intake.aktiv`) und den Posteingang auf Heute und unter „Nachrichten“. Dort steht dann derselbe Satz
+  wie im Stand, statt einer neuen Anmeldung (`postfach_lage.anmeldung_ruht`), und Heute verspricht nicht „sobald es
+  wieder antwortet“. Danach genau ein neuer Versuch, falls das Passwort beim Anbieter inzwischen doch wieder gilt.
+  Erkannt werden die Zugangsdaten an Server, Benutzer und einem Fingerabdruck des Passworts: Ein neues Passwort gilt
+  sofort, „Verbinden“ und „Neu anmelden“ fragen immer den Server. Eine vorübergehende Ablehnung wartet wachsend, erst
+  eine Minute, dann jeweils doppelt so lange, höchstens 30 Minuten (`VORLAEUFIG_ERST_S`, `VORLAEUFIG_HOECHSTENS_S`).
+  Nur im Speicher; nach einem Neustart höchstens ein Versuch. Ein Schritt, der noch mit dem alten Passwort lief,
+  schreibt nach „Neu anmelden“ keinen Grund mehr zurück (sein Leser gilt nicht mehr, `permitted`).
 * **Sagen.** Eine Aussage an allen Stellen (`mail_stand.GRUND['anmeldung']`, Heute unter „Postfachstand“, Assistent,
   „Für Techniker“): „Postfach Privat lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen oder das
   Passwort hat sich geändert. Melde dich unter Einstellungen → Zugänge neu an.“ Dazu `verweis: 'zugaenge'`; die
   Oberfläche macht aus dem Wortlaut „Einstellungen → Zugänge“ einen Klick (`verweis.satzMitVerweis`,
-  `SatzMitVerweis`). Auf Heute klappt „Postfachstand“ dann von selbst auf.
-* **Tun.** Unter Zugänge steht am Postfach derselbe Satz und „Neu anmelden“: nur das neue Passwort
-  (`POST /api/v1/integrations/mail/{id}/anmelden`). Kingfisher meldet sich vorher an; abgelehnt heißt ein Satz am Knopf,
-  nichts gespeichert. Kein zweites Postfach, also kein zweites Einlesen. Danach „Angemeldet. Kingfisher liest … gleich
-  weiter.“, und der nächste Takt löscht den Grund. Ein Microsoft-Konto gilt dann als nicht verbunden und zeigt seine
-  „Neu anmelden“-Karte (`microsoft_routes`).
-* **Tests:** `sidecar/tests/test_anmeldung_abgelaufen.py` (Einordnung, Gegenbeispiele, Satz, IMAP-Attrappe vom
-  geänderten Passwort bis zur neuen Anmeldung, Graph-Attrappe), `app/kingfisher/tests/anmeldung-abgelaufen.test.mjs`;
-  Browserprobe `scripts/probe_hereinholen_ui.py`. Sabotageproben: Erkennung abgeschaltet (7 Tests), Ursache am
-  `MailError` übersehen (4), Connector kennzeichnet nicht (2), `[UNAVAILABLE]` als Passwortfehler (2), jeder IMAP-Fehler
-  als Anmeldung (1), Neu anmelden ohne Prüfung (1), Abholfehler als gescheitert (1), Microsoft bleibt verbunden (1),
-  Satz ohne Verweis (3); in der Oberfläche Einrichtung mit „stockt gerade“, Weg nicht erkannt, Heute ohne Verweis (je 1).
+  `SatzMitVerweis`). Auf Heute klappt „Postfachstand“ dann von selbst auf (`heute.postfachMussHandeln`).
+* **Tun.** Unter Zugänge steht am Postfach derselbe Satz und der Weg, der zum Zugang passt
+  (`Einstellungen/neuAnmeldenWeg.ts`):
+  * Passwortpostfach: „Neu anmelden“, nur das neue Passwort (`POST /api/v1/integrations/mail/{id}/anmelden`, hinter dem
+    Zugangsschutz der übrigen Routen). Kingfisher meldet sich vorher an; abgelehnt heißt ein Satz am Feld, nichts
+    gespeichert, der Fokus bleibt im Feld. Kein zweites Postfach, also kein zweites Einlesen. Escape schließt das Feld
+    und gibt den Fokus an „Neu anmelden“ zurück; die Statuszeile (`role="status"`) steht immer im Dokument, damit
+    Bildschirmleser das „Angemeldet.“ auch hören.
+  * Ein CalDAV-Kalender, der bei der Einrichtung das Postfachpasswort übernommen hat (gleicher Benutzer, gleiches
+    gespeichertes Passwort), bekommt das neue mit, aber erst, nachdem Kingfisher ihn damit geöffnet hat. Gelingt das
+    nicht, bleibt sein Passwort, das Postfach ist trotzdem angemeldet, und ein Satz nennt alle betroffenen Kalender je
+    Grund mit dem nächsten Schritt (`server._kalender_satz`): Lehnt einer ab oder findet Kingfisher dort keinen Kalender
+    mehr, „Entferne ihn unter Einstellungen → Zugänge und verbinde ihn mit „Kalender hinzufügen“ neu.“ Antwortet er nur
+    gerade nicht, versucht Kingfisher es beim nächsten Kalenderabgleich von selbst (`server._kalender_nachpruefen`,
+    nur im Speicher). Ein Kalender mit eigenem Passwort bleibt, wie er ist.
+  * Google-Postfach: „Mit Google anmelden“ mit demselben Konto ersetzt die Freigabe des vorhandenen Postfachs, statt ein
+    zweites anzulegen (`google_routes`, Rückgabe `neu_angemeldet`). Ein Passwortpostfach derselben Adresse wird dabei
+    nicht umgebaut (409 mit Satz).
+  * Microsoft: das Konto gilt als nicht verbunden und zeigt seine „Neu anmelden“-Karte (`microsoft_routes`).
+
+  In allen drei Fällen löscht die neue Anmeldung den Grund sofort und weckt die Aufnahme
+  (`mail_intake.nach_neuer_anmeldung`); die Ruhezeit gilt dann nicht mehr. Stand kein Postfach an der Anmeldung
+  (erste Verbindung, vorsorglich neues Passwort), bleibt der Zeitplan in seinem Takt. Danach „Angemeldet. Kingfisher liest …
+  gleich weiter.“ Eine abgelehnte Eingabe (422) wiederholt nie Passwort, Geheimnis oder Token
+  (`server._ohne_geheimnisse_in_ablehnungen`): Die Eingabe fällt weg, wenn der Ort ein Geheimnis nennt, und immer,
+  wenn sie ein Objekt oder eine Liste ist; fehlt ein anderes Pflichtfeld, wäre sie sonst das ganze Objekt samt
+  Passwort. Ort und Meldung bleiben.
+* **Tests:** `sidecar/tests/test_anmeldung_abgelaufen.py` (Einordnung, Code vor Freitext, vorübergehende Codes,
+  Gegenbeispiele, Satz, Ruhezeit für jede Verbindung und das ganze Postfach, wachsende Wartezeit, IMAP-Attrappe vom
+  geänderten Passwort bis zur neuen Anmeldung samt Heute, „Nachrichten“ und Nachtrag, Wettlauf mit „Neu anmelden“,
+  Graph-Attrappe, Zugangsschutz, 422 ohne Geheimnis auch bei fehlendem Feld), `test_kalender_anmeldung.py`
+  (mitgenommener Kalender, alle im Satz, später selbst geprüft, eigenes Passwort bleibt), `test_google_oauth.py`
+  (Freigabe ersetzt, Grund gelöscht), `app/kingfisher/tests/anmeldung-abgelaufen.test.mjs`; Browserprobe
+  `scripts/probe_hereinholen_ui.py` mit Fokus, Escape und ohne Rahmen um die Statuszeile (sie bekommt den Fokus nur
+  für Bildschirmleser, ein Satz ist kein Bedienelement). Sabotageproben: Erkennung abgeschaltet (7 Tests), Ursache am `MailError` übersehen (4), Connector
+  kennzeichnet nicht (2), vorübergehende Codes als Passwortfehler (5), jeder IMAP-Fehler als Anmeldung (1), Passwort
+  jeden Takt (2), Neu anmelden ohne Prüfung (1), Passwort vor der Prüfung gespeichert (3), Route ohne Zugangsschutz
+  (1), Grund nicht gelöscht (3), nicht geweckt (2), auch ohne Grund geweckt (1), Microsoft löscht den Grund nicht (1), Kalender nicht mitgenommen
+  (1), Kalender ungeprüft ersetzt (1), Google legt zweites Postfach an (1), Ablehnung nennt das Passwort (1),
+  Abholfehler als gescheitert (1), Microsoft bleibt verbunden (1), Satz ohne Verweis (3); im Nach-Review (in einer
+  Kopie): Ruhe nur je Ordner (3), nach Ablehnung weiter zum nächsten Ordner (2), Connector ohne Ruhe (2), Heute und
+  „Nachrichten“ ohne Vorprüfung (1), Heute verspricht „sobald es wieder antwortet“ (1), Nachtrag ohne Ruhe (1),
+  ausdrückliche Prüfung beachtet die Ruhe (1), Fingerabdruck ohne Passwort (1), Neu anmelden vergisst die Ruhe nicht
+  (1), vorübergehend ohne Wartezeit (1), Freitext vor dem Code (3), Gmail-Kontingent als App-Passwort (1), Merkmal
+  „temporar“ entfernt (1), nur der letzte Kalender im Satz (1), kein späterer Versuch (1), Kalender mit eigenem
+  Passwort ersetzt (1), laufender Schritt schreibt nach Neu anmelden (je 1 für Bestandsaufnahme und Abholen), Google
+  ohne `nach_neuer_anmeldung` (1), 422 nennt Objekte mit Passwort (3); in der Oberfläche Einrichtung mit „stockt
+  gerade“, Weg nicht erkannt, Heute ohne Verweis, Postfachstand klappt nicht auf, kein „Angemeldet“, Escape,
+  Statuszeile nur bedingt, Fokus nach Ablehnung, Google ohne Weg, Rahmen um die Statuszeile (je 1).
 * **Offen:** Der regelmäßige Abruf ohne Einlesen (`sync_account`) merkt weiter nur `unavailable`. Ein Google-Zugang
-  über „Mit Google anmelden“ meldet Fehler beim Erneuern ohne Unterscheidung zwischen Netz und abgelaufener Anmeldung
-  (`GoogleError`); er bleibt deshalb „antwortet gerade nicht“.
+  meldet Fehler beim Erneuern des Tokens ohne Unterscheidung zwischen Netz und widerrufener Freigabe (`GoogleError`);
+  er bleibt deshalb „antwortet gerade nicht“; als abgelaufen zählt nur eine XOAUTH2-Anmeldung, die der IMAP-Server
+  ablehnt. Der Weg zurück ist aber keine Sackgasse mehr: „Mit Google anmelden“ ersetzt die Freigabe am vorhandenen
+  Postfach.
 
 ## Quellen zum Anklicken (Feed-Vorgaben)
 

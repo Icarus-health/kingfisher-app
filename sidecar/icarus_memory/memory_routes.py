@@ -239,11 +239,15 @@ def install_routes(app, guard):
     def execution_gate(result):
         # Model readiness may be cached; the execution pause is always live.
         # Reading this gate never checks a model or resumes background work.
-        from .hintergrund import GRUND_TEXT
-        gate = getattr(getattr(app.state, 'hintergrund', None), 'sperre', None)
+        from .hintergrund import GRUND_TEXT, ki_filter_an
+        steuerung = getattr(app.state, 'hintergrund', None)
+        gate = getattr(steuerung, 'sperre', None)
         reason = gate() if callable(gate) else 'unknown'
+        # Derselbe Satz wie in der Karte: verspricht nur, was gerade wirklich weiterläuft.
+        text = steuerung.grund_text(reason, ki_filter=ki_filter_an(app)) if reason and callable(
+            getattr(steuerung, 'grund_text', None)) else GRUND_TEXT.get(reason or '')
         return dict(result, execution_pause_reason=(
-            GRUND_TEXT.get(reason, 'Der aktuelle Verarbeitungsstand ist nicht freigegeben.') if reason else None))
+            (text or 'Der aktuelle Verarbeitungsstand ist nicht freigegeben.') if reason else None))
 
     def automation_status(*, verified=None, pending=None, probe=True):
         nonlocal automation_observation
