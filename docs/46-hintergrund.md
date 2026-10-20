@@ -299,6 +299,23 @@ Ganz anhalten, auch neue Post, lässt sich das Einlesen weiter je Postfach
 (Für Techniker → Zeitplan und Hintergrund, „Einlesen pausieren“) oder mit dem
 Schalter „Mails regelmäßig abrufen“.
 
+### Gesendet nachlesen (Oktober 2026)
+
+Ein IMAP-Konto liest Posteingang und Gesendet (welche Ordner, steht in
+[`14`](14-posteingang.md#welche-ordner)). Beide Ordner laufen im selben Takt:
+`_step` nimmt je Durchgang die zwei am längsten nicht aktualisierten Ordner
+(`ORDER BY updated LIMIT 2`), die Bestandsaufnahme wechselt also zwischen
+beiden, und jede Mail trägt Konto, Ordner, Postfachkennung und UID. Ein Konto
+von vor dem Umbau trägt Gesendet über „Gesendete Mails auch einlesen“ nach
+(`Intake.ergaenzen`): Der neue Ordner übernimmt den Pausenstand des Kontos,
+und der Zeitplan wird gleich geweckt (`aufnahme_wecken`). Solange nur Gesendet
+noch offen ist, sagt der Stand „Der Posteingang ist gelesen (…). Gesendete
+Mails werden nachgelesen: bisher … gefunden.“; „wird durchgesehen“ bleibt für
+ein Postfach, dessen Posteingang selbst noch nicht fertig ist. Eigene Mails
+laufen nicht durch den Werbefilter, Entwürfe (`\Draft`) werden gezählt, nicht
+aufgenommen; eine Mail an sich selbst wird in beiden Ordnern zur Quelle
+(bewusste Grenze, dort beschrieben).
+
 ### Neue Postfachkennung
 
 Vergibt der Server die Nummern eines Ordners neu (UIDVALIDITY; bei Microsoft
