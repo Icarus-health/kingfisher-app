@@ -93,10 +93,11 @@ def test_list_parses_quoted_escaped_and_literal_names_and_prefers_all_mail(mailb
 def test_list_falls_back_to_inbox_and_sent_without_special_use_all_mail(mailbox):
     # Ohne Gesamtbestand (`\All`) liest Kingfisher Posteingang **und** Gesendet: Ein Stabschef kennt die eigenen Zusagen.
     connector, fake = mailbox
-    fake.listed = [b'() NIL INBOX', b'(\\Sent) "/" "Sent Mail"', b'(\\HasNoChildren) "/" "Archiv"']
+    # „Verzonden“ steht in keiner Namensliste: Hier zählt allein das SPECIAL-USE-Attribut.
+    fake.listed = [b'() NIL INBOX', b'(\\Sent) "/" "Verzonden"', b'(\\HasNoChildren) "/" "Archiv"']
     folders = connector.folders()
     assert folders[0] == {"name": "INBOX", "attributes": [], "delimiter": None, "historical": True, "gesendet": False}
-    assert folders[1]["historical"] and folders[1]["gesendet"]
+    assert folders[1]["name"] == "Verzonden" and folders[1]["historical"] and folders[1]["gesendet"]
     assert not folders[2]["historical"] and not folders[2]["gesendet"]
     assert not folders[0]["gesendet"]
 
@@ -110,6 +111,14 @@ def test_list_recognises_sent_folder_by_name_without_attribute(mailbox, name):
     folders = connector.folders()
     assert [f["name"] for f in folders if f["historical"]] == ["INBOX", name]
     assert [f["name"] for f in folders if f["gesendet"]] == [name]
+
+
+def test_list_prefers_sent_attribute_over_an_earlier_name_match(mailbox):
+    # Das Attribut sagt, was der Server meint; ein Ordner, der nur „Sent“ heißt, steht dahinter zurück.
+    connector, fake = mailbox
+    fake.listed = [b'() NIL INBOX', b'(\\HasNoChildren) "/" "Sent"', b'(\\Sent) "/" "Verzonden"']
+    folders = connector.folders()
+    assert [f["name"] for f in folders if f["historical"]] == ["INBOX", "Verzonden"]
 
 
 def test_list_with_all_mail_marks_no_additional_sent_folder(mailbox):
