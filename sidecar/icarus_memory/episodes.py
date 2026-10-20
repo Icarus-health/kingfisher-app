@@ -629,7 +629,8 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
-                failure_diagnostics=False, task_rechecks=False, mail_headers=False) -> None:
+                failure_diagnostics=False, task_rechecks=False, mail_headers=False,
+                entscheidungen=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -641,6 +642,10 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         extra_keys.update(mail_header_index.KEYS)
         extra_indexes.update(mail_header_index.INDEXES)
         extra_triggers.update(mail_header_index.TRIGGERS)
+    if entscheidungen:
+        from . import akten_entscheidungen
+        extra_tables.update(akten_entscheidungen.TABLES)
+        extra_keys.update(akten_entscheidungen.PRIMARY_KEYS)
     if task_rechecks:
         from . import task_rechecks as rechecks
         extra_tables.update(rechecks.TABLES)
@@ -835,10 +840,10 @@ def _migrate_v20(connection):
     migrate_failure_diagnostics(connection)
 
 
-def _verify_v20(connection, *, task_rechecks=False, mail_headers=False):
+def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
-                task_rechecks=task_rechecks, mail_headers=mail_headers)
+                task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -867,6 +872,16 @@ def _verify_v22(connection):
     _verify_v20(connection, task_rechecks=True, mail_headers=True)
 
 
+def _migrate_v23(connection):
+    # Entscheidungen des Nutzers in Akten („erledigt“, „gilt nicht mehr“): nur Verweise, nur auf Klick.
+    from .akten_entscheidungen import migrate
+    migrate(connection)
+
+
+def _verify_v23(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -890,6 +905,7 @@ _MIGRATIONS = (
     Migration(20, "category_failure_diagnostics", _migrate_v20, _verify_v20),
     Migration(21, "task_source_rechecks", _migrate_v21, _verify_v21),
     Migration(22, "exact_mail_header_index", _migrate_v22, _verify_v22),
+    Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
 )
 
 

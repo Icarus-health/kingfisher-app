@@ -511,6 +511,13 @@ class Bezuege:
             self._register, self._register_stand = None, None
             return register
 
+    def eigene_adressen(self) -> list[str]:
+        """Die eigenen Adressen des Nutzers (für „von dir“ oder „an dich“ in der Akte)."""
+        try:
+            return [a for a in self._eigene() if a]
+        except Exception:  # noqa: BLE001 - ohne lesbare Einstellungen ist die Richtung nur unklar
+            return []
+
     def aenderungsstand(self) -> tuple:
         """Kennung dessen, was in die Bezüge eingeht: ändert sich mit jedem Schreibvorgang am Speicher.
 

@@ -9,6 +9,9 @@ Akte). Hier steht nur, wie der Server sie mit seinen Speichern verbindet:
 * `PUT  /api/v1/akten/quellen/{episode_id}/zuordnung`: „gehört dazu“ oder „gehört
   nicht dazu“ (maßgeblich, umkehrbar).
 * `DELETE /api/v1/akten/quellen/{episode_id}/zuordnung?sache=…`: Entscheidung zurücknehmen.
+* `PUT  /api/v1/akten/entscheidung`: eine Entscheidung des Nutzers zu einem Punkt der Akte („erledigt“,
+  „gilt nicht mehr“, „gilt weiter“; bei einem vermutlich abgesagten Termin „erledigt“ oder „findet doch statt“).
+* `DELETE /api/v1/akten/entscheidung?sache=…&ziel=…`: die Entscheidung zurücknehmen.
 * `POST /api/v1/akten/aktualisieren`: Bezüge neu bestimmen (der Server tut es
   von selbst; diese Route dient Prüfung und Diagnose).
 
@@ -40,6 +43,13 @@ logger = logging.getLogger(__name__)
 FRIST_S = 1.5
 #: Wie oft eine neue Antwort die Bezüge nachführt (Sekunden); eine Mail von eben fehlt der Akte höchstens so lange.
 NACHFUEHREN_ABSTAND_S = 3.0
+
+
+class EntscheidungIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    sache: str = Field(min_length=3, max_length=300)
+    ziel: str = Field(min_length=3, max_length=700)
+    entscheidung: Literal['erledigt', 'gilt_nicht', 'offen']
 
 
 class ZuordnungIn(BaseModel):
@@ -245,7 +255,7 @@ def register(app, guard) -> None:
             raise HTTPException(status_code=422, detail='Ungültige Sache.')
         berechnung = nachfuehren(app, warten=warten)
         _, akten = bausteine(app)
-        daten = akten.akte(sache, alle=alle)
+        daten = akten.akte(sache, alle=alle, ansicht=True)
         if daten is None:
             raise HTTPException(status_code=404, detail='Zu dieser Sache gibt es (noch) keine Quellen.')
         daten['berechnung'] = berechnung
@@ -256,6 +266,29 @@ def register(app, guard) -> None:
         # Zeigt die veraltete Lage nichts mehr (alles überholt), weiß die Oberfläche trotzdem, dass eine neue kommt.
         daten['lage_wird_aktualisiert'] = daten['lage'] is None and lagen.ausstehend(sache, daten)
         return daten
+
+    @app.put('/api/v1/akten/entscheidung', dependencies=guard)
+    def akten_entscheiden(body: EntscheidungIn) -> dict[str, Any]:
+        """Hält eine Entscheidung des Nutzers fest; sie gilt in jeder Akte, in der der Punkt vorkommt."""
+        from .akten_entscheidungen import Entscheidungen
+        if zerlegen(body.sache) is None:
+            raise HTTPException(status_code=422, detail='Ungültige Sache.')
+        _, akten = bausteine(app)
+        if body.ziel not in akten.ziele(body.sache):
+            raise HTTPException(status_code=404, detail='Diesen Punkt gibt es in der Akte nicht (mehr). Bitte neu laden.')
+        try:
+            return Entscheidungen(app.state.episodes).setzen(body.ziel, body.entscheidung)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.delete('/api/v1/akten/entscheidung', dependencies=guard)
+    def akten_entscheidung_zuruecknehmen(sache: str = Query(..., min_length=3, max_length=300),
+                                         ziel: str = Query(..., min_length=3, max_length=700)) -> dict[str, Any]:
+        """Nimmt eine Entscheidung zurück; danach gilt wieder, was die Akte vermutet."""
+        from .akten_entscheidungen import Entscheidungen
+        if not Entscheidungen(app.state.episodes).zuruecknehmen(ziel):
+            raise HTTPException(status_code=404, detail='Dazu gibt es keine Entscheidung von dir.')
+        return {'ziel': ziel, 'entscheidung': None}
 
     @app.get('/api/v1/akten/quellen/{episode_id}', dependencies=guard)
     def akten_quelle(episode_id: str) -> dict[str, Any]:

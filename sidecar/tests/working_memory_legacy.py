@@ -11,6 +11,10 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # v22 and earlier lack the user's decisions in Akten (Migration 23).
+    from icarus_memory.akten_entscheidungen import TABLES as ENTSCHEIDUNGEN
+    for table in ENTSCHEIDUNGEN:
+        connection.execute("DROP TABLE IF EXISTS " + table)
     # v20 and earlier also lack the later derived mail-header projection.
     from icarus_memory.mail_header_index import TABLES as HEADERS, TRIGGERS as HEADER_TRIGGERS
     for trigger in HEADER_TRIGGERS:
