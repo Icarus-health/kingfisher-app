@@ -6,7 +6,7 @@ import time
 from collections import Counter
 
 from . import logbuch
-from .mail_filter import excluded_folder, intake_screen
+from .mail_filter import Decision, excluded_folder, intake_screen
 from .episodes import sql_nicht_ignoriert
 from .mail_ingestion import remember
 from .connectors.mail import MailboxGenerationChanged, MailError
@@ -52,6 +52,14 @@ INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account'
 
 #: Gründe aus `mail_anmeldung.einordnen` und `MicrosoftFehler`, bei denen nur eine neue Anmeldung hilft.
 ANMELDE_GRUENDE = frozenset({'passwort', 'app_passwort', 'imap_aus', 'abgemeldet'})
+
+
+def eigene_mail(message):
+    """Vom Nutzer selbst geschrieben: Der Absender ist eine Adresse des Kontos, über das die Mail geholt wurde."""
+    from .episodes import mail_address
+    eigene = {mail_address(a) for a in (getattr(message, 'own_addresses', None) or ()) if mail_address(a)}
+    absender = mail_address(getattr(message, 'sender', '') or '')
+    return bool(absender) and absender in eigene
 
 
 def bestandsfehler(fehler):
@@ -128,6 +136,25 @@ class Intake:
             for folder in dict.fromkeys(folders):
                 self.db.execute('INSERT INTO mail_intake_folders(account,folder) VALUES(?,?) ON CONFLICT DO NOTHING',(account,folder))
             self.db.execute('UPDATE mail_intake_folders SET paused=0 WHERE account=?',(account,))
+
+    def ergaenzen(self, account, folders):
+        """Ordner zu einem laufenden Konto dazunehmen (etwa Gesendet bei einem Konto von vor dem Umbau).
+
+        Anders als `start` hebt das keine Pause auf: Die neuen Ordner übernehmen den Pausenstand des Kontos. Zurück
+        kommen die Ordner, die wirklich neu sind; vorhandene bleiben unberührt (`ON CONFLICT DO NOTHING`).
+        """
+        if not account or not folders or len(folders)>20 or any(not isinstance(f,str) or not f or len(f)>512 or excluded_folder(f) for f in folders):
+            raise ValueError('Ungültige Mailbereiche')
+        with self.episodes.transaction():
+            row=self.db.execute('SELECT MIN(paused) FROM mail_intake_folders WHERE account=?',(account,)).fetchone()
+            if row is None or row[0] is None:
+                raise ValueError('Die Aufnahme dieses Kontos ist nicht gestartet.')
+            neu=[]
+            for folder in dict.fromkeys(folders):
+                if self.db.execute('INSERT INTO mail_intake_folders(account,folder,paused) VALUES(?,?,?) ON CONFLICT DO NOTHING',
+                                   (account,folder,int(row[0]))).rowcount:
+                    neu.append(folder)
+            return neu
 
     def pause(self, account, paused):
         with self.episodes.transaction():
@@ -334,8 +361,25 @@ class Intake:
                         self.db.execute("UPDATE mail_intake_items SET retry_at=?,grund='zurueckgestellt' WHERE account=? AND folder=? AND generation=? AND uid=?",
                                         (time.time()+ZURUECKGESTELLT_S,account,item['folder'],item['generation'],item['uid']))
                     continue
+                # Ein Entwurf (`\\Draft`, Gmail führt ihn im Gesamtbestand) ist nichts, was geschah: nicht aufnehmen,
+                # aber zählen (Status `filtered:entwurf`), sonst stünde der Ordner für immer auf „4 von 5“.
+                if getattr(message,'entwurf',False):
+                    with gate:
+                        if not self._active(account,permitted):break
+                        with self.episodes.transaction():self._filtered(item,'entwurf')
+                    continue
                 # Model/network calls must not hold the conversation/permission lock.
-                decision=screen(message) if screen is not None else None
+                # Eine Mail, die der Nutzer selbst geschrieben hat (Absender ist eine eigene Adresse, etwa aus
+                # Gesendet), ist keine Werbung und kein Spam: Sie geht ohne Regeln und ohne Modell in die Aufnahme;
+                # sonst hielte ein KI-Filter ohne lokale KI die eigenen Zusagen als „unklar“ zurück. Nur der
+                # Spam-Kopf des eigenen Servers gilt weiter: Ein gefälschter eigener Absender ist das klassische
+                # Spam-Muster im Posteingang, und den Kopf setzt nicht die Mail, sondern der Anbieter.
+                if screen is None:
+                    decision=None
+                elif eigene_mail(message):
+                    decision=Decision(False,'spam','spam_header') if getattr(message,'spam_flag',False) else None
+                else:
+                    decision=screen(message)
                 with gate:
                     if not self._active(account,permitted):break
                     if decision is not None and not decision.include:
