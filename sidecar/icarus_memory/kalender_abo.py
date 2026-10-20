@@ -10,8 +10,9 @@ Was hier geschieht, und nur das:
   `https://calendar.google.com/calendar/ical/<kalender>/private-<schlüssel>/basic.ics`. Die öffentliche Adresse
   (`…/public/basic.ics`) geht nur bei öffentlichen Kalendern; eine Einbettungs- oder Einstellungsseite ist gar kein
   Kalender. `webcal://` wird `https://`.
-* `pruefe`: Die Adresse wird einmal abgerufen, mit Wanduhr (10 s), ohne Weiterleitung, höchstens 5 MB, und muss ein
-  gültiges iCalendar sein (`BEGIN:VCALENDAR`). Sonst ein Satz mit Grund. Hinaus geht nichts außer diesem Abruf.
+* `pruefe`: Die Adresse wird einmal abgerufen, mit Wanduhr (10 s), ohne Weiterleitung, höchstens `GROESSE` (25 MB,
+  dieselbe Grenze wie beim Lesen danach, `connectors.collections.ABO_GROESSE`), und muss ein gültiges iCalendar sein
+  (`BEGIN:VCALENDAR`). Sonst ein Satz mit Grund. Hinaus geht nichts außer diesem Abruf.
 
 Die Adresse ist ein Schlüssel zum ganzen Kalender: Sie liegt im Schlüsselbund wie ein Passwort (`server.py`), in den
 Einstellungen steht nur `https://calendar.google.com/` ohne den geheimen Teil. Die zwei Sätze der Karte, wo man die
@@ -26,13 +27,14 @@ from urllib.parse import unquote, urlsplit
 
 import httpx
 
-from .connectors.calendar import parse_events
+from .connectors.calendar import ascii_kompatibel, ical_kodierung, parse_events
+from .connectors.collections import ABO_GROESSE, zu_gross
 from .mail_anmeldung import Anmeldefehler
 from .zeitgrenze import mit_zeitgrenze
 
 #: So lange wartet „Kalender verbinden“ höchstens auf den Abruf (Sekunden, Wanduhr).
 ZEITGRENZE = 10.0
-GROESSE = 5_000_000
+GROESSE = ABO_GROESSE
 GOOGLE = 'calendar.google.com'
 #: Was in den Einstellungen statt der geheimen Adresse steht.
 GOOGLE_ANZEIGE = 'https://calendar.google.com/'
@@ -81,23 +83,22 @@ def _wer(einordnung: Einordnung) -> str:
     return 'Google' if einordnung.google else (urlsplit(einordnung.url).hostname or 'Der Kalenderdienst')
 
 
-def _abrufen(url: str, transport: Any = None) -> tuple[int, str]:
-    """(Status, Text) eines einzigen Abrufs, ohne Weiterleitung und höchstens `GROESSE` Bytes."""
+def _abrufen(url: str, transport: Any = None) -> tuple[int, bytes, str]:
+    """(Status, Bytes, Kodierung) eines einzigen Abrufs, ohne Weiterleitung und höchstens `GROESSE` Bytes."""
     optionen: dict[str, Any] = {'timeout': ZEITGRENZE - 1, 'follow_redirects': False}
     if transport is not None:
         optionen['transport'] = transport
     with httpx.Client(**optionen) as client:
         with client.stream('GET', url, headers={'Accept': 'text/calendar'}) as antwort:
             if antwort.status_code != 200:
-                return antwort.status_code, ''
+                return antwort.status_code, b'', 'utf-8'
             teile, groesse = [], 0
             for stueck in antwort.iter_bytes():
                 groesse += len(stueck)
                 if groesse > GROESSE:
-                    raise Anmeldefehler('zu_gross', 'Dieser Kalender ist größer als 5 MB; so viel liest Kingfisher '
-                                                    'über eine Adresse nicht.')
+                    raise Anmeldefehler('zu_gross', zu_gross(GROESSE))
                 teile.append(stueck)
-            return 200, b''.join(teile).decode(antwort.encoding or 'utf-8', errors='replace')
+            return 200, b''.join(teile), antwort.encoding or 'utf-8'
 
 
 def pruefe(roh: str, *, transport: Any = None, sekunden: float = ZEITGRENZE) -> tuple[Einordnung, Abo]:
@@ -107,7 +108,7 @@ def pruefe(roh: str, *, transport: Any = None, sekunden: float = ZEITGRENZE) -> 
         raise Anmeldefehler(einordnung.art, einordnung.satz)
     wer = _wer(einordnung)
     try:
-        status, text = mit_zeitgrenze(lambda: _abrufen(einordnung.url, transport), sekunden)
+        status, daten, kodierung = mit_zeitgrenze(lambda: _abrufen(einordnung.url, transport), sekunden)
     except Anmeldefehler:
         raise
     except Exception as exc:  # noqa: BLE001 - jeder Netzfehler wird zu einem Satz
@@ -125,12 +126,18 @@ def pruefe(roh: str, *, transport: Any = None, sekunden: float = ZEITGRENZE) -> 
         raise Anmeldefehler('abgelehnt', satz)
     if status != 200:
         raise Anmeldefehler('kein_kalender', f'{wer} liefert unter dieser Adresse keinen Kalender (Antwort {status}).')
-    if not re.search(r'^BEGIN:VCALENDAR\s*$', text[:2000].lstrip('﻿'), re.MULTILINE) or 'END:VCALENDAR' not in text:
+    # Die ganze Datei wird nicht als Text gehalten (ein Emoji vervierfachte sonst den Speicher, `parse_events`):
+    # Geprüft werden Anfang, Ende und Name, gezählt wird je Termin.
+    kodierung = ical_kodierung(kodierung)
+    if not ascii_kompatibel(kodierung):
+        daten, kodierung = daten.decode(kodierung, errors='replace').encode('utf-8'), 'utf-8'
+    kopf = daten[:8000].decode(kodierung, errors='replace')
+    if not re.search(r'^BEGIN:VCALENDAR\s*$', kopf[:2000].lstrip('﻿'), re.MULTILINE) or b'END:VCALENDAR' not in daten:
         raise Anmeldefehler('kein_kalender', 'Unter dieser Adresse liegt kein Kalender; bitte kopiere die Adresse '
                                              'noch einmal vollständig.')
-    name = re.search(r'^X-WR-CALNAME:(.*)$', text, re.MULTILINE)
-    anzeige = ' '.join((name.group(1) if name else '').split())[:80]
-    return einordnung, Abo(name=anzeige, termine=len(parse_events(text)))
+    name = re.search(rb'^X-WR-CALNAME:(.*)$', daten, re.MULTILINE)
+    anzeige = ' '.join((name.group(1).decode(kodierung, errors='replace') if name else '').split())[:80]
+    return einordnung, Abo(name=anzeige, termine=len(parse_events(daten, kodierung=kodierung)))
 
 
 __all__ = ['Abo', 'Einordnung', 'GOOGLE_ANZEIGE', 'ZEITGRENZE', 'einordnen', 'pruefe']
