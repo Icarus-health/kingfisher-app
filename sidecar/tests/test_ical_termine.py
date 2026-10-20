@@ -786,3 +786,125 @@ def test_dateien_des_rechners_sind_keine_zeitzone_des_termins():
         assert zone(name) is not None, name
     (termin,) = parse_events(ics(['UID:l', 'DTSTART;TZID=localtime:20261020T090000']))
     assert termin.start == utc(2026, 10, 20, 9)  # unbekannt: die bisherige Regel, nicht die Zone des Rechners
+
+
+def _zaehle(regel: str, beginn: str = 'DTSTART;TZID=Europe/Berlin:20250106T090000', von=VON, bis=BIS, *zusatz):
+    termine = parse_events(ics(serie(beginn, 'DURATION:PT1H', f'RRULE:{regel}', *zusatz)), von, bis)
+    return termine
+
+
+def _nach_dateutil(regel: str, beginn: datetime, von: datetime, bis: datetime) -> int:
+    """Gegenprobe: die Zahl der Termine im Fenster, wie dateutil selbst sie rechnet (ohne Rücksicht auf Dauer)."""
+    from dateutil.rrule import rrulestr
+    return len(rrulestr(regel, dtstart=beginn).between(von, bis, inc=True))
+
+
+def test_rdate_vor_dem_beginn_laesst_die_serie_nicht_schrumpfen():
+    """Review 2, M1: Die Dichte wurde ab DTSTART gemessen; ein früheres RDATE gab einen negativen Abstand."""
+    woechentlich = _zaehle('FREQ=WEEKLY', 'DTSTART;TZID=Europe/Berlin:20261005T090000', VON, utc(2026, 11, 1),
+                           'RDATE;TZID=Europe/Berlin:20260905T090000')
+    assert beginne(woechentlich) == [utc(2026, 10, d, 7) for d in (5, 12, 19)] + [utc(2026, 10, 26, 8)]
+    nur_rdate = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20261005T090000', 'DURATION:PT1H',
+                                       'RDATE;TZID=Europe/Berlin:20251005T090000,20261012T090000,20261019T090000')),
+                             VON, utc(2026, 11, 1))
+    assert beginne(nur_rdate) == [utc(2026, 10, d, 7) for d in (5, 12, 19)]
+
+
+@pytest.mark.parametrize('regel', [
+    'FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;BYMONTH=1,2,3,4,5,6,9,10,11,12',
+    'FREQ=DAILY;INTERVAL=2;BYMONTH=6,7,8',
+    'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1',
+    'FREQ=WEEKLY;INTERVAL=2;BYMONTHDAY=1,15',
+])
+def test_erfuellbare_regeln_mit_abstand_oder_bysetpos_werden_ausgeklappt(regel):
+    """Review 2, M2: Diese Regeln galten pauschal als nicht unterstützt und verloren alle Termine."""
+    from zoneinfo import ZoneInfo
+    von, bis = utc(2026, 6, 1), utc(2026, 12, 1)
+    termine = _zaehle(regel, von=von, bis=bis)
+    erwartet = _nach_dateutil(regel, datetime(2025, 1, 6, 9, tzinfo=ZoneInfo('Europe/Berlin')), von, bis)
+    assert erwartet > 5 and len(termine) == erwartet and all('#' in t.uid for t in termine)
+
+
+def test_nicht_ausgeklappte_serie_hinterlaesst_einen_hinweis(caplog):
+    for regel, satz in (('FREQ=DAILY;INTERVAL=2;BYMONTHDAY=1,15', 'nicht ausklappt'),
+                        ('FREQ=SECONDLY', 'nicht ausklappt'),
+                        ('FREQ=MONTHLY;BYMONTH=2;BYMONTHDAY=30', 'trifft nach ihrer Regel nie')):
+        caplog.clear()
+        assert [t.uid for t in _zaehle(regel)] == ['serie@probe'], regel
+        assert satz in caplog.text, regel
+
+
+LANGSAM = [  # Review 2, M3: dateutil rechnete hier Sekunden bis Minuten je Serie. Spalte 3: ausgeklappt?
+    ('20250101T090000', 'FREQ=SECONDLY;BYHOUR=9;BYMINUTE=0;BYSECOND=0', False),
+    ('20200101T090000', 'FREQ=SECONDLY;BYHOUR=9;BYMINUTE=0;BYSECOND=0', False),
+    ('20290301T090000', 'FREQ=SECONDLY;BYMONTH=2;BYMONTHDAY=29;BYHOUR=9;BYMINUTE=0;BYSECOND=0', False),
+    ('20200301T090000', 'FREQ=MINUTELY;BYMONTH=2,10;BYMONTHDAY=29,30;BYHOUR=9;BYMINUTE=0', False),
+    ('20200101T090000', 'FREQ=MINUTELY;BYHOUR=9;BYMINUTE=0;COUNT=3000', False),
+    ('20200101T090000', 'FREQ=HOURLY;INTERVAL=24;COUNT=1500', True),
+    ('19900101T090000', 'FREQ=MINUTELY;BYHOUR=9;BYMINUTE=0', True),
+    ('19750101T090000', 'FREQ=MINUTELY;INTERVAL=30', True),
+    ('19900101T090000', 'FREQ=HOURLY;BYHOUR=9;BYDAY=MO', True),
+    ('19900101T090000', 'FREQ=HOURLY', True),
+    ('20050103T090000', 'FREQ=HOURLY;BYHOUR=9,10,11,12,13,14,15,16,17;BYDAY=MO,TU,WE,TH,FR', True),
+    ('20260101T090000', 'FREQ=MONTHLY;INTERVAL=7;BYMONTH=2;BYMONTHDAY=31', False),
+    ('20260101T090000', 'FREQ=MONTHLY;INTERVAL=11;BYMONTH=2;BYMONTHDAY=30', False),
+    ('20260101T090000', 'FREQ=YEARLY;INTERVAL=3;BYMONTH=2;BYMONTHDAY=30', False),
+    ('20260101T090000', 'FREQ=YEARLY;BYMONTH=1;BYHOUR=' + ','.join(map(str, range(24))) + ';BYMINUTE='
+     + ','.join(map(str, range(60))) + ';BYSETPOS=-1', True),
+    ('20260101T090000', 'FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30;BYHOUR=' + ','.join(map(str, range(24))) + ';BYMINUTE='
+     + ','.join(map(str, range(60))) + ';BYSECOND=' + ','.join(map(str, range(60))), False),
+]
+
+
+@pytest.mark.parametrize(('beginn', 'regel', 'ausgeklappt'), LANGSAM)
+def test_jede_serie_ist_in_unter_einer_sekunde_entschieden(beginn, regel, ausgeklappt):
+    """Fenster 20.10. bis 19.11.2026. Nicht ausgeklappt heißt: Die Serie bleibt ihr Beginn (ein Termin)."""
+    import time
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+    von, bis = utc(2026, 10, 20), utc(2026, 11, 19)
+    start = time.perf_counter()
+    termine = _zaehle(regel, f'DTSTART;TZID=Europe/Berlin:{beginn}', von, bis)
+    assert time.perf_counter() - start < 1
+    if not ausgeklappt:
+        assert [t.uid for t in termine] == ['serie@probe']
+    else:  # Termine von einer Stunde, die das Fenster berühren, wie dateutil sie rechnet
+        erster = datetime.strptime(beginn, '%Y%m%dT%H%M%S').replace(tzinfo=ZoneInfo('Europe/Berlin'))
+        from dateutil.rrule import rrulestr
+        erwartet = len(rrulestr(regel, dtstart=erster).between(von - timedelta(hours=1), bis))
+        assert len(termine) == erwartet and all('#' in t.uid for t in termine)
+
+
+def test_dichte_entscheidet_unabhaengig_von_fenster_und_alter():
+    """Review 2, N2: Eine Viertelstunden-Serie kippte nach rund drei Wochen von selbst, und Anzeige (30 Tage) und
+    Gedächtnis (4 Jahre) entschieden verschieden."""
+    from datetime import timedelta
+    for tage in (5, 15, 19, 22, 30):
+        beginn = (datetime(2026, 10, 20) - timedelta(days=tage)).strftime('%Y%m%dT000000')
+        termine = _zaehle('FREQ=MINUTELY;INTERVAL=15', f'DTSTART;TZID=Europe/Berlin:{beginn}',
+                          utc(2026, 10, 20), utc(2026, 10, 21))
+        assert [t.uid for t in termine] == ['serie@probe'], tage
+    for bis in (utc(2026, 11, 19), utc(2030, 10, 20)):
+        termine = _zaehle('FREQ=MINUTELY;INTERVAL=15;COUNT=1500', 'DTSTART;TZID=Europe/Berlin:20261110T000000',
+                          utc(2026, 10, 20), bis)
+        assert [t.uid for t in termine] == ['serie@probe'], bis
+
+
+def test_regel_mit_monatsfilter_ab_dem_31_trifft_nie():
+    """`vom_beginn`: Ohne BYMONTHDAY nimmt dateutil den Tag des Beginns, der 31. gibt es im Februar und April nie."""
+    import time
+    start = time.perf_counter()
+    termine = _zaehle('FREQ=MONTHLY;BYMONTH=2,4', 'DTSTART;TZID=Europe/Berlin:20250131T090000')
+    assert time.perf_counter() - start < 1 and [t.uid for t in termine] == ['serie@probe']
+
+
+@pytest.mark.parametrize(('regel', 'von', 'bis', 'erwartet'), [
+    ('FREQ=MONTHLY;BYDAY=SA,-2FR', utc(2026, 10, 1), utc(2026, 11, 1),
+     [utc(2026, 10, d, 7) for d in (3, 10, 17, 23, 24)] + [utc(2026, 10, 31, 8)]),
+    ('FREQ=YEARLY;BYDAY=TU,1TH', utc(2027, 1, 1), utc(2027, 1, 15), [utc(2027, 1, d, 8) for d in (5, 7, 12)]),
+    ('FREQ=MONTHLY;BYDAY=SA,-2FR;COUNT=3', utc(2026, 10, 1), utc(2026, 11, 1), [utc(2026, 10, d, 7) for d in (3, 10, 17)]),
+])
+def test_gemischte_wochentage_sind_eine_vereinigung(regel, von, bis, erwartet):
+    """Review 2, N6: RFC 5545 vereinigt BYDAY-Werte; dateutil verlangte schlichte und gezählte zugleich."""
+    termine = _zaehle(regel, 'DTSTART;TZID=Europe/Berlin:20261003T090000', von, bis)
+    assert beginne(termine) == erwartet
