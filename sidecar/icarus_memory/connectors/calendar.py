@@ -587,6 +587,8 @@ def _termin(termin: _Komponente, uid: str, beginn: _Zeit | None = None, ende: da
 def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
            fenster: tuple[datetime, datetime] | None) -> list[Event]:
     """Die Termine einer Serie: Hauptkomponente `serie` und ihre geänderten Einzeltermine (`RECURRENCE-ID`)."""
+    if serie is not None and serie.wiederholt and serie.abgesagt:
+        return []  # eine abgesagte Serie sagt auch ihre verschobenen Termine ab
     beginn = _zeit(*serie.felder["DTSTART"]) if serie is not None and "DTSTART" in serie.felder else None
     ersatz: dict[str, _Komponente] = {}
     ergebnis: list[Event] = []

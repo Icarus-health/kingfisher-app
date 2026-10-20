@@ -615,3 +615,14 @@ def test_zeitzone_mit_vorangestelltem_herausgeber_von_libical_und_mozilla():
     (termin,) = parse_events(ics(['UID:l', 'DTSTART;TZID=/freeassociation.sourceforge.net/Europe/Berlin:20261020T090000',
                                   'DTEND;TZID=/freeassociation.sourceforge.net/Europe/Berlin:20261020T100000']))
     assert (termin.start, termin.end) == (utc(2026, 10, 20, 7), utc(2026, 10, 20, 8))
+
+
+def test_abgesagte_serie_nimmt_ihre_geaenderten_einzeltermine_mit():
+    verschoben = ['UID:serie@probe', 'RECURRENCE-ID;TZID=Europe/Berlin:20261026T090000', 'SUMMARY:Jour fixe (später)',
+                  'DTSTART;TZID=Europe/Berlin:20261027T140000', 'DURATION:PT1H']
+    abgesagt = ics(serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;COUNT=3', 'STATUS:CANCELLED'), verschoben)
+    assert parse_events(abgesagt, VON, BIS) == [] and parse_events(abgesagt) == []
+    # Vom Server ausgeklappt (ohne Regel) betrifft die Absage des ersten Termins nur ihn.
+    erster = serie('DTSTART:20261019T070000Z', 'DTEND:20261019T080000Z', 'STATUS:CANCELLED')
+    zweiter = serie('RECURRENCE-ID:20261026T080000Z', 'DTSTART:20261026T080000Z', 'DTEND:20261026T090000Z')
+    assert [t.uid for t in parse_events(ics(erster, zweiter), VON, BIS)] == ['serie@probe#20261026T080000Z']
