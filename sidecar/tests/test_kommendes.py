@@ -360,6 +360,19 @@ def test_im_gespraech_ohne_modell_und_vor_dem_fragenverstaendnis(api, monkeypatc
     assert letzte['metadata']['context']['source_links'][0]['label'] == 'Quelle 1 öffnen'
 
 
+def test_answer_memory_versteht_die_frage_nicht_erst_mit_dem_modell(api, monkeypatch):
+    """Auch ohne mitgegebene Anfrage (direkter Aufruf) kommt der neue Weg vor `frage_verstehen`."""
+    app, _ = api
+    kalender(app, termin(tage=1, stunde=14))
+
+    def verboten(text):
+        raise AssertionError('frage_verstehen darf vor dem neuen Weg nicht laufen')
+
+    monkeypatch.setattr(app.state.agent, 'frage_verstehen', verboten)
+    turn = app.state.agent.answer_memory('Was brauche ich morgen?')
+    assert turn.context['answer_contract']['status'] == 'kommendes' and 'Gespräch Druckerei' in turn.reply
+
+
 def test_vergangenes_geht_im_gespraech_weiter_den_alten_weg(api, monkeypatch):
     app, client = api
     from icarus_memory import server as server_modul
