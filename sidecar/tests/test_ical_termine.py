@@ -541,3 +541,47 @@ def test_ein_unerwarteter_fehler_in_einem_termin_nimmt_die_anderen_nicht_mit(mon
 
     monkeypatch.setattr(calendar, '_termin', kaputt)
     assert [t.uid for t in parse_events(ics(EXTREM[0], NORMAL))] == ['normal']
+
+
+UNERFUELLBAR = [
+    'FREQ=DAILY;BYMONTH=2;BYMONTHDAY=30',
+    'FREQ=HOURLY;BYMONTH=2;BYMONTHDAY=30',
+    'FREQ=MINUTELY;BYHOUR=9;BYMINUTE=0;BYMONTH=2;BYMONTHDAY=30',
+    'FREQ=WEEKLY;BYMONTH=4;BYMONTHDAY=31',
+    'FREQ=YEARLY;BYYEARDAY=60;BYMONTH=6',
+    'FREQ=MONTHLY;BYDAY=1MO;BYMONTHDAY=20',
+    'FREQ=MONTHLY;BYDAY=MO;BYSETPOS=6',
+    'FREQ=MONTHLY;BYDAY=6MO',
+    'FREQ=MONTHLY;INTERVAL=2;BYMONTH=2',
+    'FREQ=DAILY;INTERVAL=7;BYDAY=TU',
+    'FREQ=YEARLY;INTERVAL=2;BYMONTH=2;BYMONTHDAY=29',
+    'FREQ=WEEKLY;BYDAY=MO;BYSETPOS=2',
+]
+
+
+@pytest.mark.parametrize('regel', UNERFUELLBAR)
+def test_unerfuellbare_regel_bleibt_ein_termin_und_kostet_keine_zeit(regel):
+    """dateutil rechnet eine Regel, die nie trifft, bis ins Jahr 9999 (bis zu Minuten je Aufruf). Sie wird vorher
+    erkannt und bleibt wie eine unlesbare Regel ihr erster Termin. Beginn: Montag, 6. Januar 2025."""
+    import time
+    beginn = time.perf_counter()
+    termine = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20250106T090000', 'DURATION:PT1H', f'RRULE:{regel}'),
+                               NORMAL), VON, BIS)
+    assert time.perf_counter() - beginn < 1
+    assert [t.uid for t in termine] == ['serie@probe', 'normal']
+
+
+@pytest.mark.parametrize(('regel', 'von', 'bis', 'anzahl'), [
+    ('FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=29', utc(2028, 1, 1), utc(2028, 3, 1), 1),
+    ('FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1', VON, BIS, 3),
+    ('FREQ=MONTHLY;BYDAY=5FR', VON, BIS, 1),
+    ('FREQ=MONTHLY;INTERVAL=2;BYMONTH=3,5', utc(2027, 1, 1), utc(2027, 7, 1), 2),
+    ('FREQ=DAILY;INTERVAL=7;BYDAY=MO', VON, utc(2026, 11, 1), 4),
+    ('FREQ=DAILY;INTERVAL=2;BYDAY=TU', VON, utc(2026, 11, 1), 2),
+    ('FREQ=DAILY;BYMONTH=2;BYMONTHDAY=29;BYDAY=MO', utc(2044, 2, 1), utc(2044, 3, 1), 1),
+    ('FREQ=WEEKLY;BYMONTH=2;BYMONTHDAY=29', utc(2028, 2, 1), utc(2028, 3, 1), 1),
+])
+def test_seltene_aber_erfuellbare_regeln_werden_weiter_ausgeklappt(regel, von, bis, anzahl):
+    termine = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20250106T090000', 'DURATION:PT1H', f'RRULE:{regel}')),
+                           von, bis)
+    assert len(termine) == anzahl and all('#' in t.uid for t in termine)

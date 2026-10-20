@@ -29,6 +29,7 @@ from __future__ import annotations
 import hashlib
 import heapq
 import logging
+import math
 import re
 import uuid
 import xml.etree.ElementTree as ET
@@ -381,6 +382,92 @@ def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
     return zeit.moment
 
 
+_WOCHENTAGE = ("MO", "TU", "WE", "TH", "FR", "SA", "SU")
+_FEINER_ALS_MONAT = ("WEEKLY", "DAILY", "HOURLY", "MINUTELY", "SECONDLY")
+_SEKUNDEN_JE_SCHRITT = {"DAILY": 86400, "HOURLY": 3600, "MINUTELY": 60, "SECONDLY": 1}
+_ZYKLUS_JAHRE = 400
+"""Nach 400 Jahren wiederholt sich der gregorianische Kalender genau: Daten, Wochentage, Schalttage und
+Kalenderwochen (146.097 Tage sind 20.871 Wochen)."""
+
+
+def _zahlen(wert: str) -> list[int]:
+    try:
+        return [int(teil) for teil in wert.split(",") if teil.strip()]
+    except ValueError:
+        return []  # dateutil lehnt den Wert ohnehin ab
+
+
+def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool:
+    """Ob eine Regel je einen Termin liefert und hier unterstützt ist.
+
+    dateutil rechnet eine Regel, die nie trifft, bis ins Jahr 9999 durch, ohne
+    einen Termin zu liefern: `FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30` kostet
+    Minuten je Aufruf. Deshalb vorher, und alles ohne Uhr, also bei jedem Abruf
+    gleich:
+
+    * **Nicht unterstützt** (wie eine unlesbare Regel): BYSETPOS und BYWEEKNO
+      außer bei monatlichen und jährlichen Regeln (BYWEEKNO erlaubt RFC 5545 nur
+      jährlich), und wöchentliche oder feinere Regeln mit Abstand (INTERVAL) und
+      Monats- oder Datumsfilter. Ob die je treffen, hinge von der Phase des
+      Abstands ab; Kalender schreiben solche Regeln nicht.
+    * **Phase:** Eine tägliche oder feinere Regel, deren Abstand ganze Wochen
+      sind, trifft nur den Wochentag ihres Beginns; eine monatliche mit Abstand
+      nur Monate derselben Restklasse.
+    * **Probe:** Kann ein Filter ins Leere greifen (Monatstag über 28, auch der
+      vom Beginn übernommene, Jahrestag, Kalenderwoche, BYSETPOS, ab dem fünften
+      Wochentag im Monat, ein gezählter Wochentag zusammen mit Monatstagen),
+      rechnet dateutil die Regel über einen ganzen 400-Jahre-Zyklus, gelegt an
+      dessen Ende vor dem Jahr 9999 (höchstens 800 Jahre). Was dort nie trifft,
+      trifft nie. Tägliche und feinere Regeln prüft dabei eine jährliche Regel
+      mit denselben Datumsfiltern.
+    """
+    freq = teile.get("FREQ", "").upper()
+    intervall = int(teile.get("INTERVAL", "1"))
+    tage = [teil.strip().upper() for teil in teile.get("BYDAY", "").split(",") if teil.strip()]
+    gezaehlt = [tag[:-2] for tag in tage if tag[:-2] not in ("", "+")]
+    datumsfilter = teile.keys() & {"BYMONTH", "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO"}
+    if freq in _FEINER_ALS_MONAT and ("BYSETPOS" in teile or "BYWEEKNO" in teile or (intervall > 1 and datumsfilter)):
+        return False
+    if freq == "MONTHLY" and "BYWEEKNO" in teile:
+        return False
+    if freq in _SEKUNDEN_JE_SCHRITT and tage and intervall * _SEKUNDEN_JE_SCHRITT[freq] % (7 * 86400) == 0:
+        if _WOCHENTAGE[beginn.moment.weekday()] not in {tag[-2:] for tag in tage}:
+            return False
+    if freq == "MONTHLY" and intervall > 1 and "BYMONTH" in teile:
+        rest = math.gcd(intervall, 12)
+        if all((monat - beginn.moment.month) % rest for monat in _zahlen(teile["BYMONTH"])):
+            return False
+    monatstage = _zahlen(teile.get("BYMONTHDAY", ""))
+    try:
+        zaehlungen = [abs(int(zahl)) for zahl in gezaehlt]
+    except ValueError:
+        zaehlungen = [99]  # unlesbar: die Probe entscheidet (dateutil lehnt es ab)
+    vom_beginn = not (tage or monatstage or {"BYYEARDAY", "BYWEEKNO"} & teile.keys()) and beginn.moment.day > 28
+    leer_moeglich = ("BYYEARDAY" in teile or "BYWEEKNO" in teile or any(abs(tag) > 28 for tag in monatstage)
+                     or (freq in ("MONTHLY", "YEARLY") and ("BYSETPOS" in teile or vom_beginn
+                                                            or any(zahl > 4 for zahl in zaehlungen)
+                                                            or (zaehlungen and monatstage))))
+    if not leer_moeglich:
+        return True
+    if freq in ("MONTHLY", "YEARLY"):
+        if (_ZYKLUS_JAHRE * (12 if freq == "MONTHLY" else 1)) % intervall:
+            return True  # die Phase reicht über den Zyklus; dateutil endet dann nach höchstens 8000/INTERVAL Jahren
+        probe = {name: inhalt for name, inhalt in teile.items() if name != "COUNT"}
+    else:
+        probe = {"FREQ": "YEARLY", **{name: teile[name] for name in ("BYMONTH", "BYMONTHDAY", "BYYEARDAY")
+                                      if name in teile}}
+        if tage:
+            probe["BYDAY"] = ",".join(sorted({tag[-2:] for tag in tage}))
+    wandzeit = beginn.moment.replace(tzinfo=None)
+    jahr = wandzeit.year + _ZYKLUS_JAHRE * max(0, -(-(9200 - wandzeit.year) // _ZYKLUS_JAHRE))
+    try:
+        regel = rrulestr(";".join(f"{name}={inhalt}" for name, inhalt in probe.items()),
+                         dtstart=wandzeit.replace(year=jahr))
+        return next(iter(regel), None) is not None
+    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
+        return False
+
+
 def _regel(wert: str, beginn: _Zeit):
     """Eine RRULE ab `beginn` als `dateutil.rrule.rrule`, oder None, wenn sie unlesbar ist.
 
@@ -403,6 +490,8 @@ def _regel(wert: str, beginn: _Zeit):
             return None  # nur positive Abstände (RFC 5545); 0 wiederholte denselben Termin ohne Ende
         teile.append(f"{name}={inhalt.strip()}")
     try:
+        if not _erfuellbar(dict(teil.split("=", 1) for teil in teile), beginn):
+            return None
         regel = rrulestr(";".join(teile), dtstart=beginn.moment)
         return regel.replace(until=bis) if bis is not None else regel
     except (ValueError, TypeError, KeyError, IndexError, OverflowError):
