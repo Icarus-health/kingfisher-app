@@ -280,8 +280,22 @@ Generation **desselben Ordners** geholt hat (`Intake._frueher_geholt`), zeigt
 der neue Eintrag auf diese Quelle (Status „schon bekannt“), statt eine zweite
 anzulegen; eine ausgeschlossene bleibt ausgeschlossen.
 
-Bewusst nicht verknüpft wird: gleiche Message-ID mit anderem Text, Absender
-oder Betreff (die Message-ID ist ein fremdes Kopffeld); eine Mail ohne
+Jede alte Quelle geht dabei an höchstens eine neue UID: Zeigt schon eine andere
+UID der aktuellen Generation desselben Ordners auf sie, prüft die Aufnahme die
+nächste passende alte Quelle, sonst legt sie eine eigene an. Lagen zwei gleiche
+Mails unter der alten Kennung, findet so jede neue UID ihre eigene; liegt eine
+Mail nach dem Wechsel zweimal da, verknüpft die erste, die zweite wird eine
+eigene Quelle. Dieselbe Mail in einem anderen Ordner (der seine eigene Kennung
+hat) ist keine frühere Fassung; ordnerübergreifend verknüpft nur eine Kennung
+des Anbieters.
+
+Ein Ziel für Aktionen beim Anbieter (`local_mail_routes._remote_uid`) nennt nur
+die UID aus der aktuellen Generation des Ordners. Hat die neue
+Bestandsaufnahme die Mail noch nicht wiedergefunden, gibt es keine Aktion statt
+einer veralteten UID, die auf eine andere Mail zeigen könnte.
+
+Bewusst nicht verknüpft wird: gleiche Message-ID mit anderem Text, Absender,
+Betreff oder Zeitpunkt (die Message-ID ist ein fremdes Kopffeld); eine Mail ohne
 Message-ID; dieselbe Mail in einem anderen Konto; und zwei Nachrichten
 derselben Generation (zwei UIDs, gleicher Inhalt). Diese bleiben zwei Quellen
 mit je eigenem Beleg, wie `test_mail_ingestion.py::test_mail_identity_and_versions_keep_independent_evidence`
@@ -307,8 +321,10 @@ Generationen und verknüpft deshalb nicht.
   und `test_mac_calendar_background_gate.py`. Oberfläche:
   `app/kingfisher/tests/pause-neue-post.test.mjs`; Browserprobe
   `scripts/probe_hereinholen_ui.py`.
-- `sidecar/tests/test_mail_intake.py` (neue Postfachkennung, Gegenbeispiele) und
-  `sidecar/tests/test_neue_postfachkennung.py` (API gegen die IMAP-Attrappe).
+- `sidecar/tests/test_mail_intake.py` (neue Postfachkennung, Gegenbeispiele,
+  eine alte Quelle je neuer UID, anderer Ordner),
+  `sidecar/tests/test_neue_postfachkennung.py` (API gegen die IMAP-Attrappe) und
+  `sidecar/tests/test_local_mail_routes.py::test_remote_uid_gilt_nur_fuer_die_aktuelle_ordnergeneration`.
 - `sidecar/tests/test_bestand_neueste_zuerst.py`: großes Postfach neueste
   zuerst, Fenster von oben nach unten, Abbruch und Neustart ohne Lücke und
   Doppelung, aufsteigend begonnene Aufnahme nach dem Update.
@@ -321,8 +337,10 @@ Reihenfolge nach Kennung statt nach Nutzen (4 Tests), Verlauf der Mailaufnahme
 wieder alt nach neu (1), Bestandsaufnahme wieder aufsteigend (3), Fenster unter
 die alte untere Grenze (2), Zeiger rückt bei gescheiterter Suche weiter (2),
 absteigender Zeiger nicht gespeichert (2), Abgleich bei neuer Postfachkennung
-abgeschaltet (3), Prüfsumme, Absender oder Betreff nicht verglichen (je 1),
-jede gleiche Mail im Konto oder dieselbe Generation als „früher“ (je 1); zur
+abgeschaltet (3), Prüfsumme, Absender, Betreff oder Zeitpunkt nicht verglichen
+(je 1), jede gleiche Mail im Konto, dieselbe Generation oder ein anderer Ordner
+als „früher“ (je 1), eine alte Quelle an zwei neue UIDs (2), Aktionsziel aus
+einer alten Generation (1); zur
 Pause: kein leichter Takt (6), Akku hält auch neue Post an (7), Eingabe zählt
 in der Pause nicht (2), ältere Mails trotz Pause geholt (1), Bestandsaufnahme
 trotz Pause (2), leichter Lauf rückt den vollen Durchgang vor (4), Kalender und

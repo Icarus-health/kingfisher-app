@@ -344,11 +344,16 @@ class Intake:
 
         Vergibt der Server die Nummern neu (UIDVALIDITY, bei Microsoft eine verlorene Ablage), beginnt die
         Bestandsaufnahme von vorn. Dieselbe Mail wird dann mit der vorhandenen Quelle verknüpft statt doppelt angelegt
-        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen.
+        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen. Darum
+        nimmt eine Quelle, die schon eine andere UID der aktuellen Generation für sich hat, keine zweite: Jede alte
+        Quelle geht an höchstens eine neue UID, gleiche Mails finden der Reihe nach je ihre eigene.
         """
         with self.episodes._lock:
-            return self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
-                                   (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
+            frueher=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
+                                    (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
+            vergeben=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation=? AND uid<>? LIMIT 1',
+                                     (episode_id,item['account'],item['folder'],item['generation'],item['uid'])).fetchone() is not None
+            return frueher and not vergeben
 
     def _history_backlog(self, account):
         """Same bounded, content-free backlog check for capture and its status."""

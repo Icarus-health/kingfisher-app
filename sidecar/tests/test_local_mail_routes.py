@@ -83,15 +83,36 @@ def test_only_proven_inbox_account_uid_can_enable_remote_actions(fixture):
     archived = mail(store, 'a', '2', 'Archive source')
     duplicate = mail(store, 'b', '1', 'Other account')
     with store.transaction():
+        for account, folder in [('a','INBOX'),('a','Archive'),('b','INBOX')]:
+            store._conn.execute('INSERT INTO mail_intake_folders(account,folder,generation) VALUES(?,?,?)', (account,folder,'123'))
         for account, folder, uid, episode, status in [('a','INBOX',1,inbox,'captured'),('a','Archive',2,archived,'captured'),('b','INBOX',1,duplicate,'duplicate')]:
             store._conn.execute('INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES(?,?,?,?,?,?,?)', (account,folder,'123',uid,'history',status,episode.id))
     assert client.get(f'/api/v1/local-mail/{inbox.id}').json()['remote_uid'] == 'a:123.1'
     assert client.get(f'/api/v1/local-mail/{archived.id}').json()['remote_uid'] is None
     assert client.get(f'/api/v1/local-mail/{duplicate.id}').json()['remote_uid'] == 'b:123.1'
-    # Conflicting inventory mappings never pick an arbitrary remote message.
+    # Zwei UIDs derselben Generation für eine Quelle: nie eine beliebige wählen.
     with store.transaction():
-        store._conn.execute('INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES(?,?,?,?,?,?,?)', ('a','INBOX','456',1,'history','captured',inbox.id))
+        store._conn.execute('INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES(?,?,?,?,?,?,?)', ('a','INBOX','123',9,'history','duplicate',inbox.id))
     assert client.get(f'/api/v1/local-mail/{inbox.id}').json()['remote_uid'] is None
+
+
+def test_remote_uid_gilt_nur_fuer_die_aktuelle_ordnergeneration(fixture):
+    # Nach einem UIDVALIDITY-Wechsel zeigt eine alte UID auf eine andere oder keine Mail. Die Aktion darf nur die UID
+    # der aktuellen Generation des Ordners nennen, auch wenn die alte Zeile noch als 'captured' dasteht.
+    from icarus_memory.mail_intake import Intake
+    store, client = fixture
+    Intake(store)
+    quelle = mail(store, 'a', '1', 'Inbox source')
+    with store.transaction():
+        store._conn.execute('INSERT INTO mail_intake_folders(account,folder,generation) VALUES(?,?,?)', ('a','INBOX','456'))
+        store._conn.execute('INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES(?,?,?,?,?,?,?)', ('a','INBOX','123',1,'history','captured',quelle.id))
+    # Die neue Bestandsaufnahme hat die Mail noch nicht erreicht: keine Aktion statt einer veralteten UID.
+    assert client.get(f'/api/v1/local-mail/{quelle.id}').json()['remote_uid'] is None
+    with store.transaction():
+        store._conn.execute('INSERT INTO mail_intake_items(account,folder,generation,uid,lane,status,episode_id) VALUES(?,?,?,?,?,?,?)', ('a','INBOX','456',7,'history','duplicate',quelle.id))
+    # Wiedergefunden in der neuen Generation: genau ihre UID, nicht die alte und nicht „keine“.
+    assert client.get(f'/api/v1/local-mail/{quelle.id}').json()['remote_uid'] == 'a:456.7'
+    assert client.get('/api/v1/local-mail').json()['items'][0]['remote_uid'] == 'a:456.7'
 
 def test_content_search_matches_unicode_case_and_manual_known_sync(fixture):
     from icarus_memory.mail_stand import merke_gelesen

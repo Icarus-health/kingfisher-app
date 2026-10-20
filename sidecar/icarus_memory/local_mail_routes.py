@@ -36,10 +36,16 @@ def _last_sync(app, account):
 
 def _remote_uid(store, episode_id, account_id):
     # Archive folder UIDs are not inbox UIDs; no guessed Message-ID mappings.
-    exists = store._conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mail_intake_items'").fetchone()
+    # Nur die aktuelle Generation des Ordners zählt: Nach einem UIDVALIDITY-Wechsel zeigt eine alte UID auf eine
+    # andere oder keine Mail. Steht die Quelle dort (noch) nicht, gibt es keine Aktion statt einer veralteten.
+    exists = store._conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('mail_intake_items','mail_intake_folders')").fetchone()[0] == 2
     if not exists or not account_id:
         return None
-    rows = store._conn.execute("SELECT account, generation, uid FROM mail_intake_items WHERE episode_id=? AND upper(folder)='INBOX' AND account=? AND status IN ('captured','duplicate') LIMIT 2", (episode_id, account_id)).fetchall()
+    rows = store._conn.execute(
+        "SELECT i.account, i.generation, i.uid FROM mail_intake_items i "
+        "JOIN mail_intake_folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation "
+        "WHERE i.episode_id=? AND upper(i.folder)='INBOX' AND i.account=? AND i.status IN ('captured','duplicate') LIMIT 2",
+        (episode_id, account_id)).fetchall()
     if len(rows) != 1 or not re.fullmatch(r'\d+', str(rows[0][1])) or not re.fullmatch(r'\d+', str(rows[0][2])):
         return None
     return f'{account_id}:{rows[0][1]}.{rows[0][2]}'
