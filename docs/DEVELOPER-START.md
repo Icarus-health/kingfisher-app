@@ -1,8 +1,35 @@
 # Einstieg für Entwickler und Claude Code
 
+**Aktueller Stand (19.10.):** `main` und die veröffentlichte Fassung sind **1.0.25**
+(Release mit `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
+und die Alltagsabläufe (#54) sind seit dem 12.10. in `main`, ebenso alle Commits der
+früheren Entwürfe #43 (lokaler Sprachentwurf) und #48 (korrigierte Quellen erneut
+prüfen). Neue Arbeit beginnt auf `main`, nicht auf älteren Vorschau-Branches. Die vier
+Fassungen vom 19.10. sichern vor allem die Mailaufnahme ab:
+
+| Fassung | PR | Inhalt | Nachweis |
+|---|---|---|---|
+| 1.0.22 | #73 | Personenakten an belegte Textstellen gebunden; begrenzter Claude-Import vorbereitet | [Protokoll](runs/2026-10-19-person-scope-cloud-api/README.md) |
+| 1.0.23 | #74 | Sammelpostfächer, bedingte Angebote, Anfragebudget, Werbevorfilter | [Protokoll](runs/2026-10-19-mail-import-quality/README.md) |
+| 1.0.24 | #75 | Kurznamen und Fristrollen in Personenakten; Sonnet 5.5 für den Mailimport | [Protokoll](runs/2026-10-19-personen-fristen-sonnet/README.md) |
+| 1.0.25 | #76 | Einmalige Belegkorrektur im Cloudpaket; historische Quellenfristen sichtbar | [Protokoll](runs/2026-10-19-belege-fristen-sonnet/README.md) |
+
+Offen laut diesen Protokollen: die Prüfung des normalen Mac-Updates seit 1.0.22, eine
+Probe mit aktuellen, handlungsrelevanten Mails statt der überwiegend historischen
+Stichprobe und eine Abnahme über das ganze Postfach. Der große Mailimport bleibt
+pausiert, bis eine solche Probe trägt
+([Reihenfolge](64-cos-abnahme-status-2026-10-09.md#reihenfolge-bis-zum-brauchbaren-alltag)).
+Bekannte Grenze: Komplexe deutsche Fristformulierungen bleiben teils ohne abgeleitete
+Frist. Zuletzt protokolliert ist auf dem persönlichen Mac die Fassung 1.0.12
+([14.10.](runs/2026-10-14-workflow-completion/README.md)); spätere Installationen sind
+nicht protokolliert. Seit 1.0.18 tragen die Notizen „App mindestens: 1.0.18“: Läuft
+eine ältere Fassung, zeigt Heute statt „Jetzt aktualisieren“ den Weg zur Download-Seite.
+
+Die folgenden datierten Absätze beschreiben frühere Prüfstände.
+
 **19.10. – Personenakten und Claude API (PR #73, noch nicht installiert):** Modell-Erwähnungen bleiben auf belegte Textstellen begrenzt; alte abgeleitete Beziehungen werden nach erfolgreicher Neueinordnung verworfen. Claude-Import ist getrennt von lokalen Rollen vorbereitet, mit datierten Anbieterhinweisen, Paketfreigabe und begrenzten Aufrufen. Lokale Tests und Bedienprobe mit künstlichen Daten bestanden; echte Modell-/Kontoprüfung und Mac-Update bleiben offen. [Nachweis und Grenzen](runs/2026-10-19-person-scope-cloud-api/README.md).
 
-**Aktueller persönlicher Stand (11.10.):** Gekoppelte App und Backend `1.0.6-preview.6979131` installiert und gestartet, ursprüngliche Daten/Zugänge erhalten. Frische Sicherung, Wiederherstellungsprüfung, Kopienmigration und sieben unveränderte Kerntabellen bestätigt. Native Teilabnahme mit bestätigter Mac-Kalenderfreigabe (490 synchronisierte Termine) und noch offenem Dateiimport; kein vollständiger CoS-Arbeitstag behauptet. Draft #54/#46 weiterhin getrennt von main. [Installation und offene Bedienprüfungen](runs/2026-10-11-daily-ux-installation/README.md). Frühere „nicht installiert“-Hinweise unten sind historische Prüfstände.
+**Persönlicher Stand (11.10.):** Gekoppelte App und Backend `1.0.6-preview.6979131` installiert und gestartet, ursprüngliche Daten/Zugänge erhalten. Frische Sicherung, Wiederherstellungsprüfung, Kopienmigration und sieben unveränderte Kerntabellen bestätigt. Native Teilabnahme mit bestätigter Mac-Kalenderfreigabe (490 synchronisierte Termine) und noch offenem Dateiimport; kein vollständiger CoS-Arbeitstag behauptet. Draft #54/#46 weiterhin getrennt von main. [Installation und offene Bedienprüfungen](runs/2026-10-11-daily-ux-installation/README.md). Frühere „nicht installiert“-Hinweise unten sind historische Prüfstände.
 
 **Persönliche Updatevorprüfung (10.10.):** Dateien und Verzeichnisse des vollständigen Bestands samt Besitzern, Rechten und Änderungszeiten lokal gesichert und separat wiederhergestellt; v20→v21 auf Kopie erhält 344 Originalquellen und 333 Quellenverweise. Backend-Suite in zwei Läufen abgeklärt (6.166 unterschiedliche Tests + 26 Subtests bestanden, ein Linux-Fall ausgelassen). Mac vor Umschaltung erneut gesperrt; noch nicht installiert. [Nachweis](runs/2026-10-10-personal-upgrade-preflight/README.md).
 
@@ -10,26 +37,24 @@
 **Lokales Alltagspaket gebaut (10.10.):** `1.0.6-preview.6979131` umfasst PR #54 bis Code-Commit `6979131`; Mac-App, eingebettete UI und Backend passend gebunden, künstliche Paketabläufe und DMG-Signatur geprüft. Noch nicht persönlich installiert oder im Mac-Fenster abgenommen. [Paketnachweis](runs/2026-10-10-daily-ux-package/README.md).
 
 
-Einstiegsstand: 9. Oktober 2026. Die gemeinsame CoS-Vorschau liegt in
-[Draft #46](https://github.com/Icarus-health/kingfisher-app/pull/46), Branch
-`integration/cos-preview-reviewed-20261009`; sie ist noch nicht in `main`
-übernommen oder auf dem persönlichen Mac installiert. Vor weiterer Arbeit
-den [aktuellen Abnahmestand](64-cos-abnahme-status-2026-10-09.md) und die
+Einstiegsstand vom 9. Oktober 2026: Die gemeinsame CoS-Vorschau entstand in
+[#46](https://github.com/Icarus-health/kingfisher-app/pull/46) auf
+`integration/cos-preview-reviewed-20261009` und ist seit dem 12. Oktober in `main`.
+Vor weiterer Arbeit den [Abnahmestand](64-cos-abnahme-status-2026-10-09.md) und die
 [Alltagsabnahme](60-alltagsabnahme.md) lesen. Die dort verlinkten Lieferprotokolle
 trennen aktuelle Prüfungen von historischen Ergebnissen und offenen Nachweisen.
-Nicht erneut bauen, was bereits in der gemeinsamen Vorschau enthalten ist.
+Nicht erneut bauen, was bereits in `main` enthalten ist.
 
-Ergänzung vom 10. Oktober: [Draft #54](https://github.com/Icarus-health/kingfisher-app/pull/54)
-auf `feat/memory-feedback-20261010` ergänzt die gemeinsame Vorschau um direkte
+Ergänzung vom 10. Oktober: [#54](https://github.com/Icarus-health/kingfisher-app/pull/54)
+auf `feat/memory-feedback-20261010` ergänzte die gemeinsame Vorschau um direkte
 [Quellenkorrekturen](runs/2026-10-10-memory-feedback/README.md), einen
 [Projektüberblick](runs/2026-10-10-project-overview/README.md) sowie
-[Health-Verlauf und Gesprächsaufnahme](runs/2026-10-10-health-conversation-ux/README.md).
-Nicht in #46/main übernommen oder auf dem persönlichen Mac installiert. Neueste
-Prüfung: 187 betroffene Backendtests, 545 UI-Tests, Web-Build und Assetvertrag;
-unabhängige Reviews mit vor Veröffentlichung behobenen Gegenfällen. Ein neues
-gekoppeltes Mac-/Backend-Paket und die native Abnahme sind weiterhin offen.
+[Health-Verlauf und Gesprächsaufnahme](runs/2026-10-10-health-conversation-ux/README.md);
+seit dem 12. Oktober in `main`. Prüfung damals: 187 betroffene Backendtests, 545 UI-Tests,
+Web-Build und Assetvertrag; unabhängige Reviews mit vor Veröffentlichung behobenen
+Gegenfällen.
 
-Stand der folgenden Codekarte: 2. Oktober 2026 (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
+Stand der folgenden Codekarte: 2. Oktober 2026, am 19. Oktober um die Cloud-Einordnung von Mailpaketen ergänzt (Codekarte um Download und Updates, vorher um Start und Einrichtung aus der zweiten Fremdprobe, um Kreis und private Akten ergänzt, M4, dazu Geburtstage, Wiederkehrendes,
 Sammelbestätigung, PDF-Anhänge und Cloud-Ordner; um Microsoft 365 (M5), den lesbaren Quellenhinweis und Google ohne
 Cloud-Projekt; am 30. September um die Abschnitte langer Quellen; sonst 29. September, einschließlich PR #124). Veröffentlichte Basis: `main`.
 Kingfisher ist ein aktiver lokaler Pilot, kein fertig qualifizierter autonomer CoS.
@@ -95,6 +120,7 @@ des vorhandenen Kerns; dessen Paketnamen müssen nicht umbenannt werden.
 | Erste Stunde ohne Widerspruch (Fremdprobe 2, Befunde 10 bis 22, 26 bis 29): Zähler und Uhr auf Heute, Tastenhinweis je Gerät, „Gestützt auf“ oder „ohne Beleg“ unter jeder Antwort, Meldung mit Satz, Hintergrundfehler in Alltagssprache, eine Aussage je Postfach an allen Stellen, Rückmeldung nach „Aktualisieren“, Verarbeitung in Alltagssprache, Kreis in jeder Personenakte, bestätigter Geburtstag in Kalender und Akte, Kontakte nur mit Beteiligung, widerspruchsfreie Angaben unter „Für Techniker“ | `mail_stand.py` (`GET /api/v1/mail/stand`, `stand` in `…/mail/intake`, `mail_stand` und `kosten_modell` in `…/schedule`), `logbuch.fehler_satz`, `EpisodeStore.neue_von_aussen`, `episodes.ist_eigene_quelle`, `personen.ist_kontakt`, `wiederkehrendes.bestaetigter_geburtstag`/`kalender_eintraege`, `GET /api/v1/geburtstag`, `kreis.stand` (`ohne_vorschlag`), `device_profile.mit_eigener_messung`; Oberfläche `heute.ts`, `beleg.ts`, `verarbeitung.ts`, `technik.ts`, `system.ts` (`tastenHinweis`, `ausstattungSatz`), `PostfachStand.tsx`, `KreisKarten.tsx` (`GeburtstagKarte`); Tests `test_fremdprobe2_alltag.py`, `heute`/`beleg`/`verarbeitung`/`technik.test.mjs`; Browserprobe `scripts/probe_fremdprobe2_alltag_ui.py`; [Doku](51-fremdprobe-2.md#8-stand-je-befund-alltag) |
 | Start und Einrichtung ohne Nachschlagen (Fremdprobe 2, Befunde 1 bis 9, 23 bis 25, 30): Doppelklick-Starter (Docker Desktop finden und starten, Schlüssel ohne `openssl`, Ollama-Hinweis); Mailserver einer eigenen Domain selbst finden (SRV, Autoconfig, MX gegen den Katalog), nur Passwort; Kalender per `_caldavs._tcp` oder `/.well-known/caldav` auf dem Mailserver; Fehler am Knopf; Modelle im Hintergrund laden (ein Lauf im Sidecar, Fortschritt auf Heute, ehrliche Antwort solange); Briefing in der eingestellten Zeitzone; Ordner per Auswahl | `Kingfisher starten.command`, `scripts/kingfisher_starten.py`, `server_finden.py`, `dns_abfrage.py` (SRV), `anbieter_erkennen.py`, `kalender_anmeldung.eigener_kalender`, `mail_anmeldung.anbieter_name`, `model_pull.PullManager.starte_reihe`, `POST/GET /api/v1/models/laden` in `model_roles_routes.py`, `agent_verdrahtung.modell_laedt_satz`, `ordner_lokal.unterordner`; Oberfläche `PostfachMitAdresse.tsx`, `postfachWeg.ts`, `adresseEntwurf.ts`, `useImBlick.ts`, `KalenderMitAdresse.tsx`, `kalenderWeg.ts`, `Einrichtung/RechnerKarte.tsx`, `Einrichtung/rechner.ts`, `Einrichtung/lernt.ts`, `OrdnerImBrowser.tsx`; Attrappen `sidecar/tests/autoconfig_attrappe.py`, `dns_attrappe.py` (SRV); Browserprobe `scripts/probe_fremdprobe2_einrichtung_ui.py`; [Doku](51-fremdprobe-2.md#8-stand-je-befund), [Zugänge](47-einstellungen.md#eigene-domain-ohne-servereingabe-fremdprobe-2-oktober-2026) |
 | Mailaufnahme ohne stilles Scheitern (Fremdprobe 3, Befunde 1, 2, 3, 8, 9, 12, 13, 15): Grund je gescheiterter Mail (Migration 17), Satz und „Erneut versuchen“ in „Kingfisher lernt gerade“, Sortieren nach der Einrichtung vorgemerkt, Abruf alle 30 Minuten, Herkunftskennungen nur für Techniker, kein Zähler als Priorität | `mail_intake_grund.py`, `mail_intake.py`, `mail_stand.py` (`gescheitert`), `memory_routes.py` (`vormerken`), `config._abstand`, `scheduler.SICHERUNG_ABSTAND`; Oberfläche `Einrichtung/MailErneut.tsx`, `Einrichtung/lernt.ts`, `Einrichtung/fertig.ts`, `HerkunftAnzeige.tsx`, `verarbeitung.ts`; Attrappe `sidecar/tests/imap_attrappe.py` (`probe_postfach`); Tests `test_mailaufnahme_ende_zu_ende.py`, `test_mail_intake_grund.py`, `test_fremdprobe3_hintergrund.py`; Browserprobe `scripts/probe_fremdprobe3_ui.py`; [Doku](52-fremdprobe-3.md#stand-je-befund-1-2-3-8-9-12-13-15) |
+| Cloud-Einordnung ausgewählter Mailpakete (nur nach ausdrücklicher Freigabe, Vorschau überträgt nichts; ChatGPT oder Claude API; Paket an Anbieter, Modell, Quellen- und Zugangsfassung gebunden, begrenztes Anfragebudget, höchstens eine Belegkorrektur je Abschnitt, kein Ausweichanbieter). Cloud-Zugänge vorbereiten: Schlüssel nur schreibbar, keine automatische Wahl eines Standardanbieters, feste regionale Endpunkte, datierte Anbieterangaben | `cloud_memory.py`, `cloud_memory_routes.py`, `cloud_import_provider.py`, `cloud_access_routes.py`, `cloud_credentials.py`, `regional_cloud.py`, `cloud_provider_facts.py`; Oberfläche `CloudMemory.tsx`, `cloud-preview.ts`, `CloudAccess.tsx`; Tests `test_cloud_memory.py`, `test_cloud_import_provider.py`, `test_cloud_import_planning.py`, `test_cloud_evidence_repair.py`, `test_cloud_access.py`, `test_regional_cloud.py`; [Nachweis](runs/2026-10-19-person-scope-cloud-api/README.md) |
 | Retrieval und Antwortkontext | `sidecar/icarus_memory/agent.py` |
 | Aufnahmeoberfläche | `app/kingfisher/src/MailIntake.tsx`, `SourceCategories.tsx` |
 | Mac-Fenster (einzige Hülle): ladbare App `Kingfisher.dmg` (erster Start ohne Terminal, Update nur über die Brücke `kingfisher`) und Fenster für die Arbeitskopie | `macos/App/` (reine Logik in `macos/App/Logic/`), `macos/Shared/`, `macos/build_dmg.sh`, `.github/workflows/mac-app.yml`, `macos/KingfisherApp.swift`, `scripts/build_mac_window.py`; Tests `macos/test_mac_app.py`, `macos/tests/main.swift`; [Anleitung](../macos/README.md), [ADR 0008](adr/0008-docker-und-mac-fenster.md#nachtrag-download-als-dmg) |
@@ -198,7 +224,7 @@ Einen privaten Repositoryzugang für den Reviewer nutzen; nicht öffentlich
 schalten. Diese Einstiegskontrolle ersetzt keinen vollständigen Secrets-Audit
 der Git-Historie.
 
-Laufzeitmigrationen benötigen vorherige Sicherung. Schema 17 ist aktuell (Grund gescheiterter Mails; davor 16, Kreis und private Akten-Arten);
+Laufzeitmigrationen benötigen vorherige Sicherung. Im Episodenbestand ist Schema 22 aktuell (exakter Mail-Kopfindex; davor 21, erneute Prüfung korrigierter Quellen, und 20, Diagnose gescheiterter Kategorien; Liste in `episodes._MIGRATIONS`);
 älteren Code nicht gegen das migrierte Datenvolume starten. Rückkehr nur über
 passenden Snapshot auf einer getrennten Instanz. Quellenentzug, menschliche
 Korrekturen, Identitätstrennung und Aktionsfreigaben müssen erhalten bleiben.
