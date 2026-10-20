@@ -220,7 +220,10 @@ und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
   als UTC. Eine Uhrzeit ohne Zone („floating“) ist nach RFC 5545 die Ortszeit des
   Lesers, also `KINGFISHER_TIMEZONE` (bisher UTC). Ganztägige Termine und `…Z` bleiben
   wie bisher. Parameter in Anführungszeichen (`TZID="(UTC+01:00) …"`) zerbrechen die
-  Zeile nicht mehr.
+  Zeile nicht mehr. Von libical und älteren Mozilla-Kalendern
+  (`/freeassociation.sourceforge.net/Europe/Berlin`, `/mozilla.org/…/Europe/Berlin`)
+  gelten die letzten drei oder zwei Pfadteile; ein einzelner nie (`/etc/localtime`
+  wäre die Zone des Rechners).
 * **Ende.** DTEND, sonst DTSTART plus DURATION, sonst ein Tag (Datum) oder kein
   Zeitraum (Uhrzeit), wie RFC 5545 es vorgibt. Termine ohne DTEND fehlten bisher still
   im Gedächtnis.
@@ -231,8 +234,26 @@ und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
 * **Serien.** Im gelesenen Zeitraum ausgeklappt, mit RDATE, EXDATE und geänderten
   oder abgesagten Einzelterminen (RECURRENCE-ID); DTSTART ist immer ein Termin. Die
   Regeln rechnet `python-dateutil`. Ohne Zeitraum bleibt eine Serie ein Termin (so
-  zählt `kalender_abo.pruefe`). Eine Serie, die mehr als 100.000 Wiederholungen bis
-  zum Fenster braucht, wird mit einem Satz abgelehnt statt still gekürzt.
+  zählt `kalender_abo.pruefe`). COUNT zählt DTSTART mit, auch wenn er nicht zur
+  Regel passt (RFC 5545, 3.3.10). Eine abgesagte Serie sagt ihre verschobenen
+  Einzeltermine mit ab.
+* **Was eine Serie zu einem einzigen Termin macht** (wie eine unlesbare Regel, ihr
+  erster Termin; die Quelle bleibt): Eine Regel, die nie trifft, wird vorher erkannt
+  (`_erfuellbar`, ohne Uhr): Phase von INTERVAL (Wochentag, Monat) und, wo ein Filter
+  ins Leere greifen kann, eine Probe mit dateutil über einen 400-Jahre-Zyklus vor dem
+  Jahr 9999. Ohne sie rechnete dateutil bis 9999 (`FREQ=MINUTELY;BYMONTH=2;
+  BYMONTHDAY=30`: 160 s je Aufruf). Nicht unterstützt: BYSETPOS und BYWEEKNO außer
+  monatlich und jährlich, wöchentlich oder feiner mit INTERVAL und Datumsfilter. Zu
+  dicht ist eine Serie mit mehr als 48 Terminen am Tag im Mittel ab ihrem ersten
+  Termin oder mehr als einer Million Schritten bis zum Fensterende (halbstündlich 57
+  Jahre); dazu ein Hinweis im Protokoll. Gezählt wird die Dichte, nicht die Zahl seit
+  Serienbeginn: Eine stündliche Serie kippt nicht nach Jahren von selbst. Vorher warf
+  eine Serie nach 100.000 Wiederholungen einen Fehler, und die ganze Quelle fiel aus.
+* **Unmögliche Daten.** Ein Termin am Rand des Jahres 9999 oder mit riesiger Dauer
+  behält, was sich darstellen lässt (Ende oder Beginn unbekannt); was sich gar nicht
+  rechnen lässt, fehlt allein (`parse_events` fängt je Termingruppe ab). Vorher warf
+  er `OverflowError`: Anzeige ohne die Quelle, Abgleich abgebrochen, „Kalender
+  verbinden“ mit Serverfehler.
 * **Kennung eines Einzeltermins:** `UID#<ursprünglicher Beginn>` (UTC, bei
   ganztägigen das Datum, ohne Zone die Ortszeit), gleich bei jedem Abruf und in jedem
   Fenster. Ein verschobener Termin behält sie und ist eine neue Fassung; ein per
@@ -243,7 +264,9 @@ und von einer Serie kam nur der erste Termin an. Code: `connectors/calendar.py`
   offen; die Kennung soll nicht vom Server abhängen. Die Antwort wird als XML gelesen
   (vorher als Rohtext: `&amp;` im Titel, `&#13;` an jedem Wert).
 * **Abo-Größe:** höchstens 25 MB statt 5 MB, beim Einrichten und beim Lesen dieselbe
-  Grenze und derselbe Satz; gelesen wird nur bis zur Grenze.
+  Grenze und derselbe Satz; gelesen wird nur bis zur Grenze. Die Datei bleibt Bytes
+  und wird je Termin dekodiert (im Zeichensatz der Antwort): Ein einziges Emoji
+  vervierfachte sonst den Text im Speicher.
 
 **Einmalig nach dem Update.** Beim ersten Abgleich wird die bisherige einzige
 Episode jeder CalDAV- oder Abo-Serie entzogen (ihre Kennung war die blanke UID), die
@@ -259,8 +282,13 @@ Teilnehmern, Meet-Text und Erinnerung; jede 200. ist eine offene Wochenserie sei
 | Datei | Termine | Anzeige (30 Tage) | Gedächtnisfenster (4 Jahre) |
 |---|---|---|---|
 | 5 MB | 2.812, davon 14 Serien | 0,5 s | 0,6 s (5.932 Termine) |
-| 25 MB | 14.053, davon 70 Serien | 2,6 s | 2,9 s (28.821 Termine), rund 110 MB Speicher zusätzlich |
+| 25 MB | 13.997, davon 69 Serien | 2,4 s | 2,8 s (28.557 Termine) |
 | 5 MB, jede 20. eine Serie | 2.810, davon 140 Serien | 0,9 s | 1,3 s (32.138 Termine) |
+
+Speicher an der Spitze (Python-Objekte, `tracemalloc`) bei 25 MB: Lesen rund 105 MB,
+Einrichten rund 100 MB, mit und ohne Emoji (vorher bei 23 MB 121 MB, mit einem Emoji
+213 MB). Mehr brauchen nur Felder, die selbst viel Text außerhalb von Latin-1
+enthalten (zwei bis vier Byte je Zeichen).
 
 **Sabotageprobe.** Je Zusicherung absichtlich gebrochen, `test_ical_termine.py` lief,
 danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
@@ -284,7 +312,28 @@ danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
 | Fenster übergangen; Fensterbeginn ohne Spielraum | `…vor_dem_fenster_beginnt…` |
 | DTSTART nicht als erster Termin | `…beginn_ist_immer_ein_termin…` |
 | ohne Fenster ausgeklappt | `…ohne_fenster_bleibt_eine_serie_ein_termin` |
-| zu dichte Serie still gekürzt | `…zu_dichte_serie_wird_ehrlich_abgelehnt` |
+| zu dichte Serie kippt die Quelle, statt ein Termin zu bleiben; kein Hinweis | `…zu_dichte_serie_bleibt_ein_termin_mit_hinweis…` |
+| Dichte nicht gemessen, nur Höchstzahl (dauert über 1 s) | `…zu_dichte_serie_bleibt_ein_termin_mit_hinweis…` |
+| Zählung ab Serienbeginn wie vorher (100.000) | `…dichte_aber_zulaessige_serie_kippt_nicht_mit_der_zeit` |
+| Prüfung auf Erfüllbarkeit abgeschaltet | 12 Fälle von `…unerfuellbare_regel_bleibt_ein_termin_und_kostet_keine_zeit` |
+| Probe abgeschaltet | 9 dieser Fälle |
+| Phase von INTERVAL (Wochentag, Monat) nicht geprüft | je der passende Fall |
+| BYSETPOS wöchentlich erlaubt | `…[FREQ=WEEKLY;BYDAY=MO;BYSETPOS=2]` |
+| Probe ohne Verschiebung um ganze 400-Jahre-Zyklen | `…[FREQ=YEARLY;INTERVAL=2;BYMONTH=2;BYMONTHDAY=29]` |
+| Probe übergeht gezählte Wochentage | `…[FREQ=MONTHLY;BYDAY=6MO]` |
+| Überlaufschutz je Stelle entfernt (Dauer, Ende, UTC, Fensterbeginn, UNTIL) | `…unmoeglichem_datum_kippt_die_quelle_nicht` |
+| Abfangen je Termingruppe entfernt | `…unerwarteter_fehler_in_einem_termin…` |
+| Herausgeber-Präfix der Zone nicht entfernt; nur zwei Pfadteile | `…vorangestelltem_herausgeber…` |
+| auch ein einzelner Pfadteil zählt (`/etc/localtime`) | `…zuordnung_der_windows_zonen_ist_aufloesbar_und_raet_nicht` |
+| abgesagte Serie behält Einzeltermine; Absage des ersten ausgeklappten Termins sagt alle ab | `…abgesagte_serie_nimmt_ihre_geaenderten_einzeltermine_mit` |
+| COUNT ohne den Beginn; COUNT immer um eins gesenkt | `…count_zaehlt_den_beginn_mit…` (zweites: 10 Tests) |
+| Abo oder Einrichten dekodiert die ganze Datei | `…emoji_vervierfacht_den_speicher_nicht` |
+| Zeichensatz der Antwort übergangen; UTF-16 ohne Rückfall; unbekannter Zeichensatz ohne Rückfall | `…lesen_den_zeichensatz_der_antwort` (je Zeichensatz) |
+| CalDAV ohne XML: kein Rückfall auf den Text | `…caldav_antwort_ohne_xml…` |
+| EXDATE als Datum übergangen | `…exdate_als_datum…` |
+| INTERVAL=0 nicht abgewiesen | `…interval_null_ist_unlesbar…` |
+| RDATE als Zeitraum nicht zerlegt | `…rdate_als_zeitraum…` |
+| Kennung ganztägiger Termine mit Uhrzeit | `…ganztaegige_jahresserie`, `…einzeltermin_einer_ganztaegigen_serie` |
 | UNTIL in anderer Form (Datum, Ortszeit, ganztägig mit UTC) | `…until_in_anderer_form…` |
 | Ortszeit ohne Zone nicht in der Zone der Serie | `…exdate…` |
 | unlesbare Regel oder Zusatz `X-…` kippt die Datei | `…kaputte_oder_fremde_regel…` |
@@ -293,6 +342,12 @@ danach zurückgespielt; in jedem Fall wurde der genannte Test rot.
 | CalDAV aus dem Rohtext statt aus dem XML | `…caldav_liest_den_kalender_aus_dem_xml…` (beide Fälle) |
 | Abo-Grenze wieder 5 MB (Lesen oder Einrichten) | `…abo_ueber_fuenf_mb…` |
 | erst alles laden, dann prüfen | `…zu_grosses_abo_bricht_frueh_ab…` |
+
+**Offen:** Monatliche und jährliche Regeln, deren INTERVAL nicht in den Zyklus
+aufgeht (monatlich etwa 7, jährlich etwa 3), prüft keine Probe; trifft eine solche nie,
+rechnet dateutil höchstens 8000/INTERVAL Jahre (unter einer Sekunde). Eine zu dichte,
+unerfüllbare oder unlesbare Serie sieht der Nutzer nur als einen Termin; einen Hinweis
+gibt es nur bei einer zu dichten, und nur im Protokoll, nicht in der Oberfläche.
 
 **Nicht geprüft:** gegen echte Server (Google, iCloud, Nextcloud, Outlook); die
 Attrappen bilden deren Antworten nach. Die Zeiten oben sind keine Messung auf einem
