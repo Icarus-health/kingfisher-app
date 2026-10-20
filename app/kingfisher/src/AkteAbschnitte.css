@@ -24,3 +24,77 @@
 .akte-angenommen article > strong { color: var(--kf-schrift-062b3a); font-weight: 600; overflow-wrap: anywhere; }
 .akte-ueberholt-hinweis { margin: 2px 0 0; color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
 .akte-aussage-ueberholt > strong { color: var(--kf-schrift-31535f); }
+
+/* -- Akte wie ein Stabschef: Kopf, Braucht dich, Zeitstrahl (docs/16-gestaltung.md: ein Akzent, Material statt Farbe). -- */
+.akte-kopf { display: grid; gap: 6px; }
+.akte-kopf > h2 { margin-bottom: 0; }
+.akte-blick { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; padding: 0; list-style: none; }
+.akte-blick li { display: grid; gap: 0; min-width: 92px; padding: 8px 12px; border: 1px solid var(--calm-line); border-radius: 10px; background: var(--calm-surface); }
+.akte-blick strong { color: var(--calm-ink); font-size: 18px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.akte-blick span { color: var(--calm-muted); font-size: 12px; line-height: 16px; }
+.akte-blick em { font-style: normal; color: var(--calm-primary); font-weight: 600; }
+
+.akte-knopf { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--calm-primary); border-radius: 8px; color: var(--calm-primary); background: var(--calm-surface); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.akte-knopf:hover:not(:disabled) { background: #e8f2fd; }
+.akte-knopf:focus-visible { outline: 3px solid #2869aa; outline-offset: 2px; }
+.akte-knopf:disabled { opacity: .55; cursor: default; }
+.akte-knopf-leise { min-height: 32px; padding: 0 12px; border-color: var(--calm-line); color: var(--calm-ink); font-size: 13px; font-weight: 500; }
+
+.akte-meldung { position: fixed; z-index: 40; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-width: min(560px, calc(100vw - 32px)); margin: 0; padding: 10px 14px; border: 1px solid #2869aa; border-radius: 10px; background: #e8f2fd; color: var(--calm-ink); font-size: 14px; line-height: 20px; box-shadow: var(--calm-shadow); }
+
+.akte-braucht { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--calm-line); border-left: 3px solid var(--calm-primary); border-radius: 10px; background: var(--calm-surface); }
+.akte-braucht > h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--calm-ink); font-size: 15px; line-height: 22px; }
+.akte-zahl { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--calm-primary); color: var(--calm-on-primary); font-size: 12px; font-weight: 600; }
+.akte-braucht ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.akte-braucht li { padding: 10px 0; }
+.akte-braucht li + li { border-top: 1px solid var(--calm-line); }
+.akte-braucht li[aria-busy="true"] { opacity: .6; }
+.akte-braucht-satz { margin: 0; color: var(--calm-ink); font-size: 15px !important; line-height: 22px !important; font-weight: 500; overflow-wrap: anywhere; }
+.akte-braucht blockquote { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--calm-line); color: var(--calm-muted); font-size: 13px; line-height: 19px; overflow-wrap: anywhere; }
+.akte-braucht-fuss { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 8px; }
+.akte-wahl { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.akte-zeile-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.akte-gruppe + .akte-gruppe { margin-top: 6px; }
+.akte-gruppe > h4 { margin: 6px 0 0; color: var(--calm-ink); font-size: 13px; line-height: 18px; font-weight: 600; }
+.akte-termin-abgesagt > strong { text-decoration: line-through; text-decoration-color: var(--calm-muted); }
+
+.akte-ueber { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--kf-rand-d7e1df); }
+/* Haben die Karten nichts zu sagen, steht auch die Überschrift nicht da. */
+.akte-ueber:not(:has(> :not(.akte-ueber-titel))) { display: none; }
+.akte-ueber > .mappe-teil:first-of-type, .akte-ueber > .mappe-teil:first-child { border-top: 0; padding-top: 2px; }
+.akte-ueber-titel { margin: 0 0 6px; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; }
+.akte-beteiligte :is(button, a) { position: relative; overflow: hidden; }
+.akte-gewicht { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--calm-primary); opacity: .45; }
+
+/* Der Zeitstrahl: drei Spuren, eine Achse, „heute“ als Linie. Punkte sind Knöpfe (Tastatur, Bildschirmleser). */
+.akte-strahl { --akte-spurname: 128px; position: relative; margin-top: 4px; }
+.akte-spur { display: grid; grid-template-columns: var(--akte-spurname) minmax(0, 1fr); align-items: center; }
+.akte-spur-name { color: var(--calm-muted); font-size: 12px; line-height: 16px; }
+.akte-spur-bahn { position: relative; height: 44px; border-bottom: 1px solid var(--calm-line); }
+.akte-punkt { position: absolute; width: 24px; height: 24px; margin-left: -12px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.akte-punkt::before { content: ""; position: absolute; left: 7px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: #9aa6b2; }
+.akte-punkt-zusage::before { background: var(--calm-primary); }
+.akte-punkt-termin::before { border-radius: 2px; background: var(--calm-primary); }
+.akte-punkt-abgesagt::before { background: var(--calm-surface); border: 2px solid #9aa6b2; left: 6px; top: 6px; }
+.akte-punkt-abgesagt::after { content: ""; position: absolute; left: 4px; top: 11px; width: 16px; height: 2px; background: #9aa6b2; transform: rotate(-45deg); }
+.akte-punkt-frist::before { left: 6px; top: 6px; width: 12px; height: 11px; border-radius: 0; background: #9aa6b2; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.akte-punkt-frist.akte-punkt-offen::before { background: var(--calm-primary); }
+.akte-punkt:focus-visible { outline: 3px solid #2869aa; outline-offset: -2px; border-radius: 50%; }
+.akte-punkt-gewaehlt { border-radius: 50%; background: #e8f2fd; box-shadow: inset 0 0 0 2px #2869aa; }
+.akte-achse { position: relative; height: 20px; margin-left: var(--akte-spurname); }
+.akte-achse span { position: absolute; top: 3px; transform: translateX(-50%); color: var(--calm-muted); font-size: 11px; line-height: 14px; white-space: nowrap; }
+.akte-heute { position: absolute; top: 0; bottom: 20px; width: 0; border-left: 1px dashed var(--calm-primary); pointer-events: none; }
+.akte-heute span { position: absolute; top: -2px; left: 4px; color: var(--calm-primary); font-size: 11px; line-height: 14px; font-weight: 600; }
+.akte-strahl-wahl { margin-top: 8px; padding: 10px 12px; border: 1px solid #2869aa; border-radius: 8px; background: #f7fbff; }
+.akte-strahl-wahl > small { display: block; margin-bottom: 4px; color: var(--calm-muted); }
+
+@media (max-width: 699px) {
+  .akte-strahl { --akte-spurname: 0px; }
+  .akte-spur { grid-template-columns: minmax(0, 1fr); }
+  .akte-spur-name { margin-top: 4px; }
+  .akte-blick li { min-width: 0; flex: 1 1 40%; }
+  .akte-braucht { padding: 12px; }
+  .akte-wahl { width: 100%; }
+  .akte-wahl .akte-knopf { flex: 1 1 auto; }
+}

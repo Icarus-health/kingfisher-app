@@ -784,8 +784,22 @@ export type MappeEinzelheiten = {
 
 export type AkteZeile = { art: string; text: string; gekuerzt: boolean; titel: string; episode_id: string; participants: string[]; occurred_at: string | null; recorded_at: string };
 export type AkteSachenArt = "person" | "organisation" | "projekt" | "ort" | "thema";
-export type AkteTermin = { episode_id: string; titel: string; start: string; ort: string; vermutlich_abgesagt: AkteZeile | null };
-export type AkteFrist = AkteZeile & { datum: string; ausdruck: string; art_der_angabe: string; ersetzt_durch: { datum: string; episode_id: string; ausdruck: string } | null };
+/** `ziel`: wozu der Nutzer entscheiden kann; `entscheidung`: was er gesagt hat („erledigt“ bestätigt die Absage, „offen“ heißt: findet statt). */
+export type AkteTermin = { episode_id: string; titel: string; start: string; ort: string; vermutlich_abgesagt: AkteZeile | null; ziel?: string; entscheidung?: AkteEntscheidung | null };
+export type AkteFrist = AkteZeile & { datum: string; ausdruck: string; art_der_angabe: string; ziel?: string; ersetzt_durch: { datum: string; episode_id: string; ausdruck: string } | null };
+/** Entscheidungen des Nutzers in der Akte (sidecar: akten_entscheidungen.py). */
+export type AkteEntscheidung = "erledigt" | "gilt_nicht" | "offen";
+/** Von wem ein offener Punkt stammt: von dir, an dich, oder unklar (Notiz, Termin). */
+export type AkteRichtung = "von_mir" | "an_mich" | "unklar";
+export type AkteBrauchtDich = {
+  art: "abgesagter_termin" | "gilt_noch" | "frist" | "frist_verstrichen";
+  ziel: string; satz: string; zeile: AkteZeile | null; laut: AkteZeile | null; episode_id: string; datum?: string;
+  wahl: Array<{ entscheidung: AkteEntscheidung; text: string }>;
+};
+export type AkteZeitpunkt = {
+  art: "quelle" | "termin" | "frist"; datum: string; episode_id: string; titel: string; quelle_art: string;
+  abschnitt?: string | null; abgesagt?: boolean; offen?: boolean;
+};
 /** Ebene 3: zwei, drei Sätze zur Sache, vom Modell geschrieben und Satz für Satz gegen die Quellen geprüft. */
 export type AkteLage = {
   saetze: Array<{ text: string; belege: Array<{ nummer: number; episode_id: string; titel: string }> }>;
@@ -802,9 +816,9 @@ export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
   verlauf: { eintraege: Array<{ episode_id: string; titel: string; datum: string; grundlagen: string[]; archiviert: boolean; art: string | null; text: string | null; gekuerzt: boolean; quelle_art: string }>; gesamt: number };
-  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null }>; gesamt: number; vermutlich: boolean;
-    erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null }>; gesamt: number } };
-  fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number };
+  offen: { eintraege: Array<AkteZeile & { vermutlich: boolean; danach_geaendert: AkteZeile | null; aufgabe: { id: string; title: string } | null; ziel?: string; richtung?: AkteRichtung; bestaetigt?: boolean }>; gesamt: number; vermutlich: boolean;
+    erledigt: { eintraege: Array<AkteZeile & { grund: string; durch: AkteZeile | null; ziel?: string; richtung?: AkteRichtung }>; gesamt: number } };
+  fristen: { kommend: AkteFrist[]; verstrichen: AkteFrist[]; ersetzt: AkteFrist[]; gesamt: { kommend: number; verstrichen: number; ersetzt: number }; abgelegt?: number;
     ohne_datum: { eintraege: Array<{ ausdruck: string; episode_id: string; titel: string }>; gesamt: number };
     quellenangaben?: { eintraege: Array<AkteFrist & { einordnung: "fact" | "status" | "historical" | "uncertain";
       zeitbezug: "vergangen" | "kommend"; zustaendigkeit: "ungeklaert"; nur_quellenangabe: true }>; gesamt: number } };
@@ -823,6 +837,10 @@ export type Akte = {
   kreis?: KreisArt | "unbestimmt";
   /** Bestätigte private Art einer Organisation, sonst leer; nur bei Organisationen. */
   akten_art?: string;
+  /** Was eine Entscheidung von dir braucht, dringendes zuerst (nur auf der Seite der Akte). */
+  braucht_dich?: { eintraege: AkteBrauchtDich[]; gesamt: number };
+  /** Quellen, Termine und Fristen auf einer Zeitachse (nur auf der Seite der Akte). */
+  zeitstrahl?: { punkte: AkteZeitpunkt[]; quellen: number; gezeigt: number; heute: string };
 };
 // Morgenbriefing, Terminvorbereitung und Wegezeit (sidecar: tag_routes.py, wegezeit_routes.py).
 export type TagBeleg = { episode_id: string; titel: string; datum: string | null; art: string };
@@ -1466,6 +1484,8 @@ export const api = {
   aktenArt: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`),
   aktenArtBestaetigen: (sache: string, art: AktenArt) => request<ArtStand>("/api/v1/akten/art", { method: "PUT", body: JSON.stringify({ sache, art }) }),
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
+  akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
+  akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),
   bezugSetzen: (episodeId: string, sache: string, aktion: "zu" | "nicht") => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung`, { method: "PUT", body: JSON.stringify({ sache, aktion }) }),

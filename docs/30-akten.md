@@ -154,6 +154,56 @@ Datumswerte); Zitate liest jede Anzeige aus dem Original. Was von der Uhrzeit ab
 **Nichts still begrenzen.** Eine Akte wertet die jüngsten 500 Quellen aus und nennt die
 Gesamtzahl; jede Liste nennt ihre Gesamtzahl („5 von 12“, „Alle zeigen“).
 
+### Braucht dich, Entscheidungen, Richtung (Akte 11, Migration 23)
+
+Eine Akte vermutet nur. Ein guter Stabschef fragt dort, wo er unsicher ist, einmal nach
+und merkt sich die Antwort. Das leistet „Braucht dich“ oben in der Akte (nur auf ihrer
+eigenen Seite, `akte(..., ansicht=True)`), dringendes zuerst, höchstens sechs Punkte:
+
+* **Abgesagt, aber noch im Kalender:** ein kommender Termin, den eine Meldung derselben
+  Sache mit dem Tag und einem Absagewort absagt. Wahl: „Erledigt“ (Absage bestätigt) oder
+  „Findet doch statt“ (die Vermutung entfällt, auch im Zeitstrahl).
+* **Gilt das noch?** Eine Absage beendet nur, was sie benennt. Frühere offene Zusagen und
+  Bitten **im selben Mailverlauf** (genaue Kopfzeilenbezüge, `episode_mail_headers`) oder
+  mit dem **Tag des abgesagten Termins** sind vermutlich hinfällig („Den Ablauf schicken
+  wir Ihnen im August“ vor „Wir müssen den Workshop absagen“). Das ist zu unsicher, um es
+  selbst zu entscheiden: Die Akte fragt („Gilt nicht mehr“ oder „Gilt weiter“). Ein Punkt
+  nach der Absage wird nie gefragt; ohne gemeinsamen Verlauf und ohne den Tag auch nicht.
+* **Fristen offener Punkte:** in den nächsten sieben Tagen oder seit höchstens 45 Tagen
+  verstrichen, mit demselben Satz wie im Briefing (`fristlage.beschreibung`). Wahl:
+  „Erledigt“, bei verstrichenen auch „Gilt nicht mehr“.
+
+**Entscheidungen** (`akten_entscheidungen.py`, Tabelle `akten_entscheidungen`): „erledigt“,
+„gilt nicht mehr“, „gilt weiter“, bei Terminen „erledigt“ und „findet doch statt“.
+Gespeichert sind nur Verweise (Quelle, Stellen, Inhaltsdigest der Quelle) und der
+Zeitpunkt, kein Text, keine Sache, keine Adresse. Eine Entscheidung gilt für die
+Textstelle und damit in jeder Akte, in der sie vorkommt. Sie hängt am Text der Quelle,
+nicht am Fingerabdruck der Einordnung: Nachgetragene Kontakte, Kopfzeilen oder Anhänge
+lassen sie stehen, eine neue Fassung des Textes fragt neu. Ein Termin wird über seine
+Quelle angesprochen; ein geänderter Termin ist eine neue Quelle und fragt neu. Die
+Entscheidung wirkt nur bei der Anzeige: „Erledigt“ und „gilt nicht mehr“ legen einen
+offenen Punkt ab, seine Fristen mahnen weder in der Akte noch im Briefing; „gilt weiter“
+hält ihn offen und holt ihn zurück, wenn die Akte ihn nur vermutlich für erledigt hielt;
+„findet doch statt“ beendet auch die Frage „gilt das noch?“ zu diesem Termin. Der
+Antwortkontext liest dieselben Entscheidungen (`Akten.roh_entschieden`), damit eine
+Antwort nichts Abgelegtes als offen nennt. Der Zwischenspeicher der Akte bleibt
+unberührt; der Eingabestand der Lage ändert sich (auch bei Termin-Entscheidungen), damit
+sie neu geschrieben wird. Jede Entscheidung lässt sich mit einem Klick zurücknehmen;
+„Rückgängig“ stellt die vorige Entscheidung wieder her, nicht nur die Vermutung. Sie ist
+eine Einordnung durch den Nutzer, kein Fakt im Bestand (Regel des Gedächtnisses
+unberührt).
+
+**Richtung.** Jeder offene Punkt sagt, von wem er stammt (`richtung`: `von_mir`,
+`an_mich`, `unklar`; bei Mails der Absender gegen die eigenen Adressen, bei Terminen,
+Notizen und Mitschriften `unklar`). Die Oberfläche
+gruppiert danach: „Du hast zugesagt“, „Du wartest auf“ (Zusagen anderer und deine
+Bitten), „Bitten an dich“.
+
+**Zeitstrahl.** Quellen (jüngste 150), Termine und Fristen als Punkte auf drei Spuren,
+„heute“ als Linie; Zusagen und Bitten dunkel, abgesagte Termine durchgestrichen, offene
+Fristen dunkel. Jeder Punkt ist ein Knopf und öffnet seine Quelle; der Strahl ist ein
+einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.
@@ -166,12 +216,20 @@ Gesamtzahl; jede Liste nennt ihre Gesamtzahl („5 von 12“, „Alle zeigen“)
 | `PUT /api/v1/akten/quellen/{episode_id}/zuordnung` | `{sache, aktion: zu|nicht}` |
 | `DELETE /api/v1/akten/quellen/{episode_id}/zuordnung?sache=` | Entscheidung zurücknehmen |
 | `POST /api/v1/akten/aktualisieren` | Bezüge neu bestimmen (Prüfung; der Server tut es von selbst) |
+| `PUT /api/v1/akten/entscheidung` | `{sache, ziel, entscheidung: erledigt|gilt_nicht|offen}`; nur Ziele dieser Akte (sonst 404) |
+| `DELETE /api/v1/akten/entscheidung?sache=&ziel=` | Entscheidung zurücknehmen (404, wenn keine da ist) |
 
 Jede Anfrage führt die Bezüge kurz nach (höchstens 1,5 s); den Rest rechnet ein
 Hintergrundfaden zu Ende. Die Antwort nennt `berechnung.offen`, statt zu tun, als wäre
 alles da; die Oberfläche lädt dann still nach.
 
 ## Oberfläche
+
+Die Akte beginnt mit **Auf einen Blick** (vermutlich offen, nächste Frist, nächster
+Termin, zuletzt), darunter **Braucht dich**, die Lage, der **Zeitstrahl**, dann Offen (nach
+Richtung gruppiert, je Punkt „Erledigt“), Fristen, Termine, Stand, Angenommen, Aufgaben,
+„Über …“ (Kreis, Geburtstag, Art, Wiederkehrendes) und **Zusammenhänge**; der Verlauf ist
+eingeklappt. Jede Entscheidung antwortet unten mit einer Meldung und „Rückgängig“.
 
 Kein neuer Menüpunkt. Unter **Gedächtnis** stehen neben Menschen und Projekten die
 Listen **Organisationen**, **Orte** und **Themenakten**; jede Zeile öffnet die Akte
