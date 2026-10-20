@@ -3992,6 +3992,34 @@ def create_app(
                         value["content"], current['source_links'] = rendered
                     value["metadata"] = {**value["metadata"], "context": current}
                 elif (message.role == 'assistant' and isinstance(stored_context, dict)
+                        and 'offene_punkte_answer' in stored_context):
+                    # Wie die Mappe: beim Öffnen neu aus den Akten, höchstens fünf je Aufruf (dieselbe Grenze).
+                    stored = stored_context['offene_punkte_answer']
+                    neu_berechnet = mappen_neu < 5
+                    rendered = None
+                    if neu_berechnet:
+                        mappen_neu += 1
+                        # Je Art einmal je Aufruf, und beim Öffnen wird nur gelesen, nichts nachgerechnet.
+                        art = stored.get('kind') if isinstance(stored, dict) else None
+                        if ('offene_punkte', art) not in mappen_memo:
+                            mappen_memo[('offene_punkte', art)] = app.state.agent.render_offene_punkte(
+                                stored, nachfuehren=False)
+                        rendered = mappen_memo[('offene_punkte', art)]
+                    current = {k: v for k, v in stored_context.items() if k != 'offene_punkte_answer'}
+                    if isinstance(stored, dict):
+                        current['offene_punkte_answer'] = {k: stored.get(k) for k in ('version', 'kind', 'query')}
+                    if rendered is None:
+                        value["content"] = ("Die offenen Punkte sind gerade nicht lesbar." if neu_berechnet
+                                            else "Älterer Stand: Bitte erneut danach fragen.")
+                        current['source_links'] = []
+                        query = stored.get('query') if isinstance(stored, dict) else None
+                        if isinstance(query, str) and query.strip():
+                            current['original_question'] = query
+                            current['refresh_available'] = True
+                    else:
+                        value["content"], current['source_links'] = rendered
+                    value["metadata"] = {**value["metadata"], "context": current}
+                elif (message.role == 'assistant' and isinstance(stored_context, dict)
                         and 'meaning_choice' in stored_context):
                     from .bedeutungen import meaning_choice_current
                     if not meaning_choice_current(stored_context['meaning_choice'], app.state.episodes):
@@ -4287,7 +4315,10 @@ def create_app(
                 # Die Frage in eine strukturierte Anfrage übersetzen (Modell der Rolle
                 # „frage“, sonst Rückfall); sie gilt für Weg und Antwort dieser Nachricht.
                 # Die Umschreibungen gehören zur Suche: „Catering“ findet „Verpflegung“.
-                anfrage = rueckfall(body.message) if literal_lookup else _frage_verstehen(app, body.message)
+                from .offene_punkte import art_der_frage
+                # Eine feste Frageform nach offenen Punkten braucht kein Fragenverständnis (kein Modellaufruf).
+                anfrage = (rueckfall(body.message) if literal_lookup or art_der_frage(body.message)
+                           else _frage_verstehen(app, body.message))
                 working_available = bool(WorkingMemoryStore(app.state.episodes).search(
                     anfrage.suchanfrage(body.message), limit=1)['refs'])
                 if not working_available:

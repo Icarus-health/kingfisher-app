@@ -17,9 +17,9 @@ from .episodes import (CHAT_LOOKUP_TAG, IGNORIERTE_ZUSTAENDE, QUELLEN_ARTEN, Epi
                        sql_rohquelle, sql_sichtbar)
 from . import logbuch
 from .lexical import terms_v1
-from .source_index import FUNKTIONSWOERTER
+from .source_index import FUNKTIONSWOERTER, funktionswort
 from .source_snapshot import EpisodeSupportSnapshot, canonical_instant, read_snapshot
-from .word_forms import alternatives, synonym_alternatives
+from .word_forms import alternatives, synonym_alternatives, umschriften
 from .working_memory_words import candidate_words, query_words
 
 
@@ -891,8 +891,12 @@ class WorkingMemoryStore:
         # Beide Suchstufen verwenden dieselben Sachwörter. Sonst verdrängen
         # „habe“ oder „war“ echte Wortformtreffer und liefern Scheinbelege.
         # Nur die Anfrage ändern; gespeicherte Tokens und Originale bleiben gleich.
-        all_terms = sorted(terms_v1(query) - FUNKTIONSWOERTER)
+        all_terms = sorted(term for term in terms_v1(query) if not funktionswort(term))
         terms = all_terms[:MAX_QUERY_TERMS]
+        # „Mueller“ findet „Müller“ und umgekehrt: gleiche Stufe wie das Wort selbst, ohne einen Platz zu kosten.
+        # Funktionswörter bleiben draußen, auch in Umschrift („koennen“ wird nicht zu „können“).
+        umschrift = {v for term in terms for v in umschriften(term) if not funktionswort(v)} - set(terms)
+        terms = terms + sorted(umschrift)
         forms = set().union(*(alternatives(term) for term in terms)) - set(terms)
         synonyms = set().union(*(synonym_alternatives(term) for term in terms)) - set(terms) - forms
         return terms, forms | synonyms, len(all_terms) > MAX_QUERY_TERMS
