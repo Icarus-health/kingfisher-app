@@ -284,3 +284,22 @@ def test_ein_zu_langes_passwort_steht_nicht_in_der_ablehnung(client, postfach):
     zu_lang = client.post('/api/v1/integrations/mail', json={'label': 'L' * 200, 'imap_host': 'h', 'user': 'u',
                                                             'password': geheim})
     assert zu_lang.status_code == 422 and 'geheim-' not in zu_lang.text
+
+
+def test_ohne_gemerkten_grund_weckt_eine_anmeldung_die_aufnahme_nicht(tmp_path):
+    # Die erste Microsoft-Verbindung (oder ein vorsorglich neu eingegebenes Passwort) hat nichts fortzusetzen: Dann
+    # bleibt der Zeitplan in seinem Takt, statt mitten in einen laufenden Durchgang einen zweiten zu schieben.
+    from icarus_memory.mail_intake import nach_neuer_anmeldung
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    Intake(ep).start('a', ['INBOX'])
+    geweckt = []
+    app = SimpleNamespace(state=SimpleNamespace(episodes=ep, scheduler=SimpleNamespace(aufnahme_wecken=lambda: geweckt.append(True))))
+    nach_neuer_anmeldung(app, 'a')
+    assert geweckt == []
+    with ep.transaction():
+        ep._conn.execute("UPDATE mail_intake_folders SET error='anmeldung' WHERE account='a'")
+    nach_neuer_anmeldung(app, 'a')
+    assert geweckt == [True]
+    with ep._lock:
+        assert ep._conn.execute("SELECT error FROM mail_intake_folders WHERE account='a'").fetchone()[0] is None
+    ep.close()

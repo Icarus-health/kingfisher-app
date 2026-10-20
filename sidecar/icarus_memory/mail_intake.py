@@ -70,10 +70,14 @@ def bestandsfehler(fehler):
 
 
 def nach_neuer_anmeldung(app, konto):
-    """Die Anmeldung gilt wieder (Neu anmelden, Microsoft, Google): gemerkten Grund löschen, Aufnahme gleich wecken."""
+    """Die Anmeldung gilt wieder (Neu anmelden, Microsoft, Google): gemerkten Grund löschen, Aufnahme gleich wecken.
+
+    Geweckt wird nur, wenn ein Postfach an der Anmeldung stand. Eine erste Verbindung oder ein vorsorglich neu
+    eingegebenes Passwort hat nichts fortzusetzen; dann bleibt der Zeitplan in seinem Takt.
+    """
     episodes = getattr(getattr(app, 'state', None), 'episodes', None)
-    if episodes is not None:
-        Intake(episodes).anmeldung_erneuert(konto)
+    if episodes is None or not Intake(episodes).anmeldung_erneuert(konto):
+        return
     wecken = getattr(getattr(app.state, 'scheduler', None), 'aufnahme_wecken', None)
     if callable(wecken):
         wecken()
@@ -138,9 +142,9 @@ class Intake:
                 self.db.execute(f"UPDATE {table} SET retry_after=0 WHERE status='failed' AND episode_id IN (SELECT episode_id FROM mail_intake_items WHERE account=?)",(account,))
 
     def anmeldung_erneuert(self, account):
-        """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg, das Postfach wird sofort wieder gelesen."""
+        """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg; ob es ihn gab (dann wecken)."""
         with self.episodes.transaction():
-            self.db.execute("UPDATE mail_intake_folders SET error=NULL WHERE account=? AND error='anmeldung'",(account,))
+            return self.db.execute("UPDATE mail_intake_folders SET error=NULL WHERE account=? AND error='anmeldung'",(account,)).rowcount>0
 
     def _active(self, account, permitted):
         if not permitted():return False

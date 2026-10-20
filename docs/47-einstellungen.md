@@ -296,7 +296,8 @@ bisher als „antwortet gerade nicht. Du musst nichts tun“ stehen, für immer.
   * Microsoft: das Konto gilt als nicht verbunden und zeigt seine „Neu anmelden“-Karte (`microsoft_routes`).
 
   In allen drei Fällen löscht die neue Anmeldung den Grund sofort und weckt die Aufnahme
-  (`mail_intake.nach_neuer_anmeldung`); die Ruhezeit gilt dann nicht mehr. Danach „Angemeldet. Kingfisher liest …
+  (`mail_intake.nach_neuer_anmeldung`); die Ruhezeit gilt dann nicht mehr. Stand kein Postfach an der Anmeldung
+  (erste Verbindung, vorsorglich neues Passwort), bleibt der Zeitplan in seinem Takt. Danach „Angemeldet. Kingfisher liest …
   gleich weiter.“ Eine abgelehnte Eingabe (422) wiederholt nie Passwort, Geheimnis oder Token
   (`server._ohne_geheimnisse_in_ablehnungen`).
 * **Tests:** `sidecar/tests/test_anmeldung_abgelaufen.py` (Einordnung, vorübergehende Codes, Gegenbeispiele, Satz,
@@ -306,7 +307,7 @@ bisher als „antwortet gerade nicht. Du musst nichts tun“ stehen, für immer.
   Fokus und Escape. Sabotageproben: Erkennung abgeschaltet (7 Tests), Ursache am `MailError` übersehen (4), Connector
   kennzeichnet nicht (2), vorübergehende Codes als Passwortfehler (5), jeder IMAP-Fehler als Anmeldung (1), Passwort
   jeden Takt (2), Neu anmelden ohne Prüfung (1), Passwort vor der Prüfung gespeichert (3), Route ohne Zugangsschutz
-  (1), Grund nicht gelöscht (3), nicht geweckt (2), Microsoft löscht den Grund nicht (1), Kalender nicht mitgenommen
+  (1), Grund nicht gelöscht (3), nicht geweckt (2), auch ohne Grund geweckt (1), Microsoft löscht den Grund nicht (1), Kalender nicht mitgenommen
   (1), Kalender ungeprüft ersetzt (1), Google legt zweites Postfach an (1), Ablehnung nennt das Passwort (1),
   Abholfehler als gescheitert (1), Microsoft bleibt verbunden (1), Satz ohne Verweis (3); in der Oberfläche Einrichtung
   mit „stockt gerade“, Weg nicht erkannt, Heute ohne Verweis, Postfachstand klappt nicht auf, kein „Angemeldet“,
