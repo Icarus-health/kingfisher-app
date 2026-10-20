@@ -20,9 +20,14 @@ Grundsätze, an denen nichts weich sein darf:
   nach ausdrücklicher Bestätigung setzt. Ohne gültigen Zeitstempel wird die
   Cloudwahl ignoriert, nie umgangen; die Einwilligung einer Rolle gilt nicht
   für eine andere.
-* **Hintergrundarbeit, Einbettung und Prüfung bleiben lokal.** Diese Rollen sehen das
-  Rohmaterial; die Freigabe für die Cloud ist für sie (noch) nicht vorgesehen
-  (`RolleSpec.cloud_moeglich`), auch nicht per Handeintrag in der Datei.
+* **Einbettung und Prüfung bleiben lokal.** Diese Rollen sehen das Rohmaterial; die
+  Freigabe für die Cloud ist für sie nicht vorgesehen (`RolleSpec.cloud_moeglich`), auch
+  nicht per Handeintrag in der Datei.
+* **Hintergrund: der Anbieter der Rolle ist immer lokal oder None.** Die Cloud-Einordnung
+  neuer Mails läuft getrennt über `hintergrund_cloud.py`, nur mit eigener Einwilligung,
+  nur mit Anthropic (`RolleSpec.cloud_anbieter`) und nur für das Einordnen neuer Mails samt
+  Bitten und Zusagen. Verdichtung, Lage, Entwürfe und alles andere, was diese Rolle fragt,
+  bekommen über `provider("hintergrund")` nie einen Cloudanbieter (`anbieter_nur_lokal`).
 * **Ein Modell „auf dem lokalen Ollama“ ist nicht automatisch lokal.** Modelle mit dem
   Tag `cloud` reicht Ollama an seinen Server weiter. `ollama_inventar.py` weiß je
   installiertem Modell, ob die Gewichte auf der Platte liegen. Ein Cloud-über-Ollama-Modell
@@ -46,6 +51,9 @@ from .cloud_credentials import PREPARED_CLOUD_KEYS
 
 STANDARD_EINBETTUNG = "bge-m3:latest"
 
+#: Aufrufe der Cloud-Einordnung je Kalendertag (UTC); gezählt und durchgesetzt in `hintergrund_cloud.py`.
+TAGESBUDGET = 300
+
 # Cloud-Modelle, die über das lokale Ollama laufen: kein eigener Schlüssel, das Modell trägt die Wahl.
 OLLAMA_CLOUD = "ollama-cloud"
 OLLAMA_CLOUD_SATZ = "Die Daten gehen an Ollama (USA), nicht an den Modellhersteller: Ollama reicht die Anfrage an seinen Server weiter."
@@ -67,6 +75,11 @@ class RolleSpec:
     beschreibung: str  # ein Satz
     cloud_moeglich: bool
     cloud_satz: str  # der Satz, dem der Nutzer bei der Einwilligung zustimmt
+    cloud_anbieter: frozenset[str] | None = None  # None = alle `CLOUD_ANBIETER`
+
+    @property
+    def erlaubte_cloud_anbieter(self) -> frozenset[str]:
+        return self.cloud_anbieter if self.cloud_anbieter is not None else frozenset(CLOUD_ANBIETER)
 
 
 ROLLEN: dict[str, RolleSpec] = {s.name: s for s in (
@@ -81,7 +94,10 @@ ROLLEN: dict[str, RolleSpec] = {s.name: s for s in (
               False, "Diese Aufgabe liest die Textstellen deiner Quellen und bleibt deshalb auf diesem Rechner."),
     RolleSpec("hintergrund", "Im Hintergrund ordnen",
               "Ordnet neue Mails und Dokumente ein und legt Bezüge an.",
-              False, "Diese Aufgabe liest alle deine Quellen und bleibt deshalb auf diesem Rechner."),
+              True, "Jede neue Mail geht mit Inhalt, Absender und Betreff an Anthropic (Claude API), damit Kingfisher "
+                    "sie einordnet und Bitten und Zusagen erkennt. Das kostet API-Guthaben, höchstens "
+                    f"{TAGESBUDGET} Aufrufe am Tag, und ist nicht auf die EU begrenzt.",
+              cloud_anbieter=frozenset({"anthropic"})),
     RolleSpec("einbettung", "Bedeutungen finden",
               "Findet Sinnverwandtes, auch wenn andere Wörter benutzt wurden.",
               False, "Diese Aufgabe liest alle deine Quellen und bleibt deshalb auf diesem Rechner."),
@@ -131,10 +147,21 @@ def lese_wahlen(roh: Any) -> dict[str, RollenWahl]:
     return wahlen
 
 
+def anbieter_nur_lokal(rolle: str) -> bool:
+    """Rollen, deren Anbieter (`provider_fuer`) nie ein Cloudanbieter sein darf: Prüfung, Einbettung und Hintergrund.
+
+    Der Hintergrund kann eine Einwilligung tragen (`einwilligung_gueltig`), aber sie macht die Cloud nie zum Anbieter
+    der Rolle; sie schaltet nur die getrennte Cloud-Einordnung neuer Mails frei (`hintergrund_cloud.py`).
+    """
+    return rolle == "hintergrund" or not ROLLEN[rolle].cloud_moeglich
+
+
 def einwilligung_gueltig(rolle: str, wahl: RollenWahl) -> bool:
-    """Darf diese Rolle die Cloud nutzen? Nur mit Zeitstempel, nur wo die Rolle es zulässt."""
+    """Darf diese Rolle die Cloud nutzen? Nur mit Zeitstempel, nur wo die Rolle es zulässt, nur mit erlaubtem Anbieter."""
     spec = ROLLEN.get(rolle)
     if spec is None or not spec.cloud_moeglich or not wahl.cloud or not wahl.anbieter:
+        return False
+    if wahl.anbieter not in spec.erlaubte_cloud_anbieter:
         return False
     try:
         datetime.fromisoformat(wahl.cloud_einwilligung)
@@ -220,7 +247,7 @@ def _standard_geprueft(rolle: str, standard: Provider | None, inventar: OllamaIn
     art = _art(standard, standard.model, inventar)
     if art == LOKAL:
         return standard
-    if art == CLOUD or not ROLLEN[rolle].cloud_moeglich:
+    if art == CLOUD or anbieter_nur_lokal(rolle):
         return None
     return standard
 
@@ -243,9 +270,11 @@ def provider_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, Ro
     gewähltes lokales Modell, sonst der Standardanbieter. Jede Lücke fällt auf
     den Standard zurück, nie auf die Cloud.
 
-    Rollen, die die Cloud nicht nutzen dürfen (`RolleSpec.cloud_moeglich`), bekommen nie
+    Rollen, deren Anbieter lokal sein muss (`anbieter_nur_lokal`: Prüfung, Einbettung, Hintergrund), bekommen nie
     einen Anbieter, der nicht lokal ist: Ist der Standard ein Cloudanbieter, ist ihr Anbieter
-    `None` (die Arbeit läuft dann ohne Modell), statt dass Rohquellen in die Cloud gehen.
+    `None` (die Arbeit läuft dann ohne Modell), statt dass Rohquellen in die Cloud gehen. Für den
+    Hintergrund wird auch eine gültige Cloudwahl nie zum Anbieter; sie gilt nur der Cloud-Einordnung
+    neuer Mails (`Rollen.hintergrund_cloud_wahl`, `hintergrund_cloud.py`).
 
     Mit `inventar` (`ollama_inventar.py`) zählt auch ein Modell auf dem lokalen Ollama nur als lokal,
     wenn seine Gewichte belegt auf der Platte liegen. Ohne `inventar` wird nur der Endpunkt geprüft;
@@ -253,7 +282,7 @@ def provider_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, Ro
     """
     anbieter = _anbieter_fuer(rolle, standard, wahlen, umgebung, inventar)
     local_only = bool(wahlen.get(rolle) and wahlen[rolle].local_only)
-    if anbieter is not None and (local_only or not ROLLEN[rolle].cloud_moeglich) and not getattr(anbieter, "is_local", False):
+    if anbieter is not None and (local_only or anbieter_nur_lokal(rolle)) and not getattr(anbieter, "is_local", False):
         return None
     if local_only and _ollama_lokal(anbieter) and (inventar is None or _art(anbieter, anbieter.model, inventar) != LOKAL):
         return None
@@ -276,6 +305,13 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
                 return None
         return candidate
     umgebung = os.environ if umgebung is None else umgebung
+    if rolle == "hintergrund" and wahl.cloud:
+        # Die Cloudwahl des Hintergrunds wird hier nie zum Anbieter (sie gilt nur `hintergrund_cloud.py`):
+        # das gewählte lokale Modell, sonst der geprüfte Standard; ein nicht lokaler Standard ergibt None.
+        if wahl.modell:
+            lokal = _lokal(standard, wahl.modell, umgebung)
+            return lokal if inventar is None or _art(lokal, wahl.modell, inventar) == LOKAL else None
+        return fallback()
     if wahl.cloud and einwilligung_gueltig(rolle, wahl):
         if wahl.anbieter == OLLAMA_CLOUD:
             return _cloud_ueber_ollama(rolle, wahl, standard, umgebung, inventar)
@@ -293,7 +329,7 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
             return lokal
         # Cloud über Ollama (oder nicht belegt lokal) ohne Einwilligung: nie stillschweigend.
         # Rollen ohne Cloud bleiben ohne Modell; Frage und Antwort fallen auf den geprüften Standard zurück.
-        return fallback() if ROLLEN[rolle].cloud_moeglich else None
+        return fallback() if not anbieter_nur_lokal(rolle) else None
     return fallback()
 
 
@@ -377,6 +413,17 @@ class Rollen:
                 return modell
         return None
 
+    def hintergrund_cloud_wahl(self) -> RollenWahl | None:
+        """Die Wahl des Hintergrunds, wenn sie eine gültige Einwilligung für Anthropic trägt; sonst None.
+
+        Nur die Cloud-Einordnung neuer Mails (`hintergrund_cloud.py`) fragt danach. `provider("hintergrund")`
+        bleibt davon unberührt: lokal oder None.
+        """
+        wahl = self.wahlen.get("hintergrund")
+        if wahl is None or wahl.anbieter != "anthropic" or not einwilligung_gueltig("hintergrund", wahl):
+            return None
+        return wahl
+
     def einbettung_modell(self) -> str:
         """Das Einbettungsmodell; ein Cloud-über-Ollama-Modell wird nie genommen, dann gilt die Vorgabe."""
         modell = einbettung_modell(self.wahlen)
@@ -434,6 +481,8 @@ def hintergrund_anbieter(app: Any) -> Provider | None:
     """Der Anbieter für jede Hintergrundarbeit (Einordnen, Verdichten, Überblicke): Rolle `hintergrund`.
 
     Immer lokal oder `None`; nie der Anbieter des Gesprächs (Rolle `antwort`), der eine Cloud sein darf.
+    Hintergrund: der Anbieter der Rolle ist immer lokal oder None; die Cloud-Einordnung neuer Mails läuft
+    getrennt über `hintergrund_cloud.py`, nur mit eigener Einwilligung, und kommt hier nie heraus.
     """
     return rollen_von(app).provider("hintergrund")
 
@@ -463,6 +512,6 @@ def rollen_von(app: Any) -> Rollen:
 __all__ = [
     "anbieter_fuer_frage", "anbieter_fuer_pruefung", "hintergrund_anbieter", "rollen_von",
     "CLOUD_ANBIETER", "OLLAMA_CLOUD", "OLLAMA_CLOUD_SATZ", "ROLLEN", "Rollen", "RollenWahl", "RolleSpec", "STANDARD_EINBETTUNG",
-    "einbettung_modell", "einwilligung_gueltig", "lese_wahlen", "lokaler_endpunkt",
+    "TAGESBUDGET", "anbieter_nur_lokal", "einbettung_modell", "einwilligung_gueltig", "lese_wahlen", "lokaler_endpunkt",
     "ollama_wurzel", "provider_fuer",
 ]

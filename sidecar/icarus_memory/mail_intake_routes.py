@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from .mail_intake import Intake
 from . import config
 from .model_roles import hintergrund_anbieter
+from . import hintergrund_cloud
 from .connectors.mail import MailError
 from .mail_anmeldung import einordnen
 from .zeitgrenze import mit_zeitgrenze
@@ -85,7 +86,9 @@ def register(app, guard, data_dir, wire):
                 # Separate from each mailbox's pause: its resume route cannot
                 # release the explicit global background pause.
                 'background_paused':bool(getattr(getattr(app.state,'hintergrund',None),'pausiert',False)),
-                'analysis_active':bool(plan.enabled and getattr(plan,'with_model',False) and getattr(provider,'is_local',False)),
+                # Lokal, oder die Cloud-Einordnung neuer Mails mit eigener Einwilligung (`hintergrund_cloud`).
+                'analysis_active':bool(plan.enabled and getattr(plan,'with_model',False)
+                                       and (getattr(provider,'is_local',False) or hintergrund_cloud.aktiv(app))),
                 # Getrennt gemeldet: Das gewählte Modell läuft in Ollamas Cloud und wird deshalb nicht genutzt.
                 'analysis_blocked':'cloud_ueber_ollama' if rollen_von(app).cloud_modell_im_weg('hintergrund') else None}
 

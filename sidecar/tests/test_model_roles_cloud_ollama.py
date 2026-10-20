@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from icarus_memory.model_roles import (
-    OLLAMA_CLOUD, ROLLEN, STANDARD_EINBETTUNG, Rollen, RollenWahl, anbieter_fuer_frage, provider_fuer,
+    OLLAMA_CLOUD, ROLLEN, STANDARD_EINBETTUNG, Rollen, RollenWahl, anbieter_fuer_frage, anbieter_nur_lokal, provider_fuer,
 )
 from icarus_memory.ollama_inventar import OllamaInventar
 from icarus_memory.providers import Anthropic, OpenAICompatible
@@ -98,7 +98,8 @@ def test_ollama_stumm_ist_nicht_lokal(rolle):
     """Fail closed: Wer nicht belegen kann, dass ein gewähltes Modell lokal ist, bekommt es für Rohquellen nicht."""
     inv, _ = inventar(transport=Verbindungsfehler().transport)
     anbieter = provider_fuer(rolle, lokal(), {rolle: RollenWahl(modell="gross:35b")}, {}, inv)
-    if ROLLEN[rolle].cloud_moeglich:
+    # Der Hintergrund darf zwar die Cloud-Einordnung neuer Mails tragen, sein Anbieter bleibt aber lokal-pflichtig.
+    if not anbieter_nur_lokal(rolle):
         assert anbieter is not None and anbieter.model != "gross:35b"  # Rückfall auf den Standard, nie das ungeprüfte Modell
     else:
         assert anbieter is None

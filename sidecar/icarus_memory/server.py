@@ -63,6 +63,7 @@ from .agent_verdrahtung import (
 from .consolidation import Consolidator
 from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
+from . import hintergrund_cloud
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
 from .entities import EntityError
@@ -1173,7 +1174,29 @@ def _wire_scheduler(app: FastAPI) -> None:
             return (getattr(app.state, "agent", None) is agent
                     and asdict(app.state.settings.schedule) == plan_at_start
                     and modellarbeit_frei(app))
-        report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
+        # Cloud-Einordnung neuer Mails (eigene Einwilligung, nur Anthropic): Bitten und Zusagen aus Mails über den
+        # eingegrenzten Anbieter je Quelle; alle anderen Quellen bleiben beim lokalen Modell (`hintergrund_cloud.py`).
+        cloud = hintergrund_cloud.anbieter(app) if with_model else None
+        cloud_satz = None
+        if cloud is not None:
+            if hintergrund_cloud.budget(app).erschoepft():
+                cloud_satz = hintergrund_cloud.SATZ_ERSCHOEPFT
+            else:
+                einordnung = hintergrund_cloud.Einordnung(app, cloud, plan_at_start=plan_at_start, agent=agent)
+                cloud_report = TaskDetector(app.state.episodes, app.state.proposals, einordnung.scoped,
+                                            app.state.conversation_lock, tasks=app.state.tasks,
+                                            policy_for=einordnung.policy_for).run(
+                    with_model=True, limit=limit, rechecks_only=rechecks_only, permitted=permitted)
+                if hintergrund_cloud.budget(app).erschoepft():
+                    cloud_satz = hintergrund_cloud.SATZ_ERSCHOEPFT
+        report = detector.run(with_model=with_model, limit=limit, rechecks_only=rechecks_only, permitted=permitted,
+                              quellenfilter=(lambda episode: not hintergrund_cloud.ist_mail(episode)) if cloud is not None else None)
+        if cloud is not None and cloud_satz is None:
+            report.analyzed += cloud_report.analyzed
+            report.proposed += cloud_report.proposed
+            report.failed += cloud_report.failed
+            report.available = report.available or cloud_report.available
+            report.cancelled = report.cancelled or cloud_report.cancelled
         if with_model and not report.cancelled and getattr(app.state, 'workspace_views', None) is not None:
             from .task_project_hints import TaskProjectHints
             TaskProjectHints(app.state.episodes, app.state.proposals, app.state.workspace,
@@ -1193,35 +1216,67 @@ def _wire_scheduler(app: FastAPI) -> None:
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
+            if cloud_satz is not None:
+                return JobResult("zusagen", True, cloud_satz)
             return JobResult("zusagen", True, "Für Zusagenerkennung die Modellprüfung mit einem lokalen Modell aktivieren.")
         detail = f"{report.analyzed} Quellen geprüft, {report.proposed} Vorschläge zur Prüfung"
         if report.failed:
             detail += f", {report.failed} Prüfungen fehlgeschlagen; erneuter Versuch folgt"
+        if cloud_satz is not None:
+            detail += ". " + cloud_satz
         return JobResult("zusagen", report.failed == 0, detail)
 
     def run_working_memory(with_model, *, prompt=False, source_ids=None):
         if not with_model:
             return JobResult('gedaechtnis', True, 'Automatische Einordnung pausiert: Modellprüfung ist ausgeschaltet.')
         from .working_memory_worker import run
+        from .memory_categories import Categories
         agent = app.state.agent
         plan_at_start = asdict(app.state.settings.schedule)
+        lokal = rollen_von(app).provider('hintergrund')
+        lokal_da = bool(getattr(lokal, 'is_local', False))
+        # Cloud-Einordnung neuer Mails (eigene Einwilligung, nur Anthropic, `hintergrund_cloud.py`): Mails gehen über den
+        # eingegrenzten Anbieter je Quelle, alle anderen Quellen weiter über das lokale Modell; ohne lokales Modell warten sie.
+        cloud = hintergrund_cloud.anbieter(app)
         if prompt and (not plan_at_start['enabled'] or not plan_at_start['with_model']
                        or not scheduler.prompt_allowed()
-                       or not getattr(rollen_von(app).provider('hintergrund'), 'is_local', False)):
+                       or not (lokal_da or cloud is not None)):
             return JobResult('gedaechtnis', True, 'Einordnung nach geänderter Freigabe gestoppt.')
-        result = run(app.state.episodes, scheduled_provider(rollen_von(app).provider('hintergrund'), agent=agent,
-            plan_at_start=plan_at_start), app.state.conversation_lock, source_ids=source_ids,
-            pace=None if prompt else _working_memory_pace(app),
-            permitted=lambda: (app.state.agent is agent
-                               and asdict(app.state.settings.schedule) == plan_at_start
-                               and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app)))
-        from .memory_categories import Categories
-        Categories(app.state.episodes).run(
-            scheduled_provider(rollen_von(app).provider('hintergrund'), agent=agent, plan_at_start=plan_at_start), limit=1 if prompt else 2,
-            permission_lock=app.state.conversation_lock, source_ids=source_ids if prompt else None,
-            permitted=lambda: (app.state.agent is agent
-                and asdict(app.state.settings.schedule) == plan_at_start
-                and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app)))
+        def permitted():
+            return (app.state.agent is agent
+                    and asdict(app.state.settings.schedule) == plan_at_start
+                    and (not prompt or scheduler.prompt_allowed()) and modellarbeit_frei(app))
+        ergebnisse = []
+        if cloud is not None:
+            if hintergrund_cloud.budget(app).erschoepft():
+                ergebnisse.append(JobResult('gedaechtnis', True, hintergrund_cloud.SATZ_ERSCHOEPFT))
+            else:
+                einordnung = hintergrund_cloud.Einordnung(app, cloud, plan_at_start=plan_at_start, agent=agent)
+                ueber_cloud = run(app.state.episodes, einordnung.scoped, app.state.conversation_lock, source_ids=source_ids,
+                                  pace=None if prompt else _working_memory_pace(app), permitted=permitted,
+                                  processing_policy=einordnung.policy_for, quellenfilter=hintergrund_cloud.ist_mail)
+                Categories(app.state.episodes).run(
+                    einordnung.scoped, limit=1 if prompt else 2,
+                    permission_lock=app.state.conversation_lock, source_ids=source_ids if prompt else None,
+                    permitted=permitted, processing_policy=einordnung.policy_for, quellenfilter=hintergrund_cloud.ist_mail)
+                detail = f'Über Anthropic: {ueber_cloud.detail}'
+                if hintergrund_cloud.budget(app).erschoepft():
+                    detail += '. ' + hintergrund_cloud.SATZ_ERSCHOEPFT
+                ergebnisse.append(JobResult(ueber_cloud.name, ueber_cloud.ok, detail))
+        if cloud is None or lokal_da:
+            nicht_mail = (lambda snapshot: not hintergrund_cloud.ist_mail(snapshot)) if cloud is not None else None
+            result = run(app.state.episodes, scheduled_provider(lokal, agent=agent, plan_at_start=plan_at_start),
+                         app.state.conversation_lock, source_ids=source_ids,
+                         pace=None if prompt else _working_memory_pace(app), permitted=permitted, quellenfilter=nicht_mail)
+            Categories(app.state.episodes).run(
+                scheduled_provider(lokal, agent=agent, plan_at_start=plan_at_start), limit=1 if prompt else 2,
+                permission_lock=app.state.conversation_lock, source_ids=source_ids if prompt else None,
+                permitted=permitted, quellenfilter=nicht_mail)
+            ergebnisse.append(JobResult(result.name, result.ok, f'Auf diesem Rechner: {result.detail}' if cloud is not None else result.detail))
+        else:
+            ergebnisse.append(JobResult('gedaechtnis', True, hintergrund_cloud.SATZ_ANDERE_QUELLEN))
+        result = ergebnisse[0] if len(ergebnisse) == 1 else JobResult(
+            'gedaechtnis', all(r.ok for r in ergebnisse), '. '.join(r.detail.rstrip('.') for r in ergebnisse) + '.')
         semantic = working_memory_semantic_runtime.search(app)
         if semantic is not None and plan_at_start['enabled'] and plan_at_start['with_model']:
             # Always take one global batch: a stream of newly uploaded IDs
@@ -1348,10 +1403,12 @@ def _wire_scheduler(app: FastAPI) -> None:
     scheduler.configure(
         enabled=plan.enabled,
         interval_minutes=plan.interval_minutes,
-        # Vorgemerktes Sortieren (Fremdprobe 3, Befund 3) wartet, bis ein lokales Modell mit Namen da ist.
+        # Vorgemerktes Sortieren (Fremdprobe 3, Befund 3) wartet, bis ein lokales Modell mit Namen da ist,
+        # oder bis die Cloud-Einordnung neuer Mails eingeschaltet ist (`hintergrund_cloud`).
         with_model=bool(plan.with_model and (
             not plan.local_model_only
             or (getattr(hinten, "is_local", False) and str(getattr(hinten, "model", "") or "").strip())
+            or hintergrund_cloud.aktiv(app)
         )),
     )
     # Die tägliche Fassungsprüfung läuft im selben Faden, auch wenn der Zeitplan selbst aus ist (fassung_routes.py).
@@ -3520,7 +3577,8 @@ def create_app(
         einordnung = "aus" if created else "schon_festgehalten"
         schedule = app.state.settings.schedule
         agent = getattr(app.state, "agent", None)
-        lokal = getattr(rollen_von(app).provider("hintergrund"), "is_local", False)
+        # Lokal, oder (nur für Mails) die Cloud-Einordnung; eine Terminnotiz braucht das lokale Modell.
+        lokal = hintergrund_cloud.einordnung_moeglich(app, episode)
         scheduler = getattr(app.state, "scheduler", None)
         if created and schedule.enabled and schedule.with_model and lokal and scheduler is not None:
             scheduler.request_working_memory(episode.id)
@@ -4576,7 +4634,7 @@ def create_app(
                 app.state.episodes, conversation_id, source, lookup_only=lookup_only)
             if created and not lookup_only and app.state.settings.schedule.enabled and app.state.settings.schedule.with_model:
                 scheduler = getattr(app.state, 'scheduler', None)
-                if scheduler is not None and getattr(rollen_von(app).provider('hintergrund'), 'is_local', False):
+                if scheduler is not None and hintergrund_cloud.einordnung_moeglich(app, source_episode):
                     scheduler.request_working_memory(source_episode.id)
             input_sources = {entry["episode_id"]: entry
                 for item in history for entry in item.get("conversation_source_lineage", [])}
@@ -5635,7 +5693,7 @@ def create_app(
         if created and app.state.settings.schedule.enabled and app.state.settings.schedule.with_model:
             agent = getattr(app.state, 'agent', None)
             scheduler = getattr(app.state, 'scheduler', None)
-            if scheduler is not None and getattr(rollen_von(app).provider('hintergrund'), 'is_local', False):
+            if scheduler is not None and hintergrund_cloud.einordnung_moeglich(app, episode):
                 scheduler.request_working_memory(episode.id)
         return {"id": episode.id, "created": created, "title": episode.title,
                 "project_id": episode.project_id}

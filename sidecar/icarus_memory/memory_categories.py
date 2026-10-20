@@ -890,7 +890,9 @@ class Categories:
             return True
 
     def run(self, provider, limit=3, permitted=lambda: True, permission_lock=None, source_ids=None,
-            processing_policy=None, preserve_on_failure=False):
+            processing_policy=None, preserve_on_failure=False, quellenfilter=None):
+        """Ein Paket Themenvorschläge. Ein Cloudanbieter braucht `processing_policy` (je Quelle eine Policy oder None);
+        Quellen ohne Policy und Quellen, die `quellenfilter` ablehnt, bleiben unberührt für einen anderen Weg."""
         if type(limit) is not int or not 1 <= limit <= 20:
             raise ValueError("limit must be 1..20")
         local = provider is not None and getattr(provider, "is_local", False)
@@ -912,8 +914,12 @@ class Categories:
                     break
                 if not self._current(snapshot):
                     continue
+            if callable(quellenfilter) and not quellenfilter(snapshot):
+                continue
+            policy = processing_policy(snapshot) if callable(processing_policy) else None
+            if not local and policy is None:
+                continue  # ein Cloudanbieter sieht nur Quellen mit ausdrücklicher Freigabe
             try:
-                policy = processing_policy(snapshot) if callable(processing_policy) else None
                 topics, entities = _interpret(provider, snapshot.episode, taxonomy, policy=policy)
             except Exception as exc:
                 with gate:
