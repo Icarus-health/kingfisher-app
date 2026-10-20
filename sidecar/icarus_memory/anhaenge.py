@@ -75,6 +75,16 @@ class Anhang:
 Ocr = Callable[[bytes], str]
 
 
+def wartet_auf_texterkennung(anhang: Any) -> bool:
+    """Ob die Texterkennung an diesem Anhang noch etwas lesen könnte: ganz gescannt oder Seiten ohne Text.
+
+    Eine PDF mit Text auf Seite 1 und einem Scan auf Seite 2 gilt als gelesen, Seite 2 fehlt aber. Ohne Modell (Pause,
+    Akku) wartet die Mail deshalb wie ein ganz gescanntes Dokument (docs/46-hintergrund.md). Seiten jenseits von
+    `MAX_SEITEN` liest auch die Texterkennung nicht; sie sind kein Grund zu warten.
+    """
+    return getattr(anhang, 'status', '') == GESCANNT or bool(getattr(anhang, 'ungelesene_seiten', ()))
+
+
 def _name(part: email.message.Message) -> str:
     from .connectors.mail import _decode
     roh = part.get_filename() or ''
@@ -372,4 +382,4 @@ def gespeicherter_bericht(episode: Any) -> dict[str, Any] | None:
 
 __all__ = ['Anhang', 'FEHLER', 'GELESEN', 'GESCANNT', 'MAX_ANHAENGE', 'MAX_SEITEN', 'MAX_ZEICHEN', 'OCR', 'OCR_MODELLE',
            'TAG', 'ZEITGRENZE_S', 'ZU_GROSS', 'als_dict', 'aufnehmen', 'aus_mail', 'gescannt_satz', 'ist_anhang',
-           'ocr_fuer', 'ocr_modell', 'seite_der_stelle', 'text', 'titel']
+           'ocr_fuer', 'ocr_modell', 'seite_der_stelle', 'text', 'titel', 'wartet_auf_texterkennung']

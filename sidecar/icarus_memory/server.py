@@ -1190,12 +1190,13 @@ def _wire_scheduler(app: FastAPI) -> None:
                 zurueckstellen = None
                 if hasattr(reader, 'ocr'):
                     # Gescannte Anhänge nur mit einem lokalen OCR-Modell (`anhaenge.ocr_fuer`), nie über die Cloud.
-                    from .anhaenge import GESCANNT, ocr_fuer
+                    from .anhaenge import ocr_fuer, wartet_auf_texterkennung
                     ocr = ocr_fuer(app)
                     reader.ocr = None if nur_neue_post else ocr
                     if nur_neue_post and ocr is not None:
+                        # Ganz gescannt oder einzelne Seiten ohne Text: nicht unvollständig speichern, sondern warten.
                         zurueckstellen = lambda nachricht: any(  # noqa: E731
-                            getattr(anhang, 'status', '') == GESCANNT for anhang in getattr(nachricht, 'anhaenge', ()) or ())
+                            wartet_auf_texterkennung(anhang) for anhang in getattr(nachricht, 'anhaenge', ()) or ())
                 with app.state.conversation_lock:
                     selected_filter = mail_filter.policy(app.state.settings)
                     selected_settings = SimpleNamespace(mail_filter=selected_filter)

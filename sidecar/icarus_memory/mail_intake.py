@@ -40,8 +40,10 @@ BACKGROUND_BATCH=25
 #: So lange probiert die Aufnahme ein Postfach mit abgelehnter Anmeldung nicht neu (Sekunden). Jeder Versuch ist eine
 #: Anmeldung beim Anbieter; viele abgelehnte in Folge führen dort zur Kontosperre. „Neu anmelden“ hebt das sofort auf.
 ANMELDUNG_WIEDERVERSUCH_S=3600
-#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`), bevor sie wieder geholt wird.
-ZURUECKGESTELLT_S=600
+#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`) höchstens. Gemeint ist: bis zum nächsten
+#: vollen Durchgang nach Pause oder Akku, der sie sofort freigibt. Vorher kam sie alle zehn Minuten wieder dran und wurde
+#: samt Anhang neu geladen, ohne gespeichert werden zu können; jetzt in einer langen Pause einmal in sechs Stunden.
+ZURUECKGESTELLT_S=6*3600
 PRIMARY_KEYS = {'mail_intake_analysis': {'episode_id'},'mail_intake_folders': {'account','folder'}, 'mail_intake_items': {'account','folder','generation','uid'}}
 INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account','status','retry_at','lane','uid')),
            'idx_mail_intake_episode': IndexContract('mail_intake_items',('episode_id',))}
@@ -218,7 +220,8 @@ class Intake:
         älteren Mails bleiben, wo sie stehen, auch ihre Bestandsaufnahme. Ein in der Pause begonnenes Einlesen merkt
         sich nur die Grenze für neue Post (`_grundlinie`). `zurueckstellen(message)`: Diese Mail jetzt nicht speichern
         (etwa ein gescannter Anhang, solange die Texterkennung ein Modell bräuchte); sie bleibt offen, ohne als
-        gescheitert zu zählen, und kommt nach `ZURUECKGESTELLT_S` wieder dran.
+        gescheitert zu zählen (`grund='zurueckgestellt'`), und kommt beim nächsten vollen Durchgang sofort dran,
+        spätestens nach `ZURUECKGESTELLT_S`.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
         with (permission_lock if permission_lock is not None else nullcontext()):
@@ -246,6 +249,10 @@ class Intake:
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
+        if not nur_neu:
+            # Der volle Durchgang nach Pause oder Akku: Was nur auf die Texterkennung wartete, kommt jetzt gleich dran.
+            with self.episodes.transaction():
+                self.db.execute("UPDATE mail_intake_items SET retry_at=0,grund=NULL WHERE account=? AND status='pending' AND grund='zurueckgestellt'",(account,))
         # Ein Ordner, dessen Anmeldung abgelehnt wurde, ruht bis zur neuen Anmeldung (höchstens ein Versuch je Stunde).
         ruht_bis=time.time()-ANMELDUNG_WIEDERVERSUCH_S
         with self.episodes._lock:
@@ -300,7 +307,7 @@ class Intake:
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
                 if zurueckstellen is not None and zurueckstellen(message):
                     with self.episodes.transaction():
-                        self.db.execute('UPDATE mail_intake_items SET retry_at=? WHERE account=? AND folder=? AND generation=? AND uid=?',
+                        self.db.execute("UPDATE mail_intake_items SET retry_at=?,grund='zurueckgestellt' WHERE account=? AND folder=? AND generation=? AND uid=?",
                                         (time.time()+ZURUECKGESTELLT_S,account,item['folder'],item['generation'],item['uid']))
                     continue
                 # Model/network calls must not hold the conversation/permission lock.

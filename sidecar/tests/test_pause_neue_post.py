@@ -106,6 +106,68 @@ def test_neue_post_mit_gescanntem_anhang_wartet_auf_die_texterkennung(tmp_path):
     ep.close()
 
 
+def test_zurueckgestellte_mail_wird_in_der_pause_nicht_alle_zehn_minuten_neu_geholt(tmp_path, monkeypatch):
+    # Review N5: Eine zurückgestellte Mail mit Scan kam alle zehn Minuten wieder dran und wurde samt Anhang neu
+    # geladen, ohne dass sie gespeichert werden konnte. Jetzt wartet sie bis zum vollen Durchgang nach der Pause.
+    from dataclasses import replace
+    uhr = [1_000_000.0]
+    monkeypatch.setattr('icarus_memory.mail_intake.time', SimpleNamespace(time=lambda: uhr[0]))
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake, r = Intake(ep), Reader()
+    r.count = 2
+    intake.start('a', ['INBOX'])
+    intake.step('a', r, batch=8)
+    geholt = []
+
+    class MitScan(Reader):
+        count = 3
+        texterkennung = False  # nach der Pause liest die Texterkennung den Scan
+
+        def message_in_folder(self, folder, uid):
+            geholt.append(uid)
+            nachricht = super().message_in_folder(folder, uid)
+            return replace(nachricht, anhaenge=('scan',)) if uid == '7.3' and not self.texterkennung else nachricht
+    leser = MitScan()
+    zurueck = lambda nachricht: bool(nachricht.anhaenge)  # noqa: E731
+    intake.step('a', leser, batch=8, nur_neu=True, zurueckstellen=zurueck)
+    assert geholt.count('7.3') == 1 and _uids(ep, 'live', 'pending') == [3]
+    for _ in range(12):  # zwei Stunden Pause, ein Takt alle zehn Minuten
+        uhr[0] += 600
+        intake.step('a', leser, batch=8, nur_neu=True, zurueckstellen=zurueck)
+    assert geholt.count('7.3') == 1, 'in der Pause nicht immer wieder herunterladen'
+    # Nach der Pause: der volle Durchgang holt sie sofort, mit Texterkennung, und speichert sie.
+    uhr[0] += 30
+    leser.texterkennung = True
+    intake.step('a', leser, batch=8)
+    assert geholt.count('7.3') == 2 and _uids(ep, 'live') == [3]
+    with ep._lock:
+        zeile = ep._conn.execute('SELECT attempts, grund FROM mail_intake_items WHERE uid=3').fetchone()
+    assert tuple(zeile) == (1, None)
+    ep.close()
+
+
+def test_pdf_mit_ungelesenen_seiten_wartet_in_der_pause_auf_die_texterkennung(client, postfach, monkeypatch):
+    # Review M6: Eine PDF mit Text auf Seite 1 und einem Scan auf Seite 2 galt als gelesen und wurde in der Pause ohne
+    # Seite 2 gespeichert. Sie wartet jetzt wie ein ganz gescanntes Dokument; eine vollständig gelesene nicht.
+    from icarus_memory.anhaenge import GELESEN, Anhang
+    einlesen_starten(client, postfach)
+    monkeypatch.setattr('icarus_memory.anhaenge.ocr_fuer', lambda app: (lambda bild: 'synthetisch'))
+    gesehen = []
+
+    def schritt(self, account, reader, settings, **kwargs):
+        gesehen.append(kwargs['zurueckstellen'])
+        return []
+    monkeypatch.setattr('icarus_memory.mail_intake.Intake.background_step', schritt)
+    zeitplan = client.app.state.scheduler
+    zeitplan.stop()
+    zeitplan._run_neue_post()
+    zurueckstellen = gesehen[-1]
+    gemischt = Anhang('rechnung.pdf', 'pdf', GELESEN, ('Rechnung Nr. 1', ''), 2)
+    vollstaendig = Anhang('brief.pdf', 'pdf', GELESEN, ('Seite eins', 'Seite zwei'), 2)
+    assert zurueckstellen(Message('7.9', 'Rechnung', 'a@example.org', None, '', False, anhaenge=(gemischt,)))
+    assert not zurueckstellen(Message('7.8', 'Brief', 'a@example.org', None, '', False, anhaenge=(vollstaendig,)))
+
+
 # -- Der Zeitplan ----------------------------------------------------------------------------------------------------
 
 def _zeitplan(monkeypatch, steuerung, aufrufe):

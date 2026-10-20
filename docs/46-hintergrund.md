@@ -233,9 +233,24 @@ Lücke. Neue Post wird nur vorgemerkt, eingeordnet wird sie nach der Pause.
 
 Ohne Modell heißt auch: keine Texterkennung. Eine neue Mail mit gescanntem
 Anhang wartet deshalb, wenn ein OCR-Modell da ist, statt ohne Text gespeichert
-zu werden (`zurueckstellen`, zehn Minuten, zählt nicht als gescheitert). Ist der
-KI-Filter für Post an, prüft die lokale KI jede neue Mail vor dem Speichern;
-dann wartet in der Pause auch die neue Post, und der Satz sagt es.
+zu werden (`zurueckstellen`, zählt nicht als gescheitert). Das gilt auch für
+eine PDF, die nur teilweise Text hat, etwa Seite 1 getippt und Seite 2
+gescannt (`anhaenge.wartet_auf_texterkennung`: Seiten ohne Text); Seiten
+jenseits der Lesegrenze sind kein Grund zu warten. Die Mail wird in der Pause
+nicht immer wieder heruntergeladen: Sie trägt `grund='zurueckgestellt'` und
+ruht bis zum ersten vollen Durchgang nach Pause oder Akku, der sie sofort
+freigibt; in einer langen Pause kommt sie höchstens alle sechs Stunden wieder
+dran (`mail_intake.ZURUECKGESTELLT_S`). Ist der KI-Filter für Post an, prüft
+die lokale KI jede neue Mail vor dem Speichern; dann wartet in der Pause auch
+die neue Post, und der Satz sagt es.
+
+Microsoft (Graph) trennt neue von alter Post erst, wenn die erste
+Delta-Auflistung eines Ordners fertig ist; bis dahin gilt alles als älter.
+Diese Auflistung geht deshalb in der Pause weiter, aber nur mit Kennung und
+Eingangszeit je Mail (`MicrosoftPost._fortschreiben`): kein Inhalt, kein
+Eintrag für ältere Mails, kein Modell. Ohne sie käme bei einem in der Pause
+verbundenen Konto nie neue Post an. Die Inhalte der älteren Mails holt die
+Aufnahme erst nach der Pause.
 
 Ein Update setzt die älteren Mails nicht fort: Die Pause steht in
 `hintergrund.json` und gilt nach jedem Neustart; nach einem Neustart fehlt
@@ -316,7 +331,10 @@ Generationen und verknüpft deshalb nicht.
   Grundlinie, Zurückstellen ohne Texterkennung, Zeitplan in Pause, Akku und
   fehlender Energiemeldung, Gegenbeispiele Speicherdruck, Speicherplatz und
   Eingabe, „Weiter“, Neustart nach dem Update, der ganze Weg mit der
-  IMAP-Attrappe samt Sätzen; dazu bewusst angepasst
+  IMAP-Attrappe samt Sätzen, teilweise gescannte PDF, keine Wiederholung
+  zurückgestellter Mails in der Pause; dazu
+  `test_microsoft_graph.py::test_in_der_pause_listet_outlook_nur_kennungen_und_holt_neue_post`;
+  bewusst angepasst
   `test_host_power.py::test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory`
   und `test_mac_calendar_background_gate.py`. Oberfläche:
   `app/kingfisher/tests/pause-neue-post.test.mjs`; Browserprobe
@@ -344,7 +362,10 @@ einer alten Generation (1); zur
 Pause: kein leichter Takt (6), Akku hält auch neue Post an (7), Eingabe zählt
 in der Pause nicht (2), ältere Mails trotz Pause geholt (1), Bestandsaufnahme
 trotz Pause (2), leichter Lauf rückt den vollen Durchgang vor (4), Kalender und
-Sicherung in jedem Takt (3), Texterkennung ohne Modellfreigabe (1), KI-Filter in
+Sicherung in jedem Takt (3), Texterkennung ohne Modellfreigabe (1), teilweise
+gescannte PDF ohne Warten gespeichert (1), Zurückgestelltes wieder alle zehn
+Minuten (1), voller Durchgang gibt Zurückgestelltes nicht frei (1),
+Bestandsaufnahme älterer Microsoft-Mails in der Pause (1), KI-Filter in
 der Pause nicht übersprungen (1), Satz verspricht neue Post bei Speicherdruck
 (1), Mac-Kalender nach alter Sperre (3), Grund der Pause nur mit Modell (1),
 Grundlinie fehlt (2), in der Oberfläche alter Satz im Assistenten und „Einlesen
