@@ -51,7 +51,7 @@ test("MailIntake zeigt den Knopf, ruft die Route und meldet Antwort als Status, 
   assert.match(quelle, /api\.ordnerErgaenzen\(/);
   assert.match(quelle, /role="status"[^\n]*gesendetSatz|gesendetSatz[^\n]*role="status"/);
   assert.match(quelle, /umfangSatz\(account\)/);
-  assert.doesNotMatch(quelle, /„[^“\n]*"/, "nie „…\" in einer Zeichenkette");
+  assert.doesNotMatch(quelle, /„[^“\n]*"/, "ein mit „ geöffnetes Zitat endet mit dem typografischen Zeichen, nie mit ASCII");
   const api = readFileSync(new URL("../src/api.ts", import.meta.url), "utf8");
   assert.match(api, /ordner-ergaenzen/);
 });
