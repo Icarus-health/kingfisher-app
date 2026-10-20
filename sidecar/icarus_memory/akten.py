@@ -68,7 +68,7 @@ from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 
-AKTEN_VERSION = 9
+AKTEN_VERSION = 10
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000

@@ -19,6 +19,11 @@ Regeln:
 * **Wochentag:** „bis Freitag“ ist der nächste Freitag nach dem Bezugstag. Am
   selben Wochentag ist es uneindeutig. „Nächsten Freitag“ ist uneindeutig (dieser
   oder der der Folgewoche).
+* **Wochentag mit Datum:** „bis Freitag, den 11. September“ ist eine Angabe. Es
+  gilt das Datum, wenn der Wochentag dazu passt; sonst ist sie uneindeutig.
+* **Binnenfrist:** „innerhalb von 14 Tagen“ und „binnen zwei Wochen“ zählen ab der
+  Quelle wie „in 14 Tagen“. Werktage (Feiertage) und eine Frist ab einem anderen
+  Ereignis („nach Erhalt“, „ab Rechnungsdatum“) bleiben Text.
 * **Jede Auflösung nennt ihre Textstelle** (Zeichenpositionen im untersuchten
   Text); der Ausdruck steht wörtlich da. Nichts wird ergänzt.
 
@@ -53,14 +58,35 @@ _MONATSNAME = re.compile(r'(?<![\d.])(\d{1,2})\.?\s*' + _MONAT + r'(?:\s+(\d{4})
 _MONATSENDE = re.compile(r'\bEnde\s+' + _MONAT + r'(?:\s+(\d{4})(?!\d))?', re.I)
 _ENDE_MONAT = re.compile(r'\b(?:Ende\s+(?:des|dieses)\s+Monats|zum\s+Monatsende|Monatsende)\b', re.I)
 _JAHRESENDE = re.compile(r'\b(?:Ende\s+(?:des|dieses)\s+Jahres|zum\s+Jahresende|Jahresende)\b', re.I)
-_WOCHENTAG = re.compile(r'\b(bis|am|zum|vor|spätestens|kommenden|diesen)\s+' + _TAG + r'\b', re.I)
+_WOCHENTAG_VOR = r'(bis(?:\s+(?:spätestens|einschließlich))?|am|zum|vor|spätestens|kommenden|diesen)'
+_WOCHENTAG = re.compile(r'\b' + _WOCHENTAG_VOR + r'\s+' + _TAG + r'\b', re.I)
+# „bis Freitag, den 11. September“ oder „bis Mittwoch, 9.9.“: Wochentag und Datum als eine Angabe.
+_WOCHENTAG_DATUM = re.compile(
+    r'\b' + _WOCHENTAG_VOR + r'\s+' + _TAG + r',?\s+(?:(?:den|dem)\s+)?'
+    r'(?:(?P<tag>\d{1,2})\.\s?(?P<monat>\d{1,2})\.(?:\s?(?P<jahr>\d{4}|\d{2})(?!\d))?(?![\d]|\.\d)'
+    r'|(?P<tag_name>\d{1,2})\.?\s*(?P<monat_name>' + '|'.join(sorted(_MONATE, key=len, reverse=True)) + r')\b\.?'
+    r'(?:\s+(?P<jahr_name>\d{4})(?!\d))?)', re.I)
 _RELATIV = re.compile(r'\bin\s+' + _ZAHL + r'\s+(Tag(?:en|e)?|Woche[n]?|Monat(?:en|e)?)\b', re.I)
+# „innerhalb von 14 Tagen“, „binnen zwei Wochen“, „innerhalb eines Monats“. Ein angehängtes Ereignis
+# („nach Erhalt der Ware“, „ab Rechnungsdatum“) gehört zur Angabe und verhindert die Auflösung.
+_BINNEN = re.compile(
+    r'\b(?:innerhalb\s+(?:von\s+)?|binnen\s+)(\d{1,3}|' + '|'.join(list(NUMBERS) + ['eines', 'einer', 'einem', 'eine', 'ein'])
+    + r')\s+(Kalendertag(?:en|e)?|Werktag(?:en|e)?|Arbeitstag(?:en|e)?|Tag(?:en|es|e)?|Woche[n]?|Monat(?:en|es|s|e)?)\b'
+    r'(\s+(?:nach|ab|seit|vor)\s+(?:(?:dem|der|des|den|Ihrem|Ihrer|Ihres|diesem|dieser|dieses)\s+)?[\w-]+'
+    r'(?:\s+(?:der|des|dieser|dieses|Ihrer|Ihres|unserer|unseres)\s+[\w-]+)?)?', re.I)
+# „spätestens 24 Stunden vorher“, „drei Werktage vor Ihrem Termin“: an ein anderes Ereignis gebunden, nie ein Kalendertag.
+_VOR_EREIGNIS = re.compile(
+    r'\b(?:(?:bis\s+)?spätestens\s+)?' + _ZAHL
+    + r'\s+(?:Stunden|Kalendertag(?:en|e)?|Werktag(?:en|e)?|Arbeitstag(?:en|e)?|Tag(?:en|e)?|Woche[n]?|Monat(?:en|e)?)'
+    r'\s+(?:vorher|zuvor|davor|vor\s+(?:(?:dem|der|den|Ihrem|Ihrer|Ihres|unserem|unserer|Beginn|Ablauf|Start)\s+)*'
+    r'[\w-]+(?:\s+(?:der|des|dieser|dieses|Ihrer|Ihres)\s+[\w-]+)?)', re.I)
 _TAGE_NAH = re.compile(r'\b(?:bis|spätestens|vor|für)\s+(heute|morgen|übermorgen)\b', re.I)
 # Angaben, die eine Frist nennen, aber kein Datum ergeben. Sie bleiben Text.
 _UNEINDEUTIG = re.compile(
     r'\b(?:nächste[nmrs]?\s+(?:Woche|Monat|Jahr|' + '|'.join(_WOCHENTAGE) + r')'
     r'|(?:Anfang|Mitte)\s+(?:' + '|'.join(_MONATE) + r'|nächsten?\s+Monats?|der\s+Woche)\b'
-    r'|Ende\s+(?:der|nächster)\s+Woche|KW\s?\d{1,2}|in\s+' + _ZAHL + r'\s+bis\s+' + _ZAHL + r'\s+(?:Tagen|Wochen|Monaten)'
+    r'|Ende\s+(?:der|nächster)\s+Woche|KW\s?\d{1,2}'
+    r'|(?:in|innerhalb(?:\s+von)?|binnen)\s+' + _ZAHL + r'\s+bis\s+' + _ZAHL + r'\s+(?:Tagen|Wochen|Monaten)'
     r'|bald|zeitnah|kurzfristig)\b', re.I)
 
 # A resolved date is not yet a deadline. The relation must be local to that
@@ -70,14 +96,16 @@ _UNEINDEUTIG = re.compile(
 # leave unbound dates undecided; event knowledge stays in the source.
 _SATZTEIL = re.compile(r'(?<=[a-zäöüß)\]])[.!?](?:\s|$)|[,;\n]', re.I)
 _FRIST_VOR = re.compile(
-    r'\b(?:bis(?:\s+spätestens)?|spätestens(?:\s+bis)?|vor)\s+'
-    r'(?:(?:zum|zur|am|den|dem|kommenden|diesen)\s+)?$', re.I)
-_FRIST_IM_AUSDRUCK = re.compile(r'^(?:bis|spätestens|vor)\b', re.I)
+    r'\b(?:bis(?:\s+(?:spätestens|einschließlich|einschl\.|inklusive|inkl\.))?|spätestens(?:\s+bis)?|vor)\s+'
+    r'(?:(?:zum|zur|am|den|dem|kommenden|diesen)\s+)?(?:Ablauf\s+(?:des|dem)\s+)?$', re.I)
+_FRIST_IM_AUSDRUCK = re.compile(r'^(?:bis|spätestens|vor|innerhalb|binnen|in)\b', re.I)
+_SATZENDE = re.compile(r'(?<=[a-zäöüß)\]])[.!?](?:\s|$)|\n', re.I)
 # Match a cutoff headword, not any word containing one: an
 # Abschlussveranstaltung or an Abgabeformular is not itself a due date.
 _FRISTNAME = re.compile(
     r'\b(?:\w*(?:frist(?:en|ende)?|deadline(?:s)?|abgabe(?:n|termin(?:e)?)?|fälligkeit(?:en)?)|'
-    r'(?:anmelde|redaktions|einsende|bewerbungs|annahme|abgabe|einreich(?:ungs)?|teilnahme|melde)schluss|fällig)\b', re.I)
+    r'(?:anmelde|redaktions|einsende|bewerbungs|annahme|abgabe|einreich(?:ungs)?|teilnahme|melde)schluss|'
+    r'(?:anmelde|abgabe|einsende|rückgabe)tag|zahlungsziel|fällig)\b', re.I)
 _FRIST_LINK = re.compile(
     r'(?:\s|[:=–-]|\b(?:ist|sind|der|die|das|den|dem|am|zum|auf|bis|nun|jetzt|'
     r'neue?|wurde|wird|endet|erfolgt|gilt|verschoben|verlängert|festgelegt|verschiebt|sich)\b)*', re.I)
@@ -104,14 +132,107 @@ _ANTWORT_ABGABE_VOR = re.compile(
 # "bis" also ends events and absences. It needs positive action evidence,
 # rather than an expanding list of event verbs to veto. Unrecognised wording
 # stays in the original and broad date API instead of becoming a deadline.
-_FRISTHANDLUNG = re.compile(
-    r'\b(?:antworte[n]?|beantworte[n]?|antwort|rückmeldung|anmeldung|melde[n]?|sende[n]?|'
-    r'sendet|schick(?:e|en|t)?|einreiche[n]?|reiche[n]?|kündig(?:e|en|t)|'
-    r'bestätig(?:e|en|t)|überweis(?:e|en|t)|zahl(?:e|en|t)|zahlung|liefer(?:e|n|t))\b', re.I)
+# Verbs with a separable prefix count only with it ("ausfüllen"); the split
+# form ("füllen Sie den Bogen bis Freitag aus") is `_TRENNBAR`.
+_HANDLUNG_VERB = (
+    r'(?:an|ab|ein|nach|zu|zurück|rück)?(?:antworte[n]?|melde[n]?|sende[n]?|sendet|schick(?:e|en|t)?|'
+    r'reiche[n]?|zahl(?:e|en|t))|beantworte[n]?|kündig(?:e|en|t)|bestätig(?:e|en|t)|überweis(?:e|en|t)|'
+    r'liefer(?:e|n|t)|bezahl(?:e|en|t)|begleich(?:e|en|t)|unterschreib(?:e|en|t)|unterzeichne[nt]?|übermittl(?:e|n)|'
+    r'übermittel[nt]|entscheide[nt]?|erledig(?:e|en|t)|prüf(?:e|en|t)|überarbeite[nt]?|korrigier(?:e|en|t)|'
+    r'ausfüll(?:e|en|t)|hochlade[n]?|mitteil(?:e|en|t)|abgeb(?:e|en)|zurückgeb(?:e|en)|vorleg(?:e|en|t)|'
+    r'freigeb(?:e|en)|zusag(?:e|en|t)|absag(?:e|en|t)|widerruf(?:e|en|t)|stornier(?:e|en|t)|erbitte[nt]?')
+_HANDLUNG_NOMEN = (
+    r'antwort|rückmeldung|anmeldung|zahlung|zahlbar|zahlungseingang|zusage|absage|widerruf|einspruch|widerspruch|'
+    r'abgabe|einreichung|rücksendung|rückgabe|überweisung|kündigung|unterschrift|bestätigung|'
+    r'bescheid\s+(?:geben|sagen)|bitte[nt]?\s+(?:(?:Sie|wir|ich)\s+)?um')
+_FRISTHANDLUNG = re.compile(r'\b(?:' + _HANDLUNG_VERB + '|' + _HANDLUNG_NOMEN + r')\b', re.I)
+_HANDLUNG_AM_ENDE = re.compile(r'(?:' + _HANDLUNG_VERB + r')', re.I)
+# Separable verbs: stem before the date, prefix directly after it or at the clause end.
+_TRENNBAR_NACH = re.compile(r'^\s*(aus|mit|ab|an|ein|zu|hoch|vor|zurück|frei|Bescheid)\b', re.I)
+_TRENNBAR_ENDE = re.compile(r'\b(aus|mit|ab|an|ein|zu|hoch|vor|zurück|frei)\W*$', re.I)
+_TRENNBAR = {
+    'aus': r'füll(?:e|en|t)?',
+    'mit': r'teil(?:e|en|t)?',
+    'ab': r'geb(?:e|en|t)|gibt|sag(?:e|en|t)?|hol(?:e|en|t)?',
+    'an': r'nehm(?:e|en|t)|nimmt|ruf(?:e|en|t)?',
+    'ein': r'trag(?:e|en|t)?|trägt|reich(?:e|en|t)?|zahl(?:e|en|t)?|send(?:e|en|et)?|schick(?:e|en|t)?|lös(?:e|en|t)?',
+    'zu': r'sag(?:e|en|t)?|send(?:e|en|et)?|schick(?:e|en|t)?|stimm(?:e|en|t)?',
+    'hoch': r'lad(?:e|en|t)|lädt',
+    'vor': r'leg(?:e|en|t)?',
+    'zurück': r'geb(?:e|en|t)|gibt|send(?:e|en|et)?|schick(?:e|en|t)?|ruf(?:e|en|t)?',
+    'frei': r'geb(?:e|en|t)|gibt|räum(?:e|en|t)?',
+    'bescheid': r'geb(?:e|en|t)|gibt|sag(?:e|en|t)?',
+}
 _ZUSTELLUNG_VOR = re.compile(
     r'\b(?:\w*erklärung|unterlagen|dokumente?|muster|rechnung|daten|bericht)\s+komm(?:t|en)\s*$', re.I)
-_FERTIG_NACH = re.compile(r'^\s*(?:fertig|einzureichen|abzugeben|erledigt)\b', re.I)
+# "Wir benötigen die Unterlagen bis …" or "Ihre Stellungnahme benötigen wir bis …":
+# a needed deliverable, not any object ("Wir brauchen das Auto bis …").
+_BEDARF_SACHE = (
+    r'(?:\w*erklärung(?:en)?|unterlagen|dokumente?|nachweise?|belege?|angaben|informationen|daten|bericht|entwurf|'
+    r'unterschrift|formulare?|\w*bescheinigung(?:en)?|kopien?|rechnung(?:en)?|stellungnahme|attest|gutachten|'
+    r'kostenvoranschlag|angebot|zustimmung|vollmacht|\w*bogen)')
+_BEDARF_VOR = re.compile(
+    r'\b(?:benötig(?:e|en|t)|brauch(?:e|en|t)|erwarte[nt]?)\s+'
+    r'(?:(?:Ihre[nmrs]?|die|den|das|eine[nmrs]?|noch|unbedingt|dringend|vollständige[nmrs]?)\s+)*'
+    + _BEDARF_SACHE + r'(?:\s+(?:der|des|vom|von)\s+[\w-]+)?\s*$'
+    r'|\b' + _BEDARF_SACHE + r'\b[^,;]*\b(?:benötigen|brauchen|erwarten|erbitten)\s+(?:wir|ich)\s*$', re.I)
+_FERTIG_NACH = re.compile(
+    r'^\s*(?:fertig|einzureichen|abzugeben|erledigt|zu\s+(?:zahlen|begleichen|überweisen|entrichten|leisten|bezahlen))\b',
+    re.I)
+# "muss bis … eingegangen sein / vorliegen": an obligation; without a modal it reports a past arrival.
+_MODAL_VOR = re.compile(r'\b(?:muss|müssen|müsste[n]?|soll(?:en|te|ten)?|bitte)\b', re.I)
+_EINGANG_NACH = re.compile(
+    r'^\s*(?:(?:bei|beim|an|im)\s+(?:(?:der|dem|den|die|das|Ihrer|Ihrem|unserer|unserem)\s+)?'
+    r'(?:uns|mir|ihm|ihr|Ihnen|dir|euch|ihnen|[A-ZÄÖÜ][\w-]*)\s+|(?:hier|vollständig|schriftlich)\s+)*'
+    r'(?:eingegangen|eingehen|eingereicht|vorliegen|vorgelegt|eingetroffen|eintreffen|bezahlt|beglichen|überwiesen|'
+    r'unterschrieben|zurückgesendet|zurückgeschickt|eingesendet|abgegeben|gekündigt|erfolgen|erfolgt|zugegangen|'
+    r'zugehen|geliefert|zugestellt|versandt|versendet|verschickt|fertiggestellt)\b', re.I)
+_VOLLZUG_VOR = re.compile(r'\b(?:ist|sind|wurde[n]?|hat|haben|war|waren)\b', re.I)
+# A modal (or "bitte") with the action verb at the clause end:
+# "Sie können den Vertrag bis zum 30.09. schriftlich kündigen", "Bis zum 30.09. können Sie kündigen".
+_MODAL = re.compile(
+    r'\b(?:können|kann|kannst|könnt|müssen|muss|musst|müsst|sollen|soll|sollst|sollt|sollten|dürfen|darf|'
+    r'wollen|möchten|werden|wird|bitte)\b', re.I)
+_LETZTES_WORT = re.compile(r'([\wäöüß]+)\W*$', re.I)
+_ZU_EINSCHUB = re.compile(r'^(an|ab|ein|nach|zurück|aus|mit|hoch|vor|frei|fertig)zu', re.I)
+# "Wir bitten Sie, die Unterlagen bis zum 30.09. nachzureichen": a zu-infinitive after a request or commitment.
+_ZU_INFINITIV = re.compile(
+    r'\b(?<!nicht\s)(?:zu\s+[\wäöüß]+en|(?:an|ab|auf|aus|bei|ein|fertig|frei|hoch|mit|nach|vor|zurück)zu[\wäöüß]+en)'
+    r'\W*$', re.I)
+_AUFFORDERUNG = re.compile(
+    r'\b(?:bitte[nt]?|ersuche[nt]?|fordern|auffordern|aufgefordert|verpflichte[nt]?|verpflichtet|zugesagt|vereinbart|'
+    r'erinnern|sagen\s+(?:Ihnen\s+)?(?:\w+\s+)?zu|sage\s+(?:Ihnen\s+)?(?:\w+\s+)?zu)\b', re.I)
+# "A bis Ende September und die zweite (Rate) bis zum 15.10.": a coordinated cutoff continues a bound one.
+_KOORDINATION = re.compile(
+    r'\s*(?:(?:an|ab|ein|zurück|zu|aus|mit)\s*)?(?:,\s*(?:und\s+|sowie\s+)?|\s+(?:und|sowie|oder)\s+)'
+    r'(?:(?:die|der|das|den|dem|eine[nmrs]?|ihre[nmrs]?|seine[nmrs]?)\s+)?'
+    r'(?:(?:[A-ZÄÖÜ][\w-]*|(?:erste|zweite|dritte|vierte|letzte|restliche|übrige|weitere)[nmrs]?)\s+){0,2}'
+    r'(?:bis(?:\s+(?:spätestens|einschließlich))?|spätestens)\s+(?:(?:zum|zur|am|den|dem)\s+)?')
+# "Anmeldeschluss für den Workshop am 10. Oktober ist der 25.09.": the event date sits inside the subject.
+_GEGENSTAND_MIT_DATUM = re.compile(r'\s+für\s+(?:den|die|das)\s+[\w-]+\s+(?:am|vom)\s+$', re.I)
+# A state after the date ("bis 18.09. geschlossen", "die bis 30.09. gültigen Preise") is no cutoff.
+_ZUSTAND_NACH = re.compile(
+    r'^\s*(?:(?:noch|nur|online|wieder|weiterhin|durchgehend)\s+)*'
+    r'(?:(?:geschlossen|geöffnet|gültig|geltend|befristet|laufend|verfügbar|erreichbar)(?:e[nmrs]?)?|gilt|gelten|'
+    r'zu\s+sehen|ausgebucht)\b', re.I)
+_NICHT_VOR = re.compile(r'\bnicht\s+vor\b(?!.*\b(?:bis|spätestens|innerhalb|binnen)\b)', re.I)
 _FRIST_FORTSETZUNG = re.compile(r'\s*,\s*spätestens\s*(?:(?:am|zum)\s+)?', re.I)
+
+
+def _trennbar(davor: str, nach: str) -> bool:
+    """„füllen Sie den Bogen bis Freitag aus“: Stamm vor der Angabe, Vorsilbe danach oder am Ende des Satzteils."""
+    for vorsilbe in (_TRENNBAR_NACH.match(nach), _TRENNBAR_ENDE.search(nach)):
+        if vorsilbe and re.search(r'\b(?:' + _TRENNBAR[vorsilbe[1].lower()] + r')\b', davor, re.I):
+            return True
+    return False
+
+
+def _handlung_am_ende(davor: str, nach: str) -> bool:
+    """Modalverb oder „bitte“ und das Handlungsverb am Ende des Satzteils („… können Sie widerrufen“)."""
+    letztes = _LETZTES_WORT.search(nach)
+    if not letztes or not (_MODAL.search(davor) or _MODAL.match(nach.lstrip())):
+        return False
+    return bool(_HANDLUNG_AM_ENDE.fullmatch(_ZU_EINSCHUB.sub(r'\1', letztes[1])))
 
 
 def _frist_link(text: str) -> bool:
@@ -229,6 +350,20 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
         else:
             ergebnis.fristen.append(Frist(datum, ausdruck, treffer.start(), treffer.end(), art))
 
+    # Zuerst Wochentag mit Datum, damit weder der Wochentag allein noch das Datum allein doppelt zählt.
+    for treffer in _WOCHENTAG_DATUM.finditer(text):
+        if treffer['tag']:
+            tag, monat, jahr = int(treffer['tag']), int(treffer['monat']), treffer['jahr']
+            jahr = _jahr(jahr, zweistellig=len(jahr) == 2) if jahr else None
+        else:
+            tag, monat, jahr = int(treffer['tag_name']), _MONATE[treffer['monat_name'].lower()], _jahr(treffer['jahr_name'])
+        if not (1 <= monat <= 12 and 1 <= tag <= 31):
+            continue
+        datum = _tag(jahr, monat, tag) if jahr else (_ohne_jahr(monat, tag, heute) if heute else None)
+        # Passen Wochentag und Datum nicht zusammen, ist keins von beiden sicher.
+        if datum is not None and datum.weekday() != _WOCHENTAGE[treffer[2].lower()]:
+            datum = None
+        nehmen(datum, treffer, 'datum')
     for treffer in _ZIFFERN.finditer(text):
         tag, monat, jahr = int(treffer[1]), int(treffer[2]), treffer[3]
         if not (1 <= monat <= 12 and 1 <= tag <= 31):
@@ -269,6 +404,23 @@ def fristen_in(text: str, bezug: datetime | date | None) -> Fristensuche:
         else:
             datum = _plus_monate(heute, anzahl)
         nehmen(datum, treffer, 'relativ')
+    for treffer in _BINNEN.finditer(text):
+        anzahl = zahl(treffer[1])
+        if not anzahl or anzahl > 366:
+            continue
+        einheit = treffer[2].lower()
+        # Werktage hängen an Feiertagen, ein anderes Ereignis an einem unbekannten Tag: beides bleibt Text.
+        if heute is None or treffer[3] or einheit.startswith(('werktag', 'arbeitstag')):
+            nehmen(None, treffer, 'relativ')
+        elif einheit.startswith(('tag', 'kalendertag')):
+            nehmen(heute + timedelta(days=anzahl), treffer, 'relativ')
+        elif einheit.startswith('woche'):
+            nehmen(heute + timedelta(weeks=anzahl), treffer, 'relativ')
+        else:
+            nehmen(_plus_monate(heute, anzahl), treffer, 'relativ')
+    for treffer in _VOR_EREIGNIS.finditer(text):
+        if zahl(treffer[1]):
+            nehmen(None, treffer, 'relativ')
     for treffer in _TAGE_NAH.finditer(text):
         nehmen(heute + timedelta(days={'heute': 0, 'morgen': 1, 'übermorgen': 2}[treffer[1].lower()]) if heute else None,
                treffer, 'relativ')
@@ -291,9 +443,13 @@ def fristangaben_in(text: str, bezug: datetime | date | None) -> Fristensuche:
     positions remain available even when the wording occurs more than once.
 
     This deliberately supports a bounded set of reply, registration, delivery,
-    payment and cancellation wording. Other or syntactically complex wording
-    may remain source evidence without a derived deadline; it is not a general
-    German semantic parser and does not establish attendance or responsibility.
+    payment, signing and cancellation wording, separable verbs, modal
+    obligations ("muss bis ... eingegangen sein"), needed documents and a
+    zu-infinitive after a request or commitment. A state after the date
+    ("bis 18.09. geschlossen"), a reported arrival without a modal and "nicht
+    vor" never bind. Other or syntactically complex wording may remain source
+    evidence without a derived deadline; it is not a general German semantic
+    parser and does not establish attendance or responsibility.
     """
     suche = fristen_in(text, bezug)
     grenzen = list(_SATZTEIL.finditer(text))
@@ -314,18 +470,27 @@ def fristangaben_in(text: str, bezug: datetime | date | None) -> Fristensuche:
         if vorher and _ZEITRAUM_LINK.fullmatch(text[vorher[1]:start]):
             if _ZEITRAUM_ANFANG.search(text[links:vorher[0]]):
                 return False
+        # „bis Freitag, den 11. September, zurückmelden“: Der Einschub endet mit
+        # seinem Komma, der Satzteil geht danach weiter.
+        if ',' in ausdruck and text.startswith(',', ende):
+            rechts = next((m.start() for m in grenzen if m.start() > ende), len(text))
         if vorher:
             links = max(links, vorher[1])
         if nachher:
             rechts = min(rechts, nachher[0])
         vor, nach = text[links:start], text[ende:rechts]
+        if ',' in ausdruck and nach.startswith(','):
+            nach = nach[1:]
+        if _ZUSTAND_NACH.match(nach):
+            return False
         cutoff = _FRIST_VOR.search(vor)
         if cutoff or _FRIST_IM_AUSDRUCK.match(ausdruck):
             # A directly linked duration predicate owns its endpoint, even in
             # a request paragraph. A deadline noun ("Einreichfrist läuft bis")
             # still names a cutoff. Other dates/clauses cannot donate context.
             davor = vor[:cutoff.start()] if cutoff else vor
-            if _ZEITRAUM_KURZ.search(davor):
+            # „nicht vor Montag“ nennt den frühesten Tag, keine Frist; „nicht binnen zehn Tagen“ bleibt eine.
+            if _ZEITRAUM_KURZ.search(davor) or _NICHT_VOR.search(vor if cutoff else vor + ausdruck):
                 return False
             dauer = _DAUER_VOR.search(davor)
             if dauer:
@@ -336,14 +501,32 @@ def fristangaben_in(text: str, bezug: datetime | date | None) -> Fristensuche:
             if (_ABWESEND_VOR.search(davor)
                     or (_ZUSTAND_VOR.search(davor) and _ABWESEND_NACH.match(nach))):
                 return False
-            if (_FRISTHANDLUNG.search(davor) or _ZUSTELLUNG_VOR.search(davor)
-                    or _FERTIG_NACH.match(nach) or _FRISTHANDLUNG.match(nach.lstrip())):
+            # "Die Unterlagen sind bis 18.09. eingegangen" reports an arrival;
+            # "müssen bis 18.09. eingegangen sein" requires one.
+            if _EINGANG_NACH.match(nach):
+                return bool(_MODAL_VOR.search(davor)) or not _VOLLZUG_VOR.search(davor)
+            if (_FRISTHANDLUNG.search(davor) or _ZUSTELLUNG_VOR.search(davor) or _BEDARF_VOR.search(davor)
+                    or _FERTIG_NACH.match(nach) or _FRISTHANDLUNG.match(nach.lstrip()) or _trennbar(davor, nach)
+                    or _handlung_am_ende(davor, nach)):
                 return True
-            if (vorher and vorher[:2] in gebunden
-                    and _FRIST_FORTSETZUNG.fullmatch(text[vorher[1]:start])):
+            # Ein Infinitiv mit „zu“ nach einer Bitte oder Zusage im selben Satz.
+            satzanfang = max((m.end() for m in _SATZENDE.finditer(text, 0, links)), default=0)
+            if _ZU_INFINITIV.search(nach) and _AUFFORDERUNG.search(text[satzanfang:links]):
+                return True
+            if vorher and vorher[:2] in gebunden and (
+                    _FRIST_FORTSETZUNG.fullmatch(text[vorher[1]:start])
+                    or _KOORDINATION.fullmatch(text[vorher[1]:start])):
                 return True
         if _ANTWORT_ABGABE_VOR.search(vor):
             return True
+        # „Das Attest muss uns in zwei Monaten vorliegen“
+        if _MODAL_VOR.search(vor) and _EINGANG_NACH.match(nach):
+            return True
+        if vorher and vorher[:2] not in gebunden and _FRIST_LINK.fullmatch(vor):
+            kopf = text[max((m.end() for m in grenzen if m.end() <= vorher[0]), default=0):vorher[0]]
+            gegenstand = _GEGENSTAND_MIT_DATUM.search(kopf)
+            if gegenstand and any(m.end() == gegenstand.start() for m in _FRISTNAME.finditer(kopf)):
+                return True
         return (any(_frist_link(vor[m.end():]) for m in _FRISTNAME.finditer(vor))
                 or any(_FRIST_LINK.fullmatch(nach[:m.start()])
                        and not (nachher and rechts == nachher[0]
