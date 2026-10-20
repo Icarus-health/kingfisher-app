@@ -244,6 +244,9 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
         seite.wait_for_timeout(300)
         pruef['fokus_angemeldet'] = seite.evaluate(fokus)
         assert pruef['fokus_angemeldet'][2] == 'status' and 'Angemeldet' in pruef['fokus_angemeldet'][3], pruef['fokus_angemeldet']
+        # Kein Rahmen um den Satz (kein Bedienelement), auch nicht nach Tastaturbedienung.
+        pruef['fokus_rahmen'] = seite.evaluate('getComputedStyle(document.activeElement).outlineStyle')
+        assert pruef['fokus_rahmen'] == 'none', pruef['fokus_rahmen']
         pruef['angemeldet'] = True
         assert seite.get_by_role('button', name='Neu anmelden').count() == 0
         konten = api.get(basis + '/api/v1/integrations').json()['mail_accounts']

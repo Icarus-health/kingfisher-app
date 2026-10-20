@@ -310,12 +310,26 @@ def test_neu_anmelden_mit_google_ersetzt_die_anmeldung_ohne_zweites_postfach(rou
             antwort = super().__call__(method, url, **kwargs)
             return {**antwort, 'refresh_token': 'refresh-neu'} if url == TOKEN_URL else antwort
     oauth.request = Erneuert()
+    # Die Aufnahme hatte sich die abgelaufene Anmeldung gemerkt (nicht gefangene Sabotage: Google ohne
+    # `nach_neuer_anmeldung`, obwohl docs/47 es für alle drei Wege sagt).
+    from types import SimpleNamespace
+    from icarus_memory.episodes import EpisodeStore
+    from icarus_memory.mail_intake import Intake
+    app.state.episodes = EpisodeStore(path / 'episodes.sqlite3')
+    Intake(app.state.episodes).start(konto.id, ['INBOX'])
+    with app.state.episodes.transaction():
+        app.state.episodes._conn.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE account=?",
+                                         (__import__('time').time(), konto.id))
+    geweckt = []
+    app.state.scheduler = SimpleNamespace(aufnahme_wecken=lambda: geweckt.append(True))
     neu, _ = ready(oauth)
     antwort = client.post('/api/v1/google/sessions/'+neu['session_id']+'/connect', json={})
     assert antwort.status_code == 200, antwort.text
     assert [a.id for a in app.state.settings.mail_accounts] == [konto.id]
     assert json.loads(keys.get(key))['refresh_token'] == 'refresh-neu'
     assert [a.id for a in config.load(path).mail_accounts] == [konto.id]
+    assert not Intake(app.state.episodes).anmeldung_ruht(konto.id) and geweckt
+    app.state.episodes.close()
 
 
 def test_ein_passwort_postfach_derselben_adresse_wird_nicht_zu_google(routed):

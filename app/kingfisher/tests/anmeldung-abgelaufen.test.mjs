@@ -67,7 +67,7 @@ test("Neu anmelden: Passwort, Google mit demselben Konto, Microsoft über seine 
 
 test("Nach dem Neu-Anmelden steht „Angemeldet“, oder der Satz zum Kalender, der das Passwort nicht annahm", () => {
   assert.equal(angemeldetSatz("Probe-Post"), "Angemeldet. Kingfisher liest Probe-Post gleich weiter.");
-  const kalender = "Dein Postfach ist wieder angemeldet. Den Kalender „Privat“ konnte Kingfisher mit dem neuen Passwort nicht öffnen; prüfe ihn unter Einstellungen → Zugänge.";
+  const kalender = "Dein Postfach ist wieder angemeldet. Den Kalender „Privat“ konnte Kingfisher mit dem neuen Passwort nicht öffnen; er hat wohl ein eigenes. Entferne ihn unter Einstellungen → Zugänge und verbinde ihn mit „Kalender hinzufügen“ neu.";
   assert.equal(angemeldetSatz("Probe-Post", kalender), kalender);
   const zugaenge = readFileSync(new URL("../src/Einstellungen/Zugaenge.tsx", import.meta.url), "utf8");
   assert.match(zugaenge, /angemeldetSatz\(account\.label, neu\.satz\)/);
@@ -92,4 +92,11 @@ test("Der Postfachstand auf Heute klappt auf, wenn ein Postfach den Menschen bra
   const stand = readFileSync(new URL("../src/PostfachStand.tsx", import.meta.url), "utf8");
   assert.match(stand, /const mussHandeln = postfachMussHandeln\(zeigen\);/);
   assert.match(stand, /if \(mussHandeln && klappe\.current\) klappe\.current\.open = true;/);
+});
+
+test("Die Statuszeile nach dem Neu-Anmelden bekommt den Fokus, aber keinen Rahmen (kein Bedienelement)", () => {
+  // Nach-Review 9: `:focus` zeichnete einen dauerhaften cyanfarbenen Rahmen um einen Satz (docs/16-gestaltung.md).
+  const css = readFileSync(new URL("../src/Einstellungen/Einstellungen.css", import.meta.url), "utf8");
+  assert.match(css, /\.neu-anmelden-status:focus(?:,\s*\.neu-anmelden-status:focus-visible)?\s*\{\s*outline:\s*none;?\s*\}/);
+  assert.doesNotMatch(css, /\.neu-anmelden-status:focus(?:-visible)?\s*\{[^}]*outline:\s*\d/);
 });

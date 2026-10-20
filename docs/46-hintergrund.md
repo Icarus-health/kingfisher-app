@@ -350,7 +350,9 @@ Generationen und verknüpft deshalb nicht.
   fehlender Energiemeldung, Gegenbeispiele Speicherdruck, Speicherplatz und
   Eingabe, „Weiter“, Neustart nach dem Update, der ganze Weg mit der
   IMAP-Attrappe samt Sätzen, teilweise gescannte PDF, keine Wiederholung
-  zurückgestellter Mails in der Pause; dazu
+  zurückgestellter Mails in der Pause, neue Post in der Ruhe nach einem Paket,
+  „Weiter“ und Wecken heben die Ruhe auf, Pause mitten im vollen Durchgang,
+  unbekannte Speicherlast gleich welcher Energiequelle; dazu
   `test_microsoft_graph.py::test_in_der_pause_listet_outlook_nur_kennungen_und_holt_neue_post`;
   bewusst angepasst
   `test_host_power.py::test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory`
@@ -383,7 +385,10 @@ trotz Pause (2), leichter Lauf rückt den vollen Durchgang vor (4), Kalender und
 Sicherung in jedem Takt (3), Texterkennung ohne Modellfreigabe (1), teilweise
 gescannte PDF ohne Warten gespeichert (1), Zurückgestelltes wieder alle zehn
 Minuten (1), voller Durchgang gibt Zurückgestelltes nicht frei (1),
-Bestandsaufnahme älterer Microsoft-Mails in der Pause (1), KI-Filter in
+Bestandsaufnahme älterer Microsoft-Mails in der Pause (1), im Nach-Review (in
+einer Kopie) kein leichter Takt in der Ruhe (2), Wecken hebt die Ruhe nicht auf
+(1), „Weiter“ weckt nur (1), voller Durchgang ohne Unterbrechung (1), Akku vor
+unbekannter Speicherlast (4), KI-Filter in
 der Pause nicht übersprungen (1), Satz verspricht neue Post bei Speicherdruck
 (1), Mac-Kalender nach alter Sperre (3), Grund der Pause nur mit Modell (1),
 Grundlinie fehlt (2), in der Oberfläche alter Satz im Assistenten und „Einlesen

@@ -303,3 +303,269 @@ def test_ohne_gemerkten_grund_weckt_eine_anmeldung_die_aufnahme_nicht(tmp_path):
     with ep._lock:
         assert ep._conn.execute("SELECT error FROM mail_intake_folders WHERE account='a'").fetchone()[0] is None
     ep.close()
+
+
+GEHEIM_IN_DER_ANFRAGE = 'geheim-synthetisch-4711'
+
+
+@pytest.mark.parametrize('methode, pfad, inhalt', [
+    # Nach-Review 3: Fehlt ein anderes Pflichtfeld, nannte FastAPI das ganze Objekt als Eingabe, samt Passwort.
+    ('post', '/api/v1/integrations/mail', {'label': 'Privat', 'imap_host': 'imap.example.org',
+                                           'password': GEHEIM_IN_DER_ANFRAGE}),
+    ('post', '/api/v1/integrations/calendar', {'label': 'Privat', 'kind': 'caldav',
+                                               'password': GEHEIM_IN_DER_ANFRAGE}),
+    ('post', '/api/v1/integrations/calendar/anmelden', {'password': GEHEIM_IN_DER_ANFRAGE}),
+    ('put', '/api/v1/setup', {'mail': {'imap_host': 'imap.example.org', 'password': GEHEIM_IN_DER_ANFRAGE},
+                              'mail_password': GEHEIM_IN_DER_ANFRAGE, 'onboarded': 'vielleicht'}),
+    ('post', '/api/v1/integrations/mail', [GEHEIM_IN_DER_ANFRAGE]),
+])
+def test_eine_ablehnung_nennt_kein_geheimnis_auch_wenn_ein_anderes_feld_fehlt(client, methode, pfad, inhalt):
+    antwort = getattr(client, methode)(pfad, json=inhalt)
+    assert antwort.status_code == 422, antwort.text
+    assert GEHEIM_IN_DER_ANFRAGE not in antwort.text
+    assert antwort.json()['detail'], 'die Ablehnung sagt weiter, welches Feld fehlt'
+
+
+# -- Nach-Review 2: Die Ruhe gilt kontoweit, für jede Verbindung -------------------------------------------------------
+
+class _ImapZaehler:
+    """Ein IMAP-Server, der jede Anmeldung zählt und mit `antwort` ablehnt (oder annimmt, wenn `antwort` leer ist)."""
+
+    def __init__(self, antwort='[AUTHENTICATIONFAILED] Authentication failed.'):
+        self.antwort, self.anmeldungen = antwort, []
+        zaehler = self
+
+        class Verbindung:
+            def __init__(self, *a, **kw):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                pass
+
+            def login(self, benutzer, passwort):
+                zaehler.anmeldungen.append(passwort)
+                if zaehler.antwort:
+                    raise imaplib.IMAP4.error(zaehler.antwort)
+
+            def select(self, *a, **kw):
+                return 'OK', [b'0']
+
+            def uid(self, *a):
+                return 'OK', [b'']
+
+            def response(self, *a):
+                return 'OK', [b'7']
+        self.Verbindung = Verbindung
+
+
+def test_eine_abgelehnte_anmeldung_ruht_fuer_jede_verbindung_mit_denselben_zugangsdaten(monkeypatch):
+    from icarus_memory.connectors import mail as connector_mail
+    uhr = [1_000_000.0]
+    monkeypatch.setattr(connector_mail, '_ruhe_uhr', lambda: uhr[0])
+    server = _ImapZaehler()
+    monkeypatch.setattr('icarus_memory.connectors.mail.imaplib.IMAP4_SSL', server.Verbindung)
+    alt = MailConfig('imap.example.org', 'lena@example.org', 'altes-passwort')
+    with pytest.raises(MailError):
+        MailConnector(alt).inventory_page('INBOX')
+    assert len(server.anmeldungen) == 1
+    # Posteingang, Ordnerliste, ein neu gebauter Leser (wie nach jeder Änderung der Einstellungen): keine Anmeldung.
+    for versuch in (lambda c: c.inbox(limit=5), lambda c: c.folders(), lambda c: c.inventory_page('Archiv')):
+        with pytest.raises(MailError) as gefangen:
+            versuch(MailConnector(alt))
+        assert einordnen(gefangen.value.__cause__, 'imap.example.org').grund == 'passwort'
+    assert len(server.anmeldungen) == 1, 'die Ruhe gilt für jede Verbindung mit denselben Zugangsdaten'
+    # Ein neues Passwort (Neu anmelden) gilt sofort; die ausdrückliche Prüfung fragt immer den Server.
+    with pytest.raises(imaplib.IMAP4.error):
+        MailConnector(alt).pruefe_anmeldung()
+    assert len(server.anmeldungen) == 2
+    with pytest.raises(MailError):
+        MailConnector(MailConfig('imap.example.org', 'lena@example.org', 'neues-passwort')).inventory_page('INBOX')
+    assert len(server.anmeldungen) == 3
+    # Nach einer Stunde genau ein neuer Versuch mit dem alten Passwort.
+    uhr[0] += 3601
+    for _ in range(3):
+        with pytest.raises(MailError):
+            MailConnector(alt).inventory_page('INBOX')
+    assert len(server.anmeldungen) == 4
+
+
+def test_eine_voruebergehende_ablehnung_wartet_wachsend(monkeypatch):
+    # Nach-Review 4: „too many failed login attempts“ alle 30 s erneut zu versuchen verlängert die Sperre beim Anbieter.
+    from icarus_memory.connectors import mail as connector_mail
+    uhr = [1_000_000.0]
+    monkeypatch.setattr(connector_mail, '_ruhe_uhr', lambda: uhr[0])
+    server = _ImapZaehler('[LIMIT] Too many connections, try again later')
+    monkeypatch.setattr('icarus_memory.connectors.mail.imaplib.IMAP4_SSL', server.Verbindung)
+    zugang = MailConfig('imap.example.org', 'lena@example.org', 'passwort')
+    zeiten = []
+    for _ in range(240):  # zwei Stunden im 30-Sekunden-Takt
+        try:
+            MailConnector(zugang).inventory_page('INBOX')
+        except MailError as fehler:
+            assert einordnen(fehler.__cause__, 'imap.example.org').grund == 'nicht_erreichbar'
+        if len(server.anmeldungen) > len(zeiten):
+            zeiten.append(uhr[0])
+        uhr[0] += 30
+    abstaende = [b - a for a, b in zip(zeiten, zeiten[1:])]
+    assert len(zeiten) <= 8 and abstaende == sorted(abstaende) and abstaende[-1] >= 1200, abstaende
+    # Gelingt die Anmeldung, ist alles vergessen.
+    server.antwort = ''
+    uhr[0] += 1800
+    MailConnector(zugang).inventory_page('INBOX')
+    vorher = len(server.anmeldungen)
+    MailConnector(zugang).inventory_page('INBOX')
+    assert len(server.anmeldungen) == vorher + 1
+
+
+def test_die_ruhe_gilt_fuer_das_ganze_postfach_nicht_je_ordner(tmp_path, monkeypatch):
+    # Nach-Review 2b: Mit sechs Ordnern ruhte jeder Ordner für sich, sechs Fehlanmeldungen je Stunde.
+    uhr = [1_000_000.0]
+    monkeypatch.setattr('icarus_memory.mail_intake.time', SimpleNamespace(time=lambda: uhr[0]))
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX', 'Archiv', 'Gesendet', 'Rechnungen', 'Verein', 'Familie'])
+    leser = Zaehlend(_mit_ursache(AnmeldungAbgelehnt('[AUTHENTICATIONFAILED] Authentication failed.')))
+    for _ in range(120):  # eine Stunde im 30-Sekunden-Takt
+        intake.step('a', leser)
+        uhr[0] += 30
+    assert leser.versuche == 1, leser.versuche
+    uhr[0] += 30
+    for _ in range(4):
+        intake.step('a', leser)
+    assert leser.versuche == 2
+    ep.close()
+
+
+def test_offene_mails_werden_nach_abgelehnter_anmeldung_nicht_einzeln_abgeholt(tmp_path, monkeypatch):
+    # Nicht gefangene Sabotage: Die Ruhe bei der Auswahl der Einträge fehlte, und kein Test hatte offene Einträge.
+    uhr = [1_000_000.0]
+    monkeypatch.setattr('icarus_memory.mail_intake.time', SimpleNamespace(time=lambda: uhr[0]))
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX'])
+    with ep.transaction():
+        ep._conn.execute("UPDATE mail_intake_folders SET generation='7',upper_uid=5,live_uid=5,inventory_complete=1")
+        for uid in range(1, 6):
+            ep._conn.execute("INSERT INTO mail_intake_items(account,folder,generation,uid,lane) VALUES('a','INBOX','7',?,'history')", (uid,))
+    abgelehnt = _mit_ursache(AnmeldungAbgelehnt('[AUTHENTICATIONFAILED] Authentication failed.'))
+
+    class Abholend(Zaehlend):
+        def message_in_folder(self, folder, uid):
+            self.versuche += 1
+            raise abgelehnt
+    leser = Abholend(abgelehnt)
+    for _ in range(10):
+        intake.step('a', leser)
+        uhr[0] += 30
+    assert leser.versuche == 1, leser.versuche
+    with ep._lock:
+        assert ep._conn.execute("SELECT COUNT(*) FROM mail_intake_items WHERE status='pending' AND attempts=0").fetchone()[0] == 5
+    ep.close()
+
+
+def test_geaendertes_passwort_heute_nachrichten_und_nachtrag_klopfen_nicht_an(client, postfach):
+    # Nach-Review 2a und 2c: Der Nachtrag der Beteiligten und der Posteingang auf Heute und unter „Nachrichten“
+    # meldeten sich mit dem alten Passwort weiter an. Jetzt ruht das Konto für jede Verbindung, und der Satz sagt,
+    # was zu tun ist.
+    konto = einlesen_starten(client, postfach)
+    hintergrund_takte(client)
+    store = client.app.state.episodes
+    with store.transaction():
+        # Ältere Mails ohne Beteiligte (vor der Rollenangabe aufgenommen): Der Nachtrag holt ihre Kopfzeilen.
+        store._conn.execute("UPDATE episodes SET document=json_remove(document,'$.contacts') WHERE kind='message'")
+    postfach.passwort = 'neues-geheimnis'
+    vorher = len(postfach.anmeldungen)
+    hintergrund_takte(client, 6)
+    for _ in range(3):
+        nachrichten = client.get('/api/v1/messages').json()
+        heute = client.get('/dashboard').json()
+    assert len(postfach.anmeldungen) - vorher == 1, postfach.anmeldungen[vorher:]
+    satz = nachrichten['partial_failure']['message']
+    assert 'Zugänge neu an' in satz and 'antwortet gerade nicht' not in satz, satz
+    assert 'Zugänge neu an' in heute['mail']['error'] and 'sobald es wieder antwortet' not in heute['mail']['error']
+    # Neu angemeldet: alles geht wieder, ohne Wartezeit.
+    assert client.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'}).status_code == 200
+    assert client.get('/api/v1/messages').json().get('partial_failure') is None
+
+
+@pytest.mark.parametrize('wo', ['bestandsaufnahme', 'abholen'])
+def test_ein_laufender_schritt_ueberschreibt_die_neue_anmeldung_nicht(tmp_path, wo):
+    # Nach-Review 8: Scheiterte ein noch laufender Schritt mit dem alten Passwort, nachdem „Neu anmelden“ den Grund
+    # gelöscht hatte, schrieb er `anmeldung` zurück. Gilt der Leser nicht mehr (`permitted`), schreibt er nichts.
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX'])
+    if wo == 'abholen':
+        with ep.transaction():
+            ep._conn.execute("UPDATE mail_intake_folders SET generation='7',upper_uid=1,live_uid=1,inventory_complete=1")
+            ep._conn.execute("INSERT INTO mail_intake_items(account,folder,generation,uid,lane) VALUES('a','INBOX','7',1,'history')")
+    gilt = [True]
+    abgelehnt = _mit_ursache(AnmeldungAbgelehnt('[AUTHENTICATIONFAILED] Authentication failed.'))
+
+    class Alt(Fehlerhaft):
+        def _neu_angemeldet_und_scheitern(self):
+            intake.anmeldung_erneuert('a')  # derweil unter Zugänge neu angemeldet: neuer Leser
+            gilt[0] = False
+            raise abgelehnt
+
+        def inventory_page(self, *a, **kw):
+            if wo == 'abholen':
+                return dict(folder='INBOX', uidvalidity='7', upper_uid=1, uids=[], next_uid=1, done=True)
+            self._neu_angemeldet_und_scheitern()
+
+        def message_in_folder(self, folder, uid):
+            self._neu_angemeldet_und_scheitern()
+    intake.step('a', Alt(abgelehnt), permitted=lambda: gilt[0])
+    assert intake.status('a')['error'] is None
+    with ep._lock:
+        assert ep._conn.execute("SELECT error FROM mail_intake_folders").fetchone()[0] is None
+    ep.close()
+
+
+def test_eine_neue_anmeldung_hebt_die_ruhe_auch_fuer_google_auf(tmp_path):
+    # Bei XOAUTH2 wechselt das Token stündlich; der Fingerabdruck der Ruhe ist deshalb fest. Neu anmelden vergisst sie.
+    from icarus_memory.connectors.mail import ANMELDERUHE
+    from icarus_memory.mail_intake import nach_neuer_anmeldung
+    google = MailConnector(MailConfig('imap.gmail.com', 'Lena.Probe@gmail.example', '', access_token=lambda: 'token-1'))
+    ANMELDERUHE.abgelehnt(google._ruhe_schluessel(), echt=True)
+    assert google.anmeldung_ruht()
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    app = SimpleNamespace(state=SimpleNamespace(episodes=ep, settings=SimpleNamespace(
+        mail_accounts=[SimpleNamespace(id='g', user='lena.probe@gmail.example')])))
+    nach_neuer_anmeldung(app, 'g')
+    assert not google.anmeldung_ruht()
+    ep.close()
+
+
+@pytest.mark.parametrize('text, host, erwartet', [
+    # Nach-Review 4: Der ausdrückliche Code geht dem Freitext vor.
+    ('[AUTHENTICATIONFAILED] Too many failed login attempts, try again later', 'imap.example.org', 'passwort'),
+    ('[AUTHORIZATIONFAILED] Temporary restriction on this account', 'imap.example.org', 'passwort'),
+    ('[EXPIRED] Password expired, try again later after changing it', 'imap.example.org', 'passwort'),
+    # Gmail: ein Kontingent, kein fehlendes App-Passwort.
+    ('[ALERT] Account exceeded command or bandwidth limits. (Failure)', 'imap.gmail.com', 'nicht_erreichbar'),
+    # Nicht gefangene Sabotage: „temporar“ allein, ohne „try again later“ und ohne Code.
+    ('Temporary authentication failure', 'imap.example.org', 'nicht_erreichbar'),
+])
+def test_der_code_geht_dem_freitext_vor(text, host, erwartet):
+    assert einordnen(imaplib.IMAP4.error(text), host).grund == erwartet
+
+
+def test_der_nachtrag_der_beteiligten_ruht_mit_dem_postfach(tmp_path, monkeypatch):
+    # Nach-Review 2a: Der Nachtrag fragte nur `store.aktiv` und holte jede Mail mit einer eigenen Anmeldung. `aktiv`
+    # (seine Freigabe im Zeitplan) gilt jetzt nicht, solange das Postfach nach einer Ablehnung ruht.
+    uhr = [1_000_000.0]
+    monkeypatch.setattr('icarus_memory.mail_intake.time', SimpleNamespace(time=lambda: uhr[0]))
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX', 'Archiv'])
+    assert intake.aktiv('a', lambda: True)
+    with ep.transaction():
+        ep._conn.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE folder='Archiv'", (uhr[0],))
+    assert not intake.aktiv('a', lambda: True) and intake.anmeldung_ruht('a')
+    uhr[0] += 3601
+    assert intake.aktiv('a', lambda: True), 'nach der Ruhezeit ein neuer Versuch'
+    ep.close()

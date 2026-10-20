@@ -21,7 +21,9 @@ import imaplib
 import re
 import smtplib
 import ssl
+import hashlib
 import threading
+import time
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -61,6 +63,80 @@ class AnmeldungAbgelehnt(imaplib.IMAP4.error):
     einordnet. Die Aufnahme erkennt daran, dass nur eine neue Anmeldung hilft (`mail_intake`, Grund `anmeldung`);
     ein BAD auf eine Suche ist dagegen kein Anmeldefehler.
     """
+
+
+class AnmeldungRuht(AnmeldungAbgelehnt):
+    """Ohne Verbindung abgewiesen: Dieselben Zugangsdaten hat der Server eben abgelehnt (`ANMELDUNG_RUHT_S`)."""
+
+
+class AnmeldungWartet(OSError):
+    """Ohne Verbindung: Der Server lehnte eben vorübergehend ab ([LIMIT], zu viele Anmeldungen); später erneut."""
+
+
+#: Nach einer echten Ablehnung ruhen dieselben Zugangsdaten so lange für jede Verbindung (Sekunden). Jeder Versuch wäre
+#: eine Anmeldung beim Anbieter; viele abgelehnte in Folge sperren dort das Konto.
+ANMELDUNG_RUHT_S = 3600.0
+#: Nach einer vorübergehenden Ablehnung erst so lange, dann jeweils doppelt so lange, höchstens `VORLAEUFIG_HOECHSTENS_S`.
+VORLAEUFIG_ERST_S = 60.0
+VORLAEUFIG_HOECHSTENS_S = 1800.0
+
+
+def _ruhe_uhr() -> float:
+    return time.time()
+
+
+class _Anmelderuhe:
+    """Kontoweit: Wann dieselben Zugangsdaten nach einer Ablehnung wieder an den Server dürfen (docs/47).
+
+    Jede Verbindung meldet sich an: die Aufnahme (jeder Ordner), der Nachtrag der Beteiligten, der Posteingang auf
+    Heute und unter „Nachrichten“. Erkannt werden die Zugangsdaten an Server, Port, Benutzer und einem Fingerabdruck
+    des Passworts: Ein neues Passwort gilt sofort. Ausdrückliche Prüfungen (Verbinden, Neu anmelden) fragen immer den
+    Server. Nur im Speicher; nach einem Neustart höchstens ein Versuch.
+    """
+
+    def __init__(self) -> None:
+        self._sperre = threading.Lock()
+        self._eintraege: dict[tuple[str, int, str, str], tuple[float, int, bool]] = {}
+
+    def ruht(self, schluessel: tuple[str, int, str, str]) -> tuple[bool, bool]:
+        """(ruht gerade, echte Ablehnung)."""
+        with self._sperre:
+            eintrag = self._eintraege.get(schluessel)
+        if eintrag is None or _ruhe_uhr() >= eintrag[0]:
+            return False, False
+        return True, eintrag[2]
+
+    def pruefen(self, schluessel: tuple[str, int, str, str]) -> None:
+        ruht, echt = self.ruht(schluessel)
+        if ruht and echt:
+            raise AnmeldungRuht('[AUTHENTICATIONFAILED] Kingfisher meldet sich mit diesen Zugangsdaten vorerst nicht '
+                                'erneut an.')
+        if ruht:
+            raise AnmeldungWartet('Das Postfach hat die Anmeldung eben vorübergehend abgelehnt; Kingfisher versucht es '
+                                  'später erneut.')
+
+    def abgelehnt(self, schluessel: tuple[str, int, str, str], echt: bool) -> None:
+        with self._sperre:
+            alt = self._eintraege.get(schluessel)
+            folge = (alt[1] if alt is not None and alt[2] == echt else 0) + 1
+            dauer = ANMELDUNG_RUHT_S if echt else min(VORLAEUFIG_HOECHSTENS_S, VORLAEUFIG_ERST_S * 2 ** (folge - 1))
+            self._eintraege[schluessel] = (_ruhe_uhr() + dauer, folge, echt)
+
+    def gelungen(self, schluessel: tuple[str, int, str, str]) -> None:
+        self._vergessen(lambda k: k[:3] == schluessel[:3])
+
+    def vergessen(self, benutzer: str) -> None:
+        """Nach einer neuen Anmeldung (auch Google, Microsoft): sofort wieder versuchen."""
+        benutzer = (benutzer or '').casefold()
+        self._vergessen(lambda k: k[2] == benutzer)
+
+    def _vergessen(self, passt: Callable[[tuple[str, int, str, str]], bool]) -> None:
+        with self._sperre:
+            for schluessel in [k for k in self._eintraege if passt(k)]:
+                del self._eintraege[schluessel]
+
+
+ANMELDERUHE = _Anmelderuhe()
 
 
 @dataclass
@@ -437,6 +513,7 @@ class MailConnector:
     @contextmanager
     def _open(self):
         """Eine angemeldete Verbindung; beim Verlassen sauber abgemeldet."""
+        self._ruht_nicht()
         with imaplib.IMAP4_SSL(
             self._config.imap_host, self._config.imap_port,
             ssl_context=self._ssl_context(), timeout=30,
@@ -485,9 +562,29 @@ class MailConnector:
             self._config.imap_host, self._config.imap_port,
             ssl_context=self._ssl_context(), timeout=timeout,
         ) as imap:
-            self._login(imap)
+            self._login(imap, ausdruecklich=True)
 
-    def _login(self, imap):
+    def _ruhe_schluessel(self) -> tuple[str, int, str, str]:
+        if self._config.access_token:
+            fingerabdruck = 'oauth'  # das Token wechselt stündlich; „Neu anmelden“ vergisst die Ruhe ausdrücklich
+        else:
+            fingerabdruck = hashlib.sha256((self._config.password or '').encode('utf-8')).hexdigest()
+        return ((self._config.imap_host or '').strip().lower(), int(self._config.imap_port),
+                (self._config.username or '').casefold(), fingerabdruck)
+
+    def anmeldung_ruht(self) -> bool:
+        """Ob der Server diese Zugangsdaten eben abgelehnt hat (echte Ablehnung, nicht vorübergehend)."""
+        ruht, echt = ANMELDERUHE.ruht(self._ruhe_schluessel())
+        return ruht and echt
+
+    def _ruht_nicht(self) -> None:
+        """Vor jedem Verbindungsaufbau: Ruhen diese Zugangsdaten, gar nicht erst verbinden (`_Anmelderuhe`)."""
+        ANMELDERUHE.pruefen(self._ruhe_schluessel())
+
+    def _login(self, imap, *, ausdruecklich: bool = False):
+        schluessel = self._ruhe_schluessel()
+        if not ausdruecklich:
+            ANMELDERUHE.pruefen(schluessel)
         try:
             if self._config.access_token:
                 token = self._config.access_token()
@@ -508,7 +605,10 @@ class MailConnector:
             raise
         except imaplib.IMAP4.error as exc:
             # Gekennzeichnet, nicht umgedeutet: Text und Klasse von `imaplib` bleiben (`mail_anmeldung.einordnen`).
+            from ..mail_anmeldung import einordnen
+            ANMELDERUHE.abgelehnt(schluessel, echt=einordnen(exc, self._config.imap_host).grund != 'nicht_erreichbar')
             raise AnmeldungAbgelehnt(*exc.args) from exc
+        ANMELDERUHE.gelungen(schluessel)
 
     # -- Lesen -------------------------------------------------------------
 
@@ -521,6 +621,7 @@ class MailConnector:
         modifiziertes UTF-7 beim späteren SELECT unverändert funktioniert.
         """
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,
@@ -636,6 +737,7 @@ class MailConnector:
             raise ValueError('Pro Abruf sind 1 bis 100 Nachrichten zulässig.')
         criteria = "UNSEEN" if unread_only else "ALL"
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,
@@ -740,6 +842,7 @@ class MailConnector:
             if not 0 < int(previous_validity) <= 4294967295 or not 0 < last_uid <= 4294967295:
                 raise ValueError("Ungültiger Mail-Fortschritt.")
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,

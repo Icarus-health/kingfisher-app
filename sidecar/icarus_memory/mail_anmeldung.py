@@ -17,8 +17,9 @@ Die Gründe, jeweils ein Satz für den Nutzer:
   GMX), sagt der Server dann dasselbe wie bei einem falschen Passwort; der Satz nennt deshalb beides.
 * `unsicher`: die Verbindung ließ sich nicht verschlüsselt aufbauen (Zertifikat).
 
-Vorübergehende Ablehnungen (RFC 5530 `[UNAVAILABLE]`, `[LIMIT]`, `[INUSE]`, `[SERVERBUG]`, zu viele Verbindungen)
-heißen `nicht_erreichbar`, nicht „Passwort stimmt nicht“. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
+Vorübergehende Ablehnungen (RFC 5530 `[UNAVAILABLE]`, `[LIMIT]`, `[INUSE]`, `[SERVERBUG]`, zu viele Verbindungen, ein
+erschöpftes Kontingent bei Gmail) heißen `nicht_erreichbar`, nicht „Passwort stimmt nicht“. Ein ausdrücklicher Code
+einer echten Ablehnung (`[AUTHENTICATIONFAILED]`, `[AUTHORIZATIONFAILED]`, `[EXPIRED]`) geht dem Freitext vor. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
 schweigenden Postfach zu unterscheiden (`mail_intake.ANMELDE_GRUENDE`).
 """
 from __future__ import annotations
@@ -42,7 +43,12 @@ _APP_PASSWORT = ('application-specific password', 'app password', 'app-passwort'
 #: Vorübergehende Ablehnungen (RFC 5530 `UNAVAILABLE`, `LIMIT`, `INUSE`, `SERVERBUG`; zu viele Verbindungen, „temporary“):
 #: Das Passwort ist nicht das Problem, also `nicht_erreichbar` statt „Passwort stimmt nicht“. Echte Ablehnungen
 #: (`AUTHENTICATIONFAILED`, `AUTHORIZATIONFAILED`, `EXPIRED`, ein NO ohne Code) bleiben Anmeldefehler.
-_VORUEBERGEHEND = ('[unavailable]', '[limit]', '[inuse]', '[serverbug]', 'too many', 'temporar', 'try again later')
+_VORUEBERGEHEND = ('[unavailable]', '[limit]', '[inuse]', '[serverbug]', 'too many', 'temporar', 'try again later',
+                   'bandwidth limits', 'exceeded command')
+#: Ausdrückliche Codes einer echten Ablehnung (RFC 5530). Sie gehen dem Freitext vor: „[AUTHENTICATIONFAILED] Too many
+#: failed login attempts, try again later“ ist eine Ablehnung, kein Schweigen; alle 30 s erneut zu versuchen verlängerte
+#: eine Sperre beim Anbieter.
+_ECHT = ('[authenticationfailed]', '[authorizationfailed]', '[expired]')
 #: So lehnt Gmail eine Anmeldung ab (Fremdprobe, Befund 2): mit dem normalen Passwort „Invalid credentials (Failure)“
 #: oder „Application-specific password required“ mit einem Verweis auf support.google.com.
 _GOOGLE = ('invalid credentials (failure)', 'support.google.com')
@@ -101,7 +107,7 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
                                                  'versuche es gleich noch einmal.')
     if isinstance(fehler, imaplib.IMAP4.error) and not isinstance(fehler, imaplib.IMAP4.abort):
         text = str(fehler).lower()
-        if any(merkmal in text for merkmal in _VORUEBERGEHEND):
+        if not any(code in text for code in _ECHT) and any(merkmal in text for merkmal in _VORUEBERGEHEND):
             # Der Server kann oder will die Anmeldung gerade nicht prüfen. Das Passwort ist nicht das Problem.
             return schweigt
         if any(merkmal in text for merkmal in _IMAP_AUS):

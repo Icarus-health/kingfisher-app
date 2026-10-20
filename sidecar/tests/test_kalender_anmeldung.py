@@ -263,5 +263,69 @@ def test_ein_kalender_mit_eigenem_passwort_bleibt_unberuehrt(client, attrappe, m
                      json={'adresse': ADRESSE, 'password': 'kalender-eigen'}).status_code == 201
     [quelle] = app.state.settings.calendar_sources
     gueltig[0] = 'neues-geheimnis'
+    # Selbst wenn der Kalender das neue Passwort annähme: Ein eigenes Passwort bleibt, wie es ist (sonst fiele das
+    # Fehlen dieses Schutzes nicht auf, weil die Prüfung ohnehin scheiterte).
+    attrappe.passwort = 'neues-geheimnis'
     assert http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'}).status_code == 200
     assert _integration_secret(app, 'calendar', quelle.id) == 'kalender-eigen'
+
+
+def _zweiter_kalender_mit_demselben_passwort(app, label):
+    """Wie ein zweiter Kalender, der bei der Einrichtung das Passwort des Postfachs übernommen hat."""
+    from dataclasses import replace as ersetzt
+    from icarus_memory import config
+    from icarus_memory.secrets import Keychain
+    [erster] = app.state.settings.calendar_sources
+    zweiter = ersetzt(erster, id='kalender-zwei', label=label)
+    app.state.settings.calendar_sources.append(zweiter)
+    config.store_secret(getattr(app.state, 'keychain', Keychain()), config.integration_secret_name('calendar', zweiter.id),
+                        PASSWORT)
+    return erster, zweiter
+
+
+def test_lehnen_mehrere_kalender_ab_nennt_der_satz_alle_und_den_naechsten_schritt(client, attrappe, monkeypatch):
+    # Nach-Review 5: Nur der letzte Kalender stand im Satz, und „prüfe ihn unter Zugänge“ führte zu einem Ort, an dem
+    # es nur „Entfernen“ gibt.
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    app, http = client
+    gueltig = [PASSWORT]
+
+    def gilt(passwort):
+        if passwort != gueltig[0]:
+            raise Anmeldefehler('passwort', 'Probe-Post hat die Anmeldung abgelehnt.')
+    konto = _postfach_mit_kalender(app, http, monkeypatch, gilt)
+    erster, zweiter = _zweiter_kalender_mit_demselben_passwort(app, 'Verein')
+    gueltig[0] = 'neues-geheimnis'
+    attrappe.passwort = 'ein-ganz-anderes'
+    satz = http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'}).json()['satz']
+    assert f'„{erster.label}“' in satz and '„Verein“' in satz, satz
+    assert 'Kalender hinzufügen' in satz and 'Entferne' in satz and 'prüfe' not in satz, satz
+
+
+def test_antwortet_der_kalender_gerade_nicht_versucht_kingfisher_es_spaeter_selbst(client, attrappe, monkeypatch):
+    from icarus_memory import kalender_anmeldung
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    from icarus_memory.server import _integration_secret
+    app, http = client
+    gueltig = [PASSWORT]
+
+    def gilt(passwort):
+        if passwort != gueltig[0]:
+            raise Anmeldefehler('passwort', 'Probe-Post hat die Anmeldung abgelehnt.')
+    konto = _postfach_mit_kalender(app, http, monkeypatch, gilt)
+    [quelle] = app.state.settings.calendar_sources
+    gueltig[0] = attrappe.passwort = 'neues-geheimnis'
+    echt = kalender_anmeldung.finde_kalender
+
+    def schweigt(*a, **kw):
+        raise Anmeldefehler('nicht_erreichbar', 'Der Kalender antwortet gerade nicht.')
+    monkeypatch.setattr(kalender_anmeldung, 'finde_kalender', schweigt)
+    satz = http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'}).json()['satz']
+    assert 'gerade nicht erreichen' in satz and 'von selbst' in satz and 'Entferne' not in satz, satz
+    assert _integration_secret(app, 'calendar', quelle.id) == PASSWORT, 'ungeprüft wird nichts ersetzt'
+    # Beim nächsten Kalenderabgleich antwortet er wieder: Kingfisher prüft und übernimmt das neue Passwort selbst.
+    monkeypatch.setattr(kalender_anmeldung, 'finde_kalender', echt)
+    app.state.scheduler.stop()
+    app.state.scheduler._run_kalender()
+    assert _integration_secret(app, 'calendar', quelle.id) == 'neues-geheimnis'
+    assert [t.summary for t in _configured_calendar(app).events(days=30)] == ['Probe-Termin beim Steuerbüro']

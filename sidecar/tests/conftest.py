@@ -84,3 +84,13 @@ def mcp_tuer_offen(monkeypatch):
     # schalten sie ausdrücklich ein; die Vorgabe selbst prüft test_mcp_tuer.
     from icarus_memory.config import MCP_TUER_ENV
     monkeypatch.setenv(MCP_TUER_ENV, "1")
+
+
+@pytest.fixture(autouse=True)
+def anmelderuhe_je_test():
+    # Die Ruhe nach einer abgelehnten Anmeldung gilt prozessweit (`connectors.mail.ANMELDERUHE`). Ein Test, der ein
+    # falsches Passwort probiert, darf den nächsten mit denselben synthetischen Zugangsdaten nicht ausbremsen.
+    from icarus_memory.connectors.mail import ANMELDERUHE
+    ANMELDERUHE._vergessen(lambda _: True)
+    yield
+    ANMELDERUHE._vergessen(lambda _: True)

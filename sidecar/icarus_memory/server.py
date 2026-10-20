@@ -945,6 +945,81 @@ def _build_agent(app: FastAPI) -> Agent:
     return agent
 
 
+def _kalender_namen(labels: list[str]) -> str:
+    namen = [f"„{label}“" for label in labels]
+    return namen[0] if len(namen) == 1 else ", ".join(namen[:-1]) + " und " + namen[-1]
+
+
+def _kalender_neues_passwort(app: FastAPI, kalender: Any, passwort: str) -> str | None:
+    """Öffnet den Kalender mit dem neuen Passwort des Postfachs und übernimmt es nur dann; sonst der Grund."""
+    from . import kalender_anmeldung
+    from .mail_anmeldung import Anmeldefehler
+    try:
+        kalender_anmeldung.finde_kalender(kalender.url, kalender.user, passwort, wer=kalender.label,
+                                          transport=getattr(app.state, "caldav_transport", None))
+    except Anmeldefehler as exc:
+        return exc.grund
+    config.store_secret(getattr(app.state, "keychain", Keychain()),
+                        config.integration_secret_name("calendar", kalender.id), passwort)
+    return None
+
+
+#: Gründe, aus denen ein Kalender gerade nicht antwortet: Kingfisher prüft ihn beim nächsten Kalenderabgleich selbst.
+_KALENDER_SPAETER = ("nicht_erreichbar", "unsicher")
+
+
+def _kalender_satz(gruende: dict[str, str]) -> str | None:
+    """Ein Satz nach dem Neu-Anmelden über alle Kalender, die das neue Passwort nicht übernehmen konnten, je Grund."""
+    spaeter = [label for label, grund in gruende.items() if grund in _KALENDER_SPAETER]
+    weg = [label for label, grund in gruende.items() if grund in ("kein_kalender", "adresse_fehlt")]
+    eigen = [label for label, grund in gruende.items() if label not in spaeter and label not in weg]
+    if not (spaeter or weg or eigen):
+        return None
+    saetze = ["Dein Postfach ist wieder angemeldet."]
+    for labels, text in (
+        (eigen, "{wen} konnte Kingfisher mit dem neuen Passwort nicht öffnen; {pron} hat wohl ein eigenes."),
+        (weg, "Unter der Adresse {wes} findet Kingfisher keinen Kalender mehr."),
+    ):
+        if labels:
+            mehrere = len(labels) > 1
+            saetze.append(text.format(
+                wen=("Die Kalender " if mehrere else "Den Kalender ") + _kalender_namen(labels),
+                wes=("der Kalender " if mehrere else "des Kalenders ") + _kalender_namen(labels),
+                pron="sie" if mehrere else "er"))
+    if eigen or weg:
+        mehrere = len(eigen) + len(weg) > 1
+        saetze.append(f"Entferne {'sie' if mehrere else 'ihn'} unter Einstellungen → Zugänge und verbinde "
+                      f"{'sie' if mehrere else 'ihn'} mit „Kalender hinzufügen“ neu.")
+    if spaeter:
+        mehrere = len(spaeter) > 1
+        saetze.append(f"{'Die Kalender' if mehrere else 'Den Kalender'} {_kalender_namen(spaeter)} konnte Kingfisher "
+                      "gerade nicht erreichen; mit dem neuen Passwort versucht es Kingfisher beim nächsten "
+                      "Kalenderabgleich von selbst noch einmal.")
+    return " ".join(saetze)
+
+
+def _kalender_nachpruefen(app: FastAPI) -> bool:
+    """Beim Kalenderabgleich: Kalender, die beim Neu-Anmelden gerade nicht antworteten, mit dem Passwort des Postfachs.
+
+    Erst prüfen, dann übernehmen, wie beim Neu-Anmelden. Antwortet der Kalender weiter nicht, bleibt er vorgemerkt;
+    lehnt er ab, endet der Versuch. Nur im Speicher; nach einem Neustart bleibt das alte Passwort.
+    """
+    offen: dict[str, str] = getattr(app.state, "kalender_nachpruefen", None) or {}
+    uebernommen = False
+    for kalender_id, konto in list(offen.items()):
+        kalender = next((c for c in app.state.settings.calendar_sources if c.id == kalender_id), None)
+        passwort = _integration_secret(app, "mail", konto)
+        if kalender is None or not passwort:
+            offen.pop(kalender_id, None)
+            continue
+        grund = _kalender_neues_passwort(app, kalender, passwort)
+        if grund in _KALENDER_SPAETER:
+            continue
+        offen.pop(kalender_id, None)
+        uebernommen = uebernommen or grund is None
+    return uebernommen
+
+
 def _wire_scheduler(app: FastAPI) -> None:
     """Hängt den Zeitplan an die aktuellen Bausteine.
 
@@ -1065,6 +1140,12 @@ def _wire_scheduler(app: FastAPI) -> None:
         was_enabled = app.state.settings.schedule.enabled if was_enabled is None else was_enabled
         results = []
         from .calendar_memory_routes import abgleichen as kalender_abgleichen
+        try:
+            # Kalender, die beim Neu-Anmelden gerade nicht antworteten, bekommen jetzt das neue Passwort, wenn es passt.
+            if _kalender_nachpruefen(app):
+                _build_agent(app)
+        except Exception:  # noqa: BLE001 - der Abgleich läuft trotzdem; der Kalender bleibt vorgemerkt
+            pass
         try:
             kalender = kalender_abgleichen(app, erlaubt=lambda: not was_enabled or app.state.settings.schedule.enabled)
             for quelle, r in kalender['quellen'].items():
@@ -1378,7 +1459,12 @@ _GEHEIME_FELDER = ('password', 'passwort', 'secret', 'token', 'api_key', 'client
 
 
 def _ohne_geheimnisse_in_ablehnungen(app: FastAPI) -> None:
-    """FastAPI nennt bei einer abgelehnten Anfrage die Eingabe (`input`); bei einem Passwort hieße das: es zurückgeben."""
+    """FastAPI nennt bei einer abgelehnten Anfrage die Eingabe (`input`); bei einem Passwort hieße das: es zurückgeben.
+
+    Weggelassen wird die Eingabe, wenn der Ort ein Geheimnis nennt, und immer, wenn sie ein Objekt oder eine Liste ist:
+    Fehlt ein anderes Pflichtfeld, ist die Eingabe das ganze Objekt, samt Passwort. Ort und Meldung bleiben, damit die
+    Ablehnung weiter sagt, welches Feld fehlt; ein einzelner Wert eines anderen Felds auch.
+    """
     from fastapi.encoders import jsonable_encoder
     from fastapi.exceptions import RequestValidationError
 
@@ -1387,8 +1473,9 @@ def _ohne_geheimnisse_in_ablehnungen(app: FastAPI) -> None:
         fehler = []
         for eintrag in exc.errors():
             eintrag = dict(eintrag)
-            if any(isinstance(teil, str) and any(geheim in teil.lower() for geheim in _GEHEIME_FELDER)
-                   for teil in eintrag.get('loc', ())) or eintrag.get('loc', ())[:1] == ('body',) and len(eintrag['loc']) == 1:
+            geheimer_ort = any(isinstance(teil, str) and any(geheim in teil.lower() for geheim in _GEHEIME_FELDER)
+                               for teil in eintrag.get('loc', ()))
+            if geheimer_ort or isinstance(eintrag.get('input'), (dict, list, tuple)):
                 eintrag.pop('input', None)
             fehler.append(eintrag)
         return JSONResponse(status_code=422, content={'detail': jsonable_encoder(fehler)})
@@ -1918,21 +2005,21 @@ def create_app(
         # Kalender wie Mail hat das Passwort des Postfachs übernommen (eigenes Geheimnis, gleiche Adresse). Ändert es
         # sich beim Anbieter, gilt das neue auch dort, aber erst nach einer eigenen Prüfung; scheitert sie, bleibt der
         # Kalender unberührt, und ein Satz sagt es. Ein Kalender mit eigenem Passwort bleibt, wie er ist.
-        satz = None
-        from . import kalender_anmeldung
-        from .mail_anmeldung import Anmeldefehler
+        # Alle betroffenen Kalender in einem Satz, je Grund mit dem nächsten Schritt; antwortet einer nur gerade nicht,
+        # prüft Kingfisher ihn beim nächsten Kalenderabgleich selbst (`_kalender_nachpruefen`).
+        gruende: dict[str, str] = {}
         for kalender in settings.calendar_sources:
             if (kalender.kind != "caldav" or kalender.user.strip().lower() != entry.user.strip().lower()
                     or not altes or _integration_secret(app, "calendar", kalender.id) != altes):
                 continue
-            try:
-                kalender_anmeldung.finde_kalender(kalender.url, kalender.user, body.password, wer=kalender.label,
-                                                  transport=getattr(app.state, "caldav_transport", None))
-            except Anmeldefehler:
-                satz = (f"Dein Postfach ist wieder angemeldet. Den Kalender „{kalender.label}“ konnte Kingfisher mit dem "
-                        "neuen Passwort nicht öffnen; prüfe ihn unter Einstellungen → Zugänge.")
-                continue
-            config.store_secret(keychain, config.integration_secret_name("calendar", kalender.id), body.password)
+            grund = _kalender_neues_passwort(app, kalender, body.password)
+            if grund is not None:
+                gruende[kalender.label] = grund
+            if grund in _KALENDER_SPAETER:
+                if getattr(app.state, "kalender_nachpruefen", None) is None:
+                    app.state.kalender_nachpruefen = {}
+                app.state.kalender_nachpruefen[kalender.id] = account_id
+        satz = _kalender_satz(gruende)
         _build_agent(app)
         # Der gemerkte Grund fällt sofort weg, und die Aufnahme liest gleich weiter, nicht erst nach dem Takt.
         from .mail_intake import nach_neuer_anmeldung
@@ -3012,9 +3099,12 @@ def create_app(
             )
         else:
             from .mail_anmeldung import Anmeldefehler
-            from .postfach_lage import lage as postfach_lage, wer as postfach_wer
+            from .postfach_lage import anmeldung_ruht, lage as postfach_lage, wer as postfach_wer
             host, name = postfach_wer(app)
             try:
+                ruht = anmeldung_ruht(app)
+                if ruht is not None:
+                    raise ruht  # nicht mit dem alten Passwort anklopfen (docs/47)
                 # Die Startseite wartet nicht auf ein Postfach, das nicht antwortet; schwieg es eben schon, gar nicht.
                 messages = postfach_lage(app).lesen("alle", lambda: mail.inbox(limit=8), host=host, name=name,
                                                     sekunden=POSTFACH_ZEITGRENZE)
@@ -3032,8 +3122,11 @@ def create_app(
                     merke_gelesen(app, {e.id: sum(1 for m in messages if (m.account_id or e.id) == e.id)
                                         for e in app.state.settings.mail_accounts if e.configured})
             except Anmeldefehler as fehler:
+                # „Sobald es wieder antwortet“ nur, wenn es von selbst wieder geht; eine abgelehnte Anmeldung braucht den
+                # Menschen, und der Satz sagt schon, wo.
                 result["mail"]["error"] = (
                     f"{fehler.satz} Die Startseite zeigt alles andere; die Mails kommen, sobald es wieder antwortet."
+                    if fehler.grund in ('nicht_erreichbar', 'unsicher') else fehler.satz
                 )
             except Exception as exc:  # noqa: BLE001
                 result["mail"]["error"] = str(exc)
@@ -3601,9 +3694,12 @@ def create_app(
             except Exception as exc:
                 raise HTTPException(404, 'Dieses Mailkonto ist nicht verbunden.') from exc
         from .mail_anmeldung import Anmeldefehler
-        from .postfach_lage import lage as postfach_lage, wer as postfach_wer
+        from .postfach_lage import anmeldung_ruht, lage as postfach_lage, wer as postfach_wer
         host, name = postfach_wer(app, account_id)
         try:
+            ruht = anmeldung_ruht(app, account_id)
+            if ruht is not None:
+                raise ruht  # nicht mit dem alten Passwort anklopfen (docs/47)
             # Mit Wanduhr, und sofort, wenn das Postfach eben schon schwieg (Fremdprobe, Befund 14). Der Satz nennt
             # das Postfach („WEB.DE antwortet gerade nicht …“), nicht „den lokalen Posteingang“.
             messages = postfach_lage(app).lesen(
