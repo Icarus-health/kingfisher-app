@@ -684,3 +684,47 @@ def test_abo_und_einrichten_lesen_den_zeichensatz_der_antwort(zeichensatz):
     # httpx ersetzt einen unbekannten Zeichensatz selbst; wer parse_events direkt aufruft, bekommt UTF-8.
     if zeichensatz == 'erfunden-123':
         assert [t.summary for t in parse_events(daten, kodierung=zeichensatz)] == ['Grüße 0', 'Grüße 1', 'Grüße 2']
+
+
+# -- Lücken aus dem Review -----------------------------------------------------------
+
+
+def test_caldav_antwort_ohne_xml_wird_als_kalendertext_gelesen(monkeypatch):
+    import httpx
+
+    from icarus_memory.connectors.calendar import CalendarConfig, CalendarConnector
+    antwort = ics(['UID:roh', 'SUMMARY:Ohne XML', 'DTSTART:20261020T090000Z', 'DTEND:20261020T100000Z'])
+    monkeypatch.setattr(CalendarConnector, '_client', lambda self: httpx.Client(transport=httpx.MockTransport(
+        lambda anfrage: httpx.Response(207, text=antwort, headers={'Content-Type': 'text/calendar'}))))
+    termine = CalendarConnector(CalendarConfig('https://dav.example.test/k/', 'probe', 'geheim')).events(
+        days=10, at=utc(2026, 10, 19))
+    assert [(t.uid, t.summary) for t in termine] == [('roh', 'Ohne XML')]
+
+
+def test_exdate_als_datum_nimmt_den_ganzen_tag_einer_serie_mit_uhrzeit_heraus():
+    termine = parse_events(ics(serie(*BERLIN_9, 'RRULE:FREQ=DAILY;COUNT=4', 'EXDATE;VALUE=DATE:20261020')), VON, BIS)
+    assert beginne(termine) == [utc(2026, 10, 19, 7), utc(2026, 10, 21, 7), utc(2026, 10, 22, 7)]
+
+
+def test_interval_null_ist_unlesbar_nicht_zu_dicht(caplog):
+    for regel in ('FREQ=DAILY;INTERVAL=0', 'FREQ=MONTHLY;INTERVAL=0;BYMONTHDAY=31', 'FREQ=YEARLY;INTERVAL=-1'):
+        termine = parse_events(ics(serie(*BERLIN_9, f'RRULE:{regel}'), NORMAL), VON, BIS)
+        assert [t.uid for t in termine] == ['serie@probe', 'normal'], regel
+    assert 'zu dicht' not in caplog.text
+
+
+def test_rdate_als_zeitraum_nimmt_dessen_beginn():
+    termine = parse_events(ics(serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;COUNT=1',
+                                     'RDATE;VALUE=PERIOD:20261105T080000Z/20261105T120000Z')), VON, BIS)
+    assert [(t.start, t.end) for t in termine] == [(utc(2026, 10, 19, 7), utc(2026, 10, 19, 8)),
+                                                   (utc(2026, 11, 5, 8), utc(2026, 11, 5, 9))]
+
+
+def test_verschobener_einzeltermin_einer_ganztaegigen_serie():
+    regel = serie('DTSTART;VALUE=DATE:20261019', 'RRULE:FREQ=WEEKLY;COUNT=3')
+    verschoben = ['UID:serie@probe', 'RECURRENCE-ID;VALUE=DATE:20261026', 'SUMMARY:Jour fixe (Dienstag)',
+                  'DTSTART;VALUE=DATE:20261027']
+    termine = parse_events(ics(regel, verschoben), VON, BIS)
+    assert [(t.uid, t.start, t.all_day) for t in termine] == [
+        ('serie@probe#20261019', utc(2026, 10, 19), True), ('serie@probe#20261026', utc(2026, 10, 27), True),
+        ('serie@probe#20261102', utc(2026, 11, 2), True)]
