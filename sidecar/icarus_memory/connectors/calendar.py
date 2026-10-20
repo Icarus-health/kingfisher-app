@@ -36,8 +36,9 @@ import uuid
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta, timezone
-from functools import cached_property
-from typing import Any, Iterator, NamedTuple
+from functools import cached_property, lru_cache
+from itertools import islice
+from typing import Any, Callable, Iterator, NamedTuple
 
 import httpx
 from dateutil.rrule import rrulestr
@@ -114,8 +115,12 @@ class Event:
 
 
 def _unfold(text: str) -> str:
-    """iCalendar bricht lange Zeilen um; Fortsetzungen beginnen mit Leerzeichen."""
-    return re.sub(r"\r?\n[ \t]", "", text)
+    """iCalendar bricht lange Zeilen um; Fortsetzungen beginnen mit Leerzeichen (auch nach CR allein, altes Mac-Format)."""
+    return re.sub(r"(?:\r\n|\r|\n)[ \t]", "", text)
+
+
+_FALTUNG = re.compile(rb"(?:\r\n|\r|\n)[ \t]")
+"""Dasselbe auf Bytes: vor dem Dekodieren entfalten, denn die Faltung darf mitten in einem Mehrbyte-Zeichen liegen."""
 
 
 def _zeile(zeile: str) -> tuple[str, dict[str, str], str] | None:
@@ -206,21 +211,26 @@ def _zeit_zur_serie(value: str, params: dict[str, str], beginn: _Zeit) -> _Zeit 
     return zeit
 
 
-def _kennung(zeit: _Zeit, beginn: _Zeit) -> str:
+def _kennung(zeit: _Zeit, beginn: _Zeit) -> str | None:
     """Eine RECURRENCE-ID als Text, in der Form des Serienbeginns: Datum, Ortszeit ohne Zone oder UTC.
 
     Daraus wird die Kennung des Einzeltermins (`UID#…`). Sie hängt am
     ursprünglichen Beginn, nicht am tatsächlichen: Ein verschobener Termin
     behält sie und ist im Gedächtnis eine neue Fassung, kein neuer Termin. Die
     UTC-Form ist dieselbe, die ein CalDAV-Server beim Ausklappen schreibt.
+    None, wenn der Zeitpunkt umgerechnet jenseits des Jahres 9999 läge.
     """
-    if beginn.ganztags:
-        tag = zeit.moment.date() if zeit.ganztags else zeit.moment.astimezone(user_timezone() or timezone.utc).date()
-        return f"{tag:%Y%m%d}"
-    if beginn.schwebend:
-        ortszeit = zeit.moment if zeit.schwebend else zeit.moment.astimezone(beginn.moment.tzinfo)
-        return f"{ortszeit:%Y%m%dT%H%M%S}"
-    return f"{zeit.moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+    try:
+        if beginn.ganztags:
+            tag = (zeit.moment.date() if zeit.ganztags
+                   else zeit.moment.astimezone(user_timezone() or timezone.utc).date())
+            return f"{tag:%Y%m%d}"
+        if beginn.schwebend:
+            ortszeit = zeit.moment if zeit.schwebend else zeit.moment.astimezone(beginn.moment.tzinfo)
+            return f"{ortszeit:%Y%m%dT%H%M%S}"
+        return f"{zeit.moment.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}"
+    except OverflowError:
+        return None
 
 
 _DAUER = re.compile(r"^\+?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$", re.IGNORECASE)
@@ -332,6 +342,18 @@ def ical_kodierung(kodierung: str | None) -> str:
         return "utf-8"
 
 
+_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8-sig"),
+         (codecs.BOM_UTF16_LE, "utf-16"), (codecs.BOM_UTF16_BE, "utf-16"))
+
+
+def kodierung_der_daten(daten: bytes, angegeben: str | None) -> str:
+    """Die Kodierung eines Kalenders: ein BOM am Anfang zählt vor dem Zeichensatz der Antwort (oft fehlt er)."""
+    for bom, name in _BOMS:  # UTF-32 zuerst: sein BOM beginnt wie der von UTF-16
+        if daten.startswith(bom):
+            return name
+    return ical_kodierung(angegeben)
+
+
 def ascii_kompatibel(kodierung: str | None) -> bool:
     """Ob ASCII-Zeichen in dieser Kodierung ihre eigenen Bytes sind (UTF-8, Latin-1, …; nicht UTF-16 oder UTF-32)."""
     try:
@@ -348,12 +370,12 @@ def _bloecke(ical: str | bytes, kodierung: str) -> Iterator[str]:
     mit vier Byte je Zeichen, ein 25-MB-Abo also mit 100 MB je Kopie.
     """
     if isinstance(ical, bytes):
-        kodierung = ical_kodierung(kodierung)
+        kodierung = kodierung_der_daten(ical, kodierung)
         if not ascii_kompatibel(kodierung):
             ical = ical.decode(kodierung, errors="replace")
         else:
             for treffer in re.finditer(rb"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
-                yield _unfold(treffer.group(1).decode(kodierung, errors="replace"))
+                yield _FALTUNG.sub(b"", treffer.group(1)).decode(kodierung, errors="replace")
             return
     for treffer in re.finditer(r"BEGIN:VEVENT(.*?)END:VEVENT", ical, re.DOTALL):
         yield _unfold(treffer.group(1))
@@ -389,25 +411,43 @@ def _komponenten(ical: str | bytes, kodierung: str = "utf-8") -> list[_Komponent
 # -- Serien ------------------------------------------------------------------
 
 DICHTE_JE_TAG = 48
-"""Eine Serie mit mehr Terminen am Tag (im Mittel ab ihrem ersten Termin, mit
-einem Spielraum von `PUFFER_DICHTE`) ist zu dicht, etwa jede Minute. Sie bleibt
-wie eine unlesbare Regel ihr erster Termin, mit einem Hinweis im Protokoll,
-statt die ganze Quelle mit einem Fehler zu kippen. Gemessen wird die Dichte,
-nicht die Zahl seit Serienbeginn: Eine stündliche Serie kippt nicht nach
-Jahren von selbst, und Anzeige und Gedächtnis entscheiden gleich."""
+"""Mehr Termine am Tag hat keine Serie, die hier ausgeklappt wird (jede halbe
+Stunde ist die Grenze). Gemessen wird über `PROBE_TERMINE` Termine ab dem Punkt,
+von dem an gerechnet wird (`_zu_dicht`), also aus der Regel allein: gleich für
+Anzeige und Gedächtnis und unabhängig davon, wie lange die Serie schon läuft."""
 
-PUFFER_DICHTE = 1000
+PROBE_TERMINE = 1000
 
-MAX_SCHRITTE_JE_SERIE = 1_000_000
-"""So viele Wiederholungen rechnet das Ausklappen einer Serie höchstens durch,
-vom ersten Termin bis zum Ende des Fensters (rund 2,5 s). Halbstündlich reicht
-das 57 Jahre, stündlich 114; darüber gilt die Serie ebenfalls als zu dicht.
-Gekürzt wird nie: Ein gekürzter Abschnitt sähe für das Gedächtnis aus wie
-gelöschte Termine."""
+MAX_SCHRITTE_JE_SERIE = 150_000
+"""So viele Termine rechnet das Ausklappen einer Serie bis zum Ende des Fensters
+höchstens durch. Gemessen wurden je nach Rechner 2,5 bis 7 µs je Schritt; die
+Grenze hält eine Serie auch auf einem langsamen Rechner unter einer Sekunde.
+Wöchentliche, tägliche und feinere Regeln ohne COUNT und ohne Datumsfilter
+rechnen ab kurz vor dem Fenster (`_rechenbeginn`), nicht ab ihrem ersten Termin,
+und erreichen die Grenze nie. Gekürzt wird nie: Ein gekürzter Abschnitt sähe
+für das Gedächtnis aus wie gelöschte Termine."""
+
+MAX_COUNT_UNTER_TAG = 2000
+"""Stündliche und minütliche Regeln mit COUNT werden ab ihrem ersten Termin
+gerechnet; höchstens so viele Termine (sonst wäre die Arbeit unbegrenzt)."""
+
+MAX_PROBE_SCHRITTE = 100_000
+"""Höchstens so viele Perioden darf die Probe auf Erfüllbarkeit (`_probe_voll`) rechnen."""
 
 
-class _ZuDicht(Exception):
-    """Eine Serie wiederholt sich zu dicht, um sie auszuklappen (`DICHTE_JE_TAG`)."""
+class _NichtAusgeklappt(Exception):
+    """Eine Serie wird nicht ausgeklappt und bleibt ihr erster Termin; `satz` kommt ins Protokoll."""
+
+    def __init__(self, satz: str) -> None:
+        super().__init__(satz)
+        self.satz = satz
+
+
+_NIE = "Eine Terminserie trifft nach ihrer Regel nie"
+_FORM = "Eine Terminserie hat eine Regel, die Kingfisher nicht ausklappt"
+_DICHT = f"Eine Terminserie wiederholt sich zu dicht (mehr als {DICHTE_JE_TAG}-mal am Tag)"
+_AUFWAND = "Eine Terminserie wäre zu aufwendig auszuklappen"
+_UNLESBAR = "Eine Terminserie hat eine unlesbare Regel"
 
 
 def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
@@ -434,11 +474,14 @@ def _regel_ende(wert: str, beginn: _Zeit) -> datetime | None:
 
 
 _WOCHENTAGE = ("MO", "TU", "WE", "TH", "FR", "SA", "SU")
-_FEINER_ALS_MONAT = ("WEEKLY", "DAILY", "HOURLY", "MINUTELY", "SECONDLY")
+_UNTER_TAG = ("HOURLY", "MINUTELY", "SECONDLY")
 _SEKUNDEN_JE_SCHRITT = {"DAILY": 86400, "HOURLY": 3600, "MINUTELY": 60, "SECONDLY": 1}
+_DATUMSFILTER = frozenset({"BYMONTH", "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO"})
 _ZYKLUS_JAHRE = 400
 """Nach 400 Jahren wiederholt sich der gregorianische Kalender genau: Daten, Wochentage, Schalttage und
 Kalenderwochen (146.097 Tage sind 20.871 Wochen)."""
+_EINHEITEN_JE_ZYKLUS = {"YEARLY": 400, "MONTHLY": 4800, "WEEKLY": 20871, "DAILY": 146097}
+_PERIODEN_JE_JAHR = {"YEARLY": 1, "MONTHLY": 12, "WEEKLY": 52.18, "DAILY": 365.25}
 
 
 def _zahlen(wert: str) -> list[int]:
@@ -448,39 +491,79 @@ def _zahlen(wert: str) -> list[int]:
         return []  # dateutil lehnt den Wert ohnehin ab
 
 
-def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool:
-    """Ob eine Regel je einen Termin liefert und hier unterstützt ist.
+def _anzahl(teile: dict[str, str], name: str, sonst: int) -> int:
+    return len(_zahlen(teile[name])) or sonst if name in teile else sonst
 
-    dateutil rechnet eine Regel, die nie trifft, bis ins Jahr 9999 durch, ohne
-    einen Termin zu liefern: `FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30` kostet
-    Minuten je Aufruf. Deshalb vorher, und alles ohne Uhr, also bei jedem Abruf
-    gleich:
 
-    * **Nicht unterstützt** (wie eine unlesbare Regel): BYSETPOS und BYWEEKNO
-      außer bei monatlichen und jährlichen Regeln (BYWEEKNO erlaubt RFC 5545 nur
-      jährlich), und wöchentliche oder feinere Regeln mit Abstand (INTERVAL) und
-      Monats- oder Datumsfilter. Ob die je treffen, hinge von der Phase des
-      Abstands ab; Kalender schreiben solche Regeln nicht.
-    * **Phase:** Eine tägliche oder feinere Regel, deren Abstand ganze Wochen
-      sind, trifft nur den Wochentag ihres Beginns; eine monatliche mit Abstand
-      nur Monate derselben Restklasse.
-    * **Probe:** Kann ein Filter ins Leere greifen (Monatstag über 28, auch der
-      vom Beginn übernommene, Jahrestag, Kalenderwoche, BYSETPOS, ab dem fünften
-      Wochentag im Monat, ein gezählter Wochentag zusammen mit Monatstagen),
-      rechnet dateutil die Regel über einen ganzen 400-Jahre-Zyklus, gelegt an
-      dessen Ende vor dem Jahr 9999 (höchstens 800 Jahre). Was dort nie trifft,
-      trifft nie. Tägliche und feinere Regeln prüft dabei eine jährliche Regel
-      mit denselben Datumsfiltern.
+def _wochentage(teile: dict[str, str]) -> list[str]:
+    return [teil.strip().upper() for teil in teile.get("BYDAY", "").split(",") if teil.strip()]
+
+
+@lru_cache(maxsize=512)
+def _probe_trifft(regel: str, start: datetime) -> bool:
+    """Ob dateutil für `regel` ab `start` überhaupt einen Termin findet (zwischengespeichert: ohne Uhr gleich)."""
+    try:
+        return next(iter(rrulestr(regel, dtstart=start)), None) is not None
+    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
+        return False
+
+
+def _probe_voll(teile: dict[str, str], beginn: _Zeit) -> bool | None:
+    """Die Regel selbst, ohne COUNT, über mindestens einen ganzen 400-Jahre-Zyklus vor dem Jahr 9999.
+
+    Der Beginn rückt um ganze Zyklen vor, so oft, dass auch die Phase von
+    INTERVAL erhalten bleibt (der Zyklus mal `k`, bis INTERVAL in ihm aufgeht).
+    Was dort nie trifft, trifft nie. None, wenn die Probe mehr als
+    `MAX_PROBE_SCHRITTE` Perioden rechnen müsste (dann: nicht unterstützt).
     """
     freq = teile.get("FREQ", "").upper()
     intervall = int(teile.get("INTERVAL", "1"))
-    tage = [teil.strip().upper() for teil in teile.get("BYDAY", "").split(",") if teil.strip()]
-    gezaehlt = [tag[:-2] for tag in tage if tag[:-2] not in ("", "+")]
-    datumsfilter = teile.keys() & {"BYMONTH", "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO"}
-    if freq in _FEINER_ALS_MONAT and ("BYSETPOS" in teile or "BYWEEKNO" in teile or (intervall > 1 and datumsfilter)):
-        return False
-    if freq == "MONTHLY" and "BYWEEKNO" in teile:
-        return False
+    einheiten = _EINHEITEN_JE_ZYKLUS.get(freq)
+    if einheiten is None:
+        return None
+    jahre = _ZYKLUS_JAHRE * (intervall // math.gcd(intervall, einheiten))
+    wandzeit = beginn.moment.replace(tzinfo=None)
+    jahr = wandzeit.year + jahre * max(0, -(-(9999 - 2 * jahre - wandzeit.year) // jahre))
+    if (9999 - jahr) * _PERIODEN_JE_JAHR[freq] / intervall > MAX_PROBE_SCHRITTE:
+        return None
+    regel = ";".join(f"{name}={inhalt}" for name, inhalt in teile.items() if name != "COUNT")
+    return _probe_trifft(regel, wandzeit.replace(year=jahr))
+
+
+def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool | None:
+    """Ob eine Regel je einen Termin liefert (True, False), oder None, wenn sie hier nicht unterstützt ist.
+
+    dateutil rechnet eine Regel, die nie trifft, bis ins Jahr 9999 durch, ohne
+    einen Termin zu liefern: `FREQ=MINUTELY;BYMONTH=2;BYMONTHDAY=30` kostete
+    Minuten je Aufruf. Deshalb vorher, alles ohne Uhr, also bei jedem Abruf
+    gleich:
+
+    * **Nicht unterstützt:** FREQ=SECONDLY; stündlich oder minütlich mit
+      Datumsfilter oder BYSETPOS (dateutil rechnet dann je Tag bis zu 1.440
+      Schritte ohne Treffer); BYWEEKNO außer jährlich (so RFC 5545). Kalender
+      schreiben solche Regeln nicht.
+    * **Phase:** Eine tägliche oder feinere Regel, deren Abstand ganze Wochen
+      sind, trifft nur den Wochentag ihres Beginns; eine monatliche mit Abstand
+      nur Monate derselben Restklasse.
+    * **Ohne Probe erfüllbar:** wöchentlich oder täglich mit Abstand bis 28 Tage
+      und nur BYMONTH (jeder Monat wird erreicht); wöchentlich oder täglich mit
+      BYSETPOS ohne Datumsfilter, wenn eine Position innerhalb der Wochentage
+      mal Uhrzeiten liegt.
+    * **Probe:** Kann ein Filter sonst ins Leere greifen (Monatstag über 28, auch
+      der vom Beginn übernommene, Jahrestag, Kalenderwoche, BYSETPOS, ab dem
+      fünften Wochentag im Monat, ein gezählter Wochentag zusammen mit
+      Monatstagen, Abstand mit Datumsfilter), rechnet dateutil die Regel über
+      einen 400-Jahre-Zyklus (`_probe_voll`); wöchentliche und tägliche ohne
+      Abstand prüft eine jährliche Regel mit denselben Datumsfiltern.
+    """
+    freq = teile.get("FREQ", "").upper()
+    intervall = int(teile.get("INTERVAL", "1"))
+    tage = _wochentage(teile)
+    datumsfilter = teile.keys() & _DATUMSFILTER
+    if freq == "SECONDLY" or (freq in _UNTER_TAG and (datumsfilter or "BYSETPOS" in teile)):
+        return None
+    if freq != "YEARLY" and "BYWEEKNO" in teile:
+        return None
     if freq in _SEKUNDEN_JE_SCHRITT and tage and intervall * _SEKUNDEN_JE_SCHRITT[freq] % (7 * 86400) == 0:
         if _WOCHENTAGE[beginn.moment.weekday()] not in {tag[-2:] for tag in tage}:
             return False
@@ -488,9 +571,19 @@ def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool:
         rest = math.gcd(intervall, 12)
         if all((monat - beginn.moment.month) % rest for monat in _zahlen(teile["BYMONTH"])):
             return False
+    if freq in ("WEEKLY", "DAILY"):
+        if "BYSETPOS" in teile and not datumsfilter:
+            groesse = ((len({tag[-2:] for tag in tage}) or 1) if freq == "WEEKLY" else 1) * math.prod(
+                _anzahl(teile, name, 1) for name in ("BYHOUR", "BYMINUTE", "BYSECOND"))
+            return any(1 <= abs(position) <= groesse for position in _zahlen(teile["BYSETPOS"]))
+        schritt_tage = intervall * (7 if freq == "WEEKLY" else 1)
+        if intervall > 1 and datumsfilter == {"BYMONTH"} and schritt_tage <= 28:
+            return True
+        if (intervall > 1 and datumsfilter) or "BYSETPOS" in teile:
+            return _probe_voll(teile, beginn)
     monatstage = _zahlen(teile.get("BYMONTHDAY", ""))
     try:
-        zaehlungen = [abs(int(zahl)) for zahl in gezaehlt]
+        zaehlungen = [abs(int(tag[:-2])) for tag in tage if tag[:-2] not in ("", "+")]
     except ValueError:
         zaehlungen = [99]  # unlesbar: die Probe entscheidet (dateutil lehnt es ab)
     vom_beginn = not (tage or monatstage or {"BYYEARDAY", "BYWEEKNO"} & teile.keys()) and beginn.moment.day > 28
@@ -501,72 +594,160 @@ def _erfuellbar(teile: dict[str, str], beginn: _Zeit) -> bool:
     if not leer_moeglich:
         return True
     if freq in ("MONTHLY", "YEARLY"):
-        if (_ZYKLUS_JAHRE * (12 if freq == "MONTHLY" else 1)) % intervall:
-            return True  # die Phase reicht über den Zyklus; dateutil endet dann nach höchstens 8000/INTERVAL Jahren
-        probe = {name: inhalt for name, inhalt in teile.items() if name != "COUNT"}
-    else:
-        probe = {"FREQ": "YEARLY", **{name: teile[name] for name in ("BYMONTH", "BYMONTHDAY", "BYYEARDAY")
-                                      if name in teile}}
-        if tage:
-            probe["BYDAY"] = ",".join(sorted({tag[-2:] for tag in tage}))
-    wandzeit = beginn.moment.replace(tzinfo=None)
-    jahr = wandzeit.year + _ZYKLUS_JAHRE * max(0, -(-(9200 - wandzeit.year) // _ZYKLUS_JAHRE))
+        return _probe_voll(teile, beginn)
+    probe = {"FREQ": "YEARLY", **{name: teile[name] for name in ("BYMONTH", "BYMONTHDAY", "BYYEARDAY")
+                                  if name in teile}}
+    if tage:
+        probe["BYDAY"] = ",".join(sorted({tag[-2:] for tag in tage}))
+    return _probe_voll(probe, beginn)
+
+
+def _varianten(teile: dict[str, str]) -> list[dict[str, str]] | None:
+    """Schlichte und gezählte Wochentage einer monatlichen oder jährlichen Regel als zwei Regeln.
+
+    RFC 5545 vereinigt die BYDAY-Werte (`BYDAY=SA,-2FR`: jeder Samstag und der
+    vorletzte Freitag); dateutil verlangte beides zugleich und fand fast nie
+    einen Termin. Mit BYSETPOS lässt sich die Vereinigung nicht aufteilen
+    (die Position gilt für die ganze Menge): None, nicht unterstützt.
+    """
+    tage = _wochentage(teile)
+    gezaehlt = [tag for tag in tage if tag[:-2] not in ("", "+")]
+    if teile.get("FREQ", "").upper() not in ("MONTHLY", "YEARLY") or not gezaehlt or len(gezaehlt) == len(tage):
+        return [teile]
+    if "BYSETPOS" in teile:
+        return None
+    schlicht = [tag for tag in tage if tag not in gezaehlt]
+    return [{**teile, "BYDAY": ",".join(schlicht)}, {**teile, "BYDAY": ",".join(gezaehlt)}]
+
+
+def _hoechstens_je_tag(teile: dict[str, str]) -> float:
+    """Obergrenze der Termine je Tag aus der Form der Regel; nur darüber misst `_zu_dicht`."""
+    freq = teile.get("FREQ", "").upper()
+    intervall = int(teile.get("INTERVAL", "1"))
+    stunden, minuten, sekunden = (_anzahl(teile, name, 0) for name in ("BYHOUR", "BYMINUTE", "BYSECOND"))
+    if freq == "MINUTELY":
+        return min(1440 / intervall, (stunden or 24) * (minuten or 60)) * (sekunden or 1)
+    if freq == "HOURLY":
+        return min(24 / intervall, stunden or 24) * (minuten or 1) * (sekunden or 1)
+    tage, laenge = {"DAILY": (1, 1), "WEEKLY": (len({tag[-2:] for tag in _wochentage(teile)}) or 1, 7),
+                    "MONTHLY": (31, 28), "YEARLY": (366, 365)}.get(freq, (math.inf, 1))
+    je_periode = tage * (stunden or 1) * (minuten or 1) * (sekunden or 1)
+    if "BYSETPOS" in teile:
+        je_periode = min(je_periode, len(_zahlen(teile["BYSETPOS"])) or 1)
+    return je_periode / (laenge * intervall)
+
+
+def _rechenbeginn(teile: dict[str, str], beginn: _Zeit, ziel: datetime) -> datetime:
+    """Von wo an dateutil rechnet: der Beginn, oder bei einer wöchentlichen, täglichen oder feineren Regel ohne
+    COUNT, Datumsfilter und BYSETPOS kurz vor `ziel`.
+
+    Solch eine Regel wiederholt sich genau nach der Periode aus Abstand und einer
+    Woche (Uhrzeiten und Wochentage): Rückt ihr Beginn um ganze Perioden vor,
+    liefert sie dieselben Termine. So hängt die Arbeit am Fenster, nicht am
+    Alter der Serie; eine stündliche Serie seit 1990 kostet so viel wie eine
+    von gestern. Gerückt wird in Ortszeit (eine 09:00-Serie bleibt 09:00).
+    """
+    freq = teile.get("FREQ", "").upper()
+    einheit = {"WEEKLY": 7 * 86400, **_SEKUNDEN_JE_SCHRITT}.get(freq)
+    if einheit is None or "COUNT" in teile or teile.keys() & (_DATUMSFILTER | {"BYSETPOS"}):
+        return beginn.moment
+    periode = math.lcm(int(teile.get("INTERVAL", "1")) * einheit, 7 * 86400)
+    perioden = int((ziel - beginn.moment).total_seconds() // periode) - 1  # eine Periode Spielraum (Zeitumstellung)
+    if perioden <= 0:
+        return beginn.moment
     try:
-        regel = rrulestr(";".join(f"{name}={inhalt}" for name, inhalt in probe.items()),
-                         dtstart=wandzeit.replace(year=jahr))
-        return next(iter(regel), None) is not None
-    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
-        return False
+        return beginn.moment + timedelta(seconds=perioden * periode)
+    except OverflowError:
+        return beginn.moment
 
 
-def _regel(wert: str, beginn: _Zeit):
-    """Eine RRULE ab `beginn` als `dateutil.rrule.rrule`, oder None, wenn sie unlesbar ist.
+def _zu_dicht(termine: Callable[[], Iterator[datetime]]) -> bool:
+    """Ob die ersten `PROBE_TERMINE` + 1 Termine dichter liegen als `DICHTE_JE_TAG` am Tag."""
+    erste = list(islice(termine(), PROBE_TERMINE + 1))
+    return (len(erste) > PROBE_TERMINE
+            and erste[-1] - erste[0] < timedelta(days=PROBE_TERMINE / DICHTE_JE_TAG))
+
+
+def _regel(wert: str, beginn: _Zeit, ziel: datetime) -> Callable[[], Iterator[datetime]]:
+    """Die Termine einer RRULE (aufsteigend, ab dem Rechenbeginn), als Fabrik für frische Durchläufe.
 
     Die Regel rechnet dateutil (RFC 5545, 3.3.10, samt BYSETPOS und WKST); hier
-    wird nur vorbereitet: Zusätze (`X-…`) entfallen, UNTIL kommt in die Form
-    des Beginns (`_regel_ende`).
+    wird vorbereitet und begrenzt: Zusätze (`X-…`) entfallen, UNTIL kommt in die
+    Form des Beginns (`_regel_ende`), gemischte Wochentage werden vereinigt
+    (`_varianten`), was nie trifft oder nicht unterstützt ist, wird vorher
+    erkannt (`_erfuellbar`), zu dichte Serien gemessen (`_zu_dicht`). Wirft
+    `_NichtAusgeklappt` mit dem Satz fürs Protokoll.
     """
-    teile, bis = [], None
+    teile: dict[str, str] = {}
+    bis = None
     for teil in wert.split(";"):
         name, _, inhalt = teil.partition("=")
-        name = name.strip().upper()
+        name, inhalt = name.strip().upper(), inhalt.strip()
         if not name or name.startswith("X-"):
             continue
         if name == "UNTIL":
-            bis = _regel_ende(inhalt.strip(), beginn)
+            bis = _regel_ende(inhalt, beginn)
             if bis is None:
-                return None
+                raise _NichtAusgeklappt(_UNLESBAR)
             continue
-        if name == "INTERVAL" and not (inhalt.strip().isdigit() and int(inhalt) > 0):
-            return None  # nur positive Abstände (RFC 5545); 0 wiederholte denselben Termin ohne Ende
-        teile.append(f"{name}={inhalt.strip()}")
+        if name in ("INTERVAL", "COUNT") and not (inhalt.isdigit() and int(inhalt) > (0 if name == "INTERVAL" else -1)):
+            raise _NichtAusgeklappt(_UNLESBAR)  # INTERVAL nur positiv (RFC 5545); 0 wiederholte ohne Ende
+        teile[name] = inhalt
+    freq = teile.get("FREQ", "").upper()
+    anzahl = int(teile["COUNT"]) if "COUNT" in teile else None
+    if freq in _UNTER_TAG and anzahl is not None and anzahl > MAX_COUNT_UNTER_TAG:
+        raise _NichtAusgeklappt(_AUFWAND)
+    varianten = _varianten(teile)
+    if varianten is None:
+        raise _NichtAusgeklappt(_FORM)
     try:
-        regelteile = dict(teil.split("=", 1) for teil in teile)
-        if not _erfuellbar(regelteile, beginn):
-            return None
-        regel = rrulestr(";".join(teile), dtstart=beginn.moment)
-        if bis is not None:
-            regel = regel.replace(until=bis)
-        if "COUNT" in regelteile and next(iter(regel), None) != beginn.moment:
-            # RFC 5545, 3.3.10: DTSTART zählt als erster Termin, auch wenn er nicht zur Regel passt
-            # (`_wiederholungen` nimmt ihn immer dazu); die Regel liefert dann einen weniger.
-            regel = regel.replace(count=max(0, int(regelteile["COUNT"]) - 1))
-        return regel
+        pruefungen = [_erfuellbar(variante, beginn) for variante in varianten]
+        if any(pruefung is None for pruefung in pruefungen):
+            raise _NichtAusgeklappt(_FORM)
+        varianten = [variante for variante, pruefung in zip(varianten, pruefungen) if pruefung]
+        if not varianten:
+            raise _NichtAusgeklappt(_NIE)
+        start = _rechenbeginn(teile, beginn, ziel)
+        regeln = []
+        for variante in varianten:
+            text = ";".join(f"{name}={inhalt}" for name, inhalt in variante.items()
+                            if not (name == "COUNT" and len(varianten) > 1))
+            regel = rrulestr(text, dtstart=start)
+            regeln.append(regel.replace(until=bis) if bis is not None else regel)
     except (ValueError, TypeError, KeyError, IndexError, OverflowError):
-        return None
+        raise _NichtAusgeklappt(_UNLESBAR) from None
+
+    def vereint() -> Iterator[datetime]:
+        letzter = None
+        for moment in heapq.merge(*regeln):
+            if moment != letzter:
+                letzter = moment
+                yield moment
+
+    termine: Callable[[], Iterator[datetime]] = (lambda: iter(regeln[0])) if len(regeln) == 1 else vereint
+    if anzahl is not None and next(termine(), None) != beginn.moment:
+        # RFC 5545, 3.3.10: DTSTART zählt als erster Termin, auch wenn er nicht zur Regel passt
+        # (`_wiederholungen` nimmt ihn immer dazu); die Regel liefert dann einen weniger.
+        anzahl -= 1
+        if len(regeln) == 1:
+            regeln[0] = regeln[0].replace(count=max(0, anzahl))
+    if anzahl is not None and len(regeln) > 1:
+        ungezaehlt = termine
+        termine = lambda: islice(ungezaehlt(), max(0, anzahl))  # noqa: E731 - COUNT gilt für die Vereinigung
+    if _hoechstens_je_tag(teile) > DICHTE_JE_TAG and _zu_dicht(termine):
+        raise _NichtAusgeklappt(_DICHT)
+    return termine
 
 
 def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
-                    bis: datetime) -> Iterator[tuple[str, datetime]] | None:
+                    bis: datetime) -> Iterator[tuple[str, datetime]]:
     """(Kennung, Beginn) jeder Wiederholung von `ab` bis vor `bis`, ohne die ausgenommenen (EXDATE).
 
     DTSTART ist immer der erste Termin (RFC 5545, 3.8.5.3), RDATE fügt Termine
-    hinzu. Gerechnet wird ab dem ersten Termin (die Grenze zählt jeden Schritt),
-    eine Kennung aber nur ab `ab`. None, wenn eine Regel unlesbar ist.
+    hinzu. Eine Kennung bekommt erst, was ab `ab` beginnt. Wirft
+    `_NichtAusgeklappt`, wenn eine Regel nicht ausgeklappt wird.
     """
-    regeln = [_regel(wert, beginn) for wert, _ in serie.alle("RRULE")]
-    if any(regel is None for regel in regeln):
-        return None
+    regeln = [_regel(wert, beginn, ab) for wert, _ in serie.alle("RRULE")]
     dazu = [beginn.moment]
     for wert, params in serie.alle("RDATE"):
         for teil in wert.split(","):
@@ -579,21 +760,20 @@ def _wiederholungen(serie: _Komponente, beginn: _Zeit, ab: datetime,
             zeit = _zeit_zur_serie(teil, params, beginn)
             if zeit is not None and zeit.ganztags and not beginn.ganztags:
                 ohne_tage.add(zeit.moment.date())  # ein ganzer Tag einer Serie mit Uhrzeit
-            elif zeit is not None:
-                ohne.add(_kennung(zeit, beginn))
+            elif zeit is not None and (kennung := _kennung(zeit, beginn)) is not None:
+                ohne.add(kennung)  # ein Wert jenseits des Jahres 9999 nimmt nichts heraus
 
     def folge() -> Iterator[tuple[str, datetime]]:
         gesehen: set[str] = set()
-        for schritt, moment in enumerate(heapq.merge(*regeln, sorted(dazu))):
+        for schritt, moment in enumerate(heapq.merge(*(termine() for termine in regeln), sorted(dazu))):
             if moment >= bis:
                 return
-            if schritt >= MAX_SCHRITTE_JE_SERIE or schritt > PUFFER_DICHTE + DICHTE_JE_TAG * (
-                    moment - beginn.moment).total_seconds() / 86400:
-                raise _ZuDicht
+            if schritt >= MAX_SCHRITTE_JE_SERIE:
+                raise _NichtAusgeklappt(_AUFWAND)
             if moment < ab:
                 continue
             kennung = _kennung(_Zeit(moment, beginn.ganztags, beginn.schwebend), beginn)
-            if kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
+            if kennung is None or kennung in gesehen or kennung in ohne or moment.date() in ohne_tage:
                 continue
             gesehen.add(kennung)
             yield kennung, moment
@@ -636,13 +816,15 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
     ersatz: dict[str, _Komponente] = {}
     ergebnis: list[Event] = []
     for termin in einzeln:
-        kennung = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
-                   else _zeit(*termin.felder["RECURRENCE-ID"]))
+        rid = (_zeit_zur_serie(*termin.felder["RECURRENCE-ID"], beginn) if beginn
+               else _zeit(*termin.felder["RECURRENCE-ID"]))
+        kennung = _kennung(rid, beginn or rid) if rid is not None else None
         if kennung is None:
+            # Unlesbar oder jenseits des Jahres 9999: ein Termin für sich, die Serie bleibt.
             if not termin.abgesagt:
                 ergebnis.append(_termin(termin, uid))
             continue
-        ersatz[_kennung(kennung, beginn or kennung)] = termin
+        ersatz[kennung] = termin
     if fenster is None:
         # Ohne Fenster nichts ausklappen: Die Serie bleibt ein Termin, wie bisher.
         if serie is not None and not serie.abgesagt:
@@ -657,20 +839,20 @@ def _serie(serie: _Komponente | None, einzeln: list[_Komponente], uid: str,
             ab = von - (dauer if dauer is not None and dauer > timedelta(0) else timedelta(0)) - timedelta(days=1)
         except OverflowError:
             ab = datetime.min.replace(tzinfo=timezone.utc)
-        folge = _wiederholungen(serie, beginn, ab, bis) if beginn is not None else None
+        treffer, satz = None, ""
         try:
-            treffer = None if folge is None else [
-                (kennung, moment, schluss) for kennung, moment in folge
-                if kennung not in ersatz
-                and _beruehrt(moment, schluss := moment + dauer if dauer is not None else None, von, bis)]
+            if beginn is not None:
+                treffer = [(kennung, moment, schluss) for kennung, moment in _wiederholungen(serie, beginn, ab, bis)
+                           if kennung not in ersatz
+                           and _beruehrt(moment, schluss := moment + dauer if dauer is not None else None, von, bis)]
+        except _NichtAusgeklappt as grund:
+            satz = grund.satz
         except (ValueError, TypeError, OverflowError):
-            treffer = None  # manche unlesbare Regel fällt dateutil erst beim Rechnen auf
-        except _ZuDicht:
-            treffer = None
-            logger.warning("Eine Terminserie wiederholt sich zu dicht (mehr als %s-mal am Tag); "
-                           "sie erscheint nur mit ihrem ersten Termin.", DICHTE_JE_TAG)
+            satz = _UNLESBAR  # manche unlesbare Regel fällt dateutil erst beim Rechnen auf
         if treffer is None:
-            # Kein lesbarer Beginn oder eine unlesbare Regel: wie bisher nur der erste Termin.
+            # Kein lesbarer Beginn, oder die Regel wird nicht ausgeklappt: nur der erste Termin.
+            if satz:
+                logger.warning("%s; sie erscheint nur mit ihrem ersten Termin.", satz)
             ergebnis.append(_termin(serie, uid))
         else:
             ergebnis += [_termin(serie, f"{uid}#{kennung}", _Zeit(moment, beginn.ganztags, beginn.schwebend), schluss)
