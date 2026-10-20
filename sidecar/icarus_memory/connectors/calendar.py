@@ -342,8 +342,10 @@ def ical_kodierung(kodierung: str | None) -> str:
         return "utf-8"
 
 
-_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8-sig"),
+_BOMS = ((codecs.BOM_UTF32_LE, "utf-32"), (codecs.BOM_UTF32_BE, "utf-32"), (codecs.BOM_UTF8, "utf-8"),
          (codecs.BOM_UTF16_LE, "utf-16"), (codecs.BOM_UTF16_BE, "utf-16"))
+"""Ein UTF-8-BOM heißt UTF-8, nicht `utf-8-sig`: Das ist nicht ASCII-kompatibel im Sinn von `ascii_kompatibel`
+und zwänge zum Dekodieren der ganzen Datei. Das BOM selbst steht vor BEGIN:VCALENDAR und stört keinen Termin."""
 
 
 def kodierung_der_daten(daten: bytes, angegeben: str | None) -> str:

@@ -908,3 +908,34 @@ def test_gemischte_wochentage_sind_eine_vereinigung(regel, von, bis, erwartet):
     """Review 2, N6: RFC 5545 vereinigt BYDAY-Werte; dateutil verlangte schlichte und gezählte zugleich."""
     termine = _zaehle(regel, 'DTSTART;TZID=Europe/Berlin:20261003T090000', von, bis)
     assert beginne(termine) == erwartet
+
+
+# -- Drittes Review ------------------------------------------------------------------
+
+
+def test_utf8_mit_bom_wird_ebenfalls_je_termin_dekodiert():
+    """Review 3, M3: Ein UTF-8-BOM machte die Kodierung zu `utf-8-sig`, und die Datei wurde wieder ganz dekodiert."""
+    import codecs
+    import tracemalloc
+
+    import httpx
+
+    from icarus_memory import kalender_abo
+    from icarus_memory.connectors.collections import ICalendarSubscription
+    text = grosser_kalender(3).replace('SUMMARY:Abstimmung', 'SUMMARY:Abstimmung \U0001F389', 1)
+    spitzen = {}
+    for name, daten in (('ohne', text.encode()), ('bom', codecs.BOM_UTF8 + text.encode())):
+        transport = httpx.MockTransport(lambda anfrage, daten=daten: httpx.Response(
+            200, content=daten, headers={'Content-Type': 'text/calendar'}))
+        tracemalloc.start()
+        termine = ICalendarSubscription('https://kalender.example.test/b.ics', transport=transport).events(
+            days=1, at=utc(2020, 1, 1))
+        lesen = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+        tracemalloc.start()
+        _, abo = kalender_abo.pruefe('https://kalender.example.test/b.ics', transport=transport, sekunden=60)
+        einrichten = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+        assert len(termine) > 2000 and abo.termine > 2000 and any('\U0001F389' in t.summary for t in termine)
+        spitzen[name] = (lesen, einrichten)
+    assert spitzen['bom'][0] < spitzen['ohne'][0] * 1.1 and spitzen['bom'][1] < spitzen['ohne'][1] * 1.1, spitzen
