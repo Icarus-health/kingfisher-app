@@ -439,9 +439,22 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
             for beleg in thema.get('evidence') or [{'start': -1, 'end': -1}]:
                 gefunden.append(Bezug(sache, 'thema', 'modell', int(beleg['start']), int(beleg['end'])))
     if episode.kind is EpisodeKind.EVENT:
+        # „Ort: Akademie Taunus, Seminarraum 3“ mit jemandem von der Akademie (Adresse): Der Termin gehört zur
+        # Organisation; ein gleichnamiger Ort daneben wäre eine zweite Akte für dieselbe Sache. Nur der erste Teil
+        # (Haus oder Träger) und nur eine über eine Adresse verankerte Organisation; ein Ortsname bleibt Ort, auch
+        # wenn er wie eine Domäne heißt („Mainz“ und mainz.de), ebenso der Ort hinter der Postleitzahl.
+        organisationen = {zerlegen(b.sache)[1] for b in gefunden
+                          if b.art == 'organisation' and b.grundlage == 'anker' and zerlegen(b.sache)}
         for treffer in _ORTSZEILE.finditer(episode.body):
-            for kennung, beginn, ende in orte_im_termin(treffer[1]):
-                gefunden.append(Bezug(sache_id('ort', kennung), 'ort', 'anker', treffer.start(1) + beginn,
+            angabe = treffer[1]
+            erster = angabe.split(',', 1)[0].strip()
+            for kennung, beginn, ende in orte_im_termin(angabe):
+                teil = angabe[beginn:ende]
+                traeger = teil == erster and (',' in angabe or len(teil.split()) >= 2)
+                organisation = org_kennung(teil) if traeger else ''
+                art, kennung = ('organisation', organisation) if organisation in organisationen and organisation \
+                    else ('ort', kennung)
+                gefunden.append(Bezug(sache_id(art, kennung), art, 'anker', treffer.start(1) + beginn,
                                       treffer.start(1) + ende, 'terminort'))
     eindeutig: dict[tuple, Bezug] = {}
     for bezug in gefunden:
@@ -463,13 +476,28 @@ FINGERABDRUCK = ("e.digest || ':' || e.metadata_digest || ':' || e.support_gener
 # dependency. Version only the derived input; user decisions retain the
 # unchanged source fingerprint above.
 _REGELVERSION = 3
+#: Termine haben eine eigene Regelfassung (Terminort und Organisation): Nur sie werden dafür neu berechnet.
+_REGELVERSION_TERMINE = 4
 #: Alles, was in die Bezüge einer Quelle eingeht (ohne das Verzeichnis).
 _EINGABE = (FINGERABDRUCK + " || '|' || COALESCE(c.fingerprint,'') || ':' || COALESCE(c.status,'') || ':' "
             "|| COALESCE(c.taxonomy_version,'') || '|' || COALESCE(k.fingerprint,'') || ':' "
             "|| COALESCE(k.updated_at,'') || '|' || COALESCE(e.project_id,'')"
-            f" || '|regeln:{_REGELVERSION}'")
+            f" || '|regeln:' || CASE WHEN e.kind = 'event' THEN '{_REGELVERSION_TERMINE}' ELSE '{_REGELVERSION}' END")
+#: Wofür eine Entscheidung des Nutzers („gehört dazu“, „gehört nicht dazu“) gilt: für den **Text** der Quelle. Der
+#: gespeicherte Fingerabdruck beginnt mit dem Inhaltsdigest. Projektzuordnung, Verdichten, Archivieren, nachgetragene
+#: Kontakte, Kopfzeilen oder Anhangberichte ändern nur den Rest und lassen die Entscheidung stehen: Der Nutzer hat
+#: über den Inhalt entschieden, nicht über die Ablage. Erst ein anderer Text macht sie veraltet.
+_NUTZER_KERN = "e.digest || ':'"
+NUTZER_GILT = "substr(u.fingerprint, 1, length(" + _NUTZER_KERN + ")) = " + _NUTZER_KERN
+
+
+def nutzer_gilt(gespeichert: str, digest: str) -> bool:
+    """Gilt eine gespeicherte Entscheidung für die heutige Fassung (gleicher Text)?"""
+    return str(gespeichert or '').startswith(f'{digest}:')
+
+
 _NICHT_ABGELEHNT = ("NOT EXISTS (SELECT 1 FROM sach_nutzer u WHERE u.episode_id = b.episode_id "
-                    "AND u.sache = b.sache AND u.aktion = 'nicht' AND u.fingerprint = " + FINGERABDRUCK + ")")
+                    "AND u.sache = b.sache AND u.aktion = 'nicht' AND " + NUTZER_GILT + ")")
 GUELTIG = _GUELTIG
 
 
@@ -625,7 +653,7 @@ class Bezuege:
             "SELECT b.sache AS sache, b.episode_id AS episode_id FROM sach_bezuege b JOIN episodes e ON e.id = b.episode_id "
             "WHERE b.sache != ''" + filter_b + " AND " + _GUELTIG + " AND " + _NICHT_ABGELEHNT + " "
             "UNION SELECT u.sache, u.episode_id FROM sach_nutzer u JOIN episodes e ON e.id = u.episode_id "
-            "WHERE u.aktion = 'zu'" + filter_u + " AND u.fingerprint = " + FINGERABDRUCK + " AND " + _GUELTIG)
+            "WHERE u.aktion = 'zu'" + filter_u + " AND " + NUTZER_GILT + " AND " + _GUELTIG)
 
     def sachen(self, *, art: str | None = None, suche: str = '', limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """Sachen mit Anzahl der Quellen und letzter Aktivität, jüngste zuerst; mit Gesamtzahl."""
@@ -673,7 +701,7 @@ class Bezuege:
                     grundlagen[b['episode_id']].setdefault(b['grundlage'], []).append((b['start'], b['end']))
                 for u in self._conn.execute(
                         "SELECT u.episode_id AS episode_id FROM sach_nutzer u JOIN episodes e ON e.id = u.episode_id "
-                        "WHERE u.sache = ? AND u.aktion = 'zu' AND u.fingerprint = " + FINGERABDRUCK +
+                        "WHERE u.sache = ? AND u.aktion = 'zu' AND " + NUTZER_GILT +
                         " AND u.episode_id IN (" + marken + ")", (sache, *teil)):
                     grundlagen[u['episode_id']].setdefault('nutzer', []).append((-1, -1))
         return [{'episode_id': z['id'], 'zeit': z['zeit'], 'archiviert': z['state'] == 'archived',
@@ -718,11 +746,11 @@ class Bezuege:
         """
         with self.episodes._lock:
             gelesen = self._conn.execute(
-                "SELECT " + FINGERABDRUCK + " AS fp FROM episodes e WHERE e.id = ? AND " + _GUELTIG,
+                "SELECT e.digest AS digest FROM episodes e WHERE e.id = ? AND " + _GUELTIG,
                 (episode_id, *GUELTIG_PARAMS)).fetchone()
             if gelesen is None:
                 return None
-            fp = gelesen['fp']
+            digest = gelesen['digest']
             bezuege = self._conn.execute(
                 "SELECT sache, art, grundlage, start, end, rolle, kandidaten FROM sach_bezuege WHERE episode_id = ? "
                 "ORDER BY rowid", (episode_id,)).fetchall()
@@ -730,9 +758,9 @@ class Bezuege:
                 "SELECT sache, art, aktion, fingerprint FROM sach_nutzer WHERE episode_id = ?", (episode_id,)).fetchall()
             berechnet = self._conn.execute(
                 "SELECT 1 FROM sach_quellen WHERE episode_id = ?", (episode_id,)).fetchone() is not None
-        aktuell = {n['sache']: n['aktion'] for n in nutzer if n['fingerprint'] == fp}
+        aktuell = {n['sache']: n['aktion'] for n in nutzer if nutzer_gilt(n['fingerprint'], digest)}
         veraltet = [{'sache': n['sache'], 'art': n['art'], 'aktion': n['aktion']}
-                    for n in nutzer if n['fingerprint'] != fp]
+                    for n in nutzer if not nutzer_gilt(n['fingerprint'], digest)]
         wirksam: dict[str, dict[str, Any]] = {}
         offen: list[dict[str, Any]] = []
         abgelehnt: list[dict[str, Any]] = []

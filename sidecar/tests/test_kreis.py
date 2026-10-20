@@ -132,6 +132,27 @@ def test_kollege_mit_firmenadresse_und_termin_wird_kollegen(api):
     assert 'ein gemeinsamer Termin' in vorschlag.begruendung
 
 
+def test_abgelehnte_quellen_zaehlen_nicht_fuer_den_kreis(api):
+    app, _ = api
+    familie(app)
+    sache = f'person:a:{MAMA}'
+    assert kreise(app).vorschlag(sache).merkmale.von_ihr == 4
+    bezuege, _ = bausteine(app)
+    von_ihr = [q['episode_id'] for q in bezuege.quellen_von(sache) if q['art'] == 'message'
+               and app.state.episodes.get(q['episode_id']).participants[0].endswith(f'<{MAMA}>')][:2]
+    for episode_id in von_ihr:
+        bezuege.nutzer_setzen(episode_id, sache, 'nicht')
+    # „Gehört nicht dazu“ gilt auch für die Merkmale des Kreises.
+    merkmale = kreise(app).vorschlag(sache).merkmale
+    assert (merkmale.von_ihr, merkmale.von_dir, merkmale.termine) == (2, 4, 1)
+    # Ablegen in einem Projekt ändert nichts daran: Die Entscheidung gilt für den Text, nicht für die Ablage.
+    projekt = app.state.workspace.add_project('Familie', Provenance(SourceType.USER_STATED))
+    for episode_id in von_ihr:
+        app.state.episodes.link_project(episode_id, projekt.id)
+    merkmale = kreise(app).vorschlag(sache).merkmale
+    assert (merkmale.von_ihr, merkmale.von_dir, merkmale.termine) == (2, 4, 1)
+
+
 def test_ein_fremder_landet_nie_im_inneren_kreis(api):
     app, _ = api
     fremder(app)
