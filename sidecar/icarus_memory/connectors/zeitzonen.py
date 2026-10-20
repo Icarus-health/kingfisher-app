@@ -79,16 +79,35 @@ WINDOWS_ZONEN: dict[str, str] = {
 """Windows-Name → IANA-Name (CLDR `windowsZones.xml`, Gebiet „001“)."""
 
 
-def zone(tzid: str | None) -> tzinfo | None:
-    """Die Zeitzone zu einem `TZID`-Wert, oder None, wenn der Name unbekannt ist."""
-    name = (tzid or "").strip().strip('"').strip()
-    if not name:
-        return None
+def _zoneinfo(name: str) -> tzinfo | None:
     try:
-        return ZoneInfo(WINDOWS_ZONEN.get(name, name))
+        return ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError):
         # ValueError: kein gültiger Schlüssel (etwa absolute Pfade oder „..“).
         return None
+
+
+def zone(tzid: str | None) -> tzinfo | None:
+    """Die Zeitzone zu einem `TZID`-Wert, oder None, wenn der Name unbekannt ist.
+
+    libical und ältere Mozilla-Kalender stellen dem IANA-Namen ihren
+    Herausgeber voran: `/freeassociation.sourceforge.net/Europe/Berlin`,
+    `/mozilla.org/20070129_1/Europe/Berlin`. Bei einem Namen, der mit „/“
+    beginnt, gelten deshalb auch seine letzten drei oder zwei Pfadteile als
+    IANA-Name (`Europe/Berlin`, `America/Argentina/Buenos_Aires`). Steht keiner
+    darin, bleibt die Zone unbekannt; ein einzelner Teil wie `localtime` aus
+    `/etc/localtime` wäre die Zone des Rechners, nicht die des Termins.
+    """
+    name = (tzid or "").strip().strip('"').strip()
+    if not name:
+        return None
+    gefunden = _zoneinfo(WINDOWS_ZONEN.get(name, name))
+    if gefunden is None and name.startswith("/"):
+        teile = [teil for teil in name.split("/") if teil]
+        for anzahl in (3, 2):
+            if len(teile) > anzahl and (gefunden := _zoneinfo("/".join(teile[-anzahl:]))) is not None:
+                break
+    return gefunden
 
 
 __all__ = ["WINDOWS_ZONEN", "zone"]

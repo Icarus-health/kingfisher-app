@@ -602,3 +602,16 @@ def test_seltene_aber_erfuellbare_regeln_werden_weiter_ausgeklappt(regel, von, b
     termine = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20250106T090000', 'DURATION:PT1H', f'RRULE:{regel}')),
                            von, bis)
     assert len(termine) == anzahl and all('#' in t.uid for t in termine)
+
+
+def test_zeitzone_mit_vorangestelltem_herausgeber_von_libical_und_mozilla():
+    for tzid, erwartet in (('/freeassociation.sourceforge.net/Europe/Berlin', 'Europe/Berlin'),
+                           ('/freeassociation.sourceforge.net/Tzfile/Europe/Berlin', 'Europe/Berlin'),
+                           ('/mozilla.org/20070129_1/Europe/Berlin', 'Europe/Berlin'),
+                           ('/softwarestudio.org/Olson_20011030_5/America/Argentina/Buenos_Aires',
+                            'America/Argentina/Buenos_Aires')):
+        assert str(zone(tzid)) == erwartet, tzid
+    assert zone('/mozilla.org/20070129_1/Berlin') is None  # kein IANA-Name darin: nicht raten
+    (termin,) = parse_events(ics(['UID:l', 'DTSTART;TZID=/freeassociation.sourceforge.net/Europe/Berlin:20261020T090000',
+                                  'DTEND;TZID=/freeassociation.sourceforge.net/Europe/Berlin:20261020T100000']))
+    assert (termin.start, termin.end) == (utc(2026, 10, 20, 7), utc(2026, 10, 20, 8))
