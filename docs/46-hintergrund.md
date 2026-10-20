@@ -357,8 +357,10 @@ Generationen und verknüpft deshalb nicht.
   bewusst angepasst
   `test_host_power.py::test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory`
   und `test_mac_calendar_background_gate.py`. Oberfläche:
-  `app/kingfisher/tests/pause-neue-post.test.mjs`; Browserprobe
-  `scripts/probe_hereinholen_ui.py`.
+  `app/kingfisher/tests/pause-neue-post.test.mjs` (auch: Heute baut die Lernkarte
+  nicht neu, wenn die Karten nachkommen; sonst klappten aufgeklappte „Details“
+  der pausierten Karte von selbst zu, `HeuteLeer`, Schlüssel „lernt“);
+  Browserprobe `scripts/probe_hereinholen_ui.py`.
 - `sidecar/tests/test_mail_intake.py` (neue Postfachkennung, Gegenbeispiele,
   eine alte Quelle je neuer UID, anderer Ordner),
   `sidecar/tests/test_neue_postfachkennung.py` (API gegen die IMAP-Attrappe) und
