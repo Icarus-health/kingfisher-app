@@ -23,7 +23,14 @@ def source_key_for_message(message, source_identity=None):
     return "mail:" + hashlib.sha256(json.dumps([message.account_id, source_identity if source_identity is not None else uid]).encode()).hexdigest()
 
 
-def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=None) -> dict:
+def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=None, frueher=None) -> dict:
+    """Legt eine Mail als Quelle an (oder erkennt sie wieder).
+
+    `frueher(episode_id)`: Gilt die gespeicherte Quelle als frühere Kennung derselben Mail (die Aufnahme sagt das für
+    Quellen, die sie unter einer früheren Postfachkennung desselben Ordners geholt hat), wird eine inhaltsgleiche Mail
+    nicht neu angelegt, sondern mit ihr verknüpft (`_dieselbe_mail_im_konto`). Ohne `frueher` bleibt jede Kennung
+    eine eigene Quelle.
+    """
     key = source_key_for_message(message, source_identity)
     source_ref = message.message_id or f"imap:{message.uid}"
     if message.account_id:
@@ -64,6 +71,14 @@ def remember(episodes: EpisodeStore, message, *, claims=None, source_identity=No
                 existing = episodes.add_mail_headers(existing.id, headers)
             return _with_attachments(episodes, message, key, beteiligte, teilnehmer, claims,
                                      {'episode': existing.to_dict(), 'new': False, 'changed': False})
+    if not head and frueher is not None:
+        gleich = _dieselbe_mail_im_konto(episodes, message, text, frueher)
+        if gleich is not None:
+            # Dieselbe Mail unter neuer Kennung (neue Postfachkennung UIDVALIDITY, verlorene Microsoft-Ablage): Die
+            # neue Kennung zeigt auf die vorhandene Quelle, statt eine zweite anzulegen. Die Aufnahme merkt sich die
+            # Verknüpfung an ihrem Eintrag (`mail_intake_items.episode_id`). Eine ausgeschlossene Quelle bleibt
+            # ausgeschlossen; ihre Anlagen hängen schon an ihr.
+            return {'episode': gleich.to_dict(), 'new': False, 'changed': False, 'anhaenge': []}
     vorhanden = _ohne_beteiligte_gespeichert(episodes, key, text)
     if vorhanden is not None and beteiligte:
         # Dieselbe Mail, früher ohne Empfänger aufgenommen: ergänzen statt eine
@@ -106,6 +121,41 @@ def _with_attachments(episodes, message, key, contacts, participants, claims, re
         if not preserve and (getattr(message, 'anhaenge', ()) or report is not None)
            and result['episode']['state'] != 'ignored' else [])
     return result
+
+
+def _dieselbe_mail_im_konto(episodes: EpisodeStore, message, text: str, frueher):
+    """Die schon gespeicherte, aktuelle Fassung genau dieser Mail im selben Konto unter einer früheren Kennung.
+
+    Die Kennung einer Quelle bleibt Konto und UID (bzw. Anbieterkennung, `source_key_for_message`); eine fremde
+    Message-ID darf keine andere Mail ersetzen, und zwei Nachrichten derselben Postfachgeneration bleiben zwei
+    Quellen mit je eigenem Beleg. Hier geht es nur darum, dieselbe Mail nicht ein zweites Mal anzulegen, wenn der
+    Server ihre UID neu vergibt: verknüpft wird nur mit einer Quelle, die `frueher` als frühere Kennung bestätigt.
+    Dieselbe Mail heißt: gleiche Message-ID (über den kontogebundenen Kopfindex `episode_mail_headers`), gleicher Text
+    (Prüfsumme) und gleicher Absender, Betreff und Zeitpunkt. Gleiche Message-ID mit anderem Text ist keine Dublette;
+    ohne Message-ID wird nicht geraten.
+    """
+    from .episodes import digest_of, mail_address, sql_aktuelle_fassung
+    from .mail_timeline import SELF, thread_tags
+    eigene = [tag for tag in thread_tags(message) if tag.startswith(SELF)]
+    if not eigene:
+        return None
+    with episodes._lock:
+        zeilen = episodes._conn.execute(
+            f"SELECT e.id FROM episode_mail_headers h JOIN episodes e ON e.id = h.episode_id "
+            f"WHERE h.value = ? AND e.kind = 'message' AND e.digest = ? AND e.source_key GLOB 'mail:*' "
+            f"AND {sql_aktuelle_fassung('e')} ORDER BY e.recorded_at, e.id LIMIT 20",
+            (eigene[0], digest_of(text))).fetchall()
+    from .model import ensure_aware
+    titel = message.subject or "(kein Betreff)"
+    zeit = ensure_aware(message.date)
+    absender = mail_address(message.sender)
+    for (kennung,) in zeilen:
+        episode = episodes.get(kennung)
+        if (episode.title == titel and episode.occurred_at == zeit
+                and mail_address(kontakte.absender_text(episode.participants, episode.contacts)) == absender
+                and frueher(episode.id)):
+            return episode
+    return None
 
 
 def _ohne_beteiligte_gespeichert(episodes: EpisodeStore, key: str, text: str):

@@ -10,16 +10,18 @@ was es heute an Hintergrundarbeit gibt, und dann die neue Regel.
 ## Akku und geschlossene App
 
 Die Mac-App ab 1.0.6 meldet nach erfolgreichem Start und dann alle 30 Sekunden
-nur ihre Energiequelle an den eigenen lokalen Dienst. Auf Akku pausiert die
-automatische Arbeit des Zeitplans, einschließlich Mailaufnahme, Einordnung und
-geplanter Sicherungsdurchgänge.
-Am Netzteil läuft sie mit den bisherigen Ruhepausen weiter. Eine ausdrücklich
+nur ihre Energiequelle an den eigenen lokalen Dienst. Auf Akku halten die
+älteren Mails und jede Modellarbeit an (Einordnung, Lagen, Zusagen, Verdichtung,
+KI-Filter, Texterkennung); neue Post, der Kalenderabgleich und die geplante
+Sicherung laufen ohne Modell weiter, genau wie in der Pause des Menschen
+(siehe unten „Pause und Akku“; bis Oktober 2026 hielt Akku alles an).
+Am Netzteil läuft alles mit den bisherigen Ruhepausen weiter. Eine ausdrücklich
 gewählte Pause bleibt auch dann erhalten. Lesen, Aufgaben und direkte Anfragen
 bleiben erreichbar; bewusst ausgelöste Modellanfragen können weiterhin Energie
 verbrauchen. Bereits laufende Modellanfragen werden nicht mitten in ihrer
 Antwort abgebrochen.
 
-Die Messung muss höchstens 90 Sekunden alt sein. Fehlt sie, wartet der Zeitplan;
+Die Messung muss höchstens 90 Sekunden alt sein. Fehlt sie, gilt das wie Akku;
 eine alte Netzteilmeldung gilt nach einem Neustart nicht weiter. Die Pflicht zur
 Hostmessung bleibt nach dem ersten Bericht gespeichert. Ein eigenständiger
 Server ohne Mac-Geräteprofil und ohne bisherige Hostmeldung bleibt unverändert.
@@ -115,6 +117,19 @@ tagelang ein Briefing aus 2019. Aus demselben Grund holt die Mailaufnahme den
 Verlauf eines Postfachs jetzt mit der höchsten UID zuerst; neue Post (Spur
 `live`) bleibt in Eingangsreihenfolge und hat weiter Vorrang.
 
+Auch die Bestandsaufnahme selbst (welche Nummern es im Postfach gibt) geht bei
+IMAP von oben nach unten, in Fenstern von 200 Nummern
+(`MailConnector.inventory_page(…, absteigend=True)`). Vorher lief sie
+aufsteigend: Bei 5.000 Mails waren zuerst nur die ältesten Nummern bekannt, und
+„höchste UID zuerst“ wählte unter diesen. Offen ist immer
+(`scan_uid`, `upper_uid`]; `upper_uid` sinkt mit jedem Fenster und wird erst
+zusammen mit den gefundenen Nummern gespeichert. Ein Abbruch wiederholt also
+das Fenster, statt es zu überspringen; eine vor dem Update aufsteigend
+begonnene Aufnahme (unten bis `scan_uid` erfasst) geht ohne Lücke und ohne
+Doppelung weiter. Microsoft (Laufnummern der Delta-Abfrage) bleibt
+aufsteigend, weil seine Nummern keine dichte Reihe sind. Die Gegendruck-Grenze
+(höchstens 200 erfasste, noch nicht eingeordnete Altmails) gilt unverändert.
+
 Die Schlange braucht keinen eigenen Speicher. Was offen ist, steht in
 `working_memory_sources`; die Reihenfolge wird daraus höchstens jede Minute neu
 gebildet. Eine ausgegebene, aber nicht erledigte Quelle ruht eine Stunde (der
@@ -124,7 +139,8 @@ schon eingeordneter Quellen findet ebenfalls der ordentliche Durchlauf.
 **Rücksicht.** Der Hintergrund tritt zurück, (a) solange die letzte Eingabe
 weniger als 20 s her ist, (b) solange eine Antwort formuliert wird
 (`POST /chat`, `POST /api/v1/conversations/{id}/messages` und `…/retry`), und
-danach wieder 20 s, (c) solange der Mensch pausiert hat. Als Eingabe zählt eine
+danach wieder 20 s, (c) solange der Mensch pausiert hat (dann nur mit den
+älteren Mails und der Modellarbeit, siehe „Pause und Akku“). Als Eingabe zählt eine
 verändernde Anfrage aus der Oberfläche und die gedrosselte Meldung
 `POST /api/v1/hintergrund/aktiv`, die die Oberfläche bei Taste, Klick,
 Scrollen sendet (höchstens alle 5 s, `aktivitaet.ts`). **Abfragen im Takt
@@ -182,6 +198,143 @@ darin enthalten und erscheint dann nicht doppelt.
 **Autostart** ist eine Frage im Assistenten, siehe
 [`09-einrichtung.md`](09-einrichtung.md#autostart).
 
+### Pause und Akku
+
+„Pausieren“ auf Heute (Karte „Kingfisher lernt gerade“, Titel dann
+„Verarbeitung pausiert“, Knopf „Weiter“) hielt bis Oktober 2026 alles an: neue
+Post, Kalenderabgleich, geplante Sicherung, die Übernahme des Mac-Kalenders.
+Ein Stabschef, der in der Pause die Post von heute liegen lässt, verliert etwas.
+Jetzt gilt für die Pause und ebenso für den Akkubetrieb (und eine fehlende
+Energiemeldung, die wie Akku zählt; `hintergrund.NEUE_POST_WEITER`):
+
+| Hält an | Läuft weiter, ohne Modell |
+|---|---|
+| ältere Mails (die Spur „Verlauf“ der Aufnahme samt ihrer Bestandsaufnahme), Empfänger älterer Mails nachtragen | neue Post (Spur „neu“), im Takt der Aufnahme |
+| jede Modellarbeit: Einordnung, Uploads, Lagen, Zusagen, Verdichtung, Zusammenfassung, KI-Filter, Texterkennung | Kalenderabgleich (Kalenderquellen und Übernahme des Mac-Kalenders) |
+| der übrige volle Durchgang: Ordner, öffentliche Quellen, Beobachtungen | geplante Sicherung (höchstens alle vier Stunden) |
+
+Unverändert halten **alles** an: knapper Speicherplatz (`_capacity_gate`),
+Speicherdruck des Macs, eine frische Meldung der App ohne Speicherlast
+(`speicher_unbekannt`) und die Rücksicht auf den Menschen (Eingabe, Antwort);
+`Steuerung.sperre_ohne_modell()` sagt das. Speicher geht dabei der
+Energiequelle vor (`host_power.reason`): Akku mit Speicherdruck oder mit
+unbekannter Speicherlast hält alles an, ebenso am Netzteil. Nur ganz ohne
+frische Meldung (App geschlossen oder eben gestartet) gilt
+`energie_unbekannt`, das wie Akku nur ältere Mails und Modellarbeit anhält;
+sonst stünde bei geschlossener App auch die neue Post.
+
+Wird mitten in einem Paket pausiert, wartet der nächste Modellaufruf nicht an
+der Ampel bis „Weiter“, sondern gibt den Faden frei (`BackgroundInterrupted`,
+wie bei Akku); Sperren und Wiederherstellungsgrenze werden frei, der nächste
+Takt ist schon der leichte. Anbieter, die nicht über die Ampel laufen, fragen
+zwischen den Quellen `permitted()`, und das enthält jetzt
+`hintergrund.modellarbeit_frei` (im Faden des Zeitplans: nicht pausiert, keine
+Energie- oder Speichersperre; ein ausdrücklicher Lauf bleibt erlaubt). Auch
+der volle Durchgang prüft vor jedem Schritt (`Scheduler._zwischen_schritten`,
+`hintergrund.unterbrechen_wenn_gesperrt`) und gibt den Faden frei, statt die
+übrigen Schritte leer laufen zu lassen; unter „Was zuletzt lief“ steht dann
+kein „… nach geänderter Freigabe gestoppt“. Der Zeitplan ruft dann je Takt
+`Scheduler._leichter_takt`: neue Post über `Intake.step(nur_neu=True)`,
+Kalender und Sicherung über `_leichter_lauf` im Abstand des Zeitplans. Der
+volle Durchgang bleibt dabei fällig (`_last_at` rückt nicht vor) und läuft nach
+„Weiter“.
+
+Nach einem teuren Paket ruht der Hintergrund (Drosselung, die vierfache Dauer
+des Pakets, auch wenn es abgebrochen wurde). Diese Ruhe gilt nur der
+Modellarbeit und dem vollen Durchgang: Der leichte Takt (neue Post, Kalender,
+Sicherung) läuft auch in ihr, sonst hieße ein 30-Minuten-Paket zwei Stunden
+ohne neue Post. „Weiter“ (`Scheduler.ruhe_aufheben`), „Erneut versuchen“ und
+eine neue Anmeldung (`aufnahme_wecken`) heben die Ruhe auf; ein Takt oder eine
+Meldung der App weckt nur. Ein in der Pause begonnenes Einlesen merkt sich nur die Grenze für
+neue Post (`Intake._grundlinie`); die älteren Mails kommen nach der Pause ohne
+Lücke. Neue Post wird nur vorgemerkt, eingeordnet wird sie nach der Pause.
+
+Ohne Modell heißt auch: keine Texterkennung. Eine neue Mail mit gescanntem
+Anhang wartet deshalb, wenn ein OCR-Modell da ist, statt ohne Text gespeichert
+zu werden (`zurueckstellen`, zählt nicht als gescheitert). Das gilt auch für
+eine PDF, die nur teilweise Text hat, etwa Seite 1 getippt und Seite 2
+gescannt (`anhaenge.wartet_auf_texterkennung`: Seiten ohne Text); Seiten
+jenseits der Lesegrenze sind kein Grund zu warten. Die Mail wird in der Pause
+nicht immer wieder heruntergeladen: Sie trägt `grund='zurueckgestellt'` und
+ruht bis zum ersten vollen Durchgang nach Pause oder Akku, der sie sofort
+freigibt; in einer langen Pause kommt sie höchstens alle sechs Stunden wieder
+dran (`mail_intake.ZURUECKGESTELLT_S`). Ist der KI-Filter für Post an, prüft
+die lokale KI jede neue Mail vor dem Speichern; dann wartet in der Pause auch
+die neue Post, und der Satz sagt es.
+
+Microsoft (Graph) trennt neue von alter Post erst, wenn die erste
+Delta-Auflistung eines Ordners fertig ist; bis dahin gilt alles als älter.
+Diese Auflistung geht deshalb in der Pause weiter, aber nur mit Kennung und
+Eingangszeit je Mail (`MicrosoftPost._fortschreiben`): kein Inhalt, kein
+Eintrag für ältere Mails, kein Modell. Ohne sie käme bei einem in der Pause
+verbundenen Konto nie neue Post an. Die Inhalte der älteren Mails holt die
+Aufnahme erst nach der Pause.
+
+Ein Update setzt die älteren Mails nicht fort: Die Pause steht in
+`hintergrund.json` und gilt nach jedem Neustart; nach einem Neustart fehlt
+zudem die Energiemeldung, was wie Akku zählt.
+
+Was der Mensch liest (eine Aussage je Postfach, `mail_stand.nur_neue_post_satz`,
+und `GRUND_TEXT`):
+
+* Grund in der Karte (`Steuerung.grund_text`, auch unter Gedächtnis →
+  Verarbeitung): „Pausiert. Neue Post und Termine kommen weiter an; ältere
+  Mails und das Lernen warten, bis du „Weiter“ wählst.“ (auch ohne Modell, wenn
+  nur Mails eingelesen werden); im Akkubetrieb „… warten, bis der Mac am
+  Netzteil ist.“ Der Satz verspricht nur, was wirklich läuft: Hält zugleich
+  Speicherplatz, Speicherdruck oder eine fehlende Speichermeldung alles an,
+  heißt es „Pausiert, bis du „Weiter“ wählst.“ mit diesem Grund; ist der
+  KI-Filter an, „Termine kommen weiter an; neue Post, ältere Mails und das
+  Lernen warten …, denn die lokale KI prüft neue Post vor dem Speichern.“
+* Je Postfach: „Postfach Privat: Neue Post wird weiter geholt; ältere Mails
+  sind pausiert (bereits 120 von 4.300 Mails gelesen). Auf Heute geht es mit
+  „Weiter“ weiter.“ Im Akkubetrieb „… ältere Mails warten, bis der Mac am
+  Netzteil ist (…).“ Mit KI-Filter „Neue Post und ältere Mails sind pausiert,
+  weil die lokale KI neue Post vor dem Speichern prüft (…).“ Bei Speicherdruck
+  wird nichts versprochen (bisheriger Satz).
+* Im Assistenten: „Die älteren Mails hältst du jederzeit auf Heute mit
+  „Pausieren“ an; neue Post kommt weiter.“
+
+Ganz anhalten, auch neue Post, lässt sich das Einlesen weiter je Postfach
+(Für Techniker → Zeitplan und Hintergrund, „Einlesen pausieren“) oder mit dem
+Schalter „Mails regelmäßig abrufen“.
+
+### Neue Postfachkennung
+
+Vergibt der Server die Nummern eines Ordners neu (UIDVALIDITY; bei Microsoft
+geht die Ablage der Nummern verloren), beginnt die Bestandsaufnahme von vorn.
+Früher legte sie dabei jede schon gespeicherte Mail ein zweites Mal an, und
+eine ausgeschlossene Mail kam zurück. Jetzt gleicht die Aufnahme vor dem
+Anlegen ab (`mail_ingestion._dieselbe_mail_im_konto`): gleiche Message-ID im
+selben Konto (über den kontogebundenen Kopfindex `episode_mail_headers`),
+gleiche Prüfsumme des Textes, dazu gleicher Absender, Betreff und Zeitpunkt.
+Trifft das auf eine Quelle zu, die die Aufnahme unter einer **früheren**
+Generation **desselben Ordners** geholt hat (`Intake._frueher_geholt`), zeigt
+der neue Eintrag auf diese Quelle (Status „schon bekannt“), statt eine zweite
+anzulegen; eine ausgeschlossene bleibt ausgeschlossen.
+
+Jede alte Quelle geht dabei an höchstens eine neue UID: Zeigt schon eine andere
+UID der aktuellen Generation desselben Ordners auf sie, prüft die Aufnahme die
+nächste passende alte Quelle, sonst legt sie eine eigene an. Lagen zwei gleiche
+Mails unter der alten Kennung, findet so jede neue UID ihre eigene; liegt eine
+Mail nach dem Wechsel zweimal da, verknüpft die erste, die zweite wird eine
+eigene Quelle. Dieselbe Mail in einem anderen Ordner (der seine eigene Kennung
+hat) ist keine frühere Fassung; ordnerübergreifend verknüpft nur eine Kennung
+des Anbieters.
+
+Ein Ziel für Aktionen beim Anbieter (`local_mail_routes._remote_uid`) nennt nur
+die UID aus der aktuellen Generation des Ordners. Hat die neue
+Bestandsaufnahme die Mail noch nicht wiedergefunden, gibt es keine Aktion statt
+einer veralteten UID, die auf eine andere Mail zeigen könnte.
+
+Bewusst nicht verknüpft wird: gleiche Message-ID mit anderem Text, Absender,
+Betreff oder Zeitpunkt (die Message-ID ist ein fremdes Kopffeld); eine Mail ohne
+Message-ID; dieselbe Mail in einem anderen Konto; und zwei Nachrichten
+derselben Generation (zwei UIDs, gleicher Inhalt). Diese bleiben zwei Quellen
+mit je eigenem Beleg, wie `test_mail_ingestion.py::test_mail_identity_and_versions_keep_independent_evidence`
+es festhält. Der regelmäßige Abruf ohne Aufnahme (`sync_account`) führt keine
+Generationen und verknüpft deshalb nicht.
+
 ## Prüfungen
 
 - `sidecar/tests/test_hintergrund.py`: Reihenfolge, erledigte Quellen, Ausgabe
@@ -192,13 +345,56 @@ darin enthalten und erscheint dann nicht doppelt.
 - `sidecar/tests/test_autostart.py`: plist-Inhalt, ohne Antwort keine Datei,
   Aus entfernt nur die eigene Datei, der ganze Weg vom Klick bis zur Datei.
 - `sidecar/tests/test_mail_intake.py::test_verlauf_von_neu_nach_alt`.
+- `sidecar/tests/test_pause_neue_post.py`: nur neue Post in der Aufnahme,
+  Grundlinie, Zurückstellen ohne Texterkennung, Zeitplan in Pause, Akku und
+  fehlender Energiemeldung, Gegenbeispiele Speicherdruck, Speicherplatz und
+  Eingabe, „Weiter“, Neustart nach dem Update, der ganze Weg mit der
+  IMAP-Attrappe samt Sätzen, teilweise gescannte PDF, keine Wiederholung
+  zurückgestellter Mails in der Pause, neue Post in der Ruhe nach einem Paket,
+  „Weiter“ und Wecken heben die Ruhe auf, Pause mitten im vollen Durchgang,
+  unbekannte Speicherlast gleich welcher Energiequelle; dazu
+  `test_microsoft_graph.py::test_in_der_pause_listet_outlook_nur_kennungen_und_holt_neue_post`;
+  bewusst angepasst
+  `test_host_power.py::test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory`
+  und `test_mac_calendar_background_gate.py`. Oberfläche:
+  `app/kingfisher/tests/pause-neue-post.test.mjs` (auch: Heute baut die Lernkarte
+  nicht neu, wenn die Karten nachkommen; sonst klappten aufgeklappte „Details“
+  der pausierten Karte von selbst zu, `HeuteLeer`, Schlüssel „lernt“);
+  Browserprobe `scripts/probe_hereinholen_ui.py`.
+- `sidecar/tests/test_mail_intake.py` (neue Postfachkennung, Gegenbeispiele,
+  eine alte Quelle je neuer UID, anderer Ordner),
+  `sidecar/tests/test_neue_postfachkennung.py` (API gegen die IMAP-Attrappe) und
+  `sidecar/tests/test_local_mail_routes.py::test_remote_uid_gilt_nur_fuer_die_aktuelle_ordnergeneration`.
+- `sidecar/tests/test_bestand_neueste_zuerst.py`: großes Postfach neueste
+  zuerst, Fenster von oben nach unten, Abbruch und Neustart ohne Lücke und
+  Doppelung, aufsteigend begonnene Aufnahme nach dem Update.
 - `app/kingfisher/tests/hintergrund.test.mjs`: Gesamtzeile, kein Doppel,
   Pause, gedrosselte Meldung, Autostart-Texte.
 - Browserprobe `scripts/probe_hintergrund_ui.py --ausgabe DIR`.
 
 Sabotageproben (jeweils die Zusicherung gebrochen, die genannten Tests fielen):
 Reihenfolge nach Kennung statt nach Nutzen (4 Tests), Verlauf der Mailaufnahme
-wieder alt nach neu (1), Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
+wieder alt nach neu (1), Bestandsaufnahme wieder aufsteigend (3), Fenster unter
+die alte untere Grenze (2), Zeiger rückt bei gescheiterter Suche weiter (2),
+absteigender Zeiger nicht gespeichert (2), Abgleich bei neuer Postfachkennung
+abgeschaltet (3), Prüfsumme, Absender, Betreff oder Zeitpunkt nicht verglichen
+(je 1), jede gleiche Mail im Konto, dieselbe Generation oder ein anderer Ordner
+als „früher“ (je 1), eine alte Quelle an zwei neue UIDs (2), Aktionsziel aus
+einer alten Generation (1); zur
+Pause: kein leichter Takt (6), Akku hält auch neue Post an (7), Eingabe zählt
+in der Pause nicht (2), ältere Mails trotz Pause geholt (1), Bestandsaufnahme
+trotz Pause (2), leichter Lauf rückt den vollen Durchgang vor (4), Kalender und
+Sicherung in jedem Takt (3), Texterkennung ohne Modellfreigabe (1), teilweise
+gescannte PDF ohne Warten gespeichert (1), Zurückgestelltes wieder alle zehn
+Minuten (1), voller Durchgang gibt Zurückgestelltes nicht frei (1),
+Bestandsaufnahme älterer Microsoft-Mails in der Pause (1), im Nach-Review (in
+einer Kopie) kein leichter Takt in der Ruhe (2), Wecken hebt die Ruhe nicht auf
+(1), „Weiter“ weckt nur (1), voller Durchgang ohne Unterbrechung (1), Akku vor
+unbekannter Speicherlast (4), KI-Filter in
+der Pause nicht übersprungen (1), Satz verspricht neue Post bei Speicherdruck
+(1), Mac-Kalender nach alter Sperre (3), Grund der Pause nur mit Modell (1),
+Grundlinie fehlt (2), in der Oberfläche alter Satz im Assistenten und „Einlesen
+pausiert“ (je 1); Sperre im Zeitplan ignoriert (1), Sperre in der Ampel
 und Eingabe in der Middleware ignoriert (2), Anbieter ohne Ampel (1), plist ohne
 Antwort geschrieben (2).
 

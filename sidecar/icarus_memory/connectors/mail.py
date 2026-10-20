@@ -21,7 +21,9 @@ import imaplib
 import re
 import smtplib
 import ssl
+import hashlib
 import threading
+import time
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -52,6 +54,89 @@ class MailError(Exception):
 
 class MailboxGenerationChanged(MailError):
     """Der gespeicherte UID-Bestand gehört zu einer alten Postfachgeneration."""
+
+
+class AnmeldungAbgelehnt(imaplib.IMAP4.error):
+    """Der Server hat die Anmeldung abgelehnt (LOGIN oder XOAUTH2), nicht einen späteren Befehl.
+
+    Unterklasse von `imaplib.IMAP4.error` mit dem Text des Servers, damit `mail_anmeldung.einordnen` sie wie bisher
+    einordnet. Die Aufnahme erkennt daran, dass nur eine neue Anmeldung hilft (`mail_intake`, Grund `anmeldung`);
+    ein BAD auf eine Suche ist dagegen kein Anmeldefehler.
+    """
+
+
+class AnmeldungRuht(AnmeldungAbgelehnt):
+    """Ohne Verbindung abgewiesen: Dieselben Zugangsdaten hat der Server eben abgelehnt (`ANMELDUNG_RUHT_S`)."""
+
+
+class AnmeldungWartet(OSError):
+    """Ohne Verbindung: Der Server lehnte eben vorübergehend ab ([LIMIT], zu viele Anmeldungen); später erneut."""
+
+
+#: Nach einer echten Ablehnung ruhen dieselben Zugangsdaten so lange für jede Verbindung (Sekunden). Jeder Versuch wäre
+#: eine Anmeldung beim Anbieter; viele abgelehnte in Folge sperren dort das Konto.
+ANMELDUNG_RUHT_S = 3600.0
+#: Nach einer vorübergehenden Ablehnung erst so lange, dann jeweils doppelt so lange, höchstens `VORLAEUFIG_HOECHSTENS_S`.
+VORLAEUFIG_ERST_S = 60.0
+VORLAEUFIG_HOECHSTENS_S = 1800.0
+
+
+def _ruhe_uhr() -> float:
+    return time.time()
+
+
+class _Anmelderuhe:
+    """Kontoweit: Wann dieselben Zugangsdaten nach einer Ablehnung wieder an den Server dürfen (docs/47).
+
+    Jede Verbindung meldet sich an: die Aufnahme (jeder Ordner), der Nachtrag der Beteiligten, der Posteingang auf
+    Heute und unter „Nachrichten“. Erkannt werden die Zugangsdaten an Server, Port, Benutzer und einem Fingerabdruck
+    des Passworts: Ein neues Passwort gilt sofort. Ausdrückliche Prüfungen (Verbinden, Neu anmelden) fragen immer den
+    Server. Nur im Speicher; nach einem Neustart höchstens ein Versuch.
+    """
+
+    def __init__(self) -> None:
+        self._sperre = threading.Lock()
+        self._eintraege: dict[tuple[str, int, str, str], tuple[float, int, bool]] = {}
+
+    def ruht(self, schluessel: tuple[str, int, str, str]) -> tuple[bool, bool]:
+        """(ruht gerade, echte Ablehnung)."""
+        with self._sperre:
+            eintrag = self._eintraege.get(schluessel)
+        if eintrag is None or _ruhe_uhr() >= eintrag[0]:
+            return False, False
+        return True, eintrag[2]
+
+    def pruefen(self, schluessel: tuple[str, int, str, str]) -> None:
+        ruht, echt = self.ruht(schluessel)
+        if ruht and echt:
+            raise AnmeldungRuht('[AUTHENTICATIONFAILED] Kingfisher meldet sich mit diesen Zugangsdaten vorerst nicht '
+                                'erneut an.')
+        if ruht:
+            raise AnmeldungWartet('Das Postfach hat die Anmeldung eben vorübergehend abgelehnt; Kingfisher versucht es '
+                                  'später erneut.')
+
+    def abgelehnt(self, schluessel: tuple[str, int, str, str], echt: bool) -> None:
+        with self._sperre:
+            alt = self._eintraege.get(schluessel)
+            folge = (alt[1] if alt is not None and alt[2] == echt else 0) + 1
+            dauer = ANMELDUNG_RUHT_S if echt else min(VORLAEUFIG_HOECHSTENS_S, VORLAEUFIG_ERST_S * 2 ** (folge - 1))
+            self._eintraege[schluessel] = (_ruhe_uhr() + dauer, folge, echt)
+
+    def gelungen(self, schluessel: tuple[str, int, str, str]) -> None:
+        self._vergessen(lambda k: k[:3] == schluessel[:3])
+
+    def vergessen(self, benutzer: str) -> None:
+        """Nach einer neuen Anmeldung (auch Google, Microsoft): sofort wieder versuchen."""
+        benutzer = (benutzer or '').casefold()
+        self._vergessen(lambda k: k[2] == benutzer)
+
+    def _vergessen(self, passt: Callable[[tuple[str, int, str, str]], bool]) -> None:
+        with self._sperre:
+            for schluessel in [k for k in self._eintraege if passt(k)]:
+                del self._eintraege[schluessel]
+
+
+ANMELDERUHE = _Anmelderuhe()
 
 
 @dataclass
@@ -406,6 +491,10 @@ class _Sitzung:
 class MailConnector:
     """Liest Nachrichten und versendet sie — Versand nur über die Freigabe."""
 
+    #: Die Bestandsaufnahme kann von oben nach unten gehen (`inventory_page(…, absteigend=True)`): Die Aufnahme
+    #: erfasst so die neuesten Mails zuerst. Leser ohne diese Angabe (Microsoft, Attrappen) bleiben aufsteigend.
+    bestand_neueste_zuerst = True
+
     def __init__(self, config: MailConfig) -> None:
         self._config = config
         self._context: ssl.SSLContext | None = None
@@ -424,6 +513,7 @@ class MailConnector:
     @contextmanager
     def _open(self):
         """Eine angemeldete Verbindung; beim Verlassen sauber abgemeldet."""
+        self._ruht_nicht()
         with imaplib.IMAP4_SSL(
             self._config.imap_host, self._config.imap_port,
             ssl_context=self._ssl_context(), timeout=30,
@@ -472,22 +562,53 @@ class MailConnector:
             self._config.imap_host, self._config.imap_port,
             ssl_context=self._ssl_context(), timeout=timeout,
         ) as imap:
-            self._login(imap)
+            self._login(imap, ausdruecklich=True)
 
-    def _login(self, imap):
+    def _ruhe_schluessel(self) -> tuple[str, int, str, str]:
         if self._config.access_token:
-            token = self._config.access_token()
-            payload = f"user={self._config.username}\x01auth=Bearer {token}\x01\x01".encode()
-            sent = False
-            def response(_challenge):
-                nonlocal sent
-                if sent:
-                    return b""
-                sent = True
-                return payload
-            imap.authenticate("XOAUTH2", response)
+            fingerabdruck = 'oauth'  # das Token wechselt stündlich; „Neu anmelden“ vergisst die Ruhe ausdrücklich
         else:
-            imap.login(self._config.username, self._config.password)
+            fingerabdruck = hashlib.sha256((self._config.password or '').encode('utf-8')).hexdigest()
+        return ((self._config.imap_host or '').strip().lower(), int(self._config.imap_port),
+                (self._config.username or '').casefold(), fingerabdruck)
+
+    def anmeldung_ruht(self) -> bool:
+        """Ob der Server diese Zugangsdaten eben abgelehnt hat (echte Ablehnung, nicht vorübergehend)."""
+        ruht, echt = ANMELDERUHE.ruht(self._ruhe_schluessel())
+        return ruht and echt
+
+    def _ruht_nicht(self) -> None:
+        """Vor jedem Verbindungsaufbau: Ruhen diese Zugangsdaten, gar nicht erst verbinden (`_Anmelderuhe`)."""
+        ANMELDERUHE.pruefen(self._ruhe_schluessel())
+
+    def _login(self, imap, *, ausdruecklich: bool = False):
+        schluessel = self._ruhe_schluessel()
+        if not ausdruecklich:
+            ANMELDERUHE.pruefen(schluessel)
+        try:
+            if self._config.access_token:
+                token = self._config.access_token()
+                payload = f"user={self._config.username}\x01auth=Bearer {token}\x01\x01".encode()
+                sent = False
+                def response(_challenge):
+                    nonlocal sent
+                    if sent:
+                        return b""
+                    sent = True
+                    return payload
+                imap.authenticate("XOAUTH2", response)
+            else:
+                imap.login(self._config.username, self._config.password)
+        except imaplib.IMAP4.abort:
+            raise  # Verbindung abgebrochen: keine Aussage über die Anmeldung.
+        except AnmeldungAbgelehnt:
+            raise
+        except imaplib.IMAP4.error as exc:
+            # Gekennzeichnet, nicht umgedeutet: Text und Klasse von `imaplib` bleiben (`mail_anmeldung.einordnen`).
+            from ..mail_anmeldung import einordnen
+            ANMELDERUHE.abgelehnt(schluessel, echt=einordnen(exc, self._config.imap_host).grund != 'nicht_erreichbar')
+            raise AnmeldungAbgelehnt(*exc.args) from exc
+        ANMELDERUHE.gelungen(schluessel)
 
     # -- Lesen -------------------------------------------------------------
 
@@ -500,6 +621,7 @@ class MailConnector:
         modifiziertes UTF-7 beim späteren SELECT unverändert funktioniert.
         """
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,
@@ -537,7 +659,7 @@ class MailConnector:
 
     def inventory_page(
         self, folder: str, after_uid: int = 0, before_uid: int | None = None,
-        limit: int = 100, *, uidvalidity: str | None = None,
+        limit: int = 100, *, uidvalidity: str | None = None, absteigend: bool = False,
     ) -> dict[str, Any]:
         """Ein begrenztes UID-Fenster für eine fortsetzbare Bestandsaufnahme.
 
@@ -549,6 +671,15 @@ class MailConnector:
         Seite darf der Aufrufer sie speichern; `done` richtet sich nach der
         Scan-Grenze. Bei Fortsetzungen kann `uidvalidity` eine alte Generation
         vor jeder Suche zurückweisen.
+
+        `absteigend=True`: Neueste zuerst. Offen ist der Bereich (`after_uid`,
+        obere Grenze]; das Fenster liegt an seinem oberen Ende, also
+        (max(`after_uid`, obere Grenze − `limit`), obere Grenze]. Dessen untere
+        Grenze kommt als `next_before_uid` zurück und ist die obere Grenze des
+        nächsten Aufrufs; `next_uid` bleibt `after_uid`. `done`, sobald sie
+        `after_uid` erreicht. So bleibt eine aufsteigend begonnene
+        Bestandsaufnahme (unten bis `after_uid` erfasst) ohne Lücke und ohne
+        Doppelung fortsetzbar.
         """
         selected_folder = _folder_argument(folder)
         if type(after_uid) is not int:
@@ -561,6 +692,8 @@ class MailConnector:
         if uidvalidity is not None and (not isinstance(uidvalidity, str) or not uidvalidity.isascii()
                                        or not uidvalidity.isdigit() or not 0 < int(uidvalidity) <= MAX_UID):
             raise ValueError("Ungültige Postfachgeneration.")
+        if type(absteigend) is not bool:
+            raise ValueError("Ungültige Richtung der Bestandsaufnahme.")
         def lesen(imap, waehle):
             # Frisch wählen: UIDNEXT muss den heutigen Stand zeigen, nicht den der Sitzung.
             if waehle(selected_folder, True) != "OK":
@@ -571,20 +704,28 @@ class MailConnector:
             upper = _mailbox_number(imap, "UIDNEXT", MAX_UID + 1) - 1
             if before_uid is not None:
                 upper = min(upper, before_uid)
-            next_uid = min(after_uid + limit, upper) if after_uid < upper else after_uid
+            if absteigend:
+                # Das Fenster am oberen Ende des offenen Bereichs: die jüngsten Nummern zuerst.
+                unten = max(after_uid, upper - limit) if after_uid < upper else min(after_uid, upper)
+                von, bis = unten, upper
+            else:
+                von, bis = after_uid, (min(after_uid + limit, upper) if after_uid < upper else after_uid)
             numbers = set()
-            if after_uid < upper:
-                status, data = imap.uid("search", None, "UID", f"{after_uid + 1}:{next_uid}")
+            if von < bis:
+                status, data = imap.uid("search", None, "UID", f"{von + 1}:{bis}")
                 if status != "OK":
                     raise MailError("Nachrichtenbestand konnte nicht ermittelt werden.")
                 for raw in (data[0].split() if data and data[0] else []):
                     if not raw.isdigit() or not 0 < int(raw) <= MAX_UID:
                         raise MailError("Ungültige Nachrichtenkennung vom Mailserver.")
                     number = int(raw)
-                    if after_uid < number <= next_uid:
+                    if von < number <= bis:
                         numbers.add(number)
+            if absteigend:
+                return {"folder": folder, "uidvalidity": validity, "upper_uid": upper, "uids": sorted(numbers),
+                        "next_uid": after_uid, "next_before_uid": von, "done": von <= after_uid}
             return {"folder": folder, "uidvalidity": validity, "upper_uid": upper,
-                    "uids": sorted(numbers), "next_uid": next_uid, "done": next_uid >= upper}
+                    "uids": sorted(numbers), "next_uid": bis, "done": bis >= upper}
 
         try:
             return self._with_imap(lesen)
@@ -596,6 +737,7 @@ class MailConnector:
             raise ValueError('Pro Abruf sind 1 bis 100 Nachrichten zulässig.')
         criteria = "UNSEEN" if unread_only else "ALL"
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,
@@ -700,6 +842,7 @@ class MailConnector:
             if not 0 < int(previous_validity) <= 4294967295 or not 0 < last_uid <= 4294967295:
                 raise ValueError("Ungültiger Mail-Fortschritt.")
         try:
+            self._ruht_nicht()
             with imaplib.IMAP4_SSL(
                 self._config.imap_host, self._config.imap_port,
                 ssl_context=self._ssl_context(), timeout=30,

@@ -16,6 +16,11 @@ Die Gründe, jeweils ein Satz für den Nutzer:
 * `passwort`: die Anmeldung wurde abgelehnt. Bei Anbietern, bei denen IMAP erst eingeschaltet werden muss (WEB.DE,
   GMX), sagt der Server dann dasselbe wie bei einem falschen Passwort; der Satz nennt deshalb beides.
 * `unsicher`: die Verbindung ließ sich nicht verschlüsselt aufbauen (Zertifikat).
+
+Vorübergehende Ablehnungen (RFC 5530 `[UNAVAILABLE]`, `[LIMIT]`, `[INUSE]`, `[SERVERBUG]`, zu viele Verbindungen, ein
+erschöpftes Kontingent bei Gmail) heißen `nicht_erreichbar`, nicht „Passwort stimmt nicht“. Ein ausdrücklicher Code
+einer echten Ablehnung (`[AUTHENTICATIONFAILED]`, `[AUTHORIZATIONFAILED]`, `[EXPIRED]`) geht dem Freitext vor. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
+schweigenden Postfach zu unterscheiden (`mail_intake.ANMELDE_GRUENDE`).
 """
 from __future__ import annotations
 
@@ -35,6 +40,15 @@ _IMAP_AUS = ('imap is disabled', 'imap access is disabled', 'imap not enabled', 
              'imap ist nicht aktiviert', 'imap nicht freigeschaltet', 'enable imap')
 _APP_PASSWORT = ('application-specific password', 'app password', 'app-passwort', 'web browser', 'webloginrequired',
                  'basicauthblocked', 'basic authentication is disabled')
+#: Vorübergehende Ablehnungen (RFC 5530 `UNAVAILABLE`, `LIMIT`, `INUSE`, `SERVERBUG`; zu viele Verbindungen, „temporary“):
+#: Das Passwort ist nicht das Problem, also `nicht_erreichbar` statt „Passwort stimmt nicht“. Echte Ablehnungen
+#: (`AUTHENTICATIONFAILED`, `AUTHORIZATIONFAILED`, `EXPIRED`, ein NO ohne Code) bleiben Anmeldefehler.
+_VORUEBERGEHEND = ('[unavailable]', '[limit]', '[inuse]', '[serverbug]', 'too many', 'temporar', 'try again later',
+                   'bandwidth limits', 'exceeded command')
+#: Ausdrückliche Codes einer echten Ablehnung (RFC 5530). Sie gehen dem Freitext vor: „[AUTHENTICATIONFAILED] Too many
+#: failed login attempts, try again later“ ist eine Ablehnung, kein Schweigen; alle 30 s erneut zu versuchen verlängerte
+#: eine Sperre beim Anbieter.
+_ECHT = ('[authenticationfailed]', '[authorizationfailed]', '[expired]')
 #: So lehnt Gmail eine Anmeldung ab (Fremdprobe, Befund 2): mit dem normalen Passwort „Invalid credentials (Failure)“
 #: oder „Application-specific password required“ mit einem Verweis auf support.google.com.
 _GOOGLE = ('invalid credentials (failure)', 'support.google.com')
@@ -89,8 +103,13 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
     wer = anbieter_name(imap_host, name)
     if isinstance(fehler, Anmeldefehler):
         return fehler
+    schweigt = Anmeldefehler('nicht_erreichbar', f'{wer} antwortet gerade nicht. Prüfe die Internetverbindung und '
+                                                 'versuche es gleich noch einmal.')
     if isinstance(fehler, imaplib.IMAP4.error) and not isinstance(fehler, imaplib.IMAP4.abort):
         text = str(fehler).lower()
+        if not any(code in text for code in _ECHT) and any(merkmal in text for merkmal in _VORUEBERGEHEND):
+            # Der Server kann oder will die Anmeldung gerade nicht prüfen. Das Passwort ist nicht das Problem.
+            return schweigt
         if any(merkmal in text for merkmal in _IMAP_AUS):
             return Anmeldefehler('imap_aus', f'{wer} lässt die Anmeldung über IMAP nicht zu: Schalte IMAP in den '
                                              'Einstellungen deines Postfachs ein und versuche es dann noch einmal.')
@@ -108,8 +127,7 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
         return Anmeldefehler('unsicher', f'{wer} ließ sich nicht sicher (verschlüsselt) erreichen; '
                                          'bitte später noch einmal versuchen.')
     # Zeitgrenze, Namensauflösung, abgelehnte Verbindung, Abbruch mitten im Gespräch: keine Antwort.
-    return Anmeldefehler('nicht_erreichbar', f'{wer} antwortet gerade nicht. Prüfe die Internetverbindung und '
-                                             'versuche es gleich noch einmal.')
+    return schweigt
 
 
 def pruefe(connector: Any, imap_host: str, *, name: str = '', sekunden: float | None = None) -> None:

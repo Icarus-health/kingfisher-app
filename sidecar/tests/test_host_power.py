@@ -80,13 +80,15 @@ def test_mac_waits_for_fresh_ac_report_and_battery_blocks(tmp_path):
     assert power.reason() == 'energie_unbekannt'
     power.report('ac', memory_pressure='normal')
     assert power.reason() is None
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     assert power.reason() == 'akku'
     power.report('ac', memory_pressure='normal')
     clock.value += 91
     assert power.reason() == 'energie_unbekannt'
-    power.report('unknown')
+    power.report('unknown', memory_pressure='normal')
     assert power.reason() == 'energie_unbekannt'
+    power.report('battery')  # ohne Speicherlast: Speicher geht vor (Nach-Review 6)
+    assert power.reason() == 'speicher_unbekannt'
     power.report('ac', memory_pressure='normal')
     assert power.reason() is None
 
@@ -112,7 +114,7 @@ def test_known_mac_keeps_power_requirement_even_if_profile_is_lost(tmp_path):
 
 def test_invalid_report_cannot_replace_battery_measurement(tmp_path):
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     for invalid in ['AC Power', '', None, 1, {'source':'ac'}]:
         with pytest.raises(ValueError): power.report(invalid)
         assert power.reason() == 'akku'
@@ -123,7 +125,7 @@ def test_energy_gate_never_overrides_manual_pause(tmp_path):
     control = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
     assert control.sperre() == 'energie_unbekannt'
     assert control.wartezeit() >= 20
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     assert control.sperre() == 'akku'
     control.pausieren(True); power.report('ac', memory_pressure='normal')
     assert control.sperre() == 'pausiert'
@@ -150,7 +152,7 @@ def test_energy_wait_has_no_finish_prediction_even_with_a_measured_rate(tmp_path
 def test_battery_reason_is_visible_when_only_mail_intake_needs_work(tmp_path, monkeypatch):
     monkeypatch.setattr('icarus_memory.hintergrund.zaehlen', lambda _: {'gesamt':0, 'fertig':0})
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     control = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
     stand = control.stand(freigegeben=True, mit_modell=False)
     assert 'Akkubetrieb' in stand['grund']
@@ -158,6 +160,8 @@ def test_battery_reason_is_visible_when_only_mail_intake_needs_work(tmp_path, mo
 
 @pytest.mark.parametrize('source, pressure', [('battery', 'normal'), ('ac', 'warning'), ('ac', 'critical'), ('ac', 'unknown')])
 def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_memory(tmp_path, monkeypatch, source, pressure):
+    # Bewusst geändert (docs/46-hintergrund.md): Auf Akku holt der Zeitplan neue Post ohne Modell weiter; ältere Mails
+    # und jede Modellarbeit warten bis zum Netzteil. Speicherdruck hält weiter alles an.
     monkeypatch.setattr('icarus_memory.scheduler.TICK_SECONDS', 0.02)
     power = HostPower(tmp_path, expected=lambda: True)
     control = Steuerung(None, lambda: None, ruhe_s=0, external_gate=power.reason)
@@ -174,6 +178,7 @@ def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_mem
         return JobResult('synthetic')
     scheduler._run_working_memory = model
     scheduler._run_mail_intake = lambda: calls.append('intake')
+    scheduler._run_neue_post = lambda: calls.append('neue_post')
     scheduler.configure(enabled=True, with_model=True)
     scheduler.anschliessen(control)
     scheduler._last_at = datetime.now().astimezone()
@@ -181,9 +186,17 @@ def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_mem
     scheduler.start()
     try:
         time.sleep(0.12)
-        assert calls == []
+        if source == 'battery':
+            assert calls and set(calls) == {'neue_post'}, calls
+        else:
+            assert calls == []
+        calls.clear()
         power.report('ac', memory_pressure='normal'); scheduler.wecken()
         assert resumed.wait(2)
+        # Die Aufnahme läuft im eigenen Takt; nach neuer Post auf Akku kann sie einen Takt später dran sein.
+        ende = time.monotonic() + 2
+        while 'intake' not in calls and time.monotonic() < ende:
+            time.sleep(0.01)
         assert 'intake' in calls and 'model' in calls
     finally:
         scheduler.stop()
@@ -192,7 +205,7 @@ def test_scheduler_does_not_start_intake_or_models_until_fresh_ac_and_normal_mem
 def test_model_gate_rechecks_power_between_background_steps(tmp_path):
     from icarus_memory.hintergrund import BackgroundInterrupted
     power = HostPower(tmp_path, expected=lambda: True)
-    power.report('battery')
+    power.report('battery', memory_pressure='normal')
     ampel = ModellAmpel()
     with als_hintergrund(power.reason), pytest.raises(BackgroundInterrupted):
         with ampel.aufruf():
@@ -214,7 +227,12 @@ def test_main_application_authenticates_power_and_keeps_reads_available(tmp_path
     with TestClient(app) as client:
         assert client.post('/api/v1/device/power', json={'source':'ac'}).status_code == 401
         assert app.state.hintergrund.sperre() == 'energie_unbekannt'
+        # Bewusst angepasst (Nach-Review 6): Ein Bericht ohne Speicherlast hält jetzt alles an, gleich welche
+        # Energiequelle (`speicher_unbekannt`); der Akkubetrieb selbst braucht eine gemessene Speicherlast.
         assert client.post('/api/v1/device/power', headers=headers, json={'source':'battery'}).status_code == 200
+        assert app.state.hintergrund.sperre() == 'speicher_unbekannt'
+        assert client.post('/api/v1/device/power', headers=headers,
+                           json={'source':'battery', 'memory_pressure':'normal'}).status_code == 200
         assert app.state.hintergrund.sperre() == 'akku'
         assert client.get('/api/v1/tasks', headers=headers).status_code == 200
         assert client.post('/api/v1/device/power', headers=headers, json={'source':'ac','timestamp':999999999999}).status_code == 422

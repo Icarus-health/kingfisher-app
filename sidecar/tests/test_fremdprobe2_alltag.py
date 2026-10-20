@@ -140,11 +140,12 @@ def test_mailstand_ohne_einlesen_aus_abruf_und_blick(berlin):
     from icarus_memory.mail_stand import konto_stand
     assert konto_stand('Privat', jetzt=JETZT) == {
         'zustand': 'nicht_abgerufen', 'satz': 'Postfach Privat ist verbunden, aber noch nicht abgerufen.',
-        'gelesen': None, 'gesamt': None, 'zuletzt': None, 'technik': None}
+        'gelesen': None, 'gesamt': None, 'zuletzt': None, 'technik': None, 'verweis': None}
     blick = {'zeit': datetime(2026, 10, 1, 12, 43, tzinfo=timezone.utc), 'anzahl': 0}
     assert konto_stand('Privat', blick=blick, jetzt=JETZT)['satz'] == 'Postfach Privat ist verbunden und leer, abgerufen um 14:43.'
     passwort = konto_stand('Privat', abruf={'last_failure': 'credentials_missing'}, jetzt=JETZT)
     assert passwort['zustand'] == 'fehler' and 'Einstellungen → Zugänge' in passwort['satz']
+    assert passwort['verweis'] == 'zugaenge'  # die Oberfläche macht daraus einen Verweis
     gestern = {'last_success': '2026-09-30T08:00:00+00:00', 'last_report': {'recorded': 3}}
     assert konto_stand('Privat', abruf=gestern, jetzt=JETZT)['satz'] == \
         'Postfach Privat ist abgerufen am 30. September um 10:00: 3 Mails neu.'

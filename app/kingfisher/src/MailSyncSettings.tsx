@@ -4,6 +4,7 @@ import { api, type MailAccount, type Schedule } from "./api";
 import { MailIntake } from "./MailIntake";
 import { VORGABE_MINUTEN, abrufSatz, abstandAuswahl } from "./mailAbruf";
 import { kostenSatz, laufZeile } from "./technik";
+import { SatzMitVerweis } from "./VerweisLink";
 
 // Für Techniker → Zeitplan und Hintergrund: „Mails regelmäßig abrufen“. Ein Schalter, eine Auswahl, wie oft, und, bei
 // mehreren Postfächern, welche. Jede Änderung gilt sofort und lässt sich mit einem Klick zurücknehmen, deshalb ohne
@@ -82,7 +83,9 @@ export function MailSyncSettings({ accounts }: { accounts: MailAccount[] }) {
       </fieldset> : null}
       <details className="mail-abruf-verlauf">
         <summary>Was zuletzt lief</summary>
-        {accounts.map(account => <p key={account.id}>{account.configured && account.secret_present ? (saved.mail_stand?.some(eintrag => eintrag.account_id === account.id) ? kontoStand(account) : `${account.label}: ${kontoStand(account)}`) : `${account.label}: Zugangsdaten fehlen`}</p>)}
+        {accounts.map(account => <p key={account.id}>{account.configured && account.secret_present ? (saved.mail_stand?.some(eintrag => eintrag.account_id === account.id)
+          ? <SatzMitVerweis satz={kontoStand(account)} ziel={saved.mail_stand?.find(eintrag => eintrag.account_id === account.id)?.verweis} />
+          : `${account.label}: ${kontoStand(account)}`) : `${account.label}: Zugangsdaten fehlen`}</p>)}
         {saved.last_run ? <>
           <p>Letzter Lauf: {saved.last_run.finished_at ? new Date(saved.last_run.finished_at).toLocaleString("de-DE") : "läuft gerade"}</p>
           {saved.last_run.jobs.map((job, index) => <p key={index}>{laufZeile(job.name.startsWith("mail:") ? accounts.find(account => account.id === job.name.slice(5))?.label ?? "Postfach" : ({ verdichtung: "Wissensvorschläge", zusammenfassung: "Zusammenfassungen", sicherung: "Sicherung" }[job.name] ?? "Weitere Quellen"), job.ok, job.name === "sicherung" && job.ok ? "Erstellt" : job.detail)}</p>)}

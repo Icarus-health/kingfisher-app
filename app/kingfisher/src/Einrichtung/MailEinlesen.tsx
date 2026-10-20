@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {api, ApiError, type MailIntakeAccount} from "../api";
 import {einlesenStand, einlesenVerweis} from "./einlesen";
 import {einlesenFrage} from "./postfach";
-import {Verweis} from "../VerweisLink";
+import {SatzMitVerweis, Verweis} from "../VerweisLink";
 import {MailErneut} from "./MailErneut";
 
 const fehlerText = (fehler: unknown) => fehler instanceof ApiError && fehler.detail ? fehler.detail
@@ -57,7 +57,8 @@ export function MailEinlesen({beiGestartet}: {beiGestartet?: () => void}) {
   return <div className="erststart-einlesen" aria-label="Mails einlesen">
     {verbunden.map(konto => konto.started
       ? <div key={konto.account_id}>
-        <p role="status" className={["gescheitert", "pausiert"].includes(konto.stand?.zustand ?? "") ? undefined : "erststart-ok"}>{einlesenStand(konto)}{einlesenVerweis(konto) ? <> <Verweis ziel={einlesenVerweis(konto)!} />.</> : null}</p>
+        <p role="status" className={["gescheitert", "pausiert"].includes(konto.stand?.zustand ?? "") ? undefined : "erststart-ok"}>{einlesenVerweis(konto) ? <>{einlesenStand(konto)} <Verweis ziel={einlesenVerweis(konto)!} />.</>
+          : <SatzMitVerweis satz={einlesenStand(konto)} ziel={konto.stand?.verweis} />}</p>
         {konto.stand?.zustand === "gescheitert"
           ? <MailErneut konto={konto.account_id} technik={konto.stand.technik} beiErgebnis={stand => setKonten(stand.accounts)} /> : null}
       </div>

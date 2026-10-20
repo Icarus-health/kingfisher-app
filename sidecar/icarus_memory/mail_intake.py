@@ -13,7 +13,9 @@ from .connectors.mail import MailboxGenerationChanged, MailError
 from .mail_intake_grund import einordnen as grund_einordnen
 from .migrations import IndexContract
 
-#: Der Stand nach Migration 11 (bis Schema 16).
+#: Der Stand nach Migration 11 (bis Schema 16). `upper_uid` ist die obere Grenze des noch nicht erfassten Verlaufs:
+#: anfangs UIDNEXT−1, bei der Bestandsaufnahme von oben nach unten sinkt sie mit jedem Fenster; `scan_uid` ist die
+#: untere (aufsteigend erfasst bis hier). Offen ist immer (scan_uid, upper_uid].
 TABLES_V11 = {
     'mail_intake_analysis': {'episode_id','generation','status'},
     'mail_intake_folders': {'account','folder','generation','upper_uid','scan_uid','live_uid','inventory_complete','paused','error','updated'},
@@ -35,9 +37,56 @@ CATEGORY_DIAGNOSTIC_BUDGET=16
 #: dass der Takt die Nachanalyse neuer Uploads (teilt sich dessen Sperre) nur Sekunden warten lässt. Abgerufen wird
 #: außerhalb jeder Sperre, `conversation_lock` gilt nur für das Schreiben der einzelnen Nachricht.
 BACKGROUND_BATCH=25
+#: So lange probiert die Aufnahme ein Postfach mit abgelehnter Anmeldung nicht neu (Sekunden), für alle Ordner zusammen.
+#: Jeder Versuch ist eine Anmeldung beim Anbieter; viele abgelehnte in Folge führen dort zur Kontosperre. „Neu
+#: anmelden“ hebt das sofort auf. Dieselbe Frist gilt im Connector für jede andere Verbindung (`ANMELDUNG_RUHT_S`).
+from .connectors.mail import ANMELDUNG_RUHT_S as ANMELDUNG_WIEDERVERSUCH_S  # noqa: E402
+#: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`) höchstens. Gemeint ist: bis zum nächsten
+#: vollen Durchgang nach Pause oder Akku, der sie sofort freigibt. Vorher kam sie alle zehn Minuten wieder dran und wurde
+#: samt Anhang neu geladen, ohne gespeichert werden zu können; jetzt in einer langen Pause einmal in sechs Stunden.
+ZURUECKGESTELLT_S=6*3600
 PRIMARY_KEYS = {'mail_intake_analysis': {'episode_id'},'mail_intake_folders': {'account','folder'}, 'mail_intake_items': {'account','folder','generation','uid'}}
 INDEXES = {'idx_mail_intake_queue': IndexContract('mail_intake_items',('account','status','retry_at','lane','uid')),
            'idx_mail_intake_episode': IndexContract('mail_intake_items',('episode_id',))}
+
+
+#: Gründe aus `mail_anmeldung.einordnen` und `MicrosoftFehler`, bei denen nur eine neue Anmeldung hilft.
+ANMELDE_GRUENDE = frozenset({'passwort', 'app_passwort', 'imap_aus', 'abgemeldet'})
+
+
+def bestandsfehler(fehler):
+    """Der gemerkte Grund, wenn die Bestandsaufnahme scheitert: `anmeldung` oder `inventory_unavailable`.
+
+    Anmeldefehler erkennt die vorhandene Einordnung: Microsoft meldet `MicrosoftFehler` (ein `Anmeldefehler`), IMAP
+    eine vom Server abgelehnte Anmeldung (`connectors.mail.AnmeldungAbgelehnt`, als Ursache am `MailError`). Alles
+    andere (Netz, Zeitgrenze, `[UNAVAILABLE]`, ein BAD auf eine spätere Suche) bleibt vorübergehend. Gemerkt wird nur
+    das Kürzel, nie Text vom Server.
+    """
+    from .connectors.mail import AnmeldungAbgelehnt
+    from .mail_anmeldung import Anmeldefehler, einordnen
+    for kandidat in (fehler, fehler.__cause__):
+        if isinstance(kandidat, (Anmeldefehler, AnmeldungAbgelehnt)) and einordnen(kandidat, '').grund in ANMELDE_GRUENDE:
+            return 'anmeldung'
+    return 'inventory_unavailable'
+
+
+def nach_neuer_anmeldung(app, konto):
+    """Die Anmeldung gilt wieder (Neu anmelden, Microsoft, Google): gemerkten Grund löschen, Aufnahme gleich wecken.
+
+    Geweckt wird nur, wenn ein Postfach an der Anmeldung stand. Eine erste Verbindung oder ein vorsorglich neu
+    eingegebenes Passwort hat nichts fortzusetzen; dann bleibt der Zeitplan in seinem Takt.
+    """
+    # Auch jede andere Verbindung darf sofort wieder (bei Google bleibt der Fingerabdruck des Tokens gleich).
+    from .connectors.mail import ANMELDERUHE
+    eintrag = next((e for e in getattr(getattr(app.state, 'settings', None), 'mail_accounts', []) if e.id == konto), None)
+    if eintrag is not None:
+        ANMELDERUHE.vergessen(getattr(eintrag, 'user', ''))
+    episodes = getattr(getattr(app, 'state', None), 'episodes', None)
+    if episodes is None or not Intake(episodes).anmeldung_erneuert(konto):
+        return
+    wecken = getattr(getattr(app.state, 'scheduler', None), 'aufnahme_wecken', None)
+    if callable(wecken):
+        wecken()
 
 
 def migrate(conn):
@@ -98,6 +147,11 @@ class Intake:
             for table in ('working_memory_sources','memory_category_sources'):
                 self.db.execute(f"UPDATE {table} SET retry_after=0 WHERE status='failed' AND episode_id IN (SELECT episode_id FROM mail_intake_items WHERE account=?)",(account,))
 
+    def anmeldung_erneuert(self, account):
+        """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg; ob es ihn gab (dann wecken)."""
+        with self.episodes.transaction():
+            return self.db.execute("UPDATE mail_intake_folders SET error=NULL WHERE account=? AND error='anmeldung'",(account,)).rowcount>0
+
     def _active(self, account, permitted):
         if not permitted():return False
         from .storage_capacity import reason
@@ -107,17 +161,27 @@ class Intake:
         return row is not None and row[0]==0
 
     def aktiv(self, account, permitted):
-        """Ob die Aufnahme des Kontos läuft (freigegeben und nicht pausiert); für nachrangige Hintergrundarbeit."""
-        return self._active(account,permitted)
+        """Ob die Aufnahme des Kontos läuft (freigegeben, nicht pausiert, Anmeldung ruht nicht); für Nachrangiges."""
+        return self._active(account,permitted) and not self.anmeldung_ruht(account)
+
+    def anmeldung_ruht(self, account):
+        """Ob ein Ordner des Kontos in der letzten Stunde an der Anmeldung scheiterte: Dann ruht das ganze Postfach."""
+        with self.episodes._lock:
+            return self.db.execute("SELECT 1 FROM mail_intake_folders WHERE account=? AND error='anmeldung' AND updated>? LIMIT 1",
+                                   (account,time.time()-ANMELDUNG_WIEDERVERSUCH_S)).fetchone() is not None
 
     def _inventory(self, account, reader, row, live, permitted, gate):
         with gate:
             if not self._active(account,permitted):return
         folder=row['folder']; generation=row['generation']
+        # Der Verlauf von oben nach unten, wo der Leser das kann (IMAP): Bei 5.000 Mails sind so zuerst die jüngsten
+        # erfasst, nicht die ältesten. Offen ist dann (scan_uid, upper_uid]; `upper_uid` sinkt mit jedem Fenster.
+        # Eine vor dem Update aufsteigend begonnene Aufnahme (unten bis scan_uid erfasst) geht so lückenlos weiter.
+        absteigend=not live and bool(getattr(reader,'bestand_neueste_zuerst',False))
         page=reader.inventory_page(folder,
             after_uid=row['live_uid'] if live else row['scan_uid'],
             before_uid=None if live or generation is None else row['upper_uid'],
-            limit=200, uidvalidity=generation)
+            limit=200, uidvalidity=generation, **({'absteigend':True} if absteigend else {}))
         with gate:
             if not self._active(account,permitted):return
             with self.episodes.transaction():
@@ -133,6 +197,9 @@ class Intake:
                 if live:
                     self.db.execute('UPDATE mail_intake_folders SET live_uid=?,error=NULL,updated=? WHERE account=? AND folder=?',
                                     (page['next_uid'],time.time(),account,folder))
+                elif absteigend:
+                    self.db.execute('UPDATE mail_intake_folders SET upper_uid=?,inventory_complete=?,error=NULL,updated=? WHERE account=? AND folder=?',
+                                    (page['next_before_uid'],int(page['done']),time.time(),account,folder))
                 else:
                     self.db.execute('UPDATE mail_intake_folders SET scan_uid=?,inventory_complete=?,error=NULL,updated=? WHERE account=? AND folder=?',
                                     (page['next_uid'],int(page['done']),time.time(),account,folder))
@@ -144,56 +211,100 @@ class Intake:
             from .task_rechecks import enqueue
             enqueue(self.episodes, episode_id)
 
-    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None):
+    def background_step(self, account, reader, settings, *, permitted, permission_lock, claims, provider=None, hold=None,
+                        nur_neu=False, zurueckstellen=None):
         """Ein Hintergrundtakt mit den Filterregeln der Einstellungen (`mail_filter.intake_screen`)."""
         # AI screening is bounded to two messages; the ordinary no-model fetch stays fast.
         batch = 2 if settings.mail_filter.get('ai_enabled') else BACKGROUND_BATCH
         return self.step(account,reader,batch=batch,permitted=permitted,permission_lock=permission_lock,
-                         claims=claims,screen=intake_screen(settings,provider),hold=hold)
+                         claims=claims,screen=intake_screen(settings,provider),hold=hold,nur_neu=nur_neu,
+                         zurueckstellen=zurueckstellen)
 
     def _filtered(self, item, category):
         # Kein Fakt im Bestand: Nur der Vermerk, warum. „Erneut versuchen“ prüft es noch einmal.
         self.db.execute("UPDATE mail_intake_items SET status=?,attempts=attempts+1,grund=NULL,technik=NULL WHERE account=? AND folder=? AND generation=? AND uid=?",
                         (FILTERED+category,item['account'],item['folder'],item['generation'],item['uid']))
 
-    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None, hold=None):
+    def step(self, account, reader, *, batch=8, permitted=lambda:True, permission_lock=None, claims=None, screen=None, hold=None,
+             nur_neu=False, zurueckstellen=None):
         """Ein begrenzter Durchgang; Bestandsaufnahme und Abrufe teilen sich eine Verbindung.
 
         `screen(message)` liefert eine `mail_filter.Decision`. Ausgefilterte Nachrichten werden
         nicht aufgenommen, aber gezählt (Status `filtered:<Kategorie>`) und im Status gezeigt.
+
+        `nur_neu`: Pause oder Akkubetrieb (docs/46-hintergrund.md). Nur neue Post (Spur „neu“) wird geholt; die
+        älteren Mails bleiben, wo sie stehen, auch ihre Bestandsaufnahme. Ein in der Pause begonnenes Einlesen merkt
+        sich nur die Grenze für neue Post (`_grundlinie`). `zurueckstellen(message)`: Diese Mail jetzt nicht speichern
+        (etwa ein gescannter Anhang, solange die Texterkennung ein Modell bräuchte); sie bleibt offen, ohne als
+        gescheitert zu zählen (`grund='zurueckgestellt'`), und kommt beim nächsten vollen Durchgang sofort dran,
+        spätestens nach `ZURUECKGESTELLT_S`.
         """
         if not 1<=batch<=50:raise ValueError('batch must be 1..50')
         with (permission_lock if permission_lock is not None else nullcontext()):
             if not self._active(account,permitted):return []
         sitzung=getattr(reader,'session',None)
         with (sitzung() if sitzung is not None else nullcontext()):
-            return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold)
+            return self._step(account,reader,batch,permitted,permission_lock,claims,screen,hold,nur_neu,zurueckstellen)
 
-    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen, hold):
+    def _grundlinie(self, account, reader, row, permitted, gate):
+        """Nur die Grenze für neue Post: Generation und höchste Nummer jetzt, ohne einen älteren Eintrag anzulegen.
+
+        Offen bleibt der ganze Verlauf (scan_uid, upper_uid]; nach der Pause erfasst ihn die Bestandsaufnahme wie
+        sonst, und was ab jetzt kommt, ist neue Post.
+        """
+        with gate:
+            if not self._active(account,permitted):return
+        page=reader.inventory_page(row['folder'],after_uid=0,limit=1)
+        with gate:
+            if not self._active(account,permitted):return
+            with self.episodes.transaction():
+                self.db.execute('UPDATE mail_intake_folders SET generation=?,upper_uid=?,live_uid=?,error=NULL,updated=? WHERE account=? AND folder=? AND generation IS NULL',
+                                (page['uidvalidity'],page['upper_uid'],page['upper_uid'],time.time(),account,row['folder']))
+
+    def _step(self, account, reader, batch, permitted, permission_lock, claims, screen, hold, nur_neu=False, zurueckstellen=None):
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
+        if not nur_neu:
+            # Der volle Durchgang nach Pause oder Akku: Was nur auf die Texterkennung wartete, kommt jetzt gleich dran.
+            with self.episodes.transaction():
+                self.db.execute("UPDATE mail_intake_items SET retry_at=0,grund=NULL WHERE account=? AND status='pending' AND grund='zurueckgestellt'",(account,))
+        # Wurde die Anmeldung abgelehnt, ruht das ganze Postfach bis zur neuen Anmeldung (höchstens ein Versuch je
+        # Stunde, nicht je Ordner): weder Bestandsaufnahme noch Abholen offener Mails.
+        if self.anmeldung_ruht(account):
+            return []
         with self.episodes._lock:
             # Least-recently updated folder first; bounded calls even for many folders.
-            rows=[dict(r) for r in self.db.execute('SELECT * FROM mail_intake_folders WHERE account=? AND paused=0 ORDER BY updated,folder LIMIT 2',(account,))]
+            rows=[dict(r) for r in self.db.execute("""SELECT * FROM mail_intake_folders WHERE account=? AND paused=0
+                ORDER BY updated,folder LIMIT 2""",(account,))]
         for row in rows:
             try:
                 if row['generation'] is not None:
                     self._inventory(account,reader,row,True,permitted,gate)
-                if not row['inventory_complete']:
+                elif nur_neu:
+                    self._grundlinie(account,reader,row,permitted,gate)
+                if not row['inventory_complete'] and not nur_neu:
                     self._inventory(account,reader,row,False,permitted,gate)
             except MailboxGenerationChanged:
                 with self.episodes.transaction():
                     # Old sources survive; old pending work cannot be fetched under a new generation.
                     self.db.execute("UPDATE mail_intake_folders SET generation=NULL,upper_uid=0,scan_uid=0,live_uid=0,inventory_complete=0,error='generation_changed',updated=? WHERE account=? AND folder=?",(time.time(),account,row['folder']))
-            except Exception:
-                with self.episodes.transaction():
-                    self.db.execute("UPDATE mail_intake_folders SET error='inventory_unavailable',updated=? WHERE account=? AND folder=?",(time.time(),account,row['folder']))
+            except Exception as fehler:
+                # Eine abgelaufene Anmeldung ist kein schweigendes Postfach: Dann hilft nur, sich neu anzumelden, und der
+                # Stand sagt das (`mail_stand.GRUND['anmeldung']`), statt „Du musst nichts tun“.
+                grund=bestandsfehler(fehler)
+                with gate:
+                    # Gilt dieser Leser nicht mehr (etwa nach „Neu anmelden“), sagt sein Scheitern nichts mehr.
+                    if not self._active(account,permitted):return []
+                    with self.episodes.transaction():
+                        self.db.execute("UPDATE mail_intake_folders SET error=?,updated=? WHERE account=? AND folder=?",(grund,time.time(),account,row['folder']))
+                if grund=='anmeldung':
+                    return []  # kein zweiter Ordner, keine offene Mail mit denselben Zugangsdaten
         with self.episodes._lock:
-            # Reserve at least half for history; a single bad UID never blocks either lane.
-            history_quota = 0 if self._history_backlog(account) > 200 else batch
+            # Reserve at least half for history; a single bad UID never blocks either lane. In der Pause nur neue Post.
+            history_quota = 0 if nur_neu or self._history_backlog(account) > 200 else batch
             selected=[]
-            lanes=[('live',max(1,batch//2)),('history',history_quota)]
+            lanes=[('live',batch if nur_neu else max(1,batch//2)),('history',history_quota)]
             # Nur bei Einzelschritten wechselt die Reihenfolge; den Zähler über alle Erledigten sonst nicht bilden (O(Bestand) je Schritt).
             if batch==1 and history_quota and self.db.execute("SELECT COUNT(*) FROM mail_intake_items WHERE account=? AND status IN ('captured','duplicate')",(account,)).fetchone()[0]%2:
                 lanes=[('history',1),('live',1)]
@@ -203,7 +314,8 @@ class Intake:
                 reihenfolge='i.uid' if lane=='live' else 'i.uid DESC'
                 selected += [dict(r) for r in self.db.execute(f'''SELECT i.* FROM mail_intake_items i
                     JOIN mail_intake_folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
-                    WHERE i.account=? AND f.paused=0 AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
+                    WHERE i.account=? AND f.paused=0
+                      AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
                     ORDER BY i.attempts,{reihenfolge} LIMIT ?''',(account,lane,time.time(),min(quota,batch-len(selected))))]
         captured=[]; neu=0
         for item in selected:
@@ -217,6 +329,11 @@ class Intake:
                 with gate:
                     if not self._active(account,permitted):break
                     if message.uid!=f"{item['generation']}.{item['uid']}":raise MailError('Die gelieferte Mail passt nicht zur angefragten Kennung.')
+                if zurueckstellen is not None and zurueckstellen(message):
+                    with self.episodes.transaction():
+                        self.db.execute("UPDATE mail_intake_items SET retry_at=?,grund='zurueckgestellt' WHERE account=? AND folder=? AND generation=? AND uid=?",
+                                        (time.time()+ZURUECKGESTELLT_S,account,item['folder'],item['generation'],item['uid']))
+                    continue
                 # Model/network calls must not hold the conversation/permission lock.
                 decision=screen(message) if screen is not None else None
                 with gate:
@@ -232,11 +349,21 @@ class Intake:
                     qualified=replace(message,account_id=account,uid=f'{account}:{message.uid}')
                     beim_speichern=True
                     with self.episodes.transaction():
-                        result=remember(self.episodes,qualified,claims=claims,source_identity=identity)
+                        result=remember(self.episodes,qualified,claims=claims,source_identity=identity,
+                                        frueher=lambda episode_id,item=item:self._frueher_geholt(item,episode_id))
                         self._captured(item,result['episode']['id'],result['new'])
                     captured.append(result['episode']['id']); neu+=bool(result['new'])
                     captured.extend(result.get('anhaenge') or ())
             except Exception as fehler:
+                if not beim_speichern and bestandsfehler(fehler)=='anmeldung':
+                    # Die Anmeldung gilt nicht mehr: Das betrifft das ganze Postfach, nicht diese Mail. Sie bleibt offen
+                    # (kein Versuch gezählt) und kommt nach der neuen Anmeldung dran; der Stand sagt, was zu tun ist.
+                    with gate:
+                        if not self._active(account,permitted):break  # inzwischen neu angemeldet
+                        with self.episodes.transaction():
+                            self.db.execute("UPDATE mail_intake_folders SET error='anmeldung',updated=? WHERE account=? AND folder=?",
+                                            (time.time(),account,item['folder']))
+                    break
                 # Nie still: Grund und technische Angabe bleiben am Eintrag (Fremdprobe 3, Befund 2), der Stand sagt sie.
                 grund,technik=grund_einordnen(fehler,beim_speichern=beim_speichern)
                 with self.episodes.transaction():
@@ -244,6 +371,22 @@ class Intake:
                         (time.time()+min(3600,30*2**min(item['attempts'],7)),grund,technik,account,item['folder'],item['generation'],item['uid']))
         if neu:logbuch.vermerke('quellen',sorte='mail',anzahl=neu)
         return captured
+
+    def _frueher_geholt(self, item, episode_id):
+        """Ob die Aufnahme diese Quelle aus demselben Ordner unter einer früheren Postfachkennung geholt hat.
+
+        Vergibt der Server die Nummern neu (UIDVALIDITY, bei Microsoft eine verlorene Ablage), beginnt die
+        Bestandsaufnahme von vorn. Dieselbe Mail wird dann mit der vorhandenen Quelle verknüpft statt doppelt angelegt
+        (`mail_ingestion._dieselbe_mail_im_konto`); zwei Nachrichten derselben Generation bleiben zwei Quellen. Darum
+        nimmt eine Quelle, die schon eine andere UID der aktuellen Generation für sich hat, keine zweite: Jede alte
+        Quelle geht an höchstens eine neue UID, gleiche Mails finden der Reihe nach je ihre eigene.
+        """
+        with self.episodes._lock:
+            frueher=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation<>? LIMIT 1',
+                                    (episode_id,item['account'],item['folder'],item['generation'])).fetchone() is not None
+            vergeben=self.db.execute('SELECT 1 FROM mail_intake_items WHERE episode_id=? AND account=? AND folder=? AND generation=? AND uid<>? LIMIT 1',
+                                     (episode_id,item['account'],item['folder'],item['generation'],item['uid'])).fetchone() is not None
+            return frueher and not vergeben
 
     def _history_backlog(self, account):
         """Same bounded, content-free backlog check for capture and its status."""

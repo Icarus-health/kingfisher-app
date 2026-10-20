@@ -97,6 +97,32 @@ def lage(app) -> PostfachLage:
     return vorhanden
 
 
+def anmeldung_ruht(app, account_id: str | None = None) -> Anmeldefehler | None:
+    """Der Satz, wenn jedes gefragte Postfach seine Anmeldung eben abgelehnt hat (`connectors.mail.ANMELDERUHE`).
+
+    Dann meldet sich der Posteingang auf Heute und unter „Nachrichten“ gar nicht erst an: Mit dem alten Passwort käme
+    nur die nächste Ablehnung, und manche Anbieter sperren nach mehreren das Konto. Der Satz ist derselbe wie im Stand
+    des Postfachs (`mail_stand.GRUND['anmeldung']`) und sagt, was zu tun ist.
+    """
+    from .mail_stand import GRUND
+    mail = getattr(app.state, 'mail', None)
+    konten = [e for e in app.state.settings.mail_accounts if getattr(e, 'configured', True)]
+    if account_id is not None:
+        konten = [e for e in konten if e.id == account_id]
+    if not konten or mail is None:
+        return None
+    for konto in konten:
+        try:
+            leser = mail.reader_for(konto.id) if hasattr(mail, 'reader_for') else mail
+        except Exception:  # noqa: BLE001 - ein nicht verbundenes Konto ruht nicht
+            return None
+        ruht = getattr(leser, 'anmeldung_ruht', None)
+        if not callable(ruht) or not ruht():
+            return None
+    postfach = f'Postfach {konten[0].label}' if len(konten) == 1 else 'Ein Postfach'
+    return Anmeldefehler('passwort', f'{postfach} {GRUND["anmeldung"]}.')
+
+
 def wer(app, account_id: str | None = None) -> tuple[str, str]:
     """(imap_host, Name) des Postfachs für den Satz; bei mehreren ohne Auswahl „Ein Postfach“."""
     konten = [e for e in app.state.settings.mail_accounts if getattr(e, 'configured', True)]
@@ -107,4 +133,4 @@ def wer(app, account_id: str | None = None) -> tuple[str, str]:
     return '', 'Ein Postfach'
 
 
-__all__ = ['MERKEN', 'PostfachLage', 'ZEITGRENZE', 'lage', 'wer']
+__all__ = ['MERKEN', 'PostfachLage', 'ZEITGRENZE', 'anmeldung_ruht', 'lage', 'wer']

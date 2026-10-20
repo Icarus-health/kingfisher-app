@@ -1,12 +1,32 @@
-"""Mac history intake must honor the same pause/power gate as other background jobs."""
+"""Die Übernahme des Mac-Kalenders ins Gedächtnis folgt der Steuerung des Hintergrunds.
+
+Seit der Pause, die ältere Mails von neuer Post trennt (docs/46-hintergrund.md): Der Kalenderabgleich braucht kein
+Modell und läuft auch in der Pause und im Akkubetrieb weiter. Er wartet weiter, solange der Mensch arbeitet oder eine
+Antwort entsteht, bei Speicherdruck und ohne Steuerung. Bewusst geändert: Früher wurde er auch in Pause und Akku
+abgewiesen.
+"""
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from icarus_memory.mac_calendar import MacCalendar, WorkerUpdate, install_routes
+
+
+def steuerung(reason):
+    """Die echte Steuerung im genannten Zustand (`None`: frei)."""
+    from icarus_memory.hintergrund import Steuerung
+    extern = reason if reason in ('akku', 'energie_unbekannt', 'speicherdruck') else None
+    control = Steuerung(None, lambda: None, ruhe_s=60 if reason == 'nutzer' else 0, external_gate=lambda: extern)
+    if reason == 'pausiert':
+        control.pausieren(True)
+    elif reason == 'nutzer':
+        control.aktivitaet.eingabe()
+    elif reason == 'antwort':
+        control.aktivitaet.antwort_laeuft = lambda: True
+    assert control.sperre() == reason
+    return control
 
 
 def setup(tmp_path, reason):
@@ -17,7 +37,7 @@ def setup(tmp_path, reason):
     generation = calendar.select(['selected'])['generation']
     app = FastAPI()
     if reason != 'missing':
-        app.state.hintergrund = SimpleNamespace(sperre=lambda: reason)
+        app.state.hintergrund = steuerung(reason)
     # Assertion is on the HTTP contract and absence of real intake, not the gate fake.
     install_routes(app, [], calendar, lambda: None)
     at = datetime(2026, 10, 9, tzinfo=timezone.utc)
@@ -26,7 +46,15 @@ def setup(tmp_path, reason):
     return app, calendar, body
 
 
-@pytest.mark.parametrize('reason', ['pausiert', 'akku', 'energie_unbekannt', 'antwort', 'nutzer', 'missing'])
+@pytest.mark.parametrize('reason', ['pausiert', 'akku', 'energie_unbekannt'])
+def test_pause_und_akku_lassen_den_kalenderabgleich_weiterlaufen(tmp_path, reason):
+    app, _, body = setup(tmp_path, reason)
+    with TestClient(app) as client:
+        assert client.get('/api/v1/mac-calendar').json()['memory_allowed'] is True
+        assert client.post('/api/v1/mac-calendar/memory', json=body).json() == {'stored': False}
+
+
+@pytest.mark.parametrize('reason', ['antwort', 'nutzer', 'speicherdruck', 'missing'])
 def test_blocked_history_intake_is_rejected_but_live_heartbeat_remains(tmp_path, reason):
     app, calendar, body = setup(tmp_path, reason)
     with TestClient(app) as client:

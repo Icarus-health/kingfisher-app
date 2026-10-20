@@ -80,11 +80,13 @@ STUFEN_TEXT = {
     'rueckstand': 'Der Rückstand, von neu nach alt',
 }
 GRUND_TEXT = {
-    'akku': 'Die automatische Hintergrundverarbeitung pausiert im Akkubetrieb. Am Netzteil geht es weiter; Lesen und direkte Anfragen bleiben möglich.',
-    'energie_unbekannt': 'Der aktuelle Energiestatus des Macs fehlt. Die automatische Hintergrundverarbeitung wartet auf die Meldung der App.',
+    # Pause und Akku halten nur ältere Mails und das Lernen (jede Modellarbeit) an; neue Post, der Kalenderabgleich und
+    # die geplante Sicherung laufen ohne Modell weiter (`NEUE_POST_WEITER`, docs/46-hintergrund.md).
+    'akku': 'Im Akkubetrieb kommen neue Post und Termine weiter an; ältere Mails und das Lernen warten, bis der Mac am Netzteil ist.',
+    'energie_unbekannt': 'Der aktuelle Energiestatus des Macs fehlt. Neue Post und Termine kommen weiter an; ältere Mails und das Lernen warten auf die Meldung der App.',
     'speicherdruck': 'Der Arbeitsspeicher des Macs ist stark ausgelastet. Die automatische Hintergrundverarbeitung pausiert, bis sich die Speicherlast normalisiert.',
     'speicher_unbekannt': 'Die aktuelle Speicherlast des Macs fehlt. Die automatische Hintergrundverarbeitung wartet auf eine frische Meldung der App.',
-    'pausiert': 'Pausiert. Kingfisher lernt weiter, wenn du „Weiter“ wählst.',
+    'pausiert': 'Pausiert. Neue Post und Termine kommen weiter an; ältere Mails und das Lernen warten, bis du „Weiter“ wählst.',
     'antwort': 'Kingfisher lernt weiter, sobald die Antwort fertig ist; du musst nichts tun.',
     # Fremdprobe 3, Befund 8: „Wartet, solange du arbeitest.“ las sich, als solle man aufhören zu arbeiten.
     'nutzer': 'Kingfisher lernt weiter, sobald du eine Pause machst; du musst nichts tun.',
@@ -92,6 +94,10 @@ GRUND_TEXT = {
 from .storage_capacity import MESSAGES as STORAGE_MESSAGES
 GRUND_TEXT.update(STORAGE_MESSAGES)
 RESOURCE_INTERRUPTS = ('akku', 'energie_unbekannt', 'speicherdruck', 'speicher_unbekannt', *STORAGE_MESSAGES)
+#: Gründe, die nur ältere Mails (den Altbestand) und jede Modellarbeit anhalten. Neue Post (Spur „neu“), der
+#: Kalenderabgleich und die geplante Sicherung laufen dann ohne Modell weiter (`Steuerung.sperre_ohne_modell`).
+#: Unbekannte Energie zählt wie Akku. Speicherplatz, Speicherdruck und die Rücksicht auf den Menschen halten weiter alles an.
+NEUE_POST_WEITER = frozenset({'pausiert', 'akku', 'energie_unbekannt'})
 SATZ_ANBLEIBEN = 'Es geht schneller, wenn der Rechner heute anbleibt.'
 
 
@@ -213,10 +219,33 @@ class ModellAmpel:
             return {'vorne': self._vorne, 'hinten': self._hinten}
 
 
+def unterbrechen_wenn_gesperrt() -> None:
+    """Zwischen zwei Schritten eines Hintergrundlaufs: Pause, Energie oder Speicher geben den Faden frei.
+
+    Dieselben Gründe wie an der Ampel (`_gesperrt`). Sonst liefen nach „Pausieren“ die übrigen Schritte des vollen
+    Durchgangs ohne Modell leer, meldeten „… nach geänderter Freigabe gestoppt“, und der Durchgang galt als erledigt.
+    Ein ausdrücklicher Lauf (nicht im Faden des Zeitplans) wird nie unterbrochen.
+    """
+    if not im_hintergrund():
+        return
+    sperre = getattr(_ORT, 'sperre', None)
+    if sperre is None:
+        return
+    try:
+        grund = sperre()
+    except Exception:  # noqa: BLE001 - eine kaputte Sperre hält den Lauf nicht an
+        return
+    if grund in RESOURCE_INTERRUPTS or grund == 'pausiert':
+        raise BackgroundInterrupted(grund)
+
+
 def _gesperrt(sperre: Callable[[], str | None]) -> bool:
     try:
         grund = sperre()
-        if grund in RESOURCE_INTERRUPTS:
+        # Energie, Speicher und die Pause des Menschen geben den Faden frei, statt an der Ampel zu warten: Sonst hielte
+        # ein mitten im Paket gewähltes „Pausieren“ Sperren fest, und neue Post, Kalender und Sicherung kämen nicht
+        # (docs/46-hintergrund.md). Eingabe und Antwort sind kurz; dort wartet der Hintergrund weiter.
+        if grund in RESOURCE_INTERRUPTS or grund == 'pausiert':
             raise BackgroundInterrupted(grund)
         return grund is not None
     except Exception:  # noqa: BLE001 - eine kaputte Sperre darf den Hintergrund nicht für immer anhalten
@@ -591,6 +620,52 @@ class Steuerung:
             return 'nutzer'
         return None
 
+    def sperre_ohne_modell(self) -> str | None:
+        """Warum auch die Arbeit ohne Modell gerade wartet (neue Post, Kalenderabgleich, geplante Sicherung), oder `None`.
+
+        Die Pause des Menschen und der Akkubetrieb halten nur ältere Mails und jede Modellarbeit an
+        (`NEUE_POST_WEITER`); ein Stabschef lässt in der Pause nicht die Post von heute liegen. Knapper Speicherplatz,
+        Speicherdruck, eine Eingabe und eine entstehende Antwort halten weiter alles an.
+        """
+        external = self.external_gate()
+        if external is not None and external not in NEUE_POST_WEITER:
+            return external
+        if self.aktivitaet.antwort_laeuft():
+            return 'antwort'
+        if self.aktivitaet.ruhe_noch(self.ruhe_s) > 0:
+            return 'nutzer'
+        return None
+
+    def grund_text(self, grund: str | None, *, ki_filter: bool = False) -> str | None:
+        """Der Satz zu einem Grund, der nur verspricht, was gerade wirklich weiterläuft.
+
+        Pause und Akku lassen neue Post und Termine weiterlaufen, aber nicht, wenn zugleich Speicherplatz,
+        Speicherdruck oder eine fehlende Speichermeldung alles anhalten; dann sagt der Satz das. Ist der KI-Filter für
+        Post an, prüft die lokale KI jede neue Mail vor dem Speichern; ohne Modell wartet dann auch die neue Post.
+        """
+        if grund not in NEUE_POST_WEITER:
+            return GRUND_TEXT.get(grund or '')
+        try:
+            extern = self.external_gate()
+        except Exception:  # noqa: BLE001 - ohne Auskunft wird nichts versprochen
+            extern = 'speicher_unbekannt'
+        if extern is not None and extern not in NEUE_POST_WEITER:
+            # Pause oder Akku, und dazu hält etwas alles an: nichts versprechen, den Grund dafür nennen.
+            if grund == 'pausiert':
+                return f'Pausiert, bis du „Weiter“ wählst. {GRUND_TEXT.get(extern, "")}'.strip()
+            return GRUND_TEXT.get(extern)
+        if not ki_filter:
+            return GRUND_TEXT[grund]
+        return {
+            'pausiert': 'Pausiert. Termine kommen weiter an; neue Post, ältere Mails und das Lernen warten, bis du '
+                        '„Weiter“ wählst, denn die lokale KI prüft neue Post vor dem Speichern.',
+            'akku': 'Im Akkubetrieb kommen Termine weiter an; neue Post, ältere Mails und das Lernen warten, bis der Mac '
+                    'am Netzteil ist, denn die lokale KI prüft neue Post vor dem Speichern.',
+            'energie_unbekannt': 'Der aktuelle Energiestatus des Macs fehlt. Termine kommen weiter an; neue Post, ältere '
+                                 'Mails und das Lernen warten auf die Meldung der App, denn die lokale KI prüft neue '
+                                 'Post vor dem Speichern.',
+        }[grund]
+
     def wartezeit(self) -> float:
         """Wie lange der Takt nach einer Sperre wartet, bevor er erneut nachsieht."""
         if self._zustand['pausiert'] or self.external_gate() is not None:
@@ -669,7 +744,7 @@ class Steuerung:
             del proben[:-PROBEN_MAX]
             self._speichern()
 
-    def stand(self, *, freigegeben: bool, mit_modell: bool) -> dict[str, Any]:
+    def stand(self, *, freigegeben: bool, mit_modell: bool, ki_filter: bool = False) -> dict[str, Any]:
         """Alles für `GET /api/v1/hintergrund` und die Anzeige „Kingfisher lernt gerade“."""
         try:
             zahlen = zaehlen(self._episodes())
@@ -701,8 +776,10 @@ class Steuerung:
             satz = SATZ_ANBLEIBEN
         return {
             'zustand': zustand,
-            'grund': GRUND_TEXT.get(grund or '') if (zustand in ('pausiert', 'wartet')
-                      or freigegeben and grund in RESOURCE_INTERRUPTS) else None,
+            # Die Pause sagt, was weiterläuft, auch wenn ohne Modell nur Mails eingelesen werden (nicht bei „aus“: dann
+            # läuft gar nichts, und „neue Post kommt weiter an“ wäre falsch).
+            'grund': self.grund_text(grund, ki_filter=ki_filter) if (zustand in ('pausiert', 'wartet')
+                      or freigegeben and grund in (*RESOURCE_INTERRUPTS, 'pausiert')) else None,
             'pausiert': self.pausiert,
             'fortschritt': {**zahlen, 'offen': offen},
             'rate_pro_stunde': None if not je_s else round(je_s * 3600, 1),
@@ -711,6 +788,31 @@ class Steuerung:
             'satz': satz,
             'schlange': self.schlange() if zustand not in ('aus', 'fertig') else [],
         }
+
+
+def ki_filter_an(app: Any) -> bool:
+    """Ob der KI-Filter für Post eingeschaltet ist (dann wartet in der Pause auch neue Post)."""
+    try:
+        from .mail_filter import policy
+        return bool(policy(app.state.settings).get('ai_enabled'))
+    except Exception:  # noqa: BLE001 - ohne Einstellungen kein Filter
+        return False
+
+
+def modellarbeit_frei(app: Any) -> bool:
+    """Darf eine Modellarbeit weitermachen? Für `permitted()` der Hintergrundjobs, zwischen zwei Quellen gefragt.
+
+    Im Faden des Zeitplans nicht, solange der Mensch pausiert hat oder Energie und Speicher sperren. Das gilt auch für
+    Anbieter, die nicht über die Ampel laufen. Ein ausdrücklicher Lauf („Jetzt ausführen“) kommt aus einem anderen Faden
+    und bleibt erlaubt; Eingabe und Antwort regelt weiter die Ampel.
+    """
+    steuerung = getattr(getattr(app, 'state', None), 'hintergrund', None)
+    if steuerung is None or not im_hintergrund():
+        return True
+    try:
+        return not steuerung.pausiert and steuerung.external_gate() is None
+    except Exception:  # noqa: BLE001 - im Zweifel nicht weiterrechnen
+        return False
 
 
 # -- Einbau -------------------------------------------------------------------
@@ -759,7 +861,7 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
         except Exception:  # noqa: BLE001
             provider = None
         mit_modell = bool(plan.with_model and getattr(provider, 'is_local', False))
-        return steuerung.stand(freigegeben=bool(plan.enabled), mit_modell=mit_modell)
+        return steuerung.stand(freigegeben=bool(plan.enabled), mit_modell=mit_modell, ki_filter=ki_filter_an(app))
 
     @app.get('/api/v1/hintergrund', dependencies=guard)
     def hintergrund() -> dict[str, Any]:
@@ -773,7 +875,9 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
     @app.post('/api/v1/hintergrund/weiter', dependencies=guard)
     def hintergrund_weiter() -> dict[str, Any]:
         steuerung.pausieren(False)
-        wecken = getattr(getattr(app.state, 'scheduler', None), 'wecken', None)
+        # „Weiter“ heißt jetzt: auch die Ruhe nach dem letzten Paket gilt nicht mehr (`Scheduler.ruhe_aufheben`).
+        zeitplan = getattr(app.state, 'scheduler', None)
+        wecken = getattr(zeitplan, 'ruhe_aufheben', None) or getattr(zeitplan, 'wecken', None)
         if callable(wecken):
             wecken()
         return stand()
@@ -789,7 +893,9 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
 
 
 __all__ = [
-    'AMPEL', 'Aktivitaet', 'AktivitaetsMiddleware', 'BackgroundInterrupted', 'ModellAmpel', 'Steuerung', 'als_hintergrund', 'einbauen',
-    'im_hintergrund', 'ist_antwort', 'niedrige_prioritaet', 'ordnen', 'rate', 'speicher_reicht', 'wann_text',
+    'AMPEL', 'Aktivitaet', 'AktivitaetsMiddleware', 'BackgroundInterrupted', 'ModellAmpel', 'NEUE_POST_WEITER', 'Steuerung',
+    'als_hintergrund', 'einbauen',
+    'im_hintergrund', 'ist_antwort', 'ki_filter_an', 'modellarbeit_frei', 'niedrige_prioritaet', 'ordnen', 'rate',
+    'speicher_reicht', 'wann_text',
     'zaehlen', 'zaehlt_als_eingabe',
 ]

@@ -356,8 +356,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           </HeuteLeer>
           <TodayPersonal />
           <FassungHeute />
-          <details className="quiet-details today-runtime"><summary>Postfachstand</summary>
-          {briefing.post_ausstehend ? <p className="today-post-laedt" role="status">Deine Post wird gerade geholt …</p> : <PostfachStand />}</details>
+          <PostfachStand ausstehend={Boolean(briefing.post_ausstehend)} />
         </section>
       </main>
       <BriefingDrawer briefing={briefing} onClose={() => setBriefingOpen(false)} onChange={load} open={briefingOpen} />

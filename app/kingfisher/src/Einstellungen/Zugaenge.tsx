@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { api, ApiError, type IntegrationOverview, type MailProvider } from "../api";
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { api, ApiError, type IntegrationOverview, type MailProvider, type MailStand } from "../api";
 import { DocumentImport } from "../DocumentImport";
 import { FolderSyncSettings } from "../FolderSyncSettings";
 import { GoogleSignIn } from "../GoogleSignIn";
@@ -15,6 +15,8 @@ import { useSystem } from "../useSystem";
 import { TranscriptSettings } from "../TranscriptSettings";
 import { icon } from "../ui";
 import { ZUGAENGE } from "./gliederung";
+import { NeuAnmelden } from "./NeuAnmelden";
+import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
 import {
   CalendarSourceForm, EMPTY_CALENDAR_FORM, EMPTY_MAIL_FORM, MailSourceForm, SourceRow, sourceState,
   type CalendarForm, type MailForm,
@@ -56,6 +58,24 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
   // Was beim Speichern abgelehnt wurde, steht am Formular und nicht oben auf der Seite (Fremdprobe 2, Befund 4).
   const [formFehler, setFormFehler] = useState("");
   const [removing, setRemoving] = useState<{ kind: "mail" | "calendar"; id: string } | null>(null);
+  // Die eine Aussage je Postfach (mail_stand.py): Verweist sie hierher (Anmeldung abgelaufen, Passwort fehlt), steht am
+  // Postfach „Neu anmelden“. Nach dem Anmelden gilt der Satz erst beim nächsten Abruf als erledigt; bis dahin steht hier,
+  // dass es geklappt hat, statt derselben Aufforderung noch einmal.
+  const [staende, setStaende] = useState<Record<string, MailStand>>({});
+  const [angemeldet, setAngemeldet] = useState<Record<string, string>>({});
+  // Nach dem Neu-Anmelden landet der Fokus auf der Bestätigung (die Statuszeile steht dafür immer im DOM).
+  const [fokusAuf, setFokusAuf] = useState<string | null>(null);
+  const statusZeilen = useRef<Record<string, HTMLParagraphElement | null>>({});
+  useEffect(() => {
+    if (!fokusAuf) return;
+    statusZeilen.current[fokusAuf]?.focus();
+    setFokusAuf(null);
+  }, [fokusAuf]);
+  const standLaden = useCallback(() => {
+    api.mailStand().then(daten => setStaende(Object.fromEntries(daten.accounts.map(eintrag => [eintrag.account_id, eintrag]))))
+      .catch(() => { /* Ohne Stand bleibt die Seite wie bisher; „Postfach hinzufügen“ geht trotzdem. */ });
+  }, []);
+  useEffect(() => { if (aktiv) standLaden(); }, [aktiv, standLaden]);
 
   function chooseProvider(providerId: string) {
     const provider = providers.find((item) => item.id === providerId);
@@ -141,7 +161,17 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
       <div className="source-section-heading"><InterfaceIcon name="mail" /><div><h2>{ZUGAENGE.postfaecher.titel}</h2><span>{zaehlen(accounts.length, "Postfach", "Postfächer") || "Mehrere sind möglich"}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button"><img src={icon("plus", "Outline")} alt="" />Postfach hinzufügen</button></div>
       {!overview ? <div className="source-loading"><i /><i /></div> : null}
       {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
-      {accounts.map((account) => <SourceRow key={account.id} iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />)}
+      {accounts.map((account) => <Fragment key={account.id}>
+        <SourceRow iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />
+        {/* Dauerhaft im DOM, damit Bildschirmleser die Bestätigung sicher ansagen; leer, solange nichts zu sagen ist. */}
+        <p className="source-hint neu-anmelden-status" role="status" tabIndex={-1} ref={zeile => { statusZeilen.current[account.id] = zeile; }}>{angemeldet[account.id] ?? ""}</p>
+        {!angemeldet[account.id] && neuAnmeldenWeg(account, staende[account.id]) ? <div className="neu-anmelden-stand">
+            <p className="source-hint">{staende[account.id].satz}</p>
+            {neuAnmeldenWeg(account, staende[account.id]) === "passwort"
+              ? <NeuAnmelden konto={account} beiErfolg={(neu) => { setOverview(neu); setAngemeldet(vorher => ({ ...vorher, [account.id]: angemeldetSatz(account.label, neu.satz) })); setFokusAuf(account.id); }} />
+              : <p className="source-hint">{googleNeuSatz(googleVorne)}</p>}
+          </div> : null}
+      </Fragment>)}
     </div>
     {/* Wie im Assistenten (Fremdprobe 2, Befund 2): vorne Adresse und Passwort, den Server findet Kingfisher selbst;
         die Servereinstellungen stehen eingeklappt für Techniker. */}
@@ -172,7 +202,7 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
       <div className="source-form-actions"><button className="secondary-action" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
     </div> : null}
     {system.mac_helfer ? <MacCalendarSettings /> : null}
-    {googleVorne ? <GoogleSignIn compact active={aktiv} kind="mail" onConnected={load} /> : null}
+    {googleVorne ? <GoogleSignIn compact active={aktiv} kind="mail" onConnected={() => { load(); standLaden(); }} /> : null}
     {googleVorne ? <GoogleSignIn compact active={aktiv} kind="calendar" onConnected={load} /> : null}
     <MicrosoftZugang aktiv={aktiv} beiAenderung={load} />
 
