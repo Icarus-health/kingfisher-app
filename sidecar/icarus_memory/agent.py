@@ -759,6 +759,44 @@ class Agent:
                                 'model_called': False, 'selected_assertion_ids': []},
             **knowledge_history.metadata({}), **self_model_history.metadata({})})
 
+    def render_kommendes(self, answer):
+        """Text und Quellen von „Was brauche ich morgen?“, jedes Mal frisch aus Kalender, Akten und Aufgaben.
+
+        None, wenn der Weg nicht verdrahtet ist oder die Frage nicht mehr für heute gilt: „morgen“ meint am
+        nächsten Tag einen anderen Tag, und eine alte Antwort darf nicht still für ihn stehen.
+        """
+        from . import kommendes
+        sammler = getattr(self, '_kommendes', None)
+        if (not callable(sammler) or not isinstance(answer, dict) or answer.get('version') != 1
+                or not isinstance(answer.get('query'), str)):
+            return None
+        jetzt = now()
+        if not kommendes.gilt_noch(answer.get('gefragt_am'), jetzt):
+            return None
+        ergebnis = sammler(answer['query'], jetzt)
+        if ergebnis is None:
+            return None
+        return ergebnis.text, ergebnis.links
+
+    def _kommendes_turn(self, question):
+        """„Was brauche ich morgen?“: Termine, Fristen und Aufgaben des Zeitraums, ohne Modell; sonst None."""
+        from . import kommendes
+        if not kommendes.ist_frage(question, now()):
+            return None
+        answer = {'version': 1, 'query': question, 'gefragt_am': now().isoformat()}
+        rendered = self.render_kommendes(answer)
+        if rendered is None:
+            return None
+        text, links = rendered
+        revision = self._knowledge.revision if self._knowledge is not None else 0
+        return Turn(reply=text, context={
+            'query': question, 'generated_at': now().isoformat(), 'items': [], 'withheld_count': 0,
+            'memory_revision': revision, 'answer_mode': 'memory_evidence', 'history_egress': 'local_only',
+            'kommendes_answer': answer, 'source_links': links,
+            'answer_contract': {'version': 1, 'status': 'kommendes', 'semantic_validation': False,
+                                'model_called': False, 'selected_assertion_ids': []},
+            **knowledge_history.metadata({}), **self_model_history.metadata({})})
+
     def project_scope(self, project_id, label):
         """Der Rahmen eines Projekts für Nachfragen nach seinem Stand der Dinge."""
         scope = self._meaning_scope(str(label), {'art': 'projekt', 'ref': project_id, 'label': str(label)})
@@ -1000,6 +1038,10 @@ class Agent:
             offen = self._offene_punkte_turn(question)
             if offen is not None:
                 return offen
+            # „Was brauche ich morgen?“: Kalender, Akten und Aufgaben wissen es, ohne Modell und ohne Suche.
+            kommend = self._kommendes_turn(question)
+            if kommend is not None:
+                return kommend
         if retrieval_query is None and meaning_scope is None:
             anfrage = anfrage or self.frage_verstehen(question)
             zeiten.vorlauf('frage', getattr(anfrage, 'dauer_s', 0.0))
@@ -1978,6 +2020,7 @@ class Agent:
                           or 'meaning_choice' in message['context']
                           or 'mappe_answer' in message['context']
                           or 'offene_punkte_answer' in message['context']
+                          or 'kommendes_answer' in message['context']
                           or message["context"].get("answer_mode") == "calendar_data"
                           or (isinstance(message["context"].get("calendar"), dict)
                               and message["context"].get("calendar_model_context") is not False)))
