@@ -626,3 +626,15 @@ def test_abgesagte_serie_nimmt_ihre_geaenderten_einzeltermine_mit():
     erster = serie('DTSTART:20261019T070000Z', 'DTEND:20261019T080000Z', 'STATUS:CANCELLED')
     zweiter = serie('RECURRENCE-ID:20261026T080000Z', 'DTSTART:20261026T080000Z', 'DTEND:20261026T090000Z')
     assert [t.uid for t in parse_events(ics(erster, zweiter), VON, BIS)] == ['serie@probe#20261026T080000Z']
+
+
+def test_count_zaehlt_den_beginn_mit_auch_wenn_er_nicht_zur_regel_passt():
+    """RFC 5545, 3.3.10: DTSTART zählt als erster Termin, also auch für COUNT (20.10.2026 ist ein Dienstag)."""
+    termine = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20261020T090000', 'DURATION:PT1H',
+                                     'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=2')), VON, BIS)
+    assert beginne(termine) == [utc(2026, 10, 20, 7), utc(2026, 10, 26, 8)]
+    einer = parse_events(ics(serie('DTSTART;TZID=Europe/Berlin:20261020T090000', 'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=1')),
+                         VON, BIS)
+    assert beginne(einer) == [utc(2026, 10, 20, 7)]
+    passend = parse_events(ics(serie(*BERLIN_9, 'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=2')), VON, BIS)
+    assert beginne(passend) == [utc(2026, 10, 19, 7), utc(2026, 10, 26, 8)]

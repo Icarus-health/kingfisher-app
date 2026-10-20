@@ -505,10 +505,17 @@ def _regel(wert: str, beginn: _Zeit):
             return None  # nur positive Abstände (RFC 5545); 0 wiederholte denselben Termin ohne Ende
         teile.append(f"{name}={inhalt.strip()}")
     try:
-        if not _erfuellbar(dict(teil.split("=", 1) for teil in teile), beginn):
+        regelteile = dict(teil.split("=", 1) for teil in teile)
+        if not _erfuellbar(regelteile, beginn):
             return None
         regel = rrulestr(";".join(teile), dtstart=beginn.moment)
-        return regel.replace(until=bis) if bis is not None else regel
+        if bis is not None:
+            regel = regel.replace(until=bis)
+        if "COUNT" in regelteile and next(iter(regel), None) != beginn.moment:
+            # RFC 5545, 3.3.10: DTSTART zählt als erster Termin, auch wenn er nicht zur Regel passt
+            # (`_wiederholungen` nimmt ihn immer dazu); die Regel liefert dann einen weniger.
+            regel = regel.replace(count=max(0, int(regelteile["COUNT"]) - 1))
+        return regel
     except (ValueError, TypeError, KeyError, IndexError, OverflowError):
         return None
 
