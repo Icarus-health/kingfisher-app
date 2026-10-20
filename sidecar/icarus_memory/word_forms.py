@@ -86,3 +86,41 @@ def synonym_matching_terms(query_terms, document_terms):
     as one (see agent.py's reason text).
     """
     return {term for term in query_terms if synonym_alternatives(term) & document_terms}
+
+
+# Umlaut-Umschrift: „Mueller“ und „Müller“ sind dasselbe Wort (Tastatur ohne Umlaute, Adressen, Ausweise).
+# Nur zur Fragezeit und geschlossen: ä/ö/ü gegen ae/oe/ue, in beide Richtungen. Gespeicherte Wörter und der
+# Index bleiben unverändert. Eine falsche Rückumschrift („neue“ → „neü“) findet nichts und schadet nicht.
+_UMLAUTE = (('ä', 'ae'), ('ö', 'oe'), ('ü', 'ue'))
+_MAX_UMSCHRIFT_STELLEN = 3
+
+
+def umschriften(term: str) -> frozenset[str]:
+    """Andere Schreibweisen eines Worts mit Umlaut-Umschrift (ohne das Wort selbst)."""
+    term = str(term or '').casefold()
+    ergebnis: set[str] = set()
+    ausgeschrieben = term
+    for umlaut, umschrift in _UMLAUTE:
+        ausgeschrieben = ausgeschrieben.replace(umlaut, umschrift)
+    if ausgeschrieben != term:
+        ergebnis.add(ausgeschrieben)
+    # Rückwärts: jede Kombination der Stellen „ae/oe/ue“ (höchstens drei Stellen, also höchstens sieben Formen).
+    stellen = [(i, umlaut) for i in range(len(ausgeschrieben) - 1) for umlaut, umschrift in _UMLAUTE
+               if ausgeschrieben.startswith(umschrift, i)][:_MAX_UMSCHRIFT_STELLEN]
+    for maske in range(1, 2 ** len(stellen)):
+        teile, letzte = [], 0
+        for nummer, (i, umlaut) in enumerate(stellen):
+            if maske >> nummer & 1:
+                teile.append(ausgeschrieben[letzte:i] + umlaut)
+                letzte = i + 2
+        ergebnis.add(''.join(teile) + ausgeschrieben[letzte:])
+    ergebnis.discard(term)
+    return frozenset(ergebnis)
+
+
+def umschrift_gleich(wort: str) -> str:
+    """Eine Form für den Vergleich: klein, Umlaute ausgeschrieben, ß als ss („Müller“ = „Mueller“)."""
+    wort = str(wort or '').casefold()
+    for umlaut, umschrift in _UMLAUTE:
+        wort = wort.replace(umlaut, umschrift)
+    return wort

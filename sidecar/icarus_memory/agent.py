@@ -727,6 +727,38 @@ class Agent:
             text += '\n\nAuch gefunden: ' + ' · '.join(also)
         return text, links
 
+    def render_offene_punkte(self, answer, *, nachfuehren=True):
+        """Text und Quellen von „Worauf warte ich?“ / „Was habe ich zugesagt?“, jedes Mal frisch aus den Akten."""
+        from . import offene_punkte
+        sammler = getattr(self, '_offene_punkte', None)
+        if (not callable(sammler) or not isinstance(answer, dict) or answer.get('version') != 1
+                or answer.get('kind') not in offene_punkte.ARTEN):
+            return None
+        gesammelt = sammler(answer['kind'], nachfuehren=nachfuehren)
+        if gesammelt is None:
+            return None
+        return offene_punkte.als_text(gesammelt, answer['kind'])
+
+    def _offene_punkte_turn(self, question):
+        """Eine feste Frageform nach offenen Punkten: aus den Akten, ohne Modell; sonst None."""
+        from . import offene_punkte
+        art = offene_punkte.art_der_frage(question)
+        if art is None:
+            return None
+        answer = {'version': 1, 'kind': art, 'query': question}
+        rendered = self.render_offene_punkte(answer)
+        if rendered is None:
+            return None
+        text, links = rendered
+        revision = self._knowledge.revision if self._knowledge is not None else 0
+        return Turn(reply=text, context={
+            'query': question, 'generated_at': now().isoformat(), 'items': [], 'withheld_count': 0,
+            'memory_revision': revision, 'answer_mode': 'memory_evidence', 'history_egress': 'local_only',
+            'offene_punkte_answer': answer, 'source_links': links,
+            'answer_contract': {'version': 1, 'status': 'akten', 'semantic_validation': False,
+                                'model_called': False, 'selected_assertion_ids': []},
+            **knowledge_history.metadata({}), **self_model_history.metadata({})})
+
     def project_scope(self, project_id, label):
         """Der Rahmen eines Projekts für Nachfragen nach seinem Stand der Dinge."""
         scope = self._meaning_scope(str(label), {'art': 'projekt', 'ref': project_id, 'label': str(label)})
@@ -963,6 +995,11 @@ class Agent:
                 turn.reply, _, contract['status'] = source_answers.render(
                     source_answer, self._episodes, self._knowledge)
                 return turn
+        # „Worauf warte ich noch?“: Die Akten wissen es, ohne Modell und ohne Suche.
+        if retrieval_query is None and meaning_scope is None:
+            offen = self._offene_punkte_turn(question)
+            if offen is not None:
+                return offen
         if retrieval_query is None and meaning_scope is None:
             anfrage = anfrage or self.frage_verstehen(question)
             zeiten.vorlauf('frage', getattr(anfrage, 'dauer_s', 0.0))
@@ -1940,6 +1977,7 @@ class Agent:
                           or 'working_answer' in message['context']
                           or 'meaning_choice' in message['context']
                           or 'mappe_answer' in message['context']
+                          or 'offene_punkte_answer' in message['context']
                           or message["context"].get("answer_mode") == "calendar_data"
                           or (isinstance(message["context"].get("calendar"), dict)
                               and message["context"].get("calendar_model_context") is not False)))

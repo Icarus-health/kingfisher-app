@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable
 
 from .identitaet import domaene, name_schluessel, nennungen
+from .word_forms import umschrift_gleich, umschriften
 
 #: Höchstens so viele Personen je Nennung; mehr ist keine Auswahl mehr.
 MAX_PERSONEN = 6
@@ -122,7 +123,8 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
     if not alle_woerter:
         return []
     eigene = list(eigene)
-    zeilen = _zeilen(episodes, alle_woerter)
+    # „Frau Mueller“ meint auch „Müller“ (und umgekehrt): beide Schreibweisen vorfiltern, gleich vergleichen.
+    zeilen = _zeilen(episodes, alle_woerter | {v for w in alle_woerter for v in umschriften(w)})
     if not zeilen:
         return []
     namen: dict[str, Counter] = defaultdict(Counter)
@@ -146,9 +148,10 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
         if not ws or not all(len(w) >= 3 for w in ws):
             continue
         treffer = []
+        namenswoerter = {umschrift_gleich(w) for w in ws}
         for adresse, zaehler in namen.items():
-            aliasse = [set(_woerter(n)) for n in zaehler]
-            if any(set(ws) <= alias for alias in aliasse):
+            aliasse = [{umschrift_gleich(w) for w in _woerter(n)} for n in zaehler]
+            if any(namenswoerter <= alias for alias in aliasse):
                 treffer.append(adresse)
         if not treffer:
             continue
@@ -160,7 +163,8 @@ def erwaehnte(frage: str, episodes: Any, *, eigene: Iterable[str] = ()) -> list[
             quellen = list(dict.fromkeys(episodes.participant_ids(adresse) + quellen))
             alias = [n for n, _ in sorted(namen[adresse].items(), key=lambda p: (-p[1], p[0].casefold()))]
             kandidaten.append(Kandidat(adresse, alias, quellen))
-        voll = any(set(ws) == set(_woerter(n)) and len(ws) >= 2 for k in kandidaten for n in k.namen)
+        voll = any(namenswoerter == {umschrift_gleich(w) for w in _woerter(n)} and len(ws) >= 2
+                   for k in kandidaten for n in k.namen)
         # Ein Name ohne Adresse gehört nur einem, wenn er genau einen Träger hat.
         if len(kandidaten) == 1:
             gesucht = name_schluessel(text)

@@ -167,6 +167,28 @@ def _within(identifiers, episodes, period, *, keep_unknown=False):
     return kept + undated
 
 
+#: Höchstens so viele Quellen eines genannten Zeitraums durchsucht die Zeitraumsuche (die jüngsten darin).
+MAX_IM_ZEITRAUM = 500
+
+
+def _ids_im_zeitraum(episodes, period):
+    """Geltende Quellen mit eigenem Datum im Zeitraum, jüngste zuerst: (IDs, mehr als die Grenze?)."""
+    from .episodes import sql_geltend
+    from .source_index import CHAT_LOOKUP_TAG
+    start, end = period
+    with episodes._lock:
+        rows = episodes._conn.execute(
+            "SELECT e.id FROM episodes e WHERE " + sql_geltend('e') + " AND e.occurred_at IS NOT NULL "
+            # Eigene Suchfragen im Gespräch sind keine Quellen des Zeitraums.
+            "AND NOT EXISTS (SELECT 1 FROM json_each(e.document, '$.tags') tag WHERE tag.value = '"
+            + CHAT_LOOKUP_TAG + "') "
+            "AND julianday(e.occurred_at) >= julianday(?) AND julianday(e.occurred_at) < julianday(?) "
+            "ORDER BY julianday(e.occurred_at) DESC, e.id LIMIT ?",
+            (start.isoformat(), end.isoformat(), MAX_IM_ZEITRAUM + 1)).fetchall()
+    ids = [row[0] for row in rows]
+    return ids[:MAX_IM_ZEITRAUM], len(ids) > MAX_IM_ZEITRAUM
+
+
 def _ordered_refs(question, episodes, project_ids, scope_ids=None, period=None, strict=False,
                   person_ids=(), stats=None, oben=()):
     """Wortsuche, bei genanntem Projekt dessen Quellen zuerst.
@@ -186,6 +208,15 @@ def _ordered_refs(question, episodes, project_ids, scope_ids=None, period=None, 
     if stats is not None:
         stats.update(found.zaehlung)
     refs, truncated = list(found.refs), found.begrenzt
+    if period and scope_ids is None and not strict:
+        # Ein Zeitraum („letztes Jahr“) sucht zusätzlich nur unter den Quellen dieses Zeitraums: Sonst kämen ältere
+        # Treffer bei vielen neueren zum selben Wort nie unter die Kandidaten. Ausgeschlossen wird nichts.
+        im_zeitraum, voll = _ids_im_zeitraum(episodes, period)
+        if im_zeitraum:
+            zeitraum = source_candidates.zusammenfuehren(store, question, limit=MAX_REFS, episode_ids=im_zeitraum)
+            gesehen = {tuple(ref[key] for key in REF_KEYS) for ref in zeitraum.refs}
+            refs = list(zeitraum.refs) + [ref for ref in refs if tuple(ref[key] for key in REF_KEYS) not in gesehen]
+            truncated = truncated or voll
     if period:
         refs = _period_first(refs, episodes, period)
     people = [] if strict else list(dict.fromkeys(person_ids))
@@ -305,6 +336,10 @@ def _candidates(question, episodes, claims, project_ids=(), project_names=None, 
     if scope_ids is not None and not scope_ids:
         return [], [], bool(scope_truncated), []
     oben = akten_kontext.aufbauen(episodes, claims, (), sachen).oben if sachen and meaning_scope is None else []
+    # Ein erkannter Zeitraum ordnet nach Datum; seine Wörter („letztes“, „Jahr“) sind dann keine Suchwörter.
+    if period is not None:
+        from .time_scope import ohne_zeitraum
+        question = ohne_zeitraum(question)
     lexical, truncated = _ordered_refs(question, episodes, list(project_ids), scope_ids, period,
                                        strict=meaning_scope is not None, person_ids=list(person_ids),
                                        stats=stats, oben=oben)

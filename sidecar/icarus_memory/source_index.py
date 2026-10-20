@@ -87,6 +87,19 @@ jemandem jemanden etwas alles alle allen allem wieder immer denn doch also sowie
 dass daß weil wenn ob als wie wohl gern gerne ganz nun jetzt
 """.split())
 
+def _gleich(wort: str) -> str:
+    from .word_forms import umschrift_gleich
+    return umschrift_gleich(wort)
+
+
+#: Dieselben Funktionswörter in Umschrift („koennen“ ist „können“): Wer ohne Umlaute tippt, sucht nicht nach ihnen.
+FUNKTIONSWOERTER_GLEICH = frozenset(_gleich(wort) for wort in FUNKTIONSWOERTER)
+
+
+def funktionswort(wort: str) -> bool:
+    """Ein Funktionswort, gleich in welcher Schreibweise („können“, „koennen“, „konnen“ zählen nicht)."""
+    return wort in FUNKTIONSWOERTER or _gleich(wort) in FUNKTIONSWOERTER_GLEICH
+
 _KOMBINIEREND = re.compile("[\u0300-\u036f]")  # kombinierende Akzentzeichen
 
 TABLES = {
@@ -599,8 +612,24 @@ def _zerlegen(wort: str, vorkommt) -> tuple[str, str] | None:
 
 def woerter(frage: str) -> tuple[list[str], bool]:
     """Suchwörter einer Frage: gefaltet, ohne Funktionswörter, höchstens MAX_WOERTER."""
-    gefaltet = sorted({falte(wort) for wort in terms_v1(frage)} - FUNKTIONSWOERTER)
+    gefaltet = sorted({falte(wort) for wort in terms_v1(frage) if not funktionswort(wort)} - FUNKTIONSWOERTER)
     return gefaltet[:MAX_WOERTER], len(gefaltet) > MAX_WOERTER
+
+
+def umschrift_woerter(frage: str, ausgewaehlt: list[str]) -> dict[str, list[str]]:
+    """Je Suchwort die Schreibweisen mit Umlaut-Umschrift, gefaltet („mueller“ -> „muller“, „müller“ -> „mueller“)."""
+    from .word_forms import umschriften
+    gewaehlt = set(ausgewaehlt)
+    ergebnis: dict[str, list[str]] = {}
+    for roh in terms_v1(frage):
+        wort = falte(roh)
+        if wort not in gewaehlt:
+            continue
+        varianten = {falte(v) for v in umschriften(roh) if not funktionswort(v)} - gewaehlt - FUNKTIONSWOERTER - {wort}
+        if varianten:
+            ergebnis.setdefault(wort, [])
+            ergebnis[wort] += sorted(varianten - set(ergebnis[wort]))
+    return ergebnis
 
 
 def suchen(connection: sqlite3.Connection, frage: str, *, limit: int = 64,
@@ -622,17 +651,19 @@ def suchen(connection: sqlite3.Connection, frage: str, *, limit: int = 64,
     vorkommt = _Vorkommen(connection)
     zusatz: list[str] = []
     ohne_treffer: list[str] = []
+    umschrift = umschrift_woerter(frage, ausgewaehlt)
     for wort in ausgewaehlt:
-        gefunden = vorkommt(wort)
+        gefunden = vorkommt(wort) or any(vorkommt(v) for v in umschrift.get(wort, ()))
         if not gefunden:
             ohne_treffer.append(wort)
         teile = _zerlegen(wort, vorkommt)
         if teile:
             zusatz.extend(teil for teil in teile if teil not in ausgewaehlt and teil not in zusatz)
-    ausdruecke = {"source_index": " OR ".join([*(_quote(wort) for wort in ausgewaehlt),
+    varianten = [v for liste in umschrift.values() for v in liste]
+    ausdruecke = {"source_index": " OR ".join([*(_quote(wort) for wort in [*ausgewaehlt, *varianten]),
                                               *(_quote(teil, anfang=True) for teil in zusatz)])}
     if vorkommt.woerter:
-        ausdruecke["source_index_woerter"] = " OR ".join(_wort_ausdruck(wort) for wort in [*ausgewaehlt, *zusatz])
+        ausdruecke["source_index_woerter"] = " OR ".join(_wort_ausdruck(wort) for wort in [*ausgewaehlt, *varianten, *zusatz])
 
     bereich, parameter = "", []
     if episode_ids is not None:

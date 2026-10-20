@@ -1,13 +1,15 @@
 """Zeitraum in einer Frage: welche Quellen zuerst berücksichtigt werden.
 
 Nur Angaben, die sich eindeutig auf die Vergangenheit bis heute beziehen
-(„gestern“, „letzte Woche“, „in den letzten 3 Tagen“). Monatsnamen und
+(„gestern“, „letzte Woche“, „in den letzten 3 Tagen“, „letztes Jahr“, „dieses Jahr“,
+„in den letzten drei Monaten“, „vor zwei Wochen“). Monatsnamen und
 künftige Angaben bleiben außen vor: „Wann ist die Abnahme im Oktober?“ fragt
 nach dem Inhalt, nicht nach dem Eingang der Mail.
 
 Der Zeitraum ordnet nur um, er schließt nichts aus. Eine Quelle außerhalb
 bleibt Kandidat, wenn Platz ist.
 """
+import calendar
 from datetime import datetime, timedelta, timezone
 import re
 
@@ -16,6 +18,8 @@ from .model import user_timezone
 NUMBERS = {'zwei': 2, 'drei': 3, 'vier': 4, 'fünf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8,
            'neun': 9, 'zehn': 10, 'vierzehn': 14}
 _NUMBER = r'(\d{1,3}|' + '|'.join(NUMBERS) + r')'
+# „vor einer Woche“, „vor einem Monat“: auch der unbestimmte Artikel als Zahl.
+_NUMBER_EIN = r'(\d{1,3}|ein|eine|einer|einem|einen|' + '|'.join(NUMBERS) + r')'
 # Unbestimmter Artikel als Zahl: „in einer Woche“, „in einem Monat“, „innerhalb eines Monats“ (nur für künftige Angaben).
 _EINS = frozenset({'ein', 'eine', 'einer', 'einem', 'einen', 'eines'})
 PATTERNS = [
@@ -23,6 +27,10 @@ PATTERNS = [
     ('days', re.compile(r'\bseit\s+' + _NUMBER + r'\s+(tagen|wochen)\b', re.I)),
     ('last_week', re.compile(r'\b(?:letzte[rn]?|vorige[rn]?|vergangene[rn]?)\s+woche\b', re.I)),
     ('this_week', re.compile(r'\b(?:diese[rn]?)\s+woche\b', re.I)),
+    ('months', re.compile(r'\b(?:in\s+den\s+)?(?:letzten|vergangenen)\s+' + _NUMBER + r'\s+monaten?\b', re.I)),
+    ('ago', re.compile(r'\bvor\s+' + _NUMBER_EIN + r'\s+(tag(?:en)?|wochen?|monat(?:en)?)\b', re.I)),
+    ('last_year', re.compile(r'\b(?:(?:letzte[sn]?|vorige[sn]?|vergangene[sn]?)\s+jahr(?:es)?|im\s+vorjahr)\b', re.I)),
+    ('this_year', re.compile(r'\bdiese[sm]?\s+jahr(?:es)?\b', re.I)),
     ('last_month', re.compile(r'\b(?:letzte[nm]?|vorige[nm]?|vergangene[nm]?)\s+monat\b', re.I)),
     ('this_month', re.compile(r'\b(?:diese[nm]?)\s+monat\b', re.I)),
     ('day_before', re.compile(r'\bvorgestern\b', re.I)),
@@ -30,7 +38,7 @@ PATTERNS = [
     ('today', re.compile(r'\bheute\b', re.I)),
 ]
 # Only immediate negation of a recognized period, not an unrelated "nicht" elsewhere.
-_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|am|der|den|dem)\s+)*'
+_ZEIT_VORWORTE = r'(?:(?:von|vom|aus|in|im|am|der|den|dem)\s+)*'
 _NEGIERTE_ZEIT = re.compile(r'\bnicht\s+' + _ZEIT_VORWORTE + r'$', re.I)
 _NICHT_NUR_ZEIT = re.compile(r'\bnicht\s+(?:nur|bloß|bloss|allein|ausschließlich|ausschliesslich)\s+'
                             + _ZEIT_VORWORTE + r'$', re.I)
@@ -85,6 +93,29 @@ def _month_start(value):
     return _midnight(value).replace(day=1)
 
 
+def _monate_zurueck(erster, monate):
+    """Der Monatserste `monate` Monate vor `erster` (ebenfalls ein Monatserster)."""
+    index = erster.year * 12 + erster.month - 1 - monate
+    return erster.replace(year=index // 12, month=index % 12 + 1)
+
+
+def ohne_zeitraum(text):
+    """Die Frage ohne erkannte Zeitangaben, für die Wortsuche: „letztes“ und „Jahr“ sind keine Suchwörter.
+
+    Bleibt danach kein Wort übrig („Was war letzte Woche?“), gilt die Frage unverändert: Dann sucht die
+    Wortsuche wie bisher, und der Zeitraum ordnet.
+    """
+    if not isinstance(text, str):
+        return text
+    rest = text
+    for _, pattern in PATTERNS:
+        rest = pattern.sub(' ', rest)
+    rest = re.sub(r'\b(?:in|im|aus|von|vom|seit)\s+(?=[?.!,]|\s*$)', ' ', rest)
+    from .lexical import terms_v1
+    from .source_index import funktionswort
+    return rest if any(not funktionswort(wort) for wort in terms_v1(rest)) else text
+
+
 def mentioned_period(question, now=None):
     """(Beginn, Ende, Beschriftung) des ersten positiven Zeitraums, sonst None.
 
@@ -110,6 +141,34 @@ def mentioned_period(question, now=None):
         if not 1 <= days <= 366:
             return None
         return today - timedelta(days=days - 1), today + timedelta(days=1), f'der letzten {days} Tage'
+    if kind == 'months':
+        count = zahl(match.group(1))
+        if not count or not 1 <= count <= 24:
+            return None
+        erster = _monate_zurueck(_month_start(now), count)
+        # Derselbe Tag vor `count` Monaten (am Monatsende der letzte Tag des kürzeren Monats).
+        tag = min(today.day, calendar.monthrange(erster.year, erster.month)[1])
+        return erster.replace(day=tag) + timedelta(days=1), today + timedelta(days=1), f'der letzten {count} Monate'
+    if kind == 'ago':
+        count = zahl(match.group(1))
+        einheit = match.group(2).lower()
+        if not count or not 1 <= count <= 120:
+            return None
+        # Beschriftungen ohne Datum: Eine gespeicherte Antwort bleibt am nächsten Tag gleich beschriftet.
+        if einheit.startswith('tag'):
+            tag = today - timedelta(days=count)
+            return tag, tag + timedelta(days=1), 'von vor einem Tag' if count == 1 else f'von vor {count} Tagen'
+        if einheit.startswith('woche'):
+            montag = today - timedelta(days=7 * count + today.weekday())
+            return montag, montag + timedelta(days=7), 'von vor einer Woche' if count == 1 else f'von vor {count} Wochen'
+        erster = _monate_zurueck(_month_start(now), count)
+        return erster, _monate_spaeter(erster, 1), 'von vor einem Monat' if count == 1 else f'von vor {count} Monaten'
+    if kind == 'last_year':
+        anfang = today.replace(month=1, day=1)
+        return anfang.replace(year=anfang.year - 1), anfang, 'des letzten Jahres'
+    if kind == 'this_year':
+        anfang = today.replace(month=1, day=1)
+        return anfang, today + timedelta(days=1), 'dieses Jahres'
     if kind == 'today':
         return today, today + timedelta(days=1), 'von heute'
     if kind == 'yesterday':

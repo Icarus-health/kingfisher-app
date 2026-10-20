@@ -7,7 +7,7 @@ import re
 
 _MEMORY_QUESTION = re.compile(
     r'^(?:was (?:weißt du|wissen wir|hast du dir gemerkt|haben wir festgehalten) (?:über|zu)\b'
-    r'|welche (?:adresse|e-mail-adresse|mailadresse|telefonnummer|frist|entscheidung)\b'
+    r'|welche (?:adresse|e-mail-adresse|mailadresse|telefonnummer|fristen|frist|entscheidung)\b'
     r'|(?:was|wie) ist (?:der (?:aktuelle )?stand|es um)\b'
     r'|was steht (?:in (?:der|dem|den)|zu|über)\b'
     r'|wann (?:ist|war|findet|beginnt|endet)\b'
@@ -73,6 +73,13 @@ _PERSONAL_FACT = re.compile(
 _DELIVERY_QUESTION = re.compile(
     r'^(?:wann|bis wann|wer|was) (?:schickt|sendet|verschickt|versendet|liefert)\b'
     r'(?P<rest>[^.!?\n]*)\??$', re.I)
+# „An welche Adresse soll ich die Rechnung schicken?“ fragt nach einem Ziel aus dem Bestand; das Handlungswort
+# ist Teil der Frage, kein Auftrag. Nur ein einzelner Fragesatz.
+_ZIEL_FRAGE = re.compile(
+    r'^(?:an\s+welche|an\s+wen|wohin|unter\s+welcher|an\s+welcher)\b[^.!?\n]*'
+    r'\b(?:soll|sollen|muss|müssen)\s+(?:ich|wir)\b[^.!?\n]*'
+    r'\b(?:schicken|senden|versenden|verschicken|liefern|überweisen|ueberweisen|zahlen|bezahlen|adressieren|richten)'
+    r'\s*\?$', re.I)
 _PREPARATION_TIME = re.compile(
     r'^(?:(?:bitte\s+)?bereite\s+mich|wie\s+bereite\s+ich\s+mich)'
     r'\s+auf\s+[^.!?\n]{1,200}\s+vor[.!?]\s*'
@@ -143,10 +150,18 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     previous = previous_context if isinstance(previous_context, dict) else {}
     if not new_question and is_working_followup(text, previous):
         return 'memory_followup'
+    # „Worauf warte ich noch?“, „Was muss ich noch schicken?“: die Akten, nie der freie Chat (auch wenn ein
+    # Handlungswort wie „schicken“ darin steht; gefragt ist nach dem Stand, nicht nach einer Handlung).
+    from .offene_punkte import art_der_frage
+    if art_der_frage(text):
+        return 'memory_evidence'
     delivery = _DELIVERY_QUESTION.fullmatch(text)
     # A question about somebody else's delivery is not an instruction to
     # send. Keep a second command in the same sentence on the action path.
     if delivery and not _NEW_TURN.search(delivery['rest']):
+        return 'memory_evidence'
+    # Die Frage endet mit dem Versandverb: „… schicken und schick sie gleich an Ben?“ ist ein Auftrag und passt nicht.
+    if _ZIEL_FRAGE.fullmatch(text):
         return 'memory_evidence'
     if _NEW_TURN.search(text):
         return 'chat'
