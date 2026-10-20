@@ -25,12 +25,23 @@ class NetzVersuch(ConnectionRefusedError):
 
 @pytest.fixture
 def kein_netz(monkeypatch):
-    """Jede Verbindung außer zu 127.0.0.1 schlägt fehl, und der Versuch wird gemerkt (auch DNS über UDP)."""
+    """Jede Verbindung außer zu 127.0.0.1 schlägt fehl, und der Versuch wird gemerkt (auch DNS über UDP).
+
+    Schon die Namensauflösung eines fremden Rechners zählt als Versuch. Sonst bliebe die Liste leer, wo die
+    Auflösung vorher scheitert (etwa in einer abgeschotteten Umgebung), und eine DNS-Anfrage ginge hinaus.
+    """
     versuche: list = []
     # Ein Proxy auf 127.0.0.1 wäre sonst ein Weg nach draußen, den die Sperre unten für lokal hält.
     for name in ('HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy', 'ALL_PROXY', 'all_proxy'):
         monkeypatch.delenv(name, raising=False)
-    connect, sendto = socket.socket.connect, socket.socket.sendto
+    connect, sendto, aufloesen = socket.socket.connect, socket.socket.sendto, socket.getaddrinfo
+
+    def nur_lokal_aufloesen(host, *rest, **benannt):
+        name = host.decode() if isinstance(host, bytes) else host
+        if name is not None and not _lokal((name,)):
+            versuche.append((name, *rest[:1]))
+            raise NetzVersuch(f'Netzzugriff in einem Test: {name}')
+        return aufloesen(host, *rest, **benannt)
 
     def nur_lokal(sock, adresse, *rest):
         if not _lokal(adresse):
@@ -47,6 +58,7 @@ def kein_netz(monkeypatch):
 
     monkeypatch.setattr(socket.socket, 'connect', nur_lokal)
     monkeypatch.setattr(socket.socket, 'sendto', senden)
+    monkeypatch.setattr(socket, 'getaddrinfo', nur_lokal_aufloesen)
     return versuche
 
 

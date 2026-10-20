@@ -27,7 +27,10 @@ schritt() {
 fehlt() { ERGEBNIS+=("übersprungen  $1 (fehlt: $2)"); }
 
 sidecar() {
-    schritt "Sidecar-Tests" "$PY" -m pytest sidecar/tests -q -p no:cacheprovider
+    # Parallel wie in der CI, wenn pytest-xdist da ist (make sidecar-dev installiert es).
+    local parallel=()
+    "$PY" -c 'import xdist' 2>/dev/null && parallel=(-n auto)
+    schritt "Sidecar-Tests" "$PY" -m pytest sidecar/tests -q -p no:cacheprovider ${parallel[@]+"${parallel[@]}"}
     schritt "Synthetische Gedächtnisdiagnostik" "$PY" -m pytest -q -p no:cacheprovider \
         scripts/test_memory_probe_support.py scripts/test_memory_probe_agent.py \
         scripts/test_probe_memory_pipeline.py scripts/test_probe_hybrid_memory.py \
