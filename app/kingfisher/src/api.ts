@@ -1362,7 +1362,7 @@ export const api = {
     user: string; sender: string; password?: string;
   }) => request<IntegrationOverview>("/api/v1/integrations/mail", { method: "POST", body: JSON.stringify(data) }),
   mailNeuAnmelden: (id: string, password: string) =>
-    request<IntegrationOverview>(`/api/v1/integrations/mail/${encodeURIComponent(id)}/anmelden`, { method: "POST", body: JSON.stringify({ password }) }),
+    request<IntegrationOverview & { satz?: string }>(`/api/v1/integrations/mail/${encodeURIComponent(id)}/anmelden`, { method: "POST", body: JSON.stringify({ password }) }),
   addCalendarSource: (data: { label: string; kind: "caldav" | "ical"; url: string; user?: string; password?: string }) =>
     request<IntegrationOverview>("/api/v1/integrations/calendar", { method: "POST", body: JSON.stringify(data) }),
   erkenneAnbieter: (adresse: string) =>

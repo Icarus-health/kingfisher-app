@@ -44,8 +44,52 @@ test("Heute, Einrichtung und „Für Techniker“ setzen den Verweis aus dem Sat
 
 test("Unter Zugänge: Neu anmelden nur für Postfächer mit Passwort, deren Stand hierher verweist", () => {
   const zugaenge = readFileSync(new URL("../src/Einstellungen/Zugaenge.tsx", import.meta.url), "utf8");
-  assert.match(zugaenge, /!account\.auth && staende\[account\.id\]\?\.verweis === "zugaenge"/);
+  assert.match(zugaenge, /neuAnmeldenWeg\(account, staende\[account\.id\]\) === "passwort"/);
   const knopf = readFileSync(new URL("../src/Einstellungen/NeuAnmelden.tsx", import.meta.url), "utf8");
   assert.match(knopf, /api\.mailNeuAnmelden\(konto\.id, passwort\)/);
   assert.match(knopf, /role="alert"/, "eine Ablehnung steht als Satz am Knopf");
+});
+
+// -- Befunde des Reviews ---------------------------------------------------------------------------------------------
+import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "../src/Einstellungen/neuAnmeldenWeg.ts";
+import { postfachMussHandeln } from "../src/heute.ts";
+
+test("Neu anmelden: Passwort, Google mit demselben Konto, Microsoft über seine Karte, sonst nichts", () => {
+  const verweist = {verweis: "zugaenge"};
+  assert.equal(neuAnmeldenWeg({}, verweist), "passwort");
+  assert.equal(neuAnmeldenWeg({auth: "google"}, verweist), "google");
+  assert.equal(neuAnmeldenWeg({auth: "microsoft"}, verweist), null);
+  assert.equal(neuAnmeldenWeg({}, {verweis: null}), null);
+  assert.equal(neuAnmeldenWeg({}, null), null);
+  assert.match(googleNeuSatz(true), /„Mit Google anmelden“ und demselben Google-Konto/);
+  assert.match(googleNeuSatz(false), /Für Techniker → Google-Anmeldung vorbereiten/);
+});
+
+test("Nach dem Neu-Anmelden steht „Angemeldet“, oder der Satz zum Kalender, der das Passwort nicht annahm", () => {
+  assert.equal(angemeldetSatz("Probe-Post"), "Angemeldet. Kingfisher liest Probe-Post gleich weiter.");
+  const kalender = "Dein Postfach ist wieder angemeldet. Den Kalender „Privat“ konnte Kingfisher mit dem neuen Passwort nicht öffnen; prüfe ihn unter Einstellungen → Zugänge.";
+  assert.equal(angemeldetSatz("Probe-Post", kalender), kalender);
+  const zugaenge = readFileSync(new URL("../src/Einstellungen/Zugaenge.tsx", import.meta.url), "utf8");
+  assert.match(zugaenge, /angemeldetSatz\(account\.label, neu\.satz\)/);
+  // Die Statuszeile steht immer im DOM (sonst ist die Ansage unsicher), und der Fokus landet nach dem Erfolg dort.
+  assert.match(zugaenge, /<p className="source-hint neu-anmelden-status" role="status" tabIndex=\{-1\}/);
+  assert.match(zugaenge, /setFokusAuf\(account\.id\)/);
+  assert.match(zugaenge, /statusZeilen\.current\[fokusAuf\]\?\.focus\(\)/);
+});
+
+test("Neu anmelden: Escape bricht ab, nach einer Ablehnung bleibt der Fokus im Feld", () => {
+  const knopf = readFileSync(new URL("../src/Einstellungen/NeuAnmelden.tsx", import.meta.url), "utf8");
+  assert.match(knopf, /event\.key === "Escape"/);
+  assert.match(knopf, /onKeyDown=\{taste\}/);
+  assert.match(knopf, /requestAnimationFrame\(\(\) => \{ feld\.current\?\.focus\(\)/);
+  assert.match(knopf, /knopf\.current\?\.focus\(\)/, "nach Abbrechen zurück auf „Neu anmelden“");
+});
+
+test("Der Postfachstand auf Heute klappt auf, wenn ein Postfach den Menschen braucht", () => {
+  assert.equal(postfachMussHandeln([{zustand: "fehler", verweis: "zugaenge"}]), true);
+  assert.equal(postfachMussHandeln([{zustand: "fehler", verweis: null}, {zustand: "leer"}]), false);
+  assert.equal(postfachMussHandeln([{zustand: "aktuell", verweis: "zugaenge"}]), false, "nur, was Heute auch zeigt");
+  const stand = readFileSync(new URL("../src/PostfachStand.tsx", import.meta.url), "utf8");
+  assert.match(stand, /const mussHandeln = postfachMussHandeln\(zeigen\);/);
+  assert.match(stand, /if \(mussHandeln && klappe\.current\) klappe\.current\.open = true;/);
 });

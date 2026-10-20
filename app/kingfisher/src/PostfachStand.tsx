@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type MailStand } from "./api";
-import { postfachAufHeute } from "./heute";
+import { postfachAufHeute, postfachMussHandeln } from "./heute";
 import { SatzMitVerweis } from "./VerweisLink";
 
 /** Auf Heute: je Postfach der Satz, der erklärt, warum keine Mails dastehen; derselbe wie unter „Für Techniker“.
@@ -17,7 +17,7 @@ export function PostfachStand({ ausstehend = false }: { ausstehend?: boolean }) 
     return () => { aktiv = false; };
   }, [ausstehend]);
   const zeigen = (stand ?? []).filter(eintrag => postfachAufHeute(eintrag.zustand));
-  const mussHandeln = zeigen.some(eintrag => Boolean(eintrag.verweis));
+  const mussHandeln = postfachMussHandeln(zeigen);
   // Einmal aufklappen, wenn es nötig wird; wer die Klappe danach schließt, behält sie geschlossen.
   useEffect(() => { if (mussHandeln && klappe.current) klappe.current.open = true; }, [mussHandeln]);
   return <details ref={klappe} className="quiet-details today-runtime"><summary>Postfachstand</summary>

@@ -37,6 +37,9 @@ CATEGORY_DIAGNOSTIC_BUDGET=16
 #: dass der Takt die Nachanalyse neuer Uploads (teilt sich dessen Sperre) nur Sekunden warten lässt. Abgerufen wird
 #: außerhalb jeder Sperre, `conversation_lock` gilt nur für das Schreiben der einzelnen Nachricht.
 BACKGROUND_BATCH=25
+#: So lange probiert die Aufnahme ein Postfach mit abgelehnter Anmeldung nicht neu (Sekunden). Jeder Versuch ist eine
+#: Anmeldung beim Anbieter; viele abgelehnte in Folge führen dort zur Kontosperre. „Neu anmelden“ hebt das sofort auf.
+ANMELDUNG_WIEDERVERSUCH_S=3600
 #: So lange ruht eine zurückgestellte Mail (`Intake.step(zurueckstellen=…)`), bevor sie wieder geholt wird.
 ZURUECKGESTELLT_S=600
 PRIMARY_KEYS = {'mail_intake_analysis': {'episode_id'},'mail_intake_folders': {'account','folder'}, 'mail_intake_items': {'account','folder','generation','uid'}}
@@ -62,6 +65,16 @@ def bestandsfehler(fehler):
         if isinstance(kandidat, (Anmeldefehler, AnmeldungAbgelehnt)) and einordnen(kandidat, '').grund in ANMELDE_GRUENDE:
             return 'anmeldung'
     return 'inventory_unavailable'
+
+
+def nach_neuer_anmeldung(app, konto):
+    """Die Anmeldung gilt wieder (Neu anmelden, Microsoft, Google): gemerkten Grund löschen, Aufnahme gleich wecken."""
+    episodes = getattr(getattr(app, 'state', None), 'episodes', None)
+    if episodes is not None:
+        Intake(episodes).anmeldung_erneuert(konto)
+    wecken = getattr(getattr(app.state, 'scheduler', None), 'aufnahme_wecken', None)
+    if callable(wecken):
+        wecken()
 
 
 def migrate(conn):
@@ -121,6 +134,11 @@ class Intake:
             self.db.execute('UPDATE mail_intake_folders SET error=NULL WHERE account=?',(account,))
             for table in ('working_memory_sources','memory_category_sources'):
                 self.db.execute(f"UPDATE {table} SET retry_after=0 WHERE status='failed' AND episode_id IN (SELECT episode_id FROM mail_intake_items WHERE account=?)",(account,))
+
+    def anmeldung_erneuert(self, account):
+        """Nach einer neuen Anmeldung: Der gemerkte Grund `anmeldung` fällt weg, das Postfach wird sofort wieder gelesen."""
+        with self.episodes.transaction():
+            self.db.execute("UPDATE mail_intake_folders SET error=NULL WHERE account=? AND error='anmeldung'",(account,))
 
     def _active(self, account, permitted):
         if not permitted():return False
@@ -228,9 +246,12 @@ class Intake:
         gate=permission_lock if permission_lock is not None else nullcontext()
         with gate:
             if not self._active(account,permitted):return []
+        # Ein Ordner, dessen Anmeldung abgelehnt wurde, ruht bis zur neuen Anmeldung (höchstens ein Versuch je Stunde).
+        ruht_bis=time.time()-ANMELDUNG_WIEDERVERSUCH_S
         with self.episodes._lock:
             # Least-recently updated folder first; bounded calls even for many folders.
-            rows=[dict(r) for r in self.db.execute('SELECT * FROM mail_intake_folders WHERE account=? AND paused=0 ORDER BY updated,folder LIMIT 2',(account,))]
+            rows=[dict(r) for r in self.db.execute("""SELECT * FROM mail_intake_folders WHERE account=? AND paused=0
+                AND NOT (COALESCE(error,'')='anmeldung' AND updated>?) ORDER BY updated,folder LIMIT 2""",(account,ruht_bis))]
         for row in rows:
             try:
                 if row['generation'] is not None:
@@ -262,8 +283,9 @@ class Intake:
                 reihenfolge='i.uid' if lane=='live' else 'i.uid DESC'
                 selected += [dict(r) for r in self.db.execute(f'''SELECT i.* FROM mail_intake_items i
                     JOIN mail_intake_folders f ON f.account=i.account AND f.folder=i.folder AND f.generation=i.generation
-                    WHERE i.account=? AND f.paused=0 AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
-                    ORDER BY i.attempts,{reihenfolge} LIMIT ?''',(account,lane,time.time(),min(quota,batch-len(selected))))]
+                    WHERE i.account=? AND f.paused=0 AND NOT (COALESCE(f.error,'')='anmeldung' AND f.updated>?)
+                      AND i.lane=? AND i.status IN ('pending','failed') AND i.retry_at<=?
+                    ORDER BY i.attempts,{reihenfolge} LIMIT ?''',(account,ruht_bis,lane,time.time(),min(quota,batch-len(selected))))]
         captured=[]; neu=0
         for item in selected:
             with gate:

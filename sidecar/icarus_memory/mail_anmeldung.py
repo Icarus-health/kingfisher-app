@@ -17,8 +17,8 @@ Die Gründe, jeweils ein Satz für den Nutzer:
   GMX), sagt der Server dann dasselbe wie bei einem falschen Passwort; der Satz nennt deshalb beides.
 * `unsicher`: die Verbindung ließ sich nicht verschlüsselt aufbauen (Zertifikat).
 
-`[UNAVAILABLE]` (RFC 5530: der Server kann die Anmeldung vorübergehend nicht prüfen) heißt `nicht_erreichbar`, nicht
-„Passwort stimmt nicht“. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
+Vorübergehende Ablehnungen (RFC 5530 `[UNAVAILABLE]`, `[LIMIT]`, `[INUSE]`, `[SERVERBUG]`, zu viele Verbindungen)
+heißen `nicht_erreichbar`, nicht „Passwort stimmt nicht“. Die Mailaufnahme nutzt dieselbe Einordnung, um eine abgelaufene Anmeldung von einem
 schweigenden Postfach zu unterscheiden (`mail_intake.ANMELDE_GRUENDE`).
 """
 from __future__ import annotations
@@ -39,6 +39,10 @@ _IMAP_AUS = ('imap is disabled', 'imap access is disabled', 'imap not enabled', 
              'imap ist nicht aktiviert', 'imap nicht freigeschaltet', 'enable imap')
 _APP_PASSWORT = ('application-specific password', 'app password', 'app-passwort', 'web browser', 'webloginrequired',
                  'basicauthblocked', 'basic authentication is disabled')
+#: Vorübergehende Ablehnungen (RFC 5530 `UNAVAILABLE`, `LIMIT`, `INUSE`, `SERVERBUG`; zu viele Verbindungen, „temporary“):
+#: Das Passwort ist nicht das Problem, also `nicht_erreichbar` statt „Passwort stimmt nicht“. Echte Ablehnungen
+#: (`AUTHENTICATIONFAILED`, `AUTHORIZATIONFAILED`, `EXPIRED`, ein NO ohne Code) bleiben Anmeldefehler.
+_VORUEBERGEHEND = ('[unavailable]', '[limit]', '[inuse]', '[serverbug]', 'too many', 'temporar', 'try again later')
 #: So lehnt Gmail eine Anmeldung ab (Fremdprobe, Befund 2): mit dem normalen Passwort „Invalid credentials (Failure)“
 #: oder „Application-specific password required“ mit einem Verweis auf support.google.com.
 _GOOGLE = ('invalid credentials (failure)', 'support.google.com')
@@ -97,8 +101,8 @@ def einordnen(fehler: BaseException, imap_host: str, name: str = '') -> Anmeldef
                                                  'versuche es gleich noch einmal.')
     if isinstance(fehler, imaplib.IMAP4.error) and not isinstance(fehler, imaplib.IMAP4.abort):
         text = str(fehler).lower()
-        if '[unavailable]' in text:
-            # RFC 5530: Der Server kann die Anmeldung gerade nicht prüfen. Das Passwort ist nicht das Problem.
+        if any(merkmal in text for merkmal in _VORUEBERGEHEND):
+            # Der Server kann oder will die Anmeldung gerade nicht prüfen. Das Passwort ist nicht das Problem.
             return schweigt
         if any(merkmal in text for merkmal in _IMAP_AUS):
             return Anmeldefehler('imap_aus', f'{wer} lässt die Anmeldung über IMAP nicht zu: Schalte IMAP in den '

@@ -1372,6 +1372,27 @@ def _reopen_persistent_state(app: FastAPI) -> None:
         baue_hintergrund(app)
 
 
+#: Felder, deren Eingabe nie in einer Antwort steht, auch nicht in einer Ablehnung (zu lang, falscher Typ).
+_GEHEIME_FELDER = ('password', 'passwort', 'secret', 'token', 'api_key', 'client_secret')
+
+
+def _ohne_geheimnisse_in_ablehnungen(app: FastAPI) -> None:
+    """FastAPI nennt bei einer abgelehnten Anfrage die Eingabe (`input`); bei einem Passwort hieße das: es zurückgeben."""
+    from fastapi.encoders import jsonable_encoder
+    from fastapi.exceptions import RequestValidationError
+
+    @app.exception_handler(RequestValidationError)
+    async def ohne_geheimnisse(_request, exc: RequestValidationError):
+        fehler = []
+        for eintrag in exc.errors():
+            eintrag = dict(eintrag)
+            if any(isinstance(teil, str) and any(geheim in teil.lower() for geheim in _GEHEIME_FELDER)
+                   for teil in eintrag.get('loc', ())) or eintrag.get('loc', ())[:1] == ('body',) and len(eintrag['loc']) == 1:
+                eintrag.pop('input', None)
+            fehler.append(eintrag)
+        return JSONResponse(status_code=422, content={'detail': jsonable_encoder(fehler)})
+
+
 def create_app(
     store: SelfModelStore | None = None,
     agent: Agent | None = None,
@@ -1394,6 +1415,7 @@ def create_app(
     # Vor dem ersten Öffnen: steht ein Umbau an, erst eine Kopie von vorher.
     backup_before_update(_data_dir())
     app = FastAPI(title="Kingfisher", version="0.1.0")
+    _ohne_geheimnisse_in_ablehnungen(app)
     app.state.runtime_boundary = RuntimeBoundary(_data_dir())
     app.add_middleware(RecoveryBoundaryMiddleware, boundary=app.state.runtime_boundary, inspection=inspection)
     from .mac_calendar import MacCalendar, install_routes
@@ -1889,14 +1911,32 @@ def create_app(
             mail_anmeldung.pruefe(probe, entry.imap_host)
         except mail_anmeldung.Anmeldefehler as exc:
             return JSONResponse({"detail": exc.satz, "grund": exc.grund}, status_code=exc.status)
-        config.store_secret(getattr(app.state, "keychain", Keychain()),
-                            config.integration_secret_name("mail", account_id), body.password)
+        altes = _integration_secret(app, "mail", account_id)
+        keychain = getattr(app.state, "keychain", Keychain())
+        config.store_secret(keychain, config.integration_secret_name("mail", account_id), body.password)
+        # Kalender wie Mail hat das Passwort des Postfachs übernommen (eigenes Geheimnis, gleiche Adresse). Ändert es
+        # sich beim Anbieter, gilt das neue auch dort, aber erst nach einer eigenen Prüfung; scheitert sie, bleibt der
+        # Kalender unberührt, und ein Satz sagt es. Ein Kalender mit eigenem Passwort bleibt, wie er ist.
+        satz = None
+        from . import kalender_anmeldung
+        from .mail_anmeldung import Anmeldefehler
+        for kalender in settings.calendar_sources:
+            if (kalender.kind != "caldav" or kalender.user.strip().lower() != entry.user.strip().lower()
+                    or not altes or _integration_secret(app, "calendar", kalender.id) != altes):
+                continue
+            try:
+                kalender_anmeldung.finde_kalender(kalender.url, kalender.user, body.password, wer=kalender.label,
+                                                  transport=getattr(app.state, "caldav_transport", None))
+            except Anmeldefehler:
+                satz = (f"Dein Postfach ist wieder angemeldet. Den Kalender „{kalender.label}“ konnte Kingfisher mit dem "
+                        "neuen Passwort nicht öffnen; prüfe ihn unter Einstellungen → Zugänge.")
+                continue
+            config.store_secret(keychain, config.integration_secret_name("calendar", kalender.id), body.password)
         _build_agent(app)
-        # Gleich weiterlesen; der nächste Takt der Aufnahme löscht den gemerkten Grund.
-        wecken = getattr(getattr(app.state, "scheduler", None), "aufnahme_wecken", None)
-        if callable(wecken):
-            wecken()
-        return integration_overview()
+        # Der gemerkte Grund fällt sofort weg, und die Aufnahme liest gleich weiter, nicht erst nach dem Takt.
+        from .mail_intake import nach_neuer_anmeldung
+        nach_neuer_anmeldung(app, account_id)
+        return {**integration_overview(), **({"satz": satz} if satz else {})}
 
     @app.post("/api/v1/integrations/calendar", dependencies=guard, status_code=201)
     def add_calendar_source(body: CalendarSourceIn) -> dict[str, Any]:

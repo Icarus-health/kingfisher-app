@@ -192,3 +192,76 @@ def test_auch_der_weg_fuer_techniker_meldet_sich_vorher_an(client, attrappe):
                                                               'user': ADRESSE, 'password': 'erfunden'})
     assert antwort.status_code == 422 and antwort.json()['grund'] == 'passwort'
     assert http.get('/api/v1/integrations').json()['calendar_sources'] == []
+
+
+def _postfach_mit_kalender(app, http, monkeypatch, gilt):
+    """Ein Postfach (Anmeldung über `gilt`) und ein Kalender, der dessen Passwort übernommen hat."""
+    monkeypatch.setattr(MailConnector, 'pruefe_anmeldung',
+                        lambda self, timeout=8.0: gilt(self._config.password))
+    assert http.post('/api/v1/integrations/mail', json={'label': 'Probe-Post', 'imap_host': '127.0.0.1', 'user': ADRESSE,
+                                                        'password': PASSWORT}).status_code == 201
+    konto = http.get('/api/v1/integrations').json()['mail_accounts'][0]['id']
+    assert http.post('/api/v1/integrations/calendar/anmelden', json={'adresse': ADRESSE, 'mail_konto': konto}).status_code == 201
+    return konto
+
+
+def test_neu_anmelden_nimmt_den_kalender_mit_dem_uebernommenen_passwort_mit(client, attrappe, monkeypatch):
+    # Kalender wie Mail übernimmt das Passwort des Postfachs. Ändert es sich beim Anbieter, hilft „Neu anmelden“ beidem.
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    from icarus_memory.server import _integration_secret
+    app, http = client
+    gueltig = [PASSWORT]
+
+    def gilt(passwort):
+        if passwort != gueltig[0]:
+            raise Anmeldefehler('passwort', 'Probe-Post hat die Anmeldung abgelehnt.')
+    konto = _postfach_mit_kalender(app, http, monkeypatch, gilt)
+    [quelle] = app.state.settings.calendar_sources
+    gueltig[0] = attrappe.passwort = 'neues-geheimnis'
+    antwort = http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'})
+    assert antwort.status_code == 200, antwort.text
+    assert _integration_secret(app, 'calendar', quelle.id) == 'neues-geheimnis'
+    assert [t.summary for t in _configured_calendar(app).events(days=30)] == ['Probe-Termin beim Steuerbüro']
+    assert not antwort.json().get('satz')
+
+
+def test_lehnt_der_kalender_das_neue_passwort_ab_bleibt_die_post_angemeldet(client, attrappe, monkeypatch):
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    from icarus_memory.server import _integration_secret
+    app, http = client
+    gueltig = [PASSWORT]
+
+    def gilt(passwort):
+        if passwort != gueltig[0]:
+            raise Anmeldefehler('passwort', 'Probe-Post hat die Anmeldung abgelehnt.')
+    konto = _postfach_mit_kalender(app, http, monkeypatch, gilt)
+    [quelle] = app.state.settings.calendar_sources
+    gueltig[0] = 'neues-geheimnis'
+    attrappe.passwort = 'ein-ganz-anderes'
+    antwort = http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'})
+    assert antwort.status_code == 200
+    assert _integration_secret(app, 'mail', konto) == 'neues-geheimnis'
+    assert _integration_secret(app, 'calendar', quelle.id) == PASSWORT, 'ungeprüft wird nichts ersetzt'
+    assert 'Kalender' in antwort.json()['satz'] and 'Zugänge' in antwort.json()['satz']
+
+
+def test_ein_kalender_mit_eigenem_passwort_bleibt_unberuehrt(client, attrappe, monkeypatch):
+    from icarus_memory.mail_anmeldung import Anmeldefehler
+    from icarus_memory.server import _integration_secret
+    app, http = client
+    gueltig = [PASSWORT]
+
+    def gilt(passwort):
+        if passwort != gueltig[0]:
+            raise Anmeldefehler('passwort', 'Probe-Post hat die Anmeldung abgelehnt.')
+    monkeypatch.setattr(MailConnector, 'pruefe_anmeldung', lambda self, timeout=8.0: gilt(self._config.password))
+    assert http.post('/api/v1/integrations/mail', json={'label': 'Probe-Post', 'imap_host': '127.0.0.1', 'user': ADRESSE,
+                                                        'password': PASSWORT}).status_code == 201
+    konto = http.get('/api/v1/integrations').json()['mail_accounts'][0]['id']
+    attrappe.passwort = 'kalender-eigen'
+    assert http.post('/api/v1/integrations/calendar/anmelden',
+                     json={'adresse': ADRESSE, 'password': 'kalender-eigen'}).status_code == 201
+    [quelle] = app.state.settings.calendar_sources
+    gueltig[0] = 'neues-geheimnis'
+    assert http.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'}).status_code == 200
+    assert _integration_secret(app, 'calendar', quelle.id) == 'kalender-eigen'

@@ -293,3 +293,37 @@ def test_netzaufruf_haelt_die_gemeinsame_sperre_nicht():
     finally:
         weiter.set(); thread.join()
     assert fertig == ['t']
+
+
+def test_neu_anmelden_mit_google_ersetzt_die_anmeldung_ohne_zweites_postfach(routed):
+    # Review M8: Ein Google-Postfach, dessen Anmeldung nicht mehr gilt, war eine Sackgasse („bereits eingerichtet“).
+    app, keys, client, path = routed
+    oauth = app.state.google_oauth
+    oauth.request = Google()
+    erst, _ = ready(oauth)
+    assert client.post('/api/v1/google/sessions/'+erst['session_id']+'/connect', json={}).status_code == 200
+    [konto] = app.state.settings.mail_accounts
+    key = config.integration_secret_name('mail', konto.id)
+
+    class Erneuert(Google):
+        def __call__(self, method, url, **kwargs):
+            antwort = super().__call__(method, url, **kwargs)
+            return {**antwort, 'refresh_token': 'refresh-neu'} if url == TOKEN_URL else antwort
+    oauth.request = Erneuert()
+    neu, _ = ready(oauth)
+    antwort = client.post('/api/v1/google/sessions/'+neu['session_id']+'/connect', json={})
+    assert antwort.status_code == 200, antwort.text
+    assert [a.id for a in app.state.settings.mail_accounts] == [konto.id]
+    assert json.loads(keys.get(key))['refresh_token'] == 'refresh-neu'
+    assert [a.id for a in config.load(path).mail_accounts] == [konto.id]
+
+
+def test_ein_passwort_postfach_derselben_adresse_wird_nicht_zu_google(routed):
+    app, keys, client, path = routed
+    app.state.settings.mail_accounts.append(config.MailAccountSettings(
+        id='mail-passwort', label='Probe', user='test@example.com', sender='test@example.com', imap_host='imap.example.com'))
+    oauth = app.state.google_oauth
+    oauth.request = Google()
+    started, _ = ready(oauth)
+    assert client.post('/api/v1/google/sessions/'+started['session_id']+'/connect', json={}).status_code == 409
+    assert [a.auth_method for a in app.state.settings.mail_accounts] == ['password']

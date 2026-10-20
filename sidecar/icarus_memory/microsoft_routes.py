@@ -276,6 +276,10 @@ def install_routes(app, guard, data_dir, rebuild) -> None:
             mitschriften = MITSCHRIFT_SCOPE in (anmeldung.zugang(adresse) or {}).get('scopes', [])
             post = next(e.id for e in settings.mail_accounts if e.auth_method == AUTH and e.user.casefold() == adresse.casefold())
         rebuild()
+        # Eine abgelaufene Anmeldung gilt wieder: gemerkten Grund löschen und die Aufnahme gleich wecken, sonst zeigte
+        # die Karte bis zum nächsten Abruf weiter „abgelaufen“.
+        from .mail_intake import nach_neuer_anmeldung
+        nach_neuer_anmeldung(app, post)
         if mitschriften:
             takt_starten(app)
         return {'neu': neu, 'mail_konto': post, 'mitschriften_an': mitschriften}

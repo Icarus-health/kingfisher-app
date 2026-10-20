@@ -11,6 +11,7 @@ from __future__ import annotations
 import imaplib
 import socket
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -136,7 +137,9 @@ def test_geaendertes_passwort_von_der_meldung_bis_zur_neuen_anmeldung(client, po
     assert _stand(client, konto)[0]['zustand'] == 'aktuell'
 
     postfach.passwort = 'neues-geheimnis'  # beim Anbieter geändert
-    hintergrund_takte(client, 1)
+    vorher = len(postfach.anmeldungen)
+    hintergrund_takte(client, 6)
+    assert len(postfach.anmeldungen) - vorher == 1, 'ein abgelehntes Passwort wird nicht in jedem Takt neu probiert'
     eins, zwei = _stand(client, konto)
     # Eine Aussage an allen Stellen: dieselbe in „Für Techniker“, auf Heute und in der Einrichtung.
     assert eins['zustand'] == zwei['zustand'] == 'fehler'
@@ -146,12 +149,20 @@ def test_geaendertes_passwort_von_der_meldung_bis_zur_neuen_anmeldung(client, po
         assert 'AUTHENTICATIONFAILED' not in text and 'Authentication failed' not in text
 
     # Unter Zugänge: Nur das Passwort, die Adresse kennt Kingfisher. Ein falsches wird mit Satz abgelehnt.
+    from icarus_memory.server import _integration_secret
+    geweckt = []
+    client.app.state.scheduler.aufnahme_wecken = lambda: geweckt.append(True)
     falsch = client.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'immer-noch-falsch'})
     assert falsch.status_code == 422 and 'abgelehnt' in falsch.json()['detail']
-    assert _stand(client, konto)[0]['zustand'] == 'fehler'
+    assert _integration_secret(client.app, 'mail', konto) == PASSWORT, 'abgelehnt heißt: nichts gespeichert'
+    assert _stand(client, konto)[0]['zustand'] == 'fehler' and not geweckt
     richtig = client.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': 'neues-geheimnis'})
     assert richtig.status_code == 200, richtig.text
     assert [a['id'] for a in richtig.json()['mail_accounts']] == [konto], 'kein zweites Postfach'
+    assert _integration_secret(client.app, 'mail', konto) == 'neues-geheimnis'
+    assert geweckt, 'die Aufnahme liest gleich weiter, nicht erst nach dem Takt'
+    # Der Grund ist sofort weg, nicht erst nach dem nächsten Abruf.
+    assert _stand(client, konto)[0]['zustand'] != 'fehler'
     hintergrund_takte(client, 1)
     assert _stand(client, konto)[0]['zustand'] == 'aktuell'
 
@@ -184,8 +195,92 @@ def test_abgelaufene_microsoft_anmeldung_zeigt_neu_anmelden(sidecar, graph):
     assert konto['verbunden'] is False and konto['satz'] == GRUENDE['abgemeldet']
 
     graph.modus.discard('refresh_abgelaufen')
+    geweckt = []
+    app.state.scheduler.aufnahme_wecken = lambda: geweckt.append(True)
     assert anmelden(client)['status'] == 'connected'
-    Intake(app.state.episodes).step(post['id'], app.state.mail.reader_for(post['id']), batch=5)
+    # Ohne weiteren Abruf: Die neue Anmeldung löscht den gemerkten Grund und weckt die Aufnahme.
     assert client.get('/api/v1/microsoft/konten').json()['konten'][0]['verbunden'] is True
+    assert geweckt
     stand = next(a for a in client.get('/api/v1/mail/stand').json()['accounts'] if a['account_id'] == post['id'])
     assert stand['zustand'] != 'fehler'
+
+
+# -- Befunde des Reviews ---------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize('text', [
+    '[LIMIT] Too many login attempts, try again later',
+    '[ALERT] Too many simultaneous connections. (Failure)',
+    '[INUSE] Mailbox in use by another session',
+    '[SERVERBUG] Internal error occurred',
+    'Temporary server error. Please try again later',
+])
+def test_voruebergehende_ablehnungen_sind_keine_abgelaufene_anmeldung(tmp_path, text):
+    assert _grund(tmp_path, _mit_ursache(AnmeldungAbgelehnt(text))) == 'inventory_unavailable'
+
+
+@pytest.mark.parametrize('text', [
+    '[AUTHENTICATIONFAILED] Invalid credentials',
+    '[AUTHORIZATIONFAILED] Not authorized for this mailbox',
+    '[EXPIRED] Password expired',
+    'Login failed.',
+])
+def test_echte_ablehnungen_bleiben_anmeldung(tmp_path, text):
+    assert _grund(tmp_path, _mit_ursache(AnmeldungAbgelehnt(text))) == 'anmeldung'
+
+
+class Zaehlend(Fehlerhaft):
+    def __init__(self, fehler):
+        super().__init__(fehler)
+        self.versuche = 0
+
+    def inventory_page(self, *args, **kwargs):
+        self.versuche += 1
+        raise self.fehler
+
+
+def test_ein_abgelehntes_passwort_wird_nicht_jeden_takt_neu_probiert(tmp_path, monkeypatch):
+    # Jeder Versuch ist eine Anmeldung beim Anbieter; viele abgelehnte führen dort zur Kontosperre.
+    uhr = [1_000_000.0]
+    monkeypatch.setattr('icarus_memory.mail_intake.time', SimpleNamespace(time=lambda: uhr[0]))
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX'])
+    leser = Zaehlend(_mit_ursache(AnmeldungAbgelehnt('[AUTHENTICATIONFAILED] Authentication failed.')))
+    for _ in range(10):
+        intake.step('a', leser, nur_neu=True)
+        intake.step('a', leser)
+        uhr[0] += 30
+    assert leser.versuche == 1 and intake.status('a')['error'] == 'anmeldung'
+    uhr[0] += 3600  # höchstens ein seltener Wiederversuch
+    intake.step('a', leser)
+    intake.step('a', leser)
+    assert leser.versuche == 2
+    # Neu angemeldet: Der Grund ist gelöscht, und es geht sofort weiter.
+    intake.anmeldung_erneuert('a')
+    assert intake.status('a')['error'] is None
+    intake.step('a', leser)
+    assert leser.versuche == 3
+    ep.close()
+
+
+def test_neu_anmelden_braucht_den_zugang_wie_jede_andere_route(monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+    from icarus_memory.server import create_app
+    monkeypatch.setenv('ICARUS_SIDECAR_TOKEN', 'geheim')
+    monkeypatch.setenv('ICARUS_DATA_DIR', str(tmp_path))
+    with TestClient(create_app()) as http:
+        assert http.post('/api/v1/integrations/mail/irgendeins/anmelden', json={'password': 'x'}).status_code in (401, 403)
+        assert http.post('/api/v1/integrations/mail/irgendeins/anmelden', json={'password': 'x'},
+                         headers={'X-Icarus-Token': 'geheim'}).status_code == 404
+
+
+def test_ein_zu_langes_passwort_steht_nicht_in_der_ablehnung(client, postfach):
+    konto = einlesen_starten(client, postfach)
+    geheim = 'geheim-' + 'x' * 5000
+    antwort = client.post(f'/api/v1/integrations/mail/{konto}/anmelden', json={'password': geheim})
+    assert antwort.status_code == 422
+    assert 'xxxxxxxxxx' not in antwort.text and 'geheim-' not in antwort.text
+    # Andere Felder dürfen ihre Eingabe weiter nennen; nur Geheimnisse nicht.
+    zu_lang = client.post('/api/v1/integrations/mail', json={'label': 'L' * 200, 'imap_host': 'h', 'user': 'u',
+                                                            'password': geheim})
+    assert zu_lang.status_code == 422 and 'geheim-' not in zu_lang.text
