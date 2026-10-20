@@ -25,17 +25,19 @@ PRs mit „Create a merge commit“ gemergt (mit „Squash“ kollidieren je ein
 ## Prüfungen je Paket
 
 Jedes Paket: volle Backend-Suite, neue Tests, die vor der Änderung rot waren,
-Sabotageproben (Zusicherung absichtlich gebrochen, passender Test wird rot) und ein
-unabhängiges Review durch einen eigenen Prüf-Agenten, dessen Befunde vor dem PR
-eingearbeitet wurden. Einzelheiten stehen in den PRs.
+Sabotageproben (Zusicherung absichtlich gebrochen, passender Test wird rot) und
+unabhängige Reviews durch eigene Prüf-Agenten, deren Befunde vor dem Merge
+eingearbeitet wurden. Bei #83 und #84 lief nach jeder Korrekturrunde ein weiteres
+Review auf den Korrekturen, bis keine hohen Befunde und keine falschen Ergebnisse
+mehr kamen. Einzelheiten stehen in den PRs.
 
 | Paket | Volle Suite (Paketstand) | Sabotageproben | Review | Browser |
 |---|---|---|---|---|
 | 1 Akte (#80) | 7.377 bestanden | 16, alle gefangen | 14 Befunde, eingearbeitet | 1280/768/390 px, Tastatur, Fokus |
 | 2 Abrufen (#81) | 7.437 bestanden | 16, alle gefangen | 18 Befunde, eingearbeitet | 1280/390 px |
 | 5 Ablage (#82) | 7.263 bestanden | 13, alle gefangen | 9 Befunde, 7 behoben, 2 vermerkt | keine Oberflächenänderung |
-| 3 Hereinholen (#83) | folgt | folgt | 1 hoher, 9 mittlere Befunde; Behebung läuft | 390 px, Pause, Neu anmelden |
-| 4 Kalender (#84) | 7.327 bestanden | je Zusicherung, alle gefangen bis auf eine benannte | 7 Befunde behoben, Nach-Review läuft | keine Oberflächenänderung |
+| 3 Hereinholen (#83) | 7.371 bestanden | rund 100 in drei Runden, alle gefangen | 2 Runden: 1 hoher, 12 mittlere, 12 niedrige Befunde, alle behoben | 390 px, Pause, Neu anmelden, Fokus und Escape |
+| 4 Kalender (#84) | 7.421 bestanden | vier Runden, alle gefangen bis auf zwei ohne beobachtbare Wirkung | 3 Runden mit 7, 11 und 11 Befunden, alle behoben; zuletzt 0 falsche Termine in 7.800 Zufallsregeln | keine Oberflächenänderung |
 
 Auf dem Paketstand fiel jeweils nur `test_microsoft_anmeldung::test_ein_netzversuch_in_tests_wird_gefangen`
 (Namensauflösung im Container); #79 behebt genau diesen Fall.
@@ -46,15 +48,21 @@ Auf dem Paketstand fiel jeweils nur `test_microsoft_anmeldung::test_ein_netzvers
   bis Rang 12 unverändert 112. Sieben Belege rücken nach vorn (einer von Rang 10 auf 3),
   drei um einen Rang zurück, keiner fällt aus den ersten fünf.
 * Akten: 5 von 5 Fällen, 15 von 15 erwarteten Quellen im Verlauf, vor und nach den Paketen.
+* Auf dem Gesamtstand gemessen: dieselben Zahlen, Beleg für Beleg gleich wie Paket 2 allein.
 
 ## Gesamtstand
 
-Alle acht PRs lokal in der Merge-Reihenfolge zusammengeführt (Merge-Commits, keine
-Konflikte):
+Geprüft wurde der Baum dieses Release-Branches: alle acht PRs in ihrem Endstand,
+zusammengeführt mit Merge-Commits, keine Konflikte. Das ist der Stand, der nach allen
+Merges auf `main` liegt.
 
 * Volle Backend-Suite unter **Python 3.10** (wie die CI): folgt (Vorlauf vor den Korrekturen an #83: 7.571 bestanden, 0 fehlgeschlagen).
 * Volle Backend-Suite unter Python 3.13: folgt (Vorlauf ohne #83 und #84: 7.447 bestanden, 0 fehlgeschlagen).
-* Oberfläche: `tsc` ohne Fehler, folgt (Vorlauf ohne #83 und #84: 749 von 749).
+* Oberfläche: `tsc` ohne Fehler, **763 von 763** Oberflächentests, Produktionsbau erfolgreich.
+* Browser (echtes Chromium, synthetische Messlatte-Welt bzw. Attrappe, auf diesem Baum):
+  Akte 24 von 24 Prüfungen (Braucht dich, Erledigt/Rückgängig, Zeitstrahl mit Tastatur,
+  Fokus, 1280/768/390 px), „Worauf warte ich noch?“ und „Was habe ich zugesagt?“ mit
+  Quellenlinks, Pause und „Neu anmelden“ (9 Bilder); Konsole jeweils ohne Fehler.
 
 ## Grenzen und offene Abnahme
 
