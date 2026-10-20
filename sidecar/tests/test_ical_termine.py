@@ -939,3 +939,15 @@ def test_utf8_mit_bom_wird_ebenfalls_je_termin_dekodiert():
         assert len(termine) > 2000 and abo.termine > 2000 and any('\U0001F389' in t.summary for t in termine)
         spitzen[name] = (lesen, einrichten)
     assert spitzen['bom'][0] < spitzen['ohne'][0] * 1.1 and spitzen['bom'][1] < spitzen['ohne'][1] * 1.1, spitzen
+
+
+def test_zeitzone_unabhaengig_von_gross_und_kleinschreibung():
+    """Review 3, N5: Auf macOS fand ZoneInfo `europe/berlin` (Dateisystem ohne Groß/Klein), seit der IANA-Liste nicht."""
+    for name, erwartet in (('europe/berlin', 'Europe/Berlin'), ('EUROPE/BERLIN', 'Europe/Berlin'),
+                           ('america/argentina/buenos_aires', 'America/Argentina/Buenos_Aires'),
+                           ('w. europe standard time', 'Europe/Berlin'),
+                           ('/mozilla.org/20070129_1/europe/berlin', 'Europe/Berlin')):
+        assert str(zone(name)) == erwartet, name
+    assert zone('LOCALTIME') is None and zone('factory') is None
+    (termin,) = parse_events(ics(['UID:k', 'DTSTART;TZID=europe/berlin:20261020T090000']))
+    assert termin.start == utc(2026, 10, 20, 7)
