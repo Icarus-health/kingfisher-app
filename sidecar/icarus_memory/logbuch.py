@@ -28,6 +28,7 @@ Die Art-spezifischen Nutzdaten (`sorte` ist die Unterart; das Schlüsselwort `ar
 | `export` | `was` |
 | `rueckmeldung` | `sorte` |
 | `zu_lang` | `sorte`, `anzahl`: Quellen über der Obergrenze der Einordnung (`abschnitte.OBERGRENZE`), nicht eingeordnet |
+| `aufgabe_post` | `sorte` (`erledigt`, `zurueck`), `aufgabe`, `mail` (Kennungen), `wie` (`verlauf`, `person`, `vorschlag`): die Post hat eine Aufgabe erledigt oder zurückgeholt (`aufgaben_post.py`) |
 
 **Die Zusammenfassung.** `seit(zeitpunkt)` zählt die Einträge seit dem Zeitpunkt, `drei_zeilen` macht daraus
 höchstens drei Zeilen Alltagssprache: erst was hereinkam (Quellen, Akten), dann was dein Auge braucht
@@ -68,7 +69,7 @@ from .migrations import Migration, run_migrations, verify_schema
 logger = logging.getLogger(__name__)
 
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
-         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang')
+         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang', 'aufgabe_post')
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)
@@ -189,12 +190,14 @@ class Zusammenfassung:
     """Der Zeitraum beginnt erst mit dem Logbuch (es ist jünger als der gefragte Rückblick): davor gab es nichts."""
     zu_lang: int = 0
     """Quellen, die für die Einordnung zu lang waren (über `abschnitte.OBERGRENZE`)."""
+    aufgaben_post: dict[str, int] = field(default_factory=dict)
+    """Aufgaben, die die Post erledigt (`erledigt`) oder zurückgeholt (`zurueck`) hat (`aufgaben_post.py`)."""
 
     @property
     def leer(self) -> bool:
         return not (self.quellen or self.akten_neu or self.akten_aktualisiert or self.vorschlaege_erzeugt
                     or self.vorschlaege_angenommen or self.vorschlaege_abgelehnt or self.befunde or self.fehler
-                    or self.modellwechsel or self.exporte or self.rueckmeldungen or self.zu_lang)
+                    or self.modellwechsel or self.exporte or self.rueckmeldungen or self.zu_lang or self.aufgaben_post)
 
     def to_dict(self) -> dict[str, Any]:
         return {'seit': self.seit.isoformat(timespec='seconds'), 'bis': self.bis.isoformat(timespec='seconds'),
@@ -203,7 +206,7 @@ class Zusammenfassung:
                                 'abgelehnt': self.vorschlaege_abgelehnt},
                 'befunde': self.befunde, 'befunde_quelle': self.befunde_quelle, 'fehler': self.fehler,
                 'modellwechsel': self.modellwechsel, 'exporte': self.exporte, 'rueckmeldungen': self.rueckmeldungen,
-                'zu_lang': self.zu_lang}
+                'zu_lang': self.zu_lang, 'aufgaben_post': self.aufgaben_post}
 
 
 def _anzahl(wert: Any, vorgabe: int = 1) -> int:
@@ -270,6 +273,9 @@ def zusammenfassen(ereignisse: Iterable[Ereignis], seit: datetime, bis: datetime
             z.rueckmeldungen += 1
         elif e.art == 'zu_lang':
             z.zu_lang += _anzahl(d.get('anzahl'))
+        elif e.art == 'aufgabe_post' and d.get('sorte') in ('erledigt', 'zurueck'):
+            sorte = str(d['sorte'])
+            z.aufgaben_post[sorte] = z.aufgaben_post.get(sorte, 0) + 1
     z.akten_neu = list(neu.values())
     # Eine Akte, die in diesem Zeitraum entstand, gilt nicht zusätzlich als ergänzt.
     z.akten_aktualisiert = [a for k, a in geaendert.items() if k not in neu]
@@ -368,6 +374,16 @@ def _vorschlag_saetze(z: Zusammenfassung) -> list[str]:
     return saetze
 
 
+def _post_saetze(z: Zusammenfassung) -> list[str]:
+    """Was die Post an den Aufgaben geändert hat: umkehrbar, darum gehört es vor das Auge."""
+    saetze = []
+    if z.aufgaben_post.get('erledigt'):
+        saetze.append(f'{_zahl(z.aufgaben_post["erledigt"], "Aufgabe", "Aufgaben")} nach deiner Post erledigt')
+    if z.aufgaben_post.get('zurueck'):
+        saetze.append(f'{_zahl(z.aufgaben_post["zurueck"], "Aufgabe", "Aufgaben")} wieder bei dir')
+    return saetze
+
+
 def _schritt(was: str) -> str:
     """Der Schritt hinter dem Namen eines Laufs; ein Postfach (`mail:<konto>`) ist „Mails abrufen“."""
     return 'mailabruf' if was.startswith('mail:') else was
@@ -413,7 +429,7 @@ def gruppen(z: Zusammenfassung) -> dict[str, list[str]]:
     Leere Aussagen fehlen; leere Gruppen bleiben als leere Liste stehen.
     """
     return {'hereingekommen': [s for s in (_quellen_satz(z), *_akten_saetze(z)) if s],
-            'pruefen': [s for s in (_befund_satz(z), *_vorschlag_saetze(z)) if s],
+            'pruefen': [s for s in (_befund_satz(z), *_vorschlag_saetze(z), *_post_saetze(z)) if s],
             'betrieb': _betriebs_saetze(z)}
 
 
