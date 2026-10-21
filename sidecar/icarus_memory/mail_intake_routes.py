@@ -5,7 +5,7 @@ from .mail_intake import Intake
 from . import config
 from .model_roles import hintergrund_anbieter
 from . import hintergrund_cloud
-from .connectors.mail import MailError
+from .connectors.mail import MailError, ist_gesendet_ordner
 from .mail_anmeldung import einordnen
 from .zeitgrenze import mit_zeitgrenze
 
@@ -22,6 +22,34 @@ def attachment_support(reader):
                    'Scans brauchen lokale Texterkennung; ungelesene Inhalte und Grenzen stehen an der Originalquelle.'
                    if supported else 'Dieser Mailzugang liest bisher den Mailtext, keine Anlagen. Inhalte aus Anlagen können im Gedächtnis fehlen.')
     return {'attachments_supported': supported, 'attachments_description': description}
+
+#: Was gelesen wird, in Alltagssprache; `umfang_beschreibung` wählt nach den Ordnern.
+UMFANG_GESAMT='Posteingang, Gesendet und Archiv über den Gmail-Gesamtbestand; ohne Spam und Papierkorb.'
+UMFANG_MIT_GESENDET='Posteingang und Gesendet; ohne Spam und Papierkorb.'
+UMFANG_NUR_POSTEINGANG='Nur der Posteingang; gesendete und archivierte Mails sind bei diesem Konto nicht dabei.'
+#: Antworten von „Gesendete Mails auch einlesen“ (`POST …/ordner-ergaenzen`).
+GESENDET_NEU='Gesendete Mails werden jetzt mit eingelesen.'
+GESENDET_SCHON='Gesendete Mails sind schon dabei.'
+GESENDET_KEINER='Dieses Postfach hat keinen Gesendet-Ordner, den Kingfisher erkennt.'
+
+
+def gesendet_dabei(folders):
+    """Ob gesendete Mails in diesen Ordnern enthalten sind: ein Gesendet-Ordner oder ein Gesamtbestand (Gmail)."""
+    return any(f.upper()!='INBOX' for f in folders)
+
+
+def umfang_beschreibung(folders, reader=None):
+    """Drei Fälle in Alltagssprache: Gesamtbestand, „Posteingang und Gesendet“, „Nur der Posteingang“.
+
+    Ein Leser, der seinen Umfang selbst kennt (Microsoft 365: Posteingang und Gesendet), sagt ihn selbst.
+    """
+    umfang=getattr(reader,'umfang',None)
+    if isinstance(umfang,str) and umfang:return umfang
+    namen=[f for f in folders if isinstance(f,str)]
+    if any(f.upper()!='INBOX' and not ist_gesendet_ordner(f) for f in namen):return UMFANG_GESAMT
+    if any(ist_gesendet_ordner(f) for f in namen):return UMFANG_MIT_GESENDET
+    return UMFANG_NUR_POSTEINGANG
+
 
 class StartIn(BaseModel):
     folders: list[str]
@@ -53,6 +81,11 @@ def register(app, guard, data_dir, wire):
         if entry is None:raise HTTPException(404,'Mailkonto ist nicht verbunden.')
         return entry
 
+    def erkannt():
+        """Je Konto, ob die letzte Ordnersuche einen Gesendet-Ordner fand (nur für diesen Lauf, nicht gespeichert)."""
+        if getattr(app.state,'gesendet_erkannt',None) is None:app.state.gesendet_erkannt={}
+        return app.state.gesendet_erkannt
+
     def status():
         store=Intake(app.state.episodes)
         result=[]
@@ -64,6 +97,12 @@ def register(app, guard, data_dir, wire):
             except Exception:
                 reader = None
             state.update(attachment_support(reader))
+            # Was gelesen wird, und ob Gesendet dabei ist (dann kein Knopf „Gesendete Mails auch einlesen“).
+            # `gesendet_erkennbar`: das Ergebnis der letzten Ordnersuche dieses Laufs (None: noch nicht nachgesehen).
+            ordner=[f['folder'] for f in state['folders']]
+            state.update(umfang=umfang_beschreibung(ordner,reader) if state['started'] else None,
+                         gesendet_dabei=gesendet_dabei(ordner) if state['started'] else False,
+                         gesendet_erkennbar=erkannt().get(entry.id))
             # Fortschritt des Empfängernachtrags für ältere Mails; fehlt, solange er nicht begonnen hat.
             lauf=getattr(app.state,'nachtrag',None)
             state['empfaengernachtrag']=lauf.status(entry.id) if lauf is not None and state['started'] else None
@@ -115,6 +154,9 @@ def register(app, guard, data_dir, wire):
         historical=[f['name'] for f in available if f.get('historical')]
         if not historical:
             raise HTTPException(503,'Im Postfach fehlt der Posteingang; bitte beim Anbieter nachsehen und erneut versuchen.')
+        # Gemerkt für den Stand: Gibt es einen Gesendet-Ordner, den Kingfisher erkennt (am Attribut oder am Namen)?
+        erkannt()[account_id]=any(f.get('historical') and (f.get('gesendet') or ist_gesendet_ordner(f['name'],f.get('attributes') or ()))
+                                 for f in available)
         return reader,historical
 
     @app.get('/api/v1/mail/erreichbar',dependencies=guard)
@@ -149,11 +191,7 @@ def register(app, guard, data_dir, wire):
     @app.get('/api/v1/mail/intake/{account_id}/preview',dependencies=guard)
     def preview(account_id:str):
         reader,folders=discover(account_id)
-        # Ein Leser, der seinen Umfang selbst kennt (Microsoft 365: Posteingang und Gesendet), sagt ihn selbst.
-        umfang=getattr(reader,'umfang',None)
-        return {'folders':folders,**attachment_support(reader),
-                'description': umfang if isinstance(umfang,str) and umfang else 'Posteingang, Gesendet und Archiv über den Gmail-Gesamtbestand; ohne Spam und Papierkorb.'
-                    if any(f.upper()!='INBOX' for f in folders) else 'Nur Posteingang; Archiv und Gesendet sind bei diesem Konto noch nicht enthalten.'}
+        return {'folders':folders,**attachment_support(reader),'description':umfang_beschreibung(folders,reader)}
 
     @app.post('/api/v1/mail/intake/{account_id}/start',dependencies=guard)
     def start(account_id:str,body:StartIn):
@@ -211,6 +249,39 @@ def register(app, guard, data_dir, wire):
                 store.pause(account_id,False)
                 wire(app)
         return status()
+
+    @app.post('/api/v1/mail/intake/{account_id}/ordner-ergaenzen',dependencies=guard)
+    def ordner_ergaenzen(account_id:str):
+        """„Gesendete Mails auch einlesen“: Ordner eines laufenden Kontos nachtragen, die das Postfach heute hat.
+
+        Für Konten von vor dem Umbau, die mit nur dem Posteingang gestartet sind. Die Ordner werden neu ermittelt
+        (wie beim Vorschau-Knopf) und nur ergänzt; was läuft, läuft weiter, eine Pause bleibt. Die Antwort sagt in
+        einem Satz, was passiert ist.
+        """
+        account(account_id)
+        require_capacity()
+        reader,historical=discover(account_id)
+        with app.state.conversation_lock:
+            account(account_id)
+            require_capacity()
+            if app.state.mail.reader_for(account_id) is not reader:raise HTTPException(409,'Kontoverbindung wurde geändert.')
+            store=Intake(app.state.episodes)
+            if not store.status(account_id)['started']:
+                raise HTTPException(409,'Bitte zuerst den Mailumfang prüfen und die Aufnahme starten.')
+            try:
+                neu=store.ergaenzen(account_id,historical)
+            except ValueError:
+                raise HTTPException(409,'Bitte zuerst den Mailumfang prüfen und die Aufnahme starten.') from None
+        if neu:
+            satz=GESENDET_NEU
+            # Gleich lesen, nicht erst beim nächsten Takt: Wer den Knopf drückt, will es jetzt sehen.
+            scheduler=getattr(app.state,'scheduler',None)
+            if scheduler is not None and hasattr(scheduler,'aufnahme_wecken'):scheduler.aufnahme_wecken()
+        elif gesendet_dabei(historical):
+            satz=GESENDET_SCHON
+        else:
+            satz=GESENDET_KEINER
+        return {**status(),'ergaenzt':neu,'satz':satz}
 
     @app.post('/api/v1/mail/intake/{account_id}/retry',dependencies=guard)
     def retry(account_id:str):

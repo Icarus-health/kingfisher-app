@@ -163,6 +163,20 @@ def konto_stand(name: str, *, intake: dict[str, Any] | None = None, abruf: dict[
         zuletzt = max(filter(None, (_zeit(intake.get('aktualisiert')), blick_zeit)), default=None)
         wann = zeit_text(zuletzt, jetzt)
         if gesamt is None:
+            # Gesendet wird nachgelesen (Konto von vor dem Umbau, „Gesendete Mails auch einlesen“): Der fertige
+            # Posteingang fällt nicht auf „wird durchgesehen“ zurück; der Satz sagt, was noch läuft.
+            from .connectors.mail import ist_gesendet_ordner
+            offen_ordner = [o for o in ordner if not o.get('inventory_complete')]
+            fertig_ordner = [o for o in ordner if o.get('inventory_complete') and o.get('total') is not None]
+            if (offen_ordner and fertig_ordner and all(ist_gesendet_ordner(str(o.get('folder') or '')) for o in offen_ordner)
+                    and not any(ist_gesendet_ordner(str(o.get('folder') or '')) for o in fertig_ordner)):
+                fertig_gesamt = sum(int(o.get('total') or 0) for o in fertig_ordner)
+                nachgelesen = sum(int(o.get('captured') or 0) + int(o.get('duplicates') or 0) + int(o.get('filtered') or 0)
+                                  for o in offen_ordner)
+                bisher = 'keine' if nachgelesen == 0 else 'eine' if nachgelesen == 1 else zahl(nachgelesen)
+                return _ergebnis('liest', f'{postfach}: Der Posteingang ist gelesen ({_mails(fertig_gesamt)}). '
+                                          f'Gesendete Mails werden nachgelesen: bisher {bisher} gefunden.',
+                                 gelesen_n=gefunden, technik=technik)
             if gefunden == 0 and blick is not None and int(blick.get('anzahl') or 0) == 0:
                 # Der Posteingang ist nachweislich leer; die übrigen Ordner sieht Kingfisher noch durch.
                 return _ergebnis('leer', f'{postfach} ist verbunden, und im Posteingang liegt nichts'
