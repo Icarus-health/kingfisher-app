@@ -27,7 +27,8 @@ class Provider:
 def test_returns_draft_without_writing_memory_or_sending():
     app,c=make_client(); r=c.post('/api/v1/messages/a%3A1.1/reply-suggestion',json={'instruction':'locker bleiben'})
     assert r.status_code==200 and r.json()=={'body':'Ja, gern.','basis':'message_and_instruction',
-                                             'context_token':None,'source_status':'unknown','sources':[]}
+                                             'context_token':None,'source_status':'unknown','sources':[],
+                                             'stil':{'bestaetigt':False,'gesendet':0}}
     assert app.state.mail.message_calls==2
 
 def test_cloud_provider_and_bad_source_are_rejected_before_model():
@@ -83,3 +84,48 @@ def test_changed_reply_address_rejects_draft():
             return SimpleNamespace(text='{"body":"x"}',tool_calls=[])
     _,c=make_client(mail=m,provider=Changed())
     assert c.post('/api/v1/messages/a%3A1.1/reply-suggestion',json={}).status_code==409
+
+
+def test_systemhinweis_traegt_gruss_anredeform_und_sprache_und_antwort_den_stilhinweis(tmp_path):
+    """Paket B5: Die bestätigten Regeln `gruss`, `anrede_form`, `sprache` kommen als Systemhinweis zum Entwurf; die
+    Antwort sagt, ob ein Ton aus gesendeten Mails vorgeschlagen, aber noch nicht bestätigt ist."""
+    import threading
+    from icarus_memory import MemoryBackend, SelfModelStore
+    from icarus_memory.episodes import EpisodeStore
+    from icarus_memory.mail_style import register_mail_style
+    gesehen = []
+    class Merkend(Provider):
+        def complete_json(self, messages):
+            gesehen.append(messages)
+            return SimpleNamespace(text='{"body":"Hi Lea, sure."}', tool_calls=[])
+    m = Mail(); m.item = Message('a:1.1', 'Termin', 'Lea <lea@example.org>', None, 'Kommst du?', True, body='Kommst du?',
+                                 account_id='a', message_id='<m>', reply_to='lea@example.org')
+    app, c = make_client(mail=m, provider=Merkend())
+    app.state.store = SelfModelStore(MemoryBackend(), subject_id='test')
+    app.state.episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    register_mail_style(app, [])
+    regeln = {'address': 'du', 'gruss': 'Best regards', 'anrede_form': 'vorname', 'sprache': 'en'}
+    assert c.put('/api/v1/messages/a%3A1.1/style', json={'scope': 'contact', 'rules': regeln}).status_code == 200
+    antwort = c.post('/api/v1/messages/a%3A1.1/reply-suggestion', json={})
+    assert antwort.status_code == 200
+    system = [x['content'] for x in gesehen[-1] if x['role'] == 'system']
+    assert any('Best regards' in s and 'Grußformel' in s and '"anrede_form": "vorname"' in s and '"sprache": "en"' in s for s in system), system
+    assert any('englischen' in s for s in system) and not any('deutschen' in s for s in system), system
+    assert antwort.json()['stil'] == {'bestaetigt': True, 'gesendet': 0}
+
+
+def test_stilhinweis_nennt_vorschlag_aus_gesendeten_mails(tmp_path):
+    from icarus_memory import MemoryBackend, SelfModelStore
+    from icarus_memory.episodes import EpisodeStore
+    from icarus_memory.mail_style import register_mail_style
+    from tests.test_stilprofil import DU_MAILS, gesendet
+    m = Mail(); m.item = Message('a:1.1', 'Termin', 'Lea <lea@example.org>', None, 'Kommst du?', True, body='Kommst du?',
+                                 account_id='a', message_id='<m>', reply_to='lea@example.org')
+    app, c = make_client(mail=m)
+    app.state.store = SelfModelStore(MemoryBackend(), subject_id='test')
+    app.state.episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    register_mail_style(app, [])
+    for t in DU_MAILS:
+        gesendet(app, t)
+    antwort = c.post('/api/v1/messages/a%3A1.1/reply-suggestion', json={})
+    assert antwort.status_code == 200 and antwort.json()['stil'] == {'bestaetigt': False, 'gesendet': 3}
