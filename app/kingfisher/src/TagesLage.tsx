@@ -10,7 +10,7 @@ import { dailyIntroduction } from "./dailyFlow";
 // Das Morgenbriefing in drei bis fünf Zeilen: ein Urteil, keine Liste. Jede Zeile hat ihre Aktion
 // (Vorbereitung öffnen, Quelle öffnen); was fehlt oder nicht belegt ist, steht nicht da. Die Vorbereitung
 // der Termine entsteht ohne Klick im Sidecar (tag_routes.py); hier wird nur gezeigt und gefragt.
-const KOPF: Record<string, string> = { termin: "Wohin", leute: "Wer kommt", einpacken: "Einpacken", fristen: "Fristen", wetter: "Wetter", geburtstag: "Geburtstag", welt: "Welt" };
+const KOPF: Record<string, string> = { termin: "Wohin", leute: "Wer kommt", einpacken: "Einpacken", fristen: "Fristen", aufgaben_post: "Post", wetter: "Wetter", geburtstag: "Geburtstag", welt: "Welt" };
 
 export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: boolean}) {
   const [daten, setDaten] = useState<TagBriefing | null>(null);
@@ -79,6 +79,9 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
     if (a.art === "link" && a.ref) return <a key={index} className="today-text-link tageslage-knopf" href={a.ref} target="_blank" rel="noopener noreferrer">{a.beschriftung}<span aria-hidden="true">↗</span></a>;
     if (a.art === "akte" && a.ref) return <button key={index} type="button" className="today-text-link tageslage-knopf"
       onClick={() => navigate(`/memory/akte/${encodeURIComponent(a.ref as string)}`)}>{a.beschriftung}<span aria-hidden="true">→</span></button>;
+    // Aufgaben folgen der Post: die erledigte Aufgabe öffnen (dort steht der Grund mit „Rückgängig“).
+    if (a.art === "aufgabe" && a.ref) return <button key={index} type="button" className="today-text-link tageslage-knopf"
+      onClick={() => navigate(`/vorhaben?view=done&task=${encodeURIComponent(a.ref as string)}`)}>{a.beschriftung}<span aria-hidden="true">→</span></button>;
     if (a.art === "welt_quelle" || a.art === "welt_sache") return <button key={index} type="button" className="today-text-link tageslage-knopf" disabled={arbeitet}
       onClick={() => void abbestellen(a)}>{a.beschriftung}</button>;
     if (a.art === "fahrzeiten" || a.art === "heimat") return <button key={index} type="button" className="today-text-link tageslage-knopf"

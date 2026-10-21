@@ -5,6 +5,7 @@ import {TaskSource} from "./TaskSource";
 import {TaskHistory} from "./TaskHistory";
 import {endOfTaskDay, localTaskDay as dateInput} from "./taskWorkflow";
 import {localReminderInput, reminderEditChanges, reminderLabel, tomorrowAtNine} from "./reminderDates";
+import {postSatz} from "./aufgabenPost";
 
 function dueLabel(value: string | null) {
   if (!value) return "Ohne Termin";
@@ -18,7 +19,7 @@ function dueLabel(value: string | null) {
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short" }).format(date).replace(".", "");
 }
 
-export function TaskRow({ task, view, completing, onComplete, onWait, projects, onProjectChange, onEdit, projectDisabled = false, compact = false, onOpen }: { task: LocalTask; view: "mine" | "waiting" | "done"; completing: boolean; onComplete: () => void; onWait: (name?: string) => void; projects: Project[]; projectDisabled?: boolean; compact?: boolean; onOpen?: () => void; onProjectChange: (id: string) => void; onEdit: (data: {title?: string; due?: string | null; notes?: string | null; remind_at?: string | null; expected_remind_at?: string | null}) => Promise<boolean> }) {
+export function TaskRow({ task, view, completing, onComplete, onWait, projects, onProjectChange, onEdit, projectDisabled = false, compact = false, onOpen, onRueckgaengig }: { task: LocalTask; view: "mine" | "waiting" | "done"; completing: boolean; onComplete: () => void; onWait: (name?: string) => void; projects: Project[]; projectDisabled?: boolean; compact?: boolean; onOpen?: () => void; onProjectChange: (id: string) => void; onEdit: (data: {title?: string; due?: string | null; notes?: string | null; remind_at?: string | null; expected_remind_at?: string | null}) => Promise<boolean>; onRueckgaengig?: () => void }) {
   const remindAt = (task as LocalTask & {remind_at?: string | null; expected_remind_at?: string | null}).remind_at ?? null;
   const [waitingForm, setWaitingForm] = useState(false);
   const [waitingName, setWaitingName] = useState("");
@@ -30,6 +31,8 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
   const [editNotes, setEditNotes] = useState(task.notes ?? "");
   const [reminderError, setReminderError] = useState("");
   const complete = task.status === "done";
+  // Aufgaben folgen der Post: Was die eigene Mail erledigt oder zurückgeholt hat, steht mit Grund da, mit „Rückgängig“.
+  const postZeile = postSatz(task);
   const canComplete = ((view === "mine" || view === "waiting") && task.status === "open") || (view === "done" && complete);
   function beginEdit() {
     setEditTitle(task.title);
@@ -61,7 +64,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
       {reminderError && <p className="partial-error" role="alert">{reminderError}</p>}
       <label>Notiz <small>(optional)</small><textarea value={editNotes} onChange={event => setEditNotes(event.target.value)} rows={2} /></label>
       <div><button className="secondary-action" disabled={completing} onClick={() => setEditing(false)} type="button">Abbrechen</button><button className="primary-action" disabled={completing || !editTitle.trim()} type="submit">Änderungen speichern</button></div>
-    </form> : <>{onOpen ? <button className="task-title-link" type="button" onClick={onOpen}>{task.title}</button> : <strong>{task.title}</strong>}{view === "waiting" && task.wartet_auf ? <small>Wartet auf {task.wartet_auf}</small> : null}{!compact && task.notes ? <small title={task.notes}>Notiz: {task.notes}</small> : null}{remindAt ? <small>Wiedervorlage: {reminderLabel(remindAt)}</small> : null}<select aria-label={`Projekt für ${task.title}`} value={task.project_id ?? ""} disabled={completing || projectDisabled} onChange={event => onProjectChange(event.target.value)}><option value="">Ohne Projekt</option>{task.project_id && !projects.some(project => project.id === task.project_id) ? <option value={task.project_id}>Projekt nicht verfügbar</option> : null}{projects.filter(project => project.open || project.id === task.project_id).map(project => <option disabled={!project.open}  key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select><button className="secondary-action" type="button" disabled={completing} onClick={beginEdit}>Bearbeiten</button>{!compact && task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}{!compact && <TaskHistory taskId={task.id} revision={JSON.stringify([task.title, task.due, remindAt, task.notes, task.status, task.project_id, task.wartet_auf])} />}</>}</div>
+    </form> : <>{onOpen ? <button className="task-title-link" type="button" onClick={onOpen}>{task.title}</button> : <strong>{task.title}</strong>}{view === "waiting" && task.wartet_auf ? <small>Wartet auf {task.wartet_auf}</small> : null}{postZeile ? <small className="task-post" role="status">{postZeile}{onRueckgaengig ? <> <button type="button" className="text-action" disabled={completing} onClick={onRueckgaengig}>Rückgängig</button></> : null}</small> : null}{!compact && task.notes ? <small title={task.notes}>Notiz: {task.notes}</small> : null}{remindAt ? <small>Wiedervorlage: {reminderLabel(remindAt)}</small> : null}<select aria-label={`Projekt für ${task.title}`} value={task.project_id ?? ""} disabled={completing || projectDisabled} onChange={event => onProjectChange(event.target.value)}><option value="">Ohne Projekt</option>{task.project_id && !projects.some(project => project.id === task.project_id) ? <option value={task.project_id}>Projekt nicht verfügbar</option> : null}{projects.filter(project => project.open || project.id === task.project_id).map(project => <option disabled={!project.open}  key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select><button className="secondary-action" type="button" disabled={completing} onClick={beginEdit}>Bearbeiten</button>{!compact && task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}{!compact && <TaskHistory taskId={task.id} revision={JSON.stringify([task.title, task.due, remindAt, task.notes, task.status, task.project_id, task.wartet_auf])} />}</>}</div>
     {view !== "done" && <div className="task-wait-control">
       {view === "waiting" ? <button type="button" disabled={completing} onClick={() => onWait()}>Zurück zu mir</button> : waitingForm ? <form onSubmit={event => { event.preventDefault(); if (waitingName.trim()) onWait(waitingName.trim()); }}>
         <label>Warte auf<input value={waitingName} onChange={event => setWaitingName(event.target.value)} required maxLength={200} placeholder="Name" /></label>

@@ -451,8 +451,23 @@ export type Project = {
   open: boolean;
 };
 
+/** Was die Post an einer Aufgabe geändert hat (sidecar: aufgaben_post.py): der Satz mit Grund, die Mail, der Zeitpunkt. */
+export type AufgabenPostGrund = {
+  art: "erledigt" | "zurueck"; satz: string; episode_id: string; mail_titel: string; wer: string;
+  datum: string | null; am: string; verlauf: boolean; woerter: string[];
+};
+export type AufgabenPostVorschlag = {
+  id: string; art: "erledigt" | "zurueck"; statement: string; satz: string;
+  aufgabe: { id: string; title: string; wartet_auf: string | null; due: string | null };
+  mail: { episode_id: string; titel: string; datum: string }; erstellt: string;
+};
+
 export type Task = {
   provenance?: {source_ref?: string | null};
+  /** Gesetzt, wenn die eigene Post die Aufgabe erledigt hat; leer nach „Rückgängig“ oder beim Abhaken von Hand. */
+  erledigt_grund?: AufgabenPostGrund | null;
+  /** Gesetzt, wenn eine Antwort das Warten aufgelöst hat („wieder bei dir“). */
+  geaendert_grund?: AufgabenPostGrund | null;
   id: string;
   title: string;
   status: "open" | "done" | "dropped";
@@ -803,9 +818,11 @@ export type AkteEntscheidung = "erledigt" | "gilt_nicht" | "offen";
 /** Von wem ein offener Punkt stammt: von dir, an dich, oder unklar (Notiz, Termin). */
 export type AkteRichtung = "von_mir" | "an_mich" | "unklar";
 export type AkteBrauchtDich = {
-  art: "abgesagter_termin" | "gilt_noch" | "frist" | "frist_verstrichen";
+  art: "abgesagter_termin" | "gilt_noch" | "frist" | "frist_verstrichen" | "aufgabe_post";
   ziel: string; satz: string; zeile: AkteZeile | null; laut: AkteZeile | null; episode_id: string; datum?: string;
   wahl: Array<{ entscheidung: AkteEntscheidung; text: string }>;
+  /** Bei `aufgabe_post`: die Aufgabe, die die Post geändert hat (Rückgängig statt einer Wahl). */
+  aufgabe?: { id: string; title: string };
 };
 export type AkteZeitpunkt = {
   art: "quelle" | "termin" | "frist"; datum: string; episode_id: string; titel: string; quelle_art: string;
@@ -868,9 +885,9 @@ export type TagTermin = { uid: string; episode_id: string | null; titel: string;
   personen: TagPerson[]; unbekannt: string[]; hintergrund: Array<{ sache: string; name: string; art: string; herkunft: string; zeilen: TagZeile[] }>;
   projekt: { id: string; name: string; herkunft: string } | null; fristen: TagFrist[];
   einpacken: Array<{ text: string; episode_id: string; titel: string; datum: string | null; art: string }>; wegezeit: TagWeg | null; bereit: boolean };
-export type TagAktion = { art: "vorbereitung" | "quelle" | "fahrzeiten" | "heimat" | "akte" | "link" | "welt_quelle" | "welt_sache"; beschriftung: string; ref: string | null };
+export type TagAktion = { art: "vorbereitung" | "quelle" | "fahrzeiten" | "heimat" | "akte" | "aufgabe" | "link" | "welt_quelle" | "welt_sache"; beschriftung: string; ref: string | null };
 export type TagLage = { einleitung: string; tag: "heute" | "morgen"; verlauf?: string[];
-  zeilen: Array<{ art: "termin" | "leute" | "einpacken" | "fristen" | "wetter" | "welt"; text: string; aktionen: TagAktion[]; vermutlich: boolean }> };
+  zeilen: Array<{ art: "termin" | "leute" | "einpacken" | "fristen" | "aufgaben_post" | "wetter" | "geburtstag" | "welt"; text: string; aktionen: TagAktion[]; vermutlich: boolean }> };
 // Das Logbuch (sidecar: logbuch.py, logbuch_routes.py): was seit dem letzten Blick geschah, in Alltagssprache.
 export type LogbuchAnsicht = { seit: string; bis: string; zeilen: string[]; leer: boolean;
   tage: Array<{ tag: string; titel: string; eintraege: string[] }> };
@@ -1417,6 +1434,11 @@ export const api = {
   unwaitTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/zurueckholen`, {method: "POST"}),
   reopenTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/reopen`, { method: "POST" }),
   completeTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/done`, { method: "POST" }),
+  // Aufgaben folgen der Post (sidecar: aufgaben_post.py): Rückgängig stellt den Zustand vor der Änderung wieder her.
+  taskRueckgaengig: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/rueckgaengig`, { method: "POST" }),
+  aufgabenPostVorschlaege: () => request<{ items: AufgabenPostVorschlag[] }>("/api/v1/aufgaben-post/vorschlaege"),
+  aufgabenPostAnnehmen: (id: string) => request<Task>(`/api/v1/aufgaben-post/vorschlaege/${encodeURIComponent(id)}/annehmen`, { method: "POST" }),
+  aufgabenPostVerwerfen: (id: string) => request<unknown>(`/api/v1/aufgaben-post/vorschlaege/${encodeURIComponent(id)}/verwerfen`, { method: "POST" }),
   messages: (accountId?: string) => request<InboxPayload>(`/api/v1/messages${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ""}`),
   mailThread: (uid: string, signal?: AbortSignal) => request<MailThreadContext>(`/api/v1/messages/${encodeURIComponent(uid)}/thread`, {signal}),
   mailThreadSummary: (uid: string, context_fingerprint: string, signal?: AbortSignal) => request<MailThreadSummary>(`/api/v1/messages/${encodeURIComponent(uid)}/thread-summary`, {method: "POST", body: JSON.stringify({context_fingerprint}), signal}),
