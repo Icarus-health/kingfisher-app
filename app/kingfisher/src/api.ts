@@ -1,5 +1,6 @@
 import type {HealthPayload} from "./healthObservationForm";
 import type { AktenArt, ArtStand, KreisArt, KreisStand, KreisUebersicht } from "./kreis";
+import type { KreisTonStand, StilRegeln } from "./stilprofil";
 import type { WkStand } from "./wiederkehrendes";
 import type { SuchindexStand } from "./suchindex";
 import type { SystemAngabe } from "./system";
@@ -1490,6 +1491,11 @@ export const api = {
   kreisBestaetigen: (sache: string, kreis: KreisArt) => request<KreisStand>("/api/v1/kreis", { method: "PUT", body: JSON.stringify({ sache, kreis }) }),
   kreisZuruecknehmen: (sache: string) => request<KreisStand>(`/api/v1/kreis?sache=${encodeURIComponent(sache)}`, { method: "DELETE" }),
   kreisUebersicht: () => request<KreisUebersicht>("/api/v1/kreis/uebersicht"),
+  /** Ton je Kreis (sidecar: mail_style.py, Paket B5): Vorschlag aus gesendeten Mails an die Personen eines bestätigten Kreises. */
+  stilKreise: () => request<{ kreise: KreisTonStand[] }>("/api/v1/stil/kreise"),
+  stilKreisUebernehmen: (kreis: KreisArt, rules: StilRegeln, evidence_ids: string[]) => request<KreisTonStand>(`/api/v1/stil/kreis/${kreis}`, { method: "PUT", body: JSON.stringify({ rules, evidence_ids }) }),
+  stilKreisAblehnen: (kreis: KreisArt, evidence_ids: string[]) => request<KreisTonStand>(`/api/v1/stil/kreis/${kreis}/ablehnen`, { method: "POST", body: JSON.stringify({ evidence_ids }) }),
+  stilKreisZurueck: (kreis: KreisArt) => request<KreisTonStand>(`/api/v1/stil/kreis/${kreis}`, { method: "DELETE" }),
   /** Alle offenen Vorschläge „Kollegen“ mit einem Klick (nie der innere Kreis); `anzahl` ist die Zahl aus der Rückfrage. */
   kreisSammeln: (anzahl: number) => request<{ sammlung: number | null; anzahl: number; satz: string }>("/api/v1/kreis/sammel", { method: "POST", body: JSON.stringify({ kreis: "kollegen", anzahl }) }),
   kreisSammlungZurueck: (sammlung: number) => request<{ anzahl: number; satz: string }>(`/api/v1/kreis/sammel?sammlung=${encodeURIComponent(String(sammlung))}`, { method: "DELETE" }),

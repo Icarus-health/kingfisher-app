@@ -85,3 +85,67 @@
   color: var(--kf-schrift-53635f);
   font-size: 10px;
 }
+
+/* Paket B5: Vorschlag für den Ton aus gesendeten Mails, Belege zum Aufklappen, Kreiszeile. */
+.mail-style-ton {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.mail-style-ton-satz {
+  margin: 10px 0 0;
+  color: var(--kf-schrift-062b3a);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.mail-style-belege {
+  margin-top: 12px;
+}
+
+.mail-style-belege > summary {
+  cursor: pointer;
+  color: var(--kf-schrift-31535f);
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.mail-style-belege article {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 7px;
+}
+
+.mail-style-belege article p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mail-style-belege small {
+  color: var(--kf-schrift-53635f);
+  font-size: 10px;
+}
+
+.mail-style-kreis {
+  margin: 6px 0 0;
+}
+
+.mail-style input[type="text"] {
+  min-height: 36px;
+  border: 1px solid var(--kf-rand-d7e1df);
+  border-radius: 7px;
+  padding: 7px;
+  background: var(--kf-flaeche-fffefa);
+  font: inherit;
+  font-weight: 400;
+}
+
+.mail-reply-suggestion-stil {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
