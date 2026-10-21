@@ -347,6 +347,18 @@ def test_eingegrenzt_prueft_quelle_und_fassung_bei_jedem_aufruf(ohne_lokal, monk
     app.state.settings.schedule.with_model = True
     assert policy.permits(scoped, episode) is True
     assert hintergrund_cloud.eingegrenzt(app, anbieter, dokument(app, body="Zweites Dokument"))[1] is None
+    # Pause: die Freigabe selbst sagt nein, nicht erst der Lauf darum herum.
+    app.state.hintergrund.pausieren(True)
+    with als_hintergrund():
+        assert policy.permits(scoped, episode) is False
+    app.state.hintergrund.pausieren(False)
+    with als_hintergrund():
+        assert policy.permits(scoped, episode) is True
+    # Vorfilter: ein inzwischen gesperrter Absender wird bei jedem Aufruf neu geprüft.
+    app.state.settings.mail_filter["blocked"] = ["jonas@example.org"]
+    assert policy.permits(scoped, episode) is False
+    app.state.settings.mail_filter["blocked"] = []
+    assert policy.permits(scoped, episode) is True
     # Eine Quelle, die nicht mehr aktuell ist (zurückgezogen), wird nicht mehr freigegeben.
     WorkingMemoryStore(app.state.episodes).dismiss(episode.id)
     assert policy.permits(scoped, episode) is False
@@ -376,7 +388,9 @@ def test_tagesbudget_weist_den_aufruf_301_ab_und_zaehlt_am_naechsten_tag_neu(ohn
     assert hintergrund_cloud.SATZ_ERSCHOEPFT in weitere[0].detail
     assert hintergrund_cloud.SATZ_ERSCHOEPFT in weitere[1].detail
     # Am nächsten Tag geht es weiter.
-    monkeypatch.setattr(hintergrund_cloud, "heute", lambda: "2026-10-21")
+    from datetime import date, timedelta
+    morgen = (date.fromisoformat(hintergrund_cloud.heute()) + timedelta(days=1)).isoformat()
+    monkeypatch.setattr(hintergrund_cloud, "heute", lambda: morgen)
     assert budget.stand() == 0 and not hintergrund_cloud.stand(app)["erschoepft"]
     lauf(app)
     assert len(attrappe.sendungen) > 1
