@@ -35,7 +35,7 @@ from datetime import datetime
 from typing import Any
 
 from .bezuege import projekt_kennung, sache_id, zerlegen
-from .datumstext import tag_und_monat
+from .datumstext import iso_versuchen, tag_und_monat
 from .word_forms import umschrift_gleich
 
 #: Schwellen: eine davon genügt.
@@ -132,12 +132,7 @@ class Vorschlag:
 
 
 def _zeit(text: str | None) -> datetime | None:
-    if not text:
-        return None
-    try:
-        return datetime.fromisoformat(str(text).replace('Z', '+00:00'))
-    except ValueError:
-        return None
+    return iso_versuchen(text) if text else None
 
 
 def _aufzaehlung(namen: list[str]) -> str:

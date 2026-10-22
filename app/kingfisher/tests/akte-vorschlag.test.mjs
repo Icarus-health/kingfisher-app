@@ -59,7 +59,7 @@ test("Heute zeigt den einen Satz mit zwei Knöpfen und behält die Antwort, wenn
   for (const name of ["akteVorschlagAnnehmen", "akteVorschlagAblehnen", "akteVorschlagZuruecknehmen"]) assert.match(api, new RegExp(`${name}: \\(kennung: string\\)`));
 });
 
-test("keine „…\" in den neuen Zeichenketten", () => {
+test("keine Zeichenkette öffnet mit „ und schließt mit einem ASCII-Anführungszeichen", () => {
   for (const datei of ["akteVorschlag.ts", "AkteVorschlagKnoepfe.tsx", "AkteAbschnitte.tsx", "TodayOverview.tsx"]) {
     assert.doesNotMatch(quelle(datei), /„[^“\n]*"/, datei);
   }
