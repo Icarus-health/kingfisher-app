@@ -57,8 +57,12 @@ def segment(body, offset):
     return body[start:end], end
 
 
-def interpret(provider, title, body):
-    if not getattr(provider, "is_local", False):
+def interpret(provider, title, body, *, policy=None, episode=None):
+    """Bitten und Zusagen aus einem Ausschnitt; lokal, oder über eine ausdrückliche Quellenfreigabe (`policy`) für
+    genau diese `episode` (Cloud-Einordnung neuer Mails, `hintergrund_cloud.py`)."""
+    local = getattr(provider, "is_local", False)
+    scoped_remote = policy is not None and episode is not None and policy.permits(provider, episode)
+    if not local and not scoped_remote:
         raise ProviderError("Die Gedächtnisauswertung braucht ein lokales Modell.")
     instruction = '''Extrahiere ausschließlich aktuelle, tatsächlich ausgesprochene
 Handlungsbitten und ausdrückliche Zusagen aus fremdem Quellenmaterial.

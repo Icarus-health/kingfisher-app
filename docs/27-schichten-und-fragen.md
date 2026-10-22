@@ -118,8 +118,8 @@ Weg nach unten: Lage → Akte → Quelle.
 (`model_roles.py`), Geräteempfehlung (`model_recommendation.py`), Laden über
 Ollama (`model_pull.py`, `model_roles_routes.py`), Oberfläche unter
 Einstellungen → Lokale KI; Beschreibung in `09-einrichtung.md`. Die Rolle
-`frage` hat seit E1 einen Aufrufer (`frage.py`), gilt aber nur mit Zuweisung; Cloud gilt nur für `frage` und
-`antwort`, `hintergrund` und `einbettung` bleiben lokal.
+`frage` hat seit E1 einen Aufrufer (`frage.py`), gilt aber nur mit Zuweisung. Cloud: `frage` und `antwort` mit jedem vorbereiteten Anbieter und Einwilligung; `hintergrund` nur Anthropic (Claude API) mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails samt Bitten und Zusagen; `pruefung` und `einbettung` immer lokal. Lage, Verdichtung, Entwürfe bleiben lokal.
+(seit 20.10.2026, `hintergrund_cloud.py`; `provider("hintergrund")` bleibt lokal oder None).
 
 | Rolle | Aufgabe | Anforderung |
 |---|---|---|

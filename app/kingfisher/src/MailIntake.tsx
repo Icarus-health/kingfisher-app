@@ -213,7 +213,7 @@ export function MailIntake({accounts, active, onChanged}: {
         {backgroundBusy ? "Wird fortgesetzt …" : "Verarbeitung fortsetzen"}
       </button>
     </div>}
-    {status?.analysis_active === false && <p role="status">Das Sortieren ist pausiert oder es ist keine lokale KI da. Eingelesene Mails bleiben gespeichert; ausgewertet werden sie, sobald das Sortieren läuft (oben unter „Quellen automatisch sortieren“).</p>}
+    {status?.analysis_active === false && <p role="status">Das Sortieren ist pausiert, oder es ist weder eine lokale KI da noch die Cloud-Einordnung neuer Mails eingeschaltet (Was Kingfisher darf). Eingelesene Mails bleiben gespeichert; ausgewertet werden sie, sobald das Sortieren läuft (oben unter „Quellen automatisch sortieren“).</p>}
     {!status && !message && <p role="status">Wird geladen …</p>}
     {status && !status.accounts.length && <p>Verbinde zuerst ein Postfach unter Zugänge.</p>}
     {status?.accounts.filter(account => accounts.some(configured => configured.id === account.account_id)).map(account => {

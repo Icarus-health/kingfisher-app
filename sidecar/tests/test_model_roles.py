@@ -87,8 +87,8 @@ def test_openai_cloudrolle_nutzt_eigenes_standardmodell():
     assert isinstance(anbieter, OpenAICompatible) and not anbieter.is_local and anbieter.model
 
 
-@pytest.mark.parametrize("rolle", ["hintergrund", "einbettung"])
-def test_hintergrund_und_einbettung_bleiben_lokal_auch_mit_handeintrag(rolle):
+@pytest.mark.parametrize("rolle", ["einbettung", "pruefung"])
+def test_einbettung_und_pruefung_bleiben_lokal_auch_mit_handeintrag(rolle):
     standard = lokal()
     wahl = RollenWahl(modell="gross:35b", cloud=True, anbieter="anthropic", cloud_einwilligung=JETZT)
     assert not einwilligung_gueltig(rolle, wahl)
@@ -97,6 +97,28 @@ def test_hintergrund_und_einbettung_bleiben_lokal_auch_mit_handeintrag(rolle):
     # Ein Cloudstandard wird für diese Rollen nie ausgegeben: lieber kein Modell als Rohquellen in der Cloud.
     assert provider_fuer(rolle, cloud_standard(), {rolle: wahl}, UMGEBUNG) is None
     assert provider_fuer(rolle, cloud_standard(), {}, UMGEBUNG) is None
+
+
+def test_hintergrund_cloudwahl_wird_nie_zum_anbieter_der_rolle():
+    """Die Einwilligung für Anthropic gilt (`hintergrund_cloud_wahl`), aber der Anbieter der Rolle bleibt lokal oder None:
+    die Cloud-Einordnung neuer Mails läuft getrennt (`hintergrund_cloud.py`)."""
+    standard = lokal()
+    wahl = RollenWahl(cloud=True, anbieter="anthropic", cloud_einwilligung=JETZT)
+    assert einwilligung_gueltig("hintergrund", wahl)
+    anbieter = provider_fuer("hintergrund", standard, {"hintergrund": wahl}, UMGEBUNG)
+    assert anbieter is standard and anbieter.is_local
+    assert provider_fuer("hintergrund", cloud_standard(), {"hintergrund": wahl}, UMGEBUNG) is None
+    assert provider_fuer("hintergrund", cloud_standard(), {}, UMGEBUNG) is None
+    mit_modell = RollenWahl(modell="gross:35b", cloud=True, anbieter="anthropic", cloud_einwilligung=JETZT)
+    anbieter = provider_fuer("hintergrund", cloud_standard(), {"hintergrund": mit_modell}, UMGEBUNG)
+    assert anbieter.model == "gross:35b" and anbieter.is_local  # das gewählte lokale Modell bleibt
+    rollen = Rollen({"hintergrund": mit_modell}, lambda: standard, UMGEBUNG)
+    assert rollen.hintergrund_cloud_wahl() == mit_modell and rollen.provider("hintergrund").is_local
+    # Nur Anthropic; andere Anbieter ergeben keine gültige Einwilligung und keine Wahl.
+    fremd = RollenWahl(cloud=True, anbieter="openai", cloud_einwilligung=JETZT)
+    assert not einwilligung_gueltig("hintergrund", fremd)
+    assert Rollen({"hintergrund": fremd}, lambda: standard, {}).hintergrund_cloud_wahl() is None
+    assert Rollen({"antwort": wahl}, lambda: standard, UMGEBUNG).hintergrund_cloud_wahl() is None
 
 
 def test_einbettungsmodell_und_endpunkt():

@@ -71,7 +71,7 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 | Reiter | Was dort ist | Bausteine (unverändert, nur anders einsortiert) |
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
-| **Was Kingfisher darf** | Fünf Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Cloud für Fragen und Antworten nutzen. Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, neu `CloudSchalter` |
+| **Was Kingfisher darf** | Sechs Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `CloudSchalter`, `CloudEinordnungSchalter` |
 | **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
 | **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |

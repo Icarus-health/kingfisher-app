@@ -265,9 +265,17 @@ def test_prepared_keys_require_separate_role_consent_and_leave_background_local(
     assert client.put('/api/v1/models/cloud-access/' + identifier,
                       json={'api_key':'synthetic-key', 'model':'synthetic-model'}).status_code == 200
     assert from_env() is None
-    for role in ('hintergrund','einbettung','pruefung'):
+    for role in ('einbettung','pruefung'):
         assert client.put('/api/v1/models/roles/' + role,
                           json={'cloud':True, 'anbieter':identifier, 'einwilligung':True}).status_code == 422
+    # Der Hintergrund nimmt nur Anthropic, mit eigener Einwilligung; der Anbieter der Rolle bleibt dabei lokal oder None.
+    from icarus_memory import hintergrund_cloud
+    hintergrund = client.put('/api/v1/models/roles/hintergrund',
+                             json={'cloud':True, 'anbieter':identifier, 'einwilligung':True})
+    assert hintergrund.status_code == (200 if identifier == 'anthropic' else 422), hintergrund.text
+    assert rollen_von(app).provider('hintergrund') is None
+    assert (rollen_von(app).hintergrund_cloud_wahl() is not None) is (identifier == 'anthropic')
+    assert (hintergrund_cloud.anbieter(app) is not None) is (identifier == 'anthropic')
     assert client.put('/api/v1/models/roles/antwort', json={'cloud':True,'anbieter':identifier}).status_code == 422
     assert client.put('/api/v1/models/roles/antwort',
                       json={'cloud':True,'anbieter':identifier,'modell':'synthetic-model','einwilligung':True}).status_code == 200

@@ -71,6 +71,11 @@ gilt: Es zählt das Ziel, nicht der kürzeste Weg. Das Gedächtnis zuerst, die
 Oberfläche als Zweites, und eine Etappe ist erst fertig, wenn ihr „Fertig
 heißt“ erfüllt ist.
 
+Was bis zur nutzbaren Fassung noch gebaut wird und was bis dahin **nicht** mehr
+getan wird, steht in [`docs/65-ziellinie.md`](docs/65-ziellinie.md): drei
+Pakete, fünf Sätze als Abnahme, keine Modellvergleiche und keine neuen
+Ansichten vorher.
+
 ## Gestaltung
 
 Wie die Oberfläche aussieht und warum, steht in

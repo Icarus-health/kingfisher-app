@@ -29,6 +29,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from .cloud_credentials import PREPARED_CLOUD_KEYS
+from .cloud_import_provider import credential_status
 from . import config, logbuch
 from . import device_profile
 from .agent_verdrahtung import satzpruefung_stand
@@ -39,13 +40,14 @@ from .model_recommendation import (
     stufe_fuer,
 )
 from .model_roles import (
-    CLOUD_ANBIETER, OLLAMA_CLOUD, OLLAMA_CLOUD_SATZ, ROLLEN, RollenWahl, einwilligung_gueltig, lese_wahlen,
-    lokaler_endpunkt, ollama_wurzel, rollen_von,
+    CLOUD_ANBIETER, OLLAMA_CLOUD, OLLAMA_CLOUD_SATZ, ROLLEN, RollenWahl, anbieter_nur_lokal, einwilligung_gueltig,
+    lese_wahlen, lokaler_endpunkt, ollama_wurzel, rollen_von,
 )
 from .ollama_inventar import CLOUD, HINWEIS_CLOUD, LOKAL, inventar_von
 from .providers import OpenAICompatible
 
 _MODELLNAME = re.compile(r"[A-Za-z0-9._:/-]{1,128}")
+NUR_ANTHROPIC = "Für das Einordnen im Hintergrund ist nur Anthropic (Claude API) vorgesehen."
 _ANBIETER_LABEL = {"anthropic": "Anthropic", "openai": "OpenAI", "mistral": "Mistral (EU/EFTA-Inferenz)", "openrouter": "OpenRouter (Europa-Region)"}
 
 
@@ -124,17 +126,18 @@ def register(app, guard, data_dir, rebuild):
     def geraet() -> Geraet:
         return ausstattung()[0]
 
-    def blockiert_satz(cloud_moeglich: bool, modell: str | None) -> str | None:
+    def blockiert_satz(nur_lokal: bool, modell: str | None) -> str | None:
         """Warum ein gewähltes Modell nicht genutzt wird: es läuft in Ollamas Cloud, und dafür fehlt die Einwilligung."""
         if not modell:
             return None
-        if cloud_moeglich:
+        if not nur_lokal:
             return f"{modell} {HINWEIS_CLOUD} Es wird ohne deine Einwilligung nicht genutzt."
         return (f"{modell} {HINWEIS_CLOUD} Diese Aufgabe liest alle deine Quellen und bleibt auf diesem Rechner; "
                 "sie ruht, bis ein lokales Modell gewählt ist.")
 
     # -- Zustand je Rolle -------------------------------------------------------------------
     def rollen_zustand() -> list[dict[str, Any]]:
+        from . import hintergrund_cloud
         rollen = rollen_von(app)
         zeilen = []
         for name, spec in ROLLEN.items():
@@ -154,9 +157,12 @@ def register(app, guard, data_dir, rebuild):
             zeilen.append({
                 "rolle": name, "titel": spec.titel, "beschreibung": spec.beschreibung,
                 "cloud_moeglich": spec.cloud_moeglich, "cloud_satz": spec.cloud_satz,
+                "cloud_anbieter": sorted(spec.erlaubte_cloud_anbieter),
                 "wahl": {**wahl.als_dict(), "einwilligung_gueltig": einwilligung_gueltig(name, wahl)},
                 "wirksam": wirksam,
-                "blockiert": blockiert_satz(spec.cloud_moeglich, im_weg),
+                "blockiert": blockiert_satz(anbieter_nur_lokal(name), im_weg),
+                # Die Cloud-Einordnung neuer Mails (nur Anthropic, eigene Einwilligung) läuft getrennt vom Anbieter der Rolle.
+                **({"cloud_einordnung": hintergrund_cloud.stand(app)} if name == "hintergrund" else {}),
             })
         return zeilen
 
@@ -223,6 +229,8 @@ def register(app, guard, data_dir, rebuild):
                 raise HTTPException(422, "Bitte ein Modell wählen, das in Ollamas Cloud läuft.")
             if not spec.cloud_moeglich:
                 raise HTTPException(422, f"{modell} {HINWEIS_CLOUD} {spec.cloud_satz} Bitte ein lokales Modell wählen.")
+            if OLLAMA_CLOUD not in spec.erlaubte_cloud_anbieter:
+                raise HTTPException(422, f"{modell} {HINWEIS_CLOUD} {NUR_ANTHROPIC} Bitte ein Modell auf diesem Rechner wählen.")
             cloud, body.anbieter = True, OLLAMA_CLOUD
         if body.local_only and cloud:
             raise HTTPException(422, "Bitte entweder ein lokales Modell oder die Cloud wählen.")
@@ -232,6 +240,10 @@ def register(app, guard, data_dir, rebuild):
             anbieter = body.anbieter if body.anbieter is not None else anbieter
             if anbieter not in CLOUD_ANBIETER:
                 raise HTTPException(422, "Bitte einen Cloudanbieter wählen.")
+            if anbieter not in spec.erlaubte_cloud_anbieter:
+                raise HTTPException(422, NUR_ANTHROPIC)
+            if rolle == "hintergrund" and not credential_status(getattr(app.state, "keychain", None), settings)["available"]:
+                raise HTTPException(422, "Bitte unter KI & Modelle zuerst den Claude-Zugang vorbereiten (Schlüssel und Modell).")
             wechsel = not (aktuell.cloud and aktuell.anbieter == anbieter and einwilligung_gueltig(rolle, aktuell))
             if wechsel:
                 # Ohne ausdrückliches Ja kein Zeitstempel, also keine Cloud.
@@ -239,8 +251,11 @@ def register(app, guard, data_dir, rebuild):
                     satz = spec.cloud_satz + (" " + OLLAMA_CLOUD_SATZ if anbieter == OLLAMA_CLOUD else "")
                     raise HTTPException(422, "Für die Cloud ist deine ausdrückliche Einwilligung nötig: " + satz)
                 einwilligung = datetime.now(timezone.utc).isoformat(timespec="seconds")
-            if body.cloud is True and body.modell is None and not aktuell.cloud:
-                modell = ""  # ein lokaler Modellname passt nicht zum Cloudanbieter
+            if body.cloud is True and body.modell is None and not aktuell.cloud and rolle != "hintergrund":
+                modell = ""  # ein lokaler Modellname passt nicht zum Cloudanbieter (Hintergrund: er bleibt für die lokalen Läufe)
+            if anbieter in {"anthropic", "openai"} and body.modell is None and rolle != "hintergrund":
+                # Das unter KI & Modelle vorbereitete Modell, nicht die Vorgabe aus `CLOUD_ANBIETER`.
+                modell = settings.cloud_models.get(anbieter, "") or modell
             if anbieter in {'mistral', 'openrouter'}:
                 modell = body.modell if body.modell is not None else settings.cloud_models.get(anbieter, '')
                 if not modell or not _MODELLNAME.fullmatch(modell):
@@ -249,8 +264,8 @@ def register(app, guard, data_dir, rebuild):
                     raise HTTPException(422, 'Bitte unter KI & Modelle zuerst einen API-Schlüssel hinterlegen.')
         else:
             anbieter, einwilligung = "", ""  # Cloud aus: Einwilligung erlischt
-            if aktuell.cloud and body.modell is None:
-                modell = ""
+            if aktuell.cloud and body.modell is None and rolle != "hintergrund":
+                modell = ""  # Hintergrund: das lokale Modell war nie das Cloudmodell und bleibt
         if not cloud and modell and body.modell is not None:
             known = model_memory_gb(modell)
             budget = geraet().modellbudget_gb

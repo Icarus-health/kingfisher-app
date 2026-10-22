@@ -153,7 +153,7 @@ die Art *unbekannt*, und unbekannt gilt nicht als lokal.
 
 | Rolle | Modell mit Cloud über Ollama |
 |---|---|
-| `hintergrund`, `einbettung` | nie; die Rolle hat dann keinen Anbieter (`None`) und ruht. Die Wahl wird abgelehnt, ein Handeintrag in der Datei wirkt nicht. Die Einbettung fällt auf die Vorgabe zurück. |
+| `hintergrund`, `einbettung`, `pruefung` | nie; die Rolle hat dann keinen Anbieter (`None`) und ruht. Die Wahl wird abgelehnt, ein Handeintrag in der Datei wirkt nicht. Die Einbettung fällt auf die Vorgabe zurück. Der Hintergrund kennt eine einzige Cloud: nur Anthropic (Claude API) mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails samt Bitten und Zusagen (`hintergrund_cloud.py`, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)); Ollama-Cloud nie. |
 | `frage`, `antwort` | nur mit gültiger Einwilligung je Rolle, Anbieter `ollama-cloud`. Der Satz zur Einwilligung nennt: Die Daten gehen an Ollama (USA), nicht an den Modellhersteller. Ohne Einwilligung gilt das belegt lokale Standardmodell, sonst `None`; nie stillschweigend. |
 
 Der Anbieter eines solchen Modells trägt `is_local = False`, damit jede Prüfung

@@ -69,7 +69,9 @@ from .migrations import Migration, run_migrations, verify_schema
 logger = logging.getLogger(__name__)
 
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
-         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang', 'aufgabe_post')
+         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
+         'cloud_einordnung',  # Tagesbudget der Cloud-Einordnung erreicht (einmal je Tag)
+         'aufgabe_post')  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)

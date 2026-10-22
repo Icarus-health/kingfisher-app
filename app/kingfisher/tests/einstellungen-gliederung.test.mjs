@@ -31,8 +31,8 @@ test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und a
   }
 });
 
-test("es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verlässt", () => {
-  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "cloud"]);
+test("es gibt genau sechs Schalter, und bei jedem steht, was den Rechner verlässt", () => {
+  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "cloud", "cloud_einordnung"]);
   for (const [id, schalter] of Object.entries(SCHALTER)) {
     assert.match(schalter.verlaesst, /verl(ä|a)ss/, `${id}: sagt nicht, was den Rechner verlässt`);
     assert.ok(schalter.titel.length > 8 && schalter.verlaesst.length < 260, id);
@@ -40,6 +40,11 @@ test("es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verläs
   assert.match(SCHALTER.autostart.verlaesst, /nichts/);
   assert.match(SCHALTER.cloud.verlaesst, /Aus: alles bleibt auf diesem Rechner/);
   assert.match(SCHALTER.cloud.zustimmung, /willige ein/);
+  // Neue Mails in der Cloud einordnen: nur Anthropic, der Satz zur Einwilligung kommt vom Sidecar (eine Quelle).
+  assert.match(SCHALTER.cloud_einordnung.titel, /Neue Mails in der Cloud einordnen/);
+  assert.match(SCHALTER.cloud_einordnung.verlaesst, /Anthropic/);
+  assert.match(SCHALTER.cloud_einordnung.verlaesst, /Aus: /);
+  assert.equal(SCHALTER.cloud_einordnung.zustimmung, "Ich willige ein.");
 });
 
 test("die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet", () => {
