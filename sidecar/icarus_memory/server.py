@@ -1369,6 +1369,14 @@ def _wire_scheduler(app: FastAPI) -> None:
                                  mit_modell=bool(app.state.settings.schedule.with_model))
             except Exception:
                 pass  # Per-account safe error states are persisted by intake; der Nachtrag ist wiederholbar.
+        # Aufgaben folgen der Post: neue Mails gegen die offenen Aufgaben, deterministisch, auch ohne Modell und in
+        # der Pause (nur neue Post); jede Mail einmal (`aufgaben_post.py`). Ein Fehler hier hält die Aufnahme nie auf.
+        try:
+            from . import aufgaben_post
+            with app.state.conversation_lock:
+                aufgaben_post.schritt_fuer(app)
+        except Exception:  # noqa: BLE001
+            logger.exception('Aufgaben nach der Post konnten nicht geprüft werden')
 
     scheduler._run_mail_intake = run_mail_intake
     scheduler._run_neue_post = lambda: run_mail_intake(nur_neue_post=True)
@@ -5186,6 +5194,51 @@ def create_app(
             return app.state.tasks.complete(task_id).to_dict()
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/v1/tasks/{task_id}/rueckgaengig", dependencies=guard)
+    def task_post_rueckgaengig(task_id: str) -> dict[str, Any]:
+        """Nimmt zurück, was die Post an der Aufgabe geändert hat (`aufgaben_post.py`), und trennt Aufgabe und Mail."""
+        from .aufgaben_post import lauf_fuer
+        try:
+            with app.state.conversation_lock:
+                return lauf_fuer(app).rueckgaengig(task_id).to_dict()
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="Aufgabe nicht gefunden.") from exc
+        except LookupError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.get("/api/v1/aufgaben-post/vorschlaege", dependencies=guard)
+    def aufgaben_post_vorschlaege() -> dict[str, Any]:
+        """„Erledigt?“ und „Wieder bei dir?“: was die Post nahelegt, aber nicht sicher genug für sich selbst war."""
+        from .aufgaben_post import lauf_fuer
+        with app.state.conversation_lock:
+            return {"items": lauf_fuer(app).vorschlaege()}
+
+    @app.post("/api/v1/aufgaben-post/vorschlaege/{proposal_id}/annehmen", dependencies=guard)
+    def aufgaben_post_annehmen(proposal_id: str) -> dict[str, Any]:
+        from .aufgaben_post import lauf_fuer
+        with app.state.conversation_lock:
+            try:
+                app.state.proposals.get(proposal_id)
+            except ProposalError as exc:
+                raise HTTPException(status_code=404, detail="Vorschlag nicht gefunden.") from exc
+            try:
+                return lauf_fuer(app).vorschlag_annehmen(proposal_id).to_dict()
+            except (ProposalError, ValueError) as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.post("/api/v1/aufgaben-post/vorschlaege/{proposal_id}/verwerfen", dependencies=guard)
+    def aufgaben_post_verwerfen(proposal_id: str) -> dict[str, Any]:
+        from .aufgaben_post import lauf_fuer
+        with app.state.conversation_lock:
+            try:
+                app.state.proposals.get(proposal_id)
+            except ProposalError as exc:
+                raise HTTPException(status_code=404, detail="Vorschlag nicht gefunden.") from exc
+            try:
+                return lauf_fuer(app).vorschlag_verwerfen(proposal_id).to_dict()
+            except ProposalError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     @app.post("/api/v1/tasks/{task_id}/reopen", dependencies=guard)
     def reopen_kingfisher_task(task_id: str) -> dict[str, Any]:

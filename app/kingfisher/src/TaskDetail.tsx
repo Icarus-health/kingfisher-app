@@ -73,6 +73,7 @@ export function TaskDetail({taskId, onChanged}: {taskId: string; onChanged: () =
       projects={projects} projectDisabled={projectsFailed || projectsLoading} onProjectChange={id => {void change(() => api.assignTaskProject(task.id, id || null));}}
       onEdit={data => change(() => api.editTask(task.id, data))}
       onWait={name => {void change(() => name ? api.waitTask(task.id, name) : api.unwaitTask(task.id));}}
-      onComplete={() => {void change(() => task.status === 'done' ? api.reopenTask(task.id) : api.completeTask(task.id));}} />}
+      onComplete={() => {void change(() => task.status === 'done' ? api.reopenTask(task.id) : api.completeTask(task.id));}}
+      onRueckgaengig={() => {void change(() => api.taskRueckgaengig(task.id));}} />}
   </div>;
 }

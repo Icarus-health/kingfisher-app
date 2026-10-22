@@ -22,7 +22,7 @@ import threading
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Iterator
@@ -99,6 +99,17 @@ class Task:
     remind_at: datetime | None = None
     """Wiedervorlage unabhängig von der Fälligkeit und vom Wartestatus."""
 
+    erledigt_grund: dict[str, Any] | None = None
+    """Warum die Post diese Aufgabe erledigt hat (`aufgaben_post.py`): Satz, Mail, Zeitpunkt, der vorige Zustand.
+
+    Ein Ablagevorgang, kein Fakt im Bestand: sichtbar mit Grund, mit einem Klick umkehrbar (`post_rueckgaengig`).
+    Leer, wenn der Mensch selbst abgehakt hat oder die Änderung zurückgenommen wurde.
+    """
+
+    geaendert_grund: dict[str, Any] | None = None
+    """Warum die Post das Warten aufgelöst hat („Anna hat am … geantwortet“): wie `erledigt_grund`, nur für
+    „wieder bei dir“. Die Aufgabe ist dann offen, nicht erledigt."""
+
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
 
@@ -141,6 +152,8 @@ class Task:
             "wartet_seit": iso(self.wartet_seit),
             "wartet_tage": self.wartet_tage(),
             "overdue": self.is_overdue(),
+            "erledigt_grund": dict(self.erledigt_grund) if self.erledigt_grund else None,
+            "geaendert_grund": dict(self.geaendert_grund) if self.geaendert_grund else None,
         }
 
 
@@ -290,10 +303,48 @@ def _verify_v3(connection: sqlite3.Connection) -> None:
     )
 
 
+# Aufgaben folgen der Post (`aufgaben_post.py`): die Merkliste der geprüften Mails, die vom Nutzer getrennten Paare
+# (Aufgabe, Mail) und der Stand des Durchlaufs (Zeilennummer der Episoden). Nur Kennungen, kein Text.
+_POST_TABLES = {
+    "aufgaben_post_mails": {"episode_id", "digest", "verarbeitet_am"},
+    "aufgaben_post_getrennt": {"task_id", "episode_id", "getrennt_am"},
+    "aufgaben_post_stand": {"id", "zeile"},
+}
+_POST_KEYS = {"aufgaben_post_mails": {"episode_id"}, "aufgaben_post_getrennt": {"task_id", "episode_id"},
+              "aufgaben_post_stand": {"id"}}
+
+
+def _migrate_v4(connection: sqlite3.Connection) -> None:
+    connection.execute("""CREATE TABLE aufgaben_post_mails (
+        episode_id TEXT PRIMARY KEY,
+        digest TEXT NOT NULL,
+        verarbeitet_am TEXT NOT NULL
+    )""")
+    connection.execute("""CREATE TABLE aufgaben_post_getrennt (
+        task_id TEXT NOT NULL,
+        episode_id TEXT NOT NULL,
+        getrennt_am TEXT NOT NULL,
+        PRIMARY KEY (task_id, episode_id)
+    )""")
+    connection.execute("CREATE TABLE aufgaben_post_stand (id INTEGER PRIMARY KEY CHECK(id = 1), zeile INTEGER NOT NULL)")
+
+
+def _verify_v4(connection: sqlite3.Connection) -> None:
+    verify_schema(connection,
+        expected_tables={**_CURRENT_SCHEMA, "task_events": _HISTORY_SCHEMA,
+                         "task_requests": {"request_id", "payload_digest", "task_id"}, **_POST_TABLES},
+        expected_indexes={**_INDEX_CONTRACTS, "idx_task_events_task_sequence": _HISTORY_INDEX},
+        expected_triggers=_HISTORY_TRIGGERS,
+        expected_primary_keys={**_PRIMARY_KEYS, "task_events": {"sequence"}, "task_requests": {"request_id"},
+                               **_POST_KEYS},
+    )
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "append_only_task_history", _migrate_v2, _verify_v2),
     Migration(3, "atomic_task_save_requests", _migrate_v3, _verify_v3),
+    Migration(4, "aufgaben_folgen_der_post", _migrate_v4, _verify_v4),
 )
 
 
@@ -438,6 +489,119 @@ class TaskStore:
             task.status = TaskStatus.OPEN
             task.done_at = None
         return self._change(task_id, "reopened", change)
+
+    # -- Aufgaben folgen der Post (`aufgaben_post.py`) ---------------------------
+    #
+    # Ein Ablagevorgang, kein Fakt im Bestand: Die Änderung trägt ihren Grund und ihren vorigen Zustand, damit
+    # „Rückgängig“ ihn wiederherstellt. Was der Nutzer zurückgenommen hat, bleibt getrennt (Aufgabe, Mail).
+
+    _VORHER = ("status", "done_at", "wartet_auf", "wartet_seit")
+
+    def post_erledigen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
+        """Erledigt durch die eigene Post. Nur eine offene Aufgabe, die bei dir liegt; sonst `ValueError`."""
+        def change(task: Task) -> None:
+            if task.status is not TaskStatus.OPEN or task.wartet_auf is not None:
+                raise ValueError("Nur eine offene Aufgabe, die bei dir liegt, kann die Post erledigen.")
+            vorher = {k: v for k, v in task.to_dict().items() if k in self._VORHER}
+            task.status = TaskStatus.DONE
+            task.done_at = ensure_aware(at) or now()
+            task.erledigt_grund = {**grund, "vorher": vorher}
+            task.geaendert_grund = None
+        return self._change(task_id, "post_completed", change, at)
+
+    def post_zurueckholen(self, task_id: str, grund: dict[str, Any], at: datetime | None = None) -> Task:
+        """Wieder bei dir, weil die Person geantwortet hat. Nur eine offene, wartende Aufgabe; sonst `ValueError`."""
+        def change(task: Task) -> None:
+            if task.status is not TaskStatus.OPEN or task.wartet_auf is None:
+                raise ValueError("Nur eine Aufgabe, die bei jemandem liegt, kann die Post zurückholen.")
+            vorher = {k: v for k, v in task.to_dict().items() if k in self._VORHER}
+            task.wartet_auf = None
+            task.wartet_seit = None
+            task.geaendert_grund = {**grund, "vorher": vorher}
+        return self._change(task_id, "post_returned", change, at)
+
+    def post_rueckgaengig(self, task_id: str, at: datetime | None = None) -> Task:
+        """Stellt den Zustand vor der Änderung durch die Post wieder her und trennt Aufgabe und Mail dauerhaft.
+
+        `KeyError` für eine unbekannte Aufgabe, `LookupError` ohne eine Änderung, die zurückzunehmen wäre.
+        """
+        getrennt: list[str] = []
+
+        def change(task: Task) -> None:
+            grund = task.erledigt_grund or task.geaendert_grund
+            if not grund:
+                raise LookupError("Zu dieser Aufgabe gibt es keine Änderung durch die Post, die zurückzunehmen wäre.")
+            vorher = grund.get("vorher") or {}
+            task.status = TaskStatus(vorher.get("status") or TaskStatus.OPEN.value)
+            task.done_at = _parse(vorher.get("done_at"))
+            task.wartet_auf = vorher.get("wartet_auf")
+            task.wartet_seit = _parse(vorher.get("wartet_seit"))
+            task.erledigt_grund = None
+            task.geaendert_grund = None
+            if grund.get("episode_id"):
+                getrennt.append(str(grund["episode_id"]))
+
+        with self._transaction():
+            row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            if row is None:
+                raise KeyError(f"Unbekannte Aufgabe: {task_id}")
+            task = self._from_row(row)
+            before = _state(task.to_dict())
+            change(task)
+            self._write(task)
+            self._append_event(task, "post_undone", before, at)
+            for episode_id in getrennt:
+                self._conn.execute(
+                    "INSERT OR IGNORE INTO aufgaben_post_getrennt (task_id, episode_id, getrennt_am) VALUES (?, ?, ?)",
+                    (task.id, episode_id, now().isoformat()))
+            return task
+
+    def post_trennen(self, task_id: str, episode_id: str) -> None:
+        """Merkt sich, dass diese Mail für diese Aufgabe nicht zuständig ist (Vorschlag verworfen)."""
+        with self._transaction():
+            self._conn.execute(
+                "INSERT OR IGNORE INTO aufgaben_post_getrennt (task_id, episode_id, getrennt_am) VALUES (?, ?, ?)",
+                (task_id, episode_id, now().isoformat()))
+
+    def post_getrennt(self, task_id: str, episode_id: str) -> bool:
+        with self._lock:
+            return self._conn.execute("SELECT 1 FROM aufgaben_post_getrennt WHERE task_id = ? AND episode_id = ?",
+                                      (task_id, episode_id)).fetchone() is not None
+
+    def post_mail_verarbeitet(self, episode_id: str, digest: str) -> bool:
+        with self._lock:
+            return self._conn.execute("SELECT 1 FROM aufgaben_post_mails WHERE episode_id = ? AND digest = ?",
+                                      (episode_id, digest)).fetchone() is not None
+
+    def post_mail_merken(self, episode_id: str, digest: str) -> None:
+        with self._transaction():
+            self._conn.execute(
+                "INSERT INTO aufgaben_post_mails (episode_id, digest, verarbeitet_am) VALUES (?, ?, ?) "
+                "ON CONFLICT(episode_id) DO UPDATE SET digest=excluded.digest, verarbeitet_am=excluded.verarbeitet_am",
+                (episode_id, digest, now().isoformat()))
+
+    def post_stand(self) -> int | None:
+        """Die Zeilennummer der Episoden, bis zu der die Post geprüft ist; None vor dem ersten Durchlauf."""
+        with self._lock:
+            row = self._conn.execute("SELECT zeile FROM aufgaben_post_stand WHERE id = 1").fetchone()
+        return int(row["zeile"]) if row else None
+
+    def post_stand_setzen(self, zeile: int) -> None:
+        with self._transaction():
+            self._conn.execute("INSERT INTO aufgaben_post_stand (id, zeile) VALUES (1, ?) "
+                               "ON CONFLICT(id) DO UPDATE SET zeile=excluded.zeile", (int(zeile),))
+
+    def post_aenderungen(self, seit: datetime, limit: int = 200) -> list[Task]:
+        """Aufgaben, die die Post seit `seit` erledigt oder zurückgeholt hat (nicht zurückgenommene), jüngste zuerst."""
+        # `am` steht in UTC (ISO); der Vergleich als Text verlangt dieselbe Zone.
+        moment = (ensure_aware(seit) or now()).astimezone(timezone.utc)
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM tasks WHERE "
+                "coalesce(json_extract(document,'$.erledigt_grund.am'), json_extract(document,'$.geaendert_grund.am')) >= ? "
+                "ORDER BY coalesce(json_extract(document,'$.erledigt_grund.am'), json_extract(document,'$.geaendert_grund.am')) DESC "
+                "LIMIT ?", (moment.isoformat(), limit)).fetchall()
+        return [self._from_row(row) for row in rows]
 
     def assign_project(self, task_id: str, project_id: str | None) -> Task:
         """Changes only project assignment; concurrent state changes are retained."""
@@ -715,6 +879,8 @@ class TaskStore:
             goal_id=d.get("goal_id"),
             wartet_auf=d.get("wartet_auf"),
             wartet_seit=_parse(d.get("wartet_seit")),
+            erledigt_grund=d.get("erledigt_grund") or None,
+            geaendert_grund=d.get("geaendert_grund") or None,
         )
 
 

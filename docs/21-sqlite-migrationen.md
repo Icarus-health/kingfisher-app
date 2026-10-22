@@ -54,7 +54,7 @@ führt einen inzwischen abgeschlossenen Schritt nicht ein zweites Mal aus.
 | --- | --- | --- | --- |
 | `self-model.sqlite3` | `SqliteBackend` | `assertions` | vollständige Assertion als JSON; zwei Append-only-/Redaction-Trigger |
 | `episodes.sqlite3` | `EpisodeStore` | `episodes` | vollständige Episode als JSON; Digest ist eindeutig |
-| `tasks.sqlite3` | `TaskStore` | `tasks` | vollständige Task als JSON; bekanntes Legacy-Schema ohne `project_id` |
+| `tasks.sqlite3` | `TaskStore` | `tasks`, `task_events`, `task_requests`, `aufgaben_post_mails`, `aufgaben_post_getrennt`, `aufgaben_post_stand` | vollständige Task als JSON; bekanntes Legacy-Schema ohne `project_id`; Migration 4 (Oktober 2026): die Merkliste der gegen die Aufgaben geprüften Mails, die vom Nutzer getrennten Paare (Aufgabe, Mail) und der Stand des Durchlaufs, nur Kennungen (`aufgaben_post.py`, [30](30-akten.md#aufgaben-folgen-der-post-oktober-2026)) |
 | `workspace.sqlite3` | `WorkspaceStore` | `projects`, `notes` | vollständige Project-/Note-Dokumente als JSON |
 | `proposals.sqlite3` | `ProposalStore` | `proposals` | vollständiger Vorschlag samt Evidence als JSON |
 | `audit.sqlite3` | `AuditLog` | `audit` | anhängend durch No-Update-/No-Delete-Trigger |
