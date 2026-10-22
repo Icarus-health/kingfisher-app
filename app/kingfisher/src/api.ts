@@ -1043,7 +1043,7 @@ export type MemoryCoverage = {
 };
 export type PostfachErreichbar = {account_id: string; label: string; erreichbar: boolean;
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
-export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null};
+export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama" | "cloud_aktiv"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null; cloud_einordnung?: CloudEinordnungStand};
 export type MemoryTimeline = {
   basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;
@@ -1088,11 +1088,15 @@ export type ModelRecommendation = {
   rollen: ModelRecommendationRow[]; hinweis: string;
   orchester?: ModelOrchestra;
 };
+/** Stand der Cloud-Einordnung neuer Mails (Rolle hintergrund, nur Anthropic, eigene Einwilligung; sidecar: hintergrund_cloud.py). */
+export type CloudEinordnungStand = {aktiv: boolean; modell: string; seit: string | null; heute: number; tagesbudget: number; erschoepft: boolean; zugang_da: boolean};
 export type ModelRoleState = {
   rolle: string; titel: string; beschreibung: string; cloud_moeglich: boolean; cloud_satz: string;
+  cloud_anbieter?: string[];
   wahl: {modell: string; cloud: boolean; anbieter: string; cloud_einwilligung: string; einwilligung_gueltig: boolean};
   wirksam: {modell: string | null; lokal: boolean | null; quelle: "eigene_wahl" | "standard" | "cloud" | "keins"; cloud_ueber_ollama?: boolean};
   blockiert?: string | null;
+  cloud_einordnung?: CloudEinordnungStand;
 };
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
   ollama_cloud?: {modelle: string[]; hinweis: string}};

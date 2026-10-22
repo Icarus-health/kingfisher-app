@@ -14,6 +14,7 @@ from .model import Status
 from .memory_analysis import VERSION, analysis_version
 from .task_review import task_context_key
 from .model_roles import hintergrund_anbieter, rollen_von
+from . import hintergrund_cloud
 from .memory_history import aware, query_key, time_key, encode_cursor, decode_cursor, SCAN_BUDGET, ceiling_anchor, validate_anchor
 from . import config
 from .providers import ProviderError
@@ -263,11 +264,14 @@ def install_routes(app, guard):
             requested = bool(plan.enabled and plan.with_model and plan.local_model_only)
             legacy = bool(plan.enabled and plan.with_model and not plan.local_model_only)
             return execution_gate({'state': 'legacy_active' if legacy else 'unverified' if requested else 'paused',
-                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None})
+                    'requested': requested, 'pending': pending, 'model': None, 'cloud_modell': None,
+                    'cloud_einordnung': hintergrund_cloud.stand(app)})
 
         rollen = rollen_von(app)
         # Die Hintergrundarbeit läuft mit dem Anbieter der Rolle `hintergrund`, und der ist immer lokal.
         # Ohne ihn zeigt der Standard nur, warum nichts läuft („nicht lokal“ oder „kein Modell“).
+        # Die Cloud-Einordnung neuer Mails (`hintergrund_cloud`) läuft daneben, mit eigener Einwilligung.
+        cloud_einordnung = hintergrund_cloud.stand(app)
         provider = rollen.provider('hintergrund') or rollen.standard()
         local = bool(getattr(provider, 'is_local', False))
         model = str(getattr(provider, 'model', '') or '').strip()
@@ -293,12 +297,15 @@ def install_routes(app, guard):
                 else:
                     verified = True
             state = ('active' if requested else 'paused') if verified else 'local_model_unavailable'
+        if state in {'model_missing', 'wrong_model', 'local_model_unavailable'} and cloud_einordnung['aktiv']:
+            # Kein bestätigtes lokales Modell, aber neue Mails werden über die Cloud eingeordnet.
+            state = 'cloud_aktiv' if requested else 'paused'
         if pending is None:
             from .working_memory_store import WorkingMemoryStore
             pending = WorkingMemoryStore(app.state.episodes).coverage()['pending']
         result = {'state': state, 'requested': requested, 'pending': pending,
                   'model': model if local and model and not cloud_modell else None,
-                  'cloud_modell': cloud_modell}
+                  'cloud_modell': cloud_modell, 'cloud_einordnung': cloud_einordnung}
         automation_observation = (observation_key, result)
         return execution_gate(result)
 
@@ -319,9 +326,11 @@ def install_routes(app, guard):
                 # Vorgemerkt wird nur, was ohnehin auf diesem Rechner liefe: kein Modell (es lädt noch) oder ein
                 # lokales, das noch nicht antwortet. Ein gewähltes Modell im Internet bleibt eine eigene Entscheidung.
                 vormerkbar = body.vormerken and automation_status()['state'] in VORMERKBAR
-                if not lokal and not vormerkbar:
+                # Mit aktiver Cloud-Einordnung (eigene Einwilligung) läuft das Sortieren neuer Mails auch ohne lokales Modell.
+                cloud = hintergrund_cloud.aktiv(app)
+                if not lokal and not vormerkbar and not cloud:
                     raise HTTPException(409, 'Für die automatische Einordnung muss ein lokales Modell eingerichtet sein.')
-                if not modell and not vormerkbar:
+                if not modell and not vormerkbar and not cloud:
                     raise HTTPException(409, 'Bitte zuerst ein lokales Modell einrichten.')
                 if lokal and modell:
                     from .local_model_guard import verify_local_model

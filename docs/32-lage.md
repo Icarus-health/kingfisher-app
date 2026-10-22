@@ -99,8 +99,10 @@ Die Lage entsteht ausschließlich im Zeitplan; es gibt keine Route, die ein Mode
 * `run_lage` in `_wire_scheduler` nimmt den Anbieter der Rolle `hintergrund` über `scheduled_provider`,
   also als `VerifiedLocalProvider`, wo der Plan `local_model_only` verlangt (die Gewichte des lokalen
   Modells werden vor jeder Anfrage bestätigt), und `permitted` prüft den Agenten und den Plan wie bei den
-  anderen Läufen. Die Rolle `hintergrund` ist nie Cloud; ein nicht lokaler Anbieter wird ausdrücklich
-  abgewiesen.
+  anderen Läufen. Die Lage bleibt lokal: Der Anbieter der Rolle `hintergrund` ist immer lokal oder None,
+  auch wenn die Cloud-Einordnung neuer Mails (`hintergrund_cloud.py`, nur Anthropic, eigene Einwilligung)
+  eingeschaltet ist; sie gilt nur dem Einordnen neuer Mails samt Bitten und Zusagen, nie der Lage. Ein nicht
+  lokaler Anbieter wird in `lage_routes.lauf` ausdrücklich abgewiesen.
 * **Kleine Pakete, wichtigste Sachen zuerst.** Höchstens zwei Sachen je Schritt (ein Modellaufruf je
   Sache). Geprüft werden immer die 20 jüngsten Sachen und dazu reihum ein Fenster von 40 weiteren. Vorn
   stehen Sachen mit kommender Frist oder kommendem Termin, dann die mit jüngster Aktivität. Eine Lage,

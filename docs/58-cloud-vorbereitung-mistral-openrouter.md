@@ -25,12 +25,12 @@ Region und Aufbewahrung sind getrennte Eigenschaften. Für OpenRouter ZDR zusät
 
 - `config.py` kennt Mistral/OpenRouter als globale Adressvorschläge für den generischen OpenAI-kompatiblen Anschluss.
 - `OpenAICompatible` kann eine ausdrücklich angegebene API-Basis nutzen.
-- Die Rollenverwaltung erlaubt Cloud bisher für Frage/Antwort, aber nicht für Hintergrund-Einordnung, Prüfung und Einbettung.
+- Die Rollenverwaltung erlaubt Cloud für Frage/Antwort mit jedem vorbereiteten Anbieter; für den Hintergrund nur Anthropic mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails (seit 20.10.2026, `hintergrund_cloud.py`); nie für Prüfung und Einbettung.
 - Der neue Mailüberblick verlangt ein nachweislich lokales Modell. Ein Wechsel des Standardanbieters würde diesen Schutz nicht umgehen, sondern die Funktion gegebenenfalls sperren.
 
 **Im aktuellen Entwicklungsstand eingebaut:** Einstellungen → KI & Modelle bietet getrennte, nur schreibbare Schlüsselplätze für Mistral und OpenRouter samt Modell-ID. Speicherung erfolgt über die bestehende verschlüsselte Geheimnisablage. Speichern ruft keinen Anbieter auf und aktiviert keine Rolle. Die Rollenverwaltung verwendet feste regionale Endpunkte, ohne Proxy-Übernahme, Weiterleitung oder globale Ersatzadresse. OpenRouter-Anfragen verlangen zusätzlich ZDR, untersagen Datensammlung und schalten Anbieter-Fallbacks aus. Ohne regional verfügbares Modell oder berechtigtes Konto scheitert der spätere Aufruf.
 
-Die Eingabe wurde nur mit künstlichen Schlüsseln geprüft. Echte Zugänge, Modellverfügbarkeit, Kostenlimit und ein Cloud-Vergleich bleiben offen. Hintergrund-Einordnung, Prüfung und Einbettung bleiben lokal. Ein Schlüssel-/Modellwechsel sowie das Entfernen des Zugangs widerrufen dessen Rollenfreigaben; ein anderer Cloud-Standard darf diese Freigabe nicht ersetzen.
+Die Eingabe wurde nur mit künstlichen Schlüsseln geprüft. Echte Zugänge, Modellverfügbarkeit, Kostenlimit und ein Cloud-Vergleich bleiben offen. Cloud: `frage` und `antwort` mit jedem vorbereiteten Anbieter und Einwilligung; `hintergrund` nur Anthropic (Claude API) mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails samt Bitten und Zusagen; `pruefung` und `einbettung` immer lokal. Lage, Verdichtung, Entwürfe bleiben lokal. Mistral und OpenRouter sind für den Hintergrund nicht vorgesehen. Ein Schlüssel-/Modellwechsel sowie das Entfernen des Zugangs widerrufen dessen Rollenfreigaben; ein anderer Cloud-Standard darf diese Freigabe nicht ersetzen.
 
 ## Anschluss und noch offene Schritte
 
