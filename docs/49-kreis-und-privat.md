@@ -112,6 +112,23 @@ zuverlässig, worum es geht; ein Datum in einer Mail ist nur dann eine Frist, we
 
 Kein Fachwort vorne: `Kreis.tsx` steht in der Wortliste der vorderen Einstellungen (`gliederung.VORDERE_DATEIEN`).
 
+## Ton je Kreis (Paket B5, Oktober 2026)
+
+Der bestätigte Kreis trägt seit Paket B5 auch den **eigenen Ton**: Aus den gesendeten Mails des Nutzers an die
+Personen eines bestätigten Kreises liest `mail_style.py`, wie er dort schreibt (Du oder Sie, Form der Anrede, Länge,
+Emojis, Grußformel wörtlich, Sprache). Das Ergebnis ist ein **Vorschlag** je Kreis („Dein Ton an Kollegen: Du, kurz,
+Gruß „Viele Grüße“ (aus 5 gesendeten Mails an 2 Personen)“) unter Einstellungen → Kingfisher und du, mit „Übernehmen“,
+„Nicht übernehmen“ und den Belegen zum Aufklappen (`GET /api/v1/stil/kreise`, `PUT`/`DELETE /api/v1/stil/kreis/<kreis>`,
+`POST …/ablehnen`). Erst „Übernehmen“ macht ihn zur Regel (Selbstmodell, Geltungsbereich `kreis:<kreis>`); der
+Antwortentwurf schichtet dann allgemein → Kreis → Kontakt (`effective_style`).
+
+Regeln dazu: Nur **bestätigte** Kreise zählen; ein vorgeschlagener Kreis trägt keinen Ton und bekommt keinen. Eine Regel
+für den Kreis entsteht nur bei **Einstimmigkeit über die Kontakte**: Trägt ein Kollege das Du und einer das Sie, fällt
+die Anrede aus dem Vorschlag, der Rest (etwa die Länge) bleibt. Mails an mehrere Empfänger zählen nicht; zitierter
+Verlauf wird abgeschnitten. Fällt eine gesendete Mail weg (ausgeschlossen oder durch eine neue Fassung überholt), gilt
+die daraus bestätigte Regel nicht mehr. Nichts verlässt den Rechner. Einzelheiten in `docs/release/MAIL-STYLE-QA.md`
+und im Protokoll `docs/runs/2026-10-21-stilprofil/README.md`.
+
 ## Grenzen
 
 * **Regeln, kein Verständnis.** Die Merkmale sehen Mails und Termine, nicht, was im Leben passiert. Eine Freundin,
