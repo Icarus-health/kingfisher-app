@@ -21,7 +21,7 @@ export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string;
     satz: "Hier muss nichts geändert werden." },
 ];
 
-/** Die fünf Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
+/** Die sechs Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
 export const SCHALTER = {
   wetter: { titel: "Morgens das Wetter holen",
     verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo. Termine, Namen und Adressen bleiben bei dir." },
@@ -31,6 +31,8 @@ export const SCHALTER = {
     verlaesst: "Es verlassen die Adresse des Termins und dein Startort den Rechner, an Apple Karten auf dem Mac oder an einen Routenplaner, den du selbst einrichtest." },
   autostart: { titel: "Beim Anmelden starten",
     verlaesst: "Es verlässt nichts den Rechner. Kingfisher öffnet sich im Hintergrund, sobald du dich am {Rechner} anmeldest." },
+  mitteilungen: { titel: "Mitteilungen auf dem {Rechner}",
+    verlaesst: "Es verlässt nichts den Rechner. Morgens eine Mitteilung mit dem, was heute zählt, dazu höchstens zwei dringende: ein Termin gleich, eine verstrichene Zusage." },
   cloud: { titel: "Cloud für Fragen und Antworten nutzen",
     verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
     zustimmung: "Deine Fragen und die dazu gefundenen Textstellen gehen an den Cloudanbieter, den du gewählt hast. Ich willige ein." },
@@ -126,7 +128,7 @@ export function vordereTexte(): string[] {
 /** Die Dateien, deren sichtbare Texte vorne stehen (für den Wortlistentest). Ausnahmen stehen in AUSNAHMEN. */
 export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/Zugaenge.tsx", "Einstellungen/NeuAnmelden.tsx", "Einstellungen/neuAnmeldenWeg.ts", "Einstellungen/Darf.tsx", "Einstellungen/Ich.tsx", "Einstellungen/CloudSchalter.tsx",
-  "Einstellungen/Seite.tsx", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
+  "Einstellungen/Seite.tsx", "Einstellungen/Mitteilungen.tsx", "mitteilungenSchalter.ts", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
   "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "KreisKarten.tsx",
   // Google ohne Cloud-Projekt (Fremdprobe, Befund 2): Post und Kalender vorne, in Alltagsworten.
   "GoogleKalenderAdresse.tsx", "googleWeg.ts", "KalenderMitAdresse.tsx", "Einrichtung/MailSchritt.tsx", "Einrichtung/KalenderSchritt.tsx",

@@ -406,6 +406,10 @@ export type HintergrundStand = {
   schlange: Array<{ stufe: "morgen" | "neu" | "rueckstand"; text: string; offen: number }>;
 };
 export type AutostartStand = { gewuenscht: boolean | null; verfuegbar: boolean; eingerichtet: boolean | null; plattform: string | null };
+/** Mitteilungen auf dem Mac (sidecar: mitteilungen_routes.py): Schalter, Morgenzeit, Erlaubnis des Systems, Wochenzahl. */
+export type MitteilungenWoche = { gesendet: number; ueberfluessig: number };
+export type MitteilungenErlaubnis = "unbekannt" | "erlaubt" | "abgelehnt";
+export type MitteilungenEinstellung = { an: boolean; morgens: string; erlaubnis: MitteilungenErlaubnis; woche: MitteilungenWoche };
 export type EinrichtungStand = {
   name: string;
   schritte: Partial<Record<EinrichtungSchritt, "erledigt" | "uebersprungen">>;
@@ -1374,6 +1378,9 @@ export const api = {
   hintergrundAktiv: () => fetch("/api/v1/hintergrund/aktiv", { method: "POST", keepalive: true }).then(() => undefined, () => undefined),
   autostart: () => request<AutostartStand>("/api/v1/autostart"),
   autostartSetzen: (an: boolean) => request<AutostartStand>("/api/v1/autostart", { method: "PUT", body: JSON.stringify({ an }) }),
+  mitteilungen: () => request<MitteilungenEinstellung>("/api/v1/mitteilungen/einstellung"),
+  mitteilungenSetzen: (body: { an?: boolean; morgens?: string }) =>
+    request<MitteilungenEinstellung>("/api/v1/mitteilungen/einstellung", { method: "PUT", body: JSON.stringify(body) }),
   mailProviders: () => request<{ providers: MailProvider[] }>("/api/v1/integrations/mail-providers"),
   addMailAccount: (data: {
     label: string; imap_host: string; imap_port: number; smtp_host: string; smtp_port: number;

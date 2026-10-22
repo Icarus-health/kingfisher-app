@@ -31,13 +31,14 @@ test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und a
   }
 });
 
-test("es gibt genau fünf Schalter, und bei jedem steht, was den Rechner verlässt", () => {
-  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "cloud"]);
+test("es gibt genau sechs Schalter, und bei jedem steht, was den Rechner verlässt", () => {
+  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud"]);
   for (const [id, schalter] of Object.entries(SCHALTER)) {
     assert.match(schalter.verlaesst, /verl(ä|a)ss/, `${id}: sagt nicht, was den Rechner verlässt`);
     assert.ok(schalter.titel.length > 8 && schalter.verlaesst.length < 260, id);
   }
   assert.match(SCHALTER.autostart.verlaesst, /nichts/);
+  assert.match(SCHALTER.mitteilungen.verlaesst, /nichts/);
   assert.match(SCHALTER.cloud.verlaesst, /Aus: alles bleibt auf diesem Rechner/);
   assert.match(SCHALTER.cloud.zustimmung, /willige ein/);
 });

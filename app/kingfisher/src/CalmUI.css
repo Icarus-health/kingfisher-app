@@ -291,6 +291,11 @@
 .wegezeit-startort label { font-size: 14px; font-weight: 600; }
 .wegezeit-startort > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .wegezeit-startort input { flex: 1 1 220px; min-width: 0; min-height: 40px; }
+/* Mitteilungen auf dem Mac: die Uhrzeit unter dem Schalter, wie der Startort der Wegezeit (docs/16-gestaltung.md). */
+.mitteilungen-uhrzeit { display: grid; gap: 6px; }
+.mitteilungen-uhrzeit label { font-size: 14px; font-weight: 600; }
+.mitteilungen-uhrzeit > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mitteilungen-uhrzeit input[type="time"] { min-height: 40px; padding: 0 10px; border: 1px solid #b9c7c4; border-radius: 8px; font: 400 14px 'Inter', sans-serif; }
 /* Kalender wie Mail (KalenderMitAdresse.tsx, Befund 7). */
 .kalender-adresse { display: grid; gap: 10px; min-width: 0; }
 .kalender-adresse input { box-sizing: border-box; width: 100%; max-width: 100%; }
