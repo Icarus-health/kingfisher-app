@@ -71,7 +71,7 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 | Reiter | Was dort ist | Bausteine (unverändert, nur anders einsortiert) |
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
-| **Was Kingfisher darf** | Sechs Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen. Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter` |
+| **Was Kingfisher darf** | Sieben Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
 | **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
 | **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |
@@ -416,7 +416,7 @@ Geprüft: `sidecar/tests/test_mitteilungen.py`, `app/kingfisher/tests/mitteilung
 
 ## Wie man prüft
 
-* `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau sechs Schalter mit „was verlässt
+* `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau sieben Schalter mit „was verlässt
   den Rechner“, alle Technik-Abschnitte verdrahtet, alte Verweise, **Wortliste**: kein Fachwort aus `FACHWOERTER` in den
   Texten der Gliederung und in den sichtbaren Texten der vorderen Dateien (`VORDERE_DATEIEN`), Breitenregeln im CSS.
 * `welt-vorgaben.test.mjs`, `sidecar/tests/test_welt_vorgaben.py`: Vorgaben und ihr Zustand.

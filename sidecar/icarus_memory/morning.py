@@ -273,6 +273,11 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             if attention[item_id]["review_required"]:
                 attention[item_id]["reason"] = origin + '. Noch ohne zusätzliche Aufgabenprüfung. Bitte zuerst das Original prüfen.'
                 attention[item_id]["action"] = 'Prüfen'
+        elif source == "akte_vorschlag":
+            # „Neue Akte?“ (akten_vorschlaege.py): ein Satz mit Grund, zwei Knöpfe auf der Karte. Der Titel ist der
+            # Satz; die Kennung des Vorschlags steht in source_ref. Nichts ist angelegt, bis geklickt wird.
+            attention[item_id]["detail"] = "Vorschlag aus den Akten · angelegt wird erst mit deinem Klick"
+            attention[item_id]["priority"] = ''
 
     # Eine offene Klärung ist kein Fakt und niemals Modellkontext. Sie ist
     # allerdings eine echte, zeitnahe Entscheidung für den Menschen. Der

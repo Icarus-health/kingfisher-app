@@ -176,7 +176,7 @@ passt, und richtet es mit einem Klick ein. Niemand muss Modellnamen kennen.
 |---|---|---|
 | `frage` | Fragen verstehen | Frage in Stichworte übersetzen (klein, schnell) |
 | `antwort` | Antworten formulieren | Gespräch und Antworten |
-| `hintergrund` | Im Hintergrund ordnen | Einordnen, Themen, Verdichtung; nur lokal |
+| `hintergrund` | Im Hintergrund ordnen | Einordnen, Themen, Verdichtung; lokal, oder nur das Einordnen neuer Mails über Anthropic mit eigener Einwilligung ([46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)) |
 | `einbettung` | Bedeutungen finden | Suche nach Sinn (bge-m3); nur lokal |
 
 - **Empfehlung** (`model_recommendation.py`): Plattform, Chip und Arbeitsspeicher
@@ -200,10 +200,12 @@ passt, und richtet es mit einem Klick ein. Niemand muss Modellnamen kennen.
   eines Hinweises auf eine Konfigurationsdatei. README und Starter sagen dasselbe:
   Ollama installieren, ohne gibt es Mails, Termine und Briefing.
 - **Rollen** (`model_roles.py`, Einstellung `model_roles`): Je Rolle Modell
-  („wie Standard“ ist die Vorgabe) und, für `frage` und `antwort`, Cloud mit
-  ausdrücklicher Einwilligung samt Zeitstempel. Die Einwilligung gilt nur für
-  diese Rolle; ohne gültigen Zeitstempel wird die Cloudwahl ignoriert. Die
-  Rollen `hintergrund` und `einbettung` lesen alle Quellen und bleiben lokal.
+  („wie Standard“ ist die Vorgabe) und Cloud mit ausdrücklicher Einwilligung samt
+  Zeitstempel. Die Einwilligung gilt nur für diese Rolle; ohne gültigen Zeitstempel
+  wird die Cloudwahl ignoriert. Cloud: `frage` und `antwort` mit jedem vorbereiteten Anbieter und Einwilligung; `hintergrund` nur Anthropic (Claude API) mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails samt Bitten und Zusagen; `pruefung` und `einbettung` immer lokal. Lage, Verdichtung, Entwürfe bleiben lokal.
+  Der Anbieter der Rolle `hintergrund` (`provider("hintergrund")`) ist dabei immer
+  lokal oder None; die Cloud-Einordnung neuer Mails läuft getrennt über
+  `hintergrund_cloud.py` (Schalter unter „Was Kingfisher darf“).
   Ohne Rollenkonfiguration verhält sich alles wie zuvor.
 - Routen: `model_roles_routes.py` (`/api/v1/models/recommendation`, `/roles`, `/pull`).
 

@@ -79,6 +79,9 @@ function RoleCard({role, roles, installed, alternatives, save}: {
   const ollamaCloud = roles.ollama_cloud?.modelle ?? [];
   const viaOllama = provider === "ollama-cloud";
   const anbieter = roles.anbieter.find(item => item.id === provider);
+  // Nur die Anbieter, die diese Aufgabe nutzen darf (hintergrund: nur Anthropic, sidecar `RolleSpec.cloud_anbieter`).
+  const erlaubt = roles.anbieter.filter(item => !role.cloud_anbieter || role.cloud_anbieter.includes(item.id));
+  const ollamaCloudErlaubt = !role.cloud_anbieter || role.cloud_anbieter.includes("ollama-cloud");
   const others = alternatives.filter(name => !options.includes(name));
   return <fieldset className="model-role-card">
     <legend>{role.titel}</legend>
@@ -97,8 +100,8 @@ function RoleCard({role, roles, installed, alternatives, save}: {
       <label>Anbieter
         <select value={provider} onChange={event => setProvider(event.target.value)}>
           <option value="">Bitte wählen</option>
-          {roles.anbieter.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
-          {ollamaCloud.length ? <option value="ollama-cloud">Ollama Cloud (Modell auf deinem Ollama, läuft in den USA)</option> : null}
+          {erlaubt.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+          {ollamaCloud.length && ollamaCloudErlaubt ? <option value="ollama-cloud">Ollama Cloud (Modell auf deinem Ollama, läuft in den USA)</option> : null}
         </select></label>
       {viaOllama ? <label>Cloud-Modell
         <select value={cloudModel} onChange={event => setCloudModel(event.target.value)}>

@@ -56,3 +56,9 @@
  .shell main.workspace-tasks .task-row > time {grid-column:2;grid-row:2;text-align:left;}
  .shell main.workspace-tasks .task-row > .task-wait-control {grid-column:2;grid-row:3;}
 }
+
+/* Aufgaben folgen der Post: der Grund steht in der Zeile, „Rückgängig“ gleich daneben; die Vorschläge wie „Zur Prüfung“. */
+.shell main.workspace-tasks .task-row small.task-post,.shell .task-copy small.task-post {flex-basis:100%;color:var(--calm-ink);white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
+.shell main.workspace-tasks .task-row small.task-post button.text-action {margin-left:6px;font-size:var(--calm-caption);}
+.workspace-tasks .aufgaben-post .aufgaben-post-vorschlag {display:grid;gap:6px;padding:12px 0;border-top:1px solid var(--calm-line);}
+.workspace-tasks .aufgaben-post .aufgaben-post-vorschlag small {color:var(--calm-muted);font-size:var(--calm-caption);}

@@ -4,6 +4,7 @@ import {deriveIntakeProgress, watchMailIntake} from "./mailIntakeProgress";
 import {categoryFailureText} from "./categoryFailureText";
 import "./MailIntake.css";
 import {ordnerName} from "./mailAbruf";
+import {ergaenzenSatz, gesendetKnopfSichtbar, umfangSatz} from "./mailIntakeGesendet";
 
 // Für Techniker → Zeitplan und Hintergrund → „Ältere Mails einlesen“. Wörter ohne Technik (Fremdprobe, Befund 12): Ordner
 // statt „Mailbereiche“, einlesen statt „Bestand aufnehmen“, „Posteingang“ statt „INBOX“.
@@ -15,12 +16,6 @@ const stageLabels: Record<string, string> = {
   waiting_analysis: "Ältere Mails warten auf das Sortieren",
   analysis: "Inhalte sortieren · noch ausstehend", current: "Eingelesen · neue Mails kommen regelmäßig dazu",
 };
-
-function scopeLabel(account: MailIntakeAccount) {
-  if (!account.started) return "Kingfisher schaut zuerst nach, welche Ordner es gibt, und zeigt sie dir vor dem Einlesen.";
-  if (account.folders.every(folder => folder.folder === "INBOX")) return "Nur der Posteingang. Gesendete und archivierte Mails sind nicht dabei.";
-  return `Gelesen werden: ${account.folders.map(folder => ordnerName(folder.folder)).join(", ")}. Neue Mails aus diesen Ordnern kommen laufend dazu.`;
-}
 
 function errorLabel(error: string) {
   if (error === "credentials_missing") return "Zugangsdaten fehlen. Prüfe die Verbindung dieses Kontos.";
@@ -85,6 +80,9 @@ export function MailIntake({accounts, active, onChanged}: {
   const [busyAccount, setBusyAccount] = useState<string | null>(null);
   const [backgroundBusy, setBackgroundBusy] = useState(false);
   const [checkingScope, setCheckingScope] = useState(false);
+  // Antwort auf „Gesendete Mails auch einlesen“, je Konto; verschwindet beim nächsten Klick oder Kontowechsel.
+  const [gesendetSatz, setGesendetSatz] = useState<Record<string, string>>({});
+  const [gesendetBusy, setGesendetBusy] = useState<string | null>(null);
   const [previews, setPreviews] = useState<Record<string, MailIntakePreview>>({});
   const watcher = useRef<ReturnType<typeof watchMailIntake> | null>(null);
   const actionBusy = useRef(false);
@@ -102,6 +100,8 @@ export function MailIntake({accounts, active, onChanged}: {
     setCheckingScope(false);
     actionBusy.current = false;
     setPreviews({});
+    setGesendetSatz({});
+    setGesendetBusy(null);
     const current = watchMailIntake({
       read: signal => api.mailIntake(signal),
       onStatus: next => {if (mounted) {setStatus(next); if (messageKind.current === "status") {setMessage(""); messageKind.current = null;}}},
@@ -113,6 +113,9 @@ export function MailIntake({accounts, active, onChanged}: {
           setMessage("Die Ordner im Postfach haben sich geändert. Sieh sie dir noch einmal an, bevor du einliest.");
         } else if (error instanceof ApiError && error.status === 507) {
           setMessage(error.message);
+        } else if (kind === "action" && error instanceof ApiError && error.status === 503 && error.detail) {
+          // Der Sidecar nennt den Grund in einem Satz („Probe-Post antwortet gerade nicht.“): den zeigen, nicht „Das hat nicht geklappt“.
+          setMessage(error.detail);
         } else setMessage(kind === "action" ? "Das hat nicht geklappt. Bitte noch einmal versuchen."
           : "Der Stand konnte gerade nicht geladen werden. Der letzte bekannte Stand bleibt sichtbar; Kingfisher versucht es erneut.");
       },
@@ -164,6 +167,28 @@ export function MailIntake({accounts, active, onChanged}: {
     if (result) setPreviews(values => ({...values, [account.account_id]: result}));
   }
 
+  async function gesendetErgaenzen(account: MailIntakeAccount) {
+    const current = watcher.current;
+    if (!current || actionBusy.current) return;
+    actionBusy.current = true;
+    setBusyAccount(account.account_id); setGesendetBusy(account.account_id); setMessage("");
+    setCheckingScope(false);
+    messageKind.current = null;
+    setGesendetSatz(values => {const next = {...values}; delete next[account.account_id]; return next;});
+    let satz: string | null = null;
+    // Die Antwort trägt den Stand mit; der Satz dazu bleibt als Status stehen, ein Fehler kommt als Alert (onError).
+    const success = await current.run(async signal => {
+      const antwort = await api.ordnerErgaenzen(account.account_id, signal);
+      satz = ergaenzenSatz(antwort);
+      return antwort;
+    });
+    if (watcher.current !== current) return;
+    actionBusy.current = false;
+    setBusyAccount(null); setGesendetBusy(null);
+    if (success && satz) setGesendetSatz(values => ({...values, [account.account_id]: satz as string}));
+    if (success) changedRef.current();
+  }
+
   async function resumeBackground() {
     const current = watcher.current;
     if (!current || actionBusy.current) return;
@@ -188,7 +213,7 @@ export function MailIntake({accounts, active, onChanged}: {
         {backgroundBusy ? "Wird fortgesetzt …" : "Verarbeitung fortsetzen"}
       </button>
     </div>}
-    {status?.analysis_active === false && <p role="status">Das Sortieren ist pausiert oder es ist keine lokale KI da. Eingelesene Mails bleiben gespeichert; ausgewertet werden sie, sobald das Sortieren läuft (oben unter „Quellen automatisch sortieren“).</p>}
+    {status?.analysis_active === false && <p role="status">Das Sortieren ist pausiert, oder es ist weder eine lokale KI da noch die Cloud-Einordnung neuer Mails eingeschaltet (Was Kingfisher darf). Eingelesene Mails bleiben gespeichert; ausgewertet werden sie, sobald das Sortieren läuft (oben unter „Quellen automatisch sortieren“).</p>}
     {!status && !message && <p role="status">Wird geladen …</p>}
     {status && !status.accounts.length && <p>Verbinde zuerst ein Postfach unter Zugänge.</p>}
     {status?.accounts.filter(account => accounts.some(configured => configured.id === account.account_id)).map(account => {
@@ -207,7 +232,13 @@ export function MailIntake({accounts, active, onChanged}: {
             ? "Wartet auf Speicher" : stageLabels[progress.stage]}</span></div>
         {account.stand && <p>{account.stand.satz}</p>}
         {progress.stage === "waiting_analysis" && !status.background_paused && <a className="text-action" href="/memory?view=status">Automatisches Sortieren prüfen →</a>}
-        <p>{!account.started && checked ? checked.description : scopeLabel(account)}</p>
+        <p>{!account.started && checked ? checked.description : umfangSatz(account)}</p>
+        {gesendetKnopfSichtbar(account) && <p>
+          <button className="text-action" type="button" disabled={busy || Boolean(status.storage_blocked)}
+            aria-label={`Gesendete Mails auch einlesen: ${account.label}`}
+            onClick={() => {void gesendetErgaenzen(account);}}>{gesendetBusy === account.account_id ? "Kingfisher schaut nach …" : "Gesendete Mails auch einlesen"}</button>
+        </p>}
+        {gesendetSatz[account.account_id] && <p role="status">{gesendetSatz[account.account_id]}</p>}
         {(checked?.attachments_description || account.attachments_description) && <p>{checked?.attachments_description || account.attachments_description}</p>}
         {!account.started && checked && <p>Gefunden: {checked.folders.map(ordnerName).join(", ")}. Diese Ordner liest Kingfisher ein, und neue Mails daraus kommen laufend dazu.</p>}
         {account.paused && <p>Das Einlesen pausiert. Was schon gespeichert ist, bleibt, und es geht dort weiter, wo es aufgehört hat.</p>}

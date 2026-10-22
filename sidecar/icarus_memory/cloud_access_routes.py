@@ -29,6 +29,13 @@ class CloudAccessIn(BaseModel):
 
 
 
+def _zurueckgesetzt(role, value):
+    """Die Rollenwahl nach einem Schlüssel- oder Modellwechsel: nur lokal; der Hintergrund behält sein lokales Modell."""
+    if role == 'hintergrund' and isinstance(value.get('modell'), str) and value['modell'].strip():
+        return {'local_only': True, 'modell': value['modell'].strip()}
+    return {'local_only': True}
+
+
 def register(app, guard, data_dir, rebuild):
     def store():
         keychain = getattr(app.state, 'keychain', None)
@@ -93,7 +100,7 @@ def register(app, guard, data_dir, rebuild):
                         keychain.delete(REVISION_KEY)
                 if changed:
                     # Changing credentials or the prepared model requires fresh role consent.
-                    settings.model_roles = {role: ({'local_only': True} if value.get('anbieter') == identifier else value)
+                    settings.model_roles = {role: (_zurueckgesetzt(role, value) if value.get('anbieter') == identifier else value)
                                             for role, value in settings.model_roles.items()}
                 config.save(data_dir(), settings)
             except (KeychainError, OSError, ValueError):
@@ -111,7 +118,7 @@ def register(app, guard, data_dir, rebuild):
                 except KeychainError:
                     # Fail closed if the storage itself stopped accepting writes.
                     os.environ.pop(name, None)
-                    settings.model_roles = {role: ({'local_only': True} if value.get('anbieter') == identifier else value)
+                    settings.model_roles = {role: (_zurueckgesetzt(role, value) if value.get('anbieter') == identifier else value)
                                             for role, value in settings.model_roles.items()}
                     if affected_roles:
                         pause_agent()

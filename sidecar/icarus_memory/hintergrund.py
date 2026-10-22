@@ -860,7 +860,9 @@ def einbauen(app: Any, guard: list[Any], data_dir: Callable[[], Path]) -> Steuer
             provider = rollen_von(app).provider('hintergrund')
         except Exception:  # noqa: BLE001
             provider = None
-        mit_modell = bool(plan.with_model and getattr(provider, 'is_local', False))
+        # Lokal, oder die Cloud-Einordnung neuer Mails mit eigener Einwilligung (`hintergrund_cloud`).
+        from .hintergrund_cloud import aktiv as cloud_einordnung_aktiv
+        mit_modell = bool(plan.with_model and (getattr(provider, 'is_local', False) or cloud_einordnung_aktiv(app)))
         return steuerung.stand(freigegeben=bool(plan.enabled), mit_modell=mit_modell, ki_filter=ki_filter_an(app))
 
     @app.get('/api/v1/hintergrund', dependencies=guard)

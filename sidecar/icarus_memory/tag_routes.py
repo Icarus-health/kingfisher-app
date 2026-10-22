@@ -162,9 +162,15 @@ def briefing(app, *, buchen: bool = True) -> dict[str, Any]:
         termin_wetter = wetter_am_termin(app, vorbereitungen, jetzt)
     except Exception:  # noqa: BLE001
         logger.exception('Wetter am Termin konnte nicht bestimmt werden')
+    post: list[dict[str, Any]] = []
+    try:
+        from .aufgaben_post import heute as post_heute
+        post = post_heute(app.state.tasks, jetzt)
+    except Exception:  # noqa: BLE001 - die Zeile ist Beiwerk; das Briefing darf nie daran scheitern
+        logger.exception('Aufgaben nach der Post konnten nicht gelesen werden')
     lage = tagesbriefing.erstellen(vorbereitungen, fristen, _wetter(app), jetzt=jetzt,
                                    termin_wetter=termin_wetter, welt=_welt(app), verlauf=logbuch_zeilen(app, jetzt, buchen=buchen),
-                                   geburtstage=geburtstage)
+                                   geburtstage=geburtstage, aufgaben_post=post)
     ergebnis['tageslage'] = lage.to_dict()
     ergebnis['termine'] = [v.to_dict() for v in vorbereitungen]
     ergebnis['fristen'] = [f.to_dict() for f in fristen]

@@ -3,6 +3,7 @@ import { Nachrichten, Wetter } from "../WeltSettings";
 import { WegezeitSettings } from "../WegezeitSettings";
 import { CloudSchalter } from "./CloudSchalter";
 import { Mitteilungen } from "./Mitteilungen";
+import { CloudEinordnungSchalter } from "./CloudEinordnungSchalter";
 import { SCHALTER } from "./gliederung";
 import { fuerSystem } from "../system";
 import { useSystem } from "../useSystem";
@@ -22,5 +23,6 @@ export function Darf() {
       <AutostartWahl titel={SCHALTER.autostart.titel} satz={fuerSystem(SCHALTER.autostart.verlaesst, system)} /></section></div>
     <div role="listitem"><Mitteilungen /></div>
     <div role="listitem"><CloudSchalter /></div>
+    <div role="listitem"><CloudEinordnungSchalter /></div>
   </div>;
 }

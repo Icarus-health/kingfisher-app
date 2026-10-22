@@ -11,6 +11,10 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # v23 and earlier lack the decisions on „Neue Akte?“ proposals (Migration 24).
+    from icarus_memory.akten_vorschlaege import TABLES as VORSCHLAEGE
+    for table in VORSCHLAEGE:
+        connection.execute("DROP TABLE IF EXISTS " + table)
     # v22 and earlier lack the user's decisions in Akten (Migration 23).
     from icarus_memory.akten_entscheidungen import TABLES as ENTSCHEIDUNGEN
     for table in ENTSCHEIDUNGEN:

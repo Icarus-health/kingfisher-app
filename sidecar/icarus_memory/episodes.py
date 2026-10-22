@@ -630,12 +630,16 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False) -> None:
+                entscheidungen=False, vorschlaege=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
     extra_indexes = dict(mail_intake.INDEXES) if intake else {}
     extra_triggers = {}
+    if vorschlaege:
+        from . import akten_vorschlaege
+        extra_tables.update(akten_vorschlaege.TABLES)
+        extra_keys.update(akten_vorschlaege.PRIMARY_KEYS)
     if mail_headers:
         from . import mail_header_index
         extra_tables.update(mail_header_index.TABLES)
@@ -840,10 +844,11 @@ def _migrate_v20(connection):
     migrate_failure_diagnostics(connection)
 
 
-def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False):
+def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
-                task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen)
+                task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
+                vorschlaege=vorschlaege)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -882,6 +887,17 @@ def _verify_v23(connection):
     _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True)
 
 
+def _migrate_v24(connection):
+    # Vorschlag „Neue Akte?“: die Entscheidungen des Nutzers (angenommen, abgelehnt) mit Verweisen auf Projekt und
+    # Quellen; ein Projekt entsteht nur durch seinen Klick.
+    from .akten_vorschlaege import migrate
+    migrate(connection)
+
+
+def _verify_v24(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -906,6 +922,7 @@ _MIGRATIONS = (
     Migration(21, "task_source_rechecks", _migrate_v21, _verify_v21),
     Migration(22, "exact_mail_header_index", _migrate_v22, _verify_v22),
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
+    Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
 )
 
 
@@ -1598,6 +1615,33 @@ class EpisodeStore:
     def finish_task_recheck(self, row: dict, *, completed: bool) -> None:
         from .task_rechecks import finish
         finish(self, row, completed)
+
+    def letzte_zeile(self) -> int:
+        """Die größte Zeilennummer der Episoden (0 ohne Episoden): der Stand für Durchläufe über neue Quellen."""
+        with self._lock:
+            return int(self._conn.execute("SELECT COALESCE(MAX(rowid), 0) FROM episodes").fetchone()[0])
+
+    def mails_ab(self, zeile: int, limit: int = 200) -> list[tuple[int, Episode]]:
+        """Geltende Mails (aktuelle Fassung, nicht ignoriert) nach Zeilennummer `zeile`, in Aufnahmefolge.
+
+        Für Durchläufe, die jede neue Mail einmal sehen wollen (`aufgaben_post.py`): Der Aufrufer merkt sich die
+        letzte Zeilennummer. Eine neue Fassung derselben Mail ist eine neue Zeile.
+        """
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT rowid, document FROM episodes WHERE rowid > ? AND kind = ? "
+                f"AND json_extract(document, '$.provenance.source_type') = 'email' AND {sql_aktuell()} "
+                "ORDER BY rowid LIMIT ?",
+                (int(zeile), EpisodeKind.MESSAGE.value, max(1, min(int(limit), 1000)))).fetchall()
+        return [(int(row[0]), self._from_row({"document": row[1]})) for row in rows]
+
+    def anhang_titel(self, parent_id: str) -> list[str]:
+        """Titel der geltenden Anlagen einer Mail (Dateiname voran, `anhaenge.titel`), ohne Inhalt."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT json_extract(episodes.document, '$.title') FROM episodes, json_each(episodes.document, '$.tags') j "
+                f"WHERE j.value = ? AND {sql_aktuell()} LIMIT 50", (f"mail-parent:{parent_id}",)).fetchall()
+        return [str(row[0] or "") for row in rows]
 
     def analysis_batch(self, after_id: str = "", limit: int = 100) -> list[Episode]:
         """Rohquellen in stabilen, begrenzten Seiten für unabhängige Analysen."""

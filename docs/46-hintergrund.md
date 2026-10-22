@@ -299,6 +299,23 @@ Ganz anhalten, auch neue Post, lässt sich das Einlesen weiter je Postfach
 (Für Techniker → Zeitplan und Hintergrund, „Einlesen pausieren“) oder mit dem
 Schalter „Mails regelmäßig abrufen“.
 
+### Gesendet nachlesen (Oktober 2026)
+
+Ein IMAP-Konto liest Posteingang und Gesendet (welche Ordner, steht in
+[`14`](14-posteingang.md#welche-ordner)). Beide Ordner laufen im selben Takt:
+`_step` nimmt je Durchgang die zwei am längsten nicht aktualisierten Ordner
+(`ORDER BY updated LIMIT 2`), die Bestandsaufnahme wechselt also zwischen
+beiden, und jede Mail trägt Konto, Ordner, Postfachkennung und UID. Ein Konto
+von vor dem Umbau trägt Gesendet über „Gesendete Mails auch einlesen“ nach
+(`Intake.ergaenzen`): Der neue Ordner übernimmt den Pausenstand des Kontos,
+und der Zeitplan wird gleich geweckt (`aufnahme_wecken`). Solange nur Gesendet
+noch offen ist, sagt der Stand „Der Posteingang ist gelesen (…). Gesendete
+Mails werden nachgelesen: bisher … gefunden.“; „wird durchgesehen“ bleibt für
+ein Postfach, dessen Posteingang selbst noch nicht fertig ist. Eigene Mails
+laufen nicht durch den Werbefilter, Entwürfe (`\Draft`) werden gezählt, nicht
+aufgenommen; eine Mail an sich selbst wird in beiden Ordnern zur Quelle
+(bewusste Grenze, dort beschrieben).
+
 ### Neue Postfachkennung
 
 Vergibt der Server die Nummern eines Ordners neu (UIDVALIDITY; bei Microsoft
@@ -334,6 +351,49 @@ derselben Generation (zwei UIDs, gleicher Inhalt). Diese bleiben zwei Quellen
 mit je eigenem Beleg, wie `test_mail_ingestion.py::test_mail_identity_and_versions_keep_independent_evidence`
 es festhält. Der regelmäßige Abruf ohne Aufnahme (`sync_account`) führt keine
 Generationen und verknüpft deshalb nicht.
+
+## Cloud-Einordnung neuer Mails
+
+Seit dem 20.10.2026 (`sidecar/icarus_memory/hintergrund_cloud.py`, Schalter „Neue Mails in der
+Cloud einordnen“ unter Einstellungen → Was Kingfisher darf, `CloudEinordnungSchalter.tsx`).
+
+**Was.** Mit dem Schalter und einer eigenen Einwilligung in einem Satz (Rolle `hintergrund`,
+Anbieter `anthropic`, `PUT /api/v1/models/roles/hintergrund`) laufen genau drei Alltagsläufe
+über einen eingegrenzten `AnthropicImportProvider`: das Einordnen (`working_memory_worker`),
+Themen und Entitäten (`memory_categories.Categories`) und Bitten und Zusagen (`task_detection`
+mit `memory_analysis.interpret` und `task_review.review_tasks`). Es sind dieselben Funktionen
+und Tabellen wie beim lokalen Weg und beim ausdrücklich freigegebenen Mailpaket (`cloud_memory.py`);
+jede Quelle bekommt eine `ExplicitSourcePolicy`, die bei jedem Aufruf neu prüft: Einwilligung
+noch gültig, gleiche Zugangsfassung (`credential_status`), Zeitplan freigegeben, Modellarbeit
+erlaubt (`modellarbeit_frei`), Quelle ist eine Mail, der Vorfilter lässt sie durch, Fassung
+unverändert. Gespeichert wird mit der Kennung `anthropic:MODELL`.
+
+**Grenzen.** Nur Anthropic (Claude API) mit dem unter KI & Modelle vorbereiteten Zugang
+(Schlüssel und Modell); Mistral, OpenRouter, OpenAI und Ollama-Cloud sind für den Hintergrund
+nicht vorgesehen (422). Nur Mails; Dokumente, Mitschriften und Termine laufen weiter über das
+lokale Modell, und ohne lokales Modell warten sie (der Lauf sagt das: „Andere Quellen als Mails
+warten auf ein lokales Modell.“). Nie bei Pause, Akku- oder Speichersperre. Ein Schlüssel- oder
+Modellwechsel löscht die Einwilligung (`cloud_access_routes`), das lokale Modell der Rolle bleibt.
+
+**Budget.** Höchstens `TAGESBUDGET` = 300 Aufrufe je Kalendertag (UTC), gezählt in
+`hintergrund_cloud.sqlite` im Datenverzeichnis, unter dem Gesprächsschloss vor jedem Senden.
+Aufruf Nr. 301 wird vor dem Senden abgewiesen; der Lauf meldet „Heute sind die 300 Cloud-Aufrufe
+aufgebraucht; morgen geht es weiter.“, das Logbuch vermerkt es einmal je Tag (`cloud_einordnung`).
+Die Statuszeile des Schalters zeigt Modell und „Heute n von 300 Aufrufen“.
+
+**Was lokal bleibt.** `rollen_von(app).provider("hintergrund")` liefert weiterhin nur lokal oder
+None (`model_roles.anbieter_nur_lokal`). Damit bekommen Lage, Verdichtung, Zusammenfassungen,
+Mailhilfe und Antwortentwürfe, Aufgabenvorschläge zu einer geöffneten Mail, Projekthinweise,
+Mailüberblick, Personenüberblick, Prüfung, Einbettung und Texterkennung den Cloud-Anbieter nie.
+Die Automatik (`GET /api/v1/memory/automation`) meldet `cloud_aktiv`, wenn die Cloud-Einordnung
+läuft und kein lokales Modell bestätigt ist; „Automatisches Sortieren einschalten“ geht dann
+auch ohne lokales Modell (`local_model_only` bleibt gesetzt: lokal prüfen, wo lokal).
+
+Formel für alle Rollen: Cloud: `frage` und `antwort` mit jedem vorbereiteten Anbieter und Einwilligung; `hintergrund` nur Anthropic (Claude API) mit eigener Einwilligung und Tagesbudget, nur für das Einordnen neuer Mails samt Bitten und Zusagen; `pruefung` und `einbettung` immer lokal. Lage, Verdichtung, Entwürfe bleiben lokal.
+
+Prüfungen: `sidecar/tests/test_hintergrund_cloud.py` (Attrappen, kein Netz), Browserprobe
+`scripts/probe_cloud_einordnung_ui.py`, Protokoll
+[runs/2026-10-20-cloud-einordnung](runs/2026-10-20-cloud-einordnung/README.md).
 
 ## Prüfungen
 

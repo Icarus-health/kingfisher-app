@@ -54,7 +54,7 @@ führt einen inzwischen abgeschlossenen Schritt nicht ein zweites Mal aus.
 | --- | --- | --- | --- |
 | `self-model.sqlite3` | `SqliteBackend` | `assertions` | vollständige Assertion als JSON; zwei Append-only-/Redaction-Trigger |
 | `episodes.sqlite3` | `EpisodeStore` | `episodes` | vollständige Episode als JSON; Digest ist eindeutig |
-| `tasks.sqlite3` | `TaskStore` | `tasks` | vollständige Task als JSON; bekanntes Legacy-Schema ohne `project_id` |
+| `tasks.sqlite3` | `TaskStore` | `tasks`, `task_events`, `task_requests`, `aufgaben_post_mails`, `aufgaben_post_getrennt`, `aufgaben_post_stand` | vollständige Task als JSON; bekanntes Legacy-Schema ohne `project_id`; Migration 4 (Oktober 2026): die Merkliste der gegen die Aufgaben geprüften Mails, die vom Nutzer getrennten Paare (Aufgabe, Mail) und der Stand des Durchlaufs, nur Kennungen (`aufgaben_post.py`, [30](30-akten.md#aufgaben-folgen-der-post-oktober-2026)) |
 | `workspace.sqlite3` | `WorkspaceStore` | `projects`, `notes` | vollständige Project-/Note-Dokumente als JSON |
 | `proposals.sqlite3` | `ProposalStore` | `proposals` | vollständiger Vorschlag samt Evidence als JSON |
 | `audit.sqlite3` | `AuditLog` | `audit` | anhängend durch No-Update-/No-Delete-Trigger |
@@ -89,6 +89,14 @@ _MIGRATIONS = (
     Migration(2, "add_scope", _migrate_v2, _verify_v2),
 )
 ```
+
+Ein Beispiel aus dem Bestand: Migration 24 der Episoden (`akten_vorschlaege.migrate`)
+legt die Tabelle `akten_vorschlag_entscheidungen` an (Kennung, Entscheidung, Zeit, Sache,
+Projekt-ID, Quellen-IDs; nur Verweise), `_verify_v24` prüft sie über `_verify_v20(…,
+vorschlaege=True)`, und `test_migrationsnummern.py` stellt sicher, dass der Docstring
+die Nummer nennt, unter der die Funktion wirklich läuft. Ein Bestand mit Version 23
+erhält die Tabelle beim ersten Öffnen; frühere Entscheidungen (Migration 23) bleiben
+unverändert (`test_akten_vorschlaege.py`).
 
 Migrationen müssen ohne Datum, Netzwerk, Modell, Zufall oder externen Dienst
 reproduzierbar sein. `apply` und `verify` dürfen nicht selbst committen oder

@@ -110,6 +110,59 @@ Jetzt werden nur die Namen geräumt, die beim Start **aus der Datei** kamen;
 `settings.mail.smtp_host` statt der Umgebung — und daraus liest
 `MailConfig.from_env`, also die tatsächlich wirksame Konfiguration.
 
+## Welche Ordner
+
+Die Aufnahme älterer Mails (`mail_intake.py`, [`46`](46-hintergrund.md)) liest je
+Postfach feste Ordner, die `connectors/mail.py:folders()` beim Start einmal
+ermittelt:
+
+| Konto | Gelesen wird | Satz in der Oberfläche |
+| --- | --- | --- |
+| Gmail (Ordner mit SPECIAL-USE `\All`) | der Gesamtbestand, er enthält Posteingang, Gesendet und Archiv | „Posteingang, Gesendet und Archiv über den Gmail-Gesamtbestand; ohne Spam und Papierkorb.“ |
+| Microsoft 365 (Graph) | `INBOX` und `SentItems` ([`50`](50-microsoft-365.md)) | „Posteingang und Gesendet; ohne Junk-E-Mail und Gelöschte Elemente.“ |
+| Jedes andere IMAP-Konto (seit Oktober 2026) | `INBOX` **und** der Gesendet-Ordner: SPECIAL-USE `\Sent` (RFC 6154), sonst der erste Ordner mit einem üblichen Namen (`Sent`, `Sent Items`, `Sent Messages`, `Gesendet`, `Gesendete Objekte`, `Gesendete Elemente`, `INBOX.Sent`, `INBOX/Sent`; ohne Groß/Klein, `connectors.mail.GESENDET_NAMEN`) | „Posteingang und Gesendet; ohne Spam und Papierkorb.“ |
+| IMAP-Konto ohne erkennbaren Gesendet-Ordner | nur `INBOX` | „Nur der Posteingang; gesendete und archivierte Mails sind bei diesem Konto nicht dabei.“ |
+
+Papierkorb, Spam und Junk bleiben immer ausgeschlossen, auch wenn sie `\Sent`
+tragen. Warum Gesendet: Ein Stabschef kennt die eigenen Zusagen. Die Logik
+dafür war da (`task_review` mit `own_commitment`, `fristlage.richtung`
+„von_mir“, „Was habe ich zugesagt?“ in [`17`](17-stabschef.md)), aber ohne
+Gesendet fehlten bei jedem Konto außer Gmail und Microsoft die Daten.
+
+**Konten von vor dem Umbau** sind mit nur dem Posteingang gestartet. Unter
+Für Techniker → Zeitplan und Hintergrund → Ältere Mails einlesen steht bei
+ihnen „Gesendete Mails auch einlesen“ (`POST /api/v1/mail/intake/{id}/ordner-ergaenzen`):
+Kingfisher ermittelt die Ordner neu und trägt nur nach, was fehlt
+(`Intake.ergaenzen`, kein zweiter Eintrag, eine Pause bleibt). Die Antwort ist
+ein Satz: „Gesendete Mails werden jetzt mit eingelesen.“, „Gesendete Mails sind
+schon dabei.“ oder „Dieses Postfach hat keinen Gesendet-Ordner, den Kingfisher
+erkennt.“ Danach verschwindet der Knopf; im letzten Fall bis zum nächsten Start
+der App (das Ergebnis der Ordnersuche wird nicht gespeichert). Der Stand sagt
+währenddessen „Der Posteingang ist gelesen (5 Mails). Gesendete Mails werden
+nachgelesen: bisher keine gefunden.“ statt aufs ganze Postfach „wird
+durchgesehen“ zurückzufallen (`mail_stand.konto_stand`).
+
+**Eigene Mails und der Filter.** Eine Mail, deren Absender eine eigene Adresse
+ist (`Message.own_addresses`), geht ohne Werberegeln und ohne Modell in die
+Aufnahme (`mail_intake._step`): Sie ist keine Werbung, und ein KI-Filter ohne
+lokale KI hielte sonst jede eigene Zusage als „unklar“ zurück. Nur der
+Spam-Kopf des eigenen Servers gilt weiter (`X-Spam-Flag`): Ein gefälschter
+eigener Absender ist das klassische Spam-Muster, und den Kopf setzt der
+Anbieter, nicht die Mail.
+
+**Entwürfe.** Gmail führt Entwürfe im Gesamtbestand mit dem Flag `\Draft`. Sie
+sind nichts, was geschah: nicht aufgenommen, aber gezählt (Status
+`filtered:entwurf`, in der Oberfläche unter „ausgefiltert“), damit der Ordner
+nicht für immer auf „4 von 5“ steht. „Erneut prüfen“ liest sie erneut und
+überspringt sie wieder.
+
+**Grenze: Mails an sich selbst.** Die Message-ID wird absichtlich nicht
+ordnerübergreifend verglichen (`mail_ingestion._dieselbe_mail_im_konto`, nur
+dieselbe Postfachkennung desselben Ordners). Eine Mail an die eigene Adresse
+liegt im Posteingang und in Gesendet und wird zweimal zur Quelle, wie heute
+schon bei Microsoft 365. Bewusst so gelassen: Eine fremde Message-ID darf keine
+andere Mail ersetzen, und die Dublette ist sichtbar und harmlos.
+
 ## Schnittstelle
 
 | Weg | Was |
@@ -134,7 +187,8 @@ Kanal nach dem Text selbst, und sie gehören eigens bedacht.
 **Nur `text/plain`.** Eine reine HTML-Mail zeigt einen leeren Text. Das ist
 ehrlicher als ein halbherziger Umbau, aber es fehlt.
 
-**Kein Ordnerwechsel.** Nur INBOX.
+**Kein Ordnerwechsel im Posteingang.** Die Liste im Gesprächsfenster zeigt
+INBOX; die Aufnahme älterer Mails liest daneben Gesendet (oben, „Welche Ordner“).
 
 ## Verwandte Dokumente
 

@@ -84,6 +84,13 @@ class ProposalKind(str, Enum):
     setzt `disputed`.
     """
 
+    TASK_DONE = "task_done"
+    """Erledigt? Eine eigene Mail passt zu einer offenen Aufgabe, aber nicht sicher genug, um sie selbst abzulegen
+    (`aufgaben_post.py`). Annehmen erledigt die Aufgabe mit Grund; Verwerfen trennt Aufgabe und Mail."""
+
+    TASK_WAITING_RESOLVED = "task_waiting_resolved"
+    """Wieder bei dir? Jemand, auf den eine Aufgabe wartet, hat geschrieben; ob es die Antwort ist, bleibt unsicher."""
+
     KNOWLEDGE = "knowledge"
     """Belegte Aussage über eine Person, ein Projekt oder eine andere Entität.
 

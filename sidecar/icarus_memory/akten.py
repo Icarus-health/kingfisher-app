@@ -522,6 +522,11 @@ def _faeden(episodes: Any, ids: list[str]) -> dict[str, str]:
     return {i: wurzel(i) for i in ids}
 
 
+def verlaeufe(episodes: Any, ids: list[str]) -> dict[str, str]:
+    """Öffentlicher Name von `_faeden` für andere Leser der Mailverläufe (`aufgaben_post.py`)."""
+    return _faeden(episodes, ids)
+
+
 def _nach_absage(offen: list[dict], abschnitte: list[Abschnitt], termine: list[dict],
                  faeden: dict[str, str]) -> list[dict]:
     """Offene Punkte vor der Absage eines Termins der Akte, die die Absage nicht ausdrücklich beendet.
@@ -839,7 +844,8 @@ class Akten:
             fest = ArtAblage(self.episodes).bestaetigt(sache)
             daten['akten_art'] = fest['art'] if fest and fest['art'] != 'keine' else ''
         if ansicht:
-            daten['braucht_dich'] = self._braucht_dich(roh, offen, leser, jetzt, eigene, termin_gesagt, ziel)
+            daten['braucht_dich'] = self._braucht_dich(roh, offen, leser, jetzt, eigene, termin_gesagt, ziel,
+                                                       aufgaben=aufgaben)
             daten['zeitstrahl'] = self._zeitstrahl(roh, offen, jetzt, termin_gesagt, ziel)
         return daten
 
@@ -847,8 +853,12 @@ class Akten:
 
     def _braucht_dich(self, roh: dict[str, Any], offen: list[dict], leser: '_Leser', jetzt: datetime,
                       eigene: list[str], termin_gesagt: dict[str, tuple[str, dict | None]],
-                      ziel: Callable[[dict], str]) -> dict[str, Any]:
-        """Was eine Entscheidung des Nutzers braucht: je ein Satz, das Zitat, die Wahl. Dringendes zuerst."""
+                      ziel: Callable[[dict], str], aufgaben: Iterable[Any] = ()) -> dict[str, Any]:
+        """Was eine Entscheidung des Nutzers braucht: je ein Satz, das Zitat, die Wahl. Dringendes zuerst.
+
+        Dazu, was die Post an den Aufgaben dieser Akte geändert hat (`aufgaben_post.py`, Art `aufgabe_post`): kein
+        Punkt zum Entscheiden, sondern einer zum Nachsehen, mit „Rückgängig“ statt einer Wahl.
+        """
         from .fristlage import Frist, beschreibung, quelle_art
         from .kontakte import anzeigename
         from .episodes import mail_address
@@ -935,6 +945,17 @@ class Akten:
             merken(ziel_, rang, {'art': 'frist' if status == 'kommend' else 'frist_verstrichen',
                                  'satz': beschreibung(frist), 'zeile': zeile, 'laut': None, 'datum': f['datum'],
                                  'episode_id': zeile['episode_id'], 'wahl': wahl})
+        # 4. Was die Post an Aufgaben dieser Akte geändert hat: sichtbar mit Grund und Rückgängig, einige Tage lang.
+        from .aufgaben_post import SICHTBAR_TAGE
+        for aufgabe in aufgaben:
+            grund = getattr(aufgabe, 'erledigt_grund', None) or getattr(aufgabe, 'geaendert_grund', None)
+            am = _zeit(grund.get('am')) if grund and grund.get('am') else None
+            if am is None or (jetzt - am).days > SICHTBAR_TAGE:
+                continue
+            merken(f'p:{aufgabe.id}', (5, -am.timestamp()), {
+                'art': 'aufgabe_post', 'satz': str(grund.get('satz') or ''), 'zeile': None, 'laut': None,
+                'episode_id': str(grund.get('episode_id') or ''), 'wahl': [],
+                'aufgabe': {'id': aufgabe.id, 'title': aufgabe.title}})
         geordnet = sorted(punkte.values(), key=lambda p: p['_rang'])
         for punkt in geordnet:
             punkt.pop('_rang')

@@ -2,10 +2,13 @@
 
 Verhalten je `modus` (jederzeit änderbar):
 
-* `annehmen`: Anmeldung mit dem richtigen Passwort gelingt; LIST liefert INBOX. Ohne `nachrichten` ist der Posteingang
-  leer. Mit `nachrichten` (rohe Mails, UID = Position + 1) antworten EXAMINE/SELECT, `UID SEARCH` und `UID FETCH` wie
-  ein normgerechter Server: `UIDVALIDITY` und `UIDNEXT` kommen **nur** als Antwort auf SELECT/EXAMINE, nie bei einem
-  späteren Befehl (Fremdprobe 3, Befund 1: daran scheiterte die Aufnahme in der wiederverwendeten Sitzung).
+* `annehmen`: Anmeldung mit dem richtigen Passwort gelingt; LIST liefert INBOX, mit `gesendet` dazu einen
+  Gesendet-Ordner (`gesendet_name`, Vorgabe „Gesendet“, mit SPECIAL-USE `gesendet_attribut`, Vorgabe `\\Sent`; leer
+  für einen Server ohne das Attribut). Ohne `nachrichten` ist der Posteingang leer. Mit `nachrichten` (rohe Mails,
+  UID = Position + 1) antworten EXAMINE/SELECT, `UID SEARCH` und `UID FETCH` je gewähltem Ordner wie ein normgerechter
+  Server: `UIDVALIDITY` und `UIDNEXT` kommen **nur** als Antwort auf SELECT/EXAMINE, nie bei einem späteren Befehl
+  (Fremdprobe 3, Befund 1: daran scheiterte die Aufnahme in der wiederverwendeten Sitzung). `flags[(ordner, uid)]`
+  liefert FLAGS je Mail (etwa `\\Draft` für einen Entwurf), sonst `()`.
 * `ablehnen`: jede Anmeldung scheitert mit `NO [AUTHENTICATIONFAILED]` (wie ein falsches Passwort).
 * `imap_aus`: jede Anmeldung scheitert mit dem ausdrücklichen Hinweis, dass IMAP ausgeschaltet ist.
 * `google_ablehnen`: jede Anmeldung scheitert, wie Gmail ein normales Passwort ablehnt (`Invalid credentials (Failure)`).
@@ -77,12 +80,19 @@ def _zertifikat(ordner: Path) -> tuple[Path, Path]:
 
 class ImapAttrappe:
     def __init__(self, modus: str = 'annehmen', passwort: str = PASSWORT, *, nachrichten: list[bytes] | None = None,
-                 uidvalidity: int = 1) -> None:
+                 uidvalidity: int = 1, gesendet: list[bytes] | None = None, gesendet_name: str = 'Gesendet',
+                 gesendet_attribut: str = '\\Sent') -> None:
         self.modus = modus
         self.passwort = passwort
         self.anmeldungen: list[tuple[str, str]] = []
         #: Rohmails des Posteingangs; UID ist Position + 1, die Sequenznummer ebenso.
         self.nachrichten: list[bytes] = list(nachrichten or [])
+        #: Rohmails des Gesendet-Ordners; `None` heißt: Das Postfach hat keinen.
+        self.gesendet: list[bytes] | None = list(gesendet) if gesendet is not None else None
+        self.gesendet_name = gesendet_name
+        self.gesendet_attribut = gesendet_attribut
+        #: FLAGS je (Ordner, UID), etwa `'(\\Draft)'`; sonst `()`.
+        self.flags: dict[tuple[str, int], str] = {}
         self.uidvalidity = uidvalidity
         #: Jeder Befehl nach der Anmeldung (ohne Marke), zum Nachsehen in Tests.
         self.befehle: list[str] = []
@@ -138,6 +148,7 @@ class ImapAttrappe:
         self._offen.append(verbindung)
         datei = verbindung.makefile('rwb')
         angemeldet = False
+        gewaehlt = 'INBOX'
 
         def sende(zeile: str) -> None:
             datei.write(zeile.encode() + b'\r\n')
@@ -172,20 +183,30 @@ class ImapAttrappe:
                         sende(f'{marke} OK LOGIN erledigt')
                 elif befehl == 'LIST':
                     sende('* LIST (\\HasNoChildren) "/" INBOX')
+                    if self.gesendet is not None:
+                        attribute = ' '.join(a for a in ('\\HasNoChildren', self.gesendet_attribut) if a)
+                        sende(f'* LIST ({attribute}) "/" "{self.gesendet_name}"')
                     sende(f'{marke} OK LIST erledigt')
                 elif befehl in ('SELECT', 'EXAMINE'):
                     self.befehle.append(befehl)
+                    name = ' '.join(teile[2:]).strip('"')
+                    if name.upper() != 'INBOX' and (self.gesendet is None or name != self.gesendet_name):
+                        sende(f'{marke} NO [NONEXISTENT] Unbekannter Ordner')
+                        continue
+                    gewaehlt = 'INBOX' if name.upper() == 'INBOX' else self.gesendet_name
+                    bestand = self._bestand(gewaehlt)
                     # Nur hier, wie bei einem normgerechten Server: UIDVALIDITY und UIDNEXT.
-                    sende(f'* {len(self.nachrichten)} EXISTS')
+                    sende(f'* {len(bestand)} EXISTS')
                     sende(f'* OK [UIDVALIDITY {self.uidvalidity}] UIDs gültig')
-                    sende(f'* OK [UIDNEXT {len(self.nachrichten) + 1}] Nächste UID')
+                    sende(f'* OK [UIDNEXT {len(bestand) + 1}] Nächste UID')
                     sende(f'{marke} OK [READ-ONLY] {befehl} erledigt')
                 elif befehl == 'UID' and len(teile) > 2 and teile[2].upper() == 'FETCH':
                     self.befehle.append('UID FETCH')
-                    self._abrufen(marke, teile[3] if len(teile) > 3 else '', ' '.join(teile[4:]), datei, sende)
+                    self._abrufen(marke, teile[3] if len(teile) > 3 else '', ' '.join(teile[4:]), datei, sende,
+                                  ordner=gewaehlt)
                 elif befehl in ('SEARCH', 'UID'):
                     self.befehle.append('UID SEARCH' if befehl == 'UID' else 'SEARCH')
-                    treffer = self._suchen(teile[3:] if befehl == 'UID' else teile[2:])
+                    treffer = self._suchen(teile[3:] if befehl == 'UID' else teile[2:], ordner=gewaehlt)
                     sende('* SEARCH' + ''.join(f' {uid}' for uid in treffer))
                     sende(f'{marke} OK SEARCH erledigt')
                 elif befehl == 'NOOP':
@@ -204,29 +225,37 @@ class ImapAttrappe:
             except OSError:
                 pass
 
-    def _suchen(self, kriterien: list[str]) -> list[int]:
+    def _bestand(self, ordner: str) -> list[bytes]:
+        """Die Rohmails des Ordners: der Posteingang oder, wenn vorhanden, der Gesendet-Ordner."""
+        if ordner.upper() != 'INBOX' and self.gesendet is not None and ordner == self.gesendet_name:
+            return self.gesendet
+        return self.nachrichten
+
+    def _suchen(self, kriterien: list[str], *, ordner: str = 'INBOX') -> list[int]:
         """`ALL`, `UNSEEN` und `UID a:b` bzw. `UID a:*`; alles andere wie ALL."""
-        alle = list(range(1, len(self.nachrichten) + 1))
+        alle = list(range(1, len(self._bestand(ordner)) + 1))
         if len(kriterien) >= 2 and kriterien[0].upper() == 'UID':
             von, _, bis = kriterien[1].partition(':')
             unten = int(von)
-            oben = len(self.nachrichten) if not bis or bis == '*' else int(bis)
+            oben = len(alle) if not bis or bis == '*' else int(bis)
             # Wie RFC 3501: `n:*` liefert mindestens die höchste UID, auch wenn n darüber liegt.
             unten, oben = min(unten, oben), max(unten, oben)
             return [uid for uid in alle if unten <= uid <= oben] or ([alle[-1]] if bis == '*' and alle else [])
         return alle
 
-    def _abrufen(self, marke: str, uids: str, felder: str, datei, sende) -> None:
+    def _abrufen(self, marke: str, uids: str, felder: str, datei, sende, *, ordner: str = 'INBOX') -> None:
         """`UID FETCH n (…)` mit UID, FLAGS, RFC822.SIZE und dem Rohtext (auch als Teilabruf `<0.N>`)."""
         teil = re.search(r'<0\.(\d+)>', felder)
+        bestand = self._bestand(ordner)
         for roh in uids.split(','):
-            if not roh.isdigit() or not 1 <= int(roh) <= len(self.nachrichten):
+            if not roh.isdigit() or not 1 <= int(roh) <= len(bestand):
                 continue
             uid = int(roh)
-            inhalt = self.nachrichten[uid - 1]
+            inhalt = bestand[uid - 1]
             geliefert = inhalt[:int(teil[1])] if teil else inhalt
             name = 'BODY[]<0>' if teil else 'BODY[]'
-            kopf = f'* {uid} FETCH (UID {uid} FLAGS () RFC822.SIZE {len(inhalt)} {name} {{{len(geliefert)}}}'
+            flags = self.flags.get((ordner, uid), '()')
+            kopf = f'* {uid} FETCH (UID {uid} FLAGS {flags} RFC822.SIZE {len(inhalt)} {name} {{{len(geliefert)}}}'
             datei.write(kopf.encode() + b'\r\n' + geliefert + b')\r\n')
             datei.flush()
         sende(f'{marke} OK FETCH erledigt')

@@ -164,3 +164,47 @@ def test_normale_ordner_bleiben_erlaubt(tmp_path):
     Intake(ep).start('a', ['[Gmail]/Alle Nachrichten'])
     Intake(ep).start('a', ['INBOX'])
     ep.close()
+
+
+# -- Eigene Mails und der Filter ---------------------------------------------------------------------------------------
+
+ICH = 'lena.probe@example.org'
+
+
+class EigeneReader(FilterReader):
+    """Wie `FilterReader`, aber UID 5 und 6 sind eigene Mails (aus Gesendet): 5 mit Listenkopf, 6 mit Spam-Kopf."""
+    def message_in_folder(self, folder, uid):
+        nummer = int(uid.split('.')[1])
+        nachricht = super().message_in_folder(folder, uid)
+        if nummer == 5:
+            return replace(nachricht, sender=f'Lena Probe <{ICH}>', own_addresses=(ICH,), list_mail=True)
+        if nummer == 6:
+            return replace(nachricht, sender=f'Lena Probe <{ICH}>', own_addresses=(ICH,), spam_flag=True)
+        return replace(nachricht, own_addresses=(ICH,))
+
+
+def test_eigene_absender_umgehen_regeln_und_modell_fremde_nicht(tmp_path):
+    """Eine Mail, die der Nutzer selbst geschrieben hat, ist keine Werbung: Sie geht ohne Regeln und ohne Modell in
+    die Aufnahme. Fremde Mails laufen weiter durch den Filter; ohne lokale KI bleiben sie bei „ai_enabled“ zurück."""
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3')
+    intake = Intake(ep)
+    intake.start('a', ['INBOX'])
+    aufrufe = []
+    screen = mail_filter.intake_screen(einstellungen(ai_enabled=True, blocked=[ICH, '@werbung.example']))
+    def zaehlend(message):
+        aufrufe.append(message.sender)
+        return screen(message)
+    for _ in range(3):
+        intake.step('a', EigeneReader(), batch=6, screen=zaehlend)
+    ordner = intake.status('a')['folders'][0]
+    # Eigene Mail 5: trotz Listenkopf und gesperrter eigener Adresse aufgenommen; der Filter sah sie nicht.
+    assert ordner['captured'] == 1 and ordner['pending'] == 0
+    assert all(ICH not in absender for absender in aufrufe)
+    # Fremde (1 bis 4) bleiben beim Filter: Spam, Liste, gesperrt; ohne lokale KI „unclear“.
+    assert ordner['filtered_by'] == {'spam': 2, 'newsletter': 1, 'blocked': 1, 'unclear': 1}
+    with ep._lock:
+        status = dict(ep._conn.execute("SELECT uid,status FROM mail_intake_items WHERE account='a'").fetchall())
+    assert status[5] == 'captured'
+    # Eigene Mail 6 mit Spam-Kopf des Servers: ein gefälschter Absender ist das klassische Spam-Muster; der Kopf gilt.
+    assert status[6] == 'filtered:spam'
+    ep.close()

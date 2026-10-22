@@ -2,10 +2,10 @@
 
 Stand: 30. September 2026 (Migration 13, nach C2 mit Schema 12). Umsetzung von D1 und D2 aus
 [`27-schichten-und-fragen.md`](27-schichten-und-fragen.md). Code:
-`sidecar/icarus_memory/bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`;
-Bausteine in `mappe.py`, `time_scope.py`, `memory_categories.py`,
-`working_memory_store.py`. Tests: `test_bezuege.py`, `test_akten.py`,
-`test_akten_routes.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
+`sidecar/icarus_memory/bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`,
+`akten_vorschlaege.py` (Neue Akte?, Oktober 2026); Bausteine in `mappe.py`, `time_scope.py`,
+`memory_categories.py`, `working_memory_store.py`. Tests: `test_bezuege.py`, `test_akten.py`,
+`test_akten_routes.py`, `test_akten_vorschlaege.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
 
 ## Was sich ändert
 
@@ -219,6 +219,84 @@ Bitten), „Bitten an dich“.
 Fristen dunkel. Jeder Punkt ist ein Knopf und öffnet seine Quelle; der Strahl ist ein
 einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
 
+### Neue Akte? (Paket B4, Migration 24)
+
+Projekt-Akten entstanden bisher nur über eine Zuordnung des Nutzers (`project_id`) oder als Akte einer
+bloßen Erwähnung (`projekt:n:<Name>`). Ein Projekt, das sich erst in den Mails bildet, bemerkte niemand.
+`akten_vorschlaege.py` sieht die erwähnten, noch nicht angelegten Projekte durch und schlägt vor, daraus
+eine Akte zu machen, ohne Modell, deterministisch und mit Begründung in einem Satz:
+
+* **Schwelle.** Vorgeschlagen wird ein Name, wenn mindestens eines gilt: drei geltende Quellen, zwei
+  verschiedene Personen über mindestens zwei Quellen, oder Quellen über 14 Tage verteilt.
+* **Nie vorgeschlagen** werden Namen, die ein vorhandenes Projekt tragen (ohne Groß- und Kleinschreibung,
+  in Umschrift: „Mueller“ und „Müller“ sind eins), Namen unter drei Zeichen und reine Zahlen. Zwei
+  gleichnamige Projekte ordnet `bezuege.projekte_aus` weiterhin bewusst nicht zu.
+* **Grund und Textstellen.** „In 4 Mails seit 3. Oktober mit Anna Keller und Ben Braun“: Zahl und Art der
+  Quellen, Datum der ältesten, die Beteiligten aus denselben Quellen; dazu bis zu fünf Quellen mit der
+  Textstelle der Erwähnung (`quellen_von`, `zitat`). Die Kennung ist ein Hash des normalisierten Namens.
+* **Verdichtung schlägt vor, sie schreibt nicht.** Der Vorschlag speichert nichts. Erst „Akte anlegen“
+  (`POST /api/v1/akten/vorschlaege/{kennung}/annehmen`) legt das Projekt idempotent an (deterministische
+  ID aus der Kennung, ein unterbrochener Versuch ergänzt beim zweiten nur), ordnet die Quellen des
+  Vorschlags zu, die noch kein Projekt haben (wie `PUT /api/v1/episodes/projects`), merkt „angenommen“ und
+  antwortet mit der Akte (Link) und einem Satz („Akte „Projekt Atlas“ angelegt, 4 Quellen zugeordnet.“).
+  Ein Projekt ist Ablage, kein Fakt: Es entsteht keine Aussage und kein Wissensvorschlag. Danach hängen
+  alle `n:`-Erwähnungen über das Register am Projekt; die Akte des Projekts ist mit Quellen, Beteiligten
+  und Zeitstrahl vollständig.
+* **Reversibel.** „Zurücknehmen“ löst die zugeordneten Quellen wieder, entfernt das Projekt, wenn nichts
+  anderes daran hängt (andere Quellen, Aufgaben, Notizen, Termine; sonst bleibt es und der Satz sagt
+  warum), und vergisst die Entscheidung; der Vorschlag steht wieder. „Nein danke“ (`…/ablehnen`) wird
+  gemerkt und nie wiederholt, bis der Nutzer es in der Akte zurücknimmt („Doch vorschlagen“). Zweimal
+  annehmen ist 409 und ändert nichts; eine unbekannte Kennung ist 404.
+* **Ablage.** Tabelle `akten_vorschlag_entscheidungen` (Migration 24): Kennung, Entscheidung (`angenommen`,
+  `abgelehnt`), Zeitpunkt, Sache, Projekt-ID und die zugeordneten Quellen-IDs. Nur Verweise, kein Text.
+  Jeder Klick steht im Logbuch (Art `akte_vorschlag`); eine angenommene Akte zählt dort als neue Akte.
+
+**Anzeige.** In der Akte `projekt:n:<Name>` steht oben, vor „Braucht dich“, die Zeile „Neue Akte? Daraus
+eine Akte machen? Grund.“ mit den Textstellen und zwei Knöpfen „Akte anlegen“ und „Nein danke“. Annehmen
+öffnet die neue Akte mit dem Satz und „Rückgängig“; dort steht dauerhaft „Aus einem Vorschlag angelegt“
+mit „Akte wieder auflösen“. Im Briefing und auf Heute erscheint **höchstens ein** Vorschlag, der mit den
+meisten Quellen und bei gleicher Zahl der älteste, als ein Satz mit denselben zwei Knöpfen (`briefing.py`,
+Quelle `akte_vorschlag`, leises Gewicht wie das Vorhaben); nie eine Liste. Die Antwort bleibt auf Heute
+stehen, auch wenn der Punkt danach verschwindet, mit „Akte öffnen“.
+
+### Aufgaben folgen der Post (Oktober 2026)
+
+Ein Stabschef hakt ab, was er dich tun sah: „Du solltest Anna die Druckdaten schicken; die Mail ist raus,
+also ist es erledigt.“ Das leistet `aufgaben_post.py` nach jedem Takt der Mailaufnahme, deterministisch und
+ohne Modell, auch in der Pause (nur neue Post). Drei Grundsätze:
+
+* **Reversibel, deshalb ohne Rückfrage.** Das automatische Erledigen ist ein Ablagevorgang, kein Fakt im
+  Bestand. Es steht sichtbar mit Grund in der Aufgabenliste („Erledigt, weil du Anna Berg am 21. Oktober
+  „Druckdaten“ geschickt hast. Rückgängig“) und in der Akte der Person unter „Braucht dich“ (Art
+  `aufgabe_post`, 14 Tage lang, mit „Rückgängig“ statt einer Wahl). `POST /api/v1/tasks/{id}/rueckgaengig`
+  stellt den Zustand vor der Änderung wieder her (auch das Warten samt Datum) und merkt sich die Mail als
+  „nicht zuständig“ für diese Aufgabe (`aufgaben_post_getrennt`), damit es nicht erneut passiert.
+* **Nur bei sicherer Zuordnung automatisch.** Eine **eigene Mail** erledigt eine Aufgabe, wenn alle drei
+  zutreffen: (a) sie antwortet im Mailverlauf der Quelle der Aufgabe (genaue Kopfzeilenbezüge wie bei „gilt
+  das noch?“) oder geht an die Person der Aufgabe (den Absender der Quellmail); (b) die Aufgabe liegt bei dir,
+  nicht „wartet auf“; (c) ein tragendes Wort des Aufgabentitels (Substantive und Zahlen ohne Füll-, Handlungs-
+  und Stoppwörter, ohne die Namen der Beteiligten, mit Umschrift „Vertraege“ = „Verträge“ und Beugung
+  „Rechnung“ = „Rechnungen“) steht in Betreff, Text oder im Namen eines Anhangs. Treffen (a) und (b), aber
+  nicht (c), gibt es nur den Vorschlag **„Erledigt?“**. Eine **fremde Mail** erledigt nie, was bei dir liegt:
+  Bei „wartet auf Anna“ und einer Mail von Anna im selben Verlauf oder mit einem tragenden Wort geht die
+  Aufgabe zurück zu „bei dir“ („Wieder bei dir, weil Anna Berg am 21. Oktober geantwortet hat.“), sonst der
+  Vorschlag **„Wieder bei dir?“**. Nie automatisch: Rundmails (mehr als fünf Empfänger), Aufgaben, die seit
+  über 90 Tagen überfällig sind, und bei Gleichstand zweier Aufgaben (Verlauf schlägt Person, mehr Wörter
+  schlagen weniger). Eine Mail von vor der Bitte zählt nicht. Die Vorschläge sind `ProposalKind.TASK_DONE`
+  und `TASK_WAITING_RESOLVED` (`GET /api/v1/aufgaben-post/vorschlaege`, `…/{id}/annehmen`,
+  `…/{id}/verwerfen`); Annehmen ist dieselbe Änderung mit Grund, Verwerfen trennt Aufgabe und Mail.
+* **Jede Mail einmal.** Der Durchlauf merkt sich seinen Stand (Zeilennummer der Episoden) und jede geprüfte
+  Mail in `tasks.sqlite3` (Migration 4: `aufgaben_post_mails`, `aufgaben_post_getrennt`,
+  `aufgaben_post_stand`), auch über einen Neustart. Der Bestand von vor dem Umbau wird nicht neu gedeutet:
+  Der erste Durchlauf setzt nur den Stand.
+
+Jede Änderung steht im Logbuch (`aufgabe_post`: Kennungen von Aufgabe und Mail, Art, wie die Zuordnung
+zustande kam; kein Text) und in der Geschichte der Aufgabe (`post_completed`, `post_returned`,
+`post_undone`). Die erledigte Aufgabe mahnt nicht mehr; die Tageslage nennt „Erledigt durch deine Mail an
+Anna Berg: ‚Druckdaten schicken‘“ höchstens einmal (Zeile `aufgaben_post`, weitere werden gezählt). Ein
+Modell darf später nur Kandidaten liefern; es ist nicht Teil dieses Schritts. Protokoll:
+[`runs/2026-10-21-aufgaben-post`](runs/2026-10-21-aufgaben-post/README.md).
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.
@@ -233,6 +311,12 @@ einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
 | `POST /api/v1/akten/aktualisieren` | Bezüge neu bestimmen (Prüfung; der Server tut es von selbst) |
 | `PUT /api/v1/akten/entscheidung` | `{sache, ziel, entscheidung: erledigt|gilt_nicht|offen}`; nur Ziele dieser Akte (sonst 404) |
 | `DELETE /api/v1/akten/entscheidung?sache=&ziel=` | Entscheidung zurücknehmen (404, wenn keine da ist) |
+| `GET /api/v1/akten/vorschlaege` | offene Vorschläge „Neue Akte?“ mit Grund und Textstellen (Prüfung; die Oberfläche zeigt nie eine Liste) |
+| `POST /api/v1/akten/vorschlaege/{kennung}/annehmen` | Projekt anlegen, Quellen ohne Projekt zuordnen; Antwort: Akte (Link) und Satz; 404 unbekannt, 409 schon angenommen |
+| `POST /api/v1/akten/vorschlaege/{kennung}/ablehnen` | „Nein danke“ merken (409, wenn schon entschieden) |
+| `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen` | Entscheidung zurücknehmen: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran hängt (404 ohne Entscheidung) |
+| `POST /api/v1/tasks/{id}/rueckgaengig` | Änderung durch die Post zurücknehmen (404 unbekannt, 409 nichts zurückzunehmen) |
+| `GET /api/v1/aufgaben-post/vorschlaege`, `POST …/{id}/annehmen`, `POST …/{id}/verwerfen` | „Erledigt?“ und „Wieder bei dir?“ (404 unbekannt, 409 entschieden oder überholt) |
 
 Jede Anfrage führt die Bezüge kurz nach (höchstens 1,5 s); den Rest rechnet ein
 Hintergrundfaden zu Ende. Die Antwort nennt `berechnung.offen`, statt zu tun, als wäre

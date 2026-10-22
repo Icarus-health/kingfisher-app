@@ -139,8 +139,8 @@ def test_bestehende_einwilligung_wird_nicht_still_auf_anderen_anbieter_uebertrag
     assert client.put("/api/v1/models/roles/frage", json={"anbieter": "openai", "einwilligung": True}).status_code == 200
 
 
-@pytest.mark.parametrize("rolle", ["hintergrund", "einbettung"])
-def test_hintergrund_und_einbettung_lassen_keine_cloud_zu(app_und_client, rolle, monkeypatch):
+@pytest.mark.parametrize("rolle", ["einbettung", "pruefung"])
+def test_einbettung_und_pruefung_lassen_keine_cloud_zu(app_und_client, rolle, monkeypatch):
     app, client = app_und_client
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     r = client.put(f"/api/v1/models/roles/{rolle}", json={"cloud": True, "anbieter": "anthropic", "einwilligung": True})
@@ -148,12 +148,28 @@ def test_hintergrund_und_einbettung_lassen_keine_cloud_zu(app_und_client, rolle,
     assert rolle not in app.state.settings.model_roles
 
 
+def test_hintergrund_braucht_den_vorbereiteten_claude_zugang_nicht_nur_einen_schluessel(app_und_client, monkeypatch):
+    app, client = app_und_client
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")  # ein Schlüssel in der Umgebung ist kein vorbereiteter Zugang
+    r = client.put("/api/v1/models/roles/hintergrund", json={"cloud": True, "anbieter": "anthropic", "einwilligung": True})
+    assert r.status_code == 422 and "Claude-Zugang" in r.json()["detail"]
+    assert "hintergrund" not in app.state.settings.model_roles
+    for anbieter in ("openai", "mistral", "openrouter"):
+        r = client.put("/api/v1/models/roles/hintergrund", json={"cloud": True, "anbieter": anbieter, "einwilligung": True})
+        assert r.status_code == 422 and "nur Anthropic" in r.json()["detail"]
+    assert "hintergrund" not in app.state.settings.model_roles
+
+
 def test_handeintrag_der_cloud_fuer_hintergrund_wirkt_nicht(app_und_client, monkeypatch):
     app, client = app_und_client
+    from icarus_memory import hintergrund_cloud
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     app.state.settings.model_roles["hintergrund"] = {"cloud": True, "anbieter": "anthropic",
                                                      "cloud_einwilligung": "2026-09-29T10:00:00+00:00"}
     assert rollen_von(app).provider("hintergrund").is_local
+    # Die Wahl gilt, aber ohne vorbereiteten Zugang gibt es keinen Cloud-Anbieter für die Einordnung.
+    assert rollen_von(app).hintergrund_cloud_wahl() is not None
+    assert hintergrund_cloud.anbieter(app) is None and hintergrund_cloud.stand(app)["aktiv"] is False
 
 
 def test_ohne_rollenkonfiguration_bleibt_alles_wie_heute(app_und_client):

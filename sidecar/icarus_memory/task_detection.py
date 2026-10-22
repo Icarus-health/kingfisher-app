@@ -4,7 +4,7 @@ Die Prüfung hat ihren eigenen Fortschritt: Wissensverdichtung und Zusagenerkenn
 müssen dieselbe Quelle unabhängig ansehen können. Nur Vorschläge werden gespeichert.
 """
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 from .episodes import AUSGEBLENDETE_ZUSTAENDE, ROHQUELLEN, EpisodeError
 from .memory_analysis import interpret, segment, model_key
@@ -25,12 +25,16 @@ class DetectionReport:
 
 
 class TaskDetector:
-    def __init__(self, episodes, proposals, provider, lock, tasks=None):
+    """Lokal wie bisher; ein Cloudanbieter (`is_remote`) nur mit `policy_for(episode)`, das je Quelle eine
+    `ExplicitSourcePolicy` oder None liefert (Cloud-Einordnung neuer Mails, `hintergrund_cloud.py`)."""
+
+    def __init__(self, episodes, proposals, provider, lock, tasks=None, policy_for=None):
         self.episodes = episodes
         self.proposals = proposals
         self.provider = provider
         self.lock = lock
         self.tasks = tasks
+        self.policy_for = policy_for
 
     def expire_sources(self) -> int:
         """Offene Vorschläge aus entzogenen Quellen sichtbar außer Kraft setzen."""
@@ -55,10 +59,14 @@ class TaskDetector:
                     count += 1
         return count
 
-    def run(self, *, with_model: bool, limit: int = 10, rechecks_only: bool = False, permitted: Callable[[], bool] = lambda: True) -> DetectionReport:
+    def run(self, *, with_model: bool, limit: int = 10, rechecks_only: bool = False,
+            permitted: Callable[[], bool] = lambda: True, quellenfilter: Callable[[Any], bool] | None = None) -> DetectionReport:
         # Der kurze Takt liest nur die Wiedervorlage; Anzeige/Übernahme prüfen Quellen weiterhin frisch.
         report = DetectionReport(superseded=0 if rechecks_only else self.expire_sources())
-        if not with_model or self.provider is None or not getattr(self.provider, 'is_local', False):
+        local = self.provider is not None and getattr(self.provider, 'is_local', False)
+        scoped_remote = (self.provider is not None and callable(self.policy_for)
+                         and getattr(self.provider, 'is_remote', False) is True)
+        if not with_model or self.provider is None or not (local or scoped_remote):
             return report
         report.available = True
         attempted = 0
@@ -110,6 +118,11 @@ class TaskDetector:
                     if recheck is not None:
                         self.episodes.finish_task_recheck(recheck, completed=True)
                     continue
+                if callable(quellenfilter) and not quellenfilter(current):
+                    continue  # nicht dieser Weg (etwa: Mails gehen in die Cloud, der Rest bleibt lokal)
+                policy = self.policy_for(current) if scoped_remote else None
+                if not local and policy is None:
+                    continue  # ein Cloudanbieter sieht nur Quellen mit ausdrücklicher Freigabe; die Quelle wartet
                 job = self.proposals.memory_analysis.acquire(current, self.provider, context=context)
                 if job is None:
                     if recheck is not None:
@@ -121,7 +134,7 @@ class TaskDetector:
             try:
                 # Den Schreiblock nicht während eines langsamen Modellaufrufs halten.
                 text, end = segment(current.body, job['offset'])
-                items = interpret(self.provider, current.title, text)
+                items = interpret(self.provider, current.title, text, policy=policy, episode=current)
                 # Mail tasks need a semantic check with the complete mail,
                 # not only the extraction segment. Foreign promises are
                 # not silently converted into the recipient's own work.
@@ -138,7 +151,8 @@ class TaskDetector:
                     from .task_review import review_tasks
                     own_source = any(contact.get('rolle') == 'von' and contact.get('ich') is True
                                      for contact in current.contacts)
-                    items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source)
+                    items = review_tasks(self.provider, current.title, current.body, items, own_source=own_source,
+                                         policy=policy, episode=current)
             except BackgroundInterrupted:
                 self.proposals.memory_analysis.abandon(job, state='cancelled')
                 raise

@@ -273,6 +273,12 @@ export type MailIntakeAccount = {
   scope: string;
   empfaengernachtrag?: { offen: number; ergaenzt: number; ohne_kopfzeilen: number; gedrosselt: boolean; fertig: boolean } | null;
   stand?: MailStand | null;
+  /** Was gelesen wird, in einem Satz (Gesamtbestand, „Posteingang und Gesendet“, „Nur der Posteingang“). */
+  umfang?: string | null;
+  /** Ob gesendete Mails dabei sind (Gesendet-Ordner, Gmail-Gesamtbestand oder Microsoft). */
+  gesendet_dabei?: boolean;
+  /** Ergebnis der letzten Ordnersuche: Gibt es einen Gesendet-Ordner, den Kingfisher erkennt? `null`: noch nicht nachgesehen. */
+  gesendet_erkennbar?: boolean | null;
 };
 
 export type MailIntakeStatus = {
@@ -449,8 +455,23 @@ export type Project = {
   open: boolean;
 };
 
+/** Was die Post an einer Aufgabe geändert hat (sidecar: aufgaben_post.py): der Satz mit Grund, die Mail, der Zeitpunkt. */
+export type AufgabenPostGrund = {
+  art: "erledigt" | "zurueck"; satz: string; episode_id: string; mail_titel: string; wer: string;
+  datum: string | null; am: string; verlauf: boolean; woerter: string[];
+};
+export type AufgabenPostVorschlag = {
+  id: string; art: "erledigt" | "zurueck"; statement: string; satz: string;
+  aufgabe: { id: string; title: string; wartet_auf: string | null; due: string | null };
+  mail: { episode_id: string; titel: string; datum: string }; erstellt: string;
+};
+
 export type Task = {
   provenance?: {source_ref?: string | null};
+  /** Gesetzt, wenn die eigene Post die Aufgabe erledigt hat; leer nach „Rückgängig“ oder beim Abhaken von Hand. */
+  erledigt_grund?: AufgabenPostGrund | null;
+  /** Gesetzt, wenn eine Antwort das Warten aufgelöst hat („wieder bei dir“). */
+  geaendert_grund?: AufgabenPostGrund | null;
   id: string;
   title: string;
   status: "open" | "done" | "dropped";
@@ -801,9 +822,11 @@ export type AkteEntscheidung = "erledigt" | "gilt_nicht" | "offen";
 /** Von wem ein offener Punkt stammt: von dir, an dich, oder unklar (Notiz, Termin). */
 export type AkteRichtung = "von_mir" | "an_mich" | "unklar";
 export type AkteBrauchtDich = {
-  art: "abgesagter_termin" | "gilt_noch" | "frist" | "frist_verstrichen";
+  art: "abgesagter_termin" | "gilt_noch" | "frist" | "frist_verstrichen" | "aufgabe_post";
   ziel: string; satz: string; zeile: AkteZeile | null; laut: AkteZeile | null; episode_id: string; datum?: string;
   wahl: Array<{ entscheidung: AkteEntscheidung; text: string }>;
+  /** Bei `aufgabe_post`: die Aufgabe, die die Post geändert hat (Rückgängig statt einer Wahl). */
+  aufgabe?: { id: string; title: string };
 };
 export type AkteZeitpunkt = {
   art: "quelle" | "termin" | "frist"; datum: string; episode_id: string; titel: string; quelle_art: string;
@@ -821,6 +844,16 @@ export type AkteAussage = {
   ueberholt: { episode_id: string; titel: string; datum: string; text: string } | null;
 };
 export type AkteAussagen = { eintraege: AkteAussage[]; gesamt: number };
+/** Vorschlag „Neue Akte?“ (sidecar: akten_vorschlaege.py): ein erwähntes, noch nicht angelegtes Projekt mit Grund und Textstellen. */
+export type AkteVorschlag = {
+  kennung: string; sache: string; name: string; grund: string; anzahl: number; tage: number; erste: string;
+  quellen: Array<{ episode_id: string; titel: string; datum: string | null; zitat: string }>;
+  beteiligte: Array<{ sache: string; name: string; anzahl: number }>;
+};
+export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number };
+/** Was die Akte dazu zeigt: den offenen Vorschlag oder die gemerkte Entscheidung (nie beides). */
+export type AkteVorschlagStand = { vorschlag: AkteVorschlag | null; entscheidung: AkteVorschlagEntscheidung | null };
+export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number };
 export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
@@ -850,6 +883,8 @@ export type Akte = {
   braucht_dich?: { eintraege: AkteBrauchtDich[]; gesamt: number };
   /** Quellen, Termine und Fristen auf einer Zeitachse (nur auf der Seite der Akte). */
   zeitstrahl?: { punkte: AkteZeitpunkt[]; quellen: number; gezeigt: number; heute: string };
+  /** „Daraus eine Akte machen?“ bei einem nur erwähnten Projekt, sonst die gemerkte Entscheidung; nur bei Projekten. */
+  akte_vorschlag?: AkteVorschlagStand | null;
 };
 // Morgenbriefing, Terminvorbereitung und Wegezeit (sidecar: tag_routes.py, wegezeit_routes.py).
 export type TagBeleg = { episode_id: string; titel: string; datum: string | null; art: string };
@@ -866,9 +901,9 @@ export type TagTermin = { uid: string; episode_id: string | null; titel: string;
   personen: TagPerson[]; unbekannt: string[]; hintergrund: Array<{ sache: string; name: string; art: string; herkunft: string; zeilen: TagZeile[] }>;
   projekt: { id: string; name: string; herkunft: string } | null; fristen: TagFrist[];
   einpacken: Array<{ text: string; episode_id: string; titel: string; datum: string | null; art: string }>; wegezeit: TagWeg | null; bereit: boolean };
-export type TagAktion = { art: "vorbereitung" | "quelle" | "fahrzeiten" | "heimat" | "akte" | "link" | "welt_quelle" | "welt_sache"; beschriftung: string; ref: string | null };
+export type TagAktion = { art: "vorbereitung" | "quelle" | "fahrzeiten" | "heimat" | "akte" | "aufgabe" | "link" | "welt_quelle" | "welt_sache"; beschriftung: string; ref: string | null };
 export type TagLage = { einleitung: string; tag: "heute" | "morgen"; verlauf?: string[];
-  zeilen: Array<{ art: "termin" | "leute" | "einpacken" | "fristen" | "wetter" | "welt"; text: string; aktionen: TagAktion[]; vermutlich: boolean }> };
+  zeilen: Array<{ art: "termin" | "leute" | "einpacken" | "fristen" | "aufgaben_post" | "wetter" | "geburtstag" | "welt"; text: string; aktionen: TagAktion[]; vermutlich: boolean }> };
 // Das Logbuch (sidecar: logbuch.py, logbuch_routes.py): was seit dem letzten Blick geschah, in Alltagssprache.
 export type LogbuchAnsicht = { seit: string; bis: string; zeilen: string[]; leer: boolean;
   tage: Array<{ tag: string; titel: string; eintraege: string[] }> };
@@ -1041,7 +1076,7 @@ export type MemoryCoverage = {
 };
 export type PostfachErreichbar = {account_id: string; label: string; erreichbar: boolean;
   grund: "nicht_erreichbar" | "passwort" | "imap_aus" | "app_passwort" | "unsicher" | null; satz: string | null};
-export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null};
+export type MemoryAutomation = {state: "active" | "legacy_active" | "unverified" | "paused" | "model_missing" | "wrong_model" | "local_model_unavailable" | "cloud_ueber_ollama" | "cloud_aktiv"; requested: boolean; pending: number; model: string | null; cloud_modell?: string | null; execution_pause_reason?: string | null; cloud_einordnung?: CloudEinordnungStand};
 export type MemoryTimeline = {
   basis: "source" | "recorded";
   next_cursor: string | null; start: string; end: string;
@@ -1086,11 +1121,15 @@ export type ModelRecommendation = {
   rollen: ModelRecommendationRow[]; hinweis: string;
   orchester?: ModelOrchestra;
 };
+/** Stand der Cloud-Einordnung neuer Mails (Rolle hintergrund, nur Anthropic, eigene Einwilligung; sidecar: hintergrund_cloud.py). */
+export type CloudEinordnungStand = {aktiv: boolean; modell: string; seit: string | null; heute: number; tagesbudget: number; erschoepft: boolean; zugang_da: boolean};
 export type ModelRoleState = {
   rolle: string; titel: string; beschreibung: string; cloud_moeglich: boolean; cloud_satz: string;
+  cloud_anbieter?: string[];
   wahl: {modell: string; cloud: boolean; anbieter: string; cloud_einwilligung: string; einwilligung_gueltig: boolean};
   wirksam: {modell: string | null; lokal: boolean | null; quelle: "eigene_wahl" | "standard" | "cloud" | "keins"; cloud_ueber_ollama?: boolean};
   blockiert?: string | null;
+  cloud_einordnung?: CloudEinordnungStand;
 };
 export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
   ollama_cloud?: {modelle: string[]; hinweis: string}};
@@ -1354,6 +1393,8 @@ export const api = {
   startMailIntake: (accountId: string, folders: string[], signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/start`, {method: "POST", body: JSON.stringify({folders}), signal}),
   pauseMailIntake: (accountId: string, paused: boolean, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/pause`, {method: "POST", body: JSON.stringify({paused}), signal}),
   retryMailIntake: (accountId: string, signal?: AbortSignal) => request<MailIntakeStatus>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/retry`, {method: "POST", body: JSON.stringify({}), signal}),
+  // „Gesendete Mails auch einlesen“: Ordner eines laufenden Kontos nachtragen; die Antwort sagt in einem Satz, was geschah.
+  ordnerErgaenzen: (accountId: string, signal?: AbortSignal) => request<MailIntakeStatus & {ergaenzt: string[]; satz: string}>(`/api/v1/mail/intake/${encodeURIComponent(accountId)}/ordner-ergaenzen`, {method: "POST", body: JSON.stringify({}), signal}),
   categoryTaxonomy: () => request<{version: number; items: CategoryTaxonomyEntry[]}>("/api/v1/memory/categories"),
   memoryAreas: (limit = 50, cursor?: number, area?: string) => request<MemoryAreasPage>(`/api/v1/memory/areas?${new URLSearchParams({limit: String(limit), ...(cursor === undefined ? {} : {cursor: String(cursor)}), ...(area === undefined ? {} : {area})})}`),
   addCategory: (body: {id: string; label: string; description: string}) => request<CategoryTaxonomyEntry>("/api/v1/memory/categories", {method: "POST", body: JSON.stringify(body)}),
@@ -1416,6 +1457,11 @@ export const api = {
   unwaitTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/zurueckholen`, {method: "POST"}),
   reopenTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/reopen`, { method: "POST" }),
   completeTask: (id: string) => request<Task>(`/api/v1/tasks/${id}/done`, { method: "POST" }),
+  // Aufgaben folgen der Post (sidecar: aufgaben_post.py): Rückgängig stellt den Zustand vor der Änderung wieder her.
+  taskRueckgaengig: (id: string) => request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/rueckgaengig`, { method: "POST" }),
+  aufgabenPostVorschlaege: () => request<{ items: AufgabenPostVorschlag[] }>("/api/v1/aufgaben-post/vorschlaege"),
+  aufgabenPostAnnehmen: (id: string) => request<Task>(`/api/v1/aufgaben-post/vorschlaege/${encodeURIComponent(id)}/annehmen`, { method: "POST" }),
+  aufgabenPostVerwerfen: (id: string) => request<unknown>(`/api/v1/aufgaben-post/vorschlaege/${encodeURIComponent(id)}/verwerfen`, { method: "POST" }),
   messages: (accountId?: string) => request<InboxPayload>(`/api/v1/messages${accountId ? `?account_id=${encodeURIComponent(accountId)}` : ""}`),
   mailThread: (uid: string, signal?: AbortSignal) => request<MailThreadContext>(`/api/v1/messages/${encodeURIComponent(uid)}/thread`, {signal}),
   mailThreadSummary: (uid: string, context_fingerprint: string, signal?: AbortSignal) => request<MailThreadSummary>(`/api/v1/messages/${encodeURIComponent(uid)}/thread-summary`, {method: "POST", body: JSON.stringify({context_fingerprint}), signal}),
@@ -1500,6 +1546,10 @@ export const api = {
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
   akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
   akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),
+  /** „Neue Akte?“ (sidecar: akten_vorschlaege_routes.py): Erst der Klick legt das Projekt an; „Nein danke“ wird gemerkt; beides lässt sich zurücknehmen. */
+  akteVorschlagAnnehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/annehmen`, { method: "POST" }),
+  akteVorschlagAblehnen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/ablehnen`, { method: "POST" }),
+  akteVorschlagZuruecknehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/zuruecknehmen`, { method: "POST" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),
   bezugSetzen: (episodeId: string, sache: string, aktion: "zu" | "nicht") => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung`, { method: "PUT", body: JSON.stringify({ sache, aktion }) }),

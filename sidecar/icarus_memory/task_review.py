@@ -59,10 +59,14 @@ Bei Zweifel false/unclear. Antworte nur mit {"reviews":[{"id":0,"kind":"informat
 Die ids stammen unverändert aus candidates. Dies ist eine zusätzliche Modellprüfung, kein Wahrheitsnachweis.'''
 
 
-def review_tasks(provider, subject, body, items, *, own_source=False):
+def review_tasks(provider, subject, body, items, *, own_source=False, policy=None, episode=None):
+    """Zweite Prüfung der Kandidaten; lokal, oder über eine ausdrückliche Quellenfreigabe (`policy`) für genau diese
+    `episode` (Cloud-Einordnung neuer Mails, `hintergrund_cloud.py`)."""
     if not items:
         return []
-    if (not getattr(provider, 'is_local', False) or len(body) > 20000 or len(items) > 32
+    local = getattr(provider, 'is_local', False)
+    scoped_remote = policy is not None and episode is not None and policy.permits(provider, episode)
+    if (not (local or scoped_remote) or len(body) > 20000 or len(items) > 32
             or any(not isinstance(item, dict) or set(item) != {'title', 'quote'}
                    or not isinstance(item['title'], str) or not isinstance(item['quote'], str)
                    or not item['quote'] or item['quote'] not in body for item in items)):
