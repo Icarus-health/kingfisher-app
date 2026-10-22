@@ -817,6 +817,16 @@ export type AkteAussage = {
   ueberholt: { episode_id: string; titel: string; datum: string; text: string } | null;
 };
 export type AkteAussagen = { eintraege: AkteAussage[]; gesamt: number };
+/** Vorschlag „Neue Akte?“ (sidecar: akten_vorschlaege.py): ein erwähntes, noch nicht angelegtes Projekt mit Grund und Textstellen. */
+export type AkteVorschlag = {
+  kennung: string; sache: string; name: string; grund: string; anzahl: number; tage: number; erste: string;
+  quellen: Array<{ episode_id: string; titel: string; datum: string | null; zitat: string }>;
+  beteiligte: Array<{ sache: string; name: string; anzahl: number }>;
+};
+export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number };
+/** Was die Akte dazu zeigt: den offenen Vorschlag oder die gemerkte Entscheidung (nie beides). */
+export type AkteVorschlagStand = { vorschlag: AkteVorschlag | null; entscheidung: AkteVorschlagEntscheidung | null };
+export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number };
 export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
@@ -846,6 +856,8 @@ export type Akte = {
   braucht_dich?: { eintraege: AkteBrauchtDich[]; gesamt: number };
   /** Quellen, Termine und Fristen auf einer Zeitachse (nur auf der Seite der Akte). */
   zeitstrahl?: { punkte: AkteZeitpunkt[]; quellen: number; gezeigt: number; heute: string };
+  /** „Daraus eine Akte machen?“ bei einem nur erwähnten Projekt, sonst die gemerkte Entscheidung; nur bei Projekten. */
+  akte_vorschlag?: AkteVorschlagStand | null;
 };
 // Morgenbriefing, Terminvorbereitung und Wegezeit (sidecar: tag_routes.py, wegezeit_routes.py).
 export type TagBeleg = { episode_id: string; titel: string; datum: string | null; art: string };
@@ -1493,6 +1505,10 @@ export const api = {
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
   akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
   akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),
+  /** „Neue Akte?“ (sidecar: akten_vorschlaege_routes.py): Erst der Klick legt das Projekt an; „Nein danke“ wird gemerkt; beides lässt sich zurücknehmen. */
+  akteVorschlagAnnehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/annehmen`, { method: "POST" }),
+  akteVorschlagAblehnen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/ablehnen`, { method: "POST" }),
+  akteVorschlagZuruecknehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/zuruecknehmen`, { method: "POST" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),
   bezugSetzen: (episodeId: string, sache: string, aktion: "zu" | "nicht") => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung`, { method: "PUT", body: JSON.stringify({ sache, aktion }) }),

@@ -1,6 +1,7 @@
 import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteZeile, type AkteZeitpunkt } from "./api";
+import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteVorschlagStand, type AkteZeile, type AkteZeitpunkt } from "./api";
+import { entscheidungSatz, fehlerSatz, vorschlagFrage, zurueckBeschriftung } from "./akteVorschlag";
 import { displayLabel } from "./displayIdentity";
 import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { WiederkehrendKarte } from "./WiederkehrendKarte";
@@ -113,6 +114,30 @@ function BrauchtDich({ punkte, gesamt, arbeitet, entscheiden }: { punkte: AkteBr
     {gesamt > punkte.length ? <p className="mappe-mehr">{gesamt - punkte.length} weitere stehen unten bei „Offen“ und „Fristen“.</p> : null}
   </section>;
 }
+
+/** Neue Akte?: ein nur erwähntes Projekt, das sich in den Quellen bildet. Frage, Grund, Textstellen, zwei Knöpfe;
+ * angelegt ist nichts, bis geklickt wird. Danach steht die Entscheidung da und lässt sich zurücknehmen. */
+function NeueAkte({ stand, arbeitet, anlegen, ablehnen, zurueck }: { stand: AkteVorschlagStand; arbeitet: string | null; anlegen: (kennung: string) => void; ablehnen: (kennung: string) => void; zurueck: (kennung: string) => void }) {
+  const v = stand.vorschlag;
+  const e = stand.entscheidung;
+  if (v) return <section className="akte-braucht akte-neue" aria-label="Neue Akte?" aria-busy={arbeitet === v.kennung}>
+    <h3>Neue Akte?</h3>
+    <p className="akte-braucht-satz">{vorschlagFrage(v.grund)}</p>
+    <ul className="akte-neue-quellen">{v.quellen.map(q => <li key={q.episode_id}>{q.zitat ? <q>{q.zitat}</q> : null} <Quelle zeile={q} /></li>)}</ul>
+    {v.anzahl > v.quellen.length ? <p className="mappe-mehr">{v.quellen.length} von {v.anzahl} Quellen</p> : null}
+    <div className="akte-wahl">
+      <button type="button" className="akte-knopf" disabled={arbeitet !== null} onClick={() => anlegen(v.kennung)}>Akte anlegen</button>
+      <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => ablehnen(v.kennung)}>Nein danke</button>
+    </div>
+  </section>;
+  if (e) return <p className="mappe-hinweis akte-neue-stand">{entscheidungSatz(e.entscheidung, e.quellen)} <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => zurueck(e.kennung)}>{zurueckBeschriftung(e.entscheidung)}</button></p>;
+  return null;
+}
+
+type Meldung = { text: string; ziel: string | null; vorher?: AkteEntscheidung | null; vorschlag?: string | null };
+/** Die Antwort auf „Akte anlegen“ gehört in die neue Akte, nicht in die alte (die es danach nicht mehr gibt): Sie wird
+ * beim Wechsel mitgenommen und dort einmal gezeigt. */
+let uebergabe: { sache: string; meldung: Meldung } | null = null;
 
 const SPUREN: Array<{ art: AkteZeitpunkt["art"]; text: string }> = [{ art: "quelle", text: "Mails und Notizen" }, { art: "termin", text: "Termine" }, { art: "frist", text: "Fristen" }];
 const QUELLE_ART: Record<string, string> = { message: "Mail", document: "Notiz", event: "Termin" };
@@ -251,7 +276,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     return()=>{active=false;};
   },[mitKopf,data?.art,data?.sache]);
   const [arbeitet, setArbeitet] = useState<string | null>(null);
-  const [meldung, setMeldung] = useState<{ text: string; ziel: string | null; vorher?: AkteEntscheidung | null } | null>(null);
+  const [meldung, setMeldung] = useState<Meldung | null>(null);
   const meldungRef = useRef<HTMLParagraphElement | null>(null);
   const version = useRef(0);
   const versuche = useRef(0);
@@ -299,7 +324,48 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       setArbeitet(null);
     }
   }
-  useEffect(() => { setMeldung(null); }, [sache]);
+  // „Neue Akte?“ (akteVorschlag.ts): Erst der Klick legt das Projekt an. Danach öffnet sich die neue Akte mit dem Satz
+  // und „Rückgängig“; „Nein danke“ antwortet hier und lässt sich ebenso zurücknehmen (Grundsatz 4 und 5).
+  function vorschlagFehler(cause: unknown) {
+    setMeldung({ text: fehlerSatz(cause instanceof ApiError ? cause.status : null), ziel: null });
+  }
+  async function akteAnlegen(kennung: string) {
+    if (arbeitet) return;
+    setArbeitet(kennung);
+    try {
+      const antwort = await api.akteVorschlagAnnehmen(kennung);
+      uebergabe = { sache: antwort.sache, meldung: { text: antwort.satz, ziel: null, vorschlag: kennung } };
+      navigate(antwort.link);
+    } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
+  }
+  async function neinDanke(kennung: string) {
+    if (arbeitet) return;
+    setArbeitet(kennung);
+    try {
+      const antwort = await api.akteVorschlagAblehnen(kennung);
+      setMeldung({ text: antwort.satz, ziel: null, vorschlag: kennung });
+      await laden(alle);
+    } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
+  }
+  async function vorschlagZurueck(kennung: string) {
+    if (arbeitet) return;
+    setArbeitet(kennung);
+    try {
+      const antwort = await api.akteVorschlagZuruecknehmen(kennung);
+      if (antwort.sache !== sache) {
+        uebergabe = { sache: antwort.sache, meldung: { text: antwort.satz, ziel: null } };
+        navigate(antwort.link);
+      } else {
+        setMeldung({ text: antwort.satz, ziel: null });
+        await laden(alle);
+      }
+    } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
+  }
+  useEffect(() => {
+    const mitgebracht = uebergabe && uebergabe.sache === sache ? uebergabe.meldung : null;
+    uebergabe = null;
+    setMeldung(mitgebracht);
+  }, [sache]);
   // Die Meldung bleibt so lange, dass man „Rückgängig“ in Ruhe findet, und geht dann von selbst. Der Fokus geht zu
   // ihr: Der Knopf, der eben gedrückt wurde, ist mit seinem Punkt verschwunden.
   useEffect(() => {
@@ -364,7 +430,9 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {!compact ? <Blick data={data} /> : null}
     </header>
 
-    {meldung ? <p className="akte-meldung" role="status" tabIndex={-1} ref={meldungRef}>{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!, meldung.vorher ?? null)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
+    {meldung ? <p className="akte-meldung" role="status" tabIndex={-1} ref={meldungRef}>{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!, meldung.vorher ?? null)} disabled={arbeitet !== null}>Rückgängig</button> : null}{meldung.vorschlag ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void vorschlagZurueck(meldung.vorschlag!)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
+
+    {data.akte_vorschlag ? <NeueAkte stand={data.akte_vorschlag} arbeitet={arbeitet} anlegen={kennung => void akteAnlegen(kennung)} ablehnen={kennung => void neinDanke(kennung)} zurueck={kennung => void vorschlagZurueck(kennung)} /> : null}
 
     {braucht ? <BrauchtDich punkte={braucht.eintraege} gesamt={braucht.gesamt} arbeitet={arbeitet} entscheiden={entscheiden} /> : null}
 
