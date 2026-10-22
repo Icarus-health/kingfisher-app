@@ -122,7 +122,16 @@ def test_vorschlag_aus_drei_gesendeten_mails_mit_belegen_und_bestaetigung(tmp_pa
     assert wirksam(app) == {}, 'ein Vorschlag wirkt nirgends'
     assert c.put(URL, json={'scope': 'contact', **vorschlag}).status_code == 200
     assert wirksam(app) == DU_REGELN
-    assert c.get(URL).json()['profiles']['contact']['evidence_ids'] == vorschlag['evidence_ids']
+    stand = c.get(URL).json()
+    assert stand['profiles']['contact']['evidence_ids'] == vorschlag['evidence_ids']
+    assert stand['proposal'] is None and stand['abgelehnt'] is False, 'ein übernommener Vorschlag wird nicht noch einmal vorgelegt'
+    # Eine neue gesendete Mail: der Vorschlag kommt mit vier Belegen wieder; die bestätigte Regel gilt weiter.
+    gesendet(app, 'Hallo Lea,\n\nbis morgen dann.\n\nViele Grüße\nLena')
+    stand = c.get(URL).json()
+    assert stand['proposal'] and len(stand['proposal']['evidence_ids']) == 4 and wirksam(app) == DU_REGELN
+    # Für alle Kontakte übernommen: auch dann nicht noch einmal vorgelegt.
+    assert c.put(URL, json={'scope': 'global', **stand['proposal']}).status_code == 200
+    assert c.get(URL).json()['proposal'] is None
 
 
 def test_zwei_gesendete_reichen_nicht_und_belege_ergaenzen(tmp_path):
@@ -294,11 +303,19 @@ def test_kreisvorschlag_einstimmig_ueber_die_kontakte_des_kreises(tmp_path):
     assert kreise['kollegen']['personen'] == 2 and kreise['innerer_kreis']['proposal'] is None
     assert c.put(f'{KREIS_URL}/kollegen', json=vorschlag).status_code == 200
     assert wirksam(app) == DU_REGELN and wirksam(app, MAX) == DU_REGELN
-    # Max wechselt zu Sie: Mehrheit reicht nicht, die Anrede fällt aus dem Vorschlag; die bestätigte Regel bleibt.
-    gesendet(app, 'Hallo Max,\n\nkönnen Sie das bitte prüfen?\n\nViele Grüße\nLena', an=MAX)
+    # Ein dritter Kollege, durchweg per Sie mit anderem Gruß: zwei von drei sind keine Einstimmigkeit. Anrede und Gruß
+    # fallen aus dem Vorschlag, die Länge bleibt; die bestätigte Regel bleibt, bis ein Mensch sie ändert.
+    TOM = 'tom@example.org'
+    for t in ['Hallo Herr Weber,\n\nkönnten Sie das prüfen?\n\nMit freundlichen Grüßen\nLena',
+              'Hallo Herr Weber,\n\nvielen Dank für Ihre Rückmeldung.\n\nMit freundlichen Grüßen\nLena',
+              'Hallo Herr Weber,\n\nanbei die Zahlen, wie Sie sie wollten.\n\nMit freundlichen Grüßen\nLena']:
+        gesendet(app, t, an=TOM)
+    kreis_festlegen(app, TOM, 'kollegen')
     vorschlag = {k['kreis']: k for k in c.get(f'{KREIS_URL}e').json()['kreise']}['kollegen']['proposal']
-    assert vorschlag['rules']['address'] == 'default' and vorschlag['rules']['gruss'] == 'Viele Grüße'
-    assert wirksam(app, MAX)['address'] == 'du'
+    assert vorschlag['personen'] == 3 and len(vorschlag['evidence_ids']) == 8
+    assert vorschlag['rules']['address'] == 'default' and vorschlag['rules']['gruss'] == '' and vorschlag['rules']['anrede_form'] == 'default'
+    assert vorschlag['rules']['length'] == 'short' and vorschlag['rules']['sprache'] == 'de'
+    assert wirksam(app, MAX)['address'] == 'du' and wirksam(app, TOM)['address'] == 'du'
     # „Nicht übernehmen“ je Kreis und ein Beleg, der wegfällt.
     assert c.post(f'{KREIS_URL}/kollegen/ablehnen', json={'evidence_ids': vorschlag['evidence_ids']}).status_code == 200
     assert {k['kreis']: k for k in c.get(f'{KREIS_URL}e').json()['kreise']}['kollegen']['proposal'] is None

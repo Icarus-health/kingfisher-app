@@ -281,10 +281,15 @@ def _abgelehnte(app, scope_key: str) -> set[str]:
     return ids
 
 
-def _mit_ablehnung(app, scope_key: str, proposal: dict | None) -> tuple[dict | None, bool]:
-    """Ein abgelehnter Vorschlag bleibt verborgen, solange kein neuer Beleg dazukommt."""
+def _mit_ablehnung(app, scope_key: str, proposal: dict | None, *, bestaetigt_unter: tuple[str, ...] = ()) -> tuple[dict | None, bool]:
+    """Ein abgelehnter Vorschlag bleibt verborgen, solange kein neuer Beleg dazukommt; ein schon übernommener (gleiche
+    Belege, gleiche Regeln, unter einem der Geltungsbereiche `bestaetigt_unter`) wird nicht noch einmal vorgelegt."""
     if proposal and set(proposal['evidence_ids']) <= _abgelehnte(app, scope_key):
         return None, True
+    for bereich in bestaetigt_unter or (scope_key,):
+        profil = _profile_for(app, bereich)
+        if proposal and profil and set(profil['evidence_ids']) == set(proposal['evidence_ids']) and profil['rules'] == proposal['rules']:
+            return None, False
     return proposal, False
 
 
@@ -364,7 +369,8 @@ def tone_hint(app, message) -> dict[str, Any]:
         return {'bestaetigt': False, 'gesendet': 0}
     if not hasattr(app.state, 'store') or not hasattr(app.state, 'episodes'):
         return {'bestaetigt': False, 'gesendet': 0}
-    proposal, _ = _mit_ablehnung(app, key, _proposal(_examples(app, key), _gesendete(app, message.account_id, address)))
+    proposal, _ = _mit_ablehnung(app, key, _proposal(_examples(app, key), _gesendete(app, message.account_id, address)),
+                                 bestaetigt_unter=(key, 'global'))
     return {'bestaetigt': _profile_for(app, key) is not None, 'gesendet': proposal['gesendet'] if proposal else 0}
 
 
@@ -414,7 +420,7 @@ def register_mail_style(app, guard):
     def proposal_for(key, address, account_id):
         examples = _examples(app, key)
         gesendete = _gesendete(app, account_id, address)
-        proposal, abgelehnt = _mit_ablehnung(app, key, _proposal(examples, gesendete))
+        proposal, abgelehnt = _mit_ablehnung(app, key, _proposal(examples, gesendete), bestaetigt_unter=(key, 'global'))
         return examples, gesendete, proposal, abgelehnt
 
     def state(key, address, account_id):
