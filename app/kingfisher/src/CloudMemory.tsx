@@ -67,7 +67,7 @@ export function CloudMemory({model, connected}:{model:string;connected:boolean})
     <label>Anbieter für dieses Paket<select value={provider} disabled={busy||running} onChange={event=>setProvider(event.target.value as CloudMemoryProvider)}>
       <option value="chatgpt">ChatGPT-Abo</option><option value="anthropic">Anthropic · Claude API</option>
     </select></label>
-    {provider==="anthropic" ? <p className="source-hint">Claude API nutzt den unter Cloud-Zugänge gespeicherten Schlüssel und das dort gewählte Modell. Lokale Alltagsrollen bleiben davon unabhängig. Modell: {selectedModel||"noch nicht eingerichtet"}.</p>:null}
+    {provider==="anthropic" ? <p className="source-hint">Claude API nutzt den unter Cloud-Zugänge gespeicherten Schlüssel und das dort gewählte Modell. Der Alltag läuft lokal, oder über die Cloud-Einordnung neuer Mails unter Was Kingfisher darf. Modell: {selectedModel||"noch nicht eingerichtet"}.</p>:null}
     <details className="quiet-details"><summary>Wie die Einordnung funktioniert</summary>
       <p>Der gewählte Anbieter prüft Aussagen, Themen und erwähnte Menschen anhand der Originalmails. Ergebnisse bleiben Quellenbefunde; sie werden nicht automatisch zu bestätigten Fakten oder erledigten Aufgaben.</p>
       <p>Deine Originale und bestätigten Korrekturen bleiben erhalten. Der bestehende Mailabruf und seine Pause werden hierdurch nicht geändert.</p>

@@ -92,21 +92,23 @@ function Blick({ data }: { data: Akte }) {
 }
 
 /** Braucht dich: was eine Entscheidung braucht. Ein Satz, das Zitat, ein Klick; die Antwort gilt in jeder Akte. */
-function BrauchtDich({ punkte, gesamt, arbeitet, entscheiden }: { punkte: AkteBrauchtDich[]; gesamt: number; arbeitet: string | null; entscheiden: Entscheiden }) {
+function BrauchtDich({ punkte, gesamt, arbeitet, entscheiden, aufgabeZurueck }: { punkte: AkteBrauchtDich[]; gesamt: number; arbeitet: string | null; entscheiden: Entscheiden; aufgabeZurueck: (ziel: string, aufgabeId: string) => void }) {
   if (!punkte.length) return null;
   return <section className="akte-braucht" aria-label="Braucht dich">
     <h3>Braucht dich <span className="akte-zahl">{gesamt}</span></h3>
     <ol>
       {punkte.map(p => <li key={p.ziel} aria-busy={arbeitet === p.ziel}>
-        <p className="akte-braucht-satz">{p.satz}</p>
+        <p className="akte-braucht-satz">{p.art === "aufgabe_post" && p.aufgabe ? <>„{p.aufgabe.title}“: {p.satz}</> : p.satz}</p>
         {p.zeile ? <blockquote>{p.zeile.text}</blockquote> : null}
         <div className="akte-braucht-fuss">
           <div className="akte-wahl">
             {p.wahl.map(w => <button key={w.entscheidung} type="button" className="akte-knopf" disabled={arbeitet !== null} onClick={() => entscheiden(p.ziel, w.entscheidung, p.art === "abgesagter_termin")}>{w.text}</button>)}
+            {p.art === "aufgabe_post" && p.aufgabe ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => aufgabeZurueck(p.ziel, p.aufgabe!.id)}>Rückgängig</button> : null}
           </div>
           <div className="akte-belege">
             {p.zeile ? <Quelle zeile={p.zeile} /> : null}
             {p.laut ? <ProfileSource kind="episode" id={p.laut.episode_id} label={`Laut: ${p.laut.titel || "Quelle"}`} quiet /> : null}
+            {p.art === "aufgabe_post" && p.episode_id ? <ProfileSource kind="episode" id={p.episode_id} label="Mail öffnen" quiet readOnly allowIgnore={false} /> : null}
           </div>
         </div>
       </li>)}
@@ -309,6 +311,22 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       }
     })();
   };
+  // Aufgaben folgen der Post: „Rückgängig“ an einer Aufgabe, die die Post erledigt oder zurückgeholt hat.
+  function aufgabeZurueck(ziel: string, aufgabeId: string) {
+    if (arbeitet) return;
+    setArbeitet(ziel);
+    void (async () => {
+      try {
+        await api.taskRueckgaengig(aufgabeId);
+        setMeldung({ text: "Zurückgenommen. Die Aufgabe steht wieder so, wie sie vorher war.", ziel: null });
+        await laden(alle);
+      } catch {
+        setMeldung({ text: "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.", ziel: null });
+      } finally {
+        setArbeitet(null);
+      }
+    })();
+  }
   // „Rückgängig“ stellt den Zustand vor dem Klick wieder her: die frühere Entscheidung oder die Vermutung.
   async function zuruecknehmen(ziel: string, vorher: AkteEntscheidung | null = null) {
     if (arbeitet) return;
@@ -434,7 +452,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
 
     {data.akte_vorschlag ? <NeueAkte stand={data.akte_vorschlag} arbeitet={arbeitet} anlegen={kennung => void akteAnlegen(kennung)} ablehnen={kennung => void neinDanke(kennung)} zurueck={kennung => void vorschlagZurueck(kennung)} /> : null}
 
-    {braucht ? <BrauchtDich punkte={braucht.eintraege} gesamt={braucht.gesamt} arbeitet={arbeitet} entscheiden={entscheiden} /> : null}
+    {braucht ? <BrauchtDich punkte={braucht.eintraege} gesamt={braucht.gesamt} arbeitet={arbeitet} entscheiden={entscheiden} aufgabeZurueck={aufgabeZurueck} /> : null}
 
     {data.lage ? <Lage lage={data.lage} /> : null}
 

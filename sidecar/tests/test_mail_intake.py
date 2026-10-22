@@ -485,3 +485,78 @@ def test_provider_identity_shared_by_manual_and_automatic_intake(tmp_path,manual
     intake.start('a',['INBOX']);intake.step('a',reader)
     remember(ep,message)
     assert sum(ep.counts().values())==1
+
+
+# -- Gesendete Mails (eigene Zusagen) ---------------------------------------------------------------------------------
+
+ICH = 'lena.probe@example.org'
+
+
+class ZweiOrdner(Reader):
+    """Posteingang mit sechs fremden Mails, Gesendet mit zwei eigenen; UID 2 in Gesendet ist ein Entwurf."""
+    def __init__(self):
+        self.abgerufen = []
+    def inventory_page(self, folder, after_uid=0, before_uid=None, limit=100, uidvalidity=None):
+        self.count = 2 if folder == 'Gesendet' else 6
+        return super().inventory_page(folder, after_uid, before_uid, limit, uidvalidity)
+    def message_in_folder(self, folder, uid):
+        from dataclasses import replace
+        self.abgerufen.append((folder, uid))
+        nachricht = super().message_in_folder(folder, uid)
+        if folder != 'Gesendet':
+            return replace(nachricht, own_addresses=(ICH,))
+        nummer = int(uid.split('.')[1])
+        return replace(nachricht, sender=f'Lena Probe <{ICH}>', own_addresses=(ICH,), subject='Unterlagen',
+                       body='Ich schicke dir die Unterlagen bis Freitag.', preview='Ich schicke dir die Unterlagen bis Freitag.',
+                       recipients=({'rolle': 'an', 'name': 'Anna Berg', 'adresse': 'anna.berg@example.org'},),
+                       message_id=f'<eigene-{nummer}@example.org>', entwurf=nummer == 2)
+
+
+def test_posteingang_und_gesendet_werden_im_takt_gelesen(tmp_path):
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3'); intake = Intake(ep); r = ZweiOrdner()
+    intake.start('a', ['INBOX', 'Gesendet'])
+    for _ in range(6):
+        intake.step('a', r, batch=2)
+    stand = {f['folder']: f for f in intake.status('a')['folders']}
+    assert stand['INBOX']['inventory_complete'] and stand['Gesendet']['inventory_complete']
+    assert stand['INBOX']['captured'] == 6 and stand['INBOX']['pending'] == 0
+    # Der Entwurf wird nicht aufgenommen, aber gezählt: Der Stand bleibt nicht auf „1 von 2“ stehen.
+    assert stand['Gesendet']['captured'] == 1 and stand['Gesendet']['pending'] == 0
+    assert stand['Gesendet']['filtered_by'] == {'entwurf': 1} and stand['Gesendet']['total'] == 2
+    assert sum(ep.counts().values()) == 7
+    assert {o for o, _ in r.abgerufen} == {'INBOX', 'Gesendet'}
+    ep.close()
+
+
+def test_eigene_mail_aus_gesendet_ist_von_mir(tmp_path):
+    from icarus_memory.fristlage import richtung
+    from icarus_memory.kontakte import absender_text
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3'); intake = Intake(ep); r = ZweiOrdner()
+    intake.start('a', ['Gesendet'])
+    for _ in range(3):
+        intake.step('a', r, batch=2)
+    with ep._lock:
+        ids = [i for (i,) in ep._conn.execute("SELECT episode_id FROM mail_intake_items WHERE status='captured'")]
+    assert len(ids) == 1
+    quelle = ep.get(ids[0])
+    von = next(k for k in quelle.contacts if k['rolle'] == 'von')
+    assert von['ich'] is True and von['adresse'] == ICH
+    assert any(k['rolle'] == 'an' and k['adresse'] == 'anna.berg@example.org' for k in quelle.contacts)
+    assert richtung(quelle.participants, [ICH]) == 'von_mir'
+    assert absender_text(quelle.participants, quelle.contacts).endswith(f'<{ICH}>')
+    ep.close()
+
+
+def test_entwurf_wird_nicht_aufgenommen_auch_nicht_nach_erneut_versuchen(tmp_path):
+    ep = EpisodeStore(tmp_path / 'episodes.sqlite3'); intake = Intake(ep); r = ZweiOrdner()
+    intake.start('a', ['Gesendet'])
+    for _ in range(3):
+        intake.step('a', r, batch=2)
+    assert sum(ep.counts().values()) == 1
+    assert intake.status('a')['folders'][0]['filtered_by'] == {'entwurf': 1}
+    intake.retry('a')
+    for _ in range(2):
+        intake.step('a', r, batch=2)
+    assert sum(ep.counts().values()) == 1
+    assert intake.status('a')['folders'][0]['filtered_by'] == {'entwurf': 1}
+    ep.close()

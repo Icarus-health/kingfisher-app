@@ -48,7 +48,8 @@ MAX_ZEILEN = 7
 class Aktion:
     art: str
     """`vorbereitung` (Vorbereitung öffnen), `quelle` (Quelle öffnen), `fahrzeiten` (Einwilligung),
-    `heimat` (Startort eintragen), `akte` (Akte öffnen, `ref` = Sache), `link` (Meldung lesen, `ref` = https-Adresse),
+    `heimat` (Startort eintragen), `akte` (Akte öffnen, `ref` = Sache), `aufgabe` (Aufgabe öffnen, `ref` = Kennung),
+    `link` (Meldung lesen, `ref` = https-Adresse),
     `welt_quelle` (Quelle abbestellen, `ref` = Quelle), `welt_sache` (Sache abbestellen, `ref` = Sache)."""
     beschriftung: str
     ref: str | None = None
@@ -60,7 +61,7 @@ class Aktion:
 @dataclass
 class Zeile:
     art: str
-    """`termin`, `leute`, `einpacken`, `fristen`, `wetter`, `geburtstag`, `welt`."""
+    """`termin`, `leute`, `einpacken`, `fristen`, `aufgaben_post`, `wetter`, `geburtstag`, `welt`."""
     text: str
     aktionen: list[Aktion] = field(default_factory=list)
     vermutlich: bool = False
@@ -238,6 +239,25 @@ def _geburtstag_zeile(geburtstage: list[dict[str, Any]] | None) -> Zeile | None:
     return Zeile('geburtstag', ' '.join(saetze), [Aktion('akte', 'Akte öffnen', nah[0]['sache'])])
 
 
+def _aufgaben_post_zeile(aufgaben_post: list[dict[str, Any]] | None) -> Zeile | None:
+    """„Erledigt durch deine Mail an Anna Berg: ‚Druckdaten schicken‘.“ Höchstens eine Zeile, keine Liste.
+
+    Die Einträge kommen von `aufgaben_post.heute` (Aufgaben, die die eigene Post heute erledigt hat, jüngste zuerst).
+    Die Zeile zählt die weiteren, statt sie aufzuführen; die Aufgabenliste zeigt jede mit Grund und Rückgängig.
+    """
+    eintraege = [e for e in aufgaben_post or () if e.get('art') == 'erledigt']
+    if not eintraege:
+        return None
+    erste = eintraege[0]
+    weitere = len(eintraege) - 1
+    text = f'Erledigt durch deine Mail an {erste.get("wer") or "die Gegenseite"}: „{_zitat(erste.get("title", ""), 60)}“.'
+    if weitere == 1:
+        text += ' Eine weitere Aufgabe ebenso.'
+    elif weitere > 1:
+        text += f' {weitere} weitere Aufgaben ebenso.'
+    return Zeile('aufgaben_post', text, [Aktion('aufgabe', 'Aufgabe öffnen', erste.get('id'))])
+
+
 def _welt_zeile(welt: dict[str, Any] | None) -> Zeile | None:
     """Die eine Meldung des Tages: was, warum, und zwei Wege, sie abzubestellen. Fremder Text steht nur als Zitat."""
     if not welt or not welt.get('titel') or not welt.get('grund'):
@@ -258,7 +278,8 @@ def _welt_zeile(welt: dict[str, Any] | None) -> Zeile | None:
 def erstellen(vorbereitungen: list[Vorbereitung], fristen: list[Frist], wetter: dict[str, Any] | None,
               *, jetzt: datetime, termin_wetter: dict[str, Any] | None = None,
               welt: dict[str, Any] | None = None, verlauf: list[str] | None = None,
-              geburtstage: list[dict[str, Any]] | None = None) -> Tageslage:
+              geburtstage: list[dict[str, Any]] | None = None,
+              aufgaben_post: list[dict[str, Any]] | None = None) -> Tageslage:
     """Die Tageslage aus den vorbereiteten Terminen, den Fristen, dem Wetter und der einen Meldung aus der Welt.
 
     `verlauf` sind die Zeilen des Logbuchs, unverändert durchgereicht: Sie sagen, was seit dem letzten Blick geschah,
@@ -271,8 +292,8 @@ def erstellen(vorbereitungen: list[Vorbereitung], fristen: list[Frist], wetter: 
         for zeile in (_termin_zeile(v, tag, len(heute) - 1), _leute_zeile(v), _einpacken_zeile(v)):
             if zeile is not None:
                 zeilen.append(zeile)
-    for zeile in (_fristen_zeile(fristen), _wetter_zeile(wetter, termin_wetter), _geburtstag_zeile(geburtstage),
-                  _welt_zeile(welt)):
+    for zeile in (_fristen_zeile(fristen), _aufgaben_post_zeile(aufgaben_post), _wetter_zeile(wetter, termin_wetter),
+                  _geburtstag_zeile(geburtstage), _welt_zeile(welt)):
         if zeile is not None:
             zeilen.append(zeile)
     zeilen = zeilen[:MAX_ZEILEN]

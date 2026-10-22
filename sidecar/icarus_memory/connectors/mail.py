@@ -46,6 +46,10 @@ MAX_MESSAGE_WIRE_BYTES = 2 * 1024 * 1024
 MAX_INBOX_PREVIEW_BYTES = 64 * 1024
 MAX_UID = 4294967295
 MAX_INVENTORY_WINDOW = 1000
+#: Namen, unter denen Mailserver ohne SPECIAL-USE-Attribut den Gesendet-Ordner führen (Vergleich ohne Groß/Klein,
+#: der ganze Name samt Trennzeichen). Microsoft 365 heißt er `SentItems` (`microsoft_graph.ORDNER`).
+GESENDET_NAMEN = frozenset({"sent", "sent items", "sent messages", "sent mail", "gesendet", "gesendete objekte",
+                            "gesendete elemente", "inbox.sent", "inbox/sent", "sentitems"})
 
 
 class MailError(Exception):
@@ -215,6 +219,10 @@ class Message:
     """Adressen des Kontos, über das die Mail geholt wurde (Benutzername und
     Absenderadresse). Damit erkennt die Aufnahme „ich“, ohne nachzufragen."""
 
+    entwurf: bool = False
+    """Flag `\\Draft`: ein nie abgeschickter Entwurf (Gmail führt ihn im Gesamtbestand).
+    Nichts, was geschah; die Aufnahme überspringt ihn."""
+
     anhaenge: tuple[Any, ...] = ()
     """Gelesene Anhänge (PDF, Foto einer Rechnung) als `anhaenge.Anhang`; nur beim
     Abruf für die Aufnahme gefüllt (`message_mit_anhaengen`), nie beim Ansehen."""
@@ -339,6 +347,13 @@ def _mailbox_number(imap: Any, name: str, maximum: int) -> int:
     return int(value)
 
 
+def ist_gesendet_ordner(name: str, attributes: Any = ()) -> bool:
+    """Ob dieser Ordner die gesendeten Mails hält: SPECIAL-USE `\\Sent` (RFC 6154), sonst ein üblicher Name."""
+    if any(str(value).lower() == "\\sent" for value in attributes or ()):
+        return True
+    return str(name or "").strip().casefold() in GESENDET_NAMEN
+
+
 def _folder_argument(folder: str) -> str:
     if not isinstance(folder, str) or not folder or any(ord(char) < 32 or ord(char) == 127 for char in folder):
         raise ValueError("Ungültiger Mailordner.")
@@ -398,9 +413,17 @@ def _list_folder(record: Any) -> dict[str, Any]:
         if name is None:
             raise MailError("Ungültige Ordnerliste vom Mailserver.")
         _folder_argument(name)
-        return {"name": name, "attributes": attributes, "delimiter": delimiter, "historical": False}
+        return {"name": name, "attributes": attributes, "delimiter": delimiter, "historical": False,
+                "gesendet": ist_gesendet_ordner(name, attributes)}
     except (UnicodeDecodeError, ValueError) as exc:
         raise MailError("Ungültige Ordnerliste vom Mailserver.") from exc
+
+
+def _hat_flag(flags: str, flag: str) -> bool:
+    """Ob die FLAGS-Angabe der Antwort das Flag trägt (ohne Groß/Klein, als ganzes Wort)."""
+    # `flags` ist die `str()` der Bytes-Antwort: Backslashes stehen dort verdoppelt, deshalb ohne sie vergleichen.
+    match = re.search(r"FLAGS\s*\(([^)]*)\)", flags or "", re.IGNORECASE)
+    return bool(match) and flag.lstrip("\\").lower() in {wort.lstrip("\\").lower() for wort in match[1].split()}
 
 
 def _gmail_extension(imap: Any) -> bool:
@@ -615,10 +638,14 @@ class MailConnector:
     def folders(self) -> list[dict[str, Any]]:
         """Wählbare Ordner; Papierkorb/Spam sind keine Aufnahmequellen.
 
-        `historical` markiert genau einen bevorzugten Startordner: den
-        Gmail-/SPECIAL-USE-Ordner für alle Nachrichten, sonst INBOX. Namen
-        bleiben in der vom Server gelieferten IMAP-Kodierung, damit auch
-        modifiziertes UTF-7 beim späteren SELECT unverändert funktioniert.
+        `historical` markiert die Startordner: den Gmail-/SPECIAL-USE-Ordner
+        für alle Nachrichten (er enthält Gesendet schon), sonst INBOX **und**
+        den Gesendet-Ordner (`gesendet`: SPECIAL-USE `\\Sent`, sonst der erste
+        mit einem üblichen Namen, `GESENDET_NAMEN`). Ein Stabschef kennt die
+        eigenen Zusagen; ohne Gesendet fehlen sie bei jedem Konto außer Gmail
+        und Microsoft 365. Namen bleiben in der vom Server gelieferten
+        IMAP-Kodierung, damit auch modifiziertes UTF-7 beim späteren SELECT
+        unverändert funktioniert.
         """
         try:
             self._ruht_nicht()
@@ -651,6 +678,13 @@ class MailConnector:
                                        {"[gmail]/all mail", "[google mail]/all mail"}), None)
                 if historical is None:
                     historical = next((folder for folder in folders if folder["name"].upper() == "INBOX"), None)
+                    # Ohne Gesamtbestand kommt Gesendet dazu: das Attribut zuerst, sonst der erste übliche Name.
+                    gesendet = next((folder for folder in folders if "\\sent" in
+                                     {value.lower() for value in folder["attributes"]}), None)
+                    if gesendet is None:
+                        gesendet = next((folder for folder in folders if folder["gesendet"]), None)
+                    if gesendet is not None and gesendet is not historical:
+                        gesendet["historical"] = True
                 if historical is not None:
                     historical["historical"] = True
                 return folders
@@ -931,6 +965,7 @@ class MailConnector:
                 date=self._parse_date(parsed.get("Date")),
                 preview=" ".join(text.split())[:300],
                 unread="\\Seen" not in flags,
+                entwurf=_hat_flag(flags, "\\Draft"),
                 body=text[:FULL_BODY_LIMIT],
                 truncated=wire_truncated or len(text) > FULL_BODY_LIMIT,
                 spam_flag=any(str(value).strip().lower().startswith(('yes', 'true')) for key in ('X-Spam-Flag','X-Spam-Status') for value in parsed.get_all(key, [])),
@@ -1022,4 +1057,5 @@ class MailConnector:
         return f"Gesendet an {to}."
 
 
-__all__ = ["MailConfig", "MailConnector", "MailError", "MailboxGenerationChanged", "Message"]
+__all__ = ["MailConfig", "MailConnector", "MailError", "MailboxGenerationChanged", "Message", "GESENDET_NAMEN",
+           "ist_gesendet_ordner"]

@@ -65,7 +65,7 @@ def test_v2_upgrade_preserves_existing_task_and_history(tmp_path):
     store = TaskStore(path)
     try:
         assert store.get(old.id).title == 'Vorhandene Aufgabe'
-        assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 3
+        assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 4
         assert [tuple(row) for row in store._conn.execute('SELECT * FROM tasks')] == before
         assert [tuple(row) for row in store._conn.execute('SELECT * FROM task_events')] == history
         assert store._conn.execute('SELECT count(*) FROM task_requests').fetchone()[0] == 0

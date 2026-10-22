@@ -139,3 +139,108 @@ def test_abgelehnte_anmeldung_beim_einlesen_nennt_den_grund(fixture):
     assert antwort.status_code == 503
     assert antwort.json()['detail'] == 'Test hat die Anmeldung abgelehnt: Adresse oder Passwort stimmen nicht.'
     assert 'AUTHENTICATIONFAILED' not in antwort.text
+
+
+# -- Gesendete Mails (eigene Zusagen) ---------------------------------------------------------------------------------
+
+def _ordner(*namen):
+    """Ordner, wie `MailConnector.folders` sie liefert: `historical` je Startordner, `gesendet` am Gesendet-Ordner."""
+    return lambda: [dict(name=n, historical=True, gesendet=n != 'INBOX') for n in namen]
+
+
+def test_beschreibung_je_umfang(fixture):
+    app, client = fixture
+    reader = app.state.mail.reader_for('a')
+    reader.folders = _ordner('INBOX')
+    assert client.get('/api/v1/mail/intake/a/preview').json()['description'] == \
+        'Nur der Posteingang; gesendete und archivierte Mails sind bei diesem Konto nicht dabei.'
+    reader.folders = _ordner('INBOX', 'Gesendet')
+    assert client.get('/api/v1/mail/intake/a/preview').json()['description'] == \
+        'Posteingang und Gesendet; ohne Spam und Papierkorb.'
+    reader.folders = lambda: [dict(name='[Gmail]/All Mail', historical=True)]
+    assert client.get('/api/v1/mail/intake/a/preview').json()['description'] == \
+        'Posteingang, Gesendet und Archiv über den Gmail-Gesamtbestand; ohne Spam und Papierkorb.'
+    # Ein Leser mit eigenem Umfang (Microsoft 365) behält seinen Satz.
+    reader.umfang = 'Posteingang und Gesendet; ohne Junk-E-Mail und Gelöschte Elemente.'
+    assert client.get('/api/v1/mail/intake/a/preview').json()['description'] == reader.umfang
+
+
+def test_stand_traegt_umfang_und_ob_gesendet_dabei_ist(fixture):
+    app, client = fixture
+    Intake(app.state.episodes).start('a', ['INBOX'])
+    konto = client.get('/api/v1/mail/intake').json()['accounts'][0]
+    assert konto['umfang'] == 'Nur der Posteingang; gesendete und archivierte Mails sind bei diesem Konto nicht dabei.'
+    assert konto['gesendet_dabei'] is False and konto['gesendet_erkennbar'] is None
+    Intake(app.state.episodes).start('a', ['Gesendet'])
+    konto = client.get('/api/v1/mail/intake').json()['accounts'][0]
+    assert konto['umfang'] == 'Posteingang und Gesendet; ohne Spam und Papierkorb.'
+    assert konto['gesendet_dabei'] is True
+    Intake(app.state.episodes).start('b', ['All Mail'])
+    app.state.settings.mail_accounts.append(SimpleNamespace(id='b', label='Gmail', configured=True))
+    konto = next(k for k in client.get('/api/v1/mail/intake').json()['accounts'] if k['account_id'] == 'b')
+    assert konto['gesendet_dabei'] is True and konto['umfang'].startswith('Posteingang, Gesendet und Archiv')
+
+
+def test_ordner_ergaenzen_liest_gesendet_nur_einmal_dazu(fixture):
+    app, client = fixture
+    reader = app.state.mail.reader_for('a')
+    reader.folders = _ordner('INBOX', 'Gesendet')
+    store = Intake(app.state.episodes)
+    store.start('a', ['INBOX'])  # ein Konto von vor dem Umbau: nur der Posteingang
+    app.state.settings.schedule.mail_accounts.append('a'); app.state.settings.schedule.enabled = True
+    geweckt = []
+    app.state.scheduler = SimpleNamespace(aufnahme_wecken=lambda: geweckt.append(True))
+    antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
+    assert antwort.status_code == 200, antwort.text
+    assert antwort.json()['ergaenzt'] == ['Gesendet']
+    assert antwort.json()['satz'] == 'Gesendete Mails werden jetzt mit eingelesen.'
+    konto = antwort.json()['accounts'][0]
+    assert [f['folder'] for f in konto['folders']] == ['Gesendet', 'INBOX'] and konto['gesendet_dabei'] is True
+    assert not konto['paused'] and geweckt == [True]
+    # Zweiter Klick: nichts Neues, kein zweiter Eintrag, derselbe Stand.
+    antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
+    assert antwort.status_code == 200
+    assert antwort.json()['ergaenzt'] == [] and antwort.json()['satz'] == 'Gesendete Mails sind schon dabei.'
+    with app.state.episodes._lock:
+        zeilen = app.state.episodes._conn.execute('SELECT folder FROM mail_intake_folders WHERE account=? ORDER BY folder', ('a',)).fetchall()
+    assert [z[0] for z in zeilen] == ['Gesendet', 'INBOX']
+
+
+def test_ordner_ergaenzen_ohne_erkannten_gesendet_ordner_sagt_das(fixture):
+    app, client = fixture
+    reader = app.state.mail.reader_for('a')
+    reader.folders = _ordner('INBOX')
+    Intake(app.state.episodes).start('a', ['INBOX'])
+    antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
+    assert antwort.status_code == 200
+    assert antwort.json()['ergaenzt'] == []
+    assert antwort.json()['satz'] == 'Dieses Postfach hat keinen Gesendet-Ordner, den Kingfisher erkennt.'
+    konto = antwort.json()['accounts'][0]
+    assert konto['gesendet_erkennbar'] is False and konto['gesendet_dabei'] is False
+    assert [f['folder'] for f in konto['folders']] == ['INBOX']
+
+
+def test_ordner_ergaenzen_haelt_eine_pause_und_verlangt_einen_start(fixture):
+    app, client = fixture
+    reader = app.state.mail.reader_for('a')
+    reader.folders = _ordner('INBOX', 'Gesendet')
+    assert client.post('/api/v1/mail/intake/a/ordner-ergaenzen').status_code == 409
+    store = Intake(app.state.episodes)
+    store.start('a', ['INBOX']); store.pause('a', True)
+    antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
+    assert antwort.status_code == 200 and antwort.json()['ergaenzt'] == ['Gesendet']
+    assert store.status('a')['paused'], 'Ergänzen hebt keine Pause auf'
+    assert client.post('/api/v1/mail/intake/x/ordner-ergaenzen').status_code == 404
+    app.state.settings.mail_accounts[0].configured = False
+    assert client.post('/api/v1/mail/intake/a/ordner-ergaenzen').status_code == 404
+
+
+def test_ordner_ergaenzen_nennt_den_grund_wenn_das_postfach_schweigt(fixture, monkeypatch):
+    import time
+    app, client = fixture
+    monkeypatch.setattr('icarus_memory.mail_intake_routes.ZEITGRENZE', 0.5)
+    app.state.settings.mail_accounts[0].imap_host = 'imap.web.de'
+    Intake(app.state.episodes).start('a', ['INBOX'])
+    app.state.mail = SimpleNamespace(reader_for=lambda account: SimpleNamespace(folders=lambda: time.sleep(5)))
+    antwort = client.post('/api/v1/mail/intake/a/ordner-ergaenzen')
+    assert antwort.status_code == 503 and antwort.json()['detail'].startswith('WEB.DE antwortet gerade nicht.')

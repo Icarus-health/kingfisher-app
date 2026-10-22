@@ -1616,6 +1616,33 @@ class EpisodeStore:
         from .task_rechecks import finish
         finish(self, row, completed)
 
+    def letzte_zeile(self) -> int:
+        """Die größte Zeilennummer der Episoden (0 ohne Episoden): der Stand für Durchläufe über neue Quellen."""
+        with self._lock:
+            return int(self._conn.execute("SELECT COALESCE(MAX(rowid), 0) FROM episodes").fetchone()[0])
+
+    def mails_ab(self, zeile: int, limit: int = 200) -> list[tuple[int, Episode]]:
+        """Geltende Mails (aktuelle Fassung, nicht ignoriert) nach Zeilennummer `zeile`, in Aufnahmefolge.
+
+        Für Durchläufe, die jede neue Mail einmal sehen wollen (`aufgaben_post.py`): Der Aufrufer merkt sich die
+        letzte Zeilennummer. Eine neue Fassung derselben Mail ist eine neue Zeile.
+        """
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT rowid, document FROM episodes WHERE rowid > ? AND kind = ? "
+                f"AND json_extract(document, '$.provenance.source_type') = 'email' AND {sql_aktuell()} "
+                "ORDER BY rowid LIMIT ?",
+                (int(zeile), EpisodeKind.MESSAGE.value, max(1, min(int(limit), 1000)))).fetchall()
+        return [(int(row[0]), self._from_row({"document": row[1]})) for row in rows]
+
+    def anhang_titel(self, parent_id: str) -> list[str]:
+        """Titel der geltenden Anlagen einer Mail (Dateiname voran, `anhaenge.titel`), ohne Inhalt."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT json_extract(episodes.document, '$.title') FROM episodes, json_each(episodes.document, '$.tags') j "
+                f"WHERE j.value = ? AND {sql_aktuell()} LIMIT 50", (f"mail-parent:{parent_id}",)).fetchall()
+        return [str(row[0] or "") for row in rows]
+
     def analysis_batch(self, after_id: str = "", limit: int = 100) -> list[Episode]:
         """Rohquellen in stabilen, begrenzten Seiten für unabhängige Analysen."""
         with self._lock:

@@ -16,6 +16,7 @@ class InventoryIMAP:
         self.uidnext = b"311"
         self.available = {1, 103, 105, 207, 310}
         self.capabilities = (b"IMAP4REV1", b"X-GM-EXT-1")
+        self.flags = b"()"
         self.listed = [
             b'(\\HasNoChildren) "/" "INBOX"',
             b'(\\HasNoChildren \\All) "/" "[Gmail]/All Mail"',
@@ -66,7 +67,7 @@ class InventoryIMAP:
             assert "X-GM-MSGID" in args[1]
         raw = (b"Subject: Historical\r\nFrom: a@example.invalid\r\n"
                b"Message-ID: <same@example.invalid>\r\nContent-Type: text/plain\r\n\r\nBody")
-        return "OK", [(b"1 (UID " + args[0] + b" FLAGS () X-GM-MSGID 123456789)", raw)]
+        return "OK", [(b"1 (UID " + args[0] + b" FLAGS " + self.flags + b" X-GM-MSGID 123456789)", raw)]
 
 
 @pytest.fixture
@@ -89,12 +90,63 @@ def test_list_parses_quoted_escaped_and_literal_names_and_prefers_all_mail(mailb
     assert not any(call[0] == "select" for call in fake.calls)
 
 
-def test_list_falls_back_to_inbox_without_special_use_all_mail(mailbox):
+def test_list_falls_back_to_inbox_and_sent_without_special_use_all_mail(mailbox):
+    # Ohne Gesamtbestand (`\All`) liest Kingfisher Posteingang **und** Gesendet: Ein Stabschef kennt die eigenen Zusagen.
     connector, fake = mailbox
-    fake.listed = [b'() NIL INBOX', b'(\\Sent) "/" "Sent Mail"']
+    # „Verzonden“ steht in keiner Namensliste: Hier zählt allein das SPECIAL-USE-Attribut.
+    fake.listed = [b'() NIL INBOX', b'(\\Sent) "/" "Verzonden"', b'(\\HasNoChildren) "/" "Archiv"']
     folders = connector.folders()
-    assert folders[0] == {"name": "INBOX", "attributes": [], "delimiter": None, "historical": True}
-    assert not folders[1]["historical"]
+    assert folders[0] == {"name": "INBOX", "attributes": [], "delimiter": None, "historical": True, "gesendet": False}
+    assert folders[1]["name"] == "Verzonden" and folders[1]["historical"] and folders[1]["gesendet"]
+    assert not folders[2]["historical"] and not folders[2]["gesendet"]
+    assert not folders[0]["gesendet"]
+
+
+@pytest.mark.parametrize("name", ["Gesendet", "Sent", "Sent Items", "Sent Messages", "Gesendete Objekte",
+                                  "Gesendete Elemente", "INBOX.Sent", "INBOX/Sent", "gesendet", "SENT ITEMS"])
+def test_list_recognises_sent_folder_by_name_without_attribute(mailbox, name):
+    connector, fake = mailbox
+    fake.listed = [b'() NIL INBOX', b'(\\HasNoChildren) "." "Entwuerfe"',
+                   b'(\\HasNoChildren) "." "' + name.encode() + b'"', b'(\\HasNoChildren) "." "Gesendet-Archiv"']
+    folders = connector.folders()
+    assert [f["name"] for f in folders if f["historical"]] == ["INBOX", name]
+    assert [f["name"] for f in folders if f["gesendet"]] == [name]
+
+
+def test_list_prefers_sent_attribute_over_an_earlier_name_match(mailbox):
+    # Das Attribut sagt, was der Server meint; ein Ordner, der nur „Sent“ heißt, steht dahinter zurück.
+    connector, fake = mailbox
+    fake.listed = [b'() NIL INBOX', b'(\\HasNoChildren) "/" "Sent"', b'(\\Sent) "/" "Verzonden"']
+    folders = connector.folders()
+    assert [f["name"] for f in folders if f["historical"]] == ["INBOX", "Verzonden"]
+
+
+def test_list_with_all_mail_marks_no_additional_sent_folder(mailbox):
+    # Gmail: Der Gesamtbestand enthält Gesendet schon; ein zweiter Ordner brächte jede eigene Mail doppelt.
+    connector, fake = mailbox
+    fake.listed = [b'() NIL INBOX', b'(\\Sent) "/" "[Gmail]/Sent Mail"', b'(\\All) "/" "[Gmail]/All Mail"']
+    folders = connector.folders()
+    assert [f["name"] for f in folders if f["historical"]] == ["[Gmail]/All Mail"]
+    assert not any(f["gesendet"] and f["historical"] for f in folders)
+
+
+def test_list_sent_never_resurrects_trash_or_junk(mailbox):
+    connector, fake = mailbox
+    fake.listed = [b'() NIL INBOX', b'(\\Trash \\Sent) "/" "Papierkorb"', b'(\\Junk) "/" "Sent Spam"',
+                   b'(\\HasNoChildren) "/" "Sent/Trash"']
+    folders = connector.folders()
+    assert [f["name"] for f in folders] == ["INBOX"]
+    assert [f["name"] for f in folders if f["historical"]] == ["INBOX"]
+
+
+def test_message_in_folder_marks_drafts(mailbox):
+    # Gmail führt Entwürfe im Gesamtbestand mit `\Draft`; sie sind nichts, was geschah.
+    connector, fake = mailbox
+    fake.flags = b"(\\Draft \\Seen)"
+    nachricht = connector.message_in_folder("[Gmail]/All Mail", "7.103")
+    assert nachricht.entwurf is True and nachricht.unread is False
+    fake.flags = b"(\\Seen)"
+    assert connector.message_in_folder("INBOX", "7.105").entwurf is False
 
 
 def test_empty_ranges_advance_scan_without_counting_deleted_uids(mailbox):

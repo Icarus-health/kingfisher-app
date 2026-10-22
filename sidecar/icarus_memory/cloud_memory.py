@@ -16,7 +16,7 @@ from .memory_categories import _blocks, _quote_sections, _remote_fragments
 from .model import SourceType
 from .providers import ProviderError
 from .restore_boundary import guarded
-from .source_processing_policy import ExplicitSourcePolicy
+from .source_processing_policy import ExplicitSourcePolicy, ScopedProvider as _ScopedProvider
 from .working_memory_analysis import UnsupportedSource, abschnitte_der, interpret_abschnitt
 from .working_memory_store import WorkingMemoryStore, source_fingerprint
 from .mail_filter import Decision
@@ -33,33 +33,6 @@ PREVIEW_TTL = 15 * 60
 
 class CloudMemoryError(ValueError):
     pass
-
-
-class _ScopedProvider:
-    """Count each request and recheck consent, source, and OAuth grant at send time."""
-    is_local = False
-    is_remote = True
-    category_evidence_repair = True
-
-    def __init__(self, provider, policy, before_request):
-        self._provider = provider
-        self._policy = policy
-        self._before_request = before_request
-        self.name = getattr(provider, "name", "chatgpt")
-        self.model = getattr(provider, "model", "")
-        self.grant_id = getattr(provider, "grant_id", None)
-        self.entity_anchor_mode = getattr(provider, "entity_anchor_mode", "absolute")
-
-    def complete_json(self, messages, *, max_tokens, schema):
-        guarded_call = getattr(self._provider, "complete_json_guarded", None)
-        if callable(guarded_call):
-            return guarded_call(
-                messages, max_tokens=max_tokens, schema=schema,
-                before_send=self._before_request,
-                still_permitted=lambda: self._policy.permits(self, self._episode),
-            )
-        self._before_request()
-        return self._provider.complete_json(messages, max_tokens=max_tokens, schema=schema)
 
 
 class CloudMemoryJobs:

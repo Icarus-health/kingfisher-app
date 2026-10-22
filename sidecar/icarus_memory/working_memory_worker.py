@@ -116,10 +116,17 @@ def _abschnitte_einordnen(snapshot, provider, plan, bisher, rest, lock, permitte
     return ergebnisse, verbraucht, False, None
 
 
+def modellkennung(provider, initial_model):
+    """Wie der Anbieter im Bestand steht: lokal der Schlüssel des Modells, in der Cloud `anbieter:modell` wie im Paket."""
+    if getattr(provider, 'is_remote', False) and not getattr(provider, 'is_local', False):
+        return f"{getattr(provider, 'name', '')}:{getattr(provider, 'model', '')}"
+    return initial_model
+
+
 def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
         source_ids: list[str] | None = None, pace: Pace | None = None,
         abschnitte_je_lauf: int | None = None, stand: Zwischenstand | None = None,
-        processing_policy=None):
+        processing_policy=None, quellenfilter=None):
     """Ein Paket Einordnung: bis `limit` Quellen, höchstens `abschnitte_je_lauf` Modellaufrufe.
 
     Eine lange Quelle geht in Abschnitten durch das Modell (`abschnitte.py`). Reicht das Maß des Pakets nicht für alle,
@@ -127,6 +134,9 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
     Bestand geschrieben wird erst, wenn der letzte Abschnitt fertig ist. Ein Fehler oder eine Änderung der Quelle
     wirft den Zwischenstand der Quelle weg.
     Automatischer Hintergrund gibt nach einem Abschnitt an die Pausensteuerung zurück.
+
+    Ein Cloudanbieter (`is_remote`) läuft nur mit `processing_policy` (je Quelle eine `ExplicitSourcePolicy` oder
+    None); Quellen ohne Policy und Quellen, die `quellenfilter` ablehnt, bleiben unberührt für einen anderen Weg.
     """
     local = provider is not None and getattr(provider, 'is_local', False)
     scoped_remote = (provider is not None and callable(processing_policy)
@@ -169,7 +179,11 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
                 continue
         episode = snapshot.episode
         fingerprint = source_fingerprint(snapshot)
+        if callable(quellenfilter) and not quellenfilter(snapshot):
+            continue  # nicht dieser Weg (etwa: Mails gehen in die Cloud, der Rest bleibt lokal)
         policy = processing_policy(snapshot) if callable(processing_policy) else None
+        if not local and policy is None:
+            continue  # ein Cloudanbieter sieht nur Quellen mit ausdrücklicher Freigabe
         try:
             plan = abschnitte_der(episode)
             bisher = stand.holen(episode.id, fingerprint, initial_model)
@@ -207,7 +221,8 @@ def run(episodes, provider, lock, *, permitted=lambda: True, limit=5,
             if not permitted() or model_key(provider) != initial_model:
                 break
             stand.verwerfen(episode.id)
-            completed += int(store.commit(snapshot, abschnitte.zusammenfuehren(ergebnisse), model=initial_model))
+            completed += int(store.commit(snapshot, abschnitte.zusammenfuehren(ergebnisse),
+                                          model=modellkennung(provider, initial_model)))
     if pace is not None:
         pace.record(completed + deferred)
     detail = f'{completed} Quellen automatisch eingeordnet'

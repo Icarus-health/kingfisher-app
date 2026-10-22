@@ -259,6 +259,44 @@ meisten Quellen und bei gleicher Zahl der älteste, als ein Satz mit denselben z
 Quelle `akte_vorschlag`, leises Gewicht wie das Vorhaben); nie eine Liste. Die Antwort bleibt auf Heute
 stehen, auch wenn der Punkt danach verschwindet, mit „Akte öffnen“.
 
+### Aufgaben folgen der Post (Oktober 2026)
+
+Ein Stabschef hakt ab, was er dich tun sah: „Du solltest Anna die Druckdaten schicken; die Mail ist raus,
+also ist es erledigt.“ Das leistet `aufgaben_post.py` nach jedem Takt der Mailaufnahme, deterministisch und
+ohne Modell, auch in der Pause (nur neue Post). Drei Grundsätze:
+
+* **Reversibel, deshalb ohne Rückfrage.** Das automatische Erledigen ist ein Ablagevorgang, kein Fakt im
+  Bestand. Es steht sichtbar mit Grund in der Aufgabenliste („Erledigt, weil du Anna Berg am 21. Oktober
+  „Druckdaten“ geschickt hast. Rückgängig“) und in der Akte der Person unter „Braucht dich“ (Art
+  `aufgabe_post`, 14 Tage lang, mit „Rückgängig“ statt einer Wahl). `POST /api/v1/tasks/{id}/rueckgaengig`
+  stellt den Zustand vor der Änderung wieder her (auch das Warten samt Datum) und merkt sich die Mail als
+  „nicht zuständig“ für diese Aufgabe (`aufgaben_post_getrennt`), damit es nicht erneut passiert.
+* **Nur bei sicherer Zuordnung automatisch.** Eine **eigene Mail** erledigt eine Aufgabe, wenn alle drei
+  zutreffen: (a) sie antwortet im Mailverlauf der Quelle der Aufgabe (genaue Kopfzeilenbezüge wie bei „gilt
+  das noch?“) oder geht an die Person der Aufgabe (den Absender der Quellmail); (b) die Aufgabe liegt bei dir,
+  nicht „wartet auf“; (c) ein tragendes Wort des Aufgabentitels (Substantive und Zahlen ohne Füll-, Handlungs-
+  und Stoppwörter, ohne die Namen der Beteiligten, mit Umschrift „Vertraege“ = „Verträge“ und Beugung
+  „Rechnung“ = „Rechnungen“) steht in Betreff, Text oder im Namen eines Anhangs. Treffen (a) und (b), aber
+  nicht (c), gibt es nur den Vorschlag **„Erledigt?“**. Eine **fremde Mail** erledigt nie, was bei dir liegt:
+  Bei „wartet auf Anna“ und einer Mail von Anna im selben Verlauf oder mit einem tragenden Wort geht die
+  Aufgabe zurück zu „bei dir“ („Wieder bei dir, weil Anna Berg am 21. Oktober geantwortet hat.“), sonst der
+  Vorschlag **„Wieder bei dir?“**. Nie automatisch: Rundmails (mehr als fünf Empfänger), Aufgaben, die seit
+  über 90 Tagen überfällig sind, und bei Gleichstand zweier Aufgaben (Verlauf schlägt Person, mehr Wörter
+  schlagen weniger). Eine Mail von vor der Bitte zählt nicht. Die Vorschläge sind `ProposalKind.TASK_DONE`
+  und `TASK_WAITING_RESOLVED` (`GET /api/v1/aufgaben-post/vorschlaege`, `…/{id}/annehmen`,
+  `…/{id}/verwerfen`); Annehmen ist dieselbe Änderung mit Grund, Verwerfen trennt Aufgabe und Mail.
+* **Jede Mail einmal.** Der Durchlauf merkt sich seinen Stand (Zeilennummer der Episoden) und jede geprüfte
+  Mail in `tasks.sqlite3` (Migration 4: `aufgaben_post_mails`, `aufgaben_post_getrennt`,
+  `aufgaben_post_stand`), auch über einen Neustart. Der Bestand von vor dem Umbau wird nicht neu gedeutet:
+  Der erste Durchlauf setzt nur den Stand.
+
+Jede Änderung steht im Logbuch (`aufgabe_post`: Kennungen von Aufgabe und Mail, Art, wie die Zuordnung
+zustande kam; kein Text) und in der Geschichte der Aufgabe (`post_completed`, `post_returned`,
+`post_undone`). Die erledigte Aufgabe mahnt nicht mehr; die Tageslage nennt „Erledigt durch deine Mail an
+Anna Berg: ‚Druckdaten schicken‘“ höchstens einmal (Zeile `aufgaben_post`, weitere werden gezählt). Ein
+Modell darf später nur Kandidaten liefern; es ist nicht Teil dieses Schritts. Protokoll:
+[`runs/2026-10-21-aufgaben-post`](runs/2026-10-21-aufgaben-post/README.md).
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.
@@ -277,6 +315,8 @@ stehen, auch wenn der Punkt danach verschwindet, mit „Akte öffnen“.
 | `POST /api/v1/akten/vorschlaege/{kennung}/annehmen` | Projekt anlegen, Quellen ohne Projekt zuordnen; Antwort: Akte (Link) und Satz; 404 unbekannt, 409 schon angenommen |
 | `POST /api/v1/akten/vorschlaege/{kennung}/ablehnen` | „Nein danke“ merken (409, wenn schon entschieden) |
 | `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen` | Entscheidung zurücknehmen: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran hängt (404 ohne Entscheidung) |
+| `POST /api/v1/tasks/{id}/rueckgaengig` | Änderung durch die Post zurücknehmen (404 unbekannt, 409 nichts zurückzunehmen) |
+| `GET /api/v1/aufgaben-post/vorschlaege`, `POST …/{id}/annehmen`, `POST …/{id}/verwerfen` | „Erledigt?“ und „Wieder bei dir?“ (404 unbekannt, 409 entschieden oder überholt) |
 
 Jede Anfrage führt die Bezüge kurz nach (höchstens 1,5 s); den Rest rechnet ein
 Hintergrundfaden zu Ende. Die Antwort nennt `berechnung.offen`, statt zu tun, als wäre

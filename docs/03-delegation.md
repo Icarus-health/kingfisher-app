@@ -88,6 +88,18 @@ Werkzeuge, die Text aus fremder Quelle liefern, machen die Runde *kontaminiert*:
 - **Secrets liegen noch in `.env`.** Ein Schlüsselbund-Zugriff ist nicht gebaut.
 
 
+## Warten aufgelöst durch Post (Oktober 2026)
+
+Wer eine Aufgabe abgibt („Warte auf Anna“), will sie zurück, sobald Anna geantwortet hat; nicht abgehakt,
+denn die Antwort ist nicht die Erledigung. Das übernimmt `aufgaben_post.py`: Kommt eine Mail von Anna im
+selben Mailverlauf wie die Quelle der Aufgabe oder mit einem tragenden Wort des Titels, geht die Aufgabe von
+„wartet auf Anna“ zurück zu „bei dir“, mit Grund („Wieder bei dir, weil Anna Berg am 21. Oktober geantwortet
+hat.“) und „Rückgängig“, das das Warten samt Datum wiederherstellt. Ohne Verlauf und ohne Wort fragt ein
+Vorschlag „Wieder bei dir?“. Eine fremde Mail erledigt nie, was bei dir liegt; eine eigene Mail erledigt nie,
+was bei jemand anderem liegt. Das ist kein Außenwirksames und kein Fakt im Bestand, sondern Ablage; Regeln und
+Freigaben dieses Dokuments bleiben unberührt. Einzelheiten in
+[`30-akten.md`](30-akten.md#aufgaben-folgen-der-post-oktober-2026).
+
 ## Dauerregeln
 
 Eine Freigabe gilt einmal. Das ist richtig, kostet aber jedes Mal eine
