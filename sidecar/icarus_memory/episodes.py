@@ -1568,6 +1568,72 @@ class EpisodeStore:
                     return found[:limit], True
         return found, False
 
+    def gesendete_an(self, account_id: str | None, address: str, limit: int = 20) -> list[Episode]:
+        """Eigene gesendete Mails an genau diese Adresse, jüngste zuerst (Stilprofil, Paket B5).
+
+        Eigen heißt: der Kontakt `von` trägt `ich` (die Aufnahme kennt die eigenen Adressen, `kontakte.py`). Genau
+        diese Adresse heißt: sie ist der einzige Empfänger in An, Cc und Bcc; die eigene Adresse im Cc zählt nicht
+        mit. Mit `account_id` nur Mails dieses Kontos, ohne alle Konten. Nur geltende Fassungen (nicht ignoriert,
+        aktuelle Fassung ihrer Quelle). Die Datenbank filtert vor (Text enthält die Adresse, Absender ist „ich“),
+        Python prüft jede Zeile genau; kein Durchlauf über den ganzen Bestand im Programm.
+        """
+        address = address.strip().casefold()
+        if not address or any(ch in address for ch in '%_\\'):
+            return []
+        ich_sql = ("EXISTS (SELECT 1 FROM json_each(episodes.document, '$.contacts') c "
+                   "WHERE json_extract(c.value, '$.rolle') = 'von' AND json_extract(c.value, '$.ich'))")
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT document FROM episodes WHERE kind = ? AND {sql_aktuell()} AND lower(document) LIKE ? "
+                f"AND {ich_sql} ORDER BY COALESCE(occurred_at, recorded_at) DESC, id",
+                (EpisodeKind.MESSAGE.value, f'%{address}%')).fetchall()
+        found: list[Episode] = []
+        for row in rows:
+            episode = self._from_row(row)
+            ref = episode.provenance.source_ref
+            if episode.provenance.source_type is not SourceType.EMAIL or not isinstance(ref, str):
+                continue
+            if account_id is not None and not ref.startswith(account_id + ':'):
+                continue
+            von = [c for c in episode.contacts if c.get('rolle') == 'von']
+            empfaenger = [str(c.get('adresse') or '').casefold() for c in episode.contacts
+                          if c.get('rolle') in ('an', 'cc', 'bcc') and not c.get('ich')]
+            if len(von) != 1 or not von[0].get('ich') or empfaenger != [address]:
+                continue
+            found.append(episode)
+            if len(found) >= limit:
+                break
+        return found
+
+    def geltende_mit_marke(self, tag: str) -> list[Episode]:
+        """Episoden mit genau dieser Marke, weder ignoriert noch archiviert und nicht überholt; jüngste zuerst.
+
+        Überholt ist eine Fassung, deren Quellenschlüssel inzwischen auf eine andere Episode zeigt. Eine Episode mit
+        Schlüssel, aber ohne Zeiger (ältere Schreibbelege) gilt weiter: Hier wird nichts entzogen, was bestätigt war.
+        """
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT document FROM episodes WHERE {sql_nicht_ausgeblendet()} "
+                "AND NOT EXISTS (SELECT 1 FROM source_heads h WHERE h.source_key = episodes.source_key "
+                "AND h.episode_id != episodes.id) "
+                "AND EXISTS (SELECT 1 FROM json_each(episodes.document, '$.tags') t WHERE t.value = ?) "
+                "ORDER BY COALESCE(occurred_at, recorded_at) DESC, id", (tag,)).fetchall()
+        return [self._from_row(row) for row in rows]
+
+    def ueberholte_fassungen(self, ids: Iterable[str]) -> set[str]:
+        """Welche dieser Episoden eine neuere Fassung ihrer Quelle überholt hat (der Zeiger zeigt woandershin)."""
+        wanted = [value for value in dict.fromkeys(ids) if isinstance(value, str)]
+        found: set[str] = set()
+        with self._lock:
+            for start in range(0, len(wanted), 500):
+                chunk = wanted[start:start + 500]
+                rows = self._conn.execute(
+                    f"SELECT e.id FROM episodes e WHERE e.id IN ({','.join('?' for _ in chunk)}) AND e.source_key != '' "
+                    "AND EXISTS (SELECT 1 FROM source_heads h WHERE h.source_key = e.source_key AND h.episode_id != e.id)",
+                    chunk).fetchall()
+                found.update(row[0] for row in rows)
+        return found
+
     def by_project(self, project_id: str, limit: int = 100) -> list[Episode]:
         with self._lock:
             rows = self._conn.execute(

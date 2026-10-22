@@ -1,32 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import { ProfileSource } from "./ProfileSource";
+import { LEERE_REGELN, REGEL_WERTE, belegeTitel, bestaetigtSatz, tonSatz, type StilBeleg, type StilProfil, type StilRegeln, type StilVorschlag } from "./stilprofil";
 import "./MailStyle.css";
 
-type Rules = {
-  address: "default" | "du" | "sie";
-  length: "default" | "short" | "detailed";
-  emoji: "default" | "yes" | "no";
-};
-
-type Profile = {
-  id: string;
-  rules: Rules;
-  evidence_ids?: string[];
-};
+type Rules = StilRegeln;
 
 type StyleData = {
   contact: string;
-  profiles: { global: Profile | null; contact: Profile | null };
+  kreis: { kreis: string; kreis_text: string } | null;
+  profiles: { global: StilProfil | null; kreis: StilProfil | null; contact: StilProfil | null };
   examples: Array<{ id: string; text: string; created_at: string }>;
-  proposal: { rules: Rules; evidence_ids: string[] } | null;
+  gesendete: StilBeleg[];
+  proposal: StilVorschlag | null;
+  abgelehnt: boolean;
 };
 
-const EMPTY: Rules = { address: "default", length: "default", emoji: "default" };
-
-const VALUES = {
-  address: { default: "Standard", du: "Du", sie: "Sie" },
-  length: { default: "Standard", short: "Kurz", detailed: "Ausführlich" },
-  emoji: { default: "Standard", yes: "Ja", no: "Nein" },
-} as const;
+const EMPTY: Rules = LEERE_REGELN;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
@@ -51,6 +40,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+function readableDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
 }
 
 type MailStyleProps = {
@@ -81,7 +75,7 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
         if (!active) return;
         const selectedScope = scopeRef.current;
         setData(next);
-        setRules(next.profiles[selectedScope]?.rules ?? EMPTY);
+        setRules({ ...EMPTY, ...(next.profiles[selectedScope]?.rules ?? {}) });
       })
       .catch(() => {
         if (active) setError("Der Schreibstil konnte nicht geladen werden.");
@@ -117,10 +111,29 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
           }),
         },
       );
-      setNotice("Schreibstil gespeichert.");
+      setNotice(evidenceIds.length ? "Übernommen. Dieser Ton gilt jetzt für Entwürfe an diesen Kontakt." : "Schreibstil gespeichert.");
       setRevision(value => value + 1);
     } catch {
       setError("Der Schreibstil konnte nicht gespeichert werden.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function dismiss(evidenceIds: string[]) {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const next = await request<StyleData>(
+        `/api/v1/messages/${encodeURIComponent(uid)}/style/ablehnen`,
+        { method: "POST", body: JSON.stringify({ evidence_ids: evidenceIds }) },
+      );
+      setData(next);
+      setNotice("Nicht übernommen. Kommt eine neue gesendete Mail dazu, fragt Kingfisher wieder.");
+    } catch {
+      setError("Das ließ sich gerade nicht merken. Bitte noch einmal versuchen.");
     } finally {
       setBusy(false);
     }
@@ -139,7 +152,7 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
         { method: "DELETE" },
       );
       setData(next);
-      setRules(next.profiles[selectedScope]?.rules ?? EMPTY);
+      setRules({ ...EMPTY, ...(next.profiles[selectedScope]?.rules ?? {}) });
       setNotice("Schreibstil zurückgesetzt.");
     } catch {
       setError("Die Regeln konnten nicht zurückgesetzt werden.");
@@ -188,7 +201,7 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
         { method: "DELETE" },
       );
       setData(next);
-      setRules(next.profiles[selectedScope]?.rules ?? EMPTY);
+      setRules({ ...EMPTY, ...(next.profiles[selectedScope]?.rules ?? {}) });
     } catch {
       setError("Der Lernbeleg konnte nicht entfernt werden.");
     } finally {
@@ -208,10 +221,63 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
 
       {data ? (
         <>
+          {data.proposal ? (
+            <section className="mail-style-proposal mail-style-ton" aria-label="Vorschlag für den Ton">
+              <p className="mail-style-ton-satz">{tonSatz(data.contact || "diesen Kontakt", data.proposal)}</p>
+              <div className="mail-style-actions">
+                <button
+                  className="primary-action"
+                  type="button"
+                  disabled={controlsDisabled}
+                  onClick={() => void save(data.proposal!.rules, data.proposal!.evidence_ids, "contact")}
+                >
+                  Übernehmen
+                </button>
+                <button
+                  className="secondary-action"
+                  type="button"
+                  disabled={controlsDisabled}
+                  onClick={() => void dismiss(data.proposal!.evidence_ids)}
+                >
+                  Nicht übernehmen
+                </button>
+                <button
+                  className="text-action"
+                  type="button"
+                  disabled={controlsDisabled}
+                  onClick={() => void save(data.proposal!.rules, data.proposal!.evidence_ids, "global")}
+                >
+                  Für alle Kontakte übernehmen
+                </button>
+              </div>
+            </section>
+          ) : null}
+
+          {data.gesendete.length ? (
+            <details className="mail-style-belege">
+              <summary>{belegeTitel(data.gesendete.length)}</summary>
+              <p>Deine Mails an {data.contact || "diesen Kontakt"}, ohne zitierte frühere Nachrichten. Sie bleiben auf diesem Rechner.</p>
+              {data.gesendete.map(beleg => (
+                <article key={beleg.id}>
+                  <strong>{beleg.title || "(Ohne Betreff)"}</strong>
+                  <small>{readableDate(beleg.occurred_at)}</small>
+                  <p>{beleg.text}</p>
+                  <ProfileSource kind="episode" id={beleg.id} label="Mail öffnen" readOnly />
+                </article>
+              ))}
+            </details>
+          ) : null}
+
           <p>
-            Bestätigte Regeln für {scope === "global" ? "Allgemein" : data.contact || "diesen Kontakt"}.
-            „Standard“ übernimmt die allgemeine Vorgabe.
+            Bestätigte Regeln für {scope === "global" ? "alle Kontakte" : data.contact || "diesen Kontakt"}.
+            „Standard“ übernimmt die allgemeine Vorgabe{data.kreis ? ` oder die des Kreises „${data.kreis.kreis_text}“` : ""}.
           </p>
+          {data.kreis ? (
+            <p className="mail-style-kreis">
+              Kreis „{data.kreis.kreis_text}“: {data.profiles.kreis ? bestaetigtSatz(data.profiles.kreis.rules) : "ohne eigene Regel."}{" "}
+              Den Ton je Kreis legst du unter Einstellungen → Kingfisher und du fest.
+            </p>
+          ) : null}
 
           <label className="mail-style-scope">
             Geltungsbereich
@@ -222,17 +288,17 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
                 const next = event.target.value as "global" | "contact";
                 scopeRef.current = next;
                 setScope(next);
-                setRules(data.profiles[next]?.rules ?? EMPTY);
+                setRules({ ...EMPTY, ...(data.profiles[next]?.rules ?? {}) });
               }}
             >
               <option value="contact">Diesen Kontakt</option>
-              <option value="global">Allgemein</option>
+              <option value="global">Alle Kontakte</option>
             </select>
           </label>
 
-          {(["address", "length", "emoji"] as const).map(field => (
+          {(["address", "anrede_form", "length", "emoji", "sprache"] as const).map(field => (
             <label className="mail-style-rule" key={field}>
-              {field === "address" ? "Anrede" : field === "length" ? "Länge" : "Emojis"}
+              {{ address: "Anrede", anrede_form: "Form der Anrede", length: "Länge", emoji: "Emojis", sprache: "Sprache" }[field]}
               <select
                 disabled={controlsDisabled}
                 value={rules[field]}
@@ -240,12 +306,23 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
                   setRules(current => ({ ...current, [field]: event.target.value }))
                 }
               >
-                {Object.entries(VALUES[field]).map(([value, label]) => (
+                {Object.entries(REGEL_WERTE[field]).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </label>
           ))}
+          <label className="mail-style-rule">
+            Grußformel
+            <input
+              type="text"
+              maxLength={60}
+              disabled={controlsDisabled}
+              placeholder="Standard"
+              value={rules.gruss}
+              onChange={event => setRules(current => ({ ...current, gruss: event.target.value }))}
+            />
+          </label>
 
           <div className="mail-style-actions">
             <button
@@ -268,43 +345,11 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
             ) : null}
           </div>
 
-          {data.proposal ? (
-            <section className="mail-style-proposal">
-              <h3>Lernvorschlag</h3>
-              <p>Aus {data.proposal.evidence_ids.length} bestätigten eigenen Lernbelegen:</p>
-              <ul>
-                <li>Anrede: {VALUES.address[data.proposal.rules.address]}</li>
-                <li>Länge: {VALUES.length[data.proposal.rules.length]}</li>
-                <li>Emojis: {VALUES.emoji[data.proposal.rules.emoji]}</li>
-              </ul>
-              <button
-                className="primary-action"
-                type="button"
-                disabled={controlsDisabled}
-                onClick={() =>
-                  void save(data.proposal!.rules, data.proposal!.evidence_ids, "contact")
-                }
-              >
-                Für diesen Kontakt übernehmen
-              </button>
-              <button
-                className="secondary-action"
-                type="button"
-                disabled={controlsDisabled}
-                onClick={() =>
-                  void save(data.proposal!.rules, data.proposal!.evidence_ids, "global")
-                }
-              >
-                Allgemein übernehmen
-              </button>
-            </section>
-          ) : null}
-
           <section className="mail-style-learning">
             <h3>Eigene Lernbelege für {data.contact || "diesen Kontakt"}</h3>
             <p>
-              Nur manuell bearbeitete und ausdrücklich bestätigte Entwürfe werden gespeichert;
-              gesendete Mails werden nicht automatisch eingelesen. Allgemeine Regeln gelten für alle Kontakte.
+              Als Belege für deinen Ton zählen deine gesendeten Mails an diesen Kontakt und Entwürfe, die du hier
+              ausdrücklich als eigene bestätigst. Eine Regel entsteht erst, wenn du den Vorschlag übernimmst.
             </p>
             <label>
               <input

@@ -3,6 +3,7 @@ import { api } from "../api";
 import { FassungEinstellung } from "../Fassung";
 import { useEinrichtung } from "../Einrichtung/useEinrichtung";
 import { KreisStandAnzeige } from "../KreisKarten";
+import { KreisTon } from "../StilKreis";
 import { WorkingProfileSettings } from "../WorkingProfileSettings";
 import { Aufklapp } from "./Aufklapp";
 import { ICH } from "./gliederung";
@@ -68,6 +69,11 @@ export function Ich() {
       <strong>{ICH.kreis.titel}</strong>
       <KreisStandAnzeige />
       <details className="quiet-details"><summary>Was bedeutet der Kreis?</summary><p className="source-hint">{ICH.kreis.text}</p></details>
+    </div>
+    <div className="ich-feld">
+      <strong>{ICH.ton.titel}</strong>
+      <KreisTon />
+      <details className="quiet-details"><summary>Woher kommt der Ton?</summary><p className="source-hint">{ICH.ton.text}</p></details>
     </div>
     <FassungEinstellung />
     <Aufklapp id="antwort" praefix="ich" titel={ICH.antwort.titel} satz={ICH.antwort.hilfe}><WorkingProfileSettings /></Aufklapp>

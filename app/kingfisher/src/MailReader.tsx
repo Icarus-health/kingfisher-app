@@ -49,6 +49,14 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
   const validationVersion = useRef(0);
   const originalMessageRef = useRef<HTMLDetailsElement | null>(null);
   const taskPanelRef = useRef<HTMLDetailsElement | null>(null);
+  const stylePanelRef = useRef<HTMLDetailsElement | null>(null);
+  const openStyle = () => {
+    const panel = stylePanelRef.current;
+    if (!panel) return;
+    panel.open = true;
+    panel.querySelector<HTMLDetailsElement>("details.mail-style")?.setAttribute("open", "");
+    panel.scrollIntoView({block: "start"});
+  };
   const prepareTask = (value: MailTaskSuggestion) => {
     setTaskSuggestion(value);
     const panel = taskPanelRef.current;
@@ -268,8 +276,8 @@ function RemoteMailReader({ uid, onClose, onTaskSaved }: MailReaderProps) {
       </details>
       <details className="mail-action-panel quiet-details"><summary>Termin aus dieser Mail</summary><MailCalendarPreparation key={`calendar:${uid}`} uid={uid} expectedBinding={detail.calendar_source_digest} onDone={onTaskSaved} /></details>
       <details className="mail-action-panel quiet-details" open={Boolean(draft.trim()) || Boolean(draftNotice) || Boolean(replyNotice)}><summary>Antwort schreiben{draft.trim() ? ' · Entwurf vorhanden' : ''}</summary>
-      <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} />
-      <details className="quiet-details"><summary>Schreibstil</summary><MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} /></details>
+      <MailReplySuggestion key={`reply:${uid}`} uid={uid} disabled={preparing} onApply={suggestion => changeDraft(suggestion.body, suggestion)} hasDraft={draftVisible && Boolean(draft.trim())} onInvalidated={clearInvalidatedSuggestion} onOpenStyle={openStyle} />
+      <details className="quiet-details" ref={stylePanelRef}><summary>Schreibstil</summary><MailStyle uid={uid} draft={draftVisible && !draftContext ? draft : ""} originalSuggestion={draftVisible && !draftContext ? lastSuggestion : null} /></details>
       {<form className="mail-reader-reply" onSubmit={prepareReply}>
         <label htmlFor="mail-reply">Antwort</label>
         <p className="mail-reader-reply-target">Antwort an {detail.answer_to || detail.from}{` · von ${detail.sending_account}`}</p>

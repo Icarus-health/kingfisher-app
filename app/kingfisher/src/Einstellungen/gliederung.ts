@@ -48,6 +48,8 @@ export const ICH = {
   zeitzone: { hilfe: "Nach dieser Zeitzone liest Kingfisher alle Uhrzeiten." },
   kreis: { titel: "Kreis",
     text: "In jeder Akte einer Person steht die Karte „Kreis“: innerer Kreis, Kollegen oder Kontakte. Wo Kingfisher genug Mails oder gemeinsame Termine kennt, schlägt es einen Kreis vor, und du bestätigst ihn mit einem Klick; sonst legst du ihn dort selbst fest. Danach richtet sich, wie viel Kingfisher dir ungefragt über die Person sagt. Es verlässt nichts deinen Rechner." },
+  ton: { titel: "Dein Ton je Kreis",
+    text: "Aus deinen gesendeten Mails an die Personen eines bestätigten Kreises liest Kingfisher, wie du dort schreibst: Du oder Sie, kurz oder ausführlich, Gruß, Sprache. Nur was in allen Mails gleich ist, wird vorgeschlagen; eine Regel für Entwürfe wird es erst, wenn du „Übernehmen“ klickst. Den Ton an eine einzelne Person siehst du beim Antworten unter „Schreibstil“." },
   antwort: { titel: "Wie Kingfisher dir antwortet", hilfe: "Kurz oder ausführlich, Du oder Sie, mit oder ohne Emojis." },
 } as const;
 

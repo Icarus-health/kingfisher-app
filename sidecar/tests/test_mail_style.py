@@ -25,11 +25,14 @@ def client(tmp_path):
 
 URL='/api/v1/messages/a%3A1/style'
 RULES={'address':'du','length':'short','emoji':'no'}
+# Paket B5: Der Vorschlag trägt auch Gruß, Anredeform und Sprache; aus den drei Beispieltexten ergibt sich nur die Sprache.
+VORSCHLAG={**RULES,'gruss':'','anrede_form':'default','sprache':'de'}
+WIRKSAM={**RULES,'sprache':'de'}
 
 def test_confirmation_scope_override_and_retraction(tmp_path):
     from icarus_memory.mail_style import effective_style
     app,c=client(tmp_path)
-    assert c.get(URL).json()['profiles']=={'global':None,'contact':None}
+    assert c.get(URL).json()['profiles']=={'global':None,'kreis':None,'contact':None}
     assert c.put(URL,json={'scope':'global','rules':RULES}).status_code==200
     assert effective_style(app,app.state.mail.item)['address']=='du'
     contact={**RULES,'address':'sie'}
@@ -49,10 +52,10 @@ def test_examples_deduplicate_propose_and_withdraw_evidence(tmp_path):
         assert r.status_code==200
     c.post(URL+'/examples',json={'text':'Prima, ich freue mich auf dich!','own_text_confirmed':True})
     state=c.get(URL).json(); assert len(state['examples'])==3
-    assert state['proposal']['rules']==RULES
+    assert state['proposal']['rules']==VORSCHLAG
     assert effective_style(app,app.state.mail.item)=={}
     assert c.put(URL,json={'scope':'contact',**state['proposal']}).status_code==200
-    assert effective_style(app,app.state.mail.item)==RULES
+    assert effective_style(app,app.state.mail.item)==WIRKSAM
     assert c.delete(URL+'/examples/'+state['examples'][0]['id']).status_code==200
     assert effective_style(app,app.state.mail.item)=={}
     assert c.get(URL).json()['proposal'] is None
@@ -136,4 +139,4 @@ def test_confirmed_general_proposal_applies_to_other_contact(tmp_path):
         c.post(URL+'/examples',json={'text':text,'own_text_confirmed':True})
     proposal=c.get(URL).json()['proposal']
     assert c.put(URL,json={'scope':'global',**proposal}).status_code==200
-    assert effective_style(app,replace(app.state.mail.item,reply_to='other@example.org'))==RULES
+    assert effective_style(app,replace(app.state.mail.item,reply_to='other@example.org'))==WIRKSAM

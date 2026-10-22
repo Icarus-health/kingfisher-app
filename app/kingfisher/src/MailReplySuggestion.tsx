@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { ProfileSource } from "./ProfileSource";
+import { stilHinweis } from "./stilprofil";
 import "./MailReplySuggestion.css";
 
-export type Suggestion = { body: string; basis: "message_and_instruction" | "source_quotes"; context_token: string | null; source_status: string; sources: {episode_id: string; title: string}[] };
-type Props = { uid: string; onApply: (suggestion: Suggestion) => void; disabled?: boolean; hasDraft: boolean; onInvalidated?: () => void };
+export type Suggestion = { body: string; basis: "message_and_instruction" | "source_quotes"; context_token: string | null; source_status: string; sources: {episode_id: string; title: string}[];
+  /** Paket B5: Ist der Kontaktstil bestätigt, und aus wie vielen gesendeten Mails liegt ein Vorschlag vor? */
+  stil?: { bestaetigt: boolean; gesendet: number } };
+type Props = { uid: string; onApply: (suggestion: Suggestion) => void; disabled?: boolean; hasDraft: boolean; onInvalidated?: () => void; onOpenStyle?: () => void };
 
-export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, onInvalidated }: Props) {
+export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, onInvalidated, onOpenStyle }: Props) {
   const [instruction, setInstruction] = useState("");
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [suggestionVisible, setSuggestionVisible] = useState(true);
@@ -87,6 +90,7 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
         selection_failed: "Die Rohquellen konnten nicht zuverlässig ausgewählt werden.",
         subject_too_broad: "Der Betreff grenzt den Vorgang nicht ausreichend ein. Es wurde keine frühere Rohquelle verwendet.",
       } as Record<string, string>)[suggestion.source_status] || "Keine eindeutig passenden aktuellen Rohquellen verwendet."}</p>}
+      {stilHinweis(suggestion.stil) ? <p className="mail-reply-suggestion-stil" role="status">{stilHinweis(suggestion.stil)} <button type="button" className="text-action" onClick={onOpenStyle}>Schreibstil ansehen</button></p> : null}
       <button className="mail-reader-primary" type="button" disabled={disabled} onClick={() => onApply(suggestion)}>{hasDraft ? "Antwortentwurf ersetzen" : "Als Antwort übernehmen"}</button></div> : null}
   </section>;
 }
