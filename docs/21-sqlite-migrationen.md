@@ -90,6 +90,14 @@ _MIGRATIONS = (
 )
 ```
 
+Ein Beispiel aus dem Bestand: Migration 24 der Episoden (`akten_vorschlaege.migrate`)
+legt die Tabelle `akten_vorschlag_entscheidungen` an (Kennung, Entscheidung, Zeit, Sache,
+Projekt-ID, Quellen-IDs; nur Verweise), `_verify_v24` prüft sie über `_verify_v20(…,
+vorschlaege=True)`, und `test_migrationsnummern.py` stellt sicher, dass der Docstring
+die Nummer nennt, unter der die Funktion wirklich läuft. Ein Bestand mit Version 23
+erhält die Tabelle beim ersten Öffnen; frühere Entscheidungen (Migration 23) bleiben
+unverändert (`test_akten_vorschlaege.py`).
+
 Migrationen müssen ohne Datum, Netzwerk, Modell, Zufall oder externen Dienst
 reproduzierbar sein. `apply` und `verify` dürfen nicht selbst committen oder
 Transaktionen öffnen. Vor einem Folgeschritt und beim idempotenten Reopen prüft

@@ -35,6 +35,7 @@ Schritts („aufnahme“), nie der Fehlertext.
 | `export` | `was` | `server.py`, Export des Selbstmodells |
 | `rueckmeldung` | `sorte` | `rueckmeldung_routes.py` („Stimmt nicht?“) |
 | `zu_lang` | `sorte`, `anzahl` | `working_memory_store.py` (`pending`): eine Quelle über der Obergrenze der Einordnung (200.000 Zeichen, `abschnitte.py`) bleibt zurückgestellt; einmal je Fassung der Quelle. Im Briefing: „1 Quelle zu lang zum Einordnen“ (Gruppe Betrieb) |
+| `akte_vorschlag` | `entscheidung` (angenommen, abgelehnt, zurueckgenommen), `sache`, `name`, `kennung` | `akten_vorschlaege_routes.py` bei jedem Klick zu „Neue Akte?“; eine angenommene Akte zählt in der Zusammenfassung als neue Akte, „Nein danke“ als abgelehnter Vorschlag |
 
 **Die Aufrufe scheitern nie.** Geschrieben wird mit `logbuch.vermerke(art, **daten)`, einer Funktion
 auf Modulebene über das „aktive“ Logbuch (`logbuch.verbinde`). Jeder Fehler wird geschluckt und

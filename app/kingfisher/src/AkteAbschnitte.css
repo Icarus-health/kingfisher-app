@@ -98,3 +98,10 @@
   .akte-wahl { width: 100%; }
   .akte-wahl .akte-knopf { flex: 1 1 auto; }
 }
+
+/* Neue Akte? (akteVorschlag.ts): dieselbe Fläche wie „Braucht dich“, die Textstellen klein, zwei Knöpfe. */
+.akte-neue-quellen { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.akte-neue-quellen li { color: var(--calm-muted); font-size: 13px; line-height: 19px; overflow-wrap: anywhere; }
+.akte-neue-quellen q { color: var(--calm-ink); quotes: "„" "“"; }
+.akte-neue .akte-wahl { margin-top: 10px; }
+.akte-neue-stand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }

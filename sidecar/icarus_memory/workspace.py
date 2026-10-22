@@ -452,6 +452,20 @@ class WorkspaceStore:
             raise WorkspaceError(f"Unbekanntes Projekt: {project_id}")
         return self._project_from_row(row)
 
+    def remove_project(self, project_id: str) -> bool:
+        """Entfernt ein Projekt, an dem nichts hängt (Rücknahme eines Vorschlags „Neue Akte?“).
+
+        Notizen oder Terminzuordnungen zum Projekt lassen es stehen (`WorkspaceError`): Entfernen ist
+        nur die Umkehr des Anlegens, nie ein Wegräumen von Arbeit. Aufgaben und Quellen prüft der Aufrufer.
+        """
+        with self._lock:
+            for tabelle in ("notes", "event_projects"):
+                if self._conn.execute(f"SELECT 1 FROM {tabelle} WHERE project_id = ? LIMIT 1", (project_id,)).fetchone():
+                    raise WorkspaceError("Zu diesem Projekt gehören noch Notizen oder Termine; es bleibt bestehen.")
+            weg = self._conn.execute("DELETE FROM projects WHERE id = ?", (project_id,)).rowcount
+            self._conn.commit()
+        return weg > 0
+
     def event_project(self, event_uid: str) -> tuple[bool, str | None]:
         """Vom Nutzer festgelegtes Projekt eines Termins.
 

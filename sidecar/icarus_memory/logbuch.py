@@ -71,7 +71,8 @@ logger = logging.getLogger(__name__)
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
          'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
          'cloud_einordnung',  # Tagesbudget der Cloud-Einordnung erreicht (einmal je Tag)
-         'aufgabe_post')  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
+         'aufgabe_post',  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
+         'akte_vorschlag')
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)
@@ -275,6 +276,13 @@ def zusammenfassen(ereignisse: Iterable[Ereignis], seit: datetime, bis: datetime
             z.rueckmeldungen += 1
         elif e.art == 'zu_lang':
             z.zu_lang += _anzahl(d.get('anzahl'))
+        elif e.art == 'akte_vorschlag':
+            # „Neue Akte?“ (akten_vorschlaege.py): Angenommen ist eine neue Akte, „Nein danke“ ein abgelehnter Vorschlag.
+            sache = str(d.get('sache') or '')
+            if d.get('entscheidung') == 'angenommen' and sache:
+                neu.setdefault(sache, {'sache': sache, 'name': str(d.get('name') or sache)})
+            elif d.get('entscheidung') == 'abgelehnt':
+                z.vorschlaege_abgelehnt += 1
         elif e.art == 'aufgabe_post' and d.get('sorte') in ('erledigt', 'zurueck'):
             sorte = str(d['sorte'])
             z.aufgaben_post[sorte] = z.aufgaben_post.get(sorte, 0) + 1

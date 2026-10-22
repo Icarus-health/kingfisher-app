@@ -265,6 +265,15 @@ def register(app, guard) -> None:
         daten['lage'] = lagen.lage(sache, daten)
         # Zeigt die veraltete Lage nichts mehr (alles überholt), weiß die Oberfläche trotzdem, dass eine neue kommt.
         daten['lage_wird_aktualisiert'] = daten['lage'] is None and lagen.ausstehend(sache, daten)
+        if daten['art'] == 'projekt':
+            # „Daraus eine Akte machen?“ bei einem nur erwähnten Projekt, sonst die gemerkte Entscheidung
+            # (`akten_vorschlaege.py`). Ein Fehler hier nimmt der Akte nichts; dann fehlt nur die Zeile.
+            from .akten_vorschlaege_routes import fuer_akte
+            try:
+                daten['akte_vorschlag'] = fuer_akte(app, sache)
+            except Exception:  # noqa: BLE001
+                logger.exception('Vorschlag „Neue Akte?“ konnte nicht gelesen werden')
+                daten['akte_vorschlag'] = None
         return daten
 
     @app.put('/api/v1/akten/entscheidung', dependencies=guard)

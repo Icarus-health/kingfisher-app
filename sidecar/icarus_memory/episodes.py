@@ -630,12 +630,16 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False) -> None:
+                entscheidungen=False, vorschlaege=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
     extra_indexes = dict(mail_intake.INDEXES) if intake else {}
     extra_triggers = {}
+    if vorschlaege:
+        from . import akten_vorschlaege
+        extra_tables.update(akten_vorschlaege.TABLES)
+        extra_keys.update(akten_vorschlaege.PRIMARY_KEYS)
     if mail_headers:
         from . import mail_header_index
         extra_tables.update(mail_header_index.TABLES)
@@ -840,10 +844,11 @@ def _migrate_v20(connection):
     migrate_failure_diagnostics(connection)
 
 
-def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False):
+def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
-                task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen)
+                task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
+                vorschlaege=vorschlaege)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -882,6 +887,17 @@ def _verify_v23(connection):
     _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True)
 
 
+def _migrate_v24(connection):
+    # Vorschlag „Neue Akte?“: die Entscheidungen des Nutzers (angenommen, abgelehnt) mit Verweisen auf Projekt und
+    # Quellen; ein Projekt entsteht nur durch seinen Klick.
+    from .akten_vorschlaege import migrate
+    migrate(connection)
+
+
+def _verify_v24(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -906,6 +922,7 @@ _MIGRATIONS = (
     Migration(21, "task_source_rechecks", _migrate_v21, _verify_v21),
     Migration(22, "exact_mail_header_index", _migrate_v22, _verify_v22),
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
+    Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
 )
 
 

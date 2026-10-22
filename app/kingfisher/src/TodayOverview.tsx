@@ -5,6 +5,7 @@ import { taskHref } from "./taskWorkflow";
 import { zaehlerText } from "./heute";
 import { type Attention, type MorningBriefing } from "./api";
 import { BriefingSuggestion } from "./BriefingSuggestion";
+import { AkteVorschlagKnoepfe } from "./AkteVorschlagKnoepfe";
 import { ProfileSource } from "./ProfileSource";
 import { TagesLage } from "./TagesLage";
 import { ASSET } from "./ui";
@@ -34,7 +35,7 @@ function actionFor(item: Attention) {
 }
 
 function kindLabel(item: Attention) {
-  return ({ nachbereitung: "Nach dem Termin", termin: "Termin", aufgabe: "Aufgabe", wartet: "Wartet auf Antwort", entscheidung: "Entscheidung", zusage: "Vorschlag aus einer Quelle" } as Record<string, string>)[item.source ?? ""] ?? "Offener Punkt";
+  return ({ nachbereitung: "Nach dem Termin", termin: "Termin", aufgabe: "Aufgabe", wartet: "Wartet auf Antwort", entscheidung: "Entscheidung", zusage: "Vorschlag aus einer Quelle", akte_vorschlag: "Neue Akte?" } as Record<string, string>)[item.source ?? ""] ?? "Offener Punkt";
 }
 
 function activityTimestamp(value: string | null | undefined, timezone: string) {
@@ -74,6 +75,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   onOpenMail: (uid: string) => void;
 }) {
   const [activityLoaded,setActivityLoaded] = useState(false);
+  // Die Antwort auf „Akte anlegen“ oder „Nein danke“ bleibt stehen, wenn der Punkt danach aus dem Briefing geht.
+  const [akteNotice, setAkteNotice] = useState<{ satz: string; link: string } | null>(null);
   const attention = todayAttention(briefing);
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
@@ -88,10 +91,11 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
           <h3>{item.title}</h3>
           {(item.action === 'Verlauf prüfen' || item.review_required) && <span className="today-review-badge">{item.action === 'Verlauf prüfen' ? 'Verlauf ungeprüft' : 'Original prüfen'}</span>}
           {item.source !== 'aufgabe' && item.source !== 'wartet' && (item.reason || item.detail) && <details className="quiet-details"><summary>Hintergrund</summary><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p></details>}
-          {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : (item.source === "aufgabe" || item.source === "wartet") && item.source_ref ? <TodayTaskActions key={item.source_ref} item={item} onChanged={onChange} /> : action ? <a className="today-action" href={action.href}>{action.label}<span aria-hidden="true">→</span></a> : null}
+          {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={antwort => { setAkteNotice(antwort); onChange(); }} /> : (item.source === "aufgabe" || item.source === "wartet") && item.source_ref ? <TodayTaskActions key={item.source_ref} item={item} onChanged={onChange} /> : action ? <a className="today-action" href={action.href}>{action.label}<span aria-hidden="true">→</span></a> : null}
         </li>;
       })}</ul> : <div className="today-empty"><h3>{briefing.partial_failures.length ? "Noch kein offener Punkt sichtbar." : "Gerade braucht dich nichts."}</h3><p>In den verfügbaren Quellen sind keine offenen Punkte für dich aufgeführt.</p></div>}
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
+      {akteNotice && <p className="today-notice" role="status">{akteNotice.satz} <a href={akteNotice.link}>Akte öffnen</a></p>}
     </section>
 
     <section className="today-panel today-calendar" aria-labelledby="today-calendar-title">
