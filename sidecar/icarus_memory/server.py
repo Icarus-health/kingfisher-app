@@ -4225,6 +4225,33 @@ def create_app(
                         value["content"], current['source_links'] = rendered
                     value["metadata"] = {**value["metadata"], "context": current}
                 elif (message.role == 'assistant' and isinstance(stored_context, dict)
+                        and 'kommendes_answer' in stored_context):
+                    # „Was brauche ich morgen?“: beim Öffnen neu aus Kalender, Akten und Aufgaben, aber nur am Tag
+                    # der Frage; danach sagt die Antwort ehrlich, für welchen Tag sie galt (dieselbe Grenze je Aufruf).
+                    stored = stored_context['kommendes_answer']
+                    neu_berechnet = mappen_neu < 5
+                    rendered = None
+                    if neu_berechnet:
+                        mappen_neu += 1
+                        rendered = app.state.agent.render_kommendes(stored)
+                    current = {k: v for k, v in stored_context.items() if k != 'kommendes_answer'}
+                    if isinstance(stored, dict):
+                        current['kommendes_answer'] = {k: stored.get(k) for k in ('version', 'query', 'gefragt_am')}
+                    if rendered is None:
+                        from .datumstext import tag_text
+                        tag = tag_text(stored.get('gefragt_am')) if isinstance(stored, dict) else ''
+                        value["content"] = (f"Diese Antwort galt für den {tag}. Bitte erneut fragen, dann gilt sie für heute."
+                                            if neu_berechnet and tag
+                                            else "Älterer Stand: Bitte erneut danach fragen.")
+                        current['source_links'] = []
+                        query = stored.get('query') if isinstance(stored, dict) else None
+                        if isinstance(query, str) and query.strip():
+                            current['original_question'] = query
+                            current['refresh_available'] = True
+                    else:
+                        value["content"], current['source_links'] = rendered
+                    value["metadata"] = {**value["metadata"], "context": current}
+                elif (message.role == 'assistant' and isinstance(stored_context, dict)
                         and 'meaning_choice' in stored_context):
                     from .bedeutungen import meaning_choice_current
                     if not meaning_choice_current(stored_context['meaning_choice'], app.state.episodes):
@@ -4521,8 +4548,11 @@ def create_app(
                 # „frage“, sonst Rückfall); sie gilt für Weg und Antwort dieser Nachricht.
                 # Die Umschreibungen gehören zur Suche: „Catering“ findet „Verpflegung“.
                 from .offene_punkte import art_der_frage
-                # Eine feste Frageform nach offenen Punkten braucht kein Fragenverständnis (kein Modellaufruf).
-                anfrage = (rueckfall(body.message) if literal_lookup or art_der_frage(body.message)
+                from .kommendes import ist_frage as kommende_frage
+                # Eine feste Frageform nach offenen Punkten oder nach dem, was ansteht, braucht kein
+                # Fragenverständnis (kein Modellaufruf).
+                anfrage = (rueckfall(body.message)
+                           if literal_lookup or art_der_frage(body.message) or kommende_frage(body.message)
                            else _frage_verstehen(app, body.message))
                 working_available = bool(WorkingMemoryStore(app.state.episodes).search(
                     anfrage.suchanfrage(body.message), limit=1)['refs'])

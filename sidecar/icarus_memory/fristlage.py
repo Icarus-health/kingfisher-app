@@ -220,8 +220,12 @@ def ohne_kontakte(fristen: Iterable[Frist]) -> list[Frist]:
 
 
 def sammeln(akten: Any, bezuege: Any, *, jetzt: datetime, eigene: Iterable[str] = (),
-            arten: tuple[str, ...] = ('person', 'organisation', 'projekt'), je_art: int = 60) -> list[Frist]:
-    """Fristen aus den zuletzt aktiven Akten (Zwischenspeicher der Akte; kalt einige Millisekunden je Akte)."""
+            arten: tuple[str, ...] = ('person', 'organisation', 'projekt'), je_art: int = 60,
+            tage_voraus: int = TAGE_VORAUS) -> list[Frist]:
+    """Fristen aus den zuletzt aktiven Akten (Zwischenspeicher der Akte; kalt einige Millisekunden je Akte).
+
+    `tage_voraus`: wie weit kommende Fristen reichen (Briefing: `TAGE_VORAUS`; „Was steht nächste Woche an?“ fragt
+    weiter)."""
     heute = jetzt.date()
     eigene = list(eigene)
     alle: list[Frist] = []
@@ -238,7 +242,7 @@ def sammeln(akten: Any, bezuege: Any, *, jetzt: datetime, eigene: Iterable[str] 
     for art in arten:
         for eintrag in bezuege.sachen(art=art, limit=je_art)['sachen']:
             akte = akten.akte(eintrag['sache'], jetzt=jetzt, alle=True)
-            alle.extend(aus_akte(akte, heute=heute, eigene=eigene, quellenart=quellenart))
+            alle.extend(aus_akte(akte, heute=heute, eigene=eigene, tage_voraus=tage_voraus, quellenart=quellenart))
     # Ungefragt (Briefing): nichts allein aus der Akte eines bestätigten Kontakts.
     return nach_dringlichkeit(ohne_kontakte(alle))
 

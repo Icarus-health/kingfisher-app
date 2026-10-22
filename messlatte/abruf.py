@@ -196,6 +196,10 @@ def abrufen(instanz, frage: Frage, rueck: dict, texte: dict | None = None) -> Ab
             angebote = (_angebot('gewaehlt', str(gewaehlt.get('label', '')), '', gewaehlt.get('ids'), rueck),)
         angebote += tuple(_angebot('auch_gefunden', str(e.get('label', '')), '', e.get('ids'), rueck)
                           for e in arbeitsstand.get('also_found', []))
+    elif kontext.get('kommendes_answer'):
+        # „Was steht nächste Woche an?“ aus Kalender und Akten: Die Belege sind die genannten Quellen.
+        weg = 'kommendes'
+        kandidaten = _welt((l.get('episode_id') for l in kontext.get('source_links') or [] if isinstance(l, dict)), rueck)
     elif kontext.get('answer_mode') == 'calendar_data':
         weg = 'kalender'
     elif status == 'local_only':

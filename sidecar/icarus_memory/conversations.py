@@ -412,6 +412,12 @@ class ConversationStore:
             metadata = copy.deepcopy(metadata)
             metadata['context'].pop('source_links', None)
         elif (role == 'assistant' and isinstance(metadata, dict)
+                and isinstance(metadata.get('context'), dict) and 'kommendes_answer' in metadata['context']):
+            # „Was brauche ich morgen?“: eine Ansicht von Kalender und Akten; gespeichert wird nur die Frage.
+            content = 'Was ansteht; wird beim Öffnen neu aus Kalender, Akten und Aufgaben zusammengestellt.'
+            metadata = copy.deepcopy(metadata)
+            metadata['context'].pop('source_links', None)
+        elif (role == 'assistant' and isinstance(metadata, dict)
                 and isinstance(metadata.get('context'), dict)
                 and ('source_answer' in metadata['context'] or 'working_answer' in metadata['context'])):
             from .source_answers import NEUTRAL as SOURCE_NEUTRAL

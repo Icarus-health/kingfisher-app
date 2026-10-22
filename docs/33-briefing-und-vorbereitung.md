@@ -9,6 +9,12 @@ Stand: 30. September 2026. Umsetzung des ersten Teils von Etappe F aus
 `test_fristlage.py`, `test_tagesbriefing.py`, `test_wegezeit.py`, `test_wegezeit_routes.py`,
 `test_mac_maps_worker.py`, `messlatte/tests/test_terminvorbereitung.py`.
 
+**Im Gespräch (20.10.2026):** „Was brauche ich morgen?“, „Was steht nächste Woche an?“ antwortet
+Kingfisher aus denselben Bausteinen (Termine mit Vorbereitung, `fristlage.sammeln` mit `tage_voraus`,
+Aufgaben, Wegezeit nur aus dem Zwischenspeicher), ohne Modell; siehe
+[`31-frageverstaendnis.md`](31-frageverstaendnis.md#zukunft-was-brauche-ich-morgen-20102026). Die
+Heute-Seite ist unverändert.
+
 ## Was sich ändert
 
 Auf der Startseite steht über allem **eine Tageslage in drei bis fünf Zeilen**, ein Urteil statt einer Liste

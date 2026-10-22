@@ -155,6 +155,10 @@ def route(message, previous_context=None, *, new_question=False, working_availab
     from .offene_punkte import art_der_frage
     if art_der_frage(text):
         return 'memory_evidence'
+    # „Was brauche ich morgen?“: Kalender, Akten und Aufgaben, nie der freie Chat.
+    from .kommendes import ist_frage as kommende_frage
+    if kommende_frage(text):
+        return 'memory_evidence'
     delivery = _DELIVERY_QUESTION.fullmatch(text)
     # A question about somebody else's delivery is not an instruction to
     # send. Keep a second command in the same sentence on the action path.
