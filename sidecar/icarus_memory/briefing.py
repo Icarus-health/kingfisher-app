@@ -52,7 +52,7 @@ class Punkt:
 
     quelle: str
     """`aufgabe`, `wartet`, `entscheidung`, `termin`, `nachbereitung`, `bestaetigung`,
-    `zusage`, `widerspruch`, `vorhaben`, `vorschlag`, `mail`."""
+    `zusage`, `widerspruch`, `vorhaben`, `vorschlag`, `akte_vorschlag`, `mail`."""
 
     ref: str | None = None
     """Kennung des Gegenstands, damit die Oberfläche handeln kann."""
@@ -441,6 +441,23 @@ def erstelle(
             quelle="vorhaben",
             ref=schlafend.get("id"),
             aktion="Ansehen",
+        ))
+
+    # 8b. Ein Projekt, das sich in den Mails bildet und noch keine Akte hat
+    # (akten_vorschlaege.py). Höchstens eines, als Frage mit Grund: Angelegt
+    # wird erst mit dem Klick. Leise wie das Vorhaben: an einem vollen Tag
+    # kommt es nicht vor, und keine Liste, nie.
+    neue_akte = (daten.get("akten_vorschlaege") or {}).get("vorschlag")
+    if isinstance(neue_akte, dict) and neue_akte.get("kennung") and neue_akte.get("name"):
+        grund = str(neue_akte.get("grund") or "").strip().rstrip(".")
+        kandidaten.append(Punkt(
+            text=(f"{grund} geht es um „{_kurz(str(neue_akte['name']), 60)}“. " if grund
+                  else f"„{_kurz(str(neue_akte['name']), 60)}“ kommt in deinen Quellen vor. ")
+                 + "Daraus eine Akte machen?",
+            gewicht=50,
+            quelle="akte_vorschlag",
+            ref=str(neue_akte["kennung"]),
+            aktion="Akte anlegen",
         ))
 
     # A newly captured message is a reason to re-check an already confirmed

@@ -3168,6 +3168,14 @@ def create_app(
         except Exception as exc:  # noqa: BLE001
             result["task_candidates"] = {"pending": 0, "items": [], "error": str(exc)}
 
+        # „Neue Akte?“: höchstens ein erwähntes, noch nicht angelegtes Projekt, mit Grund (akten_vorschlaege.py).
+        # Ein Vorschlag, keine Akte: angelegt wird erst mit dem Klick.
+        try:
+            from .akten_vorschlaege_routes import fuer_briefing as akten_vorschlag_fuer_briefing
+            result["akten_vorschlaege"] = akten_vorschlag_fuer_briefing(app)
+        except Exception as exc:  # noqa: BLE001
+            result["akten_vorschlaege"] = {"anzahl": 0, "vorschlag": None, "error": str(exc)}
+
         # Wissenskandidaten und ihre Widersprüche sind nicht dasselbe wie die
         # allgemeine Vorschlagsschlange: Ein Widerspruch braucht eine bewusste
         # Entscheidung, bevor er als Wahrheit oder auch nur als Kontext gelten
@@ -6600,9 +6608,10 @@ def create_app(
     register_uebernehmen(app, guard)
     from .lint_routes import register as register_lint
     register_lint(app, guard, _data_dir)
-    from . import akten_arten_routes, kreis_routes, wiederkehrendes_routes
+    from . import akten_arten_routes, akten_vorschlaege_routes, kreis_routes, wiederkehrendes_routes
     kreis_routes.register(app, guard)
     akten_arten_routes.register(app, guard)
+    akten_vorschlaege_routes.register(app, guard)
     wiederkehrendes_routes.register(app, guard)
     # Das Logbuch nennt morgens die offenen Befunde des Lint (docs/44, docs/42); fehlt eines von beiden, bleibt es still.
     if getattr(app.state, "logbuch", None) is not None:

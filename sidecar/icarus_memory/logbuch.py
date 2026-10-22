@@ -68,7 +68,8 @@ from .migrations import Migration, run_migrations, verify_schema
 logger = logging.getLogger(__name__)
 
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
-         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang')
+         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
+         'akte_vorschlag')
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)
@@ -270,6 +271,13 @@ def zusammenfassen(ereignisse: Iterable[Ereignis], seit: datetime, bis: datetime
             z.rueckmeldungen += 1
         elif e.art == 'zu_lang':
             z.zu_lang += _anzahl(d.get('anzahl'))
+        elif e.art == 'akte_vorschlag':
+            # „Neue Akte?“ (akten_vorschlaege.py): Angenommen ist eine neue Akte, „Nein danke“ ein abgelehnter Vorschlag.
+            sache = str(d.get('sache') or '')
+            if d.get('entscheidung') == 'angenommen' and sache:
+                neu.setdefault(sache, {'sache': sache, 'name': str(d.get('name') or sache)})
+            elif d.get('entscheidung') == 'abgelehnt':
+                z.vorschlaege_abgelehnt += 1
     z.akten_neu = list(neu.values())
     # Eine Akte, die in diesem Zeitraum entstand, gilt nicht zusätzlich als ergänzt.
     z.akten_aktualisiert = [a for k, a in geaendert.items() if k not in neu]
