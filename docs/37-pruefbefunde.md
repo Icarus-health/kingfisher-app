@@ -37,6 +37,11 @@ oder `get` nutzt und das Ergebnis zeigt:
 * `transkript_zuordnung`: `tagged` filtert ignorierte; `fuer_termin` prüft den Zustand. Unverändert.
 * `bezuege.register`: siehe Befund 4.
 * `einpacken.py` und `tagesbriefing.py` lesen keine Episoden selbst.
+* `mail_style._examples` (Schreibbelege des Stilgedächtnisses): las `all_episodes(limit=-1)` (O(N) über den ganzen
+  Bestand) und auch überholte Fassungen. **Behoben am 21. Oktober 2026 (Paket B5):** `EpisodeStore.geltende_mit_marke`
+  liest gezielt über die Marke, ohne ausgeblendete und ohne überholte Fassungen; eine bestätigte Regel fällt, wenn ein
+  Beleg überholt ist (`ueberholte_fassungen`). Belege ohne Versionszeiger (ältere Schreibbelege) gelten weiter. Test
+  `test_stilprofil.py::test_examples_lesen_keine_ueberholte_fassung`; Sabotageprobe: Zeiger-Bedingung entfernt, Test rot.
 
 ## Offene Punkte
 
