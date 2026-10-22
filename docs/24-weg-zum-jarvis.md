@@ -174,6 +174,19 @@ gekippt — erscheinen als Benachrichtigung, zu Zeiten, die zum Nutzer passen.
 **Fertig heißt:** Keine Benachrichtigung, die der Nutzer im Nachhinein für
 überflüssig hält; eine Woche lang gezählt.
 
+*Stand (22. Oktober 2026):* Gebaut, am Mac noch nicht gesehen. Der Sidecar sagt,
+was fällig ist (`mitteilungen.py`: morgens einmal die Tageslage ab der eingestellten
+Uhrzeit, ein Termin in 30 bis 60 Minuten mit „Losfahren um …“, eine eigene Zusage,
+deren Tag gestern war; je Abruf höchstens drei, nichts doppelt, auch nicht nach
+einem Neustart; Ruhezeit ab 21 Uhr). Die Mac-App zeigt sie als Systemmitteilung mit
+„Öffnen“ und „War überflüssig“ (`macos/Shared/NotificationReporter.swift`). Der
+Schalter steht unter Einstellungen → Was Kingfisher darf, Vorgabe aus; darunter die
+Zahl, an der die Etappe gemessen wird: „Diese Woche N Mitteilungen, davon M als
+überflüssig gemeldet.“ Offen: die Abnahme am Mac (Swift hier nicht gebaut, Erlaubnis
+bei Ad-hoc-Signatur ungeprüft) und die Woche im Alltag, siehe
+[`47-einstellungen.md`](47-einstellungen.md#mitteilungen-auf-dem-mac-oktober-2026)
+und das [Protokoll](runs/2026-10-22-mitteilungen/README.md).
+
 ### 6. Verstehen, wie du arbeitest
 
 Mailstil, Arbeitsvorlieben und Lernbeobachtungen gibt es. Sie fließen noch kaum

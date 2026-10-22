@@ -158,6 +158,33 @@ und, nur auf einem Testrechner, `docker compose -p kingfisher down -v`.
       bewirken nichts.
 - [ ] Beenden während eines Updates wird mit einem Satz abgelehnt; Download einer Sicherung über die Seite
       landet am gewählten Ort.
+- [ ] **Mitteilungen:** Schalter unter Einstellungen → Was Kingfisher darf einschalten; innerhalb von fünf Minuten
+      fragt macOS nach der Erlaubnis. Erlauben: Mit einem synthetischen Termin in 45 Minuten erscheint ein Banner
+      „Gleich: …“ mit „Öffnen“ und „War überflüssig“; „Öffnen“ zeigt den Kalender im Fenster, „War überflüssig“
+      erhöht die Zahl unter dem Schalter. Morgens zur eingestellten Uhrzeit genau eine Mitteilung, nach einem Neustart
+      der App keine zweite. Ablehnen: Die Karte sagt „Der Mac hat Mitteilungen für Kingfisher nicht erlaubt …“.
+      Schalter aus: keine Mitteilung mehr, keine Systemfrage.
+
+## Mitteilungen
+
+Etappe 5 ([`docs/24-weg-zum-jarvis.md`](../docs/24-weg-zum-jarvis.md#5-von-sich-aus-melden)): Die App zeigt, was der
+Sidecar als fällig meldet, als Systemmitteilung. `macos/Shared/NotificationReporter.swift` fragt alle fünf Minuten
+`GET /api/v1/mitteilungen/faellig` (nur 127.0.0.1, Token im Kopf, keine Weiterleitungen, Antwort höchstens 4 KB) und
+zeigt jede Mitteilung über `UNUserNotificationCenter` mit der Kategorie `KINGFISHER_MITTEILUNG` und zwei Aktionen:
+„Öffnen“ lädt die Seite der Mitteilung im Fenster (`AppDelegate.openPage`, nur Pfade der eigenen Adresse), „War
+überflüssig“ meldet `POST …/rueckmeldung`. Nach dem Zeigen meldet die App `POST …/zugestellt`. Die reine Logik
+(Pfade, Grenzen, strenge Prüfung der Antwort) steht in `macos/Shared/Mitteilungen.swift` (nur Foundation) und läuft im
+Prüfprogramm `macos/tests/main.swift`.
+
+**Erlaubnis.** Die App fragt das System erst, wenn der Schalter „Mitteilungen auf dem Mac“ unter Einstellungen → Was
+Kingfisher darf an ist (Vorgabe aus), und nur einmal je Lauf. Den Stand meldet sie dem Sidecar
+(`POST /api/v1/mitteilungen/erlaubnis`), damit die Einstellungen sagen können, wo man sie gibt: Systemeinstellungen →
+Mitteilungen → Kingfisher. Das Bauskript bindet `-framework UserNotifications` ein; die App ist weiterhin ad hoc
+signiert. Kein Inhalt einer Mitteilung geht in ein Protokoll der App.
+
+**Nicht hier geprüft** (kein Swift-Übersetzer außerhalb des Macs): dass macOS die Erlaubnisfrage bei einer ad hoc
+signierten App stellt und Banner zeigt, dass „Öffnen“ und „War überflüssig“ ankommen, und dass die App nach einem
+Klick auf eine Mitteilung bei geschlossenem Fenster die Seite öffnet. Dazu die Punkte in der Checkliste oben.
 
 # Lokaler Kalenderadapter
 
