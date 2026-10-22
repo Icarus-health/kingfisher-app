@@ -435,6 +435,42 @@
         "belege": []
       },
       "notiz": "Zwei Gremien mit Terminen: Klinikum Rheingau-Süd (21.10.) und das Vergabegremium des St.-Albanus-Klinikums (Präsentation 13.10.). Als dritte Bedeutung käme das vertagte Gremium der Rehaklinik Eichenberg in Betracht (kein neuer Termin bekannt); sie wird nicht verlangt. Ein Datum ohne Rückfrage zu nennen ist geraten."
+    },
+    {
+      "id": "zeitraum-07",
+      "frage": "Was steht nächste Woche an?",
+      "kategorie": "zeitraum",
+      "schwere": "normal",
+      "erwartet": {
+        "verhalten": "antworten",
+        "aussagen": [
+          [
+            "Nachgespräch"
+          ],
+          [
+            "07.10.",
+            "7.10.",
+            "7. Oktober",
+            "Mi 7.10."
+          ]
+        ],
+        "belege": [
+          "zeitraum-012"
+        ]
+      },
+      "verboten": {
+        "aussagen": [
+          "du bist frei",
+          "bist du frei",
+          "komplett frei",
+          "Gremium tagt nächste Woche",
+          "21.10."
+        ],
+        "belege": [
+          "zeitraum-009"
+        ]
+      },
+      "notiz": "Stichtag Dienstag, 29.9.: Nächste Woche ist der 5. bis 11. Oktober; dort steht das Nachgespräch am 7.10. im Kalender. Das Gremium (21.10.) liegt außerhalb. Die Antwort kommt ohne Modell aus Kalender und Akten und darf nie behaupten, dass Lea frei ist."
     }
   ]
 }

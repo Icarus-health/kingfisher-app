@@ -387,7 +387,7 @@ def test_die_app_liest_die_wegezeit_nur_aus_dem_zwischenspeicher():
     fake = Fake(minuten=35)
     w = wegdienst(fake)
     still = w.auskunft(ORT, beginn=BEGINN, nur_lesen=True)
-    assert still.status == 'wird_berechnet' and still.losfahren is None and fake.aufrufe == [], 'nur lesen fragt nicht'
+    assert still.status == 'nicht_berechnet' and still.losfahren is None and fake.aufrufe == [], 'nur lesen fragt nicht'
     voll = w.auskunft(ORT, beginn=BEGINN)
     assert voll.status == 'berechnet' and len(fake.aufrufe) == 1
     wieder = w.auskunft(ORT, beginn=BEGINN, nur_lesen=True)

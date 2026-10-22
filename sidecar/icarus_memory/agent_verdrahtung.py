@@ -138,6 +138,17 @@ def _offene_punkte(app: FastAPI, art: str, *, nachfuehren: bool = True):
         return None
 
 
+def _kommendes(app: FastAPI, frage: str, jetzt=None):
+    """„Was brauche ich morgen?“ aus Kalender, Akten und Aufgaben (`kommendes.py`); None, wenn es keine solche
+    Frage ist. Ein Fehler kostet die Antwort nicht leise den Weg: Die Frage geht dann den üblichen Weg (None)."""
+    from .kommendes import antwort
+    try:
+        return antwort(app, frage, jetzt)
+    except Exception:  # noqa: BLE001 - fail closed: ohne lesbare Antwort gibt es sie nicht; der übliche Weg folgt
+        logger.exception('Was ansteht, konnte nicht gelesen werden')
+        return None
+
+
 def _projekt_mappe(app: FastAPI, project_id: str, *, alle: bool = False):
     """Ebene 2 der Projektmappe, für Profil und Gespräch dieselbe. None ohne Projekt."""
     from .mappe import einzelheiten
@@ -163,6 +174,7 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     agent._termine = _search_calendar(app)
     agent._mappe = lambda project_id: _projekt_mappe(app, project_id)
     agent._offene_punkte = lambda art, nachfuehren=True: _offene_punkte(app, art, nachfuehren=nachfuehren)
+    agent._kommendes = lambda frage, jetzt=None: _kommendes(app, frage, jetzt)
     agent._eigene = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
     agent._frage_anbieter = lambda: anbieter_fuer_frage(rollen_von(app))
     # Sätze an oder aus: dieselbe Stelle wie `Agent._saetze_an`; eine Änderung baut den Agenten neu.

@@ -47,7 +47,9 @@ Projekte, Entscheidungen, Ziele und Gewohnheiten mit Belegen; Mailaufnahme mit
 Filter, Antwortvorschläge im eigenen Stil, Aufgabenerkennung; Mac-Kalender und
 Abos mit einer Terminvorbereitung; ausdrücklich eingetragene öffentliche
 Webquellen; Briefing zum Anhören; lokale und entfernte Modelle; MCP in beide
-Richtungen; Sicherung und Update mit Rückweg.
+Richtungen; Sicherung und Update mit Rückweg. Seit dem 20.10. beantwortet das
+Gespräch „Was brauche ich morgen?“ aus Kalender, Akten und Aufgaben ohne Modell
+([`31`](31-frageverstaendnis.md#zukunft-was-brauche-ich-morgen-20102026)).
 
 Was fehlt, ist weniger eine Funktion als eine Haltung: Heute muss man
 Kingfisher aufsuchen, auswählen und anstoßen. Ein Stabschef hat es schon

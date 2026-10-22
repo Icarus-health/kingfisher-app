@@ -232,3 +232,125 @@ def kalenderzeitraum(question, now=None):
         jahr -= 1  # die zuletzt begonnene Jahreszeit
     beginn = today.replace(year=jahr, month=beginn_monat, day=1)
     return beginn, _monate_spaeter(beginn, 3 if jahreszeit else 1), f'im {name.capitalize()} {jahr}'
+
+
+# -- Kommender Zeitraum („Was steht morgen an?“; nie zum Ordnen der Suche) ------------------------------
+
+_WOCHENTAG_NUMMER = {'montag': 0, 'dienstag': 1, 'mittwoch': 2, 'donnerstag': 3, 'freitag': 4, 'samstag': 5,
+                     'sonnabend': 5, 'sonntag': 6}
+WOCHENTAGE = ('Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag')
+_NAECHSTE = r'(?:nächste|naechste|kommende)'
+_KOMMEND = [
+    # „am 24.10.“, „am 24. Oktober“, „bis zum 24.10.2026“: ein konkretes Datum, das noch kommt.
+    ('datum', re.compile(
+        r'\b(?P<vor>am|bis(?:\s+zum)?|zum)\s+(?P<tag>\d{1,2})\.\s?(?:(?P<monat>\d{1,2})\.?(?:\s?(?P<jahr>20\d\d))?'
+        r'|(?P<monatname>' + '|'.join(_MONATE) + r')(?:\s+(?P<jahr2>20\d\d))?)(?![\d.])', re.I)),
+    ('uebermorgen', re.compile(r'\b(?P<vor>bis\s+)?(?:übermorgen|uebermorgen)\b', re.I)),
+    # „am Morgen“ ist die Tageszeit, nicht der nächste Tag.
+    ('morgen', re.compile(r'(?<!\bam\s)(?<!\bden\s)(?<!\bjeden\s)(?<!\bguten\s)\b(?P<vor>bis\s+)?morgen\b', re.I)),
+    ('heute', re.compile(r'\bheute\b', re.I)),
+    ('in', re.compile(r'\bin\s+' + _NUMBER_EIN + r'\s+(tag(?:en)?|wochen?|monat(?:en)?)\b', re.I)),
+    ('naechste_woche', re.compile(r'\b' + _NAECHSTE + r'[nr]?\s+woche\b', re.I)),
+    ('naechster_monat', re.compile(r'\b' + _NAECHSTE + r'[nmr]?\s+monat\b', re.I)),
+    ('diese_woche', re.compile(r'\bdiese[rn]?\s+woche\b', re.I)),
+    ('wochentag', re.compile(
+        r'\b(?:(?P<vor>am\s+' + _NAECHSTE + r'n|am\s+kommenden|am|bis(?:\s+zum)?|zum|' + _NAECHSTE + r'n|diesen)\s+)?'
+        r'(?P<tag>' + '|'.join(_WOCHENTAG_NUMMER) + r')\b', re.I)),
+]
+
+
+def _tag_beginn(tag, zone):
+    from datetime import time
+    return datetime.combine(tag, time.min, zone)
+
+
+def kommender_zeitraum(question, now=None):
+    """(Beginn, Ende, Beschriftung) eines kommenden Zeitraums in der Frage, sonst None.
+
+    Nur für Fragen nach dem, was ansteht (`kommendes.py`): „morgen“, „übermorgen“, „heute“ (der Rest des
+    Tages), „diese Woche“ (der Rest), „nächste Woche“ (Montag bis Sonntag), „nächsten Monat“, „in N
+    Tagen/Wochen/Monaten“ (der Tag), „am Freitag“ (der nächste kommende; der gleiche Wochentag wie heute ist
+    mehrdeutig: `mehrdeutig=True` und die Rückfrage stehen in der Beschriftung), „am 24.10.“ (ein Jahr ohne
+    Angabe ist das nächste, an dem der Tag noch kommt). Vergangenes („letzte Woche“, „gestern“) bleibt Sache
+    von `mentioned_period`. Das Ende ist ausschließlich. Tage gelten in der Zeitzone des Nutzers.
+
+    Die Beschriftung: `text` (für die Antwort), `ausdruck`, `start`, `ende` (die Stelle in der Frage),
+    `mehrdeutig` und bei Mehrdeutigkeit `rueckfrage`.
+    """
+    if not isinstance(question, str) or len(question) > 2000:
+        return None
+    zone = user_timezone() or timezone.utc
+    now = (now or datetime.now(zone)).astimezone(zone)
+    heute = now.date()
+    treffer = [(kind, m) for kind, pattern in _KOMMEND for m in pattern.finditer(question)]
+    if not treffer:
+        return None
+    # Ein konkretes Datum ist genauer als alles andere („am Freitag, den 24.10.“); sonst die erste Nennung.
+    kind, match = next(((k, m) for k, m in treffer if k == 'datum'), min(treffer, key=lambda item: item[1].start()))
+    vor = (match.groupdict().get('vor') or '').lower().strip()
+    ab_jetzt = vor.startswith('bis')  # „bis Freitag“: von jetzt an bis einschließlich
+
+    def ergebnis(von_tag, bis_tag, text, **mehr):
+        von = now if ab_jetzt or von_tag is None else _tag_beginn(von_tag, zone)
+        if von < now and von_tag is not None and von_tag == heute:
+            von = now
+        beschriftung = {'text': (f'bis {text}' if ab_jetzt and not text.startswith('bis ') else text),
+                        'ausdruck': match.group(0), 'start': match.start(), 'ende': match.end(),
+                        'mehrdeutig': False, **mehr}
+        return von, _tag_beginn(bis_tag, zone), beschriftung
+
+    if kind == 'datum':
+        tag = int(match.group('tag'))
+        monat = int(match.group('monat')) if match.group('monat') else _MONATE.index(match.group('monatname').lower()) + 1
+        jahr_roh = match.group('jahr') or match.group('jahr2')
+        try:
+            if jahr_roh:
+                datum = heute.replace(year=int(jahr_roh), month=monat, day=tag)
+            else:
+                datum = heute.replace(month=monat, day=tag)
+                if datum < heute:
+                    datum = datum.replace(year=heute.year + 1)
+        except ValueError:
+            return None
+        if datum < heute:
+            return None
+        from .datumstext import tag_und_monat
+        return ergebnis(datum, datum + timedelta(days=1), f'am {tag_und_monat(datum)} {datum.year}')
+    if kind == 'uebermorgen':
+        return ergebnis(heute + timedelta(days=2), heute + timedelta(days=3), 'übermorgen')
+    if kind == 'morgen':
+        return ergebnis(heute + timedelta(days=1), heute + timedelta(days=2), 'morgen')
+    if kind == 'heute':
+        return ergebnis(None, heute + timedelta(days=1), 'heute')
+    if kind == 'in':
+        anzahl = zahl(match.group(1))
+        einheit = match.group(2).lower()
+        if not anzahl or not 1 <= anzahl <= 999:
+            return None
+        if einheit.startswith('tag'):
+            tag = heute + timedelta(days=anzahl)
+        elif einheit.startswith('woche'):
+            tag = heute + timedelta(weeks=anzahl)
+        else:
+            erster = _monate_spaeter(heute.replace(day=1), anzahl)
+            tag = erster.replace(day=min(heute.day, calendar.monthrange(erster.year, erster.month)[1]))
+        return ergebnis(tag, tag + timedelta(days=1), ' '.join(match.group(0).split()))
+    montag = heute - timedelta(days=heute.weekday())
+    if kind == 'naechste_woche':
+        return ergebnis(montag + timedelta(days=7), montag + timedelta(days=14), 'nächste Woche')
+    if kind == 'naechster_monat':
+        erster = _monate_spaeter(heute.replace(day=1), 1)
+        return ergebnis(erster, _monate_spaeter(erster, 1), 'nächsten Monat')
+    if kind == 'diese_woche':
+        return ergebnis(None, montag + timedelta(days=7), 'diese Woche')
+    ziel = _WOCHENTAG_NUMMER[match.group('tag').lower()]
+    name = WOCHENTAGE[ziel]
+    abstand = (ziel - heute.weekday()) % 7
+    # „nächsten Freitag“ am Freitag meint die kommende Woche; „am Freitag“ am Freitag ist mehrdeutig.
+    if abstand == 0 and any(wort in vor for wort in ('nächste', 'naechste', 'kommende')):
+        abstand = 7
+    tag = heute + timedelta(days=abstand)
+    if abstand == 0:
+        return ergebnis(tag, tag + timedelta(days=1), f'am {name}', mehrdeutig=True,
+                        rueckfrage=f'Meinst du heute oder nächsten {name}?')
+    return ergebnis(tag, tag + timedelta(days=1), f'am {name}')
