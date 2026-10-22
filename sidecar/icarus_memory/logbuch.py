@@ -68,7 +68,8 @@ from .migrations import Migration, run_migrations, verify_schema
 logger = logging.getLogger(__name__)
 
 ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorschlag_angenommen',
-         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang')
+         'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
+         'mitteilung', 'mitteilung_ueberfluessig')
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)

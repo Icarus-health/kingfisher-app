@@ -481,12 +481,13 @@ class WegezeitDienst:
                 'dienste': {name: anbieter.verfuegbar() for name, anbieter in self._anbieter.items()}}
 
     def auskunft(self, ort: str | None, *, beginn: datetime, vorheriger: tuple[str, datetime] | None = None,
-                 frist_bis: float | None = None) -> Auskunft:
+                 frist_bis: float | None = None, nur_lesen: bool = False) -> Auskunft:
         """Auskunft zum Weg zu `ort`. `vorheriger`: (Ort, Ende) des Termins davor am selben Tag.
 
         `frist_bis` (siehe `frist`): Was bis dahin nicht berechnet ist, kommt als „wird berechnet“ zurück,
         die Anfrage läuft im Hintergrund weiter, und der nächste Aufruf findet die Zahl im Zwischenspeicher.
-        Ohne `frist_bis` wird gewartet, bis der Anbieter antwortet.
+        Ohne `frist_bis` wird gewartet, bis der Anbieter antwortet. `nur_lesen`: kein Anbieter wird gefragt, auch
+        nicht im Hintergrund; was nicht im Zwischenspeicher steht, kommt als „wird berechnet“ zurück (Mitteilungen).
         """
         einstellung = self._einstellung()
         ziel = ort_bereinigt(ort)
@@ -507,7 +508,7 @@ class WegezeitDienst:
         anbieter = self.anbieter_in_reihenfolge(einstellung)
         if not any(a.verfuegbar() for a in anbieter):
             return _ohne_zahl(OHNE_DIENST, ziel, 'Es ist kein Kartendienst eingerichtet.', 'dienst')
-        fahrzeit, grund = self._rechnen(anbieter, start, ziel, einstellung.verkehrsmittel, beginn, frist_bis)
+        fahrzeit, grund = self._rechnen(anbieter, start, ziel, einstellung.verkehrsmittel, beginn, frist_bis, nur_lesen=nur_lesen)
         if fahrzeit is None and grund == _WARTET:
             return Auskunft(status=WIRD_BERECHNET, ort=ziel, satz=f'Ort: {ziel}. Fahrzeit wird berechnet.',
                             start=start, start_art=start_art)
@@ -528,7 +529,7 @@ class WegezeitDienst:
                         start_art=start_art, puffer_min=puffer, losfahren=los, knapp=knapp)
 
     def _rechnen(self, anbieter: list[Anbieter], von: str, nach: str, mittel: str,
-                 abfahrt: datetime, frist_bis: float | None = None) -> tuple[Fahrzeit | None, str]:
+                 abfahrt: datetime, frist_bis: float | None = None, *, nur_lesen: bool = False) -> tuple[Fahrzeit | None, str]:
         schluessel = (_norm(von), _norm(nach), mittel)
         with self._sperre:
             gemerkt = self._gemerkt.get(schluessel)
@@ -538,6 +539,8 @@ class WegezeitDienst:
             if misserfolg and self._jetzt() - misserfolg[0] < FEHLER_MERKEN_S:
                 return None, misserfolg[1]
             arbeit = self._laufend.get(schluessel)
+            if arbeit is None and nur_lesen:
+                return None, _WARTET
             if arbeit is None:
                 arbeit = self._laufend[schluessel] = self._pool.submit(self._anfragen, schluessel, anbieter, von, nach,
                                                                        mittel, abfahrt)
