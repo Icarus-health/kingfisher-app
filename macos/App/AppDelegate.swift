@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var updater: Updater?
     private var powerReporter: PowerReporter?
     private var calendarReporter: CalendarReporter?
+    private var notificationReporter: NotificationReporter?
     /// Start oder Update laufen; dann gelten weder Neu laden noch eine zweite Anfrage.
     private var busy = false
     private var updating = false
@@ -157,6 +158,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 powerReporter = reporter
                 reporter.start()
             }
+            if let paths = paths, notificationReporter == nil {
+                // Mitteilungen (Etappe 5): fragt den Sidecar, zeigt Systemmitteilungen; „Öffnen“ führt auf die Seite.
+                let reporter = NotificationReporter(origin: AppPaths.origin, tokenFile: paths.envFile,
+                                                    onOpen: { [weak self] pfad in self?.openPage(pfad) })
+                notificationReporter = reporter
+                reporter.start()
+            }
             status.show(.working(Satz.starten))
             hint.isHidden = true
             switch ollamaHint {
@@ -182,6 +190,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             status.show(StatusContent(title: nil, sentence: sentence, busy: false, actions: [
                 StatusAction(title: Knopf.nochmalVersuchen) { [weak self] in self?.start() }]))
         }
+    }
+
+    /// Eine Mitteilung wurde angeklickt: das Fenster nach vorn und die Seite dazu, nur eine der eigenen Adresse.
+    private func openPage(_ pfad: String) {
+        guard !busy else { return }
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        surface.open(pfad: pfad)
     }
 
     /// Es gibt Daten, aber keinen Schlüssel: Der Mensch zeigt die Datei, statt einen Pfad zu tippen.
@@ -277,6 +293,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         stopVoice()
         calendarReporter?.stop()
         powerReporter?.stop()
+        notificationReporter?.stop()
         surface?.cancelDownloads()
     }
 

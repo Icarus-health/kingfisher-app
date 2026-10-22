@@ -259,6 +259,50 @@ do {
     for step in UpdateStep.allCases { expect(!Satz.schritt(step).isEmpty, "Satz für \(step)") }
 }
 
+// MARK: Mitteilungen
+
+do {
+    let origin = URL(string: "http://127.0.0.1:8890")!
+    let gut = "{\"mitteilungen\":[{\"id\":\"morgen:2026-10-22\",\"art\":\"morgen\",\"titel\":\"Das zählt heute.\",\"satz\":\"Um 14:00 Uhr Gespräch.\",\"pfad\":\"/today\"},"
+        + "{\"id\":\"zusage:0123abcd\",\"art\":\"zusage\",\"titel\":\"Deine Zusage ist verstrichen\",\"satz\":\"\",\"pfad\":\"/memory/akte/person%3Aanna\"}]}"
+    let liste = Mitteilung.parse(gut.data(using: .utf8)!)
+    expect(liste.count == 2 && liste[0].id == "morgen:2026-10-22" && liste[1].pfad == "/memory/akte/person%3Aanna", "Mitteilungen aus der Antwort lesen")
+    expect(Mitteilung.parse(Data()).isEmpty && Mitteilung.parse("{\"mitteilungen\":{}}".data(using: .utf8)!).isEmpty, "unbrauchbare Antwort ergibt nichts")
+    func eine(_ felder: [String: Any]) -> [Mitteilung] {
+        var dict: [String: Any] = ["id": "termin:abc", "art": "termin", "titel": "Gleich: Gespräch", "satz": "Um 12:45 Uhr.", "pfad": "/calendar"]
+        for (k, v) in felder { dict[k] = v }
+        let data = try! JSONSerialization.data(withJSONObject: ["mitteilungen": [dict]])
+        return Mitteilung.parse(data)
+    }
+    expect(eine([:]).count == 1, "eine gute Mitteilung")
+    for pfad in ["https://example.invalid/x", "//example.invalid/x", "/../etc", "calendar", "/a b", "/x#y", "javascript:alert(1)"] {
+        expect(eine(["pfad": pfad]).isEmpty, "fremder oder unsauberer Pfad: \(pfad)")
+    }
+    expect(eine(["titel": String(repeating: "x", count: 61)]).isEmpty, "zu langer Titel")
+    expect(eine(["satz": String(repeating: "x", count: 141)]).isEmpty, "zu langer Satz")
+    expect(eine(["art": "werbung"]).isEmpty, "unbekannte Art")
+    expect(eine(["id": "termin/abc"]).isEmpty && eine(["id": String(repeating: "a", count: 65)]).isEmpty, "unsaubere Kennung")
+    expect(eine(["id": 7]).isEmpty, "Kennung muss Text sein")
+    let vier = try! JSONSerialization.data(withJSONObject: ["mitteilungen": Array(repeating: ["id": "morgen:1", "art": "morgen", "titel": "t", "satz": "", "pfad": "/today"], count: 4)])
+    expect(Mitteilung.parse(vier).isEmpty, "mehr als drei: die Antwort stammt nicht vom Sidecar")
+    expect(MitteilungenPfad.zugestellt("morgen:2026-10-22") == "/api/v1/mitteilungen/morgen%3A2026-10-22/zugestellt", "Pfad für zugestellt")
+    expect(MitteilungenPfad.rueckmeldung("termin:abc_1-2") == "/api/v1/mitteilungen/termin%3Aabc_1-2/rueckmeldung", "Pfad für die Rückmeldung")
+    expect(MitteilungenPfad.zugestellt("a/b") == nil && MitteilungenPfad.rueckmeldung("") == nil, "unsaubere Kennung ergibt keinen Pfad")
+    let abruf = MitteilungenRequest.make(origin: origin, path: MitteilungenPfad.faellig, method: "GET", token: "secret")
+    expect(abruf?.url?.absoluteString == "http://127.0.0.1:8890/api/v1/mitteilungen/faellig" && abruf?.httpMethod == "GET"
+           && abruf?.httpBody == nil && abruf?.value(forHTTPHeaderField: "x-icarus-token") == "secret", "Abruf nur am Loopback mit Token")
+    let meldung = MitteilungenRequest.make(origin: origin, path: MitteilungenPfad.erlaubnis, method: "POST", body: MitteilungenRequest.erlaubnis(false), token: "secret")
+    expect(meldung?.httpMethod == "POST" && meldung?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } == ["status": "abgelehnt"],
+           "Erlaubnis als POST melden")
+    expect(MitteilungenRequest.erlaubnis(nil) as? [String: String] == ["status": "unbekannt"] && MitteilungenRequest.erlaubnis(true) as? [String: String] == ["status": "erlaubt"], "Erlaubnisstände")
+    expect(MitteilungenRequest.make(origin: origin, path: "/api/v1/device/power", method: "GET", token: "secret") == nil, "nur Mitteilungsrouten")
+    expect(MitteilungenRequest.make(origin: origin, path: MitteilungenPfad.faellig, method: "DELETE", token: "secret") == nil, "nur GET und POST")
+    expect(MitteilungenRequest.make(origin: URL(string: "http://localhost:8890")!, path: MitteilungenPfad.faellig, method: "GET", token: "secret") == nil, "localhost-Alias ablehnen")
+    expect(MitteilungenRequest.make(origin: origin, path: MitteilungenPfad.faellig, method: "GET", token: "") == nil, "leerer Token")
+    expect(MitteilungenEinstellung.parse("{\"an\":true,\"morgens\":\"07:30\"}".data(using: .utf8)!) == MitteilungenEinstellung(an: true), "Schalter lesen")
+    expect(MitteilungenEinstellung.parse("{\"an\":\"ja\"}".data(using: .utf8)!) == nil, "Schalter muss ja oder nein sein")
+}
+
 if failures > 0 {
     print("\(failures) Prüfung(en) fehlgeschlagen")
     exit(1)

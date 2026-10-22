@@ -279,9 +279,73 @@ def test_logik_pruefprogramm(tmp_path):
     befehl = ['swiftc'] if shutil.which('swiftc') else ['xcrun', 'swiftc']
     programm = tmp_path / 'logik'
     quellen = [str(p) for p in sorted(LOGIC.glob('*.swift'))] + [str(MACOS / 'Shared/PowerReporter.swift'),
+                                                                  str(MACOS / 'Shared/Mitteilungen.swift'),
                                                                   str(MACOS / 'tests/main.swift')]
     uebersetzt = subprocess.run([*befehl, *quellen, '-o', str(programm)], capture_output=True, text=True)
     assert uebersetzt.returncode == 0, uebersetzt.stderr
     lauf = subprocess.run([str(programm)], capture_output=True, text=True)
     assert lauf.returncode == 0, lauf.stdout + lauf.stderr
     assert 'alle Prüfungen bestanden' in lauf.stdout
+
+
+# -- Mitteilungen (Etappe 5) -------------------------------------------------------
+
+def test_mitteilungen_reporter_vorhanden_mit_kategorie_und_zwei_aktionen():
+    """Der Reporter zeigt jede Mitteilung mit „Öffnen“ und „War überflüssig“; die Kennungen stehen in der reinen Logik."""
+    logik_importe = set(re.findall(r'^import (\w+)', swift('Shared', 'Mitteilungen.swift'), re.M))
+    assert logik_importe == {'Foundation'}, 'die reine Logik muss im Prüfprogramm ohne Mac übersetzen'
+    logik = swift('Shared', 'Mitteilungen.swift')
+    reporter = swift('Shared', 'NotificationReporter.swift')
+    assert swift_konstante(logik, 'kategorie') == 'KINGFISHER_MITTEILUNG'
+    assert swift_konstante(logik, 'aktionOeffnen') == 'oeffnen'
+    assert swift_konstante(logik, 'aktionUeberfluessig') == 'ueberfluessig'
+    assert 'UNNotificationCategory(identifier: MitteilungenPfad.kategorie' in reporter
+    assert 'UNNotificationAction(identifier: MitteilungenPfad.aktionOeffnen, title: "Öffnen"' in reporter
+    assert 'UNNotificationAction(identifier: MitteilungenPfad.aktionUeberfluessig, title: "War überflüssig"' in reporter
+    assert 'import UserNotifications' in reporter
+    assert 'static let interval: TimeInterval = 300' in logik, 'alle fünf Minuten'
+    assert 'maximumResponseBytes = 4096' in reporter, 'Antwort höchstens 4 KB'
+
+
+def test_mitteilungen_reporter_spricht_nur_die_mitteilungsrouten_am_loopback():
+    logik = swift('Shared', 'Mitteilungen.swift')
+    server = (REPO / 'sidecar/icarus_memory/mitteilungen_routes.py').read_text(encoding='utf-8')
+    for pfad in ('/api/v1/mitteilungen/faellig', '/api/v1/mitteilungen/einstellung', '/api/v1/mitteilungen/erlaubnis'):
+        assert f'"{pfad}"' in logik and f"'{pfad}'" in server, pfad
+    assert "'/api/v1/mitteilungen/{kennung}/zugestellt'" in server and "'/api/v1/mitteilungen/{kennung}/rueckmeldung'" in server
+    assert '"/api/v1/mitteilungen/" + kennung + "/zugestellt"' in logik
+    assert '"/api/v1/mitteilungen/" + kennung + "/rueckmeldung"' in logik
+    # Dieselbe Adressprüfung wie der Energiebericht: nur 127.0.0.1, Token im Kopf, keine Weiterleitungen.
+    assert 'PowerReportRequest.make(origin: origin, source: .unknown, token: token)' in logik
+    reporter = swift('Shared', 'NotificationReporter.swift')
+    assert 'willPerformHTTPRedirection' in reporter and 'completionHandler(nil)' in reporter
+    assert 'connectionProxyDictionary = [:]' in reporter
+
+
+def test_mitteilungen_erlaubnis_nur_bei_eingeschaltetem_schalter_und_nie_inhalt_im_protokoll():
+    reporter = swift('Shared', 'NotificationReporter.swift')
+    assert 'requestAuthorization' in reporter
+    assert reporter.index('einstellung.an') < reporter.index('requestAuthorization'), 'erst der Schalter, dann die Systemfrage'
+    assert 'print(' not in reporter and 'NSLog(' not in reporter and 'os_log' not in reporter, 'kein Protokoll mit Inhalt'
+    logik = swift('Shared', 'Mitteilungen.swift')
+    assert 'print(' not in logik and 'NSLog(' not in logik
+
+
+def test_bauskript_bindet_user_notifications_ein_und_delegate_ist_verdrahtet():
+    skript = BUILD.read_text(encoding='utf-8')
+    assert '-framework UserNotifications' in skript
+    app = swift('App', 'AppDelegate.swift')
+    assert 'private var notificationReporter: NotificationReporter?' in app
+    assert 'NotificationReporter(origin: AppPaths.origin, tokenFile: paths.envFile' in app
+    assert 'notificationReporter?.stop()' in app
+    assert 'surface.load(path:' in swift('Shared', 'NotificationReporter.swift') or 'onOpen' in app, 'Öffnen führt zur Seite'
+    assert 'self?.surface.load(path: pfad)' in app or 'self?.openPage(pfad)' in app
+
+
+def test_mitteilung_aus_der_antwort_wird_streng_geprueft():
+    """Die reine Logik nimmt nur kleine, bekannte Felder und Pfade innerhalb der eigenen Seite."""
+    logik = swift('Shared', 'Mitteilungen.swift')
+    assert 'maxTitel = 60' in logik and 'maxSatz = 140' in logik and 'maxJeAbruf = 3' in logik
+    assert 'pfad.hasPrefix("/")' in logik and '"//"' in logik and '":"' in logik or 'pfad.contains(":")' in logik
+    main = (MACOS / 'tests/main.swift').read_text(encoding='utf-8')
+    assert 'Mitteilung.parse(' in main or 'Mitteilungen.parse(' in main, 'die Logik hat Prüfungen im Swift-Prüfprogramm'

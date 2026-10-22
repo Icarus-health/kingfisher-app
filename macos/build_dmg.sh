@@ -62,7 +62,7 @@ QUELLEN=(macos/Shared/*.swift macos/App/Logic/*.swift macos/App/*.swift)
 for ARCH in "${ARCHITEKTUREN[@]}"; do
     echo "Übersetze für $ARCH …"
     xcrun swiftc -parse-as-library -O -target "$ARCH-apple-macosx$MINDEST_MACOS" \
-        -framework AppKit -framework WebKit -framework Security -framework EventKit \
+        -framework AppKit -framework WebKit -framework Security -framework EventKit -framework UserNotifications \
         "${QUELLEN[@]}" -o "$BAU/Kingfisher-$ARCH"
 done
 if [ "${#ARCHITEKTUREN[@]}" -eq 2 ]; then
