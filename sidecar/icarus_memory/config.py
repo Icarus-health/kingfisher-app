@@ -333,6 +333,12 @@ class Settings:
     nichts daraus fließt je zurück.
     """
 
+    mitteilungen: dict[str, Any] = field(default_factory=dict)
+    """„Mitteilungen auf dem Mac“: Schalter (`an`, Vorgabe aus) und Morgenzeit (`morgens`, `HH:MM`, Vorgabe 07:30).
+
+    Form und Regeln: `mitteilungen.Einstellung`. Nichts verlässt den Rechner; die Mac-App liest nur am Loopback.
+    """
+
     onboarded: bool = False
     """Hat jemand die Einrichtung einmal bis zum Ende durchlaufen?
 
@@ -438,6 +444,7 @@ class Settings:
             einrichtung=dict(data.get("einrichtung") or {}) if isinstance(data.get("einrichtung"), dict) else {},
             suchindex=dict(data.get("suchindex") or {}) if isinstance(data.get("suchindex"), dict) else {},
             akten_export=dict(data.get("akten_export") or {}) if isinstance(data.get("akten_export"), dict) else {},
+            mitteilungen=dict(data.get("mitteilungen") or {}) if isinstance(data.get("mitteilungen"), dict) else {},
             onboarded=bool(data.get("onboarded", False)),
         )
 

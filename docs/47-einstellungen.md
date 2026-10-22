@@ -71,7 +71,7 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 | Reiter | Was dort ist | Bausteine (unverändert, nur anders einsortiert) |
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
-| **Was Kingfisher darf** | Sechs Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `CloudSchalter`, `CloudEinordnungSchalter` |
+| **Was Kingfisher darf** | Sieben Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
 | **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
 | **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |
@@ -381,9 +381,42 @@ Stufen; die Browserprobe `scripts/probe_seiten_ui.py` misst alle Seiten bei 390,
 Scrollen, kein Element über den Rand oder in einem abschneidenden Rahmen abgeschnitten, keine verdeckten oder
 übereinanderliegenden Bedienelemente).
 
+## Mitteilungen auf dem Mac (Oktober 2026)
+
+Etappe 5 aus [`24-weg-zum-jarvis.md`](24-weg-zum-jarvis.md#5-von-sich-aus-melden): Kingfisher meldet sich von sich aus,
+wenige Dinge, zu Zeiten, die passen. Der Schalter „Mitteilungen auf dem {Rechner}“ steht unter „Was Kingfisher darf“
+zwischen „Beim Anmelden starten“ und der Cloud (`Einstellungen/Mitteilungen.tsx`, Logik `mitteilungenSchalter.ts`).
+
+* **Vorgabe aus**, weil es eine Erlaubnis des Systems braucht, und die fragt die Kingfisher-App erst, wenn der Schalter
+  an ist (einmal; Prüffrage 6: Wer nichts ändert, bekommt keine Systemfrage). Der Satz darunter: „Es verlässt nichts
+  den Rechner. Morgens eine Mitteilung mit dem, was heute zählt, dazu höchstens zwei dringende: ein Termin gleich,
+  eine verstrichene Zusage.“
+* **Mit dem Schalter:** die Uhrzeit der Morgenmitteilung (Vorgabe 07:30, `HH:MM` vor 21:00 Uhr; danach gilt Ruhezeit,
+  in der nur noch ein Termin gleich kommt) und der Satz, an dem die Etappe gemessen wird: „Diese Woche N Mitteilungen,
+  davon M als überflüssig gemeldet.“ Jede Mitteilung auf dem Mac trägt dafür „War überflüssig“.
+* **Fehlt die Erlaubnis**, sagt die Karte, wo man sie gibt: „Der Mac hat Mitteilungen für Kingfisher nicht erlaubt.
+  Systemeinstellungen → Mitteilungen → Kingfisher.“ Solange die App noch nicht gefragt hat: „Die Kingfisher-App fragt
+  beim nächsten Start einmal nach der Erlaubnis für Mitteilungen.“
+* **Ohne Mac-App** (Docker im Browser, Linux) ist der Schalter gesperrt und sagt es ehrlich (`nurAufDemMac`); Ausschalten
+  geht überall.
+
+Dahinter: `GET/PUT /api/v1/mitteilungen/einstellung` (`an`, `morgens`, dazu `erlaubnis` und `woche`), die Einstellung
+`mitteilungen` in `einstellungen.json` (`config.py`). Was fällig ist, entscheidet `sidecar/icarus_memory/mitteilungen.py`
+(Morgen, Termin gleich, verstrichene eigene Zusage; je Abruf höchstens drei, je Art eine; Merkliste
+`mitteilungen.sqlite3` ohne Inhalt, damit nichts doppelt kommt, auch nicht nach einem Neustart); die Mac-App fragt alle
+fünf Minuten `GET /api/v1/mitteilungen/faellig` und meldet „zugestellt“ und „War überflüssig“ zurück (Logbuch-Arten
+`mitteilung`, `mitteilung_ueberfluessig`, [`44-logbuch.md`](44-logbuch.md)). Die Wegezeit wird dafür nur gelesen
+(`wegezeit.auskunft(nur_lesen=True)`): keine Anfrage an einen Kartendienst wegen einer Mitteilung. App-Seite:
+[`macos/README.md`](../macos/README.md#mitteilungen).
+
+Geprüft: `sidecar/tests/test_mitteilungen.py`, `app/kingfisher/tests/mitteilungen.test.mjs`, `macos/test_mac_app.py`
+(Reporter, Kategorie, Aktionen, Bauskript, Verdrahtung), Browserprobe `scripts/probe_mitteilungen_ui.py`.
+**Nicht geprüft:** die Mitteilung selbst auf einem Mac (kein Swift-Übersetzer hier); siehe das
+[Protokoll](runs/2026-10-22-mitteilungen/README.md).
+
 ## Wie man prüft
 
-* `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau fünf Schalter mit „was verlässt
+* `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau sieben Schalter mit „was verlässt
   den Rechner“, alle Technik-Abschnitte verdrahtet, alte Verweise, **Wortliste**: kein Fachwort aus `FACHWOERTER` in den
   Texten der Gliederung und in den sichtbaren Texten der vorderen Dateien (`VORDERE_DATEIEN`), Breitenregeln im CSS.
 * `welt-vorgaben.test.mjs`, `sidecar/tests/test_welt_vorgaben.py`: Vorgaben und ihr Zustand.

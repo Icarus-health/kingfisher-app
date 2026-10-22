@@ -130,6 +130,8 @@ einem öffentlichen Repository ohnehin. Persönliche Daten stecken nie im Bild; 
 * Docker Desktop auf Apple-Chip mit dem arm64-Bild; `docker compose -p kingfisher -f deploy/compose.app.yaml` mit
   einer bestehenden Installation (dieselben Daten).
 * Ein echter Lauf von `release.yml` (Pages, GHCR, Release); hier nur mit `actionlint` und Tests geprüft.
+* Mitteilungen (Etappe 5): das Framework `UserNotifications` im Bündel, die Erlaubnisfrage des Systems bei der ad hoc
+  signierten App, Banner mit „Öffnen“ und „War überflüssig“ (siehe [`macos/README.md`](../macos/README.md#mitteilungen)).
 
 Geprüft in diesem Container: Sidecar-Tests (`test_fassung.py` mit HTTP-Attrappe, `test_compose_vertrag.py` auch mit
 `docker compose config`, `test_kingfisher_aktualisieren.py`, `test_release_seite.py`), UI-Tests (`fassung.test.mjs`),

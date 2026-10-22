@@ -2,6 +2,7 @@ import { AutostartWahl } from "../Einrichtung/AutostartWahl";
 import { Nachrichten, Wetter } from "../WeltSettings";
 import { WegezeitSettings } from "../WegezeitSettings";
 import { CloudSchalter } from "./CloudSchalter";
+import { Mitteilungen } from "./Mitteilungen";
 import { CloudEinordnungSchalter } from "./CloudEinordnungSchalter";
 import { SCHALTER } from "./gliederung";
 import { fuerSystem } from "../system";
@@ -20,6 +21,7 @@ export function Darf() {
     <div role="listitem"><WegezeitSettings /></div>
     <div role="listitem"><section className="darf-zeile" aria-label={SCHALTER.autostart.titel}>
       <AutostartWahl titel={SCHALTER.autostart.titel} satz={fuerSystem(SCHALTER.autostart.verlaesst, system)} /></section></div>
+    <div role="listitem"><Mitteilungen /></div>
     <div role="listitem"><CloudSchalter /></div>
     <div role="listitem"><CloudEinordnungSchalter /></div>
   </div>;

@@ -72,7 +72,8 @@ ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorsc
          'vorschlag_abgelehnt', 'lint', 'fehler', 'modellwechsel', 'export', 'rueckmeldung', 'zu_lang',
          'cloud_einordnung',  # Tagesbudget der Cloud-Einordnung erreicht (einmal je Tag)
          'aufgabe_post',  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
-         'akte_vorschlag')
+         'akte_vorschlag',
+         'mitteilung', 'mitteilung_ueberfluessig')
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)

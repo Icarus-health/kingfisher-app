@@ -38,6 +38,12 @@ final class WebSurface: NSObject, WKNavigationDelegate, WKUIDelegate, WKDownload
         webView.load(URLRequest(url: origin.appendingPathComponent(path)))
     }
 
+    /// Öffnet eine Seite über ihren Pfad (`/today`, `/memory/akte/…`), nur an der eigenen Adresse; alles andere bleibt aus.
+    func open(pfad: String) {
+        guard let url = URL(string: pfad, relativeTo: origin)?.absoluteURL, sameOrigin(url, origin) else { return }
+        webView.load(URLRequest(url: url))
+    }
+
     /// Lädt die aktuelle Seite neu; ohne bisherige Seite die Startseite.
     func reload(fallbackPath: String) {
         if let url = webView.url, sameOrigin(url, origin) { webView.reload() } else { load(path: fallbackPath) }

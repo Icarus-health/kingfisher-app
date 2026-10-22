@@ -34,6 +34,7 @@ Schritts („aufnahme“), nie der Fehlertext.
 | `modellwechsel` | `rolle`, `wofuer`, `lokal`, `modell` | `model_roles_routes.py` |
 | `export` | `was` | `server.py`, Export des Selbstmodells |
 | `rueckmeldung` | `sorte` | `rueckmeldung_routes.py` („Stimmt nicht?“) |
+| `mitteilung`, `mitteilung_ueberfluessig` | `sorte` (morgen, termin, zusage) | `mitteilungen.py`: die Mac-App hat eine Mitteilung gezeigt, der Mensch hat sie als überflüssig gemeldet; daraus die Wochenzahl unter Einstellungen → Was Kingfisher darf (`GET /api/v1/mitteilungen/woche`). Nie Titel oder Satz, nur die Art; in den drei Zeilen des Briefings tauchen sie nicht auf |
 | `zu_lang` | `sorte`, `anzahl` | `working_memory_store.py` (`pending`): eine Quelle über der Obergrenze der Einordnung (200.000 Zeichen, `abschnitte.py`) bleibt zurückgestellt; einmal je Fassung der Quelle. Im Briefing: „1 Quelle zu lang zum Einordnen“ (Gruppe Betrieb) |
 | `akte_vorschlag` | `entscheidung` (angenommen, abgelehnt, zurueckgenommen), `sache`, `name`, `kennung` | `akten_vorschlaege_routes.py` bei jedem Klick zu „Neue Akte?“; eine angenommene Akte zählt in der Zusammenfassung als neue Akte, „Nein danke“ als abgelehnter Vorschlag |
 

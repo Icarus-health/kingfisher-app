@@ -1791,6 +1791,8 @@ def create_app(
     suchindex_routes.anwenden(app)
     suchindex_routes.register(app, guard, _data_dir)
     register_tag(app, guard)
+    from .mitteilungen_routes import register as register_mitteilungen
+    register_mitteilungen(app, guard, _data_dir)
 
     def health_authenticated(
         token: str | None,
