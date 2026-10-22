@@ -51,6 +51,13 @@ der Startseite übernimmt ein Klick den Vorschlag unverändert als Aufgabe;
 wer ihn ändern oder verwerfen will, prüft ihn in den Vorhaben. Angelegt wird
 nur mit diesem Klick.
 
+**Ein Projekt, das sich bildet.** Auf dieselbe Weise nennt das Briefing höchstens
+ein erwähntes Projekt, das noch keine Akte hat („In 4 Mails seit 3. Oktober mit
+Anna Keller und Ben Braun geht es um „Projekt Atlas“. Daraus eine Akte machen?“),
+mit „Akte anlegen“ und „Nein danke“. Ohne Modell, aus Zahl, Zeit und Beteiligten
+der Quellen; die Akte entsteht nur durch den Klick und lässt sich wieder auflösen.
+Siehe `docs/30-akten.md`, Abschnitt „Neue Akte?“.
+
 ### 2. Delegation — was bei jemandem liegt, ist keine Schuld ✓
 
 Eine flache Aufgabenliste wirft zwei Dinge in einen Topf: was **du** noch tun

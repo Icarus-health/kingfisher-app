@@ -2,10 +2,10 @@
 
 Stand: 30. September 2026 (Migration 13, nach C2 mit Schema 12). Umsetzung von D1 und D2 aus
 [`27-schichten-und-fragen.md`](27-schichten-und-fragen.md). Code:
-`sidecar/icarus_memory/bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`;
-Bausteine in `mappe.py`, `time_scope.py`, `memory_categories.py`,
-`working_memory_store.py`. Tests: `test_bezuege.py`, `test_akten.py`,
-`test_akten_routes.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
+`sidecar/icarus_memory/bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`,
+`akten_vorschlaege.py` (Neue Akte?, Oktober 2026); Bausteine in `mappe.py`, `time_scope.py`,
+`memory_categories.py`, `working_memory_store.py`. Tests: `test_bezuege.py`, `test_akten.py`,
+`test_akten_routes.py`, `test_akten_vorschlaege.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
 
 ## Was sich ändert
 
@@ -219,6 +219,46 @@ Bitten), „Bitten an dich“.
 Fristen dunkel. Jeder Punkt ist ein Knopf und öffnet seine Quelle; der Strahl ist ein
 einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
 
+### Neue Akte? (Paket B4, Migration 24)
+
+Projekt-Akten entstanden bisher nur über eine Zuordnung des Nutzers (`project_id`) oder als Akte einer
+bloßen Erwähnung (`projekt:n:<Name>`). Ein Projekt, das sich erst in den Mails bildet, bemerkte niemand.
+`akten_vorschlaege.py` sieht die erwähnten, noch nicht angelegten Projekte durch und schlägt vor, daraus
+eine Akte zu machen, ohne Modell, deterministisch und mit Begründung in einem Satz:
+
+* **Schwelle.** Vorgeschlagen wird ein Name, wenn mindestens eines gilt: drei geltende Quellen, zwei
+  verschiedene Personen über mindestens zwei Quellen, oder Quellen über 14 Tage verteilt.
+* **Nie vorgeschlagen** werden Namen, die ein vorhandenes Projekt tragen (ohne Groß- und Kleinschreibung,
+  in Umschrift: „Mueller“ und „Müller“ sind eins), Namen unter drei Zeichen und reine Zahlen. Zwei
+  gleichnamige Projekte ordnet `bezuege.projekte_aus` weiterhin bewusst nicht zu.
+* **Grund und Textstellen.** „In 4 Mails seit 3. Oktober mit Anna Keller und Ben Braun“: Zahl und Art der
+  Quellen, Datum der ältesten, die Beteiligten aus denselben Quellen; dazu bis zu fünf Quellen mit der
+  Textstelle der Erwähnung (`quellen_von`, `zitat`). Die Kennung ist ein Hash des normalisierten Namens.
+* **Verdichtung schlägt vor, sie schreibt nicht.** Der Vorschlag speichert nichts. Erst „Akte anlegen“
+  (`POST /api/v1/akten/vorschlaege/{kennung}/annehmen`) legt das Projekt idempotent an (deterministische
+  ID aus der Kennung, ein unterbrochener Versuch ergänzt beim zweiten nur), ordnet die Quellen des
+  Vorschlags zu, die noch kein Projekt haben (wie `PUT /api/v1/episodes/projects`), merkt „angenommen“ und
+  antwortet mit der Akte (Link) und einem Satz („Akte „Projekt Atlas“ angelegt, 4 Quellen zugeordnet.“).
+  Ein Projekt ist Ablage, kein Fakt: Es entsteht keine Aussage und kein Wissensvorschlag. Danach hängen
+  alle `n:`-Erwähnungen über das Register am Projekt; die Akte des Projekts ist mit Quellen, Beteiligten
+  und Zeitstrahl vollständig.
+* **Reversibel.** „Zurücknehmen“ löst die zugeordneten Quellen wieder, entfernt das Projekt, wenn nichts
+  anderes daran hängt (andere Quellen, Aufgaben, Notizen, Termine; sonst bleibt es und der Satz sagt
+  warum), und vergisst die Entscheidung; der Vorschlag steht wieder. „Nein danke“ (`…/ablehnen`) wird
+  gemerkt und nie wiederholt, bis der Nutzer es in der Akte zurücknimmt („Doch vorschlagen“). Zweimal
+  annehmen ist 409 und ändert nichts; eine unbekannte Kennung ist 404.
+* **Ablage.** Tabelle `akten_vorschlag_entscheidungen` (Migration 24): Kennung, Entscheidung (`angenommen`,
+  `abgelehnt`), Zeitpunkt, Sache, Projekt-ID und die zugeordneten Quellen-IDs. Nur Verweise, kein Text.
+  Jeder Klick steht im Logbuch (Art `akte_vorschlag`); eine angenommene Akte zählt dort als neue Akte.
+
+**Anzeige.** In der Akte `projekt:n:<Name>` steht oben, vor „Braucht dich“, die Zeile „Neue Akte? Daraus
+eine Akte machen? Grund.“ mit den Textstellen und zwei Knöpfen „Akte anlegen“ und „Nein danke“. Annehmen
+öffnet die neue Akte mit dem Satz und „Rückgängig“; dort steht dauerhaft „Aus einem Vorschlag angelegt“
+mit „Akte wieder auflösen“. Im Briefing und auf Heute erscheint **höchstens ein** Vorschlag, der mit den
+meisten Quellen und bei gleicher Zahl der älteste, als ein Satz mit denselben zwei Knöpfen (`briefing.py`,
+Quelle `akte_vorschlag`, leises Gewicht wie das Vorhaben); nie eine Liste. Die Antwort bleibt auf Heute
+stehen, auch wenn der Punkt danach verschwindet, mit „Akte öffnen“.
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.
@@ -233,6 +273,10 @@ einziger Tab-Stopp, die Pfeiltasten (und Pos1/Ende) gehen von Punkt zu Punkt.
 | `POST /api/v1/akten/aktualisieren` | Bezüge neu bestimmen (Prüfung; der Server tut es von selbst) |
 | `PUT /api/v1/akten/entscheidung` | `{sache, ziel, entscheidung: erledigt|gilt_nicht|offen}`; nur Ziele dieser Akte (sonst 404) |
 | `DELETE /api/v1/akten/entscheidung?sache=&ziel=` | Entscheidung zurücknehmen (404, wenn keine da ist) |
+| `GET /api/v1/akten/vorschlaege` | offene Vorschläge „Neue Akte?“ mit Grund und Textstellen (Prüfung; die Oberfläche zeigt nie eine Liste) |
+| `POST /api/v1/akten/vorschlaege/{kennung}/annehmen` | Projekt anlegen, Quellen ohne Projekt zuordnen; Antwort: Akte (Link) und Satz; 404 unbekannt, 409 schon angenommen |
+| `POST /api/v1/akten/vorschlaege/{kennung}/ablehnen` | „Nein danke“ merken (409, wenn schon entschieden) |
+| `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen` | Entscheidung zurücknehmen: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran hängt (404 ohne Entscheidung) |
 
 Jede Anfrage führt die Bezüge kurz nach (höchstens 1,5 s); den Rest rechnet ein
 Hintergrundfaden zu Ende. Die Antwort nennt `berechnung.offen`, statt zu tun, als wäre
