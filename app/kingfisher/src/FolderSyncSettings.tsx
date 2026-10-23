@@ -83,23 +83,26 @@ export function FolderSyncSettings() {
     <div className="compact-integration-heading"><div><h2>Dokumentenordner</h2><p>Dokumente aus einem ausgewählten Ordner von selbst aufnehmen.</p></div></div>
     <details className="quiet-details" onToggle={event => setExpanded(event.currentTarget.open)}>
     <summary>Dokumente automatisch aufnehmen</summary>
-    <p>Lege Dokumente in diesen Ordner. Kingfisher prüft ihn einmal pro Minute und übernimmt Text, DOCX, PDF, SRT und VTT. Mitschriften aus Meetings gehören in den Ordner unter „Meetings“; dort werden sie einem Termin zugeordnet.</p>
-    <p>Du kannst die Aufnahme jederzeit pausieren. Bisherige Belege bleiben erhalten; entfernte Dateien werden nach einer vollständigen Prüfung nicht mehr als aktuelles Wissen verwendet.</p>
-    {loading ? <p role="status">Ordneraufnahme wird geladen …</p> : null}
+    <p className="source-hint">Kingfisher prüft den Ordner einmal pro Minute und übernimmt Text, DOCX, PDF, SRT und VTT; Mitschriften gehören unter „Meetings“. Bisherige Belege bleiben beim Pausieren erhalten; entfernte Dateien gelten nach der nächsten vollständigen Prüfung nicht mehr als aktuelles Wissen.</p>
+    {loading && !data ? <p role="status">Ordneraufnahme wird geladen …</p> : null}
     {data ? <>
-      <p><strong>Ordner:</strong> {data.folder || "Noch kein Ordner ausgewählt"}</p>
+      {data.folder ? <p><strong>Ordner:</strong> {data.folder}</p> : null}
       <p role="status"><strong>{worker}</strong></p>
       {ordnerWeg(data) === "browser" && (!data.root_id || andererOrdner)
         ? <OrdnerImBrowser prefix="/api/v1/folder-sync" beiGewaehlt={text => { setSatz(text); setAndererOrdner(false); void load(); }} /> : null}
       {ordnerWeg(data) === "browser" && data.root_id && !andererOrdner
         ? <button className="secondary-action" type="button" disabled={busy} onClick={() => setAndererOrdner(true)}>Anderen Ordner wählen …</button> : null}
       {satz ? <p role="status">{satz}</p> : null}
-      <p>{data.synced_at ? `Letzter erfolgreicher Lauf: ${formatDate(data.synced_at)}` : "Noch kein erfolgreicher Lauf"}</p>
-      {data.last_run ? <p>{data.last_run.recorded} aufgenommen · {data.last_run.duplicates} unverändert · {data.last_run.changed} geändert · {data.last_run.removed} entfernt</p> : null}
-      {data.last_run?.errors.length ? <p role="alert">{data.last_run.errors.join(" ")}</p> : null}
-      <button className="primary-action" type="button" disabled={busy || !data.root_id} onClick={() => void setEnabled(!data.enabled)}>{data.enabled ? "Ordneraufnahme pausieren" : "Ordneraufnahme aktivieren"}</button>
-      <button className="secondary-action" type="button" disabled={busy || !data.enabled} onClick={() => void run()}>Jetzt prüfen</button>
-      {data.files.length ? <section aria-label="Aufgenommene Dateien"><h3>Aufgenommene Dateien</h3>{data.files.map(file => <article className="identity-source-row" key={file.id}><strong>{file.filename}</strong><p>{file.state === "ignored" ? "Nicht mehr verwendet" : "Aufgenommen"}</p><ProfileSource kind="episode" id={file.id} /></article>)}</section> : <p>Noch keine Dateien aus diesem Ordner aufgenommen.</p>}
+      {data.root_id ? <>
+        <p>{data.synced_at ? `Letzter erfolgreicher Lauf: ${formatDate(data.synced_at)}` : "Noch kein erfolgreicher Lauf"}</p>
+        {data.last_run ? <p>{data.last_run.recorded} aufgenommen · {data.last_run.duplicates} unverändert · {data.last_run.changed} geändert · {data.last_run.removed} entfernt</p> : null}
+        {data.last_run?.errors.length ? <p role="alert">{data.last_run.errors.join(" ")}</p> : null}
+        <div className="ordner-aufnahme-knoepfe">
+          <button className="g-knopf-getoent" type="button" disabled={busy} onClick={() => void setEnabled(!data.enabled)}>{data.enabled ? "Ordneraufnahme pausieren" : "Ordneraufnahme aktivieren"}</button>
+          <button className="g-knopf-schlicht" type="button" disabled={busy || !data.enabled} onClick={() => void run()}>Jetzt prüfen</button>
+        </div>
+        {data.files.length ? <section aria-label="Aufgenommene Dateien"><h3>Aufgenommene Dateien</h3>{data.files.map(file => <article className="identity-source-row" key={file.id}><strong>{file.filename}</strong><p>{file.state === "ignored" ? "Nicht mehr verwendet" : "Aufgenommen"}</p><ProfileSource kind="episode" id={file.id} /></article>)}</section> : <p className="source-hint">Noch keine Dateien aus diesem Ordner aufgenommen.</p>}
+      </> : null}
     </> : null}
     </details>
     {error ? <p role="alert">Die Ordneraufnahme konnte nicht geladen oder geändert werden. <button type="button" disabled={busy} onClick={() => void load()}>Erneut versuchen</button></p> : null}

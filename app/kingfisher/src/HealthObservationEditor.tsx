@@ -53,10 +53,10 @@ export function HealthObservationEditor({observation=null,onSaved,onCancel}: {ob
           <label htmlFor="health-time">Gemessen am<input id="health-time" type={/\.\d{4,6}$/.test(form.localTime) ? 'text' : 'datetime-local'} value={form.localTime} onChange={e=>edit('localTime',e.target.value)} step="any" required /></label>
           <label htmlFor="health-offset">UTC-Zeitversatz<input id="health-offset" value={form.offset} onChange={e=>edit('offset',e.target.value)} placeholder="z. B. +02:00" maxLength={6} required /></label>
         </div>
-        <p className="health-help">Gerätezeitzone: {deviceZone}. Der Zeitversatz wird für eindeutige Gerätezeiten vorgeschlagen. Bei einer doppelten Stunde zur Zeitumstellung bitte bewusst wählen. Ein anderer Zeitversatz ist möglich und steht in der Vorschau.</p>
+        <p className="health-help">Gerätezeitzone: {deviceZone}. Den Zeitversatz schlägt Kingfisher vor; nur in der doppelten Stunde der Zeitumstellung wählst du ihn selbst. Er steht in der Vorschau.</p>
         <label htmlFor="health-note">Notiz (optional)<textarea id="health-note" value={form.note} onChange={e=>edit('note',e.target.value)} maxLength={4000} rows={2} /></label>
         <label className="health-own" htmlFor="health-own"><input id="health-own" type="checkbox" checked={form.own} onChange={e=>edit('own',e.target.checked)} />Meine eigene Angabe, keine Angabe zu einer anderen Person</label>
-        <div className="health-actions"><button className="primary" type="submit">Angabe prüfen</button><button type="button" onClick={onCancel}>Abbrechen</button></div>
+        <div className="health-actions"><button className="primary" type="submit">Angabe prüfen</button><button type="button" className="g-knopf-schlicht" onClick={onCancel}>Abbrechen</button></div>
       </fieldset>
     </form>
     {preview && <div className="health-preview" role="status">
