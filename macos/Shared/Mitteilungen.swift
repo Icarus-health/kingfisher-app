@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking  // URLRequest unter Linux (Prüfprogramm in der CI), wie PowerReporter.swift
+#endif
 
 // Mitteilungen auf dem Mac (Etappe 5, docs/24-weg-zum-jarvis.md): die reine Logik ohne AppKit und ohne
 // UserNotifications, damit sie außerhalb des Macs prüfbar ist (macos/tests/main.swift). Liegt wie PowerReportRequest
