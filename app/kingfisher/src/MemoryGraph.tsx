@@ -17,7 +17,9 @@ import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
 import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
+import { Leer, Seitenkopf, Segmente } from "./grundlage";
 import "./MemoryWorkspace.css";
+import "./Gedaechtnis.css";
 
 type FilterId = MemoryTab;
 
@@ -34,6 +36,8 @@ const MORE_FILTERS: typeof FILTERS = [
   { id: "places", label: "Orte", icon: "pin" },
   { id: "decisions", label: "Entscheidungen", icon: "check" },
 ];
+
+const PERSONEN_FILTER: Array<[PersonFilter, string]> = [["people", "Personen"], ["automated", "Automatische Absender"], ["review", "Prüfen"], ["all", "Alle"]];
 
 const RING_POSITIONS = [
   [18, 20], [48, 13], [78, 22], [86, 53], [73, 78],
@@ -132,9 +136,7 @@ function GraphCanvas({ graph, filter, personFilter }: { graph: MemoryGraph; filt
   if (total === 0) {
     return (
       <section className="memory-canvas memory-empty" aria-live="polite">
-        <img src="/03_Media/Approved/kingfisher-flight-transparent-approved-v1.png" alt="" />
-        <p>Noch keine belegten {canvasLabel}.</p>
-        <GedaechtnisLeer />
+        <GedaechtnisLeer satz={`Noch keine belegten ${canvasLabel}.`} />
       </section>
     );
   }
@@ -239,38 +241,27 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
     return () => window.removeEventListener("popstate", applyPeopleQuery);
   }, []);
 
+  // Ansichten außerhalb der Segmente tragen ihren Namen als Titel unter der Leiste.
+  const unteransicht = section === "browse" && filter === "decisions" ? "Entscheidungen" : null;
+
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
       <main data-memory-loading={filter !== "documents" && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
+        <Seitenkopf titel="Gedächtnis" aktionen={section === "browse" && filter === "documents" ? <button className="g-knopf document-add" type="button" onClick={()=>setDocumentImportOpen(true)}><img src={icon("plus","Outline")} alt=""/>Dokument hinzufügen</button> : undefined} />
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
-          <div className="memory-heading-row"><h1>Gedächtnis</h1>{section === "browse" && filter === "documents" && <button className="primary-action document-add" type="button" onClick={()=>setDocumentImportOpen(true)}><img src={icon("plus","Outline")} alt=""/>Dokument hinzufügen</button>}</div>
-          <div>
-            {FILTERS.map((item) => (
-              <button
-                aria-pressed={section === "browse" && filter === item.id}
-                className={section === "browse" && filter === item.id ? "active" : ""}
-                disabled={reviewSubmitting}
-                key={item.id}
-                onClick={() => updateBrowse({tab: item.id, q: "", page: 1, people: "people"})}
-                type="button"
-              >
-                <InterfaceIcon name={item.icon} />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-          {section === "browse" && filter === "people" ? <div className="memory-person-filter" aria-label="Personenqualität auswählen">
-            {([["people", "Personen"], ["automated", "Automatische Absender"], ["review", "Prüfen"], ["all", "Alle"]] as Array<[PersonFilter, string]>).map(([id, label]) => (
-              <button aria-pressed={personFilter === id} className={personFilter === id ? "active" : ""} disabled={reviewSubmitting} key={id} onClick={() => updateBrowse({tab: "people", people: id, q: "", page: 1})} type="button">{label}{graph ? ` (${personNodes(graph, id).length})` : ""}</button>
-            ))}
-          </div> : null}
+          <Segmente label="Gedächtnisbereich" wert={section === "browse" ? filter : ("" as FilterId)}
+            optionen={FILTERS.map(item => ({wert: item.id, titel: item.label, deaktiviert: reviewSubmitting}))}
+            onWahl={id => updateBrowse({tab: id, q: "", page: 1, people: "people"})} />
+          {section === "browse" && filter === "people" ? <Segmente kompakt className="memory-person-filter" label="Personenqualität auswählen" wert={personFilter}
+            optionen={PERSONEN_FILTER.map(([id, label]) => ({wert: id, titel: label, zahl: graph ? personNodes(graph, id).length : undefined, deaktiviert: reviewSubmitting}))}
+            onWahl={id => updateBrowse({tab: "people", people: id, q: "", page: 1})} /> : null}
         </aside>
+        {unteransicht ? <h2 className="g-titel memory-unteransicht">{unteransicht}</h2> : null}
         {documentImportOpen && <DocumentImport initiallyExpanded showLibrary={false} title="Dokument hinzufügen" onClose={()=>{setDocumentImportOpen(false);window.dispatchEvent(new Event("workspace-view-changed"));}} />}
         {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error ? (
           <section className="memory-canvas memory-error" aria-live="polite">
-            <p>Das Gedächtnis ist gerade nicht erreichbar.</p>
-            <button onClick={load} type="button">Wiederholen</button>
+            <Leer zeichen="brain" satz="Das Gedächtnis ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" onClick={load} type="button">Wiederholen</button>} />
           </section>
         ) : filter === "organizations" || filter === "places" || filter === "topic-files" || filter === "topics" ? (
           <SachenListe art={filter === "organizations" ? "organisation" : filter === "places" ? "ort" : "thema"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} />
@@ -282,7 +273,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           : <GraphCanvas key={`${filter}:${personFilter}`} filter={filter} personFilter={personFilter} graph={graph} />
         ) : <section className="memory-canvas memory-loading" aria-label="Gedächtnis wird geladen" />}
         {/* Seltene Ansichten und Pflege: eine leise Zeile am Ende statt eines Aufklappers im Kopf. */}
-        <nav className="memory-tools" aria-label="Weitere Ansichten und Pflege"><span>Weitere Ansichten:</span>
+        <nav className="memory-tools" aria-label="Weitere Ansichten und Pflege">
           {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => {updateBrowse({tab:item.id,q:"",page:1,people:"people"});zumAnfang();}}>{item.label}</button>)}
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "support"} onClick={() => {navigate("/memory?view=support");zumAnfang();}}>Aussagen prüfen</button>
           <button type="button" disabled={reviewSubmitting} aria-pressed={section === "status"} onClick={() => {navigate("/memory?view=status");zumAnfang();}}>Verarbeitung & Verlauf</button>

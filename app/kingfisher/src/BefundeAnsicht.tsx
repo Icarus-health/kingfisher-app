@@ -45,9 +45,9 @@ export function BefundZeile({ befund, arbeitet, onAktion }: {
     {wahl ? <p className="befund-hinweis">Ein Vorschlag: Erst dein Klick macht daraus Wissen. Die Quellen bleiben, wie sie sind.</p> : null}
     <div className="befund-aktionen">
       {wahl ? <>
-        <button type="button" className="primary-action" disabled={arbeitet} onClick={() => onAktion(befund, "neu")}>{knoepfe.neu}</button>
-        <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => onAktion(befund, "alt")}>{knoepfe.alt}</button>
-      </> : <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => onAktion(befund, "erledigt")}>Erledigt</button>}
+        <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "neu")}>{knoepfe.neu}</button>
+        <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "alt")}>{knoepfe.alt}</button>
+      </> : <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "erledigt")}>Erledigt</button>}
       <button type="button" className="text-action" disabled={arbeitet} onClick={() => onAktion(befund, "abgewiesen")}>Ignorieren</button>
     </div>
   </li>;
@@ -125,7 +125,7 @@ export function WasAufgefallenIst({ active, leerAusblenden = false, onLeer }: { 
   if (leerAusblenden && leer) return null;
   return <section className="source-section befunde" aria-label="Was Kingfisher aufgefallen ist">
     <h2>Was Kingfisher aufgefallen ist</h2>
-    <p>Widersprüche zwischen Akten, Quellen und dem, was du angenommen hast; geändert wird nichts ohne deinen Klick.</p>
+    <p className="g-fussnote">Geändert wird nichts ohne deinen Klick.</p>
     {befunde === null && !fehler ? <p>Wird geladen …</p> : null}
     {befunde !== null && zaehlung ? <p className="befunde-zahl" role="status">{zaehlSatz(zaehlung)}</p> : null}
     {oben.length ? <ul className="befunde-liste" aria-label="Aufgefallene Punkte">
@@ -138,7 +138,7 @@ export function WasAufgefallenIst({ active, leerAusblenden = false, onLeer }: { 
       </ul>
     </details> : null}
     <div className="befunde-pruefen">
-      <button type="button" className="secondary-action" disabled={arbeitet !== ""} onClick={() => void pruefen()}>
+      <button type="button" className="g-knopf-schlicht g-kompakt" disabled={arbeitet !== ""} onClick={() => void pruefen()}>
         {arbeitet === "pruefen" ? "Wird geprüft …" : "Jetzt prüfen"}</button>
       {zaehlung?.letzter_lauf ? <small>Zuletzt geprüft am {tag(zaehlung.letzter_lauf)}.</small> : null}
     </div>

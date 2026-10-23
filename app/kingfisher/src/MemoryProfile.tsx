@@ -18,7 +18,9 @@ import { kontakteText, kreisSache } from "./kreis";
 import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
 import { MemoryAvatarEditor } from "./MemoryAvatar";
+import { Leer, Segmente } from "./grundlage";
 import "./WorkspaceMemoryDetails.css";
+import "./Gedaechtnis.css";
 import { memoryReturnPath } from "./profileReturn";
 
 type ProfileKind = "person" | "project";
@@ -72,11 +74,11 @@ function PersonProfile({ data, tab, setTab, avatarId }: { avatarId: string; data
   const tabs: Array<[PersonTab, string]> = [["overview", "Übersicht"], ["projects", "Projekte"], ["conversations", "Gespräche"], ["documents", "Dokumente"], ["notes", "Notizen"]];
   return <>
     <div className="person-profile-header"><MemoryAvatarEditor id={avatarId} label={person.anzeige ?? displayLabel(person.name).name} />
-    <header className="profile-heading"><p className="eyebrow">PERSONENPROFIL</p><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header></div>
-    <nav aria-label="Personenprofilbereiche" className="profile-tabs">{tabs.map(([id, label]) => <button aria-pressed={tab === id} className={tab === id ? "active" : ""} key={id} onClick={() => setTab(id)} type="button">{label}</button>)}</nav>
+    <header className="profile-heading"><h1>{person.anzeige ?? displayLabel(person.name).name}</h1>{(person.adressen?.length ?? 0) > 0 ? <p>{person.adressen!.join(", ")}</p> : displayLabel(person.name).detail && <p>{displayLabel(person.name).detail}</p>}{(person.namen?.length ?? 0) > 1 && <p>Auch bekannt als: {person.namen!.slice(1).join(", ")}</p>}{(person.offen_mit?.length ?? 0) > 0 && <p>Nicht eindeutig zuzuordnen: passt zu {person.offen_mit!.join(" oder ")}.</p>}<span>{person.nur_von_aussen ? "Nur aus fremden Quellen bekannt" : kontakteText(person)}</span></header></div>
+    <Segmente className="profile-segmente" label="Personenprofilbereiche" wert={tab} optionen={tabs.map(([wert, titel]) => ({wert, titel}))} onWahl={setTab} />
     {tab === "overview" ? <div className="profile-grid">
       <section className="profile-card profile-wide person-at-a-glance"><div><h2>Zusammenfassung</h2><p><span className="profile-fact-label">Letzter Kontakt</span> {profileDate(person.letzter_kontakt) !== "—" ? profileDate(person.letzter_kontakt) : "Nicht belegt"}</p></div><div><h2>Wie verbunden?</h2>{data.contexts.length ? <div className="person-project-links">{data.contexts.slice(0,3).map(context=><MemoryEntityLink kind="project" key={String(context.project.id)} href={`/memory/projects/${encodeURIComponent(String(context.project.id))}`}>{field(context.project,"name")}</MemoryEntityLink>)}{data.contexts.length>3 && <button type="button" onClick={()=>setTab('projects')}>Alle {data.contexts.length} Projekte</button>}</div> : <p>Noch kein belegter Projektbezug.</p>}<details className="quiet-details"><summary>{person.kontakte ?? data.interactions.length} {(person.kontakte ?? data.interactions.length) === 1 ? "Quellenkontakt" : "Quellenkontakte"} · Herkunft</summary><p>{person.nur_von_aussen ? "Bisher aus Erwähnungen in fremden Quellen bekannt." : "Bezug aus den vorhandenen Quellen."}</p><p>{person.herkuenfte.length ? person.herkuenfte.map(sourceLabel).join(", ") : "Keine Quelle angegeben."}</p></details></div></section>
-      <section className={`profile-card profile-wide person-waiting${taskCards.length ? "" : " is-empty"}`}><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <details className="quiet-details"><summary>Noch keine Rückmeldung von dieser Person vorgemerkt.</summary><p>Weitere Aufgaben können in gemeinsamen Quellen stehen.</p></details>}</section>
+      <section className={`profile-card profile-wide person-waiting${taskCards.length ? "" : " is-empty"}`}><h2>Worauf ich warte</h2>{taskCards.length ? <><div className="profile-list profile-waiting-list">{taskCards.slice(0, 5)}</div>{taskCards.length > 5 ? <details><summary>Weitere offene Aufgaben ({taskCards.length - 5})</summary><div className="profile-list profile-waiting-list">{taskCards.slice(5)}</div></details> : null}</> : <p className="profile-empty">Noch keine Rückmeldung von dieser Person vorgemerkt. Weitere Aufgaben können in gemeinsamen Quellen stehen.</p>}</section>
       {(person.adressen ?? []).length ? (person.adressen ?? []).slice(0, 3).map((adresse, index) => <AkteAnsicht compact key={adresse} sache={`person:a:${adresse.toLowerCase()}`} fallback={index === 0 ? <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></> : null} />) : <><PersonKarten person={person} /><MappeDetails kind="person" id={person.verweis ?? person.name} /></>}
       <PersonDigest personId={data.id} compact />
       {person.themen.length>0 && <details className="profile-card profile-wide quiet-details"><summary>Themen & Verbindungen ({person.themen.length})</summary><div className="person-topic-list">{person.themen.map(topic=><span key={topic}>{topic}</span>)}</div></details>}
@@ -95,8 +97,8 @@ function ProjectProfile({ data, tab, setTab }: { data: ProjectProfileData; tab: 
   const priority = ({high: "Hoch", medium: "Mittel", low: "Niedrig"} as Record<string, string>)[field(project, "priority")] ?? field(project, "priority");
   const tabs: Array<[ProjectTab, string]> = [["overview", "Übersicht"], ["tasks", "Aufgaben"], ["documents", "Dokumente"], ["decisions", "Entscheidungen"], ["team", "Team"]];
   return <>
-    <header className="profile-heading"><p className="eyebrow">PROJEKTPROFIL</p><h1>{field(project, "name")}</h1><span>{status} · {field(project, "area")}</span></header>
-    <nav aria-label="Projektprofilbereiche" className="profile-tabs">{tabs.map(([id, label]) => <button aria-pressed={tab === id} className={tab === id ? "active" : ""} key={id} onClick={() => setTab(id)} type="button">{label}</button>)}</nav>
+    <header className="profile-heading"><h1>{field(project, "name")}</h1><span>{status} · {field(project, "area")}</span></header>
+    <Segmente className="profile-segmente" label="Projektprofilbereiche" wert={tab} optionen={tabs.map(([wert, titel]) => ({wert, titel}))} onWahl={setTab} />
     {tab === "overview" ? <div className="profile-grid">
       <section className="profile-card"><h2>Ziel</h2><p>{field(project, "description")}</p></section>
       <section className="profile-card"><h2>Status</h2><p>{status}</p><small>Priorität: {priority}</small></section>
@@ -138,11 +140,10 @@ export function MemoryProfile({ kind, identifier, recentConversation }: { kind: 
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
       <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, kind))} type="button">← Gedächtnis</button>
-      {error ? <section className="profile-state"><h1>{title}</h1><p>Dieses Profil ist gerade nicht erreichbar oder nicht belegt.</p><button onClick={() => window.location.reload()} type="button">Wiederholen</button></section> : null}
+      {error ? <section className="profile-state" aria-label={title}><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data && !contactSources ? <section className="profile-state profile-loading" aria-label={`${title} wird geladen`}><i /><i /><i /></section> : null}
-      {contactSources ? <section className="profile-card profile-wide">
-        <h1>Absenderquellen</h1><p>{contactSources.node.label}</p>
-        <p>Technischer oder ungeklärter Absender · keine bestätigte Personenidentität.</p>
+      {contactSources ? <section className="profile-card profile-wide profile-absender">
+        <header className="profile-heading"><h1>{displayLabel(contactSources.node.label).name}</h1><span>Absender ohne bestätigte Personenidentität</span></header>
         {contactSources.sources.map(source => <ProfileSource key={source.id} kind="episode" id={source.id.slice(8)} label={source.label} readOnly allowIgnore={false} />)}
       </section> : null}
       {data && kind === "person" ? <PersonProfile avatarId={sourceNodeId ?? data.id} data={data as PersonProfileData} setTab={setPersonTab} tab={personTab} /> : null}
@@ -168,10 +169,10 @@ export function RegistryProfile({ identifier, recentConversation }: { identifier
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="profile-page">
       <button className="profile-back" onClick={() => navigate(memoryReturnPath(window.location.search, data?.entity.kind === "project" ? "project" : "person"))} type="button">← Gedächtnis</button>
-      {error ? <section className="profile-state"><h1>Profil</h1><p>Dieses Profil ist gerade nicht erreichbar oder nicht belegt.</p><button onClick={() => window.location.reload()} type="button">Wiederholen</button></section> : null}
+      {error ? <section className="profile-state" aria-label="Profil"><Leer zeichen="people" satz="Dieses Profil ist gerade nicht erreichbar oder nicht belegt." aktion={<button className="g-knopf-getoent" onClick={() => window.location.reload()} type="button">Wiederholen</button>} /></section> : null}
       {!error && !data ? <section className="profile-state profile-loading" aria-label="Profil wird geladen"><i /><i /><i /></section> : null}
       {data ? <>
-        <header className="profile-heading"><p className="eyebrow">{({person: "PERSONENPROFIL", project: "PROJEKTPROFIL", organization: "ORGANISATION", topic: "THEMA", place: "ORT", document: "DOKUMENT"} as Record<string, string>)[data.entity.kind] || "PROFIL"}</p><h1>{data.entity.label}</h1><span>Ausdrücklich zugeordneter Wissensstand</span></header>
+        <header className="profile-heading"><h1>{data.entity.label}</h1><span>{({person: "Person", project: "Projekt", organization: "Organisation", topic: "Thema", place: "Ort", document: "Dokument"} as Record<string, string>)[data.entity.kind] || "Profil"} · ausdrücklich zugeordneter Wissensstand</span></header>
         {["person","organization"].includes(data.entity.kind) ? <MemoryAvatarEditor id={data.entity.id} label={data.entity.label} logo={data.entity.kind === "organization"} /> : null}
         {data.entity.kind === "person" ? <PersonDigest personId={data.entity.id} /> : null}
         <section className="profile-card"><h2>Bestätigte Beziehungen und Aussagen</h2><ClaimControls entities={data.related_entities ?? {}} claims={data.claims} history={data.claim_history} onChanged={() => setRevision(value => value + 1)} /></section>

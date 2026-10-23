@@ -36,8 +36,8 @@ export function WiederkehrendKarte({ sache }: { sache: string }) {
       {e.art === "vorschlag" ? <p className="kreis-warum">Warum: {e.begruendung}</p> : null}
       {e.beleg ? <p className="kreis-warum">Beleg: „{e.beleg.zitat}“ <ProfileSource kind="episode" id={e.beleg.episode_id} label="Quelle öffnen" quiet readOnly allowIgnore={false} /></p> : null}
       {e.art === "vorschlag" ? <div className="kreis-wahlen" role="group" aria-label="Vorschlag entscheiden">
-        <button type="button" className="primary-action" disabled={arbeitet} onClick={() => void entscheiden(e, true)}>Stimmt, übernehmen</button>
-        <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => void entscheiden(e, false)}>Stimmt nicht</button>
+        <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => void entscheiden(e, true)}>Stimmt, übernehmen</button>
+        <button type="button" className="g-knopf-schlicht g-kompakt" disabled={arbeitet} onClick={() => void entscheiden(e, false)}>Stimmt nicht</button>
       </div> : null}
     </div>)}
     {hinweis ? <p role="status" className="kreis-ok">{hinweis}</p> : null}

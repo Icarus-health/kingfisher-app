@@ -6,6 +6,7 @@ import { MemoryAvatar } from "./MemoryAvatar";
 import { useWorkspaceMemoryView } from "./useWorkspaceMemoryView";
 import { contactDateFromGraph } from "./WorkspaceMemoryModel";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
+import { Gruppe, Leer } from "./grundlage";
 
 
 export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, page: restoredPage, onQueryChange, onPageChange, hasSources = false, graph }: {
@@ -28,30 +29,31 @@ export function MemoryDirectory({ nodes, title, onOpen, query: restoredQuery, pa
   const pages = Math.max(1, Math.ceil(matches.length / 25));
   const current = Math.min(page, pages - 1);
   const visible = matches.slice(current * 25, (current + 1) * 25);
-  return <section className="memory-directory" aria-label={title}>
-    <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{title}</h1>
-      <details className="quiet-details"><summary>Über diese Akten</summary><p>Eine Akte pro Eintrag. Beziehungen und Originalquellen findest du in der jeweiligen Akte.</p></details></header>
-    <label className="directory-search">{title === "Projekte" ? "Projekt suchen" : "Name oder E-Mail suchen"}
-      <input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Suchen …" />
-    </label>
-    {imageError && <p role="alert">Eigene Bilder konnten nicht geladen werden. <button type="button" onClick={() => void retryImages()}>Bilder erneut laden</button></p>}
-    <p className="directory-count" aria-live="polite">{matches.length} von {nodes.length} Einträgen</p>
-    {visible.length ? <ul className="directory-list">{visible.map(node => {
+  const zuordnung = (node: GraphNode) => node.attributes.identity_resolution === "explicit_registry" ? "Eigene Akte"
+    : node.attributes.identity_resolution === "confirmed_group" ? "Gemeinsame Ansicht · Zuordnung prüfen" : "";
+  return <section className="memory-directory gd-verzeichnis" aria-label={title}>
+    <header className="gd-verzeichnis-kopf">
+      <label className="directory-search"><span className="visually-hidden">{title === "Projekte" ? "Projekt suchen" : "Name oder E-Mail suchen"}</span>
+        <input type="search" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder={title === "Projekte" ? "Projekt suchen …" : "Name oder E-Mail suchen …"} />
+      </label></header>
+    {imageError && <p role="alert" className="gd-hinweis">Eigene Bilder konnten nicht geladen werden. <button type="button" className="g-knopf-schlicht g-kompakt" onClick={() => void retryImages()}>Bilder erneut laden</button></p>}
+    {visible.length ? <Gruppe titel={<span className="directory-count" aria-live="polite">{query ? `${matches.length} von ${nodes.length}` : `${nodes.length} ${nodes.length === 1 ? "Eintrag" : "Einträge"}`}</span>}><ul className="directory-list gd-liste">{visible.map(node => {
       const label = displayLabel(node.label);
-      return <li key={node.id} data-memory-row={node.id}><button type="button" onClick={() => onOpen(node)} aria-label={`Akte öffnen: ${node.label}`}>
+      const neben = [label.detail, node.kind === "person" ? "" : node.attributes.area ? String(node.attributes.area) : "", zuordnung(node)].filter(Boolean).join(" · ");
+      const kontakt = node.kind === "person" && graph ? contactDateFromGraph(graph, node.id) : "";
+      return <li key={node.id} data-memory-row={node.id}><button type="button" className="g-zeile gd-zeile" onClick={() => onOpen(node)} aria-label={`Akte öffnen: ${node.label}`}>
         <MemoryAvatar id={node.id} label={label.name} available={overview?.avatars.some(record => record.id === node.id && record.data?.available) ?? false} revision={overview?.avatars.find(record => record.id === node.id)?.revision} />
-        <span className="directory-label"><strong>{label.name}</strong>{label.detail && <small>{label.detail}</small>}
-          <small>{node.kind === "person" ? `Letzter Kontakt: ${graph ? contactDateFromGraph(graph, node.id) : "unbekannt"}` : node.attributes.area ? String(node.attributes.area) : "Bereich unbekannt"}</small>
-          <small>{node.attributes.identity_resolution === "explicit_registry" ? "Eigene Akte" : node.attributes.identity_resolution === "confirmed_group" ? "Gemeinsame Ansicht · Zuordnung prüfen" : "Aus vorhandenen Quellen"}</small></span>
-        <span className="directory-open">Akte öffnen <span aria-hidden="true">→</span></span>
+        <span className="g-zeile-text"><span className="g-zeile-titel">{label.name}</span>{neben ? <span className="g-zeile-neben">{neben}</span> : null}</span>
+        {kontakt && kontakt !== "unbekannt" ? <span className="g-zeile-wert" title="Letzter Kontakt">{kontakt}</span> : null}
+        <span className="g-zeile-pfeil" aria-hidden="true" />
       </button></li>;
-    })}</ul> : <div className="directory-empty"><h2>{query ? "Kein passender Eintrag" : title === "Projekte" && hasSources ? "Noch keine Projekte zugeordnet" : "Hier ist noch Platz"}</h2>
-      {query ? <p>Versuche einen anderen Namen oder einen Teil der E-Mail-Adresse.</p> : title === "Projekte" && hasSources ? <p>Quellen sind vorhanden. Sobald sie einem Projekt zugeordnet sind, erscheint es hier. <a href="/memory?view=status">Einordnung und Quellenstand ansehen</a></p> : <GedaechtnisLeer />}
-      {query && <button type="button" onClick={() => { setQuery(""); setPage(0); }}>Suche zurücksetzen</button>}</div>}
+    })}</ul></Gruppe> : query ? <Leer zeichen="search" satz="Kein passender Eintrag." aktion={<button type="button" className="g-knopf-getoent" onClick={() => { setQuery(""); setPage(0); }}>Suche zurücksetzen</button>} />
+      : title === "Projekte" && hasSources ? <Leer zeichen="project" satz="Noch keine Projekte zugeordnet." aktion={<a className="g-knopf-getoent" href="/memory?view=status">Einordnung ansehen</a>} />
+      : <GedaechtnisLeer />}
     {pages > 1 && <nav className="directory-pagination" aria-label="Aktenseiten">
-      <button type="button" disabled={current === 0} onClick={() => setPage(current - 1)}>Zurück</button>
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={current === 0} onClick={() => setPage(current - 1)}>Zurück</button>
       <span>Seite {current + 1} von {pages}</span>
-      <button type="button" disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Weiter</button>
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Weiter</button>
     </nav>}
   </section>;
 }
