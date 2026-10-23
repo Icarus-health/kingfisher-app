@@ -275,7 +275,7 @@
 #root main.aufgaben .task-vorschlag .mail-task-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-a3); }
 #root main.aufgaben .task-vorschlag :is(.task-suggestion-fields, .mail-task-form-fields) label { display: grid; gap: 6px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
 #root main.aufgaben .task-vorschlag :is(.task-suggestion-fields, .mail-task-form-fields) label small { font: 400 13px/1.4 var(--g-schrift); }
-#root main.aufgaben .task-vorschlag :is(input:not([type=checkbox]), select) { width: 100%; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
+#root main.aufgaben .task-vorschlag :is(input:not([type=checkbox]), select) { width: 100%; height: auto; min-height: var(--g-ziel); box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
 #root main.aufgaben .task-vorschlag .task-vorschlag-formular-aktionen { justify-content: flex-end; width: 100%; }
 #root main.aufgaben .task-vorschlag .task-vorschlag-fehler { margin: 0; font: var(--g-neben); color: var(--g-rot); }
 @media (max-width: 700px) { #root main.aufgaben .task-vorschlag .mail-task-form-fields { grid-template-columns: minmax(0, 1fr); } }

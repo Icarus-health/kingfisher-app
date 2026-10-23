@@ -13,8 +13,10 @@
 /* Formular: eine weiße Fläche, Beschriftung klein über dem Feld, Knöpfe rechts unten. */
 #root .decision-create-form {
   display: grid; gap: var(--g-a4); margin: 0; padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche);
-  background: var(--g-flaeche); box-shadow: var(--g-schatten);
+  background: var(--g-grund); box-shadow: none;
 }
+/* Auf der grauen Seite eine eigene weiße Fläche; in einer fremden Karte (etwa Öffentliches Wissen) bleibt es flach grau. */
+#root :is(.decision-controls, .habit-inhalt) > .decision-create-form { background: var(--g-flaeche); box-shadow: var(--g-schatten); }
 #root .decision-create-form > label, #root .decision-create-form legend { display: grid; gap: 6px; margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
 #root .decision-create-form :is(textarea, input:not([type=checkbox]), select) { width: 100%; min-width: 0; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
 #root .decision-create-form textarea { min-height: 88px; padding: 10px var(--g-a3); resize: vertical; }
@@ -49,6 +51,7 @@
 /* In einer umgebenden Karte (Projektakte im Gedächtnis) ist die Karte die Fläche: keine Fläche in der Fläche. */
 #root .profile-card .decision-controls :is(.decision-list, .decision-leer) { border-radius: 0; background: transparent; box-shadow: none; border-top: 1px solid var(--g-linie); }
 #root .profile-card .decision-controls .decision-row { padding-inline: 0; }
+#root .profile-card .decision-controls > .decision-create-form { background: var(--g-grund); box-shadow: none; }
 #root .profile-card .decision-controls .decision-row + .decision-row::before { left: 0; }
 @media (max-width: 700px) {
   #root .decision-row { flex-direction: column; align-items: stretch; gap: var(--g-a1); }
