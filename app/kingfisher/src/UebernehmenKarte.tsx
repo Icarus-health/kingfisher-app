@@ -81,7 +81,7 @@ export function InDieAkte({ conversationId, messageId }: { conversationId: strin
   const karte = (v: UebernehmenVorschlag, hinweise: string[]) => {
     const stand = entschieden[v.id] ?? (v.state === "accepted" ? "angenommen" : v.state === "rejected" ? "abgelehnt" : null);
     return <section className="memory-candidate uebernehmen-karte" key={v.id} aria-label="Gedächtnisvorschlag">
-      <span>GEDÄCHTNISVORSCHLAG FÜR DIE AKTE</span>
+      <span className="karte-titel">Vorschlag für die Akte</span>
       <strong>{v.statement}</strong>
       {v.evidence[0] ? <p className="memory-source">Beleg: „{v.evidence[0].quote}“</p> : null}
       {hinweise.map(h => <p className="memory-notice" key={h}>{h}</p>)}

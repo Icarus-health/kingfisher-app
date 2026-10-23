@@ -79,10 +79,12 @@ test('one-time update results are not mounted inside a closed disclosure',()=>{
 test('activity is first read only on opening its disclosure and keeps its editor mounted after closing',()=>{
  const state=[];const draw=()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false});
  let tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,0,'closed activity must not consume the since-last-view marker');
- const panel=nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0];panel.props.onToggle({currentTarget:{open:true}});
- tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);
- nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0].props.onToggle({currentTarget:{open:false}});
+ const zeile=()=>nodes(tree,n=>n.type==='button'&&n.props.className==='g-zeile today-activity-zeile')[0];
+ assert.equal(zeile().props['aria-expanded'],false);zeile().props.onClick();
+ tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);assert.equal(zeile().props['aria-expanded'],true);
+ zeile().props.onClick();
  tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1,'an already opened activity keeps local drafts');
+ assert.equal(nodes(tree,n=>n.props?.className==='today-activity-inhalt')[0].props.hidden,true,'closed again, but still mounted');
 });
 
 test('compact person digest keeps stale status and errors visible outside its closed tools',()=>{

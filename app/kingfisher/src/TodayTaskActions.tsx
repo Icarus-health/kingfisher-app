@@ -28,11 +28,11 @@ export function TodayTaskActions({item, onChanged}: {item: Attention; onChanged:
   return <div className="today-task-actions">
     <div className="task-suggestion-actions">
       <button className="today-action" type="button" disabled={busy || Boolean(notice) || (expanded && moreOpen)} onClick={() => expanded ? setMoreOpen(true) : void act()}>{busy ? 'Wird gespeichert …' : expanded ? 'Bearbeitung fortsetzen' : waiting ? 'Zurück zu mir' : 'Erledigen'}</button>
-      <details className="quiet-details today-task-more" open={moreOpen} onToggle={event=>setMoreOpen(event.currentTarget.open)}><summary>Details & Bearbeiten</summary>
+      <details className="quiet-details today-task-more" open={moreOpen} onToggle={event=>setMoreOpen(event.currentTarget.open)}><summary>Details</summary>
       {(item.reason || item.detail) && <p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p>}
       {item.episode_id && <ProfileSource kind="episode" id={item.episode_id} label="Weitere Nachricht im Verlauf ansehen" originalOnly />}
       <button className="today-text-link" type="button" disabled={busy} aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? 'Bearbeitung schließen' : 'Hier bearbeiten'}</button>
-      <a className="today-text-link" href={taskHref({id, wartet_auf: waiting ? 'waiting' : null, project_id: item.project_id})}>Aufgabe öffnen →</a>
+      <a className="today-text-link" href={taskHref({id, wartet_auf: waiting ? 'waiting' : null, project_id: item.project_id})}>In Aufgaben öffnen</a>
       {expanded && <TaskDetail taskId={id} onChanged={onChanged} />}
       </details>
     </div>

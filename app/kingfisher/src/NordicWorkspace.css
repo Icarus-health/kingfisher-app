@@ -126,12 +126,6 @@
 .shell main.workspace-tasks .task-row { background: var(--nordic-paper); }
 .shell main.workspace-tasks .task-row + .task-row { border-top: 1px solid #edf0f3; }
 .shell main.workspace-tasks .task-copy strong { font-size: 15px; }
-.shell main.workspace-chat { width: 100%; height: 100dvh; margin: 0; border: 0; border-radius: 0; box-shadow: none; grid-template-columns: 270px minmax(0,1fr); }
-.workspace-chat .conversation-navigation { background: var(--nordic-ground); }
-.workspace-chat .conversation-nav-item[aria-current='page'] { background: var(--nordic-selection); border-color: transparent; }
-.shell main.workspace-chat .thread-header { background: var(--nordic-ground); border-bottom: 1px solid var(--calm-line); }
-.workspace-chat .message.user { background: var(--nordic-selection); border: 0; border-radius: 12px; color: var(--calm-ink); }
-.workspace-chat .message.assistant, .workspace-chat .thread-command { background: var(--nordic-paper); }
 .shell main.inbox-page { background: var(--nordic-ground); }
 .shell .mail-list-column { background: var(--nordic-paper); border-color: var(--calm-line); }
 .shell .mail-list-row[aria-selected='true'], .shell .saved-mail-row.active { background: var(--nordic-selection); }
@@ -147,12 +141,6 @@
 .shell .settings-page .chatgpt-access h2 { margin: 0 0 10px; font: 600 22px/1.35 Inter,sans-serif; letter-spacing: -.35px; }
 .shell .settings-page .chatgpt-access .cloud-memory { margin-top: 8px; padding: 18px; border: 0; background: var(--calm-inset); }
 .shell .settings-page .chatgpt-access .cloud-memory h3 { font-size: 18px; }
-.today-page { --today-surface: var(--nordic-paper); --today-ink: var(--calm-ink); --today-muted: var(--calm-muted); --today-line: var(--calm-line); --today-soft: var(--calm-soft); --today-link: var(--calm-link); --today-shadow: var(--calm-shadow); background: var(--nordic-ground); }
-.today-landscape { position: absolute; inset: 0 0 auto; height: 300px; opacity: .65; }
-.today-page .hero-copy h1 { font: 650 42px/1.15 Inter,sans-serif; color: var(--calm-ink); text-shadow: none; }
-.today-page .hero-copy .today-hero-summary { font-size: 15px; }
-.today-page .hero-bird { opacity: .9; }
-.today-page .today-panel { box-shadow: none; }
 
 @media (min-width: 1101px) and (min-height: 650px) {
   .memory-page-workspace:has(.document-workspace) { overflow: hidden; }
@@ -166,11 +154,9 @@
   .document-workspace[data-document-open='true'] .document-columns > :is(.document-folders,.document-list-column) { display: none; }
   .document-reader-back { display: block; }
   .document-list-column { border-right: 0; }
-  .shell main.workspace-chat { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 900px) {
   .memory-shell { grid-template-rows: auto minmax(0,1fr); }
-  .shell main.workspace-chat { height: auto; margin: 0; width: 100%; }
   .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) { min-height: 100px; }
 }
 @media (max-width: 700px) {
@@ -193,7 +179,6 @@
   .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) h1 { font-size: 27px; }
   .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) { gap: 12px; }
   .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) button { font-size: 12px; }
-  .today-page .hero-copy h1 { font-size: 32px; }
 }
 
 /* Die ergänzenden Arbeitsbereiche verwenden dieselben lesbaren Formulare. */
@@ -209,8 +194,6 @@
   .shell .development-page .decision-create-form { grid-template-columns: minmax(0,1fr); }
 }
 /* Autoren bleiben auch auf der hellen eigenen Sprechblase eindeutig lesbar. */
-.workspace-chat .message > span { font-size: 11px; line-height: 1.5; color: var(--calm-muted); }
-.workspace-chat .message.user > span { color: var(--calm-primary); }
 
 .shell main a:not([class]) { color: var(--calm-link); text-underline-offset: 3px; }
 
@@ -229,49 +212,10 @@
 .shell main .quiet-details > summary { cursor: pointer; min-height: 36px; padding: 8px 0; color: var(--calm-link); font-weight: 500; }
 .shell main .quiet-details[open] > summary { margin-bottom: 8px; }
 .shell main .quiet-details :is(p,blockquote) { line-height: 1.6; }
-/* Was im Überblick fehlt: ein Satz in einer leisen Zeile, nur wenn etwas fehlt (Paket U, H4). */
-.shell .today-source-status { display: grid; gap: 4px; margin-bottom: 14px; padding: 10px 16px; border: 0; border-radius: 8px; background: var(--calm-inset); color: var(--calm-ink); font-size: 13px; line-height: 1.6; }
-.shell .today-source-status p { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; margin: 0; }
-.shell .today-review-badge, .shell .suggestion-time-badge { display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px; background: #fff2d8; color: #704b0b; font-size: 12px; line-height: 1.5; margin-top: 6px; }
-.shell .today-task-actions { margin-top: 10px; }
-.shell .today-task-actions > .task-suggestion-actions { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; align-items: start; }
-.shell .today-task-actions .today-task-more { min-width: 0; }
-.shell .today-task-actions .today-task-more[open] { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid var(--calm-line); padding-top: 6px; }
-.shell .today-task-actions .today-task-more > :is(button,a) { margin: 4px 12px 4px 0; }
-.shell .today-task-actions .today-task-more p { margin: 4px 0 12px; font-size: 13px; }
-.shell .today-followups { grid-template-columns: repeat(auto-fit,minmax(min(360px,100%),1fr)); }
-.shell .today-followups > #memory-questions:empty { display: none; }
-.shell .today-followups:has(> #memory-questions:empty):not(:has(> section)) { display: none; }
-.shell .today-activity { grid-column: 1 / -1; padding-inline: 4px; }
-.shell .today-activity > summary { min-height: 44px; padding-block: 12px; line-height: 20px; }
-.shell .today-activity .tageslage { margin-top: 0; }
-/* Der Fuß von Heute: eine Zeile kleiner Textlinks ohne Überschrift (Paket U, H6). */
-.shell .today-personal { margin: 8px 0 0; padding: 0 4px; gap: 0 22px; }
-.shell .today-personal .today-text-link { padding: 0; font-size: 13px; }
-.shell .today-attention .today-item-meta { justify-content: start; gap: 12px; font-size: 12px; margin-bottom: 4px; }
-.shell .today-attention-item h3 { font-size: 16px; }
-.shell .today-attention-item { padding-block: 10px 16px; }
-.shell .today-attention-item + .today-attention-item { padding-top: 16px; }
+.shell .suggestion-time-badge { display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px; background: #fff2d8; color: #704b0b; font-size: 12px; line-height: 1.5; margin-top: 6px; }
 .shell .workspace-tasks .suggestion-evidence { padding: 0; border: 0; }
 .shell .workspace-tasks .suggestion-evidence p { margin: 8px 0; }
 .shell .workspace-tasks .suggestion-time-badge { margin: 0; }
-/* Der Tageskopf lässt den eigentlichen Aufgaben und Terminen den Platz. */
-.shell .today-page .hero { height: 190px; min-height: 190px; }
-.shell .today-page .hero-copy { top: 20px; left: 32px; }
-.shell .today-page .hero-copy h1 { font-size: 34px; }
-.shell .today-page .hero-copy .today-hero-summary { margin: 8px 0 12px; font-size: 14px; }
-.shell .today-page .hero-bird { width: 185px; height: 145px; top: 32px; right: 22px; }
-.shell .today-page .weather { top: 64px; right: 200px; }
-.shell .today-page .today-landscape { height: 220px; }
-.shell .today-page .briefing-area { margin-top: -8px; }
-.shell .today-page .today-panel-heading { min-height: 72px; padding-block: 16px; }
-.shell .today-page .today-panel-heading h2 { font-size: 24px; }
-@media (max-width: 700px) {
-  .shell .today-page .hero { height: auto; min-height: 170px; padding-bottom: 18px; }
-  .shell .today-page .hero-copy { top: auto; left: auto; padding: 18px 16px 0; }
-  .shell .today-page .hero-copy h1 { font-size: 28px; }
-  .shell .today-page .briefing-area { margin-top: 0; }
-}
 
 /* Die erste Ebene zeigt den Inhalt; Bearbeitung und Herkunft folgen darunter. */
 .shell .mail-reader-meta { padding: 22px 0 16px; }

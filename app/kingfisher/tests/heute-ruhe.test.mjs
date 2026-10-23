@@ -37,7 +37,8 @@ test('H2/H3: höchstens ein gefüllter Knopf auf Heute, Zeilenaktionen leise, de
   assert.doesNotMatch(morning(), /primary-action|today-briefing-button/);
   const css = quelle('TodayOverview.css');
   const aktion = css.match(/\.today-action \{[^}]*\}/)[0];
-  assert.match(aktion, /background: transparent/, 'Erledigen ist umrandet, nicht gefüllt');
+  assert.match(aktion, /background: var\(--g-getoent\)/, 'Erledigen ist getönt, nicht gefüllt');
+  assert.doesNotMatch(aktion, /background: var\(--(?:g-akzent|calm-primary)\)/);
   assert.doesNotMatch(css.match(/\.today-count \{[^}]*\}/)[0], /background|#ef792d/i, 'die Zahl ist kein orangefarbener Kreis');
   // Der eine gefüllte Knopf: Senden, in der Hauptaktionsfarbe statt in Orange (H5).
   assert.match(quelle('styles.css'), /\.command-bar \.send-button \{ background: var\(--calm-primary\);/);
@@ -62,7 +63,7 @@ test('H1: die Vorbereitung steht am Termin, neue Post als ruhige Liste mit Quell
     later_today: [{id: 'c', time: '14:00', title: 'Rheinauenblick', detail: 'Mainz', source: 'calendar', source_ref: 'uid-1'}],
     needs_you: [{id: 'n', title: 'Termin vorbereiten', reason: 'Unterlagen mitnehmen', source: 'termin', source_ref: 'uid-1'}],
     happening_now: [
-      {id: 'm', title: 'Honorar und Ablauf', detail: 'Frau Brandl', source: 'mail', source_ref: 'INBOX:1', occurred_at: '2026-09-28T10:00:00Z'},
+      {id: 'm', title: 'Honorar und Ablauf', detail: 'Frau Brandl', source: 'mail', source_ref: 'INBOX:1', occurred_at: '2026-09-28T10:00:00Z', recorded_at: '2026-09-29T05:30:00Z'},
       {id: 'w', title: 'Alles Gute!', detail: 'Quelle berichtet · Angabe', source: 'working_memory', source_ref: 'ep-1'},
       {id: 'p', title: 'Gedächtnisvorschläge', detail: '2 warten auf Bestätigung', source: 'proposals', source_ref: null},
     ]};
@@ -73,11 +74,17 @@ test('H1: die Vorbereitung steht am Termin, neue Post als ruhige Liste mit Quell
   assert.equal(nodes(baum, n => n.props?.className === 'today-attention-item').length, 0, 'die Vorbereitung steht nicht noch einmal unter „Braucht dich“');
   const liste = nodes(baum, n => n.props?.className === 'today-news-list')[0];
   assert.equal(nodes(liste, n => n.type === 'li').length, 3);
-  assert.equal(nodes(liste, n => n.type === 'button' && /Nachricht öffnen/.test(text(n))).length, 1);
+  const mail = nodes(liste, n => n.type === 'button' && /^Nachricht öffnen: Honorar und Ablauf$/.test(n.props['aria-label'] ?? ''));
+  assert.equal(mail.length, 1, 'eine Mail ist ein Klick auf die ganze Zeile');
+  assert.equal(nodes(liste, n => n.type === 'button').length, 1, 'nur die Mail öffnet sich als Zeile');
   const beleg = nodes(liste, n => n.type === ProfileSource)[0];
   assert.ok(beleg, 'die Quelle bleibt einen Klick entfernt');
   assert.equal(beleg.props.id, 'ep-1'); assert.equal(beleg.props.allowDismiss, true);
-  assert.match(text(liste), /Quelldatum/, 'Quelldatum und Erfassung bleiben unterscheidbar');
+  // Quelldatum und Erfassung bleiben unterscheidbar: leise in einer Zeile, genau im Hinweis (P1).
+  const zeilen = nodes(liste, n => n.props?.className === 'g-zeile-neben');
+  assert.match(zeilen[0].props.title, /^Quelldatum: .* · Erfasst: /);
+  assert.equal(text(zeilen[1]), 'Datum unbekannt', 'ohne Zeitpunkte sagt die Zeile es, statt ein Datum zu erfinden');
+  assert.doesNotMatch(text(liste), /Quelle berichtet/, 'keine Technikzeile mehr');
 });
 
 test('Nachtrag 23.10.: ein großer Titel mit einer Zeile darunter, Ziele mindestens 44 px hoch', () => {
