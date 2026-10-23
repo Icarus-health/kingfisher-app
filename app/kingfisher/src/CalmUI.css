@@ -17,13 +17,8 @@
   --calm-caption: 13px;
   --calm-heading: 26px;
 }
-/* Die Landschaft bleibt zwischen deckenden Leseflächen sichtbar. */
+/* Die Landschaft steht nur noch im Kopf von Heute (Grundlage.css, docs/16-gestaltung.md). */
 .shell { isolation: isolate; }
-.shell:not(:has(.today-page)) { background: #a9c2cc; }
-.shell:not(:has(.today-page))::before {
-  content: ""; position: fixed; inset: 0 0 0 220px; z-index: -1; pointer-events: none;
-  background: linear-gradient(rgba(235,243,242,.24), rgba(235,243,242,.24)), #a9c2cc url('/03_Media/Approved/landscape-calm-page-v1.png') center top / cover no-repeat;
-}
 .shell > main:not(.today-page) {
   --kf-flaeche-fffefa: var(--calm-surface);
   --kf-flaeche-ffffff: var(--calm-surface);

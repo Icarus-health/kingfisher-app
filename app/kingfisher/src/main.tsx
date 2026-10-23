@@ -12,6 +12,8 @@ import "./Messages.css";
 import "./SavedMailWorkflow.css";
 import "./Workspace.css";
 import "./NordicWorkspace.css";
+// Die Gestaltungsgrundlage (Werte, Bausteine, globale Abbildung der vorhandenen Klassen), direkt vor den Breitenregeln.
+import "./Grundlage.css";
 // Zuletzt: die Breitenregeln für alle Seiten (keine Seite breiter als das Fenster).
 import "./Seitenbreite.css";
 

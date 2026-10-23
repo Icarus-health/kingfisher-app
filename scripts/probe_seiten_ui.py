@@ -20,6 +20,7 @@ Aufruf: `python scripts/probe_seiten_ui.py --ausgabe DIR [--chromium PFAD]` (vor
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -39,13 +40,21 @@ CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
 BREITEN = (390, 768, 1280)
 
 # Kein sichtbares Element darf über den Fensterrand hinausragen, auch nicht in der Seitenleiste (Fremdprobe 3, Befund 14).
-# Versteckte zählen nicht (aria-hidden, nur für Vorleser).
+# Versteckte zählen nicht (aria-hidden, nur für Vorleser). Ausgenommen sind die Glieder einer Segmentleiste, die gewollt
+# in sich waagrecht rollt (Merkmal `data-rollt="waagrecht"` am Behälter, Baustein Segmente; Grundlage vom 23.10.2026,
+# docs/16-gestaltung.md). Die Leiste selbst und die Seite werden weiter gemessen: Die Seite rollt nie seitlich. Bis die
+# Seiten den Baustein einsetzen, gelten die alten Reiterleisten, die Grundlage.css ebenso rollen lässt, als solche.
+SEGMENTLEISTEN = ('[data-rollt="waagrecht"], .task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter, '
+                  '.memory-page-workspace .memory-filter > div:not(.memory-heading-row)')
 UEBERSTAND_JS = """() => {
+  const SEGMENTE = '""" + SEGMENTLEISTEN + """';
   const w = document.documentElement.clientWidth, aus = [];
   const name = el => el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0];
   const deko = el => (el.tagName === 'IMG' && el.getAttribute('alt') === '') || el.tagName === 'svg' || el.closest('svg');
   for (const el of document.querySelectorAll('#root *')) {
     if (el.closest('[aria-hidden="true"]') || deko(el)) continue;
+    const leiste = el.parentElement && el.parentElement.closest(SEGMENTE);
+    if (leiste && ['auto', 'scroll'].includes(getComputedStyle(leiste).overflowX)) continue;  // rollt gewollt; die Leiste selbst wird gemessen
     const cs = getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute' && cs.clip !== 'auto') continue;
     const r = el.getBoundingClientRect();
@@ -111,7 +120,7 @@ UEBERLAPPUNG_JS = """() => {
 
 # Liegt über der Mitte jeder Textzeile des Kopfs von Heute etwas anderes als der Kopf selbst (Paket U, H1: Heute ist das
 # Briefing; der Kopf trägt Gruß, Satz und Stand)?
-UEBERDECKT_JS = """() => {
+UEBERDECKT_JS = r"""() => {
   const kopf = document.querySelector('.today-page .hero-copy'); if (!kopf) return ['kein Kopf'];
   const weg = [];
   for (const el of kopf.querySelectorAll('p, h1, time')) {
@@ -237,8 +246,13 @@ def main() -> int:
             time.sleep(0.6)
             for knopf in ('Menschen', 'Projekte', 'Organisationen', 'Orte', 'Themen', 'Entscheidungen',
                           'Dokumente', 'Aussagen prüfen', 'Verarbeitung & Verlauf'):
-                # Seltene Ansichten stehen als leise Zeile am Seitenende (Paket U, M1).
-                seite.locator('.memory-filter button, .memory-tools button', has_text=knopf).first.click()
+                # Seltene Ansichten stehen als leise Zeile am Seitenende (Paket U, M1) oder eingeklappt.
+                ziel = seite.locator('.memory-filter button, .memory-tools button', has_text=knopf).first
+                if not seite.locator('.memory-filter button, .memory-tools button', has_text=knopf).count():
+                    continue  # Ansicht gibt es nicht mehr als eigenen Knopf
+                if not ziel.is_visible() and seite.locator('.memory-tools:not([open]) > summary').count():
+                    seite.locator('.memory-tools > summary').first.click()
+                ziel.click()
                 time.sleep(0.5)
                 messen(f'gedaechtnis-{knopf.split()[0].lower()}', breite)
             for bereich in ('zugaenge', 'darf', 'ich', 'sicherung', 'technik'):
@@ -249,238 +263,260 @@ def main() -> int:
 
         konto: dict = {}
 
+        @contextlib.contextmanager
+        def befund(nr: str):
+            """Ein Befund-Abschnitt, der auf einen veralteten Stand der Oberfläche trifft, hält die übrigen nicht an:
+            Er steht als Lauffehler im Ergebnis (und das Ergebnis ist dann nicht ok)."""
+            try:
+                yield
+            except Exception as fehler:  # noqa: BLE001 - jeder Abbruch wird gemeldet, nicht verschluckt
+                pruef[f'{nr}_lief_durch'] = False
+                pruef[f'{nr}_lauffehler'] = f'{type(fehler).__name__}: {str(fehler).splitlines()[0][:200]}'
+                laufumgebung._im_container = im_container_vorher
+                attrappe.modus = 'annehmen'
+                bild(f'lauffehler-{nr}')
+
         def befunde_pruefen() -> None:
             seite.set_viewport_size({'width': 1280, 'height': 900})
 
             # -- 28: leerer Zustand im Gedächtnis mit Verweis; Auswahl statt Zahlenfeld, Singular -------------------
-            # Seit „Suchen“ der erste Reiter ist, steht der leere Zustand unter „Menschen“.
-            seite.goto(basis + '/memory?tab=people')
-            leer = seite.locator('.gedaechtnis-leer').first
-            leer.wait_for(timeout=10000)
-            pruef['28_leer_satz'] = leer.inner_text()
-            pruef['28_leer_verweis'] = leer.get_by_role('link').get_attribute('href') == '/settings#zugaenge'
-            leer.get_by_role('link').click()
-            seite.wait_for_selector('#settings-zugaenge:not([hidden])', timeout=10000)
-            pruef['28_verweis_kommt_an'] = True
-            seite.goto(basis + '/settings#technik-suchindex')
-            auswahl = seite.locator('#suchindex-jahre')
-            auswahl.wait_for(timeout=15000)
-            pruef['28_auswahl_statt_zahl'] = auswahl.evaluate('e => e.tagName') == 'SELECT'
-            pruef['28_optionen'] = auswahl.locator('option').all_inner_texts()
-            abschnitt = seite.locator('#technik-suchindex').inner_text()
-            pruef['28_stand'] = seite.locator('#suchindex-stand').inner_text()
-            pruef['28_kein_alle_1_quellen'] = not re.search(r'\b1 Quellen|N Jahre|0 = alle', abschnitt)
-            auswahl.select_option('2')
-            seite.get_by_text('Gespeichert.').first.wait_for(timeout=15000)
-            pruef['28_wahl_gilt_sofort'] = seite.request.get(basis + '/api/v1/suchindex').json()['wortteile_jahre'] == 2
-            auswahl.select_option('0')
-            seite.wait_for_function("document.querySelector('#suchindex-jahre').value === '0' && !document.querySelector('#suchindex-jahre').disabled", timeout=15000)
-            pruef['28_wahl_zurueck'] = seite.request.get(basis + '/api/v1/suchindex').json()['wortteile_jahre'] == 0
-            bild('28-suchindex')
+            with befund('28'):
+                # Seit „Suchen“ der erste Reiter ist, steht der leere Zustand unter „Menschen“.
+                seite.goto(basis + '/memory?tab=people')
+                leer = seite.locator('.gedaechtnis-leer').first
+                leer.wait_for(timeout=10000)
+                pruef['28_leer_satz'] = leer.inner_text()
+                pruef['28_leer_verweis'] = leer.get_by_role('link').get_attribute('href') == '/settings#zugaenge'
+                leer.get_by_role('link').click()
+                seite.wait_for_selector('#settings-zugaenge:not([hidden])', timeout=10000)
+                pruef['28_verweis_kommt_an'] = True
+                seite.goto(basis + '/settings#technik-suchindex')
+                auswahl = seite.locator('#suchindex-jahre')
+                auswahl.wait_for(timeout=15000)
+                pruef['28_auswahl_statt_zahl'] = auswahl.evaluate('e => e.tagName') == 'SELECT'
+                pruef['28_optionen'] = auswahl.locator('option').all_inner_texts()
+                abschnitt = seite.locator('#technik-suchindex').inner_text()
+                pruef['28_stand'] = seite.locator('#suchindex-stand').inner_text()
+                pruef['28_kein_alle_1_quellen'] = not re.search(r'\b1 Quellen|N Jahre|0 = alle', abschnitt)
+                auswahl.select_option('2')
+                seite.get_by_text('Gespeichert.').first.wait_for(timeout=15000)
+                pruef['28_wahl_gilt_sofort'] = seite.request.get(basis + '/api/v1/suchindex').json()['wortteile_jahre'] == 2
+                auswahl.select_option('0')
+                seite.wait_for_function("document.querySelector('#suchindex-jahre').value === '0' && !document.querySelector('#suchindex-jahre').disabled", timeout=15000)
+                pruef['28_wahl_zurueck'] = seite.request.get(basis + '/api/v1/suchindex').json()['wortteile_jahre'] == 0
+                bild('28-suchindex')
 
             # -- 18: Texte passend zum System: im Browser unter Linux „Rechner“, auf dem Mac „Mac“ ---------------------
-            pruef['18_system_linux'] = seite.request.get(basis + '/api/v1/system').json()['art']
-            seite.goto(basis + '/settings#zugaenge')
-            seite.wait_for_selector('#settings-zugaenge:not([hidden])')
-            seite.wait_for_function("document.querySelector('.settings-data').innerText.includes('Auf diesem Rechner gespeichert')", timeout=10000)
-            pruef['18_rechner_gespeichert'] = 'Auf diesem Rechner gespeichert' in seite.locator('.settings-data').inner_text()
-            pruef['18_kein_mac_kalender'] = seite.locator('.mac-calendar').count() == 0
-            texte = ''
-            for bereich in ('zugaenge', 'darf', 'ich', 'sicherung'):
-                seite.goto(basis + f'/settings#{bereich}')
-                seite.wait_for_selector(f'#settings-{bereich}:not([hidden])')
-                time.sleep(0.8)
-                if bereich == 'sicherung':
-                    seite.get_by_role('button', name='Sicherung öffnen').click()
-                    seite.get_by_text('Sicherungsstatus wird geladen').wait_for(state='detached', timeout=10000)
-                texte += seite.locator('main').inner_text() + '\n'
-            # Erlaubt bleibt nur, was den Dienst nennt, den es nur auf dem Mac gibt („Apple Karten auf dem Mac“).
-            mac_saetze = [z for z in texte.splitlines() if re.search(r'\b(diesem|deinem|am) Mac\b|Mac-App|Mac-Helfer|starten\.command', z)]
-            pruef['18_mac_saetze_linux'] = mac_saetze
-            pruef['18_kein_mac_satz_linux'] = not mac_saetze
-            # Seit der Sicherung ohne Helfer (Befund 8) gibt es unter Linux den Download statt eines Satzes, dass es fehlt.
-            pruef['18_sicherung_ehrlich'] = 'Sicherung herunterladen' in texte and 'gibt es nur in der Kingfisher-App' not in texte
-            bild('18-sicherung-linux')
-            # Dieselbe Seite, wenn der Startweg der Mac-App den Rechner als Mac gemeldet hat (Container auf dem Mac).
-            laufumgebung._im_container = lambda: True
-            antwort = seite.request.post(basis + '/api/v1/device/profile', data={'platform': 'macos', 'chip': 'Apple M3', 'memory_bytes': 16 * 1024 ** 3})
-            assert antwort.ok, antwort.text()
-            pruef['18_system_mac'] = seite.request.get(basis + '/api/v1/system').json()['art']
-            seite.goto(basis + '/settings#zugaenge')
-            seite.reload()  # die Angabe gilt je Seitenaufruf
-            seite.wait_for_function("document.querySelector('.settings-data') && document.querySelector('.settings-data').innerText.includes('Auf diesem Mac gespeichert')", timeout=10000)
-            pruef['18_mac_gespeichert'] = True
-            seite.locator('.mac-calendar').wait_for(timeout=10000)
-            pruef['18_mac_kalender_auf_dem_mac'] = True
-            bild('18-zugaenge-mac')
-            laufumgebung._im_container = im_container_vorher
-            (Path(daten_ordner) / 'device-profile.json').unlink()
+            with befund('18'):
+                pruef['18_system_linux'] = seite.request.get(basis + '/api/v1/system').json()['art']
+                seite.goto(basis + '/settings#zugaenge')
+                seite.wait_for_selector('#settings-zugaenge:not([hidden])')
+                seite.wait_for_function("document.querySelector('.settings-data') && document.querySelector('.settings-data').innerText.includes('Auf diesem Rechner gespeichert')", timeout=10000)
+                pruef['18_rechner_gespeichert'] = 'Auf diesem Rechner gespeichert' in seite.locator('.settings-data').inner_text()
+                pruef['18_kein_mac_kalender'] = seite.locator('.mac-calendar').count() == 0
+                texte = ''
+                for bereich in ('zugaenge', 'darf', 'ich', 'sicherung'):
+                    seite.goto(basis + f'/settings#{bereich}')
+                    seite.wait_for_selector(f'#settings-{bereich}:not([hidden])')
+                    time.sleep(0.8)
+                    if bereich == 'sicherung':
+                        seite.get_by_role('button', name='Sicherung öffnen').click()
+                        seite.get_by_text('Sicherungsstatus wird geladen').wait_for(state='detached', timeout=10000)
+                    texte += seite.locator('main').inner_text() + '\n'
+                # Erlaubt bleibt nur, was den Dienst nennt, den es nur auf dem Mac gibt („Apple Karten auf dem Mac“).
+                mac_saetze = [z for z in texte.splitlines() if re.search(r'\b(diesem|deinem|am) Mac\b|Mac-App|Mac-Helfer|starten\.command', z)]
+                pruef['18_mac_saetze_linux'] = mac_saetze
+                pruef['18_kein_mac_satz_linux'] = not mac_saetze
+                # Seit der Sicherung ohne Helfer (Befund 8) gibt es unter Linux den Download statt eines Satzes, dass es fehlt.
+                pruef['18_sicherung_ehrlich'] = 'Sicherung herunterladen' in texte and 'gibt es nur in der Kingfisher-App' not in texte
+                bild('18-sicherung-linux')
+                # Dieselbe Seite, wenn der Startweg der Mac-App den Rechner als Mac gemeldet hat (Container auf dem Mac).
+                laufumgebung._im_container = lambda: True
+                antwort = seite.request.post(basis + '/api/v1/device/profile', data={'platform': 'macos', 'chip': 'Apple M3', 'memory_bytes': 16 * 1024 ** 3})
+                assert antwort.ok, antwort.text()
+                pruef['18_system_mac'] = seite.request.get(basis + '/api/v1/system').json()['art']
+                seite.goto(basis + '/settings#zugaenge')
+                seite.reload()  # die Angabe gilt je Seitenaufruf
+                seite.wait_for_function("document.querySelector('.settings-data') && document.querySelector('.settings-data').innerText.includes('Auf diesem Mac gespeichert')", timeout=10000)
+                pruef['18_mac_gespeichert'] = True
+                seite.locator('.mac-calendar').wait_for(timeout=10000)
+                pruef['18_mac_kalender_auf_dem_mac'] = True
+                bild('18-zugaenge-mac')
+                laufumgebung._im_container = im_container_vorher
+                (Path(daten_ordner) / 'device-profile.json').unlink()
 
             # -- 12: „Mails regelmäßig abrufen“: ein Schalter, eine Auswahl, keine Fachwörter -------------------------
-            alte = re.findall(r'"([^"]+)"', (WURZEL / 'app/kingfisher/src/mailAbruf.ts').read_text(encoding='utf-8')
-                              .split('ALTE_WOERTER', 1)[1].split('];', 1)[0])
-            seite.goto(basis + '/settings#technik-hintergrund')
-            seite.reload()
-            abschnitt = seite.get_by_role('region', name='Mails regelmäßig abrufen')
-            schalter = abschnitt.get_by_role('switch', name=re.compile('Mails regelmäßig abrufen'))
-            schalter.wait_for(timeout=15000)
-            seite.locator('#technik-hintergrund details.mail-abruf-einlesen > summary').click()
-            seite.get_by_role('button', name=re.compile('Ordner ansehen')).first.wait_for(timeout=15000)
-            for summary in seite.locator('#technik-hintergrund details:not([open]) > summary').all():
-                summary.click()
-            text = seite.locator('#technik-hintergrund').inner_text()
-            pruef['12_alte_woerter'] = [w for w in alte if w in text] + (['INBOX'] if 'INBOX' in text else [])
-            pruef['12_keine_alten_woerter'] = not pruef['12_alte_woerter']
-            pruef['12_kein_zahlenfeld'] = seite.locator('#technik-hintergrund input[type=number]').count() == 0
-            pruef['12_aus_am_anfang'] = not schalter.is_checked()
-            bild('12-mails-abrufen-aus')
-            schalter.click()
-            seite.get_by_text('Gespeichert. An. Kingfisher ruft die Mails aus Probe-Post alle 30 Minuten ab.').wait_for(timeout=10000)
-            plan = seite.request.get(basis + '/api/v1/schedule').json()
-            pruef['12_an_mit_vorgabe'] = plan['enabled'] is True and plan['interval_minutes'] == 30 and plan['mail_accounts'] == [konto['id']]
-            wie_oft = abschnitt.get_by_label('Wie oft')
-            pruef['12_auswahl'] = wie_oft.locator('option').all_inner_texts()
-            wie_oft.select_option(label='täglich')
-            seite.get_by_text('Gespeichert. An. Kingfisher ruft die Mails aus Probe-Post täglich ab.').wait_for(timeout=10000)
-            pruef['12_taeglich'] = seite.request.get(basis + '/api/v1/schedule').json()['interval_minutes'] == 1440
-            bild('12-mails-abrufen-an')
-            schalter.click()
-            seite.get_by_text(re.compile('Gespeichert. Aus.')).wait_for(timeout=10000)
-            pruef['12_wieder_aus'] = seite.request.get(basis + '/api/v1/schedule').json()['enabled'] is False
+            with befund('12'):
+                alte = re.findall(r'"([^"]+)"', (WURZEL / 'app/kingfisher/src/mailAbruf.ts').read_text(encoding='utf-8')
+                                  .split('ALTE_WOERTER', 1)[1].split('];', 1)[0])
+                seite.goto(basis + '/settings#technik-hintergrund')
+                seite.reload()
+                abschnitt = seite.get_by_role('region', name='Mails regelmäßig abrufen')
+                schalter = abschnitt.get_by_role('switch', name=re.compile('Mails regelmäßig abrufen'))
+                schalter.wait_for(timeout=15000)
+                seite.locator('#technik-hintergrund details.mail-abruf-einlesen > summary').click()
+                seite.get_by_role('button', name=re.compile('Ordner ansehen')).first.wait_for(timeout=15000)
+                for summary in seite.locator('#technik-hintergrund details:not([open]) > summary').all():
+                    summary.click()
+                text = seite.locator('#technik-hintergrund').inner_text()
+                pruef['12_alte_woerter'] = [w for w in alte if w in text] + (['INBOX'] if 'INBOX' in text else [])
+                pruef['12_keine_alten_woerter'] = not pruef['12_alte_woerter']
+                pruef['12_kein_zahlenfeld'] = seite.locator('#technik-hintergrund input[type=number]').count() == 0
+                pruef['12_aus_am_anfang'] = not schalter.is_checked()
+                bild('12-mails-abrufen-aus')
+                schalter.click()
+                seite.get_by_text('Gespeichert. An. Kingfisher ruft die Mails aus Probe-Post alle 30 Minuten ab.').wait_for(timeout=10000)
+                plan = seite.request.get(basis + '/api/v1/schedule').json()
+                pruef['12_an_mit_vorgabe'] = plan['enabled'] is True and plan['interval_minutes'] == 30 and plan['mail_accounts'] == [konto['id']]
+                wie_oft = abschnitt.get_by_label('Wie oft')
+                pruef['12_auswahl'] = wie_oft.locator('option').all_inner_texts()
+                wie_oft.select_option(label='täglich')
+                seite.get_by_text('Gespeichert. An. Kingfisher ruft die Mails aus Probe-Post täglich ab.').wait_for(timeout=10000)
+                pruef['12_taeglich'] = seite.request.get(basis + '/api/v1/schedule').json()['interval_minutes'] == 1440
+                bild('12-mails-abrufen-an')
+                schalter.click()
+                seite.get_by_text(re.compile('Gespeichert. Aus.')).wait_for(timeout=10000)
+                pruef['12_wieder_aus'] = seite.request.get(basis + '/api/v1/schedule').json()['enabled'] is False
 
             # -- 22 und 14: Postfach schweigt. Gruß sofort, Post lädt nach; Nachrichten nennen das Postfach -----------
-            attrappe.modus = 'stumm'
-            server.POSTFACH_ZEITGRENZE = 4.0
-            beginn = time.monotonic()
-            seite.goto(basis + '/today')
-            seite.locator('.today-page h1').wait_for(timeout=10000)
-            pruef['22_gruss_nach_s'] = round(time.monotonic() - beginn, 2)
-            pruef['22_gruss_sofort'] = pruef['22_gruss_nach_s'] < 2.0
-            # Paket U, H4: Was fehlt, steht als ein offener Satz unter dem Kopf, ohne Klappe.
-            pruef['22_post_laedt_sichtbar'] = seite.get_by_text('Die Post von heute ist noch nicht da. Kingfisher holt sie gerade.').count() == 1
-            bild('22-heute-post-laedt')
-            hinweis = seite.locator('.today-source-status')
-            hinweis.get_by_text('Probe-Post antwortet gerade nicht', exact=False).wait_for(timeout=15000)
-            pruef['22_post_danach_s'] = round(time.monotonic() - beginn, 2)
-            pruef['22_grund'] = hinweis.inner_text()
-            pruef['22_grund_nennt_postfach'] = 'Probe-Post antwortet gerade nicht' in pruef['22_grund']
-            pruef['22_laedt_nicht_mehr'] = seite.get_by_text('Kingfisher holt sie gerade').count() == 0
-            bild('22-heute-grund')
-            beginn = time.monotonic()
-            seite.goto(basis + '/nachrichten')
-            fehler = seite.locator('.inbox-error')
-            fehler.wait_for(timeout=15000)
-            pruef['14_nach_s'] = round(time.monotonic() - beginn, 2)
-            pruef['14_sofort'] = pruef['14_nach_s'] < 1.5
-            pruef['14_text'] = fehler.inner_text()
-            pruef['14_nennt_postfach'] = pruef['14_text'].startswith('Probe-Post antwortet gerade nicht.') and 'lokale' not in pruef['14_text']
-            pruef['14_verweis'] = fehler.get_by_role('link', name=re.compile('Postfach prüfen')).get_attribute('href') == '/settings#zugaenge'
-            bild('14-nachrichten-postfach-schweigt')
-            fehler.get_by_role('link', name=re.compile('Postfach prüfen')).click()
-            seite.wait_for_selector('#settings-zugaenge:not([hidden])', timeout=10000)
-            pruef['14_verweis_kommt_an'] = True
-            attrappe.modus = 'annehmen'
+            with befund('22-14'):
+                attrappe.modus = 'stumm'
+                server.POSTFACH_ZEITGRENZE = 4.0
+                beginn = time.monotonic()
+                seite.goto(basis + '/today')
+                seite.locator('.today-page h1').wait_for(timeout=10000)
+                pruef['22_gruss_nach_s'] = round(time.monotonic() - beginn, 2)
+                pruef['22_gruss_sofort'] = pruef['22_gruss_nach_s'] < 2.0
+                # Paket U, H4: Was fehlt, steht als ein offener Satz unter dem Kopf, ohne Klappe.
+                pruef['22_post_laedt_sichtbar'] = seite.get_by_text('Die Post von heute ist noch nicht da. Kingfisher holt sie gerade.').count() == 1
+                bild('22-heute-post-laedt')
+                hinweis = seite.locator('.today-source-status')
+                hinweis.get_by_text('Probe-Post antwortet gerade nicht', exact=False).wait_for(timeout=15000)
+                pruef['22_post_danach_s'] = round(time.monotonic() - beginn, 2)
+                pruef['22_grund'] = hinweis.inner_text()
+                pruef['22_grund_nennt_postfach'] = 'Probe-Post antwortet gerade nicht' in pruef['22_grund']
+                pruef['22_laedt_nicht_mehr'] = seite.get_by_text('Kingfisher holt sie gerade').count() == 0
+                bild('22-heute-grund')
+                beginn = time.monotonic()
+                seite.goto(basis + '/nachrichten')
+                fehler = seite.locator('.inbox-error')
+                fehler.wait_for(timeout=15000)
+                pruef['14_nach_s'] = round(time.monotonic() - beginn, 2)
+                pruef['14_sofort'] = pruef['14_nach_s'] < 1.5
+                pruef['14_text'] = fehler.inner_text()
+                pruef['14_nennt_postfach'] = pruef['14_text'].startswith('Probe-Post antwortet gerade nicht.') and 'lokale' not in pruef['14_text']
+                pruef['14_verweis'] = fehler.get_by_role('link', name=re.compile('Postfach prüfen')).get_attribute('href') == '/settings#zugaenge'
+                bild('14-nachrichten-postfach-schweigt')
+                fehler.get_by_role('link', name=re.compile('Postfach prüfen')).click()
+                seite.wait_for_selector('#settings-zugaenge:not([hidden])', timeout=10000)
+                pruef['14_verweis_kommt_an'] = True
+                attrappe.modus = 'annehmen'
 
             # -- 20 und 24: Heute ist das Briefing (Paket U, H1), deutsch, kein Spieler ohne Audio, Kopf nicht verdeckt ----
-            for breite in BREITEN:
-                seite.set_viewport_size({'width': breite, 'height': 900})
-                seite.goto(basis + '/today?briefing=1')
-                seite.locator('.today-page h1').wait_for(timeout=15000)
-                time.sleep(1.0)
-                text = seite.locator('main').inner_text()
-                pruef[f'20_deutsch_{breite}'] = not re.search(r'MORNING|Morning|Dashboard', text)
-                pruef[f'20_heute_ist_briefing_{breite}'] = seite.url.endswith('/today') \
-                    and seite.locator('[role=dialog]').count() == 0 \
-                    and seite.get_by_role('button', name=re.compile('Briefing öffnen')).count() == 0
-                pruef[f'20_kein_spieler_ohne_audio_{breite}'] = seite.locator('.audio-briefing').count() == 0 \
-                    and 'Lokales Audio ist derzeit nicht verfügbar' not in text
-                pruef[f'24_ueberdeckt_{breite}'] = seite.evaluate(UEBERDECKT_JS)
-                pruef[f'24_lesbar_{breite}'] = not pruef[f'24_ueberdeckt_{breite}']
-                bild(f'20-briefing-{breite}')
-            pruef['20_audio_status'] = seite.request.get(basis + '/api/v1/audio/status').json()
+            with befund('20-24'):
+                for breite in BREITEN:
+                    seite.set_viewport_size({'width': breite, 'height': 900})
+                    seite.goto(basis + '/today?briefing=1')
+                    seite.locator('.today-page h1').wait_for(timeout=15000)
+                    time.sleep(1.0)
+                    text = seite.locator('main').inner_text()
+                    pruef[f'20_deutsch_{breite}'] = not re.search(r'MORNING|Morning|Dashboard', text)
+                    pruef[f'20_heute_ist_briefing_{breite}'] = seite.url.endswith('/today') \
+                        and seite.locator('[role=dialog]').count() == 0 \
+                        and seite.get_by_role('button', name=re.compile('Briefing öffnen')).count() == 0
+                    pruef[f'20_kein_spieler_ohne_audio_{breite}'] = seite.locator('.audio-briefing').count() == 0 \
+                        and 'Lokales Audio ist derzeit nicht verfügbar' not in text
+                    pruef[f'24_ueberdeckt_{breite}'] = seite.evaluate(UEBERDECKT_JS)
+                    pruef[f'24_lesbar_{breite}'] = not pruef[f'24_ueberdeckt_{breite}']
+                    bild(f'20-briefing-{breite}')
+                pruef['20_audio_status'] = seite.request.get(basis + '/api/v1/audio/status').json()
 
             # -- 15: die eigene Frage als Quelle, in Alltagssprache ---------------------------------------------------
-            seite.set_viewport_size({'width': 1280, 'height': 900})
-            seite.goto(basis + f'/conversations/{gespraech}')
-            frage = seite.locator('article.message.user').first
-            frage.get_by_role('button', name='So ist deine Nachricht gespeichert').click()
-            ansicht = frage.locator('section[aria-label="Profilquelle"]')
-            ansicht.locator('.eigene-frage-satz').wait_for(timeout=10000)
-            vorne = ansicht.inner_text()  # eingeklappt zählt nur die Überschrift „Für Techniker“
-            pruef['15_vorne'] = vorne
-            pruef['15_kein_fachwort'] = not [w for w in ('keine bestätigte Aussage', 'Einordnung', 'Sortierergebnis',
-                                                       'Quelle ausschließen', 'Angabe berichtigen', 'Herkunft') if w in vorne]
-            pruef['15_ein_satz'] = len([t for t in re.split(r'[.!?](?:\s|$)', ansicht.locator('.eigene-frage-satz').inner_text()) if t.strip()]) == 1
-            pruef['15_knoepfe'] = ansicht.get_by_role('button').all_inner_texts()
-            pruef['15_knoepfe_erkennbar'] = 'Wortlaut berichtigen' in pruef['15_knoepfe'] and 'Nicht mehr verwenden' in pruef['15_knoepfe']
-            bild('15-gespraechsquelle')
-            ansicht.locator('details.quelle-technik > summary').click()
-            pruef['15_technik_im_aufklapper'] = 'keine bestätigte Aussage' in ansicht.locator('details.quelle-technik').inner_text()
-            ansicht.locator('details.quelle-technik > summary').click()
-            stand = seite.request.get(basis + f'/api/v1/conversations/{gespraech}').json()
-            episode = next(l['episode_id'] for m in stand['messages'] for l in ((m.get('metadata') or {}).get('context') or {}).get('source_links', []))
-            ansicht.get_by_role('button', name='Nicht mehr verwenden').click()
-            pruef['15_rueckfrage'] = ansicht.get_by_role('group', name='Nicht mehr verwenden').inner_text()
-            ansicht.get_by_role('button', name='Ja, nicht mehr verwenden').click()
-            seite.get_by_text('Grundlage geändert oder ausgeschlossen').first.wait_for(timeout=10000)
-            pruef['15_nicht_mehr_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') == 'ignored'
-            # Zurück wie vorher (für die übrigen Prüfungen); in der Oberfläche heißt das „Wieder verwenden“.
-            assert seite.request.post(basis + f'/api/v1/episodes/{episode}/reopen').ok
-            pruef['15_wieder_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') != 'ignored'
+            with befund('15'):
+                seite.set_viewport_size({'width': 1280, 'height': 900})
+                seite.goto(basis + f'/conversations/{gespraech}')
+                frage = seite.locator('article.message.user').first
+                frage.get_by_role('button', name='So ist deine Nachricht gespeichert').click()
+                ansicht = frage.locator('section[aria-label="Profilquelle"]')
+                ansicht.locator('.eigene-frage-satz').wait_for(timeout=10000)
+                vorne = ansicht.inner_text()  # eingeklappt zählt nur die Überschrift „Für Techniker“
+                pruef['15_vorne'] = vorne
+                pruef['15_kein_fachwort'] = not [w for w in ('keine bestätigte Aussage', 'Einordnung', 'Sortierergebnis',
+                                                           'Quelle ausschließen', 'Angabe berichtigen', 'Herkunft') if w in vorne]
+                pruef['15_ein_satz'] = len([t for t in re.split(r'[.!?](?:\s|$)', ansicht.locator('.eigene-frage-satz').inner_text()) if t.strip()]) == 1
+                pruef['15_knoepfe'] = ansicht.get_by_role('button').all_inner_texts()
+                pruef['15_knoepfe_erkennbar'] = 'Wortlaut berichtigen' in pruef['15_knoepfe'] and 'Nicht mehr verwenden' in pruef['15_knoepfe']
+                bild('15-gespraechsquelle')
+                ansicht.locator('details.quelle-technik > summary').click()
+                pruef['15_technik_im_aufklapper'] = 'keine bestätigte Aussage' in ansicht.locator('details.quelle-technik').inner_text()
+                ansicht.locator('details.quelle-technik > summary').click()
+                stand = seite.request.get(basis + f'/api/v1/conversations/{gespraech}').json()
+                episode = next(l['episode_id'] for m in stand['messages'] for l in ((m.get('metadata') or {}).get('context') or {}).get('source_links', []))
+                ansicht.get_by_role('button', name='Nicht mehr verwenden').click()
+                pruef['15_rueckfrage'] = ansicht.get_by_role('group', name='Nicht mehr verwenden').inner_text()
+                ansicht.get_by_role('button', name='Ja, nicht mehr verwenden').click()
+                seite.get_by_text('Grundlage geändert oder ausgeschlossen').first.wait_for(timeout=10000)
+                pruef['15_nicht_mehr_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') == 'ignored'
+                # Zurück wie vorher (für die übrigen Prüfungen); in der Oberfläche heißt das „Wieder verwenden“.
+                assert seite.request.post(basis + f'/api/v1/episodes/{episode}/reopen').ok
+                pruef['15_wieder_verwendet'] = seite.request.get(basis + f'/api/v1/episodes/{episode}').json().get('state') != 'ignored'
 
             # -- 16: Rückmeldungen ohne Kommandozeilenbefehl, mit dem Satz, was aus einer Meldung wird ------------------
-            antwort = seite.request.post(basis + '/api/v1/rueckmeldungen', data={
-                'conversation_id': gespraech, 'message_id': stand['messages'][-1]['id'], 'art': 'falsch', 'richtig': 'Das Angebot ist verschickt.'})
-            pruef['16_meldung_angelegt'] = antwort.ok
-            seite.goto(basis + '/settings#technik-rueckmeldungen')
-            seite.reload()
-            rueck = seite.locator('section.rueckmeldungen')
-            rueck.get_by_role('button', name='Als Prüffragen speichern').wait_for(timeout=15000)
-            text = rueck.inner_text()
-            pruef['16_text'] = text
-            pruef['16_kein_befehl'] = not re.search(r'python|--fragen|messlatte lokal', text)
-            pruef['16_was_daraus_wird'] = 'Was daraus wird: Jede Meldung wird eine Prüffrage.' in text
-            bild('16-rueckmeldungen')
+            with befund('16'):
+                antwort = seite.request.post(basis + '/api/v1/rueckmeldungen', data={
+                    'conversation_id': gespraech, 'message_id': stand['messages'][-1]['id'], 'art': 'falsch', 'richtig': 'Das Angebot ist verschickt.'})
+                pruef['16_meldung_angelegt'] = antwort.ok
+                seite.goto(basis + '/settings#technik-rueckmeldungen')
+                seite.reload()
+                rueck = seite.locator('section.rueckmeldungen')
+                rueck.get_by_role('button', name='Als Prüffragen speichern').wait_for(timeout=15000)
+                text = rueck.inner_text()
+                pruef['16_text'] = text
+                pruef['16_kein_befehl'] = not re.search(r'python|--fragen|messlatte lokal', text)
+                pruef['16_was_daraus_wird'] = 'Was daraus wird: Jede Meldung wird eine Prüffrage.' in text
+                bild('16-rueckmeldungen')
 
             # -- 31: Sicherung mit einem Passwortfeld und „anzeigen“ ---------------------------------------------------
-            seite.goto(basis + '/settings#sicherung')
-            seite.reload()
-            seite.get_by_role('button', name='Sicherung öffnen').click()
-            formular = seite.get_by_role('form', name='Sicherung erstellen')
-            formular.wait_for(timeout=10000)
-            feld = formular.get_by_label('Sicherungspasswort')
-            pruef['31_ein_feld'] = formular.locator('input').count() == 1 and seite.get_by_text('Passwort wiederholen').count() == 0
-            feld.fill('geheim')
-            pruef['31_verdeckt'] = feld.get_attribute('type') == 'password'
-            pruef['31_hinweis_kurz'] = formular.locator('#sicherung-passwort-hinweis').inner_text()
-            formular.get_by_role('button', name='anzeigen').click()
-            pruef['31_angezeigt'] = feld.get_attribute('type') == 'text' and feld.input_value() == 'geheim' \
-                and formular.get_by_role('button', name='verbergen').get_attribute('aria-pressed') == 'true'
-            feld.fill('ein-langes-probe-passwort-16')
-            pruef['31_hinweis_lang'] = formular.locator('#sicherung-passwort-hinweis').inner_text()
-            bild('31-sicherung')
-            formular.get_by_role('button', name='verbergen').click()
-            pruef['31_wieder_verdeckt'] = feld.get_attribute('type') == 'password'
+            with befund('31'):
+                seite.goto(basis + '/settings#sicherung')
+                seite.reload()
+                seite.get_by_role('button', name='Sicherung öffnen').click()
+                formular = seite.get_by_role('form', name='Sicherung erstellen')
+                formular.wait_for(timeout=10000)
+                feld = formular.get_by_label('Sicherungspasswort')
+                pruef['31_ein_feld'] = formular.locator('input').count() == 1 and seite.get_by_text('Passwort wiederholen').count() == 0
+                feld.fill('geheim')
+                pruef['31_verdeckt'] = feld.get_attribute('type') == 'password'
+                pruef['31_hinweis_kurz'] = formular.locator('#sicherung-passwort-hinweis').inner_text()
+                formular.get_by_role('button', name='anzeigen').click()
+                pruef['31_angezeigt'] = feld.get_attribute('type') == 'text' and feld.input_value() == 'geheim' \
+                    and formular.get_by_role('button', name='verbergen').get_attribute('aria-pressed') == 'true'
+                feld.fill('ein-langes-probe-passwort-16')
+                pruef['31_hinweis_lang'] = formular.locator('#sicherung-passwort-hinweis').inner_text()
+                bild('31-sicherung')
+                formular.get_by_role('button', name='verbergen').click()
+                pruef['31_wieder_verdeckt'] = feld.get_attribute('type') == 'password'
 
             # -- 32: Ortsdienst des Wetters schweigt: ein Satz in der Oberfläche, keine Fehlantwort in der Konsole -----
-            from icarus_memory.wetter import WetterFehler
-            from icarus_memory.wetter_routes import dienst as wetter_dienst
+            with befund('32'):
+                from icarus_memory.wetter import WetterFehler
+                from icarus_memory.wetter_routes import dienst as wetter_dienst
 
-            def ortsdienst_stumm(*_a, **_k):
-                raise WetterFehler('keine Antwort')
-            wetter_dienst(app)._holen = ortsdienst_stumm
-            vorher = len(ergebnis['konsole'])
-            seite.goto(basis + '/settings#darf')
-            seite.reload()
-            seite.get_by_role('switch', name=re.compile('Morgens das Wetter holen')).click()
-            seite.locator('#wetter-suche').fill('Mainz')
-            seite.get_by_role('button', name='Suchen').click()
-            satz = seite.get_by_text('Der Ortsdienst antwortet gerade nicht. Bitte später erneut versuchen.')
-            satz.wait_for(timeout=10000)
-            time.sleep(0.5)
-            pruef['32_satz_sichtbar'] = True
-            pruef['32_konsole_leer'] = len(ergebnis['konsole']) == vorher
-            bild('32-ortssuche-stumm')
+                def ortsdienst_stumm(*_a, **_k):
+                    raise WetterFehler('keine Antwort')
+                wetter_dienst(app)._holen = ortsdienst_stumm
+                vorher = len(ergebnis['konsole'])
+                seite.goto(basis + '/settings#darf')
+                seite.reload()
+                seite.get_by_role('switch', name=re.compile('Morgens das Wetter holen')).click()
+                seite.locator('#wetter-suche').fill('Mainz')
+                seite.get_by_role('button', name='Suchen').click()
+                satz = seite.get_by_text('Der Ortsdienst antwortet gerade nicht. Bitte später erneut versuchen.')
+                satz.wait_for(timeout=10000)
+                time.sleep(0.5)
+                pruef['32_satz_sichtbar'] = True
+                pruef['32_konsole_leer'] = len(ergebnis['konsole']) == vorher
+                bild('32-ortssuche-stumm')
 
         try:
             seite.goto(basis + '/willkommen')  # setzt die Sitzung für /api
