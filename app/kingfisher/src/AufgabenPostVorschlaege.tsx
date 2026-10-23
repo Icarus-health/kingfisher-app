@@ -44,15 +44,15 @@ export function AufgabenPostVorschlaege({ onChanged }: { onChanged: (task: Task 
   if (!meldung && !fehler && (!items || items.length === 0)) return null;
   return <section className="task-source aufgaben-post" aria-label="Aus deiner Post">
     <h2>Aus deiner Post{items && items.length ? ` · ${items.length}` : ""}</h2>
-    <p>Eine Mail passt zu einer Aufgabe, aber nicht sicher genug, um sie von selbst abzulegen. Ein Klick entscheidet; nichts geht nach draußen.</p>
+    <p>Nicht sicher genug, um es selbst abzulegen. Nichts geht nach draußen.</p>
     {meldung ? <p role="status">{meldung}</p> : null}
     {fehler ? <p role="alert">Die Vorschläge sind gerade nicht erreichbar. <button type="button" onClick={laden}>Erneut laden</button></p> : null}
     {items?.map(v => <article key={v.id} className="aufgaben-post-vorschlag" aria-busy={arbeitet === v.id}>
       <strong>{v.statement}</strong>
       <small>{v.satz}</small>
       <div className="task-suggestion-actions">
-        <button type="button" className="primary-action" disabled={arbeitet !== null} onClick={() => void entscheiden(v, true)}>{annehmenText(v)}</button>
-        <button type="button" className="secondary-action" disabled={arbeitet !== null} onClick={() => void entscheiden(v, false)}>Nein</button>
+        <button type="button" className="secondary-action" disabled={arbeitet !== null} onClick={() => void entscheiden(v, true)}>{annehmenText(v)}</button>
+        <button type="button" className="text-action" disabled={arbeitet !== null} onClick={() => void entscheiden(v, false)}>Nein</button>
         <ProfileSource kind="episode" id={v.mail.episode_id} label={`Mail öffnen: ${v.mail.titel || "(kein Betreff)"} vom ${DATUM.format(new Date(v.mail.datum))}`} quiet readOnly allowIgnore={false} />
       </div>
     </article>)}

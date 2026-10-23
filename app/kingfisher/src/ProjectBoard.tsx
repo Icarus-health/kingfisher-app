@@ -18,11 +18,11 @@ function BoardColumn({view,projectId,revision,onTask}: {view:'mine'|'waiting'|'d
   const tasks=page.selectionKey===key ? page.tasks : null;
   const index=view==='mine'?0:view==='waiting'?1:2;
   const column=projectColumns(tasks??[])[index];
-  return <div className="workspace-board-column"><h3>{column.label} {tasks && <small>{page.total}</small>}</h3>
+  return <div className="workspace-board-column"><h3>{column.label} {tasks && page.total > 0 && <small>{page.total}</small>}</h3>
     {page.loading && <p role="status">Wird geladen …</p>}{page.error && <p role="alert">{page.error}<button onClick={()=>void pager.current!.refresh()}>Erneut laden</button></p>}
     {column.items.map(task=><button key={task.id} className="workspace-board-task" type="button" onClick={()=>onTask(task)}><strong>{task.title}</strong>{task.wartet_auf && <span>Wartet auf {task.wartet_auf}</span>}{task.due && <time dateTime={task.due}>{new Date(task.due).toLocaleDateString('de-DE')}</time>}</button>)}
     {tasks?.length===0 && <p>Keine Aufgaben</p>}
-    {tasks && <small>{tasks.length} von {page.total} · Seite {page.page}</small>}
+    {tasks && (page.canNext || page.canPrevious) && <small>{tasks.length} von {page.total} · Seite {page.page}</small>}
     {(page.canNext||page.canPrevious) && <nav aria-label={`${column.label}: Seiten`}><button disabled={!page.canPrevious} onClick={()=>void pager.current!.previous()}>Zurück</button><button disabled={!page.canNext} onClick={()=>void pager.current!.next()}>Weitere</button></nav>}
   </div>;
 }

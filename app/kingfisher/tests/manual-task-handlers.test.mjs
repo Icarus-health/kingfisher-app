@@ -18,7 +18,10 @@ try {
  let tree=d.render();const pageSlot=values.findIndex(v=>v && typeof v==='object' && 'selectionKey' in v);assert.notEqual(pageSlot,-1);values[pageSlot]={...values[pageSlot],selectionKey:JSON.stringify({view:'mine',projectId:'',q:''}),tasks:[{id:'existing-task',title:'Existing',status:'open'}]};tree=d.render();
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  const form=nodes(tree,n=>n.type==='form'&&n.props.className==='task-create')[0];nodes(form,n=>n.type==='input')[0].props.onChange({target:{value:'Unsubmitted new draft'}});tree=d.render();
- nodes(tree,n=>n.type==='button'&&text(n)==='Zur Prüfung')[0].props.onClick();tree=d.render();
+ // „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist; die Prüfliste meldet ihre Zahl.
+ assert.equal(nodes(tree,n=>n.type==='button'&&text(n).startsWith('Zur Prüfung')).length,0,'no review tab without anything to review');
+ nodes(tree,n=>n.type?.name==='TaskSuggestions')[0].props.onTotal(2);tree=d.render();
+ nodes(tree,n=>n.type==='button'&&text(n).startsWith('Zur Prüfung'))[0].props.onClick();tree=d.render();
  assert.equal(nodes(tree,n=>n.type?.name==='ProjectControls').length,1,'project creation remains mounted while the global review is open');
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  assert.equal(nodes(tree,n=>n.type==='section'&&n.props.className==='task-table')[0].props.hidden,false,'the primary action reopens an existing draft instead of staying in the review panel');
