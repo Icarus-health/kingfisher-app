@@ -1,5 +1,5 @@
-.saved-mail-workflow {margin:16px 0;padding:14px 16px;border:1px solid var(--calm-line);border-radius:10px;background:var(--calm-inset);overflow-wrap:anywhere;min-width:0;font-size:var(--calm-control);}
-.saved-mail-workflow h2 {font-size:16px;margin:0 0 6px;font-weight:600;}
+.saved-mail-workflow {margin:0 0 8px;padding:16px 0 0;border-top:1px solid var(--calm-line);overflow-wrap:anywhere;min-width:0;font-size:var(--calm-control);}
+.saved-mail-actionline {display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px;}
 .saved-mail-workflow h3 {font-size:var(--calm-control);margin:0 0 6px;font-weight:500;}
 .saved-mail-workflow p {margin:6px 0;line-height:1.5;}
 .saved-mail-workflow-context {font-size:var(--calm-caption);color:var(--calm-muted);}
@@ -17,4 +17,4 @@
 .saved-task-confirmation small {font-size:var(--calm-caption);color:var(--calm-muted);}
 .saved-mail-workflow a {color:var(--calm-link);text-decoration:underline;text-underline-offset:3px;}
 .saved-mail-workflow :is(button,a,summary):focus-visible {outline:3px solid var(--calm-link);outline-offset:3px;}
-@media(max-width:700px){.saved-task-fields {grid-template-columns:minmax(0,1fr);}.saved-mail-workflow {padding:12px;}}
+@media(max-width:700px){.saved-task-fields {grid-template-columns:minmax(0,1fr);}.saved-mail-workflow {padding-top:12px;}}

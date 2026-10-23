@@ -21,6 +21,8 @@ export function Messages({recentConversation}: {recentConversation:string|null})
   const [syncing,setSyncing] = useState(false);
   const [syncNotice,setSyncNotice] = useState('');
   const opened = useRef<HTMLButtonElement|null>(null);
+  const autoOpened = useRef('');
+  const quietOpen = useRef(false);
   const readerRegion = useRef<HTMLElement|null>(null);
   const syncBaselines = useRef(new Map<string,string[]>());
   const selectionKey = JSON.stringify([accountId??null,query,offset]);
@@ -30,7 +32,9 @@ export function Messages({recentConversation}: {recentConversation:string|null})
   useEffect(() => {
     if(selectedId) {
       if(readerRegion.current) readerRegion.current.scrollTop=0;
-      readerRegion.current?.querySelector<HTMLButtonElement>('button')?.focus({preventScroll:true});
+      // Die von selbst geöffnete erste Mail nimmt der Suche nicht den Fokus.
+      if(quietOpen.current) quietOpen.current=false;
+      else readerRegion.current?.querySelector<HTMLButtonElement>('button')?.focus({preventScroll:true});
     }
     else opened.current?.focus({preventScroll:true});
     const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&selectedId)close();};
@@ -47,6 +51,22 @@ export function Messages({recentConversation}: {recentConversation:string|null})
       .finally(() => {if(active) setLoading(false);});
     return () => {active=false;controller.abort();};
   },[accountId,query,offset,revision]);
+  // Die Liste lädt selbst neu, wenn das Fenster wieder in den Blick kommt; kein Knopf dafür.
+  useEffect(() => {
+    const neu = () => {if(typeof document==='undefined'||document.visibilityState!=='hidden') setRevision(n=>n+1);};
+    window.addEventListener('focus',neu);
+    if(typeof document!=='undefined') document.addEventListener?.('visibilitychange',neu);
+    return () => {window.removeEventListener('focus',neu);if(typeof document!=='undefined') document.removeEventListener?.('visibilitychange',neu);};
+  },[]);
+  // Auf breitem Fenster steht die neueste Mail gleich offen da, auf schmalem bleibt die Liste.
+  useEffect(() => {
+    const first = visiblePage?.items[0];
+    if(!first || selectedId || autoOpened.current===selectionKey) return;
+    autoOpened.current=selectionKey;
+    const breit = typeof window.matchMedia==='function' && window.matchMedia('(min-width: 1101px)').matches;
+    if(!breit) return;
+    quietOpen.current=true;setSelectedMode('local');setSelectedId(first.episode_id);
+  },[visiblePage,selectedId,selectionKey]);
   async function sync() {
     if(syncing) return;
     setSyncing(true);setSyncNotice('');
@@ -62,21 +82,19 @@ export function Messages({recentConversation}: {recentConversation:string|null})
     finally {setSyncing(false);}
   }
   const freshVisible = freshMessages.filter(message=>(accountId===undefined||message.account_id===accountId)&&`${message.subject} ${message.sender} ${message.preview}`.toLocaleLowerCase('de').includes(query.toLocaleLowerCase('de')));
-  const account = page?.accounts.find(item => item.id===accountId);
   return <div className="shell inbox-shell"><Sidebar active="Nachrichten" recentConversation={recentConversation} />
     <main className="inbox-page mail-workspace">
-      <header className="inbox-heading"><h1>Nachrichten</h1><button className="text-action" type="button" disabled={syncing} onClick={() => void sync()}>{syncing?'Wird abgerufen …':'Neue Mails abrufen'}</button></header>
+      <header className="inbox-heading"><h1>Nachrichten</h1><span className="inbox-heading-actions"><button className="text-action" type="button" disabled={syncing} onClick={() => void sync()}>{syncing?'Wird abgerufen …':'Neue Mails abrufen'}</button><a className="text-action" href="/settings#zugaenge">Konten</a></span></header>
       {syncNotice && <p className="inbox-abgerufen" role="status">{syncNotice}</p>}
       <div className={`inbox-content mailbox-columns ${selectedId?'has-reader':''}`}>
         <section className="mail-list-column" aria-label="Gespeicherte Nachrichten">
           <div className="mail-account-choice"><label>Postfach<select aria-label="Postfach auswählen" value={accountId??''} onChange={event=>{setAccountId(event.target.value||undefined);setOffset(0);close();}}><option value="">Alle gespeicherten Mails</option>{page?.accounts.map(item=><option key={item.id} value={item.id}>{item.label} ({item.count})</option>)}</select></label></div>
-          <div className="mail-list-tools"><label>Nachrichten durchsuchen<input type="search" value={query} placeholder="Betreff, Absender oder Inhalt" onChange={event=>{setQuery(event.target.value);setOffset(0);close();}} /></label><button type="button" disabled={loading} onClick={()=>setRevision(n=>n+1)} aria-label="Lokale Nachrichtenliste aktualisieren">↻</button></div>
+          <div className="mail-list-tools"><label>Nachrichten durchsuchen<input type="search" value={query} placeholder="Betreff, Absender oder Inhalt" onChange={event=>{setQuery(event.target.value);setOffset(0);opened.current=null;close();}} /></label></div>
 
           <div className="mail-list-scroll">
-          <details className="mail-list-scope"><summary>Gespeicherte Mails · Stand und Konten</summary><p>{visiblePage?.detail || 'Bereits gespeicherte Mailquellen; kein vollständiger Postfachstand.'}</p><p>{account?.last_sync ? `Letzter bekannter Abruf: ${new Date(account.last_sync).toLocaleString('de-DE')}` : 'Letzter erfolgreicher Abruf: unbekannt'}</p>{!account && page?.accounts.filter(item=>item.last_sync).map(item=><p key={item.id}>{item.label}: zuletzt {new Date(item.last_sync!).toLocaleString('de-DE')}</p>)}<a className="text-action" href="/settings#zugaenge">Konten verwalten</a></details>
           {failure && <p className="inbox-error" role="alert">{failure} <button type="button" onClick={()=>setRevision(n=>n+1)}>Wiederholen</button></p>}
-          {loading && <p role="status">Lokale Nachrichten werden geladen …</p>}
-          {freshVisible.length>0 && <section className="mail-fresh-results" aria-label="Ausdrücklich abgerufener Posteingang"><h2>Aktueller Abruf</h2><p>Bis zu 30 neueste Mails je Posteingang. Hier sucht die Suche nur in Kopfdaten und Vorschau. Diese Ansicht speichert keine neuen Quellen.</p>{freshVisible.map(message=><button type="button" className="inbox-row inbox-open mail-list-item" key={JSON.stringify([message.account_id,message.id])} aria-pressed={selectedMode==='live'&&selectedId===message.id} onClick={event=>{opened.current=event.currentTarget;setSelectedMode('live');setSelectedId(message.id);}}><span className="inbox-copy"><strong title={message.sender}>{displayLabel(message.sender).name}</strong><span className="mail-subject">{message.subject||'(Ohne Betreff)'}</span><small>{message.preview}{message.truncated ? " · Vorschau gekürzt" : ""}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.source}</small></span></button>)}</section>}
+          {loading && !visiblePage && <p role="status">Nachrichten werden geladen …</p>}
+          {freshVisible.length>0 && <section className="mail-fresh-results" aria-label="Ausdrücklich abgerufener Posteingang"><h2>Aktueller Abruf</h2><p>Die neuesten Mails aus dem Postfach; sie werden hier nur angezeigt, nicht gespeichert.</p>{freshVisible.map(message=><button type="button" className="inbox-row inbox-open mail-list-item" key={JSON.stringify([message.account_id,message.id])} aria-pressed={selectedMode==='live'&&selectedId===message.id} onClick={event=>{opened.current=event.currentTarget;setSelectedMode('live');setSelectedId(message.id);}}><span className="inbox-copy"><strong title={message.sender}>{displayLabel(message.sender).name}</strong><span className="mail-subject">{message.subject||'(Ohne Betreff)'}</span><small>{message.preview}{message.truncated ? " · Vorschau gekürzt" : ""}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.source}</small></span></button>)}</section>}
           <div className="inbox-list" aria-busy={loading}>
             {visiblePage?.items.map(message=><button className="inbox-row inbox-open mail-list-item" type="button" key={message.episode_id} aria-pressed={selectedMode==='local'&&selectedId===message.episode_id} onClick={event=>{opened.current=event?.currentTarget??null;setSelectedMode('local');setSelectedId(message.episode_id);}}><span className="inbox-copy"><strong title={message.sender}>{displayLabel(message.sender).name}</strong><span className="mail-subject">{message.subject || '(Ohne Betreff)'}</span><small>{message.preview}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.account_label}</small></span></button>)}
             {visiblePage && visiblePage.items.length===0 && !loading && <p className="inbox-empty">Keine gespeicherten Nachrichten in dieser Ansicht.</p>}
