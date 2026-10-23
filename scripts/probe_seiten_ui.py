@@ -39,13 +39,19 @@ CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
 BREITEN = (390, 768, 1280)
 
 # Kein sichtbares Element darf über den Fensterrand hinausragen, auch nicht in der Seitenleiste (Fremdprobe 3, Befund 14).
-# Versteckte zählen nicht (aria-hidden, nur für Vorleser).
+# Versteckte zählen nicht (aria-hidden, nur für Vorleser). Ausgenommen ist, was in einer Segmentleiste steht: Sie rollt
+# gewollt waagrecht, statt umzubrechen (Grundlage vom 23.10.2026, docs/16-gestaltung.md); die Seite selbst nie.
+SEGMENTLEISTEN = ('.g-segmente, .task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter, '
+                  '.memory-page-workspace .memory-filter > div:not(.memory-heading-row)')
 UEBERSTAND_JS = """() => {
+  const SEGMENTE = '""" + SEGMENTLEISTEN + """';
   const w = document.documentElement.clientWidth, aus = [];
   const name = el => el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0];
   const deko = el => (el.tagName === 'IMG' && el.getAttribute('alt') === '') || el.tagName === 'svg' || el.closest('svg');
   for (const el of document.querySelectorAll('#root *')) {
     if (el.closest('[aria-hidden="true"]') || deko(el)) continue;
+    const leiste = el.parentElement && el.parentElement.closest(SEGMENTE);
+    if (leiste && ['auto', 'scroll'].includes(getComputedStyle(leiste).overflowX)) continue;  // rollt gewollt; die Leiste selbst wird gemessen
     const cs = getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute' && cs.clip !== 'auto') continue;
     const r = el.getBoundingClientRect();
@@ -217,7 +223,7 @@ def main() -> int:
             time.sleep(0.6)  # bis das Briefing ganz hereingeglitten ist
             messen('briefing', breite)
             seite.goto(basis + '/conversations')
-            seite.locator('.history-heading h1').wait_for(timeout=10000)
+            seite.locator('.conversation-navigation').first.wait_for(timeout=10000)
             messen('gespraeche', breite)
             seite.goto(basis + f'/conversations/{gespraech}')
             seite.locator('.thread-header h1').wait_for(timeout=10000)
@@ -240,7 +246,12 @@ def main() -> int:
             time.sleep(0.6)
             for knopf in ('Menschen', 'Projekte', 'Organisationen', 'Orte', 'Themen', 'Themenakten', 'Entscheidungen',
                           'Dokumente', 'Aussagen prüfen', 'Verarbeitung & Verlauf'):
-                seite.locator('.memory-filter button', has_text=knopf).first.click()
+                ziel = seite.locator('.memory-filter button', has_text=knopf).first
+                if not seite.locator('.memory-filter button', has_text=knopf).count():
+                    continue  # Ansicht gibt es nicht mehr als eigenen Knopf
+                if not ziel.is_visible() and seite.locator('.memory-tools:not([open]) > summary').count():
+                    seite.locator('.memory-tools > summary').first.click()  # seltene Ansichten stehen eingeklappt
+                ziel.click()
                 time.sleep(0.5)
                 messen(f'gedaechtnis-{knopf.split()[0].lower()}', breite)
             for bereich in ('zugaenge', 'darf', 'ich', 'sicherung', 'technik'):

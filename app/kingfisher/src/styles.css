@@ -1106,7 +1106,6 @@ details.calendar-preparation-item > small { display: block; margin-top: 6px; ove
 
 /* Die Marke steht am Rand; die Arbeitsflächen gehören dem Inhalt. */
 .shell > .sidebar { background: var(--nordic-nav); padding: 12px 14px 22px; overflow-y: auto; isolation: isolate; }
-.shell > .sidebar::before { content: ''; position: absolute; z-index: -1; inset: 42% 0 0; background: url('/03_Media/Approved/landscape-calm-page-v1.png') center bottom / auto 100% no-repeat; opacity: .17; pointer-events: none; }
 .shell > .sidebar .brand-lockup { width: 176px; height: 128px; margin: 0 auto 12px; object-fit: cover; mask-image: none; }
 .shell > .sidebar nav { order: 1; gap: 6px; }
 .shell > .sidebar .nav-item { min-height: 49px; padding: 0 14px; gap: 16px; font-size: 15px; font-weight: 400; color: #d6e3ed; border-radius: 8px; }
