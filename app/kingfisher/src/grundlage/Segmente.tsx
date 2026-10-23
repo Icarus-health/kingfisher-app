@@ -9,6 +9,23 @@ export type Segment<T extends string> = {
   deaktiviert?: boolean;
 };
 
+/** Merkt am rollenden Behälter, ob links oder rechts noch etwas verborgen ist; die Stile blenden dort den Rand aus. */
+export function raenderMarkieren(el: HTMLElement) {
+  const rest = el.scrollWidth - el.clientWidth - el.scrollLeft;
+  el.dataset.randLinks = String(el.scrollLeft > 1);
+  el.dataset.randRechts = String(rest > 1);
+}
+
+/** Die Ränder neu markieren, wenn sich die Breite ändert (React 19: der Rückgabewert räumt auf). */
+function beobachten(el: HTMLDivElement | null) {
+  if (!el) return;
+  raenderMarkieren(el);
+  if (typeof ResizeObserver === "undefined") return;
+  const beobachter = new ResizeObserver(() => raenderMarkieren(el));
+  beobachter.observe(el);
+  return () => beobachter.disconnect();
+}
+
 /** Segmente: Segmentsteuerung als Pille. Rollt waagrecht, statt umzubrechen; Pfeiltasten, Pos1 und Ende wählen
  * (die Taste wählt sofort, wie am Mac). Ohne Zustand: Die Seite hält den gewählten Wert. */
 export function Segmente<T extends string>({ optionen, wert, onWahl, label, kompakt = false, className }: {
@@ -35,7 +52,9 @@ export function Segmente<T extends string>({ optionen, wert, onWahl, label, komp
     knoepfe[ziel]?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }
 
+  // data-rollt="waagrecht": die eine gewollte Ausnahme von „nichts rollt seitlich“ (docs/16-gestaltung.md).
   return <div role="tablist" aria-label={label} aria-orientation="horizontal" onKeyDown={taste}
+    data-rollt="waagrecht" ref={beobachten} onScroll={e => raenderMarkieren(e.currentTarget)}
     className={["g-segmente", kompakt ? "g-kompakt" : "", className].filter(Boolean).join(" ")}>
     {optionen.map((o, i) => <button key={o.wert} type="button" role="tab" className="g-segment"
       aria-selected={i === gewaehlt} tabIndex={i === imFokus ? 0 : -1} disabled={o.deaktiviert}

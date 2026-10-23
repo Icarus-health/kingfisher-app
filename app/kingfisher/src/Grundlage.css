@@ -131,6 +131,10 @@
   overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; vertical-align: middle;
 }
 .g-segmente::-webkit-scrollbar { display: none; }
+/* Was hinter dem Rand verborgen ist, wird sichtbar ausgeblendet, damit man sieht, dass die Leiste rollt. */
+[data-rollt="waagrecht"][data-rand-rechts="true"] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); }
+[data-rollt="waagrecht"][data-rand-links="true"] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent); }
+[data-rollt="waagrecht"][data-rand-links="true"][data-rand-rechts="true"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
 .g-segment {
   flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px;
   padding: 0 16px; border: 0; border-radius: var(--g-radius-pille); background: transparent; color: var(--g-tinte);

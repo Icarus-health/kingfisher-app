@@ -177,7 +177,7 @@ test("Segmente: eine Auswahl, nur sie per Tab erreichbar, Zahlen nur über null,
   let gewaehlt = null;
   const props = { optionen, wert: "warte", onWahl: w => { gewaehlt = w; }, label: "Aufgaben" };
   const markup = html(h(g.Segmente, props));
-  assert.match(markup, /^<div role="tablist" aria-label="Aufgaben" aria-orientation="horizontal" class="g-segmente">/);
+  assert.match(markup, /^<div role="tablist" aria-label="Aufgaben" aria-orientation="horizontal" data-rollt="waagrecht" class="g-segmente">/);
   assert.equal(markup.match(/aria-selected="true"/g).length, 1);
   assert.equal(markup.match(/tabindex="0"/g).length, 1);
   assert.match(markup, /aria-selected="true" tabindex="0"[^>]*><span>Warte auf andere<\/span><\/button>/, "keine Null");
@@ -203,6 +203,25 @@ test("Segmente: eine Auswahl, nur sie per Tab erreichbar, Zahlen nur über null,
   const buttons = knoten(baum, n => n.type === "button");
   buttons[3].props.onClick({ currentTarget: {} });
   assert.equal(gewaehlt, "fertig");
+});
+
+test("Segmente: die rollende Leiste ist markiert, und ihr Rand wird ausgeblendet, wo noch etwas verborgen ist", () => {
+  const el = (scrollLeft, clientWidth, scrollWidth) => ({ scrollLeft, clientWidth, scrollWidth, dataset: {} });
+  const passt = el(0, 400, 400); g.raenderMarkieren(passt);
+  assert.deepEqual(passt.dataset, { randLinks: "false", randRechts: "false" }, "passt alles: kein Ausblenden");
+  const anfang = el(0, 300, 700); g.raenderMarkieren(anfang);
+  assert.deepEqual(anfang.dataset, { randLinks: "false", randRechts: "true" });
+  const mitte = el(150, 300, 700); g.raenderMarkieren(mitte);
+  assert.deepEqual(mitte.dataset, { randLinks: "true", randRechts: "true" });
+  const ende = el(400, 300, 700); g.raenderMarkieren(ende);
+  assert.deepEqual(ende.dataset, { randLinks: "true", randRechts: "false" });
+  for (const seite of ["rechts", "links"]) {
+    assert.match(grundlage, new RegExp(`\\[data-rollt="waagrecht"\\]\\[data-rand-${seite}="true"\\] \\{[^}]*mask-image: linear-gradient`), seite);
+  }
+  // Die Probe zählt nur Glieder solcher Leisten nicht als Überstand; die Seite selbst wird weiter gemessen.
+  const probe = readFileSync(new URL("../../../scripts/probe_seiten_ui.py", import.meta.url), "utf8");
+  assert.match(probe, /SEGMENTLEISTEN = \('\[data-rollt="waagrecht"\]/);
+  assert.match(probe, /return \{ seite: document\.documentElement\.scrollWidth - w/);
 });
 
 test("Leer: ein Zeichen, ein Satz, höchstens ein Knopf", () => {

@@ -3,7 +3,7 @@
 export { Seitenkopf } from "./Seitenkopf";
 export { Gruppe } from "./Gruppe";
 export { Zeile } from "./Zeile";
-export { Segmente, type Segment } from "./Segmente";
+export { Segmente, raenderMarkieren, type Segment } from "./Segmente";
 export { Leer } from "./Leer";
 export { Aufklapper } from "./Aufklapper";
 export { segmentNachTaste, segmentImFokus } from "./segmentTasten.ts";

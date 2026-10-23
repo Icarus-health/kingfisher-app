@@ -152,7 +152,7 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
 | `Seitenkopf` | `titel`, `zeile?` (eine Zeile), `aktionen?`, `className?` | `g-seitenkopf`, `-text`, `-titel`, `-zeile`, `-aktionen`; klebende Leiste `g-kopfleiste` (erscheint, sobald der Titel oben hinausrollt; `--g-kopf-rand` dehnt sie über den Seitenrand) |
 | `Gruppe` | `titel?` (klein über der Fläche), `fussnote?` (ein Satz darunter), `frei?` (freier Inhalt mit Innenabstand statt Zeilen), `children` | `g-gruppe`, `g-gruppe-kopf`, `g-gruppe-titel`, `g-flaeche` (`g-flaeche-frei`), `g-gruppe-fussnote` |
 | `Zeile` | `titel`, `neben?`, `wert?` (rechts), `symbol?` (links, etwa `<InterfaceIcon name="mail" />`); klickbar mit `onClick` **oder** `href`, dazu `pfeil?` (Vorgabe: bei Verweisen), `aktiv?`, `deaktiviert?`; statisch mit `zusatz?` (Schalter rechts) – nie beides, keine Knöpfe im Knopf | `g-zeile`, `-symbol`, `-text`, `-titel`, `-neben`, `-wert`, `-zusatz`, `-pfeil`; mindestens 52 px |
-| `Segmente` | `optionen` (`{wert, titel, zahl?, deaktiviert?}`), `wert`, `onWahl(wert)`, `label`, `kompakt?` | `g-segmente`, `g-segment`, `g-segment-zahl`; Pille, rollt waagrecht statt umzubrechen; Pfeiltasten, Pos1, Ende (Modell `segmentTasten.ts`); Zahl nur über null |
+| `Segmente` | `optionen` (`{wert, titel, zahl?, deaktiviert?}`), `wert`, `onWahl(wert)`, `label`, `kompakt?` | `g-segmente`, `g-segment`, `g-segment-zahl`; Pille, rollt waagrecht statt umzubrechen (`data-rollt="waagrecht"`, Rand blendet aus, wo etwas verborgen ist); Pfeiltasten, Pos1, Ende (Modell `segmentTasten.ts`); Zahl nur über null |
 | `Leer` | `satz` (genau einer), `zeichen?` (Name eines `InterfaceIcon`), `aktion?` (höchstens ein Knopf) | `g-leer`, `-zeichen`, `-satz`, `-aktion` |
 | `Aufklapper` | `titel`, `neben?` (leise rechts), `offen?`, `onToggle?(offen)`, `children` | `g-aufklapper`, `-titel`, `-neben`, `-inhalt` |
 
@@ -186,7 +186,11 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
 - **Systemschrift.** Auf dem Mac San Francisco, sonst Inter; Hierarchie weiter nur über Größe und Strichstärke.
 - **Große Titel** (34 statt 32 px, 700) und **Segmente** statt unterstrichener Reiter.
 - **Segmentleisten rollen waagrecht**, statt umzubrechen; das ist die eine gewollte Ausnahme von „nichts rollt
-  seitlich“. Die Seite selbst rollt nie (`scripts/probe_seiten_ui.py` misst die Leiste, nicht ihre Glieder).
+  seitlich“. Merkmal ist `data-rollt="waagrecht"` am Behälter (der Baustein `Segmente` setzt es), dazu
+  `overflow-x: auto`; wo links oder rechts noch etwas verborgen ist, blendet der Rand sichtbar aus
+  (`data-rand-links`/`data-rand-rechts`). `scripts/probe_seiten_ui.py` zählt die Glieder einer solchen Leiste nicht als
+  Überstand, misst aber die Leiste selbst und die Seite: Die Seite rollt nie seitlich. Die alten Reiterleisten
+  (`.task-tabs` usw.) gelten als solche, bis die Seiten den Baustein einsetzen.
 
 ## Wo der Grundsatz vorgeht
 
