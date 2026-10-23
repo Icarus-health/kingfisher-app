@@ -14,7 +14,7 @@ import { adresseLesen } from "../adresseEntwurf";
 import { useSystem } from "../useSystem";
 import { TranscriptSettings } from "../TranscriptSettings";
 import { icon } from "../ui";
-import { ZUGAENGE } from "./gliederung";
+import { gefuellterZugang, ZUGAENGE } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
 import {
@@ -46,7 +46,7 @@ const zaehlen = (anzahl: number, einzahl: string, mehrzahl: string) => anzahl ==
  * Karten; hier stehen sie nur unter einer Überschrift in Alltagssprache. Nichts wird ohne Klick verbunden, und
  * „Trennen“ löscht nur den lokalen Zugang, nicht die Daten beim Anbieter.
  */
-export function Zugaenge({ integrationen, aktiv }: { integrationen: Integrationen; aktiv: boolean }) {
+export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { integrationen: Integrationen; aktiv: boolean; einrichtungOffen?: boolean }) {
   const system = useSystem();
   // „Mit Google anmelden“ nur, wenn ein Techniker es eingerichtet hat (Befund 2); sonst kein gesperrter Knopf vorne.
   const googleVorne = googleAnmeldungVorne(useGoogleKonfiguration());
@@ -155,10 +155,13 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
   const selectedProvider = providers.find((item) => item.id === mail.provider);
   const accounts = overview?.mail_accounts ?? [];
   const calendars = overview?.calendar_sources ?? [];
+  // Genau ein gefüllter Knopf: Ist die Einrichtung offen, ist es „Einrichtung fortsetzen“; sonst der erste fehlende Zugang.
+  const gefuellt = gefuellterZugang(einrichtungOffen, overview ? accounts.length : null, overview ? calendars.length : null);
+  const knopf = (art: "mail" | "calendar") => `source-add source-add-text${gefuellt === art ? "" : " source-add-leise"}`;
 
   return <>
     <div className="source-section" aria-label={ZUGAENGE.postfaecher.titel}>
-      <div className="source-section-heading"><InterfaceIcon name="mail" /><div><h2>{ZUGAENGE.postfaecher.titel}</h2><span>{zaehlen(accounts.length, "Postfach", "Postfächer") || "Mehrere sind möglich"}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button"><img src={icon("plus", "Outline")} alt="" />Postfach hinzufügen</button></div>
+      <div className="source-section-heading"><InterfaceIcon name="mail" /><div><h2>{ZUGAENGE.postfaecher.titel}</h2><span>{zaehlen(accounts.length, "Postfach", "Postfächer") || "Mehrere sind möglich"}</span></div><button className={knopf("mail")} onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button"><img src={icon("plus", "Outline")} alt="" />Postfach hinzufügen</button></div>
       {!overview ? <div className="source-loading"><i /><i /></div> : null}
       {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
       {accounts.map((account) => <Fragment key={account.id}>
@@ -186,7 +189,7 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
     </div> : null}
 
     <div className="source-section" aria-label={ZUGAENGE.kalender.titel}>
-      <div className="source-section-heading"><InterfaceIcon name="calendar-days" /><div><h2>{ZUGAENGE.kalender.titel}</h2><span>{zaehlen(calendars.length, "Kalender", "Kalender") || (system.mac_helfer ? "Google, Mac oder ein Kalender-Abo" : "Google oder ein Kalender-Abo")}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button"><img src={icon("plus", "Outline")} alt="" />Kalender hinzufügen</button></div>
+      <div className="source-section-heading"><InterfaceIcon name="calendar-days" /><div><h2>{ZUGAENGE.kalender.titel}</h2><span>{zaehlen(calendars.length, "Kalender", "Kalender") || (system.mac_helfer ? "Google, Mac oder ein Kalender-Abo" : "Google oder ein Kalender-Abo")}</span></div><button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button"><img src={icon("plus", "Outline")} alt="" />Kalender hinzufügen</button></div>
       {!overview ? <div className="source-loading"><i /><i /></div> : null}
       {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
       {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}

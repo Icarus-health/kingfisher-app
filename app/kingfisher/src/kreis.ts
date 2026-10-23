@@ -9,6 +9,8 @@ export type KreisStand = {
   neuer_vorschlag: boolean; wahlen: KreisWahl[];
   /** Es gibt nichts, worauf ein Vorschlag beruhen könnte (keine Mails, keine gemeinsamen Termine). */
   ohne_vorschlag?: boolean;
+  /** Das ist der Nutzer selbst: Für ihn gibt es keinen Kreis, die Akte zeigt keine Karte. */
+  eigene?: boolean;
 };
 export type KreisUebersicht = {
   bestaetigt: number; offen: number; geaendert: number; je_kreis: Record<KreisArt, number>;

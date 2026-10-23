@@ -214,7 +214,7 @@ def main() -> int:
             seite.locator('.today-page h1').wait_for(timeout=20000)
             messen('briefing', breite)
             seite.goto(basis + '/conversations')
-            seite.locator('.history-heading h1').wait_for(timeout=10000)
+            seite.locator('.workspace-chat-start .conversation-navigation').wait_for(timeout=10000)
             messen('gespraeche', breite)
             seite.goto(basis + f'/conversations/{gespraech}')
             seite.locator('.thread-header h1').wait_for(timeout=10000)
@@ -235,9 +235,10 @@ def main() -> int:
             seite.goto(basis + '/memory')
             seite.locator('.memory-filter').wait_for(timeout=10000)
             time.sleep(0.6)
-            for knopf in ('Menschen', 'Projekte', 'Organisationen', 'Orte', 'Themen', 'Themenakten', 'Entscheidungen',
+            for knopf in ('Menschen', 'Projekte', 'Organisationen', 'Orte', 'Themen', 'Entscheidungen',
                           'Dokumente', 'Aussagen prüfen', 'Verarbeitung & Verlauf'):
-                seite.locator('.memory-filter button', has_text=knopf).first.click()
+                # Seltene Ansichten stehen als leise Zeile am Seitenende (Paket U, M1).
+                seite.locator('.memory-filter button, .memory-tools button', has_text=knopf).first.click()
                 time.sleep(0.5)
                 messen(f'gedaechtnis-{knopf.split()[0].lower()}', breite)
             for bereich in ('zugaenge', 'darf', 'ich', 'sicherung', 'technik'):
@@ -252,7 +253,8 @@ def main() -> int:
             seite.set_viewport_size({'width': 1280, 'height': 900})
 
             # -- 28: leerer Zustand im Gedächtnis mit Verweis; Auswahl statt Zahlenfeld, Singular -------------------
-            seite.goto(basis + '/memory')
+            # Seit „Suchen“ der erste Reiter ist, steht der leere Zustand unter „Menschen“.
+            seite.goto(basis + '/memory?tab=people')
             leer = seite.locator('.gedaechtnis-leer').first
             leer.wait_for(timeout=10000)
             pruef['28_leer_satz'] = leer.inner_text()

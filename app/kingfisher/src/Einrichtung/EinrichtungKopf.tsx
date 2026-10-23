@@ -1,12 +1,11 @@
+import type {EinrichtungStand} from "../api";
 import {navigate} from "../ui";
 import {KingfisherLernt} from "./KingfisherLernt";
 import {offeneSchritte} from "./schritte";
-import {useEinrichtung} from "./useEinrichtung";
 import "./Einrichtung.css";
 
 /** Oben in Einstellungen: der Assistent jederzeit wieder, was noch offen ist, und was im Hintergrund läuft. Den Autostart gibt es unter „Was Kingfisher darf“. */
-export function EinrichtungKopf() {
-  const {stand} = useEinrichtung();
+export function EinrichtungKopf({stand}: {stand: EinrichtungStand | null}) {
   const offen = stand ? offeneSchritte(stand).map(schritt => schritt.kurz) : [];
   return <div className="einrichtung-kopf">
     <section className="einrichtung-assistent" aria-label="Einrichtungsassistent">

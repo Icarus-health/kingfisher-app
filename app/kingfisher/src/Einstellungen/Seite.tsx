@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { EinrichtungKopf } from "../Einrichtung/EinrichtungKopf";
+import { offeneSchritte } from "../Einrichtung/schritte";
+import { useEinrichtung } from "../Einrichtung/useEinrichtung";
 import { RecoverySettings } from "../RecoverySettings";
 import { SettingsSections } from "../SettingsSections";
 import { Aufklapp } from "./Aufklapp";
@@ -26,6 +28,9 @@ import "./Einstellungen.css";
  */
 export function EinstellungenSeite({ recentConversation }: { recentConversation: string | null }) {
   const integrationen = useIntegrationen();
+  const { stand: einrichtung } = useEinrichtung();
+  // Solange der Stand fehlt, gilt die Einrichtung als offen: Dann ist vorerst kein Zugang-Knopf gefüllt.
+  const einrichtungOffen = !einrichtung || offeneSchritte(einrichtung).length > 0;
   const system = useSystem();
   const [ziel, setZiel] = useState(() => zielAus(window.location.hash));
 
@@ -44,7 +49,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
   }, [ziel.bereich]);
 
   const inhalt: Record<Bereich, ReactNode> = {
-    zugaenge: <><EinrichtungKopf /><Zugaenge integrationen={integrationen} aktiv={ziel.bereich === "zugaenge"} /></>,
+    zugaenge: <><EinrichtungKopf stand={einrichtung} /><Zugaenge integrationen={integrationen} aktiv={ziel.bereich === "zugaenge"} einrichtungOffen={einrichtungOffen} /></>,
     ki: <><LocalModelSettings /><ChatGPTAccess /><CloudAccess />
       <ModelRecommendation compact><Aufklapp id="geraet" praefix="ki" titel="Gerät und installierte Modelle" satz="Speicherbedarf und vorhandene Modelle."><DeviceModelHelp /></Aufklapp></ModelRecommendation></>,
     darf: <><Darf /><WorkspaceOnlineSettings /></>,

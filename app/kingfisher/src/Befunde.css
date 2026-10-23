@@ -18,3 +18,6 @@
 .befunde-ruhend summary { cursor: pointer; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 20px; }
 .befunde-pruefen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .befunde-pruefen .secondary-action { min-height: 32px; }
+/* Prüfen-Seite (Paket U, P1): ein Satz, wenn nichts zu prüfen ist; die seltenen Prüfwege als eine leise Zeile. */
+.review-page .review-leer { font-size: var(--calm-text); color: var(--calm-ink); margin: 8px 0 16px; }
+.review-page .review-weitere { margin-top: 28px; font-size: var(--calm-caption); color: var(--calm-muted); line-height: 1.8; }

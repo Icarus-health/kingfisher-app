@@ -118,6 +118,14 @@ export const FACHWOERTER: readonly string[] = [
 
 const WOERTER = FACHWOERTER.map(wort => ({ wort, muster: new RegExp(`(?<![\\p{L}\\p{N}])${wort}(?![\\p{L}\\p{N}])`, "iu") }));
 
+/** Genau ein gefüllter Knopf unter „Zugänge“ (Paket U, E1): Welcher „hinzufügen“-Knopf gefüllt ist. Keiner, solange die
+ * Einrichtung offen ist (dann ist „Einrichtung fortsetzen“ der eine) oder der Stand fehlt; sonst der erste fehlende
+ * Zugang, zuerst Postfach, dann Kalender; sind beide da, keiner. */
+export function gefuellterZugang(einrichtungOffen: boolean, postfaecher: number | null, kalender: number | null): "mail" | "calendar" | null {
+  if (einrichtungOffen || postfaecher === null || kalender === null) return null;
+  return postfaecher === 0 ? "mail" : kalender === 0 ? "calendar" : null;
+}
+
 /** Die Fachwörter, die in `text` als ganze Wörter vorkommen. */
 export function fachwoerter(text: string): string[] {
   return WOERTER.filter(eintrag => eintrag.muster.test(text)).map(eintrag => eintrag.wort);

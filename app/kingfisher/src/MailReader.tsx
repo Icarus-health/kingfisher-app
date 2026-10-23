@@ -333,22 +333,26 @@ function SavedMailReader({episodeId, localRevision, onClose, onTaskSaved}: MailR
     window.addEventListener('focus', focus); window.addEventListener('keydown', escape);
     return () => {active = false; version++; controller?.abort(); window.removeEventListener('focus',focus); window.removeEventListener('keydown',escape);};
   }, [episodeId, revision, localRevision]);
+  const remoteAction = detail?.remote_uid
+    ? <button className="mail-reader-secondary" type="button" disabled={loading || Boolean(error) || online} onClick={() => setOnline(true)}>Antwort entwerfen</button>
+    : null;
   return <article className="mail-reader mail-reader-local" aria-label="Gespeicherte Nachricht lesen">
-    <header className="mail-reader-header"><button className="mail-reader-close" type="button" onClick={onClose}>Zur Nachrichtenliste</button><span className="mail-reader-source">Gespeicherte Originalquelle · Mail</span></header>
-    {loading && <p role="status">Gespeicherte Quelle wird geprüft …</p>}
+    <header className="mail-reader-header"><button className="mail-reader-close" type="button" onClick={onClose}>Zur Nachrichtenliste</button></header>
+    {loading && !detail && <p role="status">Mail wird geladen …</p>}
     {error && <p role="alert">{error} <button type="button" onClick={() => setRevision(n => n + 1)}>Wiederholen</button></p>}
     {detail && <>
-      <section className="mail-reader-meta"><h1>{detail.subject || '(Ohne Betreff)'}</h1><p className="mail-sender-line"><strong>{detail.from}</strong><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p><p className="mail-source-state">Gespeichert · aktueller Postfachstand unbekannt</p><details className="mail-source-details"><summary>Details zur Quelle</summary><dl><div><dt>Gespeichert</dt><dd>{readableDate(detail.recorded_at)}</dd></div><div><dt>Postfach</dt><dd>{detail.account_label}</dd></div></dl><p className="mail-reader-status">Quelle vom letzten Speichern. Heutige Erledigung und Antwortstatus sind unbekannt.</p></details></section>
+      <section className="mail-reader-meta"><h1>{detail.subject || '(Ohne Betreff)'}</h1><p className="mail-sender-line"><strong>{detail.from}</strong><time dateTime={detail.date || undefined}>{readableDate(detail.date)}</time></p></section>
       {error && <p className="mail-reader-status">Zuletzt geladene Vorschau · Quellenstand ungeprüft. Deine bearbeiteten Aufgaben bleiben erhalten.</p>}
       <section className="mail-reader-body" aria-label={error ? "Zuletzt geladener Originaltext, Quellenstand ungeprüft" : "Originaltext der gespeicherten Nachricht"}><pre>{detail.body || detail.preview || 'Kein lesbarer Text gespeichert.'}</pre></section>
       {detail.truncated && <p role="status">Gespeicherter Ausschnitt; weitere Textteile oder Anlagen können fehlen.</p>}
-      <SavedMailWorkflow key={episodeId} episodeId={episodeId} sourceDigest={detail.source_digest} sourceVerified={!loading && !error} onTaskSaved={onTaskSaved} />
-      <details className="mail-source-management"><summary>Quelle prüfen und verwalten</summary><ProfileSource kind="episode" id={episodeId} label="Gespeicherte Originalquelle prüfen" originalOnly readOnly />
+      <SavedMailWorkflow key={episodeId} episodeId={episodeId} sourceDigest={detail.source_digest} sourceVerified={!loading && !error} onTaskSaved={onTaskSaved} nebenAktion={remoteAction} />
+      {remoteAction ? <p className="mail-reader-status">„Antwort entwerfen“ lädt die Mail aus dem Postfach; gesendet wird erst nach deiner Freigabe.</p> : <p className="mail-reader-status">Diese Mail lässt sich hier nicht beantworten, weil sie keinem eingerichteten Postfach sicher zugeordnet ist.</p>}
+      {online && detail.remote_uid && <RemoteMailReader key={detail.remote_uid} uid={detail.remote_uid} onClose={() => setOnline(false)} onTaskSaved={onTaskSaved} />}
+      <details className="mail-source-details"><summary>Quelle</summary><dl><div><dt>Gespeichert</dt><dd>{readableDate(detail.recorded_at)}</dd></div><div><dt>Postfach</dt><dd>{detail.account_label}</dd></div></dl>
+      <ProfileSource kind="episode" id={episodeId} label="Gespeicherte Originalquelle prüfen" originalOnly readOnly />
       <button className="mail-reader-secondary" type="button" disabled={loading || Boolean(error)} onClick={()=>setManageSource(value=>!value)}>Quelle zuordnen oder ausschließen</button>
       {manageSource && <ProfileSource kind="episode" id={episodeId} label="Quellenverwaltung öffnen" onChange={()=>{setDetail(null);setOnline(false);setRevision(value=>value+1);onTaskSaved?.();}} />}
       </details>
-      <section className="mail-reader-actions" aria-label="Aktuelle Nachrichtenaktionen"><button className="mail-reader-secondary" type="button" disabled={!detail.remote_uid || loading || Boolean(error) || online} onClick={() => setOnline(true)}>Aktuelle Mail und Aktionen laden</button>{detail.remote_uid ? <p className="mail-reader-status">Lädt diese Mail beim Provider. Antworten werden weiterhin erst nach deiner Freigabe versendet.</p> : <details><summary>Warum ist das nicht verfügbar?</summary><p className="mail-reader-status">Diese Archivquelle hat keine sicher zugeordnete aktuelle Postfachkennung. Antworten und Provideraktionen sind deshalb hier nicht verfügbar.</p></details>}</section>
-      {online && detail.remote_uid && <RemoteMailReader key={detail.remote_uid} uid={detail.remote_uid} onClose={() => setOnline(false)} onTaskSaved={onTaskSaved} />}
     </>}
   </article>;
 }

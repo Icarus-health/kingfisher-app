@@ -62,7 +62,7 @@ abweicht, bitte mit Bildschirmfoto festhalten.
 
 | Wo | Was tun | Erwartung |
 | --- | --- | --- |
-| Gespräche | ohne Gespräche öffnen | Hinweis und Knopf „Neues Gespräch beginnen“ |
+| Gespräche | ohne Gespräche öffnen | Eingabefeld steht gleich da; das Gespräch entsteht mit der ersten Frage |
 | Gespräch | nach etwas fragen, das in einer Mail steht | Antwort mit Quelle, Absender und lesbarer Zeit; neueste Quelle zuerst |
 | Gespräch | Frage mit mehreren passenden Personen | Rückfrage mit Knöpfen, ein Klick beantwortet |
 | Gespräch | „Was kam letzte Woche zu …?“ | „Zuerst berücksichtigt: Quellen …“ |

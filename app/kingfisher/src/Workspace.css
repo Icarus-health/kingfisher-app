@@ -58,7 +58,10 @@
   .workspace-chat .conversation-navigation-toggle { display: block; }
   .workspace-chat.navigation-open .conversation-navigation { display: flex; position: absolute; z-index: 12; inset: 64px auto 0 0; width: min(300px, 90%); box-shadow: 8px 0 24px rgba(0,0,0,.1); }
   .workspace-chat-start .conversation-navigation { border-right: 0; }
-  .workspace-chat-start .thread { display: none; }
+  /* Schmal: oben die Liste, unten gleich das Eingabefeld; das Gespräch entsteht mit der ersten Frage (Paket U, G1). */
+  .shell main.workspace-chat.workspace-chat-start { grid-template-rows: minmax(0, 1fr) auto; }
+  .workspace-chat-start .thread { height: auto; }
+  .workspace-chat-start .thread .messages:has(> .conversation-empty) { display: none; }
 }
 @media (max-width: 700px) {
   .shell main.workspace-chat { height: calc(100dvh - 82px); margin: 10px; width: calc(100% - 20px); border-radius: 12px; }

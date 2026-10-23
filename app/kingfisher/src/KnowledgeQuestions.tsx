@@ -41,7 +41,9 @@ function SourceEvidence({source}: {source: MemoryQuestion["candidates"][number][
 }
 
 /** Source-current, explicit decisions about durable knowledge conflicts. */
-export function KnowledgeQuestions({active, compact = false, onChanged}: {active: boolean; compact?: boolean; onChanged?: () => void}) {
+export function KnowledgeQuestions({active, compact = false, onChanged, leerAusblenden = false, onLeer}: {active: boolean; compact?: boolean; onChanged?: () => void;
+  /** Ohne offene Klärung nichts zeigen (Prüfen-Seite); `onLeer` meldet, ob der Abschnitt gerade leer ist. */
+  leerAusblenden?: boolean; onLeer?: (leer: boolean) => void}) {
   const [questions, setQuestions] = useState<MemoryQuestion[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -134,7 +136,10 @@ export function KnowledgeQuestions({active, compact = false, onChanged}: {active
     }
   }
 
+  const leer = questions?.length === 0 && !truncated && !loading && !loadError && !actionError && !notice && !pendingQuestion;
+  useEffect(() => { onLeer?.(leer); }, [leer, onLeer]);
   if (!active) return null;
+  if ((compact || leerAusblenden) && leer) return null;
   if (compact && questions?.length === 0 && !truncated && !loading && !loadError && !actionError && !notice && !pendingQuestion) return null;
   const displayed = visibleMemoryQuestions(questions ?? [], visibleLimit);
   const total = Math.min(questions?.length ?? 0, MAX_QUESTIONS);

@@ -210,7 +210,12 @@ def main() -> int:
 
             if args.phase == "memory-controls":
                 goto("/conversations", "conversation-history")
-                page.get_by_role("button", name="Neues Gespräch", exact=True).click()
+                # Das Gespräch entsteht mit der ersten Frage im Eingabefeld der Startseite (Paket U, G1).
+                page.get_by_label("Kingfisher fragen").fill(f"Merke dir: {state['statement']}")
+                with page.expect_response(lambda response: response.url.endswith("/messages")
+                                          and response.request.method == "POST"
+                                          and response.status in {200, 201}) as erste:
+                    page.get_by_role("button", name="Nachricht senden", exact=True).click()
                 page.wait_for_url("**/conversations/*")
                 conversation_id = page.url.rsplit("/", 1)[-1]
                 message_url = origin + f"/api/v1/conversations/{conversation_id}/messages"
@@ -223,7 +228,7 @@ def main() -> int:
                         page.get_by_role("button", name="Nachricht senden", exact=True).click()
                     return result.value.json()
 
-                proposed = send(f"Merke dir: {state['statement']}")
+                proposed = erste.value.json()
                 card = proposed["memory_candidates"][0]
                 candidate_id = card["candidate"]["id"]
                 source_id = card["source_message_id"]

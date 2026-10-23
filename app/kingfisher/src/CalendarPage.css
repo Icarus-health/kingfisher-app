@@ -5,12 +5,10 @@
 .calendar-navigator h2 { font-size:13px; margin:0 0 12px; }
 .calendar-navigator h2:not(:first-child) { margin-top:24px; }
 .calendar-navigator p { font-size:12px; line-height:1.6; }
-.calendar-navigator .mini-month { gap:2px; }
-.calendar-navigator .mini-month .month-day { min-height:26px; padding:0; border-radius:4px; }
-.calendar-navigator .calendar-month-date { font-size:11px; padding:5px 0; }
-.calendar-navigator .weekday { font-size:10px; }
-.calendar-date-picker { display:grid; gap:6px; font-size:12px; margin:16px 0; }
-.calendar-date-picker input { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--kf-rand-d7e1df); border-radius:6px; padding:7px; font:inherit; color:inherit; }
+/* Ein einziger Kalender braucht keine Auswahl; dann gehört die ganze Breite dem Kalender. */
+.calendar-page .calendar-workspace-layout.ohne-auswahl { grid-template-columns:minmax(0,1fr); }
+.calendar-page .settings-heading > a.text-action { font-size:var(--calm-caption); }
+.calendar-agenda > .text-action { font-size:var(--calm-caption); padding:4px 0; }
 .calendar-source-choice { display:flex; align-items:center; gap:7px; margin:12px 0; font-size:12px; overflow-wrap:anywhere; }
 .calendar-source-choice input { flex:0 0 auto; }
 .calendar-source-choice i { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
@@ -46,7 +44,7 @@
 .calendar-page .workspace-detail p { overflow-wrap:anywhere; line-height:1.6; }
 .calendar-page button:focus-visible,.calendar-page input:focus-visible { outline:2px solid var(--kf-rand-075268); outline-offset:2px; }
 @media(max-width:1100px) {
-  .calendar-page .calendar-workspace-layout { grid-template-columns:150px minmax(0,1fr); gap:10px; }
+  .calendar-page .calendar-workspace-layout:not(.ohne-auswahl) { grid-template-columns:150px minmax(0,1fr); gap:10px; }
   .calendar-page .calendar-board { padding:10px; }
   .calendar-navigator { padding:10px; }
 }

@@ -28,11 +28,11 @@
 /* -- Akte wie ein Stabschef: Kopf, Braucht dich, Zeitstrahl (docs/16-gestaltung.md: ein Akzent, Material statt Farbe). -- */
 .akte-kopf { display: grid; gap: 6px; }
 .akte-kopf > h2 { margin-bottom: 0; }
-.akte-blick { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; padding: 0; list-style: none; }
-.akte-blick li { display: grid; gap: 0; min-width: 92px; padding: 8px 12px; border: 1px solid var(--calm-line); border-radius: 10px; background: var(--calm-surface); }
-.akte-blick strong { color: var(--calm-ink); font-size: 18px; line-height: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.akte-blick span { color: var(--calm-muted); font-size: 12px; line-height: 16px; }
-.akte-blick em { font-style: normal; color: var(--calm-primary); font-weight: 600; }
+.akte-blick { margin: 2px 0 0; color: var(--calm-ink); font-size: var(--calm-control); line-height: 1.5; font-variant-numeric: tabular-nums; }
+/* Das eigene Bild ist Nebensache: ein kleiner Textlink unter dem Kreis, kein Aufklapper daneben. */
+.akte-kopf .memory-avatar-editor { flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 4px; }
+.akte-kopf .memory-avatar-editor > details > summary { list-style: none; padding: 2px 0; font-size: var(--calm-caption); color: var(--calm-muted); text-decoration: underline; text-underline-offset: 3px; }
+.akte-kopf .memory-avatar-editor > details > summary::-webkit-details-marker { display: none; }
 
 .akte-knopf { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--calm-primary); border-radius: 8px; color: var(--calm-primary); background: var(--calm-surface); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .akte-knopf:hover:not(:disabled) { background: #e8f2fd; }
@@ -93,7 +93,6 @@
   .akte-strahl { --akte-spurname: 0px; }
   .akte-spur { grid-template-columns: minmax(0, 1fr); }
   .akte-spur-name { margin-top: 4px; }
-  .akte-blick li { min-width: 0; flex: 1 1 40%; }
   .akte-braucht { padding: 12px; }
   .akte-wahl { width: 100%; }
   .akte-wahl .akte-knopf { flex: 1 1 auto; }

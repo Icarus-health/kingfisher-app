@@ -150,3 +150,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 .neu-anmelden input:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
 .neu-anmelden .source-form-actions { justify-content: flex-start; }
 @media (max-width: 700px) { .neu-anmelden-stand, .neu-anmelden-status { padding-left: 24px; } .neu-anmelden-status:empty { padding: 0; } }
+
+/* Nur ein gefüllter Knopf je Ansicht: die übrigen „hinzufügen“ sind umrandet (Paket U, E1). */
+.shell.settings-shell .source-add.source-add-leise { background: var(--calm-surface); border: 1px solid var(--calm-line); color: var(--calm-ink); }
+.shell.settings-shell .source-add.source-add-leise img { filter: brightness(0); opacity: .75; }

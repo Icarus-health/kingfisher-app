@@ -35,6 +35,7 @@ export function KreisKarte({ sache }: { sache: string }) {
     finally { setArbeitet(false); }
   }
 
+  if (stand?.eigene) return null;
   if (!stand) return fehler ? <section className="mappe-teil akte-teil kreis-karte"><h3>Kreis</h3><p role="alert" className="kreis-fehler">{fehler}</p></section> : null;
   return <section className="mappe-teil akte-teil kreis-karte" aria-label="Kreis">
     <h3>Kreis</h3>

@@ -3,6 +3,7 @@ import {api, type GraphNode, type MemoryGraph, type MemorySearchResult} from './
 import {browseMatches, documentNodes, sourceReference} from './MemoryBrowseModel';
 import {displayLabel} from './displayIdentity';
 import {ProfileSource} from './ProfileSource';
+import {GedaechtnisLeer} from './GedaechtnisLeer';
 
 function sourceDate(value: unknown): string {
   if (typeof value !== 'string' || !value) return 'Quelldatum unbekannt';
@@ -21,6 +22,12 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const needle = query.trim();
+  // Die Suche läuft beim Tippen, kurz entprellt; Enter sucht sofort. Kein eigener Knopf.
+  useEffect(() => {
+    if (documents || needle === submitted) return;
+    const timer = setTimeout(() => setSubmitted(needle), 350);
+    return () => clearTimeout(timer);
+  }, [needle, submitted, documents]);
   useEffect(() => {
     setResult(null); setError(false);
     if (documents || submitted.length < 2 || submitted !== needle) {setBusy(false); return;}
@@ -41,14 +48,11 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
   const current = Math.min(page, pages);
   const visible = entries.slice((current - 1) * 25, current * 25);
   return <section data-memory-loading={busy || (!documents && submitted.length >= 2 && submitted === needle && !result && !error)} className="memory-directory memory-search" aria-label={documents ? 'Dokumente' : 'Gedächtnissuche'}>
-    <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{documents ? 'Dokumente' : 'Was möchtest du wiederfinden?'}</h1>
-      </header>
+    {documents && <header><h1>Dokumente</h1></header>}
     <form className="memory-search-form" onSubmit={event => {event.preventDefault(); setSubmitted(needle); setRetry(n => n + 1);}}>
-      <label className="directory-search">{documents ? 'Dokumenttitel suchen' : 'Gedächtnis durchsuchen'}
-        <input type="search" maxLength={200} value={query} onChange={event => onQueryChange(event.target.value)} placeholder={documents ? 'Titel oder Teil des Dateinamens …' : 'Name, Projekt oder Begriff, z. B. Redaktionsschluss …'} /></label>
-      {!documents && <button type="submit" disabled={needle.length < 2 || busy}>{busy ? 'Suche läuft …' : 'Suchen'}</button>}
+      <label className="directory-search">{documents ? 'Dokumenttitel suchen' : <span className="visually-hidden">Gedächtnis durchsuchen</span>}
+        <input type="search" maxLength={200} value={query} onChange={event => onQueryChange(event.target.value)} placeholder={documents ? 'Titel oder Teil des Dateinamens …' : 'Name, Projekt oder Begriff …'} /></label>
     </form>
-    <details className="quiet-details memory-search-help"><summary>So funktioniert die Suche</summary><p>Einträge werden nach Namen und Titeln gefiltert. „Suchen“ durchsucht zusätzlich wörtlich gespeicherte Originaltexte, ohne KI-Aufruf.</p><p>Quellen berichten; ihre Aussagen sind damit noch nicht bestätigt.</p></details>
     {!graph && <p role={graphError ? 'alert' : 'status'}>{graphError ? 'Die Eintragsübersicht konnte nicht geladen werden.' : 'Eintragsübersicht wird geladen …'}{!documents && ' Die Quellensuche kann separat verwendet werden.'}{graphError && <button type="button" onClick={onGraphRetry}>Erneut laden</button>}</p>}
     {graph && (documents || (needle && entries.length > 0)) && <><h2>{documents ? 'Gespeicherte Dokumente' : 'Menschen und Projekte'}</h2>
       <p className="directory-count" aria-live="polite">{entries.length} {entries.length === 1 ? 'Eintrag' : 'Einträge'}</p>
@@ -65,7 +69,6 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
       {pages > 1 && <nav className="directory-pagination" aria-label="Ergebnisseiten"><button type="button" disabled={current === 1} onClick={() => onPageChange(current - 1)}>Zurück</button><span>Seite {current} von {pages}</span><button type="button" disabled={current === pages} onClick={() => onPageChange(current + 1)}>Weiter</button></nav>}
     </>}
     {!documents && needle.length >= 2 && <section aria-label="Treffer in Originalquellen" className="memory-search-originals"><h2>Originalquellen</h2>
-      {submitted !== needle && <p>Mit „Suchen“ findest du den Begriff auch im gespeicherten Text.</p>}
       {busy && <p role="status">Originalquellen werden durchsucht …</p>}
       {error && <p role="alert">Die Quellensuche ist gerade nicht erreichbar. Daraus folgt nicht, dass die Information fehlt. <button type="button" onClick={() => setRetry(n => n + 1)}>Erneut versuchen</button></p>}
       {result && result.query === needle && submitted === needle && <>
@@ -78,6 +81,7 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
         </li>)}{result.note_items?.map(item => <li key={'note:'+item.note_id} data-memory-row={`note:${item.note_id}`}><h3>{item.title}</h3><p>Notiz · zuletzt geändert {sourceDate(item.recorded_at)} · noch keine bestätigte Aussage</p><blockquote>{item.quote}</blockquote><ProfileSource kind="note" id={item.note_id} label="Originalquelle öffnen" originalOnly /></li>)}</ul>
       </>}
     </section>}
-    {!documents && !needle && <p className="memory-search-start">Gib einen Begriff ein oder wähle oben Menschen, Projekte, Dokumente oder einen Lebensbereich.</p>}
+    {/* Leeres Gedächtnis: ein Satz, woher Einträge kommen, statt einer leeren Fläche unter dem Suchfeld. */}
+    {!documents && !needle && graph && !graph.nodes.some(node => ['person', 'project', 'episode'].includes(node.kind)) && <GedaechtnisLeer />}
   </section>;
 }

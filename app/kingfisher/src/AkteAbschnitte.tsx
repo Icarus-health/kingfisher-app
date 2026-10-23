@@ -2,6 +2,7 @@ import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteVorschlagStand, type AkteZeile, type AkteZeitpunkt } from "./api";
 import { entscheidungSatz, fehlerSatz, vorschlagFrage, zurueckBeschriftung } from "./akteVorschlag";
+import { blickZeile, obenGenanntSatz, offenOhneBrauchtDich } from "./akteAnzeige";
 import { displayLabel } from "./displayIdentity";
 import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { WiederkehrendKarte } from "./WiederkehrendKarte";
@@ -74,21 +75,17 @@ function Gesamt({ gezeigt, gesamt, wo }: { gezeigt: number; gesamt: number; wo?:
   return gesamt > gezeigt ? <p className="mappe-mehr">{gezeigt} von {gesamt}{wo ? ` · ${wo}` : ""}</p> : null;
 }
 
-/** Auf einen Blick: wenige Zahlen und Tage, die man sonst zusammensuchen müsste. */
+/** Auf einen Blick: wenige Zahlen und Tage, die man sonst zusammensuchen müsste. Eine leise Zeile, keine Kacheln;
+ * eine Null wird nicht gezählt. */
 function Blick({ data }: { data: Akte }) {
   const termin = data.termine.kommend[0];
   const frist = data.fristen.kommend[0];
   // „Zuletzt“ ist die jüngste Quelle bis heute, nicht ein Termin, der noch kommt.
   const jetzt = zeitpunkt(data.stand) ?? new Date();
   const zuletzt = data.verlauf.eintraege.find(e => (zeitpunkt(e.datum) ?? jetzt) <= jetzt);
-  const felder: Array<{ wert: string; was: string; hinweis?: string }> = [];
-  felder.push({ wert: String(data.offen.gesamt), was: data.offen.gesamt === 1 ? "Punkt vermutlich offen" : "Punkte vermutlich offen" });
-  if (frist) felder.push({ wert: KURZTAG.format(zeitpunkt(frist.datum) ?? new Date()), was: "nächste Frist" });
-  if (termin) felder.push({ wert: KURZTAG.format(new Date(termin.start)), was: "nächster Termin", hinweis: termin.vermutlich_abgesagt ? "abgesagt?" : undefined });
-  if (zuletzt) felder.push({ wert: tag(zuletzt.datum), was: "zuletzt" });
-  return <ul className="akte-blick" aria-label="Auf einen Blick">
-    {felder.map(f => <li key={f.was}><strong>{f.wert}</strong><span>{f.was}{f.hinweis ? <em> · {f.hinweis}</em> : null}</span></li>)}
-  </ul>;
+  const zeile = blickZeile({ offen: data.offen.gesamt, frist: frist ? KURZTAG.format(zeitpunkt(frist.datum) ?? new Date()) : null,
+    termin: termin ? KURZTAG.format(new Date(termin.start)) : null, abgesagt: Boolean(termin?.vermutlich_abgesagt), zuletzt: zuletzt ? tag(zuletzt.datum) : null });
+  return zeile ? <p className="akte-blick" aria-label="Auf einen Blick">{zeile}</p> : null;
 }
 
 /** Braucht dich: was eine Entscheidung braucht. Ein Satz, das Zitat, ein Klick; die Antwort gilt in jeder Akte. */
@@ -418,9 +415,11 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   const f = data.fristen;
   const stand = data.stand_der_dinge;
   const braucht = data.braucht_dich;
-  // Was oben unter „Braucht dich“ steht, steht unten nicht noch einmal mit Knopf; das Zitat bleibt.
-  const offenGruppen = OFFEN_GRUPPEN.map(g => ({ ...g, eintraege: data.offen.eintraege.filter(g.passt) }));
-  const uebrige = data.offen.eintraege.filter(e => !OFFEN_GRUPPEN.some(g => g.passt(e)));
+  // Was oben unter „Braucht dich“ steht (gleiche Quelle, gleiche Stelle), steht unten nicht noch einmal; ein Satz sagt,
+  // wo es steht. Nur die Anzeige: Zählung und Logik bleiben, wie die Akte sie liefert.
+  const { sichtbar: offenSichtbar, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
+  const offenGruppen = OFFEN_GRUPPEN.map(g => ({ ...g, eintraege: offenSichtbar.filter(g.passt) }));
+  const uebrige = offenSichtbar.filter(e => !OFFEN_GRUPPEN.some(g => g.passt(e)));
   const ueber = <>
     {data.art === "person" ? <KreisKarte sache={data.sache} /> : null}
     {data.art === "person" ? <GeburtstagKarte sache={data.sache} /> : null}
@@ -458,14 +457,15 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
 
     {data.zeitstrahl ? <Zeitstrahl strahl={data.zeitstrahl} /> : null}
 
-    {data.offen.eintraege.length || data.offen.erledigt.gesamt ? <Teil titel="Vermutlich offen" kind="offen">
-      {data.offen.eintraege.length ? <p className="mappe-hinweis">Keine spätere Erledigung oder Absage gefunden. Ob es wirklich offen ist, steht in den Quellen nicht; ein Klick auf „Erledigt“ legt es ab.</p> : <p className="profile-empty">Nichts mehr offen, soweit die Quellen es zeigen.</p>}
+    {offenSichtbar.length || data.offen.erledigt.gesamt ? <Teil titel="Vermutlich offen" kind="offen">
+      {offenSichtbar.length ? <p className="mappe-hinweis">Keine spätere Erledigung oder Absage gefunden; „Erledigt“ legt einen Punkt ab.</p> : offenOben ? null : <p className="profile-empty">Nichts mehr offen, soweit die Quellen es zeigen.</p>}
       {offenGruppen.map(g => g.eintraege.length ? <div className="akte-gruppe" key={g.titel}><h4>{g.titel}</h4>
         {g.eintraege.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
       </div> : null)}
       {uebrige.length ? <div className="akte-gruppe">{offenGruppen.some(g => g.eintraege.length) ? <h4>Weitere</h4> : null}
         {uebrige.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
       </div> : null}
+      {offenOben ? <p className="mappe-mehr akte-oben-genannt">{obenGenanntSatz(offenOben)}</p> : null}
       <Gesamt gezeigt={data.offen.eintraege.length} gesamt={data.offen.gesamt} />
       {data.offen.erledigt.gesamt ? <details><summary>Vermutlich erledigt oder abgesagt ({data.offen.erledigt.gesamt})</summary>
         {data.offen.erledigt.eintraege.map((e, index) => <div key={`${index}:${e.episode_id}`}><Zeile zeile={e} zusatz={GRUND[e.grund] ?? e.grund} />{e.durch ? <p className="mappe-mehr">Laut: „{e.durch.text}“ ({datum(e.durch)}) <Quelle zeile={e.durch} /></p> : null}

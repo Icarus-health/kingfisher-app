@@ -241,6 +241,38 @@ def test_bestaetigter_kreis_bleibt_auch_wenn_sich_die_lage_aendert(api):
     assert client.delete('/api/v1/kreis', params={'sache': sache}).status_code == 404
 
 
+def test_fuer_die_eigene_person_gibt_es_keinen_kreis(api):
+    """Die eigene Person (Adresse aus den Einstellungen) bekommt keinen Vorschlag, steht in keiner Übersicht und lässt
+    sich nicht einordnen (Paket U, Befund AK1)."""
+    app, client = api
+    kollege(app)
+    ich = f'person:a:{ICH}'
+    stand = client.get('/api/v1/kreis', params={'sache': ich}).json()
+    assert (stand['eigene'], stand['ohne_vorschlag'], stand['bestaetigt']) == (True, True, False)
+    assert ich not in kreise(app).vorschlaege()
+    assert all(v['sache'] != ich for v in client.get('/api/v1/kreis/uebersicht').json()['vorschlaege'])
+    assert client.put('/api/v1/kreis', json={'sache': ich, 'kreis': 'kontakte'}).status_code == 422
+    assert _zeilen(app) == 0
+    # Die anderen bleiben, wie sie waren.
+    andere = client.get('/api/v1/kreis', params={'sache': f'person:a:{KOLLEGE}'}).json()
+    assert (andere['eigene'], andere['vorschlag']['kreis']) == (False, 'kollegen')
+
+
+def test_eigene_person_auch_ohne_eintrag_in_den_einstellungen_an_der_aufnahme_erkannt(api):
+    """Ohne Konto in den Einstellungen erkennt der Kreis den Nutzer an dem, was die Aufnahme als eigene Mail kennzeichnet,
+    auch wenn er selbst nur als Gast in Terminen vorkommt (so in der synthetischen Welt der Messlatte)."""
+    app, client = api
+    app.state.settings.mail.user = ''
+    kollege(app)
+    termin(app, 'Fachtag', ICH, tage=4)
+    nachfuehren(app, warten=True)
+    assert app.state.episodes._conn.execute(
+        'SELECT COUNT(*) FROM sach_bezuege WHERE sache = ?', (f'person:a:{ICH}',)).fetchone()[0] > 0, 'Akte besteht'
+    stand = client.get('/api/v1/kreis', params={'sache': f'person:a:{ICH}'}).json()
+    assert stand['eigene'] is True and stand['ohne_vorschlag'] is True
+    assert f'person:a:{ICH}' not in kreise(app).vorschlaege()
+
+
 def test_routen_pruefen_eingaben_und_token(api):
     _, client = api
     assert client.put('/api/v1/kreis', json={'sache': f'person:a:{MAMA}', 'kreis': 'familie'}).status_code == 422
