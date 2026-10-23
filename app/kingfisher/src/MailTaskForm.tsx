@@ -184,13 +184,7 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
   return <section className="mail-task-form" aria-label="Aufgabe aus Nachricht festhalten">
     {!open ? <button className="mail-reader-secondary" onClick={() => setOpen(true)} type="button">Als Aufgabe festhalten</button> : null}
     {open ? <>
-    <div className="mail-task-form-heading">
-      <div>
-        <p className="mail-reader-eyebrow">Nächster Schritt</p>
-        <h2>Als Aufgabe festhalten</h2>
-      </div>
-      <p className="mail-reader-status">Die Original-Mail bleibt als Quelle erhalten. Es wird nichts versendet.</p>
-    </div>
+    <p className="mail-reader-status">Die Original-Mail bleibt als Quelle erhalten. Es wird nichts versendet.</p>
     <form onSubmit={submit}>
       <label htmlFor="mail-task-title">Aufgabe</label>
       <input disabled={saving || Boolean(saved)} id="mail-task-title" onChange={(event) => { protectSuggestion(); setTitle(event.target.value); }} value={title} />
@@ -217,10 +211,10 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
           <option value="">Keinem Projekt zuordnen</option>
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select></label>
-        <label htmlFor="mail-task-due">Fällig am (optional) <input aria-describedby="mail-task-due-hint" disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} />
-          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieser Tag wird bis 23:59 Uhr als Fälligkeit gespeichert. Eine ausdrücklich genannte Uhrzeit bitte separat prüfen." : "Kein Datum festgelegt. Die Aufgabe wird ohne Termin gespeichert."}</span>
+        <label htmlFor="mail-task-due">Fällig am <input aria-describedby="mail-task-due-hint" disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} />
+          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieser Tag wird bis 23:59 Uhr als Fälligkeit gespeichert. Eine ausdrücklich genannte Uhrzeit bitte separat prüfen." : ""}</span>
         </label>
-        <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="Optional, z. B. Anna Müller" value={waitingFor} /></label>
+        <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="z. B. Anna Müller" value={waitingFor} /></label>
       </div>
       <div className="mail-task-form-footer">
         <span className="mail-reader-status">{projectsError ? "Projekte konnten gerade nicht geladen werden." : "Nur lokal in Kingfisher festgehalten."}</span>

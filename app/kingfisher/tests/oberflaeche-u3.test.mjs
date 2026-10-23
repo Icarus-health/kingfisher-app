@@ -152,5 +152,6 @@ test("K1, N1: kein Handbetrieb und keine zweite Kalenderansicht im Quelltext", (
   assert.doesNotMatch(kalender, /Ansicht aktualisieren|Weitere Aktionen|type="date"|Datum wählen/);
   assert.doesNotMatch(nachrichten, /Lokale Nachrichtenliste aktualisieren|Stand und Konten/);
   assert.doesNotMatch(leser, /aktueller Postfachstand unbekannt|Quelle vom letzten Speichern/);
-  assert.equal((kalender.match(/className="primary-action"/g) ?? []).length, 1, "ein gefüllter Knopf: + Termin");
+  assert.equal((kalender.match(/className="primary-action"/g) ?? []).length, 0, "der gefüllte Knopf ist „＋ Termin“ als g-knopf (Paket P4)");
+  assert.match(kalender, /className=\{formOffen \|\| ohneKalender \? "g-knopf-getoent" : "g-knopf"\}/);
 });

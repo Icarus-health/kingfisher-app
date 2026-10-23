@@ -1,20 +1,25 @@
-.saved-mail-workflow {margin:0 0 8px;padding:16px 0 0;border-top:1px solid var(--calm-line);overflow-wrap:anywhere;min-width:0;font-size:var(--calm-control);}
-.saved-mail-actionline {display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px;}
-.saved-mail-workflow h3 {font-size:var(--calm-control);margin:0 0 6px;font-weight:500;}
-.saved-mail-workflow p {margin:6px 0;line-height:1.5;}
-.saved-mail-workflow-context {font-size:var(--calm-caption);color:var(--calm-muted);}
-.saved-mail-workflow summary {cursor:pointer;padding:6px 0;color:var(--calm-link);font-size:var(--calm-caption);}
-.saved-mail-workflow blockquote {margin:8px 0;padding:8px 12px;border-left:2px solid var(--calm-line);white-space:pre-wrap;font-size:var(--calm-control);line-height:1.6;}
-.saved-mail-workflow-task {border-top:1px solid var(--calm-line);margin-top:10px;padding-top:10px;}
-.saved-task-fields {display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:10px;}
-.saved-task-fields > label:nth-child(3) {grid-column:1 / -1;}
-.saved-mail-workflow-task label {display:flex;flex-direction:column;gap:6px;margin:8px 0;font-size:var(--calm-caption);color:var(--calm-muted);}
-.saved-mail-workflow input,.saved-mail-workflow select,.saved-mail-workflow textarea {box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid var(--calm-line);border-radius:8px;background:var(--calm-surface);color:var(--calm-ink);font:inherit;}
-.saved-mail-workflow textarea {line-height:1.5;resize:vertical;}
-.saved-mail-workflow button {max-width:100%;min-height:42px;white-space:normal;padding:8px 12px;border:1px solid var(--calm-line);border-radius:8px;background:var(--calm-surface);color:var(--calm-ink);font:inherit;cursor:pointer;}
-.saved-mail-workflow button:disabled {opacity:.55;cursor:default;}
-.saved-task-confirmation {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;}
-.saved-task-confirmation small {font-size:var(--calm-caption);color:var(--calm-muted);}
-.saved-mail-workflow a {color:var(--calm-link);text-decoration:underline;text-underline-offset:3px;}
-.saved-mail-workflow :is(button,a,summary):focus-visible {outline:3px solid var(--calm-link);outline-offset:3px;}
-@media(max-width:700px){.saved-task-fields {grid-template-columns:minmax(0,1fr);}.saved-mail-workflow {padding-top:12px;}}
+/* Vorschläge aus einer gespeicherten Mail (Paket P4): die Aktionen als eine Leiste unter dem Text, Vorschläge als ruhige
+   Abschnitte mit Haarlinie, ein gefüllter Knopf („Aufgabe bestätigen“). Werte aus Grundlage.css. */
+#root .saved-mail-workflow { margin:0; padding:0; border-top:1px solid var(--g-linie); overflow-wrap:anywhere; min-width:0; font:var(--g-text); }
+#root .saved-mail-workflow > p { margin:var(--g-a3) 0 0; font:var(--g-neben); color:var(--g-leise); }
+#root .saved-mail-workflow h3 { margin:0 0 var(--g-a1); font:var(--g-ueberschrift); }
+#root .saved-mail-workflow-context { font:var(--g-fussnote); color:var(--g-leise); }
+#root .saved-mail-workflow details > :not(summary) { margin:var(--g-a1) 0 var(--g-a2); }
+#root .saved-mail-workflow blockquote { margin:var(--g-a2) 0; padding:0 0 0 var(--g-a3); border-left:2px solid var(--g-linie); white-space:pre-wrap; font:var(--g-text); }
+#root .saved-mail-workflow-task { margin-top:var(--g-a3); padding-top:var(--g-a3); border-top:1px solid var(--g-linie); }
+#root .saved-task-fields { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:var(--g-a3); }
+#root .saved-task-fields > label:nth-child(3) { grid-column:1 / -1; }
+#root .saved-mail-workflow-task label { display:flex; flex-direction:column; gap:var(--g-a1); margin:var(--g-a2) 0; font:500 14px/1.4 var(--g-schrift); color:var(--g-tinte); }
+#root .saved-mail-workflow :is(input, select, textarea) { box-sizing:border-box; width:100%; min-width:0; padding:var(--g-a2) var(--g-a3); font:var(--g-text); }
+#root .saved-mail-workflow textarea { line-height:1.5; resize:vertical; }
+/* Knöpfe ohne eigene Klasse sind getönt; „Aufgabe bestätigen“ (primary-action) bleibt der eine gefüllte. */
+#root .saved-mail-workflow button:not([class]), #root .saved-mail-actionline button:not([class]) {
+  display:inline-flex; align-items:center; justify-content:center; max-width:100%; min-height:var(--g-ziel); padding:var(--g-a2) var(--g-a4); white-space:normal;
+  border:0; border-radius:var(--g-radius-bedien); background:var(--g-getoent); color:var(--g-akzent); font:500 15px/1.2 var(--g-schrift); cursor:pointer;
+}
+#root .saved-mail-workflow button:not([class]):hover:not(:disabled) { background:var(--g-getoent-stark); }
+#root .saved-mail-workflow button:disabled { opacity:.45; cursor:default; }
+#root .saved-task-confirmation { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--g-a2); margin-top:var(--g-a2); }
+#root .saved-task-confirmation small { font:var(--g-fussnote); color:var(--g-leise); }
+#root .saved-mail-workflow a { color:var(--g-verweis); text-underline-offset:3px; }
+@media(max-width:700px) { #root .saved-task-fields { grid-template-columns:minmax(0,1fr); } }

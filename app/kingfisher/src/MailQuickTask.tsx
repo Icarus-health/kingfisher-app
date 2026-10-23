@@ -21,7 +21,7 @@ export function MailQuickTask({uid, title, quote, sourceDigest, disabled, onSave
     finally {pending.current = false;}
   }
   return <div className="mail-quick-task">
-    <button className="mail-reader-primary" type="button" disabled={disabled || state === 'saving' || state === 'saved'} onClick={() => void accept()}>
+    <button className="mail-reader-secondary" type="button" disabled={disabled || state === 'saving' || state === 'saved'} onClick={() => void accept()}>
       {state === 'saved' ? 'Aufgabe übernommen' : state === 'saving' ? 'Wird übernommen …' : 'Als Aufgabe übernehmen'}
     </button>
     {state === 'saved' && <p className="mail-reader-status" role="status">Ohne Datum und weitere Zuordnung gespeichert. <a href={savedTask ? taskHref(savedTask) : '/vorhaben?view=mine'}>Aufgabe ansehen</a></p>}

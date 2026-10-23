@@ -5,6 +5,9 @@ import {MailReader} from './MailReader';
 import {localMailApi, type LocalMailPage} from './localMailApi';
 import {aktualisiertSatz} from './heute';
 import {displayLabel} from './displayIdentity';
+import {navigate} from './ui';
+import {Leer, Seitenkopf} from './grundlage';
+import {postfachDatum} from './postfachAnzeige';
 
 export function Messages({recentConversation}: {recentConversation:string|null}) {
   const [selectedId,setSelectedId] = useState<string|null>(null);
@@ -76,33 +79,48 @@ export function Messages({recentConversation}: {recentConversation:string|null})
       const syncKey=accountId??'*', ids=result.messages.map(message=>JSON.stringify([message.account_id,message.id]));
       const outcome=aktualisiertSatz(syncBaselines.current.get(syncKey)??null,ids,result.abgerufen_um||new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}));
       if(!result.partial_failure)syncBaselines.current.set(syncKey,ids);
-      setSyncNotice(result.partial_failure?.message || outcome || `Posteingang abgerufen: ${ids.length} Nachrichten in diesem Ausschnitt. Gespeicherte Quellen bleiben lokal angezeigt.`);
+      setSyncNotice(result.partial_failure?.message || outcome || `Abgerufen: ${ids.length === 1 ? 'eine Nachricht' : `${ids.length} Nachrichten`}.`);
       setRevision(n => n+1);
     } catch {setSyncNotice('Das Postfach antwortet gerade nicht. Deine gespeicherten Nachrichten bleiben lesbar.');}
     finally {setSyncing(false);}
   }
   const freshVisible = freshMessages.filter(message=>(accountId===undefined||message.account_id===accountId)&&`${message.subject} ${message.sender} ${message.preview}`.toLocaleLowerCase('de').includes(query.toLocaleLowerCase('de')));
+  // Die Postfachwahl steht nur da, wenn es etwas zu wählen gibt; das Postfach in der Zeile nur, wenn es mehrere gibt.
+  const mehrerePostfaecher = (page?.accounts.length ?? 0) > 1 || accountId !== undefined;
+  const postfachInZeile = (page?.accounts.length ?? 0) > 1 && accountId === undefined;
+  const zeile = (key:string, gewaehlt:boolean, absender:string, betreff:string, vorschau:string, datum:string|null, neben:string|null, oeffnen:(ziel:HTMLButtonElement|null)=>void) =>
+    <button type="button" className="inbox-row inbox-open mail-list-item" key={key} aria-pressed={gewaehlt} onClick={event=>oeffnen(event?.currentTarget??null)}>
+      <span className="mail-zeile-kopf"><strong title={absender}>{displayLabel(absender).name}</strong>{datum?<time dateTime={datum}>{postfachDatum(datum)}</time>:<time>{postfachDatum(null)}</time>}</span>
+      <span className="mail-subject">{betreff||'(Ohne Betreff)'}</span>
+      <small>{vorschau}</small>
+      {neben ? <small className="mail-zeile-postfach">{neben}</small> : null}
+    </button>;
+  const seitenweise = Boolean(visiblePage && (visiblePage.has_more || offset > 0));
   return <div className="shell inbox-shell"><Sidebar active="Nachrichten" recentConversation={recentConversation} />
     <main className="inbox-page mail-workspace">
-      <header className="inbox-heading"><h1>Nachrichten</h1><span className="inbox-heading-actions"><button className="text-action" type="button" disabled={syncing} onClick={() => void sync()}>{syncing?'Wird abgerufen …':'Neue Mails abrufen'}</button><a className="text-action" href="/settings#zugaenge">Konten</a></span></header>
+      <Seitenkopf titel="Nachrichten" className="inbox-heading" aktionen={<>
+        <button className="g-knopf-schlicht" type="button" disabled={syncing} onClick={() => void sync()}>{syncing?'Wird abgerufen …':'Neue Mails abrufen'}</button>
+        <a className="g-knopf-schlicht mail-konten" href="/settings#zugaenge" onClick={event=>{event.preventDefault();navigate('/settings#zugaenge');}}>Konten</a>
+      </>} />
       {syncNotice && <p className="inbox-abgerufen" role="status">{syncNotice}</p>}
       <div className={`inbox-content mailbox-columns ${selectedId?'has-reader':''}`}>
         <section className="mail-list-column" aria-label="Gespeicherte Nachrichten">
-          <div className="mail-account-choice"><label>Postfach<select aria-label="Postfach auswählen" value={accountId??''} onChange={event=>{setAccountId(event.target.value||undefined);setOffset(0);close();}}><option value="">Alle gespeicherten Mails</option>{page?.accounts.map(item=><option key={item.id} value={item.id}>{item.label} ({item.count})</option>)}</select></label></div>
-          <div className="mail-list-tools"><label>Nachrichten durchsuchen<input type="search" value={query} placeholder="Betreff, Absender oder Inhalt" onChange={event=>{setQuery(event.target.value);setOffset(0);opened.current=null;close();}} /></label></div>
-
+          <div className="mail-list-tools">
+            <input type="search" aria-label="Nachrichten durchsuchen" value={query} placeholder="Suchen" onChange={event=>{setQuery(event.target.value);setOffset(0);opened.current=null;close();}} />
+            {mehrerePostfaecher && <select aria-label="Postfach auswählen" value={accountId??''} onChange={event=>{setAccountId(event.target.value||undefined);setOffset(0);close();}}><option value="">Alle Postfächer</option>{page?.accounts.map(item=><option key={item.id} value={item.id}>{item.label} ({item.count})</option>)}</select>}
+          </div>
           <div className="mail-list-scroll">
-          {failure && <p className="inbox-error" role="alert">{failure} <button type="button" onClick={()=>setRevision(n=>n+1)}>Wiederholen</button></p>}
-          {loading && !visiblePage && <p role="status">Nachrichten werden geladen …</p>}
-          {freshVisible.length>0 && <section className="mail-fresh-results" aria-label="Ausdrücklich abgerufener Posteingang"><h2>Aktueller Abruf</h2><p>Die neuesten Mails aus dem Postfach; sie werden hier nur angezeigt, nicht gespeichert.</p>{freshVisible.map(message=><button type="button" className="inbox-row inbox-open mail-list-item" key={JSON.stringify([message.account_id,message.id])} aria-pressed={selectedMode==='live'&&selectedId===message.id} onClick={event=>{opened.current=event.currentTarget;setSelectedMode('live');setSelectedId(message.id);}}><span className="inbox-copy"><strong title={message.sender}>{displayLabel(message.sender).name}</strong><span className="mail-subject">{message.subject||'(Ohne Betreff)'}</span><small>{message.preview}{message.truncated ? " · Vorschau gekürzt" : ""}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.source}</small></span></button>)}</section>}
+          {failure && <p className="inbox-error" role="alert">{failure} <button type="button" className="g-knopf-schlicht" onClick={()=>setRevision(n=>n+1)}>Wiederholen</button></p>}
+          {loading && !visiblePage && !failure && <p className="mail-list-laden" role="status">Wird geladen …</p>}
+          {freshVisible.length>0 && <section className="mail-fresh-results" aria-label="Ausdrücklich abgerufener Posteingang"><h2>Gerade abgerufen</h2><p>Nur angezeigt, nicht gespeichert.</p>{freshVisible.map(message=>zeile(JSON.stringify([message.account_id,message.id]),selectedMode==='live'&&selectedId===message.id,message.sender,message.subject,`${message.preview}${message.truncated ? " …" : ""}`,message.date,message.source,ziel=>{opened.current=ziel;setSelectedMode('live');setSelectedId(message.id);}))}</section>}
           <div className="inbox-list" aria-busy={loading}>
-            {visiblePage?.items.map(message=><button className="inbox-row inbox-open mail-list-item" type="button" key={message.episode_id} aria-pressed={selectedMode==='local'&&selectedId===message.episode_id} onClick={event=>{opened.current=event?.currentTarget??null;setSelectedMode('local');setSelectedId(message.episode_id);}}><span className="inbox-copy"><strong title={message.sender}>{displayLabel(message.sender).name}</strong><span className="mail-subject">{message.subject || '(Ohne Betreff)'}</span><small>{message.preview}</small></span><span className="inbox-meta">{message.date?<time dateTime={message.date}>{new Date(message.date).toLocaleDateString('de-DE')}</time>:<small>Datum unbekannt</small>}<small>{message.account_label}</small></span></button>)}
-            {visiblePage && visiblePage.items.length===0 && !loading && <p className="inbox-empty">Keine gespeicherten Nachrichten in dieser Ansicht.</p>}
+            {visiblePage?.items.map(message=>zeile(message.episode_id,selectedMode==='local'&&selectedId===message.episode_id,message.sender,message.subject,message.preview,message.date,postfachInZeile?message.account_label:null,ziel=>{opened.current=ziel;setSelectedMode('local');setSelectedId(message.episode_id);}))}
+            {visiblePage && visiblePage.items.length===0 && !loading && <Leer className="inbox-empty" zeichen="mail" satz={query?'Keine Nachricht passt zu dieser Suche.':'Noch keine Nachrichten gespeichert.'} />}
           </div>
           </div>
-          <nav className="mail-pagination" aria-label="Nachrichtenseiten"><button type="button" disabled={loading||offset===0} onClick={()=>setOffset(n=>Math.max(0,n-40))}>Zurück</button><span>{visiblePage?.total ? `${offset+1}–${Math.min(offset+(visiblePage.items.length||0),visiblePage.total)} von ${visiblePage.total}`:'0 Nachrichten'}</span><button type="button" disabled={loading||!visiblePage?.has_more} onClick={()=>setOffset(n=>n+40)}>Weiter</button></nav>
+          {seitenweise && <nav className="mail-pagination" aria-label="Nachrichtenseiten"><button type="button" className="g-knopf-schlicht" disabled={loading||offset===0} onClick={()=>setOffset(n=>Math.max(0,n-40))}>Zurück</button><span>{visiblePage?.total ? `${offset+1}–${Math.min(offset+(visiblePage.items.length||0),visiblePage.total)} von ${visiblePage.total}`:''}</span><button type="button" className="g-knopf-schlicht" disabled={loading||!visiblePage?.has_more} onClick={()=>setOffset(n=>n+40)}>Weiter</button></nav>}
         </section>
-        <section className="mail-reading-column" aria-label="Lesebereich" ref={readerRegion}>{selectedId?<MailReader key={`${selectedMode}:${selectedId}`} uid={selectedId} localEpisodeId={selectedMode==='local'?selectedId:undefined} localRevision={revision} onClose={close} onTaskSaved={sourceChanged} />:<p className="mail-reader-placeholder">Wähle eine Nachricht zum Lesen.</p>}</section>
+        <section className="mail-reading-column" aria-label="Lesebereich" ref={readerRegion}>{selectedId?<MailReader key={`${selectedMode}:${selectedId}`} uid={selectedId} localEpisodeId={selectedMode==='local'?selectedId:undefined} localRevision={revision} onClose={close} onTaskSaved={sourceChanged} />:<Leer className="mail-reader-placeholder" zeichen="mail" satz="Wähle eine Nachricht zum Lesen." />}</section>
       </div>
     </main></div>;
 }
