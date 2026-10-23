@@ -49,14 +49,14 @@ test('invalid public source keeps its draft and gives an actionable address erro
 
 test('project status remains busy until the updated project list is loaded',async()=>{
  const previous=api.updateProject;api.updateProject=async()=>({});let finish,projects=[{id:'p',name:'Projekt',status:'active'}];const d=driver(()=>ProjectControls({projects,selectedId:'p',onSelect(){},onChanged:()=>new Promise(resolve=>{finish=resolve;})}));
- try{let tree=await tick(d);nodes(tree,n=>n.type==='select')[1].props.onChange({target:{value:'done'}});tree=await tick(d);assert.equal(nodes(tree,n=>n.type==='select')[1].props.disabled,true,'an old status must not become interactive during revalidation');
-  projects=[{...projects[0],status:'done'}];finish();tree=await tick(d);assert.equal(nodes(tree,n=>n.type==='select')[1].props.value,'done');assert.equal(nodes(tree,n=>n.type==='select')[1].props.disabled,false);
+ try{let tree=await tick(d);nodes(tree,n=>n.type==='select')[0].props.onChange({target:{value:'done'}});tree=await tick(d);assert.equal(nodes(tree,n=>n.type==='select')[0].props.disabled,true,'an old status must not become interactive during revalidation');
+  projects=[{...projects[0],status:'done'}];finish();tree=await tick(d);assert.equal(nodes(tree,n=>n.type==='select')[0].props.value,'done');assert.equal(nodes(tree,n=>n.type==='select')[0].props.disabled,false);
  }finally{d.close();api.updateProject=previous;}
 });
 
 test('project closure warning is cleared when a successful task change invalidates its previous count',async()=>{
  const previous=api.updateProject;api.updateProject=async()=>{throw Error('refused');};let revision=0;const d=driver(()=>ProjectControls({projects:[{id:'p',name:'Projekt',status:'active'}],selectedId:'p',contextRevision:revision,onSelect(){},onChanged(){}}));
- try{let tree=await tick(d);nodes(tree,n=>n.type==='select')[1].props.onChange({target:{value:'done'}});tree=await tick(d);assert.equal(nodes(tree,n=>n.props?.role==='alert').length,1);
+ try{let tree=await tick(d);nodes(tree,n=>n.type==='select')[0].props.onChange({target:{value:'done'}});tree=await tick(d);assert.equal(nodes(tree,n=>n.props?.role==='alert').length,1);
   revision++;tree=await tick(d);assert.equal(nodes(tree,n=>n.props?.role==='alert').length,0,'do not show an old open-task count after the task context changed');
  }finally{d.close();api.updateProject=previous;}
 });

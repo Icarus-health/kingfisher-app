@@ -15,6 +15,11 @@ export function groupTasks<T extends Dated>(tasks: T[], now = new Date()) {
   return groups;
 }
 
+/** Was die Liste zeigt: nur Gruppen mit Aufgaben. Eine leere Gruppe ist Lärm, keine Auskunft. */
+export function visibleTaskGroups<T extends Dated>(tasks: T[], now = new Date()) {
+  return groupTasks(tasks, now).filter(group => group.items.length > 0);
+}
+
 export function projectColumns<T extends BoardTask>(tasks: T[]) {
   return [
     {label:'Offen',items:tasks.filter(t=>t.status==='open' && !t.wartet_auf)},

@@ -37,7 +37,8 @@ function formatDate(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(date);
 }
 
-export function DecisionControls({ projectId }: { projectId: string }) {
+/** `kopf={false}`, wo die Seite schon „Entscheidungen“ heißt (Reiter auf der Aufgabenseite): dann nur der Knopf. */
+export function DecisionControls({ projectId, kopf = true }: { projectId: string; kopf?: boolean }) {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [bases, setBases] = useState<DecisionBasis[]>([]);
   const [statement, setStatement] = useState("");
@@ -132,10 +133,10 @@ export function DecisionControls({ projectId }: { projectId: string }) {
   return (
     <section aria-label="Entscheidungen" className="decision-controls">
       <div className="decision-controls-heading">
-        <div>
+        {kopf ? <div>
           <h2>Entscheidungen</h2>
           <p>Festgehaltene Entscheidungen mit ihrer Grundlage und ihrem aktuellen Zustand.</p>
-        </div>
+        </div> : null}
         <button aria-expanded={creating} className="secondary-action" disabled={busy || loading} onClick={() => { setError(null); setCreating((open) => !open); }} type="button">+ Entscheidung</button>
       </div>
 
@@ -160,7 +161,7 @@ export function DecisionControls({ projectId }: { projectId: string }) {
       ) : null}
 
       {loading ? <p className="decision-muted" role="status">Entscheidungen werden geladen …</p> : null}
-      {!loading && !error && !visibleDecisions.length ? <p className="decision-muted">Noch keine Entscheidung für dieses Projekt.</p> : null}
+      {!loading && !error && !visibleDecisions.length ? <p className="decision-muted">{projectId ? "Noch keine Entscheidung für dieses Projekt." : "Noch keine Entscheidung festgehalten."}</p> : null}
       <div className="decision-list">
         {visibleDecisions.map((decision) => {
           const date = formatDate(decision.getroffen_am);

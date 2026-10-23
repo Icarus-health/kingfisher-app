@@ -82,10 +82,10 @@ test('no project selection loads nothing; empty project never implies complete',
   },async()=>{calls++;return {...summary(),counts:{mine:0,waiting:0,done:0,dropped:0,overdue:0,undated:0},next_tasks:[],waiting_tasks:[]};});
 });
 
-test('refresh uses new data and does not write any task',async()=>{
+test('a changed list revision reloads the overview without a manual refresh button and writes no task',async()=>{
   let calls=0;await withApi(async()=>{const d=await driver(props());
-    try{d.render();d.runEffects();await tick();button(d.render(),'Überblick aktualisieren').props.onClick();
-      d.render();d.runEffects();await tick();assert.equal(calls,2);
+    try{d.render();d.runEffects();await tick();assert.equal(button(d.render(),'aktualisieren'),undefined,'no manual refresh');
+      d.props={...d.props,revision:d.props.revision+1};d.render();d.runEffects();await tick();assert.equal(calls,2);
     }finally{d.close();}
   },async()=>{calls++;return summary();});
 });

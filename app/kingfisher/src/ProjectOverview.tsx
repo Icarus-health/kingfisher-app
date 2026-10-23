@@ -15,7 +15,6 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
 }) {
   const [result,setResult] = useState<ProjectTaskOverview | null>(null);
   const [error,setError] = useState('');
-  const [refresh,setRefresh] = useState(0);
   useEffect(() => {
     let active = true;
     setResult(null); setError('');
@@ -23,7 +22,7 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
       if (active) setResult(value);
     }).catch(() => {if(active) setError('Der Projektüberblick ist gerade nicht erreichbar.');});
     return () => {active=false;};
-  }, [projectId,revision,refresh]);
+  }, [projectId,revision]);
   if (!projectId) return null;
   const data = result?.project_id === projectId ? result : null;
   function preview(tasks: Task[], view: 'mine' | 'waiting') {
@@ -34,12 +33,13 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
     </li>)}</ul>;
   }
   return <section className="project-overview" aria-label="Projektüberblick">
-    <header><h2>Projekt auf einen Blick</h2><button type="button" className="text-action" onClick={() => setRefresh(n=>n+1)}>Überblick aktualisieren</button></header>
+    {/* Kein eigener Knopf zum Aktualisieren: Der Überblick lädt nach jeder Änderung in der Liste neu (`revision`). */}
+    <header><h2>Projekt auf einen Blick</h2></header>
     {error ? <p role="alert">{error}</p> : !data ? <p role="status">Projektüberblick wird geladen …</p> : <>
       <div className="project-counts">
-        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Meine offenen Aufgaben<small>{data.counts.overdue} überfällig · {data.counts.undated} ohne Termin</small></button>
+        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Meine offenen Aufgaben{(data.counts.overdue > 0 || data.counts.undated > 0) && <small>{[data.counts.overdue ? `${data.counts.overdue} überfällig` : '', data.counts.undated ? `${data.counts.undated} ohne Termin` : ''].filter(Boolean).join(' · ')}</small>}</button>
         <button type="button" onClick={()=>onView('waiting')}><strong>{data.counts.waiting}</strong>Warte auf andere</button>
-        <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigte Aufgaben<small>{data.counts.dropped} verworfen</small></button>
+        <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigte Aufgaben{data.counts.dropped > 0 && <small>{data.counts.dropped} verworfen</small>}</button>
       </div>
       <details className="quiet-details"><summary>Nächste Schritte & Projektstand</summary><div className="project-next">
         <div><h3>Nächste eigene Aufgaben</h3><p className="project-overview-help">Früheste Fristen zuerst · bis zu drei Aufgaben</p>{data.next_tasks.length ? preview(data.next_tasks,'mine') : <p>Keine eigenen offenen Aufgaben.</p>}</div>

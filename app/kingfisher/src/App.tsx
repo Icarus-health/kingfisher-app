@@ -33,7 +33,7 @@ import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {ProjectBoard} from "./ProjectBoard";
-import {groupTasks} from "./taskWorkspaceModel";
+import {visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
@@ -548,7 +548,9 @@ const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
 ];
 
 function Tasks({ recentConversation }: { recentConversation: string | null }) {
-  const [panel,setPanel] = useState<"tasks"|"projects"|"review">("tasks");
+  // Die Aufgabenseite zeigt Aufgaben, nicht Bedienung: Suche filtert beim Tippen, die Liste lädt selbst nach, leere
+  // Gruppen und Nullzähler entfallen, „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist.
+  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => new URLSearchParams(window.location.search).get("pruefen") === "1" ? "review" : "tasks");
   const [board,setBoard] = useState(false);
   const [groupTime,setGroupTime] = useState(()=>new Date());
   useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
@@ -557,6 +559,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
+  // 0: Aufgabe nur öffnen; sonst eine fortlaufende Nummer, damit jeder Klick auf einen Titel das Bearbeiten öffnet.
+  const [detailEdit, setDetailEdit] = useState(0);
+  const editRequests = useRef(0);
+  const [reviewTotal, setReviewTotal] = useState<number | null>(null);
   const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
   const [overviewRevision, setOverviewRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
@@ -568,6 +574,11 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(() => new URLSearchParams(window.location.search).get("project") ?? "");
   const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search}) ? taskPage.tasks : null;
+  // Während Suche oder Änderung neu laden, bleibt die bisherige Liste derselben Ansicht stehen statt zu flackern.
+  const listKey = JSON.stringify({view, projectId});
+  const shownTasks = useRef<{key: string; tasks: LocalTask[]} | null>(null);
+  if (tasks) shownTasks.current = {key: listKey, tasks};
+  const listTasks = tasks ?? (taskPage.loading && shownTasks.current?.key === listKey ? shownTasks.current.tasks : null);
   const [newTaskProject, setNewTaskProject] = useState("");
   const [projectError, setProjectError] = useState(false);
   const currentProject = useRef(projectId);
@@ -582,9 +593,15 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [createError, setCreateError] = useState("");
   const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
+  const lastLoad = useRef(0);
 
   const currentView = useRef(view);
   currentView.current = view;
+
+  function openTask(id: string | null, edit = false) {
+    setDetailEdit(edit ? ++editRequests.current : 0);
+    setSelectedTask(id);
+  }
 
   function loadProjects() {
     const version = ++projectRequestVersion.current;
@@ -598,11 +615,33 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
+    lastLoad.current = Date.now();
     setOverviewRevision(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
   }
+
+  // Kein Knopf „Liste aktualisieren“: Kommt das Fenster wieder in den Blick, lädt die Liste still nach (wie Heute).
+  useEffect(() => {
+    const again = () => {
+      if (document.visibilityState === "hidden" || Date.now() - lastLoad.current < 15000) return;
+      if (currentView.current === "decisions" || currentView.current === "goals") return;
+      lastLoad.current = Date.now();
+      void pager.current!.reload();
+    };
+    window.addEventListener("focus", again);
+    document.addEventListener("visibilitychange", again);
+    return () => { window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again); };
+  }, []);
+
+  // Die Suche filtert beim Tippen (entprellt); Enter sucht sofort.
+  useEffect(() => {
+    const next = searchInput.trim();
+    if (next === currentSearch.current) return;
+    const id = window.setTimeout(() => setSearch(next), 300);
+    return () => window.clearTimeout(id);
+  }, [searchInput]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -626,7 +665,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {
       const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
       if (!task) return;
-      setSelectedTask(task.id);
+      openTask(task.id);
       setProjectId(newTaskProject);
       setTitle("");
       setDue("");
@@ -705,49 +744,65 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
   function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
     currentSearch.current = '';
-    setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
+    setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  const visibleTasks = tasks?.filter(task => (!projectId || task.project_id === projectId));
+  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId));
+  const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
+  // Reiter bleiben alle erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis prüfen“).
+  const tabs: Array<{id: string; label: string; count?: number}> = [...TASK_VIEWS, {id: "projects", label: "Projekte"},
+    ...(panel === "review" || (reviewTotal ?? 0) > 0 ? [{id: "review", label: "Zur Prüfung", count: reviewTotal ?? 0}] : [])];
+  const activeTab = panel === "tasks" ? view : panel;
+  function chooseTab(id: string) {
+    if (id === "projects") { setView("mine"); setPanel("projects"); }
+    else if (id === "review") { openTask(null); setView("mine"); setPanel("review"); }
+    else { setPanel("tasks"); setView(id as TaskView); }
+  }
+  // Rollt die Reiterzeile, bleibt der gewählte Reiter im Blick.
+  const tabBar = useRef<HTMLElement | null>(null);
+  useEffect(() => { tabBar.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
+  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
     <main className="tasks-page workspace-tasks">
       <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{panel === "projects" ? "Projekte" : panel === "review" ? "Zur Prüfung" : heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
-      {selectedTask && <DetailPanel title="Aufgabe" onClose={() => setSelectedTask(null)}>
-        <TaskDetail key={selectedTask} taskId={selectedTask} onChanged={() => load()} />
+      {selectedTask && <DetailPanel title="Aufgabe" onClose={() => openTask(null)}>
+        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} editing={detailEdit > 0} onChanged={() => load()} />
       </DetailPanel>}
-      <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={panel === "tasks" && view === item.id} className={panel === "tasks" && view === item.id ? "active" : ""} key={item.id} onClick={() => {setPanel("tasks");setView(item.id);}} type="button">{item.label}</button>)}<button type="button" aria-pressed={panel === "projects"} onClick={()=>{setView("mine");setPanel("projects");}}>Projekte</button><button type="button" aria-pressed={panel === "review"} onClick={()=>{setSelectedTask(null);setView("mine");setPanel("review");}}>Zur Prüfung</button></nav>
-      {view !== "goals" && <div hidden={panel === "review"}>{(projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}</div>}
-      {(view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) setSelectedTask(task.id); }} />}
-      {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} onPreview={()=>setSelectedTask(null)} initiallyExpanded={panel === "review" || new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { loadProjects(); setPanel("tasks"); setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
-      {panel === "projects" && <section className="workspace-projects" aria-label="Projekte">
-        <p>Aufgaben und Gedächtnis verwenden dieselben Projekte. Abgeschlossene Projekte bleiben erhalten.</p>
-        <div className="workspace-project-list">{projects.map(project=><button type="button" key={project.id} aria-pressed={projectId===project.id} onClick={()=>setProjectId(project.id)}><strong>{project.name}</strong><span>{project.status === "done" ? "Abgeschlossen" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : "Offen"}</span>{project.description && <small>{project.description}</small>}</button>)}</div>
-        {projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
-        {projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>setSelectedTask(task.id)} />}
-      </section>}
-      {panel !== "review" && (view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      <nav ref={tabBar} aria-label="Aufgabenansichten" className="task-tabs">{tabs.map((item) => <button aria-pressed={activeTab === item.id} className={activeTab === item.id ? "active" : ""} key={item.id} onClick={() => chooseTab(item.id)} type="button">{item.label}{item.count ? ` · ${item.count}` : ""}</button>)}</nav>
+      <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
+        {panel === "projects" && (projects.length ? <div className="workspace-project-list">{projects.map(project=><button type="button" key={project.id} aria-pressed={projectId===project.id} onClick={()=>setProjectId(project.id)}><strong>{project.name}</strong><span>{project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"}</span>{project.description && <small>{project.description}</small>}</button>)}</div> : projectError ? null : <p className="task-empty">Noch keine Projekte.</p>)}
+        {projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />}
+        {panel === "projects" && projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
+      </section>
+      <div className="task-review" hidden={panel !== "review"}>
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        {panel === "review" && reviewTotal === 0 ? <p className="task-empty">Nichts zu prüfen.</p> : null}
+      </div>
+      {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
       {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
-      {panel !== 'review' && (view === 'mine' || view === 'waiting' || view === 'done') && <>
-        <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
-          <label>Aufgaben durchsuchen<input type="search" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Titel, Notiz oder wartende Person" /></label>
-          <button type="submit" className="secondary-action">Suchen</button>
-          {search && <button type="button" className="text-action" onClick={() => {setSearchInput(''); setSearch('');}}>Suche löschen</button>}
-          <button type="button" className="text-action" disabled={taskPage.loading} onClick={() => load()}>Liste aktualisieren</button>
-        </form>
+      {panel !== "review" && (listView || (view === "decisions" && (projects.length > 0 || projectError))) && <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
+        {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Aufgaben durchsuchen" />}
+        {panel === "projects" ? null : projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
+      </form>}
+      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      {panel !== 'review' && listView && <>
         {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" onClick={() => load()}>Erneut laden</button></p>}
         {taskPage.notice && <p role="status">{taskPage.notice}</p>}
-        {tasks && <p role="status">{taskPage.total} {search ? 'passende' : ''} Aufgaben · Seite {taskPage.page}{search ? ` · Suche: ${search}` : ''}</p>}
+        {search && tasks && tasks.length > 0 ? <p role="status" className="task-count">{taskPage.total} Treffer</p> : null}
       </>}
-      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
-        <header><span>Aufgabe</span><span>Fällig</span></header>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
-        {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
-        {visibleTasks && (view === "mine" ? groupTasks(visibleTasks,groupTime) : [{label:heading,items:visibleTasks}]).map(group=><section className="workspace-task-group" key={group.label} aria-label={group.label}><h2>{group.label} <small>{group.items.length}</small></h2>{group.items.map(task=><TaskRow compact onOpen={()=>setSelectedTask(task.id)} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view} />)}{group.items.length===0 && <p className="workspace-group-empty">Keine Aufgaben auf dieser Seite</p>}</section>)}
-        {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}
-        {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
+      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} kopf={false} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {!listTasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
+        {visibleTasks && visibleTasks.length > 0 && (view === "mine"
+          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><section className="workspace-task-group" key={group.label} aria-label={group.label}><h2>{group.label} <small>{group.items.length}</small></h2>{group.items.map(row)}</section>)
+          : <section className="workspace-task-group" aria-label={heading}>{visibleTasks.map(row)}</section>)}
+        {visibleTasks && visibleTasks.length === 0 && !creating ? <p className="task-empty">{emptyText}</p> : null}
+        {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>
   </div>;

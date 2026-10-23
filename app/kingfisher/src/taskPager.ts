@@ -22,17 +22,20 @@ export class TaskPager {
   cancel() {this.version++; this.loading = false;}
   select(selection: TaskSelection) {this.selection = selection; return this.load(null, []);}
   refresh() {return this.load(null, []);}
+  /** Lädt die aktuelle Seite still neu (Fenster wieder im Blick): Die Liste bleibt stehen, bis die neue da ist. */
+  reload() {return this.selection && !this.loading ? this.load(this.cursor, this.history, '', true) : Promise.resolve();}
   next() {return !this.loading && this.result?.next_cursor ? this.load(this.result.next_cursor, [...this.history, this.cursor]) : Promise.resolve();}
   previous() {return !this.loading && this.result && this.history.length ? this.load(this.history[this.history.length - 1], this.history.slice(0, -1)) : Promise.resolve();}
 
-  private async load(cursor: string | null, history: Array<string | null>, notice = ''): Promise<void> {
+  private async load(cursor: string | null, history: Array<string | null>, notice = '', quiet = false): Promise<void> {
     if (!this.selection) return;
     const version = ++this.version;
     const selection = this.selection;
+    const previous = this.result;
     this.loading = true;
-    this.result = null;
+    if (!quiet) this.result = null;
     const selectionKey = JSON.stringify(selection);
-    this.emit({...initialTaskPage(), loading: true, notice, selectionKey});
+    if (!quiet) this.emit({...initialTaskPage(), loading: true, notice, selectionKey});
     try {
       const result = await this.fetchPage(selection, cursor);
       if (version !== this.version) return;
@@ -45,6 +48,8 @@ export class TaskPager {
         return;
       }
       this.loading = false;
+      // Ein stilles Nachladen, das scheitert, lässt die sichtbare Liste stehen; der nächste Anlass versucht es erneut.
+      if (quiet && previous) { this.result = previous; return; }
       this.emit({...initialTaskPage(), error: 'Die Aufgaben sind gerade nicht erreichbar. Bitte die Liste neu laden.', notice, selectionKey});
     }
   }
