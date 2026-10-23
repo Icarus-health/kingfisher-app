@@ -49,9 +49,6 @@
 .shell .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button { width: auto; min-height: 44px; padding: 8px 0 10px; background: transparent; color: var(--calm-muted); border: 0; border-bottom: 3px solid transparent; border-radius: 0; font-size: 14px; }
 .shell .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button[aria-pressed='true'] { color: var(--calm-primary); border-bottom-color: var(--nordic-selection-edge); font-weight: 600; }
 .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button .interface-icon { display: none; }
-.shell .memory-page-workspace .memory-filter .memory-tools { margin: 0; padding: 0; font-size: 12px; color: var(--calm-muted); }
-.shell .memory-page-workspace .memory-filter .memory-tools > summary { padding: 8px 0 10px; }
-.memory-tools[open] > div { padding-bottom: 12px; }
 .memory-documents-workspace { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .shell .memory-page-workspace .memory-directory { border: 0; border-radius: 0; margin: 0; background: var(--nordic-paper); box-shadow: none; }
 .shell .memory-page-workspace .memory-directory:not(.document-workspace) { padding: 26px 28px; }
@@ -291,7 +288,6 @@
 .shell .workspace-tasks .suggestion-evidence { padding: 0; border: 0; }
 .shell .workspace-tasks .suggestion-evidence p { margin: 8px 0; }
 .shell .workspace-tasks .suggestion-time-badge { margin: 0; }
-.shell .memory-search-help { margin: 6px 0 16px; }
 @media (max-width: 700px) {
   .shell .today-source-status > summary > time { margin-left: 0; }
   .shell .today-memory > summary > span { float: none; margin-left: 10px; }
@@ -322,24 +318,17 @@
 .shell .mail-reader-meta h1 { margin-bottom: 16px; font-size: 24px; line-height: 1.3; }
 .shell .mail-reader-body { padding: 24px 0 30px; }
 .shell .mail-reader-body pre { max-width: 76ch; font-size: 15px; line-height: 1.75; }
-.shell .mail-reader-local .saved-mail-workflow { margin-top: 18px; padding: 16px; }
-.shell .mail-reader .saved-mail-workflow h2 { font-size: 16px; margin: 0 0 10px; }
+.shell .mail-reader-local .saved-mail-workflow { margin-top: 0; }
 .shell .mail-action-panel { margin-top: 12px; border-top: 1px solid var(--calm-border); padding-top: 12px; }
 .shell .mail-action-panel > summary { font-weight: 600; }
 .shell .mail-action-panel .mail-task-form, .shell .mail-action-panel .mail-reader-reply { margin: 12px 0; }
-.shell .mail-source-state { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 5px; background: var(--calm-inset); }
 .shell .calendar-page .settings-heading { min-height: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 8px 16px; }
 .shell .calendar-page .settings-heading h1 { font-size: 26px; margin: 0; }
 .shell .calendar-page .settings-heading > p:last-child { margin: 0; font-size: 12px; }
 .shell .calendar-navigator > summary { font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
 .shell .calendar-navigator > summary > span { display: block; margin: 5px 0 0 16px; font-size: 11px; font-weight: 400; color: var(--calm-muted); }
 .shell .calendar-navigator-content { margin-top: 18px; }
-.shell .calendar-navigator-content > h2 { margin-top: 20px; }
-.shell .calendar-options { margin: 0; font-size: 12px; }
-.shell .calendar-options[open] { flex-basis: 100%; }
-.shell .calendar-options button { margin: 10px 8px 0 0; }
 .shell .calendar-agenda { margin-top: 16px; border-top: 1px solid var(--calm-border); padding-top: 14px; }
-.shell .calendar-agenda > summary { font-size: 13px; font-weight: 600; }
 .shell .person-profile-header { display: flex; align-items: center; gap: 22px; padding: 24px 0; margin-bottom: 12px; }
 .shell .person-profile-header .memory-avatar-editor { flex: 0 0 auto; margin: 0; max-width: 220px; align-items: flex-start; flex-direction: column; gap: 8px; }
 .shell .person-profile-header .memory-avatar-editor summary { font-size: 11px; }
@@ -370,9 +359,6 @@
   .shell .calendar-navigator { display: block; }
   .shell .calendar-navigator > summary > span { display: inline; margin-left: 8px; }
   .shell .calendar-navigator-content { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
-  .shell .calendar-navigator-content > h2 { grid-column: 1/-1; margin: 0; }
-  .shell .calendar-navigator-content .mini-month { grid-column: 1/-1; }
-  .shell .calendar-navigator-content .calendar-date-picker { grid-column: 1/-1; margin: 0; }
   .shell .calendar-page .calendar-actions { flex-wrap: wrap; }
   .shell .person-profile-header { gap: 14px; padding: 12px 0 20px; align-items: flex-start; }
   .shell .person-profile-header .memory-avatar-editor { max-width: 100px; }
