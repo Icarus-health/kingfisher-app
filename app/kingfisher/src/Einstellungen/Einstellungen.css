@@ -262,6 +262,11 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .compact-model > .source-form > p[role="status"]:empty { display: none; }
 #root .settings-shell .compact-model > .source-form label { display: grid; gap: var(--g-a2); }
 
+/* Modell je Aufgabe (für Fortgeschrittene): Zeilen mit Haarlinie statt umrandeter Kästen. */
+#root .settings-shell .model-role-card { margin: 0; padding: var(--g-a3) 0; border: 0; border-top: 1px solid var(--g-linie); border-radius: 0; }
+#root .settings-shell .model-role-card legend { float: left; width: 100%; padding: 0 0 var(--g-a1); font: 500 16px/1.35 var(--g-schrift); }
+#root .settings-shell .model-role-card legend + * { clear: both; }
+
 /* Gruppen unter „Kingfisher und du“: Über dich, Kreis, Ton, Fassung, Antworten. */
 #root .settings-shell .ich-gruppen { display: grid; gap: var(--g-a6); min-width: 0; }
 #root .settings-shell .ich > .ich-meldung { padding-top: 0; }
