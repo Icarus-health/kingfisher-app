@@ -25,7 +25,8 @@ export function TaskSource({taskId}: {taskId: string}) {
     return () => { active = false; };
   }, [open, taskId, revision]);
   return <div className="task-source">
-    <button type="button" className="secondary-action" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? "Quelle schließen" : "Quelle öffnen"}</button>
+    {/* Wie ein Aufklapper: eine ruhige Zeile mit drehendem Pfeil, der Zustand steht in aria-expanded. */}
+    <button type="button" className="task-aufklapper" aria-expanded={open} onClick={() => setOpen(value => !value)}>Quelle</button>
     {open && <section aria-label="Gespeicherte Aufgabenquelle">
       {!source && !error && <p role="status">Quelle wird geladen …</p>}
       {error && <p role="alert">Die gespeicherte Quelle ist nicht verfügbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut versuchen</button></p>}

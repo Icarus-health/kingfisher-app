@@ -4,6 +4,7 @@ import { api, ApiError } from "./api";
 import {TaskSaveAttempt, TaskSavePreparationError, goalTaskRequestKey, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
 import { taskHref } from "./taskWorkflow";
+import { Leer } from "./grundlage";
 
 type Goal = Awaited<ReturnType<typeof api.goals>>["items"][number];
 export function GoalControls() {
@@ -59,40 +60,43 @@ export function GoalControls() {
     try {nextStepSave.current.resetAfterReview(); setNextStepReviewed(false); setNextStepError("");}
     catch {setNextStepError('Der neue Speicherauftrag konnte nicht vorbereitet werden. Bitte den lokalen Speicher und andere offene Aufgabenfenster prüfen. Es wurde keine Aufgabe gesendet.');}
   }
-  return <section className="decision-controls" aria-label="Persönliche Ziele">
-    <div className="decision-controls-heading"><div><h2>Was dir wichtig ist</h2><p>Deine ausdrücklich festgehaltenen Ziele.</p></div><button className="secondary-action" disabled={busy} onClick={() => edit("new")} type="button">+ Ziel</button></div>
+  // Ziele als Gruppe: klein die Überschrift, rechts „Ziel festhalten“ (der eine gefüllte Knopf, solange kein Formular
+  // offen ist); je Ziel eine Zeile mit dem Satz, einer leisen Zeile zu Themen und Aktivität und leisen Aktionen.
+  const formularOffen = Boolean(editing || closing || nextStepGoal);
+  return <section className="decision-controls goal-controls" aria-label="Persönliche Ziele">
+    <div className="decision-controls-heading"><h2 className="goal-titel">Was dir wichtig ist</h2>{!editing && <button className={formularOffen ? "secondary-action" : "primary-action"} disabled={busy} onClick={() => edit("new")} type="button">Ziel festhalten</button>}</div>
     {editing && <form className="decision-create-form" aria-label="Ziel festhalten" onSubmit={event => {event.preventDefault();void run(() => api.saveGoal(statement.trim(), [...new Set(topics.split(",").map(item => item.trim()).filter(Boolean))], editing === "new" ? undefined : editing.id));}}>
-      <label>Ziel<textarea aria-label="Ziel" required maxLength={4000} disabled={busy} value={statement} onChange={event => setStatement(event.target.value)} /></label>
-      <label>Themen (optional, mit Komma trennen)<input disabled={busy} value={topics} maxLength={500} onChange={event => setTopics(event.target.value)} /></label>
+      <label>Ziel<textarea aria-label="Ziel" autoFocus required maxLength={4000} disabled={busy} value={statement} onChange={event => setStatement(event.target.value)} /></label>
+      <label>Themen, mit Komma getrennt<input disabled={busy} value={topics} maxLength={500} onChange={event => setTopics(event.target.value)} /></label>
       <p>Gemeinsame Themen können Hinweise auf passende Aktivitäten liefern. Sie beweisen keinen Fortschritt.</p>
-      <div className="decision-form-actions"><button className="secondary-action" disabled={busy} onClick={() => setEditing(null)} type="button">Abbrechen</button><button className="primary-action" disabled={busy || !statement.trim()} type="submit">{editing === "new" ? "Ziel festhalten" : "Korrektur bestätigen"}</button></div>
+      <div className="decision-form-actions"><button className="g-knopf-schlicht" disabled={busy} onClick={() => setEditing(null)} type="button">Abbrechen</button><button className="primary-action" disabled={busy || !statement.trim()} type="submit">{editing === "new" ? "Ziel festhalten" : "Korrektur bestätigen"}</button></div>
     </form>}
     {closing && <form className="decision-create-form" aria-label="Ziel abschließen" onSubmit={event => {event.preventDefault();void run(() => api.finishGoal(closing.id, outcome, note));}}>
-      <p>{closing.satz}</p>
+      <p className="goal-formular-satz">{closing.satz}</p>
       <label>Abschluss<select aria-label="Abschluss" disabled={busy} value={outcome} onChange={event => setOutcome(event.target.value as "achieved" | "stopped")}><option value="achieved">Erreicht</option><option value="stopped">Nicht mehr verfolgen</option></select></label>
-      <label>Notiz (optional)<textarea disabled={busy} maxLength={4000} value={note} onChange={event => setNote(event.target.value)} /></label>
+      <label>Notiz<textarea disabled={busy} maxLength={4000} value={note} onChange={event => setNote(event.target.value)} /></label>
       <p>Das Ziel bleibt im Verlauf erhalten und erscheint nicht mehr als offen.</p>
-      <div className="decision-form-actions"><button className="secondary-action" disabled={busy} onClick={() => setClosing(null)} type="button">Abbrechen</button><button className="primary-action" disabled={busy} type="submit">Abschluss speichern</button></div>
+      <div className="decision-form-actions"><button className="g-knopf-schlicht" disabled={busy} onClick={() => setClosing(null)} type="button">Abbrechen</button><button className="primary-action" disabled={busy} type="submit">Abschluss speichern</button></div>
     </form>}
-    {!goals && !error && <p role="status">Ziele werden geladen …</p>}
-    {goals?.length === 0 && <p>{completed.length ? "Kein offenes Ziel." : "Noch kein Ziel festgehalten."}</p>}
-    <div className="decision-list">{goals?.map(goal => <article className="decision-row" key={goal.id}><div className="decision-row-main"><p className="decision-statement">{goal.satz}</p>
-      <GoalHistory key={`${goal.id}:${revision}`} id={goal.id} />
-      {goal.marken.length > 0 && <p>Themen: {goal.marken.join(", ")}</p>}
-      {goal.beurteilbar ? <p>{goal.letzte_regung ? `Letzte passende Aktivität: ${new Date(goal.letzte_regung).toLocaleDateString("de-DE")}` : "Noch keine passende Aktivität erfasst."}{goal.woran ? ` · ${goal.woran}` : ""}{goal.schlaeft ? ` Seit ${goal.tage_still} Tagen kein passender Eintrag – bitte selbst zuordnen.` : ""}</p> : <p>Noch keine ausreichende Zuordnung zu Aktivitäten.</p>}
-      {nextStepGoal?.id === goal.id ? <form className="decision-create-form" aria-label={`Nächsten Schritt zu ${goal.satz}`} onSubmit={saveNextStep}>
+    {!goals && !error && <p className="decision-muted" role="status">Ziele werden geladen …</p>}
+    {goals?.length === 0 && !editing && <Leer className="decision-leer" zeichen="check" satz={completed.length ? "Kein offenes Ziel." : "Noch kein Ziel festgehalten."} />}
+    {goals && goals.length > 0 && <div className="decision-list">{goals.map(goal => <article className="decision-row goal-row" key={goal.id}><div className="decision-row-main"><p className="decision-statement">{goal.satz}</p>
+      <p className="goal-stand">{goal.marken.length > 0 && <span>{goal.marken.join(", ")}</span>}<span>{goal.beurteilbar ? <>{goal.letzte_regung ? `Letzte passende Aktivität: ${new Date(goal.letzte_regung).toLocaleDateString("de-DE")}` : "Noch keine passende Aktivität erfasst."}{goal.woran ? ` · ${goal.woran}` : ""}{goal.schlaeft ? ` Seit ${goal.tage_still} Tagen kein passender Eintrag – bitte selbst zuordnen.` : ""}</> : "Noch keine ausreichende Zuordnung zu Aktivitäten."}</span></p>
+      {nextStepGoal?.id === goal.id ? <form className="decision-create-form goal-schritt" aria-label={`Nächsten Schritt zu ${goal.satz}`} onSubmit={saveNextStep}>
         <label>Nächster Schritt<input autoFocus required maxLength={4096} disabled={nextStepBusy} value={nextStepTitle} onChange={event => setNextStepTitle(event.target.value)} placeholder="Was möchtest du als Nächstes tun?" /></label>
-        {nextStepError && <p role="alert">{nextStepError}</p>}
+        {nextStepError && <p className="goal-fehler" role="alert">{nextStepError}</p>}
         {nextStepError && <TaskRetryReview reviewed={nextStepReviewed} busy={nextStepBusy} onReviewed={setNextStepReviewed} onPrepareNew={prepareNewNextStepRequest} />}
-        <div className="decision-form-actions"><button type="button" className="text-action" disabled={nextStepBusy} onClick={() => setNextStepGoal(null)}>Abbrechen</button><button type="submit" className="primary-action" disabled={nextStepBusy || !nextStepTitle.trim()}>Aufgabe speichern</button></div>
-      </form> : <button className="secondary-action" disabled={busy || nextStepBusy} type="button" onClick={() => openNextStep(goal)}>Nächsten Schritt festhalten</button>}
-      {createdTask?.goal_id === goal.id && <p role="status">Nächster Schritt gespeichert: <a href={taskHref(createdTask)}>Aufgabe öffnen</a></p>}
-      <div className="decision-form-actions"><button className="secondary-action" disabled={busy} onClick={() => {setClosing(goal);setEditing(null);setConfirming(null);setOutcome("achieved");setNote("");}} type="button">Ziel abschließen</button>
-      <button className="secondary-action" disabled={busy} onClick={() => edit(goal)} type="button">Ziel korrigieren</button>
-      <button className="text-action" disabled={busy} onClick={() => setConfirming(goal.id)} type="button">Angabe widerrufen</button></div>
-      {confirming === goal.id && <div role="group" aria-label="Zielangabe widerrufen"><p>War diese Zielangabe falsch? Der Widerruf bleibt nachvollziehbar. Er bedeutet nicht, dass das Ziel erreicht wurde.</p><button className="secondary-action" disabled={busy} onClick={() => void run(() => api.retractGoal(goal.id))} type="button">Widerruf bestätigen</button><button className="text-action" disabled={busy} onClick={() => setConfirming(null)} type="button">Abbrechen</button></div>}
-    </div></article>)}</div>
-    {completed.length > 0 && <details><summary>Abgeschlossene Ziele ({completed.length})</summary><div className="decision-list">{completed.map(goal => <article className="decision-row" key={goal.id}><div className="decision-row-main"><p className="decision-statement">{goal.statement}</p><p>{goal.outcome === "achieved" ? "Erreicht" : "Nicht mehr verfolgt"} · {new Date(goal.recorded_at).toLocaleDateString("de-DE")}</p>{goal.note && <p>{goal.note}</p>}<GoalHistory key={`${goal.id}:${revision}`} id={goal.id} /><button className="secondary-action" disabled={busy} onClick={() => void run(() => api.reopenGoal(goal.id))} type="button">Wieder aufnehmen</button></div></article>)}</div></details>}
-    {error && <p role="alert">Die Ziele konnten nicht geladen oder gespeichert werden. <button type="button" disabled={busy} onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
+        <div className="decision-form-actions"><button type="button" className="g-knopf-schlicht" disabled={nextStepBusy} onClick={() => setNextStepGoal(null)}>Abbrechen</button><button type="submit" className="primary-action" disabled={nextStepBusy || !nextStepTitle.trim()}>Aufgabe speichern</button></div>
+      </form> : null}
+      {createdTask?.goal_id === goal.id && <p className="goal-gespeichert" role="status">Nächster Schritt gespeichert: <a href={taskHref(createdTask)}>Aufgabe öffnen</a></p>}
+      <div className="goal-aktionen">{nextStepGoal?.id !== goal.id && <button className="secondary-action g-kompakt" disabled={busy || nextStepBusy} type="button" onClick={() => openNextStep(goal)}>Nächsten Schritt festhalten</button>}
+      <button className="text-action" disabled={busy} onClick={() => {setClosing(goal);setEditing(null);setConfirming(null);setOutcome("achieved");setNote("");}} type="button">Abschließen</button>
+      <button className="text-action" disabled={busy} onClick={() => edit(goal)} type="button">Korrigieren</button>
+      <button className="text-action" disabled={busy} onClick={() => setConfirming(goal.id)} type="button">Widerrufen</button></div>
+      {confirming === goal.id && <div className="goal-rueckfrage" role="group" aria-label="Zielangabe widerrufen"><p>War diese Zielangabe falsch? Der Widerruf bleibt nachvollziehbar. Er bedeutet nicht, dass das Ziel erreicht wurde.</p><button className="secondary-action decision-confirm g-kompakt" disabled={busy} onClick={() => void run(() => api.retractGoal(goal.id))} type="button">Widerruf bestätigen</button><button className="text-action" disabled={busy} onClick={() => setConfirming(null)} type="button">Abbrechen</button></div>}
+      <GoalHistory key={`${goal.id}:${revision}`} id={goal.id} />
+    </div></article>)}</div>}
+    {completed.length > 0 && <details className="g-aufklapper goal-abgeschlossen"><summary><span className="g-aufklapper-titel">Abgeschlossene Ziele</span><span className="g-aufklapper-neben">{completed.length}</span></summary><div className="decision-list">{completed.map(goal => <article className="decision-row" key={goal.id}><div className="decision-row-main"><p className="decision-statement">{goal.statement}</p><p>{goal.outcome === "achieved" ? "Erreicht" : "Nicht mehr verfolgt"} · {new Date(goal.recorded_at).toLocaleDateString("de-DE")}</p>{goal.note && <p>{goal.note}</p>}<div className="goal-aktionen"><button className="text-action" disabled={busy} onClick={() => void run(() => api.reopenGoal(goal.id))} type="button">Wieder aufnehmen</button></div><GoalHistory key={`${goal.id}:${revision}`} id={goal.id} /></div></article>)}</div></details>}
+    {error && <p className="decision-controls-error" role="alert">Die Ziele konnten nicht geladen oder gespeichert werden. <button type="button" className="text-action" disabled={busy} onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
   </section>;
 }

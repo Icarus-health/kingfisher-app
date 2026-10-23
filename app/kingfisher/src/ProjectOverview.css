@@ -1,15 +1,25 @@
-.project-overview { margin: 16px 0; padding: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
-.project-overview header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.project-overview h2 { margin: 0; font-size: 17px; }
-.project-overview h3 { margin: 0; font-size: 13px; }
-.project-counts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 16px 0 20px; }
-.project-counts button { display: grid; align-content: start; gap: 5px; padding: 14px; text-align: left; border: 1px solid var(--kf-rand-d7e1df); border-radius: 10px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: inherit; cursor: pointer; }
-.project-counts strong { font-size: 26px; }
-.project-counts small, .project-overview-help, .project-next small, .project-next time { color: var(--kf-schrift-31535f); font-size: 11px; line-height: 1.5; }
-.project-next { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
-.project-next ul { list-style: none; margin: 0; padding: 0; }
-.project-next li { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--kf-rand-d7e1df); overflow-wrap: anywhere; }
-.project-task-link { padding: 0; text-align: left; color: var(--kf-schrift-062b3a); background: none; border: 0; text-decoration: underline; font: inherit; cursor: pointer; }
-.project-overview button:focus-visible { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 3px; }
-.project-next time.overdue { color: var(--kf-schrift-bf3b44); }
-@media (max-width: 780px) { .project-counts, .project-next { grid-template-columns: 1fr; } .project-overview header { align-items: start; flex-direction: column; } }
+/* Projekt auf einen Blick: drei Kacheln wie die Listen in Erinnerungen am Mac (Zahl groß, Name darunter), jede öffnet
+   ihre Liste; darunter ein Aufklapper mit den nächsten Schritten als Zeilen. Werte aus der Grundlage. */
+#root .project-overview { margin: 0 0 var(--g-a6); padding: 0; border: 0; background: none; box-shadow: none; }
+#root .project-overview-satz { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .project-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g-a3); margin: 0 0 var(--g-a2); }
+#root .project-counts button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 88px; padding: var(--g-a3) var(--g-a4);
+  border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten);
+  color: var(--g-leise); font: 500 15px/1.3 var(--g-schrift); text-align: left; cursor: pointer; transition: background-color 150ms ease;
+}
+#root .project-counts button:hover { background: #fafbfc; }
+#root .project-counts strong { font: 700 28px/1.15 var(--g-schrift); color: var(--g-tinte); font-variant-numeric: tabular-nums; }
+#root .project-counts small { font: var(--g-fussnote); color: var(--g-leise); }
+#root .project-next-details > summary { padding: 0 var(--g-a1); }
+#root .project-next { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-a4); }
+#root .project-next h3 { margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .project-next > div > p { margin: 0; padding: 0 var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+#root .project-next .g-zeile-wert.overdue { color: var(--g-rot); }
+#root .project-overview-help { margin: var(--g-a2) 0 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+#root .project-overview .g-aufklapper-inhalt { padding-left: 0; }
+@media (max-width: 700px) {
+  #root .project-next { grid-template-columns: minmax(0, 1fr); }
+  #root .project-counts { gap: var(--g-a2); }
+  #root .project-counts button { padding: var(--g-a3); min-height: 80px; }
+}
