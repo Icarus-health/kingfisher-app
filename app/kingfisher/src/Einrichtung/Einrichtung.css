@@ -104,7 +104,6 @@ html:has(.erststart-shell), body:has(.erststart-shell), #root:has(.erststart-she
 
 /* Leere Startseite: ein einziger nächster Schritt. */
 .heute-naechster-schritt { display: flex; align-items: center; gap: 24px; padding: 28px 30px; border: 1px solid var(--today-line, var(--calm-line)); border-radius: 15px; background: var(--today-surface, var(--calm-surface)); box-shadow: var(--today-shadow, var(--calm-shadow)); }
-.heute-naechster-schritt img { width: 130px; height: 90px; object-fit: contain; flex: none; }
 .heute-naechster-schritt h2 { margin: 0 0 6px; font: 600 26px/1.25 'Inter', sans-serif; letter-spacing: -.5px; color: var(--today-ink, var(--calm-ink)); }
 .heute-naechster-schritt p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: var(--today-ink, var(--calm-ink)); }
 

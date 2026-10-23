@@ -89,7 +89,7 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
         aria-label="Kingfisher fragen"
         disabled={busy || disabled || recording}
         onChange={(event) => setMessage(event.target.value)}
-        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“")}
+        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher …")}
         ref={element=>{input.current=element;}}
         value={message}
       />}

@@ -329,14 +329,11 @@ def main() -> int:
             pruef['25_fertig_ohne_weg_als_text'] = 'Einstellungen →' not in seite.evaluate(
                 "() => { const k = document.querySelector('.erststart-inhalt').cloneNode(true); "
                 "k.querySelectorAll('a.verweis').forEach(a => a.remove()); return k.innerText; }")
+            # Die Kachel „Wetter & Weg“ des früheren Briefings mit ihrem Verweis gibt es nicht mehr (Paket U, H1: Heute ist
+            # das Briefing; Wetter steht im Kopf, wenn es eingeschaltet ist). „Zum Briefing“ zeigt Heute.
             seite.goto(basis + '/today?briefing=1')
-            kachel = seite.locator('.weather-route-card a.verweis')
-            kachel.wait_for(timeout=20000)
-            pruef['25_briefing_text'] = kachel.inner_text()
-            kachel.click()
-            seite.wait_for_url(re.compile(r'/settings#darf$'), timeout=15000)
-            seite.locator('#settings-darf:not([hidden])').wait_for(timeout=15000)
-            pruef['25_briefing_springt'] = True
+            seite.locator('.today-page h1').wait_for(timeout=20000)
+            pruef['25_briefing_ist_heute'] = seite.url.endswith('/today')
             pruef['25_freigaben_springt'] = pruef['25_freigaben_ziel'] == '/settings#darf'
 
             # -- 6: Dokumente ohne Helfer, unter Zugänge ---------------------------------------------------------

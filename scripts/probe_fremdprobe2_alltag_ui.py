@@ -322,19 +322,18 @@ def main() -> int:
         assert pruef['11_taste_linux'] == 'Strg K'
         pruef['15_tageszeile'] = [z for z in heute.splitlines() if 'Hintergrund' in z]
         assert any('Du musst nichts tun' in z for z in pruef['15_tageszeile']) and 'gehakt' not in heute, heute
-        seite.locator('.today-postfach').get_by_text(satz).wait_for(timeout=10000)
-        pruef['17_heute'] = True
+        # Paket U, H6: Ein leeres, verbundenes Postfach braucht niemanden; sein Stand steht unter Einstellungen → Zugänge
+        # (unten: 17_stand_aller_bereiche), auf Heute nur, wenn etwas zu tun ist.
+        pruef['17_heute_ruhig'] = seite.locator('.today-postfach').count() == 0 and satz not in heute
+        assert pruef['17_heute_ruhig'], heute
         bild('heute')
-        seite.get_by_role('button', name='Briefing öffnen').click()
-        schublade = seite.get_by_role('region', name='Briefing')
-        schublade.locator('.drawer-card').first.wait_for(timeout=5000)
-        zaehler = [b.inner_text() for b in schublade.locator('.drawer-card header b').all()]
+        # Paket U, H1: Heute ist das Briefing. Zähler ohne Null, neue Post ohne eigene Gesprächszeilen.
+        zaehler = [b.inner_text() for b in seite.locator('.today-count').all()]
         pruef['10_zaehler'] = zaehler
         assert '0' not in zaehler
-        nachrichten = schublade.locator('.drawer-card', has_text='RELEVANTE NACHRICHTEN').inner_text()
+        nachrichten = seite.locator('.today-news').inner_text() if seite.locator('.today-news').count() else ''
         pruef['22_relevante_nachrichten'] = nachrichten
         assert 'Quelle aufgenommen' not in nachrichten and 'Quellen aufgenommen' not in nachrichten and 'Gesprächsquelle' not in nachrichten
-        bild('briefing')
         seite.goto(basis + '/today')
         seite.locator('.today-page h1').wait_for(timeout=15000)
         schmal_ohne_scrollen('heute')

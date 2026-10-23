@@ -18,7 +18,8 @@ test('unconnected calendar is visible and never presented as an empty successful
 
 test('pending mail remains an explicit incomplete overview', () => {
   const status = sourceStatus({...briefing, post_ausstehend: true});
-  assert.match(status.text, /Posteingang wird/);
+  assert.equal(status.text, 'Die Post von heute ist noch nicht da. Kingfisher holt sie gerade.');
+  assert.equal(status.href, null, 'nichts zu tun: Kingfisher holt die Post selbst');
   assert.equal(status.attention, true);
 });
 
@@ -37,13 +38,18 @@ test('a concurrent connection failure keeps its setup action and extra review hi
     {section: 'source_review', message: 'Verlauf ungeprüft.'},
   ]});
   assert.equal(status.href, '/settings#zugaenge');
-  assert.equal(status.actionLabel, 'Quellen prüfen');
-  assert.match(status.text, /1 weitere Hinweise/);
+  assert.equal(status.actionLabel, 'Zugänge prüfen');
+  assert.match(status.text, /Dazu ein weiterer Hinweis\./);
   assert.doesNotMatch(status.text, /Bereiche nicht verfügbar/);
 });
 
-test('source success wording describes an overview, not verified source synchronization', () => {
-  assert.equal(sourceStatus(briefing).text, 'Überblick erstellt · Quellen können sich danach geändert haben.');
+test('a complete overview says nothing and offers no action (Paket U, H4)', () => {
+  const status = sourceStatus(briefing);
+  assert.equal(status.attention, false);
+  assert.equal(status.text, '');
+  assert.equal(status.href, null);
+  assert.equal(sourceStatus({...briefing, partial_failures: [{section: 'projects', message: 'Projekte: gerade nicht verfügbar. Bitte erneut laden.'}]}).href, null,
+    'kein Weg in die Einstellungen, der nicht weiterhilft');
 });
 
 test('mail activity goes straight to its exact mail while raw source remains separately addressable', () => {

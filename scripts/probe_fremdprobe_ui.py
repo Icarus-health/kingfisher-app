@@ -253,10 +253,10 @@ def main() -> int:
             seite.get_by_role('heading', name='Dein Postfach antwortet nicht').wait_for(timeout=15000)
             seite.get_by_role('button', name='Zum Briefing').click()
             seite.wait_for_url(re.compile(r'/today'), timeout=15000)
-            seite.locator('section.briefing-drawer.open').wait_for(timeout=20000)
-            pruef['23_briefing_offen'] = True
+            # Paket U, H1: Heute ist das Briefing; „Zum Briefing“ zeigt Heute mit schlichter Adresse.
+            seite.locator('.today-page h1').wait_for(timeout=20000)
+            pruef['23_briefing_offen'] = seite.url.endswith('/today') and seite.locator('[role=dialog]').count() == 0
             bild('09-briefing-offen')
-            seite.locator('section.briefing-drawer.open .drawer-close').click()
 
             # Eine fällige Aufgabe, damit Heute seine Karten zeigt (sonst steht dort nur der nächste Schritt).
             antwort = seite.request.post(basis + '/api/v1/tasks', data={'title': 'Angebot an die Probe GmbH schicken',
@@ -326,7 +326,7 @@ def main() -> int:
                 angebot.locator('input[type=checkbox]').nth(i).is_checked() for i in range(2))
             bild('13-fertig-automatik')
             seite.get_by_role('button', name='Zum Briefing').click()
-            seite.locator('section.briefing-drawer.open').wait_for(timeout=30000)
+            seite.locator('.today-page h1').wait_for(timeout=30000)
             automatik = seite.request.get(basis + '/api/v1/memory/automation').json()
             konten = {k['account_id']: k for k in seite.request.get(basis + '/api/v1/mail/intake').json()['accounts']}
             pruef['17_sortieren_an'] = automatik['state'] == 'active' and automatik['requested'] is True

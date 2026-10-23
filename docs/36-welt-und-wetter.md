@@ -26,7 +26,8 @@ schaltet das Wetter ein. Steht bei den Fahrzeiten ein Startort („Musterstraße
 den Ort daraus als Vorschlag an („Wiesbaden (dein Startort für Fahrzeiten)“); gesucht wird erst nach dem Klick.
 Die Umgebungsvariablen `KINGFISHER_WEATHER_ENABLED`, `…_LOCATION`, `…_LATITUDE`, `…_LONGITUDE` gelten weiter als
 Vorbelegung, solange in der Oberfläche nichts gespeichert wurde; was dort gespeichert wird, gilt vor ihnen (auch „aus“).
-Das alte Briefing („Briefing öffnen“, `/api/v1/morning-briefing`) liest das Wetter ebenfalls aus dieser Einstellung.
+Der Kopf von Heute (`/api/v1/morning-briefing`; seit Paket U ist Heute das Briefing, die frühere Schublade „Briefing
+öffnen“ gibt es nicht mehr) liest das Wetter ebenfalls aus dieser Einstellung.
 
 ### Datensparsamkeit
 

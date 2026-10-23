@@ -1,4 +1,5 @@
+/* Vorlesen im Kopf von Heute: eine Zeile leiser Textknöpfe, kein eigener Kasten (Paket U, H1). */
+.audio-briefing { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
 .audio-briefing audio { display: none; }
-.audio-briefing .audio-message { grid-column: 1 / -1; margin: 8px 0 0; color: var(--kf-schrift-31535f); font-size: 12px; }
-.audio-briefing .audio-message button, .audio-ready { margin-left: 8px; }
-.audio-briefing .audio-ready { grid-column: 1 / -1; justify-self: start; }
+.audio-briefing .audio-time { color: var(--calm-muted, #5e6c7c); font-size: 12px; font-variant-numeric: tabular-nums; }
+.audio-briefing .audio-message { color: var(--calm-muted, #5e6c7c); font-size: 12px; }

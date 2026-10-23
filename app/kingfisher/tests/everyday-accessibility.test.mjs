@@ -2,9 +2,10 @@ import {after,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-a11y-cache-${process.pid}`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'audit-hooks',enforce:'pre',resolveId(id){if(id==='virtual:audit-hooks')return '\0'+id;},load(id){if(id==='\0virtual:audit-hooks')return 'export const useState=(...a)=>globalThis.__auditDriver.state(...a);export const useRef=(...a)=>globalThis.__auditDriver.ref(...a);export const useEffect=(...a)=>globalThis.__auditDriver.effect(...a);export const useMemo=fn=>fn();';},transform(code,id){if(['/src/App.tsx','/src/WorldControls.tsx','/src/ProjectControls.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:audit-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:`/private/tmp/kingfisher-a11y-cache-${process.pid}`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{name:'audit-hooks',enforce:'pre',resolveId(id){if(id==='virtual:audit-hooks')return '\0'+id;},load(id){if(id==='\0virtual:audit-hooks')return 'export const useState=(...a)=>globalThis.__auditDriver.state(...a);export const useRef=(...a)=>globalThis.__auditDriver.ref(...a);export const useEffect=(...a)=>globalThis.__auditDriver.effect(...a);export const useMemo=fn=>fn();';},transform(code,id){if(['/src/App.tsx','/src/TodayOverview.tsx','/src/WorldControls.tsx','/src/ProjectControls.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:audit-hooks"')+(id.endsWith('/src/App.tsx')?'\nexport {Morning};':'');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const app=await server.ssrLoadModule('/src/App.tsx');
+const today=await server.ssrLoadModule('/src/TodayOverview.tsx');
 const {ProjectControls}=await server.ssrLoadModule('/src/ProjectControls.tsx');
 const {api}=await server.ssrLoadModule('/src/api.ts');
 const {WorldControls}=await server.ssrLoadModule('/src/WorldControls.tsx');
@@ -14,23 +15,28 @@ function button(n,label){const b=nodes(n,x=>x.type==='button'&&text(x)===label)[
 function driver(render){const states=[],refs=[],effects=[],pending=[];let s,r,e;return {state(initial){const i=s++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],v=>states[i]=typeof v==='function'?v(states[i]):v];},ref(initial){return refs[r++]??(refs[r-1]={current:initial});},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__auditDriver=this;return render();},flush(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(x=>x.cleanup?.());delete globalThis.__auditDriver;}};}
 async function tick(d){d.render();d.flush();await new Promise(setImmediate);d.render();d.flush();await new Promise(setImmediate);return d.render();}
 
-test('briefing is inert when closed; open dialog focuses, traps keyboard and restores its opener',()=>{
- assert.equal(typeof app.BriefingDrawer,'function','briefing is directly testable');
- const before={document:globalThis.document,HTMLElement:globalThis.HTMLElement};let active,closed=0,open=false;
- class Field{isConnected=true;tabIndex=0;focus(){active=this;}getClientRects(){return [1];}}
- const opener=new Field(),first=new Field(),last=new Field();active=opener;globalThis.HTMLElement=Field;globalThis.document={get activeElement(){return active;},body:{style:{overflow:'auto'}}};
- const d=driver(()=>app.BriefingDrawer({briefing:{generated_at:'2026-10-15T07:00:00Z',timezone:'Europe/Berlin',needs_you:[],later_today:[],happening_now:[],greeting:'Guten Morgen.'},open,onClose(){closed++;},onChange(){}}));
- try{let tree=d.render(),panel=nodes(tree,n=>n.props?.className?.startsWith('briefing-drawer'))[0];assert.equal(panel.props.inert,true);d.flush();assert.equal(active,opener);
-  open=true;tree=d.render();panel=nodes(tree,n=>n.props?.role==='dialog')[0];assert.ok(panel);panel.props.ref.current={querySelectorAll:()=>[first,last]};button(tree,'Zurück zu Heute').props.ref.current=first;d.flush();assert.equal(active,first);assert.equal(globalThis.document.body.style.overflow,'hidden');
-  let prevented=0;panel.props.onKeyDown({key:'Tab',shiftKey:true,preventDefault(){prevented++;}});assert.equal(active,last);panel.props.onKeyDown({key:'Tab',shiftKey:false,preventDefault(){prevented++;}});assert.equal(active,first);assert.equal(prevented,2);
-  panel.props.onKeyDown({key:'Escape',preventDefault(){}});assert.equal(closed,1);
-  open=false;d.render();d.flush();assert.equal(active,opener);assert.equal(globalThis.document.body.style.overflow,'auto');
- }finally{d.close();Object.assign(globalThis,before);}
+test('Heute is the briefing: no modal drawer, the page and navigation stay usable, the setup link lands on plain Heute',async()=>{
+ const before={window:globalThis.window,document:globalThis.document,morning:api.morning};let replaced=null;
+ const noop=()=>{};
+ globalThis.window={location:{search:'?briefing=1'},history:{replaceState(_s,_t,url){replaced=url;}},addEventListener:noop,removeEventListener:noop,setInterval:()=>0,clearInterval:noop};
+ globalThis.document={visibilityState:'visible',addEventListener:noop,removeEventListener:noop};
+ const briefing={generated_at:'2026-10-15T07:00:00Z',timezone:'Europe/Berlin',needs_you:[],later_today:[],happening_now:[],partial_failures:[],greeting:'Guten Morgen.'};
+ api.morning=async()=>briefing;
+ const d=driver(()=>app.Morning({recentConversation:null,rememberConversation(){},chatAvailable:true}));
+ try{const tree=await tick(d);
+  assert.equal(text(nodes(tree,n=>n.type==='h1')[0]),'Guten Morgen.','Heute is loaded');
+  assert.equal(nodes(tree,n=>n.props?.role==='dialog').length,0,'no second page over Heute');
+  assert.equal(nodes(tree,n=>n.type==='main')[0].props.inert,undefined,'Heute is never inert');
+  const sidebar=nodes(tree,n=>n.type?.name==='Sidebar')[0];assert.ok(sidebar);assert.equal(sidebar.props.navigationDisabled,undefined);assert.equal(sidebar.props.onToday,undefined);
+  assert.equal(nodes(tree,n=>n.type==='button'&&/Briefing/.test(text(n))).length,0);
+  assert.equal(replaced,'/today','the address becomes plain again');
+ }finally{d.close();globalThis.window=before.window;globalThis.document=before.document;api.morning=before.morning;}
 });
 
-test('briefing presents one readable reason instead of duplicating the same warning',()=>{
- assert.equal(typeof app.BriefingDrawer,'function');const d=driver(()=>app.BriefingDrawer({briefing:{generated_at:'2026-10-15T07:00:00Z',timezone:'Europe/Berlin',needs_you:[{id:'warning',title:'Prüfen',reason:'Bitte Quelle prüfen.',detail:'Bitte Quelle prüfen.',source:'aufgabe',priority:'Hoch'},{id:'event',title:'Termin',reason:'Termin',detail:'Quelle: termin',source:'termin',priority:'Mittel'}],later_today:[],happening_now:[],greeting:'Guten Morgen.'},open:false,onClose(){},onChange(){}}));
- try{const result=text(d.render());assert.equal(result.match(/Bitte Quelle prüfen\./g)?.length,1);assert.match(result,/Kalender/);assert.doesNotMatch(result,/Quelle: termin/);}finally{d.close();}
+test('Heute presents one readable reason instead of duplicating the same warning',()=>{
+ const briefing={generated_at:'2026-10-15T07:00:00Z',timezone:'Europe/Berlin',partial_failures:[],happening_now:[],later_today:[],needs_you:[{id:'warning',title:'Prüfen',reason:'Bitte Quelle prüfen.',detail:'Bitte Quelle prüfen.',source:'entscheidung',priority:'Hoch'}]};
+ const d=driver(()=>today.TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false}));
+ try{const result=text(d.render());assert.equal(result.match(/Bitte Quelle prüfen\./g)?.length,1);assert.match(result,/Entscheidung/);}finally{d.close();}
 });
 
 test('invalid public source keeps its draft and gives an actionable address error without disguising a reload as a save retry',async()=>{
