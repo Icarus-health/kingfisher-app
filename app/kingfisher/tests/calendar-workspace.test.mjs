@@ -56,6 +56,7 @@ let shown=Number(text(nodes(d.render(),n=>n.props?.className==='calendar-period'
  toggle('Google');visible=nodes(tree,n=>n.props?.className==='calendar-time-event');assert.equal(visible.length,1);assert.match(text(visible[0]),/Arbeitstermin/);
  visible[0].props.onClick();tree=d.render();const mirrorDetails=nodes(tree,n=>n.type?.name==='DetailPanel')[0];nodes(mirrorDetails,n=>n.type==='button'&&/Bearbeiten/.test(text(n)))[0].props.onClick();tree=d.render();const form=nodes(tree,n=>n.type?.name==='CalendarActionForm')[0];assert.equal(form.props.event.source_id,'google');assert.equal(form.props.event.uid,'google:work-event');
  toggle('Arbeit');assert.equal(nodes(tree,n=>n.props?.className==='calendar-time-event').length,0);
+ assert.equal(nodes(tree,n=>n.props?.className==='calendar-agenda').length,0,'bei null Terminen kein „0 Termine … als Liste“');
  nodes(tree,n=>n.type==='button'&&text(n)==='Liste')[0].props.onClick();tree=d.render();await d.flush();tree=d.render();
  assert.ok(nodes(tree,n=>n.type==='section'&&n.props['aria-label']==='Terminliste')[0],'Explicit list view keeps its primary list visible');
  assert.equal(nodes(tree,n=>n.props?.className==='calendar-agenda').length,0);

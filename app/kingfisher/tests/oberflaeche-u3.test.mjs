@@ -140,7 +140,7 @@ test("M1: ein Titel, kein Hilfe-Aufklapper, kein Suchen-Knopf; die Suche läuft 
     assert.equal(nodes(baum, n => n.type === "details").length, 0, "kein „So funktioniert die Suche“");
     assert.equal(nodes(baum, n => n.type === "button" && /Suchen/.test(text(n))).length, 0, "kein eigener Suchen-Knopf");
     assert.equal(nodes(baum, n => n.type?.name === "GedaechtnisLeer").length, 1, "leeres Gedächtnis: ein Satz mit Weg");
-    props.query = "Brandl"; d.render(); await d.flush();
+    props.query = "Brandl"; d.render(); await d.flush(); d.render(); await d.flush();
     assert.deepEqual(gesucht, [], "entprellt: nicht bei jedem Zeichen sofort");
     await new Promise(r => setTimeout(r, 400)); d.render(); await d.flush(); d.render(); await d.flush();
     assert.deepEqual(gesucht, ["Brandl"], "nach dem Tippen sucht sie von selbst in den Originalen");

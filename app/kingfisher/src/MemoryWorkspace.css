@@ -1,6 +1,7 @@
 .memory-page.memory-page-workspace { display: flex; flex-direction: column; min-width: 0; }
 /* Inhalte behalten ihre Höhe und rollen mit der Seite; sonst liefen sie unter die leise Zeile am Ende. */
 .memory-page.memory-page-workspace > * { flex-shrink: 0; }
+.memory-page.memory-page-workspace > .memory-documents-workspace:has(> .memory-search) { flex: 1 0 auto; }
 .memory-page-workspace .memory-filter { min-height: 0; padding: 18px 28px; border-right: 0; border-bottom: 1px solid var(--calm-line, #315563); }
 .memory-page-workspace .memory-filter > p { margin: 0 0 10px; }
 .memory-page-workspace .memory-filter > div { display: flex; flex-wrap: wrap; gap: 6px; }
