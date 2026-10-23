@@ -78,7 +78,10 @@ export function FolderSyncSettings() {
     try { await request("/api/v1/folder-sync/run", { method: "POST", body: "{}" }); await load(); }
     catch { setError(true); } finally { setBusy(false); }
   }
-  return <details className="profile-card" onToggle={event => setExpanded(event.currentTarget.open)}>
+  // Gleich gebaut wie die Nachbarkarten (Meetings, Dateien): Überschrift, ein Satz, darunter leise das Einrichten.
+  return <section className="source-section document-import ordner-aufnahme" aria-label="Dokumentenordner">
+    <div className="compact-integration-heading"><div><h2>Dokumentenordner</h2><p>Dokumente aus einem ausgewählten Ordner von selbst aufnehmen.</p></div></div>
+    <details className="quiet-details" onToggle={event => setExpanded(event.currentTarget.open)}>
     <summary>Dokumente automatisch aufnehmen</summary>
     <p>Lege Dokumente in diesen Ordner. Kingfisher prüft ihn einmal pro Minute und übernimmt Text, DOCX, PDF, SRT und VTT. Mitschriften aus Meetings gehören in den Ordner unter „Meetings“; dort werden sie einem Termin zugeordnet.</p>
     <p>Du kannst die Aufnahme jederzeit pausieren. Bisherige Belege bleiben erhalten; entfernte Dateien werden nach einer vollständigen Prüfung nicht mehr als aktuelles Wissen verwendet.</p>
@@ -98,6 +101,7 @@ export function FolderSyncSettings() {
       <button className="secondary-action" type="button" disabled={busy || !data.enabled} onClick={() => void run()}>Jetzt prüfen</button>
       {data.files.length ? <section aria-label="Aufgenommene Dateien"><h3>Aufgenommene Dateien</h3>{data.files.map(file => <article className="identity-source-row" key={file.id}><strong>{file.filename}</strong><p>{file.state === "ignored" ? "Nicht mehr verwendet" : "Aufgenommen"}</p><ProfileSource kind="episode" id={file.id} /></article>)}</section> : <p>Noch keine Dateien aus diesem Ordner aufgenommen.</p>}
     </> : null}
+    </details>
     {error ? <p role="alert">Die Ordneraufnahme konnte nicht geladen oder geändert werden. <button type="button" disabled={busy} onClick={() => void load()}>Erneut versuchen</button></p> : null}
-  </details>;
+  </section>;
 }

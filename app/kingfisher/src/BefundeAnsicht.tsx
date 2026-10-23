@@ -53,7 +53,9 @@ export function BefundZeile({ befund, arbeitet, onAktion }: {
   </li>;
 }
 
-export function WasAufgefallenIst({ active }: { active: boolean }) {
+export function WasAufgefallenIst({ active, leerAusblenden = false, onLeer }: { active: boolean;
+  /** Ist nichts aufgefallen, nichts zeigen (Prüfen-Seite); `onLeer` meldet, ob der Abschnitt gerade leer ist. */
+  leerAusblenden?: boolean; onLeer?: (leer: boolean) => void }) {
   const [befunde, setBefunde] = useState<BefundMitQuellen[] | null>(null);
   const [zaehlung, setZaehlung] = useState<BefundZusammenfassung | null>(null);
   const [arbeitet, setArbeitet] = useState("");
@@ -118,10 +120,12 @@ export function WasAufgefallenIst({ active }: { active: boolean }) {
   }
 
   const { oben, ruhend } = gruppieren(befunde ?? []);
+  const leer = befunde !== null && !oben.length && !ruhend.length && !fehler && !meldung && arbeitet === "";
+  useEffect(() => { onLeer?.(leer); }, [leer, onLeer]);
+  if (leerAusblenden && leer) return null;
   return <section className="source-section befunde" aria-label="Was Kingfisher aufgefallen ist">
     <h2>Was Kingfisher aufgefallen ist</h2>
-    <p>Kingfisher prüft seine Akten regelmäßig gegen sich selbst: Nennen zwei Akten verschiedene Fristen, widerspricht eine neue Mail
-      etwas, das du angenommen hattest, oder hängt eine Quelle an keiner Akte, steht es hier. Geändert wird nichts ohne deinen Klick.</p>
+    <p>Widersprüche zwischen Akten, Quellen und dem, was du angenommen hast; geändert wird nichts ohne deinen Klick.</p>
     {befunde === null && !fehler ? <p>Wird geladen …</p> : null}
     {befunde !== null && zaehlung ? <p className="befunde-zahl" role="status">{zaehlSatz(zaehlung)}</p> : null}
     {oben.length ? <ul className="befunde-liste" aria-label="Aufgefallene Punkte">
