@@ -9,7 +9,7 @@ nach der Anmeldung schweigt, und ein Ortsdienst des Wetters, der nicht antwortet
 Geprüft wird:
 
 * Breite: Heute, Gespräche (Liste und ein Gespräch), Aufgaben (alle Reiter), Nachrichten, Kalender, Gedächtnis (alle
-  Bereiche), Einstellungen und das Briefing laufen bei 390, 768 und 1280 px weder seitlich über, noch ragt ein sichtbares
+  Bereiche), Einstellungen und Heute über den Weg des Briefings (`/today?briefing=1`) laufen bei 390, 768 und 1280 px weder seitlich über, noch ragt ein sichtbares
   Element über den Fensterrand hinaus (abgeschnitten), auch nicht in der Seitenleiste: Sie rollt seit der dritten
   Fremdprobe (Befund 14) nicht mehr seitlich. Die Seitenleiste deckt keine Bedienelemente zu.
 * die behobenen Befunde, je ein Abschnitt unten (`befund_*`).
@@ -109,17 +109,14 @@ UEBERLAPPUNG_JS = """() => {
 }"""
 
 
-# Liegt über der Mitte jeder Textzeile der Überschrift im Briefing etwas anderes als die Überschrift selbst?
+# Liegt über der Mitte jeder Textzeile des Kopfs von Heute etwas anderes als der Kopf selbst (Paket U, H1: Heute ist das
+# Briefing; der Kopf trägt Gruß, Satz und Stand)?
 UEBERDECKT_JS = """() => {
-  const kopf = document.querySelector('section.briefing-drawer.open .drawer-heading'); if (!kopf) return ['keine Überschrift'];
+  const kopf = document.querySelector('.today-page .hero-copy'); if (!kopf) return ['kein Kopf'];
   const weg = [];
-  // Das Landschaftsbild (Bäume) liegt unter der Schrift; lesbar wird sie nur auf einer fast deckenden Fläche.
-  const m = getComputedStyle(kopf).backgroundColor.match(/rgba?\(([^)]+)\)/);
-  const alpha = m ? (m[1].split(',').length === 4 ? Number(m[1].split(',')[3]) : 1) : 0;
-  if (alpha < 0.8) weg.push('keine lesbare Fläche hinter der Überschrift (Deckkraft ' + alpha + ')');
-  for (const el of kopf.querySelectorAll('p, h2, span')) {
-    const r = el.getBoundingClientRect();
-    for (const x of [r.left + 4, (r.left + r.right) / 2, r.right - 4]) {
+  for (const el of kopf.querySelectorAll('p, h1, time')) {
+    const r = el.getBoundingClientRect(); if (!r.width) continue;
+    for (const x of [r.left + 4, (r.left + r.right) / 2]) {
       const oben = document.elementFromPoint(x, (r.top + r.bottom) / 2);
       if (!oben || !kopf.contains(oben)) weg.push(el.tagName + ' bei ' + Math.round(x) + ': ' + (oben ? oben.tagName + '.' + oben.className : 'nichts'));
     }
@@ -212,9 +209,9 @@ def main() -> int:
             seite.goto(basis + '/today')
             seite.locator('.today-page h1').wait_for(timeout=20000)
             messen('heute', breite)
-            seite.get_by_role('button', name=re.compile('Briefing öffnen')).click()
-            seite.locator('section.briefing-drawer.open').wait_for(timeout=5000)
-            time.sleep(0.6)  # bis das Briefing ganz hereingeglitten ist
+            # Heute ist das Briefing (Paket U, H1): Der Weg vom Ende der Einrichtung zeigt einfach Heute.
+            seite.goto(basis + '/today?briefing=1')
+            seite.locator('.today-page h1').wait_for(timeout=20000)
             messen('briefing', breite)
             seite.goto(basis + '/conversations')
             seite.locator('.history-heading h1').wait_for(timeout=10000)
@@ -357,16 +354,15 @@ def main() -> int:
             seite.locator('.today-page h1').wait_for(timeout=10000)
             pruef['22_gruss_nach_s'] = round(time.monotonic() - beginn, 2)
             pruef['22_gruss_sofort'] = pruef['22_gruss_nach_s'] < 2.0
-            pruef['22_post_laedt_sichtbar'] = seite.get_by_text('Deine Post wird gerade geholt').count() == 1
+            # Paket U, H4: Was fehlt, steht als ein offener Satz unter dem Kopf, ohne Klappe.
+            pruef['22_post_laedt_sichtbar'] = seite.get_by_text('Die Post von heute ist noch nicht da. Kingfisher holt sie gerade.').count() == 1
             bild('22-heute-post-laedt')
-            hinweis = seite.locator('details.today-connection-note')
-            hinweis.wait_for(timeout=15000)
-            hinweis.locator('summary').click()
+            hinweis = seite.locator('.today-source-status')
             hinweis.get_by_text('Probe-Post antwortet gerade nicht', exact=False).wait_for(timeout=15000)
             pruef['22_post_danach_s'] = round(time.monotonic() - beginn, 2)
             pruef['22_grund'] = hinweis.inner_text()
             pruef['22_grund_nennt_postfach'] = 'Probe-Post antwortet gerade nicht' in pruef['22_grund']
-            pruef['22_laedt_nicht_mehr'] = seite.get_by_text('Deine Post wird gerade geholt').count() == 0
+            pruef['22_laedt_nicht_mehr'] = seite.get_by_text('Kingfisher holt sie gerade').count() == 0
             bild('22-heute-grund')
             beginn = time.monotonic()
             seite.goto(basis + '/nachrichten')
@@ -383,25 +379,23 @@ def main() -> int:
             pruef['14_verweis_kommt_an'] = True
             attrappe.modus = 'annehmen'
 
-            # -- 20 und 24: Briefing deutsch, kein Spieler ohne Audio, Überschrift nicht verdeckt ------------------------
+            # -- 20 und 24: Heute ist das Briefing (Paket U, H1), deutsch, kein Spieler ohne Audio, Kopf nicht verdeckt ----
             for breite in BREITEN:
                 seite.set_viewport_size({'width': breite, 'height': 900})
                 seite.goto(basis + '/today?briefing=1')
-                seite.locator('section.briefing-drawer.open').wait_for(timeout=15000)
+                seite.locator('.today-page h1').wait_for(timeout=15000)
                 time.sleep(1.0)
-                text = seite.locator('section.briefing-drawer').inner_text()
-                pruef[f'20_deutsch_{breite}'] = not re.search(r'MORNING|Morning|Dashboard', text) \
-                    and seite.locator('.drawer-heading p').inner_text() == 'BRIEFING' \
-                    and seite.get_by_role('button', name='Zurück zu Heute').count() == 1
+                text = seite.locator('main').inner_text()
+                pruef[f'20_deutsch_{breite}'] = not re.search(r'MORNING|Morning|Dashboard', text)
+                pruef[f'20_heute_ist_briefing_{breite}'] = seite.url.endswith('/today') \
+                    and seite.locator('[role=dialog]').count() == 0 \
+                    and seite.get_by_role('button', name=re.compile('Briefing öffnen')).count() == 0
                 pruef[f'20_kein_spieler_ohne_audio_{breite}'] = seite.locator('.audio-briefing').count() == 0 \
                     and 'Lokales Audio ist derzeit nicht verfügbar' not in text
                 pruef[f'24_ueberdeckt_{breite}'] = seite.evaluate(UEBERDECKT_JS)
                 pruef[f'24_lesbar_{breite}'] = not pruef[f'24_ueberdeckt_{breite}']
                 bild(f'20-briefing-{breite}')
             pruef['20_audio_status'] = seite.request.get(basis + '/api/v1/audio/status').json()
-            seite.get_by_role('button', name='Zurück zu Heute').click()
-            seite.locator('section.briefing-drawer.open').wait_for(state='detached', timeout=5000)
-            pruef['20_zurueck_zu_heute'] = seite.locator('.today-page h1').is_visible()
 
             # -- 15: die eigene Frage als Quelle, in Alltagssprache ---------------------------------------------------
             seite.set_viewport_size({'width': 1280, 'height': 900})

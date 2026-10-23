@@ -1,16 +1,30 @@
-// Briefing (Fremdprobe, Befunde 20 und 24): deutsch, ohne Tageszeit in der Beschriftung, kein Spieler ohne lokales
-// Audio, Datum und Überschrift auf einer lesbaren Fläche. Im Browser prüft scripts/probe_seiten_ui.py dasselbe.
+// Briefing (Fremdprobe, Befunde 20 und 24; Paket U, H1): Heute ist das Briefing. Keine zweite Seite, keine Schublade,
+// kein Spieler ohne lokales Audio; „Zum Briefing“ am Ende der Einrichtung zeigt einfach Heute.
+// Im Browser prüft scripts/probe_seiten_ui.py dasselbe.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const quelle = (datei) => readFileSync(new URL(`../src/${datei}`, import.meta.url), "utf8");
+const morning = () => quelle("App.tsx").match(/function Morning\([\s\S]*?\n\}\n/)[0];
 
-test("keine englischen Beschriftungen im Briefing, Zurück heißt „Zurück zu Heute“", () => {
+test("keine englischen Beschriftungen und keine zweite Briefing-Seite neben Heute", () => {
   const app = quelle("App.tsx");
   assert.doesNotMatch(app, /MORNING|Morning Briefing|>Dashboard</);
-  assert.match(app, /<p>BRIEFING<\/p>/);
-  assert.match(app, /<span>Zurück zu Heute<\/span>/);
+  assert.doesNotMatch(app, /BriefingDrawer|briefing-drawer|Briefing öffnen|Zurück zu Heute/);
+  assert.doesNotMatch(morning(), /briefingOpen|inert=/, "Heute sperrt weder Seite noch Leiste");
+});
+
+test("/today?briefing=1 zeigt Heute und macht die Adresse wieder schlicht", () => {
+  assert.match(morning(), /new URLSearchParams\(window\.location\.search\)\.has\("briefing"\)\) window\.history\.replaceState\(\{\}, "", "\/today"\)/);
+});
+
+test("Vorlesen bleibt als leiser Knopf im Kopf von Heute", () => {
+  const kopf = morning().match(/<section className="hero">[\s\S]*?<\/section>/)[0];
+  assert.match(kopf, /<AudioBriefing briefing=\{briefing\} \/>/);
+  const audio = quelle("AudioBriefing.tsx");
+  assert.match(audio, /<button className="today-text-link" type="button" onClick=\{\(\) => void generate\(\)\}>Vorlesen<\/button>/);
+  assert.doesNotMatch(audio, /primary-action|play-toggle/, "kein gefüllter Knopf für das Vorlesen");
 });
 
 test("ohne lokales Audio kein Spieler", () => {
@@ -18,9 +32,8 @@ test("ohne lokales Audio kein Spieler", () => {
   assert.match(audio, /if \(available !== true && \(status === "idle" \|\| status === "unavailable"\)\) return null;/);
 });
 
-test("Datum und Überschrift liegen auf einer Fläche über dem Bild", () => {
-  const css = quelle("styles.css");
-  const regel = css.match(/\.drawer-heading \{[^}]*\}/)[0];
-  assert.match(regel, /background: rgba\(var\(--kf-flaeche-rgb-fffefa\),\.88\)/);
-  assert.match(regel, /z-index: 3/);
+test("die Seitenleiste kennt keine Schublade mehr", () => {
+  const leiste = quelle("chrome.tsx");
+  assert.doesNotMatch(leiste, /briefingOpen|onToday|aria-expanded/);
+  assert.match(leiste, /if \(label === "Heute"\) navigate\("\/today"\);/);
 });

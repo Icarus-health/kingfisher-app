@@ -1,17 +1,19 @@
 import type { Attention, MorningBriefing } from './api';
 
+/** Was auf Heute fehlt, in Sätzen, und der eine Weg dorthin (Paket U, H4). Fehlt nichts, steht nichts da. */
 export function sourceStatus(briefing: Pick<MorningBriefing, 'partial_failures' | 'post_ausstehend'>) {
   const failures = briefing.partial_failures;
   const messages = failures.slice(0, 2).map(failure => failure.message);
-  if (failures.length > 2) messages.push(`${failures.length - 2} weitere Hinweise.`);
-  if (briefing.post_ausstehend) messages.push('Posteingang wird noch geladen.');
+  if (failures.length > 2) messages.push(failures.length === 3 ? 'Dazu ein weiterer Hinweis.' : `Dazu ${failures.length - 2} weitere Hinweise.`);
+  if (briefing.post_ausstehend) messages.push('Die Post von heute ist noch nicht da. Kingfisher holt sie gerade.');
   const reviewOnly = failures.length > 0 && failures.every(failure => failure.section === 'source_review') && !briefing.post_ausstehend;
+  const zugang = failures.some(failure => failure.section === 'mail' || failure.section === 'calendar');
   return {
     attention: messages.length > 0,
-    text: messages.join(' ') || 'Überblick erstellt · Quellen können sich danach geändert haben.',
-    actionLabel: reviewOnly ? 'Aufgaben prüfen' : 'Quellen prüfen',
-    href: reviewOnly ? '/vorhaben?view=mine' : failures.some(failure => failure.section === 'mail' || failure.section === 'calendar')
-      ? '/settings#zugaenge' : '/settings',
+    text: messages.join(' '),
+    // Nur ein Weg, der wirklich weiterhilft: zu den Zugängen, zu den Aufgaben, sonst keiner (Heute lädt von selbst neu).
+    actionLabel: zugang ? 'Zugänge prüfen' : reviewOnly ? 'Aufgaben prüfen' : null,
+    href: zugang ? '/settings#zugaenge' : reviewOnly ? '/vorhaben?view=mine' : null,
   };
 }
 

@@ -230,11 +230,9 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
         seite.wait_for_timeout(1500)
         assert seite.get_by_text('kamen nicht ins Gedächtnis').count() == 0
 
-        # -- 15: Briefing ohne Zähler als Priorität ----------------------------------------------------------------
-        seite.get_by_role('button', name='Briefing öffnen').click()
-        schublade = seite.get_by_role('region', name='Briefing')
-        schublade.locator('.drawer-card').first.wait_for(timeout=10000)
-        prioritaeten = schublade.locator('.drawer-card', has_text='HEUTIGE TOP-PRIORITÄTEN').inner_text()
+        # -- 15: Heute (das Briefing, Paket U, H1) ohne Zähler als Priorität ----------------------------------------
+        seite.locator('.today-attention').wait_for(timeout=10000)
+        prioritaeten = seite.locator('.today-attention').inner_text()
         pruef['15_prioritaeten'] = prioritaeten
         assert 'ungelesene' not in prioritaeten and 'Quelle: mail' not in prioritaeten, prioritaeten
         bild('15-briefing')

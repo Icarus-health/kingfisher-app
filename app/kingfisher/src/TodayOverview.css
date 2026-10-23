@@ -1,4 +1,4 @@
-/* Approved Today direction: quiet landscape, opaque surfaces and clear actions. */
+/* Heute: ruhige Landschaft nur im Kopf, helle Flächen, ein gefüllter Knopf (das Senden der Frage). Paket U, H1 bis H8. */
 .today-page {
   --today-surface: #fffefa;
   --today-ink: #102c3a;
@@ -19,48 +19,54 @@
 .today-page .hero { height: 300px; background: transparent; }
 .today-page .hero-copy { top: 34px; left: 36px; max-width: 65%; }
 .today-page .hero-copy h1 { font-size: 49px; line-height: 1.05; }
-.today-page .hero-copy .today-hero-label { margin: 0 0 12px; font: 600 10px/1.5 'Inter', sans-serif; letter-spacing: 1.7px; color: #193e4c; }
 .today-page .hero-copy .today-hero-summary { margin: 14px 0 18px; font: 400 15px/1.5 'Inter', sans-serif; color: #193e4c; }
 .today-page .hero-bird { width: 300px; height: 225px; left: auto; right: 22px; top: 76px; }
 .today-page .day-stamp { right: 35px; top: 23px; }
 .today-page .day-stamp strong { font-size: 40px; line-height: 44px; }
 .today-page .day-stamp span { font-size: 15px; }
 .today-page .weather { left: auto; right: 235px; top: 118px; }
-.today-page .weather strong { font-size: 27px; line-height: 32px; }
-.today-page .weather span, .today-page .weather small { font-size: 13px; line-height: 19px; }
+.today-page .weather strong { font-family: inherit; font-size: 27px; line-height: 32px; }
+.today-page .weather span, .today-page .weather small { font-family: inherit; font-size: 13px; line-height: 19px; }
 .today-page .weather a { top: 76px; }
-.today-briefing-button { display: inline-flex; gap: 23px; align-items: center; min-height: 42px; padding: 0 18px; border: 1px solid #c8d1cd; border-radius: 17px; background: #fffefa; color: #102c3a; font-size: 14px; font-weight: 500; box-shadow: 0 2px 5px rgba(5,32,44,.08); cursor: pointer; }
+.today-page .hero-copy .today-hero-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
+.today-stand { font-variant-numeric: tabular-nums; }
 .today-page .briefing-area { position: relative; margin-top: -27px; padding: 0 32px 40px; }
 .today-command { margin-bottom: 25px; }
-.today-command .command-bar { height: 60px; margin: 0; border-radius: 13px; box-shadow: 0 4px 14px rgba(6,43,58,.16); }
-.today-command .command-bar input { font-size: 14px; }
+.today-command .command-bar { height: 60px; margin: 0; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); color: var(--today-ink); box-shadow: none; }
+.today-command .command-bar input { font-size: 14px; color: var(--today-ink); }
+.today-command .command-bar input::placeholder { color: var(--today-muted); }
+.today-command .command-bar > .interface-icon, .today-command .command-bar kbd { color: var(--today-muted); }
+.today-command .command-bar kbd { border-color: var(--today-line); }
 .today-overview { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
 .today-panel { min-width: 0; border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); box-shadow: var(--today-shadow); }
 .today-panel-heading { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 104px; padding: 25px 26px; }
 .today-panel-heading h2 { position: relative; z-index: 1; margin: 0; font: 600 32px/1.25 'Inter', sans-serif; letter-spacing: -.8px; color: var(--today-ink); }
-.today-attention .today-panel-heading { padding-right: 214px; }
-.today-flight { position: absolute; right: 70px; top: 9px; width: 150px; height: 100px; object-fit: contain; pointer-events: none; }
-.today-count { position: absolute; right: 22px; top: 27px; display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 50%; font-size: 14px; font-weight: 600; background: #ef792d; color: #102c3a; }
-.today-calendar { align-self: start; min-height: 280px; display: flex; flex-direction: column; }
-.today-calendar .today-panel-heading { overflow: hidden; border-radius: 14px 14px 0 0; }
-.today-calendar-scene { position: absolute; right: 0; top: 0; width: 62%; height: 104px; object-fit: cover; pointer-events: none; }
-.today-attention-list, .today-calendar-list { list-style: none; padding: 0; margin: 0 26px; }
+/* Die Zahl steht leise neben der Überschrift, nicht als farbiger Kreis (H2). */
+.today-attention .today-panel-heading { justify-content: flex-start; gap: 12px; }
+.today-count { color: var(--today-muted); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.today-side { display: grid; gap: 22px; align-content: start; min-width: 0; }
+.today-calendar { align-self: start; }
+.today-calendar .today-panel-heading { flex-wrap: wrap; row-gap: 0; }
+.today-attention-list, .today-calendar-list, .today-news-list { list-style: none; padding: 0; margin: 0 26px 10px; }
 .today-attention-item { padding: 12px 0 22px; }
 .today-attention-item + .today-attention-item { border-top: 1px solid var(--today-line); padding-top: 23px; }
 .today-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--today-muted); font-size: 13px; line-height: 1.5; }
 .today-attention-item h3, .today-calendar-list h3, .today-source h3 { margin: 0; font-size: 18px; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; letter-spacing: -.2px; }
 .today-attention-item > p, .today-calendar-list p { margin: 7px 0 15px; font-size: 15px; line-height: 1.6; color: var(--today-muted); overflow-wrap: anywhere; }
-.today-action { display: inline-flex; align-items: center; justify-content: space-between; gap: 26px; min-height: 42px; padding: 0 20px; border: 1px solid #123f50; border-radius: 18px; background: #063e55; color: #f4faf9; font-size: 14px; font-weight: 500; text-decoration: none; box-shadow: 0 2px 5px rgba(5,32,44,.14); }
-.today-action:hover { background: #0b5064; }
-.today-text-link { display: inline-flex; align-items: center; gap: 9px; min-height: 36px; color: var(--today-link); font-size: 13px; line-height: 1.5; font-weight: 500; text-decoration: none; }
+/* Zeilenaktionen sind leise: umrandet und klein, nie gefüllt (H3). */
+.today-action { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px; border: 1px solid var(--today-line); border-radius: 8px; background: transparent; color: var(--today-ink); font: inherit; font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; }
+.today-action:hover { border-color: var(--today-link); }
+.today-action:disabled { cursor: default; opacity: .6; }
+.today-task-more > summary { display: flex; align-items: center; min-height: 44px; padding: 0; list-style: none; color: var(--today-link); font-size: 13px; }
+.today-task-more > summary::-webkit-details-marker { display: none; }
+.today-text-link { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; color: var(--today-link); font-size: 13px; line-height: 1.5; font-weight: 500; text-decoration: none; }
 .today-text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .today-calendar-list > li { display: grid; grid-template-columns: 57px minmax(0,1fr); gap: 18px; padding: 12px 0 5px; }
 .today-calendar-list > li + li { margin-top: 14px; padding-top: 20px; border-top: 1px solid var(--today-line); }
 .today-calendar-list time { padding-top: 1px; font-size: 18px; line-height: 1.5; font-variant-numeric: tabular-nums; font-weight: 600; }
 .today-calendar-list h3 { font-size: 16px; }
 .today-calendar-list p { font-size: 13px; margin-bottom: 7px; }
-.today-calendar-open { align-self: flex-end; margin: auto 26px 12px; font-size: 12px; }
-.today-memory { grid-column: 1 / -1; }
+.today-calendar-open { flex: none; font-size: 13px; }
 .today-followups { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
 .today-followups > *, .today-followups #memory-questions { min-width: 0; }
 .today-followups :is(.task-reminders, .knowledge-questions, .memory-questions) { margin: 0 0 16px; padding: 22px 26px; border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); box-shadow: var(--today-shadow); overflow-wrap: anywhere; }
@@ -71,28 +77,25 @@
 .today-followups .memory-questions-kopf { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
 .today-followups .task-reminder small { display: block; }
 @media (max-width: 1000px) { .today-followups { grid-template-columns: minmax(0,1fr); } }
-.today-memory .today-panel-heading { min-height: 90px; padding-top: 25px; padding-bottom: 20px; }
-.today-source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; margin: 0 26px; }
-.today-source { min-width: 0; padding: 12px 0 22px; }
-.today-source-heading p { margin: 5px 0 12px; font-size: 13px; line-height: 1.5; color: var(--today-muted); }
-.today-source > .task-source { margin: 0; }
-.today-source > .task-source > .secondary-action { min-height: 40px; padding: 0 19px; border: 1px solid transparent; border-radius: 18px; background: var(--today-soft); color: var(--today-ink); font-size: 13px; font-weight: 500; }
-.today-source > .task-source > .secondary-action:hover { border-color: var(--today-link); }
-.today-source:has(> .task-source > button[aria-expanded='true']) { grid-column: 1 / -1; }
-.today-context-note { margin: 0 26px; padding: 13px 0 16px; border-top: 1px solid var(--today-line); color: var(--today-muted); font-size: 12px; line-height: 1.6; }
-.today-empty { padding: 10px 26px 26px; }
-.today-empty h3 { margin: 0 0 7px; font-size: 16px; line-height: 1.5; font-weight: 500; }
-.today-empty p, .today-notice { color: var(--today-muted); font-size: 14px; line-height: 1.65; }
-.today-empty p { margin: 0; }
+/* Neu eingegangen: eine ruhige Liste, höchstens drei Zeilen, nur wenn etwas da ist (H1). */
+.today-source { min-width: 0; padding: 10px 0 12px; }
+.today-source + .today-source { border-top: 1px solid var(--today-line); }
+.today-news-list h3 { font-size: 15px; }
+.today-source > p { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--today-muted); }
+.today-source > p + p { font-size: 12px; }
+.today-source > :is(button, .task-source) { margin-top: 4px; }
+.today-source .quiet-source-toggle { min-height: 44px; }
+.today-source > .task-source { margin-bottom: 0; }
+.today-context-note { margin: 0 26px; padding: 10px 0 16px; border-top: 1px solid var(--today-line); color: var(--today-muted); font-size: 12px; line-height: 1.6; }
+/* Leer heißt ein Satz (H8). */
+.today-empty { margin: 0; padding: 0 26px 24px; color: var(--today-muted); font-size: 15px; line-height: 1.6; }
+.today-next-event { color: var(--today-ink); }
+.today-notice { color: var(--today-muted); font-size: 14px; line-height: 1.65; }
 .today-notice { margin: 0; padding: 0 26px 20px; }
 .today-notice a { color: var(--today-link); }
-.today-connection-note { margin: 20px 0 0; padding: 0 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); box-shadow: 0 3px 12px rgba(5,32,44,.12); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
-.today-post-laedt { margin: 16px 0 0; padding: 10px 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
-.today-postfach { margin: 16px 0 0; padding: 10px 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
+/* Ein Postfach braucht dich: derselbe leise Streifen wie „was fehlt“ (H6). */
+.today-postfach { margin: 0 0 14px; padding: 10px 16px; border-radius: 8px; background: var(--calm-inset, #f5f6f8); color: var(--today-ink); font-size: 13px; line-height: 1.6; }
 .today-postfach p { margin: 0; }
-.today-connection-note summary { cursor: pointer; padding: 12px 0; color: var(--today-ink); }
-.today-connection-note p { margin: 4px 0; }
-.today-connection-note[open] { padding-bottom: 12px; }
 .today-page .command-error, .today-page .briefing-area > .profile-card { border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); padding: 20px 26px; box-shadow: var(--today-shadow); }
 .today-page .briefing-area > .profile-card { margin-top: 22px; }
 .today-page :is(button, a, summary):focus-visible { outline: 3px solid #007e92; outline-offset: 4px; }
@@ -102,12 +105,8 @@
   .today-page .hero-bird { width: 260px; right: 18px; top: 85px; }
   .today-overview { grid-template-columns: minmax(0,1.25fr) minmax(0,1fr); gap: 18px; }
   .today-panel-heading h2 { font-size: 27px; }
-  .today-attention .today-panel-heading { padding-right: 158px; }
-  .today-flight { width: 112px; right: 55px; }
-  .today-count { right: 17px; }
   .today-panel-heading, .today-empty { padding-left: 22px; padding-right: 22px; }
-  .today-attention-list, .today-calendar-list, .today-source-grid, .today-context-note { margin-left: 22px; margin-right: 22px; }
-  .today-source-grid { gap: 22px; }
+  .today-attention-list, .today-calendar-list, .today-news-list, .today-context-note { margin-left: 22px; margin-right: 22px; }
 }
 
 /* Schmale Fenster (Handy): Die Startseite wird einspaltig. Die Seitenleiste als Streifen oben steht in Seitenbreite.css. */
@@ -119,24 +118,21 @@
   .today-page .hero { height: auto; min-height: 250px; padding-bottom: 36px; }
   .today-page .hero-copy { position: relative; top: auto; left: auto; max-width: none; padding: 24px 16px 0; }
   .today-page .hero-copy h1 { font-size: 34px; }
-  .today-page .hero-bird, .today-page .day-stamp, .today-page .weather { display: none; }
+  .today-page .hero-bird, .today-page .day-stamp { display: none; }
+  /* Das Wetter stand schmal nur im früheren Briefing; jetzt als Zeile unter dem Gruß (Paket U, H1). */
+  .shell .today-page .weather { position: static; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 8px; padding: 6px 16px 0; text-shadow: none; }
+  .shell .today-page .weather strong { font-size: 20px; line-height: 1.3; }
+  .shell .today-page .weather a { position: static; }
   .today-page .briefing-area { padding: 0 12px 32px; margin-top: 0; }
   .today-overview { grid-template-columns: minmax(0, 1fr); }
   .today-panel-heading h2 { font-size: 22px; }
-  .today-attention .today-panel-heading { padding-right: 60px; }
-  .today-flight { display: none; }
   .heute-naechster-schritt { margin-bottom: 14px; }
 }
-/* Existing surfaces and type scale, with source gaps visible before the cards. */
-.today-source-status { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 22px; margin-bottom: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: 400 13px/20px Inter, sans-serif; }
-.today-source-status p { margin: 3px 0 0; }
-.today-source-status .today-context-note { margin: 3px 0 0; }
-.today-source-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
 button.today-text-link { border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left; padding: 0; }
 button.today-text-link:disabled { cursor: default; opacity: .6; }
 .today-mail-dialog { width: min(900px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border: 1px solid var(--kf-rand-d7e1df); border-radius: 16px; padding: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
 .today-mail-dialog::backdrop { background: rgba(6, 43, 58, .45); }
-@media (max-width: 700px) { .today-source-status { align-items: stretch; flex-direction: column; } .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }
+@media (max-width: 700px) { .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }
 
 /* Reuse the task controls inside the existing Today card, with room for narrow columns. */
 .today-task-actions { margin-top: 12px; }
@@ -146,7 +142,6 @@ button.today-text-link:disabled { cursor: default; opacity: .6; }
 .task-selected { margin: 20px 0; padding: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
 .task-selected h2 { margin-top: 0; }
 
-.today-personal { grid-column: 1 / -1; }
 .development-links { display: flex; flex-wrap: wrap; gap: 14px 24px; margin: 16px 0 24px; }
 .today-personal .development-links { margin-bottom: 0; }
 .development-links a { padding: 8px 0; }

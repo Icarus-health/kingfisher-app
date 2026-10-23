@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MorningBriefing } from "./api";
-import { icon } from "./ui";
 import "./AudioBriefing.css";
 
-const WAVEFORM = [16, 28, 20, 39, 24, 46, 31, 19, 35, 48, 29, 40, 23, 33, 17, 44, 30, 21, 38, 26, 42, 18, 31, 46, 27, 36, 20, 41, 25, 34, 17, 29];
 type AudioStatus = "idle" | "generating" | "processing" | "ready" | "playing" | "paused" | "failed" | "unavailable";
 const wait = (ms: number) => new Promise<void>(resolve => window.setTimeout(resolve, ms));
 function seconds(value: number) { const safe = Math.max(0, Math.round(value)); return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`; }
@@ -94,19 +92,23 @@ export function AudioBriefing({ briefing }: { briefing: MorningBriefing }) {
   function toggle() { const element = audio.current; if (!element || !canPlay) return; if (element.paused) void element.play().catch(() => setError("Zum Abspielen bitte die Wiedergabe-Schaltfläche erneut drücken.")); else element.pause(); }
   function seek(delta: number) { const element = audio.current; if (element) element.currentTime = Math.max(0, Math.min(element.duration || 0, element.currentTime + delta)); }
   function changeRate() { const next = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1; setRate(next); if (audio.current) audio.current.playbackRate = next; }
-  const progress = duration ? position / duration : 0;
   // Ohne lokales Audio kein Spieler (Fremdprobe, Befund 20): Vorher stand ein Pause-Zeichen da, als liefe etwas, und
   // darunter „nicht verfügbar“. Bis die Antwort da ist, ebenfalls nichts; das Briefing ist auch ohne Ton vollständig.
   if (available !== true && (status === "idle" || status === "unavailable")) return null;
-  return <section className="audio-briefing" aria-label="Audio-Briefing">
+  // Im Kopf von Heute ein leiser Knopf „Vorlesen“ (Paket U, H1); erst wenn etwas läuft, die kleinen Bedienknöpfe.
+  const laeuft = canPlay && (status === "ready" || status === "playing" || status === "paused");
+  return <span className="audio-briefing" role="group" aria-label="Vorlesen">
     <audio ref={audio} onError={event => { if (event.currentTarget.src === objectUrl.current) { setCanPlay(false); setStatus("failed"); setError("Das lokale Audio konnte nicht gelesen werden. Bitte erneut versuchen."); } }} onLoadedMetadata={event => { if (event.currentTarget.src === objectUrl.current && Number.isFinite(event.currentTarget.duration)) setDuration(event.currentTarget.duration); }} onTimeUpdate={event => { if (event.currentTarget.src === objectUrl.current) setPosition(event.currentTarget.currentTime); }} onPlay={event => { if (event.currentTarget.src === objectUrl.current) setStatus("playing"); }} onPause={event => { if (event.currentTarget.src === objectUrl.current) setStatus(current => current === "playing" ? "paused" : current); }} onEnded={event => { if (event.currentTarget.src === objectUrl.current) setStatus("ready"); }} />
-    <div className="audio-title"><strong>Dein Briefing</strong><span>{duration ? `${seconds(duration)} Minuten` : "Lokales Audio"}</span></div>
-    <div className="waveform" aria-hidden="true" style={{ "--audio-progress": progress } as React.CSSProperties}>{WAVEFORM.map((height, index) => <i key={`${height}-${index}`} style={{ "--bar-height": `${height}px` } as React.CSSProperties} />)}</div>
-    <span className="audio-time">{seconds(position)}</span><span className="audio-duration">{seconds(duration)}</span>
-    <div className="audio-controls"><button aria-label="10 Sekunden zurück" disabled={!canPlay} onClick={() => seek(-10)} type="button"><span>10</span></button><button aria-label={status === "playing" ? "Briefing pausieren" : "Briefing vorlesen"} className={`play-toggle ${status}`} onClick={canPlay ? toggle : () => void generate()} type="button"><img src={icon("pause", "Outline")} alt="" /></button><button aria-label="10 Sekunden vor" disabled={!canPlay} onClick={() => seek(10)} type="button"><span>10</span></button><button aria-label="Wiedergabetempo ändern" className="tempo" disabled={!canPlay} onClick={changeRate} type="button">{rate.toLocaleString("de-DE")}×</button></div>
-    {available === false ? <p className="audio-message" role="status">Lokales Audio ist derzeit nicht verfügbar. Bitte später erneut versuchen.</p> : null}
-    {status === "generating" || status === "processing" ? <p className="audio-message" role="status">Lokales Audio wird vorbereitet … <button type="button" onClick={reset}>Abbrechen</button></p> : null}
-    {status === "failed" || error ? <p className="audio-message" role="alert">{error || "Das lokale Audio ist fehlgeschlagen."} <button type="button" onClick={() => void generate()}>Erneut versuchen</button></p> : null}
-    {status === "ready" && canPlay ? <button className="audio-ready" type="button" onClick={toggle}>Wiedergabe bereit</button> : null}
-  </section>;
+    {status === "idle" ? <button className="today-text-link" type="button" onClick={() => void generate()}>Vorlesen</button> : null}
+    {laeuft ? <>
+      <button className="today-text-link" type="button" aria-label={status === "playing" ? "Briefing pausieren" : "Briefing vorlesen"} onClick={toggle}>{status === "playing" ? "Pause" : "Abspielen"}</button>
+      <button className="today-text-link" type="button" aria-label="10 Sekunden zurück" onClick={() => seek(-10)}>−10 s</button>
+      <button className="today-text-link" type="button" aria-label="10 Sekunden vor" onClick={() => seek(10)}>+10 s</button>
+      <button className="today-text-link" type="button" aria-label="Wiedergabetempo ändern" onClick={changeRate}>{rate.toLocaleString("de-DE")}×</button>
+      <span className="audio-time">{seconds(position)} / {seconds(duration)}</span>
+    </> : null}
+    {available === false && status !== "idle" ? <span className="audio-message" role="status">Lokales Audio ist derzeit nicht verfügbar. Bitte später erneut versuchen.</span> : null}
+    {status === "generating" || status === "processing" ? <span className="audio-message" role="status">Wird vorbereitet … <button className="today-text-link" type="button" onClick={reset}>Abbrechen</button></span> : null}
+    {status === "failed" || error ? <span className="audio-message" role="alert">{error || "Das lokale Audio ist fehlgeschlagen."} <button className="today-text-link" type="button" onClick={() => void generate()}>Erneut versuchen</button></span> : null}
+  </span>;
 }

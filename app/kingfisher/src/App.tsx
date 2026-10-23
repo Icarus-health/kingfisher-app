@@ -58,8 +58,6 @@ import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg"
 import { AntwortZeile } from "./AntwortZeiten";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
-import { Verweis } from "./VerweisLink";
-import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
 import { TodaySourceStatus } from "./TodaySourceStatus";
 import { createDailyRefresh } from "./dailyFlow";
@@ -67,17 +65,6 @@ import { MailReader } from "./MailReader";
 import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
 
-
-
-function dateParts(value: string, timeZone?: string) {
-  const date = new Date(value);
-  // In der Zeitzone des Briefings (der eingestellten), nicht der des Browsers; eine unbekannte Zone fällt zurück.
-  const zone = timeZone && (() => { try { new Intl.DateTimeFormat("de-DE", { timeZone }); return timeZone; } catch { return undefined; } })();
-  const weekday = new Intl.DateTimeFormat("de-DE", { weekday: "short", timeZone: zone }).format(date).replace(".", "");
-  const day = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "long", year: "numeric", timeZone: zone }).format(date);
-  const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: zone }).format(date);
-  return { date: `${weekday}, ${day}`, time };
-}
 
 
 // Antwort auf eine Zeitrückfrage: ein Datum wählen statt ein Format zu tippen.
@@ -91,144 +78,23 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
   </form>;
 }
 
-/** Der Zähler einer Kachel im Briefing; bei null keiner (Fremdprobe 2, Befund 10). */
-function Zaehler({ anzahl, className }: { anzahl: number; className?: string }) {
-  const text = zaehlerText(anzahl);
-  return text ? <b className={className}>{text}</b> : null;
-}
-
 function LoadingMorning() {
   return (
-    <div className="morning-page loading" aria-label="Briefing wird geladen">
+    <div className="morning-page loading" aria-label="Heute wird geladen">
       <div className="hero skeleton-hero" />
       <div className="card-grid">
-        {[0, 1, 2].map((item) => <div className="brief-card skeleton-card" key={item}><i /><i /><i /></div>)}
+        {[0, 1].map((item) => <div className="brief-card skeleton-card" key={item}><i /><i /><i /></div>)}
       </div>
     </div>
   );
 }
 
-
-export function BriefingDrawer({ briefing, open, onClose, onChange }: {
-  briefing: MorningBriefing;
-  open: boolean;
-  onClose: () => void;
-  onChange: (change?: "correction") => void;
-}) {
-  const panel = useRef<HTMLElement>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeButton.current?.focus({preventScroll:true});
-    return () => {
-      document.body.style.overflow = overflow;
-      if (previous?.isConnected) previous.focus({preventScroll:true});
-    };
-  }, [open]);
-  const sourceLabels: Record<string,string> = {termin:"Kalender",aufgabe:"Aufgabe",wartet:"Rückmeldung",zusage:"Zusage",mail:"Mail",working_memory:"gespeicherte Quelle",akte:"Gedächtnis"};
-  const [correctionSaved, setCorrectionSaved] = useState(false);
-  function sourceChanged(change?: "correction") {
-    if (change === "correction") setCorrectionSaved(true);
-    onChange(change);
-  }
-  const stamp = dateParts(briefing.generated_at, briefing.timezone);
-  const meeting = briefing.later_today.find((item) => /^Termin:/i.test(item.title)) ?? briefing.later_today[0];
-  const meetingTitle = meeting?.title.replace(/^Termin:\s*/i, "");
-  const fixtureNews = briefing.fixture ? [
-    ["aurora-network-tile.png", "Wirtschaft", "Neue Impulse für Europas Märkte", "Reuters · 06:45"],
-    ["ice-abstract-tile.png", "Technologie", "KI-Forschung erreicht neuen Meilenstein", "Handelsblatt · 06:15"],
-    ["network-constellation-tile.png", "Gesellschaft", "Digitale Zusammenarbeit verändert den Alltag", "Tagesschau · 05:30"],
-  ] : [];
-
-  return (
-    <>
-      <button aria-label="Briefing schließen" aria-hidden={!open} inert={!open} tabIndex={-1} className={`scrim ${open ? "open" : ""}`} onClick={onClose} type="button" />
-      <section ref={panel} role="dialog" aria-modal={open || undefined} inert={!open} aria-hidden={!open} aria-label="Briefing" className={`briefing-drawer ${open ? "open" : ""}`} onKeyDown={event => {
-        if (event.key === "Escape") {event.preventDefault();onClose();return;}
-        if (event.key !== "Tab" || !panel.current) return;
-        const fields = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex]')).filter(node => node.tabIndex >= 0 && node.getClientRects().length > 0);
-        const first=fields[0],last=fields.at(-1);
-        if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
-        else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
-      }}>
-        <button ref={closeButton} className="drawer-close" onClick={onClose} type="button">
-          <img src={icon("house", "Outline")} alt="" /><span>Zurück zu Heute</span>
-        </button>
-        <div className="drawer-hero">
-          <img className="drawer-landscape" src={`${ASSET.media}morning-lake-panorama-approved-v1.png`} alt="" />
-          <div className="drawer-heading">
-            {/* Deutsch und ohne Tageszeit: Es heißt morgens wie abends „Briefing“ (Fremdprobe, Befund 20). */}
-            <p>BRIEFING</p><h2>{briefing.greeting}</h2>
-            <span>{stamp.date} · {briefing.weather?.location ?? briefing.timezone}</span>
-          </div>
-          <img className="drawer-bird" src={`${ASSET.media}Freigestellter Eisvogel auf Zweig.png`} alt="" />
-        </div>
-        <div className="drawer-content">
-          {open ? <AudioBriefing briefing={briefing} /> : null}
-          <div className="drawer-grid">
-            <article className="drawer-card">
-              <header><span>HEUTIGE TOP-PRIORITÄTEN</span><Zaehler anzahl={briefing.needs_you.length} /></header>
-              {briefing.needs_you.length ? briefing.needs_you.map((item) => (
-                <div className="drawer-row" key={item.id}>
-                  <span><strong>{item.title}</strong>{[...new Set([item.reason,item.detail])].filter((line):line is string=>Boolean(line)&&line!==item.title).map(line=><small key={line}>{line===`Quelle: ${item.source}`?`Quelle: ${sourceLabels[item.source??""]??"gespeicherte Quelle"}`:line}</small>)}</span><em>{item.priority}</em>
-                </div>
-              )) : <p className="drawer-empty">Keine offenen Prioritäten</p>}
-            </article>
-
-            <article className="drawer-card meeting-card">
-              <header><span>MEETING-VORBEREITUNG</span></header>
-              {meeting ? (
-                <>
-                  <h3>{meetingTitle}</h3><p className="meeting-time">{meeting.detail || "Heute"} · {meeting.time}</p>
-                  <div className="meeting-context"><strong>Worum es geht</strong><p>{meeting.reason || meeting.detail}</p></div>
-                  {meeting.source_ref && <a className="secondary-action" href={`/calendar?prepare=${encodeURIComponent(meeting.source_ref)}`}>Termin vorbereiten</a>}
-                </>
-              ) : <p className="drawer-empty">Heute ist kein Termin vorzubereiten.</p>}
-            </article>
-
-            <article className="drawer-card">
-              <header><span>RELEVANTE NACHRICHTEN</span><Zaehler anzahl={briefing.happening_now.length} className="teal" /></header>
-              {correctionSaved && <p role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
-              {briefing.happening_now.length ? briefing.happening_now.map((item) => (
-                <div className="message-row" key={item.id}><span><strong>{item.title}</strong><small>{item.detail}</small></span>
-                  {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss onChange={sourceChanged} /> : null}
-                </div>
-              )) : <p className="drawer-empty">Keine neuen relevanten Nachrichten</p>}
-              {briefing.working_memory_more && <p className="drawer-empty">Nicht alle Quellen dieser Auswahl sind automatisch sortiert oder in diesem begrenzten Überblick enthalten.</p>}
-            </article>
-
-            <article className="drawer-card weather-route-card">
-              <header><span>WETTER & WEG</span></header>
-              {briefing.weather ? (
-                <div className="weather-route">
-                  <div><strong>{briefing.weather.temperature_c}°</strong><span>{briefing.weather.condition}<br />{briefing.weather.location}</span></div>
-                  <div className="route-state"><strong>Arbeitsweg</strong><span>Noch keine Route verbunden.</span></div>
-                </div>
-              ) : <p className="drawer-empty">Wetter ist nicht eingeschaltet. Du findest es unter <Verweis ziel="darf" />.</p>}
-              {briefing.weather?.attribution ? <a className="weather-attribution" href={briefing.weather.attribution_url} rel="noreferrer" target="_blank">Open-Meteo</a> : null}
-            </article>
-
-            <article className="drawer-card world-card">
-              <header><span>RELEVANTES AUS DER WELT</span><Zaehler anzahl={fixtureNews.length} /></header>
-              {fixtureNews.length ? (
-                <div className="news-grid">
-                  {fixtureNews.map(([image, section, title, source]) => (
-                    <div key={image}>
-                      <img src={`${ASSET.media}${image}`} alt="" />
-                      <span><small>{section}</small><strong>{title}</strong><em>{source}</em></span>
-                    </div>
-                  ))}
-                </div>
-              ) : <p className="drawer-empty">Noch keine Nachrichtenquelle gewählt. Du findest sie unter <Verweis ziel="darf" />.</p>}
-            </article>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+/** Wann der Überblick entstand, klein im Kopf von Heute (Paket U, H4); in der Zeitzone des Briefings. */
+function standText(briefing: MorningBriefing) {
+  const date = new Date(briefing.generated_at);
+  if (Number.isNaN(date.getTime())) return null;
+  try { return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: briefing.timezone }).format(date); }
+  catch { return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date); }
 }
 
 function Morning({ recentConversation, rememberConversation, chatAvailable, chatPlaceholder }: {
@@ -241,9 +107,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   const [error, setError] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
-  // „Zum Briefing“ am Ende der Einrichtung öffnet es direkt (/today?briefing=1, Befund 23); die Adresse wird danach wieder schlicht.
-  const [briefingOpen, setBriefingOpen] = useState(() => new URLSearchParams(window.location.search).get("briefing") === "1");
-  useEffect(() => { if (briefingOpen && window.location.search) window.history.replaceState({}, "", "/today"); }, [briefingOpen]);
+  // Heute ist das Briefing (Paket U, H1): „Zum Briefing“ am Ende der Einrichtung (/today?briefing=1, Befund 23) zeigt
+  // einfach Heute, und die Adresse wird wieder schlicht.
+  useEffect(() => { if (new URLSearchParams(window.location.search).has("briefing")) window.history.replaceState({}, "", "/today"); }, []);
   const [pendingConversation, setPendingConversation] = useState<string | null>(null);
   const [correctionSaved, setCorrectionSaved] = useState(false);
   const [taskNotice, setTaskNotice] = useState("");
@@ -321,20 +187,27 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
 
   if (!briefing && !error) return <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main><LoadingMorning /></main></div>;
   if (error || !briefing) return (
-    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page"><section className="brief-card error-state"><p>Das Briefing ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></section></main></div>
+    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page"><section className="brief-card error-state"><p>Dein Überblick ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></section></main></div>
   );
 
   const attentionCount = todayAttention(briefing).length;
+  const stand = standText(briefing);
   return (
     <div className="shell">
-      <Sidebar active="Heute" navigationDisabled={briefingOpen} briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
-      <main inert={briefingOpen} className="morning-page today-page">
+      <Sidebar active="Heute" recentConversation={recentConversation} />
+      <main className="morning-page today-page">
         <div className="today-landscape" aria-hidden="true" />
+        {/* Der Eisvogel steht nur hier im Kopf, nicht noch einmal in einer Karte (Paket U, H2). */}
         <section className="hero">
           <img className="hero-bird" src={`${ASSET.media}Freigestellter Eisvogel auf Zweig.png`} alt="" />
-          <div className="hero-copy"><p className="today-hero-label">DEIN TAG MIT KINGFISHER</p><h1>{briefing.greeting}</h1>
-            <p className="today-hero-summary">{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht deine Aufmerksamkeit." : `${attentionCount} Punkte brauchen deine Aufmerksamkeit.`}</p>
-            <button className="today-briefing-button" onClick={() => setBriefingOpen(true)} type="button">Briefing öffnen <span aria-hidden="true">→</span></button>
+          {/* Ein großer Titel, eine Zeile darunter (Nachtrag 23.10.: wenig Text, Verständnis auf einen Blick). */}
+          <div className="hero-copy"><h1>{briefing.greeting}</h1>
+            <p className="today-hero-summary">
+              <span>{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht dich." : `${attentionCount} Punkte brauchen dich.`}</span>
+              {/* Ein Zeitpunkt, keine zweite Uhr: Die Uhr steht nur in der Seitenleiste (Fremdprobe 2, Befund 11). */}
+              {stand ? <span className="today-stand">Stand {stand}{refreshing ? " · wird aktualisiert …" : ""}</span> : null}
+              <AudioBriefing briefing={briefing} />
+            </p>
           </div>
           {/* Eine Uhr reicht: die in der Seitenleiste (Fremdprobe 2, Befund 11). */}
           {briefing.weather ? (
@@ -347,6 +220,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
 
         <section className="briefing-area">
           <TodaySourceStatus briefing={briefing} refreshing={refreshing} refreshError={refreshError} onRefresh={() => load()} />
+          <PostfachStand ausstehend={Boolean(briefing.post_ausstehend)} />
           <div className="today-command">
             <CommandBar busy={sending} disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
             {sendError ? <p className="partial-error command-error">Die Frage konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
@@ -357,10 +231,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           </HeuteLeer>
           <TodayPersonal />
           <FassungHeute />
-          <PostfachStand ausstehend={Boolean(briefing.post_ausstehend)} />
         </section>
       </main>
-      <BriefingDrawer briefing={briefing} onClose={() => setBriefingOpen(false)} onChange={load} open={briefingOpen} />
       {mailUid && <dialog ref={mailDialog} className="today-mail-dialog" aria-label="Nachricht bearbeiten" onCancel={() => setMailUid(null)} onClose={() => setMailUid(null)}>
         <MailReader key={mailUid} uid={mailUid} onClose={() => setMailUid(null)} onTaskSaved={() => load()} />
       </dialog>}
@@ -925,7 +797,8 @@ export function App() {
 
   const chatPlaceholder = chatAvailable === true ? undefined : chatAvailable === null
     ? "Kingfisher wird verbunden …"
-    : "Frage nach Projekten und Quellen. Für freie Gespräche ein Modell verbinden.";
+    // Ohne Modell sagt die Antwort selbst, wenn eine Frage eines bräuchte; der Platzhalter nennt nur, was geht (H5).
+    : "Frag nach Menschen, Projekten, Terminen …";
 
   if (path === "/willkommen") return <Erststart />;
   if (erstePruefung) return <div className="shell"><main className="state-page" aria-busy="true" /></div>;
