@@ -8,7 +8,9 @@ const source=readFileSync(root+'/src/App.tsx','utf8');
 test('a status retry cannot submit a simultaneously open new task draft', async()=>{
 const oldWindow=globalThis.window,oldDriver=globalThis.__driver;
 const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-manual-task-handlers.test`,root,configFile:false,plugins:[{name:'synthetic-task-hooks',enforce:'pre',resolveId(id){if(id==='virtual:task-review-hooks')return '\0'+id;},load(id){if(id==='\0virtual:task-review-hooks')return `export const useState=(...a)=>globalThis.__driver.state(...a);export const useRef=(...a)=>globalThis.__driver.ref(...a);export const useEffect=()=>{};export const useMemo=f=>f();`;},transform(code,id){if(id.endsWith('/src/App.tsx'))return source.replace('from "react"','from "virtual:task-review-hooks"')+'\nexport {Tasks};';}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
-function nodes(n, predicate, out=[]) {if(!n||typeof n!=='object')return out;if(predicate(n))out.push(n);for(const c of [n.props?.children].flat(10))nodes(c,predicate,out);return out;}
+function nodes(n, predicate, out=[]) {if(!n||typeof n!=='object')return out;if(predicate(n))out.push(n);for(const c of [n.props?.children,n.props?.aktionen].flat(10))nodes(c,predicate,out);return out;}
+// Segmente (Baustein): die Wahl eines Abschnitts wie ein Klick.
+function segment(tree,titel){const s=nodes(tree,n=>n.type?.name==='Segmente')[0];const o=s?.props.optionen.find(o=>String(o.titel).startsWith(titel));return o?{props:{onClick:()=>s.props.onWahl(o.wert)}}:undefined;}
 function text(n){return !n?'':typeof n==='object'?[n.props?.children].flat(10).map(text).join(''):String(n);}
 try {
  globalThis.window={location:{search:'',href:'http://synthetic/vorhaben',pathname:'/vorhaben'},history:{replaceState(){}}};
@@ -19,9 +21,9 @@ try {
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  const form=nodes(tree,n=>n.type==='form'&&n.props.className==='task-create')[0];nodes(form,n=>n.type==='input')[0].props.onChange({target:{value:'Unsubmitted new draft'}});tree=d.render();
  // „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist; die Prüfliste meldet ihre Zahl.
- assert.equal(nodes(tree,n=>n.type==='button'&&text(n).startsWith('Zur Prüfung')).length,0,'no review tab without anything to review');
+ assert.equal(segment(tree,'Zur Prüfung'),undefined,'no review tab without anything to review');
  nodes(tree,n=>n.type?.name==='TaskSuggestions')[0].props.onTotal(2);tree=d.render();
- nodes(tree,n=>n.type==='button'&&text(n).startsWith('Zur Prüfung'))[0].props.onClick();tree=d.render();
+ segment(tree,'Zur Prüfung').props.onClick();tree=d.render();
  assert.equal(nodes(tree,n=>n.type?.name==='ProjectControls').length,1,'project creation remains mounted while the global review is open');
  nodes(tree,n=>n.type==='button'&&text(n)==='Aufgabe')[0].props.onClick();tree=d.render();
  assert.equal(nodes(tree,n=>n.type==='section'&&n.props.className==='task-table')[0].props.hidden,false,'the primary action reopens an existing draft instead of staying in the review panel');

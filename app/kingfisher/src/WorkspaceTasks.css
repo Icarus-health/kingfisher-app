@@ -16,6 +16,7 @@
 #root main.aufgaben .tasks-heading { margin: 0 0 var(--g-a5); padding: var(--g-a6) 0 0; align-items: center; }
 #root main.aufgaben .tasks-heading .g-seitenkopf-zeile { margin-top: var(--g-a1); }
 #root main.aufgaben .tasks-heading :is(.tasks-add, .g-knopf-getoent) img { width: 18px; height: 18px; }
+#root main.aufgaben .tasks-heading .tasks-add { position: static; inset: auto; margin: 0; }
 #root main.aufgaben .tasks-heading .g-knopf-getoent img { filter: brightness(0); opacity: .7; }
 #root main.aufgaben .aufgaben-segmente { margin: 0 0 var(--g-a5); }
 /* Ist das Detailpaneel offen und das Fenster breit, rückt die Liste zur Seite, statt darunter zu liegen. */
@@ -123,10 +124,10 @@
 @media (hover: hover) and (min-width: 901px) {
   /* Die Aktionen nehmen keinen Platz in der Zeile ein (sonst wird der Titel schmal); sie legen sich bei Zeiger oder
      Fokus rechts über die Fälligkeit, mit einem weichen Übergang zum Titel. */
-  #root .task-row.compact:is(:hover, :focus-within) { background: #f8f9fa; }
+  #root .task-row.compact:is(:hover, :focus-within) { background: color-mix(in srgb, var(--g-tinte) 3.5%, var(--g-flaeche)); }
   #root .task-row.compact:not(.task-row-open) > .task-row-actions {
     position: absolute; top: 50%; right: var(--g-a3); flex-wrap: nowrap; padding-left: var(--g-a6);
-    background: linear-gradient(to right, rgba(248,249,250,0), #f8f9fa var(--g-a5)); transform: translateY(-50%);
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--g-tinte) 3.5%, var(--g-flaeche)) var(--g-a5)); transform: translateY(-50%);
     opacity: 0; pointer-events: none; transition: opacity 150ms ease;
   }
   #root .task-row.compact:is(:hover, :focus-within) > .task-row-actions { opacity: 1; pointer-events: auto; }
@@ -204,7 +205,7 @@
 #root .task-row .task-edit :is(input, textarea) { width: 100%; min-width: 0; height: auto; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
 #root .task-row .task-edit .task-edit-title input { min-height: 48px; font: 500 17px/1.35 var(--g-schrift); }
 #root .task-row .task-edit textarea { min-height: 88px; padding: 10px var(--g-a3); resize: vertical; }
-#root .task-row .task-edit > .task-edit-reminder { display: grid; gap: var(--g-a1); }
+#root .task-row .task-edit > .task-edit-reminder { display: grid; grid-column: auto; justify-items: stretch; gap: var(--g-a1); }
 #root .task-row .task-edit .task-reminder-edit-actions { display: flex; flex-wrap: wrap; gap: 0 var(--g-a3); }
 #root .task-row .task-edit .task-reminder-edit-actions button { font-size: 14px; }
 #root .task-row .task-edit .task-edit-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--g-a2); }
@@ -262,7 +263,7 @@
 #root main.aufgaben .task-vorschlag .task-vorschlag-meta { margin: 0; font: var(--g-neben); color: var(--g-leise); }
 #root main.aufgaben .task-vorschlag .suggestion-time-badge { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; background: none; font: var(--g-fussnote); color: var(--g-leise); }
 #root main.aufgaben .task-vorschlag .suggestion-time-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(23,38,53,.3); }
-#root main.aufgaben .task-vorschlag .suggestion-time-pruefen::before { background: #c98a1a; }
+#root main.aufgaben .task-vorschlag .suggestion-time-pruefen::before { background: var(--g-akzent); }
 #root main.aufgaben .task-vorschlag .suggestion-evidence { width: 100%; margin: 0; padding: 0; border: 0; background: none; }
 #root main.aufgaben .task-vorschlag .suggestion-evidence > summary { display: flex; align-items: center; min-height: 36px; font: 500 14px/1.35 var(--g-schrift); color: var(--g-verweis); }
 #root main.aufgaben .task-vorschlag .suggestion-evidence[open] { padding: 0 0 var(--g-a2); }
@@ -334,3 +335,4 @@
 #root main.aufgaben .habit-controls blockquote { margin: var(--g-a2) 0; padding-left: var(--g-a3); border-left: 3px solid var(--g-linie); font: var(--g-neben); color: var(--g-tinte); }
 #root main.aufgaben .development-weiter { margin-top: var(--g-a2); }
 @media (max-width: 700px) { #root main.aufgaben .habit-neu { grid-template-columns: minmax(0, 1fr); } }
+#root main.aufgaben .development-weiter a.g-zeile { color: var(--g-tinte); text-decoration: none; }

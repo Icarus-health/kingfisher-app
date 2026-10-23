@@ -46,6 +46,10 @@
 #root .decision-no-basis { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
 #root .decision-retract { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a1) var(--g-a2); min-width: 0; font: var(--g-neben); color: var(--g-rot); }
 #root .decision-retract .text-action { font-size: 14px; }
+/* In einer umgebenden Karte (Projektakte im Gedächtnis) ist die Karte die Fläche: keine Fläche in der Fläche. */
+#root .profile-card .decision-controls :is(.decision-list, .decision-leer) { border-radius: 0; background: transparent; box-shadow: none; border-top: 1px solid var(--g-linie); }
+#root .profile-card .decision-controls .decision-row { padding-inline: 0; }
+#root .profile-card .decision-controls .decision-row + .decision-row::before { left: 0; }
 @media (max-width: 700px) {
   #root .decision-row { flex-direction: column; align-items: stretch; gap: var(--g-a1); }
   #root .decision-retract { justify-content: flex-start; }

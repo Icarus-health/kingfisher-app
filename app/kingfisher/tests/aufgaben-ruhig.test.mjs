@@ -22,7 +22,10 @@ const server = await createServer({cacheDir: `/private/tmp/kingfisher-ui-test-ca
   server: {middlewareMode: true, watch: null, ws: false, hmr: false}, appType: 'custom'});
 after(() => server.close());
 
-function nodes(n, predicate, out = []) { if (!n || typeof n !== 'object') return out; if (predicate(n)) out.push(n); for (const c of [n.props?.children].flat(20)) nodes(c, predicate, out); return out; }
+// Auch die Aktionen des Seitenkopfs gehören zur Ansicht (Baustein Seitenkopf, Eigenschaft `aktionen`).
+function nodes(n, predicate, out = []) { if (!n || typeof n !== 'object') return out; if (predicate(n)) out.push(n); for (const c of [n.props?.children, n.props?.aktionen].flat(20)) nodes(c, predicate, out); return out; }
+// Die Segmente der Seite (Baustein Segmente): Titel mit Zahl, wie sie erscheinen (Zahl nur über null).
+const segmente = tree => nodes(tree, n => n.type?.name === 'Segmente')[0]?.props.optionen.map(o => o.zahl > 0 ? `${o.titel} ${o.zahl}` : o.titel) ?? [];
 function text(n) { return !n ? '' : typeof n === 'object' ? [n.props?.children].flat(20).map(text).join('') : String(n); }
 const tick = async () => { for (let i = 0; i < 4; i++) await new Promise(setImmediate); };
 
@@ -88,15 +91,16 @@ test('stilles Nachladen lässt die Liste stehen und bleibt auf der aktuellen Sei
 test('Liste: Aufgaben statt Bedienung, ein gefüllter Knopf, keine leeren Gruppen, keine Seitenzahl bei einer Seite', async () => {
   await withTasks(async ({d}) => {
     const tree = d.render();
-    const groups = nodes(tree, n => n.type === 'section' && n.props.className === 'workspace-task-group');
-    assert.deepEqual(groups.map(g => g.props['aria-label']), ['Demnächst'], 'only groups with tasks');
+    const groups = nodes(tree, n => n.type?.name === 'Gruppe' && n.props.className === 'workspace-task-group');
+    assert.deepEqual(groups.map(g => g.props.titel), ['Demnächst'], 'only groups with tasks');
     assert.doesNotMatch(text(tree), /Keine Aufgaben auf dieser Seite|Seite 1|Aufgaben ·/);
     const buttons = nodes(tree, n => n.type === 'button');
     for (const name of ['Suchen', 'Liste aktualisieren', 'Neues Projekt', 'Suche löschen']) assert.equal(buttons.filter(b => text(b) === name).length, 0, `no „${name}“ button in the list`);
     const filled = buttons.filter(b => /(^|\s)(primary-action|tasks-add)(\s|$)/.test(b.props.className ?? ''));
     assert.equal(filled.length, 1, 'exactly one filled button per view');
     assert.equal(text(filled[0]), 'Aufgabe');
-    assert.equal(nodes(tree, n => n.type === 'button' && text(n).startsWith('Zur Prüfung')).length, 0, 'no review tab without anything to review');
+    assert.equal(segmente(tree).filter(t => t.startsWith('Zur Prüfung')).length, 0, 'no review tab without anything to review');
+    assert.equal(nodes(tree, n => n.type?.name === 'Seitenkopf')[0].props.titel, 'Aufgaben', 'one title; the view is the selected segment');
     const rows = nodes(tree, n => n.type?.name === 'TaskRow');
     assert.equal(rows.length, 2); assert.ok(rows.every(r => r.props.compact && r.props.onOpen));
   }, {tasks: [task('t1', 'Drei Referenzen an Dr. Amann schicken', '2030-10-02T17:00:00'), task('t2', 'Abo Klinikküche entscheiden', '2030-10-15T12:00:00')]});
@@ -105,18 +109,16 @@ test('Liste: Aufgaben statt Bedienung, ein gefüllter Knopf, keine leeren Gruppe
 test('ganz leer: ein Satz, keine Gruppe; „Zur Prüfung“ erscheint erst mit Inhalt und mit Zahl', async () => {
   await withTasks(async ({d}) => {
     let tree = d.render();
-    assert.equal(nodes(tree, n => n.type === 'section' && n.props.className === 'workspace-task-group').length, 0);
-    const empty = nodes(tree, n => n.props?.className === 'task-empty');
-    assert.equal(empty.length, 1); assert.equal(text(empty[0]), 'Keine offenen Aufgaben für dich.');
+    assert.equal(nodes(tree, n => n.type?.name === 'Gruppe' && n.props.className === 'workspace-task-group').length, 0);
+    const empty = nodes(tree, n => n.type?.name === 'Leer' && n.props.className === 'task-empty');
+    assert.equal(empty.length, 1); assert.equal(empty[0].props.satz, 'Keine offenen Aufgaben für dich.');
+    assert.equal(nodes(tree, n => n.type?.name === 'Seitenkopf')[0].props.zeile, undefined, 'no line under the title without anything due');
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(3); tree = d.render();
-    const tab = nodes(tree, n => n.type === 'button' && text(n).startsWith('Zur Prüfung'));
-    assert.equal(tab.length, 1); assert.equal(text(tab[0]), 'Zur Prüfung · 3');
+    assert.deepEqual(segmente(tree).filter(t => t.startsWith('Zur Prüfung')), ['Zur Prüfung 3']);
     nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(0); tree = d.render();
-    // Reiter in einer Zeile, die waagrecht rollt statt umzubrechen; der gewählte Reiter rollt in den Blick.
-    assert.match(css, /\.shell main\.workspace-tasks \.task-tabs \{flex-wrap:nowrap;overflow-x:auto;/);
-    assert.match(css, /\.shell main\.workspace-tasks \.task-tabs button \{flex:0 0 auto;white-space:nowrap;\}/);
-    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /querySelector<HTMLElement>\('\[aria-pressed="true"\]'\)\?\.scrollIntoView\?\.\(\{block: "nearest", inline: "nearest"\}\)/);
-    assert.equal(nodes(tree, n => n.type === 'button' && text(n).startsWith('Zur Prüfung')).length, 0);
+    // Segmente rollen waagrecht statt umzubrechen (Baustein); der gewählte Abschnitt rollt auch beim Öffnen in den Blick.
+    assert.match(readFileSync(root + '/src/App.tsx', 'utf8'), /\.aufgaben-segmente \[aria-selected="true"\]'\)\?\.scrollIntoView\?\.\(\{block: "nearest", inline: "nearest"\}\)/);
+    assert.equal(segmente(tree).filter(t => t.startsWith('Zur Prüfung')).length, 0);
   });
 });
 
@@ -159,10 +161,16 @@ test('Listenzeile: Projekt nur wenn gesetzt, Aktionen per Tastatur erreichbar un
   const copy = nodes(tree, n => n.props?.className === 'task-copy')[0];
   assert.equal(nodes(copy, n => n.type === 'small').length, 0, 'no project, no date: nothing extra under the title');
   assert.equal(nodes(tree, n => n.type === 'time').length, 0, 'no „Ohne Termin“ in the row');
-  // Sichtbar bei Zeiger oder Tastaturfokus, ohne Zeiger oder schmal ausgeblendet (dort öffnet der Titel alles).
-  assert.match(css, /\(hover:hover\) and \(min-width:901px\)\{[^}]*\.task-row\.compact > \.task-row-actions \{opacity:0;/);
-  assert.match(css, /\.task-row\.compact:is\(:hover,:focus-within,\.task-row-open\) > \.task-row-actions \{opacity:1;\}/);
-  assert.match(css, /\(hover:none\), \(max-width:900px\)\{(?:\n[^\n]*){0,3}\n \.shell main\.workspace-tasks \.task-row\.compact > \.task-row-actions \{display:none;\}/);
+  // Sichtbar bei Zeiger oder Tastaturfokus (über der Fälligkeit, ohne Platz in der Zeile), ohne Zeiger oder schmal
+  // ausgeblendet (dort öffnet die Zeile die Aufgabe mit allem).
+  const zeiger = css.match(/@media \(hover: hover\) and \(min-width: 901px\) \{([\s\S]*?)\n\}/)[1];
+  assert.match(zeiger, /\.task-row\.compact:not\(\.task-row-open\) > \.task-row-actions \{[^}]*position: absolute;[^}]*opacity: 0;/);
+  assert.match(zeiger, /\.task-row\.compact:is\(:hover, :focus-within\) > \.task-row-actions \{ opacity: 1;/);
+  assert.match(css, /@media \(hover: none\), \(max-width: 900px\) \{\n  #root \.task-row\.compact > \.task-row-actions \{ display: none; \}/);
+  // Die ganze Zeile öffnet die Aufgabe; der Kreis zum Erledigen ist ein Ziel von 44 px, der Kreis selbst bleibt klein.
+  assert.match(css, /\.task-row\.compact \.task-title-link::after \{ content: ""; position: absolute; inset: 0; \}/);
+  assert.match(css, /#root \.task-row \.task-check \{[^}]*width: 44px; height: 44px;/);
+  assert.match(css, /#root \.task-row \.task-check::before \{[^}]*width: 22px; height: 22px;/);
 });
 
 test('Bearbeiten: Titel zuerst, kein „optional“, „Wiedervorlage löschen“ nur wenn gesetzt, ein gefüllter Knopf „Speichern“', async () => {
@@ -179,4 +187,39 @@ test('Bearbeiten: Titel zuerst, kein „optional“, „Wiedervorlage löschen�
   assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Wiedervorlage löschen').length, 1);
   tree = await rowTree({task: task('t', 'Referenzen schicken'), startEditing: true, compact: true, onOpen() {}});
   assert.equal(nodes(tree, n => n.type === 'form').length, 0, 'the list row never edits in place');
+});
+
+// Paket P2 (Flächen): genau ein gefüllter Knopf auch mit offenem Formular, Zahlen an den Segmenten nur über null, eine
+// Zeile unter dem Titel nur, wenn heute etwas dran ist.
+// Was verborgen ist (`hidden`), zählt nicht als sichtbarer Knopf.
+function sichtbar(n, predicate, out = []) { if (!n || typeof n !== 'object' || n.props?.hidden) return out; if (predicate(n)) out.push(n); for (const c of [n.props?.children, n.props?.aktionen].flat(20)) sichtbar(c, predicate, out); return out; }
+const gefuellt = tree => sichtbar(tree, n => n.type === 'button' && /(^|\s)(primary-action|tasks-add|g-knopf)(\s|$)/.test(n.props.className ?? '')).map(text);
+
+test('ein gefüllter Knopf je Ansicht: offenes Formular und „Zur Prüfung“ lassen „Aufgabe“ zurücktreten', async () => {
+  await withTasks(async ({d}) => {
+    let tree = d.render();
+    assert.deepEqual(gefuellt(tree), ['Aufgabe']);
+    nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.onClick(); tree = d.render();
+    assert.deepEqual(gefuellt(tree), ['Lokal speichern'], 'with the form open its submit is the only filled button');
+    assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe')[0].props.className, 'g-knopf-getoent');
+    nodes(tree, n => n.type?.name === 'TaskSuggestions')[0].props.onTotal(2); tree = d.render();
+    nodes(tree, n => n.type?.name === 'Segmente')[0].props.onWahl('review'); tree = d.render();
+    assert.deepEqual(gefuellt(tree), [], 'reviewing is the main thing there; „Aufgabe“ stays reachable, tinted');
+    assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Aufgabe').length, 1);
+  }, {tasks: [task('t1', 'Drei Referenzen an Dr. Amann schicken', '2030-10-02T17:00:00')]});
+});
+
+test('Segmente zählen offene und wartende Aufgaben (nur über null); die Kopfzeile nennt, was heute dran ist', async () => {
+  const heute = new Date(); heute.setHours(18, 0, 0, 0);
+  const gestern = new Date(heute.getTime() - 86_400_000);
+  await withTasks(async ({d, calls}) => {
+    await tick(); d.render(); d.run(); await tick();
+    const zaehlungen = calls.filter(c => c.limit === 1);
+    assert.deepEqual([...new Set(zaehlungen.map(c => c.view))].sort(), ['mine', 'waiting'], 'small requests only for the counted views');
+    const tree = d.render();
+    const optionen = nodes(tree, n => n.type?.name === 'Segmente')[0].props.optionen;
+    assert.equal(optionen.find(o => o.wert === 'mine').zahl, 3);
+    assert.equal(optionen.find(o => o.wert === 'done').zahl, undefined, 'done is not counted');
+    assert.equal(nodes(tree, n => n.type?.name === 'Seitenkopf')[0].props.zeile, '2 Aufgaben brauchen dich heute.');
+  }, {tasks: [task('a', 'Überfälliges', gestern.toISOString()), task('b', 'Heutiges', heute.toISOString()), task('c', 'Später', '2030-01-01T10:00:00')]});
 });

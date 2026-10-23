@@ -45,7 +45,7 @@ const props=()=>({projectId:'p',revision:0,onView(){},onTask(){}});
 test('full counts, missing dates, waiting names and completed counts stay explicit',async()=>withApi(async()=>{
   const d=await driver(props());try{d.render();d.runEffects();await tick();
     const html=renderToStaticMarkup(d.render());assert.match(html,/206/);assert.match(html,/205 ohne Termin/);
-    assert.match(html,/Anna/);assert.match(html,/<strong>2<\/strong>Erledigte Aufgaben/);assert.match(html,/1 verworfen/);
+    assert.match(html,/Anna/);assert.match(html,/<strong>2<\/strong>Erledigt/);assert.match(html,/1 verworfen/);
     assert.match(html,/Ohne Termin/);assert.doesNotMatch(html,/100%|Heute|Projektfortschritt/);
   }finally{d.close();}
 }));
@@ -55,7 +55,7 @@ test('one click opens the correct task or the entire matching view',async()=>wit
   try{d.render();d.runEffects();await tick();const tree=d.render();
     button(tree,'Angebot prüfen').props.onClick();assert.deepEqual(opened,['t','mine']);
     button(tree,'Antwort erhalten').props.onClick();assert.deepEqual(opened,['w','waiting']);
-    button(tree,'Warte auf andere').props.onClick();assert.equal(view,'waiting');
+    button(tree,'Wartet').props.onClick();assert.equal(view,'waiting');
   }finally{d.close();}
 }));
 

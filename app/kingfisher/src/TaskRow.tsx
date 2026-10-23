@@ -6,19 +6,7 @@ import {TaskHistory} from "./TaskHistory";
 import {endOfTaskDay, localTaskDay as dateInput} from "./taskWorkflow";
 import {localReminderInput, reminderEditChanges, reminderLabel, tomorrowAtNine} from "./reminderDates";
 import {postSatz} from "./aufgabenPost";
-
-/** Fälligkeit, wie man sie sagt: „Heute“, „Morgen“, „Gestern“, sonst „2. Okt.“ (mit Jahr, wenn es ein anderes ist). */
-export function dueLabel(value: string | null, now = new Date()) {
-  if (!value) return "Ohne Termin";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Termin nicht lesbar";
-  const start = (item: Date) => new Date(item.getFullYear(), item.getMonth(), item.getDate()).getTime();
-  const days = Math.round((start(date) - start(now)) / 86_400_000);
-  if (days === 0) return "Heute";
-  if (days === 1) return "Morgen";
-  if (days === -1) return "Gestern";
-  return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
-}
+import {dueLabel} from "./taskWorkspaceModel";
 
 /**
  * Eine Aufgabe. In der Liste (`compact`) zeigt die Zeile die Aufgabe, nicht die Bedienung: Kreis, Titel, darunter
@@ -67,7 +55,6 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
   }
   const actions = <div className="task-row-actions">
     {!compact && !editing ? <button className="secondary-action" type="button" disabled={completing} onClick={beginEdit}>Bearbeiten</button> : null}
-    <select aria-label={`Projekt für ${task.title}`} value={task.project_id ?? ""} disabled={completing || projectDisabled} onChange={event => onProjectChange(event.target.value)}><option value="">Ohne Projekt</option>{task.project_id && !projects.some(project => project.id === task.project_id) ? <option value={task.project_id}>Projekt nicht verfügbar</option> : null}{projects.filter(project => project.open || project.id === task.project_id).map(project => <option disabled={!project.open}  key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select>
     {view !== "done" && <div className="task-wait-control">
       {view === "waiting" ? <button type="button" disabled={completing} onClick={() => onWait()}>Zurück zu mir</button> : waitingForm ? <form onSubmit={event => { event.preventDefault(); if (waitingName.trim()) onWait(waitingName.trim()); }}>
         <label>Warte auf<input autoFocus value={waitingName} onChange={event => setWaitingName(event.target.value)} required maxLength={200} placeholder="Name" /></label>
@@ -75,6 +62,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
         <button type="submit" disabled={completing || !waitingName.trim()}>Speichern</button><button type="button" onClick={() => setWaitingForm(false)}>Abbrechen</button>
       </form> : <button type="button" onClick={() => setWaitingForm(true)}>Warte auf …</button>}
     </div>}
+    <select aria-label={`Projekt für ${task.title}`} value={task.project_id ?? ""} disabled={completing || projectDisabled} onChange={event => onProjectChange(event.target.value)}><option value="">Ohne Projekt</option>{task.project_id && !projects.some(project => project.id === task.project_id) ? <option value={task.project_id}>Projekt nicht verfügbar</option> : null}{projects.filter(project => project.open || project.id === task.project_id).map(project => <option disabled={!project.open}  key={project.id} value={project.id}>{project.name}{!project.open ? " (geschlossen)" : ""}</option>)}</select>
   </div>;
   // Eine leise Zeile unter dem Titel statt mehrerer: Projekt (nur wenn gesetzt), Wartet auf, Wiedervorlage. Im Detail
   // steht die Fälligkeit vorne, in der Liste rechts.
