@@ -417,11 +417,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     element.scrollTop = element.scrollHeight;
   }, [data?.messages.length, sending]);
 
+  // Ein neues Gespräch entsteht erst mit der ersten Frage: „Neues Gespräch“ führt zum leeren Eingabefeld.
   async function create() {
-    const created = await api.createConversation();
-    if (!live.current) return;
-    rememberConversation(created.conversation.id);
-    navigate(`/conversations/${created.conversation.id}`);
+    navigate("/conversations");
   }
 
   const contextLines = useMemo(
@@ -633,34 +631,53 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   );
 }
 
-function ConversationHistory({ recentConversation, rememberConversation }: {
+function ConversationHistory({ recentConversation, rememberConversation, chatAvailable, chatPlaceholder }: {
   recentConversation: string | null;
   rememberConversation: (id: string) => void;
+  chatAvailable: boolean;
+  chatPlaceholder?: string;
 }) {
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(false);
-  const createPending = useRef(false);
+  // Kein leeres Gespräch auf Vorrat: Die Mitte ist gleich das Eingabefeld, das Gespräch entsteht mit der ersten Frage.
+  const [sending, setSending] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
+  const [sendError, setSendError] = useState(false);
+  const created = useRef<string | null>(null);
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
-  async function create() {
-    if (createPending.current) return;
-    createPending.current = true;
-    setCreating(true); setCreateError(false);
+  async function begin(message: string) {
+    if (!chatAvailable) return;
+    setSending(true); setSendError(false); setQuestion(message);
     try {
-      const created = await api.createConversation();
+      // Schlug nur das Senden fehl, nimmt der zweite Versuch dasselbe Gespräch; es entsteht kein zweites.
+      const id = created.current ?? (await api.createConversation()).conversation.id;
+      created.current = id;
       if (!live.current) return;
-      rememberConversation(created.conversation.id);
-      navigate(`/conversations/${created.conversation.id}`);
+      rememberConversation(id);
+      await api.sendMessage(id, message);
+      created.current = null;
+      if (live.current) navigate(`/conversations/${id}`);
     } catch (problem) {
-      if (live.current) setCreateError(true);
+      if (live.current) setSendError(true);
       throw problem;
-    } finally { createPending.current = false; if (live.current) setCreating(false); }
+    } finally { if (live.current) setSending(false); }
+  }
+  async function focusInput() {
+    document.querySelector<HTMLTextAreaElement>(".workspace-chat-start .thread-command textarea")?.focus();
   }
   return <div className="shell conversation-shell">
     <Sidebar active="Gespräche" recentConversation={recentConversation} />
     <main className="conversation-page workspace-chat workspace-chat-start">
-      <ConversationNavigation onCreate={create} onSelect={id => navigate(`/conversations/${id}`)} />
-      <section className="thread"><div className="conversation-empty"><h1>Was beschäftigt dich?</h1><p>Beginne ein Gespräch oder führe einen Gedanken aus der Liste weiter.</p><button className="secondary-action" type="button" disabled={creating} onClick={() => void create().catch(() => undefined)}>Neues Gespräch beginnen</button>{createError && <p role="alert">Das neue Gespräch konnte nicht angelegt werden. Bitte erneut versuchen.</p>}</div></section>
+      <ConversationNavigation onCreate={focusInput} onSelect={id => navigate(`/conversations/${id}`)} />
+      <section className="thread">
+        <div className="messages">
+          {question ? <article className="message user"><span>DU</span><MessageText content={question} /></article> : <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>}
+        </div>
+        <div className="thread-command">
+          {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+          {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+          <CommandBar busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
+        </div>
+      </section>
     </main>
   </div>;
 }
@@ -937,7 +954,7 @@ export function App() {
   if (path === "/world") return <WorldPage recentConversation={recentConversation} />;
   if (path === "/vorhaben") return <Tasks recentConversation={recentConversation} />;
   if (path === "/nachrichten") return <Messages recentConversation={recentConversation} />;
-  if (path === "/conversations") return <ConversationHistory recentConversation={recentConversation} rememberConversation={rememberConversation} />;
+  if (path === "/conversations") return <ConversationHistory chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const match = path.match(/^\/conversations\/([^/]+)$/);
   if (match) return <Conversation key={decodeURIComponent(match[1])} chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} id={decodeURIComponent(match[1])} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const personMatch = path.match(/^\/memory\/people\/([^/]+)$/);
