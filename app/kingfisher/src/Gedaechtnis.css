@@ -189,3 +189,8 @@
   #root main.memory-page-workspace > .memory-documents-workspace:has(.document-workspace) { min-height: 0; }
   #root main.memory-page-workspace .document-list-column { max-height: 70vh; overflow-y: auto; }
 }
+#root main.profile-page .profile-card.person-waiting:not(.is-empty) { padding: var(--g-a5); border: 0; box-shadow: var(--g-schatten); }
+/* Leer bleibt es eine leise Zeile, keine Fläche. */
+#root main.profile-page .profile-card.person-waiting.is-empty { padding: 0 var(--g-a4); border: 0; background: transparent; box-shadow: none; }
+#root main.profile-page .profile-card.person-waiting.is-empty h2 { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main.profile-page .profile-card.person-waiting .profile-empty { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
