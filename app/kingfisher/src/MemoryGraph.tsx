@@ -55,6 +55,14 @@ function openProfile(node: GraphNode) {
   }
 }
 
+/** Wer unten in der leisen Zeile eine Ansicht wählt, sieht sie von oben. */
+function zumAnfang() {
+  if (typeof document === "undefined") return;
+  const seite = document.querySelector<HTMLElement>(".memory-page");
+  if (seite) seite.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
 function isDocument(node: GraphNode) {
   return node.kind === "document" || node.attributes.episode_kind === "document";
 }
@@ -257,12 +265,6 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
               <button aria-pressed={personFilter === id} className={personFilter === id ? "active" : ""} disabled={reviewSubmitting} key={id} onClick={() => updateBrowse({tab: "people", people: id, q: "", page: 1})} type="button">{label}{graph ? ` (${personNodes(graph, id).length})` : ""}</button>
             ))}
           </div> : null}
-          <details className="memory-tools" open={section !== "browse" || MORE_FILTERS.some(item => item.id === filter)}><summary>Weitere Ansichten & Pflege</summary><div>
-            {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => updateBrowse({tab:item.id,q:"",page:1,people:"people"})}>{item.label}</button>)}
-            <button type="button" disabled={reviewSubmitting} className={section === "support" ? "active" : ""} aria-pressed={section === "support"} onClick={() => navigate("/memory?view=support")}>Aussagen prüfen</button>
-            <button type="button" disabled={reviewSubmitting} className={section === "status" ? "active" : ""} aria-pressed={section === "status"} onClick={() => navigate("/memory?view=status")}>Verarbeitung & Verlauf</button>
-            <a href="/settings#ki">KI-Zugänge & Modelle</a>
-          </div></details>
         </aside>
         {documentImportOpen && <DocumentImport initiallyExpanded showLibrary={false} title="Dokument hinzufügen" onClose={()=>{setDocumentImportOpen(false);window.dispatchEvent(new Event("workspace-view-changed"));}} />}
         {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error ? (
@@ -279,6 +281,13 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
               graph={graph} nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={graph.nodes.some(node => node.kind === "episode")} />
           : <GraphCanvas key={`${filter}:${personFilter}`} filter={filter} personFilter={personFilter} graph={graph} />
         ) : <section className="memory-canvas memory-loading" aria-label="Gedächtnis wird geladen" />}
+        {/* Seltene Ansichten und Pflege: eine leise Zeile am Ende statt eines Aufklappers im Kopf. */}
+        <nav className="memory-tools" aria-label="Weitere Ansichten und Pflege"><span>Weitere Ansichten:</span>
+          {MORE_FILTERS.map(item => <button type="button" disabled={reviewSubmitting} key={item.id} aria-pressed={section === "browse" && filter === item.id} onClick={() => {updateBrowse({tab:item.id,q:"",page:1,people:"people"});zumAnfang();}}>{item.label}</button>)}
+          <button type="button" disabled={reviewSubmitting} aria-pressed={section === "support"} onClick={() => {navigate("/memory?view=support");zumAnfang();}}>Aussagen prüfen</button>
+          <button type="button" disabled={reviewSubmitting} aria-pressed={section === "status"} onClick={() => {navigate("/memory?view=status");zumAnfang();}}>Verarbeitung & Verlauf</button>
+          <a href="/settings#ki">KI-Zugänge & Modelle</a>
+        </nav>
       </main>
     </div>
   );
