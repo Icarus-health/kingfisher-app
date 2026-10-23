@@ -240,6 +240,9 @@ class Register:
     eigene_domaenen: frozenset[str] = frozenset()
     projekte: dict[str, str] = field(default_factory=dict)
     token: str = ''
+    #: Adressen, die die Aufnahme als eigene gekennzeichnet hat („ich“). Nur zum Erkennen des Nutzers (Kreis); geht
+    #: nicht in die Kennung ein und ändert keine Bezüge.
+    ich_adressen: frozenset[str] = frozenset()
 
     @classmethod
     def bauen(cls, episoden: Iterable[Episode], *, eigene: Iterable[str] = (),
@@ -247,16 +250,20 @@ class Register:
         eigene = [a for a in eigene if a]
         verzeichnis = Verzeichnis()
         ich_namen: set[str] = set()
+        ich_adressen: set[str] = set()
         for episode in episoden:
             for nennung in nennungen(episode, eigene):
                 if nennung.ich:
                     if name_schluessel(nennung.name):
                         ich_namen.add(name_schluessel(nennung.name))
+                    if nennung.adresse:
+                        ich_adressen.add(nennung.adresse)
                 else:
                     verzeichnis.aufnehmen(nennung)
         domaenen = frozenset(domaene(a).casefold() for a in eigene if domaene(a))
         register = cls(verzeichnis, frozenset(ich_namen), domaenen, dict(projekte or {}))
         register.token = register._digest()
+        register.ich_adressen = frozenset(ich_adressen)
         return register
 
     def _digest(self) -> str:
