@@ -74,7 +74,10 @@
 #root main.profile-page .profile-heading h1 { font: var(--g-titel-gross); letter-spacing: -.022em; }
 #root main.profile-page .profile-heading > :is(p, span) { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
 #root main.profile-page .profile-segmente { margin: 0 0 var(--g-a5); }
-#root main.profile-page .profile-state { padding: 0; background: var(--g-flaeche); }
+#root main.profile-page .profile-state { max-width: 880px; margin: var(--g-a3) 0 0; padding: 0; border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main.profile-page .profile-state .g-leer-satz { font: var(--g-text); color: var(--g-leise); }
+#root main.profile-page .profile-state .g-leer button { margin: 0; min-height: var(--g-ziel); padding: 0 18px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 15px/1.2 var(--g-schrift); }
+#root main.profile-page .profile-state.profile-loading { padding: var(--g-a5); }
 #root main.profile-page .profile-card h2 { font: var(--g-ueberschrift); color: var(--g-tinte); }
 #root main.profile-page .profile-absender { display: grid; gap: var(--g-a3); }
 @media (max-width: 700px) {
@@ -168,3 +171,21 @@
 #root main.welt-page .identity-source-row + .identity-source-row { border-top: 1px solid var(--g-linie); }
 #root main.welt-page .identity-source-row h3 { margin: 0; font: var(--g-ueberschrift); }
 #root main.welt-page .identity-source-row p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+/* Leaflet bringt eigene Ebenen mit (bis 1000); die Karte bleibt unter der klebenden Kopfleiste. */
+#root main .memory-view-panel.gd-karte .memory-place-map { position: relative; z-index: 0; isolation: isolate; }
+#root main .memory-view-panel.gd-karte .g-flaeche > button, #root main .memory-view-panel.gd-karte .memory-view-actions button,
+#root main .memory-view-panel.gd-karte .memory-view-preview button {
+  justify-self: start; min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a3); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift);
+}
+#root main .memory-view-panel.gd-karte .memory-view-actions { margin: 0; }
+#root main .memory-view-panel.gd-karte .memory-view-preview { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+
+/* ── Dokumente: die drei Spalten als eine Fläche, die nichts über den Rand schiebt ───────────────────── */
+#root main.memory-page-workspace > .memory-documents-workspace:has(.document-workspace) { flex: 1 0 auto; min-height: 560px; }
+#root main.memory-page-workspace .memory-directory.document-workspace { margin: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
+#root main.memory-page-workspace .document-folders { background: var(--g-grund); }
+#root main.memory-page-workspace > .document-import { margin: 0 0 var(--g-a5); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+@media (max-width: 1100px) {
+  #root main.memory-page-workspace > .memory-documents-workspace:has(.document-workspace) { min-height: 0; }
+  #root main.memory-page-workspace .document-list-column { max-height: 70vh; overflow-y: auto; }
+}

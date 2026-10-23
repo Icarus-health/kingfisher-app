@@ -175,3 +175,7 @@
 /* Im Profil (kompakt): die leisen Aufklapper mit Abstand, damit sie nicht an der nächsten Gruppe kleben. */
 #root .akte.akte-compact > .quiet-details { margin: 0 0 var(--g-a4); }
 #root .akte .akte-flaeche > .akte-teil-satz { padding: var(--g-a3) var(--g-a5) 0; }
+/* Der Bildbereich bleibt schmal; Logo-Auswahl und Profilbild als kleine Verweise darunter. */
+#root .akte .akte-kopf-bild { max-width: 168px; text-align: center; }
+#root .akte .akte-kopf-bild summary { min-height: 28px; padding: 0; font: var(--g-fussnote); color: var(--g-leise); text-decoration: none; }
+#root .akte .akte-kopf-bild summary::before { content: none; display: none; }
