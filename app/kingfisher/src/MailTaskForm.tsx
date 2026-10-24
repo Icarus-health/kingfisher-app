@@ -212,7 +212,7 @@ export function MailTaskForm({ uid, subject, expectedSourceDigest, initialSugges
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select></label>
         <label htmlFor="mail-task-due">Fällig am <input aria-describedby="mail-task-due-hint" disabled={saving || Boolean(saved)} id="mail-task-due" onChange={(event) => { protectSuggestion(); setDue(event.target.value); }} type="date" value={due} />
-          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieser Tag wird bis 23:59 Uhr als Fälligkeit gespeichert. Eine ausdrücklich genannte Uhrzeit bitte separat prüfen." : ""}</span>
+          <span className="mail-reader-status" id="mail-task-due-hint">{due ? "Dieser Tag wird bis 23:59 Uhr als Fälligkeit gespeichert. Eine ausdrücklich genannte Uhrzeit bitte separat prüfen." : "Ohne Datum wird die Aufgabe ohne Termin gespeichert."}</span>
         </label>
         <label htmlFor="mail-task-waiting">Warten auf <input disabled={saving || Boolean(saved)} id="mail-task-waiting" onChange={(event) => { protectSuggestion(); setWaitingFor(event.target.value); }} placeholder="z. B. Anna Müller" value={waitingFor} /></label>
       </div>
