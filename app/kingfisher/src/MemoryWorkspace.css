@@ -1,12 +1,15 @@
 .memory-page.memory-page-workspace { display: flex; flex-direction: column; min-width: 0; }
+/* Inhalte behalten ihre Höhe und rollen mit der Seite; sonst liefen sie unter die leise Zeile am Ende. */
+.memory-page.memory-page-workspace > * { flex-shrink: 0; }
+.memory-page.memory-page-workspace > .memory-documents-workspace:has(> .memory-search) { flex: 1 0 auto; }
 .memory-page-workspace .memory-filter { min-height: 0; padding: 18px 28px; border-right: 0; border-bottom: 1px solid var(--calm-line, #315563); }
 .memory-page-workspace .memory-filter > p { margin: 0 0 10px; }
 .memory-page-workspace .memory-filter > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .memory-page-workspace .memory-filter button { min-height: 40px; padding: 8px 12px; }
-.memory-page-workspace .memory-tools { margin-top: 10px; font-size: 13px; color: var(--calm-muted, #b7cdd4); }
-.memory-tools summary { cursor: pointer; padding: 8px 0; }
-.memory-tools > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.memory-tools a { color: inherit; padding: 10px; }
+.memory-page-workspace .memory-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: auto; padding: 16px 28px 24px; border-top: 1px solid var(--calm-line); font-size: var(--calm-caption); color: var(--calm-muted); }
+.memory-page-workspace .memory-tools > span { margin-right: 4px; }
+.shell .memory-page-workspace .memory-tools :is(button, a) { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 8px; border: 0; border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; text-decoration: none; }
+.shell .memory-page-workspace .memory-tools :is(button, a):hover, .shell .memory-page-workspace .memory-tools button[aria-pressed=true] { color: var(--calm-ink); text-decoration: underline; text-underline-offset: 3px; }
 .memory-page-workspace .memory-directory { max-height: none; padding: 28px; }
 .memory-page-workspace .memory-directory header { margin-bottom: 20px; }
 .memory-page-workspace .memory-directory h1 { font-size: var(--calm-heading); }
@@ -27,6 +30,7 @@
 .memory-page-workspace :is(button, input, summary, a):focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 3px; }
 @media (max-width: 700px) {
   .memory-page-workspace .memory-filter { padding: 12px 16px; }
+  .memory-page-workspace .memory-tools { padding: 12px 16px 20px; }
   .memory-page-workspace .memory-directory { padding: 20px 16px; }
   .memory-search-form { flex-wrap: wrap; align-items: stretch; }
   .memory-search-form .directory-search { min-width: min(100%, 280px); }

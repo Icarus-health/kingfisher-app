@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ProfileSource } from "./ProfileSource";
+import { Gruppe, Leer } from "./grundlage";
 
 type Goal = { id: string; statement: string };
 export type WorldSource = {
@@ -27,7 +28,7 @@ function freshness(value: string | null) {
   return value ? `Abgerufen ${new Date(value).toLocaleString("de-DE")}` : "Noch nicht abgerufen";
 }
 
-export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+export function WorldControls({ initiallyOpen = false, seite = false }: { initiallyOpen?: boolean; seite?: boolean }) {
   const [payload, setPayload] = useState<WorldPayload | null>(null);
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
@@ -66,17 +67,17 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
     try { await request(`/api/v1/world/${encodeURIComponent(source.id)}/${action}`, { method: "POST" }); await load(); }
     catch { setReloadOffered(true);setError("Die Änderung wurde nicht bestätigt. Lade die Quellenliste neu, bevor du erneut handelst."); } finally { setBusy(false); }
   }
-  return <details className="profile-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary>Aktuelle Quellen</summary>
-    <p>Du wählst öffentliche Quellen aus. Automatische Abrufe laufen nur mit aktiviertem Zeitplan, solange Kingfisher läuft. Ohne Zeitplan kannst du hier manuell abrufen.</p><p>Der Abrufzeitpunkt zeigt, wann Kingfisher die Seite gelesen hat. Ein Veröffentlichungsdatum wird nicht übernommen; angezeigt wird ausschließlich der Abrufzeitpunkt. Der Auszug bleibt ein Quellenbericht und bestätigt keine persönliche Angabe.</p>
-    <form className="decision-create-form" onSubmit={add} aria-label="Öffentliche Quelle hinzufügen">
+  // Ein Satz, der zusichert, was mit dem Auszug geschieht und was nicht; sonst keine Erklärprosa.
+  const hinweis = "Abrufe laufen nur mit Zeitplan, solange Kingfisher läuft. Angezeigt wird die Abrufzeit; ein Veröffentlichungsdatum wird nicht übernommen. Der Auszug bleibt ein Quellenbericht und bestätigt keine persönliche Angabe.";
+  const formular = <form className="decision-create-form welt-formular" onSubmit={add} aria-label="Öffentliche Quelle hinzufügen">
       <label>Bezeichnung<input value={label} onChange={event => setLabel(event.target.value)} required maxLength={200} /></label>
       <label>HTTPS-Adresse<input type="url" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://…" required /></label>
       <label>Themen, getrennt durch Komma<input value={topics} onChange={event => setTopics(event.target.value)} /></label>
       <button className="primary-action" disabled={busy} type="submit">Quelle hinzufügen</button>
-    </form>
+    </form>;
+  const liste = <>
     {!payload && !error ? <p role="status">Quellen werden geladen …</p> : null}
-    {payload?.items.length === 0 ? <p>Noch keine von dir ausgewählten Quellen.</p> : null}
+    {payload?.items.length === 0 ? (seite ? <Leer zeichen="search" satz="Noch keine von dir ausgewählten Quellen." /> : <p>Noch keine von dir ausgewählten Quellen.</p>) : null}
     {payload?.items.map(source => <article className="identity-source-row" key={source.id}>
       <h3>{source.label}</h3>
       <p>{!source.last_success&&source.status==="pending"?"Noch nicht abgerufen":`${freshness(source.last_success)} · ${sourceStatus(source)}`}</p>
@@ -91,6 +92,17 @@ export function WorldControls({ initiallyOpen = false }: { initiallyOpen?: boole
       {source.enabled ? <><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "refresh")}>Jetzt abrufen</button><button className="secondary-action" type="button" disabled={busy} onClick={() => void mutate(source, "disable")}>Deaktivieren</button></> : null}
     </article>)}
     {error ? <p role="alert">{error}{reloadOffered && <> <button type="button" disabled={busy} onClick={() => void load()}>Liste neu laden</button></>}</p> : null}
+  </>;
+  // Auf der eigenen Seite zwei Gruppen (neue Quelle, deine Quellen); in den Einstellungen bleibt der Aufklapper.
+  if (seite) return <div className="welt-seite">
+    <Gruppe titel="Neue Quelle" frei fussnote={hinweis}>{formular}</Gruppe>
+    <Gruppe titel="Deine Quellen" frei>{liste}</Gruppe>
+  </div>;
+  return <details className="profile-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary>Aktuelle Quellen</summary>
+    <p>{hinweis}</p>
+    {formular}
+    {liste}
   </details>;
 }
 

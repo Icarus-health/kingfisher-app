@@ -529,154 +529,14 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 }
 .command-bar button img { filter: brightness(0) invert(1); }
 .command-bar .voice-button { background: transparent; }
-.command-bar .send-button { background: var(--kf-flaeche-e76f2b); border-color: var(--kf-rand-e76f2b); }
+.command-bar .send-button { background: var(--calm-primary); border-color: var(--calm-primary); }
 .command-notice {
   margin: 8px 0 0 8px;
   color: var(--kf-schrift-31535f);
   font-size: 11px;
 }
 
-.scrim {
-  position: fixed;
-  z-index: 38;
-  inset: 0 0 0 220px;
-  border: 0;
-  padding: 0;
-  background: rgba(3,45,64,.24);
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 280ms ease;
-}
-.scrim.open { opacity: 1; pointer-events: auto; }
-.briefing-drawer {
-  position: fixed;
-  z-index: 40;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(1120px, calc(100vw - 270px));
-  overflow: auto;
-  background: var(--kf-flaeche-f7f5ef);
-  box-shadow: -20px 0 58px rgba(3,45,64,.25);
-  transform: translateX(calc(100% + 40px));
-  transition: transform 440ms cubic-bezier(.22,.8,.2,1);
-}
-.briefing-drawer.open { transform: translateX(0); }
-.drawer-close {
-  position: absolute;
-  z-index: 4;
-  left: 28px;
-  top: 24px;
-  height: 44px;
-  border: 1px solid rgba(var(--kf-rand-rgb-d7e1df),.9);
-  border-radius: 22px;
-  padding: 0 16px 0 13px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: var(--kf-schrift-062b3a);
-  background: rgba(var(--kf-flaeche-rgb-fffefa),.94);
-  box-shadow: 0 8px 22px rgba(3,45,64,.10);
-  cursor: pointer;
-}
-.drawer-close img { width: 18px; height: 18px; }
-.drawer-close span { font-size: 11px; font-weight: 600; }
-.drawer-hero { position: relative; height: 286px; overflow: hidden; }
-.drawer-landscape {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 318px;
-  object-fit: cover;
-  object-position: center 46%;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
-}
-.drawer-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(var(--kf-flaeche-rgb-fffefa),.14), rgba(var(--kf-flaeche-rgb-f7f5ef),.04) 62%, var(--kf-flaeche-f7f5ef) 100%);
-}
-/* Datum und Überschrift liegen auf einer hellen Fläche, damit die Bäume des Landschaftsbilds sie nicht verdecken
-   (Fremdprobe, Befund 24). Rechts bleibt Platz für den Eisvogel. */
-.drawer-heading { position: absolute; z-index: 3; left: 40px; top: 84px; max-width: calc(100% - 400px); padding: 14px 20px 16px; border-radius: 14px; background: rgba(var(--kf-flaeche-rgb-fffefa),.88); backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(3,45,64,.10); }
-.drawer-heading p { margin: 0 0 11px; color: #31535f; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; }
-.drawer-heading h2 {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 48px;
-  line-height: 51px;
-  font-weight: 600;
-  text-shadow: 0 1px 9px rgba(255,254,250,.95), 0 0 24px rgba(255,254,250,.7);
-}
-.drawer-heading span { display: block; margin-top: 10px; font: 17px/22px "Cormorant Garamond", Georgia, serif; }
-.drawer-bird {
-  position: absolute;
-  z-index: 2;
-  right: 44px;
-  bottom: -50px;
-  width: 310px;
-  height: 255px;
-  object-fit: contain;
-  filter: drop-shadow(0 16px 24px rgba(3,45,64,.16));
-}
-.drawer-content { padding: 0 34px 46px; }
-.audio-briefing {
-  position: relative;
-  min-height: 118px;
-  margin-top: -3px;
-  border: 1px solid rgba(var(--kf-rand-rgb-d7e1df),.96);
-  border-radius: 14px;
-  padding: 22px 25px;
-  display: grid;
-  grid-template-columns: 180px minmax(280px,1fr) 250px;
-  grid-template-rows: 47px 20px;
-  column-gap: 22px;
-  align-items: center;
-  background: rgba(var(--kf-flaeche-rgb-fffefa),.96);
-  box-shadow: 0 16px 42px rgba(6,43,58,.10), inset 0 1px 0 var(--kf-schatten-ffffff);
-}
-.audio-title { grid-row: 1 / 3; display: flex; flex-direction: column; }
-.audio-title strong { font: 600 24px/28px "Cormorant Garamond", Georgia, serif; }
-.audio-title span { margin-top: 5px; color: var(--kf-schrift-31535f); font-size: 11px; }
-.waveform { height: 50px; display: flex; align-items: center; gap: 3px; overflow: hidden; }
-.waveform i {
-  width: 2px;
-  height: var(--bar-height);
-  flex: 1;
-  max-width: 3px;
-  border-radius: 3px;
-  background: var(--kf-flaeche-0a6681);
-}
-.waveform i:nth-child(-n+12) { background: var(--kf-flaeche-e76f2b); }
-.audio-time, .audio-duration { grid-column: 2; color: var(--kf-schrift-31535f); font: 10px "Cormorant Garamond", Georgia, serif; }
-.audio-duration { justify-self: end; }
-.audio-controls { grid-column: 3; grid-row: 1 / 3; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.audio-controls button {
-  height: 38px;
-  min-width: 38px;
-  border: 1px solid var(--kf-rand-cbdad7);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--kf-schrift-062b3a);
-  background: var(--kf-flaeche-fffefa);
-  font-size: 11px;
-  cursor: pointer;
-}
-.audio-controls .play-toggle {
-  width: 54px;
-  height: 54px;
-  color: var(--kf-schrift-ffffff);
-  background: var(--kf-flaeche-063e55);
-  border: 4px solid var(--kf-rand-e7efed);
-  box-shadow: 0 3px 10px rgba(3,45,64,.18);
-}
-.audio-controls .play-toggle img { width: 24px; height: 24px; filter: brightness(0) invert(1); }
-.audio-controls .play-toggle.paused { background: var(--kf-flaeche-e76f2b); }
-.audio-controls .tempo { min-width: 56px; border-radius: 20px; font-weight: 600; }
-.drawer-grid { display: grid; grid-template-columns: 1fr 1fr 1.12fr; gap: 16px; margin-top: 16px; }
+/* Die Karte „Bestehende Angaben nachprüfen“ unter Prüfen (ReviewPage) trägt noch die Kartenform des früheren Briefings. */
 .drawer-card {
   position: relative;
   min-height: 310px;
@@ -686,70 +546,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
   background: var(--kf-flaeche-fffefa);
   box-shadow: 0 10px 28px rgba(6,43,58,.075), inset 0 1px 0 var(--kf-schatten-ffffff);
   overflow: hidden;
-}
-.drawer-card header {
-  height: 51px;
-  margin: 0 -20px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--kf-rand-d7e1df);
-  display: flex;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .25px;
-}
-.drawer-card header b {
-  min-width: 23px;
-  height: 23px;
-  margin-left: auto;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--kf-schrift-ffffff);
-  background: var(--kf-flaeche-e76f2b);
-  font-size: 10px;
-}
-.drawer-card header b.teal { background: var(--kf-flaeche-007e92); }
-.drawer-row, .message-row { min-height: 66px; border-bottom: 1px solid var(--kf-rand-e0e7e5); padding: 10px 0; display: flex; align-items: center; gap: 8px; }
-.drawer-row > span, .message-row > span { min-width: 0; flex: 1; }
-.drawer-row strong, .drawer-row small, .message-row strong, .message-row small { display: block; }
-.drawer-row strong, .message-row strong { font-size: 11px; line-height: 16px; }
-.drawer-row small, .message-row small { color: var(--kf-schrift-31535f); font-size: 9px; line-height: 14px; }
-.drawer-row em { color: var(--kf-schrift-31535f); font-size: 9px; font-style: normal; }
-.drawer-empty { margin: 20px 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 17px; }
-.meeting-card h3 { margin: 17px 0 2px; font: 600 23px/25px "Cormorant Garamond", Georgia, serif; }
-.meeting-time { margin: 0; color: var(--kf-schrift-31535f); font-size: 10px; }
-.meeting-context { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--kf-rand-e0e7e5); }
-.meeting-context strong { font-size: 10px; }
-.meeting-context p { margin: 5px 0; color: var(--kf-schrift-31535f); font-size: 9px; line-height: 14px; }
-.weather-route-card { grid-column: 1; min-height: 210px; }
-.weather-route { display: grid; grid-template-columns: 90px 1fr; padding-top: 15px; }
-.weather-route > div:first-child { display: flex; flex-direction: column; }
-.weather-route > div:first-child strong { font: 42px/42px "Cormorant Garamond", Georgia, serif; }
-.weather-route > div:first-child span { font-size: 9px; line-height: 14px; }
-.route-state { border-left: 1px solid var(--kf-rand-e0e7e5); padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
-.route-state strong { font-size: 10px; }
-.route-state span { color: var(--kf-schrift-31535f); font-size: 9px; line-height: 14px; }
-.weather-attribution { display: inline-block; margin-top: 13px; color: #0a6681; font-size: 11px; }
-.world-card { grid-column: 2 / 4; min-height: 210px; }
-.news-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; padding-top: 15px; }
-.news-grid > div { display: grid; grid-template-columns: 62px 1fr; gap: 9px; }
-.news-grid img { width: 62px; height: 72px; border-radius: 6px; object-fit: cover; }
-.news-grid span { display: flex; min-width: 0; flex-direction: column; }
-.news-grid small { color: var(--kf-schrift-31535f); font-size: 8px; }
-.news-grid strong { margin-top: 5px; font: 600 13px/16px "Cormorant Garamond", Georgia, serif; }
-.news-grid em { margin-top: auto; color: var(--kf-schrift-31535f); font-size: 8px; font-style: normal; }
-
-@media (max-width: 1400px) {
-  /* Die Seitenfläche bleibt sichtbar und schließt das Briefing per Klick. */
-  .briefing-drawer { width: min(1080px, calc(100vw - 270px)); }
-  .drawer-content { padding-left: 27px; padding-right: 27px; }
-  .drawer-grid { gap: 13px; }
-  .audio-briefing { grid-template-columns: 160px minmax(240px,1fr) 230px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scrim, .briefing-drawer { transition: none; }
 }
 
 /* Gesamtübersicht 05: Gedächtnis-Graph. Die Linien bilden ausschließlich
@@ -1066,6 +862,9 @@ details.calendar-preparation-item > small { display: block; margin-top: 6px; ove
 .document-import { padding: 24px; }
 .document-import h2 { margin: 0 0 12px; font-size: 16px; }
 .document-import p { font-size: 13px; line-height: 1.5; }
+/* Datei auswählen als getönter Knopf; das Feld selbst ist unsichtbar, der Fokus zeigt sich am Knopf (Paket P5, B18). */
+.document-import label.document-import-wahl { display: inline-flex; width: fit-content; margin: 8px 0; cursor: pointer; }
+.document-import label.document-import-wahl:focus-within { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
 .compact-model { padding: 24px; }
 .compact-integration-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .compact-integration-heading h2 { margin: 0; font-size: 16px; }
@@ -1106,7 +905,6 @@ details.calendar-preparation-item > small { display: block; margin-top: 6px; ove
 
 /* Die Marke steht am Rand; die Arbeitsflächen gehören dem Inhalt. */
 .shell > .sidebar { background: var(--nordic-nav); padding: 12px 14px 22px; overflow-y: auto; isolation: isolate; }
-.shell > .sidebar::before { content: ''; position: absolute; z-index: -1; inset: 42% 0 0; background: url('/03_Media/Approved/landscape-calm-page-v1.png') center bottom / auto 100% no-repeat; opacity: .17; pointer-events: none; }
 .shell > .sidebar .brand-lockup { width: 176px; height: 128px; margin: 0 auto 12px; object-fit: cover; mask-image: none; }
 .shell > .sidebar nav { order: 1; gap: 6px; }
 .shell > .sidebar .nav-item { min-height: 49px; padding: 0 14px; gap: 16px; font-size: 15px; font-weight: 400; color: #d6e3ed; border-radius: 8px; }

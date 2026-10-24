@@ -269,12 +269,18 @@ def main() -> int:  # noqa: PLR0915 - eine Probe ist eine lange Folge von Schrit
 
             # -- 9 und 6: Briefing ohne Modell, Kopf mit Zeitzone, Fortschritt auf Heute ---------------------------
             seite.wait_for_url(re.compile(r'/today'), timeout=20000)
-            kopf = seite.locator('.drawer-heading span')
+            # Paket U, H1: „Zum Briefing“ zeigt Heute. Der Stand im Kopf steht in der eingestellten Zone (Europe/Berlin),
+            # nicht in der des Containers (UTC): Er muss zur Uhr der Seitenleiste passen, die der Browser in Berlin zeigt.
+            kopf = seite.locator('.today-stand')
             kopf.wait_for(timeout=20000)
             pruef['9_kopf'] = kopf.inner_text()
-            pruef['9_zeitzone'] = 'Europe/Berlin' in pruef['9_kopf'] and 'UTC' not in pruef['9_kopf']
+            stand = api_morning = seite.request.get(basis + '/api/v1/morning-briefing?post=false').json()
+            from datetime import datetime as _datetime
+            from zoneinfo import ZoneInfo as _ZoneInfo
+            erwartet = _datetime.fromisoformat(api_morning['generated_at']).astimezone(_ZoneInfo('Europe/Berlin')).strftime('%H:%M')
+            pruef['9_zeitzone'] = api_morning['timezone'] == 'Europe/Berlin' and pruef['9_kopf'].startswith('Stand ') \
+                and abs(int(pruef['9_kopf'][6:8]) * 60 + int(pruef['9_kopf'][9:11]) - int(erwartet[:2]) * 60 - int(erwartet[3:])) <= 1
             bild('08-briefing-1280')
-            seite.get_by_role('button', name='Zurück zu Heute').click()
             seite.get_by_text('Kingfisher lädt sein Sprachmodell:', exact=False).first.wait_for(timeout=15000)
             pruef['6_heute_zeigt_fortschritt'] = True
             gespraech = seite.request.post(basis + '/api/v1/conversations', data={'title': 'Probe'}).json()

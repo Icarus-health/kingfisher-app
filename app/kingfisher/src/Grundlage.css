@@ -1,0 +1,326 @@
+/* Gestaltungsgrundlage vom 23.10.2026 (docs/16-gestaltung.md, Abschnitt „Grundlage vom 23.10.2026“).
+
+   Maßstab: ein Blick reicht, wenig Text, große ruhige Flächen, große Ziele, adaptiv, Material statt Farbe, leise
+   Bewegung, systemnah. Diese Datei hat zwei Teile:
+
+   1. Werte (--g-*) und Bausteine (.g-*), die die Seiten im nächsten Schritt einsetzen (src/grundlage/).
+   2. Globale Regeln, die vorhandene Klassen auf die Grundlage abbilden, ohne Seitenlogik anzufassen.
+
+   Geladen in main.tsx direkt vor Seitenbreite.css (die bleibt zuletzt). Wo ältere Regeln schärfer sind als eine
+   Klasse, hebt diese Datei mit `#root` an, und nur dort. Farben kommen aus CalmUI.css und NordicWorkspace.css;
+   es gibt keine neue Palette. */
+
+/* ── 1. Werte ─────────────────────────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Eine Familie je Gerät: auf dem Mac San Francisco, sonst Inter. */
+  --g-schrift: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+
+  /* Typo-Skala (Strichstärke Größe/Zeilenhöhe). */
+  --g-titel-gross: 700 34px/1.15 var(--g-schrift);
+  --g-titel-gross-schmal: 28px;
+  --g-titel: 650 22px/1.25 var(--g-schrift);
+  --g-ueberschrift: 600 17px/1.35 var(--g-schrift);
+  --g-text: 400 16px/1.5 var(--g-schrift);
+  --g-neben: 400 14px/1.45 var(--g-schrift);
+  --g-fussnote: 400 13px/1.4 var(--g-schrift);
+
+  /* Abstände. */
+  --g-a1: 4px;
+  --g-a2: 8px;
+  --g-a3: 12px;
+  --g-a4: 16px;
+  --g-a5: 24px;
+  --g-a6: 32px;
+  --g-a7: 48px;
+  --g-a8: 64px;
+
+  /* Radien. */
+  --g-radius-flaeche: 14px;
+  --g-radius-bedien: 10px;
+  --g-radius-pille: 999px;
+
+  /* Material. */
+  --g-grund: #f5f6f8;
+  --g-flaeche: var(--calm-surface, #fff);
+  --g-schatten: 0 0 0 1px rgba(23,38,53,.05), 0 1px 2px rgba(23,38,53,.04);
+  --g-linie: rgba(23,38,53,.08);
+  --g-tinte: var(--calm-ink, #172635);
+  --g-leise: var(--calm-muted, #5e6c7c);
+  --g-akzent: var(--calm-primary, #103e5c);
+  --g-auf-akzent: var(--calm-on-primary, #f4faf9);
+  --g-verweis: var(--calm-link, #18578c);
+  --g-auswahl: var(--nordic-selection, #e8f2fd);
+  --g-auswahl-kante: var(--nordic-selection-edge, #2869aa);
+  /* Getönt: die Hauptaktionsfarbe als Hauch, für den zweiten Knopf und Zeichen. */
+  --g-getoent: rgba(16,62,92,.08);
+  --g-getoent-stark: rgba(16,62,92,.14);
+  --g-segment-grund: rgba(23,38,53,.06);
+  --g-fokus: 0 0 0 3px rgba(40,105,170,.28);
+  --g-rot: var(--kf-schrift-bf3b44, #bf3b44);
+
+  /* Ziele und Bewegung. */
+  --g-ziel: 44px;
+  --g-ziel-kompakt: 36px;
+  --g-zeile: 52px;
+  --g-bewegung: 200ms cubic-bezier(.25,.1,.25,1);
+}
+
+/* ── 2. Bausteine ─────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* Schriftstufen als Klassen, für alles, was keinen eigenen Baustein hat. */
+.g-titel-gross { margin: 0; font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); }
+.g-titel { margin: 0; font: var(--g-titel); letter-spacing: -.01em; color: var(--g-tinte); }
+.g-ueberschrift { margin: 0; font: var(--g-ueberschrift); color: var(--g-tinte); }
+.g-text { font: var(--g-text); color: var(--g-tinte); }
+.g-neben { font: var(--g-neben); color: var(--g-leise); }
+.g-fussnote { font: var(--g-fussnote); color: var(--g-leise); }
+
+/* Seitenkopf: großer Titel, höchstens eine Zeile darunter, Aktionen rechts (schmal: darunter). Beim Rollen erscheint
+   oben eine schmale, klebende Leiste mit dem Titel. */
+.g-seitenkopf { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--g-a3) var(--g-a5); margin: 0 0 var(--g-a6); padding-top: var(--g-a2); }
+.g-seitenkopf-text { flex: 1 1 auto; min-width: 0; }
+.g-seitenkopf-titel { margin: 0; font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); overflow-wrap: break-word; }
+.g-seitenkopf-zeile { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+.g-seitenkopf-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); }
+.g-kopfleiste { position: sticky; top: 0; z-index: 30; height: 0; }
+.g-kopfleiste-inhalt {
+  position: absolute; top: 0; left: calc(-1 * var(--g-kopf-rand, 0px)); right: calc(-1 * var(--g-kopf-rand, 0px));
+  display: flex; align-items: center; min-height: 48px; padding: 0 var(--g-kopf-rand, var(--g-a4));
+  background: rgba(245,246,248,.88); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--g-linie); font: var(--g-ueberschrift); color: var(--g-tinte);
+  opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity var(--g-bewegung), transform var(--g-bewegung);
+}
+.g-kopfleiste-inhalt > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.g-kopfleiste[data-sichtbar="true"] .g-kopfleiste-inhalt { opacity: 1; transform: none; }
+
+/* Gruppe: eine gruppierte Fläche, darüber klein die Überschrift, darunter die Fußnote (wie die Einstellungen am Mac). */
+.g-gruppe { margin: 0 0 var(--g-a6); min-width: 0; }
+.g-gruppe-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: var(--g-a3); margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); }
+.g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+.g-flaeche { background: var(--g-flaeche); border-radius: var(--g-radius-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
+.g-flaeche-frei { padding: var(--g-a4) var(--g-a5); }
+.g-gruppe-fussnote { margin: var(--g-a2) 0 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+
+/* Zeile: mindestens 52 px, die ganze Zeile ist das Ziel. Trenner als eingerückte Haarlinie. */
+.g-zeile {
+  position: relative; box-sizing: border-box; display: flex; align-items: center; gap: var(--g-a3); width: 100%;
+  min-height: var(--g-zeile); margin: 0; padding: 10px var(--g-a4); border: 0; border-radius: 0; background: transparent;
+  color: var(--g-tinte); font: var(--g-text); text-align: left; text-decoration: none;
+}
+:is(button, a).g-zeile { cursor: pointer; transition: background-color 150ms ease; }
+:is(button, a).g-zeile:hover { background: rgba(23,38,53,.035); }
+:is(button, a).g-zeile:active { background: rgba(23,38,53,.06); }
+.g-zeile[aria-current="true"], .g-zeile[aria-current="page"] { background: var(--g-auswahl); }
+.g-zeile:disabled { opacity: .45; cursor: default; }
+.g-zeile:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+.g-zeile + .g-zeile::before { content: ""; position: absolute; top: 0; right: 0; left: var(--g-a4); border-top: 1px solid var(--g-linie); }
+.g-zeile + .g-zeile:has(> .g-zeile-symbol)::before { left: 60px; }
+.g-zeile-symbol { flex: 0 0 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--g-getoent); color: var(--g-akzent); }
+.g-zeile-symbol .interface-icon { width: 20px; height: 20px; }
+.g-zeile-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.g-zeile-titel { font-weight: 500; overflow-wrap: anywhere; }
+.g-zeile-neben { font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
+.g-zeile-wert { flex: 0 0 auto; max-width: 45%; font: var(--g-neben); color: var(--g-leise); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
+.g-zeile-zusatz { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a2); }
+.g-zeile-pfeil { flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 2px; border: solid rgba(23,38,53,.32); border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); }
+
+/* Segmente: Segmentsteuerung als Pille. Rollt waagrecht, statt umzubrechen; Pfeiltasten wählen. */
+.g-segmente {
+  display: inline-flex; flex-wrap: nowrap; gap: 2px; box-sizing: border-box; width: fit-content; max-width: 100%;
+  padding: 3px; margin: 0; border: 0; border-radius: var(--g-radius-pille); background: var(--g-segment-grund);
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; vertical-align: middle;
+}
+.g-segmente::-webkit-scrollbar { display: none; }
+/* Was hinter dem Rand verborgen ist, wird sichtbar ausgeblendet, damit man sieht, dass die Leiste rollt. */
+[data-rollt="waagrecht"][data-rand-rechts="true"] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); }
+[data-rollt="waagrecht"][data-rand-links="true"] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent); }
+[data-rollt="waagrecht"][data-rand-links="true"][data-rand-rechts="true"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
+.g-segment {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px;
+  padding: 0 16px; border: 0; border-radius: var(--g-radius-pille); background: transparent; color: var(--g-tinte);
+  font: 500 14px/1.2 var(--g-schrift); white-space: nowrap; cursor: pointer;
+  transition: background-color var(--g-bewegung), box-shadow var(--g-bewegung);
+}
+.g-segment:hover:not([aria-selected="true"]):not(:disabled) { background: rgba(23,38,53,.05); }
+.g-segment[aria-selected="true"] { background: var(--g-flaeche); font-weight: 600; box-shadow: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06); }
+.g-segment:disabled { opacity: .45; cursor: default; }
+.g-segment:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+.g-segment-zahl { font-weight: 500; color: var(--g-leise); font-variant-numeric: tabular-nums; }
+.g-segmente.g-kompakt { padding: 2px; }
+.g-segmente.g-kompakt .g-segment { min-height: 32px; padding: 0 12px; font-size: 13px; }
+
+/* Leer: ein Zeichen, ein Satz, höchstens ein Knopf; mittig. */
+.g-leer { display: flex; flex-direction: column; align-items: center; gap: var(--g-a3); padding: var(--g-a7) var(--g-a5); text-align: center; }
+.g-leer-zeichen { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--g-getoent); color: var(--g-leise); }
+.g-leer-zeichen .interface-icon { width: 28px; height: 28px; }
+.g-leer-satz { margin: 0; max-width: 36ch; font: var(--g-text); color: var(--g-leise); }
+.g-leer-aktion { margin-top: var(--g-a1); }
+
+/* Aufklapper: der Pfeil dreht sich (siehe „details > summary“ unten); rechts optional eine leise Angabe. */
+.g-aufklapper { min-width: 0; }
+.g-aufklapper > summary { display: flex; align-items: center; gap: 0; min-height: var(--g-ziel); font: 500 15px/1.35 var(--g-schrift); color: var(--g-tinte); }
+.g-aufklapper-titel { min-width: 0; overflow-wrap: anywhere; }
+.g-aufklapper-neben { margin-left: auto; padding-left: var(--g-a3); font: var(--g-fussnote); color: var(--g-leise); }
+.g-aufklapper-inhalt { padding: var(--g-a1) 0 var(--g-a3) 19px; }
+
+/* Knöpfe in drei Stufen. Gefüllt: genau einer je Ansicht. Getönt: der zweite. Schlicht: nur Text. */
+.g-knopf, .g-knopf-getoent, .g-knopf-schlicht {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); box-sizing: border-box;
+  min-height: var(--g-ziel); padding: 0 18px; border: 0; border-radius: var(--g-radius-bedien);
+  font: 600 15px/1.2 var(--g-schrift); text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+.g-knopf { background: var(--g-akzent); color: var(--g-auf-akzent); }
+.g-knopf:hover:not(:disabled) { background: #0c3450; }
+.g-knopf-getoent { background: var(--g-getoent); color: var(--g-akzent); font-weight: 500; }
+.g-knopf-getoent:hover:not(:disabled) { background: var(--g-getoent-stark); }
+.g-knopf-schlicht { padding: 0 6px; background: transparent; color: var(--g-verweis); font-weight: 500; }
+.g-knopf-schlicht:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; }
+:is(.g-knopf, .g-knopf-getoent, .g-knopf-schlicht):active:not(:disabled) { opacity: .82; }
+:is(.g-knopf, .g-knopf-getoent, .g-knopf-schlicht):disabled { opacity: .45; cursor: default; }
+:is(.g-knopf, .g-knopf-getoent, .g-knopf-schlicht).g-kompakt { min-height: var(--g-ziel-kompakt); padding: 0 12px; font-size: 14px; }
+.g-knopf img { filter: brightness(0) invert(1); }
+
+@media (max-width: 700px) {
+  .g-seitenkopf-titel, .g-titel-gross { font-size: var(--g-titel-gross-schmal); }
+  .g-seitenkopf { margin-bottom: var(--g-a5); }
+  .g-seitenkopf-aktionen { flex-basis: 100%; }
+  .g-flaeche-frei { padding: var(--g-a4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-kopfleiste-inhalt, .g-segment, :is(button, a).g-zeile, .g-knopf, .g-knopf-getoent, .g-knopf-schlicht,
+  #root details > summary::before { transition: none; }
+}
+
+/* ── 3. Global angewandt ──────────────────────────────────────────────────────────────────────────────────── */
+
+/* Schrift: eine Familie überall. Der Bestand setzt die Familie in vielen `font:`-Kurzformen auf Inter; nur diese eine
+   Angabe wird deshalb mit !important vereinheitlicht. Code behält seine Schrift. */
+:root { font-family: var(--g-schrift); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+#root :not(code, kbd, samp, .message-text pre) { font-family: var(--g-schrift) !important; }
+.shell main { font-size: 16px; line-height: 1.5; }
+.shell main :is(p, li, blockquote) { line-height: 1.5; }
+
+/* Grund: kühles Grau ohne Landschaft auf allen Seiten; das Bild steht nur noch im Kopf von Heute (TodayOverview.css). */
+.shell { background: var(--g-grund); }
+
+/* Seitenkopf der vorhandenen Seiten: großer Titel, keine Überzeile, eine leise Zeile darunter, Aktion rechts. */
+#root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-a2) var(--g-a4);
+  min-height: 0; max-width: none; margin: 0 0 var(--g-a5); padding: var(--g-a2) 0 0; border: 0; border-radius: 0; background: none;
+}
+#root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) > div { min-width: 0; }
+#root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading, .memory-heading-row) h1,
+#root main :is(.akte-kopf > h2, .conversation-empty > h1) {
+  margin: 0; font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); text-shadow: none;
+}
+#root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) .eyebrow { display: none; }
+#root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) > :is(p:not(.eyebrow), span) {
+  flex-basis: 100%; order: 3; margin: 0; font: var(--g-neben); color: var(--g-leise);
+}
+#root main :is(.tasks-heading, .inbox-heading) > button { position: static; margin: 0; }
+#root .inbox-heading { padding-right: 0; }
+#root main.workspace-tasks .tasks-heading { margin: 0 0 var(--g-a5); padding: var(--g-a6) 0 0; }
+#root .memory-page-workspace .memory-filter { background: var(--g-grund); }
+#root .calendar-page .settings-heading { align-items: baseline; }
+#root .calendar-page .settings-heading > p:last-child { flex-basis: auto; order: 0; }
+
+/* Reiterleisten in der Optik der Segmente: eine Pille, die waagrecht rollt, statt umzubrechen. */
+#root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter),
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) {
+  display: inline-flex; flex-wrap: nowrap; gap: 2px; box-sizing: border-box; width: fit-content; max-width: 100%;
+  padding: 3px; margin: 0 0 var(--g-a4); border: 0; border-radius: var(--g-radius-pille); background: var(--g-segment-grund);
+  box-shadow: none; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+}
+#root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter)::-webkit-scrollbar,
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row)::-webkit-scrollbar { display: none; }
+#root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter) > button,
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; min-height: 38px;
+  margin: 0; padding: 0 16px; border: 0; border-radius: var(--g-radius-pille); background: transparent; color: var(--g-tinte);
+  font: 500 14px/1.2 var(--g-schrift); white-space: nowrap; box-shadow: none;
+  transition: background-color var(--g-bewegung), box-shadow var(--g-bewegung);
+}
+#root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter) > button:is(.active, [aria-pressed="true"], [aria-selected="true"]),
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button:is(.active, [aria-pressed="true"]) {
+  background: var(--g-flaeche); color: var(--g-tinte); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06);
+}
+#root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter) > button:focus-visible,
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+#root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button .interface-icon { display: none; }
+#root main .calendar-actions { align-items: center; }
+#root main .calendar-actions .view-switch { margin: 0; }
+
+/* Die Bereichsliste der Einstellungen ist eine Seitenliste wie am Mac: ruhige Zeilen, die Auswahl getönt. */
+#root .settings-section-nav button { min-height: var(--g-ziel); border-radius: var(--g-radius-bedien); font: 500 15px/1.3 var(--g-schrift); color: var(--g-tinte); }
+#root .settings-section-nav button[aria-pressed="true"] { background: var(--g-getoent); color: var(--g-akzent); font-weight: 600; }
+#root .shell.settings-shell .settings-section-nav .settings-section-hinten { position: relative; overflow: visible; margin-top: var(--g-a5); border: 0; }
+#root .shell.settings-shell .settings-section-nav .settings-section-hinten::before { content: ""; position: absolute; top: calc(-1 * var(--g-a3)); left: var(--g-a3); right: var(--g-a3); border-top: 1px solid var(--g-linie); }
+
+/* Aufklapper überall mit dem eigenen, sich drehenden Pfeil statt ▶. Abwählbar mit .g-ohne-pfeil. */
+#root summary { list-style: none; cursor: pointer; }
+#root summary::-webkit-details-marker { display: none; }
+#root details > summary::before {
+  content: ""; display: inline-block; flex: 0 0 auto; box-sizing: border-box; width: 7px; height: 7px; margin: 0 10px 0 2px;
+  border: solid currentColor; border-width: 0 1.75px 1.75px 0; opacity: .7; vertical-align: .2em;
+  transform: rotate(-45deg); transition: transform var(--g-bewegung);
+}
+#root details[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
+#root details:is(.g-ohne-pfeil) > summary::before, #root summary.g-ohne-pfeil::before { content: none; display: none; }
+
+/* Eingabefelder: 44 px hoch, Radius 10, ruhiger Fokusring. Dieselben Selektoren wie in CalmUI.css, damit Felder, die
+   eine Seite bewusst anders zeichnet (ohne Rahmen, kompakt), es weiter tun; gesetzt wird nur die Rahmenfarbe. */
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select):not(.command-bar input):not(.history-search input) {
+  min-height: var(--g-ziel);
+}
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input) {
+  border-color: rgba(23,38,53,.14); border-radius: var(--g-radius-bedien); background-color: var(--g-flaeche); color: var(--g-tinte);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input):focus-visible {
+  outline: 2px solid transparent; border-color: var(--g-auswahl-kante); box-shadow: var(--g-fokus);
+}
+.shell main :is(input, select, textarea)::placeholder { color: #8592a0; }
+.shell main :is(button, a, summary, [tabindex]):focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.shell main :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--g-akzent); }
+
+/* Knöpfe des Bestands auf die drei Stufen. Ob je Ansicht nur einer gefüllt ist, entscheiden die Seiten. */
+.shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action) {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); min-height: var(--g-ziel); padding: 0 18px;
+  border: 0; border-radius: var(--g-radius-bedien); background: var(--g-akzent); color: var(--g-auf-akzent);
+  font: 600 15px/1.2 var(--g-schrift); box-shadow: none; transition: background-color 150ms ease, opacity 150ms ease;
+}
+.shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action):hover:not(:disabled) { background: #0c3450; }
+.shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr) {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); min-height: var(--g-ziel); padding: 0 16px;
+  border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent);
+  font: 500 15px/1.2 var(--g-schrift); box-shadow: none; transition: background-color 150ms ease, opacity 150ms ease;
+}
+.shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr):hover:not(:disabled) { background: var(--g-getoent-stark); }
+.shell button.text-action { display: inline-flex; align-items: center; min-height: var(--g-ziel); padding: 0 4px; border: 0; background: transparent; color: var(--g-verweis); font: 500 15px/1.3 var(--g-schrift); }
+/* Was etwas unwiderruflich entfernt, bleibt rot, auch getönt. */
+#root :is(.secondary-action.decision-confirm, .source-remove-confirm button:first-of-type) { background: rgba(191,59,68,.08); color: var(--g-rot); border: 0; }
+.shell :is(.primary-action, .secondary-action, .tasks-add, .mail-reader-primary, .mail-reader-secondary, .memory-confirm, .memory-reject):active:not(:disabled) { opacity: .82; }
+
+/* Flächen: weiß, ohne Rahmen, mit Haarschatten. Fläche in Fläche wird flach (keine Karten in Karten). */
+.shell main :is(.profile-card, .profile-metrics, .source-section, .settings-data, .task-table, .project-controls, .decision-controls,
+  .calendar-board, .inbox-content, .history-list, .memory-directory, .memory-status, .people-review, .profile-state, .context-panel,
+  .drawer-card, .memory-canvas, .calendar-navigator) {
+  border: 0; border-radius: var(--g-radius-flaeche); box-shadow: var(--g-schatten);
+}
+.shell main :is(.profile-card, .profile-metrics, .source-section, .settings-data, .task-table, .project-controls, .decision-controls,
+  .calendar-board, .inbox-content, .history-list, .memory-directory, .memory-status, .people-review, .profile-state, .context-panel, .drawer-card)
+  :is(.profile-card, .profile-metrics, .source-section, .settings-data, .task-table, .project-controls, .decision-controls,
+  .calendar-board, .inbox-content, .history-list, .memory-directory, .memory-status, .people-review, .profile-state, .drawer-card) { box-shadow: none; }
+#root main.workspace-tasks .project-controls { box-shadow: none; border-radius: 0; }
+
+@media (max-width: 700px) {
+  /* Schmal: der Titel steht allein in seiner Zeile, die Aktion darunter. */
+  #root main :is(.tasks-heading, .settings-heading, .inbox-heading, .history-heading, .profile-heading) > h1 { flex-basis: 100%; font-size: var(--g-titel-gross-schmal); }
+  #root main :is(.tasks-heading, .inbox-heading) > button { margin-top: var(--g-a1); }
+  #root main :is(.memory-heading-row h1, .akte-kopf > h2, .conversation-empty > h1) { font-size: var(--g-titel-gross-schmal); }
+}
+
+/* Trenner in Listen: Haarlinien statt Rahmen. */
+.shell main :is(.history-row, .inbox-row, .directory-list li, .settings-data-row, .mail-list-row) { border-color: var(--g-linie); }

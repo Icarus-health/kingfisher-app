@@ -20,14 +20,14 @@ test('archived mail explains historical state without preparation or task confir
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();const tree=d.render();
  assert.match(shownText(tree),/Archivierte Mail/);
  assert.equal(nodes(tree,n=>n.type==='form').length,0);
- assert.equal(nodes(tree,n=>n.type==='button'&&/vorbereiten|bestätigen/i.test(text(n))).length,0);
+ assert.equal(nodes(tree,n=>n.type==='button'&&/vorbereiten|vorschlagen|bestätigen/i.test(text(n))).length,0);
 }));
 test('browsing and focus only read prepared original passages, source preparation is deliberate',()=>harness(async(server,driver,listeners)=>{
  const {SavedMailWorkflow}=await server.ssrLoadModule('/src/SavedMailWorkflow.tsx');const {savedMailWorkflowApi:api}=await server.ssrLoadModule('/src/savedMailWorkflowApi.ts');
  let reads=0,prepares=0;api.read=async()=>{reads++;return{...ready(),status:'unprepared',quotes:[],items:[]};};api.prepare=async()=>{prepares++;return ready();};
  const d=driver(SavedMailWorkflow,{episodeId:'e1',sourceDigest:ready().source_digest});d.render();await d.flush();let tree=d.render();
  assert.equal(prepares,0);assert.equal(reads,1);listeners.focus();await d.flush();tree=d.render();assert.equal(reads,2);assert.equal(prepares,0);
- nodes(tree,n=>n.type==='button'&&/Diese Mail lokal vorbereiten/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();
+ nodes(tree,n=>n.type==='button'&&/Aufgabe aus dieser Mail vorschlagen/.test(text(n)))[0].props.onClick();await d.flush();tree=d.render();
  assert.equal(prepares,1);assert.match(text(tree),/Bitte prüfe die Belege/);assert.match(nodes(tree,n=>n.type==='input'||n.type==='textarea')[0].props.value,/Aktualität der Bitte prüfen/);
 }));
 test('single visible confirmation sends task plus project, errors keep edited draft and retry identity',()=>harness(async(server,driver)=>{
@@ -72,7 +72,7 @@ test('transient original revalidation preserves mounted edited draft, labels sta
  Object.assign(childProps,retained.props);child.render();await child.flush();form=child.render();
  assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[1].props.value,'Mein Prüfprojekt');
  assert.equal(nodes(form,n=>n.type==='button'&&/Aufgabe und Projekt bestätigen/.test(text(n)))[0].props.disabled,true);
- assert.equal(nodes(tree,n=>n.type==='button'&&/Aktuelle Mail/.test(text(n)))[0].props.disabled,true);
+ assert.equal(retained.props.nebenAktion.props.disabled,true,'Antwort entwerfen bleibt gesperrt, solange die Quelle ungeprüft ist');
  unavailable=false;nodes(tree,n=>n.type==='button'&&text(n)==='Wiederholen')[0].props.onClick();parent.render();await parent.flush();tree=parent.render();Object.assign(childProps,nodes(tree,n=>n.type===SavedMailWorkflow)[0].props);child.render();await child.flush();form=child.render();
  assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[0].props.value,'Meine bearbeitete Prüfung');assert.equal(nodes(form,n=>n.type==='input'||n.type==='textarea')[1].props.value,'Mein Prüfprojekt');assert.equal(nodes(form,n=>n.type==='button'&&/Aufgabe und Projekt bestätigen/.test(text(n)))[0].props.disabled,false);
 }));

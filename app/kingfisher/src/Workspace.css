@@ -1,76 +1,234 @@
-/* Closed working sheets; the landscape and Kingfisher remain at the edges. */
+/* Gespräche (P1, Grundlage vom 23.10.2026): links die Liste wie in Nachrichten am Mac, rechts das Gespräch auf weißer
+   Fläche. Deine Fragen als ruhige Blasen, Kingfishers Antworten als Lesetext; Belege, Freigabe und Rückkanal darunter
+   leise, aber groß genug zum Treffen. Werte nur aus --g-* und --calm-*. */
 .shell main.workspace-chat {
-  display: grid; grid-template-columns: 272px minmax(0, 1fr); gap: 0;
-  height: calc(100dvh - 40px); min-height: 0; margin: 20px; width: calc(100% - 40px);
-  padding: 0; overflow: hidden; border: 1px solid var(--calm-line); border-radius: 18px;
-  background: var(--calm-surface); box-shadow: var(--calm-shadow); color: var(--calm-ink);
+  display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 0; width: 100%; height: 100dvh; min-height: 0; margin: 0; padding: 0;
+  overflow: hidden; border: 0; border-radius: 0; background: var(--g-flaeche); box-shadow: none; color: var(--g-tinte);
 }
-.workspace-chat .conversation-navigation {
-  min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 16px;
-  padding: 20px 14px; border-right: 1px solid var(--calm-line); background: var(--calm-inset);
-}
-.workspace-chat .conversation-navigation > header { display: flex; flex-direction: column; gap: 14px; }
-.workspace-chat .conversation-navigation > header > strong { font-size: 15px; padding: 0 6px; }
 .workspace-chat button { font: inherit; }
-.workspace-chat .conversation-new { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border: 1px solid var(--calm-line); border-radius: 10px; color: var(--calm-ink); background: var(--calm-surface); font-size: 13px; }
-.workspace-chat .conversation-nav-search { display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--calm-line); border-radius: 10px; background: var(--calm-surface); }
-.shell main.workspace-chat .conversation-nav-search input { min-width: 0; width: 100%; border: 0; background: transparent; padding: 0; font-size: 12px; }
-.workspace-chat .conversation-nav-list { flex: 1; overflow-y: auto; min-height: 0; }
-.workspace-chat .conversation-nav-item { display: block; width: 100%; text-align: left; padding: 12px 10px; margin-bottom: 5px; border: 1px solid transparent; border-radius: 10px; color: var(--calm-ink); background: transparent; }
-.workspace-chat .conversation-nav-item:hover, .workspace-chat .conversation-nav-item[aria-current='page'] { background: var(--calm-surface); border-color: var(--calm-line); }
-.workspace-chat .conversation-nav-item strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; line-height: 1.45; font-weight: 600; }
-.workspace-chat .conversation-nav-item span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 5px; font-size: 12px; line-height: 1.5; color: var(--calm-muted); }
-.workspace-chat .conversation-nav-item small { display: block; margin-top: 6px; font-size: 10px; color: var(--calm-muted); }
-.workspace-chat .conversation-nav-list > p, .workspace-chat .conversation-navigation > p { padding: 6px; font-size: 12px; line-height: 1.6; color: var(--calm-muted); }
-.workspace-chat .conversation-nav-count { color: var(--calm-muted); font-size: 11px; padding: 0 6px; }
-.workspace-chat .conversation-more { width: 100%; border: 1px solid var(--calm-line); border-radius: 8px; background: var(--calm-surface); color: var(--calm-ink); padding: 9px; font-size: 12px; }
-.workspace-chat .thread { display: flex; flex-direction: column; min-height: 0; height: 100%; background: var(--calm-surface); }
-.shell main.workspace-chat .thread-header { min-height: 64px; flex: 0 0 auto; padding: 14px 24px; gap: 12px; align-items: center; background: var(--calm-surface); }
-.workspace-chat .thread-header h1 { flex: 1; min-width: 0; margin: 0; font: 600 18px/1.35 Inter, sans-serif; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.workspace-chat .conversation-sources-toggle, .workspace-chat .conversation-navigation-toggle { min-height: 34px; padding: 6px 10px; border: 1px solid var(--calm-line); border-radius: 8px; background: var(--calm-surface); color: var(--calm-muted); font-size: 12px; }
+
+/* ── Liste ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+.workspace-chat .conversation-navigation {
+  display: flex; flex-direction: column; gap: var(--g-a3); min-width: 0; min-height: 0; padding: var(--g-a4) var(--g-a3) var(--g-a3);
+  border-right: 1px solid var(--g-linie); background: var(--g-grund);
+}
+.workspace-chat .conversation-navigation > header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--g-a2); min-height: 44px; padding: 0 0 0 var(--g-a2); }
+.workspace-chat .conversation-navigation > header > strong { font: var(--g-titel); letter-spacing: -.012em; padding: 0; }
+.workspace-chat .conversation-new {
+  display: grid; place-items: center; flex: 0 0 auto; width: 44px; height: 44px; min-height: 0; padding: 0; border: 0; border-radius: 50%;
+  background: var(--g-getoent); color: var(--g-akzent); cursor: pointer; transition: background-color 150ms ease;
+}
+.workspace-chat .conversation-new:hover:not(:disabled) { background: var(--g-getoent-stark); }
+.workspace-chat .conversation-new .interface-icon { width: 20px; height: 20px; }
+.workspace-chat .conversation-nav-search { display: flex; align-items: center; gap: var(--g-a2); min-height: 44px; padding: 0 var(--g-a3); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); color: var(--g-leise); }
+.workspace-chat .conversation-nav-search .interface-icon { flex: 0 0 auto; width: 18px; height: 18px; }
+#root .shell main.workspace-chat .conversation-nav-search input { width: 100%; min-width: 0; min-height: 44px; padding: 0; border: 0; background: transparent; box-shadow: none; font: var(--g-neben); color: var(--g-tinte); }
+#root .shell main.workspace-chat .conversation-nav-search input:focus-visible { outline: 0; box-shadow: none; }
+.workspace-chat .conversation-nav-search:focus-within { box-shadow: var(--g-fokus); }
+.workspace-chat .conversation-nav-list { flex: 1; min-height: 0; overflow-y: auto; margin: 0 calc(-1 * var(--g-a1)); padding: 0 var(--g-a1); }
+.workspace-chat .conversation-nav-item {
+  display: grid; gap: 2px; width: 100%; min-height: 56px; margin: 0 0 2px; padding: var(--g-a2) var(--g-a3); border: 0; border-radius: var(--g-radius-bedien);
+  background: transparent; color: var(--g-tinte); text-align: left; cursor: pointer; transition: background-color 150ms ease;
+}
+.workspace-chat .conversation-nav-item:hover { background: rgba(23,38,53,.045); }
+.workspace-chat .conversation-nav-item[aria-current='page'] { background: var(--g-auswahl); }
+.workspace-chat .conversation-nav-kopf { display: flex; align-items: baseline; gap: var(--g-a2); min-width: 0; }
+.workspace-chat .conversation-nav-item strong { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 600 15px/1.35 var(--g-schrift); }
+.workspace-chat .conversation-nav-item small { flex: 0 0 auto; font: var(--g-fussnote); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+.workspace-chat .conversation-nav-item > span:not(.conversation-nav-kopf) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .conversation-nav-list > p, .workspace-chat .conversation-navigation > p, .workspace-chat .conversation-nav-fehler p { margin: 0; padding: var(--g-a2) var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .conversation-nav-fehler { padding-bottom: var(--g-a2); }
+.workspace-chat .conversation-nav-count { padding: 0 var(--g-a2); font: var(--g-fussnote); color: var(--g-leise); }
+.workspace-chat .conversation-more { width: 100%; min-height: 44px; margin-top: var(--g-a2); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 15px/1.2 var(--g-schrift); cursor: pointer; }
+
+/* ── Gespräch ────────────────────────────────────────────────────────────────────────────────────────────────── */
+.workspace-chat .thread { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; background: var(--g-flaeche); }
+.shell main.workspace-chat .thread-header {
+  display: flex; flex: 0 0 auto; align-items: center; gap: var(--g-a3); min-height: 56px; margin: 0; padding: var(--g-a2) var(--g-a5);
+  border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; background: rgba(255,255,255,.88);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+}
+.workspace-chat .thread-header h1 { flex: 1; min-width: 0; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--g-ueberschrift); color: var(--g-tinte); }
+.workspace-chat .conversation-sources-toggle, .workspace-chat .conversation-navigation-toggle {
+  flex: 0 0 auto; min-height: 44px; padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien); background: transparent;
+  color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); cursor: pointer;
+}
+.workspace-chat .conversation-sources-toggle[aria-expanded="true"] { background: var(--g-getoent); }
 .workspace-chat .conversation-navigation-toggle { display: none; }
-.workspace-chat .conversation-sources { flex: 0 0 auto; max-height: 24vh; overflow-y: auto; border-bottom: 1px solid var(--calm-line); padding: 12px 24px; background: var(--calm-inset); }
-.workspace-chat .conversation-sources p { font-size: 12px; line-height: 1.6; margin: 8px 0; }
-.shell main.workspace-chat .messages { width: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 24px max(24px, calc((100% - 760px) / 2)) 20px; margin: 0; scroll-padding-bottom: 24px; }
-.shell main.workspace-chat .message { max-width: 720px; margin-bottom: 22px; }
-.workspace-chat .message.assistant { box-shadow: none; border: 0; padding: 8px 0; background: var(--calm-surface); }
-.workspace-chat .message.user { width: fit-content; max-width: 85%; }
-.workspace-chat .message-text { font-size: var(--calm-text); line-height: 1.75; }
+.workspace-chat .conversation-sources { flex: 0 0 auto; max-height: 28vh; overflow-y: auto; padding: var(--g-a3) var(--g-a5); border-bottom: 1px solid var(--g-linie); background: var(--g-grund); }
+.workspace-chat .conversation-sources p { max-width: 720px; margin: 0 auto; padding: var(--g-a2) 0; font: var(--g-neben); color: var(--g-tinte); }
+.workspace-chat .conversation-sources p + p { border-top: 1px solid var(--g-linie); }
+
+.shell main.workspace-chat .messages {
+  flex: 1 1 auto; width: 100%; min-height: 0; margin: 0; padding: var(--g-a6) max(var(--g-a5), calc((100% - 720px) / 2)) var(--g-a5);
+  overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: var(--g-a5);
+}
+.shell main.workspace-chat .message { max-width: 720px; margin: 0 0 var(--g-a6); padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.shell main.workspace-chat .message > .message-wer { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.shell main.workspace-chat .message.user {
+  width: fit-content; max-width: min(80%, 560px); margin-left: auto; padding: 10px var(--g-a4); border-radius: 18px; background: var(--g-auswahl); color: var(--g-tinte);
+}
+.shell main.workspace-chat .message.user .message-text { font: var(--g-text); }
+.shell main.workspace-chat .message:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 6px; border-radius: 6px; }
+.shell main.workspace-chat .message.user:target, .shell main.workspace-chat .message.user:focus { outline-offset: 3px; }
+.workspace-chat .message.assistant { display: grid; gap: var(--g-a3); }
+.workspace-chat .message.assistant > * { margin: 0; }
+.workspace-chat .message-text { font: 400 17px/1.6 var(--g-schrift); color: var(--g-tinte); }
 .workspace-chat .message-text > p { font-size: inherit; line-height: inherit; }
 .workspace-chat .message-text > :is(p, ul, ol, pre) + :is(p, ul, ol, pre) { margin-top: 14px; }
 .workspace-chat .message-text :is(ul, ol) { padding-left: 24px; margin-bottom: 0; }
 .workspace-chat .message-text li + li { margin-top: 5px; }
-.workspace-chat .message-text code { font-size: .88em; padding: 2px 4px; border-radius: 4px; background: rgba(128,148,153,.16); overflow-wrap: anywhere; }
-.workspace-chat .message-text pre { white-space: pre-wrap; overflow-x: auto; border: 1px solid var(--calm-line); border-radius: 10px; padding: 14px; background: var(--calm-inset); color: var(--calm-ink); }
+.workspace-chat .message-text code { padding: 2px 4px; border-radius: 4px; background: var(--g-segment-grund); font-size: .88em; overflow-wrap: anywhere; }
+.workspace-chat .message-text pre { overflow-x: auto; padding: 14px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); color: var(--g-tinte); white-space: pre-wrap; }
 .workspace-chat .message-text pre code { padding: 0; background: transparent; }
-.shell main.workspace-chat .thread-command { position: static; flex: 0 0 auto; width: 100%; padding: 10px max(24px, calc((100% - 760px) / 2)) 16px; background: var(--calm-surface); border-top: 1px solid var(--calm-line); }
-.workspace-chat .thread-command .conversation-capture { margin: 0 0 8px; }
-.workspace-chat .conversation-capture > button { min-height: 30px; padding: 4px 8px; border-radius: 7px; font-size: 11px; }
+.workspace-chat .message.user .task-source { margin-top: var(--g-a1); }
+
+/* Die Antwort in Sätzen: groß und ruhig; die Belegnummern als kleine runde Marken. */
+.workspace-chat .satzantwort { gap: var(--g-a3); }
+.workspace-chat .satz-liste { gap: var(--g-a2); }
+.workspace-chat .message .satz-liste li p { font: 400 17px/1.6 var(--g-schrift); color: var(--g-tinte); }
+.workspace-chat .satz-nr { min-width: 22px; height: 22px; padding: 0 6px; border: 0; background: var(--g-getoent); color: var(--g-akzent); font: 600 12px/1 var(--g-schrift); vertical-align: 2px; }
+.workspace-chat button.satz-nr { position: relative; }
+.workspace-chat button.satz-nr::after { content: ""; position: absolute; inset: -11px -4px; }
+.workspace-chat button.satz-nr:hover { background: var(--g-getoent-stark); }
+.workspace-chat button.satz-nr:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.workspace-chat .satz-verlaesslichkeit { font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .message :is(.satz-abdeckung, .satz-hinweis) { font: var(--g-fussnote); color: var(--g-leise); }
+.workspace-chat .satz-weg { padding-top: 0; border-top: 0; }
+.workspace-chat .satz-weg > summary { display: inline-flex; align-items: center; min-height: 44px; font: 500 14px/1.3 var(--g-schrift); color: var(--g-verweis); }
+.workspace-chat .satz-weg[open] { padding: var(--g-a1) var(--g-a4) var(--g-a3); border-radius: var(--g-radius-flaeche); background: var(--g-grund); }
+.workspace-chat .satz-weg h4 { margin: var(--g-a2) 0 var(--g-a1); font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+.workspace-chat .satz-weg article { padding: var(--g-a2) 0; }
+.workspace-chat .satz-weg article + article { border-top: 1px solid var(--g-linie); }
+.workspace-chat .satz-weg small { font: var(--g-fussnote); color: var(--g-leise); }
+.workspace-chat .satz-weg blockquote { margin: var(--g-a1) 0; padding-left: var(--g-a3); border-left: 2px solid var(--g-linie); font: var(--g-neben); color: var(--g-tinte); }
+.workspace-chat .satz-weg .quiet-source-toggle { min-height: 44px; padding: 0; opacity: 1; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); text-decoration: none; }
+
+/* Worauf die Antwort sich stützt: eine Überschrift, je Quelle eine Zeile mit einem Klick. */
+.workspace-chat .beleg-quellen, .workspace-chat .beleg-links { gap: 0; margin: 0; padding: 0; border: 0; }
+.workspace-chat .message .beleg-quellen > .beleg-kopf, .workspace-chat .message .beleg-links > .beleg-kopf { margin: 0 0 2px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); opacity: 1; }
+.workspace-chat .beleg-quellen > .beleg-quelle { align-items: center; gap: 0 var(--g-a3); width: 100%; min-height: 44px; border-top: 1px solid var(--g-linie); }
+.workspace-chat .message .beleg-quellen > .beleg-quelle .beleg-text { flex: 1 1 260px; min-width: 0; font: var(--g-neben); color: var(--g-tinte); }
+.workspace-chat .beleg-quellen .quiet-source-toggle { min-height: 44px; padding: 0; opacity: 1; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); text-decoration: none; }
+.workspace-chat .beleg-quellen .quiet-source-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
+.workspace-chat .beleg-quellen > .quelle-technik { margin-top: var(--g-a1); font: var(--g-fussnote); color: var(--g-leise); opacity: 1; }
+.workspace-chat .beleg-quellen > .quelle-technik > summary { display: inline-flex; align-items: center; min-height: 44px; }
+.workspace-chat .message p.beleg-ohne { font: var(--g-fussnote); color: var(--g-leise); opacity: 1; }
+.workspace-chat .message p.antwortzeit { font: var(--g-fussnote); color: var(--g-leise); }
+
+/* Rückkanal: „Stimmt nicht?“ und „In die Akte übernehmen“ als leise Textknöpfe in einer Zeile. */
+.workspace-chat .antwort-rueckkanal { gap: 0 var(--g-a4); margin-top: calc(-1 * var(--g-a2)); }
+.workspace-chat .stimmt-nicht-link { min-height: 44px; font: 500 14px/1.3 var(--g-schrift); color: var(--g-leise); text-decoration: none; }
+.workspace-chat .stimmt-nicht-link:hover { color: var(--g-verweis); text-decoration: none; }
+.workspace-chat .voice-reply { min-height: 44px; padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien); background: transparent; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); justify-self: start; }
+.shell main.workspace-chat .message .antwort-fehler { display: flex; margin: 0; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a1); font: var(--g-neben); color: var(--g-rot); }
+.shell main.workspace-chat .message .antwort-fehler .g-knopf-schlicht { min-height: 44px; padding: 0 6px; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); }
+.workspace-chat .message.error .message-text { color: var(--g-leise); }
+.workspace-chat .antwort-arbeitsweise { font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .antwort-arbeitsweise > summary { display: inline-flex; align-items: center; min-height: 44px; font: 500 14px/1.3 var(--g-schrift); color: var(--g-leise); }
+.workspace-chat .antwort-arbeitsweise p { margin: 0 0 var(--g-a1) 19px; font: var(--g-neben); }
+
+/* Karten im Gespräch: Gedächtnisvorschlag, Freigabe, Vorschlag für die Akte. Eine ruhige graue Fläche, Titel klein,
+   der Satz groß; nichts davon geht ohne den Klick des Menschen. */
+.workspace-chat .memory-candidate {
+  display: grid; gap: var(--g-a2); margin: 0; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-grund);
+}
+.workspace-chat .memory-candidate > .karte-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); letter-spacing: 0; color: var(--g-leise); }
+.workspace-chat .memory-candidate > strong { font: 600 17px/1.4 var(--g-schrift); color: var(--g-tinte); }
+.workspace-chat .memory-candidate :is(.memory-source, .memory-notice, .memory-decision) { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .memory-candidate .memory-decision { color: #197a58; font-weight: 600; }
+.workspace-chat .memory-conflict { margin: 0; padding: var(--g-a2) var(--g-a3); border: 0; border-left: 3px solid var(--g-auswahl-kante); border-radius: 0 var(--g-radius-bedien) var(--g-radius-bedien) 0; background: var(--g-flaeche); }
+.workspace-chat .memory-conflict p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+.workspace-chat .memory-conflict p + p { color: var(--g-tinte); }
+.workspace-chat .memory-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); margin: var(--g-a1) 0 0; }
+.workspace-chat .memory-actions button { min-height: 44px; font-size: 15px; }
+/* Im Vorschlag steht „Bestätigen“ hell erhaben auf der grauen Karte, das Übrige schlicht; gefüllt ist im Gespräch nur Senden oder eine Freigabe. */
+.shell .workspace-chat .memory-candidate:not(.action-approval) .memory-confirm { background: var(--g-flaeche); box-shadow: var(--g-schatten); color: var(--g-akzent); font-weight: 600; }
+.shell .workspace-chat .memory-candidate:not(.action-approval) .memory-confirm:hover:not(:disabled) { background: var(--g-auswahl); }
+.shell .workspace-chat .memory-candidate:not(.action-approval) .memory-reject { padding: 0 var(--g-a2); background: transparent; color: var(--g-verweis); }
+.shell .workspace-chat .memory-candidate:not(.action-approval) .memory-reject:hover:not(:disabled) { background: var(--g-getoent); }
+/* Die Freigabekarte bleibt vollständig: Vorschau im Wortlaut, Bestätigungswort, Freigeben und Ablehnen, Ergebnis. */
+.workspace-chat .action-approval { background: var(--g-flaeche); box-shadow: var(--g-schatten), 0 4px 16px rgba(23,38,53,.06); }
+.workspace-chat .action-approval .action-preview { margin: 0; padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-grund); font: var(--g-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.workspace-chat .action-confirmation { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--g-a1); font: var(--g-neben); color: var(--g-tinte); }
+.workspace-chat .action-confirmation strong { font-weight: 600; }
+.workspace-chat .action-confirmation input { flex: 1 1 100%; margin-top: var(--g-a1); }
+.workspace-chat .action-approval [role="alert"] { margin: 0; font: var(--g-neben); color: var(--g-rot); }
+.workspace-chat .clarification-choices button { border-radius: var(--g-radius-pille); }
+.workspace-chat .clarification-date label { display: grid; gap: var(--g-a1); font: 500 14px/1.3 var(--g-schrift); color: var(--g-tinte); }
+.workspace-chat .clarification-date input { min-height: 44px; font: var(--g-text); }
+.workspace-chat .messages > .thread-notice { max-width: 720px; margin: 0 0 var(--g-a4); font: var(--g-neben); color: #197a58; }
+
+/* Laden und Fehler im Gespräch. */
+.workspace-chat .message.skeleton-message { display: grid; gap: var(--g-a3); padding-top: var(--g-a2); }
+.workspace-chat .skeleton-message i { display: block; height: 14px; margin: 0; border-radius: 7px; background: rgba(23,38,53,.07); }
+.workspace-chat .skeleton-message i:nth-child(2) { width: 72%; }
+.workspace-chat .skeleton-message i:nth-child(3) { width: 46%; }
+.workspace-chat .message.error-message { max-width: none; margin: var(--g-a6) 0; }
+.shell main.workspace-chat .error-message .g-knopf-getoent { min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); }
+
+/* ── Eingabe ─────────────────────────────────────────────────────────────────────────────────────────────────── */
+.shell main.workspace-chat .thread-command {
+  position: static; flex: 0 0 auto; width: 100%; padding: var(--g-a2) max(var(--g-a5), calc((100% - 760px) / 2)) var(--g-a4);
+  border-top: 0; background: var(--g-flaeche);
+}
+.workspace-chat .thread-command .conversation-capture { margin: 0 0 var(--g-a1); }
+.workspace-chat .conversation-capture-knopf { min-height: 44px; padding: 0 var(--g-a1); font-size: 14px; }
 .workspace-chat .conversation-capture .document-import { max-height: 36vh; overflow-y: auto; }
-.workspace-chat .conversation-command { border-radius: 12px; }
-.workspace-chat .conversation-waiting { margin: 0 0 8px; color: var(--calm-muted); font-size: 12px; }
-.workspace-chat .conversation-empty { width: min(100%, 640px); margin: auto; padding: 44px 24px; color: var(--calm-muted); text-align: center; }
-.workspace-chat .conversation-empty :is(h1, h2) { font: 600 25px/1.3 Inter, sans-serif; color: var(--calm-ink); }
-.workspace-chat .conversation-empty p { line-height: 1.7; }
+.workspace-chat .conversation-capture-fuss { margin: var(--g-a1) 0 0; font: var(--g-fussnote); color: var(--g-leise); }
+.shell main.workspace-chat .conversation-command {
+  height: auto; min-height: 56px; gap: var(--g-a2); padding: var(--g-a1) var(--g-a1) var(--g-a1) var(--g-a4); border: 1px solid rgba(23,38,53,.12);
+  border-radius: 22px; background: var(--g-flaeche); box-shadow: 0 1px 2px rgba(23,38,53,.04); color: var(--g-tinte);
+}
+.shell main.workspace-chat .conversation-command:focus-within { outline: 0; border-color: var(--g-auswahl-kante); box-shadow: var(--g-fokus); }
+.shell main.workspace-chat .conversation-command textarea {
+  flex: 1; min-width: 0; min-height: 26px; max-height: 160px; padding: 12px 0; border: 0; outline: 0; resize: none; background: transparent;
+  color: var(--g-tinte); font: var(--g-text); field-sizing: content;
+}
+.shell main.workspace-chat .conversation-command textarea::placeholder { color: #8592a0; opacity: 1; }
+.shell main.workspace-chat .conversation-command .send-button { align-self: flex-end; }
+.workspace-chat .composer-hint { margin: var(--g-a1) 0 0; padding: 0 var(--g-a4); background: transparent; font: var(--g-fussnote); color: var(--g-leise); }
+.workspace-chat .conversation-waiting { margin: 0 0 var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
+.shell main.workspace-chat .thread-command :is(.thread-send-error, .memory-send-error) { position: static; margin: 0 0 var(--g-a2); padding: 0; background: transparent; font: var(--g-neben); color: var(--g-rot); }
+.workspace-chat .conversation-voice-draft { background: var(--g-grund); border-radius: var(--g-radius-flaeche); }
+
+/* Leer: ein großer Titel mitten in der Fläche, die Eingabe darunter. */
+.workspace-chat .conversation-empty { width: min(100%, 640px); margin: auto; padding: var(--g-a7) var(--g-a5); text-align: center; color: var(--g-leise); }
+.workspace-chat .conversation-empty :is(h1, h2) { margin: 0; font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); }
+.workspace-chat .conversation-empty p { margin: var(--g-a2) 0 0; font: var(--g-text); }
+.workspace-chat-start .messages { display: flex; flex-direction: column; }
+
 @media (max-width: 1099px) {
   .shell main.workspace-chat { grid-template-columns: minmax(0, 1fr); position: relative; }
   .workspace-chat:not(.workspace-chat-start) .conversation-navigation { display: none; }
-  .workspace-chat .conversation-navigation-toggle { display: block; }
-  .workspace-chat.navigation-open .conversation-navigation { display: flex; position: absolute; z-index: 12; inset: 64px auto 0 0; width: min(300px, 90%); box-shadow: 8px 0 24px rgba(0,0,0,.1); }
+  .workspace-chat .conversation-navigation-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; }
+  .workspace-chat .conversation-navigation-toggle::before { content: ""; width: 8px; height: 8px; margin: 0 8px 0 2px; border: solid currentColor; border-width: 0 0 2px 2px; transform: rotate(45deg); }
+  .workspace-chat.navigation-open .conversation-navigation {
+    display: flex; position: absolute; z-index: 12; inset: 56px auto 0 0; width: min(320px, 88%); border-right: 0;
+    box-shadow: 12px 0 32px rgba(23,38,53,.14);
+  }
   .workspace-chat-start .conversation-navigation { border-right: 0; }
-  .workspace-chat-start .thread { display: none; }
+  /* Schmal: oben die Liste, unten gleich das Eingabefeld; das Gespräch entsteht mit der ersten Frage (Paket U, G1). */
+  .shell main.workspace-chat.workspace-chat-start { grid-template-rows: minmax(0, 1fr) auto; }
+  .workspace-chat-start .thread { height: auto; }
+  .workspace-chat-start .thread .messages:has(> .conversation-empty) { display: none; }
+  .workspace-chat-start .conversation-navigation { background: var(--g-flaeche); }
+}
+@media (max-width: 900px) {
+  .shell:has(> main.workspace-chat) { height: 100dvh; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  .shell main.workspace-chat { height: auto; min-height: 0; margin: 0; width: 100%; }
 }
 @media (max-width: 700px) {
-  .shell main.workspace-chat { height: calc(100dvh - 82px); margin: 10px; width: calc(100% - 20px); border-radius: 12px; }
-  .shell main.workspace-chat .thread-header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
-  .workspace-chat .thread-header h1 { font-size: 16px; }
-  .workspace-chat .conversation-sources-toggle { font-size: 10px; padding: 5px 7px; }
-  .shell main.workspace-chat .messages { padding: 18px 14px; }
-  .shell main.workspace-chat .thread-command { padding: 8px 12px 12px; }
-  .workspace-chat .message-text { font-size: var(--calm-text); }
-  .workspace-chat .composer-hint { font-size: 10px; }
+  .workspace-chat .thread-header .nur-breit { display: none; }
+  .shell main.workspace-chat .thread-header { flex-wrap: nowrap; gap: var(--g-a1); padding: var(--g-a1) var(--g-a2); }
+  .shell main.workspace-chat .messages { padding: var(--g-a5) var(--g-a4); }
+  .shell main.workspace-chat .message { margin-bottom: var(--g-a5); }
+  .shell main.workspace-chat .message.user { max-width: 88%; }
+  .workspace-chat .message-text, .workspace-chat .message .satz-liste li p { font-size: 16px; }
+  .shell main.workspace-chat .thread-command { padding: var(--g-a1) var(--g-a3) var(--g-a3); }
+  .workspace-chat .memory-candidate { padding: var(--g-a3) var(--g-a4); }
+  .workspace-chat .composer-hint { display: none; }
 }
-@media (max-width:900px) {
-  .shell:has(> main.workspace-chat) {height:100dvh;min-height:0;grid-template-rows:auto minmax(0,1fr);}
-  .shell main.workspace-chat {height:auto;min-height:0;margin:12px;width:calc(100% - 24px);}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-chat :is(.conversation-new, .conversation-nav-item) { transition: none; }
 }

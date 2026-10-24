@@ -184,7 +184,6 @@ export function MailCalendarPreparation({uid,expectedBinding,onDone}: {uid:strin
     </div>;
   };
   return <section className="source-section mail-calendar-preparation" aria-label="Terminentwurf aus Mail vorbereiten">
-    <h2>Termin aus Mail vorbereiten</h2>
     <p>Der Entwurf bleibt lokal und ändert keinen Kalender. Zeiten und Zeitzonen bitte im Original prüfen. Ein begrenzter Mailverlauf kann spätere Absagen außerhalb des gespeicherten Bestands nicht ausschließen.</p>
     {error&&<p role="alert">{error}</p>}
     {staleness&&<p role="alert">{staleness}</p>}

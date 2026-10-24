@@ -74,9 +74,10 @@ export function SetupOverview({ overview, active, onSelect, onRefresh }: {
   return <div className="setup-overview">
     <p className="source-hint">„Eingerichtet“ bedeutet lokal gespeichert. Erfolgreiche Abrufe und Sicherungen werden nur angezeigt, wenn ein entsprechender Lauf vorliegt. Du entscheidest über jede Freigabe.</p>
     <div className="setup-overview-actions"><button type="button" className="secondary-action" disabled={loading} onClick={() => { onRefresh(); setRevision(value => value + 1); }}>Status aktualisieren</button><span role="status">{loading ? "Status wird geladen …" : "Stand der zuletzt gelesenen Einstellungen"}</span></div>
-    <div className="setup-overview-grid">{cards.map(card => <article key={card.id} className="setup-overview-card">
-      <h3>{card.label}</h3><strong>{card.status}</strong><p>{card.detail}</p>
-      <button className="secondary-action" type="button" onClick={() => onSelect(card.id)}>{card.action}</button>
+    {/* Eine Zeile je Bereich wie in einer Liste der Systemeinstellungen: Name, Stand, darunter leise das Weitere, rechts der Weg dorthin. */}
+    <div className="setup-overview-grid">{cards.map(card => <article key={card.id} className="setup-overview-card g-zeile">
+      <span className="g-zeile-text"><h3 className="g-zeile-titel">{card.label}</h3><strong className="g-zeile-neben">{card.status}</strong><p>{card.detail}</p></span>
+      <span className="g-zeile-zusatz"><button className="g-knopf-schlicht g-kompakt" type="button" onClick={() => onSelect(card.id)}>{card.action}</button></span>
     </article>)}</div>
   </div>;
 }

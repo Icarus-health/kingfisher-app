@@ -373,6 +373,23 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         })
     later.sort(key=lambda item: item["time"])
     later = later[:4]
+    # Steht heute nichts an, nennt Heute den nächsten Termin der Woche (Paket U, H8): aus denselben Kalenderdaten,
+    # ohne weiteren Abruf. Ein Termin ohne Zeitzone gilt in der des Briefings.
+    naechster: tuple[datetime, dict[str, Any]] | None = None
+    for event in dashboard.get("calendar", {}).get("items") or []:
+        start = _time(event.get("start"))
+        if start is None:
+            continue
+        local_start = start.astimezone(now.tzinfo) if start.tzinfo else start.replace(tzinfo=now.tzinfo)
+        if local_start.date() <= target:
+            continue
+        if naechster is None or local_start < naechster[0]:
+            naechster = (local_start, event)
+    naechster_termin = None if naechster is None else {
+        "title": str(naechster[1].get("title") or naechster[1].get("summary") or "Termin"),
+        "start": naechster[0].isoformat(),
+        "ganztags": bool(naechster[1].get("all_day")),
+    }
 
     failures = []
     for name in ("tasks", "calendar", "mail"):
@@ -430,6 +447,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
                 for r in dashboard.get('working_memory', {}).get('items') or []) >
             sum(item['source'] == 'working_memory' for item in happening[:3])),
         "later_today": later,
+        "naechster_termin": naechster_termin,
         "timeline": [
             {"id": "yesterday", "label": "GESTERN", "icon": "mail", "tone": "navy"},
             {"id": "now", "label": "JETZT", "icon": "brand", "tone": "navy"},

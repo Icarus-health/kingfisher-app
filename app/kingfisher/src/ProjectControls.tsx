@@ -12,12 +12,18 @@ const PROJECT_STATUSES: Array<{ value: ProjectStatus; label: string }> = [
   { value: "dropped", label: "Verworfen" },
 ];
 
-export function ProjectControls({ projects, selectedId, onSelect, onChanged, contextRevision=0 }: {
+/**
+ * Projekte anlegen und den Stand des gewählten Projekts ändern. Steht im Reiter „Projekte“; die Auswahl, welches
+ * Projekt die Liste zeigt, ist ein kleiner Filter neben der Suche (`Tasks` in App.tsx).
+ */
+export function ProjectControls({ projects, selectedId, onSelect, onChanged, contextRevision=0, onFormular }: {
   projects: Project[];
   selectedId: string;
   onSelect: (id: string) => void;
   onChanged: () => void | Promise<void>;
   contextRevision?: number;
+  /** Meldet, ob das Formular „Neues Projekt“ offen ist (dann ist sein Knopf der eine gefüllte der Ansicht). */
+  onFormular?: (offen: boolean) => void;
 }) {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -28,6 +34,9 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged, con
   const requestId = useRef<string | null>(null);
   useEffect(()=>setError(null),[selectedId,contextRevision]);
   const selectedProject = projects.find((project) => project.id === selectedId);
+  const meldeFormular = useRef(onFormular);
+  meldeFormular.current = onFormular;
+  useEffect(() => { meldeFormular.current?.(creating); }, [creating]);
 
   function clearCreateForm() {
     requestId.current = null;
@@ -78,13 +87,6 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged, con
   return (
     <section aria-label="Projekt steuern" className="project-controls">
       <div className="project-controls-toolbar">
-        <label className="project-select-field">
-          <span>Projekt</span>
-          <select disabled={busy} onChange={(event) => onSelect(event.target.value)} value={selectedId}>
-            <option value="">Alle Projekte</option>
-            {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-          </select>
-        </label>
         <button
           aria-expanded={creating}
           className="secondary-action"
@@ -103,7 +105,7 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged, con
             <input autoFocus disabled={busy} onChange={(event) => setName(event.target.value)} placeholder="Name des Projekts" required value={name} />
           </label>
           <label>
-            Beschreibung <small>(optional)</small>
+            Beschreibung
             <textarea disabled={busy} onChange={(event) => setDescription(event.target.value)} placeholder="Worum geht es?" value={description} />
           </label>
           <div className="project-form-actions">
@@ -126,9 +128,7 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged, con
             </select>
           </label>
         </div>
-      ) : (
-        <p className="project-selection-hint">Ohne Projektauswahl werden alle Einträge angezeigt.</p>
-      )}
+      ) : null}
 
       {error ? <p aria-live="polite" className="project-controls-error" role="alert">{error}</p> : null}
     </section>

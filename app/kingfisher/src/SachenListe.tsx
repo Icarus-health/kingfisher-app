@@ -7,6 +7,8 @@ import "./MemoryDirectory.css";
 import { OrganisationGroups } from "./OrganisationGroups";
 import { MemoryPlaces } from "./MemoryPlaces";
 import { WorkspaceAvatar } from "./MemoryAvatar";
+import { Gruppe, Leer } from "./grundlage";
+import { InterfaceIcon } from "./InterfaceIcon";
 
 const SEITE = 50;
 const TEXTE: Record<AkteSachenArt, { titel: string; suche: string; leer: string }> = {
@@ -64,26 +66,27 @@ export function SachenListe({ art, query: restoredQuery, page: restoredPage, onQ
     const returnTo = memoryReturnPath(new URLSearchParams({ return_to: `/memory?${query}` }).toString());
     navigate(`/memory/akte/${encodeURIComponent(sache)}?${new URLSearchParams({return_to: returnTo})}`);
   }
-  return <section className="memory-directory" data-memory-loading={!data && !fehler} aria-label={text.titel}>
-    <header><p className="eyebrow">GEDÄCHTNIS</p><h1>{text.titel}</h1>
-      <details className="quiet-details"><summary>Über diese Akten</summary><p>Eine Akte pro Eintrag, aus den Quellen abgeleitet. Jede Zeile in der Akte führt zur Quelle.</p></details></header>
-    <label className="directory-search">{text.suche}
-      <input type="search" value={suche} onChange={event => { setSuche(event.target.value); setSeite(0); }} placeholder="Suchen …" />
-    </label>
-    {fehler ? <div className="directory-empty" role="status"><p>Die Liste konnte gerade nicht geladen werden.</p><button type="button" onClick={() => setNeu(value => value + 1)}>Erneut laden</button></div> : null}
-    {data ? <p className="directory-count" aria-live="polite">{data.gesamt} {data.gesamt === 1 ? "Eintrag" : "Einträge"}{data.berechnung.offen ? ` · für ${data.berechnung.offen} Quellen wird noch berechnet, wozu sie gehören` : ""}</p> : <p className="directory-count" aria-busy="true">Wird geladen …</p>}
-    {data && data.sachen.length ? <ul className="directory-list">{data.sachen.map(sache => <li key={sache.sache} data-memory-row={sache.sache}>
-      <button type="button" onClick={() => openAkte(sache.sache)} aria-label={`Akte öffnen: ${sache.name}`}>
-        <WorkspaceAvatar id={sache.sache} label={sache.name} />
-        <span className="directory-label"><strong>{sache.name}</strong><small>{sache.quellen} {sache.quellen === 1 ? "Quelle" : "Quellen"}{sache.letzte ? ` · zuletzt ${tag(sache.letzte)}` : ""}</small></span>
-        <span className="directory-open">Akte öffnen <span aria-hidden="true">→</span></span>
-      </button></li>)}</ul> : data && !fehler ? <div className="directory-empty"><h2>{suche ? "Kein passender Eintrag" : "Hier ist noch Platz"}</h2>{suche ? <p>Versuche einen anderen Namen.</p> : <GedaechtnisLeer satz={text.leer} />}</div> : null}
+  const anzahl = data ? `${data.gesamt} ${data.gesamt === 1 ? "Eintrag" : "Einträge"}${data.berechnung.offen ? ` · ${data.berechnung.offen} Quellen in Arbeit` : ""}` : "";
+  return <section className="memory-directory gd-verzeichnis" data-memory-loading={!data && !fehler} aria-label={text.titel}>
+    <header className="gd-verzeichnis-kopf"><h2 className="g-titel">{text.titel}</h2>
+      <label className="directory-search"><span className="visually-hidden">{text.suche}</span>
+        <input type="search" value={suche} onChange={event => { setSuche(event.target.value); setSeite(0); }} placeholder={`${text.suche} …`} />
+      </label></header>
+    {fehler ? <Leer zeichen="search" satz="Die Liste konnte gerade nicht geladen werden." aktion={<button type="button" className="g-knopf-getoent" onClick={() => setNeu(value => value + 1)}>Erneut laden</button>} /> : null}
+    {!data && !fehler ? <p className="directory-count" aria-busy="true">Wird geladen …</p> : null}
+    {data && data.sachen.length ? <Gruppe titel={<span className="directory-count" aria-live="polite">{anzahl}</span>}><ul className="directory-list gd-liste">{data.sachen.map(sache => <li key={sache.sache} data-memory-row={sache.sache}>
+      <button type="button" className="g-zeile gd-zeile" onClick={() => openAkte(sache.sache)} aria-label={`Akte öffnen: ${sache.name}`}>
+        {art === "ort" || art === "thema" ? <span className="g-zeile-symbol gd-zeichen" aria-hidden="true"><InterfaceIcon name={art === "ort" ? "pin" : "brain"} /></span> : <WorkspaceAvatar id={sache.sache} label={sache.name} />}
+        <span className="g-zeile-text"><span className="g-zeile-titel">{sache.name}</span><span className="g-zeile-neben">{sache.quellen} {sache.quellen === 1 ? "Quelle" : "Quellen"}</span></span>
+        {sache.letzte ? <span className="g-zeile-wert">{tag(sache.letzte)}</span> : null}
+        <span className="g-zeile-pfeil" aria-hidden="true" />
+      </button></li>)}</ul></Gruppe> : data && !fehler ? (suche ? <Leer zeichen="search" satz="Kein passender Eintrag." aktion={<button type="button" className="g-knopf-getoent" onClick={() => { setSuche(""); setSeite(0); }}>Suche zurücksetzen</button>} /> : <GedaechtnisLeer satz={text.leer} />) : null}
+    {seiten > 1 ? <nav className="directory-pagination" aria-label="Aktenseiten">
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={seite === 0} onClick={() => setSeite(seite - 1)}>Zurück</button>
+      <span>Seite {seite + 1} von {seiten}</span>
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={seite + 1 >= seiten} onClick={() => setSeite(seite + 1)}>Weiter</button>
+    </nav> : null}
     {data && art === "organisation" && <OrganisationGroups entries={data.sachen.map(sache => ({id:sache.sache,name:sache.name}))} />}
     {data && art === "ort" && <MemoryPlaces entries={data.sachen.map(sache => ({id:sache.sache,name:sache.name}))} />}
-    {seiten > 1 ? <nav className="directory-pagination" aria-label="Aktenseiten">
-      <button type="button" disabled={seite === 0} onClick={() => setSeite(seite - 1)}>Zurück</button>
-      <span>Seite {seite + 1} von {seiten}</span>
-      <button type="button" disabled={seite + 1 >= seiten} onClick={() => setSeite(seite + 1)}>Weiter</button>
-    </nav> : null}
   </section>;
 }

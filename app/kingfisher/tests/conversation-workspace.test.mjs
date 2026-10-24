@@ -80,11 +80,30 @@ test('thread follows the final answer near the bottom and respects reading older
 });
 
 
-test('start workspace keeps creation failure visible and prevents duplicate creation while waiting',async()=>{
- const {ConversationHistory}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const old=api.createConversation;let reject,creates=0;
- api.createConversation=()=>{creates++;return new Promise((_,r)=>reject=r);};
- const d=driver(ConversationHistory,{recentConversation:null,rememberConversation(){}});
- try{button(d.render(),'Neues Gespräch beginnen').props.onClick();assert.equal(button(d.render(),'Neues Gespräch beginnen').props.disabled,true);
-   reject(Error('offline'));await tick();assert.equal(creates,1);assert.match(text(d.render()),/konnte nicht angelegt/);assert.equal(button(d.render(),'Neues Gespräch beginnen').props.disabled,false);
- }finally{d.close();api.createConversation=old;}
+test('start workspace shows the input at once and creates the conversation only with the first question',async()=>{
+ const {ConversationHistory}=await server.ssrLoadModule('/src/App.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ const old={createConversation:api.createConversation,sendMessage:api.sendMessage};const oldWindow=globalThis.window,oldDocument=globalThis.document;
+ const pushed=[];globalThis.window={location:{hash:''},history:{pushState(_s,_t,path){pushed.push(path);}},dispatchEvent(){},addEventListener(){},removeEventListener(){}};
+ globalThis.PopStateEvent??=class{constructor(type){this.type=type;}};
+ let focused=0;globalThis.document={querySelector(){return{focus(){focused++;}};}};
+ let creates=0,sends=[],failSend=true;
+ api.createConversation=async()=>{creates++;return{conversation:{id:'neu'}};};
+ api.sendMessage=async(id,message)=>{sends.push([id,message]);if(failSend)throw Error('offline');return{};};
+ const d=driver(ConversationHistory,{recentConversation:null,rememberConversation(){},chatAvailable:true});
+ try{let tree=d.render();d.runEffects();
+   assert.equal(button(tree,'Neues Gespräch beginnen'),undefined,'kein zweiter Knopf in der Mitte');
+   const bar=nodes(tree,n=>n.type?.name==='CommandBar')[0];assert.ok(bar,'die Mitte ist gleich das Eingabefeld');assert.equal(bar.props.disabled,false);
+   await tick();tree=d.render();assert.equal(creates,0,'Öffnen legt kein Gespräch an');
+   const nav=nodes(tree,n=>n.type?.name==='ConversationNavigation')[0];await nav.props.onCreate();assert.equal(creates,0,'„Neues Gespräch“ legt nichts an');assert.equal(focused,1,'sondern führt ins Eingabefeld');
+   await assert.rejects(bar.props.onSubmit('Wann ist der Fachtag?'));tree=d.render();
+   assert.equal(creates,1);assert.equal(nodes(tree,n=>n.type?.name==='MessageText')[0].props.content,'Wann ist der Fachtag?','die Frage bleibt stehen');assert.match(text(tree),/konnte nicht gesendet werden/);
+   failSend=false;await nodes(d.render(),n=>n.type?.name==='CommandBar')[0].props.onSubmit('Wann ist der Fachtag?');
+   assert.equal(creates,1,'der zweite Versuch nimmt dasselbe Gespräch');assert.deepEqual(sends.map(x=>x[0]),['neu','neu']);assert.deepEqual(pushed,['/conversations/neu']);
+ }finally{d.close();Object.assign(api,old);globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});
+
+test('without a known chat status the start input stays disabled and says why',async()=>{
+ const {ConversationHistory}=await server.ssrLoadModule('/src/App.tsx');
+ const d=driver(ConversationHistory,{recentConversation:null,rememberConversation(){},chatAvailable:false,chatPlaceholder:'Kingfisher wird verbunden …'});
+ try{const bar=nodes(d.render(),n=>n.type?.name==='CommandBar')[0];assert.equal(bar.props.disabled,true);assert.equal(bar.props.placeholder,'Kingfisher wird verbunden …');}finally{d.close();}
 });

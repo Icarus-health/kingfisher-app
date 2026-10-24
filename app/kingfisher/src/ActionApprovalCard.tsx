@@ -21,7 +21,7 @@ export function ActionApprovalCard({ action, busy, onResolve }: {
     catch { setError(true); }
   }
   return <section className="memory-candidate action-approval" aria-label="Aktionsfreigabe">
-    <span>AKTION ZUR FREIGABE</span>
+    <span className="karte-titel">Zur Freigabe</span>
     <p className="action-preview">{action.dry_run}</p>
     {action.state === "pending" ? <>
       {action.confirmation_phrase ? <label className="action-confirmation">

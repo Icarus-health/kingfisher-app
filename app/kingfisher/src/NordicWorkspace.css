@@ -12,8 +12,7 @@
   color-scheme: light;
 }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.shell, .shell:not(:has(.today-page)) { background: var(--nordic-ground); }
-.shell:not(:has(.today-page))::before { display: none; }
+.shell { background: var(--nordic-ground); }
 .shell main { color-scheme: light; }
 .shell main :is(h1,h2,h3) { font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; text-shadow: none; }
 .shell main h1 { letter-spacing: -.8px; }
@@ -31,7 +30,6 @@
 .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) button { border-radius: 0; min-height: 46px; padding: 8px 2px; background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--calm-muted); font-size: 14px; }
 .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) :is(button.active,button[aria-pressed='true']) { background: transparent; color: var(--calm-primary); border-bottom-color: var(--nordic-selection-edge); font-weight: 600; }
 .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) { position: relative; isolation: isolate; margin-bottom: 20px; padding: 18px 0 20px; min-height: 110px; }
-.shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading)::before { content: ''; position: absolute; z-index: -1; inset: -20px -28px 0; background: url('/03_Media/Approved/landscape-calm-page-v1.png') center 16% / cover no-repeat; opacity: .16; pointer-events: none; }
 .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) h1 { font-size: 32px; line-height: 1.2; font-weight: 650; color: var(--calm-ink); }
 .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) .eyebrow { font-size: 11px; margin-bottom: 8px; color: var(--calm-muted); }
 .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) > p:last-child { font-size: 14px; color: var(--calm-muted); margin-top: 10px; }
@@ -40,7 +38,6 @@
 .memory-shell { height: 100dvh; min-height: 0; }
 .shell main.memory-page.memory-page-workspace { padding: 0; height: 100%; min-height: 0; overflow-y: auto; gap: 0; align-items: stretch; background: var(--nordic-paper); }
 .shell .memory-page-workspace .memory-filter { position: relative; isolation: isolate; flex: 0 0 auto; width: 100%; border-radius: 0; margin: 0; padding: 24px 28px 0; background: var(--nordic-ground); border: 0; border-bottom: 1px solid var(--calm-line); box-shadow: none; }
-.shell .memory-page-workspace .memory-filter::before { content: ''; position: absolute; z-index: -1; inset: 0; background: url('/03_Media/Approved/landscape-calm-page-v1.png') center 16% / cover no-repeat; opacity: .22; pointer-events: none; }
 .shell .memory-page-workspace .memory-filter > .memory-heading-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
 .memory-heading-row h1 { margin: 0; font: 650 32px/1.2 Inter, sans-serif; color: var(--calm-ink); }
 .shell .memory-page-workspace .memory-filter .document-add { width: auto; min-height: 42px; padding: 10px 16px; background: var(--calm-primary); color: var(--calm-on-primary); display: flex; align-items: center; gap: 10px; border-radius: 8px; }
@@ -49,9 +46,6 @@
 .shell .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button { width: auto; min-height: 44px; padding: 8px 0 10px; background: transparent; color: var(--calm-muted); border: 0; border-bottom: 3px solid transparent; border-radius: 0; font-size: 14px; }
 .shell .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button[aria-pressed='true'] { color: var(--calm-primary); border-bottom-color: var(--nordic-selection-edge); font-weight: 600; }
 .memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button .interface-icon { display: none; }
-.shell .memory-page-workspace .memory-filter .memory-tools { margin: 0; padding: 0; font-size: 12px; color: var(--calm-muted); }
-.shell .memory-page-workspace .memory-filter .memory-tools > summary { padding: 8px 0 10px; }
-.memory-tools[open] > div { padding-bottom: 12px; }
 .memory-documents-workspace { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .shell .memory-page-workspace .memory-directory { border: 0; border-radius: 0; margin: 0; background: var(--nordic-paper); box-shadow: none; }
 .shell .memory-page-workspace .memory-directory:not(.document-workspace) { padding: 26px 28px; }
@@ -118,7 +112,6 @@
 /* Derselbe Satz und dieselben Materialien in den übrigen Alltagsbereichen. */
 .shell main.workspace-tasks { margin: 0; width: 100%; max-width: none; padding: 0 28px 28px; min-height: 100dvh; border: 0; border-radius: 0; box-shadow: none; background: var(--nordic-ground); }
 .shell main.workspace-tasks .tasks-heading { margin: 0 -28px 0; min-height: 112px; padding: 28px; border: 0; border-radius: 0; }
-.shell main.workspace-tasks .tasks-heading::before { inset: 0; }
 .shell main.workspace-tasks .tasks-heading h1 { font: 650 32px/1.2 Inter,sans-serif; }
 .shell main.workspace-tasks .task-tabs { margin: 0 0 10px; padding: 0; border-radius: 0; border: 0; border-bottom: 1px solid var(--calm-line); background: transparent; gap: 20px; }
 .shell main.workspace-tasks .task-tabs button { min-height: 44px; padding: 8px 0; border: 0; border-radius: 0; border-bottom: 3px solid transparent; color: var(--calm-muted); background: transparent; }
@@ -133,12 +126,6 @@
 .shell main.workspace-tasks .task-row { background: var(--nordic-paper); }
 .shell main.workspace-tasks .task-row + .task-row { border-top: 1px solid #edf0f3; }
 .shell main.workspace-tasks .task-copy strong { font-size: 15px; }
-.shell main.workspace-chat { width: 100%; height: 100dvh; margin: 0; border: 0; border-radius: 0; box-shadow: none; grid-template-columns: 270px minmax(0,1fr); }
-.workspace-chat .conversation-navigation { background: var(--nordic-ground); }
-.workspace-chat .conversation-nav-item[aria-current='page'] { background: var(--nordic-selection); border-color: transparent; }
-.shell main.workspace-chat .thread-header { background: var(--nordic-ground); border-bottom: 1px solid var(--calm-line); }
-.workspace-chat .message.user { background: var(--nordic-selection); border: 0; border-radius: 12px; color: var(--calm-ink); }
-.workspace-chat .message.assistant, .workspace-chat .thread-command { background: var(--nordic-paper); }
 .shell main.inbox-page { background: var(--nordic-ground); }
 .shell .mail-list-column { background: var(--nordic-paper); border-color: var(--calm-line); }
 .shell .mail-list-row[aria-selected='true'], .shell .saved-mail-row.active { background: var(--nordic-selection); }
@@ -154,12 +141,6 @@
 .shell .settings-page .chatgpt-access h2 { margin: 0 0 10px; font: 600 22px/1.35 Inter,sans-serif; letter-spacing: -.35px; }
 .shell .settings-page .chatgpt-access .cloud-memory { margin-top: 8px; padding: 18px; border: 0; background: var(--calm-inset); }
 .shell .settings-page .chatgpt-access .cloud-memory h3 { font-size: 18px; }
-.today-page { --today-surface: var(--nordic-paper); --today-ink: var(--calm-ink); --today-muted: var(--calm-muted); --today-line: var(--calm-line); --today-soft: var(--calm-soft); --today-link: var(--calm-link); --today-shadow: var(--calm-shadow); background: var(--nordic-ground); }
-.today-landscape { position: absolute; inset: 0 0 auto; height: 300px; opacity: .65; }
-.today-page .hero-copy h1 { font: 650 42px/1.15 Inter,sans-serif; color: var(--calm-ink); text-shadow: none; }
-.today-page .hero-copy .today-hero-summary { font-size: 15px; }
-.today-page .hero-bird { opacity: .9; }
-.today-page .today-panel { box-shadow: none; }
 
 @media (min-width: 1101px) and (min-height: 650px) {
   .memory-page-workspace:has(.document-workspace) { overflow: hidden; }
@@ -173,11 +154,9 @@
   .document-workspace[data-document-open='true'] .document-columns > :is(.document-folders,.document-list-column) { display: none; }
   .document-reader-back { display: block; }
   .document-list-column { border-right: 0; }
-  .shell main.workspace-chat { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 900px) {
   .memory-shell { grid-template-rows: auto minmax(0,1fr); }
-  .shell main.workspace-chat { height: auto; margin: 0; width: 100%; }
   .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) { min-height: 100px; }
 }
 @media (max-width: 700px) {
@@ -198,10 +177,8 @@
   .document-reader .embedded-source > section > h3 { font-size: 23px; }
   .document-folder-editor { padding: 10px 16px; }
   .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading) h1 { font-size: 27px; }
-  .shell main :is(.tasks-heading,.settings-heading,.inbox-heading,.history-heading,.profile-heading)::before { inset-inline: -16px; }
   .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) { gap: 12px; }
   .shell main :is(.task-tabs,.profile-tabs,.view-switch,.settings-section-nav) button { font-size: 12px; }
-  .today-page .hero-copy h1 { font-size: 32px; }
 }
 
 /* Die ergänzenden Arbeitsbereiche verwenden dieselben lesbaren Formulare. */
@@ -213,30 +190,10 @@
 .shell .development-page a { color: var(--calm-link); text-underline-offset: 3px; }
 .shell .development-page .decision-row { margin-block: 16px; }
 
-/* Das Briefing ist ein vorübergehender Dialog und bleibt auch mit längeren Hinweisen lesbar. */
-.briefing-drawer { font-family: Inter,-apple-system,BlinkMacSystemFont,sans-serif; color: var(--calm-ink); }
-.briefing-drawer .drawer-heading h2 { font: 650 34px/1.2 Inter,sans-serif; letter-spacing: -.6px; }
-.briefing-drawer .drawer-heading > span { font: 400 14px/1.5 Inter,sans-serif; }
-.briefing-drawer .drawer-grid { align-items: start; }
-.briefing-drawer .drawer-card { box-shadow: none; border-color: var(--calm-line); background: var(--nordic-paper); }
-.briefing-drawer .drawer-card header { font-size: 12px; }
-.briefing-drawer :is(.drawer-row,.message-row) strong { font-size: 14px; line-height: 1.5; }
-.briefing-drawer :is(.drawer-row,.message-row) small { margin-top: 5px; color: var(--calm-muted); font-size: 13px; line-height: 1.6; }
-.briefing-drawer .drawer-row em { font-size: 12px; color: var(--calm-muted); }
-.briefing-drawer :is(.drawer-empty,.meeting-time,.meeting-context p,.drawer-card a) { font-size: 14px; line-height: 1.65; }
-.briefing-drawer .meeting-context strong { font-size: 13px; }
-.briefing-drawer .meeting-card h3 { font: 600 22px/1.3 Inter,sans-serif; }
-.briefing-drawer :is(button,a):focus-visible { outline: 3px solid var(--nordic-selection-edge); outline-offset: 3px; }
-@media (prefers-reduced-motion: reduce) {
-  .briefing-drawer, .scrim { transition: none; }
-}
 @media (max-width: 700px) {
   .shell .development-page .decision-create-form { grid-template-columns: minmax(0,1fr); }
-  .briefing-drawer .drawer-heading h2 { font-size: 28px; }
 }
 /* Autoren bleiben auch auf der hellen eigenen Sprechblase eindeutig lesbar. */
-.workspace-chat .message > span { font-size: 11px; line-height: 1.5; color: var(--calm-muted); }
-.workspace-chat .message.user > span { color: var(--calm-primary); }
 
 .shell main a:not([class]) { color: var(--calm-link); text-underline-offset: 3px; }
 
@@ -255,91 +212,27 @@
 .shell main .quiet-details > summary { cursor: pointer; min-height: 36px; padding: 8px 0; color: var(--calm-link); font-weight: 500; }
 .shell main .quiet-details[open] > summary { margin-bottom: 8px; }
 .shell main .quiet-details :is(p,blockquote) { line-height: 1.6; }
-.shell .today-source-status { display: block; margin-bottom: 14px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--calm-inset); font-size: 12px; }
-.shell .today-source-status > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; min-height: 38px; padding: 8px 0; cursor: pointer; color: var(--calm-muted); }
-.shell .today-source-status > summary::before { content: '›'; color: var(--calm-link); font-size: 18px; line-height: 1; }
-.shell .today-source-status[open] > summary::before { transform: rotate(90deg); }
-.shell .today-source-status > summary > span:first-child { font-weight: 600; color: var(--calm-ink); }
-.shell .today-source-status > summary > time { margin-left: auto; font-variant-numeric: tabular-nums; }
-.shell .today-source-status[open] { padding-bottom: 12px; }
-.shell .today-source-status > div { margin: 8px 0; }
-.shell .today-source-status ul { padding-left: 18px; }
-.shell .today-source-status .today-context-note { padding: 0; border: 0; }
-.shell .today-review-badge, .shell .suggestion-time-badge { display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px; background: #fff2d8; color: #704b0b; font-size: 12px; line-height: 1.5; margin-top: 6px; }
-.shell .today-task-actions { margin-top: 10px; }
-.shell .today-task-actions > .task-suggestion-actions { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; align-items: start; }
-.shell .today-task-actions .today-task-more { min-width: 0; }
-.shell .today-task-actions .today-task-more[open] { grid-column: 1 / -1; grid-row: 2; border-top: 1px solid var(--calm-line); padding-top: 6px; }
-.shell .today-task-actions .today-task-more > :is(button,a) { margin: 4px 12px 4px 0; }
-.shell .today-task-actions .today-task-more p { margin: 4px 0 12px; font-size: 13px; }
-.shell .today-followups { grid-template-columns: repeat(auto-fit,minmax(min(360px,100%),1fr)); }
-.shell .today-followups > #memory-questions:empty { display: none; }
-.shell .today-followups:has(> #memory-questions:empty):not(:has(> section)) { display: none; }
-.shell .today-memory > summary { padding: 14px 20px; color: var(--calm-ink); }
-.shell .today-memory > summary > span { float: right; color: var(--calm-muted); font-size: 12px; }
-.shell .today-activity { grid-column: 1 / -1; padding-inline: 4px; }
-.shell .today-activity .tageslage { margin-top: 0; }
-.shell .today-runtime { margin-top: 12px; padding: 0 4px; }
-.shell .today-personal { margin-top: 18px; border: 0; background: transparent; }
-.shell .today-personal .today-panel-heading { min-height: 0; padding: 0; }
-.shell .today-personal .today-panel-heading h2 { font-size: 14px; letter-spacing: 0; color: var(--calm-muted); }
-.shell .today-personal .development-links { margin: 4px 0 0; gap: 8px 24px; }
-.shell .today-attention .today-item-meta { justify-content: start; gap: 12px; font-size: 12px; margin-bottom: 4px; }
-.shell .today-attention-item h3 { font-size: 16px; }
-.shell .today-attention-item { padding-block: 10px 16px; }
-.shell .today-attention-item + .today-attention-item { padding-top: 16px; }
+.shell .suggestion-time-badge { display: inline-block; width: fit-content; padding: 3px 8px; border-radius: 5px; background: #fff2d8; color: #704b0b; font-size: 12px; line-height: 1.5; margin-top: 6px; }
 .shell .workspace-tasks .suggestion-evidence { padding: 0; border: 0; }
 .shell .workspace-tasks .suggestion-evidence p { margin: 8px 0; }
 .shell .workspace-tasks .suggestion-time-badge { margin: 0; }
-.shell .memory-search-help { margin: 6px 0 16px; }
-@media (max-width: 700px) {
-  .shell .today-source-status > summary > time { margin-left: 0; }
-  .shell .today-memory > summary > span { float: none; margin-left: 10px; }
-}
-/* Der Tageskopf lässt den eigentlichen Aufgaben und Terminen den Platz. */
-.shell .today-page .hero { height: 190px; min-height: 190px; }
-.shell .today-page .hero-copy { top: 20px; left: 32px; }
-.shell .today-page .hero-copy h1 { font-size: 34px; }
-.shell .today-page .hero-copy .today-hero-label { margin-bottom: 7px; }
-.shell .today-page .hero-copy .today-hero-summary { margin: 8px 0 12px; font-size: 14px; }
-.shell .today-page .hero-bird { width: 185px; height: 145px; top: 32px; right: 22px; }
-.shell .today-page .weather { top: 64px; right: 200px; }
-.shell .today-page .today-landscape { height: 220px; }
-.shell .today-page .briefing-area { margin-top: -8px; }
-.shell .today-page .today-panel-heading { min-height: 72px; padding-block: 16px; }
-.shell .today-page .today-panel-heading h2 { font-size: 24px; }
-.shell .today-page .today-flight { width: 90px; height: 70px; top: 0; }
-.shell .today-page .today-count { top: 20px; }
-@media (max-width: 700px) {
-  .shell .today-page .hero { height: auto; min-height: 170px; padding-bottom: 18px; }
-  .shell .today-page .hero-copy { top: auto; left: auto; padding: 18px 16px 0; }
-  .shell .today-page .hero-copy h1 { font-size: 28px; }
-  .shell .today-page .briefing-area { margin-top: 0; }
-}
 
 /* Die erste Ebene zeigt den Inhalt; Bearbeitung und Herkunft folgen darunter. */
 .shell .mail-reader-meta { padding: 22px 0 16px; }
 .shell .mail-reader-meta h1 { margin-bottom: 16px; font-size: 24px; line-height: 1.3; }
 .shell .mail-reader-body { padding: 24px 0 30px; }
 .shell .mail-reader-body pre { max-width: 76ch; font-size: 15px; line-height: 1.75; }
-.shell .mail-reader-local .saved-mail-workflow { margin-top: 18px; padding: 16px; }
-.shell .mail-reader .saved-mail-workflow h2 { font-size: 16px; margin: 0 0 10px; }
+.shell .mail-reader-local .saved-mail-workflow { margin-top: 0; }
 .shell .mail-action-panel { margin-top: 12px; border-top: 1px solid var(--calm-border); padding-top: 12px; }
 .shell .mail-action-panel > summary { font-weight: 600; }
 .shell .mail-action-panel .mail-task-form, .shell .mail-action-panel .mail-reader-reply { margin: 12px 0; }
-.shell .mail-source-state { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 5px; background: var(--calm-inset); }
 .shell .calendar-page .settings-heading { min-height: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 8px 16px; }
 .shell .calendar-page .settings-heading h1 { font-size: 26px; margin: 0; }
 .shell .calendar-page .settings-heading > p:last-child { margin: 0; font-size: 12px; }
 .shell .calendar-navigator > summary { font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
 .shell .calendar-navigator > summary > span { display: block; margin: 5px 0 0 16px; font-size: 11px; font-weight: 400; color: var(--calm-muted); }
 .shell .calendar-navigator-content { margin-top: 18px; }
-.shell .calendar-navigator-content > h2 { margin-top: 20px; }
-.shell .calendar-options { margin: 0; font-size: 12px; }
-.shell .calendar-options[open] { flex-basis: 100%; }
-.shell .calendar-options button { margin: 10px 8px 0 0; }
 .shell .calendar-agenda { margin-top: 16px; border-top: 1px solid var(--calm-border); padding-top: 14px; }
-.shell .calendar-agenda > summary { font-size: 13px; font-weight: 600; }
 .shell .person-profile-header { display: flex; align-items: center; gap: 22px; padding: 24px 0; margin-bottom: 12px; }
 .shell .person-profile-header .memory-avatar-editor { flex: 0 0 auto; margin: 0; max-width: 220px; align-items: flex-start; flex-direction: column; gap: 8px; }
 .shell .person-profile-header .memory-avatar-editor summary { font-size: 11px; }
@@ -370,9 +263,6 @@
   .shell .calendar-navigator { display: block; }
   .shell .calendar-navigator > summary > span { display: inline; margin-left: 8px; }
   .shell .calendar-navigator-content { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
-  .shell .calendar-navigator-content > h2 { grid-column: 1/-1; margin: 0; }
-  .shell .calendar-navigator-content .mini-month { grid-column: 1/-1; }
-  .shell .calendar-navigator-content .calendar-date-picker { grid-column: 1/-1; margin: 0; }
   .shell .calendar-page .calendar-actions { flex-wrap: wrap; }
   .shell .person-profile-header { gap: 14px; padding: 12px 0 20px; align-items: flex-start; }
   .shell .person-profile-header .memory-avatar-editor { max-width: 100px; }

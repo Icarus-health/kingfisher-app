@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import "./LiveClock.css";
 
-export function LiveClock({ className = "sidebar-clock", seconds = true }: { className?: string; seconds?: boolean }) {
+/** Die Uhr der Seitenleiste: Stunden und Minuten, ohne tickende Sekunden (Paket U, H7). Sie prüft jede Sekunde, zeichnet
+ * aber nur neu, wenn die Minute wechselt. */
+export function LiveClock({ className = "sidebar-clock" }: { className?: string }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const refresh = () => setNow(new Date());
+    const refresh = () => setNow(previous => {
+      const next = new Date();
+      return Math.floor(next.getTime() / 60_000) === Math.floor(previous.getTime() / 60_000) ? previous : next;
+    });
     const onVisible = () => { if (!document.hidden) refresh(); };
     const timer = window.setInterval(refresh, 1_000);
     window.addEventListener("focus", refresh);
@@ -23,7 +28,7 @@ export function LiveClock({ className = "sidebar-clock", seconds = true }: { cla
     timeZone, weekday: "short", day: "2-digit", month: "long", year: "numeric",
   }).format(now);
   const time = new Intl.DateTimeFormat("de-DE", {
-    timeZone, hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}), hour12: false,
+    timeZone, hour: "2-digit", minute: "2-digit", hour12: false,
   }).format(now);
 
   return <time className={className} dateTime={now.toISOString()} title={`Aktuelle Ortszeit · ${timeZone}`}>

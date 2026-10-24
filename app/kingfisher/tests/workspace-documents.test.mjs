@@ -13,9 +13,13 @@ const {api}=await server.ssrLoadModule('/src/api.ts');
 const {workspaceViewApi}=await server.ssrLoadModule('/src/workspaceViewApi.ts');
 const {memoryProfileHref,rememberMemoryPresentation,readMemoryViewPosition}=await server.ssrLoadModule('/src/MemoryViewState.ts');
 const {navigate}=await server.ssrLoadModule('/src/ui.ts');
-function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children].flat(30).forEach(c=>nodes(c,p,out));return out;}
+// Seit der Grundlage vom 23.10. steht die Aktion im Seitenkopf (`aktionen`) und die Reiter im Baustein `Segmente`.
+function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);[n.props?.children,n.props?.aktionen].flat(30).forEach(c=>nodes(c,p,out));return out;}
 function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(30).map(text).join(''):String(n);}
-function button(tree,label){const node=nodes(tree,n=>n.type==='button'&&text(n)===label)[0];assert.ok(node,`button ${label}`);return node;}
+function button(tree,label){let node=nodes(tree,n=>n.type==='button'&&text(n)===label)[0];
+  if(!node){const leiste=nodes(tree,n=>Array.isArray(n.props?.optionen)&&typeof n.props?.onWahl==='function').find(l=>l.props.optionen.some(o=>o.titel===label));
+    if(leiste){const wahl=leiste.props.optionen.find(o=>o.titel===label);node={props:{onClick:()=>leiste.props.onWahl(wahl.wert)}};}}
+  assert.ok(node,`button ${label}`);return node;}
 function driver(render){const states=[],refs=[],effects=[],pending=[];let s,r,e;return {state(initial){const i=s++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return [states[i],v=>states[i]=typeof v==='function'?v(states[i]):v];},ref(initial){return refs[r++]??(refs[r-1]={current:initial});},effect(fn,deps){const i=e++;if(!effects[i]||deps.some((v,j)=>v!==effects[i].deps[j])){effects[i]?.cleanup?.();effects[i]={deps};pending.push(()=>effects[i].cleanup=fn());}},render(){s=r=e=0;globalThis.__docDriver=this;return render();},flush(){pending.splice(0).forEach(fn=>fn());},close(){effects.forEach(effect=>effect.cleanup?.());delete globalThis.__docDriver;}};}
 async function tick(d){d.render();d.flush();await new Promise(setImmediate);d.render();d.flush();await new Promise(setImmediate);return d.render();}
 const folders=[{id:'root',kind:'folder',revision:1,data:{name:'Akten',parent_id:null}},{id:'nested',kind:'folder',revision:1,data:{name:'Unterordner',parent_id:'root'}}];

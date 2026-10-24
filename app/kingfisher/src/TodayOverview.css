@@ -1,154 +1,287 @@
-/* Approved Today direction: quiet landscape, opaque surfaces and clear actions. */
+/* Heute (P1, Grundlage vom 23.10.2026): die wichtigste Seite. Ein Blick reicht: oben der Gruß auf der Landschaft, die
+   in den kühlen Grund ausläuft; darunter die Frage an Kingfisher; dann große, ruhige Flächen mit Zeilen. Bilder nur im
+   Kopf, ein gefüllter Knopf (Senden, sobald etwas dasteht), Zahlen leise, leere Bereiche in einem Satz.
+   Alle Werte aus --g-* (Grundlage.css) und --calm-* (CalmUI.css). `#root` hebt nur dort an, wo styles.css ältere,
+   gleich scharfe Regeln für .hero, .briefing-area und .command-bar trägt. */
 .today-page {
-  --today-surface: #fffefa;
-  --today-ink: #102c3a;
-  --today-muted: #48616d;
-  --today-line: #dce3e0;
-  --today-soft: #e3eef0;
-  --today-link: #145769;
-  --today-shadow: 0 2px 5px rgba(5,32,44,.10), 0 14px 32px rgba(5,32,44,.16), inset 0 1px 0 rgba(255,255,255,.8);
+  --today-surface: var(--g-flaeche);
+  --today-ink: var(--g-tinte);
+  --today-muted: var(--g-leise);
+  --today-line: var(--g-linie);
+  --today-soft: var(--g-getoent);
+  --today-link: var(--g-verweis);
+  --today-shadow: var(--g-schatten);
+  --today-breite: 1180px;
+  --today-rand: max(var(--g-a6), calc((100% - var(--today-breite)) / 2));
+  position: relative;
   min-height: 100vh;
-  background: #a9c2cc;
-  color: var(--today-ink);
+  background: var(--g-grund);
+  color: var(--g-tinte);
   isolation: isolate;
 }
+/* styles.css färbt .morning-page noch warm (Pergament); Heute steht auf dem kühlen Grund der Grundlage. */
+#root main.today-page { min-height: 100vh; background: var(--g-grund); overflow: visible; overflow-x: clip; }
+
+/* ── Kopf: die Landschaft läuft unten in den Grund aus, nichts klebt halb im Bild. ─────────────────────────────── */
 .today-landscape {
-  position: fixed; inset: 0 0 0 220px; z-index: -1; pointer-events: none;
-  background: #a9c2cc url('/03_Media/Approved/landscape-calm-page-v1.png') center top / cover no-repeat;
+  position: absolute; inset: 0 0 auto; z-index: -1; height: 264px; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(245,246,248,.62) 0%, rgba(245,246,248,.18) 45%, rgba(245,246,248,0) 70%),
+    url('/03_Media/Approved/landscape-calm-page-v1.png') center 8% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 96%);
 }
-.today-page .hero { height: 300px; background: transparent; }
-.today-page .hero-copy { top: 34px; left: 36px; max-width: 65%; }
-.today-page .hero-copy h1 { font-size: 49px; line-height: 1.05; }
-.today-page .hero-copy .today-hero-label { margin: 0 0 12px; font: 600 10px/1.5 'Inter', sans-serif; letter-spacing: 1.7px; color: #193e4c; }
-.today-page .hero-copy .today-hero-summary { margin: 14px 0 18px; font: 400 15px/1.5 'Inter', sans-serif; color: #193e4c; }
-.today-page .hero-bird { width: 300px; height: 225px; left: auto; right: 22px; top: 76px; }
-.today-page .day-stamp { right: 35px; top: 23px; }
-.today-page .day-stamp strong { font-size: 40px; line-height: 44px; }
-.today-page .day-stamp span { font-size: 15px; }
-.today-page .weather { left: auto; right: 235px; top: 118px; }
-.today-page .weather strong { font-size: 27px; line-height: 32px; }
-.today-page .weather span, .today-page .weather small { font-size: 13px; line-height: 19px; }
-.today-page .weather a { top: 76px; }
-.today-briefing-button { display: inline-flex; gap: 23px; align-items: center; min-height: 42px; padding: 0 18px; border: 1px solid #c8d1cd; border-radius: 17px; background: #fffefa; color: #102c3a; font-size: 14px; font-weight: 500; box-shadow: 0 2px 5px rgba(5,32,44,.08); cursor: pointer; }
-.today-page .briefing-area { position: relative; margin-top: -27px; padding: 0 32px 40px; }
-.today-command { margin-bottom: 25px; }
-.today-command .command-bar { height: 60px; margin: 0; border-radius: 13px; box-shadow: 0 4px 14px rgba(6,43,58,.16); }
-.today-command .command-bar input { font-size: 14px; }
-.today-overview { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
-.today-panel { min-width: 0; border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); box-shadow: var(--today-shadow); }
-.today-panel-heading { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 104px; padding: 25px 26px; }
-.today-panel-heading h2 { position: relative; z-index: 1; margin: 0; font: 600 32px/1.25 'Inter', sans-serif; letter-spacing: -.8px; color: var(--today-ink); }
-.today-attention .today-panel-heading { padding-right: 214px; }
-.today-flight { position: absolute; right: 70px; top: 9px; width: 150px; height: 100px; object-fit: contain; pointer-events: none; }
-.today-count { position: absolute; right: 22px; top: 27px; display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 50%; font-size: 14px; font-weight: 600; background: #ef792d; color: #102c3a; }
-.today-calendar { align-self: start; min-height: 280px; display: flex; flex-direction: column; }
-.today-calendar .today-panel-heading { overflow: hidden; border-radius: 14px 14px 0 0; }
-.today-calendar-scene { position: absolute; right: 0; top: 0; width: 62%; height: 104px; object-fit: cover; pointer-events: none; }
-.today-attention-list, .today-calendar-list { list-style: none; padding: 0; margin: 0 26px; }
-.today-attention-item { padding: 12px 0 22px; }
-.today-attention-item + .today-attention-item { border-top: 1px solid var(--today-line); padding-top: 23px; }
-.today-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--today-muted); font-size: 13px; line-height: 1.5; }
-.today-attention-item h3, .today-calendar-list h3, .today-source h3 { margin: 0; font-size: 18px; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; letter-spacing: -.2px; }
-.today-attention-item > p, .today-calendar-list p { margin: 7px 0 15px; font-size: 15px; line-height: 1.6; color: var(--today-muted); overflow-wrap: anywhere; }
-.today-action { display: inline-flex; align-items: center; justify-content: space-between; gap: 26px; min-height: 42px; padding: 0 20px; border: 1px solid #123f50; border-radius: 18px; background: #063e55; color: #f4faf9; font-size: 14px; font-weight: 500; text-decoration: none; box-shadow: 0 2px 5px rgba(5,32,44,.14); }
-.today-action:hover { background: #0b5064; }
-.today-text-link { display: inline-flex; align-items: center; gap: 9px; min-height: 36px; color: var(--today-link); font-size: 13px; line-height: 1.5; font-weight: 500; text-decoration: none; }
-.today-text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
-.today-calendar-list > li { display: grid; grid-template-columns: 57px minmax(0,1fr); gap: 18px; padding: 12px 0 5px; }
-.today-calendar-list > li + li { margin-top: 14px; padding-top: 20px; border-top: 1px solid var(--today-line); }
-.today-calendar-list time { padding-top: 1px; font-size: 18px; line-height: 1.5; font-variant-numeric: tabular-nums; font-weight: 600; }
-.today-calendar-list h3 { font-size: 16px; }
-.today-calendar-list p { font-size: 13px; margin-bottom: 7px; }
-.today-calendar-open { align-self: flex-end; margin: auto 26px 12px; font-size: 12px; }
-.today-memory { grid-column: 1 / -1; }
-.today-followups { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
-.today-followups > *, .today-followups #memory-questions { min-width: 0; }
-.today-followups :is(.task-reminders, .knowledge-questions, .memory-questions) { margin: 0 0 16px; padding: 22px 26px; border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); box-shadow: var(--today-shadow); overflow-wrap: anywhere; }
-.today-followups h2 { margin: 0 0 8px; font-size: 22px; }
-.today-followups h3 { font-size: 16px; }
-.today-followups p, .today-followups small { font-size: 13px; line-height: 1.6; }
-.today-followups blockquote { margin: 12px 0; padding-left: 12px; border-left: 2px solid var(--today-line); white-space: pre-wrap; }
-.today-followups .memory-questions-kopf { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; }
-.today-followups .task-reminder small { display: block; }
-@media (max-width: 1000px) { .today-followups { grid-template-columns: minmax(0,1fr); } }
-.today-memory .today-panel-heading { min-height: 90px; padding-top: 25px; padding-bottom: 20px; }
-.today-source-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; margin: 0 26px; }
-.today-source { min-width: 0; padding: 12px 0 22px; }
-.today-source-heading p { margin: 5px 0 12px; font-size: 13px; line-height: 1.5; color: var(--today-muted); }
-.today-source > .task-source { margin: 0; }
-.today-source > .task-source > .secondary-action { min-height: 40px; padding: 0 19px; border: 1px solid transparent; border-radius: 18px; background: var(--today-soft); color: var(--today-ink); font-size: 13px; font-weight: 500; }
-.today-source > .task-source > .secondary-action:hover { border-color: var(--today-link); }
-.today-source:has(> .task-source > button[aria-expanded='true']) { grid-column: 1 / -1; }
-.today-context-note { margin: 0 26px; padding: 13px 0 16px; border-top: 1px solid var(--today-line); color: var(--today-muted); font-size: 12px; line-height: 1.6; }
-.today-empty { padding: 10px 26px 26px; }
-.today-empty h3 { margin: 0 0 7px; font-size: 16px; line-height: 1.5; font-weight: 500; }
-.today-empty p, .today-notice { color: var(--today-muted); font-size: 14px; line-height: 1.65; }
-.today-empty p { margin: 0; }
-.today-notice { margin: 0; padding: 0 26px 20px; }
-.today-notice a { color: var(--today-link); }
-.today-connection-note { margin: 20px 0 0; padding: 0 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); box-shadow: 0 3px 12px rgba(5,32,44,.12); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
-.today-post-laedt { margin: 16px 0 0; padding: 10px 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
-.today-postfach { margin: 16px 0 0; padding: 10px 17px; border: 1px solid var(--today-line); border-radius: 13px; background: var(--today-surface); color: var(--today-muted); font-size: 12px; line-height: 1.7; }
-.today-postfach p { margin: 0; }
-.today-connection-note summary { cursor: pointer; padding: 12px 0; color: var(--today-ink); }
-.today-connection-note p { margin: 4px 0; }
-.today-connection-note[open] { padding-bottom: 12px; }
-.today-page .command-error, .today-page .briefing-area > .profile-card { border: 1px solid var(--today-line); border-radius: 15px; background: var(--today-surface); padding: 20px 26px; box-shadow: var(--today-shadow); }
-.today-page .briefing-area > .profile-card { margin-top: 22px; }
-.today-page :is(button, a, summary):focus-visible { outline: 3px solid #007e92; outline-offset: 4px; }
-.today-command .command-bar:focus-within { outline: 2px solid #8bd5df; outline-offset: 3px; }
-@media (max-width: 1350px) {
-  .today-page .hero-copy h1 { font-size: 44px; }
-  .today-page .hero-bird { width: 260px; right: 18px; top: 85px; }
-  .today-overview { grid-template-columns: minmax(0,1.25fr) minmax(0,1fr); gap: 18px; }
-  .today-panel-heading h2 { font-size: 27px; }
-  .today-attention .today-panel-heading { padding-right: 158px; }
-  .today-flight { width: 112px; right: 55px; }
-  .today-count { right: 17px; }
-  .today-panel-heading, .today-empty { padding-left: 22px; padding-right: 22px; }
-  .today-attention-list, .today-calendar-list, .today-source-grid, .today-context-note { margin-left: 22px; margin-right: 22px; }
-  .today-source-grid { gap: 22px; }
+#root .today-page .hero {
+  position: relative; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-a3) var(--g-a6);
+  height: auto; min-height: 236px; padding: var(--g-a7) var(--today-rand) var(--g-a5); overflow: visible; background: transparent; color: var(--g-tinte);
+}
+#root .today-page .hero-copy { position: static; z-index: 1; flex: 1 1 320px; min-width: 0; max-width: 640px; }
+#root .today-page .hero-copy h1 { margin: 0; font: 700 44px/1.08 var(--g-schrift); letter-spacing: -.026em; color: var(--g-tinte); text-shadow: none; }
+#root .today-page .hero-copy .today-hero-summary {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); margin: var(--g-a2) 0 0;
+  font: 500 17px/1.4 var(--g-schrift); color: var(--g-tinte);
+}
+.today-stand { color: var(--g-leise); font-weight: 400; font-variant-numeric: tabular-nums; }
+#root .today-page .hero-bird { position: absolute; z-index: 0; left: auto; right: var(--today-rand); top: 22px; width: 200px; height: 160px; object-fit: contain; transform: none; opacity: .95; filter: none; }
+/* Das Wetter als eine leise Zeile unter dem Gruß, nicht über den Bergen. */
+#root .today-page .weather {
+  position: static; z-index: 1; display: flex; flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-a2);
+  margin: calc(-1 * var(--g-a2)) 0 0; padding: 0; text-align: left; text-shadow: none; color: var(--g-tinte);
+}
+#root .today-page .weather strong { order: -1; font: 500 17px/1.4 var(--g-schrift); font-variant-numeric: tabular-nums; }
+#root .today-page .weather :is(span, small) { display: inline; font: var(--g-neben); color: var(--g-tinte); }
+#root .today-page .weather a { position: static; display: inline-block; margin: -13px 0; padding: 13px 0; font: var(--g-fussnote); color: var(--g-leise); }
+
+/* ── Inhalt ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+#root .today-page .briefing-area { position: relative; display: grid; gap: var(--g-a6); margin: 0; padding: 0 var(--today-rand) var(--g-a7); }
+#root .today-page .briefing-area > * { min-width: 0; }
+
+/* Was fehlt: ein Satz in einer leisen Zeile unter dem Kopf, nicht im Bild (H6, Paket U H4). */
+.shell .today-source-status, .today-postfach {
+  display: grid; gap: var(--g-a1); margin: 0; padding: var(--g-a3) var(--g-a4); border: 0; border-radius: var(--g-radius-bedien);
+  background: var(--g-flaeche); box-shadow: var(--g-schatten); color: var(--g-tinte); font: var(--g-neben);
+}
+.shell .today-source-status p, .today-postfach p { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--g-a2); margin: 0; }
+.shell .today-source-status .today-text-link, .today-postfach a { display: inline; min-height: 0; padding: 0; font: 500 14px/1.4 var(--g-schrift); } /* Verweis im Satz */
+.briefing-area > .today-source-status + .today-postfach { margin-top: calc(-1 * var(--g-a5)); }
+
+/* Die Frage an Kingfisher: eine große weiße Zeile; Senden ist gefüllt, sobald etwas dasteht. */
+.today-command { margin: 0; }
+#root .today-command .command-bar {
+  height: 60px; gap: var(--g-a3); margin: 0; padding: 0 var(--g-a2) 0 var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche);
+  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: var(--g-schatten), 0 6px 20px rgba(23,38,53,.06);
+}
+#root .today-command .command-bar input { font: var(--g-text); font-size: 17px; color: var(--g-tinte); }
+#root .today-command .command-bar input::placeholder { color: #8592a0; }
+#root .today-command .command-bar > .interface-icon { color: var(--g-leise); }
+#root .today-command .command-bar kbd { border-color: var(--g-linie); color: var(--g-leise); font-family: var(--g-schrift); font-size: 11px; }
+#root .today-command .command-bar:focus-within { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+#root .today-page .command-error { margin: var(--g-a2) var(--g-a4) 0; padding: 0; border: 0; background: none; box-shadow: none; font: var(--g-neben); color: var(--g-rot); }
+
+/* Die Bereiche: Titel über einer Fläche, Zeilen darin. */
+.today-overview { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--g-a6) var(--g-a5); align-items: start; }
+.today-side { display: grid; gap: var(--g-a6); align-content: start; min-width: 0; }
+.today-panel { min-width: 0; margin: 0; }
+.today-panel-heading { display: flex; align-items: baseline; gap: var(--g-a2) var(--g-a3); min-height: 0; margin: 0 0 var(--g-a3); padding: 0 var(--g-a1); }
+.today-panel-heading h2 { margin: 0; font: var(--g-titel); letter-spacing: -.012em; color: var(--g-tinte); }
+.today-panel-heading > a { margin-left: auto; }
+.today-count { font: 500 17px/1 var(--g-schrift); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+.today-flaeche { min-width: 0; background: var(--g-flaeche); border-radius: var(--g-radius-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
+.today-attention-list, .today-calendar-list, .today-news-list { margin: 0; padding: 0; list-style: none; }
+.today-attention-list > li, .today-calendar-list > li, .today-news-list > li { position: relative; min-width: 0; }
+.today-attention-list > li + li::before, .today-calendar-list > li + li::before, .today-news-list > li + li::before {
+  content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie);
 }
 
-/* Schmale Fenster (Handy): Die Startseite wird einspaltig. Die Seitenleiste als Streifen oben steht in Seitenbreite.css. */
+/* Braucht dich: links, was es ist; rechts, was man damit tut. Wird die Fläche schmal, stehen die Aktionen darunter. */
+.today-attention { container-type: inline-size; }
+.today-attention-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--g-a2) var(--g-a4); padding: var(--g-a4) var(--g-a4) var(--g-a4) var(--g-a5); }
+.today-item-text { min-width: 0; }
+.today-item-text h3 { margin: 0; font: 600 17px/1.35 var(--g-schrift); letter-spacing: -.01em; color: var(--g-tinte); overflow-wrap: anywhere; }
+.today-item-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
+.today-item-meta > span + span::before { content: "·"; margin-right: 6px; }
+.today-review-badge { display: inline-block; width: fit-content; margin-top: var(--g-a2); padding: 2px 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.5 var(--g-schrift); }
+.today-item-actions { display: flex; justify-content: flex-end; min-width: 0; }
+.today-attention-item:has(.today-task-more[open]) .today-item-actions, .today-hintergrund { grid-column: 1 / -1; justify-content: flex-start; }
+.today-hintergrund { margin-top: calc(-1 * var(--g-a1)); }
+@container (max-width: 560px) {
+  .today-attention-item { grid-template-columns: minmax(0, 1fr); }
+  .today-item-actions { justify-content: flex-start; }
+}
+/* Zeilenaktionen sind leise: getönt, nie gefüllt (Paket U, H3). */
+.today-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); min-height: 44px; padding: 0 16px; border: 0;
+  border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 15px/1.2 var(--g-schrift);
+  text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color 150ms ease;
+}
+.today-action:hover:not(:disabled) { background: var(--g-getoent-stark); }
+.today-action:disabled { cursor: default; opacity: .55; }
+.today-attention-item .briefing-suggestion { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); }
+.today-attention-item .briefing-suggestion .secondary-action { min-height: 44px; }
+.today-attention-item .briefing-suggestion .attention-task-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); text-decoration: none; }
+.today-task-actions { min-width: 0; }
+.today-task-actions .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a1) var(--g-a2); }
+.today-task-actions > p { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+.today-task-actions > p[role="alert"] { color: var(--g-rot); }
+#root .today-task-more > summary { display: flex; align-items: center; min-height: 44px; padding: 0 6px; margin: 0; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); }
+#root .today-task-more > summary::before { content: none; }
+.today-task-more[open] { flex: 1 1 100%; order: 3; padding: var(--g-a2) 0 var(--g-a1); border-top: 1px solid var(--g-linie); }
+.today-task-more[open] > summary { width: fit-content; }
+.today-task-more > p { margin: var(--g-a1) 0 var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
+.today-task-more > :is(button, a) { margin-right: var(--g-a4); }
+.today-attention-item:has(.today-task-more[open]) .task-suggestion-actions { justify-content: flex-start; }
+.today-task-actions .task-detail .task-row { grid-template-columns: 30px minmax(0, 1fr); padding: 16px 0; }
+.today-task-actions .task-detail .task-row > time { grid-column: 2; grid-row: 3; text-align: left; }
+#root .today-hintergrund > summary { display: inline-flex; align-items: center; min-height: 44px; padding: 0; color: var(--g-leise); font: 500 14px/1.3 var(--g-schrift); }
+.today-hintergrund > p { margin: 0 0 var(--g-a1); font: var(--g-neben); color: var(--g-leise); }
+
+/* Deine Termine: Uhrzeit, Titel, die Vorbereitung als Nebenzeile; die ganze Zeile öffnet sie. */
+.today-termin.g-zeile { gap: var(--g-a4); padding-left: var(--g-a5); }
+.today-termin time { flex: 0 0 48px; align-self: flex-start; padding-top: 1px; font: 600 16px/1.5 var(--g-schrift); color: var(--g-tinte); font-variant-numeric: tabular-nums; }
+.today-calendar-list > li + li::before { left: calc(var(--g-a5) + 48px + var(--g-a4)); }
+
+/* Neu eingegangen: eine Zeile je Eingang, darunter leise die Quelle. */
+.today-source > .g-zeile { padding-left: var(--g-a5); }
+.today-source > .task-source { margin: calc(-1 * var(--g-a2)) 0 0; padding: 0 var(--g-a4) var(--g-a2) var(--g-a5); }
+.today-source > .task-source > .quiet-source-toggle { min-height: 44px; padding: 0; opacity: 1; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); text-decoration: none; }
+.today-source > .task-source > .quiet-source-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
+.today-source .g-zeile-neben { font-variant-numeric: tabular-nums; }
+
+/* Leer heißt ein Satz (H8); der nächste Termin leise darunter. */
+.today-empty { margin: 0; padding: var(--g-a4) var(--g-a5); font: var(--g-text); color: var(--g-tinte); }
+.today-next-event { display: block; margin-top: 2px; font: var(--g-neben); color: var(--g-leise); }
+.today-notice { margin: 0; padding: var(--g-a3) var(--g-a5); border-top: 1px solid var(--g-linie); font: var(--g-neben); color: var(--g-leise); }
+.today-notice a { color: var(--g-verweis); }
+.today-correction { grid-column: 1 / -1; border: 0; padding: 0 var(--g-a1); }
+
+/* Textverweise: leise, aber 44 px als Ziel. */
+.today-text-link { display: inline-flex; align-items: center; gap: var(--g-a2); min-height: 44px; color: var(--g-verweis); font: 500 15px/1.3 var(--g-schrift); text-decoration: none; }
+.today-text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+button.today-text-link { padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+button.today-text-link:disabled { cursor: default; opacity: .55; }
+.today-panel-heading > .today-text-link { margin-block: -12px; }
+
+/* Nachfragen aus dem Gedächtnis und Wiedervorlagen: dieselben Flächen. */
+.today-followups { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--g-a5); align-items: start; }
+.today-followups > *, .today-followups #memory-questions { min-width: 0; }
+.today-followups > #memory-questions { display: grid; gap: var(--g-a5); }
+.today-followups > #memory-questions:empty { display: none; }
+.today-followups:has(> #memory-questions:empty):not(:has(> section)) { display: none; }
+.today-followups :is(.task-reminders, .knowledge-questions, .memory-questions) {
+  margin: 0; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche);
+  box-shadow: var(--g-schatten); overflow-wrap: anywhere;
+}
+.today-followups h2 { margin: 0 0 var(--g-a2); font: var(--g-titel); letter-spacing: -.012em; }
+.today-followups h3 { font: var(--g-ueberschrift); }
+.today-followups :is(p, small) { font: var(--g-neben); }
+.today-followups blockquote { margin: var(--g-a3) 0; padding-left: var(--g-a3); border-left: 2px solid var(--g-linie); white-space: pre-wrap; }
+.today-followups .memory-questions-kopf { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: var(--g-a3); }
+.today-followups .task-reminder small { display: block; }
+
+/* Der Fuß: Tageslage als Zeile, die sich öffnet, und die übrigen Bereiche als Zeilen (H10, H13). */
+.today-overview > .today-activity { grid-column: 1 / -1; margin: 0; }
+.today-activity-zeile .g-zeile-pfeil { transform: rotate(45deg); transition: transform var(--g-bewegung); }
+.today-activity-zeile[aria-expanded="true"] .g-zeile-pfeil { transform: rotate(-135deg) translate(-2px, -2px); }
+.today-activity-inhalt { padding: 0 var(--g-a5) var(--g-a4); border-top: 1px solid var(--g-linie); }
+.today-activity-inhalt[hidden] { display: none; }
+.today-activity-inhalt > .tageslage { margin: 0; padding: var(--g-a4) 0 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.briefing-area > .today-personal { margin: 0; }
+.today-personal .g-zeile-titel { font-weight: 400; }
+
+/* Neue Fassung und Quellen mit Themenüberschneidung: dieselbe ruhige Fläche. */
+#root .today-page .briefing-area > .profile-card { margin: 0; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root .today-page .briefing-area > .profile-card h2 { margin: 0 0 var(--g-a2); font: var(--g-titel); }
+#root .today-page .briefing-area > .profile-card article + article { margin-top: var(--g-a3); padding-top: var(--g-a3); border-top: 1px solid var(--g-linie); }
+#root .today-page .briefing-area > .profile-card p { font: var(--g-neben); color: var(--g-leise); }
+
+/* Leere Startseite: der eine nächste Schritt als Fläche mit dem einen gefüllten Knopf (H11). */
+#root .today-page .heute-naechster-schritt { margin: 0; padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root .today-page .heute-naechster-schritt h2 { margin: 0 0 var(--g-a1); font: var(--g-titel); letter-spacing: -.012em; }
+#root .today-page .heute-naechster-schritt .primary-action { min-height: 44px; }
+#root .today-page .heute-naechster-schritt p { margin: 0 0 var(--g-a4); font: var(--g-text); color: var(--g-leise); }
+
+/* Fokus: ruhig und überall gleich. */
+.today-page :is(button, a, summary):focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.today-page .g-zeile:focus-visible { outline-offset: -2px; }
+
+/* ── Laden und Fehler ─────────────────────────────────────────────────────────────────────────────────────────── */
+#root .today-page.loading .skeleton-hero { display: grid; align-content: start; gap: var(--g-a3); height: auto; min-height: 236px; background: transparent; }
+.today-page.loading .skeleton-hero i, .today-page.loading .skeleton-card i { display: block; height: 14px; border-radius: 7px; background: rgba(23,38,53,.07); }
+.today-page.loading .skeleton-hero i:first-child { width: min(320px, 70%); height: 40px; border-radius: 10px; }
+.today-page.loading .skeleton-hero i:last-child { width: min(220px, 50%); }
+.today-page.loading .skeleton-command { height: 60px; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root .today-page.loading .skeleton-card { display: grid; gap: var(--g-a4); min-height: 180px; padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+.today-page.loading .skeleton-card i:nth-child(2) { width: 72%; }
+.today-page.loading .skeleton-card i:nth-child(3) { width: 46%; }
+@media (prefers-reduced-motion: no-preference) {
+  .today-page.loading :is(.skeleton-hero, .skeleton-card) i { animation: today-atmen 1.6s ease-in-out infinite; }
+}
+@keyframes today-atmen { 50% { opacity: .55; } }
+#root main.today-state { display: grid; place-items: center; min-height: 100vh; padding: var(--g-a5); background: var(--g-grund); }
+#root .today-state .today-fehler { width: min(440px, 100%); min-height: 0; padding: 0; color: var(--g-tinte); }
+#root .today-state .today-fehler .g-knopf-getoent { min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); }
+
+/* ── Breiten ──────────────────────────────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  #root .today-page .hero-copy h1 { font-size: 40px; }
+  #root .today-page .hero-bird { width: 170px; height: 136px; }
+}
+@media (max-width: 1000px) {
+  .today-overview { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .today-page { --today-rand: var(--g-a5); }
+  /* Ohne Seitenleiste ist das Bild breiter als hoch genug: ein heller Schleier hält den Gruß lesbar. */
+  .today-landscape {
+    background:
+      linear-gradient(180deg, rgba(245,246,248,.74) 0%, rgba(245,246,248,.55) 50%, rgba(245,246,248,.15) 100%),
+      url('/03_Media/Approved/landscape-calm-page-v1.png') center 30% / cover no-repeat;
+  }
+}
+/* Schmale Fenster (Handy): eine Spalte, der Gruß auf einem hellen Schleier über dem Bild, damit er lesbar bleibt. */
 @media (max-width: 700px) {
   html:has(.today-page), body:has(.today-page), #root:has(.today-page) { min-width: 0; }
   .shell:has(.today-page) { grid-template-columns: minmax(0, 1fr); overflow-x: clip; }
   .shell:has(.today-page) > main { grid-column: 1; }
-  .today-landscape { inset: 0; }
-  .today-page .hero { height: auto; min-height: 250px; padding-bottom: 36px; }
-  .today-page .hero-copy { position: relative; top: auto; left: auto; max-width: none; padding: 24px 16px 0; }
-  .today-page .hero-copy h1 { font-size: 34px; }
-  .today-page .hero-bird, .today-page .day-stamp, .today-page .weather { display: none; }
-  .today-page .briefing-area { padding: 0 12px 32px; margin-top: 0; }
-  .today-overview { grid-template-columns: minmax(0, 1fr); }
-  .today-panel-heading h2 { font-size: 22px; }
-  .today-attention .today-panel-heading { padding-right: 60px; }
-  .today-flight { display: none; }
-  .heute-naechster-schritt { margin-bottom: 14px; }
+  .today-page { --today-rand: var(--g-a4); }
+  .today-landscape { height: 240px; }
+  #root .today-page .hero { min-height: 0; padding-top: var(--g-a6); padding-bottom: var(--g-a5); }
+  #root .today-page .hero-copy { flex-basis: 100%; }
+  #root .today-page .hero-copy h1 { font-size: 34px; }
+  #root .today-page .hero-copy .today-hero-summary { font-size: 16px; }
+  #root .today-page .hero-bird { display: none; }
+  #root .today-page .briefing-area { gap: var(--g-a5); padding-bottom: var(--g-a6); }
+  .today-overview, .today-side { gap: var(--g-a5); }
+  .today-panel-heading h2 { font-size: 20px; }
+  .today-attention-item { padding-left: var(--g-a4); }
+  .today-attention-list > li + li::before, .today-news-list > li + li::before { left: var(--g-a4); }
+  .today-termin.g-zeile, .today-source > .g-zeile { padding-left: var(--g-a4); }
+  .today-source > .task-source { padding-left: var(--g-a4); }
+  .today-calendar-list > li + li::before { left: calc(var(--g-a4) + 48px + var(--g-a4)); }
+  .today-empty { padding-inline: var(--g-a4); }
+  #root .today-command .command-bar { height: 56px; padding-left: var(--g-a4); }
+  #root .today-command .command-bar kbd { display: none; }
 }
-/* Existing surfaces and type scale, with source gaps visible before the cards. */
-.today-source-status { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 22px; margin-bottom: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: 400 13px/20px Inter, sans-serif; }
-.today-source-status p { margin: 3px 0 0; }
-.today-source-status .today-context-note { margin: 3px 0 0; }
-.today-source-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; flex-shrink: 0; }
-button.today-text-link { border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left; padding: 0; }
-button.today-text-link:disabled { cursor: default; opacity: .6; }
-.today-mail-dialog { width: min(900px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border: 1px solid var(--kf-rand-d7e1df); border-radius: 16px; padding: 0; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); }
-.today-mail-dialog::backdrop { background: rgba(6, 43, 58, .45); }
-@media (max-width: 700px) { .today-source-status { align-items: stretch; flex-direction: column; } .today-mail-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); } }
 
-/* Reuse the task controls inside the existing Today card, with room for narrow columns. */
-.today-task-actions { margin-top: 12px; }
-.today-task-actions .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.today-task-actions .task-detail .task-row { grid-template-columns: 30px minmax(0, 1fr); padding: 16px 0; }
-.today-task-actions .task-detail .task-row > time { grid-column: 2; grid-row: 3; text-align: left; }
+/* ── Mail-Dialog auf Heute (H17): ein ruhiges Blatt, schmal von unten. Den Leser selbst gestaltet MailReader.css. ── */
+.today-mail-dialog {
+  width: min(860px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); padding: 0; border: 0; border-radius: var(--g-radius-flaeche);
+  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: 0 24px 64px rgba(23,38,53,.22), 0 0 0 1px rgba(23,38,53,.06);
+  overflow: auto; overscroll-behavior: contain;
+}
+.today-mail-dialog::backdrop { background: rgba(23,38,53,.32); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+@media (prefers-reduced-motion: no-preference) {
+  .today-mail-dialog[open] { animation: today-blatt var(--g-bewegung); }
+}
+@keyframes today-blatt { from { opacity: 0; transform: translateY(12px); } }
+@media (max-width: 700px) {
+  .today-mail-dialog { width: 100vw; max-width: 100vw; max-height: calc(100dvh - 16px); margin: auto 0 0; border-radius: var(--g-radius-flaeche) var(--g-radius-flaeche) 0 0; }
+}
+
+/* ── Gemeinsam mit anderen Seiten (unverändert) ───────────────────────────────────────────────────────────────── */
 .task-selected { margin: 20px 0; padding: 20px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
 .task-selected h2 { margin-top: 0; }
-
-.today-personal { grid-column: 1 / -1; }
 .development-links { display: flex; flex-wrap: wrap; gap: 14px 24px; margin: 16px 0 24px; }
-.today-personal .development-links { margin-bottom: 0; }
 .development-links a { padding: 8px 0; }
 .development-page > .decision-controls { margin-top: 24px; }
 .memory-area-tabs button:disabled { cursor: wait; opacity: .65; }

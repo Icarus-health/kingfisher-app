@@ -148,6 +148,6 @@ test("full Review continues to render the complete lint list", async () => {
   const source = await import("node:fs/promises");
   const page = await source.readFile(new URL("../src/ReviewPage.tsx", import.meta.url), "utf8");
   const list = await source.readFile(new URL("../src/BefundeAnsicht.tsx", import.meta.url), "utf8");
-  assert.match(page, /<WasAufgefallenIst active \/>/);
+  assert.match(page, /<WasAufgefallenIst active\b[^>]*\/>/);
   assert.match(list, /setBefunde\(daten\.befunde\)/);
 });

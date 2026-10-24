@@ -85,8 +85,8 @@ export function Erststart() {
     <main className="erststart">
       <header className="erststart-kopf">
         <img src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />
-        <p className="eyebrow">WILLKOMMEN BEI KINGFISHER</p>
-        <button type="button" className="text-action" onClick={() => void spaeter()}>Später weitermachen</button>
+        <p className="erststart-gruss">Willkommen bei Kingfisher</p>
+        <button type="button" className="g-knopf-schlicht" onClick={() => void spaeter()}>Später weitermachen</button>
       </header>
       <nav aria-label="Schritte der Einrichtung"><ol className="erststart-punkte">
         {schritte.map(schritt => {
@@ -101,7 +101,7 @@ export function Erststart() {
         })}
       </ol></nav>
       <section className="erststart-karte" aria-labelledby="erststart-titel">
-        {fehler && !stand ? <p role="alert">Kingfisher ist gerade nicht erreichbar. <button className="text-action" type="button" onClick={() => void laden()}>Erneut versuchen</button></p> : null}
+        {fehler && !stand ? <p role="alert">Kingfisher ist gerade nicht erreichbar. <button className="g-knopf-schlicht" type="button" onClick={() => void laden()}>Erneut versuchen</button></p> : null}
         {!stand && !fehler ? <p role="status">Wird geladen …</p> : null}
         {stand && info && Inhalt ? <>
           {zaehler ? <p className="erststart-zaehler">Schritt {zaehler.nummer} von {zaehler.gesamt}</p> : null}

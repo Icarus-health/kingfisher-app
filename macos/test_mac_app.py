@@ -293,7 +293,9 @@ def test_logik_pruefprogramm(tmp_path):
 def test_mitteilungen_reporter_vorhanden_mit_kategorie_und_zwei_aktionen():
     """Der Reporter zeigt jede Mitteilung mit „Öffnen“ und „War überflüssig“; die Kennungen stehen in der reinen Logik."""
     logik_importe = set(re.findall(r'^import (\w+)', swift('Shared', 'Mitteilungen.swift'), re.M))
-    assert logik_importe == {'Foundation'}, 'die reine Logik muss im Prüfprogramm ohne Mac übersetzen'
+    # Foundation, unter Linux dazu FoundationNetworking (URLRequest); nichts vom Mac (AppKit, UserNotifications).
+    assert logik_importe <= {'Foundation', 'FoundationNetworking'} and 'Foundation' in logik_importe, \
+        'die reine Logik muss im Prüfprogramm ohne Mac übersetzen'
     logik = swift('Shared', 'Mitteilungen.swift')
     reporter = swift('Shared', 'NotificationReporter.swift')
     assert swift_konstante(logik, 'kategorie') == 'KINGFISHER_MITTEILUNG'

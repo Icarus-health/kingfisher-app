@@ -23,9 +23,16 @@ test('today keeps the unresolved review warning visible while its full explanati
  const actions=render(()=>TodayTaskActions({item:briefing.needs_you[0],onChanged(){}}));
  const details=nodes(actions,n=>n.type==='details'&&text(n).includes('Dieser Mailverlauf ist nicht vollständig geprüft.'))[0];assert.ok(details,'the complete source explanation must remain reachable');assert.equal(Boolean(details.props.open),false);
 });
-test('source status starts compact but exposes failures and retains a visible incomplete state',()=>{
+test('source status says what is missing in one open line, and nothing when the overview is complete (Paket U, H4)',()=>{
  const tree=TodaySourceStatus({briefing:{...briefing,partial_failures:[{section:'mail',message:'Postfach ist nicht verbunden.'}]},refreshing:false,refreshError:false,onRefresh(){}});
- assert.equal(tree.type,'details');assert.equal(Boolean(tree.props.open),false);assert.match(text(nodes(tree,n=>n.type==='summary')[0]),/unvollständig/i);assert.match(text(tree),/Postfach ist nicht verbunden/);
+ assert.notEqual(tree.type,'details','was fehlt, steht offen da');assert.equal(tree.props.role,'status');
+ assert.match(text(tree),/Postfach ist nicht verbunden\./);assert.doesNotMatch(text(tree),/unvollständig/i,'kein Angstwort ohne Inhalt');
+ assert.equal(nodes(tree,n=>n.type==='a')[0].props.href,'/settings#zugaenge');
+ assert.equal(TodaySourceStatus({briefing,refreshing:false,refreshError:false,onRefresh(){}}),null,'vollständig: keine Zeile');
+ const post=TodaySourceStatus({briefing:{...briefing,post_ausstehend:true},refreshing:false,refreshError:false,onRefresh(){}});
+ assert.match(text(post),/Die Post von heute ist noch nicht da\. Kingfisher holt sie gerade\./);
+ let retried=0;const failed=TodaySourceStatus({briefing,refreshing:false,refreshError:true,onRefresh(){retried++;}});
+ assert.match(text(failed),/letzte geladene Stand/);nodes(failed,n=>n.type==='button'&&text(n)==='Erneut versuchen')[0].props.onClick();assert.equal(retried,1);
 });
 test('compact followups disappear only for successfully loaded empty results; errors and confirmation messages stay',()=>{
  const props={active:true,compact:true,onChanged(){},onOpenAll(){}};
@@ -72,10 +79,12 @@ test('one-time update results are not mounted inside a closed disclosure',()=>{
 test('activity is first read only on opening its disclosure and keeps its editor mounted after closing',()=>{
  const state=[];const draw=()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false});
  let tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,0,'closed activity must not consume the since-last-view marker');
- const panel=nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0];panel.props.onToggle({currentTarget:{open:true}});
- tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);
- nodes(tree,n=>n.type==='details'&&n.props.className==='today-activity quiet-details')[0].props.onToggle({currentTarget:{open:false}});
+ const zeile=()=>nodes(tree,n=>n.type==='button'&&n.props.className==='g-zeile today-activity-zeile')[0];
+ assert.equal(zeile().props['aria-expanded'],false);zeile().props.onClick();
+ tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1);assert.equal(zeile().props['aria-expanded'],true);
+ zeile().props.onClick();
  tree=render(draw,state);assert.equal(nodes(tree,n=>n.type?.name==='TagesLage').length,1,'an already opened activity keeps local drafts');
+ assert.equal(nodes(tree,n=>n.props?.className==='today-activity-inhalt')[0].props.hidden,true,'closed again, but still mounted');
 });
 
 test('compact person digest keeps stale status and errors visible outside its closed tools',()=>{

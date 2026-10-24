@@ -45,15 +45,17 @@ export function BefundZeile({ befund, arbeitet, onAktion }: {
     {wahl ? <p className="befund-hinweis">Ein Vorschlag: Erst dein Klick macht daraus Wissen. Die Quellen bleiben, wie sie sind.</p> : null}
     <div className="befund-aktionen">
       {wahl ? <>
-        <button type="button" className="primary-action" disabled={arbeitet} onClick={() => onAktion(befund, "neu")}>{knoepfe.neu}</button>
-        <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => onAktion(befund, "alt")}>{knoepfe.alt}</button>
-      </> : <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => onAktion(befund, "erledigt")}>Erledigt</button>}
+        <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "neu")}>{knoepfe.neu}</button>
+        <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "alt")}>{knoepfe.alt}</button>
+      </> : <button type="button" className="g-knopf-getoent g-kompakt" disabled={arbeitet} onClick={() => onAktion(befund, "erledigt")}>Erledigt</button>}
       <button type="button" className="text-action" disabled={arbeitet} onClick={() => onAktion(befund, "abgewiesen")}>Ignorieren</button>
     </div>
   </li>;
 }
 
-export function WasAufgefallenIst({ active }: { active: boolean }) {
+export function WasAufgefallenIst({ active, leerAusblenden = false, onLeer }: { active: boolean;
+  /** Ist nichts aufgefallen, nichts zeigen (Prüfen-Seite); `onLeer` meldet, ob der Abschnitt gerade leer ist. */
+  leerAusblenden?: boolean; onLeer?: (leer: boolean) => void }) {
   const [befunde, setBefunde] = useState<BefundMitQuellen[] | null>(null);
   const [zaehlung, setZaehlung] = useState<BefundZusammenfassung | null>(null);
   const [arbeitet, setArbeitet] = useState("");
@@ -118,10 +120,12 @@ export function WasAufgefallenIst({ active }: { active: boolean }) {
   }
 
   const { oben, ruhend } = gruppieren(befunde ?? []);
+  const leer = befunde !== null && !oben.length && !ruhend.length && !fehler && !meldung && arbeitet === "";
+  useEffect(() => { onLeer?.(leer); }, [leer, onLeer]);
+  if (leerAusblenden && leer) return null;
   return <section className="source-section befunde" aria-label="Was Kingfisher aufgefallen ist">
     <h2>Was Kingfisher aufgefallen ist</h2>
-    <p>Kingfisher prüft seine Akten regelmäßig gegen sich selbst: Nennen zwei Akten verschiedene Fristen, widerspricht eine neue Mail
-      etwas, das du angenommen hattest, oder hängt eine Quelle an keiner Akte, steht es hier. Geändert wird nichts ohne deinen Klick.</p>
+    <p className="g-fussnote">Geändert wird nichts ohne deinen Klick.</p>
     {befunde === null && !fehler ? <p>Wird geladen …</p> : null}
     {befunde !== null && zaehlung ? <p className="befunde-zahl" role="status">{zaehlSatz(zaehlung)}</p> : null}
     {oben.length ? <ul className="befunde-liste" aria-label="Aufgefallene Punkte">
@@ -134,7 +138,7 @@ export function WasAufgefallenIst({ active }: { active: boolean }) {
       </ul>
     </details> : null}
     <div className="befunde-pruefen">
-      <button type="button" className="secondary-action" disabled={arbeitet !== ""} onClick={() => void pruefen()}>
+      <button type="button" className="g-knopf-schlicht g-kompakt" disabled={arbeitet !== ""} onClick={() => void pruefen()}>
         {arbeitet === "pruefen" ? "Wird geprüft …" : "Jetzt prüfen"}</button>
       {zaehlung?.letzter_lauf ? <small>Zuletzt geprüft am {tag(zaehlung.letzter_lauf)}.</small> : null}
     </div>

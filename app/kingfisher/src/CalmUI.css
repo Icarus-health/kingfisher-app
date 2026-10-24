@@ -17,13 +17,8 @@
   --calm-caption: 13px;
   --calm-heading: 26px;
 }
-/* Die Landschaft bleibt zwischen deckenden Leseflächen sichtbar. */
+/* Die Landschaft steht nur noch im Kopf von Heute (Grundlage.css, docs/16-gestaltung.md). */
 .shell { isolation: isolate; }
-.shell:not(:has(.today-page)) { background: #a9c2cc; }
-.shell:not(:has(.today-page))::before {
-  content: ""; position: fixed; inset: 0 0 0 220px; z-index: -1; pointer-events: none;
-  background: linear-gradient(rgba(235,243,242,.24), rgba(235,243,242,.24)), #a9c2cc url('/03_Media/Approved/landscape-calm-page-v1.png') center top / cover no-repeat;
-}
 .shell > main:not(.today-page) {
   --kf-flaeche-fffefa: var(--calm-surface);
   --kf-flaeche-ffffff: var(--calm-surface);
@@ -258,9 +253,7 @@
 .support-review-warning { border-color: var(--kf-rand-b88b63); }
 .people-review { width: 100%; max-width: none; margin: 0; padding: 32px; }
 
-/* Briefing und reduzierte Bewegung gehören ebenfalls zum gemeinsamen Abschluss. */
-.briefing-drawer { background: var(--calm-inset); color: var(--calm-ink); }
-.drawer-heading h2 { font: 600 36px/1.3 'Inter', sans-serif; }
+/* Die Kartenform des früheren Briefings, heute nur noch unter Prüfen (ReviewPage). */
 .drawer-card { border-radius: 16px; background: var(--calm-surface); box-shadow: var(--calm-shadow); }
 @media (max-width: 1350px) {
   .tasks-page, .settings-page, .profile-page, .inbox-page, .conversation-history { padding: 28px; }

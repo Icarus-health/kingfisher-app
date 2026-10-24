@@ -13,10 +13,10 @@ export function NameSchritt({stand, weiter, ueberspringen, zurueck, entwurf}: Sc
   }
   return <form className="erststart-inhalt" onSubmit={event => { event.preventDefault(); void speichern(); }}>
     <p>Kingfisher grüßt dich morgens mit deinem Namen.</p>
-    <label htmlFor="erststart-name">Wie soll Kingfisher dich nennen?</label>
+    <label htmlFor="erststart-name" className="visually-hidden">Wie soll Kingfisher dich nennen?</label>
     <input id="erststart-name" value={name} maxLength={80} autoComplete="given-name" autoFocus placeholder="Dein Vorname"
       onChange={event => { setName(event.target.value); entwurf(namensEntwurf(event.target.value, stand.name)); }} />
-    <p className="source-hint">Der Name bleibt auf diesem Rechner und steht nur im Gruß, zum Beispiel „Guten Morgen, Lea.“ Du kannst das Feld leer lassen.</p>
+    <p className="source-hint">Der Name bleibt auf diesem Rechner. Du kannst das Feld leer lassen.</p>
     <SchrittFuss erledigt={name.trim() !== ""} zurueck={zurueck} absenden arbeitet={arbeitet}
       weiter={() => void speichern()} ueberspringen={() => void ueberspringen()} />
   </form>;

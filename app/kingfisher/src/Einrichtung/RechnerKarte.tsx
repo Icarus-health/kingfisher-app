@@ -139,7 +139,7 @@ export function RechnerKarte({beiFertig, beiLaden}: {beiFertig?: () => void; bei
     <details className="rechner-techniker">
       <summary>Für Techniker</summary>
       <ul>{zeilen.map(zeile => <li key={zeile.rolle}>{zeile.titel}: <code>{laeufe[zeile.rolle]?.modell || zeile.empfohlen.name}</code></li>)}</ul>
-      <p className="source-hint">{daten.hinweis} Alles Weitere unter <Verweis ziel="technik-modelle" />.</p>
+      <p className="source-hint">{daten.hinweis} Alles Weitere unter <Verweis ziel="ki" />.</p>
     </details>
   </section>;
 }

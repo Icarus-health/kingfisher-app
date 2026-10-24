@@ -91,6 +91,6 @@ export function MailReplySuggestion({ uid, onApply, disabled = false, hasDraft, 
         subject_too_broad: "Der Betreff grenzt den Vorgang nicht ausreichend ein. Es wurde keine frühere Rohquelle verwendet.",
       } as Record<string, string>)[suggestion.source_status] || "Keine eindeutig passenden aktuellen Rohquellen verwendet."}</p>}
       {stilHinweis(suggestion.stil) ? <p className="mail-reply-suggestion-stil" role="status">{stilHinweis(suggestion.stil)} <button type="button" className="text-action" onClick={onOpenStyle}>Schreibstil ansehen</button></p> : null}
-      <button className="mail-reader-primary" type="button" disabled={disabled} onClick={() => onApply(suggestion)}>{hasDraft ? "Antwortentwurf ersetzen" : "Als Antwort übernehmen"}</button></div> : null}
+      <button className="mail-reader-secondary" type="button" disabled={disabled} onClick={() => onApply(suggestion)}>{hasDraft ? "Antwortentwurf ersetzen" : "Als Antwort übernehmen"}</button></div> : null}
   </section>;
 }

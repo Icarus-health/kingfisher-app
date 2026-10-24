@@ -15,10 +15,28 @@ export function groupTasks<T extends Dated>(tasks: T[], now = new Date()) {
   return groups;
 }
 
+/** Was die Liste zeigt: nur Gruppen mit Aufgaben. Eine leere Gruppe ist Lärm, keine Auskunft. */
+export function visibleTaskGroups<T extends Dated>(tasks: T[], now = new Date()) {
+  return groupTasks(tasks, now).filter(group => group.items.length > 0);
+}
+
 export function projectColumns<T extends BoardTask>(tasks: T[]) {
   return [
     {label:'Offen',items:tasks.filter(t=>t.status==='open' && !t.wartet_auf)},
     {label:'Wartend',items:tasks.filter(t=>t.status==='open' && Boolean(t.wartet_auf))},
     {label:'Erledigt',items:tasks.filter(t=>t.status==='done')},
   ];
+}
+
+/** Fälligkeit, wie man sie sagt: „Heute“, „Morgen“, „Gestern“, sonst „2. Okt.“ (mit Jahr, wenn es ein anderes ist). */
+export function dueLabel(value: string | null, now = new Date()) {
+  if (!value) return "Ohne Termin";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Termin nicht lesbar";
+  const start = (item: Date) => new Date(item.getFullYear(), item.getMonth(), item.getDate()).getTime();
+  const days = Math.round((start(date) - start(now)) / 86_400_000);
+  if (days === 0) return "Heute";
+  if (days === 1) return "Morgen";
+  if (days === -1) return "Gestern";
+  return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
 }

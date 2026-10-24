@@ -45,7 +45,7 @@ const props=()=>({projectId:'p',revision:0,onView(){},onTask(){}});
 test('full counts, missing dates, waiting names and completed counts stay explicit',async()=>withApi(async()=>{
   const d=await driver(props());try{d.render();d.runEffects();await tick();
     const html=renderToStaticMarkup(d.render());assert.match(html,/206/);assert.match(html,/205 ohne Termin/);
-    assert.match(html,/Anna/);assert.match(html,/<strong>2<\/strong>Erledigte Aufgaben/);assert.match(html,/1 verworfen/);
+    assert.match(html,/Anna/);assert.match(html,/<strong>2<\/strong>Erledigt/);assert.match(html,/1 verworfen/);
     assert.match(html,/Ohne Termin/);assert.doesNotMatch(html,/100%|Heute|Projektfortschritt/);
   }finally{d.close();}
 }));
@@ -55,7 +55,7 @@ test('one click opens the correct task or the entire matching view',async()=>wit
   try{d.render();d.runEffects();await tick();const tree=d.render();
     button(tree,'Angebot prüfen').props.onClick();assert.deepEqual(opened,['t','mine']);
     button(tree,'Antwort erhalten').props.onClick();assert.deepEqual(opened,['w','waiting']);
-    button(tree,'Warte auf andere').props.onClick();assert.equal(view,'waiting');
+    button(tree,'Wartet').props.onClick();assert.equal(view,'waiting');
   }finally{d.close();}
 }));
 
@@ -82,10 +82,10 @@ test('no project selection loads nothing; empty project never implies complete',
   },async()=>{calls++;return {...summary(),counts:{mine:0,waiting:0,done:0,dropped:0,overdue:0,undated:0},next_tasks:[],waiting_tasks:[]};});
 });
 
-test('refresh uses new data and does not write any task',async()=>{
+test('a changed list revision reloads the overview without a manual refresh button and writes no task',async()=>{
   let calls=0;await withApi(async()=>{const d=await driver(props());
-    try{d.render();d.runEffects();await tick();button(d.render(),'Überblick aktualisieren').props.onClick();
-      d.render();d.runEffects();await tick();assert.equal(calls,2);
+    try{d.render();d.runEffects();await tick();assert.equal(button(d.render(),'aktualisieren'),undefined,'no manual refresh');
+      d.props={...d.props,revision:d.props.revision+1};d.render();d.runEffects();await tick();assert.equal(calls,2);
     }finally{d.close();}
   },async()=>{calls++;return summary();});
 });

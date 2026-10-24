@@ -9,6 +9,7 @@ import { nichtMehrZuordenbar } from "./personMergeLost";
 import { isPerson, quality, duplicateIds } from "./peopleQuality";
 export { personNodes, type PersonFilter } from "./peopleQuality";
 import "./PeopleReview.css";
+import { Leer } from "./grundlage";
 
 function openPerson(node: GraphNode) {
   if (node.attributes.identity_resolution === "confirmed_group") navigate("/memory?people=review");
@@ -105,12 +106,12 @@ export function PeopleReview({ graph, onGraphRefresh }: { graph: MemoryGraph; on
   useEffect(() => { void loadMerges(); }, []);
 
   return <section className="people-review" aria-label="Personen prüfen">
-    <p className="people-review-note">Mögliche Duplikate werden erst nach deiner Bestätigung gemeinsam angezeigt. Die ursprünglichen Akten und Quellen bleiben erhalten.</p>
+    <p className="people-review-note g-fussnote">Mögliche Duplikate erscheinen erst nach deiner Bestätigung gemeinsam; Akten und Quellen bleiben erhalten.</p>
     <PeopleMentions />
     {merges.length ? <section className="people-review-history" aria-label="Gespeicherte Zusammenführungen"><h2>Zusammengeführte Personen</h2>{merges.map(merge => <SavedMerge key={merge.id} merge={merge} onChanged={refresh} verloren={nichtMehrZuordenbar(graph, merge.id)} />)}</section> : null}
     {mergeError ? <p className="people-review-error" role="alert">Gespeicherte Zusammenführungen konnten nicht geladen werden. <button type="button" onClick={() => void loadMerges()}>Erneut laden</button></p> : null}
     {Array.from(duplicateGroups.values()).map(group => <MergeCandidate key={group.map(node => node.id).join("|")} members={group} onChanged={refresh} />)}
     {flagged.length ? <article className="people-review-group"><h3>Ungeklärte Personen</h3>{flagged.map(node => <p key={node.id}><button type="button" className="people-review-link" onClick={() => openPerson(node)}>{node.label}</button><small>{typeof node.attributes.quality_reason === "string" ? node.attributes.quality_reason : "Bitte prüfen"}</small></p>)}</article> : null}
-    {!duplicateGroups.size && !flagged.length && !merges.length && !mergeError ? <p aria-live="polite">Keine Personen zur Prüfung.</p> : null}
+    {!duplicateGroups.size && !flagged.length && !merges.length && !mergeError ? <Leer zeichen="people" satz="Keine Personen zur Prüfung." /> : null}
   </section>;
 }

@@ -85,13 +85,14 @@ test("Neu anmelden: Escape bricht ab, nach einer Ablehnung bleibt der Fokus im F
   assert.match(knopf, /knopf\.current\?\.focus\(\)/, "nach Abbrechen zurück auf „Neu anmelden“");
 });
 
-test("Der Postfachstand auf Heute klappt auf, wenn ein Postfach den Menschen braucht", () => {
+test("Der Postfachstand steht auf Heute nur, wenn ein Postfach den Menschen braucht, dann offen (Paket U, H6)", () => {
   assert.equal(postfachMussHandeln([{zustand: "fehler", verweis: "zugaenge"}]), true);
   assert.equal(postfachMussHandeln([{zustand: "fehler", verweis: null}, {zustand: "leer"}]), false);
   assert.equal(postfachMussHandeln([{zustand: "aktuell", verweis: "zugaenge"}]), false, "nur, was Heute auch zeigt");
   const stand = readFileSync(new URL("../src/PostfachStand.tsx", import.meta.url), "utf8");
   assert.match(stand, /const mussHandeln = postfachMussHandeln\(zeigen\);/);
-  assert.match(stand, /if \(mussHandeln && klappe\.current\) klappe\.current\.open = true;/);
+  assert.match(stand, /if \(ausstehend \|\| !mussHandeln\) return null;/);
+  assert.doesNotMatch(stand, /<details/, "was zu tun ist, steht offen da, nicht hinter einer Klappe");
 });
 
 test("Die Statuszeile nach dem Neu-Anmelden bekommt den Fokus, aber keinen Rahmen (kein Bedienelement)", () => {

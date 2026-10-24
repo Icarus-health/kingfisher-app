@@ -1,64 +1,338 @@
-.shell main.workspace-tasks {background:var(--calm-surface);color:var(--calm-ink);border:1px solid var(--calm-line);border-radius:18px;margin:20px;width:calc(100% - 40px);padding:24px;}
-.shell main.workspace-tasks .tasks-heading {min-height:48px;padding:0;margin-bottom:16px;display:flex;align-items:center;gap:16px;}
-.shell main.workspace-tasks .tasks-heading .eyebrow {display:none;}
-.shell main.workspace-tasks .tasks-heading h1 {font:600 var(--calm-heading)/1.3 Inter,sans-serif;margin:0;flex:1;}
-.shell main.workspace-tasks .task-tabs {display:flex;gap:4px;flex-wrap:wrap;padding:4px;margin:0 0 12px;box-shadow:none;border-radius:10px;background:var(--calm-inset);}
-.shell main.workspace-tasks .task-tabs button {font-size:var(--calm-control);padding:8px 12px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--calm-muted);}
-.shell main.workspace-tasks .task-tabs button[aria-pressed=true] {background:var(--calm-primary);color:var(--calm-on-primary);border-color:var(--calm-primary);}
-.shell main.workspace-tasks .task-table {background:transparent;border:0;box-shadow:none;padding:0;}
-.shell main.workspace-tasks [hidden] {display:none!important;}
-.shell main.workspace-tasks .task-table > header {display:none;}
-.shell main.workspace-tasks .workspace-task-group {margin:20px 0;}
-.shell main.workspace-tasks .workspace-task-group h2 {font:600 var(--calm-control)/1.5 Inter,sans-serif;margin:0;padding:8px 0;border-bottom:1px solid var(--calm-line);}
-.shell main.workspace-tasks .workspace-task-group h2 small {color:var(--calm-muted);margin-left:8px;font-weight:400;}
-.shell main.workspace-tasks .workspace-group-empty {font-size:var(--calm-caption);color:var(--calm-muted);margin:8px 0;}
-.shell main.workspace-tasks .task-row {background:transparent;border-bottom:1px solid var(--calm-line);padding:12px 0;gap:12px;grid-template-columns:28px minmax(0,1fr) auto 90px;}
-.shell main.workspace-tasks .task-row > .task-copy {display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
-.shell main.workspace-tasks .task-title-link {flex:1 1 220px;text-align:left;border:0;background:transparent;padding:4px 0;color:var(--calm-ink);font-weight:600;font-size:var(--calm-control);line-height:1.5;}
-.shell main.workspace-tasks .task-row select {max-width:200px;font-size:var(--calm-caption);min-height:36px;}
-.shell main.workspace-tasks .task-row button.secondary-action,.shell main.workspace-tasks .task-wait-control button {font-size:var(--calm-caption);padding:6px 10px;min-height:36px;}
-.shell main.workspace-tasks .task-row time {font-size:var(--calm-caption);}
-.shell main.workspace-tasks .task-row small {font-size:var(--calm-caption);color:var(--calm-muted);}
-.shell main.workspace-tasks .task-search {margin:12px 0;padding:0;background:transparent;gap:8px;}
-.shell main.workspace-tasks .task-search label {font-size:var(--calm-caption);}
-.shell main.workspace-tasks .task-source,.shell main.workspace-tasks .project-controls,.shell main.workspace-tasks .project-overview {border:1px solid var(--calm-line);border-radius:10px;background:var(--calm-inset);box-shadow:none;padding:12px;margin:12px 0;}
-.shell main.workspace-tasks .project-controls > .project-selection-hint {display:none;}
-.shell main.workspace-tasks .task-source:has(> h2 > button[aria-expanded=false]) {display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:8px 12px;}
-.shell main.workspace-tasks .task-source > h2,.shell main.workspace-tasks .task-source > p {margin:0;}
-.shell main.workspace-tasks .tasks-add {position:static;margin:0;flex:0 0 auto;}
-.shell main.workspace-tasks .task-source > h2 {font-size:14px;}
-.shell main.workspace-tasks .task-source > p,.shell main.workspace-tasks .workspace-projects > p {font-size:var(--calm-caption);color:var(--calm-muted);line-height:1.6;}
-.shell main.workspace-tasks .mail-task-form {margin:12px 0;border:1px solid var(--calm-line);border-radius:10px;padding:14px;background:var(--calm-surface);}
-.shell main.workspace-tasks .mail-task-form h3 {font-size:14px;}
-.shell main.workspace-tasks .mail-task-form p {font-size:var(--calm-caption);line-height:1.6;}
-.workspace-project-list {display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
-.workspace-project-list > button {text-align:left;border:1px solid var(--calm-line);border-radius:10px;background:var(--calm-surface);padding:12px;color:var(--calm-ink);}
-.workspace-project-list > button[aria-pressed=true] {border-color:var(--calm-accent);background:var(--calm-inset);}
-.workspace-project-list strong {display:block;font-size:13px;}
-.workspace-project-list :is(span,small) {display:block;font-size:var(--calm-caption);line-height:1.5;color:var(--calm-muted);margin-top:4px;}
-.workspace-project-actions {display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:16px 0;font-size:var(--calm-caption);}
-.workspace-project-actions button {background:var(--calm-surface);border:1px solid var(--calm-line);border-radius:7px;padding:6px 10px;color:var(--calm-ink);}
-.workspace-board {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start;}
-.workspace-board-column {background:var(--calm-inset);border:1px solid var(--calm-line);border-radius:12px;padding:12px;}
-.workspace-board-column h3 {font-size:13px;margin:0 0 12px;}
-.workspace-board-column :is(p,small) {font-size:var(--calm-caption);color:var(--calm-muted);}
-.workspace-board-task {display:block;width:100%;border:1px solid var(--calm-line);border-radius:8px;text-align:left;background:var(--calm-surface);padding:12px;color:var(--calm-ink);margin-bottom:8px;}
-.workspace-board-task strong {font-size:var(--calm-caption);line-height:1.5;}
-.workspace-board-task :is(span,time) {display:block;font-size:var(--calm-caption);color:var(--calm-muted);margin-top:6px;}
-@media(max-width:900px){.shell main.workspace-tasks {margin:12px;width:calc(100% - 24px);padding:16px;}.workspace-board {grid-template-columns:minmax(0,1fr);}.shell main.workspace-tasks .task-row {grid-template-columns:28px minmax(0,1fr);}.shell main.workspace-tasks .task-row time,.shell main.workspace-tasks .task-wait-control {grid-column:2;}}
+/* Aufgaben und Persönliche Entwicklung (Flächenpaket P2, Grundlage vom 23.10.2026, docs/16-gestaltung.md).
 
-/* Die Zeile ordnet sich nach Inhalt, nicht nach den alten zweizeiligen Karten. */
-.shell main.workspace-tasks .task-row > .task-copy {grid-column:2;grid-row:1;}
-.shell main.workspace-tasks .task-row > .task-wait-control {grid-column:3;grid-row:1;padding:0;}
-.shell main.workspace-tasks .task-row > time {grid-column:4;grid-row:1;text-align:right;}
-@media(max-width:900px){
- .shell main.workspace-tasks .task-row > .task-copy {grid-column:2;grid-row:1;}
- .shell main.workspace-tasks .task-row > time {grid-column:2;grid-row:2;text-align:left;}
- .shell main.workspace-tasks .task-row > .task-wait-control {grid-column:2;grid-row:3;}
+   Die Seite zeigt Aufgaben, nicht Bedienung: großer Titel, Segmente, ein Suchfeld, darunter gruppierte Flächen mit
+   ganzen, klickbaren Zeilen. Werte nur aus --g-* (Grundlage.css) und --calm-* (CalmUI.css). Diese Datei wird vor
+   NordicWorkspace.css, Grundlage.css und Seitenbreite.css geladen; wo ältere Regeln greifen, hebt #root an. */
+
+/* ── Seite ──────────────────────────────────────────────────────────────────────────────────────────────────── */
+#root main.aufgaben {
+  --g-kopf-rand: var(--g-a6);
+  box-sizing: border-box; width: 100%; max-width: none; min-height: 100dvh; margin: 0;
+  padding: 0 var(--g-a6) var(--g-a8); border: 0; border-radius: 0; box-shadow: none; background: var(--g-grund); color: var(--g-tinte);
+}
+/* Eine ruhige Spalte, links wie die Musterseite; breite Fenster lassen rechts Platz für das Detailpaneel. */
+#root main.aufgaben > :not(.g-kopfleiste, .workspace-detail) { max-width: min(960px, 100%); }
+#root main.aufgaben [hidden] { display: none !important; }
+#root main.aufgaben .tasks-heading { margin: 0 0 var(--g-a5); padding: var(--g-a6) 0 0; align-items: center; }
+#root main.aufgaben .tasks-heading .g-seitenkopf-zeile { margin-top: var(--g-a1); }
+#root main.aufgaben .tasks-heading :is(.tasks-add, .g-knopf-getoent) img { width: 18px; height: 18px; }
+#root main.aufgaben .tasks-heading .tasks-add { position: static; inset: auto; margin: 0; }
+#root main.aufgaben .tasks-heading .g-knopf-getoent img { filter: brightness(0); opacity: .7; }
+#root main.aufgaben .aufgaben-segmente { margin: 0 0 var(--g-a5); }
+/* Ist das Detailpaneel offen und das Fenster breit, rückt die Liste zur Seite, statt darunter zu liegen. */
+@media (min-width: 1180px) {
+  #root main.aufgaben:has(> .workspace-detail) { padding-right: calc(520px + 2 * var(--g-a3) + var(--g-a4)); }
+}
+@media (max-width: 700px) {
+  #root main.aufgaben { --g-kopf-rand: var(--g-a4); padding: 0 var(--g-a4) var(--g-a7); }
+  #root main.aufgaben .tasks-heading { padding-top: var(--g-a5); margin-bottom: var(--g-a4); }
+  #root main.aufgaben .aufgaben-segmente { margin-bottom: var(--g-a4); }
 }
 
-/* Aufgaben folgen der Post: der Grund steht in der Zeile, „Rückgängig“ gleich daneben; die Vorschläge wie „Zur Prüfung“. */
-.shell main.workspace-tasks .task-row small.task-post,.shell .task-copy small.task-post {flex-basis:100%;color:var(--calm-ink);white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
-.shell main.workspace-tasks .task-row small.task-post button.text-action {margin-left:6px;font-size:var(--calm-caption);}
-.workspace-tasks .aufgaben-post .aufgaben-post-vorschlag {display:grid;gap:6px;padding:12px 0;border-top:1px solid var(--calm-line);}
-.workspace-tasks .aufgaben-post .aufgaben-post-vorschlag small {color:var(--calm-muted);font-size:var(--calm-caption);}
+/* Suche und Projektfilter in einer Zeile; kein Suchknopf, kein Knopf zum Aktualisieren. */
+#root main.aufgaben .task-search { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); margin: 0 0 var(--g-a5); }
+#root main.aufgaben .task-search input[type=search] { flex: 1 1 240px; min-width: 0; padding: 0 var(--g-a4); font: var(--g-text); border: 0; box-shadow: var(--g-schatten); }
+#root main.aufgaben .task-search select { flex: 0 1 220px; width: auto; max-width: 45%; min-width: 0; font: var(--g-neben); color: var(--g-tinte); border: 0; box-shadow: var(--g-schatten); }
+#root main.aufgaben .task-search > .tasks-error { flex-basis: 100%; }
+
+/* Sätze: Fehler rot mit leisem Knopf daneben, Hinweise leise. */
+#root main.aufgaben .tasks-error { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a2); margin: 0 0 var(--g-a4); font: var(--g-neben); color: var(--g-rot); }
+#root main.aufgaben .tasks-error > button { min-height: var(--g-ziel); }
+#root main.aufgaben :is(.task-hinweis, .task-count) { margin: 0 0 var(--g-a3); padding: 0 var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+
+/* ── Liste ──────────────────────────────────────────────────────────────────────────────────────────────────── */
+#root main.aufgaben .task-table { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; }
+#root main.aufgaben .workspace-task-group { margin: 0 0 var(--g-a5); }
+/* Leer: ein Zeichen, ein Satz, auf einer ruhigen Fläche. */
+#root main.aufgaben .task-empty.g-leer { margin: 0 0 var(--g-a5); padding: var(--g-a7) var(--g-a5); border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); font: inherit; }
+/* Laden: drei leise Balken auf der Fläche, keine Zahl, kein Satz. */
+#root main.aufgaben .task-loading { display: grid; gap: var(--g-a4); margin: 0 0 var(--g-a5); padding: var(--g-a5); border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main.aufgaben .task-loading i { display: block; width: 62%; height: 12px; border-radius: var(--g-radius-pille); background: var(--g-segment-grund); }
+#root main.aufgaben .task-loading i:nth-child(2) { width: 46%; }
+#root main.aufgaben .task-loading i:nth-child(3) { width: 34%; }
+#root main.aufgaben .task-seiten { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--g-a3); margin: 0 0 var(--g-a5); }
+#root main.aufgaben .task-page-number { font: var(--g-neben); color: var(--g-leise); }
+
+/* Die Zeile (TaskRow compact): Kreis (Ziel 44 px, der Kreis selbst klein), Titel, darunter leise eine Zeile, rechts die
+   Fälligkeit. Die ganze Zeile öffnet die Aufgabe (der Titelknopf deckt sie mit ::after); Kreis, Aktionen und
+   „Rückgängig“ liegen darüber. Trenner als eingerückte Haarlinie. */
+#root .task-row.compact {
+  position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; column-gap: var(--g-a2);
+  min-height: var(--g-zeile); margin: 0; padding: 0 var(--g-a4) 0 var(--g-a1); border: 0; border-radius: 0; background: transparent;
+  transition: background-color 150ms ease;
+}
+#root .task-row.compact:hover { background: rgba(23,38,53,.035); }
+#root .task-row.compact + .task-row.compact::before { content: ""; position: absolute; top: 0; right: 0; left: 52px; border-top: 1px solid var(--g-linie); }
+#root .task-row.compact > .task-check { grid-column: 1; grid-row: 1; }
+#root .task-row.compact > .task-copy { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 10px 0; }
+#root .task-row.compact .task-title-link {
+  padding: 0; border: 0; background: transparent; color: var(--g-tinte); font: 500 16px/1.4 var(--g-schrift); text-align: left; cursor: pointer; overflow-wrap: anywhere;
+}
+#root .task-row.compact .task-title-link::after { content: ""; position: absolute; inset: 0; }
+#root .task-row.compact .task-title-link:focus-visible { outline: none; }
+#root .task-row.compact:has(.task-title-link:focus-visible) { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+#root .task-row.compact :is(.task-check, .task-row-actions, .task-post button) { position: relative; z-index: 1; }
+#root .task-row.compact > .task-row-actions { grid-column: 3; grid-row: 1; }
+#root .task-row.compact > time { grid-column: 3; grid-row: 1; padding-left: var(--g-a2); white-space: nowrap; text-align: right; }
+#root .task-row :is(time, .task-meta) { font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+#root .task-row time.overdue, #root .task-row .task-meta time.overdue { color: var(--g-rot); font-weight: 500; }
+#root .task-row .task-meta { display: block; margin: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+#root .task-row .task-meta > * + *::before { content: " · "; color: var(--g-leise); font-weight: 400; }
+#root .task-row.done :is(.task-title-link, .task-copy > strong) { color: var(--g-leise); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Aufgaben folgen der Post: der Grund in der Zeile, „Rückgängig“ gleich daneben. */
+#root .task-row small.task-post { display: block; margin: 2px 0 0; font: var(--g-neben); color: var(--g-tinte); white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+#root .task-row small.task-post button.text-action { min-height: 0; padding: 0 2px; font: 500 14px/1.45 var(--g-schrift); }
+
+/* Der Kreis: 44 px Ziel, 22 px Kreis; erledigt gefüllt mit Haken. */
+#root .task-row .task-check {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-height: 0; margin: 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; box-shadow: none; cursor: pointer;
+}
+#root .task-row .task-check::before {
+  content: ""; grid-area: 1 / 1; box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid rgba(23,38,53,.3); background: var(--g-flaeche); transition: border-color 150ms ease, background-color 150ms ease;
+}
+#root .task-row .task-check:hover:not(:disabled)::before { border-color: var(--g-akzent); background: var(--g-getoent); }
+#root .task-row .task-check:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -4px; }
+#root .task-row .task-check:disabled { cursor: default; opacity: 1; }
+#root .task-row .task-check:disabled::before { opacity: .55; }
+#root .task-row.done .task-check::before { border-color: var(--g-akzent); background: var(--g-akzent); opacity: 1; }
+#root .task-row .task-check img { grid-area: 1 / 1; position: relative; width: 14px; height: 14px; filter: brightness(0) invert(1); }
+
+/* Zeilenaktionen (Projekt, „Warte auf …“): klein und getönt. In der Liste nur bei Zeiger oder Tastaturfokus sichtbar;
+   ohne Zeiger oder schmal stehen sie in der geöffneten Aufgabe. Per Tab bleiben sie erreichbar. */
+#root .task-row .task-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); margin: 0; }
+#root .task-row .task-row-actions > select {
+  width: auto; max-width: 220px; min-height: var(--g-ziel-kompakt); margin: 0; padding: 0 30px 0 var(--g-a3);
+  border: 0; border-radius: var(--g-radius-bedien); background-color: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); box-shadow: none;
+}
+#root .task-row .task-wait-control { grid-column: auto; grid-row: auto; padding: 0; margin: 0; }
+#root .task-row .task-wait-control button {
+  display: inline-flex; align-items: center; min-height: var(--g-ziel-kompakt); margin: 0; padding: 0 var(--g-a3);
+  border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); cursor: pointer;
+}
+#root .task-row .task-wait-control button:hover:not(:disabled) { background: var(--g-getoent-stark); }
+#root .task-row .task-wait-control button:disabled { opacity: .45; cursor: default; }
+#root .task-row .task-wait-control form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--g-a2); }
+#root .task-row .task-wait-control label { display: grid; gap: 4px; flex: 1 1 100%; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .task-row .task-wait-control input { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0 var(--g-a3); font: var(--g-text); }
+#root .task-row .task-wait-control small { flex-basis: 100%; order: 3; margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root .task-row .task-wait-control button[type=submit] { background: var(--g-akzent); color: var(--g-auf-akzent); }
+#root .task-row .task-wait-control button[type=submit] + button { background: transparent; color: var(--g-verweis); }
+#root .task-row.compact.task-row-open > .task-row-actions { grid-column: 2 / -1; grid-row: 2; padding: 0 0 var(--g-a3); }
+#root .task-row.compact.task-row-open > .task-row-actions > select { display: none; }
+@media (hover: hover) and (min-width: 901px) {
+  /* Die Aktionen nehmen keinen Platz in der Zeile ein (sonst wird der Titel schmal); sie legen sich bei Zeiger oder
+     Fokus rechts über die Fälligkeit, mit einem weichen Übergang zum Titel. */
+  #root .task-row.compact:is(:hover, :focus-within) { background: color-mix(in srgb, var(--g-tinte) 3.5%, var(--g-flaeche)); }
+  #root .task-row.compact:not(.task-row-open) > .task-row-actions {
+    position: absolute; top: 50%; right: var(--g-a3); flex-wrap: nowrap; padding-left: var(--g-a6);
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--g-tinte) 3.5%, var(--g-flaeche)) var(--g-a5)); transform: translateY(-50%);
+    opacity: 0; pointer-events: none; transition: opacity 150ms ease;
+  }
+  #root .task-row.compact:is(:hover, :focus-within) > .task-row-actions { opacity: 1; pointer-events: auto; }
+}
+@media (hover: none), (max-width: 900px) {
+  #root .task-row.compact > .task-row-actions { display: none; }
+}
+
+/* ── Neue Aufgabe ───────────────────────────────────────────────────────────────────────────────────────────── */
+#root main.aufgaben .task-table > .task-create {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--g-a4);
+  margin: 0 0 var(--g-a5); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten);
+}
+#root main.aufgaben .task-table > .task-create > :is(.task-create-title, .task-create-actions, .tasks-error, .task-retry-review) { grid-column: 1 / -1; }
+#root main.aufgaben .task-table > .task-create label { display: grid; gap: 6px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main.aufgaben .task-table > .task-create :is(input, select) { width: 100%; height: auto; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
+#root main.aufgaben .task-table > .task-create .task-create-title input { min-height: 48px; font: 500 17px/1.35 var(--g-schrift); }
+#root main.aufgaben .task-table > .task-create .task-create-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--g-a2); }
+@media (max-width: 700px) {
+  #root main.aufgaben .task-table > .task-create { grid-template-columns: minmax(0, 1fr); padding: var(--g-a4); }
+}
+/* Wiederholen nach unklarem Speichern: ein Häkchen, ein leiser Knopf (TaskRetryReview). */
+#root .task-retry-review { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--g-a2) var(--g-a4); }
+#root .task-retry-review > label { display: flex; flex-direction: row; align-items: center; gap: var(--g-a2); min-height: var(--g-ziel); font: var(--g-neben); color: var(--g-tinte); }
+#root .task-retry-review input[type=checkbox] { width: 20px; height: 20px; min-height: 0; margin: 0; padding: 0; flex: none; }
+
+/* ── Die Aufgabe im Detail (Paneel, auch auf Heute unter „Details & Bearbeiten“) ───────────────────────────────── */
+#root .task-detail { display: grid; gap: var(--g-a4); min-width: 0; }
+#root .task-detail > :is(p, .task-detail-verworfen) { margin: 0; }
+#root .task-detail .task-detail-satz { font: var(--g-neben); color: var(--g-leise); }
+#root .task-detail .task-detail-fehler { color: var(--g-rot); }
+#root .task-detail .task-goal-link { padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-getoent); font: var(--g-neben); color: var(--g-tinte); }
+#root .task-detail .task-detail-verworfen { display: grid; justify-items: start; gap: var(--g-a3); font: var(--g-text); }
+#root .task-row.task-row-detail {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: var(--g-a2); align-items: start;
+  min-height: 0; margin: 0; padding: 0; border: 0; background: transparent;
+}
+#root .task-row.task-row-detail > .task-check { margin-top: -8px; margin-left: -10px; }
+#root .task-row.task-row-detail > .task-copy { grid-column: 2; grid-row: 1; display: grid; gap: var(--g-a2); min-width: 0; margin-left: -10px; }
+#root .task-row.task-row-detail .task-copy > strong { margin: 0; font: 650 20px/1.35 var(--g-schrift); letter-spacing: -.01em; color: var(--g-tinte); white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+#root .task-row.task-row-detail .task-notiz { margin: 0; font: var(--g-text); color: var(--g-tinte); white-space: pre-wrap; overflow-wrap: anywhere; }
+#root .task-row.task-row-detail > .task-copy > .task-row-actions { margin-top: var(--g-a2); }
+#root .task-row.task-row-detail .task-row-actions > :is(button.secondary-action, select) { min-height: var(--g-ziel); }
+#root .task-row.task-row-detail .task-row-actions > select { width: auto; max-width: 100%; font-size: 15px; }
+#root .task-row.task-row-detail .task-wait-control button { min-height: var(--g-ziel); font-size: 15px; padding: 0 var(--g-a4); }
+#root .task-row.task-row-detail .task-wait-control:has(form) { flex-basis: 100%; }
+/* Quelle und Verlauf: zwei ruhige Zeilen mit drehendem Pfeil, aufgeklappt eine leise Fläche darunter. */
+#root .task-row.task-row-detail .task-source { margin: 0; min-width: 0; border-top: 1px solid var(--g-linie); }
+#root .task-row.task-row-detail .task-row-actions + .task-source { margin-top: var(--g-a3); }
+#root .task-aufklapper {
+  display: flex; align-items: center; gap: var(--g-a2); width: 100%; min-height: var(--g-ziel); margin: 0; padding: 0;
+  border: 0; background: transparent; color: var(--g-tinte); font: 500 15px/1.35 var(--g-schrift); text-align: left; cursor: pointer;
+}
+#root .task-aufklapper::after {
+  content: ""; margin-left: auto; margin-right: 6px; width: 7px; height: 7px; box-sizing: border-box; border: solid rgba(23,38,53,.4);
+  border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); transition: transform var(--g-bewegung);
+}
+#root .task-aufklapper[aria-expanded="true"]::after { transform: translateY(-2px) rotate(45deg); }
+#root .task-aufklapper:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: 6px; }
+#root .task-row.task-row-detail .task-source section { margin: 0 0 var(--g-a3); padding: var(--g-a4); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+#root .task-row.task-row-detail .task-source section :is(p, li) { margin: 0 0 var(--g-a1); font: var(--g-neben); color: var(--g-leise); }
+#root .task-row.task-row-detail .task-source section h3 { margin: 0 0 var(--g-a2); font: var(--g-ueberschrift); }
+#root .task-row.task-row-detail .task-source section ol { margin: var(--g-a2) 0 0; padding: 0; list-style: none; display: grid; gap: var(--g-a3); }
+#root .task-row.task-row-detail .task-source section li strong { display: block; font: 500 15px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .task-row.task-row-detail .task-source section blockquote { margin: var(--g-a2) 0; padding-left: var(--g-a3); border-left: 3px solid var(--g-linie); font: var(--g-text); color: var(--g-tinte); }
+#root .task-row.task-row-detail .task-source-body { margin-top: var(--g-a3); font: var(--g-neben); color: var(--g-tinte); }
+@media (prefers-reduced-motion: reduce) { #root .task-aufklapper::after, #root .task-row.compact, #root .task-row .task-check::before { transition: none; } }
+/* Bearbeiten: Titel volle Breite oben, Fällig und Wiedervorlage nebeneinander, Notiz, rechts unten ein „Speichern“. */
+#root .task-row .task-copy > .task-edit {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--g-a4);
+  margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+#root .task-row .task-edit > :is(.task-edit-title, .task-edit-notes, .task-edit-actions, .partial-error) { grid-column: 1 / -1; }
+#root .task-row .task-edit label { display: grid; gap: 6px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .task-row .task-edit :is(input, textarea) { width: 100%; min-width: 0; height: auto; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
+#root .task-row .task-edit .task-edit-title input { min-height: 48px; font: 500 17px/1.35 var(--g-schrift); }
+#root .task-row .task-edit textarea { min-height: 88px; padding: 10px var(--g-a3); resize: vertical; }
+#root .task-row .task-edit > .task-edit-reminder { display: grid; grid-column: auto; justify-items: stretch; gap: var(--g-a1); }
+#root .task-row .task-edit .task-reminder-edit-actions { display: flex; flex-wrap: wrap; gap: 0 var(--g-a3); }
+#root .task-row .task-edit .task-reminder-edit-actions button { font-size: 14px; }
+#root .task-row .task-edit .task-edit-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--g-a2); }
+#root .task-row .task-edit + .task-row-actions { margin-top: var(--g-a2); padding-top: var(--g-a4); border-top: 1px solid var(--g-linie); }
+@media (max-width: 700px) { #root .task-row .task-copy > .task-edit { grid-template-columns: minmax(0, 1fr); } }
+/* Seltenes unter der Aufgabe: Projekt im Gedächtnis, Verwerfen; leise Textknöpfe nach einer Haarlinie. */
+#root .task-detail .task-detail-more { display: flex; flex-wrap: wrap; gap: 0 var(--g-a4); margin: 0; padding-top: var(--g-a2); border-top: 1px solid var(--g-linie); }
+
+/* ── Projekte ───────────────────────────────────────────────────────────────────────────────────────────────── */
+#root main.aufgaben .workspace-project-list { margin: 0 0 var(--g-a4); }
+#root main.aufgaben .workspace-project-list .g-zeile-wert { font: var(--g-neben); }
+#root main.aufgaben .workspace-project-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a4); margin: 0 0 var(--g-a5); }
+#root main.aufgaben .workspace-project-actions .g-segmente { margin: 0; }
+/* Board: drei Gruppen nebeneinander, schmal untereinander; keine Karte in der Karte. */
+#root main.aufgaben .workspace-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g-a4); align-items: start; margin: 0 0 var(--g-a5); }
+#root main.aufgaben .workspace-board-column { margin: 0; padding: 0; border: 0; background: none; }
+#root main.aufgaben .workspace-board-column > h3 { display: flex; gap: var(--g-a2); margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); }
+#root main.aufgaben .workspace-board-column > h3 small { font-weight: 500; }
+#root main.aufgaben .workspace-board-task { margin: 0; border: 0; border-radius: 0; font-size: 15px; }
+#root main.aufgaben .workspace-board-satz { margin: 0; padding: var(--g-a2) var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .workspace-board-seiten { display: flex; gap: var(--g-a2); padding: var(--g-a2) var(--g-a4) 0; }
+@media (max-width: 900px) { #root main.aufgaben .workspace-board { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Zur Prüfung und „Aus deiner Post“ ─────────────────────────────────────────────────────────────────────────── */
+#root main.aufgaben :is(.task-review, .aufgaben-post) { margin: 0 0 var(--g-a5); }
+#root main.aufgaben .task-review > .task-empty.g-leer { margin-top: 0; }
+#root main.aufgaben .task-vorschlaege { margin: 0 0 var(--g-a5); padding: 0; border: 0; background: none; box-shadow: none; }
+#root main.aufgaben .task-vorschlaege-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin: 0 0 var(--g-a3); padding: 0 var(--g-a4); }
+#root main.aufgaben .task-vorschlaege-kopf > p { flex: 1 1 260px; margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlaege-zeitraum { display: flex; align-items: center; gap: var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlaege-zeitraum select { min-height: var(--g-ziel-kompakt); padding: 0 30px 0 var(--g-a3); border: 0; background-color: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); }
+#root main.aufgaben :is(.task-vorschlaege-satz, .task-vorschlaege-ergebnisse) { margin: 0 0 var(--g-a3); padding: 0 var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlaege-ergebnisse { list-style: none; display: grid; gap: var(--g-a1); }
+#root main.aufgaben .task-vorschlaege-ergebnisse strong { color: var(--g-tinte); font-weight: 600; }
+#root main.aufgaben .task-vorschlaege-fehler { color: var(--g-rot); }
+/* Die Auswahl klebt beim Rollen unten, damit „Auswahl prüfen“ immer erreichbar ist. */
+#root main.aufgaben .task-vorschlaege-auswahl {
+  position: sticky; bottom: var(--g-a4); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3);
+  margin: 0 0 var(--g-a3); padding: var(--g-a2) var(--g-a3); border-radius: var(--g-radius-flaeche); background: rgba(255,255,255,.92);
+  -webkit-backdrop-filter: saturate(180%) blur(16px); backdrop-filter: saturate(180%) blur(16px); box-shadow: 0 0 0 1px rgba(23,38,53,.06), 0 6px 20px rgba(23,38,53,.1);
+}
+#root main.aufgaben .task-vorschlaege-auswahl small { flex: 1 1 220px; font: var(--g-fussnote); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlaege-seiten { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a2); margin: var(--g-a3) 0 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlaege-seiten > span { margin-right: auto; padding-left: var(--g-a4); }
+/* Ein Vorschlag als Zeile der Fläche: Häkchen links, Inhalt daneben, Haarlinie zwischen den Zeilen. */
+#root main.aufgaben .task-vorschlaege-liste > .task-vorschlag {
+  position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: var(--g-a1); margin: 0;
+  padding: var(--g-a3) var(--g-a4) var(--g-a3) var(--g-a1); border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+#root main.aufgaben .task-vorschlaege-liste > .task-vorschlag + .task-vorschlag::before { content: ""; position: absolute; top: 0; right: 0; left: 52px; border-top: 1px solid var(--g-linie); }
+#root main.aufgaben .task-vorschlag-wahl { display: grid; place-items: center; width: 44px; height: 44px; margin: -6px 0 0; cursor: pointer; }
+#root main.aufgaben .task-vorschlag-wahl input { width: 20px; height: 20px; min-height: 0; margin: 0; flex: none; cursor: pointer; }
+#root main.aufgaben .task-vorschlag-inhalt { display: grid; justify-items: start; gap: 4px; min-width: 0; }
+#root main.aufgaben .task-vorschlag h3 { margin: 4px 0 0; font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); overflow-wrap: anywhere; }
+#root main.aufgaben .task-vorschlag .task-vorschlag-meta { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlag .suggestion-time-badge { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; background: none; font: var(--g-fussnote); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlag .suggestion-time-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(23,38,53,.3); }
+#root main.aufgaben .task-vorschlag .suggestion-time-pruefen::before { background: var(--g-akzent); }
+#root main.aufgaben .task-vorschlag .suggestion-evidence { width: 100%; margin: 0; padding: 0; border: 0; background: none; }
+#root main.aufgaben .task-vorschlag .suggestion-evidence > summary { display: flex; align-items: center; min-height: 36px; font: 500 14px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root main.aufgaben .task-vorschlag .suggestion-evidence[open] { padding: 0 0 var(--g-a2); }
+#root main.aufgaben .task-vorschlag .suggestion-evidence :is(p, div > p) { margin: var(--g-a1) 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlag .suggestion-evidence blockquote { margin: var(--g-a2) 0; padding-left: var(--g-a3); border-left: 3px solid var(--g-linie); font: var(--g-text); color: var(--g-tinte); }
+#root main.aufgaben .task-vorschlag .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3); margin: 0; }
+#root main.aufgaben .task-vorschlag form { width: 100%; }
+#root main.aufgaben .task-vorschlag .task-suggestion-fields { display: grid; gap: var(--g-a3); margin: var(--g-a2) 0 0; padding: 0; border: 0; min-width: 0; }
+#root main.aufgaben .task-vorschlag .mail-task-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-a3); }
+#root main.aufgaben .task-vorschlag :is(.task-suggestion-fields, .mail-task-form-fields) label { display: grid; gap: 6px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main.aufgaben .task-vorschlag :is(.task-suggestion-fields, .mail-task-form-fields) label small { font: 400 13px/1.4 var(--g-schrift); }
+#root main.aufgaben .task-vorschlag :is(input:not([type=checkbox]), select) { width: 100%; height: auto; min-height: var(--g-ziel); box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
+#root main.aufgaben .task-vorschlag .task-vorschlag-formular-aktionen { justify-content: flex-end; width: 100%; }
+#root main.aufgaben .task-vorschlag .task-vorschlag-fehler { margin: 0; font: var(--g-neben); color: var(--g-rot); }
+@media (max-width: 700px) { #root main.aufgaben .task-vorschlag .mail-task-form-fields { grid-template-columns: minmax(0, 1fr); } }
+/* „Aus deiner Post“: Satz, Erklärung, zwei Antworten und der Weg zur Mail. */
+#root main.aufgaben .aufgaben-post .aufgaben-post-zahl { margin-left: var(--g-a2); font-weight: 500; }
+#root main.aufgaben .aufgaben-post .aufgaben-post-vorschlag { position: relative; display: grid; gap: 2px; margin: 0; padding: var(--g-a3) var(--g-a4); border: 0; }
+#root main.aufgaben .aufgaben-post .aufgaben-post-vorschlag + .aufgaben-post-vorschlag::before { content: ""; position: absolute; top: 0; right: 0; left: var(--g-a4); border-top: 1px solid var(--g-linie); }
+#root main.aufgaben .aufgaben-post .aufgaben-post-vorschlag strong { font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root main.aufgaben .aufgaben-post .aufgaben-post-vorschlag small { font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .aufgaben-post .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3); margin-top: var(--g-a2); }
+#root main.aufgaben .aufgaben-post .quiet-source-toggle { min-height: var(--g-ziel); font: 500 14px/1.3 var(--g-schrift); }
+#root main.aufgaben .aufgaben-post .task-suggestion-actions > :is(.task-source, div) { margin: 0; }
+#root main.aufgaben .aufgaben-post-satz { margin: 0; padding: var(--g-a3) var(--g-a4); font: var(--g-neben); color: var(--g-leise); border-bottom: 1px solid var(--g-linie); }
+#root main.aufgaben .aufgaben-post-fehler { color: var(--g-rot); }
+
+/* Sammelübernahme im Detailpaneel: ein Satz, die Angaben als Liste mit Haarlinien, unten der eine gefüllte Knopf. */
+#root .task-sammel { display: grid; gap: var(--g-a4); }
+#root .task-sammel-satz { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .task-sammel-liste { border-radius: var(--g-radius-flaeche); background: var(--g-grund); }
+#root .task-sammel-liste > article { position: relative; padding: var(--g-a3) var(--g-a4); }
+#root .task-sammel-liste > article + article { border-top: 1px solid var(--g-linie); }
+#root .task-sammel-liste h3 { margin: 0 0 2px; font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .task-sammel-liste p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .task-sammel-liste blockquote { margin: var(--g-a2) 0 0; padding-left: var(--g-a3); border-left: 3px solid var(--g-linie); font: var(--g-neben); color: var(--g-tinte); }
+#root .task-sammel > .primary-action { justify-self: end; }
+
+/* ── Ziele, Gewohnheiten, Entscheidungen auf dieser Seite und unter /development ─────────────────────────────── */
+#root main.aufgaben .decision-controls-seite > .decision-controls-heading:has(> button:only-child) { margin: 0; }
+#root main.aufgaben .goal-titel { margin: 0; padding: 0 var(--g-a4); font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main.aufgaben .goal-controls > .decision-controls-heading { align-items: center; }
+#root main.aufgaben .goal-stand { display: flex; flex-wrap: wrap; gap: 0 var(--g-a2); }
+#root main.aufgaben .goal-stand > span + span::before { content: "·"; margin-right: var(--g-a2); }
+#root main.aufgaben .goal-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); margin-top: var(--g-a1); }
+#root main.aufgaben .goal-aktionen .text-action { font-size: 14px; }
+#root main.aufgaben .goal-row .decision-create-form { width: 100%; box-sizing: border-box; margin: var(--g-a2) 0; padding: var(--g-a4); background: var(--g-grund); box-shadow: none; }
+#root main.aufgaben .goal-rueckfrage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: rgba(191,59,68,.05); }
+#root main.aufgaben .goal-rueckfrage p { flex-basis: 100%; margin: 0; font: var(--g-neben); color: var(--g-tinte); }
+#root main.aufgaben :is(.goal-gespeichert, .goal-fehler, .goal-formular-satz) { margin: 0; font: var(--g-neben); }
+#root main.aufgaben .goal-fehler { color: var(--g-rot); }
+#root main.aufgaben .goal-formular-satz { font: var(--g-text); color: var(--g-tinte); }
+#root main.aufgaben .goal-row details > summary, #root main.aufgaben .habit-controls .decision-row details > summary { display: flex; align-items: center; min-height: 36px; font: 500 14px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root main.aufgaben .goal-row details[open] .identity-source-row { padding: var(--g-a1) 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .goal-row details[open] .identity-source-row p { margin: 0; }
+#root main.aufgaben .goal-abgeschlossen > summary { padding: 0 var(--g-a4); }
+#root main.aufgaben .goal-abgeschlossen .g-aufklapper-inhalt, #root main.aufgaben .goal-abgeschlossen > .decision-list { margin-top: var(--g-a2); }
+#root main.aufgaben .habit-aufklapper > summary { padding: 0 var(--g-a4) 0 var(--g-a1); font: var(--g-ueberschrift); }
+#root main.aufgaben .habit-inhalt { display: grid; gap: var(--g-a3); padding-top: var(--g-a2); }
+#root main.aufgaben .habit-checkin { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .habit-checkin-form { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); margin-top: var(--g-a1); }
+#root main.aufgaben .habit-checkin-form label { display: flex; align-items: center; gap: var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
+#root main.aufgaben .habit-checkin-form input { width: auto; min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a2); font: var(--g-neben); }
+#root main.aufgaben .habit-checkin-form > span { font: var(--g-fussnote); color: var(--g-leise); }
+#root main.aufgaben .habit-neu { grid-template-columns: minmax(0, 1fr) 160px auto; align-items: end; padding: var(--g-a4); }
+#root main.aufgaben .habit-neu > button { min-height: var(--g-ziel); }
+#root main.aufgaben :is(.habit-fussnote, .habit-fuss p) { margin: 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+#root main.aufgaben .habit-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); padding: 0 var(--g-a2); }
+#root main.aufgaben .habit-controls blockquote { margin: var(--g-a2) 0; padding-left: var(--g-a3); border-left: 3px solid var(--g-linie); font: var(--g-neben); color: var(--g-tinte); }
+#root main.aufgaben .development-weiter { margin-top: var(--g-a2); }
+@media (max-width: 700px) { #root main.aufgaben .habit-neu { grid-template-columns: minmax(0, 1fr); } }
+#root main.aufgaben .development-weiter a.g-zeile { color: var(--g-tinte); text-decoration: none; }

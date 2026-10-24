@@ -13,8 +13,7 @@ import { PostfachMitAdresse } from "../PostfachMitAdresse";
 import { adresseLesen } from "../adresseEntwurf";
 import { useSystem } from "../useSystem";
 import { TranscriptSettings } from "../TranscriptSettings";
-import { icon } from "../ui";
-import { ZUGAENGE } from "./gliederung";
+import { gefuellterZugang, ZUGAENGE } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
 import {
@@ -46,7 +45,7 @@ const zaehlen = (anzahl: number, einzahl: string, mehrzahl: string) => anzahl ==
  * Karten; hier stehen sie nur unter einer Überschrift in Alltagssprache. Nichts wird ohne Klick verbunden, und
  * „Trennen“ löscht nur den lokalen Zugang, nicht die Daten beim Anbieter.
  */
-export function Zugaenge({ integrationen, aktiv }: { integrationen: Integrationen; aktiv: boolean }) {
+export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { integrationen: Integrationen; aktiv: boolean; einrichtungOffen?: boolean }) {
   const system = useSystem();
   // „Mit Google anmelden“ nur, wenn ein Techniker es eingerichtet hat (Befund 2); sonst kein gesperrter Knopf vorne.
   const googleVorne = googleAnmeldungVorne(useGoogleKonfiguration());
@@ -155,60 +154,82 @@ export function Zugaenge({ integrationen, aktiv }: { integrationen: Integratione
   const selectedProvider = providers.find((item) => item.id === mail.provider);
   const accounts = overview?.mail_accounts ?? [];
   const calendars = overview?.calendar_sources ?? [];
+  // Genau ein gefüllter Knopf: Ist die Einrichtung offen, ist es „Einrichtung fortsetzen“; sonst der erste fehlende Zugang.
+  const gefuellt = gefuellterZugang(einrichtungOffen, overview ? accounts.length : null, overview ? calendars.length : null);
+  const knopf = (art: "mail" | "calendar") => gefuellt === art ? "g-knopf zugang-neu" : "g-knopf-getoent zugang-neu";
+  const plus = <InterfaceIcon name="plus" />;
 
+  // Wie die Accounts in den Systemeinstellungen am Mac: je Art eine Gruppe mit einer Zeile je Zugang, darunter rechts
+  // „hinzufügen“ und links in einem Satz, was Trennen bedeutet.
   return <>
-    <div className="source-section" aria-label={ZUGAENGE.postfaecher.titel}>
-      <div className="source-section-heading"><InterfaceIcon name="mail" /><div><h2>{ZUGAENGE.postfaecher.titel}</h2><span>{zaehlen(accounts.length, "Postfach", "Postfächer") || "Mehrere sind möglich"}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button"><img src={icon("plus", "Outline")} alt="" />Postfach hinzufügen</button></div>
-      {!overview ? <div className="source-loading"><i /><i /></div> : null}
-      {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
-      {accounts.map((account) => <Fragment key={account.id}>
-        <SourceRow iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />
-        {/* Dauerhaft im DOM, damit Bildschirmleser die Bestätigung sicher ansagen; leer, solange nichts zu sagen ist. */}
-        <p className="source-hint neu-anmelden-status" role="status" tabIndex={-1} ref={zeile => { statusZeilen.current[account.id] = zeile; }}>{angemeldet[account.id] ?? ""}</p>
-        {!angemeldet[account.id] && neuAnmeldenWeg(account, staende[account.id]) ? <div className="neu-anmelden-stand">
-            <p className="source-hint">{staende[account.id].satz}</p>
-            {neuAnmeldenWeg(account, staende[account.id]) === "passwort"
-              ? <NeuAnmelden konto={account} beiErfolg={(neu) => { setOverview(neu); setAngemeldet(vorher => ({ ...vorher, [account.id]: angemeldetSatz(account.label, neu.satz) })); setFokusAuf(account.id); }} />
-              : <p className="source-hint">{googleNeuSatz(googleVorne)}</p>}
-          </div> : null}
-      </Fragment>)}
-    </div>
+    <section className="zugang-gruppe" aria-label={ZUGAENGE.postfaecher.titel}>
+      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.postfaecher.titel}</h2>{accounts.length ? <span className="zugang-zahl">{zaehlen(accounts.length, "Postfach", "Postfächer")}</span> : null}</div>
+      <div className="g-flaeche zugang-liste">
+        {!overview ? <div className="source-loading"><i /><i /></div> : null}
+        {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
+        {accounts.map((account) => <Fragment key={account.id}>
+          <SourceRow iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />
+          {/* Dauerhaft im DOM, damit Bildschirmleser die Bestätigung sicher ansagen; leer, solange nichts zu sagen ist. */}
+          <p className="source-hint neu-anmelden-status" role="status" tabIndex={-1} ref={zeile => { statusZeilen.current[account.id] = zeile; }}>{angemeldet[account.id] ?? ""}</p>
+          {!angemeldet[account.id] && neuAnmeldenWeg(account, staende[account.id]) ? <div className="neu-anmelden-stand">
+              <p className="source-hint">{staende[account.id].satz}</p>
+              {neuAnmeldenWeg(account, staende[account.id]) === "passwort"
+                ? <NeuAnmelden konto={account} beiErfolg={(neu) => { setOverview(neu); setAngemeldet(vorher => ({ ...vorher, [account.id]: angemeldetSatz(account.label, neu.satz) })); setFokusAuf(account.id); }} />
+                : <p className="source-hint">{googleNeuSatz(googleVorne)}</p>}
+            </div> : null}
+        </Fragment>)}
+      </div>
+      <div className="zugang-fuss">
+        <p className="g-gruppe-fussnote">{accounts.length ? ZUGAENGE.trennen : ""}</p>
+        {openForm === "mail" ? null : <button className={knopf("mail")} onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button">{plus}Postfach hinzufügen</button>}
+      </div>
+    </section>
     {/* Wie im Assistenten (Fremdprobe 2, Befund 2): vorne Adresse und Passwort, den Server findet Kingfisher selbst;
         die Servereinstellungen stehen eingeklappt für Techniker. */}
-    {openForm === "mail" ? <div className="source-form postfach-hinzufuegen" aria-label="Postfach hinzufügen">
-      <h2>Postfach hinzufügen</h2>
+    {openForm === "mail" ? <div className="source-form postfach-hinzufuegen zugang-formular" aria-label="Postfach hinzufügen">
+      <div className="zugang-formular-kopf"><h2>Postfach hinzufügen</h2><button className="g-knopf-schlicht" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
       <PostfachMitAdresse anbieter={providers} idPraefix="zugang-postfach" beiVerbunden={() => { setOpenForm(null); load(); }} />
       <details className="kalender-techniker">
         <summary>Für Techniker: Servereinstellungen von Hand</summary>
         <MailSourceForm form={mail} provider={selectedProvider} providers={providers} submitting={submitting} fehler={formFehler} onCancel={() => setOpenForm(null)} onChange={setMail} onProviderChange={chooseProvider} onSubmit={addMail} />
       </details>
-      <div className="source-form-actions"><button className="secondary-action" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
     </div> : null}
 
-    <div className="source-section" aria-label={ZUGAENGE.kalender.titel}>
-      <div className="source-section-heading"><InterfaceIcon name="calendar-days" /><div><h2>{ZUGAENGE.kalender.titel}</h2><span>{zaehlen(calendars.length, "Kalender", "Kalender") || (system.mac_helfer ? "Google, Mac oder ein Kalender-Abo" : "Google oder ein Kalender-Abo")}</span></div><button className="source-add source-add-text" onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button"><img src={icon("plus", "Outline")} alt="" />Kalender hinzufügen</button></div>
-      {!overview ? <div className="source-loading"><i /><i /></div> : null}
-      {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
-      {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}
-    </div>
+    <section className="zugang-gruppe" aria-label={ZUGAENGE.kalender.titel}>
+      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.kalender.titel}</h2>{calendars.length ? <span className="zugang-zahl">{zaehlen(calendars.length, "Kalender", "Kalender")}</span> : null}</div>
+      <div className="g-flaeche zugang-liste">
+        {!overview ? <div className="source-loading"><i /><i /></div> : null}
+        {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
+        {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}
+      </div>
+      <div className="zugang-fuss">
+        <p className="g-gruppe-fussnote">{calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}</p>
+        {openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}
+      </div>
+    </section>
     {/* Kalender wie Mail (Befund 7): vorne die Mailadresse; das Abo mit eigener Adresse steht eingeklappt für Techniker. */}
-    {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen" aria-label="Kalender hinzufügen">
-      <h2>Kalender hinzufügen</h2>
+    {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen zugang-formular" aria-label="Kalender hinzufügen">
+      <div className="zugang-formular-kopf"><h2>Kalender hinzufügen</h2><button className="g-knopf-schlicht" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
       <KalenderMitAdresse anbieter={providers} postfaecher={accounts} beiVerbunden={setOverview} />
       <details className="kalender-techniker">
         <summary>Für Techniker: ein Kalender-Abo oder eine eigene Adresse</summary>
         <CalendarSourceForm form={calendar} submitting={submitting} fehler={formFehler} onCancel={() => setOpenForm(null)} onChange={setCalendar} onSubmit={addCalendar} />
       </details>
-      <div className="source-form-actions"><button className="secondary-action" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
     </div> : null}
     {system.mac_helfer ? <MacCalendarSettings /> : null}
     {googleVorne ? <GoogleSignIn compact active={aktiv} kind="mail" onConnected={() => { load(); standLaden(); }} /> : null}
     {googleVorne ? <GoogleSignIn compact active={aktiv} kind="calendar" onConnected={load} /> : null}
     <MicrosoftZugang aktiv={aktiv} beiAenderung={load} />
 
-    <header className="zugang-kopf"><h2>{ZUGAENGE.ordner.titel}</h2><p>{ZUGAENGE.ordner.satz}</p></header>
-    <TranscriptSettings compact />
-    <FolderSyncSettings />
-    <DocumentImport />
+    {/* Ordner und Dateien: eine Gruppe mit drei Zeilen (Meetings, Dokumentenordner, Dateien), der Satz darunter. */}
+    <section className="zugang-gruppe zugang-ordner" aria-label={ZUGAENGE.ordner.titel}>
+      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.ordner.titel}</h2></div>
+      <div className="g-flaeche zugang-ordner-liste">
+        <TranscriptSettings compact />
+        <FolderSyncSettings />
+        <DocumentImport />
+      </div>
+      <p className="g-gruppe-fussnote">{ZUGAENGE.ordner.satz}</p>
+    </section>
   </>;
 }

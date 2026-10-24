@@ -285,6 +285,7 @@ class Kreise:
         self.episodes = bezuege.episodes
         self.eigene = {a.casefold() for a in eigene if a}
         self._dienste: dict[str, str] = {}
+        self._ich: frozenset[str] | None = None
 
     # -- Ablage --
 
@@ -304,6 +305,8 @@ class Kreise:
             raise ValueError('Unbekannter Kreis.')
         if not sache.startswith('person:'):
             raise ValueError('Einen Kreis haben nur Personen.')
+        if self.ist_eigene(sache):
+            raise ValueError('Für dich selbst gibt es keinen Kreis.')
         vorschlag = self.vorschlag(sache).kreis
         with self.episodes.transaction():
             self.episodes._conn.execute(
@@ -411,16 +414,35 @@ class Kreise:
     def vorschlag(self, sache: str) -> Vorschlag:
         return vorschlagen(self.merkmale(sache))
 
+    def _ich_adressen(self) -> frozenset[str]:
+        if self._ich is None:
+            try:
+                self._ich = self.bezuege.register().ich_adressen
+            except Exception:  # noqa: BLE001 - ohne Verzeichnis zählen nur die Adressen der Einstellungen
+                self._ich = frozenset()
+        return self._ich
+
+    def ist_eigene(self, sache: str) -> bool:
+        """Ist das der Nutzer selbst? Eine eigene Adresse aus den Einstellungen, oder eine, die die Aufnahme an einer Mail
+        als eigene gekennzeichnet hat (etwa wenn sie nur als Gast in Terminen vorkommt). Für sich selbst bekommt niemand
+        einen Kreis vorgeschlagen."""
+        adresse = sache[len('person:a:'):].casefold() if sache.startswith('person:a:') else ''
+        return bool(adresse) and (adresse in self.eigene or adresse in self._ich_adressen())
+
     def stand(self, sache: str) -> dict[str, Any]:
-        """Was die Karte „Kreis“ zeigt: bestätigter Kreis, Vorschlag mit Begründung, die drei Wahlen."""
-        vorschlag = self.vorschlag(sache)
+        """Was die Karte „Kreis“ zeigt: bestätigter Kreis, Vorschlag mit Begründung, die drei Wahlen.
+
+        Für den Nutzer selbst (`eigene`) gibt es keinen Vorschlag; die Oberfläche zeigt dann keine Karte."""
+        zaehler = _zaehlen(_zeilen(self.bezuege, sache), self.eigene).get(sache, _Zaehler())
+        eigene = self.ist_eigene(sache)
+        vorschlag = vorschlagen(self.merkmale(sache, zaehler))
         fest = self.bestaetigt(sache)
         kreis = fest['kreis'] if fest else UNBESTIMMT
         # Ohne Mails und gemeinsame Termine gibt es nichts, worauf ein Vorschlag beruhen könnte (etwa eine Person, die
         # nur in Notizen oder im Gespräch vorkommt). Dann schlägt Kingfisher nichts vor; der Mensch legt den Kreis
         # selbst fest, mit denselben drei Knöpfen (Fremdprobe 2, Befund 19).
-        ohne = not (vorschlag.merkmale and (vorschlag.merkmale.mails or vorschlag.merkmale.termine))
-        return {'sache': sache, 'kreis': kreis, 'kreis_text': KREIS_TEXT[kreis], 'bestaetigt': fest is not None,
+        ohne = eigene or not (vorschlag.merkmale and (vorschlag.merkmale.mails or vorschlag.merkmale.termine))
+        return {'sache': sache, 'eigene': eigene, 'kreis': kreis, 'kreis_text': KREIS_TEXT[kreis], 'bestaetigt': fest is not None,
                 'bestaetigt_am': fest['bestaetigt_am'] if fest else None, 'vorschlag': vorschlag.als_dict(),
                 'ohne_vorschlag': ohne,
                 'neuer_vorschlag': bool(fest and not ohne and vorschlag.kreis != fest['kreis']),
@@ -432,6 +454,8 @@ class Kreise:
         zaehler = _zaehlen(_zeilen(self.bezuege, None), self.eigene)
         ergebnis: dict[str, Vorschlag] = {}
         for sache, z in zaehler.items():
+            if self.ist_eigene(sache):
+                continue
             ohne_texte = self.merkmale(sache, z, texte_lesen=False)
             lesen = ohne_texte.beide_richtungen and (ohne_texte.mails >= KOLLEGEN_MAILS or ohne_texte.termine > 0)
             ergebnis[sache] = vorschlagen(self.merkmale(sache, z) if lesen else ohne_texte)

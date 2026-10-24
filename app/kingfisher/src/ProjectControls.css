@@ -1,86 +1,26 @@
-.project-controls {
-  display: grid;
-  gap: 12px;
-  padding: 16px 20px;
-  border: 1px solid var(--kf-rand-d7e1df);
-  border-radius: 12px;
-  background: var(--kf-flaeche-fffefa);
-  box-shadow: 0 1px 2px rgba(6, 43, 58, .04);
+/* Projekte steuern (Reiter „Projekte“): „Neues Projekt“ als getönter Knopf, das Formular als ruhige Fläche, der Stand
+   des gewählten Projekts als eine Zeile mit Auswahl rechts. Werte aus der Grundlage; #root, weil ältere Regeln
+   (CalmUI.css, NordicWorkspace.css, Grundlage.css) später geladen werden. */
+#root main .project-controls { display: grid; gap: var(--g-a4); margin: 0 0 var(--g-a5); padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+#root main .project-controls-toolbar { display: flex; align-items: center; gap: var(--g-a3); }
+#root main .project-create-form, #root main .project-status-control {
+  display: grid; gap: var(--g-a4); padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche);
+  background: var(--g-flaeche); box-shadow: var(--g-schatten);
 }
-
-.project-controls-toolbar {
-  display: flex;
-  align-items: end;
-  gap: 12px;
-}
-
-.project-select-field,
-.project-create-form label,
-.project-status-control label {
-  display: grid;
-  gap: 6px;
-  color: var(--kf-schrift-31535f);
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 600;
-}
-
-.project-select-field { min-width: min(100%, 320px); flex: 1; }
-.project-select-field select,
-.project-create-form input,
-.project-create-form textarea,
-.project-status-control select {
-  width: 100%;
-  border: 1px solid var(--kf-rand-d7e1df);
-  border-radius: 8px;
-  padding: 0 12px;
-  color: var(--kf-schrift-062b3a);
-  background: var(--kf-flaeche-fffefa);
-  font: 400 12px "Inter", sans-serif;
-}
-
-.project-select-field select,
-.project-status-control select,
-.project-create-form input { height: 40px; }
-.project-create-form textarea { min-height: 70px; padding-top: 10px; resize: vertical; }
-.project-create-form input:focus,
-.project-create-form textarea:focus,
-.project-select-field select:focus,
-.project-status-control select:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
-
-.project-create-form {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) auto;
-  align-items: end;
-  gap: 12px;
-  padding-top: 4px;
-}
-
-.project-create-form small { color: var(--kf-schrift-31535f); font-size: 10px; font-weight: 400; }
-.project-form-actions { display: flex; gap: 8px; }
-.project-form-actions button { white-space: nowrap; }
-
-.project-status-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--kf-rand-d7e1df);
-}
-
-.project-status-control > div { min-width: 0; display: grid; gap: 3px; }
-.project-status-control strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 18px; }
-.project-status-control small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
-.project-status-control label { width: 150px; flex: 0 0 150px; }
-.project-selection-hint { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
-.project-controls-error { margin: 0; color: var(--kf-schrift-bf3b44); font-size: 11px; line-height: 16px; }
-
-@media (max-width: 780px) {
-  .project-controls-toolbar,
-  .project-status-control { align-items: stretch; flex-direction: column; }
-  .project-select-field,
-  .project-status-control label { width: 100%; min-width: 0; flex-basis: auto; }
-  .project-create-form { grid-template-columns: 1fr; }
-  .project-form-actions { justify-content: flex-end; }
+#root main .project-create-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; }
+#root main :is(.project-create-form, .project-status-control) label { display: grid; gap: 6px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main :is(.project-create-form, .project-status-control) :is(input, select, textarea) { width: 100%; box-sizing: border-box; font: var(--g-text); padding: 0 var(--g-a3); }
+#root main .project-create-form textarea { min-height: 44px; padding: 10px var(--g-a3); resize: vertical; }
+#root main .project-form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: var(--g-a2); }
+#root main .project-status-control { display: flex; align-items: center; justify-content: space-between; gap: var(--g-a4); }
+#root main .project-status-control > div { min-width: 0; display: grid; gap: 2px; }
+#root main .project-status-control strong { font: var(--g-ueberschrift); color: var(--g-tinte); overflow-wrap: anywhere; white-space: normal; }
+#root main .project-status-control small { font: var(--g-neben); color: var(--g-leise); white-space: normal; }
+#root main .project-status-control label { flex: 0 0 180px; width: 180px; }
+#root main .project-controls-error { margin: 0; font: var(--g-neben); color: var(--g-rot); }
+.project-selection-hint { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+@media (max-width: 700px) {
+  #root main .project-create-form { grid-template-columns: minmax(0, 1fr); padding: var(--g-a4); }
+  #root main .project-status-control { flex-direction: column; align-items: stretch; padding: var(--g-a4); }
+  #root main .project-status-control label { flex-basis: auto; width: 100%; }
 }

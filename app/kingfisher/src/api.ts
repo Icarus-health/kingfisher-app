@@ -39,6 +39,8 @@ export type MorningBriefing = {
   happening_now: Attention[];
   working_memory_more?: boolean;
   later_today: CalendarItem[];
+  /** Der nächste Termin nach heute (bis eine Woche), für „Heute keine Termine. Nächster: …“ (Paket U, H8). */
+  naechster_termin?: { title: string; start: string; ganztags: boolean } | null;
   timeline: Array<{ id: string; label: string; icon: string; tone: string }>;
   weather: null | {
     location: string;
