@@ -1,22 +1,23 @@
-/* Rückkanal für Fehler: still, bis man ihn braucht (docs/16-gestaltung.md). Nur vorhandene Farbvariablen. */
-.stimmt-nicht-link { min-height: 28px; padding: 0; border: 0; background: none; color: var(--kf-schrift-5f777d); font: inherit; font-size: 11px; line-height: 16px; text-decoration: underline; text-decoration-color: var(--kf-rand-b9cac8); text-underline-offset: 3px; cursor: pointer; justify-self: start; }
-.stimmt-nicht-link:hover { color: var(--kf-schrift-31535f); }
-.stimmt-nicht-link:focus-visible, .stimmt-nicht-arten button:focus-visible, .stimmt-nicht-feld input:focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 2px; }
+/* Rückkanal für Fehler (B12, P1): still, bis man ihn braucht; dann eine Frage in einem Satz, die Arten als Pillen, ein
+   freies Feld und „Melden“. Ziele 44 px hoch, Werte aus --g-*. */
+.stimmt-nicht-link { min-height: 44px; padding: 0; border: 0; background: none; color: var(--g-leise); font: 500 14px/1.3 var(--g-schrift); text-decoration: none; cursor: pointer; justify-self: start; }
+.stimmt-nicht-link:hover { color: var(--g-verweis); }
+.stimmt-nicht-link:focus-visible, .stimmt-nicht-arten button:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
 .stimmt-nicht-link:disabled { opacity: .45; cursor: default; }
-.message .stimmt-nicht-gemerkt { margin: 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; }
-.stimmt-nicht { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid var(--kf-rand-d7e1df); max-width: 560px; }
-.message .stimmt-nicht p { margin: 0; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; white-space: normal; }
-.stimmt-nicht-arten { display: flex; flex-wrap: wrap; gap: 6px; }
-.stimmt-nicht-arten button { min-height: 32px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 999px; background: var(--kf-flaeche-f8fbfa); color: var(--kf-schrift-31535f); font: inherit; font-size: 12px; cursor: pointer; }
-.stimmt-nicht-arten button:hover { border-color: var(--kf-rand-b9cac8); }
-.stimmt-nicht-arten button[aria-pressed="true"] { border-color: var(--kf-rand-063e55); color: var(--kf-schrift-062b3a); font-weight: 600; }
+.message .stimmt-nicht-gemerkt { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+.stimmt-nicht { display: grid; gap: var(--g-a3); max-width: 560px; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-grund); }
+.message .stimmt-nicht p { margin: 0; font: var(--g-ueberschrift); color: var(--g-tinte); white-space: normal; }
+.stimmt-nicht-arten { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+.stimmt-nicht-arten button { min-height: 44px; padding: 0 var(--g-a4); border: 0; border-radius: var(--g-radius-pille); background: var(--g-flaeche); box-shadow: var(--g-schatten); color: var(--g-tinte); font: 500 15px/1.2 var(--g-schrift); cursor: pointer; }
+.stimmt-nicht-arten button:hover:not(:disabled) { background: var(--g-getoent); }
+.stimmt-nicht-arten button[aria-pressed="true"] { background: var(--g-auswahl); color: var(--g-tinte); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--g-auswahl-kante); }
 .stimmt-nicht-arten button:disabled { opacity: .45; cursor: default; }
-.stimmt-nicht-feld { display: grid; gap: 4px; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 17px; }
-.stimmt-nicht-feld small { color: var(--kf-schrift-5f777d); font-size: 11px; }
-.stimmt-nicht-feld input { min-height: 36px; padding: 0 10px; border: 1px solid var(--kf-rand-b9cac8); border-radius: 8px; background: var(--kf-flaeche-fffefa); color: var(--kf-schrift-062b3a); font: inherit; font-size: 13px; }
-.message .stimmt-nicht .stimmt-nicht-fehler { color: var(--kf-schrift-5f777d); font-weight: 600; }
-.stimmt-nicht-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.stimmt-nicht-aktionen .secondary-action { min-height: 32px; }
+.stimmt-nicht-feld { display: grid; gap: var(--g-a1); font: 500 14px/1.3 var(--g-schrift); color: var(--g-tinte); }
+.stimmt-nicht-feld small { font: var(--g-fussnote); color: var(--g-leise); }
+.shell main .stimmt-nicht-feld input { min-height: 44px; padding: 0 var(--g-a3); font: var(--g-text); }
+.message .stimmt-nicht .stimmt-nicht-fehler { font: var(--g-neben); color: var(--g-rot); }
+.stimmt-nicht-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a3); }
+.shell main .stimmt-nicht-aktionen .secondary-action { min-height: 44px; }
 
 .rueckmeldungen { padding: 22px 26px 24px; }
 .rueckmeldungen h2 { margin: 0 0 8px; }

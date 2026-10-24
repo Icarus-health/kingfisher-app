@@ -4,3 +4,9 @@
 .composer-hint { margin: 5px 0 0; padding: 0 6px; font-size: 11px; color: var(--kf-schrift-31535f); background: var(--calm-surface); }
 .shell main .messages { padding-bottom: 230px; }
 .shell main .thread-command .thread-send-error, .shell main .thread-command .memory-send-error { position: static; margin: 0; padding: 6px; background: var(--calm-surface); }
+/* Senden (B2, P1): ein runder Knopf in der Hauptaktionsfarbe, sobald etwas zu senden ist; leer bleibt er grau wie bei
+   Nachrichten am Mac. So ist auf einer Seite mit Freigabe- oder Vorschlagskarte der Knopf der Karte der eine gefüllte. */
+.shell .command-bar .send-button { flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--g-akzent); opacity: 1; transition: background-color var(--g-bewegung); }
+.shell .command-bar .send-button .interface-icon { width: 20px; height: 20px; color: var(--g-auf-akzent); }
+.shell .command-bar .send-button:disabled { background: var(--g-segment-grund); opacity: 1; cursor: default; }
+.shell .command-bar .send-button:disabled .interface-icon { color: #8592a0; }

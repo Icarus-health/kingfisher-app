@@ -39,12 +39,16 @@ test("Heute zeigt den Stand eines Postfachs, der erklärt, warum keine Mails das
 });
 
 test("Heute und Aufgabenquelle unterscheiden Quelldatum und Erfassungszeit", () => {
+  // Auf Heute steht beides in einer leisen Zeile (P1, eingangZeile), die genauen Zeitpunkte im Hinweis der Zeile.
   const heute = readFileSync(new URL("TodayOverview.tsx", SRC), "utf8");
+  const hilfe = readFileSync(new URL("heute.ts", SRC), "utf8");
   const aufgabenquelle = readFileSync(new URL("TaskSource.tsx", SRC), "utf8");
-  assert.match(heute, /item\.occurred_at/);
-  assert.match(heute, /occurred \?\? "unbekannt"/);
-  assert.match(heute, /item\.recorded_at/);
-  assert.match(heute, /Erfasst/);
+  assert.match(heute, /eingangZeile\(item, briefing\.timezone, briefing\.generated_at\)/);
+  assert.match(heute, /title=\{titel\}/);
+  assert.match(hilfe, /item\.occurred_at/);
+  assert.match(hilfe, /item\.recorded_at/);
+  assert.match(hilfe, /Quelldatum: \$\{entstanden \? langesDatum\(entstanden, zone\) : "unbekannt"\}/);
+  assert.match(hilfe, /Erfasst/);
   assert.match(aufgabenquelle, /source\.occurred_at/);
   assert.match(aufgabenquelle, /timestamp\(source\.occurred_at\) \?\? "unbekannt"/);
   assert.match(aufgabenquelle, /source\.recorded_at/);

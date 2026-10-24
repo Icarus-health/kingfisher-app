@@ -402,17 +402,24 @@ def main() -> int:
                 pruef['22_grund_nennt_postfach'] = 'Probe-Post antwortet gerade nicht' in pruef['22_grund']
                 pruef['22_laedt_nicht_mehr'] = seite.get_by_text('Kingfisher holt sie gerade').count() == 0
                 bild('22-heute-grund')
-                beginn = time.monotonic()
+                # Nachrichten zeigt seit 1.0.14 die gespeicherten Mails und fragt das Postfach erst auf „Neue Mails abrufen“
+                # (U3, N1: kein Abruf beim Öffnen). Die Seite wartet also nicht auf das schweigende Postfach; der Satz,
+                # der das Postfach nennt, kommt nach dem Klick sofort, weil es eben schon schwieg (Befund 14).
                 seite.goto(basis + '/nachrichten')
-                fehler = seite.locator('.inbox-error')
+                seite.locator('.inbox-heading h1').wait_for(timeout=10000)
+                pruef['14_oeffnet_ohne_warten'] = seite.locator('.inbox-content').count() == 1
+                beginn = time.monotonic()
+                seite.get_by_role('button', name='Neue Mails abrufen').click()
+                fehler = seite.locator('.inbox-abgerufen').filter(has_text='Probe-Post antwortet gerade nicht')
                 fehler.wait_for(timeout=15000)
                 pruef['14_nach_s'] = round(time.monotonic() - beginn, 2)
                 pruef['14_sofort'] = pruef['14_nach_s'] < 1.5
                 pruef['14_text'] = fehler.inner_text()
                 pruef['14_nennt_postfach'] = pruef['14_text'].startswith('Probe-Post antwortet gerade nicht.') and 'lokale' not in pruef['14_text']
-                pruef['14_verweis'] = fehler.get_by_role('link', name=re.compile('Postfach prüfen')).get_attribute('href') == '/settings#zugaenge'
+                konten = seite.locator('.inbox-heading').get_by_role('link', name='Konten')
+                pruef['14_verweis'] = konten.get_attribute('href') == '/settings#zugaenge'
                 bild('14-nachrichten-postfach-schweigt')
-                fehler.get_by_role('link', name=re.compile('Postfach prüfen')).click()
+                konten.click()
                 seite.wait_for_selector('#settings-zugaenge:not([hidden])', timeout=10000)
                 pruef['14_verweis_kommt_an'] = True
                 attrappe.modus = 'annehmen'

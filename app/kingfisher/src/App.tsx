@@ -23,6 +23,7 @@ import {
   type Project,
 } from "./api";
 import { Sidebar } from "./chrome";
+import { Leer } from "./grundlage";
 import { ActionApprovalCard } from "./ActionApprovalCard";
 import { ProjectControls } from "./ProjectControls";
 import {ProjectOverview} from "./ProjectOverview";
@@ -80,11 +81,15 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
 }
 
 function LoadingMorning() {
+  // Das Skelett hat die Form der fertigen Seite: Kopf, Eingabe, zwei Flächen. Nichts springt, wenn der Überblick kommt.
   return (
-    <div className="morning-page loading" aria-label="Heute wird geladen">
-      <div className="hero skeleton-hero" />
-      <div className="card-grid">
-        {[0, 1].map((item) => <div className="brief-card skeleton-card" key={item}><i /><i /><i /></div>)}
+    <div className="morning-page today-page loading" aria-label="Heute wird geladen" aria-busy="true">
+      <div className="hero skeleton-hero"><i /><i /></div>
+      <div className="briefing-area">
+        <div className="skeleton-command" />
+        <div className="today-overview">
+          {[0, 1].map((item) => <div className="today-panel skeleton-card" key={item}><i /><i /><i /></div>)}
+        </div>
       </div>
     </div>
   );
@@ -188,7 +193,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
 
   if (!briefing && !error) return <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main><LoadingMorning /></main></div>;
   if (error || !briefing) return (
-    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page"><section className="brief-card error-state"><p>Dein Überblick ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></section></main></div>
+    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page today-state"><div className="g-flaeche today-fehler error-state" role="alert"><Leer zeichen="house" satz="Dein Überblick ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div></main></div>
   );
 
   const attentionCount = todayAttention(briefing).length;
@@ -422,7 +427,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
       <main className={`conversation-page workspace-chat ${navigationOpen ? 'navigation-open' : ''}`}>
         <ConversationNavigation activeId={id} revision={data?.conversation.updated_at} onCreate={create} onSelect={selected => navigate(`/conversations/${selected}`)} />
         <section className="thread">
-          <header className="thread-header"><button className="conversation-navigation-toggle" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}>Gespräche</button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}>Verwendete Quellen</button></header>
+          <header className="thread-header"><button className="conversation-navigation-toggle" aria-label="Gespräche" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}><span className="nur-breit">Gespräche</span></button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}><span className="nur-breit">Verwendete </span>Quellen</button></header>
           {sourcesOpen && <aside className="conversation-sources" id="conversation-sources" aria-label="Verwendete Quellen">
             {contextLines.length ? contextLines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>) : data?.context.source_links?.length ? <p>{data.context.source_links.length} Originalquelle(n) zur Prüfung. Keine bestätigte Aussage.</p> : <p>{kontextLeerSatz(data?.messages ?? [])}</p>}
           </aside>}
@@ -430,9 +435,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             const element = event.currentTarget;
             followBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
           }}>
-            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2><p>Stelle eine Frage oder halte einen Gedanken fest.</p></div>}
+            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
 
-            {error ? <div className="message assistant error-message"><p>Das Gespräch ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></div> : null}
+            {error ? <div className="message assistant error-message" role="alert"><Leer zeichen="message-circle" satz="Das Gespräch ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div> : null}
             {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
@@ -445,7 +450,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : card?.claim?.status === "disputed" ? "Grundlage geändert. Muss erneut geprüft werden."
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
-                <span>{message.role === "user" ? "DU" : "KINGFISHER"}</span>
+                <span className="message-wer">{message.role === "user" ? "Du" : "Kingfisher"}</span>
                 {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
@@ -465,11 +470,11 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {/* Nur unter der letzten Antwort: Ältere Antworten sind Verlauf, danach wurde schon weitergefragt. */}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.refresh_available && message.metadata.context.original_question ? <div className="memory-actions"><button className="memory-reject" disabled={sending || !chatAvailable} onClick={() => void send(message.metadata!.context!.original_question!, { newQuestion: true }).catch(() => undefined)} type="button">Mit aktuellem Stand neu beantworten</button></div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_date ? <SourceDateForm busy={sending || !chatAvailable} onSubmit={(value) => { const [year, month, day] = value.split("-"); void send(`Die Nachricht stammt vom ${day}.${month}.${year}.`, { date: value }).catch(() => undefined); }} /> : null}
-                {message.metadata?.context?.routing && <details><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
-                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small>Antwort fehlgeschlagen.{" "}<button disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
+                {message.metadata?.context?.routing && <details className="antwort-arbeitsweise"><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
+                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small className="antwort-fehler">Antwort fehlgeschlagen.{" "}<button className="g-knopf-schlicht" disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
                 {data.action_requests?.filter((action) => action.message_id === message.id).map((action) => <ActionApprovalCard key={action.id} action={action} busy={sending} onResolve={resolveAction} />)}
                 {candidate ? <section className="memory-candidate" aria-label="Gedächtnisvorschlag">
-                  <span>GEDÄCHTNISVORSCHLAG</span>
+                  <span className="karte-titel">Gedächtnisvorschlag</span>
                   <strong>{candidate.statement}</strong>
                   {candidate.evidence[0] ? <p className="memory-source">Aus diesem Gespräch: „{candidate.evidence[0].quote}“</p> : null}
                   {requiresReplacement ? <div className="memory-conflict"><p>Bestehender Stand:</p>{card?.conflicts.map((conflict) => <p key={conflict.id}>{conflict.statement}</p>)}</div> : null}
@@ -543,7 +548,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       <ConversationNavigation onCreate={focusInput} onSelect={id => navigate(`/conversations/${id}`)} />
       <section className="thread">
         <div className="messages">
-          {question ? <article className="message user"><span>DU</span><MessageText content={question} /></article> : <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>}
+          {question ? <article className="message user"><span className="message-wer">Du</span><MessageText content={question} /></article> : <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>}
         </div>
         <div className="thread-command">
           {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}

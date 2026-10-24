@@ -171,9 +171,9 @@ def main() -> int:  # noqa: PLR0915 - eine Probe, Schritt für Schritt
         breite_pruefen('5-akte')
 
         seite.goto(basis + '/today')
-        details = seite.locator('details.today-activity')
-        details.locator('summary').wait_for(timeout=30000)
-        details.locator('summary').click()  # „Tageslage & Verlauf“ ist eingeklappt
+        zeile = seite.locator('.today-activity-zeile')
+        zeile.wait_for(timeout=30000)
+        zeile.click()  # „Tageslage & Verlauf“ ist eine Zeile, die sich öffnet (P1)
         post = seite.locator('.tageslage-zeile.tageslage-aufgaben_post')
         post.wait_for(timeout=30000)
         pruef['heute'] = post.inner_text()

@@ -34,7 +34,6 @@
 }
 
 @media (max-width: 900px) {
-  .today-landscape { inset: 0; }
   .shell::before, .shell:not(:has(.today-page))::before { left: 0; }
   .shell { grid-template-columns: minmax(0, 1fr); }
   .shell > main { grid-column: 1; }
