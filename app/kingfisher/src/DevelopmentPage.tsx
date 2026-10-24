@@ -1,22 +1,24 @@
+import './TaskRetryReview.css';
+
 import { Sidebar } from './chrome';
 import { GoalControls } from './GoalControls';
 import { HabitControls } from './HabitControls';
+import { Gruppe, Seitenkopf, Zeile } from './grundlage';
 
-/** A single working surface over the existing goals, habits and learning stores. */
+/** Eine Arbeitsfläche über Zielen, Gewohnheiten und Lernen: großer Titel, eine Zeile, die Ziele, Gewohnheiten und
+ * Lernen offen, am Ende leise die Wege weiter (Aufgaben, Gesundheit, Prüfen). Heute steht in der Seitenleiste. */
 export function DevelopmentPage({recentConversation}: {recentConversation: string | null}) {
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
-    <main className="tasks-page development-page">
-      <header className="tasks-heading"><div><p className="eyebrow">DEIN ALLTAG</p><h1>Persönliche Entwicklung</h1></div></header>
-      <p>Was dir wichtig ist, was du festhältst und was du daraus lernen möchtest.</p>
-      <nav className="development-links" aria-label="Persönlicher Arbeitsbereich">
-        <a className="today-text-link" href="/today">Zurück zu Heute →</a>
-        <a className="today-text-link" href="/vorhaben">Nächste Schritte als Aufgaben →</a>
-        <a className="today-text-link" href="/wellbeing">Gesundheit →</a>
-        <a className="today-text-link" href="/review">Offene Angaben prüfen →</a>
-      </nav>
+    <main className="tasks-page development-page aufgaben">
+      <Seitenkopf className="tasks-heading" titel="Persönliche Entwicklung" zeile="Was dir wichtig ist, was du festhältst und was du daraus lernst." />
       <GoalControls />
       <HabitControls initiallyOpen />
+      <Gruppe className="development-weiter" titel="Weiter">
+        <Zeile href="/vorhaben" titel="Nächste Schritte als Aufgaben" />
+        <Zeile href="/wellbeing" titel="Gesundheit" />
+        <Zeile href="/review" titel="Offene Angaben prüfen" />
+      </Gruppe>
     </main>
   </div>;
 }

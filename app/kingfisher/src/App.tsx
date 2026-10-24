@@ -32,6 +32,7 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
+import {Seitenkopf, Segmente, Gruppe, Zeile, Leer, type Segment} from "./grundlage";
 import {ProjectBoard} from "./ProjectBoard";
 import {visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
@@ -569,6 +570,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Gruppen und Nullzähler entfallen, „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist.
   const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => new URLSearchParams(window.location.search).get("pruefen") === "1" ? "review" : "tasks");
   const [board,setBoard] = useState(false);
+  const [projektFormular, setProjektFormular] = useState(false);
   const [groupTime,setGroupTime] = useState(()=>new Date());
   useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
   const [view, setView] = useState<TaskView>(() => {
@@ -611,6 +613,16 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
   const lastLoad = useRef(0);
+  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert.
+  const [zahlen, setZahlen] = useState<{mine?: number; waiting?: number}>({});
+  const [zahlenStand, setZahlenStand] = useState(0);
+  useEffect(() => {
+    let aktiv = true;
+    Promise.all([api.tasks("mine", projectId, {limit: 1}), api.tasks("waiting", projectId, {limit: 1})])
+      .then(([mine, waiting]) => { if (aktiv) setZahlen({mine: mine.total, waiting: waiting.total}); })
+      .catch(() => { if (aktiv) setZahlen({}); });
+    return () => { aktiv = false; };
+  }, [projectId, zahlenStand]);
 
   const currentView = useRef(view);
   currentView.current = view;
@@ -634,6 +646,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   function load(nextView = currentView.current) {
     lastLoad.current = Date.now();
     setOverviewRevision(n=>n+1);
+    setZahlenStand(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
@@ -645,6 +658,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       if (document.visibilityState === "hidden" || Date.now() - lastLoad.current < 15000) return;
       if (currentView.current === "decisions" || currentView.current === "goals") return;
       lastLoad.current = Date.now();
+      setZahlenStand(n=>n+1);
       void pager.current!.reload();
     };
     window.addEventListener("focus", again);
@@ -768,58 +782,68 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
-  // Reiter bleiben alle erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis prüfen“).
-  const tabs: Array<{id: string; label: string; count?: number}> = [...TASK_VIEWS, {id: "projects", label: "Projekte"},
-    ...(panel === "review" || (reviewTotal ?? 0) > 0 ? [{id: "review", label: "Zur Prüfung", count: reviewTotal ?? 0}] : [])];
+  // Segmente statt Reiter: alle bleiben erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis
+  // prüfen“). Zahlen nur über null: offene eigene, wartende und zu prüfende.
+  const tabs: Segment<string>[] = [
+    ...TASK_VIEWS.map(item => ({wert: item.id, titel: item.label, zahl: item.id === "mine" ? zahlen.mine : item.id === "waiting" ? zahlen.waiting : undefined})),
+    {wert: "projects", titel: "Projekte"},
+    ...(panel === "review" || (reviewTotal ?? 0) > 0 ? [{wert: "review", titel: "Zur Prüfung", zahl: reviewTotal ?? 0}] : [])];
   const activeTab = panel === "tasks" ? view : panel;
   function chooseTab(id: string) {
     if (id === "projects") { setView("mine"); setPanel("projects"); }
     else if (id === "review") { openTask(null); setView("mine"); setPanel("review"); }
     else { setPanel("tasks"); setView(id as TaskView); }
   }
-  // Rollt die Reiterzeile, bleibt der gewählte Reiter im Blick.
-  const tabBar = useRef<HTMLElement | null>(null);
-  useEffect(() => { tabBar.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
+  // Rollt die Segmentleiste (schmales Fenster), steht der gewählte Abschnitt auch beim Öffnen per Adresse im Blick.
+  useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
+  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
+  const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
+  const kopfZeile = heuteDran === 1 ? "Eine Aufgabe braucht dich heute." : heuteDran > 1 ? `${heuteDran} Aufgaben brauchen dich heute.` : undefined;
   const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
+  // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
+  // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.
+  const formOffen = (creating && panel === "tasks" && listView) || (panel === "projects" && projektFormular) || panel === "review";
+  const projectsFailedLine = <p className="tasks-error" role="alert">Projekte sind gerade nicht erreichbar. <button type="button" className="text-action" onClick={loadProjects}>Erneut laden</button></p>;
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
-    <main className="tasks-page workspace-tasks">
-      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{panel === "projects" ? "Projekte" : panel === "review" ? "Zur Prüfung" : heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
+    <main className="tasks-page workspace-tasks aufgaben">
+      <Seitenkopf className="tasks-heading" titel="Aufgaben" zeile={kopfZeile}
+        aktionen={view !== "decisions" && view !== "goals" ? <button className={formOffen ? "g-knopf-getoent" : "tasks-add"} disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : undefined} />
       {selectedTask && <DetailPanel title="Aufgabe" onClose={() => openTask(null)}>
         <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} editing={detailEdit > 0} onChanged={() => load()} />
       </DetailPanel>}
-      <nav ref={tabBar} aria-label="Aufgabenansichten" className="task-tabs">{tabs.map((item) => <button aria-pressed={activeTab === item.id} className={activeTab === item.id ? "active" : ""} key={item.id} onClick={() => chooseTab(item.id)} type="button">{item.label}{item.count ? ` · ${item.count}` : ""}</button>)}</nav>
+      <Segmente className="aufgaben-segmente" label="Aufgabenansichten" optionen={tabs} wert={activeTab} onWahl={chooseTab} />
       <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
-        {panel === "projects" && (projects.length ? <div className="workspace-project-list">{projects.map(project=><button type="button" key={project.id} aria-pressed={projectId===project.id} onClick={()=>setProjectId(project.id)}><strong>{project.name}</strong><span>{project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"}</span>{project.description && <small>{project.description}</small>}</button>)}</div> : projectError ? null : <p className="task-empty">Noch keine Projekte.</p>)}
-        {projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />}
-        {panel === "projects" && projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {panel === "projects" && (projects.length ? <Gruppe className="workspace-project-list">{projects.map(project=><Zeile key={project.id} onClick={()=>setProjectId(project.id)} aktiv={projectId===project.id} titel={project.name} neben={project.description || undefined} wert={project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"} />)}</Gruppe> : projectError ? null : <Leer className="task-empty" zeichen="project" satz="Noch keine Projekte." />)}
+        {projectError ? projectsFailedLine : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} onFormular={setProjektFormular} />}
+        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
         {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
       </section>
       <div className="task-review" hidden={panel !== "review"}>
         <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
-        {panel === "review" && reviewTotal === 0 ? <p className="task-empty">Nichts zu prüfen.</p> : null}
+        {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
       </div>
       {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
-      {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
+      {error ? <p className="tasks-error" role="alert">{error} <button className="text-action" onClick={() => load()} type="button">Wiederholen</button></p> : null}
       {panel !== "review" && (listView || (view === "decisions" && (projects.length > 0 || projectError))) && <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
-        {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Aufgaben durchsuchen" />}
-        {panel === "projects" ? null : projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
+        {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Suchen" />}
+        {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
       </form>}
       {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {panel !== 'review' && listView && <>
-        {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" onClick={() => load()}>Erneut laden</button></p>}
-        {taskPage.notice && <p role="status">{taskPage.notice}</p>}
-        {search && tasks && tasks.length > 0 ? <p role="status" className="task-count">{taskPage.total} Treffer</p> : null}
+        {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" className="text-action" onClick={() => load()}>Erneut laden</button></p>}
+        {taskPage.notice && <p role="status" className="task-hinweis">{taskPage.notice}</p>}
+        {search && tasks && tasks.length > 0 ? <p role="status" className="task-count">{taskPage.total === 1 ? "1 Treffer" : `${taskPage.total} Treffer`}</p> : null}
       </>}
       {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} kopf={false} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button className="text-action" disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label className="task-create-title">Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div className="task-create-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
         {!listTasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
         {visibleTasks && visibleTasks.length > 0 && (view === "mine"
-          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><section className="workspace-task-group" key={group.label} aria-label={group.label}><h2>{group.label} <small>{group.items.length}</small></h2>{group.items.map(row)}</section>)
-          : <section className="workspace-task-group" aria-label={heading}>{visibleTasks.map(row)}</section>)}
-        {visibleTasks && visibleTasks.length === 0 && !creating ? <p className="task-empty">{emptyText}</p> : null}
-        {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
+          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><Gruppe className="workspace-task-group" key={group.label} titel={group.label}>{group.items.map(row)}</Gruppe>)
+          : <Gruppe className="workspace-task-group">{visibleTasks.map(row)}</Gruppe>)}
+        {visibleTasks && visibleTasks.length === 0 && !creating ? <Leer className="task-empty" zeichen={search ? "search" : "check"} satz={emptyText} /> : null}
+        {(taskPage.canPrevious || taskPage.canNext) && <nav className="task-seiten" aria-label="Aufgabenseiten"><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>
   </div>;

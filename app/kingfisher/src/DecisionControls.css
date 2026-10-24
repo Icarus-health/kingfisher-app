@@ -1,46 +1,63 @@
-.decision-controls {
-  display: grid;
-  gap: 14px;
-  padding: 16px 20px;
-  border: 1px solid var(--kf-rand-d7e1df);
-  border-radius: 12px;
-  background: var(--kf-flaeche-fffefa);
-  box-shadow: 0 1px 2px rgba(6, 43, 58, .04);
+/* Entscheidungen, Ziele und Gewohnheiten (DecisionControls, GoalControls, HabitControls; Grundlage vom 23.10.2026).
+   Eine Gruppe: Kopf mit Knopf, Formular als ruhige Fläche, die Einträge als Zeilen einer Fläche mit Haarlinien.
+   Werte nur aus --g-*; #root, weil ältere Regeln (CalmUI.css, NordicWorkspace.css, Grundlage.css) später geladen werden.
+   Dieselben Klassen stehen auch in der Projektakte (Gedächtnis); dort bleibt die umgebende Karte die Fläche. */
+#root .decision-controls { display: grid; gap: var(--g-a3); min-width: 0; margin: 0 0 var(--g-a6); padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+#root .decision-controls-heading { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--g-a2) var(--g-a4); }
+#root .decision-controls-heading:empty { display: none; }
+#root .decision-controls-heading > div { min-width: 0; flex: 1 1 260px; }
+#root .decision-controls-heading h2 { margin: 0; font: var(--g-titel); letter-spacing: -.01em; color: var(--g-tinte); }
+#root .decision-controls-heading p { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+#root .decision-controls-seite > .decision-controls-heading { justify-content: flex-start; }
+
+/* Formular: eine weiße Fläche, Beschriftung klein über dem Feld, Knöpfe rechts unten. */
+#root .decision-create-form {
+  display: grid; gap: var(--g-a4); margin: 0; padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche);
+  background: var(--g-grund); box-shadow: none;
 }
-.decision-controls-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
-.decision-controls h2 { margin: 0; color: var(--kf-schrift-062b3a); font-size: 15px; line-height: 20px; }
-.decision-controls-heading p { margin: 3px 0 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
-.decision-create-form { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 9px; background: var(--kf-flaeche-f8fbfa); }
-.decision-create-form > label { display: grid; gap: 6px; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; font-weight: 600; }
-.decision-create-form textarea { min-height: 72px; resize: vertical; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 10px 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 12px "Inter", sans-serif; }
-.decision-create-form textarea:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
-.decision-create-form fieldset { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
-.decision-create-form legend { margin-bottom: 2px; color: var(--kf-schrift-31535f); font-size: 11px; font-weight: 600; }
-.decision-create-form legend small { font-weight: 400; }
-.decision-basis-option { display: flex; align-items: start; gap: 8px; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; font-weight: 400; }
-.decision-basis-option input { margin-top: 2px; accent-color: var(--kf-akzent-063e55); }
-.decision-basis-option strong { color: var(--kf-schrift-062b3a); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
-.decision-muted, .decision-no-basis { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
-.decision-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.decision-list { display: grid; gap: 10px; }
-.decision-row { display: flex; justify-content: space-between; gap: 18px; padding: 13px 0; border-top: 1px solid var(--kf-rand-d7e1df); }
-.decision-row-main { min-width: 0; flex: 1; }
-.decision-row-meta { display: flex; align-items: center; gap: 8px; color: var(--kf-schrift-6d858b); font-size: 10px; line-height: 14px; }
-.decision-status { color: var(--kf-schrift-007e92); font-weight: 700; }
-.is-retracted .decision-status { color: var(--kf-schrift-6d858b); }
-.decision-statement { margin: 4px 0 9px; color: var(--kf-schrift-062b3a); font-size: 13px; line-height: 19px; font-weight: 600; }
-.is-retracted .decision-statement { color: var(--kf-schrift-6d858b); text-decoration: line-through; text-decoration-thickness: 1px; }
-.decision-basis, .decision-wackler { display: grid; gap: 2px; margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--kf-rand-d7e1df); }
-.decision-basis > span, .decision-wackler > span { color: var(--kf-schrift-31535f); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.decision-basis p, .decision-wackler p { margin: 0; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; }
-.decision-basis p strong, .decision-wackler p strong { color: var(--kf-schrift-062b3a); font-weight: 600; }
-.decision-retract { display: flex; align-items: center; justify-content: flex-end; align-content: start; flex-wrap: wrap; gap: 7px; min-width: 190px; color: var(--kf-schrift-bf3b44); font-size: 10px; line-height: 14px; }
-.decision-confirm { min-height: 32px; border-color: var(--kf-rand-bf3b44); color: var(--kf-schrift-bf3b44); }
+/* Auf der grauen Seite eine eigene weiße Fläche; in einer fremden Karte (etwa Öffentliches Wissen) bleibt es flach grau. */
+#root :is(.decision-controls, .habit-inhalt) > .decision-create-form { background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root .decision-create-form > label, #root .decision-create-form legend { display: grid; gap: 6px; margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .decision-create-form :is(textarea, input:not([type=checkbox]), select) { width: 100%; min-width: 0; box-sizing: border-box; padding: 0 var(--g-a3); font: var(--g-text); color: var(--g-tinte); }
+#root .decision-create-form textarea { min-height: 88px; padding: 10px var(--g-a3); resize: vertical; }
+#root .decision-create-form fieldset { display: grid; gap: var(--g-a2); margin: 0; padding: 0; border: 0; min-width: 0; }
+#root .decision-create-form > p { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root .decision-basis-option { display: flex; align-items: flex-start; gap: var(--g-a2); min-height: var(--g-ziel-kompakt); font: var(--g-neben); color: var(--g-tinte); cursor: pointer; }
+#root .decision-basis-option input { width: 20px; height: 20px; min-height: 0; margin: 1px 0 0; flex: none; }
+#root .decision-basis-option strong { margin-right: var(--g-a1); font: 600 12px/1.6 var(--g-schrift); color: var(--g-leise); }
+#root .decision-form-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a2); }
+#root :is(.decision-muted, .decision-controls-error) { margin: 0; padding: 0 var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+#root .decision-controls-error { color: var(--g-rot); }
+#root .decision-leer { border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+
+/* Die Einträge: Zeilen einer Fläche. */
+#root .decision-list { display: block; overflow: hidden; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root .decision-list:empty { display: none; }
+#root .decision-row { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--g-a3) var(--g-a5); margin: 0; padding: var(--g-a3) var(--g-a4); border: 0; }
+#root .decision-row + .decision-row::before { content: ""; position: absolute; top: 0; right: 0; left: var(--g-a4); border-top: 1px solid var(--g-linie); }
+#root .decision-row-main { min-width: 0; flex: 1; display: grid; justify-items: start; gap: var(--g-a1); }
+#root .decision-row-main > p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .decision-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a2); font: var(--g-fussnote); color: var(--g-leise); }
+#root .decision-status { font-weight: 600; color: var(--g-leise); }
+#root .decision-row-main > p.decision-statement { margin: 0; font: 500 16px/1.45 var(--g-schrift); color: var(--g-tinte); overflow-wrap: anywhere; }
+#root .is-retracted .decision-statement { color: var(--g-leise); text-decoration: line-through; text-decoration-thickness: 1px; }
+#root :is(.decision-basis, .decision-wackler) { display: grid; gap: 2px; margin: var(--g-a1) 0 0; padding-left: var(--g-a3); border-left: 2px solid var(--g-linie); }
+#root :is(.decision-basis, .decision-wackler) > span { font: 600 12px/1.5 var(--g-schrift); color: var(--g-leise); }
+#root :is(.decision-basis, .decision-wackler) p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root :is(.decision-basis, .decision-wackler) p strong { font-weight: 600; color: var(--g-tinte); }
+#root .decision-no-basis { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root .decision-retract { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a1) var(--g-a2); min-width: 0; font: var(--g-neben); color: var(--g-rot); }
+#root .decision-retract .text-action { font-size: 14px; }
+/* In einer umgebenden Karte (Projektakte im Gedächtnis) ist die Karte die Fläche: keine Fläche in der Fläche. */
+#root .profile-card .decision-controls :is(.decision-list, .decision-leer) { border-radius: 0; background: transparent; box-shadow: none; border-top: 1px solid var(--g-linie); }
+#root .profile-card .decision-controls .decision-row { padding-inline: 0; }
+#root .profile-card .decision-controls > .decision-create-form { background: var(--g-grund); box-shadow: none; }
+#root .profile-card .decision-controls .decision-row + .decision-row::before { left: 0; }
+@media (max-width: 700px) {
+  #root .decision-row { flex-direction: column; align-items: stretch; gap: var(--g-a1); }
+  #root .decision-retract { justify-content: flex-start; }
+  #root .decision-create-form { padding: var(--g-a4); }
+}
+/* Gemeinsamer leiser Textknopf (auch außerhalb dieses Bereichs genutzt; unverändert aus dem Bestand). */
 .text-action { border: 0; padding: 0; color: var(--kf-schrift-007e92); background: transparent; font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
 .text-action:disabled { opacity: .45; cursor: default; }
-.decision-controls-error { margin: 0; color: var(--kf-schrift-bf3b44); font-size: 11px; line-height: 16px; }
-@media (max-width: 780px) {
-  .decision-controls-heading, .decision-row { align-items: stretch; flex-direction: column; }
-  .decision-retract { justify-content: flex-start; min-width: 0; }
-  .decision-form-actions { justify-content: flex-end; }
-}

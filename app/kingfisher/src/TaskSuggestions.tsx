@@ -99,24 +99,24 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
     setSelected([]);setBatchPreview(null);generations.current[temporal]=undefined;setOffset(0);setRevision(n=>n+1);setBatchBusy(false);batchPending.current=false;
     if(lastTask)onAccepted(lastTask);
   }
-  return <section className="task-source" aria-label="Erkannte Aufgaben und Zusagen">
-    <p>In deinen Quellen erkannt. Erst deine Bestätigung macht daraus eine Aufgabe.</p>
-    {notice && <p role="status">{notice}</p>}
-    {error && <p role="alert">Vorschläge sind gerade nicht erreichbar. <button type="button" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
-    {visiblePage && selected.length > 0 && <div className="task-suggestion-actions"><button className="secondary-action" type="button" disabled={batchBusy||!selected.length} onClick={()=>{onPreview?.();setBatchPreview(visiblePage.items.filter(item=>selected.includes(item.id)).map(item=>({item,draft:{...(drafts[item.id]??initialDraft(item))}})));}}>Auswahl prüfen ({selected.length})</button><small>Auswahl gilt für diese Seite; jede Übernahme prüft ihre Quelle erneut.</small></div>}
-    {batchResults.length>0&&<ul aria-label="Ergebnisse der Aufgabenübernahme">{batchResults.map(result=><li key={result.id}>{result.title}: {result.ok?'Aufgabe und Zuordnung gespeichert.':'Nicht bestätigt. Bitte Quelle und Eingaben erneut prüfen; eine Wiederholung legt keine zweite Aufgabe an.'}</li>)}</ul>}
-    {batchPreview&&<DetailPanel title="Ausgewählte Vorschläge" onClose={()=>{if(!batchBusy)setBatchPreview(null);}}><p>Diese sichtbaren Angaben werden gemeinsam übernommen. Unklare oder historische Quellen bleiben ausdrücklich zu prüfen.</p>{batchPreview.map(({item,draft})=><article key={item.id}><h3>{draft.title}</h3><p>{draft.newProject?`Neues Projekt: ${draft.newProject}`:projects.find(p=>p.id===draft.project)?.name??'Ohne Projekt'} · {deadlineText(item,draft.due)}{draft.waiting&&` · Warte auf ${draft.waiting}`}</p><p>{item.temporal_reason}</p>{item.evidence.map(e=><blockquote key={e.episode_id}>{e.quote}</blockquote>)}</article>)}<button type="button" className="primary-action" disabled={batchBusy} onClick={()=>void acceptBatch()}>{batchBusy?'Wird einzeln übernommen …':'Diese Angaben übernehmen'}</button></DetailPanel>}
-    <div className="task-suggestion-actions">
-      <label>Zeitraum<select value={temporal} onChange={event => {setNotice(""); setTemporal(event.target.value as TemporalFilter); setOffset(0);}}>
+  const blaettern = Boolean(offset > 0 || visiblePage?.has_more);
+  // Eine Gruppe: oben leise der eine Satz, der zusichert (nichts wird ohne Bestätigung zur Aufgabe), rechts der Zeitraum;
+  // darunter die Vorschläge als Zeilen einer Fläche, keine Karten in der Karte.
+  return <section className="task-source task-vorschlaege" aria-label="Erkannte Aufgaben und Zusagen">
+    <div className="task-vorschlaege-kopf">
+      <p>In deinen Quellen erkannt. Erst deine Bestätigung macht daraus eine Aufgabe.</p>
+      <label className="task-vorschlaege-zeitraum"><span>Zeitraum</span><select value={temporal} onChange={event => {setNotice(""); setTemporal(event.target.value as TemporalFilter); setOffset(0);}}>
         <option value="all">Alle Vorschläge</option><option value="recent">Zeitnah</option><option value="review">Zeitlich prüfen</option>
       </select></label>
-      {visiblePage && (offset > 0 || visiblePage.has_more) ? <span>{`${visiblePage.total ? offset + 1 : 0}–${Math.min(offset + visiblePage.items.length, visiblePage.total)} von ${visiblePage.total}`}</span> : null}
-      {(offset > 0 || visiblePage?.has_more) && <button type="button" className="secondary-action" disabled={loading || !visiblePage || offset === 0} onClick={() => setOffset(value => Math.max(0, value - PAGE_SIZE))}>Vorherige</button>}
-      {(offset > 0 || visiblePage?.has_more) && <button type="button" className="secondary-action" disabled={loading || !visiblePage?.has_more} onClick={() => setOffset(value => value + PAGE_SIZE)}>Weitere</button>}
     </div>
-    {loading && !visiblePage && <p role="status">Vorschläge werden geladen …</p>}
-    {visiblePage?.total === 0 && temporal !== "all" && <p>Für diesen Zeitraum gibt es keine offenen Vorschläge.</p>}
-    {visiblePage?.items.map(item => <Suggestion key={item.id} item={item} disabled={batchBusy} selected={selected.includes(item.id)} onSelected={value=>{setBatchPreview(null);setSelected(ids=>value?[...new Set([...ids,item.id])]:ids.filter(id=>id!==item.id));}} draft={drafts[item.id] ?? initialDraft(item)} onDraftChange={patch => changeDraft(item, patch)} projects={projects} onDone={task => {
+    {notice && <p className="task-vorschlaege-satz" role="status">{notice}</p>}
+    {error && <p className="task-vorschlaege-satz task-vorschlaege-fehler" role="alert">Vorschläge sind gerade nicht erreichbar. <button type="button" className="text-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
+    {visiblePage && selected.length > 0 && <div className="task-vorschlaege-auswahl"><button className="secondary-action" type="button" disabled={batchBusy||!selected.length} onClick={()=>{onPreview?.();setBatchPreview(visiblePage.items.filter(item=>selected.includes(item.id)).map(item=>({item,draft:{...(drafts[item.id]??initialDraft(item))}})));}}>Auswahl prüfen ({selected.length})</button><small>Auswahl gilt für diese Seite; jede Übernahme prüft ihre Quelle erneut.</small></div>}
+    {batchResults.length>0&&<ul className="task-vorschlaege-ergebnisse" aria-label="Ergebnisse der Aufgabenübernahme">{batchResults.map(result=><li key={result.id}><strong>{result.title}</strong> {result.ok?'Aufgabe und Zuordnung gespeichert.':'Nicht bestätigt. Bitte Quelle und Eingaben erneut prüfen; eine Wiederholung legt keine zweite Aufgabe an.'}</li>)}</ul>}
+    {batchPreview&&<DetailPanel title="Ausgewählte Vorschläge" onClose={()=>{if(!batchBusy)setBatchPreview(null);}}><div className="task-sammel"><p className="task-sammel-satz">Diese sichtbaren Angaben werden gemeinsam übernommen. Unklare oder historische Quellen bleiben ausdrücklich zu prüfen.</p><div className="task-sammel-liste">{batchPreview.map(({item,draft})=><article key={item.id}><h3>{draft.title}</h3><p>{draft.newProject?`Neues Projekt: ${draft.newProject}`:projects.find(p=>p.id===draft.project)?.name??'Ohne Projekt'} · {deadlineText(item,draft.due)}{draft.waiting&&` · Warte auf ${draft.waiting}`}</p><p>{item.temporal_reason}</p>{item.evidence.map(e=><blockquote key={e.episode_id}>{e.quote}</blockquote>)}</article>)}</div><button type="button" className="primary-action" disabled={batchBusy} onClick={()=>void acceptBatch()}>{batchBusy?'Wird einzeln übernommen …':'Diese Angaben übernehmen'}</button></div></DetailPanel>}
+    {loading && !visiblePage && <p className="task-vorschlaege-satz" role="status">Vorschläge werden geladen …</p>}
+    {visiblePage?.total === 0 && temporal !== "all" && <p className="task-vorschlaege-satz">Für diesen Zeitraum gibt es keine offenen Vorschläge.</p>}
+    {visiblePage && visiblePage.items.length > 0 && <div className="g-flaeche task-vorschlaege-liste">{visiblePage.items.map(item => <Suggestion key={item.id} item={item} disabled={batchBusy} selected={selected.includes(item.id)} onSelected={value=>{setBatchPreview(null);setSelected(ids=>value?[...new Set([...ids,item.id])]:ids.filter(id=>id!==item.id));}} draft={drafts[item.id] ?? initialDraft(item)} onDraftChange={patch => changeDraft(item, patch)} projects={projects} onDone={task => {
       requestVersion.current++;
       setDrafts(current => {const next = {...current}; delete next[item.id]; return next;});
       setPage(current => current ? {...current, items: current.items.filter(candidate => candidate.id !== item.id), total: Math.max(0, current.total - 1)} : current);
@@ -126,7 +126,12 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
       setNotice(task ? "Aufgabe gespeichert." : "Vorschlag verworfen.");
       setRevision(value => value + 1);
       if (task) onAccepted(task);
-    }} />)}
+    }} />)}</div>}
+    {blaettern && <div className="task-vorschlaege-seiten">
+      {visiblePage ? <span>{`${visiblePage.total ? offset + 1 : 0}–${Math.min(offset + visiblePage.items.length, visiblePage.total)} von ${visiblePage.total}`}</span> : null}
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={loading || !visiblePage || offset === 0} onClick={() => setOffset(value => Math.max(0, value - PAGE_SIZE))}>Vorherige</button>
+      <button type="button" className="g-knopf-getoent g-kompakt" disabled={loading || !visiblePage?.has_more} onClick={() => setOffset(value => value + PAGE_SIZE)}>Weitere</button>
+    </div>}
   </section>;
 }
 
@@ -148,12 +153,16 @@ function Suggestion({item, draft, onDraftChange, projects, onDone,selected,onSel
         : "Die Änderung konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten. Bitte erneut versuchen.");
     } finally {setBusy(false);}
   }
-  return <article className="mail-task-form">
-    <label><input aria-label="Für gemeinsame Übernahme auswählen" type="checkbox" checked={selected} disabled={busy||disabled} onChange={event=>onSelected(event.target.checked)}/>Auswählen</label>
+  const zeitWarnung = item.temporal_status === 'recent' ? 'Vorschlag · noch unbestätigt' : ['old','history'].includes(item.temporal_status ?? '') ? 'Historisch · Aktualität prüfen' : 'Zeitliche Einordnung prüfen';
+  // Eine Zeile: links das Häkchen zur gemeinsamen Übernahme (Ziel 44 px), daneben Titel, eine leise Zeile mit Zuordnung,
+  // Frist und zeitlicher Einordnung, dann Quelle und Begründung zum Aufklappen und die Aktionen.
+  return <article className="mail-task-form task-vorschlag">
+    <label className="task-vorschlag-wahl" title="Für gemeinsame Übernahme auswählen"><input aria-label="Für gemeinsame Übernahme auswählen" type="checkbox" checked={selected} disabled={busy||disabled} onChange={event=>onSelected(event.target.checked)}/></label>
+    <div className="task-vorschlag-inhalt">
     <h3>{draft.title}</h3>
-    <p>Übernahme: {draft.newProject ? `Neues Projekt „${draft.newProject}“` : draft.project ? `Projekt „${projects.find(p=>p.id===draft.project)?.name ?? 'nicht verfügbar'}“` : 'Ohne Projekt'}
+    <p className="task-vorschlag-meta">{draft.newProject ? `Neues Projekt „${draft.newProject}“` : draft.project ? `Projekt „${projects.find(p=>p.id===draft.project)?.name ?? 'nicht verfügbar'}“` : 'Ohne Projekt'}
       {' · '}{deadlineText(item,draft.due)}{draft.waiting && ` · Warte auf ${draft.waiting}`}</p>
-    <span className="suggestion-time-badge">{item.temporal_status === 'recent' ? 'Vorschlag · noch unbestätigt' : ['old','history'].includes(item.temporal_status ?? '') ? 'Historisch · Aktualität prüfen' : 'Zeitliche Einordnung prüfen'}</span>
+    <span className={`suggestion-time-badge${item.temporal_status === 'recent' ? '' : ' suggestion-time-pruefen'}`}>{zeitWarnung}</span>
     <details className="quiet-details suggestion-evidence" open={draft.open || undefined}><summary>Quelle & Begründung</summary>
     <p>{item.temporal_reason || 'Zeitliche Einordnung bitte prüfen.'}</p>
     <p>Quelldatum: {item.received_at ? new Date(item.received_at).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}) : 'unbekannt'}
@@ -162,16 +171,16 @@ function Suggestion({item, draft, onDraftChange, projects, onDone,selected,onSel
     {item.evidence.map(evidence => <div key={evidence.episode_id}><blockquote>{evidence.quote}</blockquote><ProfileSource kind="episode" id={evidence.episode_id} allowIgnore={false} /></div>)}
     {item.project_suggestion && <p className="workspace-project-hint">Projektvorschlag: <strong>{item.project_suggestion.name}</strong> · {item.project_suggestion.reason}</p>}
     </details>
-    {!draft.open ? <div className="task-suggestion-actions"><button className="secondary-action" type="button" disabled={busy} onClick={()=>void save(true)}>Aufgabe{draft.project || draft.newProject ? " und Projekt" : ""} übernehmen</button><button className="text-action" type="button" onClick={() => onDraftChange({open: true})}>Ändern</button><button className="text-action" type="button" disabled={busy} onClick={() => void save(false)}>Verwerfen</button></div> :
+    {!draft.open ? <div className="task-suggestion-actions"><button className="secondary-action g-kompakt" type="button" disabled={busy} onClick={()=>void save(true)}>Aufgabe{draft.project || draft.newProject ? " und Projekt" : ""} übernehmen</button><button className="text-action" type="button" onClick={() => onDraftChange({open: true})}>Ändern</button><button className="text-action" type="button" disabled={busy} onClick={() => void save(false)}>Verwerfen</button></div> :
       <form onSubmit={event => {event.preventDefault(); void save(true);}}>
-        <fieldset className="task-suggestion-fields" disabled={busy}><label>Aufgabe<input value={draft.title} onChange={event => onDraftChange({title: event.target.value})} required maxLength={4096} /></label>
+        <fieldset className="task-suggestion-fields" disabled={busy}><label className="task-vorschlag-titel">Aufgabe<input value={draft.title} onChange={event => onDraftChange({title: event.target.value})} required maxLength={4096} /></label>
           <div className="mail-task-form-fields"><label>Projekt<select value={draft.project} onChange={event => onDraftChange({project: event.target.value,newProject:""})}><option value="">Ohne Projekt</option>{projects.filter(value => value.open).map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
-          <label>Neues Projekt (optional)<input value={draft.newProject} maxLength={200} onChange={event=>onDraftChange({newProject:event.target.value,project:""})}/></label><label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
-          <label>Warte auf (optional)<input value={draft.waiting} onChange={event => onDraftChange({waiting: event.target.value})} maxLength={1024} /></label></div>
-          <div className="task-suggestion-actions"><button className="primary-action" type="submit" disabled={!draft.title.trim()}>Aufgabe festhalten</button>
-          <button className="secondary-action" type="button" onClick={() => onDraftChange({open: false})}>Abbrechen</button></div>
+          <label>Neues Projekt<input value={draft.newProject} maxLength={200} onChange={event=>onDraftChange({newProject:event.target.value,project:""})}/></label><label>Fällig am<input type="date" value={draft.due} onChange={event => onDraftChange({due: event.target.value})} /><small>{item.temporal_status === "recent" && item.valid_until && draft.due === initialDraft(item).due ? `Vorgeschlagener Zeitpunkt bleibt erhalten: ${new Date(item.valid_until).toLocaleString('de-DE')}. Bitte an der Quelle prüfen.` : 'Ein neu gewählter Tag gilt bis 23:59 Uhr. Ohne Datum wird keine Frist gesetzt.'}</small></label>
+          <label>Warte auf<input value={draft.waiting} onChange={event => onDraftChange({waiting: event.target.value})} maxLength={1024} /></label></div>
+          <div className="task-suggestion-actions task-vorschlag-formular-aktionen"><button className="g-knopf-schlicht" type="button" onClick={() => onDraftChange({open: false})}>Abbrechen</button><button className="primary-action" type="submit" disabled={!draft.title.trim()}>Aufgabe festhalten</button></div>
         </fieldset>
       </form>}
-    {error && <p role="alert">{error}</p>}
+    {error && <p className="task-vorschlag-fehler" role="alert">{error}</p>}
+    </div>
   </article>;
 }

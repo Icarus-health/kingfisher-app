@@ -16,12 +16,14 @@ const PROJECT_STATUSES: Array<{ value: ProjectStatus; label: string }> = [
  * Projekte anlegen und den Stand des gewählten Projekts ändern. Steht im Reiter „Projekte“; die Auswahl, welches
  * Projekt die Liste zeigt, ist ein kleiner Filter neben der Suche (`Tasks` in App.tsx).
  */
-export function ProjectControls({ projects, selectedId, onSelect, onChanged, contextRevision=0 }: {
+export function ProjectControls({ projects, selectedId, onSelect, onChanged, contextRevision=0, onFormular }: {
   projects: Project[];
   selectedId: string;
   onSelect: (id: string) => void;
   onChanged: () => void | Promise<void>;
   contextRevision?: number;
+  /** Meldet, ob das Formular „Neues Projekt“ offen ist (dann ist sein Knopf der eine gefüllte der Ansicht). */
+  onFormular?: (offen: boolean) => void;
 }) {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -32,6 +34,9 @@ export function ProjectControls({ projects, selectedId, onSelect, onChanged, con
   const requestId = useRef<string | null>(null);
   useEffect(()=>setError(null),[selectedId,contextRevision]);
   const selectedProject = projects.find((project) => project.id === selectedId);
+  const meldeFormular = useRef(onFormular);
+  meldeFormular.current = onFormular;
+  useEffect(() => { meldeFormular.current?.(creating); }, [creating]);
 
   function clearCreateForm() {
     requestId.current = null;
