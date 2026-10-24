@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { terminZeit } from "./calendarAnzeige";
 import { api, type CalendarOverview, type CalendarPreparation as Preparation, type Project, type TerminZuordnung } from "./api";
 import { displayLabel } from "./displayIdentity";
 import { ProfileSource } from "./ProfileSource";
@@ -97,8 +98,8 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
 
   return <section className="calendar-preparation" aria-label="Termin vorbereiten">
     <div className="calendar-preparation-heading">
-      <div><p className="eyebrow">VORBEREITEN</p><h2>{event.summary}</h2><p>Kontext zur Vorbereitung · Die Projektwahl gilt dauerhaft für diesen Termin</p></div>
-      <button className="secondary-action" type="button" aria-label="Vorbereitung schließen" onClick={onClose}>Schließen</button>
+      <div><h2>{event.summary}</h2><p>Vorbereitung · {terminZeit(event)}</p></div>
+      <button className="g-knopf-schlicht" type="button" aria-label="Vorbereitung schließen" onClick={onClose}>Schließen</button>
     </div>
     {correctionSaved && <p role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
     {zuordnung?.teilnehmer.length ? <div className="calendar-preparation-people"><h3 id="termin-mit-wem">Mit wem</h3>
@@ -116,6 +117,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
         {projects.map(project => <option value={project.id} key={project.id}>{project.name}</option>)}
         {zuordnung?.projekt && !projects.some(project => project.id === zuordnung.projekt!.id) && <option value={zuordnung.projekt.id}>{zuordnung.projekt.name}</option>}
       </select>
+      <small>Gilt dauerhaft für diesen Termin.</small>
     </label>
     <label className="calendar-preparation-project">Person aus dem Gedächtnis
       <select value={personId} onChange={e => { setPersonId(e.target.value); setExpandedSources([]); }} aria-label="Personenkontext auswählen">
@@ -128,7 +130,7 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
     {projectsError && <p role="alert">Projekte konnten nicht geladen werden. Bitte die Ansicht aktualisieren.</p>}
     {loading && <p aria-live="polite">Vorbereitung wird geladen …</p>}
     {error && <p className="settings-error" role="alert">Vorbereitung konnte nicht geladen werden. Bitte erneut versuchen.</p>}
-    {!loading && !error && !projectId && !personId && <p className="calendar-preparation-empty">Wähle ein Projekt oder eine Person, um vorhandenen Kontext einzublenden.</p>}
+    {!loading && !error && !projectId && !personId && <p className="calendar-preparation-empty">Wähle ein Projekt oder eine Person; dann steht hier, was dazu bekannt ist.</p>}
     {!error && (projectId || personId) && preparation && <div aria-busy={loading} hidden={loading} style={{display: loading ? "none" : undefined}}>
       {preparation.project && <p className="calendar-preparation-project-name">Projekt: <strong>{preparation.project.name}</strong></p>}
       {preparation.person && <p className="calendar-preparation-project-name">Person: <a href={`/memory/registry/${encodeURIComponent(preparation.person.id)}`}>{preparation.person.label} · Personenakte öffnen</a></p>}

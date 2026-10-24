@@ -214,7 +214,7 @@ class MacCalendar:
             _timestamp(range_from) > start or _timestamp(range_to) < end
         )
         if ((at is not None or days > 31) and not has_complete_range) or outside_snapshot:
-            raise CalendarError('Kalendertermine für den angefragten Zeitraum werden noch synchronisiert. Bitte gleich erneut aktualisieren.')
+            raise CalendarError('Die Termine für den angefragten Zeitraum werden noch abgeglichen; der Kalender lädt gleich von selbst neu.')
         return [Event(**{**e, 'start': _timestamp(e['start']), 'end': _timestamp(e['end']),
                          'external_uid': state.get('external_uids', {}).get(e['uid'], '')})
                 for e in state['events'] if _timestamp(e['end']) > start and _timestamp(e['start']) < end]

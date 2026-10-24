@@ -3,8 +3,9 @@ import {test} from 'node:test';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('..',import.meta.url));
-function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children].flat(10))nodes(c,p,out);return out;}
-function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(10).map(text).join(''):String(n);}
+// Bausteine der Grundlage: Kopfaktionen (`aktionen`) und der Satz eines leeren Zustands (`satz`) zählen mit.
+function nodes(n,p,out=[]){if(!n||typeof n!=='object')return out;if(p(n))out.push(n);for(const c of [n.props?.children,n.props?.aktionen].flat(10))nodes(c,p,out);return out;}
+function text(n){return n==null?'':typeof n==='object'?[n.props?.children,n.props?.satz].flat(10).map(text).join(''):String(n);}
 async function harness(run){
  const server=await createServer({root,cacheDir:`/private/tmp/kf-mail-ssr-${process.pid}`,configFile:false,plugins:[{name:'local-mail-hooks',enforce:'pre',resolveId(id){if(id==='virtual:local-mail-hooks')return '\0'+id;},load(id){if(id==='\0virtual:local-mail-hooks')return 'export const useState=(...a)=>globalThis.__mailDriver.state(...a);export const useRef=(...a)=>globalThis.__mailDriver.ref(...a);export const useEffect=(...a)=>globalThis.__mailDriver.effect(...a);export const useCallback=f=>f;';},transform(code,id){if(/\/(Messages|MailReader)\.tsx$/.test(id))return code.replace(/from ["']react["']/g,'from "virtual:local-mail-hooks"');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
  const oldWindow=globalThis.window,oldDriver=globalThis.__mailDriver;
@@ -40,7 +41,7 @@ test('mail opens as readable original with compact sender and source details rat
 test('compact account choice filters only local mail and resets pagination without provider retrieval',()=>harness(async(server,driver)=>{
  const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
  let remote=0;api.messages=async()=>{remote++;throw Error('must not fetch');};const calls=[];
- localMailApi.page=async args=>{calls.push(args);return{items:[],accounts:[{id:'private',label:'Privat',count:3}],total:0,offset:args.offset,has_more:false};};
+ localMailApi.page=async args=>{calls.push(args);return{items:[],accounts:[{id:'private',label:'Privat',count:3},{id:'work',label:'Arbeit',count:2}],total:0,offset:args.offset,has_more:false};};
  const d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();
  const account=nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Postfach auswählen')[0];assert.ok(account);account.props.onChange({target:{value:'private'}});d.render();await d.flush();
  assert.equal(calls.at(-1).account_id,'private');assert.equal(calls.at(-1).offset,0);assert.equal(remote,0);
@@ -133,4 +134,28 @@ test('on a wide window the newest mail opens by itself without taking focus; on 
   if(breit){leser[0].props.onClose();d.render();await d.flush();tree=d.render();assert.equal(nodes(tree,n=>n.type?.name==='MailReader').length,0);}
  }
  delete globalThis.window.matchMedia;
+}));
+
+test('P4: Postfachwahl und Seitenwahl stehen nur da, wenn es etwas zu wählen gibt',()=>harness(async(server,driver)=>{
+ const {Messages}=await server.ssrLoadModule('/src/Messages.tsx');const {localMailApi}=await server.ssrLoadModule('/src/localMailApi.ts');
+ let konten=[{id:'a',label:'Privat',count:2}],mehr=false;
+ localMailApi.page=async args=>({items:[{episode_id:'e1',subject:'Eins',sender:'Anna'},{episode_id:'e2',subject:'Zwei',sender:'Ben'}],accounts:konten,total:2,offset:args.offset,has_more:mehr});
+ let d=driver(Messages,{recentConversation:null});d.render();await d.flush();let tree=d.render();
+ assert.equal(nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Postfach auswählen').length,0,'ein Postfach: keine Wahl');
+ assert.equal(nodes(tree,n=>n.type==='nav'&&n.props['aria-label']==='Nachrichtenseiten').length,0,'eine Seite: keine Seitenwahl');
+ konten=[...konten,{id:'b',label:'Arbeit',count:41}];mehr=true;
+ d=driver(Messages,{recentConversation:null});d.render();await d.flush();tree=d.render();
+ assert.equal(nodes(tree,n=>n.type==='select'&&n.props['aria-label']==='Postfach auswählen').length,1);
+ assert.equal(nodes(tree,n=>n.type==='nav'&&n.props['aria-label']==='Nachrichtenseiten').length,1);
+}));
+
+test('P4: Aufgabe, Termin und Antwort klappen wie eine Liste; öffnet eines, schließen die anderen',()=>harness(async(server,driver)=>{
+ const {MailReader}=await server.ssrLoadModule('/src/MailReader.tsx');const {api}=await server.ssrLoadModule('/src/api.ts');
+ api.mailMessage=async()=>({uid:'live',subject:'Projektbrief',from:'Anna <anna@example.invalid>',body:'Original',source_digest:'d',can_reply:true});window.localStorage={getItem(){return null;},setItem(){}};
+ const entry=MailReader({uid:'live',onClose(){}}),d=driver(entry.type,entry.props);d.render();await d.flush();const tree=d.render();
+ const panels=nodes(tree,n=>n.type==='details'&&/mail-action-panel/.test(n.props.className??''));assert.equal(panels.length,3);
+ const fakes=panels.map(()=>({open:true}));panels.forEach((p,i)=>{p.props.ref.current=fakes[i];});
+ panels[1].props.onToggle({currentTarget:fakes[1]});
+ assert.deepEqual(fakes.map(f=>f.open),[false,true,false]);
+ fakes[2].open=false;panels[2].props.onToggle({currentTarget:fakes[2]});assert.deepEqual(fakes.map(f=>f.open),[false,true,false],'Schließen schließt nichts anderes');
 }));

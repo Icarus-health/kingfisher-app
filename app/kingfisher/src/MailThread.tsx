@@ -36,9 +36,9 @@ export function MailThread({uid, expectedDigest, onPrepareTask, taskDisabled}: {
     return () => {active = false; version++; controller?.abort(); window.removeEventListener('focus', onFocus);};
   }, [uid, expectedDigest, revision]);
   return <section className="mail-thread" aria-label="Gespeicherter Mailverlauf">
-    <div className="mail-task-form-heading"><h2>Zusammengehörige Nachrichten</h2><button className="mail-reader-secondary" type="button" disabled={loading} onClick={() => setRevision(value => value + 1)}>Aktualisieren</button></div>
-    {loading && <p role="status">Gespeicherte Quellen werden zugeordnet …</p>}
-    {error && <p className="mail-reader-error" role="alert">{error}</p>}
+    <h2>Verlauf</h2>
+    {loading && <p className="mail-reader-status" role="status">Gespeicherte Quellen werden zugeordnet …</p>}
+    {error && <p className="mail-reader-error" role="alert">{error} <button className="g-knopf-schlicht" type="button" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
     {result && <>
       <p className="mail-reader-status">{result.detail}</p>
       {result.limited && <p className="mail-reader-status" role="status">Begrenzter Ausschnitt: Weitere Nachrichten oder Textteile können fehlen. Daraus lässt sich kein abschließender Stand ableiten.</p>}

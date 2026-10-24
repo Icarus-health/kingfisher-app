@@ -83,10 +83,7 @@ export function MailBriefing({ uid, expectedSourceDigest, taskSelectionDisabled 
 
   return <section className="mail-briefing" aria-labelledby="mail-briefing-title">
     <div className="mail-briefing-heading">
-      <div>
-        <p className="mail-reader-eyebrow">Externe Quelle · Mail</p>
-        <h2 id="mail-briefing-title">Auf einen Blick</h2>
-      </div>
+      <h2 id="mail-briefing-title">Auf einen Blick</h2>
       {state.kind === "loading" ? <button className="mail-reader-secondary" onClick={cancel} type="button">Abbrechen</button> : null}
     </div>
     {state.kind === "loading" ? <p className="mail-reader-status" role="status">Originalstellen werden lokal ausgewählt …</p> : null}

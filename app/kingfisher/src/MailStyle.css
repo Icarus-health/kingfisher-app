@@ -1,22 +1,23 @@
+/* Schreibstil (Paket P4): Werte aus Grundlage.css; der äußere Rahmen entfällt im Mail-Leser (MailReader.css). */
 .mail-style {
   margin-top: 20px;
   padding: 20px 24px;
-  border: 1px solid var(--kf-rand-d7e1df);
+  border: 1px solid var(--g-linie);
   border-radius: 12px;
-  background: var(--kf-flaeche-fffefa);
+  background: var(--g-flaeche);
 }
 
 .mail-style summary {
   cursor: pointer;
-  color: var(--kf-schrift-062b3a);
+  color: var(--g-tinte);
   font-size: 13px;
   font-weight: 700;
 }
 
 .mail-style > p,
 .mail-style article p {
-  color: var(--kf-schrift-31535f);
-  font-size: 12px;
+  color: var(--g-leise);
+  font-size: 14px;
   line-height: 17px;
 }
 
@@ -25,17 +26,17 @@
   display: grid;
   gap: 6px;
   margin: 10px 0;
-  color: var(--kf-schrift-062b3a);
-  font-size: 12px;
+  color: var(--g-tinte);
+  font-size: 14px;
   font-weight: 700;
 }
 
 .mail-style select {
-  min-height: 36px;
-  border: 1px solid var(--kf-rand-d7e1df);
+  min-height: var(--g-ziel);
+  border: 1px solid var(--g-linie);
   border-radius: 7px;
   padding: 7px;
-  background: var(--kf-flaeche-fffefa);
+  background: var(--g-flaeche);
   font: inherit;
   font-weight: 400;
 }
@@ -51,12 +52,12 @@
 .mail-style-learning {
   margin-top: 18px;
   padding-top: 14px;
-  border-top: 1px solid var(--kf-rand-d7e1df);
+  border-top: 1px solid var(--g-linie);
 }
 
 .mail-style h3 {
   margin: 0 0 7px;
-  color: var(--kf-schrift-062b3a);
+  color: var(--g-tinte);
   font-size: 14px;
 }
 
@@ -64,14 +65,14 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  color: var(--kf-schrift-31535f);
-  font-size: 12px;
+  color: var(--g-leise);
+  font-size: 14px;
 }
 
 .mail-style-learning article {
   margin-top: 12px;
   padding: 10px;
-  border: 1px solid var(--kf-rand-d7e1df);
+  border: 1px solid var(--g-linie);
   border-radius: 7px;
 }
 
@@ -82,8 +83,8 @@
 }
 
 .mail-style-learning small {
-  color: var(--kf-schrift-53635f);
-  font-size: 10px;
+  color: var(--g-leise);
+  font-size: 13px;
 }
 
 /* Paket B5: Vorschlag für den Ton aus gesendeten Mails, Belege zum Aufklappen, Kreiszeile. */
@@ -95,7 +96,7 @@
 
 .mail-style-ton-satz {
   margin: 10px 0 0;
-  color: var(--kf-schrift-062b3a);
+  color: var(--g-tinte);
   font-size: 13px;
   line-height: 19px;
 }
@@ -106,9 +107,9 @@
 
 .mail-style-belege > summary {
   cursor: pointer;
-  color: var(--kf-schrift-31535f);
-  font-size: 12px;
-  min-height: 32px;
+  color: var(--g-leise);
+  font-size: 14px;
+  min-height: var(--g-ziel);
 }
 
 .mail-style-belege article {
@@ -116,7 +117,7 @@
   gap: 4px;
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid var(--kf-rand-d7e1df);
+  border: 1px solid var(--g-linie);
   border-radius: 7px;
 }
 
@@ -127,8 +128,8 @@
 }
 
 .mail-style-belege small {
-  color: var(--kf-schrift-53635f);
-  font-size: 10px;
+  color: var(--g-leise);
+  font-size: 13px;
 }
 
 .mail-style-kreis {
@@ -136,16 +137,16 @@
 }
 
 .mail-style input[type="text"] {
-  min-height: 36px;
-  border: 1px solid var(--kf-rand-d7e1df);
+  min-height: var(--g-ziel);
+  border: 1px solid var(--g-linie);
   border-radius: 7px;
   padding: 7px;
-  background: var(--kf-flaeche-fffefa);
+  background: var(--g-flaeche);
   font: inherit;
   font-weight: 400;
 }
 
 .mail-reply-suggestion-stil {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 14px;
 }
