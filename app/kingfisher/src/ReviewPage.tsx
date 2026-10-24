@@ -2,6 +2,9 @@ import { useCallback, useState } from "react";
 import { Sidebar } from "./chrome";
 import { KnowledgeQuestions } from "./KnowledgeQuestions";
 import { WasAufgefallenIst } from "./BefundeAnsicht";
+import { Gruppe, Seitenkopf, Zeile } from "./grundlage";
+import { InterfaceIcon } from "./InterfaceIcon";
+import "./Gedaechtnis.css";
 
 /** Full-page home for durable knowledge questions and source-backed file findings. Leere Abschnitte stehen nicht da;
  * ist alles leer, sagt ein Satz das. Die seltenen Prüfwege stehen als eine leise Zeile darunter. */
@@ -12,14 +15,19 @@ export function ReviewPage({recentConversation}: {recentConversation: string | n
   return <div className="shell tasks-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="tasks-page review-page">
-      <header className="tasks-heading">
-        <p className="eyebrow">GEDÄCHTNIS</p>
-        <h1>Prüfen und entscheiden</h1>
-      </header>
-      {leer.klaerungen && leer.befunde ? <p className="review-leer" role="status">Nichts zu prüfen.</p> : null}
+      <Seitenkopf titel="Prüfen und entscheiden" />
+      {leer.klaerungen && leer.befunde ? <div className="g-leer review-leer-flaeche">
+        <span className="g-leer-zeichen" aria-hidden="true"><InterfaceIcon name="check" /></span>
+        <p className="review-leer g-leer-satz" role="status">Nichts zu prüfen.</p>
+      </div> : null}
       <KnowledgeQuestions active leerAusblenden onLeer={klaerungenLeer} />
       <WasAufgefallenIst active leerAusblenden onLeer={befundeLeer} />
-      <p className="review-weitere">Außerdem prüfen: <a className="today-text-link" href="/memory?people=review">Unklare Personen</a> · <a className="today-text-link" href="/vorhaben?pruefen=1">Aufgabenvorschläge</a> · <a className="today-text-link" href="/memory?view=support">Gespeicherte Angaben</a></p>
+      {/* Die seltenen Prüfwege: eine Gruppe ganzer Zeilen statt einer Zeile kleiner Verweise. */}
+      <Gruppe titel="Außerdem prüfen" className="review-weitere">
+        <Zeile href="/memory?people=review" symbol={<InterfaceIcon name="people" />} titel="Unklare Personen" />
+        <Zeile href="/vorhaben?pruefen=1" symbol={<InterfaceIcon name="check" />} titel="Aufgabenvorschläge" />
+        <Zeile href="/memory?view=support" symbol={<InterfaceIcon name="brain" />} titel="Gespeicherte Angaben" />
+      </Gruppe>
     </main>
   </div>;
 }

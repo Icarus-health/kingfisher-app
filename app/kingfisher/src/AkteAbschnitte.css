@@ -1,77 +1,143 @@
-/* Die Akte einer Sache: ruhig, dieselben Bausteine wie die Mappe (MappeDetails.css). */
-.akte-teil details { margin-top: 6px; }
-.akte-teil details > summary { color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; cursor: pointer; min-height: 28px; display: flex; align-items: center; }
-.akte-teil details article { padding-left: 10px; border-left: 2px solid var(--kf-rand-e4ebe9); }
-.akte-fristen article > strong { font-variant-numeric: tabular-nums; }
-.akte-alt { text-decoration: line-through; color: var(--kf-schrift-5f777d) !important; font-weight: 500 !important; }
-.akte-beteiligte { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.akte-beteiligte :is(button, a) { display: grid; gap: 1px; min-height: 40px; padding: 4px 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 7px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: inherit; font-size: 12px; text-align: left; cursor: pointer; text-decoration: none; }
-.akte-beteiligte :is(button, a) small { margin: 0; }
-.akte-beteiligte :is(button, a):focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 2px; }
-.akte h2 { text-transform: none; }
+/* Die Akte einer Sache nach der Grundlage vom 23.10.2026: eine ruhige, große Lesefläche. Kopf mit Bild, Name und einer
+   Zeile; danach jeder Abschnitt als Gruppe (Überschrift klein über einer weißen Fläche, höchstens ein Satz darunter).
+   Keine Fläche in der Fläche, keine dunklen Plaketten, Knöpfe nur getönt oder schlicht. Nur --g-* und --calm-*;
+   `#root` hebt über die älteren globalen Regeln (Komponenten-Stile laden vor ihnen). */
 
-/* Die Lage: das Erste in der Akte. Ein Grund aus Material, kein Farbfeld; nichts ruft. */
-.akte-lage { padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-f8fbfa); }
-.akte-lage ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.akte-lage li p { margin: 0; color: var(--kf-schrift-062b3a); font-size: 14px; line-height: 21px; overflow-wrap: anywhere; }
-.akte-belege { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 14px; margin-top: 1px; }
-.akte-belege > small { margin: 0; }
-.akte-belege .task-source { min-width: 0; max-width: 100%; }
-.akte-belege .task-source > .quiet-source-toggle { min-height: 28px; font-size: 11px; }
-.akte-lage-alt { margin-top: 0; }
+/* ── Seite und Kopf ─────────────────────────────────────────────────────────────────────────────────────── */
+#root main.profile-page:has(> .akte-seite) { max-width: 920px; padding: var(--g-a5) var(--g-a6) var(--g-a8); background: var(--g-grund); }
+#root main.profile-page .profile-back { min-height: var(--g-ziel); padding: 0; color: var(--g-verweis); font: 500 15px/1.3 var(--g-schrift); }
+#root .profile-card.akte {
+  display: block; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--g-tinte);
+}
+#root .profile-card.akte > * { margin-top: 0; }
+#root .akte .akte-kopf { display: flex; align-items: center; gap: var(--g-a5); margin: var(--g-a3) 0 var(--g-a6); }
+#root .akte:not(.akte-seite) .akte-kopf { margin: 0 0 var(--g-a4); }
+#root .akte .akte-kopf-text { flex: 1 1 auto; min-width: 0; display: grid; gap: var(--g-a1); }
+#root main .akte .akte-kopf-text > h2 { margin: 0; font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); overflow-wrap: anywhere; }
+#root main .akte:not(.akte-seite) .akte-kopf-text > h2 { font: var(--g-titel); }
+#root .akte .akte-blick { margin: 0; font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+#root .akte .akte-kopf-bild { flex: 0 0 auto; }
+#root .akte .akte-kopf-bild > .memory-avatar-large,
+#root .akte .akte-kopf .memory-avatar-editor .memory-avatar-large { width: 80px; height: 80px; flex-basis: 80px; background: var(--g-getoent); color: var(--g-akzent); font: 600 28px/1 var(--g-schrift); }
+/* Das eigene Bild ist Nebensache: ein kleiner Textlink unter dem Kreis. */
+#root .akte .akte-kopf .memory-avatar-editor { display: flex; flex-direction: column; align-items: center; gap: var(--g-a1); margin: 0; }
+#root .akte .akte-kopf .memory-avatar-editor > details > summary { min-height: 28px; padding: 0; font: var(--g-fussnote); color: var(--g-leise); text-decoration: none; }
+#root .akte .akte-kopf .memory-avatar-editor > details > summary::before { content: none; display: none; }
+#root .akte .akte-kopf .memory-avatar-editor > details[open] { position: absolute; z-index: 20; margin-top: 108px; padding: var(--g-a4); border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten), 0 8px 24px rgba(23,38,53,.08); }
+#root .akte .akte-fuss { margin-top: var(--g-a5); padding: 0 var(--g-a4); }
+#root .akte .akte-fuss .akte-herkunft, #root .akte .mappe-hinweis { margin: 0; font: var(--g-fussnote) !important; color: var(--g-leise) !important; }
 
-/* Angenommene Aussagen: die Aussage vorn, der Beleg als Zitat dahinter; Überholtes nur als Hinweis, nie durchgestrichen. */
-.akte-angenommen article > strong { color: var(--kf-schrift-062b3a); font-weight: 600; overflow-wrap: anywhere; }
-.akte-ueberholt-hinweis { margin: 2px 0 0; color: var(--kf-schrift-5f777d); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
-.akte-aussage-ueberholt > strong { color: var(--kf-schrift-31535f); }
+/* ── Abschnitte als Gruppen ─────────────────────────────────────────────────────────────────────────────── */
+#root .akte .mappe-teil.g-gruppe, #root .akte .akte-braucht.g-gruppe, #root .akte .akte-ueber.g-gruppe {
+  margin: 0 0 var(--g-a6); padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+#root .akte .g-gruppe-kopf { align-items: baseline; justify-content: flex-start; gap: var(--g-a2); }
+#root .akte .g-gruppe-kopf > .g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .akte .akte-teil-neben, #root .akte .akte-zahl { font: 500 13px/1.4 var(--g-schrift); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+/* Die Zahl an „Braucht dich“: leise neben der Überschrift, keine dunkle Plakette. */
+#root .akte .akte-zahl { display: inline; min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; }
+#root .akte .g-gruppe-fussnote { margin: var(--g-a2) 0 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
 
-/* -- Akte wie ein Stabschef: Kopf, Braucht dich, Zeitstrahl (docs/16-gestaltung.md: ein Akzent, Material statt Farbe). -- */
-.akte-kopf { display: grid; gap: 6px; }
-.akte-kopf > h2 { margin-bottom: 0; }
-.akte-blick { margin: 2px 0 0; color: var(--calm-ink); font-size: var(--calm-control); line-height: 1.5; font-variant-numeric: tabular-nums; }
-/* Das eigene Bild ist Nebensache: ein kleiner Textlink unter dem Kreis, kein Aufklapper daneben. */
-.akte-kopf .memory-avatar-editor { flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 4px; }
-.akte-kopf .memory-avatar-editor > details > summary { list-style: none; padding: 2px 0; font-size: var(--calm-caption); color: var(--calm-muted); text-decoration: underline; text-underline-offset: 3px; }
-.akte-kopf .memory-avatar-editor > details > summary::-webkit-details-marker { display: none; }
+/* Einträge in der Fläche: Haarlinie dazwischen, kein Rahmen, kein Kasten. */
+#root .akte .akte-flaeche { margin: 0; padding: 0; list-style: none; }
+#root .akte .akte-flaeche > article, #root .akte .akte-flaeche > .akte-gruppe > article, #root .akte .akte-braucht .akte-flaeche > li,
+#root .akte .akte-flaeche > details > article, #root .akte .akte-flaeche > div:not(.akte-gruppe):not(.akte-strahl):not(.akte-strahl-wahl) {
+  position: relative; margin: 0; padding: var(--g-a4) var(--g-a5); border: 0;
+}
+#root .akte .akte-flaeche > :is(article, li, div) + :is(article, li, div)::before,
+#root .akte .akte-flaeche > details > article::before,
+#root .akte .akte-flaeche > .akte-gruppe > article + article::before {
+  content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie);
+}
+#root .akte .akte-flaeche > :is(p, .akte-oben-genannt, .mappe-mehr), #root .akte .akte-flaeche > details > :is(p, .mappe-mehr) { margin: 0; padding: var(--g-a3) var(--g-a5); }
+#root main .akte .mappe-teil :is(article, li) > small, #root main .akte .akte-flaeche small {
+  display: block; margin: 0 0 var(--g-a1); font: var(--g-fussnote); color: var(--g-leise);
+}
+#root main .akte .mappe-teil strong { display: block; margin: 0; font: 600 16px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root main .akte .mappe-teil blockquote, #root main .akte .akte-braucht blockquote {
+  margin: var(--g-a1) 0 var(--g-a2); padding: 0 0 0 var(--g-a3); border-left: 2px solid var(--g-linie); color: var(--g-tinte); font: var(--g-text); overflow-wrap: anywhere;
+}
+#root main .akte .mappe-mehr { margin: var(--g-a1) 0 0; font: var(--g-fussnote) !important; color: var(--g-leise) !important; }
+#root .akte .akte-gruppe > h4 { margin: 0; padding: var(--g-a4) var(--g-a5) 0; font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .akte .akte-gruppe + .akte-gruppe { margin: 0; border-top: 1px solid var(--g-linie); }
+#root .akte .akte-zeile-fuss, #root .akte .akte-braucht-fuss { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin-top: var(--g-a2); }
+#root .akte .akte-wahl { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .akte .akte-belege { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-a4); }
+#root .akte .akte-belege > small { margin: 0; }
+#root .akte .task-source { min-width: 0; max-width: 100%; }
+#root .akte .task-source > .quiet-source-toggle { min-height: 32px; font: var(--g-fussnote); color: var(--g-verweis); }
 
-.akte-knopf { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--calm-primary); border-radius: 8px; color: var(--calm-primary); background: var(--calm-surface); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-.akte-knopf:hover:not(:disabled) { background: #e8f2fd; }
-.akte-knopf:focus-visible { outline: 3px solid #2869aa; outline-offset: 2px; }
-.akte-knopf:disabled { opacity: .55; cursor: default; }
-.akte-knopf-leise { min-height: 32px; padding: 0 12px; border-color: var(--calm-line); color: var(--calm-ink); font-size: 13px; font-weight: 500; }
+/* Knöpfe der Akte: getönt (Entscheidung) oder schlicht (Rückgängig, Erledigt in der Liste). */
+#root .akte .akte-knopf { min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a3); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); cursor: pointer; }
+#root .akte .akte-knopf:hover:not(:disabled) { background: var(--g-getoent-stark); }
+#root .akte .akte-knopf.g-knopf { background: var(--g-akzent); color: var(--g-auf-akzent); font-weight: 600; }
+#root .akte .akte-knopf-leise { background: transparent; color: var(--g-verweis); }
+#root .akte .akte-knopf-leise:hover:not(:disabled) { background: var(--g-getoent); }
+#root .akte .akte-knopf:disabled { opacity: .45; cursor: default; }
 
-.akte-meldung { position: fixed; z-index: 40; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-width: min(560px, calc(100vw - 32px)); margin: 0; padding: 10px 14px; border: 1px solid #2869aa; border-radius: 10px; background: #e8f2fd; color: var(--calm-ink); font-size: 14px; line-height: 20px; box-shadow: var(--calm-shadow); }
+/* Braucht dich: der Satz groß, das Zitat leise, die Wahl darunter. */
+#root .akte .akte-braucht li[aria-busy="true"] { opacity: .6; }
+#root main .akte .akte-braucht-satz { margin: 0; font: 500 16px/1.45 var(--g-schrift) !important; color: var(--g-tinte); overflow-wrap: anywhere; }
+#root main .akte .akte-braucht blockquote { color: var(--g-leise); font: var(--g-neben); }
+#root .akte .akte-neue-quellen { display: grid; gap: var(--g-a1); margin: var(--g-a2) 0 0; padding: 0; list-style: none; }
+#root .akte .akte-neue-quellen li { font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
+#root .akte .akte-neue-quellen q { color: var(--g-tinte); quotes: "„" "“"; }
+#root .akte .akte-neue .akte-wahl { margin-top: var(--g-a3); }
+#root .akte .akte-neue-stand { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); margin: 0 0 var(--g-a5); }
 
-.akte-braucht { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--calm-line); border-left: 3px solid var(--calm-primary); border-radius: 10px; background: var(--calm-surface); }
-.akte-braucht > h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--calm-ink); font-size: 15px; line-height: 22px; }
-.akte-zahl { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--calm-primary); color: var(--calm-on-primary); font-size: 12px; font-weight: 600; }
-.akte-braucht ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-.akte-braucht li { padding: 10px 0; }
-.akte-braucht li + li { border-top: 1px solid var(--calm-line); }
-.akte-braucht li[aria-busy="true"] { opacity: .6; }
-.akte-braucht-satz { margin: 0; color: var(--calm-ink); font-size: 15px !important; line-height: 22px !important; font-weight: 500; overflow-wrap: anywhere; }
-.akte-braucht blockquote { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--calm-line); color: var(--calm-muted); font-size: 13px; line-height: 19px; overflow-wrap: anywhere; }
-.akte-braucht-fuss { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 8px; }
-.akte-wahl { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Lage: Sätze mit Belegen, ohne eigenen Rahmen. */
+#root .akte .akte-lage ol { display: grid; gap: var(--g-a3); margin: 0; padding: 0; list-style: none; }
+#root main .akte .akte-lage li p { margin: 0; font: var(--g-text); color: var(--g-tinte); overflow-wrap: anywhere; }
 
-.akte-zeile-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
-.akte-gruppe + .akte-gruppe { margin-top: 6px; }
-.akte-gruppe > h4 { margin: 6px 0 0; color: var(--calm-ink); font-size: 13px; line-height: 18px; font-weight: 600; }
-.akte-termin-abgesagt > strong { text-decoration: line-through; text-decoration-color: var(--calm-muted); }
+/* Termine, Fristen, Angenommen. */
+#root .akte .akte-fristen article > strong { font-variant-numeric: tabular-nums; }
+#root main .akte .akte-alt { text-decoration: line-through; color: var(--g-leise); font-weight: 500; }
+#root .akte .akte-termin-abgesagt > strong { text-decoration: line-through; text-decoration-color: var(--g-leise); }
+#root main .akte .akte-angenommen article > strong { overflow-wrap: anywhere; }
+#root .akte .akte-ueberholt-hinweis { margin: var(--g-a1) 0 0; font: var(--g-fussnote); color: var(--g-leise); overflow-wrap: anywhere; }
+#root .akte .task-title-link { min-height: var(--g-ziel-kompakt); padding: 0; border: 0; background: transparent; color: var(--g-verweis); font: 600 16px/1.4 var(--g-schrift); text-align: left; cursor: pointer; }
 
-.akte-ueber { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--kf-rand-d7e1df); }
-/* Haben die Karten nichts zu sagen, steht auch die Überschrift nicht da. */
-.akte-ueber:not(:has(> :not(.akte-ueber-titel))) { display: none; }
-.akte-ueber > .mappe-teil:first-of-type, .akte-ueber > .mappe-teil:first-child { border-top: 0; padding-top: 2px; }
-.akte-ueber-titel { margin: 0 0 6px; color: var(--kf-schrift-062b3a); font-size: 12px; line-height: 17px; }
-.akte-beteiligte :is(button, a) { position: relative; overflow: hidden; }
-.akte-gewicht { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--calm-primary); opacity: .45; }
+/* Aufklapper in einer Fläche (Vergangen, Verstrichen, Vorher): leise Zeile mit drehendem Pfeil. */
+#root .akte .mappe-teil .akte-flaeche > details > summary, #root .akte .akte-verlauf-auf > summary {
+  display: flex; align-items: center; min-height: var(--g-ziel); margin: 0; padding: 0 var(--g-a5); font: 500 15px/1.35 var(--g-schrift); color: var(--g-tinte);
+}
+#root .akte .mappe-teil .akte-flaeche > details, #root .akte .akte-verlauf-auf { position: relative; margin: 0; }
+#root .akte .mappe-teil .akte-flaeche > * + details::before { content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie); }
+#root .akte .akte-verlauf-auf > .chronik-mehr { margin: 0 var(--g-a5) var(--g-a4); }
 
-/* Der Zeitstrahl: drei Spuren, eine Achse, „heute“ als Linie. Punkte sind Knöpfe (Tastatur, Bildschirmleser). */
+/* „Fristen laut Quelle“: eine leise Zeile über einer Gruppe. */
+#root .akte .akte-quellenfristen { margin: 0 0 var(--g-a6); padding: 0; border: 0; }
+#root .akte .akte-quellenfristen > summary { min-height: var(--g-ziel); padding: 0 var(--g-a4); font: 500 15px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root .akte .akte-quellenfristen > .g-gruppe { margin: var(--g-a2) 0 0; }
+
+/* Über: die Karten (Kreis, Geburtstag, Art, Wiederkehrendes) als Abschnitte einer Fläche. */
+#root .akte .akte-ueber:not(:has(.akte-ueber-flaeche > *)) { display: none; }
+#root .akte .akte-ueber-flaeche > .mappe-teil { margin: 0; padding: 0; border: 0; }
+#root .akte .akte-ueber-flaeche > .mappe-teil + .mappe-teil { margin-top: var(--g-a4); padding-top: var(--g-a4); border-top: 1px solid var(--g-linie); }
+#root main .akte .akte-ueber-flaeche > .mappe-teil > h3 { margin: 0 0 var(--g-a2); font: var(--g-ueberschrift); color: var(--g-tinte); }
+
+/* Zusammenhänge: Zeilen mit Zeichen wie die Listen. */
+#root .akte .akte-zusammenhaenge .akte-flaeche > .gd-liste { display: block; }
+#root .akte .akte-zusammenhaenge .g-zeile-wert { font: var(--g-fussnote); }
+
+/* Meldung nach einem Klick: unten, ruhig, mit „Rückgängig“. */
+#root .akte-meldung {
+  position: fixed; z-index: 40; left: 50%; bottom: var(--g-a5); transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--g-a2) var(--g-a3); max-width: min(560px, calc(100vw - 32px)); margin: 0; padding: var(--g-a3) var(--g-a4); border: 0;
+  border-radius: var(--g-radius-flaeche); background: var(--g-tinte); color: var(--g-auf-akzent); font: var(--g-neben);
+  box-shadow: 0 8px 24px rgba(23,38,53,.18);
+}
+#root .akte-meldung .akte-knopf { background: transparent; color: var(--g-auf-akzent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Leer, Fehler, Laden. */
+#root .akte.akte-zustand .g-leer { padding: var(--g-a7) var(--g-a5); }
+#root .akte.akte-zustand .akte-laedt { margin: var(--g-a6) 0; font: var(--g-neben); color: var(--g-leise); }
+
+/* ── Der Zeitstrahl: drei Spuren, eine Achse, „heute“ als Linie. Punkte sind Knöpfe (Tastatur, Bildschirmleser). ── */
 .akte-strahl { --akte-spurname: 128px; position: relative; margin-top: 4px; }
 .akte-spur { display: grid; grid-template-columns: var(--akte-spurname) minmax(0, 1fr); align-items: center; }
-.akte-spur-name { color: var(--calm-muted); font-size: 12px; line-height: 16px; }
-.akte-spur-bahn { position: relative; height: 44px; border-bottom: 1px solid var(--calm-line); }
+.akte-spur-name { color: var(--calm-muted); font-size: 13px; line-height: 16px; }
+.akte-spur-bahn { position: relative; height: 44px; border-bottom: 1px solid var(--g-linie); }
 .akte-punkt { position: absolute; width: 24px; height: 24px; margin-left: -12px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .akte-punkt::before { content: ""; position: absolute; left: 7px; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: #9aa6b2; }
 .akte-punkt-zusage::before { background: var(--calm-primary); }
@@ -81,26 +147,35 @@
 .akte-punkt-frist::before { left: 6px; top: 6px; width: 12px; height: 11px; border-radius: 0; background: #9aa6b2; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .akte-punkt-frist.akte-punkt-offen::before { background: var(--calm-primary); }
 .akte-punkt:focus-visible { outline: 3px solid #2869aa; outline-offset: -2px; border-radius: 50%; }
-.akte-punkt-gewaehlt { border-radius: 50%; background: #e8f2fd; box-shadow: inset 0 0 0 2px #2869aa; }
+.akte-punkt-gewaehlt { border-radius: 50%; background: var(--g-auswahl); box-shadow: inset 0 0 0 2px var(--g-auswahl-kante); }
 .akte-achse { position: relative; height: 20px; margin-left: var(--akte-spurname); }
-.akte-achse span { position: absolute; top: 3px; transform: translateX(-50%); color: var(--calm-muted); font-size: 11px; line-height: 14px; white-space: nowrap; }
+.akte-achse span { position: absolute; top: 3px; transform: translateX(-50%); color: var(--calm-muted); font-size: 12px; line-height: 14px; white-space: nowrap; }
 .akte-heute { position: absolute; top: 0; bottom: 20px; width: 0; border-left: 1px dashed var(--calm-primary); pointer-events: none; }
-.akte-heute span { position: absolute; top: -2px; left: 4px; color: var(--calm-primary); font-size: 11px; line-height: 14px; font-weight: 600; }
-.akte-strahl-wahl { margin-top: 8px; padding: 10px 12px; border: 1px solid #2869aa; border-radius: 8px; background: #f7fbff; }
-.akte-strahl-wahl > small { display: block; margin-bottom: 4px; color: var(--calm-muted); }
+.akte-heute span { position: absolute; top: -2px; left: 4px; color: var(--calm-primary); font-size: 12px; line-height: 14px; font-weight: 600; }
+#root .akte .akte-strahl-wahl { margin-top: var(--g-a3); padding: var(--g-a3) 0 0; border: 0; border-top: 1px solid var(--g-linie); border-radius: 0; background: transparent; }
+#root .akte .akte-strahl-wahl > small { display: block; margin-bottom: var(--g-a1); }
 
 @media (max-width: 699px) {
+  #root main.profile-page:has(> .akte-seite) { padding: var(--g-a4) var(--g-a4) var(--g-a7); }
+  #root .akte .akte-kopf { gap: var(--g-a4); }
+  #root .akte .akte-kopf-bild > .memory-avatar-large,
+  #root .akte .akte-kopf .memory-avatar-editor .memory-avatar-large { width: 64px; height: 64px; flex-basis: 64px; font-size: 22px; }
+  #root main .akte .akte-kopf-text > h2 { font-size: var(--g-titel-gross-schmal); }
+  #root .akte .akte-flaeche > article, #root .akte .akte-flaeche > .akte-gruppe > article, #root .akte .akte-braucht .akte-flaeche > li,
+  #root .akte .akte-flaeche > div:not(.akte-gruppe):not(.akte-strahl):not(.akte-strahl-wahl) { padding: var(--g-a3) var(--g-a4); }
+  #root .akte .akte-flaeche > :is(article, li, div) + :is(article, li, div)::before { left: var(--g-a4); }
+  #root .akte .akte-wahl { width: 100%; }
+  #root .akte .akte-wahl .akte-knopf { flex: 1 1 auto; }
+  #root .akte .akte-zusammenhaenge .g-zeile-wert { display: none; }
   .akte-strahl { --akte-spurname: 0px; }
   .akte-spur { grid-template-columns: minmax(0, 1fr); }
   .akte-spur-name { margin-top: 4px; }
-  .akte-braucht { padding: 12px; }
-  .akte-wahl { width: 100%; }
-  .akte-wahl .akte-knopf { flex: 1 1 auto; }
 }
 
-/* Neue Akte? (akteVorschlag.ts): dieselbe Fläche wie „Braucht dich“, die Textstellen klein, zwei Knöpfe. */
-.akte-neue-quellen { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
-.akte-neue-quellen li { color: var(--calm-muted); font-size: 13px; line-height: 19px; overflow-wrap: anywhere; }
-.akte-neue-quellen q { color: var(--calm-ink); quotes: "„" "“"; }
-.akte-neue .akte-wahl { margin-top: 10px; }
-.akte-neue-stand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+/* Im Profil (kompakt): die leisen Aufklapper mit Abstand, damit sie nicht an der nächsten Gruppe kleben. */
+#root .akte.akte-compact > .quiet-details { margin: 0 0 var(--g-a4); }
+#root .akte .akte-flaeche > .akte-teil-satz { padding: var(--g-a3) var(--g-a5) 0; }
+/* Der Bildbereich bleibt schmal; Logo-Auswahl und Profilbild als kleine Verweise darunter. */
+#root .akte .akte-kopf-bild { max-width: 168px; text-align: center; }
+#root .akte .akte-kopf-bild summary { min-height: 28px; padding: 0; font: var(--g-fussnote); color: var(--g-leise); text-decoration: none; }
+#root .akte .akte-kopf-bild summary::before { content: none; display: none; }

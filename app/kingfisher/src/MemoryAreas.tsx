@@ -6,6 +6,7 @@ import { ProfileSource } from "./ProfileSource";
 import { CategoryCorrection } from "./CategoryCorrection";
 import { areaEmptyText, areaLink, areaViewFromSearch, firstAreaNavigation, initialAreaPager, MEMORY_AREAS,
   nextAreaNavigation, previousAreaNavigation, receiveAreaPage, type MemoryAreaView } from "./MemoryAreaModel";
+import { Gruppe, Leer, Segmente } from "./grundlage";
 import "./MemoryAreas.css";
 import { AreaBatchCorrection } from "./AreaBatchCorrection";
 import "./WorkspaceMemoryDetails.css";
@@ -116,38 +117,27 @@ export function MemoryAreas() {
     if (navigation) void load(navigation);
   }
 
-  function refresh() {
-    setSelectedSources([]);
-    void load(firstAreaNavigation());
-  }
-
-  const heading = view === "other" ? "Weitere Hinweise" : MEMORY_AREAS.find(area => area.id === view)?.label ?? "Gedächtnisbereich";
-  return <section className="memory-areas" data-memory-loading={loading || (!page && !error)} aria-label="Gedächtnisbereiche">
-    <header className="memory-areas-heading"><p className="eyebrow">GEDÄCHTNIS</p><h1>Bereiche</h1>
-      <details className="quiet-details"><summary>Über die Zuordnung</summary><p>Deine Quellen nach Lebensbereichen. Eine Quelle kann zu mehreren Bereichen gehören. Automatische Zuordnungen sind ungeprüfte Vorschläge.</p></details>
-    </header>
-    <nav className="memory-area-tabs" aria-label="Bereichsansichten">
-      {MEMORY_AREAS.map(area => <button key={area.id} type="button" disabled={loading} aria-pressed={view === area.id} className={view === area.id ? "active" : ""} onClick={() => select(area.id)}>{area.label}</button>)}
-      <button type="button" disabled={loading} aria-pressed={view === "other"} className={view === "other" ? "active" : ""} onClick={() => select("other")}>Weitere Hinweise</button>
-    </nav>
-    <div className="memory-areas-title"><h2>{heading}</h2><p>{page ? `${visible.length} Quellen angezeigt` : "Quellenhinweise"}</p></div>
-    {page && <details className="quiet-details"><summary>Quellenstand</summary><p className="memory-area-meta">Bereichsauswahl im gesamten Bestand · Seite {pageIndex + 1}{taxonomyVersion !== undefined ? ` · Themenstand ${taxonomyVersion}` : ""}. Angezeigt werden vorhandene Zuordnungen, keine neue Auswertung.</p></details>}
-    {error && <p role="alert">Die Themenhinweise konnten nicht geladen werden. <button type="button" disabled={loading} onClick={() => void load(retryNavigation)}>Erneut versuchen</button></p>}
-    {notice && <p role="status">{notice}</p>}
-    {!page && !error && <p role="status">Bereiche werden geladen …</p>}
-    {unavailable && <p role="status">Dieser Bereich ist im bestehenden Themenverzeichnis nicht verfügbar. Vorhandene Zuordnungen bleiben erhalten.</p>}
+  const optionen = [...MEMORY_AREAS.map(area => ({wert: area.id as MemoryAreaView, titel: area.label})), {wert: "other" as MemoryAreaView, titel: "Weitere Hinweise"}]
+    .map(option => ({...option, deaktiviert: loading}));
+  const blaettern = page && (pageIndex > 0 || nextCursor !== null);
+  // Ein Klick auf den gewählten Bereich lädt ihn neu; einen eigenen „Aktualisieren“-Knopf braucht es nicht.
+  return <section className="memory-areas gd-bereiche" data-memory-loading={loading || (!page && !error)} aria-label="Gedächtnisbereiche">
+    <Segmente kompakt className="memory-area-tabs" label="Bereichsansichten" wert={view} optionen={optionen} onWahl={select} />
+    {error && <p role="alert" className="gd-hinweis">Die Themenhinweise konnten nicht geladen werden. <button type="button" className="g-knopf-schlicht g-kompakt" disabled={loading} onClick={() => void load(retryNavigation)}>Erneut versuchen</button></p>}
+    {notice && <p role="status" className="gd-hinweis">{notice}</p>}
+    {!page && !error && <p role="status" className="gd-hinweis">Bereiche werden geladen …</p>}
+    {unavailable && <Leer zeichen="brain" satz="Dieser Bereich ist im Themenverzeichnis nicht verfügbar; vorhandene Zuordnungen bleiben erhalten." />}
     {!loading && page && selectedSources.length > 0 && <AreaBatchCorrection selected={selectedSources} onClear={() => setSelectedSources([])} />}
-    {page && !unavailable && (visible.length ? <div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} selected={selectedSources.some(item => item.id === source.episode_id)} onSelect={checked => setSelectedSources(current => checked ? [...current.filter(item => item.id !== source.episode_id), {id: source.episode_id, title: source.title}] : current.filter(item => item.id !== source.episode_id))} onSaved={() => {
+    {page && !unavailable && (visible.length ? <Gruppe titel={`${visible.length} ${visible.length === 1 ? "Quelle" : "Quellen"}${blaettern ? ` · Seite ${pageIndex + 1}` : ""}`} fussnote="Automatische Zuordnungen sind ungeprüfte Vorschläge; eine Quelle kann zu mehreren Bereichen gehören."><div className="memory-area-list">{visible.map((source, index) => <SourceHints key={`${source.episode_id}:${index}`} source={source} selected={selectedSources.some(item => item.id === source.episode_id)} onSelect={checked => setSelectedSources(current => checked ? [...current.filter(item => item.id !== source.episode_id), {id: source.episode_id, title: source.title}] : current.filter(item => item.id !== source.episode_id))} onSaved={() => {
       setNotice("Deine Zuordnung wurde gespeichert. Die Quelle kann dadurch in einen anderen Bereich wechseln; ihr Original bleibt erhalten.");
-    }} />)}</div>
-      : <p className="memory-area-empty">{areaEmptyText(page)}</p>)}
-    {page?.scan_limited && <p role="status">Die Prüfung dieses Suchabschnitts ist begrenzt. Weitere aktuelle Hinweise können dahinter liegen.</p>}
-    {page?.truncated && <p role="status">Die Seiten folgen der Aufnahme in den Bestand, nicht dem Quelldatum. Weitere Quellen findest du auf der nächsten Seite.</p>}
-    {page && <nav className="memory-area-pagination" aria-label="Quellenseiten">
-      <button className="memory-area-more" type="button" disabled={loading || pageIndex === 0} onClick={newerSources}>{loading ? "Wird geladen …" : "Vorherige Seite"}</button>
+    }} />)}</div></Gruppe>
+      : <Leer zeichen="brain" className="memory-area-empty" satz={areaEmptyText(page)} />)}
+    {page?.scan_limited && <p role="status" className="gd-hinweis">Die Prüfung dieses Suchabschnitts ist begrenzt. Weitere aktuelle Hinweise können dahinter liegen.</p>}
+    {page?.truncated && <p role="status" className="gd-hinweis">Die Seiten folgen der Aufnahme in den Bestand, nicht dem Quelldatum.</p>}
+    {blaettern && <nav className="memory-area-pagination directory-pagination" aria-label="Quellenseiten">
+      <button className="memory-area-more g-knopf-getoent g-kompakt" type="button" disabled={loading || pageIndex === 0} onClick={newerSources}>{loading ? "Wird geladen …" : "Vorherige Seite"}</button>
       <span aria-live="polite">Seite {pageIndex + 1}</span>
-      <button className="memory-area-more" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : page.scan_limited ? "Weiterprüfen" : "Nächste Seite"}</button>
-      <button className="memory-area-refresh" type="button" disabled={loading} onClick={refresh}>{loading ? "Wird aktualisiert …" : "Ansicht aktualisieren"}</button>
+      <button className="memory-area-more g-knopf-getoent g-kompakt" type="button" disabled={loading || nextCursor === null} onClick={olderSources}>{loading ? "Wird geladen …" : page.scan_limited ? "Weiterprüfen" : "Nächste Seite"}</button>
     </nav>}
   </section>;
 }

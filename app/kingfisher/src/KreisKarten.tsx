@@ -45,13 +45,14 @@ export function KreisKarte({ sache }: { sache: string }) {
       {stand.wahlen.map(w => {
         const gewaehlt = stand.bestaetigt && stand.kreis === w.kreis;
         const vorgeschlagen = !stand.bestaetigt && !stand.ohne_vorschlag && stand.vorschlag.kreis === w.kreis;
+        // Wie eine Segmentsteuerung: der Vorschlag umrandet, der bestätigte Kreis gewählt; kein gefüllter Knopf.
         return <button key={w.kreis} type="button" disabled={arbeitet || gewaehlt} aria-pressed={gewaehlt}
-          className={vorgeschlagen ? "primary-action" : "secondary-action"} title={w.wirkung} onClick={() => void waehlen(w.kreis)}>
+          className={`kreis-wahl${vorgeschlagen ? " kreis-vorschlag" : ""}`} title={w.wirkung} onClick={() => void waehlen(w.kreis)}>
           {w.text}{vorgeschlagen ? <small>vorgeschlagen</small> : gewaehlt ? <small>bestätigt</small> : null}
         </button>;
       })}
     </div>
-    {stand.bestaetigt ? <button type="button" className="chronik-mehr kreis-zurueck" disabled={arbeitet} onClick={() => void waehlen(null)}>Wieder offen lassen</button> : null}
+    {stand.bestaetigt ? <button type="button" className="g-knopf-schlicht g-kompakt kreis-zurueck" disabled={arbeitet} onClick={() => void waehlen(null)}>Wieder offen lassen</button> : null}
     <p className="kreis-hilfe">Der Kreis bestimmt nur, wie viel Kingfisher dir ungefragt über diese Person sagt und wie zurückhaltend. Es verlässt nichts deinen Rechner.</p>
     {hinweis ? <p role="status" className="kreis-ok">{hinweis}</p> : null}
     {fehler ? <p role="alert" className="kreis-fehler">{fehler}</p> : null}
@@ -93,7 +94,7 @@ export function ArtKarte({ sache }: { sache: string }) {
         const gewaehlt = stand.bestaetigt && stand.art === w.art;
         const vorgeschlagen = !stand.bestaetigt && stand.vorschlag.art === w.art;
         return <button key={w.art} type="button" disabled={arbeitet || gewaehlt} aria-pressed={gewaehlt}
-          className={vorgeschlagen ? "primary-action" : "secondary-action"} onClick={() => void waehlen(w.art)}>
+          className={`kreis-wahl${vorgeschlagen ? " kreis-vorschlag" : ""}`} onClick={() => void waehlen(w.art)}>
           {w.text}{vorgeschlagen ? <small>vorgeschlagen</small> : gewaehlt ? <small>bestätigt</small> : null}
         </button>;
       })}

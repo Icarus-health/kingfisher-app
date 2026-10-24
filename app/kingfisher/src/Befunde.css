@@ -18,6 +18,16 @@
 .befunde-ruhend summary { cursor: pointer; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 20px; }
 .befunde-pruefen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .befunde-pruefen .secondary-action { min-height: 32px; }
-/* Prüfen-Seite (Paket U, P1): ein Satz, wenn nichts zu prüfen ist; die seltenen Prüfwege als eine leise Zeile. */
-.review-page .review-leer { font-size: var(--calm-text); color: var(--calm-ink); margin: 8px 0 16px; }
-.review-page .review-weitere { margin-top: 28px; font-size: var(--calm-caption); color: var(--calm-muted); line-height: 1.8; }
+/* Grundlage 23.10.: Zitat leise mit Haarlinie, Quelle als schlichter Verweis, kein Kasten in der Fläche. */
+#root .befunde .befund { gap: var(--g-a2); padding: var(--g-a4) 0; border-top: 1px solid var(--g-linie); }
+#root .befunde .befunde-liste > .befund:last-child { border-bottom: 0; }
+#root .befunde .befund-wichtig { padding-left: var(--g-a3); border-left: 2px solid var(--g-akzent); }
+#root .befunde .befund-text { font: 500 16px/1.45 var(--g-schrift); color: var(--g-tinte); }
+#root .befunde :is(.befund-kopf, .befund-hinweis, .befunde-pruefen small) { font: var(--g-fussnote); color: var(--g-leise); }
+#root .befunde .befund-akten .text-action { min-height: 32px; padding: 0; font: 500 14px/1.3 var(--g-schrift); }
+#root .befunde .befund-beleg { display: grid; gap: var(--g-a1); justify-items: start; }
+#root .befunde .befund-beleg blockquote { margin: 0; padding: 0 0 0 var(--g-a3); border-left: 2px solid var(--g-linie); font: var(--g-neben); color: var(--g-tinte); }
+#root .befunde .befund-beleg .task-source > .secondary-action { min-height: 32px; padding: 0; background: transparent; color: var(--g-verweis); font: 500 14px/1.3 var(--g-schrift); }
+#root .befunde .befund-aktionen { gap: var(--g-a2); margin-top: var(--g-a1); }
+#root .befunde .befunde-zahl { font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .befunde .befunde-ruhend summary { min-height: var(--g-ziel); display: flex; align-items: center; font: 500 15px/1.35 var(--g-schrift); color: var(--g-tinte); }
