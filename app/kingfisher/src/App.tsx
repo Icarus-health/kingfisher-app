@@ -23,7 +23,6 @@ import {
   type Project,
 } from "./api";
 import { Sidebar } from "./chrome";
-import { Leer } from "./grundlage";
 import { ActionApprovalCard } from "./ActionApprovalCard";
 import { ProjectControls } from "./ProjectControls";
 import {ProjectOverview} from "./ProjectOverview";
