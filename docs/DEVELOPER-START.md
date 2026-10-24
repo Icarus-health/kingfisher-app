@@ -16,6 +16,7 @@ Gedächtnis-Durchsicht „wie ein guter Stabschef“ (fünf Pakete):
 | 1.0.25 | #76 | Einmalige Belegkorrektur im Cloudpaket; historische Quellenfristen sichtbar | [Protokoll](runs/2026-10-19-belege-fristen-sonnet/README.md) |
 | 1.0.26 | #78–#84 | Deutsche Fristformulierungen; Akte mit „Braucht dich“, Entscheidungen und Zeitstrahl; Abrufen mit Umschrift, Zeitangaben und „Worauf warte ich noch?“; Ablage merkt sich Entscheidungen; neue Post trotz Pause, ehrliche Anmeldung, neueste zuerst; Kalender aus CalDAV und Abo; CI wieder grün | [Protokoll](runs/2026-10-20-stabschef-pakete/README.md) |
 | 1.0.27 | #86–#92 | Ziellinie (`65-ziellinie.md`); gesendete Mails; „Was brauche ich morgen?“; neue Mails in der Cloud einordnen (Anthropic, eigene Einwilligung); Aufgaben folgen der Post; Stilprofil aus gesendeten Mails; „Neue Akte?“; Mitteilungen auf dem Mac | [Protokoll](runs/2026-10-22-ziellinie-pakete/README.md) |
+| (nächste) | #94 | Oberfläche: Gestaltungsgrundlage (`16-gestaltung.md`, `Grundlage.css`, `src/grundlage/`), alle 196 Oberflächen ruhig, groß, auf einen Blick; Heute ist das Briefing | [Protokoll](runs/2026-10-24-oberflaeche/README.md) |
 
 Offen laut diesen Protokollen: die Prüfung des normalen Mac-Updates seit 1.0.22, eine
 Probe mit aktuellen, handlungsrelevanten Mails statt der überwiegend historischen
