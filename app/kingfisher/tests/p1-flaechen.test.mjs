@@ -43,7 +43,9 @@ test('Heute: der Fuß und die Tageslage sind Zeilen einer Fläche, kein Dreieck 
 test('Heute: die Landschaft läuft in den Grund aus, die Statuszeile steht nicht im Bild, schmal ein heller Schleier', () => {
   const css = quelle('TodayOverview.css');
   const bild = regel(css, '.today-landscape');
-  assert.match(bild, /mask-image: linear-gradient\(to bottom, #000 0%, #000 \d+%, transparent \d+%\)/);
+  // Beide Schreibweisen: die ungepräfixte gilt in Chromium, die gepräfixte in WebKit (Safari, Tauri unter macOS).
+  assert.match(bild, /(?<!-)mask-image: linear-gradient\(to bottom, #000 0%, #000 \d+%, transparent \d+%\)/);
+  assert.match(bild, /-webkit-mask-image: linear-gradient\(to bottom, #000 0%, #000 \d+%, transparent \d+%\)/);
   assert.doesNotMatch(ohneKommentare(css), /briefing-area \{[^}]*margin-top: -/, 'nichts zieht den Inhalt ins Bild');
   const schmal = ohneKommentare(css).match(/@media \(max-width: 900px\) \{([\s\S]*?)\n\}/)[1];
   assert.match(schmal, /linear-gradient\(180deg, rgba\(245,246,248,\.7\d\)/, 'der Gruß bleibt auf dem Bild lesbar');
