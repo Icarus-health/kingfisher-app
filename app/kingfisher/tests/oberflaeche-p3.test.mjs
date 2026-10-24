@@ -97,3 +97,9 @@ test("P3: die eigenen Stile nehmen nur Werte der Grundlage, keine eigenen Hexfar
   const oben = akte.slice(0, akte.indexOf("/* ── Der Zeitstrahl"));
   assert.doesNotMatch(oben, /#[0-9a-fA-F]{3,8}\b/);
 });
+
+test("P3: die Ortskarte bleibt bei 390 px in ihrer Fläche; Auswahl und Felder schieben nichts über den Rand", () => {
+  const css = quelle("Gedaechtnis.css");
+  assert.match(css, /\.memory-view-panel\.gd-karte \.g-flaeche \{[^}]*grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(css, /\.memory-view-panel\.gd-karte :is\(select, input\) \{ min-width: 0; max-width: 100%; \}/);
+});

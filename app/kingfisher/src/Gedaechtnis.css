@@ -150,7 +150,8 @@
 /* Karte der Orte und gemeinsame Ansichten der Organisationen als Gruppen. */
 #root main .memory-view-panel.gd-karte { max-width: 880px; margin: 0 0 var(--g-a6); padding: 0; border: 0; border-radius: 0; background: transparent; }
 #root main .memory-view-panel.gd-karte .g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
-#root main .memory-view-panel.gd-karte .g-flaeche { display: grid; gap: var(--g-a3); }
+#root main .memory-view-panel.gd-karte .g-flaeche { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--g-a3); }
+#root main .memory-view-panel.gd-karte :is(select, input) { min-width: 0; max-width: 100%; }
 #root main .memory-view-panel.gd-karte .g-flaeche p { margin: 0; font: var(--g-neben); }
 #root main .memory-view-panel.gd-karte .memory-place-map { min-height: 360px; border: 0; border-radius: var(--g-radius-bedien); }
 #root main .memory-view-panel.gd-karte .g-gruppe-fussnote { color: var(--g-leise); }
