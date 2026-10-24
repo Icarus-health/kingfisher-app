@@ -114,7 +114,7 @@
 #root .task-row .task-wait-control button:hover:not(:disabled) { background: var(--g-getoent-stark); }
 #root .task-row .task-wait-control button:disabled { opacity: .45; cursor: default; }
 #root .task-row .task-wait-control form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--g-a2); }
-#root .task-row .task-wait-control label { display: grid; gap: 4px; flex: 1 1 200px; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .task-row .task-wait-control label { display: grid; gap: 4px; flex: 1 1 100%; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
 #root .task-row .task-wait-control input { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0 var(--g-a3); font: var(--g-text); }
 #root .task-row .task-wait-control small { flex-basis: 100%; order: 3; margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
 #root .task-row .task-wait-control button[type=submit] { background: var(--g-akzent); color: var(--g-auf-akzent); }
