@@ -59,6 +59,7 @@ export const ZUGAENGE = {
   postfaecher: { titel: "Postfächer", leer: "Noch kein Postfach verbunden." },
   kalender: { titel: "Kalender", leer: "Noch kein Kalender verbunden." },
   ordner: { titel: "Ordner und Dateien", satz: "Kingfisher liest nur ausgewählte Ordner." },
+  trennen: "Trennen entfernt nur den Zugang auf diesem Rechner, keine Daten beim Anbieter.",
 } as const;
 
 /** Die Abschnitte hinter „Für Techniker“, in der Reihenfolge, in der sie eingeklappt erscheinen. */

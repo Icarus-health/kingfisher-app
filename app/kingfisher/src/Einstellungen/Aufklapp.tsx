@@ -21,7 +21,8 @@ export function Aufklapp({ id, titel, satz, offen, praefix = "technik", children
 
   return <details ref={knoten} id={`${praefix}-${id}`} className="einstellungen-aufklapp" open={geoeffnet}
     onToggle={event => { const auf = event.currentTarget.open; setGeoeffnet(auf); if (auf) setGezeigt(true); }}>
-    <summary><span>{titel}</span><small>{satz}</small></summary>
-    <div className="einstellungen-aufklapp-inhalt">{gezeigt ? children : null}</div>
+    <summary><span>{titel}</span></summary>
+    {/* Der Satz steht aufgeklappt über dem Inhalt: zu ist es eine ruhige Zeile mit Pfeil (wie am Mac). */}
+    <div className="einstellungen-aufklapp-inhalt">{gezeigt ? <><p className="einstellungen-satz">{satz}</p>{children}</> : null}</div>
   </details>;
 }

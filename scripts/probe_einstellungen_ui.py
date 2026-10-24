@@ -129,9 +129,9 @@ def main() -> int:
             seite.set_viewport_size({'width': breite, 'height': 1000})
             seite.goto(basis + '/settings#' + kennung)
             seite.reload()
-            seite.wait_for_selector('.settings-section-nav')
-            alt = {'world': 'darf', 'model': 'technik', 'memory': 'technik'}
-            panel = kennung if kennung in ALLE else 'technik' if kennung.startswith('technik') else alt.get(kennung, 'zugaenge')
+            seite.wait_for_selector('.settings-section-nav', state='attached')  # schmal steht das Auswahlfeld statt der Liste
+            alt = {'world': 'darf', 'model': 'ki', 'memory': 'technik'}
+            panel = kennung if kennung in ALLE + ('ki',) else 'technik' if kennung.startswith('technik') else alt.get(kennung, 'zugaenge')
             seite.wait_for_selector(f'#settings-{panel}:not([hidden])')
             time.sleep(0.6)
 
@@ -147,7 +147,8 @@ def main() -> int:
         oeffne('zugaenge')
         reiter = [b.inner_text() for b in seite.locator('.settings-section-nav button').all()]
         pruef['reiter'] = reiter
-        assert reiter == ['Zugänge', 'Was Kingfisher darf', 'Kingfisher und du', 'Sicherung', 'Für Techniker'], reiter
+        # Seit „KI & Modelle“ ein eigener Bereich ist, stehen fünf Bereiche vorne, „Für Techniker“ abgesetzt dahinter.
+        assert reiter == ['Zugänge', 'KI & Modelle', 'Was Kingfisher darf', 'Kingfisher und du', 'Sicherung', 'Für Techniker'], reiter
         assert seite.locator('.settings-section-hinten').inner_text() == 'Für Techniker'
         pruef['technik_beim_oeffnen_nicht_geladen'] = not any('/models/recommendation' in a for a in anfragen)
         assert pruef['technik_beim_oeffnen_nicht_geladen'], 'Die Modellkarte darf nicht geladen sein, bevor jemand sie aufschlägt'
@@ -176,6 +177,8 @@ def main() -> int:
         # 4. Quellen zum Anklicken: ein Klick fügt hinzu, der zweite entfernt
         assert seite.get_by_role('group', name='Quellen zum Anklicken').count() == 0, 'ohne Schalter keine Quellen'
         schalter('Eine Meldung aus der Welt zeigen').click()
+        # Die Quellen stehen eingeklappt unter „Quellen ändern“; aufklappen wie ein Mensch.
+        seite.locator('#settings-darf summary', has_text='Quellen ändern').click()
         gruppe = seite.get_by_role('group', name='Quellen zum Anklicken')
         gruppe.wait_for(timeout=15000)
         knoepfe = gruppe.get_by_role('button')
@@ -256,7 +259,7 @@ def main() -> int:
 
         # 7. Cloud: ohne Zugang ein Satz, mit Zugang Zustimmung, ein Klick zurück
         schalter('Cloud für Fragen und Antworten nutzen').click()
-        seite.wait_for_selector('#settings-darf >> text=Dafür braucht es einen Zugang bei einem Cloudanbieter')
+        seite.wait_for_selector('#settings-darf >> text=Dafür braucht es einen gespeicherten Zugang')
         rollen = seite.request.get(basis + '/api/v1/models/roles').json()
         assert not any(r['wirksam']['quelle'] == 'cloud' for r in rollen['rollen'])
         pruef['cloud_ohne_zugang'] = True
@@ -290,10 +293,11 @@ def main() -> int:
         assert 'Hier muss nichts geändert werden' in text
         offene = seite.locator('.einstellungen-aufklapp[open]').count()
         pruef['technik_offen_beim_start'] = offene
-        assert offene == 0 and seite.locator('.einstellungen-aufklapp').count() == 16  # mit „Microsoft-Anmeldung vorbereiten“ (M5) und „Updates ohne App“
+        assert offene == 0 and seite.locator('#settings-technik .einstellungen-aufklapp').count() == 15  # die 15 Abschnitte aus gliederung.ts (TECHNIK)
         assert not any('/models/recommendation' in a for a in anfragen)
         bild('technik-zu-1280')
-        seite.locator('#technik-modelle > summary').click()
+        # Die Modellkarte steht seit dem eigenen Bereich unter „KI & Modelle“ und lädt erst, wenn jemand ihn aufschlägt.
+        oeffne('ki')
         seite.wait_for_selector('.model-recommendation', timeout=15000)
         assert any('/models/recommendation' in a for a in anfragen)
         pruef['technik_laedt_beim_aufklappen'] = True
@@ -302,7 +306,7 @@ def main() -> int:
         oeffne('world')
         assert seite.locator('#settings-darf:not([hidden])').count() == 1
         oeffne('model')
-        assert seite.locator('#settings-technik:not([hidden])').count() == 1 and seite.locator('#technik-modelle[open]').count() == 1
+        assert seite.locator('#settings-ki:not([hidden])').count() == 1
         oeffne('memory')
         assert seite.locator('#technik-suchindex[open]').count() == 1
         pruef['alte_verweise'] = True

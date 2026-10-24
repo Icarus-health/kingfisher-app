@@ -5,6 +5,7 @@ import {Sidebar} from './chrome';
 import {ProfileSource} from './ProfileSource';
 import {HealthObservationEditor} from './HealthObservationEditor';
 import {HealthTrend} from './HealthTrend';
+import {Gruppe, Leer, Seitenkopf, Zeile} from './grundlage';
 
 function measurementTime(value: string) {return value.replace('T',' · ').replace('Z',' UTC');}
 
@@ -91,45 +92,45 @@ export function HealthPage({recentConversation}: {recentConversation: string | n
     window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
     return ()=>{window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
   },[]);
+  const gefiltert=Boolean(filters.metric || filters.unit);
+  // Wie eine Seite in Health am iPhone: großer Titel, ein Knopf, darunter der Verlauf; Erklärungen als Fußnote.
   return <div className="shell tasks-shell">
     <Sidebar active="Gedächtnis" recentConversation={recentConversation} />
     <main className="tasks-page development-page health-page">
-      <header className="tasks-heading"><div><p className="eyebrow">DEIN ALLTAG</p><h1>Gesundheit</h1></div></header>
-      <p>Eigene Messwerte mit Datum, Einheit und Originalquelle. Kingfisher bewahrt deine Angaben, ohne sie medizinisch zu bewerten.</p>
-      <nav className="development-links" aria-label="Gesundheitsbereich">
-        <a className="today-text-link" href="/today">Zurück zu Heute →</a>
-        <a className="today-text-link" href="/memory?area=health">Alle Gesundheitsquellen →</a>
-        <a className="today-text-link" href="/development">Persönliche Entwicklung →</a>
-      </nav>
-      {!editor && <button className="primary" type="button" onClick={()=>{setEditing(null);setEditor(true);setNotice('');}}>Eigene Angabe festhalten</button>}
+      <Seitenkopf titel="Gesundheit" zeile="Eigene Messwerte mit Datum, Einheit und Originalquelle."
+        aktionen={editor ? null : <button className="g-knopf" type="button" onClick={()=>{setEditing(null);setEditor(true);setNotice('');}}>Eigene Angabe festhalten</button>} />
       {editor && <HealthObservationEditor key={editing?.id || 'new'} observation={editing}
         onCancel={()=>{setEditor(false);setEditing(null);}}
         onSaved={()=>{setEditor(false);setEditing(null);setNotice('Die Angabe ist als Quelle gespeichert.');reload();}} />}
-      {notice && <p role="status">{notice}</p>}
+      {notice && <p role="status" className="health-notice">{notice}</p>}
       <section className="health-timeline" aria-label="Datierte eigene Angaben">
-        <div className="health-list-heading"><div><h2>Deine Angaben im Verlauf</h2><p>Nach Messzeit sortiert, neueste zuerst. Je Seite bis zu 25 Angaben.</p></div><button type="button" onClick={reload}>Neu laden</button></div>
+        <div className="health-list-heading"><h2>Deine Angaben</h2><button type="button" className="g-knopf-schlicht g-kompakt" onClick={reload}>Neu laden</button></div>
         <form className="health-filters" aria-label="Messwerte filtern" onSubmit={event=>{event.preventDefault();setFilters({metric:metricInput.trim(),unit:unitInput.trim()});reload();}}>
           <label>Messgröße<input aria-label="Messgröße filtern" list="health-metric-hints" maxLength={100} placeholder="z. B. Gewicht" value={metricInput} onChange={event=>setMetricInput(event.target.value)} /></label>
           <label>Einheit<input aria-label="Einheit filtern" list="health-unit-hints" maxLength={40} placeholder="z. B. kg" value={unitInput} onChange={event=>setUnitInput(event.target.value)} /></label>
           <datalist id="health-metric-hints">{[...new Set(page?.items.map(item=>item.metric))].map(value=><option key={value} value={value} />)}</datalist>
           <datalist id="health-unit-hints">{[...new Set(page?.items.map(item=>item.unit))].map(value=><option key={value} value={value} />)}</datalist>
-          <button type="submit">Verlauf zeigen</button>
-          {(filters.metric || filters.unit) && <button type="button" onClick={()=>{setMetricInput('');setUnitInput('');setFilters({metric:'',unit:''});reload();}}>Filter löschen</button>}
+          <button type="submit" className="g-knopf-getoent">Verlauf zeigen</button>
+          {gefiltert && <button type="button" className="g-knopf-schlicht" onClick={()=>{setMetricInput('');setUnitInput('');setFilters({metric:'',unit:''});reload();}}>Filter löschen</button>}
         </form>
-        <p className="health-help">Filter durchsuchen den gesamten Messbestand. Messgrößen müssen vollständig stimmen; Groß-/Kleinschreibung ist dort egal. Einheiten bleiben genau getrennt (z. B. mV und MV). Eingabevorschläge stammen nur aus dem geladenen Ausschnitt.</p>
-        {(filters.metric || filters.unit) && <p role="status">Aktiver Filter: {filters.metric || 'alle Messgrößen'} · {filters.unit || 'alle Einheiten'}</p>}
-        {loadedAt && <p className="health-help">Zuletzt geladen: {loadedAt}. Quellen werden beim Zurückkehren erneut geprüft.</p>}
-        {!page && !error && <p role="status">Angaben werden geladen …</p>}
-        {error && <p role="alert">{error}</p>}
+        <p className="health-help">Messgrößen müssen vollständig stimmen, Einheiten werden genau unterschieden (mV ist nicht MV). Vorschläge stammen aus dem geladenen Ausschnitt.</p>
+        {gefiltert && <p role="status" className="health-help">Aktiver Filter: {filters.metric || 'alle Messgrößen'} · {filters.unit || 'alle Einheiten'}</p>}
+        {!page && !error && <p role="status" className="health-help">Angaben werden geladen …</p>}
+        {error && <p role="alert" className="health-fehler">{error}</p>}
         {page && <HealthTrend items={page.items} />}
         {page?.items.map(item=><HealthEntry key={item.id} item={item} onChange={reload} onCorrect={()=>{setEditing(item);setEditor(true);setNotice('');}} />)}
-        {page?.items.length===0 && <p role="status">{page.next_cursor ? 'In diesem Ausschnitt ist keine geprüfte Angabe verfügbar. Ältere Angaben können folgen.' : 'In diesem Ausschnitt sind keine aktuellen eigenen Messangaben vorhanden.'}</p>}
-        {Boolean(page?.invalid_sources) && <p role="status">{page!.invalid_sources} Quellen konnten nicht als unveränderte Messangaben geprüft werden und bleiben aus dieser Ansicht ausgeblendet.</p>}
-        {page && <div className="health-actions">
-          {previous.length>0 && <button type="button" onClick={()=>{setCursor(previous[previous.length-1]);setPrevious(values=>values.slice(0,-1));}}>Neuere Angaben</button>}
-          {page.next_cursor && <button type="button" onClick={()=>{setPrevious(values=>[...values,cursor]);setCursor(page.next_cursor);}}>Ältere Angaben</button>}
+        {page?.items.length===0 && <div role="status"><Leer zeichen="check" satz={page.next_cursor ? 'In diesem Ausschnitt ist keine geprüfte Angabe verfügbar. Ältere Angaben können folgen.' : 'In diesem Ausschnitt sind keine aktuellen eigenen Messangaben vorhanden.'} /></div>}
+        {Boolean(page?.invalid_sources) && <p role="status" className="health-help">{page!.invalid_sources} Quellen konnten nicht als unveränderte Messangaben geprüft werden und bleiben aus dieser Ansicht ausgeblendet.</p>}
+        {page && (previous.length>0 || page.next_cursor) && <div className="health-actions health-seiten">
+          {previous.length>0 && <button type="button" className="g-knopf-getoent" onClick={()=>{setCursor(previous[previous.length-1]);setPrevious(values=>values.slice(0,-1));}}>Neuere Angaben</button>}
+          {page.next_cursor && <button type="button" className="g-knopf-getoent" onClick={()=>{setPrevious(values=>[...values,cursor]);setCursor(page.next_cursor);}}>Ältere Angaben</button>}
         </div>}
+        {loadedAt && <p className="health-help">Zuletzt geladen: {loadedAt}. Quellen werden beim Zurückkehren erneut geprüft.</p>}
       </section>
+      <Gruppe titel="Mehr" fussnote="Kingfisher bewahrt deine Angaben, ohne sie medizinisch zu bewerten." className="health-mehr">
+        <Zeile href="/memory?area=health" titel="Alle Gesundheitsquellen" />
+        <Zeile href="/development" titel="Persönliche Entwicklung" />
+      </Gruppe>
     </main>
   </div>;
 }

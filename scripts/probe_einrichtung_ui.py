@@ -103,6 +103,11 @@ def main() -> int:
         domains=('example.org',), caldav_url=caldav.start))
     mail_anmeldung.ZEITGRENZE = 3.0
     ordner_lokal.im_container = lambda: False  # die Probe läuft wie ein Sidecar direkt auf dem Rechner
+    # Ein fester Rechner mit 32 GB, damit das Gesamtpaket passt, gleich wie groß der Rechner ist, auf dem die Probe läuft
+    # (auf einem Rechner mit 16 GB oder wenig freiem Platz lehnt der Sidecar das Paket zu Recht ab, und die Probe prüfte dann nichts mehr).
+    from icarus_memory import device_profile
+    device_profile.eigene_ausstattung = lambda: {'memory_gb': 32.0, 'platform': 'linux', 'untergrenze': False}
+    device_profile.freier_platz_gb = lambda *_a, **_k: 200.0  # ebenso genug freie Festplatte
 
     from icarus_memory import server_finden
     from tests.autoconfig_attrappe import kein_netz
@@ -219,7 +224,12 @@ def main() -> int:
                 and marken.get('Deine Fragen beantworten') == 'Bereit' and marken.get('Im Hintergrund einordnen') == 'Bereit'
             geladen = [b['model'] for m, pfad, b in ollama.anfragen if pfad == '/api/pull']
             pruef['11_geladen'] = geladen
-            pruef['11_uebrige_trotzdem_geladen'] = len(geladen) >= 4 and durchgefallen != []
+            # Geladen wurde jedes empfohlene Modell, auch nachdem das Prüfmodell durchfiel. Teilen sich Aufgaben ein Modell
+            # (je nach Ausstattung), wird es einmal geladen; gezählt wird darum je Modell, nicht je Aufgabe.
+            empfohlen = {r['empfohlen']['name'] for r in seite.request.get(basis + '/api/v1/models/recommendation').json()['rollen']}
+            pruef['11_empfohlen'] = sorted(empfohlen)
+            pruef['11_uebrige_trotzdem_geladen'] = durchgefallen != [] and len(set(geladen)) >= 3 \
+                and (empfohlen - set(durchgefallen)) <= set(geladen) | set(durchgefallen)
             problem = karte.locator('.rechner-problem')
             pruef['11_satz'] = problem.inner_text()
             pruef['11_kein_fachwort'] = 'Messlatte' not in pruef['11_satz'] and 'Alternativen' not in pruef['11_satz']

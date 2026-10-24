@@ -63,12 +63,11 @@ export function DocumentImport({initiallyExpanded=false, showLibrary=true, title
     finally {setBusy(false);}
   }
   return <section className="source-section document-import" aria-label="Dateien aufnehmen">
-    <div className="compact-integration-heading"><div><h2>{title}</h2><p>Dokumente als Quellen aufnehmen und verwalten.</p></div><button className="secondary-action" type="button" aria-expanded={expanded} disabled={busy || reading} onClick={() => {if(expanded && onClose) {if(file) setClosing(true); else onClose();} else setExpanded(value => !value);}}>{expanded ? "Schließen" : "Dateien verwalten"}</button></div>
+    <div className="compact-integration-heading"><div><h2>{title}</h2><p>Dokumente als Quellen aufnehmen und verwalten.</p></div><button className="g-knopf-getoent" type="button" aria-expanded={expanded} disabled={busy || reading} onClick={() => {if(expanded && onClose) {if(file) setClosing(true); else onClose();} else setExpanded(value => !value);}}>{expanded ? "Schließen" : "Dateien verwalten"}</button></div>
     {expanded && <div>
-    <p>Textdateien, Transkripte (SRT/VTT), Word-Dokumente (DOCX) und PDFs werden lokal eingelesen. Gespeichert wird nur der Text nach deiner Bestätigung. Daraus wird kein Wissen automatisch bestätigt. Die Originaldatei bleibt unverändert.</p>
-    <p>Bei Word wird der Haupttext übernommen. Bilder, Formatierungen, Kopf- und Fußzeilen bleiben unberücksichtigt. Bitte die Vorschau prüfen.</p>
-    <label>Datei auswählen<input type="file" accept=".md,.markdown,.txt,.org,.rst,.csv,.docx,.pdf,.srt,.vtt" disabled={busy || reading} onChange={event => {void choose(event.target.files?.[0]);event.target.value = "";}} /></label>
-    <p>PDFs benötigen eine Textebene. Seitenangaben bleiben erhalten; bitte Lesereihenfolge und Vollständigkeit prüfen.</p>
+    <p className="source-hint">Text, Transkripte (SRT/VTT), Word (DOCX) und PDF liest Kingfisher auf diesem Rechner. Gespeichert wird nur der Text nach deiner Bestätigung. Daraus wird kein Wissen automatisch bestätigt. Die Originaldatei bleibt unverändert.</p>
+    <label className="g-knopf-getoent document-import-wahl">Datei auswählen<input type="file" className="visually-hidden" accept=".md,.markdown,.txt,.org,.rst,.csv,.docx,.pdf,.srt,.vtt" disabled={busy || reading} onChange={event => {void choose(event.target.files?.[0]);event.target.value = "";}} /></label>
+    <p className="source-hint">PDFs brauchen eine Textebene, bei Word zählt nur der Haupttext ohne Bilder, Kopf- und Fußzeilen. Seitenangaben bleiben erhalten; bitte die Vorschau prüfen.</p>
     {reading && <p role="status">Text wird lokal ausgelesen …</p>}
     {file && <div><p><strong>{file.filename}</strong> · {new TextEncoder().encode(file.body).length.toLocaleString("de-DE")} Bytes</p>
       {file.warning && <p role="status">{file.warning}</p>}

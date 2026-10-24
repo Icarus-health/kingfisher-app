@@ -311,10 +311,12 @@ def main() -> int:
                 pruef['18_system_linux'] = seite.request.get(basis + '/api/v1/system').json()['art']
                 seite.goto(basis + '/settings#zugaenge')
                 seite.wait_for_selector('#settings-zugaenge:not([hidden])')
-                seite.wait_for_function("document.querySelector('.settings-data') && document.querySelector('.settings-data').innerText.includes('Auf diesem Rechner gespeichert')", timeout=10000)
-                pruef['18_rechner_gespeichert'] = 'Auf diesem Rechner gespeichert' in seite.locator('.settings-data').inner_text()
+                # Den Satz trägt seit P5 die Fußnote „Datenschutz & Speicherung“ unter den Einstellungen (Seite.tsx).
+                seite.wait_for_function("document.querySelector('.settings-storage') && document.querySelector('.settings-storage').innerText.includes('Einstellungen auf diesem Rechner')", timeout=10000)
+                pruef['18_rechner_gespeichert'] = 'Einstellungen auf diesem Rechner' in seite.get_by_role('region', name='Datenschutz & Speicherung').inner_text()
                 pruef['18_kein_mac_kalender'] = seite.locator('.mac-calendar').count() == 0
                 texte = ''
+                sicherung_text = ''
                 for bereich in ('zugaenge', 'darf', 'ich', 'sicherung'):
                     seite.goto(basis + f'/settings#{bereich}')
                     seite.wait_for_selector(f'#settings-{bereich}:not([hidden])')
@@ -322,13 +324,16 @@ def main() -> int:
                     if bereich == 'sicherung':
                         seite.get_by_role('button', name='Sicherung öffnen').click()
                         seite.get_by_text('Sicherungsstatus wird geladen').wait_for(state='detached', timeout=10000)
+                    if bereich == 'sicherung':
+                        sicherung_text = seite.locator('#settings-sicherung').inner_text()
                     texte += seite.locator('main').inner_text() + '\n'
                 # Erlaubt bleibt nur, was den Dienst nennt, den es nur auf dem Mac gibt („Apple Karten auf dem Mac“).
                 mac_saetze = [z for z in texte.splitlines() if re.search(r'\b(diesem|deinem|am) Mac\b|Mac-App|Mac-Helfer|starten\.command', z)]
                 pruef['18_mac_saetze_linux'] = mac_saetze
                 pruef['18_kein_mac_satz_linux'] = not mac_saetze
                 # Seit der Sicherung ohne Helfer (Befund 8) gibt es unter Linux den Download statt eines Satzes, dass es fehlt.
-                pruef['18_sicherung_ehrlich'] = 'Sicherung herunterladen' in texte and 'gibt es nur in der Kingfisher-App' not in texte
+                # Nur der Bereich Sicherung zählt: „Mitteilungen gibt es nur in der Kingfisher-App“ unter „Was Kingfisher darf“ stimmt unter Linux.
+                pruef['18_sicherung_ehrlich'] = 'Sicherung herunterladen' in sicherung_text and 'gibt es nur in der Kingfisher-App' not in sicherung_text
                 bild('18-sicherung-linux')
                 # Dieselbe Seite, wenn der Startweg der Mac-App den Rechner als Mac gemeldet hat (Container auf dem Mac).
                 laufumgebung._im_container = lambda: True
@@ -337,7 +342,7 @@ def main() -> int:
                 pruef['18_system_mac'] = seite.request.get(basis + '/api/v1/system').json()['art']
                 seite.goto(basis + '/settings#zugaenge')
                 seite.reload()  # die Angabe gilt je Seitenaufruf
-                seite.wait_for_function("document.querySelector('.settings-data') && document.querySelector('.settings-data').innerText.includes('Auf diesem Mac gespeichert')", timeout=10000)
+                seite.wait_for_function("document.querySelector('.settings-storage') && document.querySelector('.settings-storage').innerText.includes('Einstellungen auf diesem Mac')", timeout=10000)
                 pruef['18_mac_gespeichert'] = True
                 seite.locator('.mac-calendar').wait_for(timeout=10000)
                 pruef['18_mac_kalender_auf_dem_mac'] = True

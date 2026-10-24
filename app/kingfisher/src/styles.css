@@ -862,6 +862,9 @@ details.calendar-preparation-item > small { display: block; margin-top: 6px; ove
 .document-import { padding: 24px; }
 .document-import h2 { margin: 0 0 12px; font-size: 16px; }
 .document-import p { font-size: 13px; line-height: 1.5; }
+/* Datei auswählen als getönter Knopf; das Feld selbst ist unsichtbar, der Fokus zeigt sich am Knopf (Paket P5, B18). */
+.document-import label.document-import-wahl { display: inline-flex; width: fit-content; margin: 8px 0; cursor: pointer; }
+.document-import label.document-import-wahl:focus-within { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
 .compact-model { padding: 24px; }
 .compact-integration-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .compact-integration-heading h2 { margin: 0; font-size: 16px; }

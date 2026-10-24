@@ -1,106 +1,134 @@
 /* Erststart-Assistent, „Kingfisher lernt gerade“ und der Hinweis der leeren Startseite.
-   Nur die vorhandenen Werte aus CalmUI.css (--calm-*); eine Schrift, ein Akzent, Zurückhaltung (docs/16-gestaltung.md). */
+   Gestaltung nach der Grundlage (docs/16-gestaltung.md, „Grundlage vom 23.10.2026“): ein ruhiger Assistent wie beim
+   ersten Start eines Macs. Ein Schritt, eine Frage, ein gefüllter Knopf; der Fortschritt dezent darüber. Nur Werte der
+   Grundlage (--g-*) und aus CalmUI.css. Komponenten-CSS steht im Bündel vor den globalen Dateien; wo eine globale Regel
+   schärfer ist, hebt `#root` an. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Der Assistent ist eine schmale, ruhige Seite ohne Seitenleiste. Er braucht keine Mindestbreite von 1280 px. */
 html:has(.erststart-shell), body:has(.erststart-shell), #root:has(.erststart-shell) { min-width: 0; }
-.shell.erststart-shell { display: block; min-height: 100vh; overflow-x: clip; }
+.shell.erststart-shell { display: block; min-height: 100vh; overflow-x: clip; background: var(--g-grund); }
 .shell.erststart-shell:not(:has(.today-page))::before { left: 0; }
-.erststart { box-sizing: border-box; width: 100%; max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; color: var(--calm-ink); }
-.erststart-kopf { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-.erststart-kopf img { width: 64px; height: 44px; object-fit: contain; }
-.erststart-kopf .eyebrow { margin: 0; flex: 1; color: var(--calm-ink); }
+#root .erststart { box-sizing: border-box; width: 100%; max-width: 720px; margin: 0 auto; padding: var(--g-a6) var(--g-a4) var(--g-a8); color: var(--g-tinte); font: var(--g-text); }
 
-.erststart-punkte { display: flex; flex-wrap: wrap; gap: 6px 4px; margin: 0 0 16px; padding: 0; list-style: none; }
+/* Kopf: der Vogel klein, der Name, rechts leise „Später weitermachen“. */
+.erststart-kopf { display: flex; align-items: center; gap: var(--g-a3); min-height: var(--g-ziel); margin-bottom: var(--g-a5); }
+.erststart-kopf img { width: 44px; height: 32px; object-fit: contain; }
+#root .erststart-kopf .erststart-gruss { flex: 1; margin: 0; font: 600 15px/1.3 var(--g-schrift); color: var(--g-tinte); letter-spacing: 0; text-transform: none; }
+
+/* Fortschritt: kleine Marken mit Namen, die aktuelle getönt; Erledigtes mit Haken. Ab 701 px eine Zeile, sieben Punkte
+   passen, „Fertig“ bricht nicht um (Befund 27). */
+.erststart-punkte { display: flex; flex-wrap: wrap; gap: var(--g-a1) 2px; margin: 0 0 var(--g-a4); padding: 0; list-style: none; }
 .erststart-punkte li { min-width: 0; }
-.erststart-punkt { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 6px; border: 1px solid transparent; border-radius: 18px; background: transparent; color: var(--calm-muted); font: 500 13px/1.3 'Inter', sans-serif; }
-.erststart-punkt:disabled { cursor: default; }
-.erststart-punkt.ist-aktuell { background: var(--calm-surface); border-color: var(--calm-line); color: var(--calm-ink); box-shadow: var(--calm-shadow); }
-.erststart-marke { display: grid; place-items: center; width: 20px; height: 20px; border: 1.5px solid var(--calm-muted); border-radius: 50%; font-size: 12px; line-height: 1; }
-.erststart-punkt.ist-erledigt .erststart-marke { background: var(--calm-primary); border-color: var(--calm-primary); color: var(--calm-on-primary); }
+#root .erststart-punkt {
+  display: flex; align-items: center; gap: 6px; min-height: var(--g-ziel-kompakt); padding: 0 10px 0 6px; border: 0;
+  border-radius: var(--g-radius-pille); background: transparent; color: var(--g-leise); font: 500 13px/1.3 var(--g-schrift);
+  cursor: pointer; transition: background-color 150ms ease;
+}
+#root .erststart-punkt:hover:not(:disabled):not(.ist-aktuell) { background: rgba(23,38,53,.04); }
+#root .erststart-punkt:disabled { cursor: default; }
+#root .erststart-punkt.ist-aktuell { background: var(--g-getoent); color: var(--g-tinte); font-weight: 600; box-shadow: none; }
+#root .erststart-punkt:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 1px; }
+.erststart-marke { display: grid; place-items: center; box-sizing: border-box; width: 18px; height: 18px; border: 1.5px solid rgba(23,38,53,.28); border-radius: 50%; font-size: 11px; line-height: 1; }
+.erststart-punkt.ist-erledigt .erststart-marke { background: var(--g-akzent); border-color: var(--g-akzent); color: var(--g-auf-akzent); }
 .erststart-punkt.ist-uebersprungen .erststart-marke { border-style: dashed; }
-.erststart-punkt.ist-aktuell .erststart-marke { border-color: var(--calm-link); }
-/* Ab 701 px eine Zeile: sieben Punkte passen in die 728 px der Karte, „Fertig“ bricht nicht mehr um (Befund 27). */
+.erststart-punkt.ist-aktuell .erststart-marke { border-color: var(--g-akzent); box-shadow: inset 0 0 0 3px var(--g-flaeche), inset 0 0 0 9px var(--g-akzent); }
+.erststart-punkt.ist-aktuell.ist-erledigt .erststart-marke { box-shadow: none; }
 @media (min-width: 701px) {
   .erststart-punkte { flex-wrap: nowrap; justify-content: space-between; gap: 2px; }
-  .erststart-punkt { gap: 5px; padding: 4px 8px 4px 4px; white-space: nowrap; }
+  #root .erststart-punkt { gap: 5px; padding: 0 8px 0 4px; white-space: nowrap; }
 }
 
-.erststart-karte { padding: 26px 26px 22px; border: 1px solid var(--calm-line); border-radius: var(--calm-radius); background: var(--calm-surface); box-shadow: var(--calm-shadow); overflow-wrap: anywhere; }
-.erststart-zaehler { margin: 0 0 4px; font-size: 12px; letter-spacing: .6px; color: var(--calm-muted); }
-.erststart-karte h1 { margin: 0 0 14px; font: 600 28px/1.25 'Inter', sans-serif; letter-spacing: -.6px; color: var(--calm-ink); }
-.erststart-inhalt { display: grid; gap: 14px; min-width: 0; }
-.erststart-inhalt > p, .erststart-inhalt p { margin: 0; font-size: 15px; line-height: 1.65; }
-.erststart-inhalt .source-hint { color: var(--calm-muted); font-size: 13px; }
-.erststart-inhalt label { display: block; font-size: 14px; font-weight: 500; }
-.erststart-inhalt input:not([type="checkbox"]), .erststart-inhalt select { box-sizing: border-box; width: 100%; max-width: 100%; }
-.erststart-inhalt .source-section { box-shadow: none; padding: 16px; }
-.erststart-formular { display: grid; gap: 10px; }
-.erststart-ok { color: var(--calm-primary); font-weight: 500; }
-.erststart-wege { display: flex; flex-wrap: wrap; gap: 10px; }
-.erststart .ist-gewaehlt { border-color: var(--calm-link); box-shadow: inset 0 0 0 1px var(--calm-link); }
-.erststart-einlesen { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); }
+/* Die Karte: eine große ruhige Fläche, großer Titel, eine Zeile Text. */
+#root .erststart-karte { padding: var(--g-a7) var(--g-a7) var(--g-a6); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); overflow-wrap: anywhere; }
+#root .erststart-zaehler { margin: 0 0 var(--g-a2); font: var(--g-fussnote); letter-spacing: 0; color: var(--g-leise); }
+#root .erststart-karte h1 { margin: 0 0 var(--g-a4); font: var(--g-titel-gross); letter-spacing: -.022em; color: var(--g-tinte); }
+#root .erststart-karte > p[role="status"], #root .erststart-karte > p[role="alert"] { margin: 0; font: var(--g-text); color: var(--g-leise); }
+#root .erststart-inhalt { display: grid; gap: var(--g-a4); min-width: 0; }
+#root .erststart-inhalt > p:first-child { font: 400 17px/1.5 var(--g-schrift); color: var(--g-tinte); }
+#root .erststart-inhalt p { margin: 0; font: var(--g-text); }
+#root .erststart-inhalt .source-hint { font: var(--g-neben); color: var(--g-leise); }
+#root .erststart-inhalt label:not(:has(> input)) { display: block; font: 600 15px/1.35 var(--g-schrift); color: var(--g-tinte); }
+#root .erststart-inhalt :is(input:not([type="checkbox"]):not([type="radio"]), select) { box-sizing: border-box; width: 100%; max-width: 100%; min-height: 48px; font: var(--g-text); }
+#root .erststart-inhalt .source-section { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+#root .erststart-inhalt .source-section .compact-integration-heading { display: none; }
+.erststart-formular { display: grid; gap: var(--g-a3); }
+#root .erststart-ok { color: var(--g-akzent); font-weight: 500; }
+/* Die Wege (Google, Adresse, Mac) als Segmente: ein gewählter, die anderen leise. */
+.erststart-wege { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .erststart-wege > button { background: var(--g-segment-grund); color: var(--g-tinte); }
+#root .erststart .ist-gewaehlt { background: var(--g-getoent-stark); color: var(--g-akzent); box-shadow: inset 0 0 0 1.5px var(--g-akzent); }
+.erststart-einlesen { display: grid; gap: var(--g-a3); padding: var(--g-a4); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); }
 .erststart-einlesen button { justify-self: start; }
 
-.erststart-fuss { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--calm-line); }
+/* Der Fuß: links leise „Zurück“, rechts der eine Knopf. */
+#root .erststart-fuss { display: flex; align-items: center; justify-content: space-between; gap: var(--g-a3); margin-top: var(--g-a4); padding-top: 0; border-top: 0; }
+#root .erststart-fuss .primary-action, #root .erststart-fuss .secondary-action { min-width: 140px; min-height: 48px; font-size: 16px; }
 
-.erststart-freigaben { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.erststart-freigaben > li { padding: 14px 16px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); }
-.erststart-freigabe-kopf { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; }
-.erststart-freigabe-kopf p { margin-top: 4px; font-size: 13px; color: var(--calm-muted); }
-.erststart-schalter { padding: 3px 10px; border: 1px solid var(--calm-line); border-radius: 999px; font-size: 12px; color: var(--calm-muted); }
-.erststart-schalter.ist-an { border-color: var(--calm-primary); color: var(--calm-primary); font-weight: 600; }
-.erststart-freigabe-inhalt { margin-top: 12px; min-width: 0; }
-.erststart-freigabe-hinweis { margin: 8px 0 0; }
+/* Freigaben: eine Liste mit Haarlinien; rechts der Stand und der Knopf, aufgeklappt die Einstellung darunter. */
+.erststart-freigaben { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--g-linie); }
+.erststart-freigaben > li { padding: var(--g-a4) 0; border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; background: transparent; }
+.erststart-freigabe-kopf { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--g-a3); }
+.erststart-freigabe-kopf strong { font: 500 17px/1.35 var(--g-schrift); }
+#root .erststart-freigabe-kopf p { margin-top: 2px; font: var(--g-neben); color: var(--g-leise); }
+.erststart-schalter { font: var(--g-neben); color: var(--g-leise); }
+.erststart-schalter.ist-an { color: var(--g-akzent); font-weight: 600; }
+.erststart-freigabe-inhalt { margin-top: var(--g-a3); min-width: 0; }
+.erststart-freigabe-hinweis { margin: var(--g-a2) 0 0; }
+#root .erststart-freigabe-inhalt .darf-zeile { display: grid; gap: var(--g-a2); padding: 0; border: 0; box-shadow: none; background: transparent; }
 
-.erststart-zahlen { display: flex; gap: 12px; margin: 0; }
-.erststart-zahlen div { min-width: 110px; padding: 10px 16px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); }
-.erststart-zahlen dt { font-size: 12px; color: var(--calm-muted); }
-.erststart-zahlen dd { margin: 2px 0 0; font: 600 22px/1.2 'Inter', sans-serif; }
-/* Fertig-Seite: ein Postfach, das nicht antwortet (Befund 5), und das einmalige Angebot zur Automatik (Befund 17). */
-.erststart-stumm { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--calm-line); border-left: 3px solid var(--calm-link); border-radius: 12px; background: var(--calm-inset); }
-.erststart-stumm h2 { margin: 0; font: 600 15px/1.4 'Inter', sans-serif; }
-.erststart-knoepfe { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.erststart-automatik { display: grid; gap: 8px; margin: 0; padding: 14px 16px; border: 1px solid var(--calm-line); border-radius: 12px; }
-.erststart-automatik legend { padding: 0 4px; font-size: 14px; font-weight: 600; }
-.erststart-inhalt .erststart-automatik label { font-weight: 400; line-height: 1.5; }
-.erststart-hintergrund h2 { margin: 0 0 8px; font-size: 15px; }
-.erststart-hintergrund ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; color: var(--calm-muted); }
+/* Fertig: was schon da ist, in großen Zahlen; ein Postfach, das nicht antwortet (Befund 5); das einmalige Angebot zur
+   Automatik (Befund 17). */
+.erststart-zahlen { display: flex; flex-wrap: wrap; gap: var(--g-a3); margin: 0; }
+.erststart-zahlen div { min-width: 120px; padding: var(--g-a3) var(--g-a4); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); }
+.erststart-zahlen dt { font: var(--g-fussnote); color: var(--g-leise); }
+.erststart-zahlen dd { margin: 2px 0 0; font: 700 28px/1.15 var(--g-schrift); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.erststart-stumm { display: grid; gap: var(--g-a2); padding: var(--g-a4); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); }
+.erststart-stumm h2 { margin: 0; font: var(--g-ueberschrift); }
+.erststart-knoepfe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a3); }
+.erststart-automatik { display: grid; gap: var(--g-a3); margin: 0; padding: 0; border: 0; }
+#root .erststart-automatik legend { padding: 0 0 var(--g-a2); font: var(--g-ueberschrift); }
+#root .erststart-inhalt .erststart-automatik label { display: flex; align-items: flex-start; gap: var(--g-a3); font: var(--g-text); line-height: 1.45; }
+#root .erststart-automatik input[type="checkbox"] { flex: 0 0 auto; width: 20px; height: 20px; margin: 2px 0 0; }
+.erststart-hintergrund h2 { margin: 0 0 var(--g-a2); font: var(--g-ueberschrift); }
+.erststart-hintergrund ul { margin: 0; padding-left: 20px; display: grid; gap: var(--g-a1); font: var(--g-neben); color: var(--g-leise); }
 
-/* „Kingfisher lernt gerade“: eine ruhige Karte, nur wenn etwas läuft. */
-.lernt { min-width: 0; padding: 14px 18px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); color: var(--calm-ink); }
-.lernt h2 { margin: 0 0 8px; font: 600 14px/1.4 'Inter', sans-serif; }
+/* „Kingfisher lernt gerade“: eine ruhige Fläche, nur wenn etwas läuft. */
+.lernt { min-width: 0; padding: var(--g-a3) var(--g-a4); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); color: var(--g-tinte); }
+.erststart .lernt { background: var(--g-segment-grund); box-shadow: none; border-radius: var(--g-radius-bedien); }
+.lernt h2 { margin: 0 0 var(--g-a2); font: var(--g-ueberschrift); }
 .lernt ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.lernt li { display: grid; gap: 4px; font-size: 13px; line-height: 1.5; }
-.lernt progress { width: 100%; height: 6px; accent-color: var(--calm-primary); }
-.lernt-hinweis, .lernt-leer { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--calm-muted); }
+.lernt li { display: grid; gap: 4px; font: var(--g-neben); }
+.lernt progress { width: 100%; height: 6px; accent-color: var(--g-akzent); }
+.lernt-hinweis, .lernt-leer { margin: 10px 0 0; font: var(--g-neben); color: var(--g-leise); }
 .lernt-leer { margin: 0; }
-.lernt-grund { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--calm-ink); }
+.lernt-grund { margin: 10px 0 0; font: var(--g-neben); color: var(--g-tinte); }
 .lernt-knopf { margin-top: 8px; }
-.lernt-fehler > span { color: var(--calm-ink); }
+.lernt-fehler > span { color: var(--g-tinte); }
 .mail-erneut { display: grid; gap: 6px; justify-items: start; }
-.mail-erneut-technik { font-size: 12px; color: var(--calm-muted); }
+.mail-erneut-technik { font: var(--g-fussnote); color: var(--g-leise); }
 .mail-erneut-technik summary { cursor: pointer; }
 .mail-erneut-technik p { margin: 4px 0 0; overflow-wrap: anywhere; }
 .lernt-kompakt { margin: 0 0 14px; padding: 10px 16px; }
 .lernt-kompakt h2 { display: inline; margin-right: 8px; }
 .lernt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; }
 .lernt .lernt-kopf h2 { margin: 0; }
-.lernt .lernt-kopf .lernt-knopf { min-height: 32px; margin: 0; padding: 4px 10px; font-size: 13px; }
-.lernt-details > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-height: 44px; cursor: pointer; list-style: none; font-size: 13px; }
+.lernt .lernt-kopf .lernt-knopf { min-height: var(--g-ziel-kompakt); margin: 0; padding: 0 10px; font-size: 14px; }
+.lernt-details > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-height: var(--g-ziel); cursor: pointer; list-style: none; font: var(--g-neben); }
 .lernt-details > summary::-webkit-details-marker { display: none; }
+#root .lernt-details > summary::before { content: none; display: none; }
 .lernt-details > summary > progress { flex: 1 1 100px; min-width: 60px; width: auto; max-width: 360px; }
-.lernt-mehr { margin-left: auto; color: var(--calm-primary); white-space: nowrap; }
-.lernt-mehr::after { content: ' ›'; display: inline-block; margin-left: 4px; }
-.lernt-details[open] > summary .lernt-mehr::after { transform: rotate(90deg); }
-.lernt-details > summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 2px; border-radius: 6px; }
-.lernt-einzelheiten { padding: 12px 0 4px; border-top: 1px solid var(--calm-line); }
+.lernt-mehr { margin-left: auto; color: var(--g-verweis); font-weight: 500; white-space: nowrap; }
+.lernt-mehr::after { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 2px 2px 8px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); transition: transform var(--g-bewegung); }
+.lernt-details[open] > summary .lernt-mehr::after { transform: rotate(45deg); }
+.lernt-details > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: 6px; }
+.lernt-einzelheiten { padding: 12px 0 4px; border-top: 1px solid var(--g-linie); }
 .lernt .lernt-probleme { margin-top: 10px; }
-@media (pointer: coarse) { .lernt .lernt-kopf .lernt-knopf { min-height: 44px; } }
+@media (pointer: coarse) { .lernt .lernt-kopf .lernt-knopf { min-height: var(--g-ziel); } }
 .einrichtung-kopf { display: grid; gap: 14px; margin-bottom: 18px; }
-.einrichtung-assistent { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-surface); }
-.einrichtung-assistent h2 { margin: 0 0 4px; font-size: 17px; }
-.einrichtung-assistent p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--calm-muted); }
+.einrichtung-assistent { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); }
+.einrichtung-assistent h2 { margin: 0 0 4px; font: var(--g-ueberschrift); }
+.einrichtung-assistent p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
 
 /* Leere Startseite: ein einziger nächster Schritt. */
 .heute-naechster-schritt { display: flex; align-items: center; gap: 24px; padding: 28px 30px; border: 1px solid var(--today-line, var(--calm-line)); border-radius: 15px; background: var(--today-surface, var(--calm-surface)); box-shadow: var(--today-shadow, var(--calm-shadow)); }
@@ -108,36 +136,39 @@ html:has(.erststart-shell), body:has(.erststart-shell), #root:has(.erststart-she
 .heute-naechster-schritt p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: var(--today-ink, var(--calm-ink)); }
 
 @media (max-width: 700px) {
-  .erststart { padding: 16px 12px 48px; }
-  .erststart-karte { padding: 20px 16px 16px; }
-  .erststart-karte h1 { font-size: 23px; }
+  #root .erststart { padding: var(--g-a4) var(--g-a4) var(--g-a7); }
+  #root .erststart-karte { padding: var(--g-a5) var(--g-a4) var(--g-a4); }
+  #root .erststart-karte h1 { font-size: var(--g-titel-gross-schmal); }
   .erststart-punkt-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .erststart-punkt.ist-aktuell .erststart-punkt-name { position: static; width: auto; height: auto; clip: auto; }
   .erststart-punkte { flex-wrap: nowrap; overflow-x: auto; }
   .erststart-freigabe-kopf { grid-template-columns: minmax(0, 1fr) auto; }
   .erststart-freigabe-kopf > button { grid-column: 1 / -1; justify-self: start; }
+  #root .erststart-fuss .primary-action, #root .erststart-fuss .secondary-action { min-width: 0; flex: 0 1 auto; }
   .einrichtung-assistent { flex-direction: column; align-items: flex-start; }
   .heute-naechster-schritt { flex-direction: column; align-items: flex-start; padding: 22px 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .erststart * { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .erststart * { scroll-behavior: auto; } .lernt-mehr::after { transition: none; } }
 
 /* „Beim Anmelden starten“: ein Schalter mit einem Satz dazu, im Assistenten und unter Einstellungen. */
 .autostart-wahl { display: grid; gap: 6px; margin: 12px 0; }
 .autostart-schalter { display: inline-flex; gap: 10px; align-items: center; font-weight: 600; cursor: pointer; }
-.autostart-schalter input { width: 18px; height: 18px; accent-color: var(--calm-primary); }
-.autostart-schalter input:disabled + span { color: var(--calm-muted); }
-.autostart-meldung { margin: 0; min-height: 1.4em; font-size: 13px; color: var(--calm-muted); }
+.autostart-schalter input:disabled + span { color: var(--g-leise); }
+.autostart-meldung { margin: 0; min-height: 1.4em; font: var(--g-neben); color: var(--g-leise); }
+#root .erststart .autostart-wahl { margin: 0; padding: var(--g-a2) var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); }
 
 /* „Dieser Rechner“: was Kingfisher hier kann, ein Knopf; Modellnamen nur für Techniker (RechnerKarte.tsx, Befunde 10 und 11). */
-.rechner-karte { display: grid; gap: 12px; min-width: 0; }
+.rechner-karte { display: grid; gap: var(--g-a3); min-width: 0; }
 .rechner-karte p { margin: 0; }
-.rechner-faehigkeiten { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.rechner-faehigkeiten li { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--calm-line); border-radius: 12px; }
-.rechner-faehigkeiten li p { font-size: 13px; color: var(--calm-muted); }
-.rechner-marke { flex: none; font-size: 12px; font-weight: 600; color: var(--calm-muted); white-space: nowrap; }
-.rechner-faehigkeiten li.ist-bereit .rechner-marke { color: var(--calm-primary); }
-.rechner-faehigkeiten li.ist-nicht_bestanden .rechner-marke, .rechner-faehigkeiten li.ist-fehler .rechner-marke { color: var(--calm-danger, #9b2c2c); }
-.rechner-laden, .rechner-problem, .rechner-ohne-ollama { display: grid; gap: 8px; justify-items: start; }
-.rechner-ohne-ollama a { color: var(--calm-link); font-weight: 600; text-underline-offset: 3px; }
-.rechner-techniker summary { cursor: pointer; font-size: 13px; color: var(--calm-muted); }
-.rechner-techniker ul { margin: 8px 0; padding-left: 18px; font-size: 13px; }
+.rechner-faehigkeiten { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--g-linie); }
+.rechner-faehigkeiten li { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--g-a3); padding: var(--g-a3) 0; border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; }
+.rechner-faehigkeiten li strong { font: 500 16px/1.35 var(--g-schrift); }
+#root .rechner-faehigkeiten li p { margin-top: 2px; font: var(--g-neben); color: var(--g-leise); }
+.rechner-marke { flex: none; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); white-space: nowrap; }
+.rechner-faehigkeiten li.ist-bereit .rechner-marke { color: var(--g-akzent); }
+.rechner-faehigkeiten li.ist-nicht_bestanden .rechner-marke, .rechner-faehigkeiten li.ist-fehler .rechner-marke { color: var(--g-rot); }
+.rechner-laden, .rechner-problem, .rechner-ohne-ollama { display: grid; gap: var(--g-a2); justify-items: start; }
+.rechner-laden progress { width: 100%; height: 6px; accent-color: var(--g-akzent); }
+.rechner-ohne-ollama a { color: var(--g-verweis); font-weight: 600; text-underline-offset: 3px; }
+.rechner-techniker summary { cursor: pointer; font: var(--g-neben); color: var(--g-leise); }
+.rechner-techniker ul { margin: 8px 0; padding-left: 18px; font: var(--g-neben); }
