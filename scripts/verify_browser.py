@@ -316,21 +316,24 @@ def main() -> int:
                 screenshot("conversation")
 
                 goto("/memory", "memory")
-                require(page.get_by_role("button", name="Projekte", exact=True).count() == 1, "Der Projekte-Filter fehlt.")
-                require(page.get_by_role("button", name="Menschen", exact=True).count() == 1, "Der Menschen-Filter fehlt.")
+                # Die Bereiche des Gedächtnisses sind eine Segmentsteuerung (Reiter, Grundlage vom 23.10.2026).
+                bereiche = page.get_by_role("tablist", name="Gedächtnisbereich")
+                require(bereiche.get_by_role("tab", name="Projekte", exact=True).count() == 1, "Der Projekte-Filter fehlt.")
+                require(bereiche.get_by_role("tab", name="Menschen", exact=True).count() == 1, "Der Menschen-Filter fehlt.")
                 screenshot("memory")
                 page.reload(wait_until="domcontentloaded")
                 settle()
                 audit("memory-reload")
                 screenshot("memory-reload")
 
-                projects = page.get_by_role("button", name="Projekte", exact=True)
-                people = page.get_by_role("button", name="Menschen", exact=True)
+                bereiche = page.get_by_role("tablist", name="Gedächtnisbereich")
+                projects = bereiche.get_by_role("tab", name="Projekte", exact=True)
+                people = bereiche.get_by_role("tab", name="Menschen", exact=True)
                 projects.click()
-                require(projects.get_attribute("aria-pressed") == "true" and people.get_attribute("aria-pressed") == "false", "Der Projekte-Filter wurde nicht aktiviert.")
+                require(projects.get_attribute("aria-selected") == "true" and people.get_attribute("aria-selected") == "false", "Der Projekte-Filter wurde nicht aktiviert.")
                 screenshot("memory-projects")
                 people.click()
-                require(people.get_attribute("aria-pressed") == "true" and projects.get_attribute("aria-pressed") == "false", "Der Menschen-Filter wurde nicht aktiviert.")
+                require(people.get_attribute("aria-selected") == "true" and projects.get_attribute("aria-selected") == "false", "Der Menschen-Filter wurde nicht aktiviert.")
                 summary["checks"]["memory"] = {"direct": True, "reload": True, "projects": True, "people": True}
                 screenshot("memory-people")
 
