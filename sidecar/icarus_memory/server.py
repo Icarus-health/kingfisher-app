@@ -53,8 +53,8 @@ from .backup import (
 )
 from .update_backup import backup_before_update
 from . import (
-    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client, personen,
-    providers, suche, urteil, working_memory_semantic_runtime,
+    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
+    neu_eingegangen, personen, providers, suche, urteil, working_memory_semantic_runtime,
 )
 from .agent_verdrahtung import (
     _projekt_mappe, _project_directory, _search_calendar, baue_hintergrund, verdrahte_speicher,
@@ -3204,8 +3204,10 @@ def create_app(
             counts = app.state.episodes.counts()
             result["episodes"] = {
                 "pending": counts.get("new", 0),
-                # Für „Relevante Nachrichten“: nur, was von anderen kam (Fremdprobe 2, Befund 22).
-                "neu_von_aussen": app.state.episodes.neue_von_aussen(),
+                # Für „Neu eingegangen“: nur, was von anderen kam (Fremdprobe 2, Befund 22) und wirklich neu ist,
+                # nicht der Altbestand aus dem ersten Einlesen (V1, `neu_eingegangen.py`).
+                "neu_von_aussen": neu_eingegangen.anzahl_neu_von_aussen(
+                    app.state.episodes, jetzt=briefing_now or datetime.now().astimezone()),
                 "counts": counts,
                 "error": None,
             }
@@ -3275,9 +3277,12 @@ def create_app(
 
         try:
             from .working_memory_context import reports
+            # „Neu eingegangen“ zeigt nur, was wirklich neu ist (V1): erst die Regel, dann die Begrenzung auf fünf.
             with app.state.conversation_lock:
-                result["working_memory"] = reports(app.state.episodes, app.state.claims,
-                    since=datetime.now().astimezone() - timedelta(hours=24))
+                neue = neu_eingegangen.neue_quellen(app.state.episodes,
+                                                    jetzt=briefing_now or datetime.now().astimezone())
+                result["working_memory"] = (reports(app.state.episodes, app.state.claims, episode_ids=neue)
+                                            if neue else {"items": [], "truncated": False})
         except Exception:  # Healthy dashboard sections remain usable.
             result["working_memory"] = {"items": [], "truncated": False,
                 "error": "Die automatischen Quellenberichte sind gerade nicht verfügbar."}

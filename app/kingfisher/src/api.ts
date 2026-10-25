@@ -21,6 +21,9 @@ export type Attention = {
   reason?: string;
   action?: string | null;
   review_required?: boolean;
+  /** Bei Aufgaben unter „Braucht dich“: die Aufgabe selbst (wie `/api/v1/tasks`) und ihr Projektname (V1). */
+  task?: Task | null;
+  project_name?: string | null;
 };
 
 export type CalendarItem = Attention & { time: string };

@@ -2,11 +2,11 @@ import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'vite';
 import {fileURLToPath} from 'node:url';
-const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),cacheDir:`/private/tmp/kingfisher-adaptive-tests-${process.pid}`,configFile:false,plugins:[{name:'adaptive-hooks',enforce:'pre',resolveId(id){if(id==='virtual:adaptive-hooks')return '\0'+id;},load(id){if(id==='\0virtual:adaptive-hooks')return `export const useState=(v)=>globalThis.__adaptiveState(v);export const useRef=v=>({current:v});export const useEffect=()=>{};export const useCallback=f=>f;export const useMemo=f=>f();`;},transform(code,id){if(['/App.tsx','/TodayOverview.tsx','/TodaySourceStatus.tsx','/TodayTaskActions.tsx','/TaskReminders.tsx','/KnowledgeQuestions.tsx','/MemoryQuestions.tsx','/TaskSuggestions.tsx','/PersonDigest.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:adaptive-hooks"')+(id.endsWith('/TaskSuggestions.tsx')?'\nexport {Suggestion,initialDraft};':id.endsWith('/App.tsx')?'\nexport {Morning};':'\n');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),cacheDir:`/private/tmp/kingfisher-adaptive-tests-${process.pid}`,configFile:false,plugins:[{name:'adaptive-hooks',enforce:'pre',resolveId(id){if(id==='virtual:adaptive-hooks')return '\0'+id;},load(id){if(id==='\0virtual:adaptive-hooks')return `export const useState=(v)=>globalThis.__adaptiveState(v);export const useRef=v=>({current:v});export const useEffect=()=>{};export const useCallback=f=>f;export const useMemo=f=>f();`;},transform(code,id){if(['/App.tsx','/TodayOverview.tsx','/TodaySourceStatus.tsx','/TodayTaskRow.tsx','/TaskReminders.tsx','/KnowledgeQuestions.tsx','/MemoryQuestions.tsx','/TaskSuggestions.tsx','/PersonDigest.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:adaptive-hooks"')+(id.endsWith('/TaskSuggestions.tsx')?'\nexport {Suggestion,initialDraft};':id.endsWith('/App.tsx')?'\nexport {Morning};':'\n');}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 after(()=>server.close());
 const {Morning}=await server.ssrLoadModule('/src/App.tsx');
 const {TodayOverview}=await server.ssrLoadModule('/src/TodayOverview.tsx');
-const {TodayTaskActions}=await server.ssrLoadModule('/src/TodayTaskActions.tsx');
+const {TodayTaskRow}=await server.ssrLoadModule('/src/TodayTaskRow.tsx');
 const {TodaySourceStatus}=await server.ssrLoadModule('/src/TodaySourceStatus.tsx');
 const {TaskReminders}=await server.ssrLoadModule('/src/TaskReminders.tsx');
 const {KnowledgeQuestions}=await server.ssrLoadModule('/src/KnowledgeQuestions.tsx');
@@ -18,10 +18,14 @@ function text(n){return n==null?'':typeof n==='object'?[n.props?.children].flat(
 function render(fn,seeds=[]){let i=0;globalThis.__adaptiveState=v=>{const slot=i++;return [slot in seeds?seeds[slot]:(typeof v==='function'?v():v),value=>seeds[slot]=typeof value==='function'?value(seeds[slot]):value];};try{return fn();}finally{delete globalThis.__adaptiveState;}}
 const briefing={generated_at:'2026-10-15T08:00:00Z',timezone:'Europe/Berlin',partial_failures:[],happening_now:[],later_today:[],needs_you:[{id:'a',title:'Bericht prüfen',reason:'Dieser Mailverlauf ist nicht vollständig geprüft.',detail:'Dieser Mailverlauf ist nicht vollständig geprüft.',action:'Verlauf prüfen',source:'aufgabe',source_ref:'t1'}]};
 test('today keeps the unresolved review warning visible while its full explanation is available on demand',()=>{
- const tree=render(()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false}));
- const warning=nodes(tree,n=>n.props?.className==='today-review-badge')[0];assert.ok(warning,'review uncertainty must stay visible');assert.match(text(warning),/prüf/i);
- const actions=render(()=>TodayTaskActions({item:briefing.needs_you[0],onChanged(){}}));
- const details=nodes(actions,n=>n.type==='details'&&text(n).includes('Dieser Mailverlauf ist nicht vollständig geprüft.'))[0];assert.ok(details,'the complete source explanation must remain reachable');assert.equal(Boolean(details.props.open),false);
+ // V1: die Aufgabe ist die Zeile der Liste; der Hinweis steht leise in ihr, die ganze Erklärung in der geöffneten Aufgabe.
+ const row=render(()=>TodayTaskRow({item:briefing.needs_you[0],onDone(){},onOpen(){}}));
+ const taskRow=nodes(row,n=>n.type?.name==='TaskRow')[0];assert.equal(taskRow.props.hinweis,'Verlauf ungeprüft','review uncertainty must stay visible in the row');
+ const state=[];const draw=()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false});
+ let today=render(draw,state);nodes(today,n=>n.type?.name==='TodayTaskRow')[0].props.onOpen();
+ today=render(draw,state);
+ const panel=nodes(today,n=>n.type?.name==='DetailPanel')[0];assert.ok(panel,'the row opens the task');
+ assert.match(text(panel),/Dieser Mailverlauf ist nicht vollständig geprüft\./,'the complete source explanation must remain reachable');
 });
 test('source status says what is missing in one open line, and nothing when the overview is complete (Paket U, H4)',()=>{
  const tree=TodaySourceStatus({briefing:{...briefing,partial_failures:[{section:'mail',message:'Postfach ist nicht verbunden.'}]},refreshing:false,refreshError:false,onRefresh(){}});
@@ -61,13 +65,6 @@ test('suggestions retain project, exact deadline and temporal warning before opt
  assert.ok(firstLayer(tree).includes(new Date(recent.valid_until).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})),'preserved time must be in the visible confirmation');
 });
 
-test('a hidden active task editor offers resume instead of a silently disabled completion button',()=>{
- const state=[true,false,false,'',''];
- let tree=render(()=>TodayTaskActions({item:briefing.needs_you[0],onChanged(){}}),state);
- const resume=nodes(tree,n=>n.type==='button'&&text(n)==='Bearbeitung fortsetzen')[0];assert.ok(resume);assert.equal(resume.props.disabled,false);resume.props.onClick();
- tree=render(()=>TodayTaskActions({item:briefing.needs_you[0],onChanged(){}}),state);
- assert.equal(nodes(tree,n=>n.type==='details')[0].props.open,true);assert.equal(nodes(tree,n=>n.type?.name==='TaskDetail').length,1,'resume preserves the mounted editor');
-});
 test('one-time update results are not mounted inside a closed disclosure',()=>{
  const before=globalThis.window;globalThis.window={location:{search:''}};
  try {const tree=render(()=>Morning({recentConversation:null,rememberConversation(){},chatAvailable:true}),[{...briefing,greeting:'Guten Morgen.'}]);
