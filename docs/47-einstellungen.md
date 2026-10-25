@@ -177,6 +177,11 @@ dann nur auf dem Mac. `tests/system.test.mjs` prüft alle Dateien unter `src/`, 
   Karten oder ein eigener Kartendienst); die Karte bietet das Feld für den Startort an oder verweist auf den
   Kartendienst hinter „Für Techniker“. Der Server lehnt ein Einschalten ohne beides mit 409 und demselben Satz ab.
 
+* **Zugänge, die nicht laden** (V3, 25.10.2026). Antwortet `GET /api/v1/integrations` nicht, steht oben „Die lokalen
+  Integrationen sind gerade nicht erreichbar.“ mit „Wiederholen“, und unter Postfächer und Kalender je „Nicht geladen.“
+  statt grauer Ladebalken, die ewig stehen blieben (`gliederung.zugangListe`, Test `einstellungen-gliederung.test.mjs`,
+  Browserprobe `scripts/probe_einstellungen_ui.py`). Ein späterer Fehler (etwa beim Trennen) lässt die geladene Liste stehen.
+
 ## Microsoft 365 unter Zugänge (M5, Oktober 2026)
 
 * **Mit Microsoft anmelden** (Karte „Microsoft 365“, `MicrosoftZugang.tsx`): Code mit Kopierknopf, Link zu Microsoft,

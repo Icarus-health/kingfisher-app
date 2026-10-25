@@ -13,7 +13,7 @@ import { PostfachMitAdresse } from "../PostfachMitAdresse";
 import { adresseLesen } from "../adresseEntwurf";
 import { useSystem } from "../useSystem";
 import { TranscriptSettings } from "../TranscriptSettings";
-import { gefuellterZugang, ZUGAENGE } from "./gliederung";
+import { gefuellterZugang, ZUGAENGE, zugangListe } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
 import {
@@ -49,7 +49,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const system = useSystem();
   // „Mit Google anmelden“ nur, wenn ein Techniker es eingerichtet hat (Befund 2); sonst kein gesperrter Knopf vorne.
   const googleVorne = googleAnmeldungVorne(useGoogleKonfiguration());
-  const { overview, setOverview, providers, setError, load } = integrationen;
+  const { overview, setOverview, providers, error, setError, load } = integrationen;
   const [openForm, setOpenForm] = useState<"mail" | "calendar" | null>(null);
   const [mail, setMail] = useState<MailForm>(EMPTY_MAIL_FORM);
   const [calendar, setCalendar] = useState<CalendarForm>(EMPTY_CALENDAR_FORM);
@@ -158,6 +158,9 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   const gefuellt = gefuellterZugang(einrichtungOffen, overview ? accounts.length : null, overview ? calendars.length : null);
   const knopf = (art: "mail" | "calendar") => gefuellt === art ? "g-knopf zugang-neu" : "g-knopf-getoent zugang-neu";
   const plus = <InterfaceIcon name="plus" />;
+  const lage = zugangListe(overview !== null, error);
+  const ohneListe = lage === "laedt" ? <div className="source-loading"><i /><i /></div>
+    : lage === "nicht_geladen" ? <p className="source-empty">{ZUGAENGE.nichtGeladen}</p> : null;
 
   // Wie die Accounts in den Systemeinstellungen am Mac: je Art eine Gruppe mit einer Zeile je Zugang, darunter rechts
   // „hinzufügen“ und links in einem Satz, was Trennen bedeutet.
@@ -165,7 +168,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     <section className="zugang-gruppe" aria-label={ZUGAENGE.postfaecher.titel}>
       <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.postfaecher.titel}</h2>{accounts.length ? <span className="zugang-zahl">{zaehlen(accounts.length, "Postfach", "Postfächer")}</span> : null}</div>
       <div className="g-flaeche zugang-liste">
-        {!overview ? <div className="source-loading"><i /><i /></div> : null}
+        {ohneListe}
         {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
         {accounts.map((account) => <Fragment key={account.id}>
           <SourceRow iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />
@@ -198,7 +201,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     <section className="zugang-gruppe" aria-label={ZUGAENGE.kalender.titel}>
       <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.kalender.titel}</h2>{calendars.length ? <span className="zugang-zahl">{zaehlen(calendars.length, "Kalender", "Kalender")}</span> : null}</div>
       <div className="g-flaeche zugang-liste">
-        {!overview ? <div className="source-loading"><i /><i /></div> : null}
+        {ohneListe}
         {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
         {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}
       </div>

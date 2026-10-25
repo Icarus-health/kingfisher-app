@@ -135,8 +135,10 @@ def test_name_aus_dem_assistenten_steht_im_gruss(monkeypatch) -> None:
             'episodes': {}, 'proposals': {}}
     assert compose(leer, now=jetzt, target=date(2026, 9, 1), nutzername='Lea')['greeting'] == 'Guten Morgen, Lea.'
     assert compose(leer, now=jetzt, target=date(2026, 9, 1), nutzername='  ')['greeting'] == 'Guten Morgen.'
-    monkeypatch.setenv('KINGFISHER_USER_NAME', 'Anna')  # Umgebung schlägt Datei
-    assert compose(leer, now=jetzt, target=date(2026, 9, 1), nutzername='Lea')['greeting'] == 'Guten Morgen, Anna.'
+    # Der bestätigte Name schlägt die Umgebung (V3); ohne ihn gilt die Umgebung.
+    monkeypatch.setenv('KINGFISHER_USER_NAME', 'Anna')
+    assert compose(leer, now=jetzt, target=date(2026, 9, 1), nutzername='Lea')['greeting'] == 'Guten Morgen, Lea.'
+    assert compose(leer, now=jetzt, target=date(2026, 9, 1), nutzername='')['greeting'] == 'Guten Morgen, Anna.'
 
 
 def test_briefing_route_gruesst_mit_dem_gespeicherten_namen(api) -> None:

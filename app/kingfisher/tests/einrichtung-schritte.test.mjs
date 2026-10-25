@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {SCHRITTE, sichtbareSchritte, anbieterZurAdresse, namensEntwurf, ersterOffener, istSchritt, nachbar, naechsterHinweis, offeneSchritte, schrittStand, schrittZaehler, sollZeigen, startSchritt} from "../src/Einrichtung/schritte.ts";
+import {readFileSync} from "node:fs";
+import {SCHRITTE, VORSCHLAG_HERKUNFT, namensStart, namensVorschlag, schrittTitel, sichtbareSchritte, anbieterZurAdresse, namensEntwurf, ersterOffener, istSchritt, nachbar, naechsterHinweis, offeneSchritte, schrittStand, schrittZaehler, sollZeigen, startSchritt} from "../src/Einrichtung/schritte.ts";
 
 const stand = (extra = {}) => ({name: "", schritte: {}, abgeschlossen: false, zeigen: true,
   vorhanden: {mail: false, kalender: false, modell: false}, ...extra});
@@ -123,4 +124,50 @@ test("Ohne Autostart-Helfer entfällt „Beim Anmelden“, und die Zählung blei
   assert.equal(sichtbareSchritte(stand({autostart_verfuegbar: true})).length, 7);
   assert.equal(sichtbareSchritte(stand()).length, 7);
   assert.deepEqual(schrittZaehler("autostart", stand({autostart_verfuegbar: true})), {nummer: 6, gesamt: 7});
+});
+
+// -- V3: vorschlagen statt fragen ---------------------------------------------------------------------------------
+const LEA = {name: "Lea Hartmann", vorname: "Lea", quelle: "postfach"};
+
+test("Mit gefundenem Namen: „Hallo Lea.“ und der Vorname im Feld; ohne Quelle die Frage mit leerem Feld", () => {
+  const mit = stand({name_vorschlag: LEA});
+  assert.equal(schrittTitel("name", mit), "Hallo Lea.");
+  assert.equal(namensStart(mit), "Lea");
+  assert.deepEqual(namensVorschlag(mit), LEA);
+  for (const ohne of [stand(), stand({name_vorschlag: null}), stand({name_vorschlag: {...LEA, vorname: "  "}})]) {
+    assert.equal(schrittTitel("name", ohne), "Wie heißt du?");
+    assert.equal(namensStart(ohne), "");
+    assert.equal(namensVorschlag(ohne), null);
+  }
+  // Andere Schritte behalten ihren Titel.
+  assert.equal(schrittTitel("mail", mit), "Deine Mail verbinden");
+});
+
+test("Ein gespeicherter Name geht dem Vorschlag vor; der Vorschlag allein erledigt den Schritt nicht", () => {
+  const gespeichert = stand({name: "Leonie", name_vorschlag: LEA});
+  assert.equal(namensVorschlag(gespeichert), null);
+  assert.equal(namensStart(gespeichert), "Leonie");
+  assert.equal(schrittTitel("name", gespeichert), "Wie heißt du?");
+  // Kein Fakt ohne Bestätigung: Solange nur vorgeschlagen ist, bleibt der Schritt offen und der Assistent beginnt dort.
+  const vorgeschlagen = stand({name_vorschlag: LEA});
+  assert.equal(schrittStand("name", vorgeschlagen), "offen");
+  assert.equal(ersterOffener(vorgeschlagen), "name");
+  // Ein unberührter Vorschlag ist kein Entwurf, den „Später weitermachen“ speichern würde.
+  assert.equal(namensEntwurf("", ""), null);
+});
+
+test("Der Satz zur Herkunft nennt die Quelle und keinen festen Mac", () => {
+  assert.deepEqual(Object.keys(VORSCHLAG_HERKUNFT).sort(), ["postfach", "rechner", "umgebung"]);
+  assert.match(VORSCHLAG_HERKUNFT.rechner, /\{Rechner\}/);
+  for (const satz of Object.values(VORSCHLAG_HERKUNFT)) assert.doesNotMatch(satz, /\bMac\b|„|"/);
+});
+
+test("Der Namensschritt speichert nur über „Weiter“ und bietet den Vorschlag im Feld an", () => {
+  const code = readFileSync(new URL("../src/Einrichtung/NameSchritt.tsx", import.meta.url), "utf8");
+  assert.match(code, /useState\(\(\) => namensStart\(stand\)\)/);
+  // Gespeichert wird nur im Absenden; der Vorschlag wird nicht beim Öffnen als Entwurf gemerkt.
+  assert.equal((code.match(/weiter\(\{name/g) ?? []).length, 1);
+  assert.doesNotMatch(code, /entwurf\(namensEntwurf\(namensStart|useEffect/);
+  const erststart = readFileSync(new URL("../src/Einrichtung/Erststart.tsx", import.meta.url), "utf8");
+  assert.match(erststart, /schrittTitel\(info\.id, stand\)/);
 });

@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   AUSNAHMEN, BEREICHE, FACHWOERTER, ICH, SCHALTER, TECHNIK, VORDERE_DATEIEN, ZUGAENGE,
-  fachwoerter, kennungVon, vordereTexte, zielAus,
+  fachwoerter, kennungVon, vordereTexte, zielAus, zugangListe,
 } from "../src/Einstellungen/gliederung.ts";
 
 const quelle = (datei) => readFileSync(new URL(`../src/${datei}`, import.meta.url), "utf8");
@@ -116,4 +116,16 @@ test("die Seite ist nicht mehr 1280 px breit: Mindestbreite aufgehoben, Karten s
   assert.match(css, /settings-layout \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   // Die globale Mindestbreite ist seit der Fremdprobe (Befund 1) für alle Seiten aufgehoben (tests/seitenbreite.test.mjs).
   assert.doesNotMatch(quelle("styles.css"), /html, body, #root \{ min-width: 1280px/);
+});
+
+test("Zugänge: Ladebalken nur beim Laden; scheitert es, steht „Nicht geladen.“ je Gruppe (V3)", () => {
+  assert.equal(zugangListe(false, ""), "laedt");
+  assert.equal(zugangListe(false, "Die lokalen Integrationen sind gerade nicht erreichbar."), "nicht_geladen");
+  // Ein späterer Fehler (Trennen) lässt die geladene Liste stehen.
+  assert.equal(zugangListe(true, "Der Zugang konnte nicht getrennt werden. Bitte erneut versuchen."), "da");
+  assert.equal(ZUGAENGE.nichtGeladen, "Nicht geladen.");
+  const code = quelle("Einstellungen/Zugaenge.tsx");
+  assert.match(code, /zugangListe\(overview !== null, error\)/);
+  assert.equal((code.match(/\{ohneListe\}/g) ?? []).length, 2, "beide Gruppen, Postfächer und Kalender");
+  assert.equal((code.match(/source-loading/g) ?? []).length, 1, "die Balken nur an einer Stelle, hinter `laedt`");
 });

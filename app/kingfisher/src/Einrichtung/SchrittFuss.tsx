@@ -14,7 +14,7 @@ export type SchrittProps = {
 };
 
 /** Der Fuß eines Schritts: „Weiter“, wenn etwas getan ist; sonst „Überspringen“. Nie ein Pflichtfeld. */
-export function SchrittFuss({erledigt, zurueck, weiter, ueberspringen, weiterText = "Weiter", absenden = false, arbeitet = false}: {
+export function SchrittFuss({erledigt, zurueck, weiter, ueberspringen, weiterText = "Weiter", absenden = false, arbeitet = false, fokus = false}: {
   erledigt: boolean;
   zurueck: (() => void) | null;
   weiter: () => void;
@@ -23,11 +23,13 @@ export function SchrittFuss({erledigt, zurueck, weiter, ueberspringen, weiterTex
   /** Der Hauptknopf schickt das umgebende Formular ab (Enter genügt). */
   absenden?: boolean;
   arbeitet?: boolean;
+  /** Der Hauptknopf bekommt beim Öffnen den Fokus (etwa wenn nur noch zu bestätigen ist). */
+  fokus?: boolean;
 }) {
   return <div className="erststart-fuss">
     {zurueck ? <button className="text-action" type="button" onClick={zurueck} disabled={arbeitet}>Zurück</button> : <span />}
     {erledigt
-      ? <button className="primary-action" type={absenden ? "submit" : "button"} onClick={absenden ? undefined : weiter} disabled={arbeitet}>{weiterText}</button>
+      ? <button className="primary-action" type={absenden ? "submit" : "button"} onClick={absenden ? undefined : weiter} disabled={arbeitet} autoFocus={fokus}>{weiterText}</button>
       : <button className="secondary-action" type="button" onClick={ueberspringen} disabled={arbeitet}>Überspringen</button>}
   </div>;
 }
