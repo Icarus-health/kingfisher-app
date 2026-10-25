@@ -13,9 +13,10 @@ test('nur Suchen, Menschen, Projekte und Entscheidungen laden den ganzen Gedäch
   assert.equal(brauchtGraph('people', 'status'), false);
   assert.equal(brauchtGraph('search', 'support'), false);
   const seite = quelle('MemoryGraph.tsx');
-  // Der Graph wird nur angefragt, wenn die Ansicht ihn braucht, und das Laden der Seite hängt nur dann an ihm.
-  assert.match(seite, /if \(!graphNoetig \|\| graphAngefragt\.current\) return;/);
-  assert.match(seite, /data-memory-loading=\{graphNoetig && !graph && !error\}/);
+  // Der Graph wird nur angefragt, wenn die Ansicht ihn braucht, und das Laden der Seite hängt nur dann an ihm
+  // (seit V7 als Verzeichnis oder ganz, siehe tempo.test.mjs).
+  assert.match(seite, /if \(!graphNoetig \|\| passend\) return;/);
+  assert.match(seite, /data-memory-loading=\{graphNoetig && !passend && !error\}/);
   // Ein Fehler des Graphen sperrt Organisationen, Orte und Themen nicht.
   assert.match(seite, /: error && graphNoetig \? \(/);
 });

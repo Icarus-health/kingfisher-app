@@ -22,6 +22,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 from . import entscheidungen, identitaet, personen
+from .datumstext import iso_versuchen
 from .episodes import Episode, EpisodeState
 from .model import Assertion, now
 from .people_quality import annotate_people, ist_sammelpostfach, lokalteil
@@ -118,6 +119,53 @@ class KnowledgeGraph:
             "nodes": [node.to_dict() for node in self.nodes],
             "edges": [edge.to_dict() for edge in self.edges],
         }
+
+
+def verzeichnis(knowledge_graph: KnowledgeGraph) -> dict[str, Any]:
+    """Was die Listen des Gedächtnisses brauchen, ohne den ganzen Graphen (V7, Tempo).
+
+    Menschen, Projekte und die Suche nach Namen zeigen nur Personen- und Projektknoten; der Graph trägt dazu je Quelle
+    einen Knoten und alle Kanten (bei 10.000 Quellen 10 MB, davon 3 % für die Listen). Hier: dieselben Personen- und
+    Projektknoten unverändert, dazu `verzeichnis.hat_quellen` und je Person der letzte tatsächliche Kontakt
+    (`verzeichnis.letzter_kontakt`, ISO-Zeitpunkt, wie `contactDateFromGraph` in der Oberfläche ihn aus den Kanten
+    liest: nur echte Beteiligung, nur geltende Quellen, Termine nur, wenn sie begonnen haben). Keine Kanten.
+    """
+    daten = knowledge_graph.to_dict()
+    knoten = {node["id"]: node for node in daten["nodes"]}
+    jetzt = knowledge_graph.generated_at
+
+    def zeitpunkt(wert: Any) -> datetime | None:
+        moment = iso_versuchen(wert) if isinstance(wert, str) and wert else None
+        return None if moment is None else moment if moment.tzinfo else moment.astimezone()
+
+    letzter: dict[str, tuple[datetime, str]] = {}
+    for kante in daten["edges"]:
+        if kante["relation"] != "participated_in" or kante.get("actual_contact") is not True:
+            continue
+        quelle = knoten.get(kante["target"])
+        if quelle is None:
+            continue
+        attribute = quelle.get("attributes") or {}
+        if attribute.get("source_current") is False or attribute.get("state") == "ignored":
+            continue
+        moment = zeitpunkt(attribute.get("occurred_at"))
+        if moment is None or (attribute.get("episode_kind") == "event" and moment > jetzt):
+            continue
+        bisher = letzter.get(kante["source"])
+        if bisher is None or moment > bisher[0]:
+            letzter[kante["source"]] = (moment, attribute["occurred_at"])
+    personen_und_projekte = [node for node in daten["nodes"] if node["kind"] in ("person", "project")]
+    return {
+        "generated_at": daten["generated_at"],
+        "authority": daten["authority"],
+        "nodes": personen_und_projekte,
+        "edges": [],
+        "verzeichnis": {
+            "hat_quellen": any(node["kind"] == "episode" for node in daten["nodes"]),
+            "letzter_kontakt": {kennung: text for kennung, (_, text) in letzter.items()
+                                if knoten.get(kennung, {}).get("kind") == "person"},
+        },
+    }
 
 
 _DIRECTORY_KINDS = {"person", "project", "topic", "decision"}

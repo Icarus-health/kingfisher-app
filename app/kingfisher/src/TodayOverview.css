@@ -42,6 +42,10 @@
   font: 500 17px/1.4 var(--g-schrift); color: var(--g-tinte);
 }
 .today-stand { color: var(--g-leise); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* Wird aktualisiert: „Stand“ atmet wie das Skelett, statt Text anzuhängen; nichts bricht um oder springt (V7). */
+@media (prefers-reduced-motion: no-preference) {
+  .today-stand[aria-busy="true"] { animation: today-atmen 1.6s ease-in-out infinite; }
+}
 #root .today-page .hero-bird { position: absolute; z-index: 0; left: auto; right: var(--today-rand); top: 22px; width: 200px; height: 160px; object-fit: contain; transform: none; opacity: .95; filter: none; }
 /* Das Wetter als eine leise Zeile unter dem Gruß, nicht über den Bergen. */
 #root .today-page .weather {

@@ -939,6 +939,8 @@ class EpisodeStore:
         self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._lock = threading.RLock()
+        from .zwischenspeicher import Zwischenspeicher
+        self._teilnehmer_zwischen = Zwischenspeicher(16)
         try:
             with self._lock:
                 run_migrations(
@@ -1821,21 +1823,40 @@ class EpisodeStore:
         Mailquellen. Die gespeicherten Beteiligten bleiben unverändert.
         """
         gesucht = sorted({mail_address(a) for a in addresses if mail_address(a)})
-        ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
         if not gesucht:
-            return ergebnis
+            return {}
+        # Zwischengespeichert am Stand der Datei (V7, Tempo): Briefing, Terminvorbereitung und Akten fragen dieselben
+        # Adressen immer wieder, und jeder Durchgang liest alle Quellen. Jeder Schreibvorgang macht den Eintrag ungültig.
+        from .zwischenspeicher import marke
+        return self._teilnehmer_zwischen.holen(
+            (marke(self._conn, self._lock), tuple(gesucht), anzeigenamen),
+            lambda: self._participants_for_addresses(gesucht, anzeigenamen=anzeigenamen))
+
+    def aenderungsmarke(self) -> tuple[int, int, int]:
+        """Stand der Datei für Zwischenspeicher: ändert sich mit jedem Schreibvorgang (`zwischenspeicher.marke`)."""
+        from .zwischenspeicher import marke
+        return marke(self._conn, self._lock)
+
+    def _participants_for_addresses(self, gesucht: list[str], *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
         muster = ['%' + a.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for a in gesucht]
         # In Paketen: Eine OR-Kette über tausende Adressen sprengt SQLite („Expression tree is too large“).
         # Eine Quelle, die mehrere Pakete trifft, zählt trotzdem nur einmal.
         rows: dict[str, tuple] = {}
         for start in range(0, len(muster), ADRESSEN_JE_ABFRAGE):
             teil = muster[start:start + ADRESSEN_JE_ABFRAGE]
-            bedingung = ' OR '.join("lower(json_extract(document, '$.participants')) LIKE ? ESCAPE '\\'" for _ in teil)
+            bedingung = ' OR '.join("klein LIKE ? ESCAPE '\\'" for _ in teil)
             with self._lock:
+                # Die Beteiligten je Quelle einmal lesen, nicht einmal je Adresse: In der Unterabfrage mit LIMIT
+                # rechnet SQLite `json_extract` nur einmal je Zeile (eingefaltet täte es das für jedes LIKE; bei
+                # hundert Adressen dauerte es dreimal so lange, V7).
                 for zeile in self._conn.execute(
-                        "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
-                        "json_extract(document, '$.provenance.source_type') "
-                        f"FROM episodes WHERE {sql_aktuell()} AND ({bedingung})", teil):
+                        "SELECT id, teilnehmer, zeit, project_id, art FROM ("
+                        "SELECT id, json_extract(document, '$.participants') AS teilnehmer, "
+                        "lower(json_extract(document, '$.participants')) AS klein, "
+                        "COALESCE(occurred_at, recorded_at) AS zeit, project_id, "
+                        "json_extract(document, '$.provenance.source_type') AS art "
+                        f"FROM episodes WHERE {sql_aktuell()} LIMIT -1) WHERE ({bedingung})", teil):
                     rows.setdefault(zeile[0], zeile)
         for episode_id, teilnehmer, zeit, projekt, art in rows.values():
             for wert in json.loads(teilnehmer or '[]'):

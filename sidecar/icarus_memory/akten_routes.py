@@ -28,6 +28,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from datetime import datetime, timezone
 from typing import Any, Callable, Literal
 
 from fastapi import HTTPException, Query
@@ -228,8 +229,28 @@ def verbinden(app) -> None:
     episodes.akten_aktualisieren = aktualisieren
 
 
+def vorwaermen(app) -> threading.Thread:
+    """Baut das Verzeichnis der Bezüge im Hintergrund, gleich nach dem Start (V7, Tempo).
+
+    Sonst baut es die erste Anfrage, die es braucht – bei 10.000 Quellen Sekunden, meist auf Heute. Der Bau liest nur
+    und gilt nur, solange sich der Bestand nicht ändert (`Bezuege.register`); läuft gleichzeitig eine Anfrage an,
+    wartet sie auf denselben Bau, statt einen zweiten zu beginnen. Ein Fehler hier stört nie: Dann baut eben die
+    erste Anfrage.
+    """
+    def bauen() -> None:
+        try:
+            bausteine(app)[0].register()
+        except Exception:  # noqa: BLE001 - etwa ein Speicher, der beim Beenden schon geschlossen ist
+            logger.debug('Verzeichnis der Bezüge nicht vorgewärmt', exc_info=True)
+    faden = threading.Thread(target=bauen, name='akten-verzeichnis', daemon=True)
+    faden.start()
+    return faden
+
+
 def register(app, guard) -> None:
     verbinden(app)
+    # Nur wenn der Server wirklich startet (uvicorn, oder `with TestClient(app)`), nicht bei jedem `create_app`.
+    app.router.on_startup.append(lambda: vorwaermen(app) and None)
 
     @app.get('/api/v1/akten/sachen', dependencies=guard)
     def akten_sachen(art: str | None = Query(None), suche: str = Query('', max_length=200),
@@ -240,11 +261,21 @@ def register(app, guard) -> None:
             raise HTTPException(status_code=422, detail='Unbekannte Art einer Sache.')
         berechnung = nachfuehren(app, warten=warten)
         bezuege, _ = bausteine(app)
-        seite = bezuege.sachen(art=art, suche=suche, limit=limit, offset=offset)
-        namen = bezuege.beschriftungen([e['sache'] for e in seite['sachen']])
-        for eintrag in seite['sachen']:
-            eintrag['art_text'] = ART_TEXT[eintrag['art']]
-            eintrag['name'] = namen[eintrag['sache']]
+        # „zuletzt“ nur bis jetzt (V7): Ein künftiger Termin ist keine letzte Aktivität. Auf die Minute genau, damit
+        # der Zwischenspeicher greift.
+        bis = datetime.now(timezone.utc).replace(second=0, microsecond=0).isoformat()
+
+        def seite_berechnen() -> dict[str, Any]:
+            seite = bezuege.sachen(art=art, suche=suche, limit=limit, offset=offset, bis=bis)
+            namen = bezuege.beschriftungen([e['sache'] for e in seite['sachen']])
+            for eintrag in seite['sachen']:
+                eintrag['art_text'] = ART_TEXT[eintrag['art']]
+                eintrag['name'] = namen[eintrag['sache']]
+            return seite
+        # Zwischengespeichert am Stand der Bezüge (V7: bei 10.000 Quellen 1,2–1,6 s je Aufruf). Jede Änderung an
+        # Quellen, Zuordnungen, Projekten oder eigenen Adressen ändert `aenderungsstand` und rechnet neu.
+        seite = bezuege.zwischen.holen(('sachen', bezuege.aenderungsstand(), art, suche, limit, offset, bis),
+                                       seite_berechnen)
         return {**seite, 'berechnung': berechnung}
 
     @app.get('/api/v1/akten/akte', dependencies=guard)
