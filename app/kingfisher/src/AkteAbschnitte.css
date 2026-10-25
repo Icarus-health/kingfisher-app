@@ -17,6 +17,13 @@
 #root main .akte:not(.akte-seite) .akte-kopf-text > h2 { font: var(--g-titel); }
 #root .akte .akte-blick { margin: 0; font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }
 #root .akte .akte-kopf-bild { flex: 0 0 auto; }
+/* Der Stand-Satz unter dem Namen: in einer Sekunde gelesen. Der Titel ist ein Verweis, das Nächste etwas leiser. */
+#root main .akte .akte-stand-satz > p { margin: var(--g-a1) 0 0; font: var(--g-text); color: var(--g-tinte); overflow-wrap: anywhere; }
+#root main .akte .akte-stand-quelle { display: inline; min-height: 0; margin: 0; padding: 0; border: 0; background: none; color: var(--g-verweis);
+  font: inherit; text-align: left; text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: 3px; cursor: pointer; }
+#root main .akte .akte-stand-naechstes { color: var(--g-leise); }
+#root .akte .akte-stand-original { margin: calc(-1 * var(--g-a3)) 0 var(--g-a6); }
 #root .akte .akte-kopf-bild > .memory-avatar-large,
 #root .akte .akte-kopf .memory-avatar-editor .memory-avatar-large { width: 80px; height: 80px; flex-basis: 80px; background: var(--g-getoent); color: var(--g-akzent); font: 600 28px/1 var(--g-schrift); }
 /* Das eigene Bild ist Nebensache: ein kleiner Textlink unter dem Kreis. */
@@ -93,6 +100,8 @@
 #root .akte .akte-fristen article > strong { font-variant-numeric: tabular-nums; }
 #root main .akte .akte-alt { text-decoration: line-through; color: var(--g-leise); font-weight: 500; }
 #root .akte .akte-termin-abgesagt > strong { text-decoration: line-through; text-decoration-color: var(--g-leise); }
+/* Oben unter „Braucht dich“ genannt: hier nur eine leise Zeile, ohne Zitat. */
+#root main .akte .akte-termin-oben > strong { color: var(--g-leise); font-weight: 500; }
 #root main .akte .akte-angenommen article > strong { overflow-wrap: anywhere; }
 #root .akte .akte-ueberholt-hinweis { margin: var(--g-a1) 0 0; font: var(--g-fussnote); color: var(--g-leise); overflow-wrap: anywhere; }
 #root .akte .task-title-link { min-height: var(--g-ziel-kompakt); padding: 0; border: 0; background: transparent; color: var(--g-verweis); font: 600 16px/1.4 var(--g-schrift); text-align: left; cursor: pointer; }
@@ -161,6 +170,14 @@
   #root .akte .akte-kopf-bild > .memory-avatar-large,
   #root .akte .akte-kopf .memory-avatar-editor .memory-avatar-large { width: 64px; height: 64px; flex-basis: 64px; font-size: 22px; }
   #root main .akte .akte-kopf-text > h2 { font-size: var(--g-titel-gross-schmal); }
+  /* Schmal: das Bild klein über dem Namen, der Name in voller Breite; „Eigenes Profilbild“ neben dem Bild. */
+  #root .akte.akte-seite .akte-kopf { flex-direction: column; align-items: stretch; gap: var(--g-a3); }
+  #root .akte.akte-seite .akte-kopf-bild { max-width: none; text-align: left; }
+  #root .akte.akte-seite .akte-kopf-bild > .memory-avatar-large,
+  #root .akte.akte-seite .akte-kopf .memory-avatar-editor .memory-avatar-large { width: 56px; height: 56px; flex-basis: 56px; font-size: 20px; }
+  #root .akte.akte-seite .akte-kopf .memory-avatar-editor { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3); }
+  /* Geöffnet: die Bildwahl unter der Zeile mit dem Bild, in voller Breite; sie verdeckt den Namen nicht. */
+  #root .akte.akte-seite .akte-kopf .memory-avatar-editor > details[open] { position: static; flex-basis: 100%; margin: var(--g-a2) 0 0; }
   #root .akte .akte-flaeche > article, #root .akte .akte-flaeche > .akte-gruppe > article, #root .akte .akte-braucht .akte-flaeche > li,
   #root .akte .akte-flaeche > div:not(.akte-gruppe):not(.akte-strahl):not(.akte-strahl-wahl) { padding: var(--g-a3) var(--g-a4); }
   #root .akte .akte-flaeche > :is(article, li, div) + :is(article, li, div)::before { left: var(--g-a4); }

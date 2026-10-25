@@ -2,7 +2,7 @@ import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteVorschlagStand, type AkteZeile, type AkteZeitpunkt } from "./api";
 import { entscheidungSatz, fehlerSatz, vorschlagFrage, zurueckBeschriftung } from "./akteVorschlag";
-import { blickZeile, obenGenanntSatz, offenOhneBrauchtDich } from "./akteAnzeige";
+import { blickZeile, obenGenanntSatz, offenOhneBrauchtDich, standSatz, termineObenGenannt, type StandSatz } from "./akteAnzeige";
 import { displayLabel } from "./displayIdentity";
 import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
 import { WiederkehrendKarte } from "./WiederkehrendKarte";
@@ -99,6 +99,14 @@ function Blick({ data, art }: { data: Akte; art?: string }) {
     termin: termin ? KURZTAG.format(new Date(termin.start)) : null, abgesagt: Boolean(termin?.vermutlich_abgesagt), zuletzt: zuletzt ? tag(zuletzt.datum) : null });
   const ganz = [art, zeile].filter(Boolean).join(" · ");
   return ganz ? <p className="akte-blick" aria-label="Auf einen Blick">{ganz}</p> : null;
+}
+
+/** Der Stand in einem Satz unter dem Namen (`standSatz`): Art, Tag, Titel der Quelle, Absender, dazu das Nächste. Der
+ * Titel ist ein Verweis und öffnet die Quelle unter dem Kopf in voller Breite; nichts davon ist geschrieben oder geraten. */
+function StandKopf({ satz, offen, umschalten }: { satz: StandSatz; offen: boolean; umschalten: () => void }) {
+  return <div className="akte-stand-satz" aria-label="Stand">
+    <p>{satz.vor}<button type="button" className="akte-stand-quelle" aria-expanded={offen} aria-controls="akte-stand-original" title={offen ? "Quelle schließen" : "Quelle öffnen"} onClick={umschalten}>{satz.titel}</button>{satz.nach}{satz.naechstes ? <> <span className="akte-stand-naechstes">{satz.naechstes}</span></> : null}</p>
+  </div>;
 }
 
 /** Braucht dich: was eine Entscheidung braucht. Ein Satz, das Zitat, ein Klick; die Antwort gilt in jeder Akte. */
@@ -294,6 +302,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     return()=>{active=false;};
   },[mitKopf,data?.art,data?.sache]);
   const [arbeitet, setArbeitet] = useState<string | null>(null);
+  const [standQuelle, setStandQuelle] = useState(false);
   const [meldung, setMeldung] = useState<Meldung | null>(null);
   const meldungRef = useRef<HTMLParagraphElement | null>(null);
   const version = useRef(0);
@@ -309,7 +318,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       if (eigene === version.current) setZustand(cause instanceof ApiError && cause.status === 404 ? "keine" : "fehler");
     }
   }, [sache]);
-  useEffect(() => { setData(null); setZustand("laedt"); setAlle(false); versuche.current = 0; lageVersuche.current = 0; void laden(false); }, [laden]);
+  useEffect(() => { setData(null); setZustand("laedt"); setAlle(false); setStandQuelle(false); versuche.current = 0; lageVersuche.current = 0; void laden(false); }, [laden]);
 
   // Ein Klick, eine Antwort: Was gemerkt wurde, steht da, mit „Rückgängig“ (Grundsatz 4 und 5).
   const entscheiden: Entscheiden = (ziel, entscheidung, termin = false) => {
@@ -436,6 +445,13 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   const f = data.fristen;
   const stand = data.stand_der_dinge;
   const braucht = data.braucht_dich;
+  // Ein Satz Stand unter dem Namen; wo er die jüngste Zeile aus „Stand“ nennt, wiederholt der Abschnitt sie nicht.
+  const jetzt = zeitpunkt(data.stand) ?? new Date();
+  const satz = compact ? null : standSatz({ name: displayLabel(data.name).name, jetzt, stand: stand.aktuell, verlauf: data.verlauf.eintraege,
+    braucht: braucht?.gesamt ?? 0, termin: data.termine.kommend[0] ?? null, frist: data.fristen.kommend[0] ?? null, wer: t => displayLabel(t).name });
+  const standOben = satz?.aus === "stand";
+  // Ein abgesagter Termin, der oben unter „Braucht dich“ steht, steht unter „Termine“ nur als leise Zeile.
+  const terminOben = termineObenGenannt(braucht?.eintraege);
   // Was oben unter „Braucht dich“ steht (gleiche Quelle, gleiche Stelle), steht unten nicht noch einmal; ein Satz sagt,
   // wo es steht. Nur die Anzeige: Zählung und Logik bleiben, wie die Akte sie liefert.
   const { sichtbar: offenSichtbar, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
@@ -470,9 +486,10 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       <div className="akte-kopf-text">
         <h2>{mitKopf ? displayLabel(data.name).name : "Akte"}</h2>
         {compact ? <details className="akte-coverage quiet-details"><summary>{data.quellen.gesamt} {data.quellen.gesamt === 1 ? "Quelle" : "Quellen"}{data.quellen.begrenzt ? ` · jüngste ${data.quellen.beruecksichtigt} ausgewertet` : ''}{data.berechnung.offen ? ` · ${data.berechnung.offen} noch in Arbeit` : ''}</summary>{herkunftHinweis}</details> : null}
-        {!compact ? <Blick data={data} art={mitKopf ? data.art_text : undefined} /> : null}
+        {satz ? <StandKopf satz={satz} offen={standQuelle} umschalten={() => setStandQuelle(x => !x)} /> : !compact ? <Blick data={data} art={mitKopf ? data.art_text : undefined} /> : null}
       </div>
     </header>
+    {satz && standQuelle ? <div className="akte-stand-original" id="akte-stand-original"><ProfileSource key={satz.episode_id} kind="episode" id={satz.episode_id} label={satz.titel} embedded readOnly /></div> : null}
 
     {meldung ? <p className="akte-meldung" role="status" tabIndex={-1} ref={meldungRef}>{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!, meldung.vorher ?? null)} disabled={arbeitet !== null}>Rückgängig</button> : null}{meldung.vorschlag ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void vorschlagZurueck(meldung.vorschlag!)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
 
@@ -532,7 +549,10 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     </details> : null}
 
     {data.termine.kommend.length || data.termine.vergangen.length ? <Teil titel="Termine" kind="termine">
-      {data.termine.kommend.map(t => <article key={`k:${t.episode_id}`} className={t.vermutlich_abgesagt ? "akte-termin-abgesagt" : undefined}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}{t.entscheidung === "offen" ? " · findet laut dir statt" : ""}</small>
+      {data.termine.kommend.map(t => terminOben.has(t.episode_id) ? <article key={`k:${t.episode_id}`} className="akte-termin-abgesagt akte-termin-oben"><strong>{t.titel}</strong>
+        <small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""} · vermutlich abgesagt, steht oben unter „Braucht dich“</small>
+        <div className="akte-zeile-fuss"><Quelle zeile={t} /></div></article>
+        : <article key={`k:${t.episode_id}`} className={t.vermutlich_abgesagt ? "akte-termin-abgesagt" : undefined}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}{t.entscheidung === "offen" ? " · findet laut dir statt" : ""}</small>
         {t.vermutlich_abgesagt ? <p className="mappe-mehr">{t.entscheidung === "erledigt" ? "Abgesagt (von dir bestätigt)" : "Vermutlich abgesagt"} laut „{t.vermutlich_abgesagt.text}“ ({datum(t.vermutlich_abgesagt)}).{t.entscheidung === "erledigt" ? "" : " Der Kalendereintrag steht noch."} <Quelle zeile={t.vermutlich_abgesagt} /></p> : null}
         <div className="akte-zeile-fuss"><Quelle zeile={t} />
           {t.ziel && t.entscheidung ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(t.ziel!)}>Rückgängig</button> : null}
@@ -541,9 +561,9 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {data.termine.vergangen.length ? <details><summary>Vergangen ({data.termine.gesamt.vergangen})</summary>{data.termine.vergangen.map(t => <article key={`v:${t.episode_id}`}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}{t.vermutlich_abgesagt ? " · vermutlich abgesagt" : ""}</small><Quelle zeile={t} /></article>)}</details> : null}
     </Teil> : null}
 
-    {stand.aktuell ? <Teil titel="Stand" kind="stand">
-      <Zeile zeile={stand.aktuell} />
-      {stand.vorher.length ? <details><summary>Vorher ({stand.vorher_gesamt})</summary>{stand.vorher.map((z, index) => <Zeile key={`${index}:${z.episode_id}`} zeile={z} />)}</details> : null}
+    {stand.aktuell && (!standOben || stand.vorher.length || stand.weitere.length) ? <Teil titel="Stand" kind="stand">
+      {standOben ? null : <Zeile zeile={stand.aktuell} />}
+      {stand.vorher.length ? <details><summary>{standOben && stand.aktuell.occurred_at ? `Vor dem ${tag(stand.aktuell.occurred_at)}` : "Vorher"} ({stand.vorher_gesamt})</summary>{stand.vorher.map((z, index) => <Zeile key={`${index}:${z.episode_id}`} zeile={z} />)}</details> : null}
       {stand.weitere.length ? <details><summary>Weitere Stände ({stand.weitere_gesamt})</summary>{stand.weitere.map((g, index) => <Zeile key={`${index}:${g.aktuell.episode_id}`} zeile={g.aktuell} zusatz={g.vorher_gesamt ? `vorher ${g.vorher_gesamt}×` : undefined} />)}</details> : null}
     </Teil> : null}
 
