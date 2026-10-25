@@ -85,6 +85,15 @@ test("Rückgängig ruft den mitgegebenen Weg genau einmal und sagt, wie es ausgi
   assert.equal(hinweisInhalt(ort.stand()).text, "Zurückgenommen: Akte entfernt.");
 });
 
+test("nach dem Zurücknehmen hält ein Fokus auf dem verschwundenen Knopf den Hinweis nicht fest", async () => {
+  const uhr = testUhr(); const ort = new HinweisOrt(uhr);
+  ort.zeigen({ text: "Erledigt.", rueckgaengig: async () => {} });
+  ort.halten("fokus", true);
+  await ort.zuruecknehmen();
+  uhr.vor(HINWEIS_DAUER);
+  assert.equal(ort.stand(), null, "der Knopf ist weg; ein entfernter Knopf meldet kein Verlassen");
+});
+
 test("misslingt das Zurücknehmen, sagt der Hinweis es als Fehler, bleibt länger und bietet „Erneut versuchen“", async () => {
   const uhr = testUhr(); const ort = new HinweisOrt(uhr);
   let versuche = 0;
