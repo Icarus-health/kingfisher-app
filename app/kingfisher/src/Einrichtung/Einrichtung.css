@@ -25,11 +25,11 @@ html:has(.erststart-shell), body:has(.erststart-shell), #root:has(.erststart-she
   border-radius: var(--g-radius-pille); background: transparent; color: var(--g-leise); font: 500 13px/1.3 var(--g-schrift);
   cursor: pointer; transition: background-color 150ms ease;
 }
-#root .erststart-punkt:hover:not(:disabled):not(.ist-aktuell) { background: rgba(23,38,53,.04); }
+#root .erststart-punkt:hover:not(:disabled):not(.ist-aktuell) { background: rgba(var(--g-tinte-rgb),.04); }
 #root .erststart-punkt:disabled { cursor: default; }
 #root .erststart-punkt.ist-aktuell { background: var(--g-getoent); color: var(--g-tinte); font-weight: 600; box-shadow: none; }
 #root .erststart-punkt:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 1px; }
-.erststart-marke { display: grid; place-items: center; box-sizing: border-box; width: 18px; height: 18px; border: 1.5px solid rgba(23,38,53,.28); border-radius: 50%; font-size: 11px; line-height: 1; }
+.erststart-marke { display: grid; place-items: center; box-sizing: border-box; width: 18px; height: 18px; border: 1.5px solid rgba(var(--g-tinte-rgb),.28); border-radius: 50%; font-size: 11px; line-height: 1; }
 .erststart-punkt.ist-erledigt .erststart-marke { background: var(--g-akzent); border-color: var(--g-akzent); color: var(--g-auf-akzent); }
 .erststart-punkt.ist-uebersprungen .erststart-marke { border-style: dashed; }
 .erststart-punkt.ist-aktuell .erststart-marke { border-color: var(--g-akzent); box-shadow: inset 0 0 0 3px var(--g-flaeche), inset 0 0 0 9px var(--g-akzent); }

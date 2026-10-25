@@ -30,7 +30,7 @@
   display: grid; gap: 2px; width: 100%; min-height: 56px; margin: 0 0 2px; padding: var(--g-a2) var(--g-a3); border: 0; border-radius: var(--g-radius-bedien);
   background: transparent; color: var(--g-tinte); text-align: left; cursor: pointer; transition: background-color 150ms ease;
 }
-.workspace-chat .conversation-nav-item:hover { background: rgba(23,38,53,.045); }
+.workspace-chat .conversation-nav-item:hover { background: rgba(var(--g-tinte-rgb),.045); }
 .workspace-chat .conversation-nav-item[aria-current='page'] { background: var(--g-auswahl); }
 .workspace-chat .conversation-nav-kopf { display: flex; align-items: baseline; gap: var(--g-a2); min-width: 0; }
 .workspace-chat .conversation-nav-item strong { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 600 15px/1.35 var(--g-schrift); }
@@ -45,7 +45,7 @@
 .workspace-chat .thread { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; background: var(--g-flaeche); }
 .shell main.workspace-chat .thread-header {
   display: flex; flex: 0 0 auto; align-items: center; gap: var(--g-a3); min-height: 56px; margin: 0; padding: var(--g-a2) var(--g-a5);
-  border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; background: rgba(255,255,255,.88);
+  border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; background: rgba(var(--g-flaeche-rgb),.88);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 }
 .workspace-chat .thread-header h1 { flex: 1; min-width: 0; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--g-ueberschrift); color: var(--g-tinte); }
@@ -144,7 +144,7 @@
 .shell .workspace-chat .memory-candidate:not(.action-approval) .memory-reject { padding: 0 var(--g-a2); background: transparent; color: var(--g-verweis); }
 .shell .workspace-chat .memory-candidate:not(.action-approval) .memory-reject:hover:not(:disabled) { background: var(--g-getoent); }
 /* Die Freigabekarte bleibt vollständig: Vorschau im Wortlaut, Bestätigungswort, Freigeben und Ablehnen, Ergebnis. */
-.workspace-chat .action-approval { background: var(--g-flaeche); box-shadow: var(--g-schatten), 0 4px 16px rgba(23,38,53,.06); }
+.workspace-chat .action-approval { background: var(--g-flaeche); box-shadow: var(--g-schatten), 0 4px 16px rgba(var(--g-schatten-rgb),.06); }
 .workspace-chat .action-approval .action-preview { margin: 0; padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: var(--g-grund); font: var(--g-text); white-space: pre-wrap; overflow-wrap: anywhere; }
 .workspace-chat .action-confirmation { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--g-a1); font: var(--g-neben); color: var(--g-tinte); }
 .workspace-chat .action-confirmation strong { font-weight: 600; }
@@ -157,7 +157,7 @@
 
 /* Laden und Fehler im Gespräch. */
 .workspace-chat .message.skeleton-message { display: grid; gap: var(--g-a3); padding-top: var(--g-a2); }
-.workspace-chat .skeleton-message i { display: block; height: 14px; margin: 0; border-radius: 7px; background: rgba(23,38,53,.07); }
+.workspace-chat .skeleton-message i { display: block; height: 14px; margin: 0; border-radius: 7px; background: rgba(var(--g-tinte-rgb),.07); }
 .workspace-chat .skeleton-message i:nth-child(2) { width: 72%; }
 .workspace-chat .skeleton-message i:nth-child(3) { width: 46%; }
 .workspace-chat .message.error-message { max-width: none; margin: var(--g-a6) 0; }
@@ -173,8 +173,8 @@
 .workspace-chat .conversation-capture .document-import { max-height: 36vh; overflow-y: auto; }
 .workspace-chat .conversation-capture-fuss { margin: var(--g-a1) 0 0; font: var(--g-fussnote); color: var(--g-leise); }
 .shell main.workspace-chat .conversation-command {
-  height: auto; min-height: 56px; gap: var(--g-a2); padding: var(--g-a1) var(--g-a1) var(--g-a1) var(--g-a4); border: 1px solid rgba(23,38,53,.12);
-  border-radius: 22px; background: var(--g-flaeche); box-shadow: 0 1px 2px rgba(23,38,53,.04); color: var(--g-tinte);
+  height: auto; min-height: 56px; gap: var(--g-a2); padding: var(--g-a1) var(--g-a1) var(--g-a1) var(--g-a4); border: 1px solid rgba(var(--g-tinte-rgb),.12);
+  border-radius: 22px; background: var(--g-flaeche); box-shadow: 0 1px 2px rgba(var(--g-schatten-rgb),.04); color: var(--g-tinte);
 }
 .shell main.workspace-chat .conversation-command:focus-within { outline: 0; border-color: var(--g-auswahl-kante); box-shadow: var(--g-fokus); }
 .shell main.workspace-chat .conversation-command textarea {
@@ -201,7 +201,7 @@
   .workspace-chat .conversation-navigation-toggle::before { content: ""; width: 8px; height: 8px; margin: 0 8px 0 2px; border: solid currentColor; border-width: 0 0 2px 2px; transform: rotate(45deg); }
   .workspace-chat.navigation-open .conversation-navigation {
     display: flex; position: absolute; z-index: 12; inset: 56px auto 0 0; width: min(320px, 88%); border-right: 0;
-    box-shadow: 12px 0 32px rgba(23,38,53,.14);
+    box-shadow: 12px 0 32px rgba(var(--g-schatten-rgb),.14);
   }
   .workspace-chat-start .conversation-navigation { border-right: 0; }
   /* Schmal: oben die Liste, unten gleich das Eingabefeld; das Gespräch entsteht mit der ersten Frage (Paket U, G1). */

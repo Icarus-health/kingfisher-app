@@ -1,5 +1,7 @@
-/* Freigegebene Variante 3: helle Arbeitsflächen und dunkle Markennavigation,
-   unabhängig von der Systemeinstellung. Farben bleiben nach Rolle getrennt. */
+/* Die Farbwerte des Bestands, nach ihrem hellen Wert benannt (Fläche, Rand, Schrift, Schatten). Hell gilt die
+   freigegebene Variante 3 (helle Arbeitsflächen, dunkle Markennavigation). Seit dem 25.10.2026 folgen die
+   Arbeitsflächen dem Systemmodus: Unten bekommt jeder Wert die Rolle, die er im Dunkelmodus spielt. Neue Farben
+   entstehen hier nicht mehr, sondern als Rolle in CalmUI.css, NordicWorkspace.css oder Grundlage.css. */
 :root {
   color-scheme: light;
   --kf-akzent-063e55: #063e55;
@@ -100,4 +102,84 @@
   --kf-schrift-f4faf9: #f4faf9;
   --kf-schrift-fffefa: #fffefa;
   --kf-schrift-ffffff: #ffffff;
+  /* Schatten, Kanten und Glanz des Bestands als RGB-Tripel (rgba(var(--…), .06)). */
+  --kf-schatten-rgb-062b3a: 6, 43, 58;
+  --kf-schatten-rgb-032d40: 3, 45, 64;
+  --kf-schatten-rgb-05202c: 5, 32, 44;
+  --kf-schatten-rgb-102a3e: 16, 42, 62;
+  --kf-schatten-rgb-13273a: 19, 39, 58;
+  --kf-rand-rgb-102c3a: 16, 44, 58;
+  --kf-flaeche-rgb-06445b: 6, 68, 91;
+  --kf-glanz-rgb-ffffff: 255, 255, 255;
+  --kf-flaeche-f3f8f6: #f3f8f6;
+  --kf-flaeche-fbfdfc: #fbfdfc;
+  --kf-rand-d8753d: #d8753d;
+}
+
+/* Dunkelmodus: helle Flächen werden Schiefer, dunkle Schrift wird Tinte, Haarlinien bleiben Haarlinien. Was schon im
+   Hellen dunkel ist (Navigation, gefüllte Marken) oder hell auf Dunklem steht, bleibt unverändert. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --kf-akzent-063e55: var(--calm-primary);
+    --kf-akzent-075268: var(--calm-primary);
+    --kf-flaeche-dbe8e9: var(--calm-soft);
+    --kf-flaeche-e8f0ee: var(--calm-soft);
+    --kf-flaeche-eaf2f2: var(--calm-soft);
+    --kf-flaeche-eeeee7: var(--calm-inset);
+    --kf-flaeche-eef3f1: var(--calm-soft);
+    --kf-flaeche-f6faf8: var(--calm-inset);
+    --kf-flaeche-f7f5ef: var(--calm-inset);
+    --kf-flaeche-f7f5f0: var(--calm-inset);
+    --kf-flaeche-f7f6f1: var(--calm-inset);
+    --kf-flaeche-f8fbfa: var(--calm-inset);
+    --kf-flaeche-fbf2d9: var(--g-warnung-grund);
+    --kf-flaeche-fbfbf8: var(--calm-inset);
+    --kf-flaeche-fffefa: var(--calm-surface);
+    --kf-flaeche-ffffff: var(--calm-surface);
+    --kf-flaeche-f3f8f6: var(--calm-inset);
+    --kf-flaeche-fbfdfc: var(--calm-inset);
+    --kf-flaeche-rgb-eef3f1: 44, 54, 64;
+    --kf-flaeche-rgb-f7f5ef: 24, 29, 35;
+    --kf-flaeche-rgb-fffefa: 34, 41, 49;
+    --kf-rand-b5ced0: var(--calm-feldkante);
+    --kf-rand-b8cdca: var(--calm-feldkante);
+    --kf-rand-b9cac8: var(--calm-feldkante);
+    --kf-rand-bf3b44: var(--g-rot);
+    --kf-rand-c6d4d4: var(--calm-feldkante);
+    --kf-rand-c9d8d5: var(--calm-feldkante);
+    --kf-rand-cbdad7: var(--calm-line);
+    --kf-rand-d7e1df: var(--calm-line);
+    --kf-rand-d8d4cc: var(--calm-line);
+    --kf-rand-e0e7e5: var(--calm-line);
+    --kf-rand-e1dfd7: var(--calm-line);
+    --kf-rand-e4ebe9: var(--calm-line);
+    --kf-rand-e7efed: var(--calm-line);
+    --kf-rand-rgb-d7e1df: 56, 65, 75;
+    --kf-rand-rgb-102c3a: 227, 232, 237;
+    --kf-schatten-ffffff: var(--calm-surface);
+    --kf-schrift-007e92: var(--calm-link);
+    --kf-schrift-062b3a: var(--calm-ink);
+    --kf-schrift-063e55: var(--calm-link);
+    --kf-schrift-073746: var(--calm-ink);
+    --kf-schrift-075268: var(--calm-link);
+    --kf-schrift-176b4d: var(--kf-schrift-197a58);
+    --kf-schrift-197a58: #6ccb9c;
+    --kf-schrift-31535f: var(--calm-muted);
+    --kf-schrift-465b64: var(--calm-muted);
+    --kf-schrift-53635f: var(--calm-muted);
+    --kf-schrift-5f777d: var(--calm-muted);
+    --kf-schrift-694d16: var(--g-warnung);
+    --kf-schrift-6d858b: var(--calm-muted);
+    --kf-schrift-75888d: var(--calm-muted);
+    --kf-schrift-8a6a2c: var(--g-warnung);
+    --kf-schrift-8c2f28: var(--kf-schrift-bf3b44);
+    --kf-schrift-bf3b44: #f08b8b;
+    --kf-schatten-rgb-062b3a: 0, 0, 0;
+    --kf-schatten-rgb-032d40: 0, 0, 0;
+    --kf-schatten-rgb-05202c: 0, 0, 0;
+    --kf-schatten-rgb-102a3e: 0, 0, 0;
+    --kf-schatten-rgb-13273a: 0, 0, 0;
+    --kf-glanz-rgb-ffffff: 34, 41, 49;
+  }
 }

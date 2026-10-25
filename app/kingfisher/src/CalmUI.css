@@ -16,6 +16,24 @@
   --calm-control: 14px;
   --calm-caption: 13px;
   --calm-heading: 26px;
+  /* Kante kleiner Eingabefelder des Bestands (Uhrzeit, Welt, Tageslage). */
+  --calm-feldkante: #b9c7c4;
+}
+/* Dunkelmodus (25.10.2026): dieselben Rollen in gedämpftem Schiefer. Der Akzent wird hell, der Text auf ihm dunkel. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calm-surface: #222931;
+    --calm-inset: #181d23;
+    --calm-soft: #2c3640;
+    --calm-ink: #e3e8ed;
+    --calm-muted: #a8b4c0;
+    --calm-line: #38414b;
+    --calm-primary: #96bde0;
+    --calm-on-primary: #0f1923;
+    --calm-link: #96bde0;
+    --calm-shadow: 0 1px 3px rgba(0,0,0,.3);
+    --calm-feldkante: #4a5562;
+  }
 }
 /* Die Landschaft steht nur noch im Kopf von Heute (Grundlage.css, docs/16-gestaltung.md). */
 .shell { isolation: isolate; }
@@ -58,7 +76,7 @@
   min-height: 42px; border-radius: 10px; padding: 9px 14px; font-size: var(--calm-control); line-height: 1.5; font-weight: 500;
 }
 .shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action) {
-  background: var(--calm-primary); color: var(--calm-on-primary); border-color: var(--calm-primary); box-shadow: 0 2px 5px rgba(5,32,44,.10);
+  background: var(--calm-primary); color: var(--calm-on-primary); border-color: var(--calm-primary); box-shadow: 0 2px 5px rgba(var(--kf-schatten-rgb-05202c),.10);
 }
 .shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr) {
   background: var(--calm-soft); border-color: transparent; color: var(--calm-ink);
@@ -66,7 +84,7 @@
 .shell .secondary-action.decision-confirm { color: var(--kf-schrift-bf3b44); border-color: var(--kf-rand-bf3b44); }
 .shell button:not(:disabled) { cursor: pointer; }
 .shell :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--calm-link); outline-offset: 3px; }
-.shell .sidebar :is(button, a):focus-visible { outline-color: #a2d8de; }
+.shell .sidebar :is(button, a):focus-visible { outline-color: var(--nordic-nav-fokus); }
 .shell :is(input, select, textarea) { font-family: 'Inter', sans-serif; }
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input) {
   border-radius: 11px; border-color: var(--calm-line); background: var(--calm-surface); color: var(--calm-ink); font-size: 14px;
@@ -99,7 +117,7 @@
 /* Ruhige Auswahlleisten statt durchgehender Tabellenlinien. */
 .task-tabs, .profile-tabs, .settings-section-nav, .view-switch {
   display: flex; flex-wrap: wrap; gap: 6px; width: fit-content; max-width: 100%; padding: 6px; margin-bottom: 22px;
-  border: 1px solid var(--calm-line); border-radius: 23px; background: var(--calm-surface); box-shadow: 0 2px 5px rgba(5,32,44,.05);
+  border: 1px solid var(--calm-line); border-radius: 23px; background: var(--calm-surface); box-shadow: 0 2px 5px rgba(var(--kf-schatten-rgb-05202c),.05);
 }
 .task-tabs button, .profile-tabs button, .settings-section-nav button, .view-switch button {
   min-height: 42px; padding: 10px 18px; border: 0; border-radius: 18px; background: transparent; color: var(--calm-muted); font-size: 13px; font-weight: 500;
@@ -180,7 +198,7 @@
 .history-tools { justify-content: flex-start; margin-bottom: 22px; }
 .history-search { width: min(100%,560px); height: 46px; border-radius: 16px; padding: 0 16px; }
 .history-search input { font-size: 14px; }
-.history-create { width: auto; min-height: 44px; padding: 0 18px; border-radius: 18px; display: flex; gap: 10px; color: #f4faf9; font-size: 13px; }
+.history-create { width: auto; min-height: 44px; padding: 0 18px; border-radius: 18px; display: flex; gap: 10px; color: var(--kf-schrift-f4faf9); font-size: 13px; }
 .history-list { max-width: none; margin: 0; padding: 12px 24px; }
 .history-row { min-height: 96px; padding: 22px 8px; }
 .history-row:last-child { border-bottom: 0; }
@@ -199,7 +217,7 @@
 .message { border-radius: 16px; padding: 24px; max-width: 92%; }
 .message p { font-size: var(--calm-text); line-height: 1.75; }
 .message.assistant { background: var(--calm-surface); box-shadow: var(--calm-shadow); }
-.message.user { background: #063e55; color: #f4faf9; }
+.message.user { background: var(--kf-flaeche-063e55); color: var(--kf-schrift-f4faf9); }
 .thread-command { left: 498px; right: 24px; bottom: 24px; }
 .conversation-command { height: 60px; border-radius: 16px; box-shadow: var(--calm-shadow); }
 .conversation-command .send-button { background: var(--calm-primary); border-radius: 14px; }
@@ -288,7 +306,7 @@
 .mitteilungen-uhrzeit { display: grid; gap: 6px; }
 .mitteilungen-uhrzeit label { font-size: 14px; font-weight: 600; }
 .mitteilungen-uhrzeit > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.mitteilungen-uhrzeit input[type="time"] { min-height: 40px; padding: 0 10px; border: 1px solid #b9c7c4; border-radius: 8px; font: 400 14px 'Inter', sans-serif; }
+.mitteilungen-uhrzeit input[type="time"] { min-height: 40px; padding: 0 10px; border: 1px solid var(--calm-feldkante); border-radius: 8px; font: 400 14px 'Inter', sans-serif; }
 /* Kalender wie Mail (KalenderMitAdresse.tsx, Befund 7). */
 .kalender-adresse { display: grid; gap: 10px; min-width: 0; }
 .kalender-adresse input { box-sizing: border-box; width: 100%; max-width: 100%; }

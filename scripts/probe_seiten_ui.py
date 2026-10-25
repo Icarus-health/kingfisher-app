@@ -15,7 +15,7 @@ Geprüft wird:
 * die behobenen Befunde, je ein Abschnitt unten (`befund_*`).
 * Konsole: leer. Erwartete Fehlantworten (eine absichtlich schweigende Quelle) stehen getrennt.
 
-Aufruf: `python scripts/probe_seiten_ui.py --ausgabe DIR [--chromium PFAD]` (vorher `npm run build`).
+Aufruf: `python scripts/probe_seiten_ui.py --ausgabe DIR [--chromium PFAD] [--farbschema dark]` (vorher `npm run build`).
 """
 from __future__ import annotations
 
@@ -145,6 +145,8 @@ def main() -> int:
     parser.add_argument('--ausgabe', type=Path, required=True)
     parser.add_argument('--chromium', default=CHROMIUM)
     parser.add_argument('--nur-breite', action='store_true', help='Nur die Breite messen (schneller).')
+    parser.add_argument('--farbschema', choices=('light', 'dark'), default='light',
+                        help='Farbschema des Systems (Dunkelmodus seit 25.10.2026, docs/16-gestaltung.md).')
     args = parser.parse_args()
     args.ausgabe.mkdir(parents=True, exist_ok=True)
 
@@ -188,7 +190,7 @@ def main() -> int:
 
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=args.chromium, args=['--no-sandbox'])
-        seite = browser.new_context(viewport={'width': 1280, 'height': 900}).new_page()
+        seite = browser.new_context(viewport={'width': 1280, 'height': 900}, color_scheme=args.farbschema).new_page()
 
         def konsole(m) -> None:
             if m.type not in ('error', 'warning'):

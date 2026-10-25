@@ -61,7 +61,7 @@
   min-height: var(--g-zeile); margin: 0; padding: 0 var(--g-a4) 0 var(--g-a1); border: 0; border-radius: 0; background: transparent;
   transition: background-color 150ms ease;
 }
-#root .task-row.compact:hover { background: rgba(23,38,53,.035); }
+#root .task-row.compact:hover { background: rgba(var(--g-tinte-rgb),.035); }
 #root .task-row.compact + .task-row.compact::before { content: ""; position: absolute; top: 0; right: 0; left: 52px; border-top: 1px solid var(--g-linie); }
 #root .task-row.compact > .task-check { grid-column: 1; grid-row: 1; }
 #root .task-row.compact > .task-copy { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 10px 0; }
@@ -88,7 +88,7 @@
 }
 #root .task-row .task-check::before {
   content: ""; grid-area: 1 / 1; box-sizing: border-box; width: 22px; height: 22px; border-radius: 50%;
-  border: 1.5px solid rgba(23,38,53,.3); background: var(--g-flaeche); transition: border-color 150ms ease, background-color 150ms ease;
+  border: 1.5px solid rgba(var(--g-tinte-rgb),.3); background: var(--g-flaeche); transition: border-color 150ms ease, background-color 150ms ease;
 }
 #root .task-row .task-check:hover:not(:disabled)::before { border-color: var(--g-akzent); background: var(--g-getoent); }
 #root .task-row .task-check:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -4px; }
@@ -180,7 +180,7 @@
   border: 0; background: transparent; color: var(--g-tinte); font: 500 15px/1.35 var(--g-schrift); text-align: left; cursor: pointer;
 }
 #root .task-aufklapper::after {
-  content: ""; margin-left: auto; margin-right: 6px; width: 7px; height: 7px; box-sizing: border-box; border: solid rgba(23,38,53,.4);
+  content: ""; margin-left: auto; margin-right: 6px; width: 7px; height: 7px; box-sizing: border-box; border: solid rgba(var(--g-tinte-rgb),.4);
   border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); transition: transform var(--g-bewegung);
 }
 #root .task-aufklapper[aria-expanded="true"]::after { transform: translateY(-2px) rotate(45deg); }
@@ -242,8 +242,8 @@
 /* Die Auswahl klebt beim Rollen unten, damit „Auswahl prüfen“ immer erreichbar ist. */
 #root main.aufgaben .task-vorschlaege-auswahl {
   position: sticky; bottom: var(--g-a4); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3);
-  margin: 0 0 var(--g-a3); padding: var(--g-a2) var(--g-a3); border-radius: var(--g-radius-flaeche); background: rgba(255,255,255,.92);
-  -webkit-backdrop-filter: saturate(180%) blur(16px); backdrop-filter: saturate(180%) blur(16px); box-shadow: 0 0 0 1px rgba(23,38,53,.06), 0 6px 20px rgba(23,38,53,.1);
+  margin: 0 0 var(--g-a3); padding: var(--g-a2) var(--g-a3); border-radius: var(--g-radius-flaeche); background: rgba(var(--g-flaeche-rgb),.92);
+  -webkit-backdrop-filter: saturate(180%) blur(16px); backdrop-filter: saturate(180%) blur(16px); box-shadow: 0 0 0 1px rgba(var(--g-schatten-rgb),.06), 0 6px 20px rgba(var(--g-schatten-rgb),.1);
 }
 #root main.aufgaben .task-vorschlaege-auswahl small { flex: 1 1 220px; font: var(--g-fussnote); color: var(--g-leise); }
 #root main.aufgaben .task-vorschlaege-seiten { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a2); margin: var(--g-a3) 0 0; font: var(--g-neben); color: var(--g-leise); }
@@ -260,7 +260,7 @@
 #root main.aufgaben .task-vorschlag h3 { margin: 4px 0 0; font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); overflow-wrap: anywhere; }
 #root main.aufgaben .task-vorschlag .task-vorschlag-meta { margin: 0; font: var(--g-neben); color: var(--g-leise); }
 #root main.aufgaben .task-vorschlag .suggestion-time-badge { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; background: none; font: var(--g-fussnote); color: var(--g-leise); }
-#root main.aufgaben .task-vorschlag .suggestion-time-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(23,38,53,.3); }
+#root main.aufgaben .task-vorschlag .suggestion-time-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: rgba(var(--g-tinte-rgb),.3); }
 #root main.aufgaben .task-vorschlag .suggestion-time-pruefen::before { background: var(--g-akzent); }
 #root main.aufgaben .task-vorschlag .suggestion-evidence { width: 100%; margin: 0; padding: 0; border: 0; background: none; }
 #root main.aufgaben .task-vorschlag .suggestion-evidence > summary { display: flex; align-items: center; min-height: 36px; font: 500 14px/1.35 var(--g-schrift); color: var(--g-verweis); }
@@ -309,7 +309,7 @@
 #root main.aufgaben .goal-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); margin-top: var(--g-a1); }
 #root main.aufgaben .goal-aktionen .text-action { font-size: 14px; }
 #root main.aufgaben .goal-row .decision-create-form { width: 100%; box-sizing: border-box; margin: var(--g-a2) 0; padding: var(--g-a4); background: var(--g-grund); box-shadow: none; }
-#root main.aufgaben .goal-rueckfrage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: rgba(191,59,68,.05); }
+#root main.aufgaben .goal-rueckfrage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); padding: var(--g-a3) var(--g-a4); border-radius: var(--g-radius-bedien); background: rgba(var(--g-rot-rgb),.05); }
 #root main.aufgaben .goal-rueckfrage p { flex-basis: 100%; margin: 0; font: var(--g-neben); color: var(--g-tinte); }
 #root main.aufgaben :is(.goal-gespeichert, .goal-fehler, .goal-formular-satz) { margin: 0; font: var(--g-neben); }
 #root main.aufgaben .goal-fehler { color: var(--g-rot); }

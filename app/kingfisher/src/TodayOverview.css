@@ -26,7 +26,7 @@
 .today-landscape {
   position: absolute; inset: 0 0 auto; z-index: -1; height: 264px; pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(245,246,248,.62) 0%, rgba(245,246,248,.18) 45%, rgba(245,246,248,0) 70%),
+    linear-gradient(90deg, rgba(var(--g-grund-rgb),.62) 0%, rgba(var(--g-grund-rgb),.18) 45%, rgba(var(--g-grund-rgb),0) 70%),
     url('/03_Media/Approved/landscape-calm-page-v1.png') center 8% / cover no-repeat;
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 96%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 96%);
@@ -69,10 +69,10 @@
 .today-command { margin: 0; }
 #root .today-command .command-bar {
   height: 60px; gap: var(--g-a3); margin: 0; padding: 0 var(--g-a2) 0 var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche);
-  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: var(--g-schatten), 0 6px 20px rgba(23,38,53,.06);
+  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: var(--g-schatten), 0 6px 20px rgba(var(--g-schatten-rgb),.06);
 }
 #root .today-command .command-bar input { font: var(--g-text); font-size: 17px; color: var(--g-tinte); }
-#root .today-command .command-bar input::placeholder { color: #8592a0; }
+#root .today-command .command-bar input::placeholder { color: var(--g-platzhalter); }
 #root .today-command .command-bar > .interface-icon { color: var(--g-leise); }
 #root .today-command .command-bar kbd { border-color: var(--g-linie); color: var(--g-leise); font-family: var(--g-schrift); font-size: 11px; }
 #root .today-command .command-bar:focus-within { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
@@ -111,10 +111,10 @@
 .today-item-text h3 { margin: 0; font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); overflow-wrap: anywhere; }
 .today-item-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
 .today-item-meta > span + span::before { content: "·"; margin-right: 6px; }
-.today-item-meta > .today-review-badge { padding: 0 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.6 var(--g-schrift); }
+.today-item-meta > .today-review-badge { padding: 0 8px; border-radius: 6px; background: var(--g-warnung-grund); color: var(--g-warnung); font: 500 13px/1.6 var(--g-schrift); }
 .today-item-meta > .today-review-badge::before { content: none; }
 /* Dieselbe Warnung an einer Aufgabe: leise in ihrer Zeile, aber nicht zu übersehen. */
-#root .today-attention-task .task-meta > .task-hinweis-zusatz { padding: 0 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.6 var(--g-schrift); }
+#root .today-attention-task .task-meta > .task-hinweis-zusatz { padding: 0 8px; border-radius: 6px; background: var(--g-warnung-grund); color: var(--g-warnung); font: 500 13px/1.6 var(--g-schrift); }
 #root .today-attention-task .task-meta > .task-hinweis-zusatz::before { content: none; }
 #root .today-attention-task .task-meta > .task-hinweis-zusatz:not(:first-child) { margin-left: 6px; }
 .today-item-actions { grid-column: 3; grid-row: 1; display: flex; justify-content: flex-end; min-width: 0; padding: var(--g-a1) 0; }
@@ -218,7 +218,7 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
 
 /* ── Laden und Fehler ─────────────────────────────────────────────────────────────────────────────────────────── */
 #root .today-page.loading .skeleton-hero { display: grid; align-content: start; gap: var(--g-a3); height: auto; min-height: 236px; background: transparent; }
-.today-page.loading .skeleton-hero i, .today-page.loading .skeleton-card i { display: block; height: 14px; border-radius: 7px; background: rgba(23,38,53,.07); }
+.today-page.loading .skeleton-hero i, .today-page.loading .skeleton-card i { display: block; height: 14px; border-radius: 7px; background: rgba(var(--g-tinte-rgb),.07); }
 .today-page.loading .skeleton-hero i:first-child { width: min(320px, 70%); height: 40px; border-radius: 10px; }
 .today-page.loading .skeleton-hero i:last-child { width: min(220px, 50%); }
 .today-page.loading .skeleton-command { height: 60px; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
@@ -251,7 +251,7 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
   /* Ohne Seitenleiste ist das Bild breiter als hoch genug: ein heller Schleier hält den Gruß lesbar. */
   .today-landscape {
     background:
-      linear-gradient(180deg, rgba(245,246,248,.74) 0%, rgba(245,246,248,.55) 50%, rgba(245,246,248,.15) 100%),
+      linear-gradient(180deg, rgba(var(--g-grund-rgb),.74) 0%, rgba(var(--g-grund-rgb),.55) 50%, rgba(var(--g-grund-rgb),.15) 100%),
       url('/03_Media/Approved/landscape-calm-page-v1.png') center 30% / cover no-repeat;
   }
 }
@@ -282,10 +282,10 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
 /* ── Mail-Dialog auf Heute (H17): ein ruhiges Blatt, schmal von unten. Den Leser selbst gestaltet MailReader.css. ── */
 .today-mail-dialog {
   width: min(860px, calc(100vw - 48px)); max-height: calc(100dvh - 48px); padding: 0; border: 0; border-radius: var(--g-radius-flaeche);
-  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: 0 24px 64px rgba(23,38,53,.22), 0 0 0 1px rgba(23,38,53,.06);
+  background: var(--g-flaeche); color: var(--g-tinte); box-shadow: 0 24px 64px rgba(var(--g-schatten-rgb),.22), 0 0 0 1px rgba(var(--g-schatten-rgb),.06);
   overflow: auto; overscroll-behavior: contain;
 }
-.today-mail-dialog::backdrop { background: rgba(23,38,53,.32); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.today-mail-dialog::backdrop { background: rgba(var(--g-schatten-rgb),.32); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: no-preference) {
   .today-mail-dialog[open] { animation: today-blatt var(--g-bewegung); }
 }
@@ -301,3 +301,9 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
 .development-links a { padding: 8px 0; }
 .development-page > .decision-controls { margin-top: 24px; }
 .memory-area-tabs button:disabled { cursor: wait; opacity: .65; }
+
+/* Dunkelmodus (25.10.2026): Die Landschaft bleibt, unter einem Schleier. Der Verlauf oben läuft schon in den dunklen
+   Grund aus (--g-grund-rgb); dazu wird das Bild gedämpft, damit der Gruß in heller Tinte darauf ruhig lesbar ist. */
+@media (prefers-color-scheme: dark) {
+  .today-landscape { filter: brightness(.5) saturate(.8); }
+}

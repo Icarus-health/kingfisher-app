@@ -14,7 +14,7 @@ installPlacesMapFactory((container,callbacks)=>{
   let preview:L.CircleMarker|null=null;
   map.on('click',(event:L.LeafletMouseEvent)=>{
     if(!pinning) return;
-    preview?.remove();preview=L.circleMarker(event.latlng,{color:'#317c91',radius:9}).addTo(map);
+    preview?.remove();preview=L.circleMarker(event.latlng,{className:'kf-ort kf-ort-neu',radius:9}).addTo(map);
     callbacks.pin(event.latlng.lat,event.latlng.lng);
   });
   return {
@@ -22,7 +22,8 @@ installPlacesMapFactory((container,callbacks)=>{
       pinning=canPin;layers.clearLayers();
       if(!pinning){preview?.remove();preview=null;}
       points.forEach(point=>{
-        const marker=L.circleMarker([point.lat,point.lng],{radius:point.id===selected?10:7,color:point.id===selected?'#1e6577':'#427c8b',fillOpacity:.8}).addTo(layers);
+        // Farben als Rollen (Grundlage.css, --g-ort*): CSS zeichnet Strich und Füllung, hell wie dunkel.
+        const marker=L.circleMarker([point.lat,point.lng],{radius:point.id===selected?10:7,className:point.id===selected?'kf-ort kf-ort-gewaehlt':'kf-ort',fillOpacity:.8}).addTo(layers);
         const text=document.createElement('span');text.textContent=point.name;
         marker.bindTooltip(text);marker.on('click',event=>{L.DomEvent.stopPropagation(event);callbacks.select(point.id);});
         const path=marker.getElement();

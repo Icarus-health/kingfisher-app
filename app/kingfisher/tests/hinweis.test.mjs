@@ -190,8 +190,10 @@ test("Anzeige: Escape schließt, Maus und Fokus halten, ⌘Z wirkt, der Fokus ko
 test("Stile: unten mittig, über allem, 44-px-Knopf, leise Bewegung, die bei reduzierter Bewegung entfällt", () => {
   const css = ohneKommentare(quelle("Grundlage.css"));
   assert.match(css, /\.g-hinweis-ort \{ position: fixed; z-index: 60; left: 0; right: 0; bottom: max\(var\(--g-a5\), env\(safe-area-inset-bottom\)\); display: flex; justify-content: center;/);
-  assert.match(css, /\.g-hinweis \{[^}]*max-width: min\(560px, 100%\);[^}]*background: var\(--g-tinte\); color: var\(--g-auf-akzent\);[^}]*animation: g-hinweis-kommt var\(--g-bewegung\) both;/);
+  assert.match(css, /\.g-hinweis \{[^}]*max-width: min\(560px, 100%\);[^}]*background: var\(--g-hinweis-grund\); color: var\(--g-hinweis-tinte\);[^}]*animation: g-hinweis-kommt var\(--g-bewegung\) both;/);
   assert.match(css, /\.g-hinweis-knopf \{[^}]*min-height: var\(--g-ziel\);/);
+  // Hell dunkel auf hellem Grund (Tinte), im Dunkelmodus eine erhöhte Fläche (V5).
+  assert.match(css, /--g-hinweis-grund: var\(--g-tinte\);\s*--g-hinweis-tinte: var\(--g-auf-akzent\);/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^@]*\n  \.g-hinweis \{ animation: none; \}\n\}/);
   // Die alte Meldung der Akte ist im Baustein aufgegangen.
   assert.doesNotMatch(quelle("AkteAbschnitte.css"), /akte-meldung/);

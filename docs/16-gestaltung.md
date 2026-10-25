@@ -70,6 +70,8 @@ Entscheidung ersetzt die bisherige automatische Tag-/Nachtpalette. Auch bei
 dunkler Systemeinstellung bleiben die Arbeitsflächen hell; die Navigation
 bleibt dunkel. Dadurch ändern sich Leseflächen und ausgewählte Zustände nicht
 unbemerkt mit dem Systemmodus.
+*(Am 25.10.2026 ersetzt: Die Arbeitsflächen folgen seitdem dem Systemmodus, siehe „Dunkelmodus vom 25.10.2026“.
+Die Navigation bleibt dunkel; die Werte unten gelten weiter für den hellen Modus.)*
 
 | Rolle | Wert |
 | --- | --- |
@@ -243,6 +245,59 @@ verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt
 abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
 der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
 Gruppierungen im Gedächtnis) bleiben, wo sie sind.
+
+## Dunkelmodus vom 25.10.2026
+
+**Entscheidung des Nutzers** am 25.10.2026 („Mach alles“ auf die Frage nach dem Dunkelmodus): Die Arbeitsflächen folgen
+dem Systemmodus des Macs (`prefers-color-scheme`). Das ersetzt die Festlegung vom 15.10. („auch bei dunkler
+Systemeinstellung bleiben die Arbeitsflächen hell“). Der helle Modus bleibt Pixel für Pixel, wie er war; die
+Navigation bleibt in beiden Modi dunkel.
+
+**Alle Farben sind Rollen.** Farbwerte stehen nur noch in den `:root`-Blöcken von `theme.css` (Werte des Bestands),
+`CalmUI.css` (`--calm-*`), `NordicWorkspace.css` (`--nordic-*`) und `Grundlage.css` (`--g-*`), jeweils mit einem
+Block `@media (prefers-color-scheme: dark) { :root { … } }` darunter. Alles andere – die übrigen CSS-Dateien,
+Inline-Stile, Skripte (Kalender, Karte) – benutzt Rollen; Hauch, Haarlinie und Schatten mit eigener Deckkraft als
+`rgba(var(--g-tinte-rgb), .05)` bzw. `rgba(var(--g-schatten-rgb), .06)`. `tests/farbrollen.test.mjs` verbietet harte
+Werte außerhalb dieser Blöcke (auch Ersatzwerte in `var(--x, #…)`) und prüft, dass jede helle Rolle einen dunklen Wert
+hat.
+
+| Rolle | hell | dunkel |
+| --- | --- | --- |
+| Grund `--g-grund`, `--calm-inset` | `#f5f6f8` | `#181d23` (gedämpftes Schiefer, kein Schwarz) |
+| Fläche `--calm-surface` | `#ffffff` | `#222931` (eine Stufe heller als der Grund) |
+| Weich `--calm-soft` | `#e7eff8` | `#2c3640` |
+| Tinte `--calm-ink` | `#172635` | `#e3e8ed` (nicht reinweiß) |
+| Leise `--calm-muted` | `#5e6c7c` | `#a8b4c0` |
+| Linie `--calm-line`, `--g-linie` | `#dfe5eb`, Tinte 8 % | `#38414b`, Tinte 10 % |
+| Akzent und Verweis `--calm-primary`, `--calm-link` | `#103e5c`, `#18578c` | `#96bde0` (ein Akzent; der Text darauf `#0f1923`) |
+| Auswahl `--nordic-selection` / Kante | `#e8f2fd` / `#2869aa` | `#263a4e` / `#79aee0` |
+| Rot `--g-rot`, Grün `--g-gruen` | `#bf3b44`, `#197a58` | `#f08b8b`, `#6ccb9c` |
+| Warnung `--g-warnung` auf `--g-warnung-grund` | `#704b0b` auf `#fff2d8` | `#e6c27a` auf `#3a3121` |
+| Hinweis `--g-hinweis-grund` | Tinte | `#39434f` (erhöht, kein heller Balken) |
+| Gewähltes Segment `--g-segment-gewaehlt` | Fläche | `#3a4450` |
+| Navigation `--nordic-nav` | `#082a3d` | gleich, dazu eine Haarlinie zur Arbeitsfläche |
+
+**Kontrast.** Text mindestens 4,5:1, große Schrift und Bedienelemente 3:1 (WCAG AA), in beiden Modi; die Hauptpaare
+rechnet der Test nach, die Seiten misst `kontrast.js` im Rundgang (Bericht V5).
+
+**Sonderfälle.**
+
+- *Landschaft im Kopf von Heute:* Der Verlauf läuft in den Grund des Modus aus (`--g-grund-rgb`); im Dunkeln liegt
+  ein Schleier darüber (`filter: brightness(.5) saturate(.8)`), der Gruß steht in heller Tinte. Der Eisvogel bleibt.
+- *Seitenleiste:* bleibt dunkel und unverändert; eine Haarlinie (`--nordic-nav-glanz`) trennt sie vom dunklen Grund.
+- *Karte (Leaflet):* Die Kacheln bleiben, wie OpenStreetMap sie liefert, und werden im Dunkeln nur gedämpft; Knöpfe,
+  Quellenzeile und Namensschild in den Flächen der App. Die Punkte (`--g-ort*`) stehen auf den hellen Kacheln und
+  bleiben deshalb gleich.
+- *Mailinhalt:* Kingfisher zeigt Mails als Text in den Flächen der App, nicht als HTML; im Dunkeln ist er helle Tinte
+  auf dunkler Fläche. Sollte HTML je gezeigt werden, dann auf einer eigenen hellen Fläche.
+- *Kalenderfarben:* sieben Rollen `--g-kal-farbe-1 … 7`, `calendarColor()` liefert `var(--g-kal-farbe-N)`; dunkel
+  heller, mindestens 3:1 auf der Fläche.
+- *Schalter:* grau aus, Akzent an, der Knopf bleibt weiß. *Fokus:* 2 px in der Auswahlkante. *Bilder* (Eisvogel,
+  Landschaft, Logo, Symbole) bleiben, wie sie freigegeben sind.
+
+**Ausnahmen** (in `tests/farbrollen.test.mjs`): Masken (`mask-image`) nutzen nur die Deckkraft; `leaflet.css` aus dem
+Paket wird überschrieben, nicht geändert; die Fensterleiste (`theme-color` in `index.html`) trägt die Farbe der
+Navigation.
 
 ## Wo der Grundsatz vorgeht
 

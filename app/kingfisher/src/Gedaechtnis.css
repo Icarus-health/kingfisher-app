@@ -21,7 +21,7 @@
 #root main.memory-page-workspace .memory-filter > .g-segmente > .g-segment[aria-selected="true"],
 #root main .gd-bereiche > .g-segmente > .g-segment[aria-selected="true"],
 #root main.profile-page .g-segmente > .g-segment[aria-selected="true"] {
-  background: var(--g-flaeche); color: var(--g-tinte); font-weight: 600; box-shadow: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06);
+  background: var(--g-segment-gewaehlt); color: var(--g-tinte); font-weight: 600; box-shadow: var(--g-schatten-segment);
 }
 
 /* Die leise Zeile am Ende: seltene Ansichten und Pflege als kleine Verweise, ohne Rahmen. */
