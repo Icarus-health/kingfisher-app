@@ -187,6 +187,8 @@
   .akte-strahl { --akte-spurname: 0px; }
   .akte-spur { grid-template-columns: minmax(0, 1fr); }
   .akte-spur-name { margin-top: 4px; }
+  /* Schmal liegen die Monatsmarken sonst aufeinander („Jan. 25Apr. 25“): nur jede zweite. */
+  .akte-achse span:nth-child(even) { display: none; }
 }
 
 /* Im Profil (kompakt): die leisen Aufklapper mit Abstand, damit sie nicht an der nächsten Gruppe kleben. */

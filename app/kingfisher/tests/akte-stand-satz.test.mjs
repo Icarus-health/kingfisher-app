@@ -141,4 +141,5 @@ test("V2: schmal steht das Bild klein über dem Namen, der Name in voller Breite
   assert.match(schmal, /\.akte\.akte-seite \.akte-kopf \{ flex-direction: column;/);
   const groesse = schmal.match(/\.akte\.akte-seite \.akte-kopf \.memory-avatar-editor \.memory-avatar-large \{ width: (\d+)px; height: (\d+)px;/);
   assert.ok(groesse && Number(groesse[1]) <= 56 && Number(groesse[2]) <= 56, "Bild höchstens 56 px");
+  assert.match(schmal, /\.akte-achse span:nth-child\(even\) \{ display: none; \}/, "Monatsmarken liegen schmal nicht aufeinander");
 });
