@@ -23,7 +23,9 @@ const summary=(project_id='p')=>({project_id,as_of:'2030-01-02T12:00:00+00:00',
 function nodes(node,type,out=[]){if(!node||typeof node!=='object')return out;
   if(node.type===type)out.push(node);
   for(const child of [node.props?.children].flat(10))nodes(child,type,out);return out;}
-function button(tree,text){return nodes(tree,'button').find(n=>renderToStaticMarkup(n).includes(text));}
+// Die Aufgaben stehen als Baustein `Zeile` (V4): ein Knopf über die ganze Zeile.
+function zeilen(node,out=[]){if(!node||typeof node!=='object')return out;if(node.type?.name==='Zeile')out.push(node);for(const child of [node.props?.children].flat(10))zeilen(child,out);return out;}
+function button(tree,text){return [...nodes(tree,'button'),...zeilen(tree)].find(n=>renderToStaticMarkup(n).includes(text));}
 async function driver(props){
   assert.ok(existsSync(new URL('../src/ProjectOverview.tsx',import.meta.url)),'projects need an actionable overview');
   const {ProjectOverview}=await server.ssrLoadModule('/src/ProjectOverview.tsx');

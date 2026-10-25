@@ -36,7 +36,8 @@ test('Heute: der Fuß und die Tageslage sind Zeilen einer Fläche, kein Dreieck 
   assert.doesNotMatch(heute, /<details className="today-activity/, 'Tageslage ohne Klappdreieck');
   assert.match(heute, /<button className="g-zeile today-activity-zeile" type="button" aria-expanded=\{activityOpen\}/);
   const fuss = heute.match(/export function TodayPersonal\(\) \{([\s\S]*?)\n\}/)[1];
-  assert.equal((fuss.match(/<a className="g-zeile" href="\/(?:development|world|wellbeing|review)"/g) ?? []).length, 4, 'vier ganze Zeilen');
+  // Der Baustein `Zeile` als Verweis (V4): eine ganze Zeile mit Pfeil je Bereich.
+  assert.equal((fuss.match(/<Zeile href="\/(?:development|world|wellbeing|review)" titel="[^"]+" \/>/g) ?? []).length, 4, 'vier ganze Zeilen');
   assert.doesNotMatch(fuss, /today-text-link/);
 });
 

@@ -33,7 +33,8 @@ function driver(){
 }
 const tick=async()=>{for(let i=0;i<3;i++)await new Promise(setImmediate);};
 function buttons(node,result=[]){if(!node||typeof node!=='object')return result;if(node.type==='button')result.push(node);
-  for(const child of [node.props?.children].flat(10))buttons(child,result);return result;}
+  // Die Aktion des Unterkopfs (Baustein, V4) steht in seinem Prop `aktion`.
+  for(const child of [node.props?.children,node.props?.aktion].flat(10))buttons(child,result);return result;}
 const button=(tree,label)=>buttons(tree).find(x=>[x.props.children].flat(5).join('')===label);
 
 test('failed refresh after enabling marks the retained counts stale and disables stale toggles; retry restores them',async()=>{

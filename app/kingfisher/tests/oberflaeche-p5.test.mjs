@@ -31,13 +31,15 @@ test("P5: jeder feste Verweis in die Einstellungen führt an einen Ort, den es g
 });
 
 test("P5: Schalter sind Umlegeschalter rechts in ihrer Zeile, in den Einstellungen und im Assistenten", () => {
-  const css = ohneKommentare(quelle("Einstellungen/Einstellungen.css"));
-  assert.match(css, /#root :is\(\.settings-shell, \.erststart-shell\) input\[type="checkbox"\]\[role="switch"\] \{[^}]*appearance: none/);
+  // Seit V4 der Baustein `Schalter` mit seinen Stilen in Grundlage.css (dieselbe Schärfe, gilt in jeder Fläche).
+  const css = ohneKommentare(quelle("Grundlage.css"));
+  assert.match(css, /#root \.shell input\[type="checkbox"\]\[role="switch"\] \{[^}]*appearance: none/);
+  assert.doesNotMatch(ohneKommentare(quelle("Einstellungen/Einstellungen.css")), /input\[type="checkbox"\]\[role="switch"\] \{/, "kein lokaler Nachbau");
   assert.match(css, /label:has\(> input\[role="switch"\]\) > input\[role="switch"\] \{ order: 2; margin-left: auto; \}/);
   assert.match(css, /input\[type="checkbox"\]\[role="switch"\]:checked \{ background: var\(--g-akzent\); \}/);
   // Jeder Schalter unter „Was Kingfisher darf“ und „Bilder und Karte“ ist ein switch mit Titel und dem Satz, was den Rechner verlässt.
   const online = quelle("WorkspaceOnlineSettings.tsx");
-  assert.equal((online.match(/role="switch"/g) ?? []).length, 2);
+  assert.equal((online.match(/<Schalter /g) ?? []).length, 2);
   assert.doesNotMatch(online, /Auswahl speichern/, "ein Umlegen gilt sofort, kein eigener Speichern-Knopf");
   assert.match(online, /OpenStreetMap deine Internetadresse/);
   assert.match(online, /keine Mails, Namen oder Rechnungen übertragen/);

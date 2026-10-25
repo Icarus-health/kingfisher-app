@@ -155,6 +155,18 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
 | `Segmente` | `optionen` (`{wert, titel, zahl?, deaktiviert?}`), `wert`, `onWahl(wert)`, `label`, `kompakt?` | `g-segmente`, `g-segment`, `g-segment-zahl`; Pille, rollt waagrecht statt umzubrechen (`data-rollt="waagrecht"`, Rand blendet aus, wo etwas verborgen ist); Pfeiltasten, Pos1, Ende (Modell `segmentTasten.ts`); Zahl nur über null |
 | `Leer` | `satz` (genau einer), `zeichen?` (Name eines `InterfaceIcon`), `aktion?` (höchstens ein Knopf) | `g-leer`, `-zeichen`, `-satz`, `-aktion` |
 | `Aufklapper` | `titel`, `neben?` (leise rechts), `offen?`, `onToggle?(offen)`, `children` | `g-aufklapper`, `-titel`, `-neben`, `-inhalt` |
+| `Schalter` (V4) | `titel`, `satz?`, `an`, `onWechsel(an)`, `deaktiviert?` | jedes `input[role=switch]` ist ein Umlegeschalter rechts in seiner Zeile (`#root .shell …`); vorher lokal in `Einstellungen.css` |
+| `Unterkopf` (V4) | `titel`, `zeile?`, `aktion?` | `g-unterkopf`, `g-unterkopf-zeile`; Kopf einer Unteransicht (Gedächtnis: Verarbeitung, Aussagen prüfen) |
+| `Bestaetigung` (V4) | `titel`, `label`, `knoepfe?`, `children` (der Satz als `<strong>`) | `g-bestaetigung`, `-titel`, `-knoepfe`; Freigabe, Gedächtnisvorschlag, Vorschlag für die Akte |
+| `HinweisAnzeige` (V4) | einmal in `main.tsx`; die Seiten rufen `zeigeHinweis({ text, rueckgaengig?, danach?, verweis?, fehler? })` | `g-hinweis-ort`, `g-hinweis`, `-text`, `-aktionen`, `-punkt`, `-knopf` |
+
+Seit V4 (25.10.2026) kann `Gruppe` mehr: `zahl?` und `aktion?` rechts im Kopf, `fussAktion?` rechts unter der Fläche
+neben der Fußnote (Klassen `g-gruppe-zahl`, `g-gruppe-aktion`, `g-gruppe-fuss`; so die Zugänge der Einstellungen),
+`label?` und `flaecheKlasse?`. `Zeile` kann `links?` (ein eigenes Bedienelement links, etwa der Kreis zum Erledigen:
+der Knopf in der Mitte deckt die Zeile, das Element liegt darüber; Klassen `g-zeile-bedient`, `g-zeile-ziel`,
+`g-zeile-links`, `g-zeile-ueber` – die Aufgabenzeile benutzt diese Mechanik), `label?`, `wertZeit?` und `wertKlasse?`.
+Die feinen Rastermaße des Kalenders stehen als `--g-kal-*` (Zeitspalte, Tag, Stunde, Punkte, Monatstag, Jahr); in der
+Jahresansicht ist jeder Tag ein Ziel von 44 px (`--g-kal-jahr-tag`), schmal steht ein Monat je Zeile.
 
 **Knöpfe** sind Klassen, keine Bausteine: `g-knopf` (gefüllt, genau einer je Ansicht), `g-knopf-getoent` (der zweite),
 `g-knopf-schlicht` (nur Text). Höhe 44, mit `g-kompakt` 36. Was etwas unwiderruflich entfernt, bleibt rot.
@@ -191,6 +203,46 @@ Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschr
   (`data-rand-links`/`data-rand-rechts`). `scripts/probe_seiten_ui.py` zählt die Glieder einer solchen Leiste nicht als
   Überstand, misst aber die Leiste selbst und die Seite: Die Seite rollt nie seitlich. Die alten Reiterleisten
   (`.task-tabs` usw.) gelten als solche, bis die Seiten den Baustein einsetzen.
+
+## Hinweis mit „Rückgängig“ (25.10.2026, V4)
+
+Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer Zeile, was passiert ist, und bietet
+„Rückgängig“ an – wie Mail auf dem iPhone: „„Angebot prüfen“ erledigt · Rückgängig“ (CLAUDE.md, Prüfpunkte 4 und 5).
+
+- **Ein Ort, ein Hinweis.** Unten mittig über allem, dunkel (`--g-tinte`), schmal in voller Breite mit 16 px Rand. Ein
+  neuer Hinweis ersetzt den alten. Er gehört der App, nicht der Seite: Er bleibt, wenn die Zeile mit der Aktion
+  verschwindet oder die Seite wechselt (etwa nach „Akte anlegen“).
+- **Zeit.** Nach 6 s geht er von selbst; Maus darauf oder sichtbarer Tastaturfokus halten ihn, danach laufen die 6 s
+  von vorn. Ein Fehler (auch ein misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit
+  „Erneut versuchen“) steht 10 s und wird als Fehler angesagt.
+- **Bedienung.** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Wer mit der Tastatur
+  arbeitet und dessen Knopf mit der Zeile verschwunden ist, bekommt den Fokus auf „Rückgängig“; mit der Maus nie.
+- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt;
+  „Rückgängig“ nennt seine Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Nie erfunden.** Ein Hinweis hat nur dann „Rückgängig“, wenn es dafür schon einen Weg im Sidecar gibt (die Gegenroute).
+  Wo es keinen gibt, sagt er nur, was passiert ist, und eine Rückfrage davor bleibt.
+
+| Aktion | Weg zurück (Sidecar) |
+| --- | --- |
+| Aufgabe erledigen / wieder öffnen (Liste, Heute, Aufgabe) | `POST /tasks/{id}/reopen` ↔ `/done` |
+| Aufgabe verwerfen / wieder aufnehmen | `POST /tasks/{id}/reopen` ↔ `/drop` |
+| „Warte auf …“ / „Zurück zu mir“ | `POST /tasks/{id}/zurueckholen` ↔ `/warten` (mit dem bisherigen Namen) |
+| Aus deiner Post: „Ja, erledigt“ / „Ja, wieder bei mir“ | `POST /tasks/{id}/rueckgaengig` |
+| Akte: Erledigt, Gilt nicht mehr, Gilt weiter, Abgesagt; „Rückgängig“ an einer Zeile | `PUT /akten/entscheidung` mit dem Vorwert ↔ `DELETE /akten/entscheidung` |
+| Neue Akte? „Akte anlegen“ / „Nein danke“ (Akte und Heute) | `POST /akten/vorschlaege/{k}/zuruecknehmen` |
+| Kreis wählen, „Wieder offen lassen“ | `PUT /kreis` mit dem Kreis von vorher ↔ `DELETE /kreis` |
+| Art der Akte | `PUT /akten/art` mit der Art von vorher ↔ `DELETE /akten/art` |
+| Alle Kollegen-Vorschläge festlegen (jetzt ohne Rückfrage) | `DELETE /kreis/sammel?sammlung=…` |
+| Quelle: „Gehört nicht dazu“, „Doch zuordnen“, „Wer ist gemeint?“ | `PUT`/`DELETE /akten/quellen/{id}/zuordnung` |
+| Quelle einem Projekt zuordnen; weitere Mails desselben Absenders | `PUT /episodes/{id}/project` mit dem Projekt von vorher; `PUT /episodes/projects` |
+| Gruppenvorschlag für Organisationen ablehnen | `POST /organisation-group-suggestions/{id}/undo-dismissal` |
+
+Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt: Entscheidung zurücknehmen („Wirklich
+zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis
+verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt den Termin für den Vorschlag), Welt-Meldung
+abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
+der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
+Gruppierungen im Gedächtnis) bleiben, wo sie sind.
 
 ## Wo der Grundsatz vorgeht
 

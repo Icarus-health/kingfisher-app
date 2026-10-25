@@ -1,4 +1,5 @@
 import "./TodayOverview.css";
+import { Zeile } from "./grundlage";
 import {useState} from "react";
 import { TodayTaskRow } from "./TodayTaskRow";
 import { DetailPanel } from "./DetailPanel";
@@ -53,10 +54,10 @@ function kindLabel(item: Attention) {
 export function TodayPersonal() {
   return <nav className="g-gruppe today-personal" aria-label="Weitere Bereiche">
     <div className="g-flaeche">
-      <a className="g-zeile" href="/development"><span className="g-zeile-text"><span className="g-zeile-titel">Ziele, Gewohnheiten & Lernen</span></span><span className="g-zeile-pfeil" aria-hidden="true" /></a>
-      <a className="g-zeile" href="/world"><span className="g-zeile-text"><span className="g-zeile-titel">Öffentliches Wissen & Quellen</span></span><span className="g-zeile-pfeil" aria-hidden="true" /></a>
-      <a className="g-zeile" href="/wellbeing"><span className="g-zeile-text"><span className="g-zeile-titel">Gesundheit</span></span><span className="g-zeile-pfeil" aria-hidden="true" /></a>
-      <a className="g-zeile" href="/review"><span className="g-zeile-text"><span className="g-zeile-titel">Gedächtnis prüfen</span></span><span className="g-zeile-pfeil" aria-hidden="true" /></a>
+      <Zeile href="/development" titel="Ziele, Gewohnheiten & Lernen" />
+      <Zeile href="/world" titel="Öffentliches Wissen & Quellen" />
+      <Zeile href="/wellbeing" titel="Gesundheit" />
+      <Zeile href="/review" titel="Gedächtnis prüfen" />
     </div>
   </nav>;
 }

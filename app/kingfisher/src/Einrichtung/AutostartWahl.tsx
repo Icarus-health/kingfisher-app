@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
+import { Schalter } from "../grundlage";
 import {api, type AutostartStand} from "../api";
 import {autostartMeldung} from "./autostart";
 
@@ -40,11 +41,8 @@ export function AutostartWahl({beiAenderung, titel, satz}: {beiAenderung?: (stan
   }
 
   return <div className="autostart-wahl">
-    <label className="autostart-schalter">
-      <input type="checkbox" role="switch" checked={stand?.gewuenscht === true} disabled={!stand || !stand.verfuegbar || arbeitet}
-        onChange={event => void setzen(event.target.checked)} />
-      {satz ? <span><strong>{titel ?? "Beim Anmelden starten"}</strong><small>{satz}</small></span> : <span>{titel ?? "Beim Anmelden starten"}</span>}
-    </label>
+    <Schalter className="autostart-schalter" titel={titel ?? "Beim Anmelden starten"} satz={satz} an={stand?.gewuenscht === true}
+      deaktiviert={!stand || !stand.verfuegbar || arbeitet} onWechsel={an => void setzen(an)} />
     <p role="status" className="autostart-meldung">{autostartMeldung(stand)}</p>
     {fehler ? <p role="alert" className="settings-error">{fehler}</p> : null}
   </div>;

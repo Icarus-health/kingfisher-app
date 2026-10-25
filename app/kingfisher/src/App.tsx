@@ -32,7 +32,7 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
-import {Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
+import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
@@ -473,8 +473,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {message.metadata?.context?.routing && <details className="antwort-arbeitsweise"><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
                 {message.status === "error" && !message.metadata?.resolved_approval_id ? <small className="antwort-fehler">Antwort fehlgeschlagen.{" "}<button className="g-knopf-schlicht" disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
                 {data.action_requests?.filter((action) => action.message_id === message.id).map((action) => <ActionApprovalCard key={action.id} action={action} busy={sending} onResolve={resolveAction} />)}
-                {candidate ? <section className="memory-candidate" aria-label="Gedächtnisvorschlag">
-                  <span className="karte-titel">Gedächtnisvorschlag</span>
+                {candidate ? <Bestaetigung className="memory-candidate" label="Gedächtnisvorschlag" titel="Gedächtnisvorschlag">
                   <strong>{candidate.statement}</strong>
                   {candidate.evidence[0] ? <p className="memory-source">Aus diesem Gespräch: „{candidate.evidence[0].quote}“</p> : null}
                   {requiresReplacement ? <div className="memory-conflict"><p>Bestehender Stand:</p>{card?.conflicts.map((conflict) => <p key={conflict.id}>{conflict.statement}</p>)}</div> : null}
@@ -482,7 +481,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                   {candidate.state === "accepted" ? <p className="memory-decision" role="status">{memoryDecision}</p> : null}
                   {candidate.state === "rejected" ? <p className="memory-decision">Nicht gespeichert.</p> : null}
                   {candidate.state === "superseded" ? <p className="memory-decision">Durch einen anderen bestätigten Stand ersetzt.</p> : null}
-                  <div className="memory-actions">
+                  <div className="memory-actions g-bestaetigung-knoepfe">
                     {candidate.state === "pending" ? <>
                     <button className="memory-confirm" disabled={sending} onClick={() => decideMemory(candidate.id, requiresReplacement)} type="button">{requiresReplacement ? "Bestehenden Stand ersetzen" : card?.competing_count ? "Diesen Stand bestätigen" : "Bestätigen"}</button>
                     <button className="memory-reject" disabled={sending} onClick={() => rejectMemory(candidate.id)} type="button">Nicht speichern</button>
@@ -490,7 +489,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                     {candidate.state === "accepted" && (card?.claim?.status === "active" || card?.claim?.status === "disputed") ? <button className="memory-reject" disabled={sending} onClick={() => retractMemory(candidate.id)} type="button">Als falsch widerrufen</button> : null}
                     {card?.source_message_id && data.messages.some((item) => item.id === card.source_message_id) ? <button className="memory-reject" onClick={() => showMemorySource(card.source_message_id!)} type="button">Quelle anzeigen</button> : null}
                   </div>
-                </section> : null}
+                </Bestaetigung> : null}
               </article>;
             })}
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}

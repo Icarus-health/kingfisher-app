@@ -151,12 +151,12 @@ async function rowTree(props) {
 test('Listenzeile: Projekt nur wenn gesetzt, Aktionen per Tastatur erreichbar und nur bei Zeiger oder Fokus sichtbar', async () => {
   let tree = await rowTree({task: task('t', 'Unterlagen vorbereiten', '2030-09-30T10:00:00', {project_id: 'p'}), compact: true, onOpen() {}});
   assert.match(text(tree), /Rheinauenblick/);
-  const actions = nodes(tree, n => n.props?.className === 'task-row-actions');
+  const actions = nodes(tree, n => n.props?.className?.split?.(' ').includes('task-row-actions'));
   assert.equal(actions.length, 1, 'actions stay in the DOM, so Tab reaches them');
   assert.equal(nodes(actions[0], n => n.type === 'select').length, 1);
   assert.equal(nodes(actions[0], n => n.type === 'button' && text(n) === 'Warte auf …').length, 1);
   assert.equal(nodes(tree, n => n.type === 'button' && text(n) === 'Bearbeiten').length, 0, 'the title opens editing; no duplicate button');
-  assert.equal(nodes(tree, n => n.props?.className === 'task-title-link').length, 1);
+  assert.equal(nodes(tree, n => n.props?.className?.split?.(' ').includes('task-title-link')).length, 1);
   tree = await rowTree({task: task('t', 'Fachartikel gliedern'), compact: true, onOpen() {}});
   const copy = nodes(tree, n => n.props?.className === 'task-copy')[0];
   assert.equal(nodes(copy, n => n.type === 'small').length, 0, 'no project, no date: nothing extra under the title');
@@ -168,7 +168,15 @@ test('Listenzeile: Projekt nur wenn gesetzt, Aktionen per Tastatur erreichbar un
   assert.match(zeiger, /\.task-row\.compact:is\(:hover, :focus-within\) > \.task-row-actions \{ opacity: 1;/);
   assert.match(css, /@media \(hover: none\), \(max-width: 900px\) \{\n  #root \.task-row\.compact > \.task-row-actions \{ display: none; \}/);
   // Die ganze Zeile öffnet die Aufgabe; der Kreis zum Erledigen ist ein Ziel von 44 px, der Kreis selbst bleibt klein.
-  assert.match(css, /\.task-row\.compact \.task-title-link::after \{ content: ""; position: absolute; inset: 0; \}/);
+  // Seit V4 der Baustein „Zeile mit eigenem Bedienelement links“: die kompakte Zeile trägt `g-zeile-bedient`, der Titel
+  // `g-zeile-ziel` (deckt die Zeile), der Kreis `g-zeile-links` (liegt darüber).
+  const grundlage = readFileSync(new URL('../src/Grundlage.css', import.meta.url), 'utf8');
+  assert.match(grundlage, /#root \.g-zeile-bedient \.g-zeile-ziel::after \{ content: ""; position: absolute; inset: 0; \}/);
+  assert.match(grundlage, /#root \.g-zeile-bedient :is\(\.g-zeile-links, \.g-zeile-ueber\) \{ position: relative; z-index: 1; \}/);
+  const zeile = readFileSync(new URL('../src/TaskRow.tsx', import.meta.url), 'utf8');
+  assert.match(zeile, /compact \? " compact g-zeile-bedient"/);
+  assert.match(zeile, /className="task-check g-zeile-links"/);
+  assert.match(zeile, /className="task-title-link g-zeile-ziel"/);
   assert.match(css, /#root \.task-row \.task-check \{[^}]*width: 44px; height: 44px;/);
   assert.match(css, /#root \.task-row \.task-check::before \{[^}]*width: 22px; height: 22px;/);
 });

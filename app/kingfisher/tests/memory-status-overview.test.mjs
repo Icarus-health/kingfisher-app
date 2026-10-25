@@ -41,7 +41,8 @@ function driver(){
 const tick=async()=>{for(let i=0;i<3;i++)await new Promise(setImmediate);};
 function nodes(node,match,result=[]){if(!node||typeof node!=='object')return result;
   if(match(node))result.push(node);
-  for(const child of [node.props?.children].flat(10))nodes(child,match,result);return result;
+  // Die Aktion des Unterkopfs (Baustein, V4) steht in seinem Prop `aktion`.
+  for(const child of [node.props?.children,node.props?.aktion].flat(10))nodes(child,match,result);return result;
 }
 const textOf=node=>[node.props.children].flat(5).join('');
 const button=(tree,label)=>nodes(tree,node=>node.type==='button').find(node=>textOf(node)===label);

@@ -253,3 +253,72 @@ test("jede Baustein-Klasse hat ihre Regel in Grundlage.css, und die Bausteine la
   for (const k of klassen) assert.match(grundlage, new RegExp(`\\.${k}(?![a-z-])`), k);
   for (const k of ["g-knopf", "g-knopf-getoent", "g-knopf-schlicht", "g-kompakt"]) assert.match(grundlage, new RegExp(`\\.${k}\\b`), k);
 });
+
+// ── V4 (25.10.2026): Bausteine aus den Paketen in die Grundlage ────────────────────────────────────────────────────
+
+test("Gruppe: Zahl und Aktion im Kopf, Aktion im Fuß neben der Fußnote; ein Fuß bleibt auch ohne Knopf stehen", () => {
+  const voll = html(h(g.Gruppe, { titel: "Postfächer", label: "Postfächer", zahl: "2 Postfächer", fussnote: "Trennen löscht nichts.",
+    fussAktion: h("button", { className: "g-knopf-getoent" }, "Postfach hinzufügen"), flaecheKlasse: "zugang-liste" }, h(g.Zeile, { titel: "Arbeit" })));
+  assert.match(voll, /^<section class="g-gruppe" aria-label="Postfächer"><div class="g-gruppe-kopf"><h2 class="g-gruppe-titel" id="[^"]+">Postfächer<\/h2><span class="g-gruppe-zahl">2 Postfächer<\/span><\/div><div class="g-flaeche zugang-liste">/);
+  assert.match(voll, /<div class="g-gruppe-fuss"><p class="g-gruppe-fussnote">Trennen löscht nichts\.<\/p><button class="g-knopf-getoent">Postfach hinzufügen<\/button><\/div><\/section>$/);
+  assert.doesNotMatch(html(h(g.Gruppe, { titel: "Kalender", zahl: null }, "x")), /g-gruppe-zahl/, "ohne Zahl keine Null");
+  assert.match(html(h(g.Gruppe, { titel: "Kalender", fussAktion: null, fussnote: "" }, "x")), /<div class="g-gruppe-fuss"><p class="g-gruppe-fussnote"><\/p><\/div>/);
+  assert.match(html(h(g.Gruppe, { titel: "Akten", aktion: h("button", null, "Alle") }, "x")), /<span class="g-gruppe-aktion"><button>Alle<\/button><\/span>/);
+  for (const k of ["g-gruppe-zahl", "g-gruppe-aktion", "g-gruppe-fuss"]) assert.match(grundlage, new RegExp(`\\.${k} \\{`), k);
+  // Kein lokaler Nachbau mehr in den Zugängen.
+  const zugaenge = quelle("Einstellungen/Zugaenge.tsx");
+  assert.equal((zugaenge.match(/<Gruppe className="zugang-gruppe/g) ?? []).length, 3);
+  assert.doesNotMatch(zugaenge + quelle("Einstellungen/Einstellungen.css"), /zugang-zahl|zugang-fuss/);
+});
+
+test("Zeile: mit eigenem Bedienelement links bleibt die ganze Zeile das Ziel, ohne Knopf im Knopf; Name, Zeit, Klasse am Wert", () => {
+  const z = html(h(g.Zeile, { titel: "Flyer prüfen", wert: "26. Sept.", wertZeit: "2026-09-26", wertKlasse: "overdue", onClick() {}, label: "Öffnen: Flyer prüfen",
+    links: h("button", { className: "task-check", "aria-label": "Flyer prüfen erledigen" }) }));
+  assert.match(z, /^<div class="g-zeile g-zeile-bedient"><span class="g-zeile-links"><button class="task-check" aria-label="Flyer prüfen erledigen"><\/button><\/span><button type="button" class="g-zeile-ziel" aria-label="Öffnen: Flyer prüfen">/);
+  assert.match(z, /<time class="g-zeile-wert overdue" dateTime="2026-09-26">26\. Sept\.<\/time><\/button><\/div>$/);
+  assert.equal((z.match(/<button/g) ?? []).length, 2, "zwei Knöpfe nebeneinander, keiner im anderen");
+  const verweis = html(h(g.Zeile, { titel: "Gesundheit", href: "/wellbeing" }));
+  assert.equal(verweis, '<a class="g-zeile" href="/wellbeing"><span class="g-zeile-text"><span class="g-zeile-titel">Gesundheit</span></span><span class="g-zeile-pfeil" aria-hidden="true"></span></a>');
+  assert.match(grundlage, /#root \.g-zeile-bedient \.g-zeile-ziel::after \{ content: ""; position: absolute; inset: 0; \}/);
+  assert.match(grundlage, /#root \.g-zeile-bedient:has\(\.g-zeile-ziel:focus-visible\) \{ outline: 2px solid var\(--g-auswahl-kante\);/);
+  assert.match(grundlage, /\.g-zeile > \.g-zeile-links \{[^}]*min-width: var\(--g-ziel\); min-height: var\(--g-ziel\);/);
+  // Die Aufgabenzeile benutzt die Mechanik des Bausteins statt eines eigenen Nachbaus.
+  assert.doesNotMatch(quelle("WorkspaceTasks.css"), /\.task-title-link::after|:has\(\.task-title-link:focus-visible\)/);
+});
+
+test("Schalter: Umlegeschalter mit Titel und einem Satz, die ganze Zeile ist das Ziel; die Stile stehen in der Grundlage", () => {
+  let gesetzt = null;
+  const baum = g.Schalter({ titel: "Mitteilungen", satz: "Es verlässt nichts den Rechner.", an: true, onWechsel: an => { gesetzt = an; }, className: "welt-schalter" });
+  assert.equal(html(baum), '<label class="welt-schalter"><input type="checkbox" role="switch" checked=""/><span><strong>Mitteilungen</strong><small>Es verlässt nichts den Rechner.</small></span></label>');
+  knoten(baum, n => n.type === "input")[0].props.onChange({ target: { checked: false } });
+  assert.equal(gesetzt, false);
+  assert.match(html(h(g.Schalter, { titel: "Beim Anmelden starten", an: false, onWechsel() {}, deaktiviert: true })), /disabled=""\/><span>Beim Anmelden starten<\/span><\/label>$/);
+  assert.match(grundlage, /#root \.shell input\[type="checkbox"\]\[role="switch"\] \{[^}]*width: 51px; height: 31px;/);
+  assert.match(grundlage, /#root \.shell label:has\(> input\[role="switch"\]\) > input\[role="switch"\] \{ order: 2; margin-left: auto; \}/);
+  // Jeder Schalter der App ist der Baustein.
+  for (const datei of dateien(".tsx").filter(d => d !== "grundlage/Schalter.tsx")) assert.doesNotMatch(quelle(datei), /role="switch"/, datei);
+});
+
+test("Unterkopf und Bestätigung: Titel, eine Zeile, Aktion; die Karte mit kleinem Titel, Satz und Knöpfen", () => {
+  assert.equal(html(h(g.Unterkopf, { titel: "Aussagen prüfen", zeile: "Jede Aussage einzeln.", aktion: h("button", null, "Aktualisieren") })),
+    '<header class="g-unterkopf"><div><h2 class="g-titel">Aussagen prüfen</h2><p class="g-unterkopf-zeile">Jede Aussage einzeln.</p></div><button>Aktualisieren</button></header>');
+  assert.match(grundlage, /#root \.g-unterkopf \{ display: flex;[^}]*margin: 0 0 var\(--g-a5\); \}/);
+  assert.doesNotMatch(quelle("Gedaechtnis.css") + quelle("MemoryStatus.tsx") + quelle("SelfModelSupportReview.tsx"), /gd-unterkopf/);
+  const karte = html(h(g.Bestaetigung, { titel: "Gedächtnisvorschlag", label: "Gedächtnisvorschlag", className: "memory-candidate", knoepfe: h("button", null, "Bestätigen") }, h("strong", null, "Silke Vogt leitet die Akademie.")));
+  assert.equal(karte, '<section class="g-bestaetigung memory-candidate" aria-label="Gedächtnisvorschlag"><span class="g-bestaetigung-titel">Gedächtnisvorschlag</span><strong>Silke Vogt leitet die Akademie.</strong><div class="g-bestaetigung-knoepfe"><button>Bestätigen</button></div></section>');
+  for (const datei of ["App.tsx", "ActionApprovalCard.tsx", "UebernehmenKarte.tsx"]) assert.match(quelle(datei), /<Bestaetigung className="memory-candidate/, datei);
+  assert.doesNotMatch(ohneKommentare(quelle("Workspace.css")), /\.workspace-chat \.memory-candidate \{|karte-titel/);
+  assert.match(grundlage, /\.g-bestaetigung \{ display: grid;[^}]*background: var\(--g-grund\); \}/);
+});
+
+test("Rastermaße des Kalenders als Werte, die Jahresansicht mit Tageszielen von 44 px; keine harten Farben mehr im Gespräch", () => {
+  const kal = ohneKommentare(quelle("CalendarPage.css"));
+  for (const name of ["zeitspalte", "tag", "stunde", "punkt", "monatstag", "jahr-tag", "jahr-monat"]) assert.match(grundlage, new RegExp(`--g-kal-${name}:`), name);
+  assert.match(grundlage, /--g-kal-jahr-tag: var\(--g-ziel\);/);
+  assert.match(grundlage, /--g-kal-jahr-monat: calc\(7 \* var\(--g-kal-jahr-tag\)\);/);
+  assert.match(kal, /\.mini-month \.calendar-month-date \{[^}]*min-height:var\(--g-kal-jahr-tag\);/);
+  assert.doesNotMatch(kal, /\.mini-month \.calendar-month-date \{ min-height:(?:[0-3]?\d|4[0-3])px/, "kein Tagesziel unter 44 px, auch schmal nicht");
+  assert.match(kal, /grid-template-columns:var\(--g-kal-zeitspalte\) repeat\(7,minmax\(var\(--g-kal-tag\),1fr\)\)/);
+  assert.doesNotMatch(kal, /height:1152px|\b56px repeat|\b48px\)/);
+  assert.doesNotMatch(ohneKommentare(quelle("Workspace.css")), /#[0-9a-f]{3,6}\b/i, "Workspace.css nur mit Rollen");
+});

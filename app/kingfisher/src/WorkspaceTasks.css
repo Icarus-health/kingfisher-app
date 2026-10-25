@@ -68,10 +68,8 @@
 #root .task-row.compact .task-title-link {
   padding: 0; border: 0; background: transparent; color: var(--g-tinte); font: 500 16px/1.4 var(--g-schrift); text-align: left; cursor: pointer; overflow-wrap: anywhere;
 }
-#root .task-row.compact .task-title-link::after { content: ""; position: absolute; inset: 0; }
-#root .task-row.compact .task-title-link:focus-visible { outline: none; }
-#root .task-row.compact:has(.task-title-link:focus-visible) { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
-#root .task-row.compact :is(.task-check, .task-row-actions, .task-post button) { position: relative; z-index: 1; }
+/* Dass die ganze Zeile das Ziel ist und Kreis, Aktionen und „Rückgängig“ darüber liegen, regelt der Baustein (Zeile mit
+   eigenem Bedienelement links: `.g-zeile-bedient`, `.g-zeile-ziel`, `.g-zeile-links`, `.g-zeile-ueber` in Grundlage.css). */
 #root .task-row.compact > .task-row-actions { grid-column: 3; grid-row: 1; }
 #root .task-row.compact > time { grid-column: 3; grid-row: 1; padding-left: var(--g-a2); white-space: nowrap; text-align: right; }
 #root .task-row :is(time, .task-meta) { font: var(--g-neben); color: var(--g-leise); font-variant-numeric: tabular-nums; }

@@ -103,16 +103,13 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell :is(.source-section, .source-form, .darf, .ich) details[open] > summary { color: var(--g-tinte); }
 
 /* ── Zugänge ────────────────────────────────────────────────────────────────────────────────────────────── */
+/* Kopf mit Zahl und Fuß mit „hinzufügen“: der Baustein `Gruppe` (Grundlage.css). Den Abstand setzt das Raster. */
 .zugang-gruppe { min-width: 0; }
-.zugang-gruppe .g-gruppe-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: var(--g-a3); margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); }
-.zugang-gruppe .g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
-.zugang-zahl { font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell .zugang-gruppe.g-gruppe { margin-bottom: 0; }
 #root .settings-shell .zugang-liste { min-width: 0; }
 #root .settings-shell .zugang-liste .source-empty { margin: 0; padding: var(--g-a4); }
 #root .settings-shell .zugang-liste .source-loading { padding: var(--g-a4); }
-.zugang-fuss { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin-top: var(--g-a2); }
-.zugang-fuss .g-gruppe-fussnote { flex: 1 1 240px; margin: 0; padding-top: var(--g-a2); }
-.zugang-fuss .zugang-neu .interface-icon { width: 18px; height: 18px; }
+.zugang-gruppe .zugang-neu .interface-icon { width: 18px; height: 18px; }
 .zugang-ordner .g-gruppe-fussnote { margin-top: var(--g-a2); }
 
 /* Eine Zeile je Zugang (Quellenformulare.tsx): Zeichen, Name und Adresse, rechts der Stand und Entfernen. */
@@ -153,33 +150,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .einrichtung-assistent .g-zeile-symbol { flex: 0 0 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--g-getoent); color: var(--g-akzent); }
 #root .settings-shell .einrichtung-assistent .g-zeile-symbol .interface-icon { width: 20px; height: 20px; }
 
-/* ── Schalter wie am Mac ────────────────────────────────────────────────────────────────────────────────── */
-/* Jeder Schalter (`input[role=switch]`) ist ein Umlegeschalter, rechtsbündig in seiner Zeile; Titel und der Satz, was
-   den Rechner verlässt, stehen links. Gilt auch im Assistenten. */
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"] {
-  -webkit-appearance: none; appearance: none; position: relative; flex: 0 0 auto; box-sizing: border-box;
-  width: 51px; height: 31px; margin: 0; border: 0; border-radius: var(--g-radius-pille);
-  background: rgba(120,120,128,.24); cursor: pointer; transition: background-color var(--g-bewegung);
-}
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]::before {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16); transition: transform var(--g-bewegung);
-}
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]:checked { background: var(--g-akzent); }
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]:checked::before { transform: translateX(20px); }
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]:disabled { opacity: .45; cursor: default; }
-#root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]) {
-  display: flex; align-items: center; gap: var(--g-a4); min-height: var(--g-ziel); font: var(--g-text); color: var(--g-tinte); cursor: pointer;
-}
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]) > input[role="switch"] { order: 2; margin-left: auto; }
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]) > span { display: grid; gap: 2px; min-width: 0; }
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]) > span > strong { font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); }
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]) > span > small { font: var(--g-fussnote); color: var(--g-leise); }
-#root :is(.settings-shell, .erststart-shell) label:has(> input[role="switch"]:disabled) { cursor: default; }
-@media (prefers-reduced-motion: reduce) {
-  #root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"], #root :is(.settings-shell, .erststart-shell) input[type="checkbox"][role="switch"]::before { transition: none; }
-}
+/* Schalter: der Baustein `Schalter` mit seinen Stilen in Grundlage.css („Schalter“). */
 
 /* ── Was Kingfisher darf ────────────────────────────────────────────────────────────────────────────────── */
 /* Eine Fläche, eine Zeile je Schalter, getrennt durch eingerückte Haarlinien. Was ein Schalter öffnet (Ort, Quellen,
@@ -344,10 +315,6 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
   #root .settings-shell .zugang-formular { padding: var(--g-a4); }
   #root .settings-shell .einrichtung-assistent { padding: var(--g-a4); }
   #root .settings-shell .einrichtung-assistent .g-knopf { flex: 1 1 100%; }
-  .zugang-fuss { flex-direction: column; align-items: stretch; }
-  .zugang-fuss .g-gruppe-fussnote { flex: none; }
-  .zugang-fuss .g-gruppe-fussnote:empty { display: none; }
-  .zugang-fuss .zugang-neu { align-self: flex-start; }
   #root .settings-shell .source-row .g-zeile-wert { display: none; }
   #root .settings-shell .compact-model > .source-form { grid-template-columns: minmax(0, 1fr); }
 }

@@ -55,18 +55,18 @@ test('eine Aufgabe unter „Braucht dich“ ist die Zeile der Aufgabenliste, ohn
 test('die Zeile: Kreis mit 44-px-Ziel, Titel als Knopf über die ganze Zeile, eine leise Zeile, rechts die Fälligkeit, keine Zeilenaktionen', () => {
   const baum = render(() => TaskRow({task: aufgabe, view: 'mine', compact: true, ohneAktionen: true, projektName: 'Fachtag', hinweis: 'Verlauf ungeprüft',
     completing: false, onComplete() {}, onOpen() {}, onWait() {}, projects: [], onProjectChange() {}, onEdit: async () => false}));
-  assert.equal(nodes(baum, n => n.props?.className === 'task-row-actions').length, 0);
-  const kreis = nodes(baum, n => n.type === 'button' && n.props?.className === 'task-check')[0];
+  assert.equal(nodes(baum, n => n.props?.className?.split?.(' ').includes('task-row-actions')).length, 0);
+  const kreis = nodes(baum, n => n.type === 'button' && n.props?.className?.split?.(' ').includes('task-check'))[0];
   assert.equal(kreis.props['aria-label'], `${aufgabe.title} erledigen`);
   assert.equal(kreis.props.disabled, false);
-  assert.equal(text(nodes(baum, n => n.props?.className === 'task-title-link')[0]), aufgabe.title);
+  assert.equal(text(nodes(baum, n => n.props?.className?.split?.(' ').includes('task-title-link'))[0]), aufgabe.title);
   const meta = nodes(baum, n => n.props?.className === 'task-meta')[0];
   assert.equal(text(meta), 'FachtagVerlauf ungeprüft', 'Projekt und Hinweis in einer leisen Zeile');
   assert.ok(nodes(baum, n => n.type === 'time' && n.props?.className === 'overdue').length === 1, 'überfällig rechts, rot');
   // Ohne die neuen Angaben bleibt die Liste, wie sie war: Zeilenaktionen da, Projekt aus der Projektliste.
   const inListe = render(() => TaskRow({task: aufgabe, view: 'mine', compact: true, completing: false, onComplete() {}, onOpen() {}, onWait() {},
     projects: [{id: 'p1', name: 'Aus der Liste', open: true}], onProjectChange() {}, onEdit: async () => false}));
-  assert.equal(nodes(inListe, n => n.props?.className === 'task-row-actions').length, 1);
+  assert.equal(nodes(inListe, n => n.props?.className?.split?.(' ').includes('task-row-actions')).length, 1);
   assert.equal(text(nodes(inListe, n => n.props?.className === 'task-meta')[0]), 'Aus der Liste');
   const css = quelle('WorkspaceTasks.css');
   assert.match(css, /#root \.task-row \.task-check \{[^}]*width: 44px; height: 44px;/);
