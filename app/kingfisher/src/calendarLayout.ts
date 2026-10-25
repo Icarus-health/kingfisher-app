@@ -4,10 +4,11 @@ type DisplaySource = {source_id?:string;view_source_id?:string};
 type Event = DisplaySource & {uid:string;start?:string|null;end?:string|null;all_day?:boolean;source_copies?:Array<{uid:string;source_id:string;source_label:string;view_source_id?:string}>};
 export const calendarDisplaySource=(source:DisplaySource)=>source.view_source_id??source.source_id??'unknown';
 export const calendarEventKey=(event:Event)=>JSON.stringify([event.source_id||'',event.uid,event.start||'']);
+/** Die Farbe einer Kalenderquelle: eine von sieben Rollen (--g-kal-farbe-1 … 7 in Grundlage.css, hell und dunkel),
+ *  stabil aus der Kennung gewählt. Als CSS-Wert, damit sie dem Systemmodus folgt. */
 export function calendarColor(id:string):string {
-  const colors=['#075268','#95642f','#486e3a','#795497','#a54854','#326c9e','#786128'];
   let hash=0;for(const char of id) hash=(Math.imul(hash,31)+char.charCodeAt(0))|0;
-  return colors[(hash>>>0)%colors.length];
+  return `var(--g-kal-farbe-${(hash>>>0)%7+1})`;
 }
 export function calendarVisibleEvents<T extends Event>(events:T[], selected:Set<string>|null):T[] {
   return selected===null?events:events.filter(event=>(event.source_copies?.length?event.source_copies.map(calendarDisplaySource):[calendarDisplaySource(event)]).some(id=>selected.has(id)));

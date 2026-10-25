@@ -9,7 +9,7 @@
 }
 #root .health-page button:not([class*="g-knopf"]):hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; }
 #root .health-page button.primary { padding: 0 18px; background: var(--g-akzent); color: var(--g-auf-akzent); font-weight: 600; }
-#root .health-page button.primary:hover:not(:disabled) { text-decoration: none; background: #0c3450; }
+#root .health-page button.primary:hover:not(:disabled) { text-decoration: none; background: var(--g-akzent-druck); }
 #root .health-page .health-editor:has(.health-preview) .health-actions button.primary { background: var(--g-getoent); color: var(--g-akzent); }
 .health-page button:disabled { opacity: .45; cursor: wait; }
 .health-page button:focus-visible, .health-page input:focus-visible, .health-page textarea:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }

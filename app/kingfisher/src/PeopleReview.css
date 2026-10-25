@@ -170,7 +170,7 @@
   background: var(--kf-flaeche-063e55);
 }
 
-.people-review-verloren { margin: 10px 0; padding: 10px 14px; border-left: 3px solid var(--kf-rand-b88b63, #b88b63); background: var(--calm-inset, #f2f5f2); border-radius: 0 8px 8px 0; }
+.people-review-verloren { margin: 10px 0; padding: 10px 14px; border-left: 3px solid var(--kf-rand-b88b63); background: var(--calm-inset); border-radius: 0 8px 8px 0; }
 .people-review-verloren h4 { margin: 0 0 4px; font-size: 13px; }
 .people-review-verloren p, .people-review-verloren li { font-size: 13px; line-height: 1.6; }
 .people-review-verloren ul { margin: 6px 0 0; padding-left: 18px; }

@@ -49,7 +49,8 @@ test('Heute: die Landschaft läuft in den Grund aus, die Statuszeile steht nicht
   assert.match(bild, /-webkit-mask-image: linear-gradient\(to bottom, #000 0%, #000 \d+%, transparent \d+%\)/);
   assert.doesNotMatch(ohneKommentare(css), /briefing-area \{[^}]*margin-top: -/, 'nichts zieht den Inhalt ins Bild');
   const schmal = ohneKommentare(css).match(/@media \(max-width: 900px\) \{([\s\S]*?)\n\}/)[1];
-  assert.match(schmal, /linear-gradient\(180deg, rgba\(245,246,248,\.7\d\)/, 'der Gruß bleibt auf dem Bild lesbar');
+  // Der Schleier hat die Farbe des Grundes (hell #f5f6f8, im Dunkelmodus Schiefer; farbrollen.test.mjs).
+  assert.match(schmal, /linear-gradient\(180deg, rgba\(var\(--g-grund-rgb\),\.7\d\)/, 'der Gruß bleibt auf dem Bild lesbar');
   assert.doesNotMatch(quelle('NordicWorkspace.css'), /\.today-(?:page|landscape|source-status|activity|personal)\b/, 'Heute hat eine Quelle für seine Stile');
 });
 

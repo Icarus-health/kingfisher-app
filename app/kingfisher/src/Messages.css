@@ -24,7 +24,7 @@
   border:0; border-radius:0; background:transparent; color:var(--g-tinte); font:var(--g-text); text-align:left; cursor:pointer; transition:background-color 150ms ease;
 }
 #root .inbox-page.mail-workspace .mail-list-item + .mail-list-item::before { content:""; position:absolute; top:0; left:var(--g-a5); right:0; border-top:1px solid var(--g-linie); }
-#root .inbox-page.mail-workspace .mail-list-item:hover { background:rgba(23,38,53,.035); }
+#root .inbox-page.mail-workspace .mail-list-item:hover { background:rgba(var(--g-tinte-rgb),.035); }
 #root .inbox-page.mail-workspace .mail-list-item[aria-pressed=true] { background:var(--g-auswahl); box-shadow:none; }
 #root .inbox-page.mail-workspace .mail-list-item[aria-pressed=true]::before,
 #root .inbox-page.mail-workspace .mail-list-item[aria-pressed=true] + .mail-list-item::before { border-color:transparent; }

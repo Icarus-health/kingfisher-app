@@ -34,7 +34,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
   color: var(--g-tinte); font: 500 15px/1.3 var(--g-schrift); text-align: left; cursor: pointer;
   transition: background-color 150ms ease;
 }
-#root .shell.settings-shell .settings-section-nav button:hover:not([aria-pressed="true"]) { background: rgba(23,38,53,.04); }
+#root .shell.settings-shell .settings-section-nav button:hover:not([aria-pressed="true"]) { background: rgba(var(--g-tinte-rgb),.04); }
 #root .shell.settings-shell .settings-section-nav button[aria-pressed="true"] { background: var(--g-getoent-stark); color: var(--g-tinte); font-weight: 600; }
 #root .shell.settings-shell .settings-section-nav button:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
 .settings-nav-zeichen { flex: 0 0 28px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--g-akzent); color: var(--g-auf-akzent); }
@@ -118,7 +118,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .source-row .g-zeile-titel { font: 500 16px/1.35 var(--g-schrift); }
 #root .settings-shell .source-row .g-zeile-wert { margin-left: auto; font-style: normal; }
 #root .settings-shell .source-remove { display: grid; place-items: center; flex: 0 0 var(--g-ziel); width: var(--g-ziel); height: var(--g-ziel); border: 0; border-radius: var(--g-radius-bedien); background: transparent; cursor: pointer; }
-#root .settings-shell .source-remove:hover:not(:disabled) { background: rgba(191,59,68,.08); }
+#root .settings-shell .source-remove:hover:not(:disabled) { background: rgba(var(--g-rot-rgb),.08); }
 #root .settings-shell .source-remove img { width: 18px; height: 18px; opacity: .6; }
 #root .settings-shell .source-remove-confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a2); margin-left: auto; font: var(--g-neben); color: var(--g-tinte); }
 #root .settings-shell .source-remove-confirm button { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); cursor: pointer; }
@@ -227,7 +227,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 #root .settings-shell .chatgpt-access > header h2 { margin: 0; font: var(--g-ueberschrift); }
 #root .settings-shell .chatgpt-access > header p { margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
 #root .settings-shell .chatgpt-access > p[role="alert"], #root .settings-shell .model-rec-warn { margin: 0; font: var(--g-neben); color: var(--g-tinte); }
-#root .settings-shell .chatgpt-access dialog.chatgpt-welcome { padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); box-shadow: 0 20px 60px rgba(23,38,53,.25); }
+#root .settings-shell .chatgpt-access dialog.chatgpt-welcome { padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); box-shadow: 0 20px 60px rgba(var(--g-schatten-rgb),.25); }
 #root .settings-shell .compact-model > .source-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-a3) var(--g-a4); margin: var(--g-a3) 0 0; padding: var(--g-a3) 0 0; border-top: 1px solid var(--g-linie); }
 #root .settings-shell .compact-model > .source-form > :is(p, .source-form-actions, .classification-offer, .classification-offer-note) { grid-column: 1 / -1; margin: 0; }
 #root .settings-shell .compact-model > .source-form > p[role="status"]:empty { display: none; }
@@ -254,7 +254,7 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
   display: grid; gap: 2px; justify-items: start; width: 100%; min-height: var(--g-zeile); padding: var(--g-a2) 0; border: 0; border-radius: 0;
   background: transparent; color: var(--g-tinte); font: 500 16px/1.35 var(--g-schrift); text-align: left;
 }
-#root .settings-shell .kreis-offen button:hover { background: rgba(23,38,53,.035); }
+#root .settings-shell .kreis-offen button:hover { background: rgba(var(--g-tinte-rgb),.035); }
 #root .settings-shell .kreis-offen button small { font: var(--g-fussnote); color: var(--g-leise); }
 #root .settings-shell .kreis-mehr > summary { min-height: var(--g-ziel); font: 500 15px/1.35 var(--g-schrift); color: var(--g-verweis); }
 #root .settings-shell :is(.kreis-ok, .kreis-fehler) { margin: 0; font: var(--g-neben); }
@@ -277,11 +277,11 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 }
 #root .settings-shell .einstellungen-aufklapp > summary::before { content: none; display: none; }
 #root .settings-shell .einstellungen-aufklapp > summary::after {
-  content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 auto; border: solid rgba(23,38,53,.32);
+  content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 auto; border: solid rgba(var(--g-tinte-rgb),.32);
   border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); transition: transform var(--g-bewegung);
 }
 #root .settings-shell .einstellungen-aufklapp[open] > summary::after { transform: rotate(45deg); }
-#root .settings-shell .einstellungen-aufklapp > summary:hover { background: rgba(23,38,53,.035); }
+#root .settings-shell .einstellungen-aufklapp > summary:hover { background: rgba(var(--g-tinte-rgb),.035); }
 #root .settings-shell .einstellungen-aufklapp > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
 .einstellungen-aufklapp > summary > span { min-width: 0; }
 .einstellungen-aufklapp > summary > small { display: none; }

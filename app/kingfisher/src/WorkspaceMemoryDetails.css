@@ -4,7 +4,7 @@
 .memory-view-panel :is(button,input,select),.memory-avatar-editor button { font: inherit; color: var(--calm-ink); background: var(--calm-inset); border: 1px solid var(--calm-line); border-radius: 8px; padding: 9px 12px; max-width: 100%; }
 .memory-view-panel button, .memory-avatar-editor button { cursor: pointer; }
 .memory-view-panel button:disabled,.memory-avatar-editor button:disabled { opacity: .5; cursor: default; }
-.memory-view-panel :is(button,input,select,a,summary):focus-visible,.memory-avatar-editor :is(input,button,summary):focus-visible { outline: 3px solid var(--calm-accent, #d8753d); outline-offset: 3px; }
+.memory-view-panel :is(button,input,select,a,summary):focus-visible,.memory-avatar-editor :is(input,button,summary):focus-visible { outline: 3px solid var(--kf-rand-d8753d); outline-offset: 3px; }
 .memory-view-panel label { display: grid; gap: 6px; }
 .memory-view-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; align-items: end; }
 .memory-view-actions label { flex: 1 1 160px; }
@@ -38,3 +38,22 @@
 .memory-area-source { padding: 14px 16px; }
 .memory-area-batch fieldset label { display: flex; }
 @media (max-width:700px) { .memory-documents-workspace > .memory-view-panel { margin:16px; } }
+/* Orte auf der Karte (LeafletPlaces.ts): Strich und Füllung aus Rollen, CSS geht vor den Attributen der Punkte. */
+.memory-place-map .leaflet-interactive.kf-ort { stroke: var(--g-ort); fill: var(--g-ort); }
+.memory-place-map .leaflet-interactive.kf-ort-gewaehlt { stroke: var(--g-ort-gewaehlt); fill: var(--g-ort-gewaehlt); }
+.memory-place-map .leaflet-interactive.kf-ort-neu { stroke: var(--g-ort-neu); fill: var(--g-ort-neu); }
+/* Dunkelmodus: Die Kacheln bleiben, wie OpenStreetMap sie liefert, nur gedämpft (lesbar, nicht blendend); Knöpfe,
+   Quellenzeile und Namensschild der Punkte in den Flächen der App. */
+@media (prefers-color-scheme: dark) {
+  .memory-place-map.leaflet-container { background: var(--calm-inset); }
+  .memory-place-map .leaflet-tile-pane { filter: brightness(.78) contrast(1.05) saturate(.85); }
+  .memory-place-map :is(.leaflet-bar a, .leaflet-bar a:hover) { background-color: var(--calm-surface); color: var(--calm-ink); border-bottom-color: var(--calm-line); }
+  .memory-place-map .leaflet-bar { border-color: var(--calm-line); }
+  .memory-place-map.leaflet-container .leaflet-control-attribution { background: rgba(var(--g-flaeche-rgb), .86); color: var(--calm-muted); }
+  .memory-place-map.leaflet-container .leaflet-control-attribution a { color: var(--calm-link); }
+  .memory-place-map .leaflet-tooltip { background: var(--calm-surface); color: var(--calm-ink); border-color: var(--calm-line); }
+  .memory-place-map .leaflet-tooltip-top::before { border-top-color: var(--calm-surface); }
+  .memory-place-map .leaflet-tooltip-bottom::before { border-bottom-color: var(--calm-surface); }
+  .memory-place-map .leaflet-tooltip-left::before { border-left-color: var(--calm-surface); }
+  .memory-place-map .leaflet-tooltip-right::before { border-right-color: var(--calm-surface); }
+}

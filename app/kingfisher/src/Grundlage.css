@@ -61,6 +61,46 @@
   --g-gruen: var(--kf-schrift-197a58, #197a58);
   --g-platzhalter: #8592a0;
 
+  /* Weitere Rollen (V5, 25.10.2026): Jede Farbe außerhalb dieser Definitionen ist eine Rolle (tests/farbrollen.test.mjs).
+     Die RGB-Tripel tragen Hauch, Haarlinie, Schatten und Schleier mit eigener Deckkraft: rgba(var(--g-tinte-rgb), .05).
+     Tinte: Hauch beim Überfahren, Kanten, Ladebalken (im Dunkeln hell). Schatten: Schatten und Abdunkelung hinter
+     Dialogen (im Dunkeln schwarz). Grund und Fläche: halb durchsichtige Leisten und der Schleier über der Landschaft. */
+  --g-tinte-rgb: 23,38,53;
+  --g-schatten-rgb: 23,38,53;
+  --g-grund-rgb: 245,246,248;
+  --g-flaeche-rgb: 255,255,255;
+  --g-rot-rgb: 191,59,68;
+  --g-auswahl-kante-rgb: 40,105,170;
+  /* Der gefüllte Knopf beim Überfahren; die gewählte Segmentfläche; leise Marken (Punkte im Zeitstrahl der Akte). */
+  --g-akzent-druck: #0c3450;
+  --g-schatten-segment: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06);
+  --g-segment-gewaehlt: var(--g-flaeche);
+  --g-marke: #9aa6b2;
+  /* Frist, „braucht Prüfung“: das warme Schild des Bestands. */
+  --g-warnung-grund: #fff2d8;
+  --g-warnung: #704b0b;
+  /* Umlegeschalter wie am Mac: grau aus, Akzent an, der Knopf bleibt weiß. */
+  --g-schalter-aus: rgba(120,120,128,.24);
+  --g-schalter-knopf: #fff;
+  --g-schalter-schatten: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16);
+  /* Hinweis mit „Rückgängig“: dunkel auf hellem Grund; im Dunkelmodus eine Stufe heller als die Flächen. */
+  --g-hinweis-grund: var(--g-tinte);
+  --g-hinweis-tinte: var(--g-auf-akzent);
+  --g-hinweis-hauch: rgba(255,255,255,.1);
+  /* Kalender: die Farbe je Quelle (calendarLayout.ts wählt sie stabil aus dem Namen), im Dunkeln heller. */
+  --g-kal-farbe-1: #075268;
+  --g-kal-farbe-2: #95642f;
+  --g-kal-farbe-3: #486e3a;
+  --g-kal-farbe-4: #795497;
+  --g-kal-farbe-5: #a54854;
+  --g-kal-farbe-6: #326c9e;
+  --g-kal-farbe-7: #786128;
+  /* Orte auf der Karte (LeafletPlaces.ts): Punkt, gewählter Punkt, neuer Pin. Sie stehen auf den hellen Kacheln, nicht
+     auf der Fläche, und bleiben deshalb auch im Dunkelmodus gleich (die Kacheln werden dort nur gedämpft). */
+  --g-ort: #427c8b;
+  --g-ort-gewaehlt: #1e6577;
+  --g-ort-neu: #317c91;
+
   /* Feine Rastermaße des Kalenders (V4): Zeitspalte, Mindestbreite eines Tages, Höhe einer Stunde, Punkte, Monatstage;
      die Jahresansicht so breit, dass jeder Tag ein Ziel von 44 px ist. */
   --g-kal-zeitspalte: 56px;
@@ -80,6 +120,46 @@
   --g-ziel-kompakt: 36px;
   --g-zeile: 52px;
   --g-bewegung: 200ms cubic-bezier(.25,.1,.25,1);
+}
+
+/* Dunkelmodus (Entscheidung vom 25.10.2026, docs/16-gestaltung.md „Dunkelmodus“): Die Arbeitsflächen folgen dem
+   Systemmodus. Gedämpftes Schiefer statt Schwarz, Flächen eine Stufe heller als der Grund, Tinte nicht reinweiß, ein
+   Akzent. Tinte, Akzent, Verweis und Auswahl kommen weiter aus CalmUI.css und NordicWorkspace.css. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --g-grund: #181d23;
+    --g-schatten: 0 0 0 1px rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.32);
+    --g-linie: rgba(227,232,237,.1);
+    --g-getoent: rgba(150,189,224,.12);
+    --g-getoent-stark: rgba(150,189,224,.18);
+    --g-segment-grund: rgba(227,232,237,.08);
+    --g-fokus: 0 0 0 3px rgba(121,174,224,.38);
+    --g-rot: var(--kf-schrift-bf3b44);
+    --g-platzhalter: #8a96a3;
+    --g-tinte-rgb: 227,232,237;
+    --g-schatten-rgb: 0,0,0;
+    --g-grund-rgb: 24,29,35;
+    --g-flaeche-rgb: 34,41,49;
+    --g-rot-rgb: 240,139,139;
+    --g-auswahl-kante-rgb: 121,174,224;
+    --g-akzent-druck: #b0cfe9;
+    --g-schatten-segment: 0 1px 3px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.08);
+    --g-segment-gewaehlt: #3a4450;
+    --g-marke: #74818e;
+    --g-warnung-grund: #3a3121;
+    --g-warnung: #e6c27a;
+    --g-schalter-aus: rgba(120,120,128,.42);
+    --g-schalter-schatten: 0 3px 8px rgba(0,0,0,.3), 0 1px 1px rgba(0,0,0,.3);
+    --g-hinweis-grund: #39434f;
+    --g-hinweis-tinte: var(--g-tinte);
+    --g-kal-farbe-1: #4fa3bd;
+    --g-kal-farbe-2: #d39a5c;
+    --g-kal-farbe-3: #84b46e;
+    --g-kal-farbe-4: #b391d1;
+    --g-kal-farbe-5: #df8590;
+    --g-kal-farbe-6: #74a9dc;
+    --g-kal-farbe-7: #c9ad62;
+  }
 }
 
 /* ── 2. Bausteine ─────────────────────────────────────────────────────────────────────────────────────────── */
@@ -103,7 +183,7 @@
 .g-kopfleiste-inhalt {
   position: absolute; top: 0; left: calc(-1 * var(--g-kopf-rand, 0px)); right: calc(-1 * var(--g-kopf-rand, 0px));
   display: flex; align-items: center; min-height: 48px; padding: 0 var(--g-kopf-rand, var(--g-a4));
-  background: rgba(245,246,248,.88); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(var(--g-grund-rgb),.88); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--g-linie); font: var(--g-ueberschrift); color: var(--g-tinte);
   opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity var(--g-bewegung), transform var(--g-bewegung);
 }
@@ -135,8 +215,8 @@
   color: var(--g-tinte); font: var(--g-text); text-align: left; text-decoration: none;
 }
 :is(button, a).g-zeile { cursor: pointer; transition: background-color 150ms ease; }
-:is(button, a).g-zeile:hover { background: rgba(23,38,53,.035); }
-:is(button, a).g-zeile:active { background: rgba(23,38,53,.06); }
+:is(button, a).g-zeile:hover { background: rgba(var(--g-tinte-rgb),.035); }
+:is(button, a).g-zeile:active { background: rgba(var(--g-tinte-rgb),.06); }
 .g-zeile[aria-current="true"], .g-zeile[aria-current="page"] { background: var(--g-auswahl); }
 .g-zeile:disabled { opacity: .45; cursor: default; }
 .g-zeile:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
@@ -149,7 +229,7 @@
 .g-zeile-neben { font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
 .g-zeile-wert { flex: 0 0 auto; max-width: 45%; font: var(--g-neben); color: var(--g-leise); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
 .g-zeile-zusatz { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a2); }
-.g-zeile-pfeil { flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 2px; border: solid rgba(23,38,53,.32); border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); }
+.g-zeile-pfeil { flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 2px; border: solid rgba(var(--g-tinte-rgb),.32); border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); }
 /* Zeile mit eigenem Bedienelement links (Kreis, Häkchen; V4, aus der Aufgabenzeile): Die ganze Zeile ist das Ziel – der
    Knopf in der Mitte (`.g-zeile-ziel`) deckt sie mit ::after –, das Bedienelement links (`.g-zeile-links`) und was sonst
    klickbar bleiben muss (`.g-zeile-ueber`) liegen darüber. So gibt es keinen Knopf im Knopf. Die Mechanik gilt für jede
@@ -160,7 +240,7 @@
 #root .g-zeile-bedient:has(.g-zeile-ziel:focus-visible) { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
 #root .g-zeile-bedient :is(.g-zeile-links, .g-zeile-ueber) { position: relative; z-index: 1; }
 .g-zeile.g-zeile-bedient { transition: background-color 150ms ease; }
-.g-zeile.g-zeile-bedient:hover { background: rgba(23,38,53,.035); }
+.g-zeile.g-zeile-bedient:hover { background: rgba(var(--g-tinte-rgb),.035); }
 .g-zeile > .g-zeile-links { flex: 0 0 auto; display: grid; place-items: center; min-width: var(--g-ziel); min-height: var(--g-ziel); margin: 0 calc(-1 * var(--g-a2)) 0 calc(-1 * var(--g-a3)); }
 .g-zeile > .g-zeile-ziel {
   flex: 1 1 auto; display: flex; align-items: center; gap: var(--g-a3); min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
@@ -186,8 +266,8 @@
   font: 500 14px/1.2 var(--g-schrift); white-space: nowrap; cursor: pointer;
   transition: background-color var(--g-bewegung), box-shadow var(--g-bewegung);
 }
-.g-segment:hover:not([aria-selected="true"]):not(:disabled) { background: rgba(23,38,53,.05); }
-.g-segment[aria-selected="true"] { background: var(--g-flaeche); font-weight: 600; box-shadow: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06); }
+.g-segment:hover:not([aria-selected="true"]):not(:disabled) { background: rgba(var(--g-tinte-rgb),.05); }
+.g-segment[aria-selected="true"] { background: var(--g-segment-gewaehlt); font-weight: 600; box-shadow: var(--g-schatten-segment); }
 .g-segment:disabled { opacity: .45; cursor: default; }
 .g-segment:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
 .g-segment-zahl { font-weight: 500; color: var(--g-leise); font-variant-numeric: tabular-nums; }
@@ -214,11 +294,11 @@
 #root .shell input[type="checkbox"][role="switch"] {
   -webkit-appearance: none; appearance: none; position: relative; flex: 0 0 auto; box-sizing: border-box;
   width: 51px; height: 31px; margin: 0; border: 0; border-radius: var(--g-radius-pille);
-  background: rgba(120,120,128,.24); cursor: pointer; transition: background-color var(--g-bewegung);
+  background: var(--g-schalter-aus); cursor: pointer; transition: background-color var(--g-bewegung);
 }
 #root .shell input[type="checkbox"][role="switch"]::before {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16); transition: transform var(--g-bewegung);
+  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: var(--g-schalter-knopf);
+  box-shadow: var(--g-schalter-schatten); transition: transform var(--g-bewegung);
 }
 #root .shell input[type="checkbox"][role="switch"]:checked { background: var(--g-akzent); }
 #root .shell input[type="checkbox"][role="switch"]:checked::before { transform: translateX(20px); }
@@ -251,20 +331,21 @@
 .g-hinweis {
   display: flex; align-items: center; gap: var(--g-a2); box-sizing: border-box; max-width: min(560px, 100%);
   min-height: var(--g-zeile); padding: var(--g-a1) var(--g-a2) var(--g-a1) var(--g-a4); border-radius: var(--g-radius-flaeche);
-  background: var(--g-tinte); color: var(--g-auf-akzent); font: var(--g-neben); box-shadow: 0 8px 24px rgba(23,38,53,.18);
+  background: var(--g-hinweis-grund); color: var(--g-hinweis-tinte); font: var(--g-neben); box-shadow: 0 8px 24px rgba(var(--g-schatten-rgb),.18);
   pointer-events: auto; animation: g-hinweis-kommt var(--g-bewegung) both;
 }
 .g-hinweis:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
 .g-hinweis-text { min-width: 0; padding: var(--g-a2) 0; overflow-wrap: anywhere; }
 .g-hinweis-aktionen { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a1); white-space: nowrap; }
 .g-hinweis-punkt { opacity: .6; }
+@media (prefers-color-scheme: dark) { .g-hinweis-punkt { opacity: .75; } }
 .g-hinweis-knopf {
   display: inline-flex; align-items: center; min-height: var(--g-ziel); padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien);
-  background: transparent; color: var(--g-auf-akzent); font: 600 14px/1.2 var(--g-schrift); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  background: transparent; color: var(--g-hinweis-tinte); font: 600 14px/1.2 var(--g-schrift); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
 }
-.g-hinweis-knopf:hover:not(:disabled) { background: rgba(255,255,255,.1); }
+.g-hinweis-knopf:hover:not(:disabled) { background: var(--g-hinweis-hauch); }
 .g-hinweis-knopf:disabled { opacity: .6; cursor: default; }
-.g-hinweis-knopf:focus-visible { outline: 2px solid var(--g-auf-akzent); outline-offset: -2px; }
+.g-hinweis-knopf:focus-visible { outline: 2px solid var(--g-hinweis-tinte); outline-offset: -2px; }
 .g-hinweis[data-fehler] { background: var(--g-rot); }
 @keyframes g-hinweis-kommt { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
@@ -276,7 +357,7 @@
   transition: background-color 150ms ease, opacity 150ms ease;
 }
 .g-knopf { background: var(--g-akzent); color: var(--g-auf-akzent); }
-.g-knopf:hover:not(:disabled) { background: #0c3450; }
+.g-knopf:hover:not(:disabled) { background: var(--g-akzent-druck); }
 .g-knopf-getoent { background: var(--g-getoent); color: var(--g-akzent); font-weight: 500; }
 .g-knopf-getoent:hover:not(:disabled) { background: var(--g-getoent-stark); }
 .g-knopf-schlicht { padding: 0 6px; background: transparent; color: var(--g-verweis); font-weight: 500; }
@@ -353,8 +434,8 @@
 }
 #root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter) > button:is(.active, [aria-pressed="true"], [aria-selected="true"]),
 #root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button:is(.active, [aria-pressed="true"]) {
-  background: var(--g-flaeche); color: var(--g-tinte); font-weight: 600;
-  box-shadow: 0 1px 3px rgba(23,38,53,.12), 0 0 0 .5px rgba(23,38,53,.06);
+  background: var(--g-segment-gewaehlt); color: var(--g-tinte); font-weight: 600;
+  box-shadow: var(--g-schatten-segment);
 }
 #root main :is(.task-tabs, .profile-tabs, .view-switch, .memory-area-tabs, .inbox-filter) > button:focus-visible,
 #root main.memory-page-workspace .memory-filter > div:not(.memory-heading-row) > button:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
@@ -385,7 +466,7 @@
   min-height: var(--g-ziel);
 }
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input) {
-  border-color: rgba(23,38,53,.14); border-radius: var(--g-radius-bedien); background-color: var(--g-flaeche); color: var(--g-tinte);
+  border-color: rgba(var(--g-tinte-rgb),.14); border-radius: var(--g-radius-bedien); background-color: var(--g-flaeche); color: var(--g-tinte);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input):focus-visible {
@@ -401,7 +482,7 @@
   border: 0; border-radius: var(--g-radius-bedien); background: var(--g-akzent); color: var(--g-auf-akzent);
   font: 600 15px/1.2 var(--g-schrift); box-shadow: none; transition: background-color 150ms ease, opacity 150ms ease;
 }
-.shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action):hover:not(:disabled) { background: #0c3450; }
+.shell :is(.primary-action, .tasks-add, .mail-reader-primary, .memory-confirm, .people-review-action):hover:not(:disabled) { background: var(--g-akzent-druck); }
 .shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr) {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); min-height: var(--g-ziel); padding: 0 16px;
   border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent);
@@ -410,7 +491,7 @@
 .shell :is(.secondary-action, .mail-reader-secondary, .mail-reader-close, .memory-reject, .people-review-secondary, .chronik-mehr):hover:not(:disabled) { background: var(--g-getoent-stark); }
 .shell button.text-action { display: inline-flex; align-items: center; min-height: var(--g-ziel); padding: 0 4px; border: 0; background: transparent; color: var(--g-verweis); font: 500 15px/1.3 var(--g-schrift); }
 /* Was etwas unwiderruflich entfernt, bleibt rot, auch getönt. */
-#root :is(.secondary-action.decision-confirm, .source-remove-confirm button:first-of-type) { background: rgba(191,59,68,.08); color: var(--g-rot); border: 0; }
+#root :is(.secondary-action.decision-confirm, .source-remove-confirm button:first-of-type) { background: rgba(var(--g-rot-rgb),.08); color: var(--g-rot); border: 0; }
 .shell :is(.primary-action, .secondary-action, .tasks-add, .mail-reader-primary, .mail-reader-secondary, .memory-confirm, .memory-reject):active:not(:disabled) { opacity: .82; }
 
 /* Flächen: weiß, ohne Rahmen, mit Haarschatten. Fläche in Fläche wird flach (keine Karten in Karten). */
