@@ -106,7 +106,11 @@ test("V2: Kopf mit Stand-Satz; „Stand“ wiederholt ihn nicht, nur Früheres i
   const [kopf] = nodes(baum, n => n.type?.name === "StandKopf");
   assert.ok(kopf, "Stand-Satz im Kopf");
   assert.equal(kopf.props.satz.text, "Änderung am 17.9.: Absage Workshop am 28. Oktober. 1 Punkt braucht dich.");
-  assert.equal(nodes(baum, n => n.props?.className === "akte-blick").length, 0, "keine zweite Zeile unter dem Namen");
+  assert.equal(nodes(baum, n => n.type?.name === "Blick" || n.props?.className === "akte-blick").length, 0, "keine zweite Zeile unter dem Namen");
+  // Ohne Datiertes bleibt die leise Zeile „Auf einen Blick“ (Gegenprobe, damit die Suche nach ihr etwas findet).
+  const leerKopf = await akteRendern({ ...AKTE, stand_der_dinge: { aktuell: null, vorher: [], vorher_gesamt: 0, weitere: [], weitere_gesamt: 0 }, verlauf: { eintraege: [], gesamt: 0 } });
+  assert.equal(nodes(leerKopf, n => n.type?.name === "StandKopf").length, 0);
+  assert.equal(nodes(leerKopf, n => n.type?.name === "Blick").length, 1);
   const zeilen = nodes(baum, n => n.type?.name === "Zeile").map(n => n.props.zeile.episode_id);
   assert.ok(!zeilen.includes("e-absage"), "die jüngste Stand-Zeile steht schon im Kopf");
   assert.ok(zeilen.includes("e-alt"), "Früheres bleibt aufklappbar");
