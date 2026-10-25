@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Schalter } from "../grundlage";
 import { api, ApiError, type ModelRoles, type ModelRoleState } from "../api";
 import { listenForCloudAccessChange } from "../cloudAccessEvents";
 import { SCHALTER } from "./gliederung";
@@ -91,9 +92,7 @@ export function CloudSchalter() {
 
   return <section className="darf-zeile" aria-label={SCHALTER.cloud.titel}>
     {geladenFehler ? <p role="alert" className="settings-error">Der Stand konnte gerade nicht gelesen werden.</p> : !rollen ? <p>Wird geladen …</p> : aufgaben.length === 0 ? null : <>
-      <label className="welt-schalter"><input type="checkbox" role="switch" checked={an || frage} disabled={arbeitet}
-        onChange={event => umschalten(event.target.checked)} />
-        <span><strong>{SCHALTER.cloud.titel}</strong><small>{SCHALTER.cloud.verlaesst}</small></span></label>
+      <Schalter className="welt-schalter" titel={SCHALTER.cloud.titel} satz={SCHALTER.cloud.verlaesst} an={an || frage} deaktiviert={arbeitet} onWechsel={umschalten} />
       {an && <p className="source-hint" role="status">Fragen und Antworten laufen über {anbieterName(inCloud[0].wahl.anbieter)}.</p>}
       {frage && !an && (mitSchluessel.length === 0
         ? <div className="darf-frage" role="group" aria-label="Cloud einschalten">

@@ -18,6 +18,7 @@ const {TodayOverview} = await server.ssrLoadModule('/src/TodayOverview.tsx');
 const {TodayTaskRow, aufgabeAusPunkt} = await server.ssrLoadModule('/src/TodayTaskRow.tsx');
 const {TaskRow} = await server.ssrLoadModule('/src/TaskRow.tsx');
 const {api} = await server.ssrLoadModule('/src/api.ts');
+const {hinweise, hinweisInhalt} = await server.ssrLoadModule('/src/grundlage/hinweisOrt.ts');
 
 function nodes(n, p, out = []) { if (!n || typeof n !== 'object') return out; if (p(n)) out.push(n); [n.props?.children].flat(50).forEach(c => nodes(c, p, out)); return out; }
 function text(n) { return n == null || typeof n === 'boolean' ? '' : typeof n === 'object' ? [n.props?.children].flat(50).map(text).join('') : String(n); }
@@ -54,55 +55,54 @@ test('eine Aufgabe unter „Braucht dich“ ist die Zeile der Aufgabenliste, ohn
 test('die Zeile: Kreis mit 44-px-Ziel, Titel als Knopf über die ganze Zeile, eine leise Zeile, rechts die Fälligkeit, keine Zeilenaktionen', () => {
   const baum = render(() => TaskRow({task: aufgabe, view: 'mine', compact: true, ohneAktionen: true, projektName: 'Fachtag', hinweis: 'Verlauf ungeprüft',
     completing: false, onComplete() {}, onOpen() {}, onWait() {}, projects: [], onProjectChange() {}, onEdit: async () => false}));
-  assert.equal(nodes(baum, n => n.props?.className === 'task-row-actions').length, 0);
-  const kreis = nodes(baum, n => n.type === 'button' && n.props?.className === 'task-check')[0];
+  assert.equal(nodes(baum, n => n.props?.className?.split?.(' ').includes('task-row-actions')).length, 0);
+  const kreis = nodes(baum, n => n.type === 'button' && n.props?.className?.split?.(' ').includes('task-check'))[0];
   assert.equal(kreis.props['aria-label'], `${aufgabe.title} erledigen`);
   assert.equal(kreis.props.disabled, false);
-  assert.equal(text(nodes(baum, n => n.props?.className === 'task-title-link')[0]), aufgabe.title);
+  assert.equal(text(nodes(baum, n => n.props?.className?.split?.(' ').includes('task-title-link'))[0]), aufgabe.title);
   const meta = nodes(baum, n => n.props?.className === 'task-meta')[0];
   assert.equal(text(meta), 'FachtagVerlauf ungeprüft', 'Projekt und Hinweis in einer leisen Zeile');
   assert.ok(nodes(baum, n => n.type === 'time' && n.props?.className === 'overdue').length === 1, 'überfällig rechts, rot');
   // Ohne die neuen Angaben bleibt die Liste, wie sie war: Zeilenaktionen da, Projekt aus der Projektliste.
   const inListe = render(() => TaskRow({task: aufgabe, view: 'mine', compact: true, completing: false, onComplete() {}, onOpen() {}, onWait() {},
     projects: [{id: 'p1', name: 'Aus der Liste', open: true}], onProjectChange() {}, onEdit: async () => false}));
-  assert.equal(nodes(inListe, n => n.props?.className === 'task-row-actions').length, 1);
+  assert.equal(nodes(inListe, n => n.props?.className?.split?.(' ').includes('task-row-actions')).length, 1);
   assert.equal(text(nodes(inListe, n => n.props?.className === 'task-meta')[0]), 'Aus der Liste');
   const css = quelle('WorkspaceTasks.css');
   assert.match(css, /#root \.task-row \.task-check \{[^}]*width: 44px; height: 44px;/);
 });
 
-test('Erledigen wirkt sofort: der Kreis füllt sich, Heute sagt es und bietet „Rückgängig“', async () => {
+test('Erledigen wirkt sofort: der Kreis füllt sich, der Hinweis sagt es und bietet „Rückgängig“ (V4)', async () => {
   const aufrufe = [];
   const vorher = {completeTask: api.completeTask, reopenTask: api.reopenTask};
   api.completeTask = async id => { aufrufe.push(['erledigt', id]); return {...aufgabe, status: 'done'}; };
   api.reopenTask = async id => { aufrufe.push(['offen', id]); return aufgabe; };
   try {
-    const zeileState = []; let fertig = null;
-    const props = {item: punkt, onOpen() {}, onDone(a) { fertig = a; }};
+    hinweise.schliessen();
+    const zeileState = []; let geladen = 0;
+    const props = {item: punkt, onOpen() {}, onChanged() { geladen += 1; }};
     let row = render(() => TodayTaskRow(props), zeileState);
     nodes(row, n => n.type === TaskRow)[0].props.onComplete();
     await new Promise(r => setTimeout(r, 0));
     assert.deepEqual(aufrufe, [['erledigt', 't1']]);
-    assert.deepEqual(fertig, {id: 't1', title: aufgabe.title});
+    assert.equal(geladen, 1, 'Heute lädt neu, die Aufgabe geht aus der Liste');
     row = render(() => TodayTaskRow(props), zeileState);
     const liste = nodes(row, n => n.type === TaskRow)[0];
     assert.equal(liste.props.task.status, 'done', 'der Kreis zeigt den Haken');
     assert.equal(liste.props.completing, true, 'kein zweites Erledigen');
 
-    const seiten = []; const extra = {};
-    let baum = zeichne(briefing([punkt]), seiten, extra);
-    nodes(baum, n => n.type === TodayTaskRow)[0].props.onDone({id: 't1', title: aufgabe.title});
-    assert.equal(extra.geladen, 1, 'Heute lädt neu, die Aufgabe geht aus der Liste');
-    baum = zeichne(briefing([]), seiten, extra);
-    const satz = nodes(baum, n => n.props?.className === 'today-notice today-erledigt')[0];
-    assert.equal(satz.props.role, 'status');
-    assert.match(text(satz), /„Flyer-Layout bei Frau Brandl nachfassen“ erledigt\./);
-    const zurueck = nodes(satz, n => n.type === 'button' && text(n) === 'Rückgängig')[0];
-    await zurueck.props.onClick();
+    // Der Hinweis gehört der App: Er bleibt, auch wenn die Zeile mit dem neuen Briefing verschwindet.
+    const z = hinweise.stand();
+    assert.deepEqual(hinweisInhalt(z), {text: '„Flyer-Layout bei Frau Brandl nachfassen“ erledigt.', knopf: 'Rückgängig', fehler: false});
+    await hinweise.zuruecknehmen();
     assert.deepEqual(aufrufe.at(-1), ['offen', 't1']);
-    baum = zeichne(briefing([]), seiten, extra);
-    assert.match(text(nodes(baum, n => n.props?.className === 'today-notice today-erledigt')[0]), /ist wieder offen\./);
-  } finally { Object.assign(api, vorher); }
+    assert.equal(geladen, 2, 'nach dem Zurücknehmen lädt Heute neu');
+    assert.equal(hinweisInhalt(hinweise.stand()).text, '„Flyer-Layout bei Frau Brandl nachfassen“ ist wieder offen.');
+    row = render(() => TodayTaskRow(props), zeileState);
+    assert.equal(nodes(row, n => n.type === TaskRow)[0].props.task.status, 'open', 'der Kreis ist wieder leer');
+    // Heute selbst hat keine eigene Erledigt-Zeile mehr.
+    assert.doesNotMatch(quelle('TodayOverview.tsx'), /today-erledigt|akteNotice/);
+  } finally { Object.assign(api, vorher); hinweise.schliessen(); }
 });
 
 test('ein nicht bestätigtes Erledigen sagt es an der Zeile', async () => {
@@ -110,7 +110,7 @@ test('ein nicht bestätigtes Erledigen sagt es an der Zeile', async () => {
   api.completeTask = async () => { throw new Error('offline'); };
   try {
     const state = []; let fertig = false;
-    const props = {item: punkt, onOpen() {}, onDone() { fertig = true; }};
+    const props = {item: punkt, onOpen() {}, onChanged() { fertig = true; }};
     nodes(render(() => TodayTaskRow(props), state), n => n.type === TaskRow)[0].props.onComplete();
     await new Promise(r => setTimeout(r, 0));
     const row = render(() => TodayTaskRow(props), state);
@@ -138,7 +138,7 @@ test('die Zeile öffnet die Aufgabe im Seitenpaneel, mit Grund und Weg in die Au
 test('Wartet-Punkte: dieselbe Zeile mit „Wartet auf …“; ohne mitgelieferte Aufgabe reichen Kennung und Titel', () => {
   const wartet = {id: 'w1', title: 'Rückmeldung Klinik', detail: '', source: 'wartet', source_ref: 't2',
     task: {...aufgabe, id: 't2', title: 'Rückmeldung Klinik', wartet_auf: 'Dr. Amann', project_id: null, due: null, overdue: false}};
-  const liste = nodes(render(() => TodayTaskRow({item: wartet, onOpen() {}, onDone() {}})), n => n.type === TaskRow)[0];
+  const liste = nodes(render(() => TodayTaskRow({item: wartet, onOpen() {}, onChanged() {}})), n => n.type === TaskRow)[0];
   assert.equal(liste.props.view, 'waiting');
   const zeile = render(() => TaskRow(liste.props));
   assert.equal(text(nodes(zeile, n => n.props?.className === 'task-meta')[0]), 'Wartet auf Dr. Amann');

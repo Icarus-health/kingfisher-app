@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { HinweisAnzeige } from "./grundlage";
 import { api } from "./api";
 import { eingabenMelden } from "./aktivitaet";
 import "./LeafletPlaces";
@@ -23,5 +24,7 @@ eingabenMelden(api.hintergrundAktiv);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
+    {/* Der eine Hinweis mit „Rückgängig“ für alle Seiten (grundlage/hinweisOrt.ts). */}
+    <HinweisAnzeige />
   </StrictMode>,
 );

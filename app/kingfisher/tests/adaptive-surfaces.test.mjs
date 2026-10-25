@@ -19,7 +19,7 @@ function render(fn,seeds=[]){let i=0;globalThis.__adaptiveState=v=>{const slot=i
 const briefing={generated_at:'2026-10-15T08:00:00Z',timezone:'Europe/Berlin',partial_failures:[],happening_now:[],later_today:[],needs_you:[{id:'a',title:'Bericht prüfen',reason:'Dieser Mailverlauf ist nicht vollständig geprüft.',detail:'Dieser Mailverlauf ist nicht vollständig geprüft.',action:'Verlauf prüfen',source:'aufgabe',source_ref:'t1'}]};
 test('today keeps the unresolved review warning visible while its full explanation is available on demand',()=>{
  // V1: die Aufgabe ist die Zeile der Liste; der Hinweis steht leise in ihr, die ganze Erklärung in der geöffneten Aufgabe.
- const row=render(()=>TodayTaskRow({item:briefing.needs_you[0],onDone(){},onOpen(){}}));
+ const row=render(()=>TodayTaskRow({item:briefing.needs_you[0],onChanged(){},onOpen(){}}));
  const taskRow=nodes(row,n=>n.type?.name==='TaskRow')[0];assert.equal(taskRow.props.hinweis,'Verlauf ungeprüft','review uncertainty must stay visible in the row');
  const state=[];const draw=()=>TodayOverview({briefing,onChange(){},onTaskDone(){},onOpenMail(){},taskNotice:'',correctionSaved:false});
  let today=render(draw,state);nodes(today,n=>n.type?.name==='TodayTaskRow')[0].props.onOpen();

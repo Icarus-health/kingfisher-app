@@ -5,13 +5,15 @@ import { test } from "node:test";
 const akte = readFileSync(new URL("../src/AkteAbschnitte.tsx", import.meta.url), "utf8");
 const api = readFileSync(new URL("../src/api.ts", import.meta.url), "utf8");
 
-test("Braucht dich: jede Wahl ist ein Klick und antwortet mit einer Meldung samt Rückgängig", () => {
+test("Braucht dich: jede Wahl ist ein Klick und antwortet mit dem Hinweis samt Rückgängig (V4)", () => {
   assert.match(akte, /p\.wahl\.map\(w => <button[^>]*onClick=\{\(\) => entscheiden\(p\.ziel, w\.entscheidung/);
-  assert.match(akte, /className="akte-meldung" role="status"/);
-  // „Rückgängig“ stellt den Vorwert wieder her (vorher), sonst die Vermutung.
-  assert.match(akte, /meldung\.ziel \? <button.*?zuruecknehmen\(meldung\.ziel!, meldung\.vorher \?\? null\).*?>Rückgängig<\/button>/);
-  assert.match(akte, /if \(vorher\) await api\.akteEntscheiden\(sache, ziel, vorher\);/);
-  assert.match(akte, /className="akte-meldung" role="status" tabIndex=\{-1\} ref=\{meldungRef\}/);
+  // Der Hinweis der App statt einer eigenen Meldung; „Rückgängig“ stellt den Vorwert wieder her (vorher), sonst die Vermutung.
+  assert.match(akte, /zeigeHinweis\(\{ text: \(termin \? GEMERKT_TERMIN : GEMERKT\)\[entscheidung\], rueckgaengig: zurueckWeg\(ziel, antwort\.vorher\) \}\)/);
+  assert.match(akte, /if \(vorher\) await api\.akteEntscheiden\(sache, ziel, vorher\);\n\s*else await api\.akteEntscheidungZuruecknehmen\(sache, ziel\);/);
+  assert.doesNotMatch(akte, /akte-meldung|setMeldung|uebergabe/);
+  // Wer eine eigene Entscheidung zurücknimmt, kann im Hinweis die frühere wiederherstellen.
+  assert.match(akte, /zuruecknehmen=\{ziel => void zuruecknehmen\(ziel, "offen"\)\}/);
+  assert.match(akte, /zuruecknehmen\(t\.ziel!, t\.entscheidung \?\? null\)/);
   assert.match(api, /akteEntscheiden: \(sache: string, ziel: string, entscheidung: AkteEntscheidung\)/);
   assert.match(api, /akteEntscheidungZuruecknehmen: \(sache: string, ziel: string\)/);
 });

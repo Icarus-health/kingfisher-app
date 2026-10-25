@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { api, type Project, type ProjectSuggestion } from "./api";
+import { zeigeHinweis } from "./grundlage";
 
 // Ablage, kein Fakt: Die Zuordnung ändert weder Einordnung noch Belege und
 // lässt sich jederzeit zurückstellen. Deshalb speichert die Auswahl sofort
-// und ohne Rückfrage, sagt aber, was passiert ist. Vorschläge stammen nur aus
+// und ohne Rückfrage, sagt aber im Hinweis unten, was passiert ist, mit „Rückgängig“ (V4). Vorschläge stammen nur aus
 // den eigenen Zuordnungen des Nutzers und werden nie selbst angewendet.
 export function SourceProject({id, projectId}: {id: string; projectId: string | null}) {
   const [projects, setProjects] = useState<Project[] | null>(null);
@@ -12,7 +13,6 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
   const [result, setResult] = useState<{ok: boolean; text: string} | null>(null);
   const [hint, setHint] = useState<ProjectSuggestion | null>(null);
   const [offer, setOffer] = useState<{projectId: string; name: string; count: number; sender: string} | null>(null);
-  const [moved, setMoved] = useState<{ids: string[]; projectId: string; name: string} | null>(null);
   useEffect(() => {
     let active = true;
     api.projects().then(items => {if (active) setProjects(items);}).catch(() => {if (active) setProjects([]);});
@@ -26,11 +26,17 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
 
   async function choose(next: string) {
     const previous = value;
-    setValue(next); setSaving(true); setResult(null); setOffer(null); setMoved(null);
+    setValue(next); setSaving(true); setResult(null); setOffer(null);
     try {
       await api.linkSourceProject(id, next || null);
       const name = nameOf(next);
-      setResult({ok: true, text: name ? `Dem Projekt „${name}“ zugeordnet.` : "Keinem Projekt mehr zugeordnet."});
+      const vorherName = nameOf(previous);
+      zeigeHinweis({text: name ? `Dem Projekt „${name}“ zugeordnet.` : "Keinem Projekt mehr zugeordnet.",
+        rueckgaengig: async () => {
+          await api.linkSourceProject(id, previous || null);
+          setValue(previous); setOffer(null);
+          return vorherName ? `Wieder dem Projekt „${vorherName}“ zugeordnet.` : "Wieder keinem Projekt zugeordnet.";
+        }});
       if (next && hint?.unassigned_peers && hint.sender) {
         setOffer({projectId: next, name, count: hint.unassigned_peers, sender: hint.sender});
       }
@@ -45,26 +51,23 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
     setSaving(true);
     try {
       const {changed} = await api.linkSameSender(id, offer.projectId);
-      setMoved({ids: changed, projectId: offer.projectId, name: offer.name});
+      const moved = {ids: changed, projectId: offer.projectId};
       setOffer(null);
-      setResult({ok: true, text: changed.length === 1 ? `Eine weitere Mail dem Projekt „${offer.name}“ zugeordnet.`
-        : `${changed.length} weitere Mails dem Projekt „${offer.name}“ zugeordnet.`});
       setHint(current => current ? {...current, unassigned_peers: 0} : current);
+      zeigeHinweis({text: changed.length === 1 ? `Eine weitere Mail dem Projekt „${offer.name}“ zugeordnet.`
+        : `${changed.length} weitere Mails dem Projekt „${offer.name}“ zugeordnet.`, ...(changed.length ? {rueckgaengig: () => undoSender(moved)} : {})});
     } catch {
       setResult({ok: false, text: "Die weiteren Mails konnten nicht zugeordnet werden. Bitte erneut versuchen."});
     } finally { setSaving(false); }
   }
 
-  async function undoSender() {
-    if (!moved) return;
+  // „Rückgängig“ im Hinweis: nur die eben zugeordneten Mails, und nur, solange sie noch bei diesem Projekt liegen.
+  async function undoSender(moved: {ids: string[]; projectId: string}) {
     setSaving(true);
     try {
       const {changed} = await api.linkSourceProjects(moved.ids, null, moved.projectId);
-      setResult({ok: true, text: `Rückgängig gemacht: ${changed.length === 1 ? "Eine Mail ist" : `${changed.length} Mails sind`} wieder keinem Projekt zugeordnet.`});
       setHint(current => current ? {...current, unassigned_peers: changed.length} : current);
-      setMoved(null);
-    } catch {
-      setResult({ok: false, text: "Das Rückgängigmachen hat nicht geklappt. Bitte erneut versuchen."});
+      return `Rückgängig gemacht: ${changed.length === 1 ? "Eine Mail ist" : `${changed.length} Mails sind`} wieder keinem Projekt zugeordnet.`;
     } finally { setSaving(false); }
   }
 
@@ -80,6 +83,5 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
     {result && <p role={result.ok ? "status" : "alert"}>{result.text}</p>}
     {offer && <p className="source-project-hint">{offer.count === 1 ? `Auch die weitere Mail von ${offer.sender} ohne Projekt` : `Auch die ${offer.count} weiteren Mails von ${offer.sender} ohne Projekt`} dem Projekt „{offer.name}“ zuordnen?{" "}
       <button type="button" className="secondary-action" disabled={saving} onClick={() => void applyToSender()}>Ja, zuordnen</button></p>}
-    {moved && moved.ids.length > 0 && <p className="source-project-hint"><button type="button" className="secondary-action" disabled={saving} onClick={() => void undoSender()}>Rückgängig</button></p>}
   </div>;
 }

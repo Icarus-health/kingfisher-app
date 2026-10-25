@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Schalter } from "./grundlage";
 import { api } from "./api";
 import {
   angebot, auftrag, brueckeFinden, fassungText, merken, nachgesehenText, rueckmeldung, SATZ_PRUEFEN, zuletztText,
@@ -88,10 +89,9 @@ export function FassungEinstellung() {
   return <div className="ich-feld fassung-einstellung">
     <strong>{stand ? fassungText(stand.fassung) : "Fassung …"}</strong>
     {stand ? <>
-      <label className="wegezeit-schalter"><input type="checkbox" role="switch" checked={stand.pruefen} disabled={arbeitet}
-        onChange={event => void ausfuehren(() => api.fassungSchalten(event.target.checked),
+      <Schalter className="wegezeit-schalter" titel="Nach neuen Fassungen sehen" satz={SATZ_PRUEFEN} an={stand.pruefen} deaktiviert={arbeitet}
+        onWechsel={an => void ausfuehren(() => api.fassungSchalten(an),
           neu => neu.pruefen ? "Kingfisher sieht einmal am Tag nach neuen Fassungen." : "Kingfisher sieht nicht mehr von selbst nach.")} />
-        <span><strong>Nach neuen Fassungen sehen</strong><small>{SATZ_PRUEFEN}</small></span></label>
       <div><button type="button" className="secondary-action" disabled={arbeitet}
         onClick={() => void ausfuehren(api.fassungPruefen, nachgesehenText)}>{arbeitet ? "Sieht nach …" : "Jetzt nachsehen"}</button></div>
       <p className="source-hint">{zuletztText(stand.geprueft_um)}</p>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError, api, type SupportReassessmentPreview, type SupportReviewPage } from "./api";
 import { ProfileSource } from "./ProfileSource";
 import "./SelfModelSupportReview.css";
-import { Leer } from "./grundlage";
+import { Leer, Unterkopf } from "./grundlage";
 
 function date(value: string) {
   const parsed = new Date(value);
@@ -156,12 +156,8 @@ export function SelfModelSupportReview({onSubmittingChange}: {onSubmittingChange
   }
 
   return <section className="memory-status support-review" aria-label="Aussagen prüfen">
-    <header className="gd-unterkopf">
-      <div><h2 className="g-titel">Aussagen prüfen</h2>
-        <p className="support-review-intro">Jede Aussage einzeln an ihren Originalbelegen; die Prüfung ändert nicht, wann sie galt.</p>
-      </div>
-      <button type="button" className="g-knopf-schlicht g-kompakt" disabled={busy} onClick={refresh}>Aktualisieren</button>
-    </header>
+    <Unterkopf titel="Aussagen prüfen" zeile="Jede Aussage einzeln an ihren Originalbelegen; die Prüfung ändert nicht, wann sie galt."
+      aktion={<button type="button" className="g-knopf-schlicht g-kompakt" disabled={busy} onClick={refresh}>Aktualisieren</button>} />
     {message && <p className="support-review-message" role="status">{message}</p>}
     {warning && <p className="support-review-warning" role="alert">{warning}</p>}
     {listError ? <p role="alert">Die Aussagen konnten nicht geladen werden. Bitte erneut aktualisieren.</p> : null}

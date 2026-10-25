@@ -12,7 +12,7 @@ in denen „Projekt Atlas“ vorkommt; die Erwähnungen liefert ein Regel-Skript
 * „Akte anlegen“ legt das Projekt an, öffnet die neue Akte mit dem Satz („Akte „Projekt Atlas“ angelegt, 4 Quellen
   zugeordnet.“) und „Rückgängig“; die Akte hat 4 Quellen, beide Beteiligte und einen Zeitstrahl. „Rückgängig“ löst
   alles wieder und führt zur Akte der Erwähnung zurück.
-* Heute zeigt den einen Satz mit „Akte anlegen“ und „Nein danke“; nach dem Klick bleibt die Antwort mit „Akte öffnen“.
+* Heute zeigt den einen Satz mit „Akte anlegen“ und „Nein danke“; nach dem Klick sagt der Hinweis die Antwort mit „Akte öffnen“.
 * 1280 und 390 px ohne Überlauf; die Konsole bleibt leer.
 
 Aufruf: `python scripts/probe_neue_akte_ui.py --ausgabe DIR [--chromium PFAD]` (vorher `npm run build` in `app/kingfisher`).
@@ -156,8 +156,10 @@ def main() -> int:
             bild('akte-vorschlag')
             # 2. „Nein danke“: gemerkt, Satz mit „Rückgängig“; danach „Doch vorschlagen“; „Rückgängig“ holt ihn zurück.
             zeile.get_by_role('button', name='Nein danke').click()
-            meldung = seite.locator('.akte-meldung')
+            # Seit V4 der Hinweis der App (unten mittig); der Zeiger darauf hält ihn, wie bei einem Menschen.
+            meldung = seite.locator('.g-hinweis')
             meldung.wait_for(timeout=10000)
+            meldung.hover()
             pruef['nein_danke'] = meldung.inner_text()
             assert pruef['nein_danke'].startswith('Gemerkt: „Projekt Atlas“ wird nicht mehr vorgeschlagen.'), pruef['nein_danke']
             seite.locator('.akte-neue-stand').wait_for(timeout=10000)
@@ -167,13 +169,15 @@ def main() -> int:
             meldung.get_by_role('button', name='Rückgängig').click()
             seite.locator('section.akte-neue[aria-label="Neue Akte?"]').wait_for(timeout=10000)
             assert entscheidungen() == []
-            pruef['zurueck_nach_nein'] = seite.locator('.akte-meldung').inner_text()
+            pruef['zurueck_nach_nein'] = seite.locator('.g-hinweis').inner_text()
             # 3. „Akte anlegen“: Projekt da, neue Akte mit Satz und „Rückgängig“, vollständig.
             seite.locator('section.akte-neue').get_by_role('button', name='Akte anlegen').click()
             seite.wait_for_url('**/memory/akte/projekt:p-akte-*', timeout=10000)
             seite.wait_for_selector('section.akte', timeout=20000)
-            meldung = seite.locator('.akte-meldung')
+            # Seit V4 der Hinweis der App (unten mittig); der Zeiger darauf hält ihn, wie bei einem Menschen.
+            meldung = seite.locator('.g-hinweis')
             meldung.wait_for(timeout=10000)
+            meldung.hover()
             pruef['angelegt'] = meldung.inner_text()
             assert pruef['angelegt'].startswith('Akte „Projekt Atlas“ angelegt, 4 Quellen zugeordnet.'), pruef['angelegt']
             assert projekte() == ['Projekt Atlas'] and entscheidungen() == [(kennung, 'angenommen')]
@@ -182,7 +186,8 @@ def main() -> int:
             assert 'Aus einem Vorschlag angelegt, 4 Quellen zugeordnet.' in seite.locator('.akte-neue-stand').inner_text()
             kopf = seite.locator('.akte-kopf').inner_text()
             pruef['neue_akte_kopf'] = kopf
-            assert 'Projekt Atlas' in kopf and 'Aus 4 Quellen' in kopf, kopf
+            # Seit V2 (25.10.) steht unter dem Namen der Stand in einem Satz statt „Aus 4 Quellen“.
+            assert 'Projekt Atlas' in kopf and 'Zuletzt am' in kopf, kopf
             zusammenhaenge = seite.locator('.akte-beteiligte').inner_text()
             assert 'Anna Keller' in zusammenhaenge and 'Ben Braun' in zusammenhaenge, zusammenhaenge
             assert seite.locator('.akte-strahl, .akte-spur').count() >= 1, 'Zeitstrahl fehlt'
@@ -191,7 +196,7 @@ def main() -> int:
             meldung.get_by_role('button', name='Rückgängig').click()
             seite.wait_for_url('**/memory/akte/projekt:n:atlas', timeout=10000)
             seite.locator('section.akte-neue[aria-label="Neue Akte?"]').wait_for(timeout=20000)
-            pruef['zurueckgenommen'] = seite.locator('.akte-meldung').inner_text()
+            pruef['zurueckgenommen'] = seite.locator('.g-hinweis').inner_text()
             assert pruef['zurueckgenommen'].startswith('Zurückgenommen: 4 Quellen gelöst, Projekt „Projekt Atlas“ entfernt.'), pruef['zurueckgenommen']
             assert projekte() == [] and entscheidungen() == []
             assert all(app.state.episodes.get(q.id).project_id is None for q in quellen)
@@ -207,8 +212,9 @@ def main() -> int:
             ohne_ueberlauf('heute_1280')
             bild('heute-vorschlag', ganz=False)
             karte.get_by_role('button', name='Akte anlegen').click()
-            hinweis = seite.locator('.today-notice').filter(has_text='Akte öffnen')
+            hinweis = seite.locator('.g-hinweis').filter(has_text='Akte öffnen')
             hinweis.wait_for(timeout=10000)
+            hinweis.hover()
             pruef['heute_antwort'] = hinweis.inner_text()
             assert pruef['heute_antwort'].startswith('Akte „Projekt Atlas“ angelegt, 4 Quellen zugeordnet.')
             assert projekte() == ['Projekt Atlas']

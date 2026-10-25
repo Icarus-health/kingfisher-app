@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Schalter } from "../grundlage";
 import { api, ApiError, type MitteilungenEinstellung } from "../api";
 import { UHRZEIT_VORGABE, mitteilungenSchalter, uhrzeitGueltig, wochenSatz } from "../mitteilungenSchalter";
 import { fuerSystem } from "../system";
@@ -39,10 +40,9 @@ export function Mitteilungen() {
   const schalter = stand ? mitteilungenSchalter(stand, system) : null;
   return <section className="darf-zeile" aria-label={titel}>
     {!stand || !schalter ? <p>{fehler || "Wird geladen …"}</p> : <>
-      <label><input type="checkbox" role="switch" checked={schalter.an} disabled={arbeitet || schalter.gesperrt}
-        onChange={event => void speichern({ an: event.target.checked },
-          event.target.checked ? "Kingfisher meldet sich jetzt von sich aus. Jede Mitteilung lässt sich als überflüssig melden." : "Kingfisher meldet sich nicht mehr von sich aus.")} />
-        <span><strong>{titel}</strong><small>{SCHALTER.mitteilungen.verlaesst}</small></span></label>
+      <Schalter titel={titel} satz={SCHALTER.mitteilungen.verlaesst} an={schalter.an} deaktiviert={arbeitet || schalter.gesperrt}
+        onWechsel={an => void speichern({ an },
+          an ? "Kingfisher meldet sich jetzt von sich aus. Jede Mitteilung lässt sich als überflüssig melden." : "Kingfisher meldet sich nicht mehr von sich aus.")} />
       {schalter.hinweis && <p className="source-hint" role="status">{schalter.hinweis}</p>}
       {stand.an && <form className="mitteilungen-uhrzeit" onSubmit={event => {
         event.preventDefault();

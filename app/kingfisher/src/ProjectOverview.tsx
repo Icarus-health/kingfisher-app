@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {Zeile} from './grundlage';
 import {api, type ProjectTaskOverview, type Task} from './api';
 import './ProjectOverview.css';
 
@@ -27,11 +28,9 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
   const data = result?.project_id === projectId ? result : null;
   function preview(tasks: Task[], view: 'mine' | 'waiting') {
     // Jede Aufgabe eine ganze, klickbare Zeile (Baustein-Klassen g-zeile), rechts die Fälligkeit.
-    return <div className="g-flaeche">{tasks.map(task => <button key={task.id} type="button" className="g-zeile project-task-link" onClick={() => onTask(task.id,view)}>
-      <span className="g-zeile-text"><span className="g-zeile-titel">{task.title}</span>
-        {view === 'waiting' && <small className="g-zeile-neben">Bei {task.wartet_auf}{task.wartet_tage !== null ? ` · seit ${task.wartet_tage} Tagen` : ''}</small>}</span>
-      <time className={`g-zeile-wert${task.overdue ? ' overdue' : ''}`} dateTime={task.due ?? undefined}>{dateLabel(task.due)}</time>
-    </button>)}</div>;
+    return <div className="g-flaeche">{tasks.map(task => <Zeile key={task.id} className="project-task-link" onClick={() => onTask(task.id,view)} titel={task.title}
+      neben={view === 'waiting' ? `Bei ${task.wartet_auf}${task.wartet_tage !== null ? ` · seit ${task.wartet_tage} Tagen` : ''}` : undefined}
+      wert={dateLabel(task.due)} wertZeit={task.due ?? ''} wertKlasse={task.overdue ? 'overdue' : undefined} />)}</div>;
   }
   // Projekt auf einen Blick: drei Kacheln (offen, wartet, erledigt), jede öffnet die passende Liste; darunter leise die
   // nächsten Schritte. Die Zahlen gelten für das ganze Projekt, unabhängig von der Suche.

@@ -1,4 +1,5 @@
 import "./MailSyncSettings.css";
+import { Schalter } from "./grundlage";
 import { useEffect, useRef, useState } from "react";
 import { api, type MailAccount, type Schedule } from "./api";
 import { MailIntake } from "./MailIntake";
@@ -67,10 +68,8 @@ export function MailSyncSettings({ accounts }: { accounts: MailAccount[] }) {
   return <section className="source-section mail-sync-settings" aria-label="Mails regelmäßig abrufen">
     {!saved && !error ? <p role="status">Wird geladen …</p> : null}
     {saved ? <>
-      <label className="mail-abruf-schalter">
-        <input type="checkbox" role="switch" checked={an} disabled={busy || !waehlbar.length} onChange={event => void speichern({ an: event.target.checked })} />
-        <span><strong>Mails regelmäßig abrufen</strong><small>{abrufSatz(an, minuten, namen.length ? namen : waehlbar.map(account => account.label))}</small></span>
-      </label>
+      <Schalter className="mail-abruf-schalter" titel="Mails regelmäßig abrufen" satz={abrufSatz(an, minuten, namen.length ? namen : waehlbar.map(account => account.label))}
+        an={an} deaktiviert={busy || !waehlbar.length} onWechsel={neu => void speichern({ an: neu })} />
       {an ? <label className="mail-abruf-wie-oft">Wie oft
         <select value={minuten} disabled={busy} onChange={event => void speichern({ minuten: Number(event.target.value) })}>
           {abstandAuswahl(minuten).map(eintrag => <option key={eintrag.minuten} value={eintrag.minuten}>{eintrag.text}</option>)}

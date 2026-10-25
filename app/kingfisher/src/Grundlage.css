@@ -57,6 +57,23 @@
   --g-segment-grund: rgba(23,38,53,.06);
   --g-fokus: 0 0 0 3px rgba(40,105,170,.28);
   --g-rot: var(--kf-schrift-bf3b44, #bf3b44);
+  /* Bestätigt, gespeichert: das ruhige Grün des Bestands. Platzhalter in Feldern. */
+  --g-gruen: var(--kf-schrift-197a58, #197a58);
+  --g-platzhalter: #8592a0;
+
+  /* Feine Rastermaße des Kalenders (V4): Zeitspalte, Mindestbreite eines Tages, Höhe einer Stunde, Punkte, Monatstage;
+     die Jahresansicht so breit, dass jeder Tag ein Ziel von 44 px ist. */
+  --g-kal-zeitspalte: 56px;
+  --g-kal-zeitspalte-schmal: 44px;
+  --g-kal-tag: 88px;
+  --g-kal-tag-schmal: 76px;
+  --g-kal-stunde: 48px;
+  --g-kal-punkt: 8px;
+  --g-kal-punkt-schmal: 6px;
+  --g-kal-monatstag: 136px;
+  --g-kal-monatstag-schmal: 58px;
+  --g-kal-jahr-tag: var(--g-ziel);
+  --g-kal-jahr-monat: calc(7 * var(--g-kal-jahr-tag));
 
   /* Ziele und Bewegung. */
   --g-ziel: 44px;
@@ -93,6 +110,11 @@
 .g-kopfleiste-inhalt > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .g-kopfleiste[data-sichtbar="true"] .g-kopfleiste-inhalt { opacity: 1; transform: none; }
 
+/* Unterkopf: Titel einer Unteransicht, höchstens eine leise Zeile, rechts eine schlichte Aktion (V4, aus dem Gedächtnis).
+   Mit `#root`, weil ältere Regeln (`.memory-status > header`) den Kopf sonst mittig setzen. */
+#root .g-unterkopf { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin: 0 0 var(--g-a5); }
+#root .g-unterkopf-zeile { max-width: 68ch; margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+
 /* Gruppe: eine gruppierte Fläche, darüber klein die Überschrift, darunter die Fußnote (wie die Einstellungen am Mac). */
 .g-gruppe { margin: 0 0 var(--g-a6); min-width: 0; }
 .g-gruppe-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: var(--g-a3); margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); }
@@ -100,6 +122,11 @@
 .g-flaeche { background: var(--g-flaeche); border-radius: var(--g-radius-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
 .g-flaeche-frei { padding: var(--g-a4) var(--g-a5); }
 .g-gruppe-fussnote { margin: var(--g-a2) 0 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+/* Zahl und Aktion im Kopf, Aktion im Fuß (V4, aus den Zugängen der Einstellungen). */
+.g-gruppe-zahl { font: var(--g-fussnote); color: var(--g-leise); font-variant-numeric: tabular-nums; }
+.g-gruppe-aktion { display: flex; align-items: center; gap: var(--g-a2); }
+.g-gruppe-fuss { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin-top: var(--g-a2); }
+.g-gruppe-fuss > .g-gruppe-fussnote { flex: 1 1 240px; margin: 0; padding-top: var(--g-a2); }
 
 /* Zeile: mindestens 52 px, die ganze Zeile ist das Ziel. Trenner als eingerückte Haarlinie. */
 .g-zeile {
@@ -123,6 +150,24 @@
 .g-zeile-wert { flex: 0 0 auto; max-width: 45%; font: var(--g-neben); color: var(--g-leise); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
 .g-zeile-zusatz { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a2); }
 .g-zeile-pfeil { flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 2px; border: solid rgba(23,38,53,.32); border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); }
+/* Zeile mit eigenem Bedienelement links (Kreis, Häkchen; V4, aus der Aufgabenzeile): Die ganze Zeile ist das Ziel – der
+   Knopf in der Mitte (`.g-zeile-ziel`) deckt sie mit ::after –, das Bedienelement links (`.g-zeile-links`) und was sonst
+   klickbar bleiben muss (`.g-zeile-ueber`) liegen darüber. So gibt es keinen Knopf im Knopf. Die Mechanik gilt für jede
+   Zeile mit `.g-zeile-bedient` (auch die Aufgabenzeile), die Maße nur im Baustein (`.g-zeile > …`). */
+#root .g-zeile-bedient { position: relative; }
+#root .g-zeile-bedient .g-zeile-ziel::after { content: ""; position: absolute; inset: 0; }
+#root .g-zeile-bedient .g-zeile-ziel:focus-visible { outline: none; }
+#root .g-zeile-bedient:has(.g-zeile-ziel:focus-visible) { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+#root .g-zeile-bedient :is(.g-zeile-links, .g-zeile-ueber) { position: relative; z-index: 1; }
+.g-zeile.g-zeile-bedient { transition: background-color 150ms ease; }
+.g-zeile.g-zeile-bedient:hover { background: rgba(23,38,53,.035); }
+.g-zeile > .g-zeile-links { flex: 0 0 auto; display: grid; place-items: center; min-width: var(--g-ziel); min-height: var(--g-ziel); margin: 0 calc(-1 * var(--g-a2)) 0 calc(-1 * var(--g-a3)); }
+.g-zeile > .g-zeile-ziel {
+  flex: 1 1 auto; display: flex; align-items: center; gap: var(--g-a3); min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+.g-zeile > .g-zeile-ziel:disabled { cursor: default; }
+.g-zeile.g-zeile-bedient:has(> .g-zeile-ziel:is([aria-current="true"], [aria-current="page"])) { background: var(--g-auswahl); }
 
 /* Segmente: Segmentsteuerung als Pille. Rollt waagrecht, statt umzubrechen; Pfeiltasten wählen. */
 .g-segmente {
@@ -163,6 +208,66 @@
 .g-aufklapper-neben { margin-left: auto; padding-left: var(--g-a3); font: var(--g-fussnote); color: var(--g-leise); }
 .g-aufklapper-inhalt { padding: var(--g-a1) 0 var(--g-a3) 19px; }
 
+/* Schalter (grundlage/Schalter.tsx): jedes `input[role=switch]` ist ein Umlegeschalter wie am Mac, rechts in seiner
+   Zeile; Titel und der eine Satz stehen links, die ganze Zeile ist das Ziel. Aus Einstellungen.css hierher (V4), mit
+   derselben Schärfe (`#root .shell`), damit nichts anders aussieht. */
+#root .shell input[type="checkbox"][role="switch"] {
+  -webkit-appearance: none; appearance: none; position: relative; flex: 0 0 auto; box-sizing: border-box;
+  width: 51px; height: 31px; margin: 0; border: 0; border-radius: var(--g-radius-pille);
+  background: rgba(120,120,128,.24); cursor: pointer; transition: background-color var(--g-bewegung);
+}
+#root .shell input[type="checkbox"][role="switch"]::before {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16); transition: transform var(--g-bewegung);
+}
+#root .shell input[type="checkbox"][role="switch"]:checked { background: var(--g-akzent); }
+#root .shell input[type="checkbox"][role="switch"]:checked::before { transform: translateX(20px); }
+#root .shell input[type="checkbox"][role="switch"]:disabled { opacity: .45; cursor: default; }
+#root .shell input[type="checkbox"][role="switch"]:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+#root .shell label:has(> input[role="switch"]) {
+  display: flex; align-items: center; gap: var(--g-a4); min-height: var(--g-ziel); font: var(--g-text); color: var(--g-tinte); cursor: pointer;
+}
+#root .shell label:has(> input[role="switch"]) > input[role="switch"] { order: 2; margin-left: auto; }
+#root .shell label:has(> input[role="switch"]) > span { display: grid; gap: 2px; min-width: 0; }
+#root .shell label:has(> input[role="switch"]) > span > strong { font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); }
+#root .shell label:has(> input[role="switch"]) > span > small { font: var(--g-fussnote); color: var(--g-leise); }
+#root .shell label:has(> input[role="switch"]:disabled) { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  #root .shell input[type="checkbox"][role="switch"], #root .shell input[type="checkbox"][role="switch"]::before { transition: none; }
+}
+
+/* Bestätigung: die Karte für alles, was erst mit dem Klick eines Menschen gilt (Freigabe, Gedächtnisvorschlag,
+   Vorschlag für die Akte; V4, aus dem Gespräch). Ruhige graue Fläche, klein der Titel, groß der Satz, darunter die Knöpfe. */
+.g-bestaetigung { display: grid; gap: var(--g-a2); margin: 0; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-grund); }
+.g-bestaetigung > .g-bestaetigung-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); letter-spacing: 0; color: var(--g-leise); }
+.g-bestaetigung > strong { font: 600 17px/1.4 var(--g-schrift); color: var(--g-tinte); }
+.g-bestaetigung-knoepfe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); margin: var(--g-a1) 0 0; }
+.g-bestaetigung-knoepfe button { min-height: var(--g-ziel); font-size: 15px; }
+@media (max-width: 700px) { .g-bestaetigung { padding: var(--g-a3) var(--g-a4); } }
+
+/* Hinweis: eine Zeile unten in der Mitte („„Angebot prüfen“ erledigt · Rückgängig“), dunkel auf hellem Grund wie am
+   iPhone; geht nach sechs Sekunden, bleibt bei Maus und Fokus (grundlage/hinweisOrt.ts). Schmal: volle Breite im Rand. */
+.g-hinweis-ort { position: fixed; z-index: 60; left: 0; right: 0; bottom: max(var(--g-a5), env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 var(--g-a4); pointer-events: none; }
+.g-hinweis {
+  display: flex; align-items: center; gap: var(--g-a2); box-sizing: border-box; max-width: min(560px, 100%);
+  min-height: var(--g-zeile); padding: var(--g-a1) var(--g-a2) var(--g-a1) var(--g-a4); border-radius: var(--g-radius-flaeche);
+  background: var(--g-tinte); color: var(--g-auf-akzent); font: var(--g-neben); box-shadow: 0 8px 24px rgba(23,38,53,.18);
+  pointer-events: auto; animation: g-hinweis-kommt var(--g-bewegung) both;
+}
+.g-hinweis:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.g-hinweis-text { min-width: 0; padding: var(--g-a2) 0; overflow-wrap: anywhere; }
+.g-hinweis-aktionen { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a1); white-space: nowrap; }
+.g-hinweis-punkt { opacity: .6; }
+.g-hinweis-knopf {
+  display: inline-flex; align-items: center; min-height: var(--g-ziel); padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien);
+  background: transparent; color: var(--g-auf-akzent); font: 600 14px/1.2 var(--g-schrift); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.g-hinweis-knopf:hover:not(:disabled) { background: rgba(255,255,255,.1); }
+.g-hinweis-knopf:disabled { opacity: .6; cursor: default; }
+.g-hinweis-knopf:focus-visible { outline: 2px solid var(--g-auf-akzent); outline-offset: -2px; }
+.g-hinweis[data-fehler] { background: var(--g-rot); }
+@keyframes g-hinweis-kommt { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
 /* Knöpfe in drei Stufen. Gefüllt: genau einer je Ansicht. Getönt: der zweite. Schlicht: nur Text. */
 .g-knopf, .g-knopf-getoent, .g-knopf-schlicht {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); box-sizing: border-box;
@@ -186,10 +291,15 @@
   .g-seitenkopf { margin-bottom: var(--g-a5); }
   .g-seitenkopf-aktionen { flex-basis: 100%; }
   .g-flaeche-frei { padding: var(--g-a4); }
+  .g-gruppe-fuss { flex-direction: column; align-items: stretch; }
+  .g-gruppe-fuss > .g-gruppe-fussnote { flex: none; }
+  .g-gruppe-fuss > .g-gruppe-fussnote:empty { display: none; }
+  .g-gruppe-fuss > :not(.g-gruppe-fussnote) { align-self: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .g-kopfleiste-inhalt, .g-segment, :is(button, a).g-zeile, .g-knopf, .g-knopf-getoent, .g-knopf-schlicht,
   #root details > summary::before { transition: none; }
+  .g-hinweis { animation: none; }
 }
 
 /* ── 3. Global angewandt ──────────────────────────────────────────────────────────────────────────────────── */
@@ -281,7 +391,7 @@
 .shell main :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not(.command-bar input):not(.command-bar textarea):not(.history-search input):focus-visible {
   outline: 2px solid transparent; border-color: var(--g-auswahl-kante); box-shadow: var(--g-fokus);
 }
-.shell main :is(input, select, textarea)::placeholder { color: #8592a0; }
+.shell main :is(input, select, textarea)::placeholder { color: var(--g-platzhalter); }
 .shell main :is(button, a, summary, [tabindex]):focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
 .shell main :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--g-akzent); }
 

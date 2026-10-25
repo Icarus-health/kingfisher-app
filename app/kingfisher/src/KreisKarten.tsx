@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ApiError, api } from "./api";
-import { aktePfad, artSatz, kreisGespeichert, kreisSatz, offeneKollegen, sammelFrage, sammelKnopf, sammlungSatz, uebersichtSatz, type ArtStand, type KreisStand, type KreisUebersicht } from "./kreis";
+import { aktePfad, artSatz, kreisGespeichert, kreisSatz, offeneKollegen, sammelKnopf, sammlungSatz, uebersichtSatz, type ArtStand, type KreisStand, type KreisUebersicht } from "./kreis";
 import { navigate } from "./ui";
+import { zeigeHinweis } from "./grundlage";
 import "./Kreis.css";
 
 function fehlerText(e: unknown, sonst: string): string {
@@ -10,27 +11,33 @@ function fehlerText(e: unknown, sonst: string): string {
 
 /**
  * Die Karte „Kreis“ in der Akte einer Person: Vorschlag mit Begründung in einem Satz, drei Knöpfe. Erst der Klick legt
- * den Kreis fest; ein bestätigter Kreis bleibt, bis du ihn änderst (docs/49-kreis-und-privat.md).
+ * den Kreis fest; ein bestätigter Kreis bleibt, bis du ihn änderst (docs/49-kreis-und-privat.md). Was gespeichert ist,
+ * sagt der Hinweis unten; sein „Rückgängig“ stellt den Kreis von vorher wieder her (oder lässt ihn wieder offen).
  */
 export function KreisKarte({ sache }: { sache: string }) {
   const [stand, setStand] = useState<KreisStand | null>(null);
-  const [hinweis, setHinweis] = useState("");
   const [fehler, setFehler] = useState("");
   const [arbeitet, setArbeitet] = useState(false);
 
   useEffect(() => {
     let aktiv = true;
-    setStand(null); setHinweis(""); setFehler("");
+    setStand(null); setFehler("");
     api.kreis(sache).then(daten => { if (aktiv) setStand(daten); })
       .catch(e => { if (aktiv) setFehler(fehlerText(e, "Der Kreis ließ sich gerade nicht laden.")); });
     return () => { aktiv = false; };
   }, [sache]);
 
   async function waehlen(kreis: KreisStand["vorschlag"]["kreis"] | null) {
-    setArbeitet(true); setFehler(""); setHinweis("");
+    const vorher = stand?.bestaetigt && stand.kreis !== "unbestimmt" ? stand.kreis : null;
+    setArbeitet(true); setFehler("");
     try {
       const neu = kreis ? await api.kreisBestaetigen(sache, kreis) : await api.kreisZuruecknehmen(sache);
-      setStand(neu); setHinweis(kreisGespeichert(neu));
+      setStand(neu);
+      zeigeHinweis({ text: kreisGespeichert(neu), rueckgaengig: async () => {
+        const zurueck = vorher ? await api.kreisBestaetigen(sache, vorher) : await api.kreisZuruecknehmen(sache);
+        setStand(zurueck);
+        return vorher ? kreisGespeichert(zurueck) : "Zurückgenommen. Der Kreis ist wieder offen.";
+      } });
     } catch (e) { setFehler(fehlerText(e, "Das ließ sich gerade nicht speichern. Bitte noch einmal versuchen.")); }
     finally { setArbeitet(false); }
   }
@@ -54,7 +61,6 @@ export function KreisKarte({ sache }: { sache: string }) {
     </div>
     {stand.bestaetigt ? <button type="button" className="g-knopf-schlicht g-kompakt kreis-zurueck" disabled={arbeitet} onClick={() => void waehlen(null)}>Wieder offen lassen</button> : null}
     <p className="kreis-hilfe">Der Kreis bestimmt nur, wie viel Kingfisher dir ungefragt über diese Person sagt und wie zurückhaltend. Es verlässt nichts deinen Rechner.</p>
-    {hinweis ? <p role="status" className="kreis-ok">{hinweis}</p> : null}
     {fehler ? <p role="alert" className="kreis-fehler">{fehler}</p> : null}
   </section>;
 }
@@ -62,23 +68,29 @@ export function KreisKarte({ sache }: { sache: string }) {
 /** Die Karte „Art der Akte“ für Praxis, Versicherung, Vermieter, Schule: nur wenn es einen Vorschlag gibt oder eine Wahl. */
 export function ArtKarte({ sache }: { sache: string }) {
   const [stand, setStand] = useState<ArtStand | null>(null);
-  const [hinweis, setHinweis] = useState("");
   const [fehler, setFehler] = useState("");
   const [arbeitet, setArbeitet] = useState(false);
 
   useEffect(() => {
     let aktiv = true;
-    setStand(null); setHinweis(""); setFehler("");
+    setStand(null); setFehler("");
     api.aktenArt(sache).then(daten => { if (aktiv) setStand(daten); }).catch(() => { /* ohne Art bleibt die Akte, wie sie ist */ });
     return () => { aktiv = false; };
   }, [sache]);
 
+  // Wie beim Kreis: der Hinweis sagt, was gespeichert ist; „Rückgängig“ stellt die Art von vorher her oder den Vorschlag.
   async function waehlen(art: ArtStand["wahlen"][number]["art"]) {
-    setArbeitet(true); setFehler(""); setHinweis("");
+    const vorher = stand?.bestaetigt ? stand.art : null;
+    setArbeitet(true); setFehler("");
     try {
       const neu = await api.aktenArtBestaetigen(sache, art);
       setStand(neu);
-      setHinweis(art === "keine" ? "Gespeichert: keine private Akte. Kingfisher sucht hier keine Fristen mehr." : `Gespeichert: ${neu.art_text}.`);
+      zeigeHinweis({ text: art === "keine" ? "Gespeichert: keine private Akte. Kingfisher sucht hier keine Fristen mehr." : `Gespeichert: ${neu.art_text}.`,
+        rueckgaengig: async () => {
+          const zurueck = vorher ? await api.aktenArtBestaetigen(sache, vorher) : await api.aktenArtZuruecknehmen(sache);
+          setStand(zurueck);
+          return "Zurückgenommen.";
+        } });
     } catch (e) { setFehler(fehlerText(e, "Das ließ sich gerade nicht speichern. Bitte noch einmal versuchen.")); }
     finally { setArbeitet(false); }
   }
@@ -100,7 +112,6 @@ export function ArtKarte({ sache }: { sache: string }) {
       })}
     </div>
     <p className="kreis-hilfe">Aus Mails dieser Akte und ihren PDF-Anhängen schlägt Kingfisher Kündigungs- und Zahlungsfristen als Aufgaben vor, nur mit Datum und Betrag, die so in der Quelle stehen.</p>
-    {hinweis ? <p role="status" className="kreis-ok">{hinweis}</p> : null}
     {fehler ? <p role="alert" className="kreis-fehler">{fehler}</p> : null}
   </section>;
 }
@@ -109,9 +120,7 @@ export function ArtKarte({ sache }: { sache: string }) {
 export function KreisStandAnzeige() {
   const [stand, setStand] = useState<KreisUebersicht | null>(null);
   const [fehler, setFehler] = useState("");
-  const [frage, setFrage] = useState(false);
   const [arbeitet, setArbeitet] = useState(false);
-  const [meldung, setMeldung] = useState("");
   const [runde, setRunde] = useState(0);
   useEffect(() => {
     let aktiv = true;
@@ -126,16 +135,25 @@ export function KreisStandAnzeige() {
     return () => { aktiv = false; if (zeitgeber) clearTimeout(zeitgeber); };
   }, [runde]);
 
-  // Sammelbestätigung nur für Kollegen: eine Rückfrage in einem Satz, danach rückgängig machbar.
+  // Sammelbestätigung nur für Kollegen: ein Klick (der Knopf nennt die Zahl), danach der Hinweis mit „Rückgängig“. Weil
+  // sich das vollständig zurücknehmen lässt (`DELETE /kreis/sammel`), steht davor keine Rückfrage mehr (CLAUDE.md,
+  // Prüfpunkt 5; V4). Hat sich die Zahl inzwischen geändert, speichert der Sidecar nichts und sagt es.
   async function sammeln(anzahl: number) {
-    setArbeitet(true); setFehler(""); setMeldung("");
-    try { setMeldung((await api.kreisSammeln(anzahl)).satz); setFrage(false); setRunde(r => r + 1); }
-    catch (e) { setFehler(fehlerText(e, "Das ließ sich gerade nicht speichern. Bitte noch einmal versuchen.")); setFrage(false); setRunde(r => r + 1); }
+    setArbeitet(true); setFehler("");
+    try {
+      const ergebnis = await api.kreisSammeln(anzahl);
+      setRunde(r => r + 1);
+      const sammlung = ergebnis.sammlung;
+      zeigeHinweis(sammlung !== null ? { text: ergebnis.satz, rueckgaengig: async () => {
+        const zurueck = await api.kreisSammlungZurueck(sammlung); setRunde(r => r + 1); return zurueck.satz;
+      } } : { text: ergebnis.satz });
+    }
+    catch (e) { setFehler(fehlerText(e, "Das ließ sich gerade nicht speichern. Bitte noch einmal versuchen.")); setRunde(r => r + 1); }
     finally { setArbeitet(false); }
   }
   async function zuruecknehmen(sammlung: number) {
-    setArbeitet(true); setFehler(""); setMeldung("");
-    try { setMeldung((await api.kreisSammlungZurueck(sammlung)).satz); setRunde(r => r + 1); }
+    setArbeitet(true); setFehler("");
+    try { zeigeHinweis({ text: (await api.kreisSammlungZurueck(sammlung)).satz }); setRunde(r => r + 1); }
     catch (e) { setFehler(fehlerText(e, "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.")); }
     finally { setArbeitet(false); }
   }
@@ -147,19 +165,12 @@ export function KreisStandAnzeige() {
     <p className="source-hint" role="status">{uebersichtSatz(stand)}</p>
     <OffeneListe eintraege={stand.vorschlaege.filter(v => v.kreis === "innerer_kreis")} />
     {kollegen > 0 && !stand.zaehlt_noch ? <div className="kreis-sammel">
-      {frage ? <div className="kreis-frage" role="group" aria-label="Rückfrage">
-        <p>{sammelFrage(kollegen)}</p>
-        <div className="kreis-wahlen">
-          <button type="button" className="primary-action" disabled={arbeitet} onClick={() => void sammeln(kollegen)}>Ja, festlegen</button>
-          <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => setFrage(false)}>Abbrechen</button>
-        </div>
-      </div> : <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => { setMeldung(""); setFrage(true); }}>{sammelKnopf(kollegen)}</button>}
+      <button type="button" className="secondary-action" disabled={arbeitet} onClick={() => void sammeln(kollegen)}>{sammelKnopf(kollegen)}</button>
     </div> : null}
     {stand.letzte_sammlung ? <div className="kreis-sammel">
       <p className="source-hint">{sammlungSatz(stand.letzte_sammlung)}</p>
       <button type="button" className="chronik-mehr" disabled={arbeitet} onClick={() => void zuruecknehmen(stand.letzte_sammlung!.sammlung)}>Liste zurücknehmen</button>
     </div> : null}
-    {meldung ? <p role="status" className="kreis-ok">{meldung}</p> : null}
     {fehler ? <p role="alert" className="kreis-fehler">{fehler}</p> : null}
     {stand.vorschlaege.some(v => v.kreis === "kollegen") ? <details className="kreis-mehr">
       <summary>Vorschläge für Kollegen zeigen</summary>

@@ -134,8 +134,7 @@
 
 /* ── Unteransichten (Aussagen prüfen, Verarbeitung): Titel, eine Zeile, Aktion rechts; Karten flach ───────── */
 #root main .memory-status { max-width: 960px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-#root .memory-status > .gd-unterkopf { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-a2) var(--g-a4); margin: 0 0 var(--g-a5); }
-#root .memory-status > .gd-unterkopf .support-review-intro { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+/* Der Kopf der Unteransichten ist der Baustein `Unterkopf` (Grundlage.css, V4). */
 #root main .memory-status .memory-status-card { margin: 0 0 var(--g-a5); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
 #root main .memory-status .memory-status-card h2 { font: var(--g-ueberschrift); color: var(--g-tinte); }
 #root main .memory-status .memory-status-stages > article { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }

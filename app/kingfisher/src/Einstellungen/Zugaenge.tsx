@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { Gruppe } from "../grundlage";
 import { api, ApiError, type IntegrationOverview, type MailProvider, type MailStand } from "../api";
 import { DocumentImport } from "../DocumentImport";
 import { FolderSyncSettings } from "../FolderSyncSettings";
@@ -165,9 +166,9 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   // Wie die Accounts in den Systemeinstellungen am Mac: je Art eine Gruppe mit einer Zeile je Zugang, darunter rechts
   // „hinzufügen“ und links in einem Satz, was Trennen bedeutet.
   return <>
-    <section className="zugang-gruppe" aria-label={ZUGAENGE.postfaecher.titel}>
-      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.postfaecher.titel}</h2>{accounts.length ? <span className="zugang-zahl">{zaehlen(accounts.length, "Postfach", "Postfächer")}</span> : null}</div>
-      <div className="g-flaeche zugang-liste">
+    <Gruppe className="zugang-gruppe" label={ZUGAENGE.postfaecher.titel} titel={ZUGAENGE.postfaecher.titel} flaecheKlasse="zugang-liste"
+      zahl={accounts.length ? zaehlen(accounts.length, "Postfach", "Postfächer") : null} fussnote={accounts.length ? ZUGAENGE.trennen : ""}
+      fussAktion={openForm === "mail" ? null : <button className={knopf("mail")} onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button">{plus}Postfach hinzufügen</button>}>
         {ohneListe}
         {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
         {accounts.map((account) => <Fragment key={account.id}>
@@ -181,12 +182,7 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
                 : <p className="source-hint">{googleNeuSatz(googleVorne)}</p>}
             </div> : null}
         </Fragment>)}
-      </div>
-      <div className="zugang-fuss">
-        <p className="g-gruppe-fussnote">{accounts.length ? ZUGAENGE.trennen : ""}</p>
-        {openForm === "mail" ? null : <button className={knopf("mail")} onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button">{plus}Postfach hinzufügen</button>}
-      </div>
-    </section>
+    </Gruppe>
     {/* Wie im Assistenten (Fremdprobe 2, Befund 2): vorne Adresse und Passwort, den Server findet Kingfisher selbst;
         die Servereinstellungen stehen eingeklappt für Techniker. */}
     {openForm === "mail" ? <div className="source-form postfach-hinzufuegen zugang-formular" aria-label="Postfach hinzufügen">
@@ -198,18 +194,14 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
       </details>
     </div> : null}
 
-    <section className="zugang-gruppe" aria-label={ZUGAENGE.kalender.titel}>
-      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.kalender.titel}</h2>{calendars.length ? <span className="zugang-zahl">{zaehlen(calendars.length, "Kalender", "Kalender")}</span> : null}</div>
-      <div className="g-flaeche zugang-liste">
+    <Gruppe className="zugang-gruppe" label={ZUGAENGE.kalender.titel} titel={ZUGAENGE.kalender.titel} flaecheKlasse="zugang-liste"
+      zahl={calendars.length ? zaehlen(calendars.length, "Kalender", "Kalender") : null}
+      fussnote={calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}
+      fussAktion={openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}>
         {ohneListe}
         {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
         {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}
-      </div>
-      <div className="zugang-fuss">
-        <p className="g-gruppe-fussnote">{calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}</p>
-        {openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}
-      </div>
-    </section>
+    </Gruppe>
     {/* Kalender wie Mail (Befund 7): vorne die Mailadresse; das Abo mit eigener Adresse steht eingeklappt für Techniker. */}
     {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen zugang-formular" aria-label="Kalender hinzufügen">
       <div className="zugang-formular-kopf"><h2>Kalender hinzufügen</h2><button className="g-knopf-schlicht" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
@@ -225,14 +217,10 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     <MicrosoftZugang aktiv={aktiv} beiAenderung={load} />
 
     {/* Ordner und Dateien: eine Gruppe mit drei Zeilen (Meetings, Dokumentenordner, Dateien), der Satz darunter. */}
-    <section className="zugang-gruppe zugang-ordner" aria-label={ZUGAENGE.ordner.titel}>
-      <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">{ZUGAENGE.ordner.titel}</h2></div>
-      <div className="g-flaeche zugang-ordner-liste">
+    <Gruppe className="zugang-gruppe zugang-ordner" label={ZUGAENGE.ordner.titel} titel={ZUGAENGE.ordner.titel} flaecheKlasse="zugang-ordner-liste" fussnote={ZUGAENGE.ordner.satz}>
         <TranscriptSettings compact />
         <FolderSyncSettings />
         <DocumentImport />
-      </div>
-      <p className="g-gruppe-fussnote">{ZUGAENGE.ordner.satz}</p>
-    </section>
+    </Gruppe>
   </>;
 }

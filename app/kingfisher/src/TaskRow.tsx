@@ -57,7 +57,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
     if (editNotes !== (task.notes ?? "")) changes.notes = editNotes.trim() || null;
     if (Object.keys(changes).length === 0 || await onEdit(changes)) setEditing(false);
   }
-  const actions = <div className="task-row-actions">
+  const actions = <div className="task-row-actions g-zeile-ueber">
     {!compact && !editing ? <button className="secondary-action" type="button" disabled={completing} onClick={beginEdit}>Bearbeiten</button> : null}
     {view !== "done" && <div className="task-wait-control">
       {view === "waiting" ? <button type="button" disabled={completing} onClick={() => onWait()}>Zurück zu mir</button> : waitingForm ? <form onSubmit={event => { event.preventDefault(); if (waitingName.trim()) onWait(waitingName.trim()); }}>
@@ -77,8 +77,9 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
     remindAt ? <span key="remind">Wiedervorlage {reminderLabel(remindAt)}</span> : null,
     hinweis ? <span key="hinweis" className="task-hinweis-zusatz">{hinweis}</span> : null,
   ].filter(Boolean);
-  return <article className={`task-row${compact ? " compact" : " task-row-detail"}${complete ? " done" : ""}${waitingForm ? " task-row-open" : ""}`}>
-    <button aria-label={complete ? `${task.title} wieder öffnen` : `${task.title} erledigen`} title={complete ? "Wieder öffnen" : "Erledigen"} className="task-check" disabled={!canComplete || completing} onClick={onComplete} type="button">{complete ? <img src={icon("check", "Outline")} alt="" /> : null}</button>
+  // Kompakt ist die Zeile der Liste: der Baustein „Zeile mit eigenem Bedienelement links“ (Kreis links, Titel als Ziel).
+  return <article className={`task-row${compact ? " compact g-zeile-bedient" : " task-row-detail"}${complete ? " done" : ""}${waitingForm ? " task-row-open" : ""}`}>
+    <button aria-label={complete ? `${task.title} wieder öffnen` : `${task.title} erledigen`} title={complete ? "Wieder öffnen" : "Erledigen"} className="task-check g-zeile-links" disabled={!canComplete || completing} onClick={onComplete} type="button">{complete ? <img src={icon("check", "Outline")} alt="" /> : null}</button>
     <div className="task-copy">{editing ? <form className="task-create task-edit" onSubmit={saveEdit}>
       <label className="task-edit-title">Aufgabe<input autoFocus={focusTitle} required value={editTitle} onChange={event => setEditTitle(event.target.value)} /></label>
       <label>Fällig am<input type="date" value={editDue} onChange={event => setEditDue(event.target.value)} /></label>
@@ -87,7 +88,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
       {reminderError && <p className="partial-error" role="alert">{reminderError}</p>}
       <label className="task-edit-notes">Notiz<textarea value={editNotes} onChange={event => setEditNotes(event.target.value)} rows={2} /></label>
       <div className="task-edit-actions"><button className="secondary-action" disabled={completing} onClick={() => setEditing(false)} type="button">Abbrechen</button><button className="primary-action" disabled={completing || !editTitle.trim()} type="submit">Speichern</button></div>
-    </form> : <>{onOpen ? <button className="task-title-link" type="button" title="Öffnen und bearbeiten" onClick={onOpen}>{task.title}</button> : <strong>{task.title}</strong>}{meta.length ? <small className="task-meta">{meta}</small> : null}{postZeile ? <small className="task-post" role="status">{postZeile}{onRueckgaengig ? <> <button type="button" className="text-action" disabled={completing} onClick={onRueckgaengig}>Rückgängig</button></> : null}</small> : null}{!compact && task.notes ? <p className="task-notiz">{task.notes}</p> : null}</>}
+    </form> : <>{onOpen ? <button className="task-title-link g-zeile-ziel" type="button" title="Öffnen und bearbeiten" onClick={onOpen}>{task.title}</button> : <strong>{task.title}</strong>}{meta.length ? <small className="task-meta">{meta}</small> : null}{postZeile ? <small className="task-post" role="status">{postZeile}{onRueckgaengig ? <> <button type="button" className="text-action g-zeile-ueber" disabled={completing} onClick={onRueckgaengig}>Rückgängig</button></> : null}</small> : null}{!compact && task.notes ? <p className="task-notiz">{task.notes}</p> : null}</>}
       {!compact && actions}
       {!compact && !editing && task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}{!compact && !editing && <TaskHistory taskId={task.id} revision={JSON.stringify([task.title, task.due, remindAt, task.notes, task.status, task.project_id, task.wartet_auf])} />}</div>
     {compact && !ohneAktionen && actions}

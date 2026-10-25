@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import { Schalter } from "./grundlage";
 import {workspaceViewApi} from './workspaceViewApi';
 import {useWorkspaceMemoryView} from './useWorkspaceMemoryView';
 
@@ -25,10 +26,10 @@ export function WorkspaceOnlineSettings() {
   return <section id="workspace-online" className="settings-section darf-gruppe" aria-labelledby="workspace-online-titel">
     <div className="g-gruppe-kopf"><h2 className="g-gruppe-titel" id="workspace-online-titel">Bilder und Karte aus dem Internet</h2></div>
     <fieldset className="darf darf-online" disabled={busy||!overview}>
-      <div className="darf-zeile"><label><input type="checkbox" role="switch" checked={draft.logos} onChange={e=>void save({...draft,logos:e.target.checked})}/>
-        <span><strong>Firmenbilder erlauben</strong><small>Ein Firmenbild wird erst nach deiner Bestätigung einer öffentlichen Domain geladen und danach lokal gespeichert. Dabei sieht die Firmenseite deine Internetadresse. Es werden keine Mails, Namen oder Rechnungen übertragen.</small></span></label></div>
-      <div className="darf-zeile"><label><input type="checkbox" role="switch" checked={draft.maps} onChange={e=>void save({...draft,maps:e.target.checked})}/>
-        <span><strong>Onlinekarte erlauben</strong><small>Beim Öffnen der Ortskarte erhält OpenStreetMap deine Internetadresse und den angezeigten Kartenausschnitt. Namen und Originalquellen bleiben lokal. Es findet keine automatische Adresssuche statt.</small></span></label></div>
+      <div className="darf-zeile"><Schalter titel="Firmenbilder erlauben" an={draft.logos} onWechsel={logos=>void save({...draft,logos})}
+        satz={<>Ein Firmenbild wird erst nach deiner Bestätigung einer öffentlichen Domain geladen und danach lokal gespeichert. Dabei sieht die Firmenseite deine Internetadresse. Es werden keine Mails, Namen oder Rechnungen übertragen.</>} /></div>
+      <div className="darf-zeile"><Schalter titel="Onlinekarte erlauben" an={draft.maps} onWechsel={maps=>void save({...draft,maps})}
+        satz={<>Beim Öffnen der Ortskarte erhält OpenStreetMap deine Internetadresse und den angezeigten Kartenausschnitt. Namen und Originalquellen bleiben lokal. Es findet keine automatische Adresssuche statt.</>} /></div>
     </fieldset>
     <p className="g-gruppe-fussnote">Eigene Bilder und Koordinaten funktionieren lokal.</p>
     {!overview&&!error&&<p role="status" className="g-gruppe-fussnote">Online-Auswahl wird geladen …</p>}

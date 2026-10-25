@@ -34,8 +34,7 @@ test("ein Satz sagt, was gilt", () => {
 
 test("ein Schalter und eine Auswahl, kein Zahlenfeld und keines der alten Fachwörter", () => {
   const sync = quelle("MailSyncSettings.tsx");
-  assert.match(sync, /type="checkbox" role="switch"/);
-  assert.match(sync, /<strong>Mails regelmäßig abrufen<\/strong>/);
+  assert.match(sync, /<Schalter className="mail-abruf-schalter" titel="Mails regelmäßig abrufen"/);
   assert.match(sync, /<select value=\{minuten\}/);
   assert.doesNotMatch(sync, /type="number"/);
   for (const datei of ["MailSyncSettings.tsx", "MailIntake.tsx", "SetupOverview.tsx"]) {

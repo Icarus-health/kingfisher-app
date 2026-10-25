@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Schalter } from "./grundlage";
 import { api, ApiError, type WegezeitStand } from "./api";
 import { Verweis } from "./VerweisLink";
 import { wegezeitSchalter } from "./wegezeitSchalter";
@@ -39,9 +40,8 @@ export function WegezeitSettings({ beiAenderung }: { beiAenderung?: (stand: Wege
   const schalter = stand ? wegezeitSchalter(stand) : null;
   return <section className="darf-zeile" aria-label={SCHALTER.wegezeit.titel}>
     {!stand || !schalter ? <p>Wird geladen …</p> : <>
-      <label className="wegezeit-schalter"><input type="checkbox" role="switch" checked={schalter.an} disabled={arbeitet || schalter.gesperrt}
-        onChange={event => void ausfuehren(() => api.wegezeitSetzen({ aktiv: event.target.checked }), event.target.checked ? "Wegezeit wird berechnet." : "Wegezeit wird nicht mehr berechnet.")} />
-        <span><strong>{SCHALTER.wegezeit.titel}</strong><small>{SCHALTER.wegezeit.verlaesst}</small></span></label>
+      <Schalter className="wegezeit-schalter" titel={SCHALTER.wegezeit.titel} satz={SCHALTER.wegezeit.verlaesst} an={schalter.an} deaktiviert={arbeitet || schalter.gesperrt}
+        onWechsel={an => void ausfuehren(() => api.wegezeitSetzen({ aktiv: an }), an ? "Wegezeit wird berechnet." : "Wegezeit wird nicht mehr berechnet.")} />
       {schalter.gesperrt && schalter.fehlt === "startort" ? <form className="wegezeit-startort" onSubmit={event => {
         event.preventDefault();
         if (startort.trim()) void ausfuehren(() => api.wegezeitSetzen({ heimat: startort.trim() }), "Startort gespeichert. Jetzt kannst du die Wegezeit einschalten.");
