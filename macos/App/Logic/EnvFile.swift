@@ -10,6 +10,10 @@ enum EnvKey {
     static let passphrase = "ICARUS_SECRETS_PASSPHRASE"
     /// Welches fertige Bild läuft (`deploy/compose.app.yaml`: `image: ${KINGFISHER_IMAGE}`).
     static let image = "KINGFISHER_IMAGE"
+    /// Der volle Name des Benutzers am Mac, nur als Vorschlag für den Gruß (`sidecar/icarus_memory/name_vorschlag.py`).
+    static let vollerName = "KINGFISHER_VOLLER_NAME"
+    /// Die Zeitzone des Macs, in der Kingfisher Uhrzeiten liest (sonst Europe/Berlin, `compose.app.yaml`).
+    static let zeitzone = "KINGFISHER_TIMEZONE"
 }
 
 /// Inhalt im Format von `docker compose --env-file`: Zeilen `NAME=wert`, Kommentare mit `#`.

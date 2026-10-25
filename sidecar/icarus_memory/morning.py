@@ -429,8 +429,9 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         failures.append({"section": "weather", "message": weather_error})
 
     # Ohne gesetzten Namen grüßt das Briefing neutral („Guten Morgen.“).
-    # Der Name aus dem Erststart-Assistenten gilt, wenn die Umgebung keinen setzt (Umgebung schlägt Datei).
-    user = os.environ.get("KINGFISHER_USER_NAME", "").strip() or nutzername.strip()
+    # Der bestätigte Name aus dem Assistenten oder den Einstellungen gilt vor der Umgebung: Wer den angebotenen Namen
+    # ändert, wird mit dem geänderten gegrüßt (V3, 25.10.2026; vorher schlug die Umgebung die Datei).
+    user = nutzername.strip() or os.environ.get("KINGFISHER_USER_NAME", "").strip()
     greeting = "Guten Morgen" if now.hour < 12 else "Guten Tag"
     return {
         "generated_at": now.isoformat(),

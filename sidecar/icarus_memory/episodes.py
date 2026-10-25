@@ -1585,6 +1585,28 @@ class EpisodeStore:
                     return found[:limit], True
         return found, False
 
+    def eigene_absendernamen(self, limit: int = 200) -> list[str]:
+        """Die Anzeigenamen im Absender eigener Mails (Kontakt `von` mit `ich`), jüngste zuerst, höchstens `limit`.
+
+        Für den Namensvorschlag im Assistenten (`name_vorschlag.py`). Nur geltende Fassungen; Mails ohne Namen im
+        Absender zählen nicht mit. Die Datenbank wählt aus, Python liest nur die Kontakte der gefundenen Zeilen.
+        """
+        von_ich = ("EXISTS (SELECT 1 FROM json_each(episodes.document, '$.contacts') c "
+                   "WHERE json_extract(c.value, '$.rolle') = 'von' AND json_extract(c.value, '$.ich') "
+                   "AND COALESCE(json_extract(c.value, '$.name'), '') != '')")
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT json_extract(document, '$.contacts') FROM episodes WHERE kind = ? AND {sql_aktuell()} "
+                f"AND {von_ich} ORDER BY COALESCE(occurred_at, recorded_at) DESC, id LIMIT ?",
+                (EpisodeKind.MESSAGE.value, max(0, int(limit)))).fetchall()
+        namen: list[str] = []
+        for (kontakte,) in rows:
+            for eintrag in json.loads(kontakte or '[]'):
+                if isinstance(eintrag, dict) and eintrag.get('rolle') == 'von' and eintrag.get('ich') and eintrag.get('name'):
+                    namen.append(str(eintrag['name']))
+                    break
+        return namen
+
     def gesendete_an(self, account_id: str | None, address: str, limit: int = 20) -> list[Episode]:
         """Eigene gesendete Mails an genau diese Adresse, jüngste zuerst (Stilprofil, Paket B5).
 

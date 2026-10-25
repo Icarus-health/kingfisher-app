@@ -21,6 +21,8 @@ Geprüft wird im Browser:
 * 7: Kalender mit der Mailadresse: Anbieter erkannt, Passwort des Postfachs gilt, Kalender gefunden; falsches Passwort,
   unbekannter Anbieter und Google mit je einem Satz; unter Zugänge derselbe Weg.
 * 8: Sicherung ohne Helfer: ein Passwortfeld mit „anzeigen“, Download, die Datei lässt sich wiederherstellen.
+* V3: Ohne Quelle fragt der erste Schritt „Wie heißt du?“; gibt die Umgebung einen Namen, steht „Hallo Lena.“ mit dem
+  Namen im Feld da, und gespeichert ist noch nichts.
 * 10 und 11: „Dieser Rechner“ ohne Modellnamen, „Messlatte“ und „nachts“ im Vordergrund, mit selbst ermittelter
   Ausstattung, Größe und Dauer, einem Knopf; das Prüfmodell fällt durch, die übrigen werden trotzdem geladen, der Stand
   sagt „Prüfung nicht bestanden“, „Anderes Modell nehmen“ macht es bereit.
@@ -189,6 +191,22 @@ def main() -> int:
             fertig = next(n for n in zeile['namen'] if n['name'] == 'Fertig')
             pruef['27_sieben_eine_zeile'] = zeile['zeilen'] == 1 and fertig['zeilen'] == 1 and zeile['seite'] <= 0
             bild('02-sieben-schritte-1280')
+
+            # -- V3: ein ableitbarer Name steht vorausgefüllt da, gespeichert erst mit „Weiter“ ---------------------
+            pruef['v3_ohne_quelle_frage'] = seite.request.get(basis + '/api/v1/einrichtung').json()['name_vorschlag'] is None \
+                and seite.locator('#erststart-name').input_value() == ''
+            os.environ['KINGFISHER_USER_NAME'] = 'Lena'  # wie ein Container, dem die Einrichtung den Namen mitgab
+            try:
+                seite.reload()
+                seite.get_by_role('heading', name='Hallo Lena.').wait_for(timeout=15000)
+                pruef['v3_vorschlag_im_feld'] = seite.locator('#erststart-name').input_value() == 'Lena' \
+                    and seite.get_by_text('Stimmt der Name?').count() == 1
+                pruef['v3_nicht_gespeichert'] = seite.request.get(basis + '/api/v1/einrichtung').json()['name'] == ''
+                bild('02b-name-vorgeschlagen')
+            finally:
+                os.environ.pop('KINGFISHER_USER_NAME', None)
+            seite.reload()
+            seite.get_by_role('heading', name='Wie heißt du?').wait_for(timeout=15000)
 
             # -- 25: Fertig-Seite ohne Verbindungen: der Weg zu den Zugängen ist ein Klick --------------------------
             schritt('fertig', 'Fertig – dein erstes Briefing entsteht jetzt')

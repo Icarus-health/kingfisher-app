@@ -429,6 +429,8 @@ export type EinrichtungStand = {
   autostart_verfuegbar?: boolean;
   /** Name der Zeitzone, in der Uhrzeiten gelesen werden; nur zum Anzeigen. */
   zeitzone?: string;
+  /** Solange kein Name gespeichert ist: ein Name, den Kingfisher selbst gefunden hat; gespeichert erst nach dem Klick. */
+  name_vorschlag?: { name: string; vorname: string; quelle: "umgebung" | "postfach" | "rechner" } | null;
 };
 export type EinrichtungAenderung = {
   name?: string; abgeschlossen?: boolean; neu_beginnen?: boolean;

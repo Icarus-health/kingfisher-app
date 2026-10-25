@@ -8,7 +8,7 @@ import {KalenderSchritt} from "./KalenderSchritt";
 import {MailSchritt} from "./MailSchritt";
 import {ModellSchritt} from "./ModellSchritt";
 import {NameSchritt} from "./NameSchritt";
-import {SCHRITTE, nachbar, schrittStand, schrittZaehler, sichtbareSchritte, startSchritt} from "./schritte";
+import {SCHRITTE, nachbar, schrittStand, schrittTitel, schrittZaehler, sichtbareSchritte, startSchritt} from "./schritte";
 import type {SchrittProps} from "./SchrittFuss";
 import {useEinrichtung} from "./useEinrichtung";
 import {ERSTSTART_SPAETER} from "./useErststartWeiterleitung";
@@ -105,7 +105,7 @@ export function Erststart() {
         {!stand && !fehler ? <p role="status">Wird geladen …</p> : null}
         {stand && info && Inhalt ? <>
           {zaehler ? <p className="erststart-zaehler">Schritt {zaehler.nummer} von {zaehler.gesamt}</p> : null}
-          <h1 id="erststart-titel">{info.titel}</h1>
+          <h1 id="erststart-titel">{schrittTitel(info.id, stand)}</h1>
           <Inhalt key={info.id} stand={stand} neuLesen={laden} weiter={weiterVon(info.id)} ueberspringen={ueberspringenVon(info.id)}
             zurueck={info.id === SCHRITTE[0].id ? null : () => gehe(nachbar(info.id, -1, stand))}
             gehe={gehe} entwurf={aenderung => { entwurf.current = aenderung; }} />

@@ -69,7 +69,24 @@ einmal gefragt; die leere Startseite nennt dann genau einen nächsten Schritt.
 Sieben Schritte, **jeder überspringbar**, in Alltagssprache:
 
 1. **Wie heißt du?** Ein freiwilliges Feld. Der Name steht nur im Gruß des Briefings
-   („Guten Morgen, Lea.“). Eine Umgebungsvariable `KINGFISHER_USER_NAME` schlägt ihn.
+   („Guten Morgen, Lea.“). Kennt Kingfisher den Namen schon, fragt der Schritt nicht,
+   sondern schlägt vor (V3, 25.10.2026): „Hallo Lea.“, darunter „Stimmt der Name?“, der
+   Vorname im Feld, ein Satz, woher er stammt, und „Weiter“ mit dem Fokus. Quellen in
+   dieser Reihenfolge (`sidecar/icarus_memory/name_vorschlag.py`, Feld `name_vorschlag`
+   in `GET /api/v1/einrichtung`): `KINGFISHER_USER_NAME`; der häufigste Anzeigename im
+   Absender der jüngsten 200 eigenen Mails, sonst der Name im Absender eines Postfachs;
+   der volle Name des Benutzers am Mac (die Mac-App gibt `NSFullUserName()` als
+   `KINGFISHER_VOLLER_NAME` an den Container; läuft der Sidecar selbst unter macOS, das
+   Benutzerkonto). Vorname heißt: das erste Wort nach Titeln; nach „Frau“/„Herr“, vor nur
+   einem Wort nach einem Titel und bei einer Initiale gibt es keinen. Sammelnamen
+   („Info“, „Praxis Team“, „root“) und Adressen gelten nicht; aus „lea.hartmann@…“ wird
+   kein Name geraten. **Gespeichert wird erst mit „Weiter“**; ein unberührter Vorschlag
+   geht auch mit „Später weitermachen“ nicht in den Bestand und nicht in den Gruß. Der
+   bestätigte Name gilt vor `KINGFISHER_USER_NAME` (bis V3 schlug die Umgebung ihn, dann
+   blieb eine Korrektur im Gruß unsichtbar). Ohne Quelle bleibt die Frage mit leerem Feld.
+   Die Zeitzone fragt der Assistent nicht: Die Mac-App gibt die des Macs als
+   `KINGFISHER_TIMEZONE` weiter, wenn die Env-Datei keine eigene setzt; sonst gilt
+   Europe/Berlin.
 2. **Deine Mail verbinden.** „Mit Google anmelden“ (der vorhandene Weg) oder Adresse und
    Passwort. Der Anbieter wird an der Adresse erkannt (`providers_mail.py`, Feld
    `domains`); Server und Ports füllt das Programm. Ist der Anbieter unbekannt, fragt

@@ -7,6 +7,8 @@ Mail, Kalender oder Modelle, sondern nutzt die vorhandenen Routen. Hier steht nu
   schon abgeschlossen wurde, was von dem Wesentlichen (Mail, Kalender, Modell) schon da ist, und ob der
   Assistent jetzt von selbst erscheinen soll (`zeigen`), und ob dieser Rechner den Autostart einrichten kann
   (`autostart_verfuegbar`; sonst blendet der Assistent den Schritt „Beim Anmelden“ aus, Fremdprobe Befund 26).
+  Solange kein Name gespeichert ist, dazu `name_vorschlag` (`{name, vorname, quelle}` oder null, `name_vorschlag.py`):
+  Der Assistent bietet ihn an, statt „Wie heißt du?“ zu fragen. Gespeichert wird er erst mit dem `PUT` nach dem Klick.
 * `PUT /api/v1/einrichtung`: Name, einen Schritt als erledigt/übersprungen/offen vermerken, den Assistenten
   abschließen oder neu beginnen lassen. Nichts davon löst etwas Außenwirksames aus: Es ist nur der Merkzettel.
 * `GET /api/v1/einrichtung/lernt`: was im Hintergrund gerade läuft und der Oberfläche noch nicht gemeldet wird
@@ -18,12 +20,13 @@ in einem anderen Fenster geht es dort weiter, wo man aufgehört hat.
 """
 from __future__ import annotations
 
+import os
 from typing import Any, Literal
 
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import config
+from . import config, name_vorschlag
 
 #: Die Schritte in ihrer Reihenfolge. Die Oberfläche kennt dieselben Kennungen (`Einrichtung/schritte.ts`).
 SCHRITTE = ('name', 'mail', 'kalender', 'modell', 'freigaben', 'autostart', 'fertig')
@@ -78,12 +81,30 @@ def register(app, guard, data_dir) -> None:
         modell = bool(settings.model) or getattr(app.state.agent, 'provider', None) is not None
         return {'mail': mail, 'kalender': kalender, 'modell': modell}
 
+    merker = name_vorschlag.Merker()
+
+    def vorschlag() -> dict[str, str] | None:
+        """Ein Name, den Kingfisher selbst finden kann (Umgebung, eigene Mails, Mac). Nur ein Vorschlag: Er steht
+        weder im Merkzettel noch im Gruß, bis der Mensch ihn bestätigt."""
+        settings = app.state.settings
+        episoden = getattr(app.state, 'episodes', None)
+        # Neu gesucht wird nach Ablauf der Frist und sofort, wenn sich Postfächer oder die Umgebung ändern.
+        schluessel = (tuple((k.id, k.user, k.sender) for k in settings.mail_accounts),
+                      os.environ.get('KINGFISHER_USER_NAME', ''), os.environ.get('KINGFISHER_VOLLER_NAME', ''))
+
+        def absendernamen() -> list[str]:
+            if episoden is None or not hasattr(episoden, 'eigene_absendernamen'):
+                return []
+            return episoden.eigene_absendernamen(name_vorschlag.JUENGSTE_MAILS)
+        return merker.holen(schluessel, lambda: name_vorschlag.vorschlagen(settings, absendernamen))
+
     def stand() -> dict[str, Any]:
         eigener = _sauber(app.state.settings.einrichtung)
         da = vorhanden()
         # Von selbst erscheint der Assistent nur, solange er nicht abgeschlossen ist und Wesentliches fehlt.
         return {**eigener, 'vorhanden': da, 'zeigen': not eigener['abgeschlossen'] and not all(da.values()),
-                'zeitzone': _zeitzone(), 'autostart_verfuegbar': autostart_verfuegbar()}
+                'zeitzone': _zeitzone(), 'autostart_verfuegbar': autostart_verfuegbar(),
+                'name_vorschlag': None if eigener['name'] else vorschlag()}
 
     def autostart_verfuegbar() -> bool:
         """Ein Helfer auf dem Rechner hat sich gemeldet (Mac). Im Browser oder unter Docker gibt es keinen."""

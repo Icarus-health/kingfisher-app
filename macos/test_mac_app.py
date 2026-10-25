@@ -242,6 +242,27 @@ def test_first_launch_does_not_convert_existing_local_installation():
     assert 'Loopback.authenticatedVersion(token: token) == expectedVersion' in startup
 
 
+def test_name_und_zeitzone_des_macs_gehen_an_den_container():
+    """V3: Was der Mac weiß, fragt der Assistent nicht. Jeder Compose-Aufruf gibt den vollen Namen (nur als Vorschlag)
+    und die Zeitzone des Macs mit, die Zeitzone nur, wenn die Env-Datei keine eigene setzt; beide Compose-Dateien
+    reichen den Namen in den Container."""
+    env = swift('App', 'Logic', 'EnvFile.swift')
+    assert swift_konstante(env, 'vollerName') == 'KINGFISHER_VOLLER_NAME'
+    assert swift_konstante(env, 'zeitzone') == 'KINGFISHER_TIMEZONE'
+    compose = re.search(r'func compose\(.*?\n    \}', swift('App', 'Docker.swift'), re.S).group(0)
+    assert 'environment[EnvKey.vollerName] = NSFullUserName()' in compose
+    zeitzone = compose.index('environment[EnvKey.zeitzone] = TimeZone.current.identifier')
+    pruefung = compose.index('$0.hasPrefix(EnvKey.zeitzone + "=")')
+    assert pruefung < zeitzone < compose.index('return run(')
+    assert 'environment: environment' in compose
+    for datei in ('compose.yaml', 'deploy/compose.app.yaml'):
+        text = (REPO / datei).read_text(encoding='utf-8')
+        assert '- KINGFISHER_VOLLER_NAME=${KINGFISHER_VOLLER_NAME:-}' in text, datei
+        assert '- KINGFISHER_TIMEZONE=${KINGFISHER_TIMEZONE:-Europe/Berlin}' in text, datei
+    # Der Sidecar liest genau diesen Namen, und nur als Vorschlag.
+    assert "'KINGFISHER_VOLLER_NAME'" in (REPO / 'sidecar/icarus_memory/name_vorschlag.py').read_text(encoding='utf-8')
+
+
 def test_logik_braucht_nur_foundation():
     """Die reine Logik muss ohne AppKit übersetzen, sonst lässt sie sich nicht außerhalb des Macs prüfen."""
     for datei in LOGIC.glob('*.swift'):

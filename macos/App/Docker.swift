@@ -56,6 +56,13 @@ struct Docker {
                  timeout: TimeInterval) -> CommandResult {
         var environment: [String: String] = [:]
         if let image = image { environment[EnvKey.image] = image }
+        // Was der Mac schon weiß, fragt Kingfisher nicht (V3): der volle Name als Vorschlag im Assistenten, gespeichert
+        // erst nach dem Klick, und die Zeitzone des Macs, außer die Env-Datei setzt eine eigene.
+        environment[EnvKey.vollerName] = NSFullUserName()
+        let envDatei = (try? String(contentsOf: paths.envFile, encoding: .utf8)) ?? ""
+        if !envDatei.split(whereSeparator: \.isNewline).contains(where: { $0.hasPrefix(EnvKey.zeitzone + "=") }) {
+            environment[EnvKey.zeitzone] = TimeZone.current.identifier
+        }
         return run(["compose", "-p", Installation.project, "-f", paths.composeFile.path,
                     "--env-file", paths.envFile.path] + arguments,
                    environment: environment, timeout: timeout)
