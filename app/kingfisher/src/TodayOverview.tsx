@@ -4,7 +4,6 @@ import { TodayTaskRow } from "./TodayTaskRow";
 import { DetailPanel } from "./DetailPanel";
 import { TaskDetail } from "./TaskDetail";
 import { InterfaceIcon } from "./InterfaceIcon";
-import { api } from "./api";
 import { taskHref } from "./taskWorkflow";
 import { eingangZeile, naechsterTerminText, zaehlerText } from "./heute";
 import { type Attention, type MorningBriefing } from "./api";
@@ -72,18 +71,9 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
 }) {
   const [activityLoaded,setActivityLoaded] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
-  // Die Antwort auf „Akte anlegen“ oder „Nein danke“ bleibt stehen, wenn der Punkt danach aus dem Briefing geht.
-  const [akteNotice, setAkteNotice] = useState<{ satz: string; link: string } | null>(null);
-  // Eine Aufgabe unter „Braucht dich“ öffnet sich wie in der Liste im Seitenpaneel; erledigt bleibt mit „Rückgängig“.
+  // Eine Aufgabe unter „Braucht dich“ öffnet sich wie in der Liste im Seitenpaneel; erledigt antwortet der Hinweis unten
+  // mit „Rückgängig“ (V4, TodayTaskRow).
   const [offeneAufgabe, setOffeneAufgabe] = useState<Attention | null>(null);
-  const [erledigt, setErledigt] = useState<{ id: string; title: string; zurueck?: "laeuft" | "fehler" | "fertig" } | null>(null);
-  async function rueckgaengig() {
-    if (!erledigt || erledigt.zurueck === "laeuft") return;
-    const aufgabe = erledigt;
-    setErledigt({ ...aufgabe, zurueck: "laeuft" });
-    try { await api.reopenTask(aufgabe.id); setErledigt({ ...aufgabe, zurueck: "fertig" }); onChange(); }
-    catch { setErledigt({ ...aufgabe, zurueck: "fehler" }); }
-  }
   const attention = todayAttention(briefing);
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
@@ -104,7 +94,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
         // Aufgaben in derselben Zeile wie die Aufgabenliste (V1): Kreis, Titel, eine leise Zeile; die Zeile öffnet sie.
         if (istAufgabe(item)) return <li className="today-attention-task" key={item.id}>
-          <TodayTaskRow key={item.source_ref} item={item} onOpen={() => setOffeneAufgabe(item)} onDone={aufgabe => { setErledigt(aufgabe); onChange(); }} />
+          <TodayTaskRow key={item.source_ref} item={item} onOpen={() => setOffeneAufgabe(item)} onChanged={() => onChange()} />
         </li>;
         const action = actionFor(item);
         return <li className="today-attention-item" key={item.id}>
@@ -118,15 +108,11 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
             </div>
           </div>
           <div className="today-item-actions">
-            {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={antwort => { setAkteNotice(antwort); onChange(); }} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
+            {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={() => onChange()} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
           </div>
         </li>;
       })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen." : "Nichts wartet auf dich."}</p>}
-      {erledigt && <p className="today-notice today-erledigt" role="status">{erledigt.zurueck === "fertig" ? <>„{erledigt.title}“ ist wieder offen.</>
-        : erledigt.zurueck === "fehler" ? <>Nicht zurückgenommen: Die Änderung wurde nicht bestätigt. <button type="button" className="today-text-link" onClick={() => void rueckgaengig()}>Erneut versuchen</button></>
-        : <>„{erledigt.title}“ erledigt. <button type="button" className="today-text-link" disabled={erledigt.zurueck === "laeuft"} onClick={() => void rueckgaengig()}>Rückgängig</button></>}</p>}
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
-      {akteNotice && <p className="today-notice" role="status">{akteNotice.satz} <a href={akteNotice.link}>Akte öffnen</a></p>}
       </div>
       {offeneAufgabe?.source_ref && <DetailPanel title="Aufgabe" onClose={() => setOffeneAufgabe(null)}>
         <div className="today-aufgabe-offen">

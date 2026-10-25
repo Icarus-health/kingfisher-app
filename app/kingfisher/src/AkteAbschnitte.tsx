@@ -11,7 +11,7 @@ import { Sidebar } from "./chrome";
 import { navigate } from "./ui";
 import { memoryReturnPath } from "./profileReturn";
 import { InterfaceIcon } from "./InterfaceIcon";
-import { Leer } from "./grundlage";
+import { Leer, zeigeHinweis } from "./grundlage";
 import { initials } from "./WorkspaceMemoryModel";
 import "./AkteAbschnitte.css";
 import "./Gedaechtnis.css";
@@ -156,10 +156,20 @@ function NeueAkte({ stand, arbeitet, anlegen, ablehnen, zurueck }: { stand: Akte
   return null;
 }
 
-type Meldung = { text: string; ziel: string | null; vorher?: AkteEntscheidung | null; vorschlag?: string | null };
-/** Die Antwort auf „Akte anlegen“ gehört in die neue Akte, nicht in die alte (die es danach nicht mehr gibt): Sie wird
- * beim Wechsel mitgenommen und dort einmal gezeigt. */
-let uebergabe: { sache: string; meldung: Meldung } | null = null;
+/** Der Hinweis (grundlage/hinweisOrt.ts) gehört der App, nicht der Akte: Sein „Rückgängig“ meldet mit diesem Ereignis,
+ * dass die offene Akte neu laden soll – auch wenn sie inzwischen eine andere ist (etwa nach „Akte anlegen“). */
+const AKTE_GEAENDERT = "kingfisher-akte-geaendert";
+function akteGeaendert() { if (typeof window !== "undefined") window.dispatchEvent(new Event(AKTE_GEAENDERT)); }
+/** „Neue Akte?“ zurücknehmen: Hat sich damit die Akte geändert, in der man steht (die neue gibt es dann nicht mehr), führt
+ * der Weg zu der, die der Sidecar nennt; sonst lädt die offene Akte neu. Gibt den Satz des Sidecars zurück. */
+function vorschlagZurueckWeg(kennung: string) {
+  return async () => {
+    const antwort = await api.akteVorschlagZuruecknehmen(kennung);
+    if (typeof window !== "undefined" && decodeURIComponent(window.location.pathname) !== decodeURIComponent(antwort.link.split("?")[0])) navigate(antwort.link);
+    else akteGeaendert();
+    return antwort.satz;
+  };
+}
 
 const SPUREN: Array<{ art: AkteZeitpunkt["art"]; text: string }> = [{ art: "quelle", text: "Mails und Notizen" }, { art: "termin", text: "Termine" }, { art: "frist", text: "Fristen" }];
 const QUELLE_ART: Record<string, string> = { message: "Mail", document: "Notiz", event: "Termin" };
@@ -303,8 +313,6 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   },[mitKopf,data?.art,data?.sache]);
   const [arbeitet, setArbeitet] = useState<string | null>(null);
   const [standQuelle, setStandQuelle] = useState(false);
-  const [meldung, setMeldung] = useState<Meldung | null>(null);
-  const meldungRef = useRef<HTMLParagraphElement | null>(null);
   const version = useRef(0);
   const versuche = useRef(0);
   const lageVersuche = useRef(0);
@@ -320,64 +328,74 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   }, [sache]);
   useEffect(() => { setData(null); setZustand("laedt"); setAlle(false); setStandQuelle(false); versuche.current = 0; lageVersuche.current = 0; void laden(false); }, [laden]);
 
-  // Ein Klick, eine Antwort: Was gemerkt wurde, steht da, mit „Rückgängig“ (Grundsatz 4 und 5).
+  // Ein Klick, eine Antwort: Was gemerkt wurde, sagt der Hinweis unten, mit „Rückgängig“ (Grundsatz 4 und 5, V4). Der
+  // Weg zurück stellt den Zustand vor dem Klick wieder her: die frühere Entscheidung oder die Vermutung. Er hängt nicht
+  // an dieser Ansicht: Wer inzwischen weitergeklickt hat, bekommt die Akte trotzdem neu geladen (`akteGeaendert`).
+  const zurueckWeg = (ziel: string, vorher: AkteEntscheidung | null) => async () => {
+    if (vorher) await api.akteEntscheiden(sache, ziel, vorher);
+    else await api.akteEntscheidungZuruecknehmen(sache, ziel);
+    akteGeaendert();
+    return vorher ? "Zurückgenommen." : "Zurückgenommen. Es gilt wieder, was die Quellen nahelegen.";
+  };
   const entscheiden: Entscheiden = (ziel, entscheidung, termin = false) => {
     if (arbeitet) return;
     setArbeitet(ziel);
     void (async () => {
       try {
         const antwort = await api.akteEntscheiden(sache, ziel, entscheidung);
-        setMeldung({ text: (termin ? GEMERKT_TERMIN : GEMERKT)[entscheidung], ziel, vorher: antwort.vorher });
+        zeigeHinweis({ text: (termin ? GEMERKT_TERMIN : GEMERKT)[entscheidung], rueckgaengig: zurueckWeg(ziel, antwort.vorher) });
         await laden(alle);
       } catch {
-        setMeldung({ text: "Das ließ sich gerade nicht merken. Bitte die Akte neu laden und noch einmal versuchen.", ziel: null });
+        zeigeHinweis({ text: "Das ließ sich gerade nicht merken. Bitte die Akte neu laden und noch einmal versuchen.", fehler: true });
       } finally {
         setArbeitet(null);
       }
     })();
   };
-  // Aufgaben folgen der Post: „Rückgängig“ an einer Aufgabe, die die Post erledigt oder zurückgeholt hat.
+  // Aufgaben folgen der Post: „Rückgängig“ an einer Aufgabe, die die Post erledigt oder zurückgeholt hat. Ein Zurück
+  // davon gibt es nicht; der Hinweis sagt, was gilt.
   function aufgabeZurueck(ziel: string, aufgabeId: string) {
     if (arbeitet) return;
     setArbeitet(ziel);
     void (async () => {
       try {
         await api.taskRueckgaengig(aufgabeId);
-        setMeldung({ text: "Zurückgenommen. Die Aufgabe steht wieder so, wie sie vorher war.", ziel: null });
+        zeigeHinweis({ text: "Zurückgenommen. Die Aufgabe steht wieder so, wie sie vorher war." });
         await laden(alle);
       } catch {
-        setMeldung({ text: "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.", ziel: null });
+        zeigeHinweis({ text: "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.", fehler: true });
       } finally {
         setArbeitet(null);
       }
     })();
   }
-  // „Rückgängig“ stellt den Zustand vor dem Klick wieder her: die frühere Entscheidung oder die Vermutung.
-  async function zuruecknehmen(ziel: string, vorher: AkteEntscheidung | null = null) {
+  // „Rückgängig“ an einer Zeile, die du schon entschieden hattest: zurück zur Vermutung. Was du vorher gewählt hattest
+  // (`bisher`), lässt sich im Hinweis wiederherstellen.
+  async function zuruecknehmen(ziel: string, bisher: AkteEntscheidung | null = null) {
     if (arbeitet) return;
     setArbeitet(ziel);
     try {
-      if (vorher) await api.akteEntscheiden(sache, ziel, vorher);
-      else await api.akteEntscheidungZuruecknehmen(sache, ziel);
-      setMeldung({ text: "Zurückgenommen. Es gilt wieder, was die Quellen nahelegen.", ziel: null });
+      await api.akteEntscheidungZuruecknehmen(sache, ziel);
+      zeigeHinweis({ text: "Zurückgenommen. Es gilt wieder, was die Quellen nahelegen.",
+        ...(bisher ? { rueckgaengig: async () => { await api.akteEntscheiden(sache, ziel, bisher); akteGeaendert(); return GEMERKT[bisher]; } } : {}) });
       await laden(alle);
     } catch {
-      setMeldung({ text: "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.", ziel: null });
+      zeigeHinweis({ text: "Das ließ sich gerade nicht zurücknehmen. Bitte noch einmal versuchen.", fehler: true });
     } finally {
       setArbeitet(null);
     }
   }
-  // „Neue Akte?“ (akteVorschlag.ts): Erst der Klick legt das Projekt an. Danach öffnet sich die neue Akte mit dem Satz
-  // und „Rückgängig“; „Nein danke“ antwortet hier und lässt sich ebenso zurücknehmen (Grundsatz 4 und 5).
+  // „Neue Akte?“ (akteVorschlag.ts): Erst der Klick legt das Projekt an. Danach öffnet sich die neue Akte, und der
+  // Hinweis (er gehört der ganzen App, nicht dieser Akte) bietet „Rückgängig“; „Nein danke“ ebenso (Grundsatz 4 und 5).
   function vorschlagFehler(cause: unknown) {
-    setMeldung({ text: fehlerSatz(cause instanceof ApiError ? cause.status : null), ziel: null });
+    zeigeHinweis({ text: fehlerSatz(cause instanceof ApiError ? cause.status : null), fehler: true });
   }
   async function akteAnlegen(kennung: string) {
     if (arbeitet) return;
     setArbeitet(kennung);
     try {
       const antwort = await api.akteVorschlagAnnehmen(kennung);
-      uebergabe = { sache: antwort.sache, meldung: { text: antwort.satz, ziel: null, vorschlag: kennung } };
+      zeigeHinweis({ text: antwort.satz, rueckgaengig: vorschlagZurueckWeg(kennung) });
       navigate(antwort.link);
     } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
   }
@@ -386,37 +404,27 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     setArbeitet(kennung);
     try {
       const antwort = await api.akteVorschlagAblehnen(kennung);
-      setMeldung({ text: antwort.satz, ziel: null, vorschlag: kennung });
+      zeigeHinweis({ text: antwort.satz, rueckgaengig: vorschlagZurueckWeg(kennung) });
       await laden(alle);
     } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
   }
+  // Die Zeile „Akte angelegt“/„Nein danke gemerkt“ in der Akte hat ihren eigenen Knopf; er nimmt über denselben Weg
+  // zurück und sagt es im Hinweis.
   async function vorschlagZurueck(kennung: string) {
     if (arbeitet) return;
     setArbeitet(kennung);
-    try {
-      const antwort = await api.akteVorschlagZuruecknehmen(kennung);
-      if (antwort.sache !== sache) {
-        uebergabe = { sache: antwort.sache, meldung: { text: antwort.satz, ziel: null } };
-        navigate(antwort.link);
-      } else {
-        setMeldung({ text: antwort.satz, ziel: null });
-        await laden(alle);
-      }
-    } catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
+    try { zeigeHinweis({ text: await vorschlagZurueckWeg(kennung)() }); }
+    catch (cause) { vorschlagFehler(cause); } finally { setArbeitet(null); }
   }
+  // Andere Stellen (der Hinweis) melden, dass sich die Akte geändert hat.
+  const alleRef = useRef(alle);
+  alleRef.current = alle;
   useEffect(() => {
-    const mitgebracht = uebergabe && uebergabe.sache === sache ? uebergabe.meldung : null;
-    uebergabe = null;
-    setMeldung(mitgebracht);
-  }, [sache]);
-  // Die Meldung bleibt so lange, dass man „Rückgängig“ in Ruhe findet, und geht dann von selbst. Der Fokus geht zu
-  // ihr: Der Knopf, der eben gedrückt wurde, ist mit seinem Punkt verschwunden.
-  useEffect(() => {
-    if (!meldung) return;
-    meldungRef.current?.focus();
-    const timer = window.setTimeout(() => setMeldung(null), 12000);
-    return () => window.clearTimeout(timer);
-  }, [meldung]);
+    if (typeof window === "undefined") return;
+    const neu = () => void laden(alleRef.current);
+    window.addEventListener(AKTE_GEAENDERT, neu);
+    return () => window.removeEventListener(AKTE_GEAENDERT, neu);
+  }, [laden]);
   // Sind die Bezüge noch nicht fertig berechnet, still nachladen (höchstens sechsmal).
   const offen = data?.berechnung.offen ?? 0;
   useEffect(() => {
@@ -491,8 +499,6 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     </header>
     {satz && standQuelle ? <div className="akte-stand-original" id="akte-stand-original"><ProfileSource key={satz.episode_id} kind="episode" id={satz.episode_id} label={satz.titel} embedded readOnly /></div> : null}
 
-    {meldung ? <p className="akte-meldung" role="status" tabIndex={-1} ref={meldungRef}>{meldung.text}{meldung.ziel ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void zuruecknehmen(meldung.ziel!, meldung.vorher ?? null)} disabled={arbeitet !== null}>Rückgängig</button> : null}{meldung.vorschlag ? <button type="button" className="akte-knopf akte-knopf-leise" onClick={() => void vorschlagZurueck(meldung.vorschlag!)} disabled={arbeitet !== null}>Rückgängig</button> : null}</p> : null}
-
     {data.akte_vorschlag ? <NeueAkte stand={data.akte_vorschlag} arbeitet={arbeitet} anlegen={kennung => void akteAnlegen(kennung)} ablehnen={kennung => void neinDanke(kennung)} zurueck={kennung => void vorschlagZurueck(kennung)} /> : null}
 
     {braucht ? <BrauchtDich punkte={braucht.eintraege} gesamt={braucht.gesamt} arbeitet={arbeitet} entscheiden={entscheiden} aufgabeZurueck={aufgabeZurueck} /> : null}
@@ -504,16 +510,16 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
     {offenSichtbar.length || data.offen.erledigt.gesamt ? <Teil titel="Vermutlich offen" kind="offen" fussnote={offenSichtbar.length ? "Keine spätere Erledigung oder Absage gefunden; „Erledigt“ legt einen Punkt ab." : null}>
       {offenSichtbar.length || offenOben ? null : <p className="profile-empty">Nichts mehr offen, soweit die Quellen es zeigen.</p>}
       {offenGruppen.map(g => g.eintraege.length ? <div className="akte-gruppe" key={g.titel}><h4>{g.titel}</h4>
-        {g.eintraege.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
+        {g.eintraege.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel, "offen")} />)}
       </div> : null)}
       {uebrige.length ? <div className="akte-gruppe">{offenGruppen.some(g => g.eintraege.length) ? <h4>Weitere</h4> : null}
-        {uebrige.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel)} />)}
+        {uebrige.map(e => <OffenZeile key={e.ziel ?? `${e.episode_id}:${e.text}`} e={e} arbeitet={arbeitet} entscheiden={entscheiden} zuruecknehmen={ziel => void zuruecknehmen(ziel, "offen")} />)}
       </div> : null}
       {offenOben ? <p className="mappe-mehr akte-oben-genannt">{obenGenanntSatz(offenOben)}</p> : null}
       <Gesamt gezeigt={data.offen.eintraege.length} gesamt={data.offen.gesamt} />
       {data.offen.erledigt.gesamt ? <details><summary>Vermutlich erledigt oder abgesagt ({data.offen.erledigt.gesamt})</summary>
         {data.offen.erledigt.eintraege.map((e, index) => <div key={`${index}:${e.episode_id}`}><Zeile zeile={e} zusatz={GRUND[e.grund] ?? e.grund} />{e.durch ? <p className="mappe-mehr">Laut: „{e.durch.text}“ ({datum(e.durch)}) <Quelle zeile={e.durch} /></p> : null}
-          {e.ziel && e.grund.startsWith("nutzer_") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(e.ziel!)}>Rückgängig</button> : null}
+          {e.ziel && e.grund.startsWith("nutzer_") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(e.ziel!, e.grund === "nutzer_gilt_nicht" ? "gilt_nicht" : "erledigt")}>Rückgängig</button> : null}
           {e.ziel && (e.grund === "erledigt" || e.grund === "absage") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "offen")}>Doch noch offen</button> : null}
         </div>)}
       </details> : null}
@@ -555,7 +561,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
         : <article key={`k:${t.episode_id}`} className={t.vermutlich_abgesagt ? "akte-termin-abgesagt" : undefined}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}{t.entscheidung === "offen" ? " · findet laut dir statt" : ""}</small>
         {t.vermutlich_abgesagt ? <p className="mappe-mehr">{t.entscheidung === "erledigt" ? "Abgesagt (von dir bestätigt)" : "Vermutlich abgesagt"} laut „{t.vermutlich_abgesagt.text}“ ({datum(t.vermutlich_abgesagt)}).{t.entscheidung === "erledigt" ? "" : " Der Kalendereintrag steht noch."} <Quelle zeile={t.vermutlich_abgesagt} /></p> : null}
         <div className="akte-zeile-fuss"><Quelle zeile={t} />
-          {t.ziel && t.entscheidung ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(t.ziel!)}>Rückgängig</button> : null}
+          {t.ziel && t.entscheidung ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(t.ziel!, t.entscheidung ?? null)}>Rückgängig</button> : null}
         </div></article>)}
       <Gesamt gezeigt={data.termine.kommend.length} gesamt={data.termine.gesamt.kommend} wo="kommende Termine" />
       {data.termine.vergangen.length ? <details><summary>Vergangen ({data.termine.gesamt.vergangen})</summary>{data.termine.vergangen.map(t => <article key={`v:${t.episode_id}`}><strong>{t.titel}</strong><small>{TAG_ZEIT.format(new Date(t.start))}{t.ort ? ` · ${t.ort}` : ""}{t.vermutlich_abgesagt ? " · vermutlich abgesagt" : ""}</small><Quelle zeile={t} /></article>)}</details> : null}

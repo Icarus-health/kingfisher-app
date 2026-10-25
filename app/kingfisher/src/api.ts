@@ -1556,6 +1556,8 @@ export const api = {
   /** Private Art einer Akte (sidecar: akten_arten_routes.py). */
   aktenArt: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`),
   aktenArtBestaetigen: (sache: string, art: AktenArt) => request<ArtStand>("/api/v1/akten/art", { method: "PUT", body: JSON.stringify({ sache, art }) }),
+  // Die Gegenroute (für „Rückgängig“ im Hinweis): Danach gilt wieder der Vorschlag.
+  aktenArtZuruecknehmen: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`, { method: "DELETE" }),
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
   akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
   akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),

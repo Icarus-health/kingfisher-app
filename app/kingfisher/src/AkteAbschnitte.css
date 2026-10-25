@@ -129,15 +129,6 @@
 #root .akte .akte-zusammenhaenge .akte-flaeche > .gd-liste { display: block; }
 #root .akte .akte-zusammenhaenge .g-zeile-wert { font: var(--g-fussnote); }
 
-/* Meldung nach einem Klick: unten, ruhig, mit „Rückgängig“. */
-#root .akte-meldung {
-  position: fixed; z-index: 40; left: 50%; bottom: var(--g-a5); transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center;
-  gap: var(--g-a2) var(--g-a3); max-width: min(560px, calc(100vw - 32px)); margin: 0; padding: var(--g-a3) var(--g-a4); border: 0;
-  border-radius: var(--g-radius-flaeche); background: var(--g-tinte); color: var(--g-auf-akzent); font: var(--g-neben);
-  box-shadow: 0 8px 24px rgba(23,38,53,.18);
-}
-#root .akte-meldung .akte-knopf { background: transparent; color: var(--g-auf-akzent); text-decoration: underline; text-underline-offset: 3px; }
-
 /* Leer, Fehler, Laden. */
 #root .akte.akte-zustand .g-leer { padding: var(--g-a7) var(--g-a5); }
 #root .akte.akte-zustand .akte-laedt { margin: var(--g-a6) 0; font: var(--g-neben); color: var(--g-leise); }

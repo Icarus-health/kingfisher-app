@@ -1,7 +1,7 @@
 // Kreis je Person und Art der Akte (M4, docs/49-kreis-und-privat.md): die Sätze der Karten und der Übersicht.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { aktePfad, artSatz, kreisGespeichert, kreisSatz, offeneKollegen, sammelFrage, sammelKnopf, sammlungSatz, uebersichtSatz } from "../src/kreis.ts";
+import { aktePfad, artSatz, kreisGespeichert, kreisSatz, offeneKollegen, sammelKnopf, sammlungSatz, uebersichtSatz } from "../src/kreis.ts";
 import { fachwoerter } from "../src/Einstellungen/gliederung.ts";
 
 const WAHLEN = [
@@ -62,16 +62,15 @@ test("kein Fachwort in den Sätzen", () => {
   for (const satz of saetze) assert.deepEqual(fachwoerter(satz), [], satz);
 });
 
-test("Sammelbestätigung: Rückfrage in einem Satz, nur Kollegen, alle offenen gezählt", () => {
-  assert.equal(sammelFrage(21), "21 Personen als Kollegen festlegen?");
-  assert.equal(sammelFrage(1), "Eine Person als Kollegen festlegen?");
+test("Sammelbestätigung: ein Klick mit der Zahl im Knopf, nur Kollegen, alle offenen gezählt", () => {
+  assert.equal(sammelKnopf(1), "Als Kollegen festlegen");
   assert.equal(sammelKnopf(21), "Alle 21 als Kollegen festlegen");
   assert.equal(sammlungSatz({ anzahl: 21 }), "Zuletzt 21 Personen gesammelt als Kollegen festgelegt.");
   // Gezählt wird, was offen ist, nicht nur, was die Liste zeigt (sie ist auf 20 begrenzt).
   const u = { bestaetigt: 0, offen: 23, geaendert: 0, je_kreis: {}, offen_je_kreis: { innerer_kreis: 2, kollegen: 21 },
     vorschlaege: [{ sache: "person:a:x", name: "X", kreis: "innerer_kreis", kreis_text: "Innerer Kreis", begruendung: "" }] };
   assert.equal(offeneKollegen(u), 21);
-  for (const satz of [sammelFrage(21), sammelKnopf(21), sammlungSatz({ anzahl: 3 })]) assert.deepEqual(fachwoerter(satz), [], satz);
+  for (const satz of [sammelKnopf(21), sammlungSatz({ anzahl: 3 })]) assert.deepEqual(fachwoerter(satz), [], satz);
 });
 
 import { kontakteText, kreisSache } from "../src/kreis.ts";

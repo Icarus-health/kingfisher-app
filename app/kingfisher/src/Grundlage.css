@@ -163,6 +163,29 @@
 .g-aufklapper-neben { margin-left: auto; padding-left: var(--g-a3); font: var(--g-fussnote); color: var(--g-leise); }
 .g-aufklapper-inhalt { padding: var(--g-a1) 0 var(--g-a3) 19px; }
 
+/* Hinweis: eine Zeile unten in der Mitte („„Angebot prüfen“ erledigt · Rückgängig“), dunkel auf hellem Grund wie am
+   iPhone; geht nach sechs Sekunden, bleibt bei Maus und Fokus (grundlage/hinweisOrt.ts). Schmal: volle Breite im Rand. */
+.g-hinweis-ort { position: fixed; z-index: 60; left: 0; right: 0; bottom: max(var(--g-a5), env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 var(--g-a4); pointer-events: none; }
+.g-hinweis {
+  display: flex; align-items: center; gap: var(--g-a2); box-sizing: border-box; max-width: min(560px, 100%);
+  min-height: var(--g-zeile); padding: var(--g-a1) var(--g-a2) var(--g-a1) var(--g-a4); border-radius: var(--g-radius-flaeche);
+  background: var(--g-tinte); color: var(--g-auf-akzent); font: var(--g-neben); box-shadow: 0 8px 24px rgba(23,38,53,.18);
+  pointer-events: auto; animation: g-hinweis-kommt var(--g-bewegung) both;
+}
+.g-hinweis:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.g-hinweis-text { min-width: 0; padding: var(--g-a2) 0; overflow-wrap: anywhere; }
+.g-hinweis-aktionen { flex: 0 0 auto; display: flex; align-items: center; gap: var(--g-a1); white-space: nowrap; }
+.g-hinweis-punkt { opacity: .6; }
+.g-hinweis-knopf {
+  display: inline-flex; align-items: center; min-height: var(--g-ziel); padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien);
+  background: transparent; color: var(--g-auf-akzent); font: 600 14px/1.2 var(--g-schrift); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.g-hinweis-knopf:hover:not(:disabled) { background: rgba(255,255,255,.1); }
+.g-hinweis-knopf:disabled { opacity: .6; cursor: default; }
+.g-hinweis-knopf:focus-visible { outline: 2px solid var(--g-auf-akzent); outline-offset: -2px; }
+.g-hinweis[data-fehler] { background: var(--g-rot); }
+@keyframes g-hinweis-kommt { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
 /* Knöpfe in drei Stufen. Gefüllt: genau einer je Ansicht. Getönt: der zweite. Schlicht: nur Text. */
 .g-knopf, .g-knopf-getoent, .g-knopf-schlicht {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--g-a2); box-sizing: border-box;
@@ -190,6 +213,7 @@
 @media (prefers-reduced-motion: reduce) {
   .g-kopfleiste-inhalt, .g-segment, :is(button, a).g-zeile, .g-knopf, .g-knopf-getoent, .g-knopf-schlicht,
   #root details > summary::before { transition: none; }
+  .g-hinweis { animation: none; }
 }
 
 /* ── 3. Global angewandt ──────────────────────────────────────────────────────────────────────────────────── */

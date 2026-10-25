@@ -1,6 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, type Attention, type Task} from './api';
 import {TaskRow} from './TaskRow';
+import {zeigeHinweis} from './grundlage';
+import {erledigtHinweis} from './aufgabenHinweis';
 
 /** Was Heute von einer Aufgabe weiß, wenn der Sidecar sie (älterer Stand) nicht mitliefert: Kennung und Titel. */
 export function aufgabeAusPunkt(item: Attention): Task {
@@ -11,10 +13,10 @@ export function aufgabeAusPunkt(item: Attention): Task {
 
 /**
  * Eine Aufgabe unter „Braucht dich“ (V1): dieselbe Zeile wie in der Aufgabenliste (`TaskRow`, compact). Der Kreis
- * erledigt sofort und füllt sich; die ganze Zeile öffnet die Aufgabe (`onOpen`). Was nicht bestätigt wurde, sagt die
- * Zeile darunter. Projekt und „Warte auf …“ stehen in der geöffneten Aufgabe, nicht in der Zeile.
+ * erledigt sofort und füllt sich; die ganze Zeile öffnet die Aufgabe (`onOpen`). Erledigt antwortet der Hinweis unten
+ * mit „Rückgängig“ (V4); was nicht bestätigt wurde, sagt die Zeile darunter. `onChanged` lädt Heute neu. Projekt und „Warte auf …“ stehen in der geöffneten Aufgabe, nicht in der Zeile.
  */
-export function TodayTaskRow({item, onDone, onOpen}: {item: Attention; onDone: (aufgabe: {id: string; title: string}) => void; onOpen: () => void}) {
+export function TodayTaskRow({item, onChanged, onOpen}: {item: Attention; onChanged: () => void; onOpen: () => void}) {
   const [busy, setBusy] = useState(false);
   const [erledigt, setErledigt] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +30,13 @@ export function TodayTaskRow({item, onDone, onOpen}: {item: Attention; onDone: (
     pending.current = true; setBusy(true); setError('');
     try {
       await api.completeTask(task.id);
-      if (alive.current) {setErledigt(true); onDone({id: task.id, title: task.title});}
+      if (alive.current) setErledigt(true);
+      onChanged();
+      zeigeHinweis(erledigtHinweis(task, async () => {
+        await api.reopenTask(task.id);
+        if (alive.current) setErledigt(false);
+        onChanged();
+      }));
     } catch {if (alive.current) setError('Nicht erledigt: Die Änderung wurde nicht bestätigt. Bitte erneut versuchen.');}
     finally {pending.current = false; if (alive.current) setBusy(false);}
   }

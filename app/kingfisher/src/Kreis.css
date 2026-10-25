@@ -19,8 +19,6 @@
 .wk-eintrag { display: grid; gap: 4px; padding-top: 4px; }
 .wk-eintrag + .wk-eintrag { border-top: 1px solid var(--kf-rand-e4ebe9); padding-top: 8px; }
 .kreis-sammel { display: grid; gap: 6px; justify-items: start; }
-.kreis-frage { display: grid; gap: 6px; }
-.kreis-frage p { margin: 0; color: var(--kf-schrift-062b3a); font-size: 13px; line-height: 19px; }
 /* Paket B5: Ton je Kreis. */
 .stil-kreise { gap: 10px; }
 .stil-kreis { display: grid; gap: 6px; }

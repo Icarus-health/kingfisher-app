@@ -2,18 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { api, type AufgabenPostVorschlag, type Task } from "./api";
 import { ProfileSource } from "./ProfileSource";
 import { angenommenText, annehmenText } from "./aufgabenPost";
-import { Gruppe } from "./grundlage";
+import { Gruppe, zeigeHinweis } from "./grundlage";
+import { POST_ZURUECK } from "./aufgabenHinweis";
 
 // Aufgaben folgen der Post: „Erledigt?“ und „Wieder bei dir?“ dort, wo auch die erkannten Aufgaben stehen. Ein Klick
-// nimmt an (dieselbe Änderung wie der Durchlauf, mit Grund und Rückgängig in der Liste), einer verwirft (Aufgabe und
-// Mail bleiben getrennt). Nichts davon ist ein Fakt im Bestand; der Sidecar schlägt nur vor (`aufgaben_post.py`).
+// nimmt an (dieselbe Änderung wie der Durchlauf, mit Grund und Rückgängig in der Liste); der Hinweis unten sagt es und
+// nimmt mit „Rückgängig“ über `/tasks/{id}/rueckgaengig` zurück. Einer verwirft (Aufgabe und Mail bleiben getrennt);
+// dafür gibt es kein Zurück, der Hinweis sagt nur, was passiert ist. Nichts davon ist ein Fakt im Bestand; der Sidecar schlägt nur vor (`aufgaben_post.py`).
 
 const DATUM = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long" });
 
 export function AufgabenPostVorschlaege({ onChanged }: { onChanged: (task: Task | null) => void }) {
   const [items, setItems] = useState<AufgabenPostVorschlag[] | null>(null);
   const [fehler, setFehler] = useState(false);
-  const [meldung, setMeldung] = useState("");
+  const [meldung, setMeldung] = useState("");  // nur noch für Fehler: Sie gehören an die Gruppe, nicht nach unten.
   const [arbeitet, setArbeitet] = useState<string | null>(null);
   const version = useRef(0);
 
@@ -32,8 +34,10 @@ export function AufgabenPostVorschlaege({ onChanged }: { onChanged: (task: Task 
     try {
       const task = annehmen ? await api.aufgabenPostAnnehmen(v.id) : (await api.aufgabenPostVerwerfen(v.id), null);
       setItems(current => (current ?? []).filter(item => item.id !== v.id));
-      setMeldung(annehmen ? angenommenText(v) : "Verworfen. Diese Mail gilt für die Aufgabe nicht mehr als Antwort.");
       onChanged(task);
+      zeigeHinweis(annehmen && task ? { text: angenommenText(v), danach: POST_ZURUECK,
+        rueckgaengig: async () => { await api.taskRueckgaengig(task.id); onChanged(null); laden(); } }
+        : { text: "Verworfen. Diese Mail gilt für die Aufgabe nicht mehr als Antwort." });
     } catch {
       setMeldung("Das ließ sich gerade nicht merken. Bitte neu laden und noch einmal versuchen.");
       laden();

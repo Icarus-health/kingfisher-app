@@ -24,7 +24,8 @@ test("Die Zeile zeigt den Satz des Sidecars nur, solange die Änderung gilt", ()
 test("Die Knöpfe des Vorschlags sagen, was passiert, und die Antwort nennt Rückgängig", () => {
   assert.equal(annehmenText({art: "erledigt"}), "Ja, erledigt");
   assert.equal(annehmenText({art: "zurueck"}), "Ja, wieder bei mir");
-  assert.match(angenommenText({art: "erledigt"}), /Rückgängig/);
+  // „Rückgängig“ steht im Hinweis daneben (V4); der Satz verweist nicht mehr auf die Liste.
+  assert.equal(angenommenText({art: "erledigt"}), "Als erledigt abgelegt.");
   assert.match(angenommenText({art: "zurueck"}), /wieder bei dir/);
 });
 
@@ -38,7 +39,7 @@ test("TaskRow zeigt die Zeile mit Rückgängig; die Aufgabenseite und die Aufgab
   assert.match(app, /onRueckgaengig=\{\(\)=>void rueckgaengig\(task\.id\)\}/);
   assert.match(app, /<AufgabenPostVorschlaege onChanged=/);
   const detail = readFileSync(new URL("../src/TaskDetail.tsx", import.meta.url), "utf8");
-  assert.match(detail, /onRueckgaengig=\{\(\) => \{void change\(\(\) => api\.taskRueckgaengig\(task\.id\)\);\}\}/);
+  assert.match(detail, /onRueckgaengig=\{\(\) => \{void mitHinweis\(\(\) => api\.taskRueckgaengig\(task\.id\), \{text: POST_ZURUECK\}\);\}\}/);
 });
 
 test("Die Vorschläge: ein Klick nimmt an, einer verwirft, die Mail ist einsehbar", () => {

@@ -32,7 +32,8 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
-import {Seitenkopf, Segmente, Gruppe, Zeile, Leer, type Segment} from "./grundlage";
+import {Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
+import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
@@ -714,14 +715,19 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     }
   }
 
+  // Jeder Klick am Kreis antwortet mit dem Hinweis unten, und „Rückgängig“ nimmt ihn über die Gegenroute zurück (V4).
+  const aufgabeVon = (taskId: string) => listTasks?.find(task => task.id === taskId) ?? { id: taskId, title: "Aufgabe" };
   async function complete(taskId: string, reopen = false) {
     if (completing) return;
     setCompleting(taskId);
     setError("");
+    const aufgabe = aufgabeVon(taskId);
     try {
       if (reopen) await api.reopenTask(taskId);
       else await api.completeTask(taskId);
       load();
+      zeigeHinweis(reopen ? wiederOffenHinweis(aufgabe, async () => { await api.completeTask(taskId); load(); })
+        : erledigtHinweis(aufgabe, async () => { await api.reopenTask(taskId); load(); }));
     } catch {
       setError("Der Aufgabenstatus konnte nicht gespeichert werden. Bitte erneut versuchen.");
     } finally {
@@ -732,7 +738,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   async function rueckgaengig(taskId: string) {
     if (completing) return;
     setCompleting(taskId); setError("");
-    try { await api.taskRueckgaengig(taskId); load(); }
+    try { await api.taskRueckgaengig(taskId); load(); zeigeHinweis({ text: POST_ZURUECK }); }
     catch { setError("Das ließ sich gerade nicht zurücknehmen. Bitte erneut versuchen."); }
     finally { setCompleting(null); }
   }
@@ -740,10 +746,13 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   async function wait(taskId: string, name?: string) {
     if (completing) return;
     setCompleting(taskId); setError("");
+    const aufgabe = aufgabeVon(taskId);
     try {
       if (name) await api.waitTask(taskId, name);
       else await api.unwaitTask(taskId);
       load();
+      zeigeHinweis(name ? wartetHinweis(aufgabe, name, async () => { await api.unwaitTask(taskId); load(); })
+        : zurueckZuMirHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
     } catch { setError("Der Wartestatus konnte nicht gespeichert werden."); }
     finally { setCompleting(null); }
   }

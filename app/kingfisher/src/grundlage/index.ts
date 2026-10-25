@@ -7,3 +7,5 @@ export { Segmente, raenderMarkieren, type Segment } from "./Segmente";
 export { Leer } from "./Leer";
 export { Aufklapper } from "./Aufklapper";
 export { segmentNachTaste, segmentImFokus } from "./segmentTasten.ts";
+export { HinweisAnzeige } from "./Hinweis";
+export { zeigeHinweis, zitat, hinweise, HinweisOrt, type HinweisDaten } from "./hinweisOrt.ts";
