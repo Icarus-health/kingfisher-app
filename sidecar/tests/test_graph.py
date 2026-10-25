@@ -393,3 +393,24 @@ def test_ignored_source_stops_contributing_to_graph_and_profiles(tmp_path):
     assert all(node['id'] not in {person_id('Robin'), f'episode:{removed.id}'} for node in graph['nodes'])
     assert all(f'episode:{removed.id}' not in edge['evidence_refs'] for edge in graph['edges'])
     assert episodes.get(removed.id).body == removed.body  # Herkunft bleibt prüfbar erhalten.
+
+
+def test_technische_markierungen_werden_keine_themen(tmp_path: Path) -> None:
+    """Viel Bestand (V6): Jede Mail trägt „mail:message:<Prüfsumme>“ und den Anhangsbericht; das sind keine Themen.
+
+    Vorher wurde jede Markierung ein eigener Themenknoten (über 9.000 bei 8.000 Mails, die Hälfte des Graphen).
+    """
+    episodes, workspace, tasks, store = _stores(tmp_path)
+    for n in range(3):
+        episodes.record(
+            EpisodeKind.MESSAGE, f"Mail {n}", "Inhalt.", _prov(ref=f"mail:{n}"), participants=["Dr. Kranz"],
+            tags=[f"mail:message:{n:064d}", 'mail:attachments:{"vollstaendig":true}', f"mail-parent:e-{n}",
+                  "source:truncated", "Gedächtnis", "Projekte"],
+            occurred_at=JETZT,
+        )
+
+    graph = build(episodes=episodes, workspace=workspace, tasks=tasks, store=store, at=JETZT)
+
+    themen = sorted(node.label for node in graph.nodes if node.kind == "topic")
+    assert themen == ["Gedächtnis", "Projekte"]
+    assert all(not edge.target.startswith("topic:") or edge.target in {n.id for n in graph.nodes} for edge in graph.edges)

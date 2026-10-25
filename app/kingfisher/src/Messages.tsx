@@ -91,7 +91,7 @@ export function Messages({recentConversation}: {recentConversation:string|null})
   const zeile = (key:string, gewaehlt:boolean, absender:string, betreff:string, vorschau:string, datum:string|null, neben:string|null, oeffnen:(ziel:HTMLButtonElement|null)=>void) =>
     <button type="button" className="inbox-row inbox-open mail-list-item" key={key} aria-pressed={gewaehlt} onClick={event=>oeffnen(event?.currentTarget??null)}>
       <span className="mail-zeile-kopf"><strong title={absender}>{displayLabel(absender).name}</strong>{datum?<time dateTime={datum}>{postfachDatum(datum)}</time>:<time>{postfachDatum(null)}</time>}</span>
-      <span className="mail-subject">{betreff||'(Ohne Betreff)'}</span>
+      <span className="mail-subject" title={betreff || undefined}>{betreff||'(Ohne Betreff)'}</span>
       <small>{vorschau}</small>
       {neben ? <small className="mail-zeile-postfach">{neben}</small> : null}
     </button>;

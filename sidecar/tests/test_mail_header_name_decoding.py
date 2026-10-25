@@ -241,3 +241,59 @@ def test_encoded_at_in_display_name_cannot_change_address_or_identity(episodes):
     assert mention.adresse == echte_adresse
     assert mention.name == ""
     assert register.verzeichnis.adressen() == [echte_adresse]
+
+
+# -- Viel Bestand (V6, 25.10.2026): lange Köpfe mit Umlauten und Titeln -------------------------------------------
+
+def _gefalteter_betreff(text: str) -> str:
+    """Der Betreff so, wie ihn ein Absender über mehrere Zeilen faltet (kodierte und unkodierte Wörter gemischt)."""
+    from email import message_from_bytes
+    from email.message import EmailMessage
+    nachricht = EmailMessage()
+    nachricht["Subject"] = text
+    nachricht.set_content("x")
+    roh = message_from_bytes(nachricht.as_bytes())["Subject"]
+    assert "=?utf-8?" in roh and "\n" in roh  # wirklich gemischt und gefaltet, sonst prüft der Test nichts
+    return roh
+
+
+def test_mail_betreff_behaelt_leerzeichen_zwischen_kodierten_und_unkodierten_woertern():
+    from icarus_memory.connectors.mail import _decode
+    text = ("Unterlagen Messeauftritt „Landesamt für Gesundheit und Lebensmittelsicherheit GmbH Frankfurt am Main“ "
+            "– Phase II, Teilprojekt 4: Rüdesheim am Rhein")
+
+    assert _decode(_gefalteter_betreff(text)) == text
+
+
+def test_mail_betreff_mit_unbekanntem_zeichensatz_bleibt_lesbar():
+    from icarus_memory.connectors.mail import _decode
+
+    assert _decode("=?x-unbekannt?q?Gr=FC=DFe?= aus Mainz") == "Gr��e aus Mainz"
+
+
+def test_gefalteter_anzeigename_mit_titel_behaelt_das_leerzeichen():
+    gefaltet = "=?utf-8?q?Prof=2E_Dr=2E_med=2E_J=C3=BCrgen?=\r\n Mueller-Luedenscheidt <j@x.example>"
+
+    assert kontakte.anzeigename(gefaltet, kopfzeile=True) == "Prof. Dr. med. Jürgen Mueller-Luedenscheidt"
+    # Ohne Mailkopf bleibt der Text wörtlich, auch aus dem Zwischenspeicher.
+    assert kontakte.anzeigename(gefaltet).startswith("=?utf-8?q?")
+
+
+class _OhneProjekte:
+    def projects(self, include_closed=False):
+        return []
+
+    def event_project(self, uid):
+        return False, None
+
+
+def test_terminvorbereitung_nennt_mailnamen_mit_umlaut_dekodiert(episodes):
+    """Kennt der Kalender nur die Adresse, kommt der Name aus den Mails, und zwar lesbar (Heute: „mit …“)."""
+    from icarus_memory.vorbereitung import zuordnung
+    name, adresse = "Dr. rer. nat. Kai Körner", "kai.koerner@labor.example"
+    episodes.record(EpisodeKind.MESSAGE, "Laborwerte", BODY, Provenance(SourceType.EMAIL, "synthetic:labor", NOW),
+                    occurred_at=NOW, participants=[formataddr((name, adresse))], at=NOW)
+
+    daten = zuordnung({"summary": "Telefonat", "attendees": [adresse]}, episodes=episodes, workspace=_OhneProjekte())
+
+    assert [t["name"] for t in daten["teilnehmer"]] == [name]

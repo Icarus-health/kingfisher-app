@@ -13,7 +13,7 @@ import { SelfModelSupportReview } from "./SelfModelSupportReview";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
-import { browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
+import { brauchtGraph, browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
 import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
@@ -220,11 +220,16 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
     try { setGraph(await api.memoryGraph()); } catch { setError(true); }
   }
 
+  // Der Graph kommt erst, wenn eine Ansicht ihn braucht (Suchen, Menschen, Projekte, Entscheidungen), und nur einmal.
+  const graphNoetig = brauchtGraph(filter, section);
+  const graphAngefragt = useRef(false);
+  const aktiv = useRef(true);
+  useEffect(() => { aktiv.current = true; return () => { aktiv.current = false; }; }, []);
   useEffect(() => {
-    let active = true;
-    api.memoryGraph().then((result) => active && setGraph(result)).catch(() => active && setError(true));
-    return () => { active = false; };
-  }, []);
+    if (!graphNoetig || graphAngefragt.current) return;
+    graphAngefragt.current = true;
+    api.memoryGraph().then((result) => aktiv.current && setGraph(result)).catch(() => aktiv.current && setError(true));
+  }, [graphNoetig]);
 
   useEffect(() => {
     const applyPeopleQuery = () => {
@@ -247,7 +252,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
-      <main data-memory-loading={filter !== "documents" && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
+      <main data-memory-loading={graphNoetig && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <Seitenkopf titel="Gedächtnis" aktionen={section === "browse" && filter === "documents" ? <button className="g-knopf document-add" type="button" onClick={()=>setDocumentImportOpen(true)}><img src={icon("plus","Outline")} alt=""/>Dokument hinzufügen</button> : undefined} />
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
           <Segmente label="Gedächtnisbereich" wert={section === "browse" ? filter : ("" as FilterId)}
@@ -259,7 +264,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
         </aside>
         {unteransicht ? <h2 className="g-titel memory-unteransicht">{unteransicht}</h2> : null}
         {documentImportOpen && <DocumentImport initiallyExpanded showLibrary={false} title="Dokument hinzufügen" onClose={()=>{setDocumentImportOpen(false);window.dispatchEvent(new Event("workspace-view-changed"));}} />}
-        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error ? (
+        {section === "support" ? <SelfModelSupportReview onSubmittingChange={submitting => { reviewSubmittingRef.current = submitting; setReviewSubmitting(submitting); }} /> : section === "status" ? <MemoryStatus /> : filter === "areas" ? <MemoryAreas /> : filter === "search" || filter === "documents" ? <div className="memory-documents-workspace">{filter === "documents" ? <MemoryFolders /> : <MemorySearch key={filter} graph={graph} graphError={error} onGraphRetry={load} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} onOpen={openProfile} />}</div> : error && graphNoetig ? (
           <section className="memory-canvas memory-error" aria-live="polite">
             <Leer zeichen="brain" satz="Das Gedächtnis ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" onClick={load} type="button">Wiederholen</button>} />
           </section>

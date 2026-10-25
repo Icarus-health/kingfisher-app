@@ -26,7 +26,9 @@ def teilnehmer(attendees: Iterable[str], *, index: dict[str, dict[str, Any]],
                eigene: Iterable[str] = ()) -> list[dict[str, Any]]:
     """Die Teilnehmer eines Termins, soweit sie im Bestand vorkommen.
 
-    `index` stammt aus `EpisodeStore.participants_for_addresses`. Die eigenen
+    `index` stammt aus `EpisodeStore.participants_for_addresses`. Angezeigt wird die dort zu jeder Schreibweise
+    abgelegte Anzeige (`anzeige`): Namen aus Mailköpfen dekodiert, sonst stünde „=?utf-8?q?…?=“ im Briefing (V6, Namen
+    mit Umlauten und Titeln); `person` bleibt die gespeicherte Schreibweise. Die eigenen
     Adressen fallen weg: Man bereitet sich nicht auf sich selbst vor. Ohne
     Adresse bleibt ein Teilnehmer unzuordenbar, statt über den Namen geraten
     zu werden.
@@ -42,7 +44,9 @@ def teilnehmer(attendees: Iterable[str], *, index: dict[str, dict[str, Any]],
         eintrag = index.get(adresse) if adresse else None
         namen = sorted((eintrag or {}).get('namen', {}).items(), key=lambda item: (-item[1], item[0]))
         person = namen[0][0] if namen else None
-        angezeigt = _anzeigename(str(eingabe)) or (_anzeigename(person) if person else '') or adresse or str(eingabe)
+        anzeige = (eintrag or {}).get('anzeige', {}).get(person) if person else None
+        angezeigt = (_anzeigename(str(eingabe)) or (_anzeigename(anzeige or person) if person else '') or adresse
+                     or str(eingabe))
         ergebnis.append({
             'eingabe': str(eingabe), 'adresse': adresse or None, 'name': angezeigt, 'person': person,
             'kontakte': len((eintrag or {}).get('quellen', {})),

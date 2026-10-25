@@ -40,3 +40,14 @@ export function dueLabel(value: string | null, now = new Date()) {
   if (days === -1) return "Gestern";
   return new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() ? {year: "numeric"} : {}) }).format(date);
 }
+
+/** Die Zeile unter „Aufgaben“: wie viele Aufgaben heute dran oder überfällig sind.
+ *
+ * Gezählt werden die geladenen Zeilen; die Liste kommt nach Fälligkeit sortiert und seitenweise. Ist die erste Seite bis
+ * zur letzten Zeile fällig und gibt es weitere Seiten, wäre die Zahl die Seitengröße (bei 300 Aufgaben stand „50“).
+ * Dann steht „Mehr als …“. Auf späteren Seiten lässt sich nichts zählen, die Zeile entfällt. */
+export function heuteKopfZeile(dran: number, geladen: number, {seite, weitere}: {seite: number; weitere: boolean}): string | undefined {
+  if (seite > 1 || dran < 1) return undefined;
+  if (weitere && dran >= geladen) return `Mehr als ${dran} Aufgaben brauchen dich heute.`;
+  return dran === 1 ? "Eine Aufgabe braucht dich heute." : `${dran} Aufgaben brauchen dich heute.`;
+}

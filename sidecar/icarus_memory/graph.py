@@ -16,6 +16,7 @@ Aussage entstehen.
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Iterable
@@ -47,6 +48,17 @@ def person_id_fuer(schluessel: str) -> str:
 
 def topic_id(label: str) -> str:
     return _stable("topic", label.strip().casefold())
+
+
+# Technische Markierungen der Aufnahme („mail:message:<Prüfsumme>“, „mail:attachments:{…}“, „mail-parent:…“,
+# „source:truncated“, „entzogen:…“) sind keine Themen. Sie wurden je Mail zu eigenen Knoten: Bei 8.000 Mails waren es
+# über 9.000 Themenknoten und der größte Teil von 20 MB Graph, den jede Gedächtnisseite lädt (V6, viel Bestand).
+_TECHNISCH = re.compile(r"^[a-z][a-z0-9_-]*:")
+
+
+def ist_thema(tag: str) -> bool:
+    """Ein Schlagwort, das ein Mensch lesen soll (Ordnername, Kopfzeile `tags`), keine technische Markierung."""
+    return bool(tag and tag.strip()) and not _TECHNISCH.match(tag)
 
 
 @dataclass(frozen=True)
@@ -310,7 +322,7 @@ def build(
             },
         )
         builder.node(project_node)
-        for tag in project.tags:
+        for tag in filter(ist_thema, project.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(
@@ -370,7 +382,7 @@ def build(
                     scope=episode.project_id,
                 )
 
-        for tag in episode.tags:
+        for tag in filter(ist_thema, episode.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(
@@ -410,7 +422,7 @@ def build(
                 f"note:{note.id}",
                 scope=note.project_id,
             )
-        for tag in note.tags:
+        for tag in filter(ist_thema, note.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(node.id, topic.id, "about", f"note:{note.id}", scope=note.project_id)
