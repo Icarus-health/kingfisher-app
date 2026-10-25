@@ -6026,15 +6026,17 @@ def create_app(
     install_person_merge_routes(app, guard)
 
     @app.get("/api/v1/memory/graph", dependencies=guard)
-    def memory_graph() -> dict[str, Any]:
-        return graph.build(
+    def memory_graph() -> JSONResponse:
+        # `to_dict` liefert schon reines JSON; die allgemeine Umwandlung von FastAPI kostete bei 10.000 Quellen eine
+        # halbe Sekunde je Aufruf (V6, viel Bestand).
+        return JSONResponse(graph.build(
             episodes=app.state.episodes,
             workspace=app.state.workspace,
             tasks=app.state.tasks,
             store=app.state.store,
             knowledge=app.state.claims,
             eigene=_eigene_adressen(),
-        ).to_dict()
+        ).to_dict())
 
     @app.get("/api/v1/memory/entities", dependencies=guard)
     def memory_entities() -> dict[str, Any]:

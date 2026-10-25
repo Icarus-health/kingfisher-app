@@ -1822,9 +1822,14 @@ class EpisodeStore:
                     continue
                 eintrag = ergebnis[adresse]
                 name = str(wert).strip()
+                from .kontakte import anzeigename
+                lesbar = anzeigename(name, kopfzeile=art == "email")
                 if anzeigenamen:
-                    from .kontakte import anzeigename
-                    name = anzeigename(name, kopfzeile=art == "email") or adresse
+                    name = lesbar or adresse
+                else:
+                    # Die lesbare Form je gespeicherter Schreibweise, nur bei Mailquellen dekodiert (V6: „=?utf-8?q?…“
+                    # stand sonst im Briefing). Die Schreibweise selbst bleibt der Schlüssel.
+                    eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
                 if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):

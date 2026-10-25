@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import email
 import email.header
+import email.errors
 import email.utils
 import imaplib
 import re
@@ -277,10 +278,21 @@ def _decode(raw: str | None) -> str:
     """Entschlüsselt MIME-kodierte Kopfzeilen (=?utf-8?B?...?=)."""
     if not raw:
         return ""
+    teile = email.header.decode_header(raw)
+    try:
+        # `make_header` behält die Leerzeichen zwischen kodierten und unkodierten Wörtern. Ein bloßes Aneinanderhängen
+        # verlor sie bei langen Betreffzeilen mit Umlauten, die der Absender über mehrere Zeilen gefaltet hat
+        # („Landesamt fürGesundheit“, V6 viel Bestand).
+        return str(email.header.make_header(teile)).strip()
+    except (LookupError, UnicodeError, ValueError, email.errors.HeaderParseError):
+        pass
     parts = []
-    for text, charset in email.header.decode_header(raw):
+    for text, charset in teile:
         if isinstance(text, bytes):
-            parts.append(text.decode(charset or "utf-8", errors="replace"))
+            try:
+                parts.append(text.decode(charset or "utf-8", errors="replace"))
+            except LookupError:  # unbekannter Zeichensatz: lesbar statt Abbruch der ganzen Mail
+                parts.append(text.decode("utf-8", errors="replace"))
         else:
             parts.append(text)
     return "".join(parts).strip()

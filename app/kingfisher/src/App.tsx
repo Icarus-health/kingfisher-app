@@ -34,7 +34,7 @@ import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Seitenkopf, Segmente, Gruppe, Zeile, Leer, type Segment} from "./grundlage";
 import {ProjectBoard} from "./ProjectBoard";
-import {visibleTaskGroups} from "./taskWorkspaceModel";
+import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
@@ -802,7 +802,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
   const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
-  const kopfZeile = heuteDran === 1 ? "Eine Aufgabe braucht dich heute." : heuteDran > 1 ? `${heuteDran} Aufgaben brauchen dich heute.` : undefined;
+  const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
   const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter

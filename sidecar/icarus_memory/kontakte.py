@@ -24,7 +24,8 @@ from __future__ import annotations
 import re
 import unicodedata
 from email.errors import HeaderParseError
-from email.header import decode_header
+from email.header import decode_header, make_header
+from functools import lru_cache
 from email.utils import formataddr, getaddresses
 from typing import Any, Iterable
 
@@ -42,12 +43,19 @@ def anzeigename(wert: Any, *, kopfzeile: bool = False) -> str:
     auszugeben. Nur ausdrücklich als Mailkopf bekannte Namen werden nach
     RFC 2047 dekodiert; Namen und Textstellen anderer Quellen bleiben wörtlich.
     """
-    text = _SPITZE.sub("", str(wert or "")).strip().strip('"').strip()
+    return _anzeigename(str(wert or ""), kopfzeile)
+
+
+@lru_cache(maxsize=8192)
+def _anzeigename(roh: str, kopfzeile: bool) -> str:
+    # Gemerkt: Der Graph fragt dieselben paar hundert Namen zehntausendfach (V6, viel Bestand); das Ergebnis hängt
+    # nur vom Text ab.
+    text = _SPITZE.sub("", roh).strip().strip('"').strip()
     if kopfzeile:
         try:
-            dekodiert = "".join(teil.decode(kodierung or "ascii", errors="strict")
-                               if isinstance(teil, bytes) else teil
-                               for teil, kodierung in decode_header(text))
+            # `make_header` setzt die Leerzeichen zwischen kodierten und unkodierten Teilen richtig;
+            # ein bloßes Aneinanderhängen der Teile von `decode_header` verliert sie („Jürgen Müller“).
+            dekodiert = str(make_header(decode_header(text)))
             # Defekte oder steuernde Kopfdaten bleiben sichtbar, statt einen
             # Ersatznamen oder zusätzliche Kopfzeilen daraus zu erzeugen.
             if not any(unicodedata.category(zeichen) in {"Cc", "Cf", "Cs"} for zeichen in dekodiert):

@@ -20,6 +20,16 @@ export function browseState(search: string): BrowseState {
   };
 }
 
+// Diese Ansichten kommen ohne den Gedächtnisgraphen aus (eigene, seitenweise Abfragen). Der Graph umfasst jede Quelle
+// und war bei 10.000 Quellen 20 MB und Sekunden entfernt; Organisationen, Bereiche, Dokumente, Orte und Themen warteten
+// trotzdem auf ihn (V6, viel Bestand).
+const OHNE_GRAPH: readonly MemoryTab[] = ['areas', 'documents', 'organizations', 'places', 'topics', 'topic-files'];
+
+/** Braucht die gewählte Ansicht des Gedächtnisses den ganzen Graphen? Nur dann wird er geladen. */
+export function brauchtGraph(tab: MemoryTab, section: 'browse' | 'status' | 'support' = 'browse'): boolean {
+  return section === 'browse' && !OHNE_GRAPH.includes(tab);
+}
+
 export function browseHref(state: BrowseState): string {
   const params = new URLSearchParams({tab: state.tab});
   if (state.q) params.set('q', state.q.slice(0, 200));
