@@ -93,20 +93,37 @@
   content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie);
 }
 
-/* Braucht dich: links, was es ist; rechts, was man damit tut. Wird die Fläche schmal, stehen die Aktionen darunter. */
+/* Braucht dich (V1): jede Zeile im Maß der Aufgabenliste. Links eine Spalte von 44 px (der Kreis einer Aufgabe oder
+   das leise Zeichen eines anderen Punkts), dann Titel und eine leise Zeile, rechts, was man damit tut. Eine Aufgabe ist
+   die Zeile der Liste selbst (`TaskRow`, WorkspaceTasks.css): Kreis erledigt, die ganze Zeile öffnet sie. Wird die
+   Fläche schmal, stehen die Knöpfe anderer Punkte unter dem Text. */
 .today-attention { container-type: inline-size; }
-.today-attention-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--g-a2) var(--g-a4); padding: var(--g-a4) var(--g-a4) var(--g-a4) var(--g-a5); }
-.today-item-text { min-width: 0; }
-.today-item-text h3 { margin: 0; font: 600 17px/1.35 var(--g-schrift); letter-spacing: -.01em; color: var(--g-tinte); overflow-wrap: anywhere; }
+.today-attention-list > li + li::before { left: 56px; }
+.today-attention-task .task-row.compact { padding-right: var(--g-a4); }
+.today-task-fehler { margin: 0; padding: 0 var(--g-a4) var(--g-a3) 56px; font: var(--g-neben); color: var(--g-rot); }
+.today-attention-item {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; column-gap: var(--g-a2);
+  min-height: var(--g-zeile); padding: 0 var(--g-a4) 0 var(--g-a1);
+}
+.today-item-symbol { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 44px; height: 44px; color: var(--g-leise); }
+.today-item-symbol .interface-icon { width: 20px; height: 20px; }
+.today-item-text { grid-column: 2; grid-row: 1; min-width: 0; padding: 10px 0; }
+.today-item-text h3 { margin: 0; font: 500 16px/1.4 var(--g-schrift); color: var(--g-tinte); overflow-wrap: anywhere; }
 .today-item-meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
 .today-item-meta > span + span::before { content: "·"; margin-right: 6px; }
-.today-review-badge { display: inline-block; width: fit-content; margin-top: var(--g-a2); padding: 2px 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.5 var(--g-schrift); }
-.today-item-actions { display: flex; justify-content: flex-end; min-width: 0; }
-.today-attention-item:has(.today-task-more[open]) .today-item-actions, .today-hintergrund { grid-column: 1 / -1; justify-content: flex-start; }
-.today-hintergrund { margin-top: calc(-1 * var(--g-a1)); }
+.today-item-meta > .today-review-badge { padding: 0 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.6 var(--g-schrift); }
+.today-item-meta > .today-review-badge::before { content: none; }
+/* Dieselbe Warnung an einer Aufgabe: leise in ihrer Zeile, aber nicht zu übersehen. */
+#root .today-attention-task .task-meta > .task-hinweis-zusatz { padding: 0 8px; border-radius: 6px; background: #fff2d8; color: #704b0b; font: 500 13px/1.6 var(--g-schrift); }
+#root .today-attention-task .task-meta > .task-hinweis-zusatz::before { content: none; }
+#root .today-attention-task .task-meta > .task-hinweis-zusatz:not(:first-child) { margin-left: 6px; }
+.today-item-actions { grid-column: 3; grid-row: 1; display: flex; justify-content: flex-end; min-width: 0; padding: var(--g-a1) 0; }
+/* Art, Gewicht, Warnung und „Hintergrund“ in einer leisen Zeile; offen steht der Hintergrund darunter. */
+.today-item-zeile { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--g-a3); margin-top: 2px; }
+.today-item-zeile > .today-item-meta { margin: 0; }
+.today-hintergrund[open] { flex: 1 1 100%; }
 @container (max-width: 560px) {
-  .today-attention-item { grid-template-columns: minmax(0, 1fr); }
-  .today-item-actions { justify-content: flex-start; }
+  .today-item-actions { grid-column: 2 / -1; grid-row: 2; justify-content: flex-start; padding: 0 0 var(--g-a3); }
 }
 /* Zeilenaktionen sind leise: getönt, nie gefüllt (Paket U, H3). */
 .today-action {
@@ -116,24 +133,19 @@
 }
 .today-action:hover:not(:disabled) { background: var(--g-getoent-stark); }
 .today-action:disabled { cursor: default; opacity: .55; }
-.today-attention-item .briefing-suggestion { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); }
+.today-attention-item .briefing-suggestion { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2); margin: 0; }
 .today-attention-item .briefing-suggestion .secondary-action { min-height: 44px; }
-.today-attention-item .briefing-suggestion .attention-task-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); text-decoration: none; }
-.today-task-actions { min-width: 0; }
-.today-task-actions .task-suggestion-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a1) var(--g-a2); }
-.today-task-actions > p { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
-.today-task-actions > p[role="alert"] { color: var(--g-rot); }
-#root .today-task-more > summary { display: flex; align-items: center; min-height: 44px; padding: 0 6px; margin: 0; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); }
-#root .today-task-more > summary::before { content: none; }
-.today-task-more[open] { flex: 1 1 100%; order: 3; padding: var(--g-a2) 0 var(--g-a1); border-top: 1px solid var(--g-linie); }
-.today-task-more[open] > summary { width: fit-content; }
-.today-task-more > p { margin: var(--g-a1) 0 var(--g-a2); font: var(--g-neben); color: var(--g-leise); }
-.today-task-more > :is(button, a) { margin-right: var(--g-a4); }
-.today-attention-item:has(.today-task-more[open]) .task-suggestion-actions { justify-content: flex-start; }
-.today-task-actions .task-detail .task-row { grid-template-columns: 30px minmax(0, 1fr); padding: 16px 0; }
-.today-task-actions .task-detail .task-row > time { grid-column: 2; grid-row: 3; text-align: left; }
-#root .today-hintergrund > summary { display: inline-flex; align-items: center; min-height: 44px; padding: 0; color: var(--g-leise); font: 500 14px/1.3 var(--g-schrift); }
-.today-hintergrund > p { margin: 0 0 var(--g-a1); font: var(--g-neben); color: var(--g-leise); }
+.today-attention-item .briefing-suggestion .attention-task-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0; color: var(--g-verweis); font: 500 15px/1.2 var(--g-schrift); text-decoration: none; }
+/* 44 px Ziel, ohne die Zeile höher zu machen: der Rand greift über und unter die Zeile hinaus. */
+#root .today-hintergrund > summary { display: inline-flex; align-items: center; min-height: 44px; margin-block: -12px; padding: 0; color: var(--g-leise); font: 500 14px/1.45 var(--g-schrift); white-space: nowrap; }
+.today-hintergrund > p { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+/* Erledigt: ein Satz mit „Rückgängig“ daneben. */
+.today-erledigt { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--g-a2); padding-block: 0; }
+.today-erledigt > button { font-size: 14px; }
+/* Die geöffnete Aufgabe im Seitenpaneel: warum sie heute dasteht, dann die Aufgabe wie in der Liste. */
+.today-aufgabe-offen { display: grid; gap: var(--g-a3); }
+.today-aufgabe-grund { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+.today-aufgabe-offen > .today-aufgabe-liste { justify-self: start; }
 
 /* Deine Termine: Uhrzeit, Titel, die Vorbereitung als Nebenzeile; die ganze Zeile öffnet sie. */
 .today-termin.g-zeile { gap: var(--g-a4); padding-left: var(--g-a5); }
@@ -229,8 +241,13 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
 @media (max-width: 1000px) {
   .today-overview { grid-template-columns: minmax(0, 1fr); }
 }
+/* Schmal deckt das Paneel die ganze Fläche. Heute isoliert sich für die Landschaft, und der Inhaltsbereich hat eine
+   eigene Ebene (styles.css); solange das Paneel offen ist, gilt beides nicht, sonst läge die obere Navigation über dessen
+   Kopf mit „Schließen“. Die Landschaft ist dann ohnehin verdeckt. */
 @media (max-width: 900px) {
   .today-page { --today-rand: var(--g-a5); }
+  .today-page:has(.workspace-detail) { isolation: auto; }
+  #root .today-page:has(.workspace-detail) .briefing-area { z-index: auto; }
   /* Ohne Seitenleiste ist das Bild breiter als hoch genug: ein heller Schleier hält den Gruß lesbar. */
   .today-landscape {
     background:
@@ -253,8 +270,7 @@ button.today-text-link:disabled { cursor: default; opacity: .55; }
   #root .today-page .briefing-area { gap: var(--g-a5); padding-bottom: var(--g-a6); }
   .today-overview, .today-side { gap: var(--g-a5); }
   .today-panel-heading h2 { font-size: 20px; }
-  .today-attention-item { padding-left: var(--g-a4); }
-  .today-attention-list > li + li::before, .today-news-list > li + li::before { left: var(--g-a4); }
+  .today-news-list > li + li::before { left: var(--g-a4); }
   .today-termin.g-zeile, .today-source > .g-zeile { padding-left: var(--g-a4); }
   .today-source > .task-source { padding-left: var(--g-a4); }
   .today-calendar-list > li + li::before { left: calc(var(--g-a4) + 48px + var(--g-a4)); }

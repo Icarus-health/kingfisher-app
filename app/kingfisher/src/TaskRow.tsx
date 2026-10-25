@@ -14,8 +14,12 @@ import {dueLabel} from "./taskWorkspaceModel";
  * öffnet die Aufgabe. Projekt und „Warte auf …“ erscheinen bei Zeiger oder Tastaturfokus in der Zeile; auf schmalen
  * Fenstern und ohne Zeiger stehen sie in der geöffneten Aufgabe. Im Detail (nicht `compact`, auch auf Heute) stehen
  * Titel, eine Zeile mit Fälligkeit und Zuordnung, die Notiz und darunter die Aktionen.
+ *
+ * Heute (V1) zeigt dieselbe Zeile ohne Zeilenaktionen (`ohneAktionen`): Projekt und „Warte auf …“ stehen dort in der
+ * geöffneten Aufgabe. `projektName` nennt das Projekt, wenn keine Projektliste geladen ist; `hinweis` hängt einen
+ * leisen Zusatz an die Zeile („Verlauf ungeprüft“).
  */
-export function TaskRow({ task, view, completing, onComplete, onWait, projects, onProjectChange, onEdit, projectDisabled = false, compact = false, onOpen, onRueckgaengig, startEditing = false, showProjectName = true }: { task: LocalTask; view: "mine" | "waiting" | "done"; completing: boolean; onComplete: () => void; onWait: (name?: string) => void; projects: Project[]; projectDisabled?: boolean; compact?: boolean; onOpen?: () => void; onProjectChange: (id: string) => void; onEdit: (data: {title?: string; due?: string | null; notes?: string | null; remind_at?: string | null; expected_remind_at?: string | null}) => Promise<boolean>; onRueckgaengig?: () => void; startEditing?: boolean; showProjectName?: boolean }) {
+export function TaskRow({ task, view, completing, onComplete, onWait, projects, onProjectChange, onEdit, projectDisabled = false, compact = false, onOpen, onRueckgaengig, startEditing = false, showProjectName = true, ohneAktionen = false, projektName, hinweis }: { task: LocalTask; view: "mine" | "waiting" | "done"; completing: boolean; onComplete: () => void; onWait: (name?: string) => void; projects: Project[]; projectDisabled?: boolean; compact?: boolean; onOpen?: () => void; onProjectChange: (id: string) => void; onEdit: (data: {title?: string; due?: string | null; notes?: string | null; remind_at?: string | null; expected_remind_at?: string | null}) => Promise<boolean>; onRueckgaengig?: () => void; startEditing?: boolean; showProjectName?: boolean; ohneAktionen?: boolean; projektName?: string | null; hinweis?: string }) {
   const remindAt = (task as LocalTask & {remind_at?: string | null; expected_remind_at?: string | null}).remind_at ?? null;
   const [waitingForm, setWaitingForm] = useState(false);
   const [waitingName, setWaitingName] = useState("");
@@ -31,7 +35,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
   // Aufgaben folgen der Post: Was die eigene Mail erledigt oder zurückgeholt hat, steht mit Grund da, mit „Rückgängig“.
   const postZeile = postSatz(task);
   const canComplete = ((view === "mine" || view === "waiting") && task.status === "open") || (view === "done" && complete);
-  const projectName = task.project_id ? projects.find(project => project.id === task.project_id)?.name : undefined;
+  const projectName = task.project_id ? projects.find(project => project.id === task.project_id)?.name ?? (projektName || undefined) : undefined;
   function beginEdit() {
     setEditTitle(task.title);
     setEditDue(dateInput(task.due));
@@ -71,6 +75,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
     (!compact || showProjectName) && projectName ? <span key="project" className="task-project">{projectName}</span> : null,
     (view === "waiting" || !compact) && task.wartet_auf ? <span key="waiting">Wartet auf {task.wartet_auf}</span> : null,
     remindAt ? <span key="remind">Wiedervorlage {reminderLabel(remindAt)}</span> : null,
+    hinweis ? <span key="hinweis" className="task-hinweis-zusatz">{hinweis}</span> : null,
   ].filter(Boolean);
   return <article className={`task-row${compact ? " compact" : " task-row-detail"}${complete ? " done" : ""}${waitingForm ? " task-row-open" : ""}`}>
     <button aria-label={complete ? `${task.title} wieder öffnen` : `${task.title} erledigen`} title={complete ? "Wieder öffnen" : "Erledigen"} className="task-check" disabled={!canComplete || completing} onClick={onComplete} type="button">{complete ? <img src={icon("check", "Outline")} alt="" /> : null}</button>
@@ -85,7 +90,7 @@ export function TaskRow({ task, view, completing, onComplete, onWait, projects, 
     </form> : <>{onOpen ? <button className="task-title-link" type="button" title="Öffnen und bearbeiten" onClick={onOpen}>{task.title}</button> : <strong>{task.title}</strong>}{meta.length ? <small className="task-meta">{meta}</small> : null}{postZeile ? <small className="task-post" role="status">{postZeile}{onRueckgaengig ? <> <button type="button" className="text-action" disabled={completing} onClick={onRueckgaengig}>Rückgängig</button></> : null}</small> : null}{!compact && task.notes ? <p className="task-notiz">{task.notes}</p> : null}</>}
       {!compact && actions}
       {!compact && !editing && task.provenance?.source_ref?.startsWith("episode:") && <TaskSource taskId={task.id} />}{!compact && !editing && <TaskHistory taskId={task.id} revision={JSON.stringify([task.title, task.due, remindAt, task.notes, task.status, task.project_id, task.wartet_auf])} />}</div>
-    {compact && actions}
+    {compact && !ohneAktionen && actions}
     {compact && task.due ? <time className={task.overdue ? "overdue" : ""} dateTime={task.due}>{dueLabel(task.due)}</time> : null}
   </article>;
 }

@@ -1,6 +1,10 @@
 import "./TodayOverview.css";
 import {useState} from "react";
-import { TodayTaskActions } from "./TodayTaskActions";
+import { TodayTaskRow } from "./TodayTaskRow";
+import { DetailPanel } from "./DetailPanel";
+import { TaskDetail } from "./TaskDetail";
+import { InterfaceIcon } from "./InterfaceIcon";
+import { api } from "./api";
 import { taskHref } from "./taskWorkflow";
 import { eingangZeile, naechsterTerminText, zaehlerText } from "./heute";
 import { type Attention, type MorningBriefing } from "./api";
@@ -33,6 +37,15 @@ function actionFor(item: Attention) {
   return null;
 }
 
+/** Das leise Zeichen vor einem Punkt, der keine Aufgabe ist: dieselbe Spalte wie der Kreis einer Aufgabe (V1). */
+function kindSymbol(item: Attention): Parameters<typeof InterfaceIcon>[0]["name"] {
+  return ({ nachbereitung: "calendar-days", termin: "calendar-days", entscheidung: "check", zusage: "mail", akte_vorschlag: "project", knowledge: "brain" } as Record<string, Parameters<typeof InterfaceIcon>[0]["name"]>)[item.source ?? ""] ?? "document";
+}
+
+export function istAufgabe(item: Attention) {
+  return (item.source === "aufgabe" || item.source === "wartet") && Boolean(item.source_ref);
+}
+
 function kindLabel(item: Attention) {
   return ({ nachbereitung: "Nach dem Termin", termin: "Termin", aufgabe: "Aufgabe", wartet: "Wartet auf Antwort", entscheidung: "Entscheidung", zusage: "Vorschlag aus einer Quelle", akte_vorschlag: "Neue Akte?" } as Record<string, string>)[item.source ?? ""] ?? "Offener Punkt";
 }
@@ -61,6 +74,16 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
   const [activityOpen, setActivityOpen] = useState(false);
   // Die Antwort auf „Akte anlegen“ oder „Nein danke“ bleibt stehen, wenn der Punkt danach aus dem Briefing geht.
   const [akteNotice, setAkteNotice] = useState<{ satz: string; link: string } | null>(null);
+  // Eine Aufgabe unter „Braucht dich“ öffnet sich wie in der Liste im Seitenpaneel; erledigt bleibt mit „Rückgängig“.
+  const [offeneAufgabe, setOffeneAufgabe] = useState<Attention | null>(null);
+  const [erledigt, setErledigt] = useState<{ id: string; title: string; zurueck?: "laeuft" | "fehler" | "fertig" } | null>(null);
+  async function rueckgaengig() {
+    if (!erledigt || erledigt.zurueck === "laeuft") return;
+    const aufgabe = erledigt;
+    setErledigt({ ...aufgabe, zurueck: "laeuft" });
+    try { await api.reopenTask(aufgabe.id); setErledigt({ ...aufgabe, zurueck: "fertig" }); onChange(); }
+    catch { setErledigt({ ...aufgabe, zurueck: "fehler" }); }
+  }
   const attention = todayAttention(briefing);
   const calendarUnavailable = briefing.partial_failures.some(failure => failure.section === "calendar");
   const reviewStatus = briefing.partial_failures.find(failure => failure.section === "source_review");
@@ -79,22 +102,41 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
       <div className="today-flaeche">
       {reviewStatus && <p className="today-notice" role="status">{reviewStatus.message} <a href="/vorhaben?view=mine">Aufgaben prüfen →</a></p>}
       {attention.length ? <ul className="today-attention-list">{attention.map(item => {
+        // Aufgaben in derselben Zeile wie die Aufgabenliste (V1): Kreis, Titel, eine leise Zeile; die Zeile öffnet sie.
+        if (istAufgabe(item)) return <li className="today-attention-task" key={item.id}>
+          <TodayTaskRow key={item.source_ref} item={item} onOpen={() => setOffeneAufgabe(item)} onDone={aufgabe => { setErledigt(aufgabe); onChange(); }} />
+        </li>;
         const action = actionFor(item);
         return <li className="today-attention-item" key={item.id}>
+          <span className="today-item-symbol"><InterfaceIcon name={kindSymbol(item)} /></span>
           <div className="today-item-text">
             <h3>{item.title}</h3>
-            <p className="today-item-meta"><span>{kindLabel(item)}</span>{item.priority && <span>{item.priority}</span>}</p>
-            {(item.action === 'Verlauf prüfen' || item.review_required) && <span className="today-review-badge">{item.action === 'Verlauf prüfen' ? 'Verlauf ungeprüft' : 'Original prüfen'}</span>}
+            <div className="today-item-zeile">
+              <p className="today-item-meta"><span>{kindLabel(item)}</span>{item.priority && <span>{item.priority}</span>}{(item.action === 'Verlauf prüfen' || item.review_required) && <span className="today-review-badge">{item.action === 'Verlauf prüfen' ? 'Verlauf ungeprüft' : 'Original prüfen'}</span>}</p>
+              {/* Der Hintergrund steht leise am Ende der Zeile, nicht in einer eigenen Zeile darunter (V1). */}
+              {(item.reason || item.detail) && <details className="quiet-details today-hintergrund"><summary>Hintergrund</summary><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p></details>}
+            </div>
           </div>
           <div className="today-item-actions">
-            {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={antwort => { setAkteNotice(antwort); onChange(); }} /> : (item.source === "aufgabe" || item.source === "wartet") && item.source_ref ? <TodayTaskActions key={item.source_ref} item={item} onChanged={onChange} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
+            {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={antwort => { setAkteNotice(antwort); onChange(); }} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
           </div>
-          {item.source !== 'aufgabe' && item.source !== 'wartet' && (item.reason || item.detail) && <details className="quiet-details today-hintergrund"><summary>Hintergrund</summary><p>{item.reason && item.reason !== item.title ? item.reason : item.detail}</p></details>}
         </li>;
       })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen." : "Nichts wartet auf dich."}</p>}
+      {erledigt && <p className="today-notice today-erledigt" role="status">{erledigt.zurueck === "fertig" ? <>„{erledigt.title}“ ist wieder offen.</>
+        : erledigt.zurueck === "fehler" ? <>Nicht zurückgenommen: Die Änderung wurde nicht bestätigt. <button type="button" className="today-text-link" onClick={() => void rueckgaengig()}>Erneut versuchen</button></>
+        : <>„{erledigt.title}“ erledigt. <button type="button" className="today-text-link" disabled={erledigt.zurueck === "laeuft"} onClick={() => void rueckgaengig()}>Rückgängig</button></>}</p>}
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
       {akteNotice && <p className="today-notice" role="status">{akteNotice.satz} <a href={akteNotice.link}>Akte öffnen</a></p>}
       </div>
+      {offeneAufgabe?.source_ref && <DetailPanel title="Aufgabe" onClose={() => setOffeneAufgabe(null)}>
+        <div className="today-aufgabe-offen">
+          {/* Warum sie heute dasteht, und bei ungeprüftem Verlauf die weitere Nachricht: wie früher unter „Details“. */}
+          {offeneAufgabe.reason && offeneAufgabe.reason !== offeneAufgabe.title && <p className="today-aufgabe-grund">{offeneAufgabe.reason}</p>}
+          {offeneAufgabe.episode_id && <ProfileSource kind="episode" id={offeneAufgabe.episode_id} label="Weitere Nachricht im Verlauf ansehen" originalOnly />}
+          <TaskDetail key={offeneAufgabe.source_ref} taskId={offeneAufgabe.source_ref} onChanged={onChange} />
+          <a className="g-knopf-schlicht today-aufgabe-liste" href={taskHref({id: offeneAufgabe.source_ref, wartet_auf: offeneAufgabe.source === "wartet" ? "waiting" : null, project_id: offeneAufgabe.project_id})}>In Aufgaben öffnen</a>
+        </div>
+      </DetailPanel>}
     </section>
 
     <div className="today-side">

@@ -12,6 +12,7 @@ from typing import Any
 
 import httpx
 from .datumstext import iso_versuchen as _time
+from .neu_eingegangen import ist_neu
 
 
 def _stable_id(kind: str, source: str, ref: str | None, text: str) -> str:
@@ -234,6 +235,11 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             if project:
                 attention[item_id]["detail"] = f"Projekt: {project['name']}"
             attention[item_id]["project_id"] = project_id if project else None
+            # Heute zeigt die Aufgabe in derselben Zeile wie die Aufgabenliste (V1): dafür die Aufgabe selbst, wie
+            # `/api/v1/tasks` sie liefert, und der Projektname. Nur Lesen; geändert wird über die Aufgabenrouten.
+            if task.get("id"):
+                attention[item_id]["task"] = {key: value for key, value in task.items() if key != "source_review"}
+                attention[item_id]["project_name"] = project["name"] if project else None
             source_review = task.get("source_review") or {}
             if source_review.get("reason"):
                 attention[item_id]["reason"] = source_review["reason"]
@@ -302,8 +308,13 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         }
 
     happening: list[dict[str, Any]] = []
+    # „Neu eingegangen“ nur mit dem, was wirklich neu ist (`neu_eingegangen.py`): Eine ungelesene Mail vom Juni ist
+    # Altbestand, auch wenn sie noch ungelesen im Posteingang liegt. Der Posteingang ist ein Blick von jetzt, keine
+    # Bestandsaufnahme: Fehlt einer Mail das Datum, gilt sie als jetzt erfasst.
     for mail in (dashboard.get("mail", {}).get("items") or []):
         if not mail.get("unread") or mail.get("category") in ("newsletter", "spam", "blocked"):
+            continue
+        if not ist_neu(mail.get("date"), mail.get("recorded_at") or now, jetzt=now):
             continue
         title = str(mail.get("subject") or "Neue E-Mail")
         happening.append({
@@ -319,11 +330,19 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
     # A new report is an activity, not an accepted task or an inferred deadline.
     from .working_memory_answers import KINDS
     from .episodes import ist_eigene_quelle
-    for report in (dashboard.get("working_memory", {}).get("items") or []):
+    def _juengste_zuerst(report: dict[str, Any]) -> float:
+        moment = _time(report.get("occurred_at")) or _time(report.get("recorded_at"))
+        if moment is None:
+            return 0.0
+        return (moment if moment.tzinfo else moment.replace(tzinfo=now.tzinfo)).timestamp()
+    for report in sorted(dashboard.get("working_memory", {}).get("items") or [], key=_juengste_zuerst, reverse=True):
         if len(happening) >= 3:
             break
         # Eigene Gesprächszeilen und selbst hochgeladene Dateien sind keine Nachrichten (Fremdprobe 2, Befund 22).
         if ist_eigene_quelle(report.get("source_type"), report.get("source_ref")):
+            continue
+        # Die Auswahl im Sidecar hält schon die Regel ein; hier noch einmal, damit kein Altbestand durchrutscht.
+        if not ist_neu(report.get("occurred_at"), report.get("recorded_at"), jetzt=now):
             continue
         title = report['title'] or 'Gesprächsquelle'
         happening.append({
@@ -332,7 +351,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
             'detail': 'Quelle berichtet · ' + ', '.join(KINDS[kind] for kind in report['kinds']),
             'icon': 'brain', 'source': 'working_memory', 'source_ref': report['episode_id'],
             'occurred_at': report.get('occurred_at'), 'recorded_at': report.get('recorded_at'),
-            'reason': 'In den letzten 24 Stunden aufgenommen; keine bestätigte Aussage', 'action': None,
+            'reason': 'Neu eingegangen; keine bestätigte Aussage', 'action': None,
         })
     # Nur, was von anderen kam: die eigenen Zeilen im Gespräch und eben hochgeladene Dateien zählen nicht (Befund 22).
     episoden = dashboard.get("episodes", {}) or {}
@@ -444,6 +463,7 @@ def compose(dashboard: dict[str, Any], *, now: datetime, target: date,
         "happening_now": happening[:3],
         "working_memory_more": bool(dashboard.get('working_memory', {}).get('truncated') or
             sum(not ist_eigene_quelle(r.get('source_type'), r.get('source_ref'))
+                and ist_neu(r.get('occurred_at'), r.get('recorded_at'), jetzt=now)
                 for r in dashboard.get('working_memory', {}).get('items') or []) >
             sum(item['source'] == 'working_memory' for item in happening[:3])),
         "later_today": later,

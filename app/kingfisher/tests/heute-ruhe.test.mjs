@@ -26,13 +26,13 @@ const morning = () => quelle('App.tsx').match(/function Morning\([\s\S]*?\n\}\n/
 test('H2: Bilder nur im Seitenkopf, kein Eisvogel und keine Landschaft in Karten', () => {
   assert.equal((morning().match(/<img /g) ?? []).length, 1, 'genau ein Bild auf Heute: der Eisvogel im Kopf');
   assert.match(morning(), /<section className="hero">\s*<img className="hero-bird"/);
-  for (const datei of ['TodayOverview.tsx', 'TodayTaskActions.tsx', 'TodaySourceStatus.tsx', 'PostfachStand.tsx', 'AudioBriefing.tsx'])
+  for (const datei of ['TodayOverview.tsx', 'TodayTaskRow.tsx', 'TodaySourceStatus.tsx', 'PostfachStand.tsx', 'AudioBriefing.tsx'])
     assert.doesNotMatch(quelle(datei), /<img\b|ASSET\.media/, datei);
   assert.doesNotMatch(quelle('Einrichtung/HeuteLeer.tsx'), /<img\b/, 'auch der leere Heute-Zustand trägt kein Bild in der Karte');
 });
 
 test('H2/H3: höchstens ein gefüllter Knopf auf Heute, Zeilenaktionen leise, der Zähler ohne Signalfarbe', () => {
-  for (const datei of ['TodayOverview.tsx', 'TodayTaskActions.tsx', 'TodaySourceStatus.tsx', 'PostfachStand.tsx', 'AudioBriefing.tsx'])
+  for (const datei of ['TodayOverview.tsx', 'TodayTaskRow.tsx', 'TodaySourceStatus.tsx', 'PostfachStand.tsx', 'AudioBriefing.tsx'])
     assert.doesNotMatch(quelle(datei), /primary-action|tasks-add|play-toggle/, datei);
   assert.doesNotMatch(morning(), /primary-action|today-briefing-button/);
   const css = quelle('TodayOverview.css');
@@ -92,7 +92,7 @@ test('Nachtrag 23.10.: ein großer Titel mit einer Zeile darunter, Ziele mindest
   assert.doesNotMatch(kopf, /today-hero-label|DEIN TAG/, 'keine Überzeile über dem Titel');
   assert.equal((kopf.match(/<p\b/g) ?? []).length, 1, 'genau eine Zeile unter dem Titel');
   const css = quelle('TodayOverview.css');
-  for (const regel of [/\.today-action \{[^}]*\}/, /\.today-text-link \{[^}]*\}/, /\.today-task-more > summary \{[^}]*\}/])
+  for (const regel of [/\.today-action \{[^}]*\}/, /\.today-text-link \{[^}]*\}/, /\.today-hintergrund > summary \{[^}]*\}/])
     assert.match(css.match(regel)[0], /min-height: 44px/, String(regel));
   assert.doesNotMatch(css + quelle('AudioBriefing.css'), /\.today-text-link \{[^}]*min-height: (?:[0-3]?\d|4[0-3])px/, 'kein Textknopf auf Heute kleiner als 44 px');
 });
