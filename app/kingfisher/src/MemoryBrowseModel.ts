@@ -1,4 +1,4 @@
-import type { GraphNode } from './api';
+import type { GraphNode, MemoryGraph } from './api';
 
 export const MEMORY_TABS = ['search', 'areas', 'people', 'projects', 'organizations', 'places', 'topics', 'topic-files', 'decisions', 'documents'] as const;
 export type MemoryTab = typeof MEMORY_TABS[number];
@@ -25,9 +25,24 @@ export function browseState(search: string): BrowseState {
 // trotzdem auf ihn (V6, viel Bestand).
 const OHNE_GRAPH: readonly MemoryTab[] = ['areas', 'documents', 'organizations', 'places', 'topics', 'topic-files'];
 
-/** Braucht die gewählte Ansicht des Gedächtnisses den ganzen Graphen? Nur dann wird er geladen. */
+// Diese kommen mit dem Verzeichnis aus: nur Personen- und Projektknoten, ohne Quellen und Kanten (V7; bei 10.000
+// Quellen 0,4 statt 10 MB). Den ganzen Graphen braucht nur noch die Ansicht als Graph (Entscheidungen).
+const MIT_VERZEICHNIS: readonly MemoryTab[] = ['search', 'people', 'projects'];
+
+/** Wie viel vom Gedächtnisgraphen die gewählte Ansicht braucht: nichts, das Verzeichnis oder alles. */
+export function graphUmfang(tab: MemoryTab, section: 'browse' | 'status' | 'support' = 'browse'): 'keiner' | 'verzeichnis' | 'voll' {
+  if (section !== 'browse' || OHNE_GRAPH.includes(tab)) return 'keiner';
+  return MIT_VERZEICHNIS.includes(tab) ? 'verzeichnis' : 'voll';
+}
+
+/** Braucht die gewählte Ansicht des Gedächtnisses den Graphen (ganz oder als Verzeichnis)? Nur dann wird er geladen. */
 export function brauchtGraph(tab: MemoryTab, section: 'browse' | 'status' | 'support' = 'browse'): boolean {
-  return section === 'browse' && !OHNE_GRAPH.includes(tab);
+  return graphUmfang(tab, section) !== 'keiner';
+}
+
+/** Gibt es überhaupt Quellen? Das Verzeichnis sagt es selbst, der ganze Graph durch seine Quellenknoten. */
+export function hatQuellen(graph: MemoryGraph): boolean {
+  return graph.verzeichnis ? graph.verzeichnis.hat_quellen : graph.nodes.some(node => node.kind === 'episode');
 }
 
 export function browseHref(state: BrowseState): string {

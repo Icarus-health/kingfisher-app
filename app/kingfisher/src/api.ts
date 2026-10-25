@@ -603,6 +603,9 @@ export type MemoryGraph = {
   authority: "projection";
   nodes: GraphNode[];
   edges: GraphEdge[];
+  /** Nur im Verzeichnis (`/api/v1/memory/verzeichnis`, V7): Personen und Projekte ohne Kanten, dafür das, was die
+   * Listen sonst aus den Kanten lesen. */
+  verzeichnis?: { hat_quellen: boolean; letzter_kontakt: Record<string, string> };
 };
 
 export type MemorySearchResult = {
@@ -1520,6 +1523,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ reason: "Im Gespräch ausdrücklich als falsch widerrufen." }) },
     ),
   memoryGraph: () => request<MemoryGraph>("/api/v1/memory/graph"),
+  memoryVerzeichnis: () => request<MemoryGraph>("/api/v1/memory/verzeichnis"),
   memorySearch: (q: string, signal?: AbortSignal) => request<MemorySearchResult>(`/api/v1/memory/search?${new URLSearchParams({q, limit: "20"})}`, {signal}),
   personMerges: () => request<{merges: PersonMerge[]}>("/api/v1/memory/person-merges"),
   previewPersonMerge: (member_ids: string[], label: string) => request<PersonMergePreview>("/api/v1/memory/person-merges/preview", {

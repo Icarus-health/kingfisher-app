@@ -46,6 +46,11 @@ export async function batchCategorySave(previews: SourceCategoriesResult[], area
 import type {MemoryGraph} from './api';
 import type {FolderSource} from './MemoryFolders';
 export function contactDateFromGraph(graph: MemoryGraph, id: string): string {
+  // Das Verzeichnis (V7) bringt den letzten Kontakt nach derselben Regel schon mit (Sidecar `graph.verzeichnis`).
+  if (graph.verzeichnis) {
+    const zuletzt = graph.verzeichnis.letzter_kontakt[id];
+    return zuletzt && Number.isFinite(Date.parse(zuletzt)) ? new Date(Date.parse(zuletzt)).toLocaleDateString('de-DE') : 'unbekannt';
+  }
   // Being mentioned in a source does not establish actual contact.
   const sources = new Set(graph.edges.filter(edge=>edge.source===id&&edge.relation==='participated_in'&&edge.actual_contact===true).map(edge=>edge.target));
   const at = Date.parse(graph.generated_at);

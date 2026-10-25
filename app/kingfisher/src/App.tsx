@@ -157,10 +157,12 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
       setBriefing(result); setError(false); setRefreshError(false);
     });
     refresher.current = refresh;
+    // Erst der Gruß, dann der Rest (V7, Tempo): Gleichzeitig teilten sich beide Abrufe den Sidecar und der Gruß kam
+    // erst mit dem vollen Briefing. Die volle Fassung startet, sobald die schnelle da ist oder scheitert.
     api.morning(false).then(result => {
       if (active && !fullReceived) { setBriefing(lastKnown(result)); setError(false); }
-    }).catch(() => { quickFailed = true; if (active && fullFailed && !fullReceived) setError(true); });
-    void refresh.run(true);
+    }).catch(() => { quickFailed = true; if (active && fullFailed && !fullReceived) setError(true); })
+      .finally(() => { if (active) void refresh.run(true); });
     const automatic = () => { if (document.visibilityState === "visible") void refresh.run(); };
     const timer = window.setInterval(automatic, 300000);
     window.addEventListener("focus", automatic);
@@ -211,7 +213,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
             <p className="today-hero-summary">
               <span>{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht dich." : `${attentionCount} Punkte brauchen dich.`}</span>
               {/* Ein Zeitpunkt, keine zweite Uhr: Die Uhr steht nur in der Seitenleiste (Fremdprobe 2, Befund 11). */}
-              {stand ? <span className="today-stand">Stand {stand}{refreshing ? " · wird aktualisiert …" : ""}</span> : null}
+              {/* Während das volle Briefing kommt, atmet „Stand“ leise, statt Text anzuhängen: Der angehängte Text brach
+                  bei 390 px die Zeile um und schob beim Verschwinden die ganze Seite hoch (V7, CLS 0,18). */}
+              {stand ? <span className="today-stand" aria-busy={refreshing || undefined}>Stand {stand}{refreshing ? <span className="visually-hidden"> · wird aktualisiert …</span> : null}</span> : null}
               <AudioBriefing briefing={briefing} />
             </p>
           </div>

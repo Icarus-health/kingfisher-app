@@ -13,7 +13,7 @@ import { SelfModelSupportReview } from "./SelfModelSupportReview";
 import { GedaechtnisLeer } from "./GedaechtnisLeer";
 import { MemoryAreas } from "./MemoryAreas";
 import { memorySectionFromSearch } from "./MemoryAreaModel";
-import { brauchtGraph, browseState, browseHref, type MemoryTab } from "./MemoryBrowseModel";
+import { browseState, browseHref, graphUmfang, hatQuellen, type MemoryTab } from "./MemoryBrowseModel";
 import { DocumentImport } from "./DocumentImport";
 import { MemoryFolders } from "./MemoryFolders";
 import { MemorySearch } from "./MemorySearch";
@@ -215,21 +215,35 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
     if (typeof document !== "undefined") return restoreMemoryScroll(document.querySelector<HTMLElement>(".memory-page"));
   },[filter,query,directoryPage,section]);
 
-  async function load() {
-    setError(false);
-    try { setGraph(await api.memoryGraph()); } catch { setError(true); }
-  }
-
-  // Der Graph kommt erst, wenn eine Ansicht ihn braucht (Suchen, Menschen, Projekte, Entscheidungen), und nur einmal.
-  const graphNoetig = brauchtGraph(filter, section);
-  const graphAngefragt = useRef(false);
+  // Der Graph kommt erst, wenn eine Ansicht ihn braucht, und nur einmal: Suchen, Menschen und Projekte brauchen nur
+  // das Verzeichnis (Personen und Projekte, V7), die Ansicht als Graph (Entscheidungen) alles. Der ganze Graph genügt
+  // auch den Listen; ein später eintreffendes Verzeichnis ersetzt ihn nicht.
+  const umfang = graphUmfang(filter, section);
+  const graphNoetig = umfang !== "keiner";
+  const [graphArt, setGraphArt] = useState<"verzeichnis" | "voll" | null>(null);
+  const passend = graph !== null && (umfang !== "voll" || graphArt === "voll");
+  const angefragt = useRef<Set<"verzeichnis" | "voll">>(new Set());
   const aktiv = useRef(true);
   useEffect(() => { aktiv.current = true; return () => { aktiv.current = false; }; }, []);
+  const artGeladen = useRef<"verzeichnis" | "voll" | null>(null);
+  function holen(art: "verzeichnis" | "voll") {
+    return (art === "voll" ? api.memoryGraph() : api.memoryVerzeichnis()).then(result => {
+      if (!aktiv.current || (artGeladen.current === "voll" && art === "verzeichnis")) return;
+      artGeladen.current = art;
+      setGraph(result); setGraphArt(art);
+    });
+  }
+  async function load() {
+    setError(false);
+    try { await holen(umfang === "voll" || graphArt === "voll" ? "voll" : "verzeichnis"); } catch { setError(true); }
+  }
   useEffect(() => {
-    if (!graphNoetig || graphAngefragt.current) return;
-    graphAngefragt.current = true;
-    api.memoryGraph().then((result) => aktiv.current && setGraph(result)).catch(() => aktiv.current && setError(true));
-  }, [graphNoetig]);
+    if (!graphNoetig || passend) return;
+    const art = umfang === "voll" ? "voll" : "verzeichnis";
+    if (angefragt.current.has(art)) return;
+    angefragt.current.add(art);
+    holen(art).catch(() => aktiv.current && setError(true));
+  }, [graphNoetig, passend, umfang]);
 
   useEffect(() => {
     const applyPeopleQuery = () => {
@@ -252,7 +266,7 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
   return (
     <div className="shell memory-shell">
       <Sidebar active="Gedächtnis" recentConversation={recentConversation} navigationDisabled={reviewSubmitting} />
-      <main data-memory-loading={graphNoetig && !graph && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
+      <main data-memory-loading={graphNoetig && !passend && !error} className={`memory-page memory-page-workspace${section !== "browse" ? " memory-page-status" : ""}`}>
         <Seitenkopf titel="Gedächtnis" aktionen={section === "browse" && filter === "documents" ? <button className="g-knopf document-add" type="button" onClick={()=>setDocumentImportOpen(true)}><img src={icon("plus","Outline")} alt=""/>Dokument hinzufügen</button> : undefined} />
         <aside className="memory-filter" aria-label="Gedächtnisbereich auswählen">
           <Segmente label="Gedächtnisbereich" wert={section === "browse" ? filter : ("" as FilterId)}
@@ -270,11 +284,11 @@ export function MemoryGraph({ recentConversation }: { recentConversation: string
           </section>
         ) : filter === "organizations" || filter === "places" || filter === "topic-files" || filter === "topics" ? (
           <SachenListe art={filter === "organizations" ? "organisation" : filter === "places" ? "ort" : "thema"} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} />
-        ) : graph ? (filter === "people" && personFilter === "review"
+        ) : graph && passend ? (filter === "people" && personFilter === "review"
           ? <PeopleReview graph={graph} onGraphRefresh={load} />
           : filter === "people" || filter === "projects"
           ? <MemoryDirectory key={`${filter}:${personFilter}`} title={filter === "projects" ? "Projekte" : personFilter === "automated" ? "Automatische Absender" : personFilter === "all" ? "Alle Kontakte" : "Menschen"}
-              graph={graph} nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={graph.nodes.some(node => node.kind === "episode")} />
+              graph={graph} nodes={filter === "people" ? personNodes(graph, personFilter) : graph.nodes.filter(node => node.kind === "project")} onOpen={openProfile} query={query} page={directoryPage} onQueryChange={q => updateBrowse({q,page:1},true)} onPageChange={page => updateBrowse({page},true)} hasSources={hatQuellen(graph)} />
           : <GraphCanvas key={`${filter}:${personFilter}`} filter={filter} personFilter={personFilter} graph={graph} />
         ) : <section className="memory-canvas memory-loading" aria-label="Gedächtnis wird geladen" />}
         {/* Seltene Ansichten und Pflege: eine leise Zeile am Ende statt eines Aufklappers im Kopf. */}

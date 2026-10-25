@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import {api, type GraphNode, type MemoryGraph, type MemorySearchResult} from './api';
-import {browseMatches, documentNodes, sourceReference} from './MemoryBrowseModel';
+import {browseMatches, documentNodes, hatQuellen, sourceReference} from './MemoryBrowseModel';
 import {displayLabel} from './displayIdentity';
 import {ProfileSource} from './ProfileSource';
 import {GedaechtnisLeer} from './GedaechtnisLeer';
@@ -82,8 +82,8 @@ export function MemorySearch({graph, query, page, onQueryChange, onPageChange, o
       </>}
     </section>}
     {/* Leeres Gedächtnis: ein Satz, woher Einträge kommen, statt einer leeren Fläche unter dem Suchfeld. */}
-    {!documents && !needle && graph && !graph.nodes.some(node => ['person', 'project', 'episode'].includes(node.kind)) && <GedaechtnisLeer />}
+    {!documents && !needle && graph && !(graph.nodes.some(node => ['person', 'project'].includes(node.kind)) || hatQuellen(graph)) && <GedaechtnisLeer />}
     {/* Vor der ersten Eingabe: ein Satz, was die Suche findet, statt einer leeren Fläche. */}
-    {!documents && !needle && graph && graph.nodes.some(node => ['person', 'project', 'episode'].includes(node.kind)) && <Leer zeichen="search" satz="Menschen, Projekte und jede Stelle in deinen Quellen." />}
+    {!documents && !needle && graph && (graph.nodes.some(node => ['person', 'project'].includes(node.kind)) || hatQuellen(graph)) && <Leer zeichen="search" satz="Menschen, Projekte und jede Stelle in deinen Quellen." />}
   </section>;
 }
