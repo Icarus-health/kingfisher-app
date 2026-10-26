@@ -58,7 +58,7 @@ function Zeile({ zeile, zusatz }: { zeile: AkteZeile; zusatz?: ReactNode }) {
   </article>;
 }
 
-const GRUND: Record<string, string> = { erledigt: "Später als erledigt gemeldet", absage: "Später abgesagt", aufgabe_erledigt: "Aufgabe erledigt", aufgabe_verworfen: "Aufgabe fallengelassen", nutzer_erledigt: "Von dir als erledigt abgelegt", nutzer_gilt_nicht: "Gilt laut dir nicht mehr" };
+const GRUND: Record<string, string> = { erledigt: "Später als erledigt gemeldet", absage: "Später abgesagt", antwort: "Im selben Mailverlauf beantwortet", aufgabe_erledigt: "Aufgabe erledigt", aufgabe_verworfen: "Aufgabe fallengelassen", nutzer_erledigt: "Von dir als erledigt abgelegt", nutzer_gilt_nicht: "Gilt laut dir nicht mehr" };
 /** Was nach einem Klick dasteht (Grundsatz 4: Jede Aktion antwortet). */
 const GEMERKT: Record<AkteEntscheidung, string> = { erledigt: "Als erledigt abgelegt.", gilt_nicht: "Abgelegt: gilt nicht mehr.", offen: "Gemerkt: gilt weiter." };
 const GEMERKT_TERMIN: Record<AkteEntscheidung, string> = { erledigt: "Gemerkt: abgesagt und erledigt.", gilt_nicht: "Gemerkt.", offen: "Gemerkt: findet statt." };
@@ -533,7 +533,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
       {data.offen.erledigt.gesamt ? <details><summary>Vermutlich erledigt oder abgesagt ({data.offen.erledigt.gesamt})</summary>
         {data.offen.erledigt.eintraege.map((e, index) => <div key={`${index}:${e.episode_id}`}><Zeile zeile={e} zusatz={GRUND[e.grund] ?? e.grund} />{e.durch ? <p className="mappe-mehr">Laut: „{e.durch.text}“ ({datum(e.durch)}) <Quelle zeile={e.durch} /></p> : null}
           {e.ziel && e.grund.startsWith("nutzer_") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => void zuruecknehmen(e.ziel!, e.grund === "nutzer_gilt_nicht" ? "gilt_nicht" : "erledigt")}>Rückgängig</button> : null}
-          {e.ziel && (e.grund === "erledigt" || e.grund === "absage") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "offen")}>Doch noch offen</button> : null}
+          {e.ziel && (e.grund === "erledigt" || e.grund === "absage" || e.grund === "antwort") ? <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => entscheiden(e.ziel!, "offen")}>Doch noch offen</button> : null}
         </div>)}
       </details> : null}
     </Teil> : null}

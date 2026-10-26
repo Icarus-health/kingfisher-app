@@ -74,6 +74,8 @@ RANG_NACHGEFASST = 1   # du hast im selben Verlauf schon nachgefragt
 RANG_UEBERFAELLIG = 2  # eine Frist des Punkts ist verstrichen
 RANG_FRIST = 3         # eine Frist steht bevor
 RANG_SONST = 4
+#: Ältere verstrichene Fristen heben einen Punkt nicht mehr nach vorn (wie `fristlage.TAGE_ZURUECK`).
+TAGE_ZURUECK = 45
 
 
 def _zeit(punkt: dict[str, Any]) -> datetime:
@@ -166,9 +168,10 @@ def sammeln(akten: Any, bezuege: Any, art: str, *, jetzt: datetime | None = None
         gesammelt = _je_verlauf(akten.episodes, gesammelt, bezuege.eigene_adressen())
     for punkt in gesammelt:
         tage = punkt.get('frist_tage')
+        # Wie im Briefing (`fristlage.TAGE_ZURUECK`): Was seit Wochen verstrichen ist, hat sich meist still erledigt.
         punkt['rang'] = (RANG_NACHGEFASST if punkt.get('nachgefasst') else
-                         RANG_UEBERFAELLIG if tage is not None and tage < 0 else
-                         RANG_FRIST if tage is not None else RANG_SONST)
+                         RANG_UEBERFAELLIG if tage is not None and -TAGE_ZURUECK <= tage < 0 else
+                         RANG_FRIST if tage is not None and tage >= 0 else RANG_SONST)
     if art == 'wartet_auf':
         aufgaben = [a for a in aufgaben if _wartet(a)]
         if sache is not None:
@@ -220,11 +223,21 @@ def _je_verlauf(episodes: Any, punkte: list[dict[str, Any]], eigene: Iterable[st
         zusagen = [p for p in gruppe if p.get('richtung') == 'an_mich']
         bitten = [p for p in gruppe if p.get('richtung') == 'von_mir']
         haupt = dict(zusagen[-1] if zusagen else bitten[-1])
-        # Nachgefasst: deine Bitte nach einer Zusage oder nach einer früheren eigenen Bitte im selben Verlauf.
-        nachfragen = [b for b in bitten if b is not gruppe[0]]
+        # Nachgefasst: Im selben Verlauf hast du nach dieser Zusage noch einmal geschrieben, oder deine Bitte folgt
+        # einer früheren Mail derselben Sache (eine Antwort oder deine erste Frage). Gelesen wird der Verlauf selbst,
+        # nicht nur, was als Bitte eingeordnet ist: Eine Erinnerung („ob der Vertrag inzwischen vorliegt“) zählt.
+        verlauf = faeden.get(haupt['episode_id']) or []
+        beginn = _zeit(haupt)
+        if haupt.get('richtung') == 'an_mich':
+            nachfragen = [m for m in verlauf if m.zeit > beginn and m.absender in selbst and not m.automatisch]
+        else:
+            frueher = [m for m in verlauf if m.zeit < beginn and not m.automatisch]
+            nachfragen = [m for m in verlauf if m.episode_id == haupt['episode_id']] if frueher else []
         if nachfragen:
-            haupt['nachgefasst'] = max(_zeit(b) for b in nachfragen).isoformat()
-            haupt['nachgefasst_episode_id'] = max(nachfragen, key=_zeit)['episode_id']
+            letzte = max(nachfragen, key=lambda m: m.zeit)
+            haupt['nachgefasst'] = letzte.zeit.isoformat()
+            haupt['nachgefasst_episode_id'] = letzte.episode_id
+            haupt['verlauf_seit'] = verlauf[0].zeit.isoformat()
         fristen = [p['frist_tage'] for p in gruppe if p.get('frist_tage') is not None]
         haupt['frist_tage'] = min(fristen) if fristen else None
         haupt['im_verlauf'] = len(gruppe)
@@ -240,6 +253,9 @@ def _wer(punkt: dict[str, Any]) -> str:
     if punkt.get('richtung') == 'an_mich':
         absender = (punkt.get('participants') or [''])[0]
         name = anzeigename(absender) or mail_address(absender) or akte
+        # Die Organisation oder das Projekt dazu; die Akte einer anderen Person (etwa in Kopie) nennt niemanden.
+        if str(punkt.get('sache') or '').startswith('person:'):
+            akte = ''
         return f'{name if not akte or akte == name else f"{name} ({akte})"}, {punkt["art"]}'
     was = 'Einladung' if punkt.get('einladung') else punkt['art']
     return f'Deine {was}' + (f' an {akte}' if akte else '')
@@ -248,10 +264,12 @@ def _wer(punkt: dict[str, Any]) -> str:
 def _hinweis(punkt: dict[str, Any]) -> str:
     """Warum der Punkt vorn steht: nachgefragt, verstrichen, bald fällig."""
     teile = []
-    if punkt.get('nachgefasst'):
+    if punkt.get('nachgefasst') and punkt.get('richtung') == 'von_mir':
+        teile.append(f'Nachfrage; der Verlauf läuft seit {tag_text(punkt.get("verlauf_seit"))}')
+    elif punkt.get('nachgefasst'):
         teile.append(f'du hast am {tag_text(punkt["nachgefasst"])} nachgefragt')
     tage = punkt.get('frist_tage')
-    if tage is not None:
+    if tage is not None and tage >= -TAGE_ZURUECK:
         teile.append('Frist heute' if tage == 0 else 'Frist morgen' if tage == 1 else
                      f'Frist in {tage} Tagen' if tage > 1 else 'Frist seit gestern verstrichen' if tage == -1 else
                      f'Frist seit {-tage} Tagen verstrichen')

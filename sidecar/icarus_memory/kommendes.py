@@ -230,7 +230,12 @@ def _fristen(app, von: datetime, bis: datetime, jetzt: datetime, eigene: list[st
              akten: Any, bezuege: Any) -> list[tuple[str, str | None]]:
     heute = jetzt.date()
     letzter = (bis - timedelta(microseconds=1)).date()
-    gesammelt = fristlage.sammeln(akten, bezuege, jetzt=jetzt, eigene=eigene, tage_voraus=max((letzter - heute).days, 0))
+    tage_voraus = max((letzter - heute).days, 0)
+    from .akten_routes import nach_stand_gemerkt
+    # Senden und Öffnen eines Gesprächs lesen dieselben Fristen; einmal je Stand berechnet (Befund A4).
+    gesammelt = nach_stand_gemerkt(app, 'fristlage', (heute.isoformat(), tage_voraus, tuple(eigene)),
+                                   lambda: fristlage.sammeln(akten, bezuege, jetzt=jetzt, eigene=eigene,
+                                                             tage_voraus=tage_voraus))
     zeilen = []
     for f in gesammelt:
         if f.status != 'kommend' or not von.date() <= f.datum <= letzter:

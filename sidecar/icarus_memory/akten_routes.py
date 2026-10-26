@@ -88,12 +88,58 @@ def aufgaben_zu(app, bezuege: Bezuege, sache: str, ids: list[str]) -> list[Any]:
         gefunden.update({t.id: t for t in tasks.by_project(kennung, include_closed=True)})
     elif art == 'person':
         name = bezuege.beschriftung(sache)
-        gefunden.update({t.id: t for t in tasks.open_tasks(limit=None) if personen.wartet_auf(t, name)})
+        gefunden.update({t.id: t for t in _aufgaben_gelesen(app, tasks, 'offen') if personen.wartet_auf(t, name)})
     quellen = {f'episode:{i}' for i in ids}
     if quellen:
-        gefunden.update({t.id: t for t in tasks.all_tasks(limit=500)
+        gefunden.update({t.id: t for t in _aufgaben_gelesen(app, tasks, 'alle')
                          if (t.provenance.source_ref or '') in quellen})
     return list(gefunden.values())
+
+
+def _aufgaben_gelesen(app, tasks: Any, welche: str) -> list[Any]:
+    """Offene (`offen`) oder die jüngsten 500 Aufgaben (`alle`), einmal je Stand der Aufgabendatei gelesen.
+
+    Befund A4 der Persona-Prüfung: „Worauf warte ich noch?“ und die Fristen lesen viele Akten, und jede las dieselben
+    Aufgaben neu. Jede Änderung an den Aufgaben macht den gemerkten Stand ungültig (`zwischenspeicher.marke_von`).
+    """
+    from .zwischenspeicher import marke_von
+    stand = marke_von(tasks)
+    if stand is None:
+        return tasks.open_tasks(limit=None) if welche == 'offen' else tasks.all_tasks(limit=500)
+    gemerkt = getattr(app.state, 'akten_aufgaben_gelesen', None)
+    if gemerkt is None or gemerkt[0] != (id(tasks), stand):
+        gemerkt = ((id(tasks), stand), {})
+        app.state.akten_aufgaben_gelesen = gemerkt
+    if welche not in gemerkt[1]:
+        gemerkt[1][welche] = tasks.open_tasks(limit=None) if welche == 'offen' else tasks.all_tasks(limit=500)
+    return gemerkt[1][welche]
+
+
+def nach_stand_gemerkt(app, art: str, zusatz: Any, berechnen: Any) -> Any:
+    """Ein Ergebnis über viele Akten, gemerkt, solange sich keine seiner Grundlagen geändert hat (Befund A4).
+
+    Grundlagen: Quellen, Bezüge, Akten und Entscheidungen (Episodendatei), Aufgaben, bestätigtes Wissen und Projekte;
+    `zusatz` trägt, was die Frage sonst bestimmt (Tag, Art, eigene Adressen). Jeder Schreibvorgang an einer dieser
+    Dateien macht den Eintrag ungültig; gemerkt wird unter dem Stand nach der Berechnung (die Akten schreiben dabei
+    ihren eigenen Zwischenspeicher). So beantwortet ein Gespräch dieselbe Frage beim Senden und beim Öffnen einmal.
+    """
+    from .zwischenspeicher import Zwischenspeicher, marke_von
+    staende = [marke_von(getattr(app.state, name, None)) for name in ('episodes', 'tasks', 'claims', 'workspace')]
+    if staende[0] is None:
+        return berechnen()
+
+    def stand() -> tuple:
+        return tuple(marke_von(getattr(app.state, name, None)) for name in ('episodes', 'tasks', 'claims', 'workspace'))
+
+    speicher = getattr(app.state, 'akten_lesungen', None)
+    if speicher is None:
+        speicher = app.state.akten_lesungen = Zwischenspeicher(8)
+    wert = speicher.nachsehen((art, zusatz, stand()))
+    if wert is not None:
+        return wert
+    wert = berechnen()
+    speicher.merken((art, zusatz, stand()), wert)
+    return wert
 
 
 #: Schützt nur das Prüfen und Starten des Hintergrundfadens (kurz gehalten, nie über Rechenarbeit).

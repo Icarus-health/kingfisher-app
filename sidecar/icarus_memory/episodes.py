@@ -31,6 +31,7 @@ Arbeit zu erzeugen. Wer wissen will, warum eine Aussage im Bestand steht, findet
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from . import source_index, support_schema
@@ -959,6 +960,8 @@ class EpisodeStore:
         self._lock = threading.RLock()
         from .zwischenspeicher import Zwischenspeicher
         self._teilnehmer_zwischen = Zwischenspeicher(16)
+        self._teilnehmer_alle: dict[bool, tuple] = {}
+        self._teilnehmer_sperre = threading.Lock()
         try:
             with self._lock:
                 run_migrations(
@@ -1851,17 +1854,29 @@ class EpisodeStore:
             return {}
         # Zwischengespeichert am Stand der Datei (V7, Tempo): Briefing, Terminvorbereitung und Akten fragen dieselben
         # Adressen immer wieder, und jeder Durchgang liest alle Quellen. Jeder Schreibvorgang macht den Eintrag ungültig.
+        # Befund A4 der Persona-Prüfung: Fragen, die viele Akten lesen, fragten je Akte andere Adressen und lasen
+        # dafür jedes Mal den ganzen Bestand. Jetzt entsteht je Stand der Datei einmal das Verzeichnis aller Adressen;
+        # jede weitere Abfrage liest daraus (Kopie nur der gefragten Einträge). Dasselbe Ergebnis: Auch die Einzelabfrage
+        # prüfte die Adresse genau, die Textsuche war nur Vorfilter.
         from .zwischenspeicher import marke
-        return self._teilnehmer_zwischen.holen(
-            (marke(self._conn, self._lock), tuple(gesucht), anzeigenamen),
-            lambda: self._participants_for_addresses(gesucht, anzeigenamen=anzeigenamen))
+        stand = (marke(self._conn, self._lock), anzeigenamen)
+        with self._teilnehmer_sperre:
+            alle = self._teilnehmer_alle.get(anzeigenamen)
+            if alle is None or alle[0] != stand:
+                alle = (stand, self._participants_for_addresses(None, anzeigenamen=anzeigenamen))
+                self._teilnehmer_alle[anzeigenamen] = alle
+        leer = {'namen': {}, 'zuletzt': None, 'quellen': {}}
+        return {a: copy.deepcopy(alle[1].get(a, leer)) for a in gesucht}
 
     def aenderungsmarke(self) -> tuple[int, int, int]:
         """Stand der Datei für Zwischenspeicher: ändert sich mit jedem Schreibvorgang (`zwischenspeicher.marke`)."""
         from .zwischenspeicher import marke
         return marke(self._conn, self._lock)
 
-    def _participants_for_addresses(self, gesucht: list[str], *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+    def _participants_for_addresses(self, gesucht: list[str] | None, *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        """`gesucht` None: alle Adressen des Bestands in einem Durchgang (ohne Vorfilter)."""
+        if gesucht is None:
+            return self._alle_teilnehmer(anzeigenamen=anzeigenamen)
         ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
         muster = ['%' + a.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for a in gesucht]
         # In Paketen: Eine OR-Kette über tausende Adressen sprengt SQLite („Expression tree is too large“).
@@ -1896,6 +1911,36 @@ class EpisodeStore:
                 else:
                     # Die lesbare Form je gespeicherter Schreibweise, nur bei Mailquellen dekodiert (V6: „=?utf-8?q?…“
                     # stand sonst im Briefing). Die Schreibweise selbst bleibt der Schlüssel.
+                    eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
+                eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
+                eintrag['quellen'][episode_id] = projekt
+                if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):
+                    eintrag['zuletzt'] = zeit
+        return ergebnis
+
+    def _alle_teilnehmer(self, *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        """Wie `_participants_for_addresses`, aber für jede Adresse des Bestands (ein Lesedurchgang)."""
+        from .kontakte import anzeigename
+        ergebnis: dict[str, dict[str, Any]] = {}
+        with self._lock:
+            zeilen = self._conn.execute(
+                "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
+                f"json_extract(document, '$.provenance.source_type') FROM episodes WHERE {sql_aktuell()}").fetchall()
+        for episode_id, teilnehmer, zeit, projekt, art in zeilen:
+            try:
+                werte = json.loads(teilnehmer or '[]')
+            except ValueError:
+                continue
+            for wert in werte:
+                adresse = mail_address(str(wert))
+                if not adresse:
+                    continue
+                eintrag = ergebnis.setdefault(adresse, {'namen': {}, 'zuletzt': None, 'quellen': {}})
+                name = str(wert).strip()
+                lesbar = anzeigename(name, kopfzeile=art == "email")
+                if anzeigenamen:
+                    name = lesbar or adresse
+                else:
                     eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt

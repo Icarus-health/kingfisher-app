@@ -126,15 +126,22 @@ def _search_calendar(app: FastAPI):
 def _offene_punkte(app: FastAPI, art: str, *, nachfuehren: bool = True):
     """„Worauf warte ich?“ / „Was habe ich zugesagt?“ aus den Akten (`offene_punkte.py`); None, wenn sie nicht
     lesbar sind. `nachfuehren=False` beim bloßen Öffnen eines Gesprächs: nur lesen, nichts nachrechnen."""
-    from .akten_routes import bausteine, nachfuehren as bezuege_nachfuehren
+    from .akten_routes import bausteine, nach_stand_gemerkt, nachfuehren as bezuege_nachfuehren
+    from .model import user_timezone
     from .offene_punkte import sammeln
     try:
         berechnung = bezuege_nachfuehren(app) if nachfuehren else {}
         bezuege, akten = bausteine(app)
         noch_offen = berechnung.get('offen', 0) if isinstance(berechnung, dict) else 0
         tasks = getattr(app.state, 'tasks', None)
-        aufgaben = tasks.open_tasks(limit=None) if tasks is not None and art == 'wartet_auf' else ()
-        return sammeln(akten, bezuege, art, noch_offen=noch_offen, aufgaben=aufgaben)
+        heute = datetime.now(user_timezone() or timezone.utc).date().isoformat()
+
+        def berechnen():
+            aufgaben = tasks.open_tasks(limit=None) if tasks is not None and art == 'wartet_auf' else ()
+            return sammeln(akten, bezuege, art, noch_offen=noch_offen, aufgaben=aufgaben)
+        # Senden und Öffnen eines Gesprächs lesen dieselbe Antwort; sie wird einmal je Stand berechnet (Befund A4).
+        return nach_stand_gemerkt(app, 'offene_punkte', (art, heute, noch_offen,
+                                                         tuple(bezuege.eigene_adressen())), berechnen)
     except Exception:  # noqa: BLE001 - ohne lesbare Akten gibt es diese Antwort nicht; der übliche Weg folgt
         logger.exception('Offene Punkte konnten nicht gelesen werden')
         return None
