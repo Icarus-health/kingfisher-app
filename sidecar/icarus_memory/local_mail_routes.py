@@ -8,6 +8,7 @@ import re
 from fastapi import HTTPException, Query
 from .episodes import EpisodeError, EpisodeKind, sql_aktuell
 from .model import SourceType
+from .bereiche import bereich_je_konto
 
 _REF = "COALESCE(json_extract(e.document, '$.provenance.source_ref'), '')"
 _ACCOUNT = f"CASE WHEN {_REF} LIKE 'imap:%' OR instr({_REF}, ':') = 0 THEN '' ELSE substr({_REF}, 1, instr({_REF}, ':') - 1) END"
@@ -51,7 +52,7 @@ def _remote_uid(store, episode_id, account_id):
     return f'{account_id}:{rows[0][1]}.{rows[0][2]}'
 
 
-def _item(store, episode, account_id, labels):
+def _item(store, episode, account_id, labels, bereich_je_konto=None):
     return {'episode_id': episode.id, 'account_id': account_id,
             'account_label': labels.get(account_id, account_id or 'Gespeicherte Mailquellen'),
             'remote_uid': _remote_uid(store, episode.id, account_id),
@@ -59,7 +60,9 @@ def _item(store, episode, account_id, labels):
             'subject': episode.title, 'preview': ' '.join(episode.body[:500].split())[:180],
             'date': episode.occurred_at.isoformat() if episode.occurred_at else None,
             'recorded_at': episode.recorded_at.isoformat(), 'source_ref': episode.provenance.source_ref,
-            'truncated': 'source:truncated' in episode.tags, 'state': episode.state.value}
+            'truncated': 'source:truncated' in episode.tags, 'state': episode.state.value,
+            # Der Bereich des Postfachs (Paket K, `bereiche.py`); None, solange keiner bestätigt ist.
+            'bereich': (bereich_je_konto or {}).get(account_id)}
 
 
 def register(app, guard):
@@ -81,7 +84,8 @@ def register(app, guard):
         with getattr(app.state, 'conversation_lock', nullcontext()), store._lock, _unicode_search(store._conn):
             total = store._conn.execute(f'SELECT COUNT(*) FROM episodes e WHERE {where}', params).fetchone()[0]
             rows = store._conn.execute(f'SELECT e.document, ({_ACCOUNT}) AS account_id FROM episodes e WHERE {where} ORDER BY datetime(e.occurred_at) DESC, datetime(e.recorded_at) DESC, e.id DESC LIMIT ? OFFSET ?', (*params, limit, offset)).fetchall()
-            items = [_item(store, store._from_row(row), row['account_id'], account_labels) for row in rows]
+            zuordnung = bereich_je_konto(app.state.settings)
+            items = [_item(store, store._from_row(row), row['account_id'], account_labels, zuordnung) for row in rows]
             counts = {row[0]: row[1] for row in store._conn.execute(f'SELECT ({_ACCOUNT}), COUNT(*) FROM episodes e WHERE {_BASE} GROUP BY ({_ACCOUNT})')}
             accounts = [{'id': account, 'label': account_labels.get(account, account or 'Gespeicherte Mailquellen'),
                          'count': counts.get(account, 0), 'last_sync': _last_sync(app, account)}
@@ -103,7 +107,7 @@ def register(app, guard):
             row = store._conn.execute(f'SELECT ({_ACCOUNT}) AS account_id FROM episodes e WHERE e.id=? AND {_BASE}', (episode_id,)).fetchone()
             if row is None:
                 raise HTTPException(409, 'Diese Mailquelle ist ausgeschlossen oder wurde durch eine neuere Fassung ersetzt.')
-            item = _item(store, episode, row['account_id'], labels())
+            item = _item(store, episode, row['account_id'], labels(), bereich_je_konto(app.state.settings))
             return {**item, 'uid': episode.id, 'from': item['sender'], 'body': episode.body[:20000],
                     'truncated': item['truncated'] or len(episode.body) > 20000,
                     'answer_to': '', 'message_id': '', 'can_reply': False, 'sending_account': '',

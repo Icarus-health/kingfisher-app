@@ -339,6 +339,14 @@ class Settings:
     Form und Regeln: `mitteilungen.Einstellung`. Nichts verlässt den Rechner; die Mac-App liest nur am Loopback.
     """
 
+    konten: dict[str, Any] = field(default_factory=dict)
+    """Bereiche je Postfach und Kalender und die ausgeblendeten Kalender (Paket K, `bereiche.py`).
+
+    `eigene`: selbst angelegte Bereiche (`{id, name}`; Arbeit und Privat gibt es immer), `bereich_je_konto`: der vom
+    Menschen bestätigte Bereich je Konto-Kennung (`mail-…`, `calendar-…`, `mac-calendar:<Kalender>`),
+    `kalender_ausgeblendet`: auf der Kalenderseite ausgeblendete Kalender. Ein Vorschlag steht hier nie.
+    """
+
     onboarded: bool = False
     """Hat jemand die Einrichtung einmal bis zum Ende durchlaufen?
 
@@ -445,6 +453,7 @@ class Settings:
             suchindex=dict(data.get("suchindex") or {}) if isinstance(data.get("suchindex"), dict) else {},
             akten_export=dict(data.get("akten_export") or {}) if isinstance(data.get("akten_export"), dict) else {},
             mitteilungen=dict(data.get("mitteilungen") or {}) if isinstance(data.get("mitteilungen"), dict) else {},
+            konten=dict(data.get("konten") or {}) if isinstance(data.get("konten"), dict) else {},
             onboarded=bool(data.get("onboarded", False)),
         )
 

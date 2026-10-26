@@ -467,6 +467,8 @@ export type Project = {
   priority: "high" | "medium" | "low";
   description: string | null;
   open: boolean;
+  /** Abgeleitet: `area`, sonst der überwiegende Bereich der Quellen (Paket K). */
+  bereich?: string | null;
 };
 
 /** Was die Post an einer Aufgabe geändert hat (sidecar: aufgaben_post.py): der Satz mit Grund, die Mail, der Zeitpunkt. */
@@ -500,6 +502,8 @@ export type Task = {
   wartet_seit: string | null;
   wartet_tage: number | null;
   overdue: boolean;
+  /** Abgeleitet: Bereich der Quelle, sonst des Projekts (Paket K); nur in der Aufgabenliste. */
+  bereich?: string | null;
 };
 
 export type ProjectTaskOverview = {
@@ -1038,7 +1042,9 @@ export type CalendarOverview = {
     location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
-    art?: string}>;
+    art?: string;
+    /** Bereich des Kalenders (Paket K, `bereiche.py`); fehlt oder null ohne bestätigten Bereich. */
+    bereich?: string | null}>;
 };
 
 export type CalendarActionSource = {id: string; label: string; user: string; calendar_id: string; can_write: boolean; reason: string | null};

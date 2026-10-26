@@ -64,6 +64,7 @@ from .consolidation import Consolidator
 from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
 from . import gespraech_fortschritt, hintergrund_cloud
+from . import bereiche, konten_routes  # Konten und Bereiche (Paket K)
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
 from .entities import EntityError
@@ -1790,6 +1791,7 @@ def create_app(
     from . import suchindex_routes
     suchindex_routes.anwenden(app)
     suchindex_routes.register(app, guard, _data_dir)
+    konten_routes.register(app, guard, _data_dir, lambda: _build_agent(app))  # Name, Bereich, Stand je Konto (Paket K)
     register_tag(app, guard)
     from .mitteilungen_routes import register as register_mitteilungen
     register_mitteilungen(app, guard, _data_dir)
@@ -2013,6 +2015,9 @@ def create_app(
     def add_mail_account(body: MailAccountIn) -> Any:
         """Fügt ein Mailkonto hinzu, ohne es abzurufen. Mit Passwort wird vorher einmal angemeldet."""
         settings: config.Settings = app.state.settings
+        # Doppelt? Ein Satz statt eines zweiten Eintrags, noch vor der Anmeldung (Paket K).
+        if (doppelt := konten_routes.doppeltes_postfach(settings, body.user, body.imap_host)) is not None:
+            return JSONResponse({"detail": konten_routes.doppelt_satz(doppelt), "grund": "doppelt"}, status_code=409)
         if body.password:
             # Erst anmelden, dann speichern: Ein Konto, das sich nicht anmelden lässt, ist nicht „verbunden“
             # (Fremdprobe, Befund 3). Der Grund kommt als ein Satz zurück; gespeichert wird dann nichts.
@@ -2028,7 +2033,8 @@ def create_app(
         account_id = f"mail-{uuid.uuid4().hex}"
         entry = config.MailAccountSettings(
             id=account_id,
-            label=body.label,
+            label=konten_routes.eindeutiger_name([e.label for e in settings.mail_accounts], body.label,
+                                                 body.sender or body.user),
             imap_host=body.imap_host,
             imap_port=body.imap_port,
             smtp_host=body.smtp_host,
@@ -3347,6 +3353,7 @@ def create_app(
                 calendar.events(days=(finish - start).total_seconds() / 86400, at=start), start, finish, zone=zone)
             result["items"] = [event.to_dict() for event in events]
             result["errors"] = list(getattr(calendar, "last_errors", {}).values())
+            konten_routes.nach_kalenderabruf(app, calendar, result)  # Stand je Kalender, Bereich je Termin
             if unknown:
                 result["warnings"].append(display_warning(unknown))
         except Exception as exc:
@@ -5101,7 +5108,8 @@ def create_app(
         if project_id:
             _validate_task_project(project_id, allow_closed=True)
         try:
-            return {'view': view, **app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)}
+            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)
+            return {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
         except TaskPageChanged as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
@@ -5640,7 +5648,7 @@ def create_app(
     @app.get("/api/v1/projects", dependencies=guard)
     @app.get("/projects", dependencies=guard)
     def list_projects(all: bool = False) -> list[dict[str, Any]]:
-        return [p.to_dict() for p in app.state.workspace.projects(include_closed=all)]
+        return bereiche.projekte_anreichern(app, [p.to_dict() for p in app.state.workspace.projects(include_closed=all)])
 
     @app.post("/api/v1/projects", dependencies=guard, status_code=201)
     @app.post("/projects", dependencies=guard, status_code=201)

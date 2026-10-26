@@ -330,3 +330,30 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
 .neu-anmelden input { width: 100%; max-width: 360px; }
 .neu-anmelden .source-form-actions { justify-content: flex-start; }
 @media (max-width: 700px) { .neu-anmelden-stand, .neu-anmelden-status { padding-left: var(--g-a4); } .neu-anmelden-status:empty { padding: 0; } }
+
+/* Konten und Bereiche (KontoZeile.tsx, Paket K): Name zum Umbenennen, Stand in einem Satz, Bereich als leise Pille;
+   ein Vorschlag steht als Satz mit „Übernehmen“ unter der Zeile, eingerückt wie der Text. */
+#root .settings-shell .konto { position: relative; min-width: 0; }
+#root .settings-shell .zugang-liste > .konto ~ .konto::before { content: ""; position: absolute; top: 0; right: 0; left: 60px; border-top: 1px solid var(--g-linie); }
+#root .settings-shell .konto .source-row.g-zeile::before { display: none; }
+#root .settings-shell .konto-zeile .g-zeile-text { min-width: 0; display: grid; gap: 1px; }
+#root .settings-shell .konto-name { justify-self: start; max-width: 100%; min-height: 0; padding: 0; border: 0; background: none; color: var(--g-tinte); text-align: left; cursor: text; border-radius: 4px; }
+#root .settings-shell .konto-name:hover { text-decoration: underline; text-decoration-color: var(--g-linie); text-underline-offset: 3px; }
+#root .settings-shell .konto-name-eingabe { width: 100%; min-height: 36px; padding: 4px 8px; font: 500 16px/1.35 var(--g-schrift); }
+#root .settings-shell .konto-stand { white-space: normal; overflow-wrap: anywhere; font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell .konto-stand-fehler { color: var(--g-rot); white-space: normal; }
+#root .settings-shell .konto-bereich { flex: 0 0 auto; margin-left: auto; min-height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); cursor: pointer; }
+#root .settings-shell .konto-bereich[aria-expanded="true"] { box-shadow: inset 0 0 0 1px var(--g-akzent); }
+#root .settings-shell .konto-bereich + .source-remove { margin-left: 0; }
+#root .settings-shell .konto-zeile .source-remove:first-of-type { margin-left: auto; }
+#root .settings-shell :is(.konto-frage, .konto-wahl) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); padding: 0 var(--g-a4) var(--g-a3) 60px; }
+#root .settings-shell .konto-frage-satz { flex: 1 1 260px; min-width: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .konto-frage-knoepfe { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .settings-shell .konto-wahl-knopf[aria-pressed="true"] { background: var(--nordic-selection); box-shadow: inset 0 0 0 1px var(--nordic-selection-edge); color: var(--g-tinte); }
+#root .settings-shell .konto-neu { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .settings-shell .konto-neu input { flex: 1 1 200px; min-width: 0; }
+#root .settings-shell .konto-fehler { margin: 0; padding: 0 var(--g-a4) var(--g-a2) 60px; }
+@media (max-width: 700px) {
+  #root .settings-shell :is(.konto-frage, .konto-wahl, .konto-fehler) { padding-left: var(--g-a4); }
+  #root .settings-shell .zugang-liste > .konto ~ .konto::before { left: var(--g-a4); }
+}

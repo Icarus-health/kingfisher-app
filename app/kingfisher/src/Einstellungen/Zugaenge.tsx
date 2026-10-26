@@ -1,5 +1,5 @@
-import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Gruppe } from "../grundlage";
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Gruppe, zeigeHinweis } from "../grundlage";
 import { api, ApiError, type IntegrationOverview, type MailProvider, type MailStand } from "../api";
 import { DocumentImport } from "../DocumentImport";
 import { FolderSyncSettings } from "../FolderSyncSettings";
@@ -14,11 +14,17 @@ import { PostfachMitAdresse } from "../PostfachMitAdresse";
 import { adresseLesen } from "../adresseEntwurf";
 import { useSystem } from "../useSystem";
 import { TranscriptSettings } from "../TranscriptSettings";
+import { kontenApi } from "../kontenApi";
+import {
+  alleUebernommenText, bereichText, kalenderNeben, neuerName, offeneVorschlaege, umbenanntText, zurueckZuOhne,
+  type Konten, type Konto,
+} from "../kontenBereiche";
+import { KontoZeile } from "./KontoZeile";
 import { gefuellterZugang, ZUGAENGE, zugangListe } from "./gliederung";
 import { NeuAnmelden } from "./NeuAnmelden";
 import { angemeldetSatz, googleNeuSatz, neuAnmeldenWeg } from "./neuAnmeldenWeg";
 import {
-  CalendarSourceForm, EMPTY_CALENDAR_FORM, EMPTY_MAIL_FORM, MailSourceForm, SourceRow, sourceState,
+  CalendarSourceForm, EMPTY_CALENDAR_FORM, EMPTY_MAIL_FORM, MailSourceForm, sourceState,
   type CalendarForm, type MailForm,
 } from "./Quellenformulare";
 
@@ -76,6 +82,50 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
       .catch(() => { /* Ohne Stand bleibt die Seite wie bisher; „Postfach hinzufügen“ geht trotzdem. */ });
   }, []);
   useEffect(() => { if (aktiv) standLaden(); }, [aktiv, standLaden]);
+  // Name, Bereich und Stand je Konto (Paket K, konten_routes.py): neu gelesen, sobald sich die Zugänge ändern.
+  const [konten, setKonten] = useState<Konten | null>(null);
+  const kontenLaden = useCallback(() => { kontenApi.konten().then(setKonten).catch(() => { /* Ohne sie bleiben die Zeilen wie bisher. */ }); }, []);
+  useEffect(() => { if (aktiv) kontenLaden(); }, [aktiv, overview, kontenLaden]);
+  const fehlerSatz = (problem: unknown, sonst: string) => problem instanceof ApiError && problem.detail ? problem.detail : sonst;
+
+  // Umbenennen, Bereich wählen, eigenen Bereich anlegen: ohne Rückfrage, danach der Hinweis mit „Rückgängig“.
+  async function umbenennen(konto: Konto, eingabe: string): Promise<string | null> {
+    const name = neuerName(eingabe, konto.name);
+    if (!name) return eingabe.trim() ? null : "Der Name fehlt.";
+    try {
+      const antwort = await kontenApi.umbenennen(konto.id, name);
+      setKonten(antwort); load();
+      zeigeHinweis({ text: umbenanntText(name), rueckgaengig: async () => { setKonten(await kontenApi.umbenennen(konto.id, antwort.vorher)); load(); } });
+      return null;
+    } catch (problem) { return fehlerSatz(problem, "Der Name konnte nicht gespeichert werden."); }
+  }
+  async function bereichSetzen(konto: Konto, bereich: string | null) {
+    try {
+      const antwort = await kontenApi.bereich({ [konto.id]: bereich });
+      setKonten(antwort);
+      zeigeHinweis({ text: bereichText(antwort, konto.name, bereich), rueckgaengig: async () => setKonten(await kontenApi.bereich(antwort.vorher)) });
+    } catch (problem) { zeigeHinweis({ text: fehlerSatz(problem, "Der Bereich konnte nicht gespeichert werden."), fehler: true }); }
+  }
+  async function neuerBereich(konto: Konto, name: string): Promise<string | null> {
+    try { const antwort = await kontenApi.bereichAnlegen(name); setKonten(antwort); await bereichSetzen(konto, antwort.neu); return null; }
+    catch (problem) { return fehlerSatz(problem, "Der Bereich konnte nicht angelegt werden."); }
+  }
+  const offen = offeneVorschlaege(konten);
+  const offenAnzahl = Object.keys(offen).length;
+  async function alleUebernehmen() {
+    try {
+      setKonten(await kontenApi.bereich(offen));
+      zeigeHinweis({ text: alleUebernommenText(offenAnzahl), rueckgaengig: async () => setKonten(await kontenApi.bereich(zurueckZuOhne(offen))) });
+    } catch (problem) { zeigeHinweis({ text: fehlerSatz(problem, "Die Vorschläge konnten nicht übernommen werden."), fehler: true }); }
+  }
+  const alleKnopf = offenAnzahl > 1 ? <button type="button" className="g-knopf-schlicht konto-alle" disabled={submitting} onClick={() => void alleUebernehmen()}>Alle Vorschläge übernehmen</button> : null;
+  const kontoZeile = (konto: Konto, iconName: "mail" | "calendar-days", neben: string, ersatz: string | undefined, entfernen?: { kind: "mail" | "calendar" }, kinder?: ReactNode) =>
+    <KontoZeile key={konto.id} konto={konto} konten={konten} iconName={iconName} neben={neben} ersatzStand={ersatz} busy={submitting}
+      entfernen={entfernen ? { aktiv: removing?.kind === entfernen.kind && removing.id === konto.id, onRemove: () => remove(entfernen.kind, konto.id), onCancel: () => setRemoving(null) } : undefined}
+      onUmbenennen={name => umbenennen(konto, name)} onBereich={bereich => void bereichSetzen(konto, bereich)} onNeuerBereich={name => neuerBereich(konto, name)}>{kinder}</KontoZeile>;
+  // Heißt das Postfach nach seiner Adresse, steht sie nicht noch einmal darunter.
+  const nebenDerAdresse = (name: string, adresse: string) => name.trim().toLowerCase() === adresse.trim().toLowerCase() ? "" : adresse;
+  const ohneKonto = (id: string, name: string, adresse: string): Konto => ({ id, name, adresse, bereich: null, vorschlag: null, stand: null });
 
   function chooseProvider(providerId: string) {
     const provider = providers.find((item) => item.id === providerId);
@@ -167,16 +217,19 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
   // „hinzufügen“ und links in einem Satz, was Trennen bedeutet.
   return <>
     <Gruppe className="zugang-gruppe" label={ZUGAENGE.postfaecher.titel} titel={ZUGAENGE.postfaecher.titel} flaecheKlasse="zugang-liste"
-      zahl={accounts.length ? zaehlen(accounts.length, "Postfach", "Postfächer") : null} fussnote={accounts.length ? ZUGAENGE.trennen : ""}
+      zahl={accounts.length && !(alleKnopf && konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(accounts.length, "Postfach", "Postfächer") : null}
+      aktion={konten?.postfaecher.some(k => offen[k.id]) ? alleKnopf : null} fussnote={accounts.length ? ZUGAENGE.trennen : ""}
       fussAktion={openForm === "mail" ? null : <button className={knopf("mail")} onClick={() => { setOpenForm("mail"); setFormFehler(""); setMail({ ...EMPTY_MAIL_FORM, user: adresseLesen() }); }} type="button">{plus}Postfach hinzufügen</button>}>
         {ohneListe}
         {overview && accounts.length === 0 ? <p className="source-empty">{ZUGAENGE.postfaecher.leer}</p> : null}
         {accounts.map((account) => <Fragment key={account.id}>
-          <SourceRow iconName="mail" label={account.label} detail={account.user} state={sourceState(account)} removing={removing?.kind === "mail" && removing.id === account.id} busy={submitting} onRemove={() => remove("mail", account.id)} onCancel={() => setRemoving(null)} />
+          {kontoZeile(konten?.postfaecher.find(k => k.id === account.id) ?? ohneKonto(account.id, account.label, account.user), "mail",
+            nebenDerAdresse(konten?.postfaecher.find(k => k.id === account.id)?.name ?? account.label, konten?.postfaecher.find(k => k.id === account.id)?.adresse || account.user), account.configured ? undefined : sourceState(account), { kind: "mail" })}
           {/* Dauerhaft im DOM, damit Bildschirmleser die Bestätigung sicher ansagen; leer, solange nichts zu sagen ist. */}
           <p className="source-hint neu-anmelden-status" role="status" tabIndex={-1} ref={zeile => { statusZeilen.current[account.id] = zeile; }}>{angemeldet[account.id] ?? ""}</p>
           {!angemeldet[account.id] && neuAnmeldenWeg(account, staende[account.id]) ? <div className="neu-anmelden-stand">
-              <p className="source-hint">{staende[account.id].satz}</p>
+              {/* Den Satz trägt schon die Zeile (Stand je Konto); nur ohne ihn steht er hier. */}
+              {konten?.postfaecher.find(k => k.id === account.id)?.stand ? null : <p className="source-hint">{staende[account.id].satz}</p>}
               {neuAnmeldenWeg(account, staende[account.id]) === "passwort"
                 ? <NeuAnmelden konto={account} beiErfolg={(neu) => { setOverview(neu); setAngemeldet(vorher => ({ ...vorher, [account.id]: angemeldetSatz(account.label, neu.satz) })); setFokusAuf(account.id); }} />
                 : <p className="source-hint">{googleNeuSatz(googleVorne)}</p>}
@@ -195,12 +248,18 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
     </div> : null}
 
     <Gruppe className="zugang-gruppe" label={ZUGAENGE.kalender.titel} titel={ZUGAENGE.kalender.titel} flaecheKlasse="zugang-liste"
-      zahl={calendars.length ? zaehlen(calendars.length, "Kalender", "Kalender") : null}
+      zahl={calendars.length && !(alleKnopf && !konten?.postfaecher.some(k => offen[k.id])) ? zaehlen(calendars.length, "Kalender", "Kalender") : null}
+      aktion={alleKnopf && !konten?.postfaecher.some(k => offen[k.id]) ? alleKnopf : null}
       fussnote={calendars.length ? ZUGAENGE.trennen : system.mac_helfer ? "Google, Mac oder ein Kalender-Abo." : "Google oder ein Kalender-Abo."}
       fussAktion={openForm === "calendar" ? null : <button className={knopf("calendar")} onClick={() => { setOpenForm("calendar"); setFormFehler(""); setCalendar(EMPTY_CALENDAR_FORM); }} type="button">{plus}Kalender hinzufügen</button>}>
         {ohneListe}
         {overview && calendars.length === 0 ? <p className="source-empty">{ZUGAENGE.kalender.leer}</p> : null}
-        {calendars.map((source) => <SourceRow key={source.id} iconName="calendar-days" label={source.label} detail={source.kind === "ical" ? "Kalender-Abo" : source.kind === "google" ? "Google · nur lesen" : source.kind === "microsoft" ? "Microsoft · nur lesen" : "Mit Benutzername und Passwort"} state={sourceState(source)} removing={removing?.kind === "calendar" && removing.id === source.id} busy={submitting} onRemove={() => remove("calendar", source.id)} onCancel={() => setRemoving(null)} />)}
+        {calendars.map((source) => {
+          const konto = konten?.kalender.find(k => k.id === source.id) ?? { ...ohneKonto(source.id, source.label, ""), art: source.kind };
+          return kontoZeile(konto, "calendar-days", kalenderNeben(konto), source.configured ? undefined : sourceState(source), { kind: "calendar" });
+        })}
+        {/* Die Mac-Kalender, die Kingfisher liest: Bereich ja, Name und Trennen am Mac (unten „Kalender auf diesem Mac“). */}
+        {konten?.kalender.filter(k => k.art === "mac").map(konto => kontoZeile(konto, "calendar-days", kalenderNeben(konto), undefined))}
     </Gruppe>
     {/* Kalender wie Mail (Befund 7): vorne die Mailadresse; das Abo mit eigener Adresse steht eingeklappt für Techniker. */}
     {openForm === "calendar" ? <div className="source-form kalender-hinzufuegen zugang-formular" aria-label="Kalender hinzufügen">

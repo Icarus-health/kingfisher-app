@@ -13,6 +13,9 @@ import {DetailPanel} from './DetailPanel';
 import {Leer, Seitenkopf, Segmente} from './grundlage';
 import {ganztaegig, nachTagen, terminZeit} from './calendarAnzeige';
 import './CalendarPage.css';
+import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
+import {kontenApi} from './kontenApi';
+import {ALLE, bereichName, gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
 type View = WorkspaceCalendarView;
 const ANSICHTEN: View[] = ["Tag", "Woche", "Monat", "Liste", "Jahr"];
 // Schmal stehen im Monat nur Punkte; die Termine des gewählten Tages stehen gleich darunter (wie am iPhone).
@@ -44,6 +47,22 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const [configuredSources, setConfiguredSources] = useState<Array<{id:string;label:string}>>([]);
   const [macSources, setMacSources] = useState<Array<{id:string;label:string}>>([]);
   const [hiddenSources, setHiddenSources] = useState<Set<string>>(new Set());
+  // Bereich (Paket K): Filter „Alle · Arbeit · Privat“, und die ausgeblendeten Kalender kommen gespeichert zurück.
+  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
+  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("kalender"));
+  const ausgeblendetGeladen = useRef(false);
+  useEffect(() => kontenFuerFilter(konten => {
+    setBereichKonten(konten);
+    if (!ausgeblendetGeladen.current) { ausgeblendetGeladen.current = true; setHiddenSources(new Set(konten.ausgeblendet)); }
+  }), []);
+  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("kalender", wahl); });
+  function sichtbarSetzen(id: string, sichtbar: boolean) {
+    ausgeblendetGeladen.current = true;
+    const next = new Set(hiddenSources);
+    if (sichtbar) next.delete(id); else next.add(id);
+    setHiddenSources(next);
+    kontenApi.ausblenden([...next]).catch(() => { /* Gilt dann bis zum Neuladen. */ });
+  }
   const [detailsKey, setDetailsKey] = useState<string|null>(null);
   const [agendaOpen, setAgendaOpen] = useState(schmal);
   const [navigatorOpen, setNavigatorOpen] = useState(() => window.matchMedia?.('(min-width: 701px)').matches ?? true);
@@ -173,7 +192,8 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
   const sourceOptions=[...sourceUniverse.values()].sort((a,b)=>a.label.localeCompare(b.label,'de'));
   useEffect(() => {if(timeScroll.current && (view==='Woche'||view==='Tag')) timeScroll.current.scrollTop=7*48;},[view,rangeKey]);
   const selectedSources = new Set(sourceOptions.filter(source=>!hiddenSources.has(source.id)).map(source=>source.id));
-  const items = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
+  const kalenderSichtbar = calendarVisibleEvents(visibleData?.items || [], sourceOptions.length?selectedSources:null);
+  const items = kalenderSichtbar.filter(bereichFilter.passt);
   const detailsEvent = items.find(item=>calendarEventKey(item)===detailsKey) || null;
   const eventColor = (item:CalendarOverview['items'][number]) => calendarColor(calendarDisplaySource(calendarSourceVersions(item).find(copy=>!hiddenSources.has(calendarDisplaySource(copy)))||item));
   function eventActions(item:CalendarOverview['items'][number]) {
@@ -247,14 +267,14 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         <button type="button" className={formOffen || ohneKalender ? "g-knopf-getoent" : "g-knopf"} onClick={() => {setDetailsKey(null);setActionTarget("new");}}>＋ Termin</button>
       </>} />
       {/* Links steht nur die Kalenderauswahl, und nur, wenn es etwas auszuwählen gibt; Monat und Pfeile stehen rechts. */}
-      <div className={`calendar-workspace-layout ${sourceOptions.length>1?'':'ohne-auswahl'}`}>{sourceOptions.length>1 && <details className="calendar-navigator" aria-label="Kalender" open={navigatorOpen} onToggle={event=>setNavigatorOpen(event.currentTarget.open)}><summary>Kalender <span>{sourceOptions.filter(source=>!hiddenSources.has(source.id)).length} von {sourceOptions.length}</span></summary><div className="calendar-navigator-content">{sourceOptions.map(source=><label className="calendar-source-choice" key={source.id}><input type="checkbox" checked={!hiddenSources.has(source.id)} onChange={event=>{const checked=event.target.checked;setHiddenSources(old=>{const next=new Set(old);if(checked)next.delete(source.id);else next.add(source.id);return next;});}} style={{accentColor:calendarColor(source.id)}} /><span>{source.label}</span></label>)}</div></details>}
+      <div className={`calendar-workspace-layout ${sourceOptions.length>1?'':'ohne-auswahl'}`}>{sourceOptions.length>1 && <details className="calendar-navigator" aria-label="Kalender" open={navigatorOpen} onToggle={event=>setNavigatorOpen(event.currentTarget.open)}><summary>Kalender <span>{sourceOptions.filter(source=>!hiddenSources.has(source.id)).length} von {sourceOptions.length}</span></summary><div className="calendar-navigator-content">{sourceOptions.map(source=><label className="calendar-source-choice" key={source.id}><input type="checkbox" checked={!hiddenSources.has(source.id)} onChange={event=>sichtbarSetzen(source.id,event.target.checked)} style={{accentColor:calendarColor(source.id)}} /><span>{source.label}</span></label>)}</div></details>}
       <div className="calendar-main">
       {error && <p className="calendar-hinweis calendar-hinweis-fehler" role="alert">Termine konnten nicht geladen werden. <button type="button" className="g-knopf-schlicht" onClick={() => setRevision(n => n + 1)}>Erneut versuchen</button></p>}
       {visibleData?.errors.map((message, index) => <p className="calendar-hinweis calendar-hinweis-fehler" role="alert" key={index}>{message}</p>)}
       {visibleData?.warnings?.map((message, index) => <p className="calendar-hinweis" role="status" key={index}>{message}</p>)}
       {preparationUid && visibleData && !loading && !error && !preparationEvent && <p className="calendar-hinweis" role="status">Der ausgewählte Termin ist in den geladenen Kalendern nicht zu finden. <button type="button" className="g-knopf-schlicht" onClick={() => selectPreparation(null)}>Auswahl schließen</button></p>}
       {ohneKalender ? <Leer className="calendar-leer" satz="Noch kein Kalender verbunden." aktion={kalenderLink("Kalender verbinden", formOffen ? "g-knopf-getoent" : "g-knopf")} /> : <>
-      <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={setView} /></div>
+      <div className="calendar-actions"><Segmente label="Kalenderansicht" className="calendar-ansicht" optionen={ANSICHTEN.map(v => ({wert: v, titel: v}))} wert={view} onWahl={setView} />{bereichFilter.segmente}</div>
       <div className="calendar-period"><h2>{periodTitle}</h2><span className="calendar-period-nav"><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Vorheriger Zeitraum" onClick={() => shift(-1)}>‹</button><button type="button" className="g-knopf-getoent g-kompakt" onClick={() => setFocus(midnight(today))}>Heute</button><button type="button" className="g-knopf-getoent g-kompakt calendar-pfeil" aria-label="Nächster Zeitraum" onClick={() => shift(1)}>›</button></span></div>
       <section className={`calendar-board calendar-board-${view.toLowerCase()}`} aria-label="Kalenderübersicht" aria-busy={loading}>
       {loading && !visibleData && !error && <p className="calendar-hinweis" role="status">Termine werden geladen …</p>}
@@ -263,7 +283,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
       {(view === 'Woche' || view === 'Tag') && timeGrid()}
       {view === "Liste" && <section aria-label="Terminliste">{shown.length ? agenda() : visibleData && !loading ? <Leer satz="Keine Termine in diesen sieben Tagen." /> : null}</section>}
       </section>
-      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && <p className="calendar-fussnote" role="status">Die Termine dieses Zeitraums stehen in ausgeblendeten Kalendern.</p>}
+      {visibleData?.configured && !loading && items.length === 0 && visibleData.items.length > 0 && <p className="calendar-fussnote" role="status">{kalenderSichtbar.length > 0 && bereichFilter.wahl !== ALLE ? `In diesem Zeitraum gibt es keine Termine im Bereich ${bereichName(bereichKonten, bereichFilter.wahl)}.` : 'Die Termine dieses Zeitraums stehen in ausgeblendeten Kalendern.'}</p>}
       {view !== "Jahr" && view !== "Liste" && shown.length > 0 && <div className="calendar-agenda"><button type="button" className="text-action" aria-expanded={agendaOpen} onClick={()=>setAgendaOpen(open=>!open)}>{shown.length} {shown.length === 1 ? 'Termin' : 'Termine'} am {focus.toLocaleDateString('de-DE',{day:'numeric',month:'long'})} als Liste</button>{agendaOpen && agenda()}</div>}
       </>}
       </div></div>
