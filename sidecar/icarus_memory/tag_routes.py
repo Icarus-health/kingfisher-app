@@ -98,6 +98,27 @@ def termine(app, jetzt: datetime) -> list[dict[str, Any]]:
     return sorted(ergebnis, key=lambda e: e['start'])
 
 
+def vorbereitung_eines(app, eintrag: dict[str, Any], jetzt: datetime) -> terminvorbereitung.Vorbereitung | None:
+    """Die Vorbereitung eines beliebigen Termins aus den Akten seiner Teilnehmer, ohne Weg (Befund A6).
+
+    Dieselbe Vorbereitung wie im Briefing (`terminvorbereitung.vorbereiten`): wer kommt, was offen ist (Bitten an
+    dich, deine Bitten, Zusagen), letzter Kontakt, Stand, Fristen und der Hintergrund des Projekts oder der
+    gemeinsamen Organisation. Niemand muss dafür ein Projekt oder eine Person wählen."""
+    try:
+        nachfuehren(app)
+    except Exception:  # noqa: BLE001 - dann gilt der vorhandene Stand der Akten
+        logger.exception('Bezüge konnten nicht nachgeführt werden')
+    _, akten = bausteine(app)
+    episode_id, notiz = terminvorbereitung.termin_im_gedaechtnis(
+        app.state.episodes, str(eintrag.get('uid') or ''), str(eintrag.get('source_id') or ''))
+    termin = terminvorbereitung.Termin.aus_dict(eintrag, notiz=notiz, episode_id=episode_id)
+    if termin is None:
+        return None
+    return terminvorbereitung.vorbereiten(termin, akten=akten, episodes=app.state.episodes,
+                                          eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None)),
+                                          jetzt=jetzt, workspace=getattr(app.state, 'workspace', None))
+
+
 def vorbereiten_alle(app, jetzt: datetime, eintraege: list[dict[str, Any]]) -> list[terminvorbereitung.Vorbereitung]:
     """Jeder Termin mit Teilnehmern vorbereitet, dazu der Weg. Ein Fehler kostet nur diesen Termin."""
     _, akten = bausteine(app)
@@ -215,5 +236,5 @@ def register(app, guard) -> None:
         return briefing(app, buchen=not nachladen, schnell=schnell)
 
 
-__all__ = ['briefing', 'register', 'termine', 'vorbereiten_alle', 'wetter_am_termin']
+__all__ = ['briefing', 'register', 'termine', 'vorbereiten_alle', 'vorbereitung_eines', 'wetter_am_termin']
 

@@ -293,7 +293,7 @@ export function CalendarPage({ recentConversation }: {recentConversation: string
         {detailsEvent.location ? <p className="calendar-detail-ort">{detailsEvent.location}</p> : null}
         <dl className="calendar-detail-fakten">
           <div><dt>Kalender</dt><dd>{calendarSourceVersions(detailsEvent).map(copy=>copy.source_label||copy.source_id||'Kalender').join(' · ')}</dd></div>
-          {detailsEvent.attendees?.length ? <div><dt>Mit</dt><dd>{detailsEvent.attendees.join(', ')}</dd></div> : null}
+          {detailsEvent.attendees?.length ? <div><dt>Mit</dt><dd>{(detailsEvent.attendee_names?.length ? detailsEvent.attendee_names : detailsEvent.attendees).join(', ')}</dd></div> : null}
         </dl>
         {eventActions(detailsEvent)}
         {preparationEvent&&calendarEventKey(preparationEvent)===calendarEventKey(detailsEvent)&&<CalendarPreparation key={calendarEventKey(preparationEvent)} event={preparationEvent} revision={loadedRevision} onClose={()=>selectPreparation(null)} />}

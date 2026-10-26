@@ -1064,7 +1064,7 @@ export type CalendarOverview = {
   warnings?: string[];
   range_start?: string; range_end?: string;
   items: Array<{uid: string; summary: string; start: string | null; end: string | null;
-    location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
+    location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[]; attendee_names?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
     art?: string;
@@ -1387,6 +1387,7 @@ export const api = {
   calendarPreparation: (uid: string, projectId = "", personId = "", start?: string | null) => request<CalendarPreparation>(
     `/api/v1/calendar/preparation?uid=${encodeURIComponent(uid)}${projectId ? `&project_id=${encodeURIComponent(projectId)}` : ""}${personId ? `&person_id=${encodeURIComponent(personId)}` : ""}${start ? `&start=${encodeURIComponent(start)}` : ''}`,
   ),
+  calendarVorbereitung: (uid: string, start?: string | null) => request<{ vorbereitung: TagTermin | null }>(`/api/v1/calendar/vorbereitung?${new URLSearchParams({uid, ...(start ? {start} : {})})}`),
   calendarAssignment: (uid: string, start?: string | null) => request<TerminZuordnung>(`/api/v1/calendar/zuordnung?${new URLSearchParams({uid, ...(start ? {start} : {})})}`),
   setCalendarAssignment: (uid: string, projectId: string | null, start?: string | null) => request<TerminZuordnung>("/api/v1/calendar/zuordnung", { method: "PUT", body: JSON.stringify({ uid, project_id: projectId, ...(start ? {start} : {}) }) }),
   calendarFollowup: (uid: string, start: string) => request<TerminNachbereitung>(`/api/v1/calendar/nachbereitung?uid=${encodeURIComponent(uid)}&start=${encodeURIComponent(start)}`),

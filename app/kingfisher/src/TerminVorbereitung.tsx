@@ -60,14 +60,15 @@ function Person({ person }: { person: TagPerson }) {
   </article>;
 }
 
-export function TerminVorbereitung({ termin }: { termin: TagTermin }) {
+/** `ohneKopf`: Titel und Zeit stehen schon darüber (Vorbereitung im Kalender, Befund A6). */
+export function TerminVorbereitung({ termin, ohneKopf = false }: { termin: TagTermin; ohneKopf?: boolean }) {
   const weg = termin.wegezeit;
   return <div className="vorbereitung" role="region" aria-label={`Vorbereitung: ${termin.titel}`}>
-    <header className="vorbereitung-kopfzeile">
+    {ohneKopf ? null : <header className="vorbereitung-kopfzeile">
       <h3>{termin.titel}</h3>
       <p>{`${datum(termin.beginn)}, ${uhr(termin.beginn)}${termin.ende ? ` bis ${uhr(termin.ende)}` : ""} Uhr${termin.ort ? `, ${termin.ort}` : ""}`}</p>
       {termin.projekt && <p className="vorbereitung-beleg">{`Projekt ${termin.projekt.name}${termin.projekt.herkunft === "vorschlag" ? " (Vorschlag)" : ""}`}</p>}
-    </header>
+    </header>}
     {weg && weg.status !== "ohne_ort" && <Abschnitt titel="Weg"><p>{weg.satz}</p>{weg.status !== "berechnet" && weg.grund && <p className="vorbereitung-beleg">{weg.grund}</p>}</Abschnitt>}
     {termin.personen.length === 0 && <p className="vorbereitung-leer">Zu den Teilnehmern liegt im Gedächtnis noch nichts vor.</p>}
     {termin.personen.map(p => <Person key={p.sache ?? p.name} person={p} />)}

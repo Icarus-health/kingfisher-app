@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { terminZeit } from "./calendarAnzeige";
-import { api, type CalendarOverview, type CalendarPreparation as Preparation, type Project, type TerminZuordnung } from "./api";
+import { api, type CalendarOverview, type CalendarPreparation as Preparation, type Project, type TagTermin, type TerminZuordnung } from "./api";
+import { TerminVorbereitung } from "./TerminVorbereitung";
 import { displayLabel } from "./displayIdentity";
 import { ProfileSource } from "./ProfileSource";
 import { navigate } from "./ui";
@@ -33,6 +34,9 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
   const [projectsError, setProjectsError] = useState(false);
   const [zuordnung, setZuordnung] = useState<TerminZuordnung | null>(null);
   const [zuordnungFehler, setZuordnungFehler] = useState(false);
+  // Befund A6: Die Vorbereitung entsteht aus den Teilnehmern, ihren Akten und Projekten, ohne dass jemand wählt.
+  const [automatisch, setAutomatisch] = useState<{ uid: string; wert: TagTermin | null } | null>(null);
+  const [automatischFehler, setAutomatischFehler] = useState(false);
   const contextKey = JSON.stringify([event.uid, event.start, projectId, personId]);
   const preparation = preparationState?.context === contextKey ? preparationState.value : null;
 
@@ -58,6 +62,16 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
       .catch(() => { if (active && folge === zuordnungFolge.current) { setZuordnung(null); setZuordnungFehler(true); } });
     return () => { active = false; };
   }, [event.uid, event.start]);
+
+  useEffect(() => {
+    let active = true;
+    setAutomatischFehler(false);
+    api.calendarVorbereitung(event.uid, event.start)
+      .then(next => { if (active) setAutomatisch({ uid: event.uid, wert: next.vorbereitung }); })
+      .catch(() => { if (active) { setAutomatisch(null); setAutomatischFehler(true); } });
+    return () => { active = false; };
+  }, [event.uid, event.start, revision, sourceRevision]);
+  const vorbereitet = automatisch?.uid === event.uid ? automatisch.wert : null;
 
   const projektWaehlen = (value: string) => {
     const vorher = zuordnung?.projekt?.id ?? "";
@@ -108,9 +122,14 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
         <small>{person.person ? `${person.kontakte === 1 ? "eine Quelle" : `${person.kontakte} Quellen`}${person.zuletzt ? ` · zuletzt ${new Date(person.zuletzt).toLocaleDateString("de-DE")}` : ""}` : person.adresse ? "noch keine Quelle mit dieser Adresse" : "ohne Mailadresse, nicht zuzuordnen"}</small>
       </li>)}</ul>
     </div> : <p>{event.attendees?.length ? `Im Kalender genannte Teilnehmer: ${event.attendees.join(", ")}` : "Der Kalender liefert keine Teilnehmerangaben."}</p>}
+    {vorbereitet ? <TerminVorbereitung termin={vorbereitet} ohneKopf />
+      : automatischFehler ? <p role="alert">Die Vorbereitung aus den Akten konnte nicht geladen werden. Bitte erneut versuchen.</p>
+      : automatisch === null ? <p aria-live="polite">Kingfisher sucht in den Akten der Teilnehmer, was offen ist …</p> : null}
     {zuordnungFehler && <p role="alert">Die Projektwahl konnte nicht geladen oder gespeichert werden. Es gilt der zuletzt gespeicherte Stand.</p>}
     {zuordnung?.projekt?.herkunft === "vorschlag" && zuordnung.projekt.id === projectId && <p className="calendar-preparation-empty">Vorgeschlagen: {zuordnung.projekt.grund} Stimmt es nicht, wähle ein anderes Projekt oder „Kein Projekt ausgewählt“.</p>}
     {zuordnung?.zuordnungskonflikt && <p role="alert">Die Kalenderkopien haben unterschiedliche Projektzuordnungen. Bitte wähle das gemeinsame Projekt ausdrücklich aus.</p>}
+    <details className="calendar-preparation-mehr" open={Boolean(projectId || personId) || undefined}>
+    <summary>{projectId || personId ? "Gewählter Kontext" : "Mehr Kontext: Projekt oder Person wählen"}</summary>
     <label className="calendar-preparation-project">Projektkontext
       <select value={projectId} onChange={e => projektWaehlen(e.target.value)} aria-label="Projektkontext auswählen">
         <option value="">Kein Projekt ausgewählt</option>
@@ -125,12 +144,13 @@ export function CalendarPreparation({ event, revision, onClose }: Props) {
         {people.map((person, index) => <option value={person.id} key={person.id}>{person.label}{(nameCounts.get(person.label) ?? 0) > 1 ? ` · Profil ${index + 1}` : ""}</option>)}
       </select>
     </label>
+    </details>
     {peopleError && <p role="alert">Personen konnten nicht geladen werden. Bitte die Ansicht aktualisieren.</p>}
     {selectedPerson && (nameCounts.get(selectedPerson.label) ?? 0) > 1 && <p className="calendar-preparation-empty">Mehrere Personen heißen {selectedPerson.label}. Bitte die Personenakte prüfen.</p>}
     {projectsError && <p role="alert">Projekte konnten nicht geladen werden. Bitte die Ansicht aktualisieren.</p>}
-    {loading && <p aria-live="polite">Vorbereitung wird geladen …</p>}
+    {loading && (projectId || personId) && <p aria-live="polite">Vorbereitung wird geladen …</p>}
     {error && <p className="settings-error" role="alert">Vorbereitung konnte nicht geladen werden. Bitte erneut versuchen.</p>}
-    {!loading && !error && !projectId && !personId && <p className="calendar-preparation-empty">Wähle ein Projekt oder eine Person; dann steht hier, was dazu bekannt ist.</p>}
+
     {!error && (projectId || personId) && preparation && <div aria-busy={loading} hidden={loading} style={{display: loading ? "none" : undefined}}>
       {preparation.project && <p className="calendar-preparation-project-name">Projekt: <strong>{preparation.project.name}</strong></p>}
       {preparation.person && <p className="calendar-preparation-project-name">Person: <a href={`/memory/registry/${encodeURIComponent(preparation.person.id)}`}>{preparation.person.label} · Personenakte öffnen</a></p>}

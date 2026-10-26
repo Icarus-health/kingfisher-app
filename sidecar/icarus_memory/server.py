@@ -3394,7 +3394,24 @@ def create_app(
             start, finish = parse_calendar_window(from_, until) if from_ is not None and until is not None else (None, None)
         except (ValueError, ZoneInfoNotFoundError) as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        return _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
+        uebersicht = _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
+        _teilnehmer_namen(uebersicht.get("items") or [])
+        return uebersicht
+
+    def _teilnehmer_namen(items: list[dict[str, Any]]) -> None:
+        """Je Termin die Teilnehmer mit Namen (`attendee_names`), soweit der Bestand die Adresse kennt (Befund A6).
+
+        Der Kalender liefert oft nur Adressen; die Terminkarte nennt dann „Thomas Müller“ statt
+        „thomas.mueller@…“. Ein Durchgang für alle Termine (`participants_for_addresses`); unbekannte Adressen
+        bleiben, wie sie sind. Ein Fehler kostet die Namen, nie die Termine."""
+        from .vorbereitung import teilnehmer as teilnehmer_aus
+        adressen = [a for item in items for a in item.get("attendees") or ()]
+        if not adressen:
+            return
+        index = _teilnehmer_index(adressen) or {}
+        for item in items:
+            if item.get("attendees"):
+                item["attendee_names"] = [t["name"] for t in teilnehmer_aus(item["attendees"], index=index)]
 
     def _teilnehmer_index(adressen: list[str]) -> dict[str, dict[str, Any]] | None:
         """Wie die Adressen im Bestand als Beteiligte vorkommen (`participants_for_addresses`); None bei einem Fehler."""
@@ -3682,6 +3699,18 @@ def create_app(
                 for copy_key in keys:
                     app.state.workspace.reopen_event_followup(copy_key)
         return _nachbereitung_stand(event)
+
+    @app.get("/api/v1/calendar/vorbereitung", dependencies=guard)
+    def calendar_vorbereitung(uid: str = Query(min_length=1, max_length=2048),
+                              start: str | None = Query(default=None, max_length=64)) -> dict[str, Any]:
+        """Die Vorbereitung des Termins aus den Akten seiner Teilnehmer, ohne Wahl (Persona-Prüfung, Befund A6)."""
+        from . import tag_routes
+        from .model import user_timezone
+        event = _termin(uid, start)
+        zone = user_timezone()
+        jetzt = datetime.now(zone) if zone else datetime.now().astimezone()
+        vorbereitung = tag_routes.vorbereitung_eines(app, event, jetzt)
+        return {"vorbereitung": vorbereitung.to_dict() if vorbereitung is not None else None}
 
     @app.get("/api/v1/calendar/preparation", dependencies=guard)
     def calendar_preparation(uid: str = Query(min_length=1, max_length=2048),
