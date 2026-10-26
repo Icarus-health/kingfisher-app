@@ -34,8 +34,11 @@ Schalter: [`47-einstellungen.md`](../../47-einstellungen.md#aufgaben-aus-mails-s
 
 * Neue Tests: `sidecar/tests/test_aufgaben_von_selbst.py` 24 (Regel, Durchlauf, Rückgängig, Projekt, Heute, Logbuch,
   Migration, Routen), `app/kingfisher/tests/aufgaben-von-selbst.test.mjs` 5. Angepasst: Migrationsversion 5 in
-  `test_migrations.py`, `test_aufgaben_post.py`; acht Schalter in `einstellungen-gliederung.test.mjs`.
-* Volle Suite: siehe unten. Oberfläche: `npx tsc --noEmit` ohne Befund, `node --test tests/*.test.mjs` 931 grün,
+  `test_migrations.py`, `test_aufgaben_post.py`, `test_task_save_requests.py`; acht Schalter in `einstellungen-gliederung.test.mjs`.
+* Volle Backend-Suite (`-n 4`): 8055 bestanden, 3 übersprungen, 3 rot unter Last
+  (`test_cloud_memory::test_bulk_accepts_101…`, `test_cloud_access::test_anthropic_import_route…`,
+  `test_postfach_lage::test_nachrichten_nennen…`); alle drei allein erneut: grün. `test_task_save_requests.py`
+  erwartet jetzt Fassung 5. Oberfläche: `npx tsc --noEmit` ohne Befund, `node --test tests/*.test.mjs` 931 grün (vor dem Hinweis auf die Platte, danach nur gezielt),
   `npx vite build` ohne Fehler.
 * `scripts/probe_seiten_ui.py` hell und dunkel: 75 Breiten geprüft, 0 Befunde.
 
