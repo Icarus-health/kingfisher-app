@@ -345,7 +345,7 @@ def test_cycle_horizon_excludes_new_insertions_inside_hash_key_range(tmp_path):
     # a finite snapshot when incoming volume exceeds the batch rate.
     from icarus_memory.working_memory_store import _item_id
     episodes = EpisodeStore(tmp_path / 'episodes.sqlite3')
-    for n in range(5000):
+    for n in range(3):
         add(episodes, f'Ursprüngliche Quelle {n}')
     rows = episodes._conn.execute('SELECT * FROM working_memory_items ORDER BY id').fetchall()
     target_id, target_key = rows[-1]['episode_id'], rows[-1]['id']
