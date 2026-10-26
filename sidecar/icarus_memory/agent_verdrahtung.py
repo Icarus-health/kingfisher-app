@@ -132,7 +132,9 @@ def _offene_punkte(app: FastAPI, art: str, *, nachfuehren: bool = True):
         berechnung = bezuege_nachfuehren(app) if nachfuehren else {}
         bezuege, akten = bausteine(app)
         noch_offen = berechnung.get('offen', 0) if isinstance(berechnung, dict) else 0
-        return sammeln(akten, bezuege, art, noch_offen=noch_offen)
+        tasks = getattr(app.state, 'tasks', None)
+        aufgaben = tasks.open_tasks(limit=None) if tasks is not None and art == 'wartet_auf' else ()
+        return sammeln(akten, bezuege, art, noch_offen=noch_offen, aufgaben=aufgaben)
     except Exception:  # noqa: BLE001 - ohne lesbare Akten gibt es diese Antwort nicht; der übliche Weg folgt
         logger.exception('Offene Punkte konnten nicht gelesen werden')
         return None

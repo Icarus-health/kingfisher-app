@@ -76,6 +76,8 @@ from .fristen import bezugstag, fristen_in, fristangaben_in
 from .lexical import terms_v1
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
+from .antwort_im_verlauf import einladung
+from .episodes import mail_address
 
 AKTEN_VERSION = 11
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
@@ -612,7 +614,7 @@ def _entschieden(offen: list[dict], erledigt: list[dict], gesagt: dict[str, dict
             neu_offen.append({**eintrag, 'bestaetigt': bool(gesagt_)})
     for eintrag in erledigt:
         gesagt_ = gesagt.get(ziel(eintrag['ref']))
-        if gesagt_ and gesagt_['entscheidung'] == 'offen' and eintrag['grund'] in ('absage', 'erledigt'):
+        if gesagt_ and gesagt_['entscheidung'] == 'offen' and eintrag['grund'] in ('absage', 'erledigt', 'antwort'):
             neu_offen.append({'ref': eintrag['ref'], 'danach': eintrag.get('durch'), 'bestaetigt': True})
         else:
             neu_erledigt.append(eintrag)
@@ -776,11 +778,17 @@ class Akten:
                 'fristen': [f for f in roh['fristen'] if e['ziel'](f['ref']) not in e['abgelegt']]}
 
     def akte(self, sache: str, *, jetzt: datetime | None = None, alle: bool = False,
-             ansicht: bool = False) -> dict[str, Any] | None:
+             ansicht: bool = False, nur_offen: bool = False) -> dict[str, Any] | None:
         """Die Akte einer Sache für die Anzeige, oder None, wenn keine Quelle zu ihr gehört.
 
         `ansicht`: zusätzlich „Braucht dich“ und den Zeitstrahl (nur die eigene Seite der Akte braucht sie;
         Briefing und Export lesen viele Akten und sparen sich das).
+
+        `nur_offen` (Persona-Prüfung, Befund A4): nur Offenes und Fristen, mit denselben Prüfungen und Entscheidungen
+        wie die volle Akte, aber ohne Verlauf, Stand, Beteiligte, Termine, Aussagen und ohne Namen (`name` bleibt
+        leer). Für Leser, die viele Akten durchgehen („Worauf warte ich noch?“, Fristen im Briefing und in „Was
+        brauche ich morgen?“) und die Namen der wenigen gezeigten Akten danach in einem Durchgang lesen
+        (`Bezuege.beschriftungen`). Die Namen aller Beteiligten jeder Akte kosteten dort fast die ganze Zeit.
         """
         quellen = self.bezuege.quellen_von(sache) if zerlegen(sache) else []
         roh = self.roh(sache, quellen)
@@ -799,20 +807,27 @@ class Akten:
                         if art == 'person' else ids)
         aufgaben = list(self._aufgaben(sache, aufgaben_ids))
         erledigt_aufgaben = self._durch_aufgaben(roh, aufgaben)
-        offen = [e for e in roh['offen'] if e['ref']['episode_id'] not in erledigt_aufgaben]
+        eigene = self.bezuege.eigene_adressen()
+        # Befund A3: Eine Antwort im selben Mailverlauf beantwortet deine Bitte oder löst eine Zusage an dich ein.
+        beantwortet = self._durch_antwort([e for e in roh['offen'] if e['ref']['episode_id'] not in erledigt_aufgaben],
+                                          leser, eigene)
+        offen = [e for e in roh['offen'] if e['ref']['episode_id'] not in erledigt_aufgaben
+                 and _ref_schluessel(e['ref']) not in beantwortet]
         erledigt = [*roh['erledigt'], *({'ref': e['ref'], 'durch': None, 'grund': erledigt_aufgaben[e['ref']['episode_id']]}
-                                        for e in roh['offen'] if e['ref']['episode_id'] in erledigt_aufgaben)]
+                                        for e in roh['offen'] if e['ref']['episode_id'] in erledigt_aufgaben),
+                    *({'ref': e['ref'], 'durch': None, 'grund': 'antwort', 'antwort': beantwortet[_ref_schluessel(e['ref'])]}
+                      for e in roh['offen'] if _ref_schluessel(e['ref']) in beantwortet
+                      and e['ref']['episode_id'] not in erledigt_aufgaben)]
         # Was der Nutzer selbst entschieden hat, gilt vor der Vermutung (nur bei der Anzeige, `akten_entscheidungen.py`).
         entschieden = self._entscheidungen(roh, offen, erledigt)
         offen, erledigt, ziel = entschieden['offen'], entschieden['erledigt'], entschieden['ziel']
         termin_gesagt = entschieden['termine']
-        eigene = self.bezuege.eigene_adressen()
         offene_aufgaben = {a.provenance.source_ref[len('episode:'):]: a for a in aufgaben
                            if getattr(a.status, 'value', a.status) == 'open'
                            and (a.provenance.source_ref or '').startswith('episode:')}
         daten = {
             'sache': sache, 'art': art, 'art_text': ART_TEXT.get(art, art), 'stand': jetzt.isoformat(),
-            'name': self.bezuege.beschriftung(sache, quellen=quellen),
+            'name': '' if nur_offen else self.bezuege.beschriftung(sache, quellen=quellen),
             'quellen': {'gesamt': roh['gesamt'], 'beruecksichtigt': roh['beruecksichtigt'],
                         'archiviert': roh['archiviert'], 'begrenzt': roh['gesamt'] > roh['beruecksichtigt'],
                         'abschnitte_abgeschnitten': roh['abschnitte_abgeschnitten']},
@@ -821,11 +836,16 @@ class Akten:
             # Eine Entscheidung des Nutzers ändert, was offen oder abgesagt ist; dann gilt auch die Lage als veraltet.
             'eingabestand': _mit_entscheidungen(roh.pop('_eingabe', ''), entschieden['gesagt']),
         }
-        daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
         daten['offen'] = self._offen_zeigen(offen, erledigt, offene_aufgaben, leser, lang, eigene, ziel)
         daten['fristen'] = self._fristen_zeigen(roh['fristen'], roh['ohne_datum'], leser, jetzt, lang,
                                                 quellenangaben=roh.get('quellenfristen', []),
                                                 abgelegt=entschieden['abgelegt'], ziel=ziel)
+        if nur_offen:
+            if art == 'person':
+                from .kreis import bestaetigter_kreis
+                daten['kreis'] = bestaetigter_kreis(self.episodes, sache)
+            return daten
+        daten['verlauf'] = self._verlauf_zeigen(roh['verlauf'], leser, ALLE if alle else max(lang, 10))
         daten['stand_der_dinge'] = self._stand_zeigen(roh['stand'], leser, kurz)
         daten['beteiligte'] = self._beteiligte_zeigen(roh['beteiligte'], lang)
         daten['termine'] = self._termine_zeigen(roh['termine'], jetzt, kurz, leser, termin_gesagt)
@@ -993,6 +1013,59 @@ class Akten:
         return {'punkte': punkte, 'quellen': len(roh['verlauf']), 'gezeigt': min(len(roh['verlauf']), 150),
                 'heute': jetzt.isoformat()}
 
+    def _durch_antwort(self, offen: list[dict], leser: '_Leser', eigene: list[str]) -> dict[tuple, dict[str, Any]]:
+        """Offene Punkte des Wartens, die eine spätere Mail im selben Verlauf beantwortet (Befund A3).
+
+        Deine Bitte ist beantwortet, sobald ein anderer im Verlauf antwortet; eine Zusage an dich, sobald der
+        Zusagende antwortet, ohne nur eine Verzögerung zu melden. Automatische Mails (Abwesenheit) zählen nie. Was
+        die Antwort neu zusagt, ist ein eigener Punkt. Ergebnis: Schlüssel der Textstelle -> die Antwort (Verweis).
+        """
+        from .antwort_im_verlauf import beantwortet, verlaeufe
+        selbst = {mail_address(a) for a in eigene if mail_address(a)}
+        kandidaten = []
+        for eintrag in offen:
+            ref = eintrag['ref']
+            if ref['kind'] not in OFFEN_ARTEN:
+                continue
+            zeile = leser.zeile(ref)
+            if zeile is None or not zeile['participants']:
+                continue
+            gelesen = leser._lesen(ref)
+            if gelesen is None or getattr(gelesen[0].kind, 'value', gelesen[0].kind) != 'message':
+                continue
+            von_mir = mail_address(zeile['participants'][0]) in selbst
+            art = zeile['art']   # eine Einladung ist schon hier eine Bitte (`_Leser.zeile`)
+            if von_mir and art == 'Bitte':
+                kandidaten.append((ref, 'bitte_von_mir'))
+            elif not von_mir and art == 'Zusage':
+                kandidaten.append((ref, 'zusage_an_mich'))
+        if not kandidaten:
+            return {}
+        faeden = verlaeufe(self.episodes, [ref['episode_id'] for ref, _ in kandidaten])
+        ergebnis: dict[tuple, dict[str, Any]] = {}
+        for ref, art in kandidaten:
+            verlauf = faeden.get(ref['episode_id'])
+            antwort = beantwortet(ref['episode_id'], verlauf, eigene=selbst, art=art) if verlauf else None
+            if antwort is not None:
+                ergebnis[_ref_schluessel(ref)] = {'episode_id': antwort.episode_id, 'zeit': antwort.zeit.isoformat()}
+        return ergebnis
+
+    def _antwort_zeile(self, antwort: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Die Antwort im Verlauf als Zeile: Betreff, Absender, Zeit und ihr erster Satz nach der Anrede."""
+        if not antwort:
+            return None
+        try:
+            episode = self.episodes.get(antwort['episode_id'])
+        except Exception:  # noqa: BLE001 - eine nicht mehr lesbare Antwort steht nur ohne Wortlaut da
+            return None
+        zeilen = [z.strip() for z in (episode.body or '').splitlines() if z.strip()]
+        inhalt = next((z for z in zeilen if not z.endswith(',') and len(z) > 25), zeilen[0] if zeilen else '')
+        text, gekuerzt = mappe._zitat(inhalt)
+        return {'art': 'Antwort', 'text': text or episode.title[:200], 'gekuerzt': gekuerzt,
+                'titel': episode.title[:200], 'episode_id': episode.id, 'participants': list(episode.participants)[:3],
+                'occurred_at': episode.occurred_at.isoformat() if episode.occurred_at else None,
+                'recorded_at': episode.recorded_at.isoformat()}
+
     @staticmethod
     def _durch_aufgaben(roh: dict[str, Any], aufgaben: list[Any]) -> dict[str, str]:
         """Quellen, deren Aufgabe erledigt oder fallengelassen ist: Quelle -> Grund."""
@@ -1050,7 +1123,8 @@ class Akten:
                     'bestaetigt': bool(eintrag.get('bestaetigt'))}
 
         def erledigt_bauen(eintrag: dict, zeile: dict) -> dict:
-            return {**zeile, 'grund': eintrag['grund'], 'durch': leser.zeile(eintrag['durch']) if eintrag['durch'] else None,
+            durch = leser.zeile(eintrag['durch']) if eintrag['durch'] else self._antwort_zeile(eintrag.get('antwort'))
+            return {**zeile, 'grund': eintrag['grund'], 'durch': durch,
                     'ziel': ziel(eintrag['ref']), 'richtung': _richtung(leser, eintrag['ref'], zeile, eigene)}
 
         return {'eintraege': zeigen(offen, offen_bauen), 'gesamt': len(offen), 'vermutlich': True,
@@ -1169,6 +1243,10 @@ class Akten:
                 'gesamt': {'kommend': len(kommend), 'vergangen': len(vergangen)}}
 
 
+def _ref_schluessel(ref: dict[str, Any]) -> tuple:
+    return (ref['episode_id'], ref['start'], ref['end'], ref['kind'])
+
+
 def _zone():
     from .model import user_timezone
     return user_timezone() or timezone.utc
@@ -1206,6 +1284,10 @@ class _Leser:
         if gelesen is None:
             return None
         zeile = mappe.eintrag(ref, *gelesen)
+        # Befund A3: Eine Einladung („Über eine Zusage würde ich mich freuen“) ist keine Zusage ihres Absenders,
+        # sondern eine Bitte an den Empfänger; überall in der Akte (Offen, Fristen, Braucht dich) gleich.
+        if zeile is not None and zeile['art'] == 'Zusage' and einladung(gelesen[1], zeile['titel']):
+            zeile = {**zeile, 'art': 'Bitte', 'einladung': True}
         return zeile
 
 

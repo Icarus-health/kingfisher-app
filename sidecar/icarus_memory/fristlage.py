@@ -20,7 +20,7 @@ Datum.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from typing import Any, Callable, Iterable
 
@@ -241,10 +241,15 @@ def sammeln(akten: Any, bezuege: Any, *, jetzt: datetime, eigene: Iterable[str] 
 
     for art in arten:
         for eintrag in bezuege.sachen(art=art, limit=je_art)['sachen']:
-            akte = akten.akte(eintrag['sache'], jetzt=jetzt, alle=True)
+            # Nur Offenes und Fristen, ohne Namen (Befund A4): Die Namen der Akten mit einer Frist folgen unten in
+            # einem Durchgang.
+            akte = akten.akte(eintrag['sache'], jetzt=jetzt, alle=True, nur_offen=True)
             alle.extend(aus_akte(akte, heute=heute, eigene=eigene, tage_voraus=tage_voraus, quellenart=quellenart))
     # Ungefragt (Briefing): nichts allein aus der Akte eines bestätigten Kontakts.
-    return nach_dringlichkeit(ohne_kontakte(alle))
+    geordnet = nach_dringlichkeit(ohne_kontakte(alle))
+    namen = bezuege.beschriftungen(list(dict.fromkeys(f.sache for f in geordnet if f.sache and not f.sache_name)))
+    return [replace(f, sache_name=namen.get(f.sache, f.sache_name)) if f.sache and not f.sache_name else f
+            for f in geordnet]
 
 
 __all__ = ['Frist', 'TAGE_VORAUS', 'aus_akte', 'beschreibung', 'nach_dringlichkeit', 'ohne_kontakte', 'richtung', 'sammeln',
