@@ -4,9 +4,10 @@ import {fileURLToPath} from 'node:url';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 
+import {testCache} from './testcache.mjs';
 // Exercise the page with its real rendering and action handlers; only metadata
 // reads and hook storage are deterministic. No browser, service or model runs.
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-memory-status-overview.test`,root:fileURLToPath(new URL('..', import.meta.url)),
+const server = await createServer({cacheDir:testCache('memory-status-overview.test'),root:fileURLToPath(new URL('..', import.meta.url)),
   plugins:[{name:'memory-overview-hook-driver', enforce:'pre',
     resolveId(id){if(id==='virtual:memory-overview-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:memory-overview-hooks')return `

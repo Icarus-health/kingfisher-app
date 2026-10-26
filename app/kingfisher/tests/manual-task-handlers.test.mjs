@@ -3,11 +3,12 @@ import {test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {testCache} from './testcache.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const source=readFileSync(root+'/src/App.tsx','utf8');
 test('a status retry cannot submit a simultaneously open new task draft', async()=>{
 const oldWindow=globalThis.window,oldDriver=globalThis.__driver;
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-manual-task-handlers.test`,root,configFile:false,plugins:[{name:'synthetic-task-hooks',enforce:'pre',resolveId(id){if(id==='virtual:task-review-hooks')return '\0'+id;},load(id){if(id==='\0virtual:task-review-hooks')return `export const useState=(...a)=>globalThis.__driver.state(...a);export const useRef=(...a)=>globalThis.__driver.ref(...a);export const useEffect=()=>{};export const useMemo=f=>f();`;},transform(code,id){if(id.endsWith('/src/App.tsx'))return source.replace('from "react"','from "virtual:task-review-hooks"')+'\nexport {Tasks};';}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
+const server=await createServer({cacheDir:testCache('manual-task-handlers.test'),root,configFile:false,plugins:[{name:'synthetic-task-hooks',enforce:'pre',resolveId(id){if(id==='virtual:task-review-hooks')return '\0'+id;},load(id){if(id==='\0virtual:task-review-hooks')return `export const useState=(...a)=>globalThis.__driver.state(...a);export const useRef=(...a)=>globalThis.__driver.ref(...a);export const useEffect=()=>{};export const useMemo=f=>f();`;},transform(code,id){if(id.endsWith('/src/App.tsx'))return source.replace('from "react"','from "virtual:task-review-hooks"')+'\nexport {Tasks};';}}],server:{middlewareMode:true,watch:null,ws:false,hmr:false},appType:'custom'});
 function nodes(n, predicate, out=[]) {if(!n||typeof n!=='object')return out;if(predicate(n))out.push(n);for(const c of [n.props?.children,n.props?.aktionen].flat(10))nodes(c,predicate,out);return out;}
 // Segmente (Baustein): die Wahl eines Abschnitts wie ein Klick.
 function segment(tree,titel){const s=nodes(tree,n=>n.type?.name==='Segmente')[0];const o=s?.props.optionen.find(o=>String(o.titel).startsWith(titel));return o?{props:{onClick:()=>s.props.onWahl(o.wert)}}:undefined;}

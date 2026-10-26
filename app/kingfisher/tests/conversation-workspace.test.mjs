@@ -4,7 +4,8 @@ import {fileURLToPath} from 'node:url';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-conversation-workspace.test`,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
+import {testCache} from './testcache.mjs';
+const server=await createServer({cacheDir:testCache('conversation-workspace.test'),root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
   name:'conversation-workspace-hooks',enforce:'pre',resolveId(id){if(id==='virtual:chat-hooks')return '\0'+id;},
   load(id){if(id==='\0virtual:chat-hooks')return `export const useState=(...a)=>globalThis.__chatDriver.state(...a);export const useRef=(...a)=>globalThis.__chatDriver.ref(...a);export const useEffect=(...a)=>globalThis.__chatDriver.effect(...a);export const useMemo=f=>f();`;},
   transform(code,id){if(['/src/ConversationNavigation.tsx','/src/App.tsx','/src/ConversationVoice.tsx'].some(p=>id.endsWith(p)))return code.replace(/from (["'])react\1/,'from "virtual:chat-hooks"')+(id.endsWith('/src/App.tsx')?'\nexport {Conversation, ConversationHistory};':'');}

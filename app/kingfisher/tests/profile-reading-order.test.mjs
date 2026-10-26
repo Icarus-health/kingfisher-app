@@ -3,7 +3,8 @@ import {after, test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-profile-reading-order.test`,root:fileURLToPath(new URL('..',import.meta.url)),
+import {testCache} from './testcache.mjs';
+const server = await createServer({cacheDir:testCache('profile-reading-order.test'),root:fileURLToPath(new URL('..',import.meta.url)),
   plugins:[{name:'profile-reading-hooks',enforce:'pre',
     resolveId(id){if(id==='virtual:profile-reading-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:profile-reading-hooks')return `export const useState=(...args)=>globalThis.__profileReadingDriver.state(...args); export const useEffect=(...args)=>globalThis.__profileReadingDriver.effect(...args); export const useMemo=fn=>fn();`;},

@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 
+import {testCache} from './testcache.mjs';
 // Drive the real component's existing handlers with deterministic hook storage.
 // This is a component boundary test, not a browser/window or React-runtime test.
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-memory-status-freshness.test`,root:fileURLToPath(new URL('..',import.meta.url)),
+const server=await createServer({cacheDir:testCache('memory-status-freshness.test'),root:fileURLToPath(new URL('..',import.meta.url)),
   plugins:[{name:'memory-status-hook-driver',enforce:'pre',
     resolveId(id){if(id==='virtual:memory-status-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:memory-status-hooks')return `

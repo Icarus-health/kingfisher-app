@@ -9,9 +9,10 @@ import {readFileSync} from 'node:fs';
 import {visibleTaskGroups} from '../src/taskWorkspaceModel.ts';
 import {TaskPager} from '../src/taskPager.ts';
 
+import {testCache} from './testcache.mjs';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const css = readFileSync(root + '/src/WorkspaceTasks.css', 'utf8');
-const server = await createServer({cacheDir: `/private/tmp/kingfisher-ui-test-cache-${process.pid}-aufgaben-ruhig`, root, configFile: false,
+const server = await createServer({cacheDir: testCache('aufgaben-ruhig'), root, configFile: false,
   plugins: [{name: 'u2-hooks', enforce: 'pre',
     resolveId(id) { if (id === 'virtual:u2-hooks') return '\0' + id; },
     load(id) { if (id === '\0virtual:u2-hooks') return 'export const useState=(...a)=>globalThis.__u2.state(...a);export const useRef=(...a)=>globalThis.__u2.ref(...a);export const useEffect=(...a)=>globalThis.__u2.effect(...a);export const useMemo=f=>f();'; },

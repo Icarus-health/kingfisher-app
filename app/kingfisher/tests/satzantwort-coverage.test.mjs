@@ -5,7 +5,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
 
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-satzantwort-coverage.test`,
+import {testCache} from './testcache.mjs';
+const server = await createServer({cacheDir:testCache('satzantwort-coverage.test'),
   root: fileURLToPath(new URL("..", import.meta.url)),
   server: { middlewareMode: true, watch: null, ws: false, hmr: false },
   appType: "custom",

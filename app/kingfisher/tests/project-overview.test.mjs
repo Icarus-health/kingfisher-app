@@ -5,7 +5,8 @@ import {fileURLToPath} from 'node:url';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-project-overview.test`,root:fileURLToPath(new URL('..',import.meta.url)),
+import {testCache} from './testcache.mjs';
+const server = await createServer({cacheDir:testCache('project-overview.test'),root:fileURLToPath(new URL('..',import.meta.url)),
   plugins:[{name:'project-overview-hooks',enforce:'pre',
     resolveId(id){if(id==='virtual:project-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:project-hooks')return `
