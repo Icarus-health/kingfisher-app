@@ -1219,7 +1219,7 @@ def _zitate(answer, episodes, fallback):
             heading += ', vermutlich überholt'
         heading += ''.join({kennzeichnung.ANDERE_PERSON: ', von einem anderen Menschen gleichen Namens',
                             kennzeichnung.AUSSERHALB: ', außerhalb des gefragten Zeitraums'}[m.art] for m in fremd)
-        arten = sorted(KINDS[kind] for kind in source_kinds if kind != 'fact')
+        arten = sorted(KINDS[kind] for kind in source_kinds if kind in KINDS and kind != 'fact')
         if arten:
             heading += f" (darin: {', '.join(arten)})"
         lines.extend(['', heading + ':', episode.body])

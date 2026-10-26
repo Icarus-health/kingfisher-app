@@ -45,6 +45,13 @@ RETRY_SECONDS = 300
 ANALYSIS_VERSION = 1
 KINDS = frozenset({"request", "commitment", "conditional", "change", "status",
                    "fact", "uncertain", "historical"})
+#: Art eines Verweises auf eine Quelle, die die Einordnung noch nicht erreicht hat (Befund A2 der Persona-Prüfung):
+#: Kurz nach der Einrichtung sind Mail und Termin schon da, eingeordnet aber noch nicht. Damit eine Frage sie trotzdem
+#: findet, wird eine kurze Quelle als Ganzes Beleg, mit denselben Prüfungen wie ein eingeordneter Abschnitt. Sie ist
+#: keine Einordnung und steht nicht in `working_memory_items`; `resolve` prüft sie jedes Mal neu (`roh_verweis`).
+ROH = "quelle"
+#: Länger wird eine noch nicht eingeordnete Quelle nicht als Ganzes Beleg; sie bleibt gezählt (`ohne_einordnung`).
+ROH_MAX_ZEICHEN = MAX_BERICHT_CHARS
 
 
 def analysis_marker_matches_sql(source='e', analysis='s', marker='a') -> str:
@@ -483,8 +490,10 @@ class WorkingMemoryStore:
                 {"episode_id", "fingerprint", "start", "end", "kind"} or
                 type(ref["episode_id"]) is not str or type(ref["fingerprint"]) is not str or
                 type(ref["start"]) is not int or type(ref["end"]) is not int or
-                type(ref["kind"]) is not str or ref["kind"] not in KINDS):
+                type(ref["kind"]) is not str or ref["kind"] not in KINDS | {ROH}):
             return None
+        if ref["kind"] == ROH:
+            return self._roh_aufloesen(ref)
         with self.episodes._lock:
             row = self.episodes._conn.execute(
                 "SELECT 1 FROM working_memory_items i JOIN working_memory_sources s "
@@ -498,6 +507,54 @@ class WorkingMemoryStore:
             if not self._eligible(snapshot) or source_fingerprint(snapshot) != ref["fingerprint"]:
                 return None
             if not 0 <= ref["start"] < ref["end"] <= len(snapshot.episode.body):
+                return None
+            return snapshot
+
+    @staticmethod
+    def _roh_ende(snapshot: EpisodeSupportSnapshot) -> int:
+        """Ende des eigenen Textes einer Rohquelle: vor einem zitierten Verlauf („Am … schrieb …:“, „> …“).
+
+        Die Einordnung stuft zitierten Verlauf als historisch ein (`mail_quote_history.guard`). Eine Rohquelle hat
+        diese Einordnung nicht; deshalb gehört der Verlauf gar nicht erst zu ihrem Beleg.
+        """
+        from .mail_quote_history import _ranges
+        body = snapshot.episode.body
+        episode = snapshot.episode
+        if getattr(episode.kind, 'value', episode.kind) == 'message' and episode.provenance.source_type.value == 'email':
+            verlauf = _ranges(body)
+            if verlauf:
+                body = body[:min(start for start, _ in verlauf)]
+        return len(body.rstrip())
+
+    def roh_verweis(self, episode_id: str) -> dict[str, Any] | None:
+        """Der Verweis auf eine kurze, noch nicht eingeordnete Quelle als Ganzes (Art `ROH`), sonst None.
+
+        Nur, solange die Einordnung die Quelle noch nicht erreicht hat (`pending`) oder es erneut versucht (`failed`):
+        Ausgenommene, zurückgestellte, zu große und ausgeschlossene Quellen nie. Ist sie eingeordnet, gilt ihr
+        eingeordneter Abschnitt.
+        """
+        if self.source_state(episode_id) not in {'pending', 'failed'}:
+            return None
+        with self.episodes._lock:
+            snapshot = self._snapshot(episode_id)
+            if not self._eligible(snapshot) or len(snapshot.episode.body) > ROH_MAX_ZEICHEN:
+                return None
+            ende = self._roh_ende(snapshot)
+            if ende <= 0 or not snapshot.episode.body[:ende].strip():
+                return None
+            return {"episode_id": episode_id, "fingerprint": source_fingerprint(snapshot), "start": 0, "end": ende,
+                    "kind": ROH}
+
+    def _roh_aufloesen(self, ref: dict[str, Any]) -> EpisodeSupportSnapshot | None:
+        """Ein Rohverweis gilt nur unverändert: dieselbe Fassung, der ganze eigene Text, nicht ausgenommen."""
+        with self.episodes._lock:
+            snapshot = self._snapshot(ref["episode_id"])
+            if not self._eligible(snapshot) or source_fingerprint(snapshot) != ref["fingerprint"]:
+                return None
+            if len(snapshot.episode.body) > ROH_MAX_ZEICHEN or ref["start"] != 0 or ref["end"] != self._roh_ende(snapshot):
+                return None
+            status = self._status(ref["episode_id"])
+            if status is not None and status[1] == 'dismissed':
                 return None
             return snapshot
 

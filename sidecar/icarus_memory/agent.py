@@ -690,6 +690,18 @@ class Agent:
 
         return gedaechtnis_cloud.GedaechtnisCloud(anbieter, pruefen)
 
+    def _lesestand_satz(self) -> str:
+        """„Kingfisher liest deine Post gerade noch ein (120 von 300 Mails).“, solange noch gelesen wird; sonst leer.
+
+        Die Verdrahtung (`agent_verdrahtung.lesestand_satz`) liest denselben Stand wie Heute und „Kingfisher lernt
+        gerade“. Ohne sie oder bei einem Fehler: leer, und die Antwort bleibt, wie sie war.
+        """
+        try:
+            satz = getattr(self, "_lesestand", lambda: "")()
+        except Exception:  # noqa: BLE001 - ein fehlender Stand kostet keine Antwort
+            return ""
+        return satz.strip() if isinstance(satz, str) else ""
+
     def _gedaechtnis_erlaubt(self):
         """Gibt es einen Anbieter, der Quellentext für eine Gedächtnisantwort sehen darf (`_gedaechtnis_anbieter`)?"""
         return self._gedaechtnis_anbieter() is not None
@@ -1273,6 +1285,13 @@ class Agent:
         angaben = self._quellen_angaben(rows)
         turn.reply = envelope.render_readable(kind, ids, reason=contract.get("reason"), angaben=angaben)
         turn.context["quellen"] = envelope.quellen(kind, ids, angaben=angaben)
+        if kind == "unknown":
+            # Befund A2: Kurz nach der Einrichtung liest Kingfisher noch. Dann ist „nicht beantwortbar“ nur der
+            # Stand von eben; die Antwort sagt das in einem Satz und bietet an, mit dem neuen Stand neu zu fragen.
+            lesestand = self._lesestand_satz()
+            if lesestand:
+                turn.reply = f"{lesestand} Bisher habe ich dazu nichts gefunden. Frag gleich noch einmal."
+                turn.context.update(einlesen=True, original_question=question, refresh_available=True)
         contract["status"] = kind
         contract["selected_assertion_ids"] = [rows[alias]["assertion_id"] for alias in selected]
         if (turn.context.get("knowledge_retrieval") or {}).get("truncated"):

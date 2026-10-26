@@ -185,6 +185,8 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     agent._pruefung = lambda: pruef_tor(app)
     # Solange das Sprachmodell im Hintergrund lädt, sagt eine Antwort ohne Modell das ehrlich (Fremdprobe 2, Befund 6).
     agent._modell_laedt = lambda: modell_laedt_satz(app)
+    # Solange Post eingelesen oder eingeordnet wird, sagt eine leere Antwort das ehrlich (Persona-Prüfung, Befund A2).
+    agent._lesestand = lambda: lesestand_satz(app)
 
 
 def modell_laedt_satz(app: FastAPI) -> str:
@@ -192,6 +194,32 @@ def modell_laedt_satz(app: FastAPI) -> str:
     manager = getattr(app.state, "pull_manager", None)
     stand = manager.reihe_stand() if manager is not None else None
     return stand["satz"] if stand and stand.get("laeuft") else ""
+
+
+def lesestand_satz(app: FastAPI) -> str:
+    """Ein Satz, solange Kingfisher Post einliest oder einordnet; sonst leer (Befund A2 der Persona-Prüfung).
+
+    Liest denselben Stand wie Heute und „Kingfisher lernt gerade“: das Einlesen je Postfach (`mail_stand.stand`) und
+    die Einordnung (`WorkingMemoryStore.progress`), diese nur, wenn sie eingeschaltet ist und nicht pausiert. Sonst
+    verspräche der Satz etwas, das nicht passiert.
+    """
+    from . import mail_stand
+    from .working_memory_store import WorkingMemoryStore
+    for konto in mail_stand.stand(app):
+        if konto.get("zustand") == "liest":
+            gelesen, gesamt = konto.get("gelesen"), konto.get("gesamt")
+            zahlen = (f" ({mail_stand.zahl(gelesen)} von {mail_stand.zahl(gesamt)} Mails)"
+                      if isinstance(gelesen, int) and isinstance(gesamt, int) and gesamt else "")
+            return f"Kingfisher liest deine Post gerade noch ein{zahlen}."
+    plan = getattr(getattr(app.state, "settings", None), "schedule", None)
+    steuerung = getattr(app.state, "hintergrund", None)
+    if not (plan is not None and plan.enabled and plan.with_model) or getattr(steuerung, "pausiert", False):
+        return ""
+    stand = WorkingMemoryStore(app.state.episodes).progress()
+    if stand["remaining"] > 0:
+        return (f"Kingfisher ordnet deine Post und Termine gerade noch ein (noch {mail_stand.zahl(stand['remaining'])} "
+                f"von {mail_stand.zahl(stand['total'])}).")
+    return ""
 
 
 def pruef_tor(app: FastAPI) -> satzpruefung_modell.Tor:
