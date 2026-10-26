@@ -49,7 +49,9 @@ alten, unbestätigten Angabe und über ungelesener Post, unter allem mit Frist.
 Es zitiert den Vorschlag, nicht den fremden Wortlaut; der steht dahinter. Auf
 der Startseite übernimmt ein Klick den Vorschlag unverändert als Aufgabe;
 wer ihn ändern oder verwerfen will, prüft ihn in den Vorhaben. Angelegt wird
-nur mit diesem Klick.
+nur mit diesem Klick. Seit dem 26.10.2026 gilt für eindeutige Bitten und Zusagen
+und für klar gebildete Projekte die Automatik mit Rückgängig
+([`66-automatik.md`](66-automatik.md)).
 
 **Ein Projekt, das sich bildet.** Auf dieselbe Weise nennt das Briefing höchstens
 ein erwähntes Projekt, das noch keine Akte hat („In 4 Mails seit 3. Oktober mit
