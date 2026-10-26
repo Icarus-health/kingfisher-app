@@ -93,7 +93,8 @@ Tagen, Zählung für Heute, Folgemail im Verlauf hält zur Prüfung. `heute-prue
 ## Geänderte Tests (Vertrag bewusst geändert)
 
 `test_source_index.py` (kurze nicht eingeordnete Quelle wird Beleg), `test_mail_timeline.py` (vier Tage alte
-Bestandsmail bleibt zur Prüfung, eine Stunde alte nicht). `test_pending_conflict_*` legen die Belegquelle des
+Bestandsmail bleibt zur Prüfung, eine Stunde alte nicht), `test_current_mail_tasks.py` (die neue Post steht im Briefing,
+neben zeitnaher Bestandspost). `test_pending_conflict_*` legen die Belegquelle des
 Vorschlags als ausgenommen ab, damit sie weiter den Weg über bestätigtes Wissen prüfen; eingeordnet endet derselbe Fall
 geschlossen über `working_conflict`. Abdeckungstests (`test_satzantwort.py`, `test_working_memory_flow.py`) nutzen
 lange Quellen. Rückfall-Wortlaut: neun Testdateien, `messlatte/tests`, zwei Browserproben.

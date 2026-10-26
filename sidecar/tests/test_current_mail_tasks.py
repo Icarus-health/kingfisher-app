@@ -51,7 +51,9 @@ def test_new_live_mail_behind_cursor_is_reviewed_next_bounded_run(context, monke
     assert detector.run(with_model=True, limit=2).analyzed >= 1
     job = app.state.proposals.memory_analysis.snapshot(ident)
     assert job is not None and job['state'] == 'completed'
-    assert [row['episode_id'] for row in for_briefing(app.state.proposals, app.state.episodes)['items']] == [ident]
+    # Die neue Post steht im Briefing. Seit Befund A5 der Persona-Prüfung stehen dort auch Bitten aus dem ersten
+    # Einlesen, die höchstens drei Tage alt sind (hier: von eben); angelegt wird daraus nichts.
+    assert ident in [row['episode_id'] for row in for_briefing(app.state.proposals, app.state.episodes)['items']]
     assert app.state.tasks.all_tasks() == []
 
 
