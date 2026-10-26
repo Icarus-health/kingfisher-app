@@ -18,7 +18,11 @@ Ein Satz besteht nur, wenn
      **Quelle** aufgelöst (`fristen.py`), nicht mit heute. Ein Datum ohne Jahr im
      Satz genügt mit dem Tag und Monat eines Belegdatums; nennt der Satz ein
      Jahr, muss es das Belegdatum tragen oder aufgelöst ergeben.
-   * Uhrzeiten („11 Uhr“ = „11:00“ = „11.00 Uhr“, Bereiche),
+   * Uhrzeiten („11 Uhr“ = „11:00“ = „11.00 Uhr“ = „11h“ = „um 11.00“, Bereiche; „sechs Uhr abends“ = 18:00;
+     „halb sieben“ ohne Tageszeit nur, wenn der Beleg genau eine Lesart trägt oder denselben Wortlaut). „um 18 Uhr“
+     nennt den Beginn eines Zeitraums „18:00 bis 20:00 Uhr“ (`_beginn_gleichwertig`), sonst gilt die Grenze genau,
+   * Antwortwörter am Satzanfang („Ja, …“, „Genau.“) brauchen keinen Beleg; ein „Nein“ nur vor einem Satz, der selbst
+     verneint, sonst kehrte es den belegten Satz um,
    * Zahlen und Beträge (Tausenderpunkte, Dezimalkomma, Währung bei Beträgen;
      „zwei“ = „2“),
    * E-Mail-Adressen, Links und Kennungen (Aktenzeichen, Rechnungsnummern),
@@ -300,6 +304,82 @@ _ZAHLWORT = {'zwei': 2, 'drei': 3, 'vier': 4, 'funf': 5, 'sechs': 6, 'sieben': 7
 _WAEHRUNG = {'€': 'eur', 'eur': 'eur', 'euro': 'eur', '$': 'usd', 'usd': 'usd', 'dollar': 'usd', '%': '%', 'prozent': '%'}
 
 
+#: Stunden in Worten, gefaltet („fünf“ = „funf“); „ein“ nur vor „Uhr“ oder nach „halb“, nie als Zahl.
+_STUNDE_WORT = {'ein': 1, 'eins': 1, 'zwei': 2, 'drei': 3, 'vier': 4, 'funf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8,
+                'neun': 9, 'zehn': 10, 'elf': 11, 'zwolf': 12}
+_STUNDE_MUSTER = r'(ein|eins|zwei|drei|vier|fünf|fuenf|sechs|sieben|acht|neun|zehn|elf|zwölf|zwoelf|1[0-2]|0?[1-9])'
+#: Tageszeit nach der Uhrzeit: macht „halb sieben“ oder „sechs Uhr“ erst eindeutig.
+_TAGESZEIT = r'(?:\s+(?:Uhr\s+)?(morgens|früh|frueh|vormittags|nachmittags|abends))'
+_HALB = re.compile(r'\bhalb\s+' + _STUNDE_MUSTER + r'\b' + _TAGESZEIT + '?', re.I)
+_WORT_UHR = re.compile(r'\b' + _STUNDE_MUSTER.replace('|1[0-2]|0?[1-9]', '') + r'\s+Uhr\b' + _TAGESZEIT + '?', re.I)
+_ZIFFER_UHR_TAGESZEIT = re.compile(r'(?<![\d.:])(1[0-2]|0?[1-9])\s*Uhr' + _TAGESZEIT, re.I)
+#: „um 18.00“ ohne „Uhr“: nach „um“ oder „gegen“ eine Uhrzeit, kein Datum (dem folgte ein Punkt oder eine Jahreszahl).
+_UM_PUNKT = re.compile(r'\b(um|gegen)\s+([01]?\d|2[0-3])\.([0-5]\d)(?![.\d])(?!\s*(?:Uhr|h)\b)', re.I)
+
+
+def _stunde(wert: str) -> int:
+    return int(wert) if wert.isdigit() else _STUNDE_WORT[falten(wert)]
+
+
+def _zwei_lesarten(stunde: int, minute: int) -> tuple[tuple[int, int], tuple[int, int]]:
+    """Vormittag und Nachmittag einer Zwölf-Stunden-Angabe: „sieben“ ist 7:00 oder 19:00, „zwölf“ 0:00 oder 12:00."""
+    frueh = stunde % 12
+    return (frueh, minute), (frueh + 12, minute)
+
+
+def _gelesen(lesarten: tuple[tuple[int, int], tuple[int, int]], tageszeit: str | None) -> tuple[int, int] | None:
+    if not tageszeit:
+        return None
+    return lesarten[1] if falten(tageszeit) in ('nachmittags', 'abends') else lesarten[0]
+
+
+@dataclass(frozen=True)
+class _Wortzeit:
+    """Eine Uhrzeit in Worten ohne Tageszeit („halb sieben“): zwei Lesarten, keine geraten."""
+    wortlaut: str
+    lesarten: tuple[tuple[int, int], tuple[int, int]]
+    start: int
+    ende: int
+
+
+def _uhrzeiten_in_worten(text: str) -> tuple[str, list[_Wortzeit]]:
+    """Schreibt eindeutige Uhrzeiten in Worten als „18:30 Uhr“ und nennt die mehrdeutigen.
+
+    „halb sieben abends“ = 18:30, „sechs Uhr abends“ = „6 Uhr abends“ = 18:00, „um 18.00“ = 18:00. Ohne Tageszeit
+    bleibt „halb sieben“ stehen und wird als mehrdeutig gemeldet: 6:30 oder 18:30. Was davon gilt, entscheidet nur ein
+    Beleg, der genau eine der beiden Uhrzeiten trägt (`_wortzeiten_aufloesen`). Ziffern ohne Tageszeit („7 Uhr“)
+    bleiben, wie sie sind: 7:00.
+    """
+    def ersetzen(muster: re.Pattern, lesen) -> None:
+        nonlocal text
+        teile, letzte = [], 0
+        for treffer in muster.finditer(text):
+            teile.append(text[letzte:treffer.start()])
+            teile.append(lesen(treffer))
+            letzte = treffer.end()
+        text = ''.join(teile) + text[letzte:]
+
+    ersetzen(_UM_PUNKT, lambda t: f'{t[1]} {int(t[2])}:{t[3]} Uhr')
+
+    def eindeutig(minute: int, versatz: int):
+        def lesen(t: re.Match) -> str:
+            lesarten = _zwei_lesarten(_stunde(t[1]) - versatz, minute)
+            zeit = _gelesen(lesarten, t[2])
+            return f'{zeit[0]}:{zeit[1]:02d} Uhr' if zeit else t.group(0)
+        return lesen
+
+    ersetzen(_HALB, eindeutig(30, 1))
+    ersetzen(_WORT_UHR, eindeutig(0, 0))
+    ersetzen(_ZIFFER_UHR_TAGESZEIT, eindeutig(0, 0))
+    offen = []
+    for muster, minute, versatz in ((_HALB, 30, 1), (_WORT_UHR, 0, 0)):
+        for t in muster.finditer(text):
+            if not t[2]:
+                offen.append(_Wortzeit(' '.join(t.group(0).split()), _zwei_lesarten(_stunde(t[1]) - versatz, minute),
+                                       t.start(), t.end()))
+    return text, sorted(offen, key=lambda w: w.start)
+
+
 def zeiten_in(text: str) -> tuple[set[tuple[int, int]], str]:
     """Uhrzeiten als (Stunde, Minute) und der Text ohne sie."""
     zeiten: set[tuple[int, int]] = set()
@@ -447,7 +527,10 @@ _STATUS = (
     ('bezahlt', ('bezahlt', 'ueberwiesen', 'beglichen', 'gezahlt')),
     ('bestätigt', ('bestaetigt', 'bestaetigung', 'zugesagt', 'zusage', 'zugestimmt', 'einverstanden')),
     ('genehmigt', ('genehmigt', 'bewilligt', 'freigegeben', 'angenommen')),
-    ('geliefert', ('geliefert', 'zugestellt', 'versandt', 'verschickt', 'versendet', 'gesendet', 'geschickt')),
+    # „anbei“, „beigefügt“: Wer eine Mail mit Anhang schreibt, hat ihn damit geschickt (Befund A1, „Hat Herr Meier
+    # die Rechnung geschickt?“). Ein Beleg für Zahlung oder Erledigung ist das nicht.
+    ('geliefert', ('geliefert', 'zugestellt', 'versandt', 'verschickt', 'versendet', 'gesendet', 'geschickt',
+                   'anbei', 'beigefugt', 'anliegend')),
     ('unterschrieben', ('unterschrieben', 'unterzeichnet')),
     ('eingereicht', ('eingereicht', 'abgegeben', 'uebermittelt', 'eingegangen', 'erhalten', 'angekommen')),
     ('offen', ('offen', 'ausstehend', 'unerledigt', 'unbezahlt')),
@@ -565,13 +648,16 @@ class _Pool:
     jahre: set[int] = field(default_factory=set)
     kennungen: set[str] = field(default_factory=set)
     monate: set[int] = field(default_factory=set)
+    #: Uhrzeiten in Worten ohne Tageszeit, wörtlich („halb sieben“): belegen nur denselben Wortlaut.
+    wortzeiten: set[str] = field(default_factory=set)
     verneinend: bool = False
 
 
 def _pool(belege: Sequence[Beleg], zusatz: Iterable[str]) -> _Pool:
     pool = _Pool()
     for beleg in belege:
-        gesamt = f'{beleg.kopf}\n{beleg.text}'.strip()
+        gesamt, offen = _uhrzeiten_in_worten(f'{beleg.kopf}\n{beleg.text}'.strip())
+        pool.wortzeiten.update(falten(w.wortlaut) for w in offen)
         pool.text += '\n' + gesamt
         daten, rest = daten_in(gesamt)
         bezug = bezugstag(beleg.zeit) if beleg.zeit else None
@@ -595,7 +681,7 @@ def _pool(belege: Sequence[Beleg], zusatz: Iterable[str]) -> _Pool:
                 pool.monate.add(f.datum.month)
         zeiten, rest = zeiten_in(rest)
         pool.zeiten |= zeiten
-        pool.zeitbedingungen |= _zeitbedingungen_in(beleg.text)
+        pool.zeitbedingungen |= _zeitbedingungen_in(_uhrzeiten_in_worten(beleg.text)[0])
         rest, tokens = _ohne(rest, _MAIL, _LINK, _KENNUNG)
         pool.kennungen.update(tokens)
         for wert, waehrung in zahlen_in(rest):
@@ -1207,7 +1293,13 @@ def _gegenstatus(satz: str, belege: Sequence[Beleg]) -> str | None:
                 continue
             namens_text = stelle if _namensfolgen(stelle) else beleg.kopf
             if not _status_namen_belegt(namen, namens_text):
-                continue
+                # „Herr Koch hat noch nicht überwiesen“ aus Kochs „ich habe … noch nicht überwiesen“: Der Name steht im
+                # Kopf als Absender, nicht in der Stelle. Nur in der ersten Person oder beim Anhang und nie in einer
+                # weitergeleiteten oder zitierten Mail, deren Sprecher der Absender nicht sein muss.
+                sprecher = _sprecher(beleg) if _spricht_selbst(stelle, beleg.text) else ''
+                if not sprecher or not _status_namen_belegt(namen, f'{stelle}\n{sprecher}'):
+                    continue
+                namens_text = f'{stelle}\n{sprecher}'
             gemeinsam = len(satz_woerter & _status_sachwoerter(stelle + '\n' + beleg.kopf))
             gemeinsam += len(kennungen) + len(namen)
             if gemeinsam:
@@ -1237,9 +1329,29 @@ def _gegenstatus(satz: str, belege: Sequence[Beleg]) -> str | None:
     return None
 
 
+_SELBST = re.compile(r'\b(?:ich|wir|anbei|beigefügt|beigefuegt|anliegend\w*)\b', re.I)
+_FREMDE_STIMME = re.compile(r'(?m)^\s*>|weitergeleitet|ursprüngliche nachricht|urspruengliche nachricht|'
+                            r'original message|forwarded message|\bschrieb\b|\bwrote\b', re.I)
+
+
+def _spricht_selbst(stelle: str, text: str) -> bool:
+    """Spricht in dieser Stelle der Absender selbst? Erste Person oder Anhang, und nichts Weitergeleitetes im Beleg."""
+    return bool(_SELBST.search(stelle)) and not _FREMDE_STIMME.search(text)
+
+
+def _sprecher(beleg: Beleg) -> str:
+    """Der Absender aus dem Kopf des Belegs („Rechnung; von Klaus Meier; 22.10.2026“ → „Klaus Meier“)."""
+    return ' '.join(teil.strip()[4:] for teil in beleg.kopf.split(';') if teil.strip().startswith('von '))
+
+
 def _status_abschnitte(text: str) -> list[str]:
-    """Satzteile mit erhaltenem Doppelpunkt: „Z-204: offen“ bleibt gebunden."""
-    return [teil for satz in _abschnitte(text, False)
+    """Satzteile mit erhaltenem Doppelpunkt: „Z-204: offen“ bleibt gebunden.
+
+    Der Punkt einer Abkürzung („Rechnung Nr. 2026-117“, „Dr. Wolf“) beendet keinen Satz: Sonst stünden die Sache und
+    ihre Kennung in zwei Stellen, und kein Status wäre mehr zuzuordnen.
+    """
+    geschuetzt = _ABKUERZUNG.sub(lambda t: t.group(0).replace('.', '\u2024'), text)
+    return [teil.replace('\u2024', '.') for satz in _abschnitte(geschuetzt, False)
             for teil in re.split(r';|,\s|\s(?:aber|sondern|jedoch|während)\s', satz, flags=re.I) if teil.strip()]
 
 
@@ -1303,6 +1415,64 @@ def _status_woerter_liste() -> list[str]:
     return [w for _, staemme in _STATUS_STAEMME for w in staemme]
 
 
+#: Antwortwörter am Satzanfang („Ja, …“, „Genau.“): Sie antworten auf die Frage und behaupten selbst nichts.
+_PARTIKEL = re.compile(r'^\s*(ja|jawohl|nein|genau|richtig|stimmt|doch)\s*(?:[,.!;:–—-]+\s*|$)', re.I)
+
+
+def antwortpartikel(text: str) -> tuple[str, str]:
+    """(Antwortwort, Rest) eines Satzes; ohne Antwortwort ('', Satz).
+
+    Nur am Anfang und nur mit Satzzeichen danach („Ja, …“, „Genau.“): „Ja Ming leitet …“ bleibt ein Name. Der Rest
+    wird wie jeder Satz geprüft; das Wort selbst braucht keinen Beleg. „Nein“ prüft der Aufrufer zusätzlich.
+    """
+    treffer = _PARTIKEL.match(text)
+    if treffer is None:
+        return '', text
+    rest = text[treffer.end():].strip()
+    return treffer[1].capitalize(), (rest[:1].upper() + rest[1:]) if rest else ''
+
+
+def _wortzeiten_aufloesen(text: str, pool: _Pool) -> tuple[str, list[str]]:
+    """Der Satz mit eindeutigen Uhrzeiten in Ziffern; mehrdeutige („halb sieben“) nur, wo der Beleg entscheidet.
+
+    Trägt der Beleg genau eine der beiden Lesarten, gilt sie. Steht im Beleg derselbe Wortlaut, ist nichts behauptet,
+    was nicht dasteht. Sonst wird verworfen: geraten wird nicht.
+    """
+    zeittext, offen = _uhrzeiten_in_worten(text)
+    gruende = []
+    for wortzeit in reversed(offen):
+        passend = [z for z in wortzeit.lesarten if z in pool.zeiten]
+        if len(passend) == 1:
+            ersatz = f'{passend[0][0]}:{passend[0][1]:02d} Uhr'
+        else:
+            if falten(wortzeit.wortlaut) not in pool.wortzeiten:
+                gruende.append(f'Uhrzeit „{wortzeit.wortlaut}“ ist im Beleg nicht eindeutig belegt')
+            ersatz = ' ' * (wortzeit.ende - wortzeit.start)
+        zeittext = zeittext[:wortzeit.start] + ersatz + zeittext[wortzeit.ende:]
+    return zeittext, gruende[::-1]
+
+
+def _beginn(uhrzeit: tuple[int, int], relation: str) -> bool:
+    """Nennt die Relation genau diesen Zeitpunkt als Beginn? „um 18 Uhr“, oder „18:00 bis 20:00“ ohne Einschränkung."""
+    if relation == 'um':
+        return True
+    teile = relation.split(':')
+    return (len(teile) == 4 and teile[0] == 'bereich' and teile[1] == str(uhrzeit) and teile[2] != str(uhrzeit)
+            and teile[3] == '')
+
+
+def _beginn_gleichwertig(uhrzeit: tuple[int, int], im_satz: set[str], im_beleg: set[str]) -> bool:
+    """„um 18 Uhr“ für einen Termin „18:00 bis 20:00 Uhr“: Der Satz nennt den Beginn.
+
+    Nur wenn **jede** Angabe der Belege zu dieser Uhrzeit ein Beginn ist: genau „um 18 Uhr“ oder ein Zeitraum, der um
+    18 Uhr ohne Einschränkung („nur“, „erst“, „nicht“) anfängt. Steht daneben „erst nach 18 Uhr“ oder endet ein
+    Zeitraum um 18 Uhr, bleibt es beim Verwerfen. Ein Zeitraum im Satz muss genau so im Beleg stehen.
+    """
+    if not im_beleg or not all(_beginn(uhrzeit, r) for r in im_beleg):
+        return False
+    return all(r == 'um' or r in im_beleg for r in im_satz)
+
+
 def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Iterable[str] = (),
                  relative_zeit_erlaubt: bool = False) -> Urteil:
     """Prüft einen Satz gegen die Belege (siehe Modulkopf). Ergibt bestanden oder Gründe der Verwerfung."""
@@ -1325,7 +1495,16 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
             zitiert.append(beleg)
     if gruende:
         return Urteil(satz, False, tuple(gruende))
+    partikel, text = antwortpartikel(text)
+    if partikel and not text:
+        return Urteil(satz, False, (f'Ein „{partikel}“ allein ist nicht prüfbar',))
+    if partikel and falten(partikel) == 'nein' and not _VERNEINUNG.search(falten(text)):
+        # „Nein, die Sitzung ist am 29. Oktober“ verneint die Frage, nicht den Satz: gegen den Beleg gelesen kehrt das
+        # Wort den Sinn um. Bestehen kann ein „Nein“ nur vor einem Satz, der selbst verneint (und belegt verneint).
+        return Urteil(satz, False, ('Ein „Nein“ am Satzanfang braucht eine Verneinung im Satz selbst',))
     pool = _pool(zitiert, zusatz_woerter)
+    zeittext, wortzeit_gruende = _wortzeiten_aufloesen(text, pool)
+    gruende += wortzeit_gruende
     gefaltet = falten(text)
 
     if not relative_zeit_erlaubt:
@@ -1333,7 +1512,7 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
         if relativ:
             gruende.append(f'Relative Zeitangabe („{relativ.group(0)}“) ist ohne festen Tag nicht prüfbar')
 
-    daten, rest = daten_in(text)
+    daten, rest = daten_in(zeittext)
     datum_gruende, belegte_daten = _pruefe_daten(daten, pool)
     gruende += datum_gruende
     gruende += _pruefe_datumsgrenzen(text, zitiert)
@@ -1341,7 +1520,7 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     for stunde, minute in sorted(zeiten):
         if (stunde, minute) not in pool.zeiten:
             gruende.append(f'Uhrzeit {stunde}:{minute:02d} steht nicht im Beleg')
-    bedingungen = _zeitbedingungen_in(text)
+    bedingungen = _zeitbedingungen_in(zeittext)
     bedingungen_nach_zeit: dict[tuple[int, int], set[str]] = {}
     for uhrzeit, relation in bedingungen:
         bedingungen_nach_zeit.setdefault(uhrzeit, set()).add(relation)
@@ -1349,7 +1528,8 @@ def satz_pruefen(satz: Satz, belege: Mapping[str, Beleg], *, zusatz_woerter: Ite
     for uhrzeit, relation in pool.zeitbedingungen:
         belegbedingungen_nach_zeit.setdefault(uhrzeit, set()).add(relation)
     for uhrzeit in bedingungen_nach_zeit:
-        if bedingungen_nach_zeit[uhrzeit] != belegbedingungen_nach_zeit.get(uhrzeit, set()):
+        im_satz, im_beleg = bedingungen_nach_zeit[uhrzeit], belegbedingungen_nach_zeit.get(uhrzeit, set())
+        if im_satz != im_beleg and not _beginn_gleichwertig(uhrzeit, im_satz, im_beleg):
             gruende.append(f'Zeitbedingung an {uhrzeit[0]}:{uhrzeit[1]:02d} stimmt nicht mit dem Beleg überein')
     rest, kennungen = _ohne(rest, _MAIL, _LINK, _KENNUNG)
     for kennung in kennungen:
