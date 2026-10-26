@@ -419,6 +419,26 @@ Geprüft: `sidecar/tests/test_mitteilungen.py`, `app/kingfisher/tests/mitteilung
 **Nicht geprüft:** die Mitteilung selbst auf einem Mac (kein Swift-Übersetzer hier); siehe das
 [Protokoll](runs/2026-10-22-mitteilungen/README.md).
 
+## Cloud für Fragen und Antworten: auch Gedächtnisfragen (Paket T, 26.10.2026)
+
+Bis 1.0.28 half der Schalter „Cloud für Fragen und Antworten nutzen“ bei Fragen an das Gedächtnis nicht: Die belegte
+Gedächtnisantwort lief nur lokal und sagte sonst „benötigt ein lokales Modell“. Entscheidung des Nutzers
+([66-automatik.md](66-automatik.md)): Mit gültiger Einwilligung der Rolle `antwort` wählt der Cloudanbieter auch die
+Quellen aus und formuliert die Sätze.
+
+- **Was hinausgeht:** die Frage und die dafür gefundenen Textstellen samt Absender, Betreff und Datum. Der Satz der
+  Einwilligung sagt das jetzt wörtlich (erweitert, nicht gekürzt; Oberfläche `gliederung.ts`, Sidecar `ROLLEN["antwort"]`).
+  Bestätigte Einträge der Wissensschicht gehen nie hinaus; sie stehen lokal gelesen unter der Antwort.
+- **Wann nie:** Schalter aus, Einwilligung fehlt oder unlesbar, kein Schlüssel (dann gilt der lokale Standard), ein
+  nicht lokaler Standardanbieter ohne Einwilligung, „nur lokal“. Die Einwilligung wird vor jedem einzelnen Versand neu
+  gelesen; ein Widerruf mitten in einer Antwort hält den nächsten Aufruf an (`gedaechtnis_cloud.py`).
+- **Was lokal bleibt:** Prüfung (zweites Tor), Einbettung und Hintergrund, wie bisher.
+- **Sichtbar:** Unter einer solchen Antwort steht „Über Anthropic beantwortet.“; im Verlauf vermerkt
+  `context.gedaechtnis_cloud` Anbieter, Modell und `gesendet: ["frage", "textstellen"]`.
+- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud geht es
+  in wenigen Sekunden.“ mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
+  zeigen“ (im Browser gemerkt).
+
 ## Wie man prüft
 
 * `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau sieben Schalter mit „was verlässt

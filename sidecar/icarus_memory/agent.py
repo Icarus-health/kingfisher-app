@@ -578,6 +578,8 @@ class Agent:
         except Exception:  # noqa: BLE001 - ohne Anbieter bleibt der Rückfall
             anbieter = None
         start = time.perf_counter()
+        if anbieter is not None:
+            zeitmessung.melde('frage')  # Zwischenstand im Gespräch (`gespraech_fortschritt.py`)
         anfrage = frage.verstehen(question, anbieter)
         # Die Dauer reist mit der Anfrage: Der Server versteht die Frage, bevor die Antwort beginnt.
         return dataclasses.replace(anfrage, dauer_s=time.perf_counter() - start)
@@ -603,11 +605,46 @@ class Agent:
             tor = None
         return tor if isinstance(tor, satzpruefung_modell.Tor) else satzpruefung_modell.OHNE
 
+    def _gedaechtnis_anbieter(self):
+        """Der Anbieter für eine Gedächtnisantwort: der lokale, oder der Cloudanbieter der Rolle `antwort` unter gültiger
+        Einwilligung, eingegrenzt (`gedaechtnis_cloud.GedaechtnisCloud`); sonst None, und die Antwort bleibt lokal.
+
+        Die Einwilligung prüft die Verdrahtung (`_antwort_cloud`, `gedaechtnis_cloud.freigabe_gueltig`) hier und vor jedem
+        einzelnen Versand erneut, zusammen mit der Ausgangsprüfung (`assert_egress_allowed`). Ohne Verdrahtung keine Cloud.
+        """
+        from . import gedaechtnis_cloud
+        anbieter = self._provider
+        if anbieter is None:
+            return None
+        if getattr(anbieter, 'is_local', False):
+            return anbieter
+        gilt = getattr(self, '_antwort_cloud', None)
+
+        def freigegeben():
+            try:
+                return callable(gilt) and gilt(anbieter) is True
+            except Exception:  # noqa: BLE001 - im Zweifel geht nichts hinaus
+                return False
+
+        if not freigegeben():
+            return None
+
+        def pruefen(messages):
+            if self._provider is not anbieter or not freigegeben():
+                raise ProviderError('Die Einwilligung für die Cloud gilt nicht mehr.')
+            self.assert_egress_allowed(messages)
+
+        return gedaechtnis_cloud.GedaechtnisCloud(anbieter, pruefen)
+
+    def _gedaechtnis_erlaubt(self):
+        """Gibt es einen Anbieter, der Quellentext für eine Gedächtnisantwort sehen darf (`_gedaechtnis_anbieter`)?"""
+        return self._gedaechtnis_anbieter() is not None
+
     def _working_memory_turn(self, question, *, retrieval_query=None, meaning_scope=None, anfrage=None, zeiten=None,
                              search_state=None):
         from . import working_memory_answers
         quellen, vettern = self._personen_der_frage(retrieval_query or question)
-        answer = working_memory_answers.prepare(question, self._episodes, self._knowledge, self._provider,
+        answer = working_memory_answers.prepare(question, self._episodes, self._knowledge, self._gedaechtnis_anbieter(),
                                                 conflict_status=self._knowledge_conflict_status,
                                                 retrieval_query=retrieval_query,
                                                 projects=self._project_directory(),
@@ -836,7 +873,7 @@ class Agent:
         from . import working_memory_answers
         zeiten = zeiten or zeitmessung.Zeiten()
         answer = working_memory_answers.prepare(
-            question, self._episodes, self._knowledge, self._provider,
+            question, self._episodes, self._knowledge, self._gedaechtnis_anbieter(),
             conflict_status=self._knowledge_conflict_status, projects=self._project_directory(),
             meaning_scope=scope, also_found=also_found, anfrage=anfrage, saetze=self._saetze_an(), zeiten=zeiten,
             pruefung=self._pruef_tor(), search_state=search_state,
@@ -925,7 +962,7 @@ class Agent:
         others = [{'label': f"{o['label']} ({o['detail']})" if o.get('detail') else o['label'],
                    'ids': list(o.get('ids') or [])} for number, o in enumerate(options) if number != index]
         others += [note for note in pending.get('notes') or () if isinstance(note, dict)]
-        local = self._provider is not None and getattr(self._provider, 'is_local', False)
+        local = self._gedaechtnis_erlaubt()
         search_state = {}
         turn = self._working_memory_turn_with(pending['query'], scope, others, search_state=search_state) if local else None
         if turn is not None:
@@ -986,6 +1023,12 @@ class Agent:
                            'model_called': model_called, 'selected_assertion_ids': []}
         if answer.get('semantic_search_status') in {'ok', 'empty', 'partial', 'unavailable', 'unobserved'}:
             answer_contract['semantic_search_status'] = answer['semantic_search_status']
+        cloud = answer.get('gedaechtnis_cloud') if isinstance(answer.get('gedaechtnis_cloud'), dict) else None
+        if cloud is not None:
+            # Ehrlich: Frage und Textstellen gingen an diesen Anbieter. `history_egress` bleibt `local_only`: Es sagt,
+            # ob der Verlauf später an ein fremdes Modell darf, und die Antwort enthält lokal Gelesenes (bestätigte
+            # Einträge, Akte), das nicht hinausging. Gedächtnisantworten gehen ohnehin nie in den Modellverlauf.
+            answer_contract['model_egress'] = 'external'
         return Turn(reply=text, context={
             'query': question, 'generated_at': now().isoformat(), 'items': [], 'withheld_count': 0,
             'memory_revision': self._knowledge.revision, 'answer_mode': 'memory_evidence',
@@ -993,6 +1036,7 @@ class Agent:
             'answer_contract': answer_contract,
             **({'satzantwort': satz} if satz is not None else {}),
             **({'zeiten': zeiten} if zeiten is not None else {}),
+            **({'gedaechtnis_cloud': dict(cloud)} if cloud is not None else {}),
             **knowledge_history.metadata({}), **self_model_history.metadata({})})
 
     @guarded
@@ -1023,8 +1067,7 @@ class Agent:
         # Eine ausdrücklich wörtliche Quellenanzeige hat Vorrang vor
         # Fragenverständnis und Modellauswahl, auch bei eingeordneten Quellen.
         # Der lokale Zugriffsschutz und die erneute Quellenprüfung gelten weiter.
-        if (retrieval_query is None and meaning_scope is None and self._provider is not None
-                and getattr(self._provider, 'is_local', False)):
+        if retrieval_query is None and meaning_scope is None and self._gedaechtnis_erlaubt():
             from . import source_answers
             source_answer = source_answers.prepare(question, self._episodes, self._knowledge)
             if source_answer is not None:
@@ -1048,7 +1091,7 @@ class Agent:
             staged = self._meaning_turn(question, anfrage, zeiten)
             if staged is not None:
                 return staged
-        if self._provider is None or not getattr(self._provider, "is_local", False):
+        if not self._gedaechtnis_erlaubt():
             contract["status"] = "local_only"
             turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell."
             return turn
@@ -1211,7 +1254,7 @@ class Agent:
                          **knowledge_history.metadata({}), **self_model_history.metadata({}),
                          "answer_contract": contract}
         turn = Turn(context=copy.deepcopy(empty_context))
-        if self._provider is None or not getattr(self._provider, "is_local", False):
+        if not self._gedaechtnis_erlaubt():
             turn.context['answer_contract']['status'] = 'local_only'
             turn.reply = "Diese beleggebundene Gedächtnisantwort benötigt ein lokales Modell."
             return turn
@@ -1331,6 +1374,7 @@ class Agent:
                 ) if laedt else OHNE_MODELL_SATZ
             )
 
+        zeitmessung.melde('chat')  # Zwischenstand im Gespräch: das Modell formuliert (`gespraech_fortschritt.py`)
         # Ein neuer Nutzerbeitrag entfernt keine früheren Quellen oder deren
         # Ableitungen aus dem Modellkontext. Die Markierung bleibt erhalten.
         from .working_profile import resolve as resolve_profile, task_for

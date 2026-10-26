@@ -78,6 +78,12 @@ export type SatzAntwortDaten = {
 };
 
 /** Wie lange eine Antwort brauchte, in Sekunden je Abschnitt (sidecar: zeitmessung.py). Abschnitte, die nicht liefen, fehlen. */
+/** Paket T: Wohin eine Gedächtnisantwort ging, wenn die Cloud sie mit Einwilligung beantwortet hat (gedaechtnis_cloud.py). */
+export type GedaechtnisCloud = { anbieter: string; modell: string; gesendet: string[] };
+
+/** Paket T: der echte Schritt einer laufenden Antwort (gespraech_fortschritt.py), ohne Zeitangabe. */
+export type GespraechFortschritt = { laeuft: boolean; schritt: string | null; satz: string | null };
+
 export type AntwortZeiten = {
   gesamt: number; frage?: number; suche?: number; antwort_modell?: number; saetze_modell?: number; satzpruefung?: number;
   pruefung_modell?: number;
@@ -101,7 +107,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -1231,6 +1237,8 @@ export const api = {
   modelRecommendation: () => request<ModelRecommendation>("/api/v1/models/recommendation"),
   modelRoles: () => request<ModelRoles>("/api/v1/models/roles"),
   antwortzeiten: () => request<AntwortZeitenProtokoll>("/api/v1/antwortzeiten"),
+  gespraechFortschritt: (id: string) => request<GespraechFortschritt>(`/api/v1/conversations/${id}/fortschritt`),
+  gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
   satzpruefungSetzen: (satzpruefung: "an" | "aus") =>

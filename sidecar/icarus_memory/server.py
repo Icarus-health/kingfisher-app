@@ -63,7 +63,7 @@ from .agent_verdrahtung import (
 from .consolidation import Consolidator
 from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
-from . import hintergrund_cloud
+from . import gespraech_fortschritt, hintergrund_cloud
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
 from .entities import EntityError
@@ -1793,6 +1793,7 @@ def create_app(
     register_tag(app, guard)
     from .mitteilungen_routes import register as register_mitteilungen
     register_mitteilungen(app, guard, _data_dir)
+    gespraech_fortschritt.register(app, guard)
 
     def health_authenticated(
         token: str | None,
@@ -4599,7 +4600,7 @@ def create_app(
         # Der bestehende Agent verwaltet genau einen Verlauf. Dieser Lock lädt
         # für jeden Aufruf den zugehörigen SQLite-Verlauf und verhindert, dass
         # zwei Gespräche ihre Kontexte im Threadpool vermischen.
-        with app.state.conversation_lock, working_memory_semantic_runtime.request(app):
+        with gespraech_fortschritt.laeuft(app, conversation_id), app.state.conversation_lock, working_memory_semantic_runtime.request(app):
             history = _current_conversation_history(conversation_id)
             previous = app.state.conversations.messages(conversation_id)
             previous_lineages = _conversation_lineages(previous)

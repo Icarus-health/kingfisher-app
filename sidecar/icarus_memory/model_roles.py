@@ -88,7 +88,8 @@ ROLLEN: dict[str, RolleSpec] = {s.name: s for s in (
               True, "Deine Fragen (nicht deine Quellen) werden an den Cloudanbieter gesendet."),
     RolleSpec("antwort", "Antworten formulieren",
               "Formuliert die Antwort aus den gefundenen Belegen.",
-              True, "Deine Fragen und die dafür gefundenen Textstellen werden an den Cloudanbieter gesendet."),
+              True, "Deine Fragen und die dafür gefundenen Textstellen (samt Absender, Betreff und Datum) werden an den "
+                    "Cloudanbieter gesendet, auch bei Fragen an dein Gedächtnis."),
     RolleSpec("pruefung", "Sätze gegenprüfen",
               "Prüft jeden Satz einer Antwort ein zweites Mal gegen seine Belege.",
               False, "Diese Aufgabe liest die Textstellen deiner Quellen und bleibt deshalb auf diesem Rechner."),
@@ -314,10 +315,10 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
         return fallback()
     if wahl.cloud and einwilligung_gueltig(rolle, wahl):
         if wahl.anbieter == OLLAMA_CLOUD:
-            return _cloud_ueber_ollama(rolle, wahl, standard, umgebung, inventar)
+            return _markiert(_cloud_ueber_ollama(rolle, wahl, standard, umgebung, inventar), rolle, wahl)
         cloud = _cloud(wahl, umgebung)
         if cloud is not None:
-            return cloud
+            return _markiert(cloud, rolle, wahl)
         return fallback()  # kein Schlüssel: lieber der Standard als ein Fehler beim ersten Satz
     if wahl.cloud:
         # Cloud angefordert, aber ohne gültige Einwilligung: die Wahl wird
@@ -331,6 +332,20 @@ def _anbieter_fuer(rolle: str, standard: Provider | None, wahlen: Mapping[str, R
         # Rollen ohne Cloud bleiben ohne Modell; Frage und Antwort fallen auf den geprüften Standard zurück.
         return fallback() if not anbieter_nur_lokal(rolle) else None
     return fallback()
+
+
+def _markiert(anbieter: Provider | None, rolle: str, wahl: RollenWahl) -> Provider | None:
+    """Heftet die Einwilligung an einen Cloudanbieter, den genau diese Wahl gebaut hat (`gedaechtnis_cloud.py`).
+
+    Nur ein nicht lokaler Anbieter bekommt die Marke; ein Rückfall auf den Standard oder ein doch lokal liegendes
+    Modell nie. Die Marke allein erlaubt nichts: `gedaechtnis_cloud.freigabe_gueltig` vergleicht sie bei jeder
+    Gedächtnisantwort mit der gespeicherten Wahl.
+    """
+    from .gedaechtnis_cloud import markierung
+    if anbieter is not None and not getattr(anbieter, "is_local", False) and (
+            getattr(anbieter, "ueber_ollama_cloud", False) or wahl.anbieter != OLLAMA_CLOUD):
+        anbieter.cloud_einwilligung = markierung(rolle, wahl.anbieter, wahl.cloud_einwilligung)
+    return anbieter
 
 
 def _cloud_ueber_ollama(rolle: str, wahl: RollenWahl, standard: Provider | None, umgebung: Mapping[str, str],

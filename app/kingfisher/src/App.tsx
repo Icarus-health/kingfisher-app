@@ -58,6 +58,8 @@ import { uebernehmbar } from "./uebernehmen";
 import { meldbar } from "./rueckmeldung";
 import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg";
 import { AntwortZeile } from "./AntwortZeiten";
+import { AusstehendeFrage, CloudVermerk, LokalLangsam, WarteZeile } from "./GespraechWarten";
+import { frageSchonDa, merkeFrage, nimmFrage } from "./wartenImGespraech.ts";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { PostfachStand } from "./PostfachStand";
@@ -182,7 +184,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
       const conversationId = pendingConversation ?? (await api.createConversation()).conversation.id;
       setPendingConversation(conversationId);
       rememberConversation(conversationId);
-      await api.sendMessage(conversationId, message);
+      // Die Frage steht sofort im Gespräch, dort mit dem Zwischenstand (Paket T); das Gespräch stellt sie selbst.
+      merkeFrage(conversationId, message);
       setPendingConversation(null);
       navigate(`/conversations/${conversationId}`);
     } catch (problem) {
@@ -271,6 +274,15 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
   const [memoryError, setMemoryError] = useState(false);
   const [correctionSaved, setCorrectionSaved] = useState(false);
+  const [ausstehend, setAusstehend] = useState<string | null>(null);
+  const [nichtGesendet, setNichtGesendet] = useState<string | null>(null);
+  // Beim Öffnen: lokales Antwortmodell vorwärmen (ohne lokales Modell kein Aufruf) und erfahren, ob die Cloud an ist.
+  const [cloudAn, setCloudAn] = useState<boolean | null>(null);
+  useEffect(() => {
+    let aktiv = true;
+    api.gespraechVorwaermen().then(stand => { if (aktiv) setCloudAn(stand.cloud); }).catch(() => undefined);
+    return () => { aktiv = false; };
+  }, [id]);
   const voice = useConversationVoice(id, data, sending || error || !data);
 
   function load(change?: "correction") {
@@ -317,6 +329,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean }) {
     if (!message.trim() || !chatAvailable) return;
     setSending(true);
+    setAusstehend(message);
     setSendError(false);
     setRefreshNotice(null);
     try {
@@ -344,8 +357,17 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
       throw problem;
     } finally {
       setSending(false);
+      setAusstehend(null);
     }
   }
+
+  // Eine Frage von Heute oder vom Gesprächsanfang: Das Gespräch ist schon offen, hier wird sie gestellt (Paket T).
+  useEffect(() => {
+    if (!chatAvailable) return;
+    const frage = nimmFrage(id);
+    // Scheitert das Senden, bleibt die Frage stehen, mit „Erneut senden“: Sie wurde auf einer anderen Seite getippt.
+    if (frage) void send(frage).catch(() => setNichtGesendet(frage));
+  }, [id, chatAvailable]);
 
   async function retry(messageId: string) {
     setSending(true);
@@ -439,10 +461,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             const element = event.currentTarget;
             followBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
           }}>
-            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
+            {!error && data && !data.messages.length && !sending && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
 
             {error ? <div className="message assistant error-message" role="alert"><Leer zeichen="message-circle" satz="Das Gespräch ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div> : null}
-            {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
+            {!error && !data && !sending ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
               const beleg = belegStand(message);
@@ -458,6 +480,8 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
+                {message.role === "assistant" ? <CloudVermerk kontext={message.metadata?.context} /> : null}
+                {message.role === "assistant" && messageIndex === data.messages.length - 1 && !sending ? <LokalLangsam kontext={message.metadata?.context} cloudAn={cloudAn} /> : null}
                 {message.role === "assistant" && message.metadata?.context?.quellen ? <BelegQuellen quellen={message.metadata.context.quellen} gespraech={data.conversation.id} zeigeNachricht={showMemorySource} onChange={load} /> : null}
                 {message.metadata?.context?.satzantwort || message.role !== "user" ? null : message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet eigeneFrage />)}
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
@@ -496,13 +520,15 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 </Bestaetigung> : null}
               </article>;
             })}
+            {sending && ausstehend && !frageSchonDa(data?.messages ?? [], ausstehend) ? <AusstehendeFrage text={ausstehend} /> : null}
+            {!sending && nichtGesendet && !frageSchonDa(data?.messages ?? [], nichtGesendet) ? <AusstehendeFrage text={nichtGesendet} /> : null}
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
             {refreshNotice ? <p className="memory-decision thread-notice" role="status">{refreshNotice}</p> : null}
           </div>
           <div className="thread-command">
-            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.{nichtGesendet ? <>{" "}<button className="g-knopf-schlicht g-kompakt" disabled={sending} type="button" onClick={() => { const frage = nichtGesendet; setNichtGesendet(null); void send(frage).catch(() => setNichtGesendet(frage)); }}>Erneut senden</button></> : null}</p> : null}
             {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-            {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+            {sending && <WarteZeile gespraech={id} />}
             {!error && data && <ConversationCapture key={`capture-${id}`} />}
             <VoiceDraftStatus voice={voice} /><CommandBar key={id} conversationId={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
           </div>
@@ -522,6 +548,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
   const [sending, setSending] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
   const [sendError, setSendError] = useState(false);
+  const [gespraech, setGespraech] = useState<string | null>(null);
   const created = useRef<string | null>(null);
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
@@ -534,6 +561,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       created.current = id;
       if (!live.current) return;
       rememberConversation(id);
+      setGespraech(id);  // für den Zwischenstand (Paket T); die Frage steht schon da
       await api.sendMessage(id, message);
       created.current = null;
       if (live.current) navigate(`/conversations/${id}`);
@@ -555,7 +583,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
         </div>
         <div className="thread-command">
           {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
-          {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+          {sending && <WarteZeile gespraech={gespraech} />}
           <CommandBar busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
         </div>
       </section>

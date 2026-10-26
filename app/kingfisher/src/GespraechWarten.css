@@ -1,0 +1,8 @@
+/* Warten im Gespräch (Paket T): ein leiser Punkt vor dem Schritt, der Satz zur Cloud als Nebeninformation unter der Antwort. */
+.warte-zeile { display: flex; align-items: center; gap: var(--g-a2); }
+.warte-punkt { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--g-akzent); opacity: .55; animation: warte-atmen 1.6s ease-in-out infinite; }
+@keyframes warte-atmen { 0%, 100% { opacity: .25; } 50% { opacity: .75; } }
+@media (prefers-reduced-motion: reduce) { .warte-punkt { animation: none; } }
+.message.user.ausstehend { opacity: .92; }
+.message p.lokal-langsam { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a2) var(--g-a3); margin: var(--g-a2) 0 0; font: var(--g-neben); color: var(--g-leise); white-space: normal; }
+.lokal-langsam-knoepfe { display: inline-flex; flex-wrap: wrap; gap: var(--g-a2); }
