@@ -97,7 +97,7 @@ def test_v20_upgrade_preserves_sources_and_seeds_changed_generations(tmp_path):
     conn.commit(); before = conn.execute('SELECT * FROM episodes').fetchall(); conn.close()
     upgraded = EpisodeStore(path)
     try:
-        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0] == 24
+        assert upgraded._conn.execute('PRAGMA user_version').fetchone()[0] == 25
         assert [tuple(r) for r in upgraded._conn.execute('SELECT * FROM episodes')] == before
         [pending] = upgraded.task_rechecks()
         assert pending['id'] == episode.id and pending['generation'] == 3
