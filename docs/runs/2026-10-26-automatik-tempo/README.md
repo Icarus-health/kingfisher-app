@@ -51,8 +51,12 @@ unter Einstellungen.
 
 - Backend neu: `test_tempo_gedaechtnis_cloud.py` (16), `test_tempo_fortschritt.py` (11). Rot vor dem Code (5 der
   Cloudtests; die Grenztests waren schon grün und müssen es bleiben).
-- Volle Suite: siehe unten (Abschnitt Zahlen).
-- Oberfläche: `tsc` ohne Befund, `node --test` alle grün, `vite build` grün; neu `gespraech-warten.test.mjs`, Satz der
+- Volle Suite (`-n 4`, Basis in `/dev/shm`): 7975 bestanden, 3 übersprungen; 86 rot, alle während die gemeinsame Platte
+  voll lief (`database or disk is full`, andere Pakete parallel). Diese 86 erneut: 85 grün, 1 lastabhängig
+  (`test_cloud_access.py::test_anthropic_import_route_preview_start_and_key_revocation_are_source_scoped`, wartet auf
+  einen Faden), allein grün (zweimal). Insgesamt also 8061 grün, keiner durch dieses Paket rot.
+- Seitenprobe `scripts/probe_seiten_ui.py` hell und dunkel: 75 Breiten geprüft, 0 nicht in Ordnung, ok.
+- Oberfläche: `tsc` ohne Befund, `node --test` 933 grün, `vite build` grün; neu `gespraech-warten.test.mjs`, Satz der
   Einwilligung in `zusagen-nach-kuerzen.test.mjs` festgehalten.
 - Browser: `scripts/probe_tempo_ui.py` (Skriptmodell wartet 3,5 s bei der Auswahl und 5 s bei den Sätzen): Frage nach
   0,2 s sichtbar, Schritte „Wählt Quellen …“ → „Formuliert …“, Satz zur Cloud nach 9,9 s, Knopf führt sichtbar zum
