@@ -1865,6 +1865,9 @@ class EpisodeStore:
             if alle is None or alle[0] != stand:
                 alle = (stand, self._participants_for_addresses(None, anzeigenamen=anzeigenamen))
                 self._teilnehmer_alle[anzeigenamen] = alle
+                self._teilnehmer_zwischen.berechnet += 1
+            else:
+                self._teilnehmer_zwischen.treffer += 1
         leer = {'namen': {}, 'zuletzt': None, 'quellen': {}}
         return {a: copy.deepcopy(alle[1].get(a, leer)) for a in gesucht}
 

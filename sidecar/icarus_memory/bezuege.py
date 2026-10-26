@@ -937,7 +937,8 @@ class Bezuege:
         alle = quellen if quellen is not None else self.quellen_von(sache)
         # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur, Absendername) geht der Domäne vor, auch aus
         # einer der 20 jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“); die Domäne erst danach.
-        for nur_text, juengste in ((True, alle[:20]), (False, alle[:5])):
+        mails = [q for q in alle if q.get('art') == 'message']
+        for nur_text, juengste in ((True, alle[:5] + mails[:20]), (False, alle[:5])):
             for quelle in juengste:
                 text = self._schreibweise(sache, quelle['episode_id'], nur_text=nur_text)
                 if text:
