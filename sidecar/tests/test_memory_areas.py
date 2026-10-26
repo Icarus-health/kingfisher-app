@@ -120,7 +120,7 @@ def test_restored_v18_snapshot_migrates_to_supported_schema_21(tmp_path):
     restore_all(snapshot, restored)
 
     from icarus_memory.update_backup import _targets
-    assert max(item.version for item in _targets()["episodes.sqlite3"]) == 24
+    assert max(item.version for item in _targets()["episodes.sqlite3"]) == 25
     recovered = EpisodeStore(restored / "episodes.sqlite3")
     assert any(item["id"] == "health" for item in Categories(recovered).taxonomy()["items"])
     recovered.close()

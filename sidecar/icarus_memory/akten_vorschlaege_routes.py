@@ -6,8 +6,10 @@
 * `POST /api/v1/akten/vorschlaege/{kennung}/ablehnen`: „Nein danke“, wird gemerkt und nicht wiederholt.
 * `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen`: stellt den Stand vor der Entscheidung her.
 
-Ohne Klick schreibt keine dieser Routen etwas. Jeder Klick steht im Logbuch (Art `akte_vorschlag`, nur Kennung,
-Entscheidung, Sache und Name, kein Text).
+Jeder Klick steht im Logbuch (Art `akte_vorschlag`, nur Kennung, Entscheidung, Sache und Name, kein Text). Seit
+Paket P (`docs/66-automatik.md`) legt Kingfisher **klare** Vorschläge vor dem Briefing selbst an
+(`projekt_automatik.py`, mit Grund und „Rückgängig“); das Briefing fragt dann nur noch nach den unklaren, einer nach
+dem anderen. Das Zurücknehmen einer solchen Anlage löst nur Kingfishers eigene Zuordnungen und wird gemerkt.
 """
 from __future__ import annotations
 
@@ -31,8 +33,13 @@ def _ins_logbuch(app, entscheidung: str, sache: str, name: str, kennung: str) ->
 
 
 def fuer_briefing(app) -> dict[str, Any]:
-    """Höchstens ein Vorschlag für Briefing und Heute: der mit den meisten Quellen, bei gleicher Zahl der älteste."""
+    """Höchstens ein Vorschlag für Briefing und Heute: der mit den meisten Quellen, bei gleicher Zahl der älteste.
+
+    Vorher legt Kingfisher die klaren selbst an und ordnet neue Mails nach Absender zu (`projekt_automatik`): Was
+    dann noch übrig ist, ist unklar und bleibt Frage, einer nach dem anderen."""
+    from . import projekt_automatik
     from .akten_routes import bausteine, nachfuehren
+    projekt_automatik.schritt_fuer(app)
     nachfuehren(app)
     bezuege, _ = bausteine(app)
     alle = modul.kandidaten(bezuege, getattr(app.state, 'workspace', None))
@@ -43,6 +50,7 @@ def fuer_akte(app, sache: str) -> dict[str, Any] | None:
     """Die Zeile „Daraus eine Akte machen?“ einer Akte `projekt:n:<Name>`, oder die gemerkte Entscheidung
     (abgelehnt dort, angenommen in der Akte des angelegten Projekts). None bei allen anderen Sachen."""
     from .akten_routes import bausteine
+    from .projekt_automatik import ergaenzen
     teile = zerlegen(sache)
     if teile is None or teile[0] != 'projekt':
         return None
@@ -52,12 +60,13 @@ def fuer_akte(app, sache: str) -> dict[str, Any] | None:
         kennung = modul.kennung_von(teile[1][2:])
         gemerkt = ablage.zu(kennung)
         if gemerkt is not None:
-            return {'vorschlag': None, 'entscheidung': modul.oeffentlich(gemerkt)}
+            return {'vorschlag': None, 'entscheidung': ergaenzen(bezuege.episodes, bezuege, modul.oeffentlich(gemerkt))}
         vorschlag = next((v for v in modul.kandidaten(bezuege, getattr(app.state, 'workspace', None))
                           if v.kennung == kennung), None)
         return {'vorschlag': vorschlag.als_dict() if vorschlag else None, 'entscheidung': None}
     gemerkt = ablage.nach_projekt(teile[1])
-    return {'vorschlag': None, 'entscheidung': modul.oeffentlich(gemerkt)} if gemerkt else None
+    return ({'vorschlag': None, 'entscheidung': ergaenzen(bezuege.episodes, bezuege, modul.oeffentlich(gemerkt))}
+            if gemerkt else None)
 
 
 def _vorschlag(app, kennung: str) -> modul.Vorschlag:
@@ -76,7 +85,10 @@ def _vorschlag(app, kennung: str) -> modul.Vorschlag:
 
 
 def register(app, guard) -> None:
+    from . import projekt_automatik, projekt_automatik_routes
     from .akten_routes import bausteine, nachfuehren
+    # Projekte von selbst (Paket P): Heute-Hinweis und „Rückgängig“ je Mail, in eigener Datei.
+    projekt_automatik_routes.register(app, guard)
 
     @app.get('/api/v1/akten/vorschlaege', dependencies=guard)
     def akten_vorschlaege() -> dict[str, Any]:
@@ -114,11 +126,13 @@ def register(app, guard) -> None:
 
     @app.post('/api/v1/akten/vorschlaege/{kennung}/zuruecknehmen', dependencies=guard)
     def akten_vorschlag_zuruecknehmen(kennung: str = _KENNUNG) -> dict[str, Any]:
-        """Stellt den Stand vor der Entscheidung her; 404 ohne Entscheidung."""
+        """Stellt den Stand vor der Entscheidung her; 404 ohne Entscheidung. Eine Anlage durch Kingfisher wird nur in
+        ihren eigenen Zuordnungen gelöst und als abgelehnt gemerkt (`projekt_automatik.zuruecknehmen`)."""
         bezuege, _ = bausteine(app)
         try:
-            ergebnis = modul.zuruecknehmen(bezuege, app.state.workspace, kennung, tasks=getattr(app.state, 'tasks', None),
-                                          audit=getattr(app.state, 'audit', None))
+            ergebnis = projekt_automatik.zuruecknehmen(bezuege, app.state.workspace, kennung,
+                                                       tasks=getattr(app.state, 'tasks', None),
+                                                       audit=getattr(app.state, 'audit', None))
         except modul.Unbekannt as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         _ins_logbuch(app, 'zurueckgenommen', ergebnis['sache'], '', kennung)

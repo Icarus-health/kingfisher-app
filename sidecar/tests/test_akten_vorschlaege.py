@@ -312,10 +312,12 @@ def test_nach_annehmen_ist_ablehnen_409(api):
 
 
 def test_briefing_zeigt_hoechstens_einen_vorschlag_den_aeltesten_mit_den_meisten_quellen(api):
+    """Einer nach dem anderen (nicht einer am Tag): Nach einer Entscheidung steht der nächste da. Nur Anna schreibt,
+    deshalb ist keiner klar genug, um ihn selbst anzulegen (`projekt_automatik.py`); alle bleiben Frage."""
     app, client = api
-    atlas(app)                                                 # 4 Quellen, älteste vor 20 Tagen
-    atlas(app, name='Orion', tage=(30, 25, 22), von=(ANNA, BEN, ANNA))   # 3 Quellen, älter
-    atlas(app, name='Sirius', tage=(10, 9, 8, 7), von=(ANNA, BEN, ANNA, BEN))   # 4 Quellen, jünger
+    atlas(app, von=(ANNA,) * 4)                                # 4 Quellen, älteste vor 20 Tagen
+    atlas(app, name='Orion', tage=(30, 25, 22), von=(ANNA,) * 3)   # 3 Quellen, älter
+    atlas(app, name='Sirius', tage=(10, 9, 8, 7), von=(ANNA,) * 4)   # 4 Quellen, jünger
     erwaehnungen(app)
     assert len(vorschlaege(app)) == 3
     daten = client.get('/dashboard').json()
@@ -331,6 +333,9 @@ def test_briefing_zeigt_hoechstens_einen_vorschlag_den_aeltesten_mit_den_meisten
     morgen = client.get('/api/v1/morning-briefing').json()
     karten = [k for k in morgen['needs_you'] if k['source'] == 'akte_vorschlag']
     assert len(karten) == 1 and karten[0]['source_ref'] == gezeigt['kennung'] and karten[0]['title'] == punkte[0]['text']
+    # Nach „Nein danke“ steht sofort der nächste da, nicht erst morgen.
+    assert client.post(f"/api/v1/akten/vorschlaege/{gezeigt['kennung']}/ablehnen").status_code == 200
+    assert client.get('/dashboard').json()['akten_vorschlaege']['vorschlag']['name'] == 'Projekt Sirius'
 
 
 def test_briefing_ohne_vorschlag_und_rein_aus_den_daten():
@@ -379,18 +384,21 @@ def test_logbuch_haelt_annehmen_und_ablehnen_fest(api):
 def test_migration_24_legt_die_tabelle_an_und_laesst_entscheidungen_stehen(tmp_path):
     pfad = tmp_path / 'episodes.sqlite3'
     store = EpisodeStore(pfad)
-    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 24
+    assert store._conn.execute('PRAGMA user_version').fetchone()[0] == 25
     store._conn.execute("INSERT INTO akten_entscheidungen VALUES ('t:e-1', 'erledigt', 1.0)")
     store._conn.commit()
     store.close()
     # Zurück auf 23: ein älterer Bestand ohne die Tabelle, mit einer Entscheidung aus Migration 23.
     verbindung = sqlite3.connect(pfad)
     verbindung.execute('DROP TABLE akten_vorschlag_entscheidungen')
+    from icarus_memory.projekt_automatik import TABLES as AUTOMATIK   # Migration 25 kommt danach
+    for tabelle in AUTOMATIK:
+        verbindung.execute(f'DROP TABLE {tabelle}')
     verbindung.execute('PRAGMA user_version = 23')
     verbindung.commit()
     verbindung.close()
     wieder = EpisodeStore(pfad)
-    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 24
+    assert wieder._conn.execute('PRAGMA user_version').fetchone()[0] == 25
     assert wieder._conn.execute("SELECT entscheidung FROM akten_entscheidungen WHERE ziel = 't:e-1'").fetchone()[0] == 'erledigt'
     ablage = Entscheidungen(wieder)
     ablage.merken('0123456789abcdef', 'abgelehnt')

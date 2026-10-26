@@ -7,8 +7,10 @@ Akte zu machen, mit Begründung in einem Satz und den Textstellen.
 
 Regeln (`docs/30-akten.md`, Abschnitt „Neue Akte?“):
 
-* **Verdichtung schlägt vor, sie schreibt nicht.** Ein Projekt ist Ablage, kein Fakt; es entsteht nur durch den
-  Klick des Nutzers (`annehmen`). Der Vorschlag selbst speichert nichts, und das Annehmen legt keine Aussage an.
+* **Verdichtung schlägt vor, sie schreibt nicht.** Ein Projekt ist Ablage, kein Fakt; es entsteht durch den Klick
+  des Nutzers (`annehmen`) oder, wenn der Vorschlag klar ist, durch Kingfisher selbst (`projekt_automatik.py`, seit
+  26.10.2026, sichtbar mit Grund und Rückgängig). Der Vorschlag selbst speichert nichts, und das Annehmen legt keine
+  Aussage an.
 * **Ohne Modell**, deterministisch und nachprüfbar: Ein Name wird vorgeschlagen, wenn mindestens eine Schwelle
   erreicht ist: `MIN_QUELLEN` geltende Quellen, oder `MIN_BETEILIGTE` verschiedene Personen über mindestens zwei
   Quellen, oder Quellen über `MIN_TAGE` Tage verteilt.
@@ -118,6 +120,10 @@ class Vorschlag:
     tage: int
     erste: str
     """Zeitpunkt der ältesten Quelle (ISO), für die Reihenfolge im Briefing."""
+    letzte: str
+    """Zeitpunkt der jüngsten Quelle (ISO): Ist das Projekt noch lebendig? (`projekt_automatik.einschaetzen`)"""
+    arten: tuple[str, ...]
+    """Arten der Quellen (`message`, `document`, `event`), für das Wort im Grund."""
     quellen: tuple[dict[str, Any], ...]
     """Jüngste zuerst, höchstens `QUELLEN_GEZEIGT`: `episode_id`, `titel`, `datum`, `zitat`."""
     beteiligte: tuple[dict[str, Any], ...]
@@ -127,7 +133,8 @@ class Vorschlag:
 
     def als_dict(self) -> dict[str, Any]:
         return {'kennung': self.kennung, 'sache': self.sache, 'name': self.name, 'grund': self.grund,
-                'anzahl': self.anzahl, 'tage': self.tage, 'erste': self.erste, 'quellen': list(self.quellen),
+                'anzahl': self.anzahl, 'tage': self.tage, 'erste': self.erste, 'letzte': self.letzte,
+                'quellen': list(self.quellen),
                 'beteiligte': list(self.beteiligte)}
 
 
@@ -142,10 +149,14 @@ def _aufzaehlung(namen: list[str]) -> str:
     return ', '.join(namen[:MAX_NAMEN]) + (' und einer weiteren Person' if rest == 1 else f' und {rest} weiteren')
 
 
+def quellen_wort(arten: set[str]) -> str:
+    """„Mails“, „Notizen“, „Terminen“, wenn alle Quellen dieselbe Art haben, sonst „Quellen“."""
+    return _QUELLEN_WORT[next(iter(arten))] if len(arten) == 1 and next(iter(arten)) in _QUELLEN_WORT else 'Quellen'
+
+
 def grund_satz(anzahl: int, arten: set[str], erste: datetime | None, namen: list[str]) -> str:
     """„In 4 Mails seit 3. Oktober mit Anna Keller und Ben Braun“: Zahl, Zeit und Menschen, nachprüfbar."""
-    wort = _QUELLEN_WORT[next(iter(arten))] if len(arten) == 1 and next(iter(arten)) in _QUELLEN_WORT else 'Quellen'
-    teile = [f'In {anzahl} {wort}']
+    teile = [f'In {anzahl} {quellen_wort(arten)}']
     if erste is not None:
         teile.append(f'seit {tag_und_monat(erste.astimezone())}')
     if namen:
@@ -179,11 +190,12 @@ def _bauen(bezuege: Any, sache: str, kennung: str, *, pruefen: bool = True) -> V
         zitat = next((z for z in (bezuege.zitat(q['episode_id'], s, e) for s, e in q.get('stellen', [])) if z), '')
         gezeigt.append({'episode_id': q['episode_id'], 'titel': titel, 'datum': q['zeit'], 'zitat': zitat})
     erste = min(zeiten) if zeiten else None
+    arten = {str(q.get('art') or '') for q in quellen}
     return Vorschlag(
         kennung=kennung, sache=sache, name=bezuege.beschriftung(sache, quellen=quellen),
-        grund=grund_satz(len(quellen), {str(q.get('art') or '') for q in quellen}, erste,
-                         [b['name'] for b in beteiligte]),
-        anzahl=len(quellen), tage=tage, erste=erste.isoformat() if erste else '', quellen=tuple(gezeigt),
+        grund=grund_satz(len(quellen), arten, erste, [b['name'] for b in beteiligte]),
+        anzahl=len(quellen), tage=tage, erste=erste.isoformat() if erste else '',
+        letzte=max(zeiten).isoformat() if zeiten else '', arten=tuple(sorted(arten)), quellen=tuple(gezeigt),
         beteiligte=beteiligte, quellen_ids=tuple(ids))
 
 
@@ -377,9 +389,13 @@ def ablehnen(bezuege: Any, vorschlag: Vorschlag) -> dict[str, Any]:
             'satz': f'Gemerkt: „{vorschlag.name}“ wird nicht mehr vorgeschlagen.'}
 
 
-def zuruecknehmen(bezuege: Any, workspace: Any, kennung: str, *, tasks: Any = None, audit: Any = None) -> dict[str, Any]:
+def zuruecknehmen(bezuege: Any, workspace: Any, kennung: str, *, tasks: Any = None, audit: Any = None,
+                  quellen: list[str] | None = None, danach: str | None = None) -> dict[str, Any]:
     """Stellt den Stand vor der Entscheidung her: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran
-    hängt (andere Quellen, Aufgaben, Notizen); eine Ablehnung wird einfach vergessen."""
+    hängt (andere Quellen, Aufgaben, Notizen); eine Ablehnung wird einfach vergessen.
+
+    `quellen` ersetzt die gemerkten Quellen (nur diese werden gelöst; `projekt_automatik` gibt so genau die eigenen
+    Zuordnungen an), `danach='abgelehnt'` merkt statt zu vergessen (eine Anlage durch Kingfisher kommt nicht wieder)."""
     from .workspace import WorkspaceError
     episodes = bezuege.episodes
     ablage = Entscheidungen(episodes)
@@ -399,7 +415,7 @@ def zuruecknehmen(bezuege: Any, workspace: Any, kennung: str, *, tasks: Any = No
         projekt = None
     name = projekt.name if projekt else (bezuege.beschriftung(sache) if zerlegen(sache) else 'das Projekt')
     geloest: list[str] = []
-    for episode_id in gemerkt['quellen']:
+    for episode_id in (gemerkt['quellen'] if quellen is None else quellen):
         try:
             episode = episodes.get(episode_id)
         except Exception:  # noqa: BLE001
@@ -427,7 +443,10 @@ def zuruecknehmen(bezuege: Any, workspace: Any, kennung: str, *, tasks: Any = No
             entfernt = workspace.remove_project(pid)
         except WorkspaceError:
             entfernt = False
-    ablage.loeschen(kennung)
+    if danach == 'abgelehnt':
+        ablage.merken(kennung, 'abgelehnt', sache=sache)
+    else:
+        ablage.loeschen(kennung)
     satz = f'Zurückgenommen: {_zahl_quellen(len(geloest), "gelöst")}'
     if entfernt:
         satz += f', Projekt „{name}“ entfernt.'
@@ -444,4 +463,4 @@ def zuruecknehmen(bezuege: Any, workspace: Any, kennung: str, *, tasks: Any = No
 
 __all__ = ['ENTSCHEIDUNGEN', 'Entscheidungen', 'MAX_SACHEN', 'MIN_BETEILIGTE', 'MIN_QUELLEN', 'MIN_TAGE', 'MIN_ZEICHEN',
            'SchonEntschieden', 'Unbekannt', 'Vorschlag', 'ablehnen', 'annehmen', 'grund_satz', 'gueltige_kennung',
-           'kandidaten', 'kennung_von', 'oeffentlich', 'projekt_id', 'vorschlag_zu', 'zuruecknehmen']
+           'kandidaten', 'kennung_von', 'oeffentlich', 'projekt_id', 'quellen_wort', 'vorschlag_zu', 'zuruecknehmen']

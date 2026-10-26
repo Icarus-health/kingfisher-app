@@ -10,6 +10,7 @@ import { eingangZeile, naechsterTerminText, zaehlerText } from "./heute";
 import { type Attention, type MorningBriefing } from "./api";
 import { BriefingSuggestion } from "./BriefingSuggestion";
 import { AkteVorschlagKnoepfe } from "./AkteVorschlagKnoepfe";
+import { NeueProjekte } from "./NeueProjekte";
 import { ProfileSource } from "./ProfileSource";
 import { TagesLage } from "./TagesLage";
 import { activityAction } from "./dailyFlow";
@@ -113,6 +114,7 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
           </div>
         </li>;
       })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen." : "Nichts wartet auf dich."}</p>}
+      <NeueProjekte onChange={() => onChange()} />
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
       </div>
       {offeneAufgabe?.source_ref && <DetailPanel title="Aufgabe" onClose={() => setOffeneAufgabe(null)}>
