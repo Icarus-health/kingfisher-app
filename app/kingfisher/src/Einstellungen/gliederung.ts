@@ -21,7 +21,7 @@ export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string;
     satz: "Hier muss nichts geändert werden." },
 ];
 
-/** Die sieben Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
+/** Die acht Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
 export const SCHALTER = {
   wetter: { titel: "Morgens das Wetter holen",
     verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo. Termine, Namen und Adressen bleiben bei dir." },
@@ -41,6 +41,9 @@ export const SCHALTER = {
   cloud_einordnung: { titel: "Neue Mails in der Cloud einordnen",
     verlaesst: "Jede neue Mail verlässt den Rechner vollständig, an Anthropic (Claude). Aus: Einordnen läuft nur mit einem Modell auf diesem Rechner.",
     zustimmung: "Ich willige ein." },
+  // Aufgaben von selbst (docs/66-automatik.md): als einziger an, bis man ihn ausschaltet; nichts geht nach draußen.
+  aufgaben_selbst: { titel: "Aufgaben aus Mails selbst anlegen",
+    verlaesst: "Es verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus neuen Mails werden Aufgaben, jede mit „Rückgängig“. Aus: Sie bleiben Vorschläge." },
 } as const;
 
 export const ICH = {
@@ -156,7 +159,7 @@ export function vordereTexte(): string[] {
 export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/Zugaenge.tsx", "Einstellungen/NeuAnmelden.tsx", "Einstellungen/neuAnmeldenWeg.ts", "Einstellungen/Darf.tsx", "Einstellungen/Ich.tsx", "Einstellungen/CloudSchalter.tsx",
   "Einstellungen/Seite.tsx", "Einstellungen/Mitteilungen.tsx", "mitteilungenSchalter.ts", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
-  "Einstellungen/CloudEinordnungSchalter.tsx", "Einstellungen/cloudEinordnung.ts",
+  "Einstellungen/CloudEinordnungSchalter.tsx", "Einstellungen/cloudEinordnung.ts", "Einstellungen/AufgabenSelbstSchalter.tsx",
   "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "KreisKarten.tsx",
   // Google ohne Cloud-Projekt (Fremdprobe, Befund 2): Post und Kalender vorne, in Alltagsworten.
   "GoogleKalenderAdresse.tsx", "googleWeg.ts", "KalenderMitAdresse.tsx", "Einrichtung/MailSchritt.tsx", "Einrichtung/KalenderSchritt.tsx",

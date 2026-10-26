@@ -110,6 +110,18 @@ class Task:
     """Warum die Post das Warten aufgelöst hat („Anna hat am … geantwortet“): wie `erledigt_grund`, nur für
     „wieder bei dir“. Die Aufgabe ist dann offen, nicht erledigt."""
 
+    person: dict[str, str] | None = None
+    """Wer zu dieser Aufgabe gehört: wer darum gebeten hat oder wem zugesagt wurde (`{"adresse", "name"}`).
+
+    Ein Mensch ist zuerst seine Adresse (`personen.py`); die Adresse führt zur Akte. Kein Fakt über den Menschen,
+    nur die Ablage der Aufgabe bei ihm (`aufgaben_von_selbst.py`)."""
+
+    angelegt: dict[str, Any] | None = None
+    """Wie die Aufgabe entstand, wenn nicht von Hand: `art` `automatisch` (Kingfisher hat eine eindeutige Bitte oder
+    Zusage aus einer neuen Mail selbst angelegt, mit Satz, Mail und Grundsatz) oder `alle_uebernehmen` (mit einem
+    Klick zusammen mit anderen Vorschlägen übernommen, mit `gruppe`). Beides lässt sich zurücknehmen
+    (`aufgaben_von_selbst.py`)."""
+
     def is_overdue(self, at: datetime | None = None) -> bool:
         """Überfällig ist nur, was bei **dir** liegt.
 
@@ -154,6 +166,8 @@ class Task:
             "overdue": self.is_overdue(),
             "erledigt_grund": dict(self.erledigt_grund) if self.erledigt_grund else None,
             "geaendert_grund": dict(self.geaendert_grund) if self.geaendert_grund else None,
+            "person": dict(self.person) if self.person else None,
+            "angelegt": dict(self.angelegt) if self.angelegt else None,
         }
 
 
@@ -340,11 +354,57 @@ def _verify_v4(connection: sqlite3.Connection) -> None:
     )
 
 
+# Aufgaben von selbst (`aufgaben_von_selbst.py`, 26.10.2026): welche Vorschläge der Durchlauf schon geprüft hat (mit
+# dem Ergebnis als Kürzel), was der Nutzer zurückgenommen hat (damit es nicht wiederkommt; mit dem Dokument der Aufgabe,
+# damit „Rückgängig“ des Zurücknehmens sie unverändert wiederherstellt) und der Schalter „Aufgaben aus Mails selbst
+# anlegen“ (keine Zeile: an).
+_AUTO_TABLES = {
+    "aufgaben_auto_geprueft": {"proposal_id", "ergebnis", "geprueft_am"},
+    "aufgaben_auto_zurueck": {"proposal_id", "episode_id", "titel_schluessel", "zitat_schluessel", "task_id",
+                              "dokument", "zurueck_am"},
+    "aufgaben_auto_einstellung": {"id", "an"},
+}
+_AUTO_KEYS = {"aufgaben_auto_geprueft": {"proposal_id"}, "aufgaben_auto_zurueck": {"proposal_id"},
+              "aufgaben_auto_einstellung": {"id"}}
+_AUTO_INDEX = {"idx_aufgaben_auto_zurueck_quelle": IndexContract("aufgaben_auto_zurueck", ("episode_id",))}
+
+
+def _migrate_v5(connection: sqlite3.Connection) -> None:
+    connection.execute("""CREATE TABLE aufgaben_auto_geprueft (
+        proposal_id TEXT PRIMARY KEY,
+        ergebnis TEXT NOT NULL,
+        geprueft_am TEXT NOT NULL
+    )""")
+    connection.execute("""CREATE TABLE aufgaben_auto_zurueck (
+        proposal_id TEXT PRIMARY KEY,
+        episode_id TEXT NOT NULL,
+        titel_schluessel TEXT NOT NULL,
+        zitat_schluessel TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        dokument TEXT NOT NULL,
+        zurueck_am TEXT NOT NULL
+    )""")
+    connection.execute("CREATE INDEX idx_aufgaben_auto_zurueck_quelle ON aufgaben_auto_zurueck(episode_id)")
+    connection.execute("CREATE TABLE aufgaben_auto_einstellung (id INTEGER PRIMARY KEY CHECK(id = 1), an INTEGER NOT NULL)")
+
+
+def _verify_v5(connection: sqlite3.Connection) -> None:
+    verify_schema(connection,
+        expected_tables={**_CURRENT_SCHEMA, "task_events": _HISTORY_SCHEMA,
+                         "task_requests": {"request_id", "payload_digest", "task_id"}, **_POST_TABLES, **_AUTO_TABLES},
+        expected_indexes={**_INDEX_CONTRACTS, "idx_task_events_task_sequence": _HISTORY_INDEX, **_AUTO_INDEX},
+        expected_triggers=_HISTORY_TRIGGERS,
+        expected_primary_keys={**_PRIMARY_KEYS, "task_events": {"sequence"}, "task_requests": {"request_id"},
+                               **_POST_KEYS, **_AUTO_KEYS},
+    )
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "append_only_task_history", _migrate_v2, _verify_v2),
     Migration(3, "atomic_task_save_requests", _migrate_v3, _verify_v3),
     Migration(4, "aufgaben_folgen_der_post", _migrate_v4, _verify_v4),
+    Migration(5, "aufgaben_von_selbst", _migrate_v5, _verify_v5),
 )
 
 
@@ -435,7 +495,9 @@ class TaskStore:
                                (request_id, payload_digest, task.id))
             return task
 
-    def from_suggestion(self, proposal_id: str, title: str, provenance: Provenance, *, due: datetime | None = None, project_id: str | None = None, waiting_for: str | None = None) -> Task:
+    def from_suggestion(self, proposal_id: str, title: str, provenance: Provenance, *, due: datetime | None = None,
+                        project_id: str | None = None, waiting_for: str | None = None,
+                        person: dict[str, str] | None = None, angelegt: dict[str, Any] | None = None) -> Task:
         """Eine ausdrückliche Übernahme bleibt auch nach einem Abbruch einmalig."""
         if not proposal_id or not title.strip():
             raise ValueError("Vorschlag und Aufgabentitel dürfen nicht leer sein.")
@@ -444,6 +506,7 @@ class TaskStore:
             id=f"t-suggestion-{proposal_id}", title=title.strip(), provenance=provenance,
             created_at=at, due=ensure_aware(due), project_id=project_id,
             wartet_auf=waiting_for, wartet_seit=at if waiting_for else None,
+            person=dict(person) if person else None, angelegt=dict(angelegt) if angelegt else None,
         )
         with self._transaction():
             row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task.id,)).fetchone()
@@ -602,6 +665,121 @@ class TaskStore:
                 "ORDER BY coalesce(json_extract(document,'$.erledigt_grund.am'), json_extract(document,'$.geaendert_grund.am')) DESC "
                 "LIMIT ?", (moment.isoformat(), limit)).fetchall()
         return [self._from_row(row) for row in rows]
+
+    # -- Aufgaben von selbst (`aufgaben_von_selbst.py`) ---------------------------
+    #
+    # Eine Aufgabe ist Ablage, kein Fakt (docs/66-automatik.md): Kingfisher darf eine eindeutige Bitte oder Zusage
+    # selbst anlegen, aber sichtbar, mit Grund und Rückgängig. Zurücknehmen entfernt die Aufgabe und merkt sich das
+    # (Quelle, Titel, Textstelle), damit sie nicht wiederkommt; das Dokument bleibt für „Rückgängig“ des Zurücknehmens.
+
+    def auto_an(self) -> bool:
+        """Der Schalter „Aufgaben aus Mails selbst anlegen“; ohne gespeicherte Wahl an (die Vorgabe)."""
+        with self._lock:
+            row = self._conn.execute("SELECT an FROM aufgaben_auto_einstellung WHERE id = 1").fetchone()
+        return True if row is None else bool(row["an"])
+
+    def auto_setzen(self, an: bool) -> bool:
+        with self._transaction():
+            self._conn.execute("INSERT INTO aufgaben_auto_einstellung (id, an) VALUES (1, ?) "
+                               "ON CONFLICT(id) DO UPDATE SET an=excluded.an", (1 if an else 0,))
+        return bool(an)
+
+    def auto_geprueft(self) -> set[str]:
+        """Die Vorschläge, die der Durchlauf schon geprüft hat (jeder einmal)."""
+        with self._lock:
+            return {row["proposal_id"] for row in self._conn.execute("SELECT proposal_id FROM aufgaben_auto_geprueft")}
+
+    def auto_geprueft_merken(self, proposal_id: str, ergebnis: str) -> None:
+        with self._transaction():
+            self._conn.execute("INSERT INTO aufgaben_auto_geprueft (proposal_id, ergebnis, geprueft_am) VALUES (?, ?, ?) "
+                               "ON CONFLICT(proposal_id) DO UPDATE SET ergebnis=excluded.ergebnis, "
+                               "geprueft_am=excluded.geprueft_am", (proposal_id, ergebnis, now().isoformat()))
+
+    def auto_ergebnis(self, proposal_id: str) -> str | None:
+        with self._lock:
+            row = self._conn.execute("SELECT ergebnis FROM aufgaben_auto_geprueft WHERE proposal_id = ?",
+                                     (proposal_id,)).fetchone()
+        return row["ergebnis"] if row else None
+
+    def auto_zurueckgenommen(self, episode_id: str, titel_schluessel: str, zitat_schluessel: str) -> bool:
+        """Ob der Nutzer eine Aufgabe aus dieser Mail mit demselben Titel oder derselben Textstelle zurückgenommen hat."""
+        with self._lock:
+            return self._conn.execute(
+                "SELECT 1 FROM aufgaben_auto_zurueck WHERE episode_id = ? AND (titel_schluessel = ? OR zitat_schluessel = ?)",
+                (episode_id, titel_schluessel, zitat_schluessel)).fetchone() is not None
+
+    def mit_quelle(self, source_ref: str) -> list[Task]:
+        """Alle Aufgaben (jeder Zustand) aus dieser Quelle (`episode:<id>`)."""
+        with self._lock:
+            rows = self._conn.execute("SELECT document FROM tasks WHERE json_extract(document,'$.provenance.source_ref') = ?",
+                                      (source_ref,)).fetchall()
+        return [self._from_row(row) for row in rows]
+
+    def angelegt_seit(self, seit: datetime, art: str = "automatisch", limit: int = 200) -> list[Task]:
+        """Aufgaben, die Kingfisher seit `seit` selbst angelegt hat (nicht zurückgenommene), jüngste zuerst."""
+        moment = (ensure_aware(seit) or now()).astimezone(timezone.utc)
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT document FROM tasks WHERE json_extract(document,'$.angelegt.art') = ? "
+                "AND json_extract(document,'$.angelegt.am') >= ? "
+                "ORDER BY json_extract(document,'$.angelegt.am') DESC LIMIT ?",
+                (art, moment.isoformat(), limit)).fetchall()
+        return [self._from_row(row) for row in rows]
+
+    def gruppe(self, gruppe: str) -> list[Task]:
+        """Die Aufgaben einer gemeinsamen Übernahme („Alle übernehmen“)."""
+        with self._lock:
+            rows = self._conn.execute("SELECT document FROM tasks WHERE json_extract(document,'$.angelegt.gruppe') = ?",
+                                      (gruppe,)).fetchall()
+        return [self._from_row(row) for row in rows]
+
+    def anlage_entfernen(self, task_id: str, *, merken: dict[str, str] | None = None) -> Task:
+        """Entfernt eine Aufgabe, die Kingfisher angelegt oder gemeinsam übernommen hat; die Geschichte bleibt.
+
+        `merken` (`proposal_id`, `episode_id`, `titel_schluessel`, `zitat_schluessel`) hält fest, dass der Nutzer sie
+        zurückgenommen hat, damit dieselbe Bitte nicht wieder angelegt wird; dazu das Dokument für das Wiederherstellen.
+        `KeyError` unbekannt, `LookupError`, wenn die Aufgabe nicht von selbst oder gemeinsam entstand.
+        """
+        with self._transaction():
+            row = self._conn.execute("SELECT document FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            if row is None:
+                raise KeyError(f"Unbekannte Aufgabe: {task_id}")
+            task = self._from_row(row)
+            if not task.angelegt:
+                raise LookupError("Diese Aufgabe hat Kingfisher nicht selbst angelegt; sie bleibt.")
+            before = _state(task.to_dict())
+            self._conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+            self._conn.execute(
+                "INSERT INTO task_events (task_id, kind, recorded_at, business_at, before_state, after_state) "
+                "VALUES (?, 'auto_removed', ?, NULL, ?, ?)",
+                (task.id, now().isoformat(), json.dumps(before, ensure_ascii=False),
+                 json.dumps({**before, "status": "removed"}, ensure_ascii=False)))
+            if merken:
+                self._conn.execute(
+                    "INSERT INTO aufgaben_auto_zurueck (proposal_id, episode_id, titel_schluessel, zitat_schluessel, "
+                    "task_id, dokument, zurueck_am) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(proposal_id) DO UPDATE SET "
+                    "task_id=excluded.task_id, dokument=excluded.dokument, zurueck_am=excluded.zurueck_am",
+                    (merken["proposal_id"], merken["episode_id"], merken["titel_schluessel"], merken["zitat_schluessel"],
+                     task.id, row["document"], now().isoformat()))
+            return task
+
+    def anlage_wiederherstellen(self, task_id: str) -> tuple[Task, str]:
+        """Nimmt das Zurücknehmen zurück: dieselbe Aufgabe wie vorher, und sie gilt nicht mehr als zurückgenommen.
+
+        Gibt die Aufgabe und den Vorschlag zurück. `KeyError`, wenn es nichts wiederherzustellen gibt; `ValueError`,
+        wenn unter der Kennung inzwischen wieder eine Aufgabe steht."""
+        with self._transaction():
+            row = self._conn.execute("SELECT proposal_id, dokument FROM aufgaben_auto_zurueck WHERE task_id = ? "
+                                     "ORDER BY zurueck_am DESC LIMIT 1", (task_id,)).fetchone()
+            if row is None:
+                raise KeyError(f"Nichts wiederherzustellen: {task_id}")
+            if self._conn.execute("SELECT 1 FROM tasks WHERE id = ?", (task_id,)).fetchone():
+                raise ValueError("Diese Aufgabe steht schon wieder in der Liste.")
+            task = self._from_row({"document": row["dokument"]})  # type: ignore[arg-type]
+            self._write(task)
+            self._append_event(task, "auto_restored", None, None)
+            self._conn.execute("DELETE FROM aufgaben_auto_zurueck WHERE proposal_id = ?", (row["proposal_id"],))
+            return task, row["proposal_id"]
 
     def assign_project(self, task_id: str, project_id: str | None) -> Task:
         """Changes only project assignment; concurrent state changes are retained."""
@@ -881,6 +1059,8 @@ class TaskStore:
             wartet_seit=_parse(d.get("wartet_seit")),
             erledigt_grund=d.get("erledigt_grund") or None,
             geaendert_grund=d.get("geaendert_grund") or None,
+            person=d.get("person") or None,
+            angelegt=d.get("angelegt") or None,
         )
 
 

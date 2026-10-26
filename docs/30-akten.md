@@ -297,6 +297,49 @@ Anna Berg: ‚Druckdaten schicken‘“ höchstens einmal (Zeile `aufgaben_post`
 Modell darf später nur Kandidaten liefern; es ist nicht Teil dieses Schritts. Protokoll:
 [`runs/2026-10-21-aufgaben-post`](runs/2026-10-21-aufgaben-post/README.md).
 
+### Aufgaben von selbst (26.10.2026)
+
+Die Entscheidung aus [`66-automatik.md`](66-automatik.md): Eindeutige Bitten an dich und eigene Zusagen legt
+Kingfisher selbst als Aufgabe an, mit Projekt, Person und Frist; unsichere bleiben Vorschläge, mit „Alle
+übernehmen“. Eine Aufgabe ist Ablage, kein Fakt über einen Menschen; deshalb darf sie ohne Annahme entstehen,
+aber nur so (`aufgaben_von_selbst.py`, nach jedem Takt der Mailaufnahme und nach jeder Aufgabenerkennung, ohne
+Modell):
+
+* **Eindeutig** heißt (`pruefen`, jede Bedingung mit ihrem Satz): eine Mail; die Aufgabenerkennung hat den Auftrag in
+  der ganzen Mail geprüft (Bitte an den Empfänger oder eigene Zusage, Titel von der Textstelle getragen,
+  `task_review.py`); die Mail ist **neu** nach `neu_eingegangen` (heute bis vorgestern) und kam nicht nur über die
+  Bestandsaufnahme eines Postfachs, im Verlauf steht noch keine weitere Mail; eine **Bitte** richtet sich direkt an
+  dich (du stehst unter „An“, nicht nur in Kopie) und kommt nicht von einem Sammel- oder Absenderpostfach
+  (`people_quality.ist_sammelpostfach`); eine **Zusage** ist deine eigene Mail an jemanden; höchstens drei
+  Empfänger, kein Newsletter („abbestellen“); dieselbe Aufgabe gibt es noch nicht (Quelle und Titel oder Textstelle,
+  oder ein offener gleichlautender Titel); du hast sie nicht schon einmal zurückgenommen. Höchstens zehn je
+  Durchlauf; der Rest bleibt Vorschlag. Jeder Vorschlag wird einmal geprüft (Migration 5:
+  `aufgaben_auto_geprueft` mit dem Ergebnis als Kürzel). Das erste Einlesen eines Postfachs erzeugt deshalb keine
+  einzige Aufgabe.
+* **Zugeordnet.** Person: wer bittet, bei einer Zusage der erste fremde Empfänger unter „An“ (`Task.person`, Adresse
+  und Name; die Adresse führt zur Akte). Projekt: das Projekt der Quelle, sonst die Absenderregel, sonst ein
+  gemerkter lokaler Hinweis (`task_project_hints.py`), nur vorhandene offene Projekte. Frist: nur, wenn die Textstelle
+  genau eine eindeutige Angabe nennt (`fristen.py`, 23:59 Uhr dieses Tages).
+* **Sichtbar und zurücknehmbar.** Die Aufgabe trägt `angelegt` (`art: automatisch`, Satz „Von Kingfisher angelegt,
+  weil Anna Berg dich am 28. September darum gebeten hat.“, Grundsatz, Mail) und zeigt in Liste und Detail „Von
+  Kingfisher angelegt · aus der Mail von Anna Berg vom 28. September · Rückgängig“. Zurücknehmen
+  (`POST /api/v1/aufgaben-von-selbst/{id}/rueckgaengig`) entfernt die Aufgabe (die Geschichte behält
+  `auto_removed`), legt den Vorschlag als verworfen ab und merkt sich Quelle, Titel und Textstelle
+  (`aufgaben_auto_zurueck`): Dieselbe Bitte kommt nicht wieder, auch nicht als neuer Vorschlag aus derselben Mail.
+  „Rückgängig“ im Hinweis stellt sie unverändert wieder her (`…/wiederherstellen`).
+* **Heute** fasst zusammen: „3 Aufgaben aus der Post angelegt. Ansehen · Rückgängig“ (`GET
+  /api/v1/aufgaben-von-selbst/heute`), nicht jede einzeln; das Logbuch sagt es in einem Satz (`aufgabe_post` mit
+  `sorte: angelegt`, kein Text). Die Übernahme auf Heute und im Mail-Briefing nimmt den Projekthinweis mit statt
+  „ohne Projekt“ (`zuordnung_aus_vorschlag`).
+* **Vorschläge** zeigen Projekt, Person und Frist schon vorbefüllt (`person_vorschlag`, `frist_vorschlag`); „Alle N
+  übernehmen“ nimmt die sichtbaren in einem Klick (`POST /api/v1/task-candidates/alle-uebernehmen`), der Hinweis
+  nimmt die ganze Gruppe mit „Rückgängig“ zurück (`…/gruppe/{gruppe}/rueckgaengig`; die Vorschläge stehen dann
+  wieder offen da, nichts gilt als verworfen).
+* **Schalter** „Aufgaben aus Mails selbst anlegen“ unter „Was Kingfisher darf“, Vorgabe an
+  ([`47-einstellungen.md`](47-einstellungen.md#aufgaben-aus-mails-selbst-anlegen-26102026)). Aus: nichts entsteht.
+
+Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md).
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.

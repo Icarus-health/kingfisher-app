@@ -419,6 +419,16 @@ Geprüft: `sidecar/tests/test_mitteilungen.py`, `app/kingfisher/tests/mitteilung
 **Nicht geprüft:** die Mitteilung selbst auf einem Mac (kein Swift-Übersetzer hier); siehe das
 [Protokoll](runs/2026-10-22-mitteilungen/README.md).
 
+## Aufgaben aus Mails selbst anlegen (26.10.2026)
+
+Der achte Schalter unter „Was Kingfisher darf“ (`Einstellungen/AufgabenSelbstSchalter.tsx`, Text in
+`gliederung.ts`, `SCHALTER.aufgaben_selbst`) und der einzige, der **an** ist, bis man ihn ausschaltet: Es verlässt
+nichts den Rechner, und jede so angelegte Aufgabe hat „Rückgängig“ (Prüffrage 5 und 6). Der Satz darunter: „Es
+verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus neuen Mails werden Aufgaben, jede mit
+„Rückgängig“. Aus: Sie bleiben Vorschläge.“ Dahinter `GET/PUT /api/v1/aufgaben-von-selbst/einstellung` (`an`), gehalten
+in `tasks.sqlite3` (`aufgaben_auto_einstellung`, keine Zeile heißt an). Was eindeutig ist, steht in
+[`30-akten.md`](30-akten.md#aufgaben-von-selbst-26102026).
+
 ## Wie man prüft
 
 * `app/kingfisher/tests/einstellungen-gliederung.test.mjs`: Reihenfolge der Reiter, genau sieben Schalter mit „was verlässt

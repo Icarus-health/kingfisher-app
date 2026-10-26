@@ -53,7 +53,7 @@ from .backup import (
 )
 from .update_backup import backup_before_update
 from . import (
-    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
+    aufgaben_von_selbst, briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
     neu_eingegangen, personen, providers, suche, urteil, working_memory_semantic_runtime,
 )
 from .agent_verdrahtung import (
@@ -416,6 +416,7 @@ class TaskCandidateIn(BaseModel):
     new_project_name: str | None = Field(default=None, min_length=1, max_length=200)
     due: datetime | None = None
     waiting_for: str | None = Field(default=None, max_length=1024)
+    zuordnung_aus_vorschlag: bool = False  # Heute: das vorgeschlagene Projekt übernehmen (`aufgaben_von_selbst.py`)
 
 
 class MailReplyIn(BaseModel):
@@ -1213,6 +1214,8 @@ def _wire_scheduler(app: FastAPI) -> None:
                     and getattr(scheduler, 'prompt_allowed', lambda: True)())
             if getattr(raw_provider, 'is_local', False) and mail_permitted():
                 prepare_background(app, raw_provider, limit=1, permitted=mail_permitted)
+        if report.proposed:
+            aufgaben_von_selbst.schritt_fuer(app)  # eindeutige neue Vorschläge gleich anlegen, nicht erst nach der Post
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -1377,6 +1380,7 @@ def _wire_scheduler(app: FastAPI) -> None:
                 aufgaben_post.schritt_fuer(app)
         except Exception:  # noqa: BLE001
             logger.exception('Aufgaben nach der Post konnten nicht geprüft werden')
+        aufgaben_von_selbst.schritt_fuer(app)  # eindeutige Bitten und Zusagen aus neuer Post selbst anlegen
 
     scheduler._run_mail_intake = run_mail_intake
     scheduler._run_neue_post = lambda: run_mail_intake(nur_neue_post=True)
@@ -1791,6 +1795,8 @@ def create_app(
     suchindex_routes.anwenden(app)
     suchindex_routes.register(app, guard, _data_dir)
     register_tag(app, guard)
+    from .aufgaben_von_selbst_routes import register as register_aufgaben_von_selbst
+    register_aufgaben_von_selbst(app, guard)
     from .mitteilungen_routes import register as register_mitteilungen
     register_mitteilungen(app, guard, _data_dir)
 
@@ -2886,7 +2892,9 @@ def create_app(
                 # response or reopening the mail. A source change still fails
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
-                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
+                projekt, person = aufgaben_von_selbst.zuordnung_fuer_quelle(app, episode['id'])
+                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
+                                                       person=person).to_dict()
             if body.request_id is not None:
                 payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
                            'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
@@ -5329,7 +5337,8 @@ def create_app(
                     digest.update(b"\n")
                     if offset <= total < offset + limit:
                         items.append({**proposal.to_dict(), **timing,
-                                      'project_suggestion': task_project_hint_service().visible(proposal)})
+                                      'project_suggestion': task_project_hint_service().visible(proposal),
+                                      **aufgaben_von_selbst.durchlauf_fuer(app).vorbefuellt(proposal)})
                     total += 1
             current_generation = digest.hexdigest()
             if generation is not None and generation != current_generation:
@@ -5350,7 +5359,8 @@ def create_app(
         try:
             return task_candidate_service().accept(proposal_id, title=body.title,
                 project_id=body.project_id, new_project_name=body.new_project_name,
-                due=body.due, waiting_for=body.waiting_for).to_dict()
+                due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
+                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
         except (ProposalError, EpisodeError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:

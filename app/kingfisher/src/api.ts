@@ -480,6 +480,10 @@ export type Task = {
   erledigt_grund?: AufgabenPostGrund | null;
   /** Gesetzt, wenn eine Antwort das Warten aufgelöst hat („wieder bei dir“). */
   geaendert_grund?: AufgabenPostGrund | null;
+  /** Wer zur Aufgabe gehört: wer darum bat oder wem zugesagt wurde (Adresse führt zur Akte). */
+  person?: AufgabePerson | null;
+  /** Wie die Aufgabe entstand, wenn nicht von Hand (Aufgaben von selbst, `aufgaben_von_selbst.py`). */
+  angelegt?: AufgabeAngelegt | null;
   id: string;
   title: string;
   status: "open" | "done" | "dropped";
@@ -495,6 +499,17 @@ export type Task = {
   wartet_tage: number | null;
   overdue: boolean;
 };
+
+export type AufgabePerson = {adresse: string; name: string};
+export type AufgabeAngelegt = {
+  art: "automatisch" | "alle_uebernehmen";
+  am: string;
+  /** Nur bei `automatisch`: „Von Kingfisher angelegt, weil …“, der Grundsatz, Mail und Richtung. */
+  satz?: string; grundsatz?: string; richtung?: "bitte" | "zusage" | null; episode_id?: string; mail_titel?: string;
+  wer?: string; datum?: string | null; gruppe?: string;
+};
+export type AufgabenVonSelbstHeute = {anzahl: number; satz: string; aufgaben: Array<{id: string; title: string; status: string; satz: string}>};
+export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler: Array<{id: string; grund: string}>};
 
 export type ProjectTaskOverview = {
   project_id: string;
@@ -536,7 +551,7 @@ export type MailDetail = {
 };
 
 /** `valid_until`: vorgeschlagene Fälligkeit (bei Fristen aus privaten Mails, sidecar: akten_arten.py), sonst null. */
-export type TaskCandidate = { project_suggestion?: {project_id:string|null;new_project_name:string|null;name:string;reason:string;origin:string;source_digest:string}|null; received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
+export type TaskCandidate = { project_suggestion?: {project_id:string|null;new_project_name:string|null;name:string;reason:string;origin:string;source_digest:string}|null; received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null; person_vorschlag?: AufgabePerson | null; frist_vorschlag?: string | null };
 export type TaskCandidatePage = {items: TaskCandidate[]; total: number; offset: number; limit: number; has_more: boolean; generation: string};
 
 export type MailTaskSuggestions = {
@@ -1480,7 +1495,17 @@ export const api = {
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),
   taskCandidatePage: (limit: number, offset: number, temporal: "all" | "recent" | "review", generation?: string) => request<TaskCandidatePage>(`/api/v1/task-candidates/page?${new URLSearchParams({limit: String(limit), offset: String(offset), temporal, ...(generation ? {generation} : {})})}`),
-  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
+  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null; zuordnung_aus_vorschlag?: boolean}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
+  // Aufgaben von selbst (`aufgaben_von_selbst_routes.py`): Schalter, Heute, Rückgängig, „Alle übernehmen“.
+  aufgabenVonSelbst: () => request<{an: boolean}>("/api/v1/aufgaben-von-selbst/einstellung"),
+  aufgabenVonSelbstSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/aufgaben-von-selbst/einstellung", {method: "PUT", body: JSON.stringify({an})}),
+  aufgabenVonSelbstHeute: () => request<AufgabenVonSelbstHeute>("/api/v1/aufgaben-von-selbst/heute"),
+  aufgabeVonSelbstZuruecknehmen: (id: string) => request<Task>(`/api/v1/aufgaben-von-selbst/${encodeURIComponent(id)}/rueckgaengig`, {method: "POST"}),
+  aufgabeVonSelbstWiederherstellen: (id: string) => request<Task>(`/api/v1/aufgaben-von-selbst/${encodeURIComponent(id)}/wiederherstellen`, {method: "POST"}),
+  aufgabenVonSelbstZuruecknehmen: (task_ids: string[]) => request<{aufgaben: Task[]; satz: string}>("/api/v1/aufgaben-von-selbst/rueckgaengig", {method: "POST", body: JSON.stringify({task_ids})}),
+  aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
+  alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
+  gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),

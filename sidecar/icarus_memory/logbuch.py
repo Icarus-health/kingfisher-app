@@ -28,7 +28,7 @@ Die Art-spezifischen Nutzdaten (`sorte` ist die Unterart; das Schlüsselwort `ar
 | `export` | `was` |
 | `rueckmeldung` | `sorte` |
 | `zu_lang` | `sorte`, `anzahl`: Quellen über der Obergrenze der Einordnung (`abschnitte.OBERGRENZE`), nicht eingeordnet |
-| `aufgabe_post` | `sorte` (`erledigt`, `zurueck`), `aufgabe`, `mail` (Kennungen), `wie` (`verlauf`, `person`, `vorschlag`): die Post hat eine Aufgabe erledigt oder zurückgeholt (`aufgaben_post.py`) |
+| `aufgabe_post` | `sorte` (`erledigt`, `zurueck`, `angelegt`, `zurueckgenommen`, `wiederhergestellt`), `aufgabe`, `mail` (Kennungen), `wie` (`verlauf`, `person`, `vorschlag`, `bitte`, `zusage`): die Post hat eine Aufgabe erledigt oder zurückgeholt (`aufgaben_post.py`) oder Kingfisher hat sie aus einer neuen Mail selbst angelegt (`aufgaben_von_selbst.py`) |
 
 **Die Zusammenfassung.** `seit(zeitpunkt)` zählt die Einträge seit dem Zeitpunkt, `drei_zeilen` macht daraus
 höchstens drei Zeilen Alltagssprache: erst was hereinkam (Quellen, Akten), dann was dein Auge braucht
@@ -284,9 +284,12 @@ def zusammenfassen(ereignisse: Iterable[Ereignis], seit: datetime, bis: datetime
                 neu.setdefault(sache, {'sache': sache, 'name': str(d.get('name') or sache)})
             elif d.get('entscheidung') == 'abgelehnt':
                 z.vorschlaege_abgelehnt += 1
-        elif e.art == 'aufgabe_post' and d.get('sorte') in ('erledigt', 'zurueck'):
+        elif e.art == 'aufgabe_post' and d.get('sorte') in ('erledigt', 'zurueck', 'angelegt'):
             sorte = str(d['sorte'])
             z.aufgaben_post[sorte] = z.aufgaben_post.get(sorte, 0) + 1
+            if sorte == 'angelegt' and z.vorschlaege_angenommen:
+                # Selbst angelegt (`aufgaben_von_selbst.py`) nimmt den Vorschlag an; das hat kein Mensch angenommen.
+                z.vorschlaege_angenommen -= 1
     z.akten_neu = list(neu.values())
     # Eine Akte, die in diesem Zeitraum entstand, gilt nicht zusätzlich als ergänzt.
     z.akten_aktualisiert = [a for k, a in geaendert.items() if k not in neu]
@@ -392,6 +395,8 @@ def _post_saetze(z: Zusammenfassung) -> list[str]:
         saetze.append(f'{_zahl(z.aufgaben_post["erledigt"], "Aufgabe", "Aufgaben")} nach deiner Post erledigt')
     if z.aufgaben_post.get('zurueck'):
         saetze.append(f'{_zahl(z.aufgaben_post["zurueck"], "Aufgabe", "Aufgaben")} wieder bei dir')
+    if z.aufgaben_post.get('angelegt'):  # Aufgaben von selbst (`aufgaben_von_selbst.py`)
+        saetze.append(f'{_zahl(z.aufgaben_post["angelegt"], "Aufgabe", "Aufgaben")} aus der Post angelegt')
     return saetze
 
 
