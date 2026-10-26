@@ -114,7 +114,8 @@ export function TodayOverview({ briefing, onChange, taskNotice, onTaskDone, corr
             {item.source === "zusage" ? <BriefingSuggestion item={item} onDone={onTaskDone} /> : item.source === "akte_vorschlag" ? <AkteVorschlagKnoepfe key={item.source_ref ?? item.id} item={item} onDone={() => onChange()} /> : action ? <a className="today-action" href={action.href}>{action.label}</a> : null}
           </div>
         </li>;
-      })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen." : "Nichts wartet auf dich."}</p>}
+      })}</ul> : <p className="today-empty">{briefing.partial_failures.length ? "Gerade ist nichts Offenes zu sehen."
+        : (briefing.historical_task_reviews ?? 0) > 0 ? "Nichts Neues wartet auf dich." : "Nichts wartet auf dich."}</p>}
       <NeueProjekte onChange={() => onChange()} />
       {taskNotice && <p className="today-notice" role="status">{taskNotice} <a href="/vorhaben?view=mine">Aufgaben ansehen</a></p>}
       <AufgabenVonSelbstZeile onChanged={() => onChange()} />
