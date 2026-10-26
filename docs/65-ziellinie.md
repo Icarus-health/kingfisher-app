@@ -92,3 +92,9 @@ Antworten und Entwürfe). Das ist dann Pflege, kein Projekt.
   Güte der Antwort gegen Ollama. Nur wenn klar besser, anbinden. Dabei bedenken:
   `ollama_memory.managed_model`, Vorwärmen und die Einbettung mit `bge-m3` sind auf Ollama
   gebaut.
+- **Tagesfokus auf Heute** (vorgemerkt am 26.10.2026 auf Wunsch des Nutzers, Anregung aus
+  „Lucie“ von RHISE AI). Oben auf Heute steht eine Sache, die heute zählt, mit Grund aus
+  Fristen, Terminen und Zusagen, und ein Klick führt hin. Kein neuer Bereich und keine neue
+  Seite, sondern ein Satz im Briefing; Kingfisher wählt, der Nutzer kann ihn wegklicken
+  oder tauschen. Nicht übernommen: Körperdaten, Atemübungen, „Seele“; das ist ein anderes
+  Produkt, und Gesundheitsdaten verlangen besondere Vorsicht.
