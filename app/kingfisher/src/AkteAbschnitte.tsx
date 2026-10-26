@@ -2,6 +2,7 @@ import {MemoryEntityLink} from "./MemoryEntityLink";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, api, type Akte, type AkteBrauchtDich, type AkteEntscheidung, type AkteLage, type AkteRichtung, type AkteVorschlagStand, type AkteZeile, type AkteZeitpunkt } from "./api";
 import { entscheidungSatz, fehlerSatz, vorschlagFrage, zurueckBeschriftung } from "./akteVorschlag";
+import { verbundenZeile } from "./projektAutomatik";
 import { blickZeile, obenGenanntSatz, offenOhneBrauchtDich, standSatz, termineObenGenannt, type StandSatz } from "./akteAnzeige";
 import { displayLabel } from "./displayIdentity";
 import { ArtKarte, GeburtstagKarte, KreisKarte } from "./KreisKarten";
@@ -152,8 +153,17 @@ function NeueAkte({ stand, arbeitet, anlegen, ablehnen, zurueck }: { stand: Akte
     </div>
     </div>
   </section>;
-  if (e) return <p className="mappe-hinweis akte-neue-stand">{entscheidungSatz(e.entscheidung, e.quellen)} <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => zurueck(e.kennung)}>{zurueckBeschriftung(e.entscheidung)}</button></p>;
+  if (e) return <p className="mappe-hinweis akte-neue-stand">{entscheidungSatz(e.entscheidung, e.quellen, e.herkunft, e.grund)} <button type="button" className="akte-knopf akte-knopf-leise" disabled={arbeitet !== null} onClick={() => zurueck(e.kennung)}>{zurueckBeschriftung(e.entscheidung, e.herkunft)}</button></p>;
   return null;
+}
+
+/** „Projekte: Umbau Praxis, Atlas“ oder „Beteiligte: Anna Keller und Ben Braun“ unter dem Namen: abgeleitet aus denselben
+ * Quellen wie „Zusammenhänge“, nie gespeichert. Jeder Name führt zu seiner Akte. */
+function VerbundenZeile({ titel, eintraege, weitere }: NonNullable<ReturnType<typeof verbundenZeile>>) {
+  return <p className="akte-verbunden"><span className="akte-verbunden-titel">{titel}:</span>{" "}
+    {eintraege.map((b, index) => <span key={b.sache}>{index ? (index === eintraege.length - 1 && !weitere ? " und " : ", ") : null}
+      <MemoryEntityLink className="akte-verbunden-name" kind={b.art === "projekt" ? "project" : "person"} href={`/memory/akte/${encodeURIComponent(b.sache)}`}>{displayLabel(b.name).name}</MemoryEntityLink></span>)}
+    {weitere ? ` und ${weitere} weitere` : null}</p>;
 }
 
 /** Der Hinweis (grundlage/hinweisOrt.ts) gehört der App, nicht der Akte: Sein „Rückgängig“ meldet mit diesem Ereignis,
@@ -458,6 +468,8 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   const satz = compact ? null : standSatz({ name: displayLabel(data.name).name, jetzt, stand: stand.aktuell, verlauf: data.verlauf.eintraege,
     braucht: braucht?.gesamt ?? 0, termin: data.termine.kommend[0] ?? null, frist: data.fristen.kommend[0] ?? null, wer: t => displayLabel(t).name });
   const standOben = satz?.aus === "stand";
+  // Personen ↔ Projekte (Paket P), nur abgeleitet: bei einer Person ihre Projekte, bei einem Projekt die Beteiligten.
+  const verbunden = verbundenZeile(data.art, data.beteiligte.eintraege);
   // Ein abgesagter Termin, der oben unter „Braucht dich“ steht, steht unter „Termine“ nur als leise Zeile.
   const terminOben = termineObenGenannt(braucht?.eintraege);
   // Was oben unter „Braucht dich“ steht (gleiche Quelle, gleiche Stelle), steht unten nicht noch einmal; ein Satz sagt,
@@ -495,6 +507,7 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
         <h2>{mitKopf ? displayLabel(data.name).name : "Akte"}</h2>
         {compact ? <details className="akte-coverage quiet-details"><summary>{data.quellen.gesamt} {data.quellen.gesamt === 1 ? "Quelle" : "Quellen"}{data.quellen.begrenzt ? ` · jüngste ${data.quellen.beruecksichtigt} ausgewertet` : ''}{data.berechnung.offen ? ` · ${data.berechnung.offen} noch in Arbeit` : ''}</summary>{herkunftHinweis}</details> : null}
         {satz ? <StandKopf satz={satz} offen={standQuelle} umschalten={() => setStandQuelle(x => !x)} /> : !compact ? <Blick data={data} art={mitKopf ? data.art_text : undefined} /> : null}
+        {verbunden ? <VerbundenZeile {...verbunden} /> : null}
       </div>
     </header>
     {satz && standQuelle ? <div className="akte-stand-original" id="akte-stand-original"><ProfileSource key={satz.episode_id} kind="episode" id={satz.episode_id} label={satz.titel} embedded readOnly /></div> : null}

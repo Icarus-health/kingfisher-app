@@ -1377,6 +1377,12 @@ def _wire_scheduler(app: FastAPI) -> None:
                 aufgaben_post.schritt_fuer(app)
         except Exception:  # noqa: BLE001
             logger.exception('Aufgaben nach der Post konnten nicht geprüft werden')
+        # Projekte von selbst (Paket P): neue Mails nach Absender zuordnen, klare Projekte anlegen (`projekt_automatik.py`).
+        try:
+            from . import projekt_automatik
+            projekt_automatik.schritt_fuer(app)
+        except Exception:  # noqa: BLE001
+            logger.exception('Projekte nach der Post konnten nicht geprüft werden')
 
     scheduler._run_mail_intake = run_mail_intake
     scheduler._run_neue_post = lambda: run_mail_intake(nur_neue_post=True)

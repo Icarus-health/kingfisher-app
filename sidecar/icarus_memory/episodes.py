@@ -630,7 +630,7 @@ def _migrate_v10(connection: sqlite3.Connection) -> None:
 def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, bezuege=False, lagen=False,
                 woerter=False, kreis=False, intake_grund=False, analysis_version=False,
                 failure_diagnostics=False, task_rechecks=False, mail_headers=False,
-                entscheidungen=False, vorschlaege=False) -> None:
+                entscheidungen=False, vorschlaege=False, automatik=False) -> None:
     from . import mail_intake
     extra_tables = dict(mail_intake.TABLES if intake_grund else mail_intake.TABLES_V11) if intake else {}
     extra_keys = dict(mail_intake.PRIMARY_KEYS) if intake else {}
@@ -640,6 +640,10 @@ def _verify_v10(connection: sqlite3.Connection, *, intake=False, index=False, be
         from . import akten_vorschlaege
         extra_tables.update(akten_vorschlaege.TABLES)
         extra_keys.update(akten_vorschlaege.PRIMARY_KEYS)
+    if automatik:
+        from . import projekt_automatik
+        extra_tables.update(projekt_automatik.TABLES)
+        extra_keys.update(projekt_automatik.PRIMARY_KEYS)
     if mail_headers:
         from . import mail_header_index
         extra_tables.update(mail_header_index.TABLES)
@@ -844,11 +848,12 @@ def _migrate_v20(connection):
     migrate_failure_diagnostics(connection)
 
 
-def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False):
+def _verify_v20(connection, *, task_rechecks=False, mail_headers=False, entscheidungen=False, vorschlaege=False,
+               automatik=False):
     _verify_v10(connection, intake=True, index=True, bezuege=True, lagen=True, woerter=True, kreis=True,
                 intake_grund=True, analysis_version=True, failure_diagnostics=True,
                 task_rechecks=task_rechecks, mail_headers=mail_headers, entscheidungen=entscheidungen,
-                vorschlaege=vorschlaege)
+                vorschlaege=vorschlaege, automatik=automatik)
     from . import bezuege, lage
     from .memory_categories import verify
     verify(connection, failure_diagnostics=True)
@@ -898,6 +903,18 @@ def _verify_v24(connection):
     _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True)
 
 
+def _migrate_v25(connection):
+    # Projekte von selbst (Paket P): was Kingfisher selbst angelegt und zugeordnet hat, und was nicht wiederkommen
+    # soll. Nur Verweise und Zahlen; jedes davon lässt sich zurücknehmen (`projekt_automatik.py`).
+    from .projekt_automatik import migrate
+    migrate(connection)
+
+
+def _verify_v25(connection):
+    _verify_v20(connection, task_rechecks=True, mail_headers=True, entscheidungen=True, vorschlaege=True,
+                automatik=True)
+
+
 _MIGRATIONS = (
     Migration(1, "initial_explicit_version", _migrate_v1, _verify_v1),
     Migration(2, "mail_sync_progress", _migrate_v2, _verify_v2),
@@ -923,6 +940,7 @@ _MIGRATIONS = (
     Migration(22, "exact_mail_header_index", _migrate_v22, _verify_v22),
     Migration(23, "akten_entscheidungen", _migrate_v23, _verify_v23),
     Migration(24, "akten_vorschlag_entscheidungen", _migrate_v24, _verify_v24),
+    Migration(25, "projekt_automatik", _migrate_v25, _verify_v25),
 )
 
 
@@ -1504,10 +1522,16 @@ class EpisodeStore:
             self._conn.commit()
         return zurueck
 
-    def link_project(self, episode_id: str, project_id: str | None) -> Episode:
+    def link_project(self, episode_id: str, project_id: str | None, *, automatisch: bool = False) -> Episode:
+        """Ordnet eine Quelle einem Projekt zu (oder löst sie). Nur `projekt_automatik` setzt `automatisch`: Jede andere
+        Zuordnung (der Nutzer, ein Klick auf „Neue Akte?“) ersetzt eine automatische, die dann nicht mehr als eigene
+        Zuordnung von Kingfisher gilt und von dessen „Rückgängig“ unberührt bleibt."""
         episode = self.get(episode_id)
         episode.project_id = project_id
-        self._put(episode)
+        with self.transaction():
+            self._put(episode)
+            if not automatisch:
+                self._conn.execute('DELETE FROM projekt_automatik_zuordnungen WHERE episode_id = ?', (episode_id,))
         return episode
 
     # -- Lesen -------------------------------------------------------------

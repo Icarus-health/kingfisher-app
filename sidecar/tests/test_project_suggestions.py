@@ -58,7 +58,7 @@ def test_suggestion_needs_two_agreeing_assignments(app_client):
     mail(app, 4)
     found = for_episode(app.state.episodes, target, names)
     assert found == {'suggestion': {'project_id': mainz, 'name': 'Mainz', 'count': 2},
-                     'unassigned_peers': 1, 'sender': 'Anna Keller'}
+                     'unassigned_peers': 1, 'sender': 'Anna Keller', 'automatisch': None}
     mail(app, 5, project=orion)
     assert for_episode(app.state.episodes, target, names)['suggestion'] is None
     app.state.episodes.link_project(target.id, mainz)

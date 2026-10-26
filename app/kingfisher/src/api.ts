@@ -452,6 +452,14 @@ export type ProjectSuggestion = {
   suggestion: {project_id: string; name: string; count: number} | null;
   unassigned_peers: number;
   sender: string | null;
+  /** Hat Kingfisher die Quelle selbst zugeordnet (Absenderregel oder mit einem neuen Projekt), steht hier wie. */
+  automatisch?: {art: "absender" | "akte"; projekt_id: string; satz: string} | null;
+};
+
+/** Ein Projekt, das Kingfisher selbst angelegt hat (sidecar: projekt_automatik.py), für den Hinweis auf Heute. */
+export type NeuesProjekt = {
+  kennung: string; projekt_id: string; name: string; sache: string; link: string;
+  anzahl: number; wort: string; personen: string[]; grund: string; zeit: string;
 };
 
 export type Project = {
@@ -861,10 +869,12 @@ export type AkteVorschlag = {
   quellen: Array<{ episode_id: string; titel: string; datum: string | null; zitat: string }>;
   beteiligte: Array<{ sache: string; name: string; anzahl: number }>;
 };
-export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number };
+export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number;
+  /** `automatisch`: von Kingfisher angelegt (Paket P), dann mit dem Grund in einem Satz. */
+  herkunft?: "nutzer" | "automatisch"; grund?: string };
 /** Was die Akte dazu zeigt: den offenen Vorschlag oder die gemerkte Entscheidung (nie beides). */
 export type AkteVorschlagStand = { vorschlag: AkteVorschlag | null; entscheidung: AkteVorschlagEntscheidung | null };
-export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number };
+export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number; automatisch?: boolean };
 export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
@@ -1568,6 +1578,8 @@ export const api = {
   /** „Neue Akte?“ (sidecar: akten_vorschlaege_routes.py): Erst der Klick legt das Projekt an; „Nein danke“ wird gemerkt; beides lässt sich zurücknehmen. */
   akteVorschlagAnnehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/annehmen`, { method: "POST" }),
   akteVorschlagAblehnen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/ablehnen`, { method: "POST" }),
+  neueProjekte: () => request<{neu: NeuesProjekt[]}>("/api/v1/projekte/automatik"),
+  projektZuordnungZuruecknehmen: (episodeId: string) => request<{episode_id: string; projekt_id: string; satz: string}>(`/api/v1/projekte/automatik/zuordnung/${encodeURIComponent(episodeId)}/zuruecknehmen`, { method: "POST" }),
   akteVorschlagZuruecknehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/zuruecknehmen`, { method: "POST" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),

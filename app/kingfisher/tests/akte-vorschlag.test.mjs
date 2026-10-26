@@ -43,7 +43,7 @@ test("die Akte zeigt die Zeile mit „Akte anlegen“ und „Nein danke“ oben,
   assert.equal(akte.match(/rueckgaengig: vorschlagZurueckWeg\(kennung\)/g).length, 2);
   assert.match(akte, /const antwort = await api\.akteVorschlagZuruecknehmen\(kennung\);/);
   // Eine gemerkte Entscheidung zeigt ihren Rückweg.
-  assert.match(akte, /onClick=\{\(\) => zurueck\(e\.kennung\)\}>\{zurueckBeschriftung\(e\.entscheidung\)\}<\/button>/);
+  assert.match(akte, /onClick=\{\(\) => zurueck\(e\.kennung\)\}>\{zurueckBeschriftung\(e\.entscheidung, e\.herkunft\)\}<\/button>/);
 });
 
 test("Heute zeigt den einen Satz mit zwei Knöpfen und behält die Antwort, wenn der Punkt verschwindet", () => {

@@ -9,8 +9,15 @@ export function vorschlagFrage(grund: string): string {
   return kern ? `Daraus eine Akte machen? ${kern}.` : "Daraus eine Akte machen?";
 }
 
-/** Was unter einer gemerkten Entscheidung steht, damit man sieht, was gilt, und es zurücknehmen kann. */
-export function entscheidungSatz(entscheidung: AkteVorschlagEntscheidungArt, quellen: number): string {
+/** Was unter einer gemerkten Entscheidung steht, damit man sieht, was gilt, und es zurücknehmen kann. Hat Kingfisher
+ * selbst angelegt (Paket P, `herkunft` „automatisch“), steht der Grund dabei; nach dem Zurücknehmen, dass es nicht
+ * wiederkommt. */
+export function entscheidungSatz(entscheidung: AkteVorschlagEntscheidungArt, quellen: number, herkunft?: string, grund?: string): string {
+  if (herkunft === "automatisch") {
+    if (entscheidung === "abgelehnt") return "Von Kingfisher angelegt und von dir zurückgenommen: Es wird nicht wieder angelegt.";
+    const kern = (grund ?? "").trim().replace(/[.\s]+$/, "");
+    return kern ? `Von Kingfisher angelegt. ${kern}.` : "Von Kingfisher angelegt.";
+  }
   if (entscheidung === "angenommen") {
     const zahl = quellen === 0 ? "ohne neu zugeordnete Quelle" : quellen === 1 ? "eine Quelle zugeordnet" : `${quellen} Quellen zugeordnet`;
     return `Aus einem Vorschlag angelegt, ${zahl}.`;
@@ -19,7 +26,8 @@ export function entscheidungSatz(entscheidung: AkteVorschlagEntscheidungArt, que
 }
 
 /** Die Beschriftung des Knopfes, der eine Entscheidung zurücknimmt. */
-export function zurueckBeschriftung(entscheidung: AkteVorschlagEntscheidungArt): string {
+export function zurueckBeschriftung(entscheidung: AkteVorschlagEntscheidungArt, herkunft?: string): string {
+  if (herkunft === "automatisch" && entscheidung === "angenommen") return "Rückgängig";
   return entscheidung === "angenommen" ? "Akte wieder auflösen" : "Doch vorschlagen";
 }
 

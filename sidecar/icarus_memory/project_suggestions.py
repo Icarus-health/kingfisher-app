@@ -2,8 +2,10 @@
 
 Ein Vorschlag entsteht nur, wenn die bisherigen Mails desselben Absenders
 im selben Konto alle demselben Projekt zugeordnet sind (mindestens zwei).
-Er wird angezeigt, nie selbst angewendet: Zuordnen tut der Nutzer mit einem
-Klick. Eine Zuordnung ist Ablage, kein Beleg, und jederzeit umkehrbar.
+Für neue Mails wendet `projekt_automatik.py` dieselbe Regel (strenger: alle
+früheren Mails, keine Rundmail) selbst an, sichtbar mit „Zugeordnet nach
+Absender“ und „Rückgängig“ (`automatisch` in `for_episode`). Eine Zuordnung
+ist Ablage, kein Beleg, und jederzeit umkehrbar.
 """
 from email.utils import parseaddr
 
@@ -57,6 +59,8 @@ def for_episode(episodes, episode, names):
     if (episode.project_id is None and len(assigned) >= MIN_AGREEING
             and len(set(assigned)) == 1 and names.get(assigned[0])):
         suggestion = {'project_id': assigned[0], 'name': names[assigned[0]], 'count': len(assigned)}
+    from .projekt_automatik import herkunft
     return {'suggestion': suggestion,
             'unassigned_peers': sum(peer.project_id is None for peer in peers),
-            'sender': sender_label(episode) if peers else None}
+            'sender': sender_label(episode) if peers else None,
+            'automatisch': herkunft(episodes, episode)}

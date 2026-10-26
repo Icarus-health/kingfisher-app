@@ -3,9 +3,9 @@
 Stand: 30. September 2026 (Migration 13, nach C2 mit Schema 12). Umsetzung von D1 und D2 aus
 [`27-schichten-und-fragen.md`](27-schichten-und-fragen.md). Code:
 `sidecar/icarus_memory/bezuege.py`, `akten.py`, `fristen.py`, `akten_routes.py`,
-`akten_vorschlaege.py` (Neue Akte?, Oktober 2026); Bausteine in `mappe.py`, `time_scope.py`,
+`akten_vorschlaege.py` (Neue Akte?, Oktober 2026), `projekt_automatik.py` (Projekte von selbst, 26.10.2026); Bausteine in `mappe.py`, `time_scope.py`,
 `memory_categories.py`, `working_memory_store.py`. Tests: `test_bezuege.py`, `test_akten.py`,
-`test_akten_routes.py`, `test_akten_vorschlaege.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
+`test_akten_routes.py`, `test_akten_vorschlaege.py`, `test_projekt_automatik.py`, `test_fristen.py`, `messlatte/tests/test_akten.py`.
 
 ## Was sich ändert
 
@@ -254,10 +254,65 @@ eine Akte zu machen, ohne Modell, deterministisch und mit Begründung in einem S
 **Anzeige.** In der Akte `projekt:n:<Name>` steht oben, vor „Braucht dich“, die Zeile „Neue Akte? Daraus
 eine Akte machen? Grund.“ mit den Textstellen und zwei Knöpfen „Akte anlegen“ und „Nein danke“. Annehmen
 öffnet die neue Akte mit dem Satz und „Rückgängig“; dort steht dauerhaft „Aus einem Vorschlag angelegt“
-mit „Akte wieder auflösen“. Im Briefing und auf Heute erscheint **höchstens ein** Vorschlag, der mit den
+mit „Akte wieder auflösen“. Im Briefing und auf Heute steht **jeweils ein** Vorschlag, der mit den
 meisten Quellen und bei gleicher Zahl der älteste, als ein Satz mit denselben zwei Knöpfen (`briefing.py`,
-Quelle `akte_vorschlag`, leises Gewicht wie das Vorhaben); nie eine Liste. Die Antwort bleibt auf Heute
-stehen, auch wenn der Punkt danach verschwindet, mit „Akte öffnen“.
+Quelle `akte_vorschlag`, leises Gewicht wie das Vorhaben); nie eine Liste. Nach einer Entscheidung steht sofort
+der nächste da: einer nach dem anderen, nicht einer am Tag (so stand es bis zum 26.10. irrtümlich hier und in
+der Fassung 1.0.27). Die Antwort bleibt auf Heute stehen, auch wenn der Punkt danach verschwindet, mit „Akte
+öffnen“. Seit dem 26.10. legt Kingfisher **klare** Vorschläge selbst an (nächster Abschnitt); im Briefing stehen
+dann nur noch die unklaren.
+
+### Projekte von selbst (Paket P, Migration 25)
+
+Entscheidung des Nutzers vom 26.10.2026 ([`66-automatik.md`](66-automatik.md)): Ein Projekt, das sich in den Mails
+**klar** bildet, legt Kingfisher selbst an und ordnet die Mails zu, mit Rückgängig; unklare bleiben Frage. Das ist
+mit der Regel des Gedächtnisses vereinbar, weil ein Projekt Ablage ist, kein Fakt (oben, „Neue Akte?“): Es
+entsteht keine Aussage über einen Menschen. `projekt_automatik.py`, ohne Modell und deterministisch:
+
+* **Klar oder unklar** (`einschaetzen`, mit Gründen). Klar ist ein Vorschlag „Neue Akte?“ nur, wenn alles zugleich
+  gilt: mindestens drei Quellen **und** zwei verschiedene Personen, die jüngste Quelle höchstens 30 Tage alt, kein
+  ähnlicher Name eines vorhandenen Projekts („Umbau“ und „Umbau Praxis“, „Atlas“ und „Atlass“; Vergleich ohne
+  „Projekt“, Groß- und Kleinschreibung und Umlaute) und keiner einer anderen Erwähnung (eindeutig), nicht abgelehnt
+  und nie zurückgenommen. Sonst bleibt er Frage, mit den Gründen („nur eine Person beteiligt“, „seit über 30 Tagen
+  still“, „ähnlich wie das Projekt „Umbau““).
+* **Anlegen** (`projekte_anlegen`), vor dem Briefing (`akten_vorschlaege_routes.fuer_briefing`) und nach jedem Takt
+  der Mailaufnahme (`server.run_mail_intake`), nur wenn alle Bezüge berechnet sind. Genau wie „Akte anlegen“
+  (`annehmen`: deterministische ID, Quellen ohne Projekt zugeordnet), dazu die Herkunft mit Grund als Zahlen und
+  Verweise. Höchstens drei am Kalendertag; der Rest bleibt bis morgen Frage. Im Logbuch eine neue Akte (`von`
+  `automatisch`).
+* **Absenderregel** (`absender_ziel`, `absender_schritt`). Eine neue Mail kommt in das Projekt, in dem **alle**
+  früheren Mails desselben Absenders im selben Konto liegen (mindestens zwei, das Projekt offen). Nie bei eigenen
+  Mails, Rundmails (mehr als fünf Empfänger), Absendern mit Mails in mehreren Projekten oder mit einer früheren Mail
+  ohne Projekt, nie bei einer gesperrten Mail. Jede Mail einmal (Zeilenstand wie bei „Aufgaben folgen der Post“); der
+  erste Takt setzt nur den Stand, der Bestand wird nicht neu gedeutet. Die frühere Regel „Vorschlag: … Übernehmen“
+  (`project_suggestions.py`) bleibt für ältere Mails.
+* **Sichtbar.** Auf Heute unter „Braucht dich“ eine ruhige Zeile „Neues Projekt: Umbau Praxis, aus 4 Mails mit Anna
+  Keller und Ben Braun · Ansehen · Rückgängig“ (drei Tage lang; mehrere: „3 neue Projekte: A, B und C · Ansehen“, das
+  aufklappt, je mit „Rückgängig“; `NeueProjekte.tsx`). In der Akte des Projekts „Von Kingfisher angelegt. In 4 Mails
+  seit … mit … · Rückgängig“. An der Quelle „Zugeordnet nach Absender · Ändern · Rückgängig“ (`SourceProject.tsx`;
+  „Ändern“ führt zur Auswahl).
+* **Rückgängig, und es kommt nicht wieder.** Das Projekt zurücknehmen (`POST …/vorschlaege/{kennung}/zuruecknehmen`,
+  `projekt_automatik.zuruecknehmen`) löst genau Kingfishers eigene Zuordnungen (die des Vorschlags und die der
+  Absenderregel), solange der Nutzer sie nicht selbst geändert hat: Jede andere Zuordnung (`EpisodeStore.link_project`
+  ohne `automatisch`) ersetzt die automatische. Das Projekt verschwindet, wenn nichts anderes daran hängt, sonst
+  bleibt es mit Satz. Danach gilt „abgelehnt“ samt Sperre: weder Projekt noch Frage kommen wieder; „Doch vorschlagen“
+  in der Akte macht es wieder zur Frage, aber nie mehr automatisch. Ebenso sperrt das Zurücknehmen einer selbst
+  angenommenen Akte die Automatik für diesen Namen. Eine Mail der Absenderregel löst `POST
+  /api/v1/projekte/automatik/zuordnung/{episode_id}/zuruecknehmen` und sperrt sie für die Regel (404, wenn Kingfisher
+  sie nicht selbst zugeordnet hat; 409, wenn sie inzwischen woanders liegt).
+* **Personen ↔ Projekte, nur abgeleitet.** Gespeichert wird über Personen nichts. Wer zum Projekt gehört, ist, wer in
+  seinen Quellen vorkommt (wie „Zusammenhänge“): Die Akte eines Projekts nennt unter dem Namen „Beteiligte: Anna
+  Keller und Ben Braun“, die Akte einer Person „Projekte: Umbau Praxis“ (nur angelegte, keine bloßen Erwähnungen,
+  höchstens drei Namen und „und N weitere“), das Personenprofil wie bisher unter „Wie verbunden?“.
+* **Ablage** (Migration 25, nur Verweise und Zahlen): `projekt_automatik_anlagen` (Kennung, Projekt, Zeitpunkt, Grund
+  als Anzahl, Tage, Daten, Arten und Sachen-Kennungen der Personen, zurückgenommen), `projekt_automatik_zuordnungen`
+  (Quelle, Projekt, Art `akte` oder `absender`), `projekt_automatik_sperren` (`akte:<Kennung>`, `mail:<Quelle>`),
+  `projekt_automatik_stand`. Namen liest jede Anzeige neu aus den Quellen.
+
+Grenzen: Die Regel kennt nur, was die Einordnung als Projekt erwähnt; ohne Modell der Einordnung gibt es keine
+Erwähnungen und damit keine neuen Projekte (die Absenderregel läuft trotzdem). Die strenge Absenderregel greift bei
+Menschen, die über mehreres schreiben, selten; das ist gewollt (lieber keine als eine falsche Zuordnung). Protokoll:
+[`runs/2026-10-26-automatik-projekte`](runs/2026-10-26-automatik-projekte/README.md).
 
 ### Aufgaben folgen der Post (Oktober 2026)
 
@@ -314,7 +369,9 @@ Modell darf später nur Kandidaten liefern; es ist nicht Teil dieses Schritts. P
 | `GET /api/v1/akten/vorschlaege` | offene Vorschläge „Neue Akte?“ mit Grund und Textstellen (Prüfung; die Oberfläche zeigt nie eine Liste) |
 | `POST /api/v1/akten/vorschlaege/{kennung}/annehmen` | Projekt anlegen, Quellen ohne Projekt zuordnen; Antwort: Akte (Link) und Satz; 404 unbekannt, 409 schon angenommen |
 | `POST /api/v1/akten/vorschlaege/{kennung}/ablehnen` | „Nein danke“ merken (409, wenn schon entschieden) |
-| `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen` | Entscheidung zurücknehmen: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran hängt (404 ohne Entscheidung) |
+| `POST /api/v1/akten/vorschlaege/{kennung}/zuruecknehmen` | Entscheidung zurücknehmen: Zuordnungen lösen, Projekt entfernen, wenn nichts anderes daran hängt (404 ohne Entscheidung); bei einer Anlage durch Kingfisher nur dessen eigene Zuordnungen, danach gemerkt |
+| `GET /api/v1/projekte/automatik` | was Kingfisher in den letzten drei Tagen selbst angelegt hat: Name, Akte, Zahl, Personen, Grund (für die eine Zeile auf Heute) |
+| `POST /api/v1/projekte/automatik/zuordnung/{episode_id}/zuruecknehmen` | eine automatische Zuordnung lösen und die Mail für die Absenderregel sperren (404 nicht automatisch, 409 inzwischen geändert) |
 | `POST /api/v1/tasks/{id}/rueckgaengig` | Änderung durch die Post zurücknehmen (404 unbekannt, 409 nichts zurückzunehmen) |
 | `GET /api/v1/aufgaben-post/vorschlaege`, `POST …/{id}/annehmen`, `POST …/{id}/verwerfen` | „Erledigt?“ und „Wieder bei dir?“ (404 unbekannt, 409 entschieden oder überholt) |
 

@@ -189,3 +189,9 @@
 #root .akte .akte-kopf-bild { max-width: 168px; text-align: center; }
 #root .akte .akte-kopf-bild summary { min-height: 28px; padding: 0; font: var(--g-fussnote); color: var(--g-leise); text-decoration: none; }
 #root .akte .akte-kopf-bild summary::before { content: none; display: none; }
+
+/* Personen ↔ Projekte (Paket P): eine leise Zeile unter dem Namen, abgeleitet, jeder Name ein Verweis. */
+#root .akte .akte-verbunden { margin: 0; font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
+#root .akte .akte-verbunden-titel { color: var(--g-leise); }
+#root .akte a.akte-verbunden-name { color: var(--g-verweis); text-decoration: none; }
+#root .akte a.akte-verbunden-name:hover { text-decoration: underline; text-underline-offset: 3px; }
