@@ -34,8 +34,8 @@ export const SCHALTER = {
   mitteilungen: { titel: "Mitteilungen auf dem {Rechner}",
     verlaesst: "Es verlässt nichts den Rechner. Morgens eine Mitteilung mit dem, was heute zählt, dazu höchstens zwei dringende: ein Termin gleich, eine verstrichene Zusage." },
   cloud: { titel: "Cloud für Fragen und Antworten nutzen",
-    verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
-    zustimmung: "Deine Fragen und die dazu gefundenen Textstellen gehen an den Cloudanbieter, den du gewählt hast. Ich willige ein." },
+    verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
+    zustimmung: "Deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum gehen an den Cloudanbieter, den du gewählt hast, auch bei Fragen an dein Gedächtnis. Ich willige ein." },
   // Der Satz zur Einwilligung kommt vom Sidecar (`cloud_satz` der Rolle hintergrund, GET /roles) und wird hier nur um
   // das „Ich willige ein.“ ergänzt, damit er nicht zweimal gepflegt wird (cloudEinordnung.ts).
   cloud_einordnung: { titel: "Neue Mails in der Cloud einordnen",

@@ -219,4 +219,5 @@ def test_rollen_markieren_nur_den_cloudanbieter_mit_einwilligung_und_schluessel(
 
 def test_einwilligungssatz_nennt_frage_und_textstellen():
     satz = model_roles.ROLLEN['antwort'].cloud_satz
-    assert 'Fragen' in satz and 'Textstellen' in satz
+    for wort in ('Fragen', 'Textstellen', 'Absender', 'Betreff', 'Gedächtnis'):
+        assert wort in satz
