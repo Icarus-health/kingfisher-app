@@ -174,8 +174,8 @@ def vorschlag_postfach(adresse: str | None) -> Vorschlag | None:
     if not domaene or "." not in domaene:
         return None
     if identitaet.ist_privater_anbieter(adresse):
-        return Vorschlag(PRIVAT, f"{domaene} ist ein Anbieter für private Adressen.")
-    return Vorschlag(ARBEIT, f"{domaene} ist die Adresse einer Firma oder Organisation.")
+        return Vorschlag(PRIVAT, f"{domaene} ist ein privater Anbieter.")
+    return Vorschlag(ARBEIT, f"{domaene} ist eine Firmenadresse.")
 
 
 def _wort_im_namen(name: str) -> str | None:

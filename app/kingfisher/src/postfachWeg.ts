@@ -44,6 +44,7 @@ export const erkanntText = (anbieter: Pick<MailProvider, "id" | "label">) =>
   anbieter.id === "gefunden" ? `Erkannt: ${anbieter.label}. Kingfisher hat deinen Mailserver in den Angaben deiner Domain gefunden.`
     : `Erkannt: ${anbieter.label}`;
 
-/** Der Name, unter dem das Postfach in der Liste steht: der Anbieter, bei eigenem Server die Domain. */
+/** Der Name, unter dem das Postfach in der Liste steht: die Adresse. Nach dem Anbieter hießen zwei Gmail-Konten gleich
+ * (Paket K); umbenennen geht unter Zugänge mit einem Klick auf den Namen. Ohne Adresse der Anbieter. */
 export const postfachName = (adresse: string, anbieter: Pick<MailProvider, "id" | "label">) =>
-  anbieter.id === "gefunden" || anbieter.id === EIGENER_SERVER ? domainVon(adresse) || anbieter.label : anbieter.label;
+  adresse.trim().toLowerCase() || anbieter.label;

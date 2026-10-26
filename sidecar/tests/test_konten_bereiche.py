@@ -284,10 +284,11 @@ def test_stand_in_einem_satz() -> None:
     assert gut == {"satz": "Zuletzt gelesen vor 4 Min.", "art": "gut", "verweis": None}
     fehler = konten_routes.kurzer_mailstand({
         "zustand": "fehler", "verweis": "zugaenge", "zuletzt": None,
-        "satz": "Postfach Firma lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen. Melde dich neu an."},
+        "satz": "Postfach Firma lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen. Melde dich unter "
+                "Einstellungen → Zugänge neu an."},
         "Firma", jetzt)
     assert fehler["art"] == "fehler" and fehler["verweis"] == "zugaenge"
-    assert fehler["satz"].startswith("Lässt Kingfisher nicht mehr hinein")
+    assert fehler["satz"] == "Lässt Kingfisher nicht mehr hinein: Die Anmeldung ist abgelaufen. Melde dich neu an."
     liest = konten_routes.kurzer_mailstand({"zustand": "liest", "satz": "Postfach Firma wird gelesen: 3 von 9 Mails.",
                                              "zuletzt": None}, "Firma", jetzt)
     assert liest == {"satz": "Wird gelesen: 3 von 9 Mails.", "art": "laeuft", "verweis": None}

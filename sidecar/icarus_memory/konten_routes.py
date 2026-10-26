@@ -85,7 +85,8 @@ def _satz(text: str) -> str:
 def _ohne_namen(satz: str, name: str) -> str:
     """Der Satz von `mail_stand` ohne „Postfach <Name>“ vorne: In der Zeile steht der Name schon."""
     kopf = f"Postfach {name}"
-    satz = satz.replace(f" von {kopf} ", " ")
+    # Die Zeile steht schon unter Zugänge; der Verweis dorthin entfällt („Melde dich neu an.“).
+    satz = satz.replace(f" von {kopf} ", " ").replace(" unter Einstellungen → Zugänge", "")
     if satz.startswith(kopf + ": "):
         satz = satz[len(kopf) + 2:]
     elif satz.startswith(kopf + " "):

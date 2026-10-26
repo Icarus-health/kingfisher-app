@@ -66,6 +66,8 @@ import { createDailyRefresh } from "./dailyFlow";
 import { MailReader } from "./MailReader";
 import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
+import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
+import {gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
 
 
 
@@ -794,7 +796,12 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId));
+  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx).
+  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
+  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
+  useEffect(() => kontenFuerFilter(setBereichKonten), []);
+  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
+  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
   const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -845,6 +852,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       {panel !== "review" && (listView || (view === "decisions" && (projects.length > 0 || projectError))) && <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
         {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Suchen" />}
         {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
+        {listView && panel !== "projects" ? bereichFilter.segmente : null}
       </form>}
       {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {panel !== 'review' && listView && <>

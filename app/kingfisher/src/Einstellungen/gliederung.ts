@@ -162,6 +162,8 @@ export const VORDERE_DATEIEN: readonly string[] = [
   "GoogleKalenderAdresse.tsx", "googleWeg.ts", "KalenderMitAdresse.tsx", "Einrichtung/MailSchritt.tsx", "Einrichtung/KalenderSchritt.tsx",
   // Eigene Domain ohne Servereingabe (Fremdprobe 2, Befund 2): im Assistenten und unter Zugänge.
   "PostfachMitAdresse.tsx", "postfachWeg.ts",
+  // Name, Bereich und Stand je Konto (Paket K).
+  "Einstellungen/KontoZeile.tsx", "kontenBereiche.ts",
   // Fassung und Update-Angebot (docs/53): die Zeile unter „Kingfisher und du“ und der Hinweis auf Heute.
   "Fassung.tsx",
 ];
