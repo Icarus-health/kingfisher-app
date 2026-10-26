@@ -110,10 +110,10 @@ def _ollama(monkeypatch, loaded=()):
 
 def test_vorwaermen_laedt_das_lokale_antwortmodell_einmal_je_minute(monkeypatch):
     calls = _ollama(monkeypatch)
-    lokal = OpenAICompatible('qwen3.5:9b', base_url='http://127.0.0.1:11434/v1')
+    lokal = OpenAICompatible('lokal-antwort:9b', base_url='http://127.0.0.1:11434/v1')
     uhr = iter([100.0, 130.0, 200.0])
     assert ollama_memory.vorwaermen(lokal, uhr=lambda: next(uhr)) == 'geladen'
-    assert calls == [('POST', '/api/generate', {'model': 'qwen3.5:9b', 'keep_alive': '5m'})]
+    assert calls == [('POST', '/api/generate', {'model': 'lokal-antwort:9b', 'keep_alive': '5m'})]
     assert ollama_memory.vorwaermen(lokal, uhr=lambda: next(uhr)) == 'kuerzlich'
     assert ollama_memory.vorwaermen(lokal, beschaeftigt=lambda: True, uhr=lambda: next(uhr)) == 'beschaeftigt'
     assert len(calls) == 1
@@ -129,13 +129,13 @@ def test_vorwaermen_eines_eigenen_modells_entlaedt_erst_die_anderen(monkeypatch)
 
 @pytest.mark.parametrize('anbieter', [
     None,
-    OpenAICompatible('gpt-4.1-mini', api_key='synthetisch'),  # Cloud
-    OpenAICompatible('qwen3.5:9b', base_url='http://127.0.0.1:8080/v1'),  # lokal, aber kein Ollama
+    OpenAICompatible('cloud-antwort', api_key='synthetisch'),  # Cloud
+    OpenAICompatible('lokal-antwort:9b', base_url='http://127.0.0.1:8080/v1'),  # lokal, aber kein Ollama
 ])
 def test_ohne_lokales_ollama_modell_kein_einziger_aufruf(monkeypatch, anbieter):
     calls = _ollama(monkeypatch)
     assert ollama_memory.vorwaermen(anbieter) == 'kein_lokales_modell'
-    ueber_cloud = OpenAICompatible('qwen3.5:cloud', base_url='http://127.0.0.1:11434/v1')
+    ueber_cloud = OpenAICompatible('lokal-antwort:cloud', base_url='http://127.0.0.1:11434/v1')
     ueber_cloud.ueber_ollama_cloud = True
     assert ollama_memory.vorwaermen(ueber_cloud) == 'kein_lokales_modell'
     assert calls == []
@@ -148,11 +148,11 @@ def test_vorwaermen_route_wartet_nicht_und_ruft_ohne_lokales_modell_nichts(core,
         # Die Attrappe ist lokal, aber kein Ollama: kein Aufruf.
         assert client.post('/api/v1/gespraech/vorwaermen').json() == {'ergebnis': 'kein_lokales_modell',
                                                                        'cloud': False}
-        app.state.agent._provider = OpenAICompatible('qwen3.5:9b', base_url='http://127.0.0.1:11434/v1')
+        app.state.agent._provider = OpenAICompatible('lokal-antwort:9b', base_url='http://127.0.0.1:11434/v1')
         with AMPEL.vordergrund():  # ein Modellaufruf läuft: nicht dazwischen
             assert client.post('/api/v1/gespraech/vorwaermen').json()['ergebnis'] == 'beschaeftigt'
         assert gespraech_fortschritt.vorwaermen(app, im_hintergrund=False) == 'geladen'
-        assert calls == [('POST', '/api/generate', {'model': 'qwen3.5:9b', 'keep_alive': '5m'})]
+        assert calls == [('POST', '/api/generate', {'model': 'lokal-antwort:9b', 'keep_alive': '5m'})]
     finally:
         client.close()
         _close_app(app)
