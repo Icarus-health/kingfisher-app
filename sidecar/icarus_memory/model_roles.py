@@ -88,8 +88,9 @@ ROLLEN: dict[str, RolleSpec] = {s.name: s for s in (
               True, "Deine Fragen (nicht deine Quellen) werden an den Cloudanbieter gesendet."),
     RolleSpec("antwort", "Antworten formulieren",
               "Formuliert die Antwort aus den gefundenen Belegen.",
-              True, "Deine Fragen und die dafür gefundenen Textstellen (samt Absender, Betreff und Datum) werden an den "
-                    "Cloudanbieter gesendet, auch bei Fragen an dein Gedächtnis."),
+              True, "Deine Fragen, der Gesprächsverlauf und Inhalte deiner Mails, Termine und Notizen, ganz oder in "
+                    "Auszügen, samt Absender, Betreff und Datum, werden an den Cloudanbieter gesendet, auch bei Fragen "
+                    "an dein Gedächtnis."),
     RolleSpec("pruefung", "Sätze gegenprüfen",
               "Prüft jeden Satz einer Antwort ein zweites Mal gegen seine Belege.",
               False, "Diese Aufgabe liest die Textstellen deiner Quellen und bleibt deshalb auf diesem Rechner."),

@@ -114,10 +114,13 @@ def test_local_memory_read_remains_usable_after_source(setup):
 
 
 def test_clean_explicit_web_read_countercase(setup):
+    """Persona-Prüfung D2: Auch in einer sauberen Runde wartet ein Webabruf auf die Freigabe, mit einem Klick."""
     _, effects, make = setup
     agent = make(call("web_abruf", url="https://example.invalid/public"))
     turn = agent.send("Lies diese öffentliche Seite.")
-    assert turn.approvals == []
+    assert effects == []
+    assert len(turn.approvals) == 1 and turn.approvals[0].confirmation_phrase is None
+    agent.resolve(turn.approvals[0].id, True)
     assert effects == [{"url": "https://example.invalid/public"}]
 
 
@@ -198,8 +201,9 @@ def test_explicit_reset_discards_history_for_clean_countercase(setup):
     agent.send("Quelle lesen.")
     agent.reset()
     turn = agent.send("Lies die öffentliche Seite.")
-    assert turn.approvals == []
-    assert effects == [{"url": "https://example.invalid/public"}]
+    # Nach dem Zurücksetzen ist die Runde sauber: ein Klick genügt (ohne Reset hieße es: Adresse abtippen).
+    assert len(turn.approvals) == 1 and turn.approvals[0].confirmation_phrase is None
+    assert effects == []
 
 
 def test_explicit_memory_draft_after_loaded_history_needs_only_fact_confirmation(setup):

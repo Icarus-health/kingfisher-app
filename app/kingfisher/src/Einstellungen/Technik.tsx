@@ -26,7 +26,8 @@ function Speicherorte() {
       <li><strong>Gedächtnis, Quellen, Gespräche, Aufgaben</strong>: Datenbanken im selben Datenordner.</li>
       <li><strong>Sicherungen</strong>: dort, wo du sie bei „Sicherung“ ablegst, verschlüsselt mit deinem Passwort.</li>
     </ul>
-    <p className="source-hint">Nichts davon verlässt diesen Rechner, außer was du unter „Was Kingfisher darf“ eingeschaltet hast.</p>
+    {/* Persona-Prüfung, D3: Der Satz muss stimmen, auch für das, was von Haus aus an ist. */}
+    <p className="source-hint">Nichts davon verlässt diesen Rechner, außer was unter „Was Kingfisher darf“ eingeschaltet ist. Von Haus aus ist dort nur eines an, das etwas abruft: Einmal am Tag fragt Kingfisher bei GitHub nach einer neuen Fassung, und GitHub sieht dabei deine IP-Adresse. Webseiten ruft Kingfisher nur nach deiner Freigabe im Gespräch ab.</p>
   </div>;
 }
 

@@ -112,6 +112,25 @@ def _web_fetch(url: str, max_chars: int = 4000) -> str:
     return wrap_untrusted(text[:max_chars], url)
 
 
+def web_abruf_satz(url: str) -> str:
+    """Der eine Satz der Freigabe für einen Webabruf: Adresse, wer die IP-Adresse sieht, was mit der Adresse hinausgeht.
+
+    Persona-Prüfung, D2: Ein Modell, dem eine Mail etwas eingeflüstert hat, kann Angaben in die Adresse schreiben
+    (`?mandant=…`). Die stehen hier ausgeschrieben, damit der Mensch sie vor dem Klick sieht.
+    """
+    from urllib.parse import parse_qsl, urlsplit
+
+    teile = urlsplit(url)
+    host = teile.hostname or url
+    angaben = [f"{k}={v}" if v else k for k, v in parse_qsl(teile.query, keep_blank_values=True)]
+    if teile.query and not angaben:
+        angaben = [teile.query]
+    satz = f"Kingfisher ruft die Seite {url} ab; dabei sieht {host} deine IP-Adresse"
+    if angaben:
+        satz += ", und mit der Adresse werden diese Angaben mitgesendet: " + "; ".join(angaben)[:300]
+    return satz + "."
+
+
 def _read_file(path: str, roots: list[Path], max_chars: int = 4000) -> str:
     target = resolve_readable_path(path, roots)
     content = target.read_text(encoding="utf-8", errors="replace")[:max_chars]
@@ -809,7 +828,7 @@ def build_registry(
             },
             action_class=ActionClass.READ,
             run=lambda url, **_: _web_fetch(url),
-            dry_run=lambda a: f"Die Seite {a.get('url')} abrufen und lesen.",
+            dry_run=lambda a: web_abruf_satz(str(a.get('url') or '')),
             returns_untrusted=True,
         ),
         Tool(

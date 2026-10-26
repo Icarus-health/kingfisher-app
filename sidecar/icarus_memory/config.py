@@ -291,6 +291,12 @@ class Settings:
     Wirkt nur, wenn der Rolle ein lokales Modell zugewiesen ist; sonst ist das Tor still aus
     (`satzpruefung_modell.py`), und die Modellkarte sagt es.
     """
+    web_abruf: str = "an"
+    """Darf das Modell im Gespräch eine Webseite abrufen (Werkzeug `web_abruf`)? `an` (Vorgabe) oder `aus`.
+
+    Auch bei `an` braucht jeder einzelne Abruf die Freigabe im Gespräch (`policy.Policy._IMMER_FREIGABE`); bei `aus`
+    bekommt das Modell das Werkzeug nicht angeboten (`nach_draussen.py`).
+    """
     world_sources: list[dict[str, Any]] = field(default_factory=list)
 
     wegezeit: dict[str, Any] = field(default_factory=dict)
@@ -445,6 +451,7 @@ class Settings:
                          if isinstance(data.get('cloud_models'), dict) else {},
             antwort_saetze="aus" if data.get("antwort_saetze") == "aus" else "an",
             satzpruefung_modell="aus" if data.get("satzpruefung_modell") == "aus" else "an",
+            web_abruf="aus" if data.get("web_abruf") == "aus" else "an",
             world_sources=[dict(x) for x in data.get("world_sources", []) if isinstance(x, dict)],
             wegezeit=dict(data.get("wegezeit") or {}) if isinstance(data.get("wegezeit"), dict) else {},
             wetter=dict(data.get("wetter") or {}) if isinstance(data.get("wetter"), dict) else {},

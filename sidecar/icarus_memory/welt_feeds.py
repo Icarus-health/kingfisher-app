@@ -26,7 +26,7 @@ from urllib.parse import urldefrag, urljoin, urlparse
 
 import httpx
 
-from .security import SecurityError
+from .security import HostNichtAufloesbar, SecurityError
 from .world_sources import MAX_REDIRECTS, REDIRECT_STATUSES, TIMEOUT_SECONDS, _validate_url
 
 MAX_FEED_BYTES = 256 * 1024
@@ -171,6 +171,14 @@ def lesen(rohdaten: bytes) -> list[Eintrag]:
     return eintraege
 
 
+def nicht_erreichbar(url: str) -> str:
+    """Der Satz, wenn eine Quelle nicht erreichbar ist (Persona-Prüfung, Kleinpunkt c): kein „nicht erlaubt“ ohne Netz."""
+    from urllib.parse import urlsplit
+    host = urlsplit(url).hostname or 'Die Quelle'
+    return (f'{host} ist gerade nicht erreichbar. Vermutlich besteht keine Verbindung zum Internet; '
+            'versuche es noch einmal, wenn du online bist.')
+
+
 def abrufen(url: str, *, client: httpx.Client | None = None) -> bytes:
     """Die Rohbytes eines Feeds. Gleiche Schutzregeln wie `world_sources.fetch_public_text`, aber ohne Textumwandlung."""
     eigener = client is None
@@ -181,6 +189,10 @@ def abrufen(url: str, *, client: httpx.Client | None = None) -> bytes:
         for versuche in range(MAX_REDIRECTS + 1):
             try:
                 aktuell = _validate_url(aktuell)
+            except HostNichtAufloesbar:
+                if urlparse(aktuell).scheme.casefold() != 'https':
+                    raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
+                raise FeedFehler(nicht_erreichbar(aktuell)) from None
             except (SecurityError, ValueError):
                 raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
             try:
@@ -204,6 +216,8 @@ def abrufen(url: str, *, client: httpx.Client | None = None) -> bytes:
                         koerper.extend(stueck)
                         if len(koerper) > MAX_FEED_BYTES:
                             raise FeedFehler('Der Feed ist zu groß.')
+            except (httpx.ConnectError, httpx.ConnectTimeout):
+                raise FeedFehler(nicht_erreichbar(aktuell)) from None
             except httpx.HTTPError:
                 raise FeedFehler('Der Feed konnte nicht abgerufen werden.') from None
             break

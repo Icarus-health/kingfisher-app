@@ -28,6 +28,7 @@ Die Art-spezifischen Nutzdaten (`sorte` ist die Unterart; das Schlüsselwort `ar
 | `export` | `was` |
 | `rueckmeldung` | `sorte` |
 | `zu_lang` | `sorte`, `anzahl`: Quellen über der Obergrenze der Einordnung (`abschnitte.OBERGRENZE`), nicht eingeordnet |
+| `cloud_anfrage` | `anbieter` (Kennung), `modell`, `wofuer` (`gespraech`, `gedaechtnis`, `frage`, `einordnung`, `import`): eine einzelne Anfrage an einen Cloudanbieter, ohne Inhalt (`nach_draussen.py`); zählt nicht in die drei Zeilen |
 | `aufgabe_post` | `sorte` (`erledigt`, `zurueck`, `angelegt`, `zurueckgenommen`, `wiederhergestellt`), `aufgabe`, `mail` (Kennungen), `wie` (`verlauf`, `person`, `vorschlag`, `bitte`, `zusage`): die Post hat eine Aufgabe erledigt oder zurückgeholt (`aufgaben_post.py`) oder Kingfisher hat sie aus einer neuen Mail selbst angelegt (`aufgaben_von_selbst.py`) |
 
 **Die Zusammenfassung.** `seit(zeitpunkt)` zählt die Einträge seit dem Zeitpunkt, `drei_zeilen` macht daraus
@@ -73,7 +74,8 @@ ARTEN = ('quellen', 'akte_neu', 'akte_aktualisiert', 'vorschlag_erzeugt', 'vorsc
          'cloud_einordnung',  # Tagesbudget der Cloud-Einordnung erreicht (einmal je Tag)
          'aufgabe_post',  # Aufgabe nach eigener oder fremder Post erledigt bzw. zurückgeholt
          'akte_vorschlag',
-         'mitteilung', 'mitteilung_ueberfluessig')
+         'mitteilung', 'mitteilung_ueberfluessig',
+         'cloud_anfrage')  # eine einzelne Anfrage an einen Cloudanbieter, ohne Inhalt (`nach_draussen.py`)
 
 #: Liegt der vorige Blick weniger weit zurück, gehört der neue zur selben Sitzung (siehe Modulkopf).
 SITZUNG_LUECKE = timedelta(hours=3)

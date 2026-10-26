@@ -357,3 +357,9 @@ html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell)
   #root .settings-shell :is(.konto-frage, .konto-wahl, .konto-fehler) { padding-left: var(--g-a4); }
   #root .settings-shell .zugang-liste > .konto ~ .konto::before { left: var(--g-a4); }
 }
+
+/* Was an die Cloud ging (Persona-Prüfung, Paket D): eine leise, aufklappbare Liste ohne Inhalte. */
+#root .settings-shell .darf-zeile .cloud-protokoll { display: grid; gap: var(--g-a2); }
+#root .settings-shell .darf-zeile .cloud-protokoll > summary { min-height: var(--g-ziel); display: flex; align-items: center; font: var(--g-neben); color: var(--g-leise); cursor: pointer; }
+#root .settings-shell .darf-zeile .cloud-protokoll-liste { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font: var(--g-neben); color: var(--g-tinte); overflow-wrap: anywhere; }
+#root .settings-shell .darf-zeile .cloud-protokoll-zeit { color: var(--g-leise); font-variant-numeric: tabular-nums; }

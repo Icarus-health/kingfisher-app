@@ -299,8 +299,13 @@ class WeltDienst:
         """Prüft die Adresse und liest den Feed einmal, damit ein kaputter nicht still eingetragen wird."""
         from .world_sources import _validate_url
         from .security import SecurityError
+        from .security import HostNichtAufloesbar
         try:
             adresse = _validate_url(url)
+        except HostNichtAufloesbar:
+            if not str(url).strip().casefold().startswith('https://'):
+                raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
+            raise FeedFehler(welt_feeds.nicht_erreichbar(url)) from None
         except (SecurityError, ValueError):
             raise FeedFehler('Diese Adresse ist nicht erlaubt: Sie muss öffentlich sein und mit https beginnen.') from None
         name = ' '.join(str(label or '').split())[:80]

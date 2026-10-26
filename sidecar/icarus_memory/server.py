@@ -910,22 +910,27 @@ def _build_agent(app: FastAPI) -> Agent:
     standard_provider = provider_from_env()
     app.state.standard_provider = standard_provider
     app.state.rollen = None
+    werkzeuge = build_registry(
+        app.state.store,
+        outward_sink=_mail_sink(app),
+        file_roots=file_roots_from_env(os.environ.get(ROOTS_ENV)),
+        mail=app.state.mail,
+        calendar=app.state.calendar,
+        task_store=app.state.tasks,
+        workspace=app.state.workspace,
+        episodes=app.state.episodes,
+        mcp_verbindungen=getattr(app.state, "mcp", None),
+    )
+    from .nach_draussen import web_an
+    if not web_an(app.state.settings):
+        # „Webseiten abrufen“ ist unter „Was Kingfisher darf“ aus: Das Modell bekommt das Werkzeug gar nicht erst.
+        werkzeuge.pop("web_abruf", None)
     agent = Agent(
         store=app.state.store,
         policy=Policy(),
         audit=app.state.audit,
         regeln=getattr(app.state, "regeln", None),
-        tools=build_registry(
-            app.state.store,
-            outward_sink=_mail_sink(app),
-            file_roots=file_roots_from_env(os.environ.get(ROOTS_ENV)),
-            mail=app.state.mail,
-            calendar=app.state.calendar,
-            task_store=app.state.tasks,
-            workspace=app.state.workspace,
-            episodes=app.state.episodes,
-            mcp_verbindungen=getattr(app.state, "mcp", None),
-        ),
+        tools=werkzeuge,
         provider=provider_fuer("antwort", standard_provider, lese_wahlen(app.state.settings.model_roles), inventar=inventar_von(app)),
         knowledge=app.state.claims,
         knowledge_conflicts=app.state.knowledge_service.answer_conflict_status,
@@ -6839,6 +6844,8 @@ def create_app(
     register_rueckmeldung(app, guard, _data_dir)
     from .logbuch_routes import register as register_logbuch
     register_logbuch(app, guard, _data_dir)
+    from .nach_draussen import register as register_nach_draussen
+    register_nach_draussen(app, guard, _data_dir, lambda: _build_agent(app))
     from .fassung_routes import register as register_fassung
     register_fassung(app, guard, _data_dir)
     from .uebernehmen_routes import register as register_uebernehmen

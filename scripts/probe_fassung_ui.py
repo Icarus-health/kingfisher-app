@@ -138,7 +138,7 @@ def main() -> int:
                 pruef[f'breite_{name}'] = breite
                 assert breite[0] <= breite[1], f'{name}: waagerechtes Scrollen {breite}'
 
-            # 1. Kingfisher und du: Fassung, Schalter, „Jetzt nachsehen“.
+            # 1. Kingfisher und du: Fassung und „Jetzt nachsehen“; der Schalter steht unter „Was Kingfisher darf“ (Paket D).
             seite = neue_seite()
             seite.goto(basis + '/settings#ich')
             feld = seite.locator('.fassung-einstellung')
@@ -146,9 +146,16 @@ def main() -> int:
             seite.get_by_role('button', name='Jetzt nachsehen').wait_for(timeout=20000)
             pruef['einstellung_vorher'] = feld.inner_text()
             assert 'Fassung 1.0.0' in pruef['einstellung_vorher']
-            assert 'Einmal am Tag fragt Kingfisher bei GitHub, ob es eine neue Fassung gibt. Über dich geht dabei nichts hinaus.' in pruef['einstellung_vorher']
+            assert 'Kingfisher sieht einmal am Tag nach neuen Fassungen.' in pruef['einstellung_vorher']
             assert 'Noch nie nachgesehen.' in pruef['einstellung_vorher']
-            assert seite.get_by_role('switch', name='Nach neuen Fassungen sehen').is_checked()
+            darf = neue_seite()
+            darf.goto(basis + '/settings#darf')
+            schalter = darf.get_by_role('switch', name='Nach neuen Fassungen sehen')
+            schalter.wait_for(timeout=20000)
+            assert schalter.is_checked()
+            pruef['darf_satz'] = darf.locator('section.darf-zeile', has=schalter).inner_text()
+            assert 'GitHub sieht dabei deine IP-Adresse' in pruef['darf_satz']
+            darf.close()
             assert download.anfragen == [], 'Lesen fragt nie nach außen'
             seite.get_by_role('button', name='Jetzt nachsehen').click()
             seite.wait_for_selector('.fassung-einstellung [role=status]:has-text("Neue Fassung 1.2.0 ist da.")', timeout=10000)

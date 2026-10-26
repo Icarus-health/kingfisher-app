@@ -98,7 +98,7 @@ function RoleCard({role, roles, installed, alternatives, save}: {
       <button className="secondary-action" type="button" onClick={() => void save(role.rolle, {cloud: false}, "Diese Aufgabe läuft wieder auf diesem Rechner.")}>Wieder auf diesem Rechner</button>
     </div> : asking ? <div className="model-rec-confirm" role="group" aria-label={`Cloud für ${role.titel}`}>
       <label>Anbieter
-        <select value={provider} onChange={event => setProvider(event.target.value)}>
+        <select value={provider} onChange={event => { setProvider(event.target.value); setConsent(false); }}>
           <option value="">Bitte wählen</option>
           {erlaubt.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
           {ollamaCloud.length && ollamaCloudErlaubt ? <option value="ollama-cloud">Ollama Cloud (Modell auf deinem Ollama, läuft in den USA)</option> : null}
@@ -110,8 +110,10 @@ function RoleCard({role, roles, installed, alternatives, save}: {
         </select></label> : null}
       {viaOllama && roles.ollama_cloud ? <p className="model-rec-warn">{roles.ollama_cloud.hinweis}</p> : null}
       {anbieter && (!anbieter.schluessel_da || !anbieter.standardmodell.trim()) ? <p className="model-rec-warn">{!anbieter.schluessel_da ? `Für ${anbieter.label} ist noch kein Zugang hinterlegt.` : `Für ${anbieter.label} ist noch kein Modell eingetragen.`} <a href="#ki">Unter KI &amp; Modelle vervollständigen</a>.</p> : null}
-      <label className="model-consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} />
-        <span>{role.cloud_satz} Ich willige ein.</span></label>
+      {/* Die Zustimmung nennt den Empfänger mit Land und Region (Persona-Prüfung, D4); ohne Wahl gibt es keine. */}
+      {provider ? <label className="model-consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} />
+        <span>{role.cloud_satz} Empfänger: {viaOllama ? "Ollama (USA), nicht nur in der EU verarbeitet" : anbieter ? `${anbieter.wohin}, ${anbieter.region}` : provider}. Ich willige ein.</span></label>
+        : <p className="source-hint">Wähle zuerst den Anbieter; die Zustimmung nennt ihn dann.</p>}
       <button className="primary-action" type="button" disabled={!cloudReady(provider, Boolean(anbieter?.schluessel_da && anbieter.standardmodell.trim()) || (viaOllama && Boolean(cloudModel)), consent)}
         onClick={() => void save(role.rolle, viaOllama ? {modell: cloudModel, cloud: true, anbieter: provider, einwilligung: true} : {cloud: true, anbieter: provider, einwilligung: true}, "Cloud ist für diese Aufgabe zugeschaltet.").then(() => { setAsking(false); setConsent(false); })}>Cloud zuschalten</button>
       <button className="secondary-action" type="button" onClick={() => { setAsking(false); setConsent(false); }}>Abbrechen</button>

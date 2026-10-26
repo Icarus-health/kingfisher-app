@@ -107,7 +107,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; cloud_antwort?: {anbieter: string; modell: string}; cloud_widerrufen?: boolean; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -1179,7 +1179,11 @@ export type ModelRoleState = {
   blockiert?: string | null;
   cloud_einordnung?: CloudEinordnungStand;
 };
-export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: Array<{id: string; label: string; schluessel_da: boolean; standardmodell: string}>;
+/** Ein Cloudanbieter mit Land (`wohin`) und Region der Verarbeitung (sidecar: nach_draussen.py); beides steht in der Zustimmung. */
+export type CloudAnbieter = {id: string; label: string; schluessel_da: boolean; standardmodell: string; wohin: string; region: string};
+/** Eine einzelne Anfrage an einen Cloudanbieter, ohne Inhalt (sidecar: nach_draussen.py, `GET /api/v1/cloud/protokoll`). */
+export type CloudProtokollEintrag = {zeit: string; anbieter: string; modell: string; wofuer: string; satz: string};
+export type ModelRoles = {saetze?: "an" | "aus"; rollen: ModelRoleState[]; anbieter: CloudAnbieter[];
   ollama_cloud?: {modelle: string[]; hinweis: string}};
 export type CloudProviderPrivacy = {checked_at:string;region:string;training:string;retention:string;billing:string;sources:Array<{label:string;url:string}>};
 export type CloudProviderAccess = {id: "mistral" | "openrouter" | "anthropic" | "openai"; label: string; endpoint: string; key_present: boolean; model: string;import_available?:boolean;privacy?:CloudProviderPrivacy};
@@ -1269,6 +1273,9 @@ export const api = {
   modelRoles: () => request<ModelRoles>("/api/v1/models/roles"),
   antwortzeiten: () => request<AntwortZeitenProtokoll>("/api/v1/antwortzeiten"),
   gespraechFortschritt: (id: string) => request<GespraechFortschritt>(`/api/v1/conversations/${id}/fortschritt`),
+  cloudProtokoll: () => request<{eintraege: CloudProtokollEintrag[]}>("/api/v1/cloud/protokoll"),
+  webAbruf: () => request<{an: boolean}>("/api/v1/darf/web"),
+  webAbrufSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/darf/web", {method: "PUT", body: JSON.stringify({an})}),
   gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),

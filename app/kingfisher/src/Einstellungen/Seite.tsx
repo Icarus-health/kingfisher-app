@@ -77,7 +77,7 @@ export function EinstellungenSeite({ recentConversation }: { recentConversation:
       </div>
       {/* Datenschutz & Speicherung: offen als Fußnote unter allem, nicht hinter einer Klappe (wie am Mac). */}
       <section className="settings-storage" aria-label="Datenschutz & Speicherung">
-        <p>{fuerSystem("Kingfisher speichert Quellen und Einstellungen auf diesem {Rechner}.", system)} Externe Dienste und Cloud-Verarbeitung benötigen eine gesonderte Freigabe.</p>
+        <p>{fuerSystem("Kingfisher speichert Quellen und Einstellungen auf diesem {Rechner}.", system)} Externe Dienste und Cloud-Verarbeitung benötigen eine gesonderte Freigabe; von Haus aus fragt Kingfisher nur einmal am Tag bei GitHub nach Updates (ausschaltbar unter „Was Kingfisher darf“).</p>
       </section>
     </main>
   </div>;

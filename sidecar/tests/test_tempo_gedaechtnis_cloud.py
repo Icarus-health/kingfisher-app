@@ -219,5 +219,6 @@ def test_rollen_markieren_nur_den_cloudanbieter_mit_einwilligung_und_schluessel(
 
 def test_einwilligungssatz_nennt_frage_und_textstellen():
     satz = model_roles.ROLLEN['antwort'].cloud_satz
-    for wort in ('Fragen', 'Textstellen', 'Absender', 'Betreff', 'Gedächtnis'):
+    # Präzisiert (Persona-Prüfung, D4): statt „Textstellen“ Inhalte der Mails, ganz oder in Auszügen.
+    for wort in ('Fragen', 'Inhalte deiner Mails', 'ganz oder in Auszügen', 'Absender', 'Betreff', 'Gedächtnis'):
         assert wort in satz

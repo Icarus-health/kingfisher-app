@@ -8,19 +8,35 @@ import type { GespraechFortschritt, Message } from "./api";
 import { LANGSAM_S, gueltigeZeiten } from "./antwortzeit.ts";
 
 export const WARTEN_VORGABE = "Kingfisher antwortet …";
-export const LANGSAM_SATZ = "Lokal dauert das. Mit der Cloud geht es in wenigen Sekunden.";
+export const LANGSAM_SATZ = "Lokal dauert das. Mit der Cloud ginge es in wenigen Sekunden.";
 export const LANGSAM_KNOPF = "Cloud einschalten";
 export const LANGSAM_WEG = "Nicht mehr zeigen";
 export const LANGSAM_MERKER = "kingfisher.tempo.cloudHinweis";
 /** So oft fragt die Oberfläche nach dem Schritt, solange eine Antwort läuft. Der Abruf ist leicht (ein Wörterbuch). */
 export const ABFRAGE_MS = 700;
 
+/**
+ * Der ganze Hinweis unter einer langsamen lokalen Antwort: der Nutzen und, in einem kurzen Satz, was dann hinausginge und
+ * an wen (Persona-Prüfung, D6). `wohin` ist der vorbereitete Anbieter mit Land („Anthropic (USA)“), wenn es genau einen
+ * gibt; sonst steht da, dass beim Einschalten zugestimmt wird.
+ */
+export function langsamSatz(wohin: string | null | undefined): string {
+  const an = wohin && wohin.trim() ? wohin.trim() : "einen Cloudanbieter, dem du beim Einschalten zustimmst";
+  return `${LANGSAM_SATZ} Dann gingen deine Fragen und Inhalte deiner Mails an ${an}.`;
+}
+
+/** Der vorbereitete Cloudanbieter, wenn es genau einen gibt (Schlüssel und Modell da); sonst null. */
+export function vorbereiteterAnbieter(anbieter: ReadonlyArray<{ schluessel_da: boolean; standardmodell: string; wohin?: string }> | null | undefined): string | null {
+  const bereit = (anbieter ?? []).filter(a => a.schluessel_da && a.standardmodell.trim());
+  return bereit.length === 1 ? bereit[0].wohin ?? null : null;
+}
+
 /** Der Satz unter der eigenen Frage: der Schritt aus dem Sidecar, sonst „Kingfisher antwortet …“. */
 export function warteSatz(stand: GespraechFortschritt | null | undefined): string {
   return stand && stand.laeuft && typeof stand.satz === "string" && stand.satz.trim() ? stand.satz : WARTEN_VORGABE;
 }
 
-type Kontext = { zeiten?: unknown; gedaechtnis_cloud?: unknown } | undefined | null;
+type Kontext = { zeiten?: unknown; gedaechtnis_cloud?: unknown; cloud_antwort?: unknown } | undefined | null;
 
 /**
  * Steht unter dieser Antwort der Satz zur Cloud? Nur wenn sie gemessen langsamer als `LANGSAM_S` war, nicht schon aus der
@@ -29,7 +45,7 @@ type Kontext = { zeiten?: unknown; gedaechtnis_cloud?: unknown } | undefined | n
 export function langsamHinweis(kontext: Kontext, { cloudAn, weggeklickt }: { cloudAn: boolean | null; weggeklickt: boolean }) {
   const zeiten = gueltigeZeiten(kontext?.zeiten);
   if (!zeiten || !(zeiten.gesamt > LANGSAM_S)) return false;
-  if (kontext?.gedaechtnis_cloud) return false;
+  if (kontext?.gedaechtnis_cloud || kontext?.cloud_antwort) return false;
   return cloudAn === false && !weggeklickt;
 }
 
@@ -71,9 +87,12 @@ const ANBIETER: Record<string, string> = {
   anthropic: "Anthropic", openai: "OpenAI", mistral: "Mistral", openrouter: "OpenRouter", "ollama-cloud": "Ollama",
 };
 
-/** „Über Anthropic beantwortet.“: unter einer Gedächtnisantwort, die mit Einwilligung die Cloud beantwortet hat; sonst null. */
-export function cloudVermerk(kontext: { gedaechtnis_cloud?: unknown } | undefined | null): string | null {
-  const cloud = kontext?.gedaechtnis_cloud as { anbieter?: unknown } | undefined;
+/**
+ * „Über Anthropic beantwortet.“: unter einer Antwort, die über die Cloud kam; sonst null. Gilt für Gedächtnisantworten
+ * (`gedaechtnis_cloud`) und für gewöhnliche Gesprächsantworten (`cloud_antwort`, Persona-Prüfung, Kleinpunkt a).
+ */
+export function cloudVermerk(kontext: { gedaechtnis_cloud?: unknown; cloud_antwort?: unknown } | undefined | null): string | null {
+  const cloud = (kontext?.gedaechtnis_cloud ?? kontext?.cloud_antwort) as { anbieter?: unknown } | undefined;
   if (!cloud || typeof cloud !== "object") return null;
   const name = typeof cloud.anbieter === "string" ? ANBIETER[cloud.anbieter] ?? "die Cloud" : "die Cloud";
   return `Über ${name} beantwortet.`;
