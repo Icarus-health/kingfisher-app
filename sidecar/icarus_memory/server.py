@@ -6327,7 +6327,33 @@ def create_app(
                 status_code=404,
                 detail=f"In deinen Aufzeichnungen kommt „{name}“ nicht vor.",
             )
+        profile["person"]["wartet_auf_punkte"] = _wartet_auf_bei(profile["person"])
         return profile
+
+    def _wartet_auf_bei(person: dict[str, Any]) -> list[dict[str, Any]]:
+        """„Worauf ich warte“ bei dieser Person: dieselbe Regel und dieselbe Reihenfolge wie „Worauf warte ich noch?“
+        (`offene_punkte.sammeln`), aus den Akten ihrer Adressen und den Aufgaben „wartet auf“ (Befund A7: oben stand
+        „Noch keine Rückmeldung vorgemerkt“, darunter in der Akte „Du wartest auf …“)."""
+        from .akten_routes import bausteine
+        from .offene_punkte import sammeln
+        try:
+            bezuege, akten = bausteine(app)
+            aufgaben = app.state.tasks.open_tasks(limit=None)
+            punkte: dict[str, dict[str, Any]] = {}
+            from .identitaet import name_anker
+            sachen = ([f"person:a:{str(a).lower()}" for a in (person.get("adressen") or [])[:3]]
+                      or [f"person:n:{name_anker(str(person.get('name') or ''))}"])
+            for sache in sachen:
+                gesammelt = sammeln(akten, bezuege, "wartet_auf", sache=sache, aufgaben=aufgaben)
+                for punkt in gesammelt["punkte"]:
+                    schluessel = (punkt.get("aufgabe") or {}).get("id") or punkt.get("ziel") or punkt.get("episode_id")
+                    punkte.setdefault(str(schluessel), punkt)
+            felder = ("text", "art", "richtung", "episode_id", "titel", "occurred_at", "aufgabe", "wartet_auf",
+                      "nachgefasst", "frist_tage", "einladung", "rang")
+            return [{feld: punkt.get(feld) for feld in felder} for punkt in punkte.values()]
+        except Exception:  # noqa: BLE001 - die Karte zeigt dann nur die Akte darunter
+            logger.exception("Worauf ich warte konnte nicht gelesen werden")
+            return []
 
     @app.get("/api/v1/memory/projects/{project_id}", dependencies=guard)
     def memory_project(project_id: str) -> dict[str, Any]:

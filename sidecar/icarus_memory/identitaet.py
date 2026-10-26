@@ -74,8 +74,9 @@ def name_schluessel(name: str) -> str:
     „Keller, Anna“ und „Anna Keller“ sind derselbe Name (genau ein Komma,
     zwei Teile), ebenso „Dr. Claudia Reinhardt“ und „Claudia Reinhardt“
     (führende akademische Titel fallen weg). Anreden bleiben stehen: „Herr“ und
-    „Frau Reinhardt“ können zwei Menschen sein. Mehr wird nicht geglättet: keine
-    Initialen, keine Ähnlichkeit.
+    „Frau Reinhardt“ können zwei Menschen sein. Umlaute gelten in Umschrift:
+    „Müller“ und „Mueller“, „Weiß“ und „Weiss“ sind derselbe Name (Persona-Prüfung,
+    Befund A7). Mehr wird nicht geglättet: keine Initialen, keine Ähnlichkeit.
     """
     text = " ".join(str(name or "").strip().strip('"').strip().split())
     teile = [t.strip() for t in text.split(",")]
@@ -84,7 +85,8 @@ def name_schluessel(name: str) -> str:
     woerter = text.split()
     while woerter and _TITEL.match(woerter[0]):
         woerter.pop(0)
-    return " ".join(woerter).casefold()
+    from .word_forms import umschrift_gleich
+    return umschrift_gleich(" ".join(woerter))
 
 
 def name_anker(name: str) -> str:

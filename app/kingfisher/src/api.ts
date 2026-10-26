@@ -714,6 +714,12 @@ export type PersonDigestResult = {
   source_count: number; total_source_count: number; truncated: boolean; model: string;
 };
 
+export type WartetAufPunkt = {
+  text: string; art: string; richtung?: string | null; episode_id: string | null; titel?: string | null;
+  occurred_at?: string | null; aufgabe?: { id: string; title: string } | null; wartet_auf?: string | null;
+  nachgefasst?: string | null; frist_tage?: number | null; einladung?: boolean | null;
+};
+
 export type PersonProfile = {
   id: string;
   authority: "projection";
@@ -727,6 +733,8 @@ export type PersonProfile = {
     kontakt_text: string;
     themen: string[];
     offene_aufgaben: Task[];
+    /** Worauf du bei dieser Person wartest: dieselbe Regel wie „Worauf warte ich noch?“ (Befund A7). */
+    wartet_auf_punkte?: WartetAufPunkt[];
     aussagen: Array<Record<string, unknown>>;
     herkuenfte: string[];
     nur_von_aussen: boolean;

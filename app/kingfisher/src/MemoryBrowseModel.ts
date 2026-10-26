@@ -1,4 +1,5 @@
 import type { GraphNode, MemoryGraph } from './api';
+import { passtSuche, suchbegriffe } from './suchform.ts';
 
 export const MEMORY_TABS = ['search', 'areas', 'people', 'projects', 'organizations', 'places', 'topics', 'topic-files', 'decisions', 'documents'] as const;
 export type MemoryTab = typeof MEMORY_TABS[number];
@@ -55,10 +56,9 @@ export function browseHref(state: BrowseState): string {
 }
 
 export function browseMatches(nodes: GraphNode[], query: string): GraphNode[] {
-  const terms = query.trim().toLocaleLowerCase('de').split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
-  return nodes.filter(node => (node.kind !== 'claim' || node.attributes.usable === true)
-    && terms.every(term => node.label.toLocaleLowerCase('de').includes(term)));
+  if (!suchbegriffe(query).length) return [];
+  // „Müller“ findet „Mueller“ und umgekehrt (Befund A7, `suchform.ts`).
+  return nodes.filter(node => (node.kind !== 'claim' || node.attributes.usable === true) && passtSuche(node.label, query));
 }
 
 export function documentNodes(nodes: GraphNode[]): GraphNode[] {

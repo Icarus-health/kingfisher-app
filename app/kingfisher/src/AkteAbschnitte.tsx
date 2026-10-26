@@ -306,7 +306,8 @@ function Lage({ lage }: { lage: AkteLage }) {
 }
 
 /** Die Akte einer Sache (Ebene 2): Stand, Offen, Fristen, Termine, Beteiligte, Verlauf. Jede Zeile führt zur Quelle. */
-export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean; compact?: boolean }) {
+/** `ohneWarten`: „Du wartest auf“ steht schon in der Karte „Worauf ich warte“ darüber (Personenseite, Befund A7). */
+export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false, ohneWarten = false }: { sache: string; fallback?: ReactNode | null; mitKopf?: boolean; compact?: boolean; ohneWarten?: boolean }) {
   const [data, setData] = useState<Akte | null>(null);
   const [zustand, setZustand] = useState<"laedt" | "keine" | "fehler" | "ok">("laedt");
   const [alle, setAlle] = useState(false);
@@ -474,7 +475,10 @@ export function AkteAnsicht({ sache, fallback, mitKopf = false, compact = false 
   const terminOben = termineObenGenannt(braucht?.eintraege);
   // Was oben unter „Braucht dich“ steht (gleiche Quelle, gleiche Stelle), steht unten nicht noch einmal; ein Satz sagt,
   // wo es steht. Nur die Anzeige: Zählung und Logik bleiben, wie die Akte sie liefert.
-  const { sichtbar: offenSichtbar, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
+  const { sichtbar: offenAlle, oben: offenOben } = offenOhneBrauchtDich(data.offen.eintraege, braucht?.eintraege);
+  // Auf der Personenseite steht „Du wartest auf“ schon in der Karte darüber, aus derselben Regel (Befund A7).
+  const wartet = OFFEN_GRUPPEN.find(g => g.titel === "Du wartest auf")!;
+  const offenSichtbar = ohneWarten ? offenAlle.filter(e => !wartet.passt(e)) : offenAlle;
   const offenGruppen = OFFEN_GRUPPEN.map(g => ({ ...g, eintraege: offenSichtbar.filter(g.passt) }));
   const uebrige = offenSichtbar.filter(e => !OFFEN_GRUPPEN.some(g => g.passt(e)));
   const ueber = <>

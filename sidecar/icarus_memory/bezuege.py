@@ -134,6 +134,18 @@ def norm(text: str) -> str:
     return ''.join(zeichen for zeichen in str(text or '').casefold() if zeichen.isalnum())
 
 
+def suchformen(suche: str) -> list[str]:
+    """Die Schreibweisen eines Suchbegriffs für Kennungen (Befund A7): wie getippt, in Umschrift („Müller“ →
+    „mueller“), zurück in Umlaute („Mueller“ → „müller“) und ohne Umlautpunkte („muller“), jeweils wie `norm`."""
+    from .word_forms import umschrift_gleich, umschriften
+    formen = [norm(suche), norm(umschrift_gleich(suche))]
+    formen += [norm(f) for f in umschriften(umschrift_gleich(suche))]
+    import unicodedata
+    formen.append(norm(''.join(z for z in unicodedata.normalize('NFD', str(suche or '').casefold())
+                               if not unicodedata.combining(z))))
+    return [f for f in dict.fromkeys(formen) if f][:12]
+
+
 def sache_id(art: str, kennung: str) -> str:
     return f'{art}:{kennung}'
 
@@ -147,6 +159,16 @@ def zerlegen(sache: str) -> tuple[str, str] | None:
 def org_kennung(name: str) -> str:
     """Kennung einer Organisation aus ihrem Namen: ohne Rechtsform („Winter Catering GmbH“)."""
     return norm(_RECHTSFORM.sub(' ', str(name or '')))
+
+
+def org_vergleich(name: str) -> str:
+    """Eine Organisation zum Vergleichen (Befund A7): ohne Rechtsform, Umlaute in Umschrift, nur Buchstaben und Ziffern.
+
+    „Müller Bau GmbH“, „Mueller Bau“ und die Domäne `mueller-bau` ergeben dasselbe. Nur ein Vergleichswert; die
+    Kennungen der Akten bleiben, wie sie sind.
+    """
+    from .word_forms import umschrift_gleich
+    return norm(umschrift_gleich(_RECHTSFORM.sub(' ', str(name or '').replace('-', ' '))))
 
 
 def org_aus_adresse(adresse: str, eigene_domaenen: Iterable[str] = ()) -> str:
@@ -244,6 +266,21 @@ class Register:
     #: nicht in die Kennung ein und ändert keine Bezüge.
     ich_adressen: frozenset[str] = frozenset()
 
+    def organisation(self, name: str) -> str:
+        """Die Kennung einer erwähnten Organisation. Gibt es genau eine Organisation aus einer Adresse mit demselben
+        Namen in Umschrift („Müller Bau“ und `mueller-bau.de`), ist es diese (Befund A7); sonst die Kennung des Namens."""
+        kennung = org_kennung(name)
+        if not kennung:
+            return ''
+        if not hasattr(self, '_orgs'):
+            gefunden: dict[str, set[str]] = {}
+            for adresse in self.verzeichnis.adressen():
+                org = org_aus_adresse(adresse, self.eigene_domaenen)
+                if org:
+                    gefunden.setdefault(org_vergleich(domaenenname(adresse)), set()).add(org)
+            self._orgs = {k: next(iter(v)) for k, v in gefunden.items() if len(v) == 1}
+        return self._orgs.get(org_vergleich(name), kennung)
+
     @classmethod
     def bauen(cls, episoden: Iterable[Episode], *, eigene: Iterable[str] = (),
               projekte: dict[str, str] | None = None) -> 'Register':
@@ -287,6 +324,23 @@ class Register:
     def projekt(self, name: str) -> str:
         kennung = projekt_kennung(name)
         return sache_id('projekt', self.projekte.get(kennung) or 'n:' + kennung)
+
+
+def _name_in_signatur(text: str, domaenenname_: str) -> str:
+    """Eine Zeile der Quelle, die genau den Namen der Domäne trägt (in Umschrift, ohne Satzzeichen); sonst leer.
+
+    Gelesen werden die letzten 25 Zeilen (Signatur, Absenderzeile). Nur eine kurze Zeile
+    (höchstens 80 Zeichen) gilt, und sie muss vollständig passen, kein Wortteil. Die Rechtsform zählt nicht
+    (`hessenwasser-ag` und „Hessenwasser AG“, `mueller-bau` und „Müller Bau GmbH“).
+    """
+    ziel = org_vergleich(domaenenname_)
+    if not ziel:
+        return ''
+    for zeile in reversed(str(text or '').splitlines()[-25:]):
+        zeile = ' '.join(zeile.split())
+        if zeile and len(zeile) <= 80 and org_vergleich(zeile) == ziel:
+            return zeile
+    return ''
 
 
 def projekte_aus(workspace: Any) -> dict[str, str]:
@@ -427,9 +481,10 @@ def berechnen(episode: Episode, auszug: dict[str, Any], register: Register,
                 sache, kandidaten = register.person(name)
             gefunden.append(Bezug(sache, art, 'modell', start, ende, 'erwaehnt', kandidaten, abhaengig=True))
         elif art == 'organisation':
-            kennung = org_kennung(name)
+            kennung = register.organisation(name)
             if kennung:
-                gefunden.append(Bezug(sache_id(art, kennung), art, 'modell', start, ende, 'erwaehnt'))
+                # Hängt vom Verzeichnis ab (Befund A7): Kommt eine Adresse `mueller-bau` hinzu, gehört „Müller Bau“ zu ihr.
+                gefunden.append(Bezug(sache_id(art, kennung), art, 'modell', start, ende, 'erwaehnt', abhaengig=True))
         elif art == 'projekt':
             if projekt_kennung(name):
                 gefunden.append(Bezug(register.projekt(name), art, 'modell', start, ende, 'erwaehnt',
@@ -679,8 +734,10 @@ class Bezuege:
             bedingung += " AND l.sache LIKE ? ESCAPE '\\'"
             parameter.append(art + ':%')
         if suche.strip():
-            bedingung += " AND l.sache LIKE ? ESCAPE '\\'"
-            parameter.append('%' + norm(suche).replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%')
+            # Befund A7: „Müller“ findet „Mueller“ und umgekehrt, ebenso ä/ae, ö/oe, ß/ss (`suchformen`).
+            formen = suchformen(suche)
+            bedingung += " AND (" + " OR ".join("l.sache LIKE ? ESCAPE '\\'" for _ in formen) + ")"
+            parameter.extend('%' + f.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for f in formen)
         with self.episodes._lock:
             basis = (f"FROM ({self._links()}) l JOIN episodes e ON e.id = l.episode_id WHERE 1=1{bedingung} "
                      "GROUP BY l.sache")
@@ -877,10 +934,14 @@ class Bezuege:
                 if eintrag['id'] == kennung:
                     return eintrag['label']
             return kennung
-        for quelle in (quellen if quellen is not None else self.quellen_von(sache))[:5]:
-            text = self._schreibweise(sache, quelle['episode_id'])
-            if text:
-                return text
+        juengste = (quellen if quellen is not None else self.quellen_von(sache))[:5]
+        # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur) geht der Domäne vor, auch aus einer älteren
+        # der jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“).
+        for nur_text in (True, False):
+            for quelle in juengste:
+                text = self._schreibweise(sache, quelle['episode_id'], nur_text=nur_text)
+                if text:
+                    return text
         return kennung[2:] if kennung.startswith('n:') else kennung
 
     def beschriftungen(self, sachen: list[str]) -> dict[str, str]:
@@ -901,7 +962,7 @@ class Bezuege:
                 ergebnis[sache] = self.beschriftung(sache)
         return ergebnis
 
-    def _schreibweise(self, sache: str, episode_id: str) -> str:
+    def _schreibweise(self, sache: str, episode_id: str, *, nur_text: bool = False) -> str:
         """Der Name der Sache, wie ihn diese Quelle schreibt (Textstelle oder Anzeigename)."""
         try:
             episode = self.episodes.get(episode_id)
@@ -920,6 +981,14 @@ class Bezuege:
                     and name_anker(nennung.name) == kennung[2:]:
                 return nennung.name
             if art == 'organisation' and nennung.adresse and org_aus_adresse(nennung.adresse) == kennung:
+                # Befund A7: Wie die Organisation sich selbst schreibt (Signatur, Absendername), wenn eine Zeile der Quelle
+                # genau den Namen der Domäne in Umschrift trägt („Universität Gießen“ für `universitaet-giessen`).
+                # Sonst die Domäne; Umlaute werden nie geraten.
+                signatur = (' '.join(str(nennung.name or '').split())
+                            if org_vergleich(nennung.name or '') == org_vergleich(domaenenname(nennung.adresse))
+                            else _name_in_signatur(episode.body, domaenenname(nennung.adresse)))
+                if signatur or nur_text:
+                    return signatur
                 return domaenenname(nennung.adresse).replace('-', ' ').title()
         return ''
 
