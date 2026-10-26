@@ -79,7 +79,7 @@ from .working_memory_changes import _ADDITIVE, _FOLLOWING_NEGATION, _NEGATED
 from .antwort_im_verlauf import einladung
 from .episodes import mail_address
 
-AKTEN_VERSION = 11
+AKTEN_VERSION = 12
 #: So viele der jüngsten Quellen wertet eine Akte aus; die Gesamtzahl steht daneben.
 MAX_QUELLEN = 500
 MAX_ABSCHNITTE = 8000
@@ -111,7 +111,10 @@ _FUELLWOERTER = frozenset({
     'schicken', 'schick', 'kannst', 'könnten', 'können', 'würde', 'würden', 'wäre', 'sollen', 'müssen', 'muss',
     'januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november',
     'dezember', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonntag', 'uhr'})
-_SATZENDE = re.compile(r'(?<=[a-zäöüß)\]])[.!?]\s|\n')
+# Ein Satz endet auch nach einem schließenden Anführungszeichen („… zu „Newsletter Oktober“. Ich schicke …“); ohne das
+# zählte der Vorsatz zum Gegenstand einer Frist (Persona-Prüfung: falsche Widersprüche). Ziffern bleiben außen vor:
+# „15. Januar“ ist kein Satzende.
+_SATZENDE = re.compile(r'(?<=[a-zäöüß)\]“”"»«’])[.!?]\s|\n')
 
 
 def _stamm(wort: str) -> str:
@@ -360,8 +363,31 @@ def _fristaufgabe(a: Abschnitt, start: int) -> frozenset[str]:
     return _gegenstand(kern)
 
 
-def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
-    """(fristen, ohne_datum): aufgelöste Datumsangaben mit Textstelle; überholte tragen `ersetzt_durch`."""
+#: Allgemeine Wörter, die sagen, dass etwas kommt, nicht was („Ich schicke Ihnen die Unterlagen bis Freitag“, „Bitte
+#: bestätigen Sie den Termin bis Donnerstag“: jedes Mal ein anderer Termin). Zwei
+#: Fristen verschiedener Mailverläufe teilen dadurch keinen Gegenstand; im selben Verlauf schon.
+_ALLGEMEINE_GEGENSTAENDE = stamm_menge(
+    'Unterlagen Informationen Infos Dokumente Daten Angaben Material Materialien Rückmeldung Rueckmeldung Bescheid '
+    'Antwort Nachricht Sachen Dinge Anbei besprochen Termin Termine bestätigen bestaetigen Bestätigung zurückmelden')
+
+
+def _fristen(abschnitte: list[Abschnitt], faeden: dict[str, str] | None = None) -> tuple[list[dict], list[dict]]:
+    """(fristen, ohne_datum): aufgelöste Datumsangaben mit Textstelle; überholte tragen `ersetzt_durch`.
+
+    `faeden`: Quelle -> Mailverlauf (`_faeden`). Eine Frist ersetzt eine andere nur bei gleichem Gegenstand; ein
+    gemeinsames allgemeines Wort („Unterlagen“) reicht dafür nur im selben Mailverlauf oder in derselben Quelle.
+    """
+    faeden = faeden or {}
+
+    def gleicher(f: dict, g: dict) -> bool:
+        gemeinsam = f['_stamm'] & g['_stamm']
+        if len(gemeinsam) < 2:
+            return False
+        if gemeinsam - _ALLGEMEINE_GEGENSTAENDE:
+            return True
+        a, b = f['ref']['episode_id'], g['ref']['episode_id']
+        return a == b or faeden.get(a, a) == faeden.get(b, b)
+
     alle: list[dict] = []
     ohne: list[dict] = []
     for a in (x for x in abschnitte if x.art in FRIST_ARTEN):
@@ -403,8 +429,7 @@ def _fristen(abschnitte: list[Abschnitt]) -> tuple[list[dict], list[dict]]:
                                '_aufgabe': _fristaufgabe(a, f.start)})
 
     def neuere_von(f: dict) -> list[dict]:
-        return [g for g in alle if g['_zeit'] > f['_zeit'] and g['datum'] != f['datum']
-                and len(f['_stamm'] & g['_stamm']) >= 2]
+        return [g for g in alle if g['_zeit'] > f['_zeit'] and g['datum'] != f['datum'] and gleicher(f, g)]
 
     for f in alle:
         neuere = neuere_von(f)
@@ -698,7 +723,8 @@ class Akten:
             ids, self.store, claims, arten=FAKT_ARTEN, include_archived=True)
         quellenabschnitte = _personen_abschnitte(sache, genutzt, quellenabschnitte)
         offen, erledigt = _offen(abschnitte)
-        fristen, ohne_datum = _fristen(abschnitte)
+        faeden = _faeden(self.episodes, ids)
+        fristen, ohne_datum = _fristen(abschnitte, faeden)
         gemeinsam = self.bezuege.gemeinsame(sache, ids)
         rang = sorted(gemeinsam.items(), key=lambda p: (-p[1], p[0]))
         termine = _termine(genutzt, abschnitte)
@@ -713,7 +739,7 @@ class Akten:
             'stand': _stand(abschnitte),
             'beteiligte': {'gesamt': len(rang), 'eintraege': [{'sache': s, 'anzahl': n} for s, n in rang[:40]]},
             'termine': termine,
-            'nach_absage': _nach_absage(offen, abschnitte, termine, _faeden(self.episodes, ids)),
+            'nach_absage': _nach_absage(offen, abschnitte, termine, faeden),
         }
 
     def roh(self, sache: str, quellen: list[dict] | None = None) -> dict[str, Any] | None:

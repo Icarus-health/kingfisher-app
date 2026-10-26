@@ -934,10 +934,10 @@ class Bezuege:
                 if eintrag['id'] == kennung:
                     return eintrag['label']
             return kennung
-        juengste = (quellen if quellen is not None else self.quellen_von(sache))[:5]
-        # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur) geht der Domäne vor, auch aus einer älteren
-        # der jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“).
-        for nur_text in (True, False):
+        alle = quellen if quellen is not None else self.quellen_von(sache)
+        # Befund A7: Eine Schreibweise aus dem Text (Erwähnung, Signatur, Absendername) geht der Domäne vor, auch aus
+        # einer der 20 jüngsten Quellen („Müller Bau GmbH“ statt „Mueller Bau“); die Domäne erst danach.
+        for nur_text, juengste in ((True, alle[:20]), (False, alle[:5])):
             for quelle in juengste:
                 text = self._schreibweise(sache, quelle['episode_id'], nur_text=nur_text)
                 if text:
