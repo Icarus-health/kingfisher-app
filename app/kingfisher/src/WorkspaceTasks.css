@@ -80,6 +80,10 @@
 /* Aufgaben folgen der Post: der Grund in der Zeile, „Rückgängig“ gleich daneben. */
 #root .task-row small.task-post { display: block; margin: 2px 0 0; font: var(--g-neben); color: var(--g-tinte); white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 #root .task-row small.task-post button.text-action { min-height: 0; padding: 0 2px; font: 500 14px/1.45 var(--g-schrift); }
+/* Aufgaben von selbst: Die Person führt zur Akte, leise wie der Rest der Zeile; der Trenner gehört nicht zum Verweis. */
+#root .task-row .task-meta > a.task-person { color: var(--g-verweis); text-decoration: none; }
+#root .task-row .task-meta > a.task-person:hover, #root .task-row .task-meta > a.task-person:focus-visible { text-decoration: underline; }
+#root .task-row .task-meta > a.task-person::before { display: inline-block; white-space: pre; text-decoration: none; }
 
 /* Der Kreis: 44 px Ziel, 22 px Kreis; erledigt gefüllt mit Haken. */
 #root .task-row .task-check {

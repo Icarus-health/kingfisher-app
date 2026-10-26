@@ -345,7 +345,7 @@ def test_migration_legt_merkliste_und_trennung_an(tmp_path):
     tasks = TaskStore(tmp_path / 'tasks.sqlite3')
     tasks.close()
     conn = sqlite3.connect(tmp_path / 'tasks.sqlite3')
-    assert conn.execute('PRAGMA user_version').fetchone()[0] == 4
+    assert conn.execute('PRAGMA user_version').fetchone()[0] == 5  # 5: Aufgaben von selbst (test_aufgaben_von_selbst.py)
     tabellen = {z[0] for z in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert {'aufgaben_post_mails', 'aufgaben_post_getrennt', 'aufgaben_post_stand'} <= tabellen
     conn.close()

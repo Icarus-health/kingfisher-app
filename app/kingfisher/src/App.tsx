@@ -34,6 +34,7 @@ import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
@@ -850,7 +851,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
   const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
   const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
-  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
   // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.

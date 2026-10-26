@@ -24,7 +24,7 @@ export function MailQuickTask({uid, title, quote, sourceDigest, disabled, onSave
     <button className="mail-reader-secondary" type="button" disabled={disabled || state === 'saving' || state === 'saved'} onClick={() => void accept()}>
       {state === 'saved' ? 'Aufgabe übernommen' : state === 'saving' ? 'Wird übernommen …' : 'Als Aufgabe übernehmen'}
     </button>
-    {state === 'saved' && <p className="mail-reader-status" role="status">Ohne Datum und weitere Zuordnung gespeichert. <a href={savedTask ? taskHref(savedTask) : '/vorhaben?view=mine'}>Aufgabe ansehen</a></p>}
+    {state === 'saved' && <p className="mail-reader-status" role="status">{savedTask?.project_id ? 'Ohne Datum gespeichert, im passenden Projekt.' : 'Ohne Datum und ohne Projekt gespeichert.'} <a href={savedTask ? taskHref(savedTask) : '/vorhaben?view=mine'}>Aufgabe ansehen</a></p>}
     {state === 'failed' && <p className="mail-reader-error" role="alert">Übernahme fehlgeschlagen. Bei geänderter Quelle bitte die Nachricht neu öffnen; sonst erneut versuchen.</p>}
   </div>;
 }
