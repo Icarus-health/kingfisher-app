@@ -5,8 +5,9 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
 
+import {testCache} from './testcache.mjs';
 // Use the application's existing TSX pipeline and render the real component.
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-memory-semantic-progress.test`,
+const server = await createServer({cacheDir:testCache('memory-semantic-progress.test'),
   root: fileURLToPath(new URL("..", import.meta.url)),
   server: { middlewareMode: true, watch: null, ws: false, hmr: false },
   appType: "custom",

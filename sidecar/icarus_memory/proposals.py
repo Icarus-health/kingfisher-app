@@ -633,6 +633,25 @@ class ProposalStore:
         logbuch.vermerke('vorschlag_abgelehnt', sorte=getattr(proposal.kind, 'value', proposal.kind), id=proposal.id)
         return proposal
 
+    def entscheidung_aendern(self, proposal_id: str, nach: ProposalState, *, von: tuple[ProposalState, ...],
+                             produced: str | None = None, at: datetime | None = None) -> Proposal:
+        """Nur für Aufgabenvorschläge, deren Aufgabe Kingfisher selbst angelegt oder gemeinsam übernommen hat
+        (`aufgaben_von_selbst.py`): Zurücknehmen macht aus „angenommen“ „abgelehnt“ (es kommt nicht wieder), das
+        Zurücknehmen einer gemeinsamen Übernahme wieder „offen“, Wiederherstellen wieder „angenommen“.
+        `ProposalError`, wenn der Vorschlag nicht in einem der Zustände `von` steht."""
+        with self.transaction():
+            row = self._conn.execute("SELECT document FROM proposals WHERE id = ?", (proposal_id,)).fetchone()
+            if row is None:
+                raise ProposalError(f"Unbekannter Vorschlag: {proposal_id}")
+            proposal = self._from_row(row)
+            if proposal.kind is not ProposalKind.TASK or proposal.state not in von:
+                raise ProposalError("Der Vorschlag steht nicht mehr so, wie er war.")
+            proposal.state = nach
+            proposal.produced = produced if nach is ProposalState.ACCEPTED else None
+            proposal.decided_at = None if nach is ProposalState.PENDING else (ensure_aware(at) or now())
+            self._put(proposal)
+        return proposal
+
     def supersede(self, proposal_id: str, at: datetime | None = None) -> Proposal:
         with self.transaction():
             proposal = self._require_pending(proposal_id)

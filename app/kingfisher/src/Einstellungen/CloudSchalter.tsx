@@ -90,7 +90,7 @@ export function CloudSchalter() {
     setAnbieter(""); setZugestimmt(false); setFrage(true);
   }
 
-  return <section className="darf-zeile" aria-label={SCHALTER.cloud.titel}>
+  return <section className="darf-zeile" id="darf-cloud" aria-label={SCHALTER.cloud.titel}>
     {geladenFehler ? <p role="alert" className="settings-error">Der Stand konnte gerade nicht gelesen werden.</p> : !rollen ? <p>Wird geladen …</p> : aufgaben.length === 0 ? null : <>
       <Schalter className="welt-schalter" titel={SCHALTER.cloud.titel} satz={SCHALTER.cloud.verlaesst} an={an || frage} deaktiviert={arbeitet} onWechsel={umschalten} />
       {an && <p className="source-hint" role="status">Fragen und Antworten laufen über {anbieterName(inCloud[0].wahl.anbieter)}.</p>}

@@ -4,6 +4,8 @@ import {TaskRow} from './TaskRow';
 import {navigate} from './ui';
 import {zeigeHinweis, zitat, type HinweisDaten} from './grundlage';
 import {erledigtHinweis, POST_ZURUECK, verworfenHinweis, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis} from './aufgabenHinweis';
+import {anlageZuruecknehmen} from './AufgabenSelbstHeute';
+import {ANLAGE_ZURUECK} from './aufgabenVonSelbst';
 
 /** Exact lookup also works when a task is outside the current list/filter. */
 export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string; onChanged: () => void; editing?: boolean}) {
@@ -16,6 +18,7 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [zurueckgenommen, setZurueckgenommen] = useState(false);
   const pending = useRef(false);
   const alive = useRef(true);
   const lifecycle = useRef(0);
@@ -24,7 +27,7 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
     alive.current = true;
     pending.current = false; setBusy(false);
     let active = true;
-    setTask(null); setError('');
+    setTask(null); setError(''); setZurueckgenommen(false);
     api.task(taskId).then(value => {if (active) setTask(value);}).catch(() => {
       if (active) setError('Diese Aufgabe ist nicht verfügbar. Sie wurde möglicherweise entfernt.');
     });
@@ -71,7 +74,8 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
   }
   return <div className="task-detail">
     {new URLSearchParams(window.location.search).get('from')==='memory'&&<button type="button" className="text-action" onClick={()=>window.history.back()}>Zur vorherigen Gedächtnisansicht</button>}
-    {!task && !error && <p className="task-detail-satz" role="status">Aufgabe wird geladen …</p>}
+    {zurueckgenommen && <p className="task-detail-satz" role="status">{ANLAGE_ZURUECK}</p>}
+    {!task && !error && !zurueckgenommen && <p className="task-detail-satz" role="status">Aufgabe wird geladen …</p>}
     {error && <p className="task-detail-satz task-detail-fehler" role="alert">{error}{!task && <> <button type="button" className="text-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></>}</p>}
     {task?.goal_id && <p className="task-goal-link"><strong>Zielbezug:</strong> {goalStatement ?? "Ziel wird geladen …"}</p>}
     {projectsFailed && <p className="task-detail-satz" role="status">Projekte konnten nicht geladen werden. Die Projektzuordnung bleibt erhalten. <button type="button" className="text-action" disabled={busy} onClick={() => setProjectRevision(value => value + 1)}>Projekte erneut laden</button></p>}
@@ -85,7 +89,9 @@ export function TaskDetail({taskId, onChanged, editing = false}: {taskId: string
       onComplete={() => {void mitHinweis(() => task.status === 'done' ? api.reopenTask(task.id) : api.completeTask(task.id), task.status === 'done'
         ? wiederOffenHinweis(task, () => change(() => api.completeTask(task.id)))
         : erledigtHinweis(task, () => change(() => api.reopenTask(task.id))));}}
-      onRueckgaengig={() => {void mitHinweis(() => api.taskRueckgaengig(task.id), {text: POST_ZURUECK});}} startEditing={editing} />}
+      onRueckgaengig={() => {void mitHinweis(() => api.taskRueckgaengig(task.id), {text: POST_ZURUECK});}}
+      onAnlageZurueck={() => {void anlageZuruecknehmen(task.id, () => { setTask(null); setZurueckgenommen(true); onChanged(); }, setError,
+        () => { onChanged(); setRevision(value => value + 1); });}} startEditing={editing} />}
     {/* Seltenes steht unter der Aufgabe, nicht davor: erst die Sache, dann der Weg weg von ihr. */}
     {task && (task.project_id || task.status === 'open') && <p className="task-detail-more">
       {task.project_id&&<button type="button" className="text-action" onClick={()=>navigate(`/memory/projects/${encodeURIComponent(task.project_id!)}?${new URLSearchParams({return_to:'/memory?tab=projects'})}`)}>Projekt im Gedächtnis öffnen</button>}

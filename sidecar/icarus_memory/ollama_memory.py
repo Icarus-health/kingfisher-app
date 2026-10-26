@@ -1,10 +1,26 @@
-"""Bound the resident lifetime of Kingfisher-owned local Ollama models."""
+"""Bound the resident lifetime of Kingfisher-owned local Ollama models.
+
+Warum andere Modelle entladen werden (RAM): Kingfisher kann für Frage, Antwort, Prüfung und Hintergrund
+verschiedene eigene Modelle (`kingfisher-*`) benutzen. Zwei davon zugleich im Speicher sprengen auf einem Rechner
+mit 8 bis 16 GB den Arbeitsspeicher; deshalb entlädt jeder Aufruf vorher die anderen eigenen Modelle (`_prepare`).
+Das bleibt so.
+
+Wie lange das gerufene Modell danach bleibt (Paket T, 26.10.2026): Im Hintergrund 15 Sekunden wie bisher, damit ein
+Modell, das nur nachts einordnet, keinen Speicher hält. Das **Antwortmodell eines Gesprächs** bleibt nach der Antwort
+fünf Minuten (`HALTEN_GESPRAECH`): Die nächste Frage kommt meist innerhalb dieser Zeit, und ein kaltes Laden kostet
+auf dem Zielgerät mehrere Sekunden. Es hält damit nicht mehr Speicher als Ollamas eigene Vorgabe für alle anderen
+Modelle (5 Minuten), und der nächste Aufruf eines anderen eigenen Modells entlädt es weiterhin zuerst. Dazu wärmt
+`vorwaermen` das Antwortmodell beim Öffnen eines Gesprächs vor: nicht blockierend, nur bei einem lokalen Modell,
+nie, solange ein anderer Modellaufruf läuft.
+"""
 from __future__ import annotations
 
 import json
 import logging
 import threading
+import time
 from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any, Iterator
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,6 +31,10 @@ _MANAGED_PREFIX = "kingfisher-"
 _TIMEOUT_SECONDS = 3.0
 _MAX_RESPONSE_BYTES = 1024 * 1024
 _MANAGED_MODEL_LOCK = threading.RLock()
+HALTEN_HINTERGRUND = "15s"
+HALTEN_GESPRAECH = "5m"
+#: Das Antwortmodell des laufenden Gesprächs (Ollama-Name), gesetzt von `im_gespraech`; sonst None.
+_GESPRAECH_MODELL: ContextVar[str | None] = ContextVar("kingfisher_gespraech_modell", default=None)
 
 
 def _ollama_client(*, timeout: float = _TIMEOUT_SECONDS, trust_env: bool = False,
@@ -50,8 +70,7 @@ def _scope(provider: Any) -> tuple[str, str] | None:
         return None
     origin = urlunsplit((parsed.scheme, parsed.netloc, "", "", ""))
     # Ollama reports an omitted tag as `:latest` in /api/ps.
-    ollama_name = model if ":" in model.rsplit("/", 1)[-1] else model + ":latest"
-    return origin, ollama_name
+    return origin, _ollama_name(model)
 
 
 def _request(client: httpx.Client, method: str, url: str, body: dict | None = None) -> bytes:
@@ -90,12 +109,33 @@ def _prepare(origin: str, target: str) -> None:
                          {"model": name, "keep_alive": 0})
 
 
+def _ollama_name(model: str) -> str:
+    return model if ":" in model.rsplit("/", 1)[-1] else model + ":latest"
+
+
+def halten_fuer(target: str) -> str:
+    """Wie lange `target` nach einem Aufruf bleibt: das Antwortmodell im Gespräch fünf Minuten, sonst 15 Sekunden."""
+    gespraech = _GESPRAECH_MODELL.get()
+    return HALTEN_GESPRAECH if gespraech is not None and _ollama_name(gespraech) == target else HALTEN_HINTERGRUND
+
+
+@contextmanager
+def im_gespraech(provider: Any) -> Iterator[None]:
+    """Für die Dauer einer Gesprächsantwort: Das Modell von `provider` (Rolle `antwort`) ist das Antwortmodell."""
+    model = getattr(provider, "model", None) if getattr(provider, "is_local", False) else None
+    marke = _GESPRAECH_MODELL.set(model if isinstance(model, str) and model.strip() else None)
+    try:
+        yield
+    finally:
+        _GESPRAECH_MODELL.reset(marke)
+
+
 def _shorten_target_retention(origin: str, target: str) -> None:
     with _ollama_client(timeout=_TIMEOUT_SECONDS, trust_env=False, follow_redirects=False) as client:
         if target not in _loaded_models(client, origin):
             return
         _request(client, "POST", origin + "/api/generate",
-                 {"model": target, "keep_alive": "15s"})
+                 {"model": target, "keep_alive": halten_fuer(target)})
 
 
 @contextmanager
@@ -126,3 +166,64 @@ def managed_model(provider: Any) -> Iterator[None]:
                 _shorten_target_retention(origin, target)
             except Exception:  # Do not replace a valid reply or the original call error.
                 _LOG.warning("Kingfisher could not shorten its Ollama model retention.")
+
+
+_VORGEWAERMT: dict[tuple[str, str], float] = {}
+_VORWAERMEN_ABSTAND_S = 60.0
+
+
+def _lokaler_ollama(provider: Any) -> tuple[str, str] | None:
+    """(Ursprung, Ollama-Name) für ein lokales Modell auf dem lokalen Ollama (Port 11434), auch ohne `kingfisher-`."""
+    from .providers import OpenAICompatible, is_local_endpoint
+
+    if not isinstance(provider, OpenAICompatible) or not getattr(provider, "is_local", False):
+        return None
+    if getattr(provider, "ueber_ollama_cloud", False):
+        return None
+    model = getattr(provider, "model", None)
+    if not isinstance(model, str) or not model.strip() or model != model.strip() or len(model) > 256:
+        return None
+    try:
+        parsed = urlsplit(provider.base_url)
+        port = parsed.port
+    except (ValueError, AttributeError):
+        return None
+    if (parsed.scheme not in {"http", "https"} or port != 11434 or parsed.username or parsed.password
+            or not is_local_endpoint(provider.base_url, getattr(provider, "_trusted_local_hosts", ()))):
+        return None
+    return urlunsplit((parsed.scheme, parsed.netloc, "", "", "")), _ollama_name(model)
+
+
+def vorwaermen(provider: Any, *, beschaeftigt: Any = None, uhr: Any = time.monotonic) -> str:
+    """Lädt das Antwortmodell vorab in den Speicher, ohne etwas zu fragen (Ollama: `/api/generate` ohne Prompt).
+
+    Gibt zurück, was geschah: `geladen`, `kein_lokales_modell` (kein Aufruf), `kuerzlich` (in der letzten Minute schon),
+    `beschaeftigt` (ein anderer Modellaufruf läuft; dann nicht dazwischen) oder `fehler`. Blockiert nie auf eine Sperre.
+    Für ein eigenes Modell (`kingfisher-*`) gilt dieselbe RAM-Regel wie bei jedem Aufruf: erst die anderen entladen.
+    """
+    ziel = _lokaler_ollama(provider)
+    if ziel is None:
+        return "kein_lokales_modell"
+    origin, name = ziel
+    jetzt = uhr()
+    if jetzt - _VORGEWAERMT.get(ziel, float("-inf")) < _VORWAERMEN_ABSTAND_S:
+        return "kuerzlich"
+    try:
+        if callable(beschaeftigt) and beschaeftigt():
+            return "beschaeftigt"
+    except Exception:  # noqa: BLE001 - im Zweifel nicht dazwischen
+        return "beschaeftigt"
+    if not _MANAGED_MODEL_LOCK.acquire(blocking=False):
+        return "beschaeftigt"
+    try:
+        _VORGEWAERMT[ziel] = jetzt
+        if _scope(provider) is not None:
+            _prepare(origin, name)
+        with _ollama_client(timeout=120.0, trust_env=False, follow_redirects=False) as client:
+            _request(client, "POST", origin + "/api/generate", {"model": name, "keep_alive": HALTEN_GESPRAECH})
+        return "geladen"
+    except Exception:  # noqa: BLE001 - Vorwärmen ist eine Hilfe, kein Muss; die Antwort lädt sonst selbst
+        _LOG.warning("Kingfisher could not warm its answer model.")
+        return "fehler"
+    finally:
+        _MANAGED_MODEL_LOCK.release()

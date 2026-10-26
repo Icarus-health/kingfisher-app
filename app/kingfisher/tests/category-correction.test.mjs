@@ -5,8 +5,9 @@ import {fileURLToPath} from 'node:url';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 
+import {testCache} from './testcache.mjs';
 // Exercise the real component handlers, not a browser or React-runtime test.
-const server = await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-category-correction.test`,root:fileURLToPath(new URL('..', import.meta.url)),
+const server = await createServer({cacheDir:testCache('category-correction.test'),root:fileURLToPath(new URL('..', import.meta.url)),
   plugins:[{name:'category-correction-hook-driver', enforce:'pre',
     resolveId(id){if(id==='virtual:category-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:category-hooks')return `

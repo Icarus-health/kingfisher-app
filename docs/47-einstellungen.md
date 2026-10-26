@@ -348,6 +348,44 @@ bisher als „antwortet gerade nicht. Du musst nichts tun“ stehen, für immer.
   ablehnt. Der Weg zurück ist aber keine Sackgasse mehr: „Mit Google anmelden“ ersetzt die Freigabe am vorhandenen
   Postfach.
 
+## Konten und Bereiche (Paket K, 26.10.2026)
+
+Entscheidung des Nutzers ([66-automatik.md](66-automatik.md)): **Bereich je Postfach und Kalender**. Kingfisher schlägt
+„Privat“ oder „Arbeit“ vor, der Mensch bestätigt einmal; Mails, Termine, Aufgaben und Projekte erben den Bereich.
+
+* **Eine Zeile je Konto** (`Einstellungen/KontoZeile.tsx`): Name, darunter die Adresse (nicht, wenn das Postfach nach
+  ihr heißt) und der **Stand in einem Satz** („Zuletzt gelesen vor 4 Min.“, „Wird gelesen: 120 von 4.300 Mails.“ oder
+  der Fehler mit Weg, rot; „Neu anmelden“ steht wie bisher darunter, ohne den Satz zu wiederholen). Beim Kalender stammt
+  der Stand aus dem letzten Lesen (Kalenderseite, Heute, Abgleich); der Mac-Kalender meldet seinen eigenen Stand.
+* **Umbenennen**: ein Klick auf den Namen, Enter speichert, Escape bricht ab. Ein Name gilt je Art nur einmal
+  („Diesen Namen trägt schon ein anderes Postfach.“). Mac-Kalender heißen wie am Mac.
+* **Eindeutige Namen**: Neue Postfächer heißen nach ihrer Adresse (`postfachName`), nicht nach dem Anbieter. Trugen zwei
+  Postfächer denselben Namen (früher jedes Gmail-Konto „Gmail / Google Workspace“), heißen sie beim nächsten Start nach
+  ihrer Adresse (`konten_routes.namen_eindeutig_machen`; nur der Anzeigename).
+* **Doppelt**: Ein Postfach mit derselben Anmeldung beim selben Server wird beim Passwortweg nicht ein zweites Mal
+  angelegt; stattdessen ein Satz („Dieses Postfach ist schon verbunden: … Kingfisher liest es bereits.“), noch vor der
+  Anmeldung. Google und Microsoft erkannten das schon.
+* **Bereich**: Ohne Bestätigung steht unter der Zeile der **Vorschlag mit Grund** („Vorschlag: Privat. gmail.com ist ein
+  privater Anbieter.“) mit „Übernehmen“ und „Anderer Bereich“. Regeln (`bereiche.py`): private Anbieter-Adresse →
+  Privat, eigene Domäne → Arbeit; Kalender aus eindeutigen Wörtern im Namen („Arbeit“, „Team“, „Familie“), sonst aus dem
+  Postfach mit derselben Adresse, sonst aus der Adresse; sonst **kein Vorschlag**, die Zeile fragt „Welcher Bereich?“.
+  Ab zwei offenen Vorschlägen steht im Kopf der Gruppe „Alle Vorschläge übernehmen“. Bestätigt steht der Bereich als
+  leise Pille rechts; ein Klick ändert ihn, „Ohne“ löst ihn, „Eigener Bereich …“ legt einen mit Namen an (etwa
+  „Verein“). Alles ohne Rückfrage, danach der Hinweis mit „Rückgängig“ (`PUT /api/v1/konten/bereich` mit dem Vorwert,
+  `PUT /api/v1/konten/name` mit dem alten Namen).
+* **Gespeichert** wird nur Bestätigtes, in der Konfiguration (`Settings.konten`: `eigene`, `bereich_je_konto`,
+  `kalender_ausgeblendet`), ohne Datenbankspalte. Ein Vorschlag wirkt nie.
+* **Vererbung, abgeleitet** (`bereiche.py`, öffentlich für andere Pakete): Mail → Postfach (Präfix der Quellreferenz),
+  Termin → Kalender (beim Mac der einzelne Kalender), Aufgabe → ihre Quelle, sonst ihr Projekt; Projekt → `area`, wenn es
+  einen Bereich nennt, sonst der überwiegende Bereich seiner Quellen (mehr als die Hälfte; sonst keiner).
+  Bestätigte Geburtstage (nur innerer Kreis) gelten als privat. Feld `bereich` in `/api/v1/calendar`, `/api/v1/tasks`,
+  `/api/v1/projects`, `/api/v1/local-mail`.
+* **Filter**: Kalender und Aufgaben haben ein Segment „Alle · Arbeit · Privat · …“, sobald mindestens zwei Bereiche einem
+  Konto zugeordnet sind; die Wahl merkt sich jede Seite (Browser). Auf der Kalenderseite bleiben **ausgeblendete
+  Kalender ausgeblendet** (gespeichert, `PUT /api/v1/kalender/ausgeblendet`).
+* Prüfung: `sidecar/tests/test_konten_bereiche.py`, `app/kingfisher/tests/konten-bereiche.test.mjs`, Browserprobe
+  `scripts/probe_konten_ui.py` ([Protokoll](runs/2026-10-26-automatik-konten/README.md)).
+
 ## Quellen zum Anklicken (Feed-Vorgaben)
 
 `sidecar/icarus_memory/welt_vorgaben.py` ist die Liste: tagesschau, Deutschlandfunk, heise online, ZEIT ONLINE, je mit
@@ -418,6 +456,36 @@ Geprüft: `sidecar/tests/test_mitteilungen.py`, `app/kingfisher/tests/mitteilung
 (Reporter, Kategorie, Aktionen, Bauskript, Verdrahtung), Browserprobe `scripts/probe_mitteilungen_ui.py`.
 **Nicht geprüft:** die Mitteilung selbst auf einem Mac (kein Swift-Übersetzer hier); siehe das
 [Protokoll](runs/2026-10-22-mitteilungen/README.md).
+
+## Cloud für Fragen und Antworten: auch Gedächtnisfragen (Paket T, 26.10.2026)
+
+Bis 1.0.28 half der Schalter „Cloud für Fragen und Antworten nutzen“ bei Fragen an das Gedächtnis nicht: Die belegte
+Gedächtnisantwort lief nur lokal und sagte sonst „benötigt ein lokales Modell“. Entscheidung des Nutzers
+([66-automatik.md](66-automatik.md)): Mit gültiger Einwilligung der Rolle `antwort` wählt der Cloudanbieter auch die
+Quellen aus und formuliert die Sätze.
+
+- **Was hinausgeht:** die Frage und die dafür gefundenen Textstellen samt Absender, Betreff und Datum. Der Satz der
+  Einwilligung sagt das jetzt wörtlich (erweitert, nicht gekürzt; Oberfläche `gliederung.ts`, Sidecar `ROLLEN["antwort"]`).
+  Bestätigte Einträge der Wissensschicht gehen nie hinaus; sie stehen lokal gelesen unter der Antwort.
+- **Wann nie:** Schalter aus, Einwilligung fehlt oder unlesbar, kein Schlüssel (dann gilt der lokale Standard), ein
+  nicht lokaler Standardanbieter ohne Einwilligung, „nur lokal“. Die Einwilligung wird vor jedem einzelnen Versand neu
+  gelesen; ein Widerruf mitten in einer Antwort hält den nächsten Aufruf an (`gedaechtnis_cloud.py`).
+- **Was lokal bleibt:** Prüfung (zweites Tor), Einbettung und Hintergrund, wie bisher.
+- **Sichtbar:** Unter einer solchen Antwort steht „Über Anthropic beantwortet.“; im Verlauf vermerkt
+  `context.gedaechtnis_cloud` Anbieter, Modell und `gesendet: ["frage", "textstellen"]`.
+- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud geht es
+  in wenigen Sekunden.“ mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
+  zeigen“ (im Browser gemerkt).
+
+## Aufgaben aus Mails selbst anlegen (26.10.2026)
+
+Der achte Schalter unter „Was Kingfisher darf“ (`Einstellungen/AufgabenSelbstSchalter.tsx`, Text in
+`gliederung.ts`, `SCHALTER.aufgaben_selbst`) und der einzige, der **an** ist, bis man ihn ausschaltet: Es verlässt
+nichts den Rechner, und jede so angelegte Aufgabe hat „Rückgängig“ (Prüffrage 5 und 6). Der Satz darunter: „Es
+verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus neuen Mails werden Aufgaben, jede mit
+„Rückgängig“. Aus: Sie bleiben Vorschläge.“ Dahinter `GET/PUT /api/v1/aufgaben-von-selbst/einstellung` (`an`), gehalten
+in `tasks.sqlite3` (`aufgaben_auto_einstellung`, keine Zeile heißt an). Was eindeutig ist, steht in
+[`30-akten.md`](30-akten.md#aufgaben-von-selbst-26102026).
 
 ## Wie man prüft
 

@@ -19,14 +19,19 @@ Abschnitte (Sekunden, auf Millisekunden gerundet):
     satzpruefung     jeder Satz gegen seine Belege
     pruefung_modell  zweites Tor: das Prüfmodell urteilt je Satz (`satzpruefung_modell.py`)
     gesamt           alles zusammen, einschließlich dessen, was in keinem Abschnitt steht
+
+Zwischenstand (`gespraech_fortschritt.py`): Beginnt ein Abschnitt, erfährt das ein Beobachter, den die Gesprächsroute
+für genau diese Anfrage setzt (`beobachten`, eine Kontextvariable, kein geteilter Zustand). So zeigt die Oberfläche den
+echten Schritt („Wählt Quellen …“), keine geschätzte Zeit. Ohne Beobachter geschieht nichts.
 """
 from __future__ import annotations
 
 import math
 import threading
 import time
-from collections.abc import Callable, Mapping
-from contextlib import nullcontext
+from collections.abc import Callable, Iterator, Mapping
+from contextlib import contextmanager, nullcontext
+from contextvars import ContextVar
 from statistics import median
 from typing import Any
 
@@ -39,6 +44,30 @@ ZIEL_MEDIAN_S = 8.0
 
 LETZTE_ANTWORTEN = 50
 """So viele jüngste Antworten geht das Protokoll ein."""
+
+
+_BEOBACHTER: ContextVar[Callable[[str], None] | None] = ContextVar('zeitmessung_beobachter', default=None)
+
+
+def melde(name: str) -> None:
+    """Sagt dem Beobachter dieser Anfrage, welcher Schritt jetzt beginnt; ohne Beobachter nichts. Wirft nie."""
+    beobachter = _BEOBACHTER.get()
+    if beobachter is None:
+        return
+    try:
+        beobachter(name)
+    except Exception:  # noqa: BLE001 - ein Zwischenstand darf keine Antwort kosten
+        pass
+
+
+@contextmanager
+def beobachten(rueckruf: Callable[[str], None]) -> Iterator[None]:
+    """Setzt den Beobachter für den laufenden Kontext (eine Gesprächsanfrage) und nimmt ihn danach zurück."""
+    marke = _BEOBACHTER.set(rueckruf)
+    try:
+        yield
+    finally:
+        _BEOBACHTER.reset(marke)
 
 
 class Abschnitt:
@@ -78,6 +107,7 @@ class Zeiten:
     def abschnitt(self, name: str) -> Abschnitt:
         if name not in ABSCHNITTE:
             raise ValueError(f'unbekannter Abschnitt: {name}')
+        melde(name)
         return Abschnitt(self, name)
 
     def vorlauf(self, name: str, sekunden: float) -> None:
@@ -144,4 +174,4 @@ def kennzahlen(liste: list[Mapping[str, float]]) -> dict[str, dict[str, float | 
 
 
 __all__ = ['ABSCHNITTE', 'Abschnitt', 'GESAMT', 'LETZTE_ANTWORTEN', 'NAMEN', 'ZIEL_MEDIAN_S', 'Zeiten',
-           'beginne', 'gueltig', 'kennzahlen', 'messen']
+           'beginne', 'beobachten', 'gueltig', 'kennzahlen', 'melde', 'messen']

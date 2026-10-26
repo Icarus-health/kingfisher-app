@@ -8,8 +8,10 @@ test("Ein selbst gefundener Server heißt nach seinem Namen, ein Katalogeintrag 
   assert.equal(erkanntText({id: "gefunden", label: "mail.example.org"}),
     "Erkannt: mail.example.org. Kingfisher hat deinen Mailserver in den Angaben deiner Domain gefunden.");
   assert.equal(erkanntText({id: "webde", label: "WEB.DE"}), "Erkannt: WEB.DE");
-  assert.equal(postfachName("lena.probe@example.org", {id: "gefunden", label: "mail.example.org"}), "example.org");
-  assert.equal(postfachName("lena.probe@web.de", {id: "webde", label: "WEB.DE"}), "WEB.DE");
+  // Nach der Adresse, damit zwei Konten beim selben Anbieter nicht gleich heißen (Paket K).
+  assert.equal(postfachName("lena.probe@example.org", {id: "gefunden", label: "mail.example.org"}), "lena.probe@example.org");
+  assert.equal(postfachName(" Lena.Probe@web.de", {id: "webde", label: "WEB.DE"}), "lena.probe@web.de");
+  assert.equal(postfachName("", {id: "webde", label: "WEB.DE"}), "WEB.DE");
 });
 
 test("Was hinausgeht: nur die Domain, ein Satz", () => {

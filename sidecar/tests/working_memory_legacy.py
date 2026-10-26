@@ -11,6 +11,10 @@ def legacy_hex(key):
 
 
 def drop_task_rechecks(connection):
+    # v24 and earlier lack what Kingfisher created and assigned by itself (Migration 25, Projekte von selbst).
+    from icarus_memory.projekt_automatik import TABLES as AUTOMATIK
+    for table in AUTOMATIK:
+        connection.execute("DROP TABLE IF EXISTS " + table)
     # v23 and earlier lack the decisions on „Neue Akte?“ proposals (Migration 24).
     from icarus_memory.akten_vorschlaege import TABLES as VORSCHLAEGE
     for table in VORSCHLAEGE:

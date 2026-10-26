@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {after,test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
-const server=await createServer({cacheDir:`/private/tmp/kingfisher-ui-test-cache-${process.pid}-conversation-input.test`,root:fileURLToPath(new URL('..',import.meta.url)),
+import {testCache} from './testcache.mjs';
+const server=await createServer({cacheDir:testCache('conversation-input.test'),root:fileURLToPath(new URL('..',import.meta.url)),
   plugins:[{name:'conversation-input-hooks',enforce:'pre',
     resolveId(id){if(id==='virtual:input-hooks')return '\0'+id;},
     load(id){if(id==='\0virtual:input-hooks')return `export const useState=(...a)=>globalThis.__inputDriver.state(...a);export const useRef=(...a)=>globalThis.__inputDriver.ref(...a);export const useEffect=(...a)=>globalThis.__inputDriver.effect(...a);`;},

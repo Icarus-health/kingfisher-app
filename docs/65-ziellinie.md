@@ -78,3 +78,17 @@ Antworten und Entwürfe). Das ist dann Pflege, kein Projekt.
   gemessen), nutzt in Paket C eine Woche lang normal. Sonst nichts.
 - **Claude Code:** baut A und B als Entwurfs-PRs mit Merge-Reihenfolge, selbst
   geprüft (Tests, Sabotageproben, echter Browser), und wertet Paket C aus.
+
+## Für nach der Abnahme vorgemerkt
+
+- **Strata als lokale Laufzeit prüfen** (vorgemerkt am 26.10.2026 auf Wunsch des Nutzers).
+  [Strata](https://github.com/Niko1221/Strata) führt Modelle lokal aus, auch auf Apple
+  Silicon, und bietet wie Ollama eine OpenAI-kompatible Schnittstelle. Bisher nur die
+  Beschreibung gelesen, nichts installiert. Die Geschwindigkeiten dort sind auf NVIDIA- und
+  AMD-Karten gemessen; für den Mac gibt es keine Zahlen. Bei 12.000 Eingabe-Token je Frage
+  sind die genannten 110 bis 400 Token je Sekunde nicht schneller als heute.
+  Eine Messprobe auf dem Mac des Nutzers: dieselben Fragen wie im
+  [Protokoll vom 12.10.](runs/2026-10-12-personal-core-flow/README.md), Zeit je Frage und
+  Güte der Antwort gegen Ollama. Nur wenn klar besser, anbinden. Dabei bedenken:
+  `ollama_memory.managed_model`, Vorwärmen und die Einbettung mit `bge-m3` sind auf Ollama
+  gebaut.

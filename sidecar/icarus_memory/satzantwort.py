@@ -56,8 +56,8 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timezone
 from typing import Any, Sequence
 
-from . import (absatzauswahl, akten_kontext, kennzeichnung, mappe, relative_zeit, satzpruefung, satzpruefung_modell,
-               verlaesslichkeit, zeitmessung)
+from . import (absatzauswahl, akten_kontext, gedaechtnis_cloud, kennzeichnung, mappe, relative_zeit, satzpruefung,
+               satzpruefung_modell, verlaesslichkeit, zeitmessung)
 from .akten_kontext import Kontext, Ueberholt
 from .kennzeichnung import Kennzeichen, Rahmen
 from .kontakte import absender_text
@@ -639,7 +639,8 @@ def formulieren(frage: str, belege: Sequence[AntwortBeleg], anbieter: Any, *, je
     tor = pruefung or satzpruefung_modell.OHNE
     if not belege:
         return Versuch('zitate', grund='keine Belege', tor=tor)
-    if anbieter is None or not getattr(anbieter, 'is_local', False) or not callable(getattr(anbieter, 'complete_json', None)):
+    # Lokal, oder der Cloudanbieter der Rolle `antwort` unter gültiger Einwilligung (`gedaechtnis_cloud.py`).
+    if not gedaechtnis_cloud.erlaubt(anbieter) or not callable(getattr(anbieter, 'complete_json', None)):
         return Versuch('zitate', grund='kein lokales Modell', tor=tor)
     modell = f'{getattr(anbieter, "name", "")} {getattr(anbieter, "model", "")}'.strip()
     try:

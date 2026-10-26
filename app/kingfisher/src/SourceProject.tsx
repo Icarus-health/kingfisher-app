@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, type Project, type ProjectSuggestion } from "./api";
 import { zeigeHinweis } from "./grundlage";
 
 // Ablage, kein Fakt: Die Zuordnung ändert weder Einordnung noch Belege und
 // lässt sich jederzeit zurückstellen. Deshalb speichert die Auswahl sofort
 // und ohne Rückfrage, sagt aber im Hinweis unten, was passiert ist, mit „Rückgängig“ (V4). Vorschläge stammen nur aus
-// den eigenen Zuordnungen des Nutzers und werden nie selbst angewendet.
+// den eigenen Zuordnungen des Nutzers. Neue Mails ordnet Kingfisher selbst zu, wenn alle früheren Mails des Absenders in
+// einem Projekt liegen (Paket P, sidecar: projekt_automatik.py); das steht dann sichtbar da: „Zugeordnet nach Absender ·
+// Ändern · Rückgängig“. „Rückgängig“ wird gemerkt, die Mail kommt nicht wieder dorthin.
 export function SourceProject({id, projectId}: {id: string; projectId: string | null}) {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [value, setValue] = useState(projectId ?? "");
@@ -13,6 +15,7 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
   const [result, setResult] = useState<{ok: boolean; text: string} | null>(null);
   const [hint, setHint] = useState<ProjectSuggestion | null>(null);
   const [offer, setOffer] = useState<{projectId: string; name: string; count: number; sender: string} | null>(null);
+  const auswahl = useRef<HTMLSelectElement | null>(null);
   useEffect(() => {
     let active = true;
     api.projects().then(items => {if (active) setProjects(items);}).catch(() => {if (active) setProjects([]);});
@@ -27,6 +30,8 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
   async function choose(next: string) {
     const previous = value;
     setValue(next); setSaving(true); setResult(null); setOffer(null);
+    // Was der Nutzer wählt, gilt; die automatische Zuordnung ist damit keine mehr (der Sidecar vergisst sie ebenso).
+    setHint(current => current ? {...current, automatisch: null} : current);
     try {
       await api.linkSourceProject(id, next || null);
       const name = nameOf(next);
@@ -71,13 +76,29 @@ export function SourceProject({id, projectId}: {id: string; projectId: string | 
     } finally { setSaving(false); }
   }
 
+  // „Rückgängig“ einer automatischen Zuordnung: gelöst und gemerkt; der Satz des Sidecars sagt es.
+  async function undoAutomatic() {
+    setSaving(true); setResult(null);
+    try {
+      const antwort = await api.projektZuordnungZuruecknehmen(id);
+      setValue(""); setHint(current => current ? {...current, automatisch: null} : current);
+      zeigeHinweis({text: antwort.satz});
+    } catch {
+      setResult({ok: false, text: "Das ließ sich gerade nicht zurücknehmen. Bitte die Auswahl oben ändern."});
+    } finally { setSaving(false); }
+  }
+
+  const automatisch = hint?.automatisch && hint.automatisch.projekt_id === value ? hint.automatisch : null;
   const suggestion = !value && hint?.suggestion && options.some(project => project.id === hint.suggestion?.project_id) ? hint.suggestion : null;
   return <div className="source-project">
     <label htmlFor={`source-project-${id}`}>Projekt</label>
-    <select id={`source-project-${id}`} value={value} disabled={saving} onChange={event => void choose(event.target.value)}>
+    <select ref={auswahl} id={`source-project-${id}`} value={value} disabled={saving} onChange={event => void choose(event.target.value)}>
       <option value="">Kein Projekt</option>
       {options.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
     </select>
+    {automatisch && <p className="source-project-hint source-project-auto">{automatisch.satz}{" · "}
+      <button type="button" className="text-action" disabled={saving} onClick={() => auswahl.current?.focus()}>Ändern</button>{" · "}
+      <button type="button" className="text-action" disabled={saving} onClick={() => void undoAutomatic()}>Rückgängig</button></p>}
     {suggestion && <p className="source-project-hint">Vorschlag: {suggestion.name}. Die bisherigen {suggestion.count} Mails von {hint?.sender} liegen dort.{" "}
       <button type="button" className="secondary-action" disabled={saving} onClick={() => void choose(suggestion.project_id)}>Übernehmen</button></p>}
     {result && <p role={result.ok ? "status" : "alert"}>{result.text}</p>}

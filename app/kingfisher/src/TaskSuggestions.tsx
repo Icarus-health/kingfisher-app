@@ -4,6 +4,8 @@ import { candidateDeadline, localTaskDay } from "./taskWorkflow";
 import { ProfileSource } from "./ProfileSource";
 import { generationForTaskPage, isVisibleTaskPage, type TaskTemporalFilter } from "./taskSuggestionsView";
 import {DetailPanel} from './DetailPanel';
+import {zeigeHinweis} from './grundlage';
+import {alleHinweis, alleKnopf, gruppeZurueckText} from './aufgabenVonSelbst';
 
 const PAGE_SIZE = 25;
 type TemporalFilter = TaskTemporalFilter;
@@ -12,7 +14,8 @@ type SuggestionDraft = {open: boolean; title: string; project: string; newProjec
 
 function initialDraft(item: TaskCandidate): SuggestionDraft {
   return {open: false, title: item.statement, project: item.project_suggestion?.project_id ?? "", newProject: item.project_suggestion?.new_project_name ?? "",
-    due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : "", waiting: ""};
+    // Die Frist kommt aus dem Vorschlag oder, wenn die Textstelle genau eine eindeutige nennt, aus der Erkennung.
+    due: item.temporal_status === "recent" && item.valid_until ? localTaskDay(item.valid_until) : item.frist_vorschlag ? localTaskDay(item.frist_vorschlag) : "", waiting: ""};
 }
 
 function deadlineText(item: TaskCandidate, day: string) {
@@ -42,6 +45,7 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
   const [batchBusy,setBatchBusy]=useState(false);
   const batchPending=useRef(false);
   const [batchResults,setBatchResults]=useState<Array<{id:string;title:string;ok:boolean}>>([]);
+  const [alleBusy,setAlleBusy]=useState(false);
   useEffect(()=>{setSelected([]);setBatchPreview(null);},[offset,temporal]);
   const generations = useRef<Record<TemporalFilter, string | undefined>>({all: undefined, recent: undefined, review: undefined});
   useEffect(() => {
@@ -99,6 +103,20 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
     setSelected([]);setBatchPreview(null);generations.current[temporal]=undefined;setOffset(0);setRevision(n=>n+1);setBatchBusy(false);batchPending.current=false;
     if(lastTask)onAccepted(lastTask);
   }
+  // „Alle übernehmen“: ein Klick für alle sichtbaren Vorschläge, Projekt (nur vorhandene), Person und Frist vorbefüllt
+  // vom Sidecar; der Hinweis unten nimmt die ganze Gruppe mit „Rückgängig“ zurück (sie stehen dann wieder hier).
+  async function alleUebernehmen(){
+    if(!visiblePage||alleBusy||batchBusy)return;
+    const ids=visiblePage.items.map(item=>item.id);
+    setAlleBusy(true);setNotice("");
+    try{
+      const ergebnis=await api.alleUebernehmen(ids);
+      setSelected([]);setBatchPreview(null);generations.current[temporal]=undefined;setOffset(0);setRevision(n=>n+1);
+      if(ergebnis.aufgaben.length)onAccepted(ergebnis.aufgaben[ergebnis.aufgaben.length-1]);
+      zeigeHinweis(ergebnis.aufgaben.length?{text:alleHinweis(ergebnis),rueckgaengig:async()=>{const zurueck=await api.gruppeZuruecknehmen(ergebnis.gruppe);generations.current[temporal]=undefined;setRevision(n=>n+1);return gruppeZurueckText(zurueck);}}:{text:alleHinweis(ergebnis),fehler:true});
+    }catch{setNotice("Die Vorschläge ließen sich gerade nicht übernehmen. Bitte erneut versuchen.");}
+    finally{setAlleBusy(false);}
+  }
   const blaettern = Boolean(offset > 0 || visiblePage?.has_more);
   // Eine Gruppe: oben leise der eine Satz, der zusichert (nichts wird ohne Bestätigung zur Aufgabe), rechts der Zeitraum;
   // darunter die Vorschläge als Zeilen einer Fläche, keine Karten in der Karte.
@@ -109,6 +127,7 @@ export function TaskSuggestions({projects, onAccepted, onPreview, onTotal}: {pro
         <option value="all">Alle Vorschläge</option><option value="recent">Zeitnah</option><option value="review">Zeitlich prüfen</option>
       </select></label>
     </div>
+    {visiblePage && visiblePage.items.length > 1 && selected.length === 0 && <div className="task-vorschlaege-auswahl task-vorschlaege-alle"><button className="secondary-action" type="button" disabled={alleBusy||batchBusy} onClick={()=>void alleUebernehmen()}>{alleBusy?'Wird übernommen …':alleKnopf(visiblePage.items.length)}</button><small>Mit Projekt, Person und Frist, wie vorgeschlagen. Mit „Rückgängig“ wieder zurück.</small></div>}
     {notice && <p className="task-vorschlaege-satz" role="status">{notice}</p>}
     {error && <p className="task-vorschlaege-satz task-vorschlaege-fehler" role="alert">Vorschläge sind gerade nicht erreichbar. <button type="button" className="text-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
     {visiblePage && selected.length > 0 && <div className="task-vorschlaege-auswahl"><button className="secondary-action" type="button" disabled={batchBusy||!selected.length} onClick={()=>{onPreview?.();setBatchPreview(visiblePage.items.filter(item=>selected.includes(item.id)).map(item=>({item,draft:{...(drafts[item.id]??initialDraft(item))}})));}}>Auswahl prüfen ({selected.length})</button><small>Auswahl gilt für diese Seite; jede Übernahme prüft ihre Quelle erneut.</small></div>}
@@ -161,7 +180,7 @@ function Suggestion({item, draft, onDraftChange, projects, onDone,selected,onSel
     <div className="task-vorschlag-inhalt">
     <h3>{draft.title}</h3>
     <p className="task-vorschlag-meta">{draft.newProject ? `Neues Projekt „${draft.newProject}“` : draft.project ? `Projekt „${projects.find(p=>p.id===draft.project)?.name ?? 'nicht verfügbar'}“` : 'Ohne Projekt'}
-      {' · '}{deadlineText(item,draft.due)}{draft.waiting && ` · Warte auf ${draft.waiting}`}</p>
+      {item.person_vorschlag ? ` · ${item.person_vorschlag.name || item.person_vorschlag.adresse}` : ''}{' · '}{deadlineText(item,draft.due)}{draft.waiting && ` · Warte auf ${draft.waiting}`}</p>
     <span className={`suggestion-time-badge${item.temporal_status === 'recent' ? '' : ' suggestion-time-pruefen'}`}>{zeitWarnung}</span>
     <details className="quiet-details suggestion-evidence" open={draft.open || undefined}><summary>Quelle & Begründung</summary>
     <p>{item.temporal_reason || 'Zeitliche Einordnung bitte prüfen.'}</p>

@@ -13,7 +13,11 @@ class TaskCandidates:
         self.workspace = workspace
         self.lock = lock
 
-    def accept(self, proposal_id, *, title, project_id=None, new_project_name=None, due=None, waiting_for=None):
+    def accept(self, proposal_id, *, title, project_id=None, new_project_name=None, due=None, waiting_for=None,
+               person=None, angelegt=None, zuordnung_aus_vorschlag=False, eigene=()):
+        """Übernimmt einen belegten Vorschlag. Die Person (wer bittet, wem zugesagt wurde) ergibt sich aus der Quelle,
+        wenn sie nicht mitkommt; `zuordnung_aus_vorschlag` übernimmt das vorgeschlagene Projekt (Quelle oder
+        Absenderregel), wenn keines gewählt ist (Heute, `aufgaben_von_selbst.py`)."""
         title = title.strip()
         waiting = waiting_for.strip() if waiting_for is not None else None
         if not title or len(title) > 4096 or (waiting is not None and (not waiting or len(waiting) > 1024)):
@@ -43,6 +47,13 @@ class TaskCandidates:
                     or episode.digest != evidence.digest or not evidence.quote or evidence.quote not in episode.body
                     or not task_context_matches(candidate, self.episodes)):
                 raise ProposalError('Die Quelle ist nicht mehr gültig. Bitte erneut prüfen.')
+            from .aufgaben_von_selbst import Durchlauf, person_der_quelle
+            if person is None:
+                person = person_der_quelle(episode, eigene)[1]
+            if zuordnung_aus_vorschlag and not project_id and new_project_name is None:
+                projekt = Durchlauf(self.tasks, self.episodes, self.proposals, workspace=self.workspace).projekt(
+                    candidate, episode)
+                project_id = projekt['project_id'] if projekt else None
             if new_project_name is not None:
                 name = new_project_name.strip()
                 if project_id or not 1 <= len(name) <= 200:
@@ -57,7 +68,7 @@ class TaskCandidates:
                 candidate.id, title,
                 Provenance(source_type=SourceType.USER_STATED, source_ref=f'episode:{episode.id}',
                            captured_at=now(), verbatim=evidence.quote),
-                due=due, project_id=project_id, waiting_for=waiting,
+                due=due, project_id=project_id, waiting_for=waiting, person=person, angelegt=angelegt,
             )
             self.proposals.accept(candidate.id, produced=task.id)
             return task

@@ -92,9 +92,12 @@ STORE_SPECS: tuple[tuple[str, StoreFactory, set[str]], ...] = (
     ("episodes", EpisodeStore, {"episodes", "mail_progress", "source_heads", "episode_produced_assertions",
                                 "working_memory_sources", "working_memory_items", "working_memory_terms",
                                 "working_memory_scan", "task_rechecks", "task_recheck_turn", "episode_mail_headers",
-                                 "akten_entscheidungen", "akten_vorschlag_entscheidungen"} | set(EXTENSION_TABLES)),
+                                 "akten_entscheidungen", "akten_vorschlag_entscheidungen", "projekt_automatik_anlagen",
+                                 "projekt_automatik_zuordnungen", "projekt_automatik_sperren",
+                                 "projekt_automatik_stand"} | set(EXTENSION_TABLES)),
     ("tasks", TaskStore, {"tasks", "task_events", "task_requests", "aufgaben_post_mails", "aufgaben_post_getrennt",
-                          "aufgaben_post_stand"}),
+                          "aufgaben_post_stand", "aufgaben_auto_geprueft", "aufgaben_auto_zurueck",
+                          "aufgaben_auto_einstellung"}),
     ("workspace", WorkspaceStore, {"projects", "notes", "event_projects", "event_followups"}),
     ("proposals", ProposalStore, {"proposals", "task_analysis", "task_scan_cursor", "memory_analysis_jobs"}),
     ("audit", AuditLog, {"audit"}),
@@ -118,7 +121,7 @@ def test_neue_datenbank_laeuft_auf_aktuelle_version(
     store = factory(path)
     store.close()  # type: ignore[attr-defined]
 
-    assert _version(path) == (24 if name == "episodes" else 5 if name == "proposals" else 4 if name == "tasks" else 3 if name == "workspace" else 1)
+    assert _version(path) == (25 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
     assert _tables(path) == expected
 
 
@@ -472,6 +475,9 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             connection.execute("DROP TABLE aufgaben_post_mails")
             connection.execute("DROP TABLE aufgaben_post_getrennt")
             connection.execute("DROP TABLE aufgaben_post_stand")
+            connection.execute("DROP TABLE aufgaben_auto_geprueft")
+            connection.execute("DROP TABLE aufgaben_auto_zurueck")
+            connection.execute("DROP TABLE aufgaben_auto_einstellung")
         if name == "workspace":
             connection.execute("DROP TABLE event_projects")
             connection.execute("DROP TABLE event_followups")
@@ -490,7 +496,7 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
     for name, factory, _ in STORE_SPECS:
         store = factory(paths[name])
         store.close()  # type: ignore[attr-defined]
-        assert _version(paths[name]) == (24 if name == "episodes" else 5 if name == "proposals" else 4 if name == "tasks" else 3 if name == "workspace" else 1)
+        assert _version(paths[name]) == (25 if name == "episodes" else 5 if name == "proposals" else 5 if name == "tasks" else 3 if name == "workspace" else 1)
         expected_snapshot = {**before[name], "mail_progress": [], "source_heads": [], "episode_produced_assertions": [],
                              "working_memory_sources": [], "working_memory_items": [], "working_memory_terms": [],
                              "working_memory_scan": [(1, '', 0)]} if name == "episodes" else before[name]
@@ -500,12 +506,16 @@ def test_legacy_bestand_aller_stores_bleibt_unveraendert(tmp_path: Path) -> None
             expected_snapshot = {**before[name], "event_projects": [], "event_followups": []}
         if name == "tasks":
             expected_snapshot = {**before[name], "task_requests": [], "aufgaben_post_mails": [],
-                                 "aufgaben_post_getrennt": [], "aufgaben_post_stand": []}
+                                 "aufgaben_post_getrennt": [], "aufgaben_post_stand": [],
+                                 "aufgaben_auto_geprueft": [], "aufgaben_auto_zurueck": [], "aufgaben_auto_einstellung": []}
         actual_snapshot = _snapshot(paths[name])
         if name == "episodes":
             assert actual_snapshot.pop("episode_mail_headers") == []
             assert actual_snapshot.pop("akten_entscheidungen") == []
             assert actual_snapshot.pop("akten_vorschlag_entscheidungen") == []
+            for table in ("projekt_automatik_anlagen", "projekt_automatik_zuordnungen", "projekt_automatik_sperren",
+                          "projekt_automatik_stand"):
+                assert actual_snapshot.pop(table) == []
             assert actual_snapshot.pop("task_rechecks") == []
             assert actual_snapshot.pop("task_recheck_turn") == [(1, 1)]
             for table in EXTENSION_TABLES:
@@ -555,7 +565,7 @@ def test_bekannte_alte_task_tabelle_wird_gezielt_migriert(tmp_path: Path) -> Non
     migrated = store.all_tasks()
     store.close()
 
-    assert _version(path) == 4
+    assert _version(path) == 5
     assert len(migrated) == 1
     assert migrated[0].id == "t-alt"
     assert migrated[0].title == "Alte Aufgabe"
@@ -687,7 +697,7 @@ def test_encrypted_recovery_restores_pre_migration_schema_and_keeps_newer_data(t
     assert updated.get(task.id).title==task.title
     new=updated.add('Nach dem Update', provenance)
     updated.close()
-    assert _version(path)==4
+    assert _version(path)==5
     newer_state=_snapshot(path)
     assert newer_state!=before
 

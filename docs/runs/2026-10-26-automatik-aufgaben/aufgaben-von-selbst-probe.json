@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "pruefungen": {
+    "durchlauf": {
+      "geprueft": 5,
+      "angelegt": 2,
+      "vorschlaege": 3
+    },
+    "heute": "2 Aufgaben aus der Post angelegt. Ansehen · Rückgängig",
+    "1-heute_390": [
+      390,
+      390
+    ],
+    "zeilen": [
+      "Von Kingfisher angelegt · aus deiner Mail an Jonas Keller vom 26. Oktober · Rückgängig",
+      "Von Kingfisher angelegt · aus der Mail von Anna Berg vom 26. Oktober · Rückgängig"
+    ],
+    "zeile_anna": "Druckdaten an Anna schicken\nFlyer HerbstfestAnna Berg\nVon Kingfisher angelegt · aus der Mail von Anna Berg vom 26. Oktober · Rückgängig\nWarte auf …\nOhne Projekt\nFlyer Herbstfest",
+    "2-aufgaben_390": [
+      390,
+      390
+    ],
+    "zurueck_hinweis": "Zurückgenommen. Kingfisher legt diese Aufgabe nicht wieder an.\n·\nRückgängig",
+    "wiederhergestellt": true,
+    "kommt_nicht_wieder": true,
+    "detail": "Von Kingfisher angelegt · aus deiner Mail an Jonas Keller vom 26. Oktober · Rückgängig",
+    "alle_knopf": "Alle 3 übernehmen",
+    "vorschlag_meta": "Projekt „Flyer Herbstfest“ · Anna Berg · Frist 30.10.2026, 23:59",
+    "5-pruefen_390": [
+      390,
+      390
+    ],
+    "alle_hinweis": "3 Aufgaben übernommen.\n·\nRückgängig",
+    "gruppe_zurueck": "3 Vorschläge stehen wieder zur Prüfung.",
+    "7-schalter_390": [
+      390,
+      390
+    ],
+    "schalter_aus": "Erkannte Aufgaben bleiben ab jetzt Vorschläge, bis du sie übernimmst.",
+    "heute_nachher": "1 Aufgabe aus der Post angelegt. Ansehen · Rückgängig",
+    "heute_zurueck": "1 Aufgabe zurückgenommen. Kingfisher legt sie nicht wieder an.\n·\nRückgängig",
+    "heute_wieder": "1 Aufgabe aus der Post angelegt. Ansehen · Rückgängig",
+    "9-aufgaben-dunkel_390": [
+      390,
+      390
+    ]
+  },
+  "konsole": [],
+  "bilder": [
+    "aufgaben-von-selbst-1-heute.jpg",
+    "aufgaben-von-selbst-1-heute-390.jpg",
+    "aufgaben-von-selbst-2-aufgaben.jpg",
+    "aufgaben-von-selbst-2-aufgaben-390.jpg",
+    "aufgaben-von-selbst-3-zurueckgenommen.jpg",
+    "aufgaben-von-selbst-4-detail.jpg",
+    "aufgaben-von-selbst-5-pruefen.jpg",
+    "aufgaben-von-selbst-5-pruefen-390.jpg",
+    "aufgaben-von-selbst-6-alle-uebernommen.jpg",
+    "aufgaben-von-selbst-7-schalter.jpg",
+    "aufgaben-von-selbst-7-schalter-390.jpg",
+    "aufgaben-von-selbst-8-heute-dunkel.jpg",
+    "aufgaben-von-selbst-9-aufgaben-dunkel.jpg",
+    "aufgaben-von-selbst-9-aufgaben-dunkel-390.jpg"
+  ]
+}

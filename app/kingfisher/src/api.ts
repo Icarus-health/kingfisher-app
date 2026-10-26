@@ -78,6 +78,12 @@ export type SatzAntwortDaten = {
 };
 
 /** Wie lange eine Antwort brauchte, in Sekunden je Abschnitt (sidecar: zeitmessung.py). Abschnitte, die nicht liefen, fehlen. */
+/** Paket T: Wohin eine Gedächtnisantwort ging, wenn die Cloud sie mit Einwilligung beantwortet hat (gedaechtnis_cloud.py). */
+export type GedaechtnisCloud = { anbieter: string; modell: string; gesendet: string[] };
+
+/** Paket T: der echte Schritt einer laufenden Antwort (gespraech_fortschritt.py), ohne Zeitangabe. */
+export type GespraechFortschritt = { laeuft: boolean; schritt: string | null; satz: string | null };
+
 export type AntwortZeiten = {
   gesamt: number; frage?: number; suche?: number; antwort_modell?: number; saetze_modell?: number; satzpruefung?: number;
   pruefung_modell?: number;
@@ -101,7 +107,7 @@ export type Message = {
   content: string;
   status: "complete" | "error";
   created_at: string;
-  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
+  metadata?: { resolved_approval_id?: string; context?: { satzantwort?: SatzAntwortDaten; zeiten?: AntwortZeiten; gedaechtnis_cloud?: GedaechtnisCloud; quellen?: BelegQuelle[]; source_links?: Array<{episode_id: string; label: string; automatic_memory?: boolean}>; clarification_choices?: Array<{label: string}>; clarification_date?: boolean; original_question?: string; refresh_available?: boolean; routing?: { from: string; to: string; reason: string; allowed_tools: string[]; history_shared: boolean; trace: Array<{model: string; outcome: string}> } } };
 };
 
 export type KnowledgeProjection = {
@@ -452,6 +458,14 @@ export type ProjectSuggestion = {
   suggestion: {project_id: string; name: string; count: number} | null;
   unassigned_peers: number;
   sender: string | null;
+  /** Hat Kingfisher die Quelle selbst zugeordnet (Absenderregel oder mit einem neuen Projekt), steht hier wie. */
+  automatisch?: {art: "absender" | "akte"; projekt_id: string; satz: string} | null;
+};
+
+/** Ein Projekt, das Kingfisher selbst angelegt hat (sidecar: projekt_automatik.py), für den Hinweis auf Heute. */
+export type NeuesProjekt = {
+  kennung: string; projekt_id: string; name: string; sache: string; link: string;
+  anzahl: number; wort: string; personen: string[]; grund: string; zeit: string;
 };
 
 export type Project = {
@@ -461,6 +475,8 @@ export type Project = {
   priority: "high" | "medium" | "low";
   description: string | null;
   open: boolean;
+  /** Abgeleitet: `area`, sonst der überwiegende Bereich der Quellen (Paket K). */
+  bereich?: string | null;
 };
 
 /** Was die Post an einer Aufgabe geändert hat (sidecar: aufgaben_post.py): der Satz mit Grund, die Mail, der Zeitpunkt. */
@@ -480,6 +496,10 @@ export type Task = {
   erledigt_grund?: AufgabenPostGrund | null;
   /** Gesetzt, wenn eine Antwort das Warten aufgelöst hat („wieder bei dir“). */
   geaendert_grund?: AufgabenPostGrund | null;
+  /** Wer zur Aufgabe gehört: wer darum bat oder wem zugesagt wurde (Adresse führt zur Akte). */
+  person?: AufgabePerson | null;
+  /** Wie die Aufgabe entstand, wenn nicht von Hand (Aufgaben von selbst, `aufgaben_von_selbst.py`). */
+  angelegt?: AufgabeAngelegt | null;
   id: string;
   title: string;
   status: "open" | "done" | "dropped";
@@ -494,7 +514,20 @@ export type Task = {
   wartet_seit: string | null;
   wartet_tage: number | null;
   overdue: boolean;
+  /** Abgeleitet: Bereich der Quelle, sonst des Projekts (Paket K); nur in der Aufgabenliste. */
+  bereich?: string | null;
 };
+
+export type AufgabePerson = {adresse: string; name: string};
+export type AufgabeAngelegt = {
+  art: "automatisch" | "alle_uebernehmen";
+  am: string;
+  /** Nur bei `automatisch`: „Von Kingfisher angelegt, weil …“, der Grundsatz, Mail und Richtung. */
+  satz?: string; grundsatz?: string; richtung?: "bitte" | "zusage" | null; episode_id?: string; mail_titel?: string;
+  wer?: string; datum?: string | null; gruppe?: string;
+};
+export type AufgabenVonSelbstHeute = {anzahl: number; satz: string; aufgaben: Array<{id: string; title: string; status: string; satz: string}>};
+export type AlleUebernehmenErgebnis = {gruppe: string; aufgaben: Task[]; fehler: Array<{id: string; grund: string}>};
 
 export type ProjectTaskOverview = {
   project_id: string;
@@ -536,7 +569,7 @@ export type MailDetail = {
 };
 
 /** `valid_until`: vorgeschlagene Fälligkeit (bei Fristen aus privaten Mails, sidecar: akten_arten.py), sonst null. */
-export type TaskCandidate = { project_suggestion?: {project_id:string|null;new_project_name:string|null;name:string;reason:string;origin:string;source_digest:string}|null; received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null };
+export type TaskCandidate = { project_suggestion?: {project_id:string|null;new_project_name:string|null;name:string;reason:string;origin:string;source_digest:string}|null; received_at?: string | null; recorded_at?: string; temporal_status?: string; temporal_reason?: string; followup_episode_id?: string | null; id: string; statement: string; evidence: Array<{episode_id: string; quote: string; digest: string}>; valid_until?: string | null; person_vorschlag?: AufgabePerson | null; frist_vorschlag?: string | null };
 export type TaskCandidatePage = {items: TaskCandidate[]; total: number; offset: number; limit: number; has_more: boolean; generation: string};
 
 export type MailTaskSuggestions = {
@@ -861,10 +894,12 @@ export type AkteVorschlag = {
   quellen: Array<{ episode_id: string; titel: string; datum: string | null; zitat: string }>;
   beteiligte: Array<{ sache: string; name: string; anzahl: number }>;
 };
-export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number };
+export type AkteVorschlagEntscheidung = { kennung: string; entscheidung: "angenommen" | "abgelehnt"; zeit: number; projekt_id: string; quellen: number;
+  /** `automatisch`: von Kingfisher angelegt (Paket P), dann mit dem Grund in einem Satz. */
+  herkunft?: "nutzer" | "automatisch"; grund?: string };
 /** Was die Akte dazu zeigt: den offenen Vorschlag oder die gemerkte Entscheidung (nie beides). */
 export type AkteVorschlagStand = { vorschlag: AkteVorschlag | null; entscheidung: AkteVorschlagEntscheidung | null };
-export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number };
+export type AkteVorschlagAntwort = { kennung: string; sache: string; link: string; satz: string; projekt?: { id: string; name: string }; zugeordnet?: number; automatisch?: boolean };
 export type Akte = {
   sache: string; art: AkteSachenArt; art_text: string; name: string; stand: string; aus_zwischenspeicher: boolean;
   quellen: { gesamt: number; beruecksichtigt: number; archiviert: number; begrenzt: boolean; abschnitte_abgeschnitten: boolean };
@@ -1032,7 +1067,9 @@ export type CalendarOverview = {
     location: string; all_day: boolean; source_id?: string; source_label?: string; view_source_id?: string; attendees?: string[];
     source_copies?: Array<{uid: string; source_id: string; source_label: string; view_source_id?: string}>;
     /** `geburtstag`: ein bestätigter Geburtstag aus dem Gedächtnis, nur in dieser Ansicht (Fremdprobe 2, Befund 20). */
-    art?: string}>;
+    art?: string;
+    /** Bereich des Kalenders (Paket K, `bereiche.py`); fehlt oder null ohne bestätigten Bereich. */
+    bereich?: string | null}>;
 };
 
 export type CalendarActionSource = {id: string; label: string; user: string; calendar_id: string; can_write: boolean; reason: string | null};
@@ -1231,6 +1268,8 @@ export const api = {
   modelRecommendation: () => request<ModelRecommendation>("/api/v1/models/recommendation"),
   modelRoles: () => request<ModelRoles>("/api/v1/models/roles"),
   antwortzeiten: () => request<AntwortZeitenProtokoll>("/api/v1/antwortzeiten"),
+  gespraechFortschritt: (id: string) => request<GespraechFortschritt>(`/api/v1/conversations/${id}/fortschritt`),
+  gespraechVorwaermen: () => request<{ ergebnis: string; cloud: boolean }>("/api/v1/gespraech/vorwaermen", { method: "POST" }),
   saetzeSetzen: (saetze: "an" | "aus") =>
     request<{saetze: "an" | "aus"}>("/api/v1/models/saetze", {method: "PUT", body: JSON.stringify({saetze})}),
   satzpruefungSetzen: (satzpruefung: "an" | "aus") =>
@@ -1480,7 +1519,17 @@ export const api = {
   rememberMail: (uid: string) => request<{new: boolean; changed: boolean; episode: {state: string}}>(`/api/v1/messages/${encodeURIComponent(uid)}/remember`, {method: "POST"}),
   taskCandidates: () => request<TaskCandidate[]>("/api/v1/task-candidates"),
   taskCandidatePage: (limit: number, offset: number, temporal: "all" | "recent" | "review", generation?: string) => request<TaskCandidatePage>(`/api/v1/task-candidates/page?${new URLSearchParams({limit: String(limit), offset: String(offset), temporal, ...(generation ? {generation} : {})})}`),
-  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
+  acceptTaskCandidate: (id: string, data: {title: string; project_id: string | null; new_project_name?: string | null; due: string | null; waiting_for: string | null; zuordnung_aus_vorschlag?: boolean}) => request<Task>(`/api/v1/task-candidates/${encodeURIComponent(id)}/accept`, {method: "POST", body: JSON.stringify(data)}),
+  // Aufgaben von selbst (`aufgaben_von_selbst_routes.py`): Schalter, Heute, Rückgängig, „Alle übernehmen“.
+  aufgabenVonSelbst: () => request<{an: boolean}>("/api/v1/aufgaben-von-selbst/einstellung"),
+  aufgabenVonSelbstSetzen: (an: boolean) => request<{an: boolean}>("/api/v1/aufgaben-von-selbst/einstellung", {method: "PUT", body: JSON.stringify({an})}),
+  aufgabenVonSelbstHeute: () => request<AufgabenVonSelbstHeute>("/api/v1/aufgaben-von-selbst/heute"),
+  aufgabeVonSelbstZuruecknehmen: (id: string) => request<Task>(`/api/v1/aufgaben-von-selbst/${encodeURIComponent(id)}/rueckgaengig`, {method: "POST"}),
+  aufgabeVonSelbstWiederherstellen: (id: string) => request<Task>(`/api/v1/aufgaben-von-selbst/${encodeURIComponent(id)}/wiederherstellen`, {method: "POST"}),
+  aufgabenVonSelbstZuruecknehmen: (task_ids: string[]) => request<{aufgaben: Task[]; satz: string}>("/api/v1/aufgaben-von-selbst/rueckgaengig", {method: "POST", body: JSON.stringify({task_ids})}),
+  aufgabenVonSelbstWiederherstellen: (task_ids: string[]) => request<{aufgaben: Task[]}>("/api/v1/aufgaben-von-selbst/wiederherstellen", {method: "POST", body: JSON.stringify({task_ids})}),
+  alleUebernehmen: (ids: string[]) => request<AlleUebernehmenErgebnis>("/api/v1/task-candidates/alle-uebernehmen", {method: "POST", body: JSON.stringify({ids})}),
+  gruppeZuruecknehmen: (gruppe: string) => request<{zurueckgenommen: number; geblieben: number}>(`/api/v1/task-candidates/gruppe/${encodeURIComponent(gruppe)}/rueckgaengig`, {method: "POST"}),
   rejectTaskCandidate: (id: string) => request<unknown>(`/api/v1/task-candidates/${encodeURIComponent(id)}/reject`, {method: "POST"}),
   dropTask: (id:string)=>request<Task>(`/api/v1/tasks/${encodeURIComponent(id)}/drop`,{method:'POST'}),
   taskSuggestions: (uid: string) => request<MailTaskSuggestions>(`/api/v1/messages/${encodeURIComponent(uid)}/task-suggestions`, {method: "POST"}),
@@ -1568,6 +1617,8 @@ export const api = {
   /** „Neue Akte?“ (sidecar: akten_vorschlaege_routes.py): Erst der Klick legt das Projekt an; „Nein danke“ wird gemerkt; beides lässt sich zurücknehmen. */
   akteVorschlagAnnehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/annehmen`, { method: "POST" }),
   akteVorschlagAblehnen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/ablehnen`, { method: "POST" }),
+  neueProjekte: () => request<{neu: NeuesProjekt[]}>("/api/v1/projekte/automatik"),
+  projektZuordnungZuruecknehmen: (episodeId: string) => request<{episode_id: string; projekt_id: string; satz: string}>(`/api/v1/projekte/automatik/zuordnung/${encodeURIComponent(episodeId)}/zuruecknehmen`, { method: "POST" }),
   akteVorschlagZuruecknehmen: (kennung: string) => request<AkteVorschlagAntwort>(`/api/v1/akten/vorschlaege/${encodeURIComponent(kennung)}/zuruecknehmen`, { method: "POST" }),
   akteSachen: (art: AkteSachenArt, offset = 0, suche = "") => request<AkteSachen>(`/api/v1/akten/sachen?art=${art}&limit=50&offset=${offset}${suche ? `&suche=${encodeURIComponent(suche)}` : ""}`),
   quellenBezuege: (episodeId: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}`),

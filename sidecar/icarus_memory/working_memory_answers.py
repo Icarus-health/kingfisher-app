@@ -10,7 +10,7 @@ from .model import now, readable_time
 from .providers import ProviderError
 from .working_memory_store import WorkingMemoryStore
 from .working_memory_identity import adjust_selection
-from . import (absatzauswahl, akten_kontext, kennzeichnung, satzantwort, source_candidates, working_memory_projects,
+from . import (absatzauswahl, akten_kontext, gedaechtnis_cloud, kennzeichnung, satzantwort, source_candidates, working_memory_projects,
                working_memory_focus, working_memory_references, working_memory_changes, zeitmessung)
 from .knowledge_render import KnowledgeInputBuild
 from . import knowledge_history
@@ -505,8 +505,11 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     entscheidet (``personenfrage.gemeinte_unter_namensvettern``): Quellen der anderen werden im Kontext
     gekennzeichnet (``kennzeichnung.py``), ebenso Quellen außerhalb eines genannten Zeitraums.
     """
-    if episodes is None or claims is None or provider is None or not getattr(provider, 'is_local', False):
+    # Lokal, oder der Cloudanbieter der Rolle `antwort` unter gültiger Einwilligung (`gedaechtnis_cloud.py`); ein bloß
+    # nicht lokaler Anbieter sieht nie Quellentext.
+    if episodes is None or claims is None or not gedaechtnis_cloud.erlaubt(provider):
         return None
+    cloud = gedaechtnis_cloud.ist_cloud(provider)
     suche_zeit = zeitmessung.beginne(zeiten, 'suche')
     # Eine strukturierte Anfrage (frage.py) erweitert die Suche um Suchworte und Umschreibungen.
     # Sie gilt nur für die Frage selbst; eine Nachfrage bringt ihren Suchtext mit.
@@ -588,7 +591,10 @@ def prepare(question, episodes, claims, provider, *, conflict_status=None, retri
     # as eligible answer evidence. Matching the ID does not prove answerability.
     rows = [row for row in rows if row['id'] in allowed]
     lineage, confirmed_rows, confirmed_limited, confirmed_signature = _confirmed(lookup, episodes, claims)
-    rows += confirmed_rows
+    if not cloud:
+        # Bestätigte Einträge (K) bleiben im Haus: Die Wissensschicht geht nie an einen fremden Anbieter. Die Antwort
+        # zeigt sie trotzdem, lokal gelesen (`render`), und formuliert dann keine Sätze (`claim_basis`).
+        rows += confirmed_rows
     answer = {'version': 1, 'query': question, 'basis': refs, 'refs': [],
               'claim_basis': lineage,
               'claim_candidate_signature': confirmed_signature,
@@ -786,12 +792,16 @@ automatische S-Berichte dürfen widersprechende K-Angaben nicht stillschweigend 
         answer.update(refs=selected, status='unclear' if uncertain else selection['status'],
                       uncertainty=selection['status'] if uncertain else 'none')
         if saetze and answer['status'] == 'reports' and selected and not lineage:
-            # Der Teil, der das Modell ein zweites Mal fragt: nur lokal, nur mit den gewählten Quellen und der Akte.
+            # Der Teil, der das Modell ein zweites Mal fragt: lokal oder mit Einwilligung in der Cloud, nur mit den
+            # gewählten Quellen und der Akte.
             answer['satzantwort'] = satzantwort.erzeugen(question, selected, kontext, episodes, claims, provider,
                                                          jetzt=now(), zeiten=zeiten, rahmen=rahmen, suche=lookup,
                                                          pruefung=pruefung)
     except (ProviderError, ValueError, TypeError, KeyError):
         answer.update(status='selection_failed')
+    if cloud and provider.aufrufe:
+        # Ehrlich vermerkt: Frage und Textstellen gingen an diesen Anbieter (Kontext der Antwort, `agent._working_turn`).
+        answer['gedaechtnis_cloud'] = provider.metadaten()
     if not _fresh(answer, episodes, claims):
         answer.update(status='unavailable', refs=[])
     return answer

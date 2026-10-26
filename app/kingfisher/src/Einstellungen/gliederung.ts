@@ -21,7 +21,7 @@ export const BEREICHE: ReadonlyArray<{ id: Bereich; label: string; satz: string;
     satz: "Hier muss nichts geändert werden." },
 ];
 
-/** Die sieben Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
+/** Die acht Schalter unter „Was Kingfisher darf“: je ein Satz, was dabei den Rechner verlässt. */
 export const SCHALTER = {
   wetter: { titel: "Morgens das Wetter holen",
     verlaesst: "Es verlässt nur der Name deines Ortes den Rechner, an den Wetterdienst Open-Meteo. Termine, Namen und Adressen bleiben bei dir." },
@@ -34,13 +34,16 @@ export const SCHALTER = {
   mitteilungen: { titel: "Mitteilungen auf dem {Rechner}",
     verlaesst: "Es verlässt nichts den Rechner. Morgens eine Mitteilung mit dem, was heute zählt, dazu höchstens zwei dringende: ein Termin gleich, eine verstrichene Zusage." },
   cloud: { titel: "Cloud für Fragen und Antworten nutzen",
-    verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
-    zustimmung: "Deine Fragen und die dazu gefundenen Textstellen gehen an den Cloudanbieter, den du gewählt hast. Ich willige ein." },
+    verlaesst: "Es verlassen deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum den Rechner, an den Cloudanbieter, den du wählst. Aus: alles bleibt auf diesem Rechner.",
+    zustimmung: "Deine Fragen und die dazu gefundenen Textstellen samt Absender, Betreff und Datum gehen an den Cloudanbieter, den du gewählt hast, auch bei Fragen an dein Gedächtnis. Ich willige ein." },
   // Der Satz zur Einwilligung kommt vom Sidecar (`cloud_satz` der Rolle hintergrund, GET /roles) und wird hier nur um
   // das „Ich willige ein.“ ergänzt, damit er nicht zweimal gepflegt wird (cloudEinordnung.ts).
   cloud_einordnung: { titel: "Neue Mails in der Cloud einordnen",
     verlaesst: "Jede neue Mail verlässt den Rechner vollständig, an Anthropic (Claude). Aus: Einordnen läuft nur mit einem Modell auf diesem Rechner.",
     zustimmung: "Ich willige ein." },
+  // Aufgaben von selbst (docs/66-automatik.md): als einziger an, bis man ihn ausschaltet; nichts geht nach draußen.
+  aufgaben_selbst: { titel: "Aufgaben aus Mails selbst anlegen",
+    verlaesst: "Es verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus neuen Mails werden Aufgaben, jede mit „Rückgängig“. Aus: Sie bleiben Vorschläge." },
 } as const;
 
 export const ICH = {
@@ -156,12 +159,14 @@ export function vordereTexte(): string[] {
 export const VORDERE_DATEIEN: readonly string[] = [
   "Einstellungen/Zugaenge.tsx", "Einstellungen/NeuAnmelden.tsx", "Einstellungen/neuAnmeldenWeg.ts", "Einstellungen/Darf.tsx", "Einstellungen/Ich.tsx", "Einstellungen/CloudSchalter.tsx",
   "Einstellungen/Seite.tsx", "Einstellungen/Mitteilungen.tsx", "mitteilungenSchalter.ts", "GoogleSignIn.tsx", "MicrosoftAnmeldungKarte.tsx", "MicrosoftZugang.tsx", "microsoftAnmeldung.ts", "WeltSettings.tsx", "WegezeitSettings.tsx", "Einrichtung/AutostartWahl.tsx",
-  "Einstellungen/CloudEinordnungSchalter.tsx", "Einstellungen/cloudEinordnung.ts",
+  "Einstellungen/CloudEinordnungSchalter.tsx", "Einstellungen/cloudEinordnung.ts", "Einstellungen/AufgabenSelbstSchalter.tsx",
   "Einrichtung/EinrichtungKopf.tsx", "SettingsSections.tsx", "RecoverySettings.tsx", "KreisKarten.tsx",
   // Google ohne Cloud-Projekt (Fremdprobe, Befund 2): Post und Kalender vorne, in Alltagsworten.
   "GoogleKalenderAdresse.tsx", "googleWeg.ts", "KalenderMitAdresse.tsx", "Einrichtung/MailSchritt.tsx", "Einrichtung/KalenderSchritt.tsx",
   // Eigene Domain ohne Servereingabe (Fremdprobe 2, Befund 2): im Assistenten und unter Zugänge.
   "PostfachMitAdresse.tsx", "postfachWeg.ts",
+  // Name, Bereich und Stand je Konto (Paket K).
+  "Einstellungen/KontoZeile.tsx", "kontenBereiche.ts",
   // Fassung und Update-Angebot (docs/53): die Zeile unter „Kingfisher und du“ und der Hinweis auf Heute.
   "Fassung.tsx",
 ];

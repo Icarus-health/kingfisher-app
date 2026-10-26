@@ -699,3 +699,21 @@ Gedächtnispunkte.“. Jetzt (`beleg.ts belegStand`):
 
 Der Container-Vertrag (`scripts/verify_browser.py`, `visible_evidence`) verlangt zusätzlich, dass unter der Antwort
 „Gestützt auf“ mit demselben Hinweis wie im Text sichtbar ist; `probe_quellen_ui.py` prüft dasselbe.
+
+## Tempo im Gespräch (Paket T, 26.10.2026)
+
+Code: `gedaechtnis_cloud.py`, `gespraech_fortschritt.py`, `ollama_memory.py` (Haltezeit, `vorwaermen`),
+`zeitmessung.melde`; Oberfläche `GespraechWarten.tsx`, `wartenImGespraech.ts`. Protokoll:
+[runs/2026-10-26-automatik-tempo](runs/2026-10-26-automatik-tempo/README.md).
+
+- **Cloud mit Einwilligung** für Auswahl und Sätze, gleiche Belegbindung (siehe [47-einstellungen.md](47-einstellungen.md)).
+- **Zwischenstand:** Jeder Abschnitt der Zeitmessung meldet seinen Beginn; `GET /api/v1/conversations/{id}/fortschritt`
+  sagt den Schritt („Sucht in deinen Quellen …“, „Wählt Quellen …“, „Formuliert …“, „Prüft die Sätze …“). Kein
+  Fragetext, keine geschätzte Zeit. Die Frage von Heute öffnet sofort das Gespräch und steht dort, bevor die Antwort kommt.
+- **Warmes Antwortmodell:** Ein eigenes Modell (`kingfisher-*`) bleibt nach einer Gesprächsantwort fünf Minuten statt 15
+  Sekunden geladen; vor jedem Aufruf werden die anderen eigenen Modelle weiter entladen (RAM). Beim Öffnen eines
+  Gesprächs wärmt `POST /api/v1/gespraech/vorwaermen` das lokale Antwortmodell vor: nicht blockierend, kein Aufruf ohne
+  lokales Ollama-Modell, nie während eines anderen Modellaufrufs, höchstens einmal je Minute.
+- **Auswahl nicht verkleinert.** Die Messlatte (ohne Modell, Regel-Einordnung, kurze und lange Welt) zeigt für jede
+  kleinere Eingabe einen Verlust: 16/24.000 verliert auf der langen Welt 2 Belege und 2 vollständige Fragen, 14/28.000
+  auf der kurzen 1 und 1, 12/24.000 auf beiden. `MAX_REFS = 16` und `MAX_CONTEXT = 32000` bleiben (Tabelle im Protokoll).

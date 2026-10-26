@@ -31,8 +31,8 @@ test("KI-Modelle sind direkt erreichbar; „Für Techniker“ steht hinten und a
   }
 });
 
-test("es gibt genau sieben Schalter, und bei jedem steht, was den Rechner verlässt", () => {
-  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung"]);
+test("es gibt genau acht Schalter, und bei jedem steht, was den Rechner verlässt", () => {
+  assert.deepEqual(Object.keys(SCHALTER), ["wetter", "welt", "wegezeit", "autostart", "mitteilungen", "cloud", "cloud_einordnung", "aufgaben_selbst"]);
   for (const [id, schalter] of Object.entries(SCHALTER)) {
     assert.match(schalter.verlaesst, /verl(ä|a)ss/, `${id}: sagt nicht, was den Rechner verlässt`);
     assert.ok(schalter.titel.length > 8 && schalter.verlaesst.length < 260, id);
@@ -46,6 +46,10 @@ test("es gibt genau sieben Schalter, und bei jedem steht, was den Rechner verlä
   assert.match(SCHALTER.cloud_einordnung.verlaesst, /Anthropic/);
   assert.match(SCHALTER.cloud_einordnung.verlaesst, /Aus: /);
   assert.equal(SCHALTER.cloud_einordnung.zustimmung, "Ich willige ein.");
+  // Aufgaben von selbst: nichts geht nach draußen, und aus heißt: Vorschläge bleiben Vorschläge.
+  assert.match(SCHALTER.aufgaben_selbst.verlaesst, /nichts/);
+  assert.match(SCHALTER.aufgaben_selbst.verlaesst, /Rückgängig/);
+  assert.match(SCHALTER.aufgaben_selbst.verlaesst, /Aus: /);
 });
 
 test("die Technik-Abschnitte sind vollständig, eindeutig und in Technik.tsx verdrahtet", () => {

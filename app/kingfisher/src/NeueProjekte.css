@@ -1,0 +1,13 @@
+/* „Neues Projekt: … · Ansehen · Rückgängig“ auf Heute (Paket P): eine ruhige Zeile unter „Braucht dich“, keine Karte. */
+.today-neue-projekte { border-top: 1px solid var(--g-linie); padding: var(--g-a2) var(--g-a5); }
+.today-neue-projekte-zeile { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 0 var(--g-a3); margin: 0; font: var(--g-neben); color: var(--g-tinte); }
+.today-neue-projekte-inhalt { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a3); min-width: 0; }
+.today-neue-projekte-symbol { display: inline-flex; align-self: start; padding-top: 2px; color: var(--g-leise); }
+.today-neue-projekte-symbol svg { width: 18px; height: 18px; }
+.today-neue-projekte-text { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
+.today-neue-projekte-aktionen { display: inline-flex; flex-wrap: wrap; gap: 0 var(--g-a4); }
+.today-neue-projekte-liste { list-style: none; margin: 0; padding: 0 0 0 calc(18px + var(--g-a3)); }
+.today-neue-projekte-liste li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--g-a4); border-top: 1px solid var(--g-linie); }
+.today-neue-projekte-liste li > a { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
+.today-neue-projekte-fehler { margin: 0; font: var(--g-neben); color: var(--g-rot); }
+@media (max-width: 699px) { .today-neue-projekte { padding-inline: var(--g-a4); } }

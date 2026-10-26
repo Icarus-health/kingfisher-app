@@ -34,6 +34,7 @@ import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
 import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
 import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
+import { anlageZuruecknehmen } from "./AufgabenSelbstHeute";
 import {ProjectBoard} from "./ProjectBoard";
 import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
@@ -58,6 +59,8 @@ import { uebernehmbar } from "./uebernehmen";
 import { meldbar } from "./rueckmeldung";
 import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg";
 import { AntwortZeile } from "./AntwortZeiten";
+import { AusstehendeFrage, CloudVermerk, LokalLangsam, WarteZeile } from "./GespraechWarten";
+import { frageSchonDa, merkeFrage, nimmFrage } from "./wartenImGespraech.ts";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
 import { PostfachStand } from "./PostfachStand";
@@ -66,6 +69,8 @@ import { createDailyRefresh } from "./dailyFlow";
 import { MailReader } from "./MailReader";
 import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
+import {bereichFilter as bereichFilterVon, kontenFuerFilter} from './BereichFilter';
+import {gemerkteWahl, merkeWahl, type Konten} from './kontenBereiche';
 
 
 
@@ -182,7 +187,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
       const conversationId = pendingConversation ?? (await api.createConversation()).conversation.id;
       setPendingConversation(conversationId);
       rememberConversation(conversationId);
-      await api.sendMessage(conversationId, message);
+      // Die Frage steht sofort im Gespräch, dort mit dem Zwischenstand (Paket T); das Gespräch stellt sie selbst.
+      merkeFrage(conversationId, message);
       setPendingConversation(null);
       navigate(`/conversations/${conversationId}`);
     } catch (problem) {
@@ -271,6 +277,15 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
   const [memoryError, setMemoryError] = useState(false);
   const [correctionSaved, setCorrectionSaved] = useState(false);
+  const [ausstehend, setAusstehend] = useState<string | null>(null);
+  const [nichtGesendet, setNichtGesendet] = useState<string | null>(null);
+  // Beim Öffnen: lokales Antwortmodell vorwärmen (ohne lokales Modell kein Aufruf) und erfahren, ob die Cloud an ist.
+  const [cloudAn, setCloudAn] = useState<boolean | null>(null);
+  useEffect(() => {
+    let aktiv = true;
+    api.gespraechVorwaermen().then(stand => { if (aktiv) setCloudAn(stand.cloud); }).catch(() => undefined);
+    return () => { aktiv = false; };
+  }, [id]);
   const voice = useConversationVoice(id, data, sending || error || !data);
 
   function load(change?: "correction") {
@@ -317,6 +332,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   async function send(message: string, clarification?: { choice?: number; date?: string; newQuestion?: boolean }) {
     if (!message.trim() || !chatAvailable) return;
     setSending(true);
+    setAusstehend(message);
     setSendError(false);
     setRefreshNotice(null);
     try {
@@ -344,8 +360,17 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
       throw problem;
     } finally {
       setSending(false);
+      setAusstehend(null);
     }
   }
+
+  // Eine Frage von Heute oder vom Gesprächsanfang: Das Gespräch ist schon offen, hier wird sie gestellt (Paket T).
+  useEffect(() => {
+    if (!chatAvailable) return;
+    const frage = nimmFrage(id);
+    // Scheitert das Senden, bleibt die Frage stehen, mit „Erneut senden“: Sie wurde auf einer anderen Seite getippt.
+    if (frage) void send(frage).catch(() => setNichtGesendet(frage));
+  }, [id, chatAvailable]);
 
   async function retry(messageId: string) {
     setSending(true);
@@ -439,10 +464,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             const element = event.currentTarget;
             followBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
           }}>
-            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
+            {!error && data && !data.messages.length && !sending && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
 
             {error ? <div className="message assistant error-message" role="alert"><Leer zeichen="message-circle" satz="Das Gespräch ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div> : null}
-            {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
+            {!error && !data && !sending ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
               const beleg = belegStand(message);
@@ -458,6 +483,8 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
+                {message.role === "assistant" ? <CloudVermerk kontext={message.metadata?.context} /> : null}
+                {message.role === "assistant" && messageIndex === data.messages.length - 1 && !sending ? <LokalLangsam kontext={message.metadata?.context} cloudAn={cloudAn} /> : null}
                 {message.role === "assistant" && message.metadata?.context?.quellen ? <BelegQuellen quellen={message.metadata.context.quellen} gespraech={data.conversation.id} zeigeNachricht={showMemorySource} onChange={load} /> : null}
                 {message.metadata?.context?.satzantwort || message.role !== "user" ? null : message.metadata?.context?.source_links?.map((source) => <ProfileSource key={source.episode_id} kind="episode" id={source.episode_id} label={source.label} allowDismiss={source.automatic_memory === true} onChange={load} quiet eigeneFrage />)}
                 {beleg.art === "quellenlinks" ? <div className="beleg-links" role="group" aria-label="Worauf die Antwort sich stützt"><p className="beleg-kopf">{GESTUETZT_AUF}</p>
@@ -496,13 +523,15 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 </Bestaetigung> : null}
               </article>;
             })}
+            {sending && ausstehend && !frageSchonDa(data?.messages ?? [], ausstehend) ? <AusstehendeFrage text={ausstehend} /> : null}
+            {!sending && nichtGesendet && !frageSchonDa(data?.messages ?? [], nichtGesendet) ? <AusstehendeFrage text={nichtGesendet} /> : null}
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
             {refreshNotice ? <p className="memory-decision thread-notice" role="status">{refreshNotice}</p> : null}
           </div>
           <div className="thread-command">
-            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+            {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.{nichtGesendet ? <>{" "}<button className="g-knopf-schlicht g-kompakt" disabled={sending} type="button" onClick={() => { const frage = nichtGesendet; setNichtGesendet(null); void send(frage).catch(() => setNichtGesendet(frage)); }}>Erneut senden</button></> : null}</p> : null}
             {memoryError ? <p className="partial-error memory-send-error" role="alert">Die Gedächtnisänderung konnte nicht bestätigt werden. Bitte erneut versuchen.</p> : null}
-            {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+            {sending && <WarteZeile gespraech={id} />}
             {!error && data && <ConversationCapture key={`capture-${id}`} />}
             <VoiceDraftStatus voice={voice} /><CommandBar key={id} conversationId={id} voice={voice} busy={sending} conversation disabled={error || !data || !chatAvailable} onSubmit={send} placeholder={chatPlaceholder} />
           </div>
@@ -522,6 +551,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
   const [sending, setSending] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
   const [sendError, setSendError] = useState(false);
+  const [gespraech, setGespraech] = useState<string | null>(null);
   const created = useRef<string | null>(null);
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
@@ -534,6 +564,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
       created.current = id;
       if (!live.current) return;
       rememberConversation(id);
+      setGespraech(id);  // für den Zwischenstand (Paket T); die Frage steht schon da
       await api.sendMessage(id, message);
       created.current = null;
       if (live.current) navigate(`/conversations/${id}`);
@@ -555,7 +586,7 @@ function ConversationHistory({ recentConversation, rememberConversation, chatAva
         </div>
         <div className="thread-command">
           {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
-          {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+          {sending && <WarteZeile gespraech={gespraech} />}
           <CommandBar busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
         </div>
       </section>
@@ -794,7 +825,12 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId));
+  // „Alle · Arbeit · Privat“ ab zwei Bereichen (Paket K, BereichFilter.tsx).
+  const [bereichKonten, setBereichKonten] = useState<Konten | null>(null);
+  const [bereichWahl, setBereichWahl] = useState(() => gemerkteWahl("aufgaben"));
+  useEffect(() => kontenFuerFilter(setBereichKonten), []);
+  const bereichFilter = bereichFilterVon(bereichKonten, bereichWahl, wahl => { setBereichWahl(wahl); merkeWahl("aufgaben", wahl); });
+  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId) && bereichFilter.passt(task));
   const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
@@ -815,7 +851,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
   const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
   const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
-  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} onAnlageZurueck={()=>void anlageZuruecknehmen(task.id, () => { if (selectedTask === task.id) openTask(null); load(); }, setError)} task={task} view={view as "mine" | "waiting" | "done"} />;
   const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
   // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
   // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.
@@ -845,6 +881,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
       {panel !== "review" && (listView || (view === "decisions" && (projects.length > 0 || projectError))) && <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
         {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Suchen" />}
         {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
+        {listView && panel !== "projects" ? bereichFilter.segmente : null}
       </form>}
       {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
       {panel !== 'review' && listView && <>

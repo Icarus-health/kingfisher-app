@@ -49,14 +49,20 @@ alten, unbestätigten Angabe und über ungelesener Post, unter allem mit Frist.
 Es zitiert den Vorschlag, nicht den fremden Wortlaut; der steht dahinter. Auf
 der Startseite übernimmt ein Klick den Vorschlag unverändert als Aufgabe;
 wer ihn ändern oder verwerfen will, prüft ihn in den Vorhaben. Angelegt wird
-nur mit diesem Klick.
+nur mit diesem Klick. Seit dem 26.10.2026 gilt für eindeutige Bitten und Zusagen
+und für klar gebildete Projekte die Automatik mit Rückgängig
+([`66-automatik.md`](66-automatik.md)).
 
-**Ein Projekt, das sich bildet.** Auf dieselbe Weise nennt das Briefing höchstens
-ein erwähntes Projekt, das noch keine Akte hat („In 4 Mails seit 3. Oktober mit
-Anna Keller und Ben Braun geht es um „Projekt Atlas“. Daraus eine Akte machen?“),
-mit „Akte anlegen“ und „Nein danke“. Ohne Modell, aus Zahl, Zeit und Beteiligten
-der Quellen; die Akte entsteht nur durch den Klick und lässt sich wieder auflösen.
-Siehe `docs/30-akten.md`, Abschnitt „Neue Akte?“.
+**Ein Projekt, das sich bildet.** Ist es klar (mindestens drei Quellen und zwei
+Personen, in den letzten 30 Tagen, eindeutiger Name), legt Kingfisher es seit dem
+26.10.2026 selbst an und meldet es auf Heute: „Neues Projekt: Umbau Praxis, aus 4
+Mails mit Anna Keller und Ben Braun · Ansehen · Rückgängig“ ([`66-automatik.md`](66-automatik.md)).
+Unklare nennt das Briefing weiter als Frage, eine nach der anderen („In 3 Mails seit
+20. September mit Carla Fuchs geht es um „Projekt Gartenhaus“. Daraus eine Akte
+machen?“), mit „Akte anlegen“ und „Nein danke“. Ohne Modell, aus Zahl, Zeit und
+Beteiligten der Quellen; jedes Projekt lässt sich wieder auflösen, und ein
+Zurücknehmen kommt nicht wieder. Siehe `docs/30-akten.md`, Abschnitte „Neue Akte?“
+und „Projekte von selbst“.
 
 ### 2. Delegation — was bei jemandem liegt, ist keine Schuld ✓
 

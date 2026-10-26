@@ -53,7 +53,7 @@ from .backup import (
 )
 from .update_backup import backup_before_update
 from . import (
-    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
+    aufgaben_von_selbst, briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
     neu_eingegangen, personen, providers, suche, urteil, working_memory_semantic_runtime,
 )
 from .agent_verdrahtung import (
@@ -63,7 +63,8 @@ from .agent_verdrahtung import (
 from .consolidation import Consolidator
 from dataclasses import asdict, replace
 from .task_candidates import TaskCandidates
-from . import hintergrund_cloud
+from . import gespraech_fortschritt, hintergrund_cloud
+from . import bereiche, konten_routes  # Konten und Bereiche (Paket K)
 from .task_detection import TaskDetector, candidate_batches, for_briefing as task_candidates_for_briefing
 from .claims import ClaimError, ClaimStore, KnowledgeService, statements_conflict
 from .entities import EntityError
@@ -416,6 +417,7 @@ class TaskCandidateIn(BaseModel):
     new_project_name: str | None = Field(default=None, min_length=1, max_length=200)
     due: datetime | None = None
     waiting_for: str | None = Field(default=None, max_length=1024)
+    zuordnung_aus_vorschlag: bool = False  # Heute: das vorgeschlagene Projekt übernehmen (`aufgaben_von_selbst.py`)
 
 
 class MailReplyIn(BaseModel):
@@ -1213,6 +1215,8 @@ def _wire_scheduler(app: FastAPI) -> None:
                     and getattr(scheduler, 'prompt_allowed', lambda: True)())
             if getattr(raw_provider, 'is_local', False) and mail_permitted():
                 prepare_background(app, raw_provider, limit=1, permitted=mail_permitted)
+        if report.proposed:
+            aufgaben_von_selbst.schritt_fuer(app)  # eindeutige neue Vorschläge gleich anlegen, nicht erst nach der Post
         if report.cancelled:
             return JobResult("zusagen", True, "Prüfung nach geänderter Freigabe gestoppt.")
         if not report.available:
@@ -1377,6 +1381,13 @@ def _wire_scheduler(app: FastAPI) -> None:
                 aufgaben_post.schritt_fuer(app)
         except Exception:  # noqa: BLE001
             logger.exception('Aufgaben nach der Post konnten nicht geprüft werden')
+        # Projekte von selbst (Paket P): neue Mails nach Absender zuordnen, klare Projekte anlegen (`projekt_automatik.py`).
+        try:
+            from . import projekt_automatik
+            projekt_automatik.schritt_fuer(app)
+        except Exception:  # noqa: BLE001
+            logger.exception('Projekte nach der Post konnten nicht geprüft werden')
+        aufgaben_von_selbst.schritt_fuer(app)  # eindeutige Bitten und Zusagen aus neuer Post selbst anlegen
 
     scheduler._run_mail_intake = run_mail_intake
     scheduler._run_neue_post = lambda: run_mail_intake(nur_neue_post=True)
@@ -1790,9 +1801,13 @@ def create_app(
     from . import suchindex_routes
     suchindex_routes.anwenden(app)
     suchindex_routes.register(app, guard, _data_dir)
+    konten_routes.register(app, guard, _data_dir, lambda: _build_agent(app))  # Name, Bereich, Stand je Konto (Paket K)
     register_tag(app, guard)
+    from .aufgaben_von_selbst_routes import register as register_aufgaben_von_selbst
+    register_aufgaben_von_selbst(app, guard)
     from .mitteilungen_routes import register as register_mitteilungen
     register_mitteilungen(app, guard, _data_dir)
+    gespraech_fortschritt.register(app, guard)
 
     def health_authenticated(
         token: str | None,
@@ -2012,6 +2027,9 @@ def create_app(
     def add_mail_account(body: MailAccountIn) -> Any:
         """Fügt ein Mailkonto hinzu, ohne es abzurufen. Mit Passwort wird vorher einmal angemeldet."""
         settings: config.Settings = app.state.settings
+        # Doppelt? Ein Satz statt eines zweiten Eintrags, noch vor der Anmeldung (Paket K).
+        if (doppelt := konten_routes.doppeltes_postfach(settings, body.user, body.imap_host)) is not None:
+            return JSONResponse({"detail": konten_routes.doppelt_satz(doppelt), "grund": "doppelt"}, status_code=409)
         if body.password:
             # Erst anmelden, dann speichern: Ein Konto, das sich nicht anmelden lässt, ist nicht „verbunden“
             # (Fremdprobe, Befund 3). Der Grund kommt als ein Satz zurück; gespeichert wird dann nichts.
@@ -2027,7 +2045,8 @@ def create_app(
         account_id = f"mail-{uuid.uuid4().hex}"
         entry = config.MailAccountSettings(
             id=account_id,
-            label=body.label,
+            label=konten_routes.eindeutiger_name([e.label for e in settings.mail_accounts], body.label,
+                                                 body.sender or body.user),
             imap_host=body.imap_host,
             imap_port=body.imap_port,
             smtp_host=body.smtp_host,
@@ -2886,7 +2905,9 @@ def create_app(
                 # response or reopening the mail. A source change still fails
                 # the checks above, even if an earlier task already exists.
                 key = mail_task_identity(message, title, body.source_quote)
-                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance).to_dict()
+                projekt, person = aufgaben_von_selbst.zuordnung_fuer_quelle(app, episode['id'])
+                return app.state.tasks.from_suggestion(f'mail-{key}', title, provenance, project_id=projekt,
+                                                       person=person).to_dict()
             if body.request_id is not None:
                 payload = {'uid': uid, 'source_digest': body.source_digest, 'source_quote': body.source_quote,
                            'title': title, 'project_id': body.project_id, 'waiting_for': waiting_for,
@@ -3346,6 +3367,7 @@ def create_app(
                 calendar.events(days=(finish - start).total_seconds() / 86400, at=start), start, finish, zone=zone)
             result["items"] = [event.to_dict() for event in events]
             result["errors"] = list(getattr(calendar, "last_errors", {}).values())
+            konten_routes.nach_kalenderabruf(app, calendar, result)  # Stand je Kalender, Bereich je Termin
             if unknown:
                 result["warnings"].append(display_warning(unknown))
         except Exception as exc:
@@ -4599,7 +4621,7 @@ def create_app(
         # Der bestehende Agent verwaltet genau einen Verlauf. Dieser Lock lädt
         # für jeden Aufruf den zugehörigen SQLite-Verlauf und verhindert, dass
         # zwei Gespräche ihre Kontexte im Threadpool vermischen.
-        with app.state.conversation_lock, working_memory_semantic_runtime.request(app):
+        with gespraech_fortschritt.laeuft(app, conversation_id), app.state.conversation_lock, working_memory_semantic_runtime.request(app):
             history = _current_conversation_history(conversation_id)
             previous = app.state.conversations.messages(conversation_id)
             previous_lineages = _conversation_lineages(previous)
@@ -5100,7 +5122,8 @@ def create_app(
         if project_id:
             _validate_task_project(project_id, allow_closed=True)
         try:
-            return {'view': view, **app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)}
+            seite = app.state.tasks.page(view, project_id=project_id, q=q, limit=limit, cursor=cursor)
+            return {'view': view, **seite, 'tasks': bereiche.aufgaben_anreichern(app, seite.get('tasks') or [])}
         except TaskPageChanged as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
@@ -5329,7 +5352,8 @@ def create_app(
                     digest.update(b"\n")
                     if offset <= total < offset + limit:
                         items.append({**proposal.to_dict(), **timing,
-                                      'project_suggestion': task_project_hint_service().visible(proposal)})
+                                      'project_suggestion': task_project_hint_service().visible(proposal),
+                                      **aufgaben_von_selbst.durchlauf_fuer(app).vorbefuellt(proposal)})
                     total += 1
             current_generation = digest.hexdigest()
             if generation is not None and generation != current_generation:
@@ -5350,7 +5374,8 @@ def create_app(
         try:
             return task_candidate_service().accept(proposal_id, title=body.title,
                 project_id=body.project_id, new_project_name=body.new_project_name,
-                due=body.due, waiting_for=body.waiting_for).to_dict()
+                due=body.due, waiting_for=body.waiting_for, zuordnung_aus_vorschlag=body.zuordnung_aus_vorschlag,
+                eigene=identitaet.eigene_adressen(getattr(app.state, 'settings', None))).to_dict()
         except (ProposalError, EpisodeError) as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except (WorkspaceError, ValueError) as exc:
@@ -5639,7 +5664,7 @@ def create_app(
     @app.get("/api/v1/projects", dependencies=guard)
     @app.get("/projects", dependencies=guard)
     def list_projects(all: bool = False) -> list[dict[str, Any]]:
-        return [p.to_dict() for p in app.state.workspace.projects(include_closed=all)]
+        return bereiche.projekte_anreichern(app, [p.to_dict() for p in app.state.workspace.projects(include_closed=all)])
 
     @app.post("/api/v1/projects", dependencies=guard, status_code=201)
     @app.post("/projects", dependencies=guard, status_code=201)
