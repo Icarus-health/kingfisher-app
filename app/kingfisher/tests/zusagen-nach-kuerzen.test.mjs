@@ -1,0 +1,16 @@
+// Beim Kürzen der Texte (Paket Oberfläche, 23.10.2026) dürfen Grenz- und Antwortsätze nicht verloren gehen.
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { test } from "node:test";
+
+const quelle = (datei) => readFileSync(new URL(`../src/${datei}`, import.meta.url), "utf8");
+
+test("Termin aus Mail nennt die Grenze des gespeicherten Mailverlaufs", () => {
+  assert.match(quelle("MailCalendarPreparation.tsx"),
+    /Ein begrenzter Mailverlauf kann spätere Absagen außerhalb des gespeicherten Bestands nicht ausschließen\./);
+});
+
+test("Aufgabe aus Mail sagt auch ohne Datum, was beim Speichern geschieht", () => {
+  const form = quelle("MailTaskForm.tsx");
+  assert.match(form, /id="mail-task-due-hint">\{due \? "[^"]+" : "Ohne Datum wird die Aufgabe ohne Termin gespeichert\."\}/);
+});

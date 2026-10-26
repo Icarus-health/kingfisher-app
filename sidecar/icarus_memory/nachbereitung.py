@@ -82,34 +82,61 @@ def externe(attendees: Iterable[str], eigene: Iterable[str]) -> list[str]:
     return ergebnis
 
 
-def _anzeige(teilnehmer: str) -> str:
-    return anzeigename(teilnehmer) or mail_address(teilnehmer) or str(teilnehmer).strip()
+def name_von(teilnehmer: str, index: dict[str, dict[str, Any]] | None = None) -> str:
+    """Der Name eines Teilnehmers, nie seine Adresse; leer, wenn keiner bekannt ist.
+
+    Zuerst der Name im Termin („Anna Keller <anna@x>“), sonst der häufigste lesbare Name, unter dem die Adresse im
+    Bestand vorkommt (`index` aus `EpisodeStore.participants_for_addresses`, wie in der Terminvorbereitung). Ein
+    Teilnehmer ganz ohne Adresse ist sein Name.
+    """
+    text = str(teilnehmer or '').strip()
+    name = anzeigename(text)
+    if name:
+        return name
+    adresse = mail_address(text)
+    if not adresse:
+        return text
+    eintrag = (index or {}).get(adresse) or {}
+    for schreibweise, _ in sorted((eintrag.get('namen') or {}).items(), key=lambda item: (-item[1], item[0])):
+        lesbar = (eintrag.get('anzeige') or {}).get(schreibweise) or anzeigename(schreibweise)
+        if lesbar:
+            return lesbar
+    return ''
 
 
-def frage_zu(summary: str, mit: list[str]) -> str:
-    """Die Frage der Karte, kurz: „Wie war das Gespräch mit Anna Keller?“"""
-    namen = [_anzeige(text) for text in mit if _anzeige(text)]
+def frage_zu(summary: str, mit: list[str], index: dict[str, dict[str, Any]] | None = None) -> str:
+    """Die Frage der Karte, kurz: „Wie war das Gespräch mit Anna Keller?“
+
+    Genannt werden nur Namen, nie Adressen (V7: „Wie war das Gespräch mit agidius-zimmermann@… und 11 weiteren?“).
+    Kennt Kingfisher keinen Namen, nennt die Frage den Termin und die Zahl der Teilnehmenden.
+    """
+    namen = [name for name in (name_von(text, index) for text in mit) if name]
     if not namen:
-        return f'Wie war „{summary}“?'
-    if len(namen) == 1:
-        wer = namen[0]
-    elif len(namen) == 2:
+        return f'Wie war „{summary}“?' if len(mit) <= 1 else f'Wie war „{summary}“ mit {len(mit)} Teilnehmenden?'
+    weitere = len(mit) - 1
+    if len(namen) == 2 and len(mit) == 2:
         wer = f'{namen[0]} und {namen[1]}'
+    elif weitere == 0:
+        wer = namen[0]
+    elif weitere == 1:
+        wer = f'{namen[0]} und einer weiteren Person'
     else:
-        wer = f'{namen[0]} und {len(namen) - 1} weiteren'
+        wer = f'{namen[0]} und {weitere} weiteren'
     return f'Wie war das Gespräch mit {wer}?'
 
 
 def offene(items: list[dict[str, Any]], *, jetzt: datetime, eigene: Iterable[str],
            erledigt: dict[str, str | None],
-           hat_mitschrift: Callable[[str], bool] = lambda schluessel: False) -> list[dict[str, Any]]:
+           hat_mitschrift: Callable[[str], bool] = lambda schluessel: False,
+           index: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """Vergangene Termine der letzten 48 Stunden, nach denen Kingfisher fragt.
 
     Gefragt wird nur nach Terminen mit Externen (`externe`), nie nach einem
     Termin, der schon beantwortet oder mit „Nichts festzuhalten“ abgewiesen ist
     (`erledigt`), und nicht, wenn eine Mitschrift zugeordnet ist
     (`hat_mitschrift(Schlüssel)`). Höchstens `MAX_KARTEN`, neueste zuerst. Ein
-    gewähltes Projekt allein macht keine Frage mehr nötig.
+    gewähltes Projekt allein macht keine Frage mehr nötig. `index` (Beteiligte im Bestand, siehe `name_von`) gibt
+    Namen für Teilnehmer, die der Kalender nur als Adresse kennt.
     """
     eigene = list(eigene)
     ergebnis = []
@@ -131,7 +158,8 @@ def offene(items: list[dict[str, Any]], *, jetzt: datetime, eigene: Iterable[str
         summary = item.get('summary') or 'Termin'
         ergebnis.append({'uid': item.get('uid'), 'start': item.get('start'), 'end': item.get('end'),
                          'summary': summary, 'teilnehmer': len(andere_teilnehmer(item.get('attendees') or (), eigene)),
-                         'mit': [_anzeige(text) for text in mit[:3]], 'frage': frage_zu(summary, mit)})
+                         'mit': [name for text in mit if (name := name_von(text, index))][:3],
+                         'frage': frage_zu(summary, mit, index)})
     ergebnis.sort(key=lambda eintrag: _zeit(eintrag['end']), reverse=True)
     return ergebnis[:MAX_KARTEN]
 

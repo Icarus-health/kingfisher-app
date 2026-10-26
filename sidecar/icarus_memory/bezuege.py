@@ -240,6 +240,9 @@ class Register:
     eigene_domaenen: frozenset[str] = frozenset()
     projekte: dict[str, str] = field(default_factory=dict)
     token: str = ''
+    #: Adressen, die die Aufnahme als eigene gekennzeichnet hat („ich“). Nur zum Erkennen des Nutzers (Kreis); geht
+    #: nicht in die Kennung ein und ändert keine Bezüge.
+    ich_adressen: frozenset[str] = frozenset()
 
     @classmethod
     def bauen(cls, episoden: Iterable[Episode], *, eigene: Iterable[str] = (),
@@ -247,16 +250,20 @@ class Register:
         eigene = [a for a in eigene if a]
         verzeichnis = Verzeichnis()
         ich_namen: set[str] = set()
+        ich_adressen: set[str] = set()
         for episode in episoden:
             for nennung in nennungen(episode, eigene):
                 if nennung.ich:
                     if name_schluessel(nennung.name):
                         ich_namen.add(name_schluessel(nennung.name))
+                    if nennung.adresse:
+                        ich_adressen.add(nennung.adresse)
                 else:
                     verzeichnis.aufnehmen(nennung)
         domaenen = frozenset(domaene(a).casefold() for a in eigene if domaene(a))
         register = cls(verzeichnis, frozenset(ich_namen), domaenen, dict(projekte or {}))
         register.token = register._digest()
+        register.ich_adressen = frozenset(ich_adressen)
         return register
 
     def _digest(self) -> str:
@@ -514,6 +521,10 @@ class Bezuege:
         self._register: Register | None = None
         self._register_stand: tuple | None = None
         self._register_lock = threading.Lock()
+        # Für teure Listen über alle Bezüge (`akten/sachen`, Gruppenvorschläge der Organisationen), gültig je
+        # `aenderungsstand` (V7, Tempo).
+        from .zwischenspeicher import Zwischenspeicher
+        self.zwischen = Zwischenspeicher(32)
 
     @property
     def _conn(self) -> sqlite3.Connection:
@@ -655,8 +666,14 @@ class Bezuege:
             "UNION SELECT u.sache, u.episode_id FROM sach_nutzer u JOIN episodes e ON e.id = u.episode_id "
             "WHERE u.aktion = 'zu'" + filter_u + " AND " + NUTZER_GILT + " AND " + _GUELTIG)
 
-    def sachen(self, *, art: str | None = None, suche: str = '', limit: int = 50, offset: int = 0) -> dict[str, Any]:
-        """Sachen mit Anzahl der Quellen und letzter Aktivität, jüngste zuerst; mit Gesamtzahl."""
+    def sachen(self, *, art: str | None = None, suche: str = '', limit: int = 50, offset: int = 0,
+               bis: str | None = None) -> dict[str, Any]:
+        """Sachen mit Anzahl der Quellen und letzter Aktivität, jüngste zuerst; mit Gesamtzahl.
+
+        `bis` (ISO-Zeitpunkt): Die letzte Aktivität zählt nur bis dahin, ein künftiger Termin ist kein „zuletzt“
+        (V7: in der Organisationsliste stand „zuletzt 31.12.2026“). Gezählt werden alle Quellen; eine Sache, die nur
+        Künftiges hat, steht ohne letzte Aktivität am Ende. Ohne `bis` wie bisher (Logbuch, Lint, Abgleiche).
+        """
         bedingung, parameter = '', []
         if art:
             bedingung += " AND l.sache LIKE ? ESCAPE '\\'"
@@ -669,10 +686,18 @@ class Bezuege:
                      "GROUP BY l.sache")
             grund = (*GUELTIG_PARAMS, *GUELTIG_PARAMS, *parameter)
             gesamt = self._conn.execute(f"SELECT COUNT(*) FROM (SELECT 1 {basis})", grund).fetchone()[0]
+            zeit = "COALESCE(e.occurred_at, e.recorded_at)"
+            if bis is None:
+                letzte, grenze = f"MAX(julianday({zeit})) AS letzte, MAX({zeit}) AS letzte_text ", ()
+            else:
+                # Wie ohne Grenze, nur über die Quellen bis `bis`.
+                bis_jd = f"julianday({zeit}) <= julianday(?)"
+                letzte = (f"MAX(CASE WHEN {bis_jd} THEN julianday({zeit}) END) AS letzte, "
+                          f"MAX(CASE WHEN {bis_jd} THEN {zeit} END) AS letzte_text ")
+                grenze = (bis, bis)
             zeilen = self._conn.execute(
-                "SELECT l.sache AS sache, COUNT(*) AS n, MAX(julianday(COALESCE(e.occurred_at, e.recorded_at))) AS letzte, "
-                "MAX(COALESCE(e.occurred_at, e.recorded_at)) AS letzte_text " + basis +
-                " ORDER BY letzte DESC, l.sache LIMIT ? OFFSET ?", (*grund, limit, offset)).fetchall()
+                "SELECT l.sache AS sache, COUNT(*) AS n, " + letzte + basis +
+                " ORDER BY letzte DESC, l.sache LIMIT ? OFFSET ?", (*grenze, *grund, limit, offset)).fetchall()
         return {'gesamt': gesamt, 'sachen': [
             {'sache': z['sache'], 'art': z['sache'].split(':', 1)[0], 'quellen': z['n'], 'letzte': z['letzte_text']}
             for z in zeilen]}

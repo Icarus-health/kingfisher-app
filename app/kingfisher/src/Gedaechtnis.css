@@ -1,0 +1,196 @@
+/* Gedächtnis, Akte, Prüfen und Welt nach der Grundlage vom 23.10.2026 (docs/16-gestaltung.md): großer Titel, Segmente,
+   gruppierte Flächen mit Zeilen, ein Satz im leeren Zustand. Nur Werte aus Grundlage.css (--g-*) und CalmUI.css
+   (--calm-*). Komponenten-Stile laden vor den globalen Dateien; wo diese schärfer sind, hebt `#root` an. */
+
+/* ── Seite ───────────────────────────────────────────────────────────────────────────────────────────────── */
+#root main.memory-page.memory-page-workspace {
+  --gd-rand: var(--g-a6);
+  --g-kopf-rand: var(--gd-rand);
+  padding: var(--g-a6) var(--gd-rand) 0; background: var(--g-grund); gap: 0;
+}
+#root main.memory-page.memory-page-workspace > .g-seitenkopf { margin-bottom: var(--g-a4); }
+#root .memory-page-workspace .memory-filter {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--g-a3); width: auto; min-width: 0; margin: 0 0 var(--g-a5); padding: 0;
+  border: 0; background: transparent;
+}
+#root main.memory-page-workspace .memory-filter > .g-segmente { margin: 0; flex-basis: auto; }
+#root main.memory-page-workspace .memory-filter > .memory-person-filter { width: fit-content; max-width: 100%; padding: 2px; border: 0; margin: 0; }
+#root main.memory-page-workspace .memory-filter > .memory-person-filter > button { min-height: 32px; padding: 0 12px; font-size: 13px; }
+#root .memory-unteransicht { margin: 0 0 var(--g-a4); }
+/* Die Leiste der Grundlage gilt; die ältere Regel für die Reiter im Gedächtnis darf die Auswahl nicht löschen. */
+#root main.memory-page-workspace .memory-filter > .g-segmente > .g-segment[aria-selected="true"],
+#root main .gd-bereiche > .g-segmente > .g-segment[aria-selected="true"],
+#root main.profile-page .g-segmente > .g-segment[aria-selected="true"] {
+  background: var(--g-segment-gewaehlt); color: var(--g-tinte); font-weight: 600; box-shadow: var(--g-schatten-segment);
+}
+
+/* Die leise Zeile am Ende: seltene Ansichten und Pflege als kleine Verweise, ohne Rahmen. */
+#root .memory-page-workspace .memory-tools {
+  gap: 0 var(--g-a1); margin: auto calc(-1 * var(--gd-rand)) 0; padding: var(--g-a4) var(--gd-rand) var(--g-a5);
+  border-top: 1px solid var(--g-linie); font: var(--g-fussnote); color: var(--g-leise);
+}
+#root .memory-page-workspace .memory-tools :is(button, a) { min-height: var(--g-ziel); padding: 0 var(--g-a2); font: var(--g-fussnote); color: var(--g-leise); }
+#root .memory-page-workspace .memory-tools button[aria-pressed="true"] { color: var(--g-tinte); font-weight: 600; text-decoration: none; }
+
+/* ── Verzeichnisse: Menschen, Projekte, Organisationen, Orte, Themen ────────────────────────────────────── */
+#root main .memory-directory.gd-verzeichnis {
+  max-width: 880px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  color: var(--g-tinte); overflow: visible;
+}
+#root .gd-verzeichnis-kopf { display: grid; gap: var(--g-a4); margin: 0 0 var(--g-a5); }
+#root .gd-verzeichnis-kopf .directory-search { display: block; max-width: none; }
+#root .gd-verzeichnis-kopf .directory-search input { box-sizing: border-box; width: 100%; padding: 0 var(--g-a4); font: var(--g-text); color: var(--g-tinte); }
+#root .gd-verzeichnis .directory-count { margin: 0; font: inherit; color: inherit; }
+#root .gd-verzeichnis > .directory-count { font: var(--g-neben); color: var(--g-leise); }
+#root .gd-verzeichnis .g-gruppe { margin-bottom: var(--g-a5); }
+#root .gd-liste { margin: 0; padding: 0; list-style: none; border: 0; }
+#root .gd-liste > li { position: relative; margin: 0; border: 0; }
+#root .gd-liste > li + li > .g-zeile::before { content: ""; position: absolute; top: 0; right: 0; left: 68px; border-top: 1px solid var(--g-linie); }
+#root .gd-liste .g-zeile.gd-zeile { min-height: 64px; gap: var(--g-a3); padding: 10px var(--g-a4); border-radius: 0; }
+#root .gd-zeile .memory-avatar { flex: 0 0 40px; width: 40px; height: 40px; background: var(--g-getoent); color: var(--g-akzent); font: 600 14px/1 var(--g-schrift); }
+#root .gd-zeile .g-zeile-titel { font-weight: 600; }
+#root .gd-hinweis { margin: 0 0 var(--g-a4); font: var(--g-neben); color: var(--g-leise); }
+#root .gd-verzeichnis .directory-pagination { display: flex; justify-content: center; align-items: center; gap: var(--g-a4); margin: 0 0 var(--g-a6); font: var(--g-neben); color: var(--g-leise); }
+#root .gd-verzeichnis .directory-pagination button { min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a3); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); }
+
+/* Der leere Zustand des Gedächtnisses (GedaechtnisLeer.tsx) in der Gestalt von `Leer`. */
+#root .g-leer.gedaechtnis-leer { max-width: none; margin: 0; font: inherit; }
+#root .memory-empty .g-leer.gedaechtnis-leer p { text-align: center; }
+
+@media (max-width: 700px) {
+  #root main.memory-page.memory-page-workspace { --gd-rand: var(--g-a4); padding-top: var(--g-a5); }
+  #root .memory-page-workspace .memory-filter { margin-bottom: var(--g-a5); }
+  #root .gd-zeile .g-zeile-wert { display: none; }
+}
+
+/* ── Profile (Person, Projekt, Register): Kopf wie die Akte, Bereiche als Segmente ─────────────────────── */
+#root main.profile-page { background: var(--g-grund); }
+#root main.profile-page .person-profile-header { align-items: center; gap: var(--g-a5); margin: var(--g-a3) 0 var(--g-a5); padding: 0; }
+#root main.profile-page .person-profile-header .memory-avatar-editor { flex-direction: column; align-items: center; gap: var(--g-a1); max-width: 140px; margin: 0; }
+#root main.profile-page .person-profile-header .memory-avatar-large { width: 80px; height: 80px; flex-basis: 80px; background: var(--g-getoent); color: var(--g-akzent); font: 600 28px/1 var(--g-schrift); }
+#root main.profile-page .person-profile-header .memory-avatar-editor > details > summary { min-height: 28px; padding: 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root main.profile-page .person-profile-header .memory-avatar-editor > details > summary::before { content: none; display: none; }
+#root main.profile-page .person-profile-header .profile-heading { margin: 0; }
+#root main.profile-page .profile-heading h1 { font: var(--g-titel-gross); letter-spacing: -.022em; }
+#root main.profile-page .profile-heading > :is(p, span) { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); overflow-wrap: anywhere; }
+#root main.profile-page .profile-segmente { margin: 0 0 var(--g-a5); }
+#root main.profile-page .profile-state { max-width: 880px; margin: var(--g-a3) 0 0; padding: 0; border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main.profile-page .profile-state .g-leer-satz { font: var(--g-text); color: var(--g-leise); }
+#root main.profile-page .profile-state .g-leer button { margin: 0; min-height: var(--g-ziel); padding: 0 18px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 15px/1.2 var(--g-schrift); }
+#root main.profile-page .profile-state.profile-loading { padding: var(--g-a5); }
+#root main.profile-page .profile-card h2 { font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root main.profile-page .profile-absender { display: grid; gap: var(--g-a3); }
+@media (max-width: 700px) {
+  #root main.profile-page .person-profile-header { gap: var(--g-a4); }
+  #root main.profile-page .person-profile-header .memory-avatar-large { width: 64px; height: 64px; flex-basis: 64px; font-size: 22px; }
+  #root main.profile-page .profile-heading h1 { font-size: var(--g-titel-gross-schmal); }
+}
+
+/* ── Suchen: Treffer als Einträge einer Fläche, nicht als Karten ───────────────────────────────────────── */
+#root main .memory-search.gd-verzeichnis { display: block; }
+#root .memory-search .memory-search-form { margin: 0 0 var(--g-a5); }
+#root .memory-search .gd-gruppe-titel { display: flex; align-items: baseline; gap: var(--g-a2); margin: var(--g-a5) 0 var(--g-a2); padding: 0 var(--g-a4); font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root .memory-search .gd-gruppe-titel .directory-count { font-weight: 500; }
+#root .memory-search .memory-search-originals { margin: 0; }
+#root .memory-search .memory-search-originals > .directory-count { margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+#root .memory-search .gd-treffer { display: block; margin: 0 0 var(--g-a3); padding: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
+#root .memory-search .gd-treffer > li { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a2); padding: var(--g-a4) var(--g-a5); border: 0; border-radius: 0; background: transparent; }
+#root .memory-search .gd-treffer > li + li::before { content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie); }
+#root .memory-search .gd-treffer > li > :is(h3, p, blockquote) { flex: 0 0 100%; }
+#root .memory-search .gd-treffer h3 { margin: 0; font: 600 16px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .memory-search .gd-treffer h3 .memory-entry-link { min-height: 32px; color: var(--g-verweis); text-decoration: none; }
+#root .memory-search .gd-treffer p { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root .memory-search .gd-treffer blockquote { margin: var(--g-a2) 0; padding: 0 0 0 var(--g-a3); border-left: 2px solid var(--g-linie); font: var(--g-text); color: var(--g-tinte); white-space: pre-wrap; }
+#root .memory-search .gd-treffer .task-source { flex: 0 0 auto; }
+#root .memory-search .gd-treffer .task-source > .quiet-source-toggle, #root .memory-search .gd-treffer .task-source > button {
+  min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a2); margin-left: calc(-1 * var(--g-a2)); border: 0; border-radius: var(--g-radius-bedien); background: transparent; color: var(--g-verweis); font: 500 14px/1.2 var(--g-schrift);
+}
+#root .memory-search .gd-treffer .task-source > button:hover { background: var(--g-getoent); }
+#root .memory-search .directory-search { max-width: none; }
+#root .memory-search .gd-treffer .task-source:has(> section) { flex-basis: 100%; }
+#root .memory-search .gd-suchumfang { margin: 0 0 var(--g-a6); padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+#root .memory-search .gd-suchumfang > summary { min-height: var(--g-ziel-kompakt); font: var(--g-fussnote); color: var(--g-leise); }
+
+/* ── Bereiche: Segmente, dann die Quellen als Einträge einer Fläche ───────────────────────────────────── */
+#root main .memory-areas.gd-bereiche { max-width: 880px; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+#root main .gd-bereiche .memory-area-tabs { margin: 0 0 var(--g-a5); }
+#root .gd-bereiche .memory-area-list { display: block; margin: 0; }
+#root .gd-bereiche .memory-area-source { position: relative; padding: var(--g-a4) var(--g-a5); border: 0; border-radius: 0; background: transparent; }
+#root .gd-bereiche .memory-area-source + .memory-area-source::before { content: ""; position: absolute; top: 0; left: var(--g-a5); right: 0; border-top: 1px solid var(--g-linie); }
+#root .gd-bereiche .memory-area-source h3 { font: 600 16px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .gd-bereiche .memory-area-source header { align-items: center; }
+#root .gd-bereiche .memory-area-select { font: var(--g-fussnote); color: var(--g-leise); }
+#root .gd-bereiche .memory-area-source :is(time, .memory-area-status, .memory-area-categories li > span) { font: var(--g-fussnote); color: var(--g-leise); }
+#root .gd-bereiche .memory-area-source-actions { gap: var(--g-a2); }
+#root .gd-bereiche .memory-area-source-actions > .task-source > button, #root .gd-bereiche .memory-area-source-actions > button,
+#root .gd-bereiche .memory-area-source-actions details > summary {
+  min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien); background: transparent; color: var(--g-verweis); font: 500 14px/1.2 var(--g-schrift);
+}
+#root .gd-bereiche .memory-area-source-actions { margin-left: calc(-1 * var(--g-a2)); }
+#root .gd-bereiche .memory-area-feedback { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+
+/* Zeichen statt Initialen (Orte, Themen) in derselben Größe wie die Bilder. */
+#root .gd-zeile .gd-zeichen { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; }
+
+/* ── Unteransichten (Aussagen prüfen, Verarbeitung): Titel, eine Zeile, Aktion rechts; Karten flach ───────── */
+#root main .memory-status { max-width: 960px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+/* Der Kopf der Unteransichten ist der Baustein `Unterkopf` (Grundlage.css, V4). */
+#root main .memory-status .memory-status-card { margin: 0 0 var(--g-a5); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main .memory-status .memory-status-card h2 { font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root main .memory-status .memory-status-stages > article { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+#root main .memory-status .memory-status-card :is(.memory-status-card, section) { box-shadow: none; }
+#root main .memory-status button:not(.g-knopf-schlicht):not(.support-review-confirm) { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); }
+#root main .memory-status .directory-pagination { display: flex; align-items: center; gap: var(--g-a3); font: var(--g-neben); color: var(--g-leise); }
+
+/* Leer und Fehler im Gedächtnis: keine Riesenfläche, kein Vogel. */
+#root main .memory-canvas:is(.memory-empty, .memory-error) { min-height: 0; padding: 0; border: 0; background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main .memory-canvas.memory-empty .g-leer-satz, #root main .memory-canvas.memory-error .g-leer-satz { font: var(--g-text); color: var(--g-leise); }
+
+/* Karte der Orte und gemeinsame Ansichten der Organisationen als Gruppen. */
+#root main .memory-view-panel.gd-karte { max-width: 880px; margin: 0 0 var(--g-a6); padding: 0; border: 0; border-radius: 0; background: transparent; }
+#root main .memory-view-panel.gd-karte .g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main .memory-view-panel.gd-karte .g-flaeche { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--g-a3); }
+#root main .memory-view-panel.gd-karte :is(select, input) { min-width: 0; max-width: 100%; }
+#root main .memory-view-panel.gd-karte .g-flaeche p { margin: 0; font: var(--g-neben); }
+#root main .memory-view-panel.gd-karte .memory-place-map { min-height: 360px; border: 0; border-radius: var(--g-radius-bedien); }
+#root main .memory-view-panel.gd-karte .g-gruppe-fussnote { color: var(--g-leise); }
+
+/* ── Prüfen und Öffentliches Wissen: großer Titel, Gruppen, keine Einleitungsprosa ───────────────────── */
+#root main.tasks-page:is(.review-page, .welt-page) { --g-kopf-rand: var(--g-a6); max-width: 920px; background: var(--g-grund); }
+#root main.review-page .review-leer-flaeche { margin: 0 0 var(--g-a6); border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main.review-page .review-leer-flaeche .review-leer { margin: 0; }
+#root main.review-page :is(.knowledge-questions, .befunde) { margin: 0 0 var(--g-a6); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+#root main.review-page :is(.knowledge-questions, .befunde) > h2 { margin: 0 0 var(--g-a1); font: var(--g-titel); color: var(--g-tinte); }
+#root main.review-page :is(.knowledge-questions, .befunde) > .g-fussnote { margin: 0 0 var(--g-a4); }
+#root main.review-page .review-weitere { margin-top: var(--g-a6); }
+#root main.welt-page .welt-seite .g-gruppe { margin-bottom: var(--g-a6); }
+#root main.welt-page .welt-formular { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); padding: 0; background: transparent; }
+#root main.welt-page .welt-seite .g-flaeche-frei > p:only-child { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root main.welt-page .welt-seite .g-flaeche-frei > .g-leer { padding: var(--g-a5); }
+#root main.welt-page .identity-source-row { display: grid; gap: var(--g-a2); justify-items: start; padding: var(--g-a3) 0; border: 0; }
+#root main.welt-page .identity-source-row + .identity-source-row { border-top: 1px solid var(--g-linie); }
+#root main.welt-page .identity-source-row h3 { margin: 0; font: var(--g-ueberschrift); }
+#root main.welt-page .identity-source-row p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+/* Leaflet bringt eigene Ebenen mit (bis 1000); die Karte bleibt unter der klebenden Kopfleiste. */
+#root main .memory-view-panel.gd-karte .memory-place-map { position: relative; z-index: 0; isolation: isolate; }
+#root main .memory-view-panel.gd-karte .g-flaeche > button, #root main .memory-view-panel.gd-karte .memory-view-actions button,
+#root main .memory-view-panel.gd-karte .memory-view-preview button {
+  justify-self: start; min-height: var(--g-ziel-kompakt); padding: 0 var(--g-a3); border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift);
+}
+#root main .memory-view-panel.gd-karte .memory-view-actions { margin: 0; }
+#root main .memory-view-panel.gd-karte .memory-view-preview { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-grund); }
+
+/* ── Dokumente: die drei Spalten als eine Fläche, die nichts über den Rand schiebt ───────────────────── */
+#root main.memory-page-workspace > .memory-documents-workspace:has(.document-workspace) { flex: 1 0 auto; min-height: 560px; }
+#root main.memory-page-workspace .memory-directory.document-workspace { margin: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); overflow: hidden; }
+#root main.memory-page-workspace .document-folders { background: var(--g-grund); }
+#root main.memory-page-workspace > .document-import { margin: 0 0 var(--g-a5); padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); background: var(--g-flaeche); box-shadow: var(--g-schatten); }
+@media (max-width: 1100px) {
+  #root main.memory-page-workspace > .memory-documents-workspace:has(.document-workspace) { min-height: 0; }
+  #root main.memory-page-workspace .document-list-column { max-height: 70vh; overflow-y: auto; }
+}
+#root main.profile-page .profile-card.person-waiting:not(.is-empty) { padding: var(--g-a5); border: 0; box-shadow: var(--g-schatten); }
+/* Leer bleibt es eine leise Zeile, keine Fläche. */
+#root main.profile-page .profile-card.person-waiting.is-empty { padding: 0 var(--g-a4); border: 0; background: transparent; box-shadow: none; }
+#root main.profile-page .profile-card.person-waiting.is-empty h2 { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+#root main.profile-page .profile-card.person-waiting .profile-empty { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }

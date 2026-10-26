@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Schalter } from "./grundlage";
 import { ApiError, api, type WeltStand, type WetterOrt, type WetterStand } from "./api";
 import { SCHALTER } from "./Einstellungen/gliederung";
 import { eigeneQuellen, normiereAdresse, vorgabeZustand, vorgabenStandSatz } from "./weltVorgaben";
@@ -53,9 +54,8 @@ export function Wetter({ beiAenderung, beiWunsch }: { beiAenderung?: (stand: Wet
 
   return <section className="darf-zeile" aria-label={SCHALTER.wetter.titel}>
     {!stand ? <p>Wird geladen …</p> : <>
-      <label className="welt-schalter"><input type="checkbox" role="switch" checked={(stand.aktiv && Boolean(stand.name)) || (!stand.name && sucheOffen)} disabled={arbeitet}
-        onChange={event => umschalten(event.target.checked)} />
-        <span><strong>{SCHALTER.wetter.titel}</strong><small>{SCHALTER.wetter.verlaesst}</small></span></label>
+      <Schalter className="welt-schalter" titel={SCHALTER.wetter.titel} satz={SCHALTER.wetter.verlaesst} an={(stand.aktiv && Boolean(stand.name)) || (!stand.name && sucheOffen)}
+        deaktiviert={arbeitet} onWechsel={umschalten} />
       {stand.name && stand.aktiv && !sucheOffen && <p className="source-hint">Ort: {stand.name}. <button type="button" className="text-action" onClick={() => { setSucheOffen(true); setSuche(""); }}>Ort ändern</button></p>}
       {sucheOffen && <form className="welt-suche" onSubmit={event => { event.preventDefault(); void finden(suche); }}>
         <label htmlFor="wetter-suche">{stand.name ? "Anderer Ort" : "Für welchen Ort soll das Wetter gelten?"}</label>
@@ -103,9 +103,8 @@ export function Nachrichten() {
 
   return <section className="darf-zeile" aria-label={SCHALTER.welt.titel}>
     {!stand ? <p>Wird geladen …</p> : <>
-      <label className="welt-schalter"><input type="checkbox" role="switch" checked={stand.aktiv} disabled={arbeitet}
-        onChange={event => void ausfuehren(() => api.weltSetzen({ aktiv: event.target.checked }), event.target.checked ? "Eine passende Meldung pro Tag steht künftig im Briefing." : "Es stehen keine Meldungen mehr im Briefing.")} />
-        <span><strong>{SCHALTER.welt.titel}</strong><small>{SCHALTER.welt.verlaesst}</small></span></label>
+      <Schalter className="welt-schalter" titel={SCHALTER.welt.titel} satz={SCHALTER.welt.verlaesst} an={stand.aktiv} deaktiviert={arbeitet}
+        onWechsel={an => void ausfuehren(() => api.weltSetzen({ aktiv: an }), an ? "Eine passende Meldung pro Tag steht künftig im Briefing." : "Es stehen keine Meldungen mehr im Briefing.")} />
       {stand.aktiv && <>
         <p className="source-hint">Höchstens eine Meldung am Tag, und nur, wenn sie zu etwas aus deinen Akten passt. Zu jeder steht, warum sie da ist.</p>
         {!quellenVorhanden && <p className="source-hint" role="status">Wähle mindestens eine Quelle, sonst gibt es nichts zu lesen.</p>}

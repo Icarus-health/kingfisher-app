@@ -226,7 +226,7 @@ export function MailStyle({ uid, draft, originalSuggestion }: MailStyleProps) {
               <p className="mail-style-ton-satz">{tonSatz(data.contact || "diesen Kontakt", data.proposal)}</p>
               <div className="mail-style-actions">
                 <button
-                  className="primary-action"
+                  className="secondary-action"
                   type="button"
                   disabled={controlsDisabled}
                   onClick={() => void save(data.proposal!.rules, data.proposal!.evidence_ids, "contact")}

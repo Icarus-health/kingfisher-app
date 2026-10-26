@@ -55,7 +55,7 @@ test("die Karte zeigt Uhrzeit, Wochen-Satz und Hinweis aus der Logik", () => {
   assert.match(code, /wochenSatz\(/);
   assert.match(code, /mitteilungenSchalter\(/);
   assert.match(code, /type="time"/);
-  assert.match(code, /role="switch"/);
+  assert.match(code, /<Schalter titel=\{titel\} satz=\{SCHALTER\.mitteilungen\.verlaesst\} an=\{schalter\.an\}/);
   assert.match(code, /fuerSystem\(SCHALTER\.mitteilungen\.titel, system\)/);
   assert.match(code, /api\.mitteilungenSetzen\(/);
 });

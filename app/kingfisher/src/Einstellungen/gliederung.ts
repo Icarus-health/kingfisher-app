@@ -59,7 +59,19 @@ export const ZUGAENGE = {
   postfaecher: { titel: "Postfächer", leer: "Noch kein Postfach verbunden." },
   kalender: { titel: "Kalender", leer: "Noch kein Kalender verbunden." },
   ordner: { titel: "Ordner und Dateien", satz: "Kingfisher liest nur ausgewählte Ordner." },
+  trennen: "Trennen entfernt nur den Zugang auf diesem Rechner, keine Daten beim Anbieter.",
+  // Steht je Gruppe, wenn die Zugänge nicht geladen werden konnten; der Grund und „Wiederholen“ stehen oben (V3).
+  nichtGeladen: "Nicht geladen.",
 } as const;
+
+/**
+ * Was eine Gruppe unter Zugänge zeigt: Ladebalken nur, solange wirklich geladen wird; ist das Laden gescheitert,
+ * „Nicht geladen.“ statt grauer Balken, die ewig stehen blieben (V3). Ein späterer Fehler (etwa beim Trennen) lässt
+ * die geladene Liste stehen.
+ */
+export function zugangListe(geladen: boolean, fehler: string): "laedt" | "nicht_geladen" | "da" {
+  return geladen ? "da" : fehler ? "nicht_geladen" : "laedt";
+}
 
 /** Die Abschnitte hinter „Für Techniker“, in der Reihenfolge, in der sie eingeklappt erscheinen. */
 export const TECHNIK: ReadonlyArray<{ id: string; titel: string; satz: string }> = [
@@ -117,6 +129,14 @@ export const FACHWOERTER: readonly string[] = [
 ];
 
 const WOERTER = FACHWOERTER.map(wort => ({ wort, muster: new RegExp(`(?<![\\p{L}\\p{N}])${wort}(?![\\p{L}\\p{N}])`, "iu") }));
+
+/** Genau ein gefüllter Knopf unter „Zugänge“ (Paket U, E1): Welcher „hinzufügen“-Knopf gefüllt ist. Keiner, solange die
+ * Einrichtung offen ist (dann ist „Einrichtung fortsetzen“ der eine) oder der Stand fehlt; sonst der erste fehlende
+ * Zugang, zuerst Postfach, dann Kalender; sind beide da, keiner. */
+export function gefuellterZugang(einrichtungOffen: boolean, postfaecher: number | null, kalender: number | null): "mail" | "calendar" | null {
+  if (einrichtungOffen || postfaecher === null || kalender === null) return null;
+  return postfaecher === 0 ? "mail" : kalender === 0 ? "calendar" : null;
+}
 
 /** Die Fachwörter, die in `text` als ganze Wörter vorkommen. */
 export function fachwoerter(text: string): string[] {

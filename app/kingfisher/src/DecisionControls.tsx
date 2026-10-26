@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { api, type Decision, type DecisionBasis } from "./api";
 import "./DecisionControls.css";
+import { Leer } from "./grundlage";
 
 function sourceLabel(kind: string) {
   const labels: Record<string, string> = {
@@ -37,7 +38,8 @@ function formatDate(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(date);
 }
 
-export function DecisionControls({ projectId }: { projectId: string }) {
+/** `kopf={false}`, wo die Seite schon „Entscheidungen“ heißt (Reiter auf der Aufgabenseite): dann nur der Knopf. */
+export function DecisionControls({ projectId, kopf = true }: { projectId: string; kopf?: boolean }) {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [bases, setBases] = useState<DecisionBasis[]>([]);
   const [statement, setStatement] = useState("");
@@ -129,14 +131,18 @@ export function DecisionControls({ projectId }: { projectId: string }) {
     }
   }
 
+  // Eine Gruppe: oben (nur in fremder Umgebung) Titel und Satz, der Knopf „Entscheidung festhalten“; darunter die
+  // Entscheidungen als Zeilen einer Fläche: Stand und Datum leise, der Satz, die Grundlage eingerückt, rechts leise
+  // „Zurücknehmen“ mit Rückfrage. Auf der Aufgabenseite (`kopf={false}`) ist der Knopf der eine gefüllte der Ansicht,
+  // solange kein Formular offen ist.
   return (
-    <section aria-label="Entscheidungen" className="decision-controls">
+    <section aria-label="Entscheidungen" className={`decision-controls${kopf ? "" : " decision-controls-seite"}`}>
       <div className="decision-controls-heading">
-        <div>
+        {kopf ? <div>
           <h2>Entscheidungen</h2>
           <p>Festgehaltene Entscheidungen mit ihrer Grundlage und ihrem aktuellen Zustand.</p>
-        </div>
-        <button aria-expanded={creating} className="secondary-action" disabled={busy || loading} onClick={() => { setError(null); setCreating((open) => !open); }} type="button">+ Entscheidung</button>
+        </div> : null}
+        {!creating ? <button className={kopf ? "secondary-action" : "primary-action"} disabled={busy || loading} onClick={() => { setError(null); setCreating(true); }} type="button">Entscheidung festhalten</button> : null}
       </div>
 
       {creating ? (
@@ -146,22 +152,22 @@ export function DecisionControls({ projectId }: { projectId: string }) {
             <textarea autoFocus disabled={busy || loading} onChange={(event) => setStatement(event.target.value)} placeholder="Was gilt ab jetzt?" required value={statement} />
           </label>
           <fieldset disabled={busy || loading}>
-            <legend>Grundlage <small>(optional)</small></legend>
+            <legend>Grundlage</legend>
             {bases.length ? bases.map((basis) => {
               const parsed = basisParts(basis.id);
               return <label className="decision-basis-option" key={basis.id}><input checked={selectedBases.includes(basis.id)} onChange={() => toggleBasis(basis.id)} type="checkbox" /><span><strong>{sourceLabel(parsed.source)}</strong> {basis.statement}</span></label>;
             }) : <p className="decision-muted">Keine Grundlage verfügbar. Die Entscheidung kann trotzdem ausdrücklich festgehalten werden.</p>}
           </fieldset>
           <div className="decision-form-actions">
-            <button className="secondary-action" disabled={busy || loading} onClick={clearForm} type="button">Abbrechen</button>
+            <button className="g-knopf-schlicht" disabled={busy || loading} onClick={clearForm} type="button">Abbrechen</button>
             <button className="primary-action" disabled={busy || !statement.trim()} type="submit">{busy ? "Wird gespeichert …" : "Entscheidung speichern"}</button>
           </div>
         </form>
       ) : null}
 
       {loading ? <p className="decision-muted" role="status">Entscheidungen werden geladen …</p> : null}
-      {!loading && !error && !visibleDecisions.length ? <p className="decision-muted">Noch keine Entscheidung für dieses Projekt.</p> : null}
-      <div className="decision-list">
+      {!loading && !error && !visibleDecisions.length && !creating ? <Leer className="decision-leer" zeichen="check" satz={projectId ? "Noch keine Entscheidung für dieses Projekt." : "Noch keine Entscheidung festgehalten."} /> : null}
+      {visibleDecisions.length ? <div className="decision-list">
         {visibleDecisions.map((decision) => {
           const date = formatDate(decision.getroffen_am);
           return <article className={`decision-row ${decision.status === "retracted" || decision.status === "zurückgenommen" || decision.status === "withdrawn" ? "is-retracted" : ""}`} key={decision.id}>
@@ -172,12 +178,12 @@ export function DecisionControls({ projectId }: { projectId: string }) {
               {decision.wackler?.length ? <div className="decision-wackler"><span>Veränderte Annahmen</span>{decision.wackler.map((wackler) => <p key={wackler.annahme_id || wackler.annahme}><strong>{stateLabel(wackler.status)}{wackler.strittig ? " · strittig" : ""}</strong> {wackler.annahme}{wackler.ersetzt_durch ? ` → ${wackler.ersetzt_durch}` : ""}</p>)}</div> : null}
             </div>
             {(decision.status === "active" || decision.status === "disputed") ? <div className="decision-retract">
-              {confirmingId === decision.id ? <><span>Wirklich zurücknehmen?</span><button className="secondary-action decision-confirm" disabled={busy || loading} onClick={() => void retractDecision(decision.id)} type="button">Bestätigen</button><button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(null)} type="button">Abbrechen</button></> : <button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(decision.id)} type="button">Entscheidung zurücknehmen</button>}
+              {confirmingId === decision.id ? <><span>Wirklich zurücknehmen?</span><button className="secondary-action decision-confirm g-kompakt" disabled={busy || loading} onClick={() => void retractDecision(decision.id)} type="button">Bestätigen</button><button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(null)} type="button">Abbrechen</button></> : <button className="text-action" disabled={busy || loading} onClick={() => setConfirmingId(decision.id)} type="button">Zurücknehmen</button>}
             </div> : null}
           </article>;
         })}
-      </div>
-      {error ? <p aria-live="polite" className="decision-controls-error" role="alert">{error} <button type="button" disabled={busy || loading} onClick={() => setReloadVersion(value => value + 1)}>Neu laden</button></p> : null}
+      </div> : null}
+      {error ? <p aria-live="polite" className="decision-controls-error" role="alert">{error} <button type="button" className="text-action" disabled={busy || loading} onClick={() => setReloadVersion(value => value + 1)}>Neu laden</button></p> : null}
     </section>
   );
 }

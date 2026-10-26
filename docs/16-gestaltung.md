@@ -56,7 +56,8 @@ dort nichts geändert werden muss. Ein Fachwort vorne ist ein Fehler; ein Test s
 **Seitenbreite.** Keine Seite ist breiter als das Fenster, und es gibt keine Mindestbreite, auch nicht für einzelne
 Seiten. Drei Stufen gelten überall (`Seitenbreite.css`): Unter 1100 px stapeln sich Spalten, unter 900 px wird die
 Seitenleiste ein Streifen oben, unter 700 px haben Formulare und Raster eine Spalte. Was nicht passt, bricht um; nichts
-zwingt zum seitlichen Scrollen, nichts wird am Rand abgeschnitten. Das gilt auch für den Streifen selbst: Alle Ziele
+zwingt zum seitlichen Scrollen, nichts wird am Rand abgeschnitten (einzige Ausnahme: Segmentleisten rollen in sich, siehe
+„Grundlage vom 23.10.2026“). Das gilt auch für den Streifen selbst: Alle Ziele
 stehen ohne Rollen im Bild, das Zeichen über seinem Namen in kleiner Schrift; unter 700 px trägt nur der aktive Bereich
 seinen Namen (Fremdprobe 3, Befund 14). Wer eine Seite baut, prüft sie bei 390, 768 und
 1280 px (`scripts/probe_seiten_ui.py`).
@@ -69,6 +70,8 @@ Entscheidung ersetzt die bisherige automatische Tag-/Nachtpalette. Auch bei
 dunkler Systemeinstellung bleiben die Arbeitsflächen hell; die Navigation
 bleibt dunkel. Dadurch ändern sich Leseflächen und ausgewählte Zustände nicht
 unbemerkt mit dem Systemmodus.
+*(Am 25.10.2026 ersetzt: Die Arbeitsflächen folgen seitdem dem Systemmodus, siehe „Dunkelmodus vom 25.10.2026“.
+Die Navigation bleibt dunkel; die Werte unten gelten weiter für den hellen Modus.)*
 
 | Rolle | Wert |
 | --- | --- |
@@ -85,7 +88,8 @@ Farbvariablen für ältere Komponenten. Keine neue Palette je Ansicht anlegen.
 Navigation bleibt in `styles.css`; zentrale Breitenregeln in
 `Seitenbreite.css`, die weiterhin zuletzt geladen wird.
 
-Inter und die vorhandenen System-Fallbacks tragen die Oberfläche. Überschriften
+Inter und die vorhandenen System-Fallbacks tragen die Oberfläche (seit dem 23.10. die Systemschrift zuerst, siehe
+„Grundlage vom 23.10.2026“). Überschriften
 liegen auf dem Desktop überwiegend bei 32 px, Lesetext bei 16 px; kleine
 Metadaten treten zurück. Auswahl, Fokus, Warnung und Fehler bleiben unabhängig
 von der dekorativen Landschaft erkennbar. Eigene Elemente brauchen geeignete
@@ -96,6 +100,204 @@ Keine erdachten Vorschaubilder oder Dateigrößen: Ein Dokument zeigt den wirkli
 gespeicherten Originaltext. Quellenstand, Originaldatum und Erfassungszeit
 bleiben unterscheidbar. Auf schmalen Fenstern öffnet die Quelle allein; ein
 sichtbarer Rückknopf und Escape führen zur ausgewählten Listenzeile zurück.
+
+## Grundlage vom 23.10.2026
+
+Der Nutzer nach zwei Wochen Test: „große Flächen, wenig geschrieben, sehr adaptiv, Verständnis auf einen Blick, optische
+Wertigkeit, im Prinzip als hätte Apple das Programm geschrieben“. Die Grundrichtung vom 15.10. bleibt (dunkle Navigation,
+helle Arbeitsflächen, ein gedeckter Akzent, eine Schrift); diese Grundlage macht sie messbar und gibt den Seiten
+gemeinsame Bausteine.
+
+**Maßstab „wie von Apple“.** Woran man es prüft:
+
+1. **Ein Blick reicht.** Jede Ansicht hat genau eine Hauptsache, die man in einer Sekunde sieht.
+2. **Wenig Text.** Ein Titel, höchstens eine Zeile darunter. Erklärungen nur, wo ohne sie ein Fehler passiert, und dann
+   als Fußnote unter der Gruppe. Keine Absicherungsprosa.
+3. **Große, ruhige Flächen.** Gruppierte Flächen statt vieler Kästen, Haarlinien statt Rahmen, keine Karten in Karten.
+4. **Große Ziele.** Alles Anklickbare mindestens 44 px hoch, ganze Zeilen anklickbar.
+5. **Adaptiv.** Bei 390, 768, 1280 und 1600 px gewollt, nicht nur passend. Schmal: eine Spalte, Aktionen erreichbar.
+6. **Material statt Farbe.** Ein Akzent, Tinte, Weiß, kühles Grau. Bilder nur im Kopf von Heute.
+7. **Bewegung leise.** 150–250 ms, `prefers-reduced-motion` wird respektiert.
+8. **Systemnah.** Systemschrift des Macs, sonst Inter; großer Titel, Segmente, gruppierte Listen, Seitenleiste.
+
+**Wo es steht.** `app/kingfisher/src/Grundlage.css` (geladen direkt vor `Seitenbreite.css`, die zuletzt bleibt) und die
+Bausteine in `app/kingfisher/src/grundlage/` (nur Darstellung, keine Seitenlogik; Einstieg `grundlage/index.ts`).
+Geprüft von `tests/grundlage.test.mjs`.
+
+### Werte (`:root`, Präfix `--g-`)
+
+| Rolle | Wert |
+| --- | --- |
+| Schrift `--g-schrift` | `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif` |
+| Großer Titel `--g-titel-gross` | 34/1.15, 700, −0,022em (schmal unter 700 px: 28) |
+| Titel `--g-titel` | 22/1.25, 650 |
+| Überschrift `--g-ueberschrift` | 17/1.35, 600 |
+| Text `--g-text` | 16/1.5 |
+| Neben `--g-neben` | 14/1.45, `--calm-muted` |
+| Fußnote `--g-fussnote` | 13/1.4, `--calm-muted` |
+| Abstände `--g-a1` … `--g-a8` | 4, 8, 12, 16, 24, 32, 48, 64 |
+| Radien | Fläche 14, Bedienelement 10, Pille 999 |
+| Fläche `--g-flaeche`, `--g-schatten` | Weiß ohne Rahmen, `0 0 0 1px rgba(23,38,53,.05), 0 1px 2px rgba(23,38,53,.04)` |
+| Trenner `--g-linie` | `rgba(23,38,53,.08)`, eingerückt |
+| Grund `--g-grund` | `#f5f6f8` |
+| Getönt `--g-getoent` | die Hauptaktionsfarbe zu 8 % |
+| Ziele | `--g-ziel` 44, `--g-ziel-kompakt` 36, `--g-zeile` 52 |
+| Bewegung `--g-bewegung` | 200 ms |
+
+Tinte, Akzent, Verweis und Auswahl kommen aus `CalmUI.css` und `NordicWorkspace.css`; es gibt keine neue Palette.
+Schriftstufen gibt es auch als Klassen: `g-titel-gross`, `g-titel`, `g-ueberschrift`, `g-text`, `g-neben`, `g-fussnote`.
+
+### Bausteine
+
+| Baustein | Props | Klassen |
+| --- | --- | --- |
+| `Seitenkopf` | `titel`, `zeile?` (eine Zeile), `aktionen?`, `className?` | `g-seitenkopf`, `-text`, `-titel`, `-zeile`, `-aktionen`; klebende Leiste `g-kopfleiste` (erscheint, sobald der Titel oben hinausrollt; `--g-kopf-rand` dehnt sie über den Seitenrand) |
+| `Gruppe` | `titel?` (klein über der Fläche), `fussnote?` (ein Satz darunter), `frei?` (freier Inhalt mit Innenabstand statt Zeilen), `children` | `g-gruppe`, `g-gruppe-kopf`, `g-gruppe-titel`, `g-flaeche` (`g-flaeche-frei`), `g-gruppe-fussnote` |
+| `Zeile` | `titel`, `neben?`, `wert?` (rechts), `symbol?` (links, etwa `<InterfaceIcon name="mail" />`); klickbar mit `onClick` **oder** `href`, dazu `pfeil?` (Vorgabe: bei Verweisen), `aktiv?`, `deaktiviert?`; statisch mit `zusatz?` (Schalter rechts) – nie beides, keine Knöpfe im Knopf | `g-zeile`, `-symbol`, `-text`, `-titel`, `-neben`, `-wert`, `-zusatz`, `-pfeil`; mindestens 52 px |
+| `Segmente` | `optionen` (`{wert, titel, zahl?, deaktiviert?}`), `wert`, `onWahl(wert)`, `label`, `kompakt?` | `g-segmente`, `g-segment`, `g-segment-zahl`; Pille, rollt waagrecht statt umzubrechen (`data-rollt="waagrecht"`, Rand blendet aus, wo etwas verborgen ist); Pfeiltasten, Pos1, Ende (Modell `segmentTasten.ts`); Zahl nur über null |
+| `Leer` | `satz` (genau einer), `zeichen?` (Name eines `InterfaceIcon`), `aktion?` (höchstens ein Knopf) | `g-leer`, `-zeichen`, `-satz`, `-aktion` |
+| `Aufklapper` | `titel`, `neben?` (leise rechts), `offen?`, `onToggle?(offen)`, `children` | `g-aufklapper`, `-titel`, `-neben`, `-inhalt` |
+| `Schalter` (V4) | `titel`, `satz?`, `an`, `onWechsel(an)`, `deaktiviert?` | jedes `input[role=switch]` ist ein Umlegeschalter rechts in seiner Zeile (`#root .shell …`); vorher lokal in `Einstellungen.css` |
+| `Unterkopf` (V4) | `titel`, `zeile?`, `aktion?` | `g-unterkopf`, `g-unterkopf-zeile`; Kopf einer Unteransicht (Gedächtnis: Verarbeitung, Aussagen prüfen) |
+| `Bestaetigung` (V4) | `titel`, `label`, `knoepfe?`, `children` (der Satz als `<strong>`) | `g-bestaetigung`, `-titel`, `-knoepfe`; Freigabe, Gedächtnisvorschlag, Vorschlag für die Akte |
+| `HinweisAnzeige` (V4) | einmal in `main.tsx`; die Seiten rufen `zeigeHinweis({ text, rueckgaengig?, danach?, verweis?, fehler? })` | `g-hinweis-ort`, `g-hinweis`, `-text`, `-aktionen`, `-punkt`, `-knopf` |
+
+Seit V4 (25.10.2026) kann `Gruppe` mehr: `zahl?` und `aktion?` rechts im Kopf, `fussAktion?` rechts unter der Fläche
+neben der Fußnote (Klassen `g-gruppe-zahl`, `g-gruppe-aktion`, `g-gruppe-fuss`; so die Zugänge der Einstellungen),
+`label?` und `flaecheKlasse?`. `Zeile` kann `links?` (ein eigenes Bedienelement links, etwa der Kreis zum Erledigen:
+der Knopf in der Mitte deckt die Zeile, das Element liegt darüber; Klassen `g-zeile-bedient`, `g-zeile-ziel`,
+`g-zeile-links`, `g-zeile-ueber` – die Aufgabenzeile benutzt diese Mechanik), `label?`, `wertZeit?` und `wertKlasse?`.
+Die feinen Rastermaße des Kalenders stehen als `--g-kal-*` (Zeitspalte, Tag, Stunde, Punkte, Monatstag, Jahr); in der
+Jahresansicht ist jeder Tag ein Ziel von 44 px (`--g-kal-jahr-tag`), schmal steht ein Monat je Zeile.
+
+**Knöpfe** sind Klassen, keine Bausteine: `g-knopf` (gefüllt, genau einer je Ansicht), `g-knopf-getoent` (der zweite),
+`g-knopf-schlicht` (nur Text). Höhe 44, mit `g-kompakt` 36. Was etwas unwiderruflich entfernt, bleibt rot.
+
+### Was global umgestellt ist (ohne Seitenlogik)
+
+- Eine Schriftfamilie überall (`--g-schrift`, die Familie einmal mit `!important`, weil der Bestand sie in vielen
+  `font:`-Kurzformen auf Inter setzt); Code behält seine Schrift. Grundtext 16/1.5.
+- Grund `#f5f6f8` ohne Landschaft auf allen Seiten außer Heute; die Seitenleiste dunkel und ruhig ohne Landschaftsbild,
+  das Logo bleibt.
+- Die Köpfe der Seiten (`.tasks-heading`, `.settings-heading`, `.inbox-heading`, `.history-heading`, `.profile-heading`,
+  Gedächtnis, Kalender, Prüfen, Welt, Akte, leeres Gespräch) als großer Titel ohne Bild und ohne Überzeile; die Zeile
+  darunter leise, die Aktion rechts, schmal darunter.
+- Die Reiterleisten (`.task-tabs`, `.profile-tabs`, `.view-switch`, `.memory-area-tabs`, `.inbox-filter`, die Reiter im
+  Gedächtnis) in der Optik der Segmente; die Bereichsliste der Einstellungen als ruhige Seitenliste.
+- `details > summary` überall mit dem eigenen, sich drehenden Pfeil statt `▶` (abwählbar mit `g-ohne-pfeil`).
+- Eingabefelder 44 px, Radius 10, ruhiger Fokusring; Fokus von Knöpfen und Verweisen 2 px in der Auswahlkante.
+- Knöpfe des Bestands auf die drei Stufen: `.primary-action`, `.tasks-add`, `.mail-reader-primary`, `.memory-confirm`,
+  `.people-review-action` gefüllt; `.secondary-action`, `.mail-reader-secondary`, `.mail-reader-close`,
+  `.memory-reject`, `.people-review-secondary`, `.chronik-mehr` getönt; `button.text-action` schlicht. Ob je Ansicht nur
+  einer gefüllt ist, entscheiden die Seiten.
+- Flächen (Profilkarten, Quellen, Aufgabentabelle, Kalenderblatt, Nachrichten, Gesprächsliste …) weiß ohne Rahmen mit
+  Haarschatten; Fläche in Fläche wird flach. Listentrenner als Haarlinie.
+
+### Was sich gegenüber dem 15.10. ändert
+
+- **Landschaft nur noch im Kopf von Heute.** Nicht mehr hinter allen Seiten, nicht in den Köpfen, nicht im Gedächtnis
+  und nicht in der Seitenleiste (Test: `tests/grundlage.test.mjs`).
+- **Systemschrift.** Auf dem Mac San Francisco, sonst Inter; Hierarchie weiter nur über Größe und Strichstärke.
+- **Große Titel** (34 statt 32 px, 700) und **Segmente** statt unterstrichener Reiter.
+- **Segmentleisten rollen waagrecht**, statt umzubrechen; das ist die eine gewollte Ausnahme von „nichts rollt
+  seitlich“. Merkmal ist `data-rollt="waagrecht"` am Behälter (der Baustein `Segmente` setzt es), dazu
+  `overflow-x: auto`; wo links oder rechts noch etwas verborgen ist, blendet der Rand sichtbar aus
+  (`data-rand-links`/`data-rand-rechts`). `scripts/probe_seiten_ui.py` zählt die Glieder einer solchen Leiste nicht als
+  Überstand, misst aber die Leiste selbst und die Seite: Die Seite rollt nie seitlich. Die alten Reiterleisten
+  (`.task-tabs` usw.) gelten als solche, bis die Seiten den Baustein einsetzen.
+
+## Hinweis mit „Rückgängig“ (25.10.2026, V4)
+
+Was sich zurücknehmen lässt, fragt nicht vorher, sondern sagt danach in einer Zeile, was passiert ist, und bietet
+„Rückgängig“ an – wie Mail auf dem iPhone: „„Angebot prüfen“ erledigt · Rückgängig“ (CLAUDE.md, Prüfpunkte 4 und 5).
+
+- **Ein Ort, ein Hinweis.** Unten mittig über allem, dunkel (`--g-tinte`), schmal in voller Breite mit 16 px Rand. Ein
+  neuer Hinweis ersetzt den alten. Er gehört der App, nicht der Seite: Er bleibt, wenn die Zeile mit der Aktion
+  verschwindet oder die Seite wechselt (etwa nach „Akte anlegen“).
+- **Zeit.** Nach 6 s geht er von selbst; Maus darauf oder sichtbarer Tastaturfokus halten ihn, danach laufen die 6 s
+  von vorn. Ein Fehler (auch ein misslungenes Zurücknehmen: „Nicht zurückgenommen. Die Änderung gilt weiter.“ mit
+  „Erneut versuchen“) steht 10 s und wird als Fehler angesagt.
+- **Bedienung.** Escape schließt ihn, ⌘Z bzw. Strg+Z nimmt zurück, aber nie in einem Eingabefeld. Wer mit der Tastatur
+  arbeitet und dessen Knopf mit der Zeile verschwunden ist, bekommt den Fokus auf „Rückgängig“; mit der Maus nie.
+- **Vorleser.** Der Ort ist immer da (`role=status`, `aria-live=polite`, `aria-atomic`), jeder neue Satz wird angesagt;
+  „Rückgängig“ nennt seine Tasten (`aria-keyshortcuts`). Bewegung 200 ms, bei reduzierter Bewegung keine.
+- **Nie erfunden.** Ein Hinweis hat nur dann „Rückgängig“, wenn es dafür schon einen Weg im Sidecar gibt (die Gegenroute).
+  Wo es keinen gibt, sagt er nur, was passiert ist, und eine Rückfrage davor bleibt.
+
+| Aktion | Weg zurück (Sidecar) |
+| --- | --- |
+| Aufgabe erledigen / wieder öffnen (Liste, Heute, Aufgabe) | `POST /tasks/{id}/reopen` ↔ `/done` |
+| Aufgabe verwerfen / wieder aufnehmen | `POST /tasks/{id}/reopen` ↔ `/drop` |
+| „Warte auf …“ / „Zurück zu mir“ | `POST /tasks/{id}/zurueckholen` ↔ `/warten` (mit dem bisherigen Namen) |
+| Aus deiner Post: „Ja, erledigt“ / „Ja, wieder bei mir“ | `POST /tasks/{id}/rueckgaengig` |
+| Akte: Erledigt, Gilt nicht mehr, Gilt weiter, Abgesagt; „Rückgängig“ an einer Zeile | `PUT /akten/entscheidung` mit dem Vorwert ↔ `DELETE /akten/entscheidung` |
+| Neue Akte? „Akte anlegen“ / „Nein danke“ (Akte und Heute) | `POST /akten/vorschlaege/{k}/zuruecknehmen` |
+| Kreis wählen, „Wieder offen lassen“ | `PUT /kreis` mit dem Kreis von vorher ↔ `DELETE /kreis` |
+| Art der Akte | `PUT /akten/art` mit der Art von vorher ↔ `DELETE /akten/art` |
+| Alle Kollegen-Vorschläge festlegen (jetzt ohne Rückfrage) | `DELETE /kreis/sammel?sammlung=…` |
+| Quelle: „Gehört nicht dazu“, „Doch zuordnen“, „Wer ist gemeint?“ | `PUT`/`DELETE /akten/quellen/{id}/zuordnung` |
+| Quelle einem Projekt zuordnen; weitere Mails desselben Absenders | `PUT /episodes/{id}/project` mit dem Projekt von vorher; `PUT /episodes/projects` |
+| Gruppenvorschlag für Organisationen ablehnen | `POST /organisation-group-suggestions/{id}/undo-dismissal` |
+
+Ohne „Rückgängig“ (kein vollständiger Weg zurück), die Rückfrage bleibt: Entscheidung zurücknehmen („Wirklich
+zurücknehmen?“), eine Quelle nicht mehr verwenden (was daraus folgte, kommt nicht von selbst zurück), Sortierergebnis
+verwerfen, eine Quelle entfernen, Mitschrift zuordnen oder lösen (Lösen sperrt den Termin für den Vorschlag), Welt-Meldung
+abbestellen (die Meldung des Tages bleibt gestrichen). Ohne Rückfrage und ohne Zurück wie bisher: einen Vorschlag aus
+der Post verwerfen, einen Aufgabenvorschlag ablehnen. Eigene „…rückgängig“-Knöpfe mit Versionen (Ordner, Bilder,
+Gruppierungen im Gedächtnis) bleiben, wo sie sind.
+
+## Dunkelmodus vom 25.10.2026
+
+**Entscheidung des Nutzers** am 25.10.2026 („Mach alles“ auf die Frage nach dem Dunkelmodus): Die Arbeitsflächen folgen
+dem Systemmodus des Macs (`prefers-color-scheme`). Das ersetzt die Festlegung vom 15.10. („auch bei dunkler
+Systemeinstellung bleiben die Arbeitsflächen hell“). Der helle Modus bleibt Pixel für Pixel, wie er war; die
+Navigation bleibt in beiden Modi dunkel.
+
+**Alle Farben sind Rollen.** Farbwerte stehen nur noch in den `:root`-Blöcken von `theme.css` (Werte des Bestands),
+`CalmUI.css` (`--calm-*`), `NordicWorkspace.css` (`--nordic-*`) und `Grundlage.css` (`--g-*`), jeweils mit einem
+Block `@media (prefers-color-scheme: dark) { :root { … } }` darunter. Alles andere – die übrigen CSS-Dateien,
+Inline-Stile, Skripte (Kalender, Karte) – benutzt Rollen; Hauch, Haarlinie und Schatten mit eigener Deckkraft als
+`rgba(var(--g-tinte-rgb), .05)` bzw. `rgba(var(--g-schatten-rgb), .06)`. `tests/farbrollen.test.mjs` verbietet harte
+Werte außerhalb dieser Blöcke (auch Ersatzwerte in `var(--x, #…)`) und prüft, dass jede helle Rolle einen dunklen Wert
+hat.
+
+| Rolle | hell | dunkel |
+| --- | --- | --- |
+| Grund `--g-grund`, `--calm-inset` | `#f5f6f8` | `#181d23` (gedämpftes Schiefer, kein Schwarz) |
+| Fläche `--calm-surface` | `#ffffff` | `#222931` (eine Stufe heller als der Grund) |
+| Weich `--calm-soft` | `#e7eff8` | `#2c3640` |
+| Tinte `--calm-ink` | `#172635` | `#e3e8ed` (nicht reinweiß) |
+| Leise `--calm-muted` | `#5e6c7c` | `#a8b4c0` |
+| Linie `--calm-line`, `--g-linie` | `#dfe5eb`, Tinte 8 % | `#38414b`, Tinte 10 % |
+| Akzent und Verweis `--calm-primary`, `--calm-link` | `#103e5c`, `#18578c` | `#96bde0` (ein Akzent; der Text darauf `#0f1923`) |
+| Auswahl `--nordic-selection` / Kante | `#e8f2fd` / `#2869aa` | `#263a4e` / `#79aee0` |
+| Rot `--g-rot`, Grün `--g-gruen` | `#bf3b44`, `#197a58` | `#f08b8b`, `#6ccb9c` |
+| Warnung `--g-warnung` auf `--g-warnung-grund` | `#704b0b` auf `#fff2d8` | `#e6c27a` auf `#3a3121` |
+| Hinweis `--g-hinweis-grund` | Tinte | `#39434f` (erhöht, kein heller Balken) |
+| Gewähltes Segment `--g-segment-gewaehlt` | Fläche | `#3a4450` |
+| Navigation `--nordic-nav` | `#082a3d` | gleich, dazu eine Haarlinie zur Arbeitsfläche |
+
+**Kontrast.** Text mindestens 4,5:1, große Schrift und Bedienelemente 3:1 (WCAG AA), in beiden Modi; die Hauptpaare
+rechnet der Test nach, die Seiten misst `kontrast.js` im Rundgang (Bericht V5).
+
+**Sonderfälle.**
+
+- *Landschaft im Kopf von Heute:* Der Verlauf läuft in den Grund des Modus aus (`--g-grund-rgb`); im Dunkeln liegt
+  ein Schleier darüber (`filter: brightness(.5) saturate(.8)`), der Gruß steht in heller Tinte. Der Eisvogel bleibt.
+- *Seitenleiste:* bleibt dunkel und unverändert; eine Haarlinie (`--nordic-nav-glanz`) trennt sie vom dunklen Grund.
+- *Karte (Leaflet):* Die Kacheln bleiben, wie OpenStreetMap sie liefert, und werden im Dunkeln nur gedämpft; Knöpfe,
+  Quellenzeile und Namensschild in den Flächen der App. Die Punkte (`--g-ort*`) stehen auf den hellen Kacheln und
+  bleiben deshalb gleich.
+- *Mailinhalt:* Kingfisher zeigt Mails als Text in den Flächen der App, nicht als HTML; im Dunkeln ist er helle Tinte
+  auf dunkler Fläche. Sollte HTML je gezeigt werden, dann auf einer eigenen hellen Fläche.
+- *Kalenderfarben:* sieben Rollen `--g-kal-farbe-1 … 7`, `calendarColor()` liefert `var(--g-kal-farbe-N)`; dunkel
+  heller, mindestens 3:1 auf der Fläche.
+- *Schalter:* grau aus, Akzent an, der Knopf bleibt weiß. *Fokus:* 2 px in der Auswahlkante. *Bilder* (Eisvogel,
+  Landschaft, Logo, Symbole) bleiben, wie sie freigegeben sind.
+
+**Ausnahmen** (in `tests/farbrollen.test.mjs`): Masken (`mask-image`) nutzen nur die Deckkraft; `leaflet.css` aus dem
+Paket wird überschrieben, nicht geändert; die Fensterleiste (`theme-color` in `index.html`) trägt die Farbe der
+Navigation.
 
 ## Wo der Grundsatz vorgeht
 

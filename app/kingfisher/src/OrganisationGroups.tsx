@@ -7,6 +7,7 @@ import {organisationSuggestionsApi,type OrganisationSnapshot,type OrganisationSu
 import {workspaceProfileHref} from './WorkspaceMemoryModel';
 import {MemoryAvatarEditor} from './MemoryAvatar';
 import './WorkspaceMemoryDetails.css';
+import {zeigeHinweis} from './grundlage';
 export type OrganisationEntry={id:string;name:string};
 export function OrganisationGroups({entries}: {entries:OrganisationEntry[]}) {
   const restored=useRef(readMemoryViewPosition()?.organisations);
@@ -89,12 +90,12 @@ export function OrganisationGroups({entries}: {entries:OrganisationEntry[]}) {
   }
   const currentGroup=previewBasis.current?.groups.find(group=>group.id===previewRequest.current?.group_id);
   const visibleEntries=allEntries.filter(entry=>entry.name.toLocaleLowerCase().includes(memberSearch.toLocaleLowerCase()));
-  return <section className="memory-view-panel" aria-label="Organisationsgruppen"><h2>Gemeinsame Ansichten</h2>
-    <p>Anzeigegruppen fassen Einzelakten für die Ansicht zusammen. Einzelakten, Rechnungsaussteller und rechtliche Absender bleiben einzeln erreichbar. Ein Vorschlag ist kein Nachweis gleicher Rechtsperson oder Konzernzugehörigkeit.</p>
+  // Als Gruppe der Grundlage: Überschrift klein, Inhalt in der Fläche, der eine nötige Satz als Fußnote.
+  return <section className="memory-view-panel gd-karte g-gruppe" aria-label="Organisationsgruppen"><div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">Gemeinsame Ansichten</h2></div><div className="g-flaeche g-flaeche-frei">
     {(error||basisError)&&<p role="alert">Organisationsstand nicht erreichbar. <button type="button" disabled={busy||reviewLoading} onClick={()=>{void loadBasis(true);void refresh();}}>Aktuellen Stand laden</button></p>}
     {!snapshot&&!basisError&&<p role="status">Organisationsvorschläge werden aus dem gespeicherten Bestand vorbereitet …</p>}
-    {snapshot&&<p>{snapshot.total} Organisationen im vollständigen aktuellen Bestand. Vorschläge beruhen ausschließlich auf lokalen Namensregeln.</p>}
-    {snapshot?.suggestions.map(value=><section key={value.id} className="memory-view-preview" aria-label={`Vorschlag ${value.name}`}><h3>Anzeigegruppe {value.name}</h3><p>{value.reason}</p><ul>{value.members.map(id=><li key={id}>{label(id)}</li>)}</ul><div className="memory-view-actions"><button type="button" disabled={!canReview} onClick={()=>chooseSuggestion(value)}>Vorschlag bearbeiten</button><button type="button" disabled={!canReview} onClick={()=>void action(()=>organisationSuggestionsApi.dismiss(value.id,{source_revision:snapshot.source_revision,groups_revision:snapshot.groups_revision}),'Vorschlag abgelehnt.')}>Vorschlag ablehnen</button></div></section>)}
+    {snapshot&&<p>{snapshot.total} Organisationen · Vorschläge nur aus lokalen Namensregeln.</p>}
+    {snapshot?.suggestions.map(value=><section key={value.id} className="memory-view-preview" aria-label={`Vorschlag ${value.name}`}><h3>Anzeigegruppe {value.name}</h3><p>{value.reason}</p><ul>{value.members.map(id=><li key={id}>{label(id)}</li>)}</ul><div className="memory-view-actions"><button type="button" disabled={!canReview} onClick={()=>chooseSuggestion(value)}>Vorschlag bearbeiten</button><button type="button" disabled={!canReview} onClick={()=>void action(async()=>{const abgelehnt=await organisationSuggestionsApi.dismiss(value.id,{source_revision:snapshot.source_revision,groups_revision:snapshot.groups_revision});zeigeHinweis({text:'Vorschlag abgelehnt.',rueckgaengig:async()=>{await organisationSuggestionsApi.undoDismissal(value.id,abgelehnt.revision);await loadBasis();await refresh();return 'Ablehnung zurückgenommen.';}});},'')}>Vorschlag ablehnen</button></div></section>)}
     {snapshot&&!snapshot.suggestions.length&&<p>Keine offenen Gruppenvorschläge nach diesen konservativen Namensregeln.</p>}
     {groups.map(group=><details key={group.id} onToggle={event=>{const open=event.currentTarget.open;setOpenGroups(current=>open?[...new Set([...current,group.id])]:current.filter(id=>id!==group.id));}}><summary>{group.data!.name} · {group.data!.members.length} Einzelakten</summary>{openGroups.includes(group.id)&&<MemoryAvatarEditor id={`organisation-group:${group.id}`} label={group.data!.name} logo/>}<ul>{group.data!.members.map(id=><li key={id}><MemoryEntityLink href={workspaceProfileHref(id,'organizations',window.location?.search??'')}>{label(id)}</MemoryEntityLink></li>)}</ul><div className="memory-view-actions"><button type="button" disabled={!canReview} onClick={()=>{editingRevision.current=group.revision;setEditing(group.id);setCandidate(null);setManualDraft(false);setName(group.data!.name);setMembers([...group.data!.members]);setMemberSearch('');invalidatePreview();}}>Gruppe bearbeiten</button><button type="button" disabled={busy} onClick={()=>void action(()=>workspaceViewApi.undo('organisation_group',group.id,group.revision),'Vorherige Gruppenansicht wiederhergestellt.',editing===group.id)}>Gruppierung rückgängig</button></div></details>)}
     {!!snapshot?.dismissals.length&&<details><summary>Abgelehnte Vorschläge ({snapshot.dismissals.length})</summary>{snapshot.dismissals.map(record=><p key={record.id}>Abgelehnter Namensvorschlag: {record.name??'nicht mehr im aktuellen Bestand'} <button type="button" disabled={busy} onClick={()=>void action(()=>organisationSuggestionsApi.undoDismissal(record.id,record.revision),'Ablehnung zurückgenommen.')}>Ablehnung rückgängig</button></p>)}</details>}
@@ -112,5 +113,5 @@ export function OrganisationGroups({entries}: {entries:OrganisationEntry[]}) {
       {(editing||candidate||manualDraft)&&<button type="button" disabled={busy} onClick={finish}>Bearbeitung beenden</button>}
     </details>}
     {message&&<p role="status">{message} {message.startsWith('Nicht gespeichert')&&<button type="button" disabled={busy||reviewLoading} onClick={()=>void loadBasis(true)}>Aktuellen Stand laden</button>}</p>}
-  </section>;
+  </div><p className="g-gruppe-fussnote">Gruppen fassen Akten nur für die Ansicht zusammen; jede Akte bleibt einzeln erreichbar. Ein Vorschlag ist kein Nachweis gleicher Rechtsperson.</p></section>;
 }

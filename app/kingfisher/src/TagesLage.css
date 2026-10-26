@@ -9,18 +9,18 @@
 .tageslage-termin p { font-weight: 500; }
 .tageslage-aktionen { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 20px; }
 .tageslage-aktionen .task-source { display: contents; }
-.tageslage-aktionen .task-source > section { flex: 1 1 100%; min-width: 0; margin-top: 8px; padding: 12px 16px; border: 1px solid var(--today-line); border-radius: 10px; background: #f6faf8; font-size: 14px; line-height: 1.6; }
-.tageslage-aktionen .quiet-source-toggle, .tageslage-knopf { min-height: 32px; padding: 0; border: 0; background: transparent; color: var(--today-link); font: 500 13px/1.5 'Inter', sans-serif; cursor: pointer; }
+.tageslage-aktionen .task-source > section { flex: 1 1 100%; min-width: 0; margin-top: 8px; padding: 12px 16px; border: 1px solid var(--today-line); border-radius: 10px; background: var(--kf-flaeche-f6faf8); font-size: 14px; line-height: 1.6; }
+.tageslage-aktionen .quiet-source-toggle, .tageslage-knopf { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--today-link); font: 500 14px/1.4 var(--g-schrift); text-decoration: none; opacity: 1; cursor: pointer; }
 .tageslage-aktionen .quiet-source-toggle:hover, .tageslage-knopf:hover { text-decoration: underline; text-underline-offset: 4px; }
 .tageslage-knopf { display: inline-flex; align-items: center; gap: 9px; }
-.tageslage-frage { margin: 8px 0 4px; padding: 14px 16px; border: 1px solid var(--today-line); border-radius: 10px; background: #f6faf8; }
+.tageslage-frage { margin: 8px 0 4px; padding: 14px 16px; border: 1px solid var(--today-line); border-radius: 10px; background: var(--kf-flaeche-f6faf8); }
 .tageslage-frage p, .tageslage-frage label { margin: 0 0 10px; display: block; font-size: 14px; line-height: 1.6; }
 .tageslage-frage div { display: flex; flex-wrap: wrap; gap: 10px; }
-.tageslage-frage input { flex: 1 1 260px; min-height: 40px; padding: 0 12px; border: 1px solid #b9c7c4; border-radius: 8px; background: #fffefa; color: var(--today-ink); font: 400 14px 'Inter', sans-serif; }
+.tageslage-frage input { flex: 1 1 260px; min-height: 40px; padding: 0 12px; border: 1px solid var(--calm-feldkante); border-radius: 8px; background: var(--kf-flaeche-fffefa); color: var(--today-ink); font: 400 14px 'Inter', sans-serif; }
 .tageslage-hinweis { margin: 10px 0 0; color: var(--today-muted); font-size: 13px; line-height: 1.6; }
 
 /* Vorbereitung eines Termins */
-.vorbereitung { margin-top: 14px; padding: 18px 20px; border: 1px solid var(--today-line); border-radius: 12px; background: #fbfdfc; }
+.vorbereitung { margin-top: 14px; padding: 18px 20px; border: 1px solid var(--today-line); border-radius: 12px; background: var(--kf-flaeche-fbfdfc); }
 .vorbereitung-kopfzeile h3 { margin: 0; font: 600 20px/1.4 'Inter', sans-serif; letter-spacing: -.3px; }
 .vorbereitung-kopfzeile p { margin: 2px 0 0; color: var(--today-muted); font-size: 14px; }
 .vorbereitung-person { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--today-line); }
@@ -33,7 +33,7 @@
 .vorbereitung-zeile { padding: 6px 0 8px; }
 .vorbereitung-zeile + .vorbereitung-zeile { border-top: 1px dotted var(--today-line); }
 .vorbereitung-kopf { display: block; margin-bottom: 2px; color: var(--today-link); font-size: 12px; font-weight: 600; }
-.vorbereitung blockquote { margin: 0; padding-left: 12px; border-left: 2px solid #b9c7c4; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.vorbereitung blockquote { margin: 0; padding-left: 12px; border-left: 2px solid var(--calm-feldkante); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .vorbereitung-beleg, .vorbereitung-leer { margin: 3px 0 0; color: var(--today-muted); font-size: 12.5px; line-height: 1.5; }
 .vorbereitung .task-source { display: block; }
 .vorbereitung .quiet-source-toggle { min-height: 30px; padding: 0; border: 0; background: transparent; color: var(--today-link); font: 500 12.5px 'Inter', sans-serif; cursor: pointer; }

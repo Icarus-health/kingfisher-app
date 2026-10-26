@@ -69,20 +69,20 @@ export function ConversationNavigation({activeId, revision, onSelect, onCreate}:
     try { await onCreate(); } catch { setCreateError(true); } finally { setCreating(false); }
   }
   return <nav className="conversation-navigation" aria-label="Gespräche">
-    <header><strong>Gespräche</strong><button className="conversation-new" type="button" disabled={creating} onClick={create}><InterfaceIcon name="plus" />Neues Gespräch</button></header>
+    <header><strong>Gespräche</strong><button className="conversation-new" type="button" aria-label="Neues Gespräch" title="Neues Gespräch" disabled={creating} onClick={create}><InterfaceIcon name="plus" /></button></header>
     <label className="conversation-nav-search"><InterfaceIcon name="search" /><input aria-label="Gespräche durchsuchen" placeholder="Titel oder Inhalt suchen …" maxLength={200} value={query} onChange={event => {
       ++request.current; abort.current?.abort(); lastQuery = event.target.value; setQuery(event.target.value);
     }} /></label>
     <div ref={list} className="conversation-nav-list" aria-busy={loading} onScroll={event=>{const saved=savedViews.get(query);if(saved) savedViews.set(query,{...saved,scroll:event.currentTarget.scrollTop});}}>
       {items.map(item => <button className="conversation-nav-item" type="button" aria-current={item.id === activeId ? 'page' : undefined} key={item.id} onClick={() => onSelect(item.id)}>
-        <strong>{item.title}</strong>{item.preview && <span>{item.preview}</span>}<small>{new Date(item.updated_at).toLocaleDateString('de-DE', {day: '2-digit', month: 'short'})} · {item.message_count} Nachrichten</small>
+        <span className="conversation-nav-kopf"><strong>{item.title}</strong><small title={`${item.message_count} Nachrichten`}>{new Date(item.updated_at).toLocaleDateString('de-DE', {day: 'numeric', month: 'short'})}</small></span>{item.preview && <span>{item.preview}</span>}
       </button>)}
-      {loading && <p role="status">Gespräche werden geladen …</p>}
-      {error && <div role="alert"><p>Gespräche konnten nicht geladen werden.</p><button type="button" onClick={() => setReload(n => n + 1)}>Wiederholen</button></div>}
+      {loading && !items.length && <p role="status">Gespräche werden geladen …</p>}
+      {error && <div className="conversation-nav-fehler" role="alert"><p>Gespräche konnten nicht geladen werden.</p><button className="g-knopf-schlicht" type="button" onClick={() => setReload(n => n + 1)}>Wiederholen</button></div>}
       {!loading && !error && !items.length && <p>{query ? 'Kein Gespräch passt zur Suche.' : 'Hier erscheinen deine Gespräche.'}</p>}
       {cursor && !error && <button className="conversation-more" type="button" disabled={loading} onClick={() => load(true)}>Weitere Gespräche</button>}
     </div>
-    {!loading && items.length > 0 && <small className="conversation-nav-count">{items.length} von {total} Gesprächen</small>}
+    {!loading && items.length > 0 && total > items.length && <small className="conversation-nav-count">{items.length} von {total} Gesprächen</small>}
     {createError && <p role="alert">Das neue Gespräch konnte nicht angelegt werden. Bitte erneut versuchen.</p>}
   </nav>;
 }

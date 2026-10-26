@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {Zeile} from './grundlage';
 import {api,type Task} from './api';
 import {TaskPager,initialTaskPage,type TaskPageState} from './taskPager';
 import {projectColumns} from './taskWorkspaceModel';
@@ -18,11 +19,12 @@ function BoardColumn({view,projectId,revision,onTask}: {view:'mine'|'waiting'|'d
   const tasks=page.selectionKey===key ? page.tasks : null;
   const index=view==='mine'?0:view==='waiting'?1:2;
   const column=projectColumns(tasks??[])[index];
-  return <div className="workspace-board-column"><h3>{column.label} {tasks && <small>{page.total}</small>}</h3>
-    {page.loading && <p role="status">Wird geladen …</p>}{page.error && <p role="alert">{page.error}<button onClick={()=>void pager.current!.refresh()}>Erneut laden</button></p>}
-    {column.items.map(task=><button key={task.id} className="workspace-board-task" type="button" onClick={()=>onTask(task)}><strong>{task.title}</strong>{task.wartet_auf && <span>Wartet auf {task.wartet_auf}</span>}{task.due && <time dateTime={task.due}>{new Date(task.due).toLocaleDateString('de-DE')}</time>}</button>)}
-    {tasks?.length===0 && <p>Keine Aufgaben</p>}
-    {tasks && <small>{tasks.length} von {page.total} · Seite {page.page}</small>}
-    {(page.canNext||page.canPrevious) && <nav aria-label={`${column.label}: Seiten`}><button disabled={!page.canPrevious} onClick={()=>void pager.current!.previous()}>Zurück</button><button disabled={!page.canNext} onClick={()=>void pager.current!.next()}>Weitere</button></nav>}
-  </div>;
+  // Eine Spalte ist eine Gruppe: klein der Name mit Zahl, darunter eine Fläche mit ganzen, klickbaren Zeilen.
+  return <section className="workspace-board-column g-gruppe" aria-label={column.label}><h3 className="g-gruppe-titel">{column.label} {tasks && page.total > 0 && <small>{page.total}</small>}</h3>
+    {page.loading && <p className="workspace-board-satz" role="status">Wird geladen …</p>}{page.error && <p className="workspace-board-satz" role="alert">{page.error} <button type="button" className="text-action" onClick={()=>void pager.current!.refresh()}>Erneut laden</button></p>}
+    {column.items.length > 0 && <div className="g-flaeche">{column.items.map(task=><Zeile key={task.id} className="workspace-board-task" onClick={()=>onTask(task)} titel={task.title} neben={task.wartet_auf ? `Wartet auf ${task.wartet_auf}` : undefined} wert={task.due ? new Date(task.due).toLocaleDateString('de-DE', {day: 'numeric', month: 'short'}) : undefined} wertZeit={task.due ?? undefined} />)}</div>}
+    {tasks?.length===0 && <p className="workspace-board-satz">Keine Aufgaben</p>}
+    {tasks && (page.canNext || page.canPrevious) && <p className="workspace-board-satz">{tasks.length} von {page.total} · Seite {page.page}</p>}
+    {(page.canNext||page.canPrevious) && <nav className="workspace-board-seiten" aria-label={`${column.label}: Seiten`}><button type="button" className="g-knopf-getoent g-kompakt" disabled={!page.canPrevious} onClick={()=>void pager.current!.previous()}>Zurück</button><button type="button" className="g-knopf-getoent g-kompakt" disabled={!page.canNext} onClick={()=>void pager.current!.next()}>Weitere</button></nav>}
+  </section>;
 }

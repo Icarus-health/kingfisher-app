@@ -41,7 +41,9 @@ function SourceEvidence({source}: {source: MemoryQuestion["candidates"][number][
 }
 
 /** Source-current, explicit decisions about durable knowledge conflicts. */
-export function KnowledgeQuestions({active, compact = false, onChanged}: {active: boolean; compact?: boolean; onChanged?: () => void}) {
+export function KnowledgeQuestions({active, compact = false, onChanged, leerAusblenden = false, onLeer}: {active: boolean; compact?: boolean; onChanged?: () => void;
+  /** Ohne offene Klärung nichts zeigen (Prüfen-Seite); `onLeer` meldet, ob der Abschnitt gerade leer ist. */
+  leerAusblenden?: boolean; onLeer?: (leer: boolean) => void}) {
   const [questions, setQuestions] = useState<MemoryQuestion[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -134,13 +136,16 @@ export function KnowledgeQuestions({active, compact = false, onChanged}: {active
     }
   }
 
+  const leer = questions?.length === 0 && !truncated && !loading && !loadError && !actionError && !notice && !pendingQuestion;
+  useEffect(() => { onLeer?.(leer); }, [leer, onLeer]);
   if (!active) return null;
+  if ((compact || leerAusblenden) && leer) return null;
   if (compact && questions?.length === 0 && !truncated && !loading && !loadError && !actionError && !notice && !pendingQuestion) return null;
   const displayed = visibleMemoryQuestions(questions ?? [], visibleLimit);
   const total = Math.min(questions?.length ?? 0, MAX_QUESTIONS);
   return <section className="task-source knowledge-questions" aria-label="Wissensklärungen">
     <h2>Wissensklärungen</h2>
-    {!compact && <p>Widersprüchliche Angaben bleiben offen, bis du eine ausdrücklich bestätigst oder eine bestehende bestätigte Angabe beibehältst.</p>}
+    {!compact && <p className="g-fussnote">Widersprüchliche Angaben bleiben offen, bis du eine bestätigst oder die bisherige beibehältst.</p>}
     {loading && questions === null && <p role="status">Wissensklärungen werden geladen …</p>}
     {loadError && <p role="alert">{loadError} <button type="button" className="secondary-action" onClick={() => setRevision(value => value + 1)}>Erneut laden</button></p>}
     {actionError && <p role="alert">{actionError}</p>}
@@ -159,7 +164,7 @@ export function KnowledgeQuestions({active, compact = false, onChanged}: {active
           <p>Zuordnung: {question.subject_ref}</p>
           {question.scope_ref ? <p>Kontextkennung: {question.scope_ref}</p> : null}
         </details>
-        <button type="button" className="primary-action" disabled={pendingQuestion !== null || loading}
+        <button type="button" className="g-knopf-getoent" disabled={pendingQuestion !== null || loading}
           onClick={() => void decide(question, candidate.id)}>
           {pendingQuestion === question.id ? "Wird gespeichert …" : "Diese Angabe bestätigen"}
         </button>
@@ -172,7 +177,7 @@ export function KnowledgeQuestions({active, compact = false, onChanged}: {active
         <p>Diese Angabe bleibt als bestätigtes Wissen bestehen; die neuen Vorschläge werden verworfen.</p>
         {claim.sources.map(source => <SourceEvidence key={`${source.episode_id}:${source.quote}`} source={source} />)}
       </section>)}
-      {canKeepCurrent(question) && <button type="button" className="secondary-action" disabled={pendingQuestion !== null || loading}
+      {canKeepCurrent(question) && <button type="button" className="g-knopf-schlicht" disabled={pendingQuestion !== null || loading}
         onClick={() => void decide(question, null)}>
         {pendingQuestion === question.id ? "Wird gespeichert …" : "Bestätigte Angabe beibehalten"}
       </button>}

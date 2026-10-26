@@ -38,8 +38,9 @@ export function MicrosoftZugang({ aktiv, beiAenderung }: { aktiv: boolean; beiAe
 
   const liste = konten?.konten ?? [];
   return <section className="source-section ms-zugang" aria-label="Microsoft 365">
-    <h2>Microsoft 365</h2>
-    <p className="source-hint">Outlook, Kalender und Teams-Mitschriften</p>
+    <div className="compact-integration-heading"><div><h2>Microsoft 365</h2>
+      <p className="source-hint">Outlook, Kalender und Teams-Mitschriften</p></div>
+      {neu ? null : <button type="button" className="g-knopf-getoent" onClick={() => setNeu(true)}>{liste.length ? "Weiteres Microsoft-Konto anmelden" : "Mit Microsoft anmelden"}</button>}</div>
     {liste.map(konto => <div key={konto.adresse} className="ms-konto">
       <strong>{konto.adresse}</strong>
       <span className="source-hint">{konto.verbunden ? [konto.post ? "Post" : "", konto.kalender ? "Kalender" : "", konto.mitschriften ? "Teams-Mitschriften" : ""].filter(Boolean).join(", ") + " · nur lesen" : konto.satz}</span>
@@ -53,7 +54,7 @@ export function MicrosoftZugang({ aktiv, beiAenderung }: { aktiv: boolean; beiAe
         <button type="button" className="text-action" disabled={holt} onClick={() => void nachsehen()}>{holt ? "Sieht nach …" : "Jetzt nachsehen"}</button>
       </> : null}
     </div>)}
-    {neu ? <MicrosoftAnmeldung beiVerbunden={verbunden} /> : <button type="button" className="secondary-action" onClick={() => setNeu(true)}>{liste.length ? "Weiteres Microsoft-Konto anmelden" : "Mit Microsoft anmelden"}</button>}
+    {neu ? <MicrosoftAnmeldung beiVerbunden={verbunden} /> : null}
     <details className="quiet-details"><summary>Was wird verbunden?</summary><p className="source-hint">{SAETZE.bleibt}</p></details>
     {satz ? <p role="status">{satz}</p> : null}
   </section>;

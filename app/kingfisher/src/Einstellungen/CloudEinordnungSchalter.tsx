@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Schalter } from "../grundlage";
 import { api, ApiError, type ModelRoles } from "../api";
 import { listenForCloudAccessChange } from "../cloudAccessEvents";
 import { WIEDER_LOKAL, einschaltenMoeglich, frageArt, hintergrundZeile, statusSatz, zustimmungsSatz } from "./cloudEinordnung";
@@ -77,9 +78,7 @@ export function CloudEinordnungSchalter() {
 
   return <section className="darf-zeile" aria-label={SCHALTER.cloud_einordnung.titel}>
     {geladenFehler ? <p role="alert" className="settings-error">Der Stand konnte gerade nicht gelesen werden.</p> : !rollen ? <p>Wird geladen …</p> : !zeile || !stand ? null : <>
-      <label className="welt-schalter"><input type="checkbox" role="switch" checked={an || frage} disabled={arbeitet}
-        onChange={event => umschalten(event.target.checked)} />
-        <span><strong>{SCHALTER.cloud_einordnung.titel}</strong><small>{SCHALTER.cloud_einordnung.verlaesst}</small></span></label>
+      <Schalter className="welt-schalter" titel={SCHALTER.cloud_einordnung.titel} satz={SCHALTER.cloud_einordnung.verlaesst} an={an || frage} deaktiviert={arbeitet} onWechsel={umschalten} />
       {an && <p className="source-hint" role="status">{statusSatz(stand)}</p>}
       {frage && !an && (frageArt(stand) === "ohne_zugang"
         ? <div className="darf-frage" role="group" aria-label="Cloud-Einordnung einschalten">

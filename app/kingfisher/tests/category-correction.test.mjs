@@ -28,6 +28,9 @@ function nodes(node,type,out=[]){if(!node||typeof node!=='object')return out;
   for(const child of [node.props?.children].flat(10))nodes(child,type,out);
   return out;}
 function button(tree,label){return nodes(tree,'button').find(x=>[x.props.children].flat(5).join('')===label);}
+// Die Bereiche stehen seit der Grundlage vom 23.10. im Baustein `Segmente`: gewählt wird über `onWahl`.
+function segment(tree,label){const alle=[];(function walk(n){if(!n||typeof n!=='object')return;if(n.props?.optionen&&n.props?.onWahl)alle.push(n);for(const c of [n.props?.children].flat(10))walk(c);})(tree);
+  for(const l of alle){const o=l.props.optionen.find(x=>x.titel===label);if(o)return {props:{onClick:()=>l.props.onWahl(o.wert)}};}return undefined;}
 async function driver(props, componentName='CategoryCorrection'){
   assert.ok(existsSync(new URL(`../src/${componentName}.tsx`,import.meta.url)),
     'the source overview needs a direct, explicit category feedback control');
@@ -153,7 +156,7 @@ test('save completed after navigation refreshes the newly selected area without 
   try{
     d.render();d.runEffects();await tick();d.render();d.runEffects();
     const write=api.correctSourceCategories('one',['information'],'a'.repeat(64));
-    button(d.render(),'Finanzen & Verträge').props.onClick();
+    segment(d.render(),'Finanzen & Verträge').props.onClick();
     d.render();d.runEffects();await tick();d.render();d.runEffects();
     assert.deepEqual(reads,['work','finance']);
     finish();await write;await tick();

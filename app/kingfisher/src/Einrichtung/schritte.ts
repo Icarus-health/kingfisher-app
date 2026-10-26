@@ -63,6 +63,33 @@ export function schrittZaehler(id: EinrichtungSchritt, stand?: EinrichtungStand 
   return index < 0 ? null : {nummer: index + 1, gesamt: liste.length};
 }
 
+export type NamensVorschlag = NonNullable<EinrichtungStand["name_vorschlag"]>;
+
+// Ein Name, den Kingfisher selbst gefunden hat (eigene Mails, Benutzerkonto, Umgebung; sidecar `name_vorschlag.py`).
+// Nur solange noch keiner gespeichert ist: Dann fragt der erste Schritt nicht „Wie heißt du?“, sondern bietet ihn an.
+export function namensVorschlag(stand: Pick<EinrichtungStand, "name" | "name_vorschlag">): NamensVorschlag | null {
+  const vorschlag = stand.name_vorschlag;
+  return !stand.name.trim() && vorschlag && vorschlag.vorname.trim() ? vorschlag : null;
+}
+
+// Was im Feld steht, wenn der Schritt aufgeht: der gespeicherte Name, sonst der Vorschlag. Gespeichert wird er erst mit
+// „Weiter“; ein unberührter Vorschlag ist kein Entwurf und geht auch mit „Später weitermachen“ nicht in den Bestand.
+export const namensStart = (stand: Pick<EinrichtungStand, "name" | "name_vorschlag">) =>
+  stand.name || namensVorschlag(stand)?.vorname || "";
+
+// Die Überschrift eines Schritts; beim Namen mit Vorschlag „Hallo Lea.“ statt der Frage.
+export function schrittTitel(id: EinrichtungSchritt, stand?: Pick<EinrichtungStand, "name" | "name_vorschlag"> | null): string {
+  const vorschlag = id === "name" && stand ? namensVorschlag(stand) : null;
+  return vorschlag ? `Hallo ${vorschlag.vorname.trim()}.` : SCHRITTE.find(schritt => schritt.id === id)?.titel ?? "";
+}
+
+// Woher der Vorschlag stammt, in einem Satz unter dem Feld ({Rechner} setzt `fuerSystem` ein).
+export const VORSCHLAG_HERKUNFT: Record<NamensVorschlag["quelle"], string> = {
+  postfach: "Aus deinem Postfach.",
+  rechner: "Aus deinem Benutzerkonto auf diesem {Rechner}.",
+  umgebung: "So steht er in der Einrichtung von Kingfisher.",
+};
+
 // Der getippte, noch nicht gespeicherte Name als Änderung für „Später weitermachen“; nichts, wenn er schon so gilt.
 export function namensEntwurf(getippt: string, gespeichert: string): EinrichtungAenderung | null {
   const name = getippt.trim();

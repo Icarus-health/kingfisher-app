@@ -939,6 +939,8 @@ class EpisodeStore:
         self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._lock = threading.RLock()
+        from .zwischenspeicher import Zwischenspeicher
+        self._teilnehmer_zwischen = Zwischenspeicher(16)
         try:
             with self._lock:
                 run_migrations(
@@ -1585,6 +1587,28 @@ class EpisodeStore:
                     return found[:limit], True
         return found, False
 
+    def eigene_absendernamen(self, limit: int = 200) -> list[str]:
+        """Die Anzeigenamen im Absender eigener Mails (Kontakt `von` mit `ich`), jüngste zuerst, höchstens `limit`.
+
+        Für den Namensvorschlag im Assistenten (`name_vorschlag.py`). Nur geltende Fassungen; Mails ohne Namen im
+        Absender zählen nicht mit. Die Datenbank wählt aus, Python liest nur die Kontakte der gefundenen Zeilen.
+        """
+        von_ich = ("EXISTS (SELECT 1 FROM json_each(episodes.document, '$.contacts') c "
+                   "WHERE json_extract(c.value, '$.rolle') = 'von' AND json_extract(c.value, '$.ich') "
+                   "AND COALESCE(json_extract(c.value, '$.name'), '') != '')")
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT json_extract(document, '$.contacts') FROM episodes WHERE kind = ? AND {sql_aktuell()} "
+                f"AND {von_ich} ORDER BY COALESCE(occurred_at, recorded_at) DESC, id LIMIT ?",
+                (EpisodeKind.MESSAGE.value, max(0, int(limit)))).fetchall()
+        namen: list[str] = []
+        for (kontakte,) in rows:
+            for eintrag in json.loads(kontakte or '[]'):
+                if isinstance(eintrag, dict) and eintrag.get('rolle') == 'von' and eintrag.get('ich') and eintrag.get('name'):
+                    namen.append(str(eintrag['name']))
+                    break
+        return namen
+
     def gesendete_an(self, account_id: str | None, address: str, limit: int = 20) -> list[Episode]:
         """Eigene gesendete Mails an genau diese Adresse, jüngste zuerst (Stilprofil, Paket B5).
 
@@ -1799,21 +1823,40 @@ class EpisodeStore:
         Mailquellen. Die gespeicherten Beteiligten bleiben unverändert.
         """
         gesucht = sorted({mail_address(a) for a in addresses if mail_address(a)})
-        ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
         if not gesucht:
-            return ergebnis
+            return {}
+        # Zwischengespeichert am Stand der Datei (V7, Tempo): Briefing, Terminvorbereitung und Akten fragen dieselben
+        # Adressen immer wieder, und jeder Durchgang liest alle Quellen. Jeder Schreibvorgang macht den Eintrag ungültig.
+        from .zwischenspeicher import marke
+        return self._teilnehmer_zwischen.holen(
+            (marke(self._conn, self._lock), tuple(gesucht), anzeigenamen),
+            lambda: self._participants_for_addresses(gesucht, anzeigenamen=anzeigenamen))
+
+    def aenderungsmarke(self) -> tuple[int, int, int]:
+        """Stand der Datei für Zwischenspeicher: ändert sich mit jedem Schreibvorgang (`zwischenspeicher.marke`)."""
+        from .zwischenspeicher import marke
+        return marke(self._conn, self._lock)
+
+    def _participants_for_addresses(self, gesucht: list[str], *, anzeigenamen: bool) -> dict[str, dict[str, Any]]:
+        ergebnis: dict[str, dict[str, Any]] = {a: {'namen': {}, 'zuletzt': None, 'quellen': {}} for a in gesucht}
         muster = ['%' + a.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%' for a in gesucht]
         # In Paketen: Eine OR-Kette über tausende Adressen sprengt SQLite („Expression tree is too large“).
         # Eine Quelle, die mehrere Pakete trifft, zählt trotzdem nur einmal.
         rows: dict[str, tuple] = {}
         for start in range(0, len(muster), ADRESSEN_JE_ABFRAGE):
             teil = muster[start:start + ADRESSEN_JE_ABFRAGE]
-            bedingung = ' OR '.join("lower(json_extract(document, '$.participants')) LIKE ? ESCAPE '\\'" for _ in teil)
+            bedingung = ' OR '.join("klein LIKE ? ESCAPE '\\'" for _ in teil)
             with self._lock:
+                # Die Beteiligten je Quelle einmal lesen, nicht einmal je Adresse: In der Unterabfrage mit LIMIT
+                # rechnet SQLite `json_extract` nur einmal je Zeile (eingefaltet täte es das für jedes LIKE; bei
+                # hundert Adressen dauerte es dreimal so lange, V7).
                 for zeile in self._conn.execute(
-                        "SELECT id, json_extract(document, '$.participants'), COALESCE(occurred_at, recorded_at), project_id, "
-                        "json_extract(document, '$.provenance.source_type') "
-                        f"FROM episodes WHERE {sql_aktuell()} AND ({bedingung})", teil):
+                        "SELECT id, teilnehmer, zeit, project_id, art FROM ("
+                        "SELECT id, json_extract(document, '$.participants') AS teilnehmer, "
+                        "lower(json_extract(document, '$.participants')) AS klein, "
+                        "COALESCE(occurred_at, recorded_at) AS zeit, project_id, "
+                        "json_extract(document, '$.provenance.source_type') AS art "
+                        f"FROM episodes WHERE {sql_aktuell()} LIMIT -1) WHERE ({bedingung})", teil):
                     rows.setdefault(zeile[0], zeile)
         for episode_id, teilnehmer, zeit, projekt, art in rows.values():
             for wert in json.loads(teilnehmer or '[]'):
@@ -1822,9 +1865,14 @@ class EpisodeStore:
                     continue
                 eintrag = ergebnis[adresse]
                 name = str(wert).strip()
+                from .kontakte import anzeigename
+                lesbar = anzeigename(name, kopfzeile=art == "email")
                 if anzeigenamen:
-                    from .kontakte import anzeigename
-                    name = anzeigename(name, kopfzeile=art == "email") or adresse
+                    name = lesbar or adresse
+                else:
+                    # Die lesbare Form je gespeicherter Schreibweise, nur bei Mailquellen dekodiert (V6: „=?utf-8?q?…“
+                    # stand sonst im Briefing). Die Schreibweise selbst bleibt der Schlüssel.
+                    eintrag.setdefault('anzeige', {}).setdefault(name, lesbar)
                 eintrag['namen'][name] = eintrag['namen'].get(name, 0) + 1
                 eintrag['quellen'][episode_id] = projekt
                 if zeit and (eintrag['zuletzt'] is None or zeit > eintrag['zuletzt']):

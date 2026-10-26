@@ -47,7 +47,7 @@ def _dashboard(**teile):
 
 def test_briefing_nennt_eigene_quellen_nicht_als_relevante_nachrichten():
     bericht = lambda art, ref, titel: {'episode_id': titel, 'title': titel, 'kinds': ['commitment'],  # noqa: E731
-                                        'source_type': art, 'source_ref': ref}
+                                        'source_type': art, 'source_ref': ref, 'recorded_at': JETZT.isoformat()}
     ergebnis = compose(_dashboard(
         episodes={'pending': 4, 'neu_von_aussen': 0},
         working_memory={'items': [bericht('chat', 'conversation:c:message:m', 'Gesprächsquelle'),

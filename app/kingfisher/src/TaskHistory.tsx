@@ -25,9 +25,8 @@ export function TaskHistory({ taskId, revision }: { taskId: string; revision: st
     return () => { active = false; };
   }, [taskId, revision, open, retry]);
   return <div className="task-source">
-    <button type="button" className="secondary-action" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? "Verlauf schließen" : "Verlauf öffnen"}</button>
+    <button type="button" className="task-aufklapper" aria-expanded={open} onClick={() => setOpen(value => !value)}>Verlauf</button>
     {open && <section aria-label="Aufgabenverlauf">
-      <h3>Aufgabenverlauf</h3>
       {error ? <p role="alert">Der Verlauf ist gerade nicht erreichbar. <button type="button" onClick={() => setRetry(value => value + 1)}>Erneut versuchen</button></p> : !data ? <p role="status">Verlauf wird geladen …</p> : <>
         <p>{data.scope}</p>
         {data.items.length === 0 && <p>Keine Änderungen aufgezeichnet.</p>}

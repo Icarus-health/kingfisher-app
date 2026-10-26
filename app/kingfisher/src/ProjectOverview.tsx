@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {Zeile} from './grundlage';
 import {api, type ProjectTaskOverview, type Task} from './api';
 import './ProjectOverview.css';
 
@@ -15,7 +16,6 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
 }) {
   const [result,setResult] = useState<ProjectTaskOverview | null>(null);
   const [error,setError] = useState('');
-  const [refresh,setRefresh] = useState(0);
   useEffect(() => {
     let active = true;
     setResult(null); setError('');
@@ -23,29 +23,30 @@ export function ProjectOverview({projectId, revision, onView, onTask}: {
       if (active) setResult(value);
     }).catch(() => {if(active) setError('Der Projektüberblick ist gerade nicht erreichbar.');});
     return () => {active=false;};
-  }, [projectId,revision,refresh]);
+  }, [projectId,revision]);
   if (!projectId) return null;
   const data = result?.project_id === projectId ? result : null;
   function preview(tasks: Task[], view: 'mine' | 'waiting') {
-    return <ul>{tasks.map(task => <li key={task.id}>
-      <button type="button" className="project-task-link" onClick={() => onTask(task.id,view)}>{task.title}</button>
-      {view === 'waiting' && <small>Bei {task.wartet_auf}{task.wartet_tage !== null ? ` · seit ${task.wartet_tage} Tagen` : ''}</small>}
-      <time className={task.overdue ? 'overdue' : ''} dateTime={task.due ?? undefined}>{dateLabel(task.due)}</time>
-    </li>)}</ul>;
+    // Jede Aufgabe eine ganze, klickbare Zeile (Baustein-Klassen g-zeile), rechts die Fälligkeit.
+    return <div className="g-flaeche">{tasks.map(task => <Zeile key={task.id} className="project-task-link" onClick={() => onTask(task.id,view)} titel={task.title}
+      neben={view === 'waiting' ? `Bei ${task.wartet_auf}${task.wartet_tage !== null ? ` · seit ${task.wartet_tage} Tagen` : ''}` : undefined}
+      wert={dateLabel(task.due)} wertZeit={task.due ?? ''} wertKlasse={task.overdue ? 'overdue' : undefined} />)}</div>;
   }
-  return <section className="project-overview" aria-label="Projektüberblick">
-    <header><h2>Projekt auf einen Blick</h2><button type="button" className="text-action" onClick={() => setRefresh(n=>n+1)}>Überblick aktualisieren</button></header>
-    {error ? <p role="alert">{error}</p> : !data ? <p role="status">Projektüberblick wird geladen …</p> : <>
+  // Projekt auf einen Blick: drei Kacheln (offen, wartet, erledigt), jede öffnet die passende Liste; darunter leise die
+  // nächsten Schritte. Die Zahlen gelten für das ganze Projekt, unabhängig von der Suche.
+  return <section className="project-overview" aria-label="Projekt auf einen Blick">
+    {/* Kein eigener Knopf zum Aktualisieren: Der Überblick lädt nach jeder Änderung in der Liste neu (`revision`). */}
+    {error ? <p className="project-overview-satz" role="alert">{error}</p> : !data ? <p className="project-overview-satz" role="status">Projektüberblick wird geladen …</p> : <>
       <div className="project-counts">
-        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Meine offenen Aufgaben<small>{data.counts.overdue} überfällig · {data.counts.undated} ohne Termin</small></button>
-        <button type="button" onClick={()=>onView('waiting')}><strong>{data.counts.waiting}</strong>Warte auf andere</button>
-        <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigte Aufgaben<small>{data.counts.dropped} verworfen</small></button>
+        <button type="button" onClick={()=>onView('mine')}><strong>{data.counts.mine}</strong>Offen{(data.counts.overdue > 0 || data.counts.undated > 0) && <small>{[data.counts.overdue ? `${data.counts.overdue} überfällig` : '', data.counts.undated ? `${data.counts.undated} ohne Termin` : ''].filter(Boolean).join(' · ')}</small>}</button>
+        <button type="button" onClick={()=>onView('waiting')}><strong>{data.counts.waiting}</strong>Wartet</button>
+        <button type="button" onClick={()=>onView('done')}><strong>{data.counts.done}</strong>Erledigt{data.counts.dropped > 0 && <small>{data.counts.dropped} verworfen</small>}</button>
       </div>
-      <details className="quiet-details"><summary>Nächste Schritte & Projektstand</summary><div className="project-next">
-        <div><h3>Nächste eigene Aufgaben</h3><p className="project-overview-help">Früheste Fristen zuerst · bis zu drei Aufgaben</p>{data.next_tasks.length ? preview(data.next_tasks,'mine') : <p>Keine eigenen offenen Aufgaben.</p>}</div>
-        <div><h3>Wartende Punkte</h3><p className="project-overview-help">Am längsten wartende zuerst · bis zu drei Aufgaben</p>{data.waiting_tasks.length ? preview(data.waiting_tasks,'waiting') : <p>Keine wartenden Aufgaben.</p>}</div>
+      <details className="g-aufklapper project-next-details"><summary><span className="g-aufklapper-titel">Nächste Schritte</span></summary><div className="project-next">
+        <div><h3>Als Nächstes</h3>{data.next_tasks.length ? preview(data.next_tasks,'mine') : <p>Keine eigenen offenen Aufgaben.</p>}</div>
+        <div><h3>Wartet</h3>{data.waiting_tasks.length ? preview(data.waiting_tasks,'waiting') : <p>Keine wartenden Aufgaben.</p>}</div>
       </div>
-      <p className="project-overview-help">Gesamter Projektbestand · unabhängig von der Listensuche · Stand: <time dateTime={data.as_of}>{dateLabel(data.as_of)}</time></p></details>
+      <p className="project-overview-help">Je bis zu drei, früheste Frist und längste Wartezeit zuerst · ganzes Projekt, unabhängig von der Suche · Stand <time dateTime={data.as_of}>{dateLabel(data.as_of)}</time></p></details>
     </>}
   </section>;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Unterkopf } from "./grundlage";
 import { api, type MemoryAutomation, type MemoryCoverage, type MemoryTimeline } from "./api";
 import { ProfileSource } from "./ProfileSource";
 import { navigate } from "./ui";
@@ -243,7 +244,7 @@ export function MemoryStatus() {
   }
 
   return <section className="memory-status" aria-label="Verarbeitung und Verlauf">
-    <header><div><p className="eyebrow">GEDÄCHTNIS</p><h1>Verarbeitung & Verlauf</h1></div><button type="button" onClick={() => setRefresh(x => x + 1)}>Aktualisieren</button></header>
+    <Unterkopf titel="Verarbeitung & Verlauf" aktion={<button type="button" className="g-knopf-schlicht g-kompakt" onClick={() => setRefresh(x => x + 1)}>Aktualisieren</button>} />
     {coverageError && !coverage ? <p role="alert">Der Gedächtnisstand konnte nicht geladen werden. Bitte erneut aktualisieren.</p> : !coverage || !automation ? <p role="status">Gedächtnisstand wird geladen …</p> : <>
       <MemoryStatusOverview coverage={coverage} automation={automation} stale={coverageRefreshError} />
       <section className="memory-status-card"><h2>Was wurde geprüft?</h2>

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError, api, type SupportReassessmentPreview, type SupportReviewPage } from "./api";
 import { ProfileSource } from "./ProfileSource";
 import "./SelfModelSupportReview.css";
+import { Leer, Unterkopf } from "./grundlage";
 
 function date(value: string) {
   const parsed = new Date(value);
@@ -155,17 +156,13 @@ export function SelfModelSupportReview({onSubmittingChange}: {onSubmittingChange
   }
 
   return <section className="memory-status support-review" aria-label="Aussagen prüfen">
-    <header>
-      <div><p className="eyebrow">GEDÄCHTNIS</p><h1>Aussagen prüfen</h1>
-        <p className="support-review-intro">Hier prüfst du bestehende Aussagen und ihre Originalbelege einzeln für lokale Antworten. Die Prüfung ändert nicht, wann die Aussage fachlich galt.</p>
-      </div>
-      <button type="button" disabled={busy} onClick={refresh}>Aktualisieren</button>
-    </header>
+    <Unterkopf titel="Aussagen prüfen" zeile="Jede Aussage einzeln an ihren Originalbelegen; die Prüfung ändert nicht, wann sie galt."
+      aktion={<button type="button" className="g-knopf-schlicht g-kompakt" disabled={busy} onClick={refresh}>Aktualisieren</button>} />
     {message && <p className="support-review-message" role="status">{message}</p>}
     {warning && <p className="support-review-warning" role="alert">{warning}</p>}
     {listError ? <p role="alert">Die Aussagen konnten nicht geladen werden. Bitte erneut aktualisieren.</p> : null}
     {loading ? <p role="status">Aussagen werden geladen …</p> : null}
-    {!loading && page && page.items.length === 0 ? <p className="memory-status-card">Auf dieser Seite liegen keine Aussagen zur Prüfung vor.</p> : null}
+    {!loading && page && page.items.length === 0 ? <Leer zeichen="check" satz={pageIndex === 0 ? "Keine Aussagen zu prüfen." : "Auf dieser Seite liegen keine Aussagen zur Prüfung vor."} /> : null}
     {!loading && page ? <>
       <div className="support-review-list">
         {page.items.map(item => {
@@ -202,11 +199,11 @@ export function SelfModelSupportReview({onSubmittingChange}: {onSubmittingChange
         </article>;
         })}
       </div>
-      <nav className="support-review-pagination" aria-label="Weitere Aussagen">
+      {pageIndex > 0 || page.next_cursor ? <nav className="support-review-pagination directory-pagination" aria-label="Weitere Aussagen">
         <button type="button" disabled={pageIndex === 0 || loading || busy} onClick={previous}>Zurück</button>
         <span>Seite {pageIndex + 1}</span>
         <button type="button" disabled={!page.next_cursor || loading || busy} onClick={next}>Weiter</button>
-      </nav>
+      </nav> : null}
       {page.truncated && <p className="memory-status-note">Die Liste ist begrenzt. Weitere Aussagen können über „Weiter“ geladen werden.</p>}
     </> : null}
   </section>;

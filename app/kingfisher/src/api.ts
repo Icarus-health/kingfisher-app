@@ -21,6 +21,9 @@ export type Attention = {
   reason?: string;
   action?: string | null;
   review_required?: boolean;
+  /** Bei Aufgaben unter „Braucht dich“: die Aufgabe selbst (wie `/api/v1/tasks`) und ihr Projektname (V1). */
+  task?: Task | null;
+  project_name?: string | null;
 };
 
 export type CalendarItem = Attention & { time: string };
@@ -39,6 +42,8 @@ export type MorningBriefing = {
   happening_now: Attention[];
   working_memory_more?: boolean;
   later_today: CalendarItem[];
+  /** Der nächste Termin nach heute (bis eine Woche), für „Heute keine Termine. Nächster: …“ (Paket U, H8). */
+  naechster_termin?: { title: string; start: string; ganztags: boolean } | null;
   timeline: Array<{ id: string; label: string; icon: string; tone: string }>;
   weather: null | {
     location: string;
@@ -427,6 +432,8 @@ export type EinrichtungStand = {
   autostart_verfuegbar?: boolean;
   /** Name der Zeitzone, in der Uhrzeiten gelesen werden; nur zum Anzeigen. */
   zeitzone?: string;
+  /** Solange kein Name gespeichert ist: ein Name, den Kingfisher selbst gefunden hat; gespeichert erst nach dem Klick. */
+  name_vorschlag?: { name: string; vorname: string; quelle: "umgebung" | "postfach" | "rechner" } | null;
 };
 export type EinrichtungAenderung = {
   name?: string; abgeschlossen?: boolean; neu_beginnen?: boolean;
@@ -596,6 +603,9 @@ export type MemoryGraph = {
   authority: "projection";
   nodes: GraphNode[];
   edges: GraphEdge[];
+  /** Nur im Verzeichnis (`/api/v1/memory/verzeichnis`, V7): Personen und Projekte ohne Kanten, dafür das, was die
+   * Listen sonst aus den Kanten lesen. */
+  verzeichnis?: { hat_quellen: boolean; letzter_kontakt: Record<string, string> };
 };
 
 export type MemorySearchResult = {
@@ -1513,6 +1523,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ reason: "Im Gespräch ausdrücklich als falsch widerrufen." }) },
     ),
   memoryGraph: () => request<MemoryGraph>("/api/v1/memory/graph"),
+  memoryVerzeichnis: () => request<MemoryGraph>("/api/v1/memory/verzeichnis"),
   memorySearch: (q: string, signal?: AbortSignal) => request<MemorySearchResult>(`/api/v1/memory/search?${new URLSearchParams({q, limit: "20"})}`, {signal}),
   personMerges: () => request<{merges: PersonMerge[]}>("/api/v1/memory/person-merges"),
   previewPersonMerge: (member_ids: string[], label: string) => request<PersonMergePreview>("/api/v1/memory/person-merges/preview", {
@@ -1549,6 +1560,8 @@ export const api = {
   /** Private Art einer Akte (sidecar: akten_arten_routes.py). */
   aktenArt: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`),
   aktenArtBestaetigen: (sache: string, art: AktenArt) => request<ArtStand>("/api/v1/akten/art", { method: "PUT", body: JSON.stringify({ sache, art }) }),
+  // Die Gegenroute (für „Rückgängig“ im Hinweis): Danach gilt wieder der Vorschlag.
+  aktenArtZuruecknehmen: (sache: string) => request<ArtStand>(`/api/v1/akten/art?sache=${encodeURIComponent(sache)}`, { method: "DELETE" }),
   akte: (sache: string, alle = false) => request<Akte>(`/api/v1/akten/akte?sache=${encodeURIComponent(sache)}${alle ? "&alle=1" : ""}`),
   akteEntscheiden: (sache: string, ziel: string, entscheidung: AkteEntscheidung) => request<{ ziel: string; entscheidung: AkteEntscheidung; vorher: AkteEntscheidung | null }>("/api/v1/akten/entscheidung", { method: "PUT", body: JSON.stringify({ sache, ziel, entscheidung }) }),
   akteEntscheidungZuruecknehmen: (sache: string, ziel: string) => request<{ ziel: string; entscheidung: null }>(`/api/v1/akten/entscheidung?sache=${encodeURIComponent(sache)}&ziel=${encodeURIComponent(ziel)}`, { method: "DELETE" }),

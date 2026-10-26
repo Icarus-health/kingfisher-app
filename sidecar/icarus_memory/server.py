@@ -53,8 +53,8 @@ from .backup import (
 )
 from .update_backup import backup_before_update
 from . import (
-    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client, personen,
-    providers, suche, urteil, working_memory_semantic_runtime,
+    briefing, config, entscheidungen, goals, graph, identitaet, logbuch, mail_ingestion, mcp_client,
+    neu_eingegangen, personen, providers, suche, urteil, working_memory_semantic_runtime,
 )
 from .agent_verdrahtung import (
     _projekt_mappe, _project_directory, _search_calendar, baue_hintergrund, verdrahte_speicher,
@@ -3145,8 +3145,11 @@ def create_app(
                     vorbei = ende is not None and ende.tzinfo is not None and ende <= jetzt_utc
                     (vergangen if vorbei else kommend).append(item)
                 result["calendar"]["items"] = kommend
-                _vorbereiten(result["calendar"]["items"])
-                result["calendar"]["nachzubereiten"] = _nachzubereiten(vergangen, jetzt_utc)
+                # Ein Durchgang über den Bestand für die Namen aller Teilnehmer, kommend wie vergangen (V7: zwei
+                # Durchgänge kosteten beim ersten Aufruf je 0,4 s); beide Fassungen von Heute fragen dieselben Adressen.
+                index = _teilnehmer_index([a for item in alle for a in item.get("attendees") or ()])
+                _vorbereiten(result["calendar"]["items"], index=index)
+                result["calendar"]["nachzubereiten"] = _nachzubereiten(vergangen, jetzt_utc, index=index)
                 errors = list(getattr(calendar, "last_errors", {}).values())
                 if errors:
                     result["calendar"]["error"] = "Einige Kalender sind gerade nicht verfügbar: " + "; ".join(str(error) for error in errors)
@@ -3204,8 +3207,10 @@ def create_app(
             counts = app.state.episodes.counts()
             result["episodes"] = {
                 "pending": counts.get("new", 0),
-                # Für „Relevante Nachrichten“: nur, was von anderen kam (Fremdprobe 2, Befund 22).
-                "neu_von_aussen": app.state.episodes.neue_von_aussen(),
+                # Für „Neu eingegangen“: nur, was von anderen kam (Fremdprobe 2, Befund 22) und wirklich neu ist,
+                # nicht der Altbestand aus dem ersten Einlesen (V1, `neu_eingegangen.py`).
+                "neu_von_aussen": neu_eingegangen.anzahl_neu_von_aussen(
+                    app.state.episodes, jetzt=briefing_now or datetime.now().astimezone()),
                 "counts": counts,
                 "error": None,
             }
@@ -3236,10 +3241,12 @@ def create_app(
             result["task_candidates"] = {"pending": 0, "items": [], "error": str(exc)}
 
         # „Neue Akte?“: höchstens ein erwähntes, noch nicht angelegtes Projekt, mit Grund (akten_vorschlaege.py).
-        # Ein Vorschlag, keine Akte: angelegt wird erst mit dem Klick.
+        # Ein Vorschlag, keine Akte: angelegt wird erst mit dem Klick. Die schnelle Fassung (`post=false`) lässt ihn
+        # aus, er kommt mit der vollen: Er führt die Bezüge nach und braucht deren Verzeichnis (V7, Tempo).
         try:
             from .akten_vorschlaege_routes import fuer_briefing as akten_vorschlag_fuer_briefing
-            result["akten_vorschlaege"] = akten_vorschlag_fuer_briefing(app)
+            result["akten_vorschlaege"] = (akten_vorschlag_fuer_briefing(app) if post
+                                           else {"anzahl": 0, "vorschlag": None, "ausstehend": True})
         except Exception as exc:  # noqa: BLE001
             result["akten_vorschlaege"] = {"anzahl": 0, "vorschlag": None, "error": str(exc)}
 
@@ -3275,9 +3282,16 @@ def create_app(
 
         try:
             from .working_memory_context import reports
-            with app.state.conversation_lock:
-                result["working_memory"] = reports(app.state.episodes, app.state.claims,
-                    since=datetime.now().astimezone() - timedelta(hours=24))
+            # „Neu eingegangen“ zeigt nur, was wirklich neu ist (V1): erst die Regel, dann die Begrenzung auf fünf.
+            # Die schnelle Fassung (`post=false`) lässt die Quellenberichte aus; sie kommen mit der vollen (V7, Tempo).
+            if not post:
+                result["working_memory"] = {"items": [], "truncated": False, "ausstehend": True}
+            else:
+                with app.state.conversation_lock:
+                    neue = neu_eingegangen.neue_quellen(app.state.episodes,
+                                                        jetzt=briefing_now or datetime.now().astimezone())
+                    result["working_memory"] = (reports(app.state.episodes, app.state.claims, episode_ids=neue)
+                                                if neue else {"items": [], "truncated": False})
         except Exception:  # Healthy dashboard sections remain usable.
             result["working_memory"] = {"items": [], "truncated": False,
                 "error": "Die automatischen Quellenberichte sind gerade nicht verfügbar."}
@@ -3355,7 +3369,15 @@ def create_app(
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         return _calendar_overview(days, year_view, start=start, finish=finish, zone=zone)
 
-    def _vorbereiten(items: list[dict[str, Any]]) -> None:
+    def _teilnehmer_index(adressen: list[str]) -> dict[str, dict[str, Any]] | None:
+        """Wie die Adressen im Bestand als Beteiligte vorkommen (`participants_for_addresses`); None bei einem Fehler."""
+        try:
+            return app.state.episodes.participants_for_addresses(adressen)
+        except Exception:  # noqa: BLE001 - kostet die Namen, nie die Termine
+            logger.exception("Teilnehmer konnten nicht nachgeschlagen werden")
+            return None
+
+    def _vorbereiten(items: list[dict[str, Any]], *, index: dict[str, dict[str, Any]] | None = None) -> None:
         """Kommende Termine der nächsten 24 Stunden bekommen ihre Zuordnung mit.
 
         Das Briefing sagt dann „mit Anna Keller, vermutlich Projekt Mainz“
@@ -3381,8 +3403,9 @@ def create_app(
             return
         eigene = _eigene_adressen()
         try:
-            index = app.state.episodes.participants_for_addresses(
-                [a for item in kommend for a in item.get("attendees") or ()])
+            if index is None:
+                index = app.state.episodes.participants_for_addresses(
+                    [a for item in kommend for a in item.get("attendees") or ()])
             projekte = app.state.workspace.projects(include_closed=True)
         except Exception:  # noqa: BLE001
             logger.exception("Termine konnten nicht vorbereitet werden")
@@ -3401,7 +3424,8 @@ def create_app(
                 "vorschlag": bool(daten["projekt"] and daten["projekt"]["herkunft"] == "vorschlag"),
             }
 
-    def _nachzubereiten(items: list[dict[str, Any]], jetzt: datetime) -> list[dict[str, Any]]:
+    def _nachzubereiten(items: list[dict[str, Any]], jetzt: datetime, *,
+                        index: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
         """Vergangene Termine mit anderen, die noch niemand nachbereitet hat.
 
         Ein Fehler hier kostet die Nachfrage, nie die Termine.
@@ -3412,9 +3436,14 @@ def create_app(
             keys = [k for item in items for uid in event_uids(item) if (k := schluessel(uid, item.get("start")))]
             erledigt = app.state.workspace.event_followups(keys)
             holen = getattr(app.state, "zuordner_holen", None)
+            # Namen statt Adressen in der Frage (V7): Kennt der Kalender nur die Adresse, gilt der Name aus den Mails,
+            # wie in der Terminvorbereitung. Ein Fehler kostet nur die Namen, nie die Frage.
+            if index is None:
+                index = _teilnehmer_index([a for item in items for a in item.get("attendees") or ()]) or {}
             # Liegt zu einem Termin eine Mitschrift vor, gibt es nichts nachzufragen.
             return offene(items, jetzt=jetzt, eigene=_eigene_adressen(), erledigt=erledigt,
-                          hat_mitschrift=(lambda key: bool(holen().fuer_termin(key))) if holen else (lambda key: False))
+                          hat_mitschrift=(lambda key: bool(holen().fuer_termin(key))) if holen else (lambda key: False),
+                          index=index)
         except Exception:  # noqa: BLE001
             logger.exception("Nachbereitung konnte nicht ermittelt werden")
             return []
@@ -6026,15 +6055,55 @@ def create_app(
     install_person_merge_routes(app, guard)
 
     @app.get("/api/v1/memory/graph", dependencies=guard)
-    def memory_graph() -> dict[str, Any]:
-        return graph.build(
+    def memory_graph() -> JSONResponse:
+        # `to_dict` liefert schon reines JSON; die allgemeine Umwandlung von FastAPI kostete bei 10.000 Quellen eine
+        # halbe Sekunde je Aufruf (V6, viel Bestand).
+        return JSONResponse(graph.build(
             episodes=app.state.episodes,
             workspace=app.state.workspace,
             tasks=app.state.tasks,
             store=app.state.store,
             knowledge=app.state.claims,
             eigene=_eigene_adressen(),
-        ).to_dict()
+        ).to_dict())
+
+    from .zwischenspeicher import Zwischenspeicher, marke_von
+    app.state.verzeichnis_zwischen = Zwischenspeicher(4)
+
+    def _verzeichnis_stand() -> tuple | None:
+        """Stand aller Speicher, aus denen der Graph entsteht, dazu eigene Adressen und die Minute (Gültigkeit von
+        Aussagen und begonnene Termine hängen an der Zeit). None, wenn einer keinen Stand hat: dann ohne Zwischenspeicher."""
+        teile = [marke_von(getattr(app.state, name, None))
+                 for name in ("episodes", "workspace", "tasks", "store", "claims")]
+        if any(teil is None for teil in teile):
+            return None
+        return (*teile, tuple(_eigene_adressen()), datetime.now(timezone.utc).replace(second=0, microsecond=0).isoformat())
+
+    @app.get("/api/v1/memory/verzeichnis", dependencies=guard)
+    def memory_directory() -> JSONResponse:
+        """Personen und Projekte für Menschen, Projekte und die Namenssuche, ohne den ganzen Graphen (V7, Tempo).
+
+        Gebaut wird derselbe Graph wie für `/api/v1/memory/graph`; geliefert werden nur seine Personen- und
+        Projektknoten mit dem letzten Kontakt (`graph.verzeichnis`). Zwischengespeichert am Stand aller beteiligten
+        Speicher: Jede neue Quelle, Zuordnung, Aufgabe, Aussage oder Zusammenführung rechnet neu.
+        """
+        stand = _verzeichnis_stand()
+        gemerkt = app.state.verzeichnis_zwischen.nachsehen(stand) if stand is not None else None
+        if gemerkt is not None:
+            return JSONResponse(gemerkt)
+        daten = graph.verzeichnis(graph.build(
+            episodes=app.state.episodes,
+            workspace=app.state.workspace,
+            tasks=app.state.tasks,
+            store=app.state.store,
+            knowledge=app.state.claims,
+            eigene=_eigene_adressen(),
+        ))
+        # Gemerkt nur, wenn sich während des Baus nichts geändert hat: sonst gehörte das Ergebnis zu keinem Stand.
+        # (Der Bau trägt alte Zusammenführungen einmalig nach und schreibt dann selbst; dann merkt es der nächste.)
+        if stand is not None and _verzeichnis_stand() == stand:
+            app.state.verzeichnis_zwischen.merken(stand, daten)
+        return JSONResponse(daten)
 
     @app.get("/api/v1/memory/entities", dependencies=guard)
     def memory_entities() -> dict[str, Any]:

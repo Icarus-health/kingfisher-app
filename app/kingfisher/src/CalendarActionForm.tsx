@@ -27,6 +27,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
   const [showRights, setShowRights] = useState(false);
   const [revision, setRevision] = useState(0);
   const [recovery, setRecovery] = useState(savedDraft);
+  const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const lock = useRef(false), lifecycle = useRef(0);
   useEffect(() => {heading.current?.focus(); heading.current?.scrollIntoView({block:"start"});}, []);
@@ -34,7 +35,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
     const current = ++lifecycle.current;
     api.calendarActionSources().then(result => {
       if (current !== lifecycle.current) return;
-      setSources(result.sources);
+      setSources(result.sources); setSourcesLoaded(true);
       if (!event) setSourceId(old => result.sources.some(s => s.id === old) ? old : result.sources[0]?.id || '');
     }).catch(() => {if (current === lifecycle.current) setError('Kalenderrechte konnten nicht geladen werden. Bitte erneut versuchen.');});
     return () => {lifecycle.current++;};
@@ -57,11 +58,14 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
     if (result.status === 'done') onDone();
   });
   return <section className="source-section calendar-action-form" aria-label="Terminänderung vorbereiten">
-    <h2 ref={heading} tabIndex={-1}>{preparedDraft ? 'Termin aus der Mail prüfen' : event ? 'Termin bearbeiten oder absagen' : 'Neuen Termin vorbereiten'}</h2>
-    <p>{preparedDraft ? 'Prüfe diese Vorschau einschließlich Kalender und Zeitangaben. Die Mailgrundlage wird vor dem verbindlichen Schreiben erneut geprüft.' : 'Zeiten auf diesem Gerät. Erst die bestätigte Vorschau ändert deinen Google-Kalender. Serientermine und fremde Einladungen bearbeitest du vorerst direkt bei Google. Absagen sind hier nur für die bestätigte Organisator-Kopie möglich.'}</p>
-    <button type="button" className="text-action" disabled={busy} onClick={onClose}>Schließen</button>
+    <div className="calendar-action-kopf">
+      <h2 ref={heading} tabIndex={-1}>{preparedDraft ? 'Termin aus der Mail prüfen' : event ? 'Termin ändern oder absagen' : 'Neuer Termin'}</h2>
+      <button type="button" className="g-knopf-schlicht" disabled={busy} onClick={onClose}>Schließen</button>
+    </div>
+    <p className="calendar-action-fussnote">{preparedDraft ? 'Prüfe Kalender und Zeiten. Die Mailgrundlage wird vor dem verbindlichen Schreiben erneut geprüft.' : event ? 'Erst die bestätigte Vorschau ändert deinen Google-Kalender. Serientermine und fremde Einladungen änderst du bei Google; absagen lässt sich hier nur die bestätigte Organisator-Kopie.' : 'Zeiten auf diesem Gerät. Erst die bestätigte Vorschau ändert deinen Google-Kalender.'}</p>
     {error && <p role="alert">{error}</p>}
-    {!draft && <form onSubmit={e => {
+    {!draft && sourcesLoaded && !sources.length && <p className="calendar-action-leer">Verbinde zuerst einen Google-Kalender unter <a href="/settings#zugaenge">Zugänge</a>.</p>}
+    {!draft && !(sourcesLoaded && !sources.length) && <form onSubmit={e => {
       e.preventDefault();
       void run(async () => {
         const current = lifecycle.current;
@@ -89,10 +93,9 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
           <label>Ende <input type="datetime-local" value={end} required onChange={e => setEnd(e.target.value)} /></label>
         </>}
         <label>Gäste informieren <select value={sendUpdates} onChange={e => setSendUpdates(e.target.value as CalendarActionInput['send_updates'])}>{Object.entries(updates).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <p>Google kann auch bei „keine angefordert“ einzelne Systemnachrichten senden. Gäste werden hier nicht neu hinzugefügt.</p>
+        <p className="calendar-action-fussnote">Google kann auch bei „keine angefordert“ einzelne Systemnachrichten senden. Gäste werden hier nicht neu hinzugefügt.</p>
         {source && !source.can_write && <p>{source.reason || 'Dieser Kalender ist bisher nur zum Lesen verbunden.'} <button type="button" className="text-action" onClick={() => setShowRights(true)}>Änderungen erlauben</button></p>}
-        {!sources.length && <p>Verbinde zuerst einen Google-Kalender unter <a href="/settings#zugaenge">Zugänge</a>.</p>}
-        <button type="submit" className="secondary-action" disabled={!source?.can_write}>{busy ? 'Wird geprüft …' : 'Vorschau erstellen'}</button>
+        <button type="submit" className="g-knopf" disabled={!source?.can_write}>{busy ? 'Wird geprüft …' : 'Vorschau erstellen'}</button>
       </fieldset>
     </form>}
     {showRights && <GoogleSignIn kind="calendar_write" active onConnected={() => {setShowRights(false); setRevision(n => n+1);}} />}
@@ -104,7 +107,7 @@ export function CalendarActionForm({event, preparedDraft, onClose, onDone}: {
       <p>Gäste: {draft.preview.attendees.join(', ') || 'Keine'}</p>
       <p>{updates[draft.preview.send_updates]}</p>
       <p role="status">{mustRead ? 'Antwort nicht erhalten. Prüfe zuerst den gespeicherten Status; die Änderung wird nicht automatisch wiederholt.' : status?.message}</p>
-      {status?.canExecute && !mustRead && <button type="button" className="secondary-action" disabled={busy} onClick={() => run(async () => {
+      {status?.canExecute && !mustRead && <button type="button" className="g-knopf" disabled={busy} onClick={() => run(async () => {
         const current = lifecycle.current;
         // Persist the ID before requesting any external effect. A lost response
         // must go through status recovery instead of a second blind submit.

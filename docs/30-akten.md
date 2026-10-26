@@ -330,6 +330,17 @@ Richtung gruppiert, je Punkt „Erledigt“), Fristen, Termine, Stand, Angenomme
 „Über …“ (Kreis, Geburtstag, Art, Wiederkehrendes) und **Zusammenhänge**; der Verlauf ist
 eingeklappt. Jede Entscheidung antwortet unten mit einer Meldung und „Rückgängig“.
 
+**Ein Satz Stand** (Oktober 2026, `akteAnzeige.ts`, `standSatz`) steht unter dem Namen statt der Zeile „Auf einen
+Blick“: ohne Modell aus Feldern, die die Akte schon liefert. Die jüngste Zeile unter „Stand“ mit Art, Tag (Quelldatum,
+sonst „erfasst am“), Titel der Quelle und Absender („Änderung am 17.9.: Absage Workshop am 28. Oktober (Silke Vogt).“;
+in der Akte dieser Person ohne den eigenen Namen), ohne Stand die jüngste Quelle bis heute („Zuletzt am 16.9.: Termin
+…“). Dazu höchstens ein Nächstes: „2 Punkte brauchen dich.“, sonst ein vermutlich abgesagter nächster Termin, sonst die
+frühere von nächster Frist und nächstem Termin. Der Titel öffnet die Quelle unter dem Kopf. Ohne Datiertes bleibt „Auf
+einen Blick“. Was der Satz nennt, wiederholt „Stand“ nicht (nur „Vor dem 17.9.2026 (2)“ aufklappbar; ohne Früheres
+fällt der Abschnitt weg), und ein abgesagter Termin, der unter „Braucht dich“ steht, steht unter „Termine“ nur als
+leise Zeile ohne Zitat. Zählungen und Logik der Akte ändern sich dadurch nicht. Unter 700 px steht das Bild (56 px)
+über dem Namen, der Name hat die volle Breite. Tests: `tests/akte-stand-satz.test.mjs`.
+
 Kein neuer Menüpunkt. Unter **Gedächtnis** stehen neben Menschen und Projekten die
 Listen **Organisationen**, **Orte** und **Themenakten**; jede Zeile öffnet die Akte
 (`/memory/akte/<Sache>`). Auf den Profilseiten von Person und Projekt ersetzt die Akte

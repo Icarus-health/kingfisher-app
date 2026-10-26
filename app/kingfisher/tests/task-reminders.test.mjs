@@ -40,10 +40,11 @@ test('displaying a saved reminder uses the machine local time', () => {
 test('task edit keeps reminder independent from due date and saves only a changed reminder', () => {
   assert.match(row, /reminderEditChanges\(editOriginalReminder.current, editRemindAt\)/);
   assert.match(row, /Wieder vorlegen am/);
-  assert.match(row, /Wiedervorlage löschen/);
+  // „Wiedervorlage löschen“ nur, wenn eine gesetzt ist.
+  assert.match(row, /\{editRemindAt \? <button type="button" className="text-action"[^\n]*?>Wiedervorlage löschen<\/button> : null\}/);
   assert.match(row, /Morgen 09:00/);
   assert.match(row, /editOriginalReminder.current = remindAt/);
-  assert.match(row, /Änderungen speichern/);
+  assert.match(row, /className="primary-action"[^>]*type="submit">Speichern<\/button>/);
 });
 
 test('an unchanged form retains the exact original instant; an edit or clear guards that original', () => {

@@ -8,7 +8,7 @@ import {KalenderSchritt} from "./KalenderSchritt";
 import {MailSchritt} from "./MailSchritt";
 import {ModellSchritt} from "./ModellSchritt";
 import {NameSchritt} from "./NameSchritt";
-import {SCHRITTE, nachbar, schrittStand, schrittZaehler, sichtbareSchritte, startSchritt} from "./schritte";
+import {SCHRITTE, nachbar, schrittStand, schrittTitel, schrittZaehler, sichtbareSchritte, startSchritt} from "./schritte";
 import type {SchrittProps} from "./SchrittFuss";
 import {useEinrichtung} from "./useEinrichtung";
 import {ERSTSTART_SPAETER} from "./useErststartWeiterleitung";
@@ -85,8 +85,8 @@ export function Erststart() {
     <main className="erststart">
       <header className="erststart-kopf">
         <img src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />
-        <p className="eyebrow">WILLKOMMEN BEI KINGFISHER</p>
-        <button type="button" className="text-action" onClick={() => void spaeter()}>Später weitermachen</button>
+        <p className="erststart-gruss">Willkommen bei Kingfisher</p>
+        <button type="button" className="g-knopf-schlicht" onClick={() => void spaeter()}>Später weitermachen</button>
       </header>
       <nav aria-label="Schritte der Einrichtung"><ol className="erststart-punkte">
         {schritte.map(schritt => {
@@ -101,11 +101,11 @@ export function Erststart() {
         })}
       </ol></nav>
       <section className="erststart-karte" aria-labelledby="erststart-titel">
-        {fehler && !stand ? <p role="alert">Kingfisher ist gerade nicht erreichbar. <button className="text-action" type="button" onClick={() => void laden()}>Erneut versuchen</button></p> : null}
+        {fehler && !stand ? <p role="alert">Kingfisher ist gerade nicht erreichbar. <button className="g-knopf-schlicht" type="button" onClick={() => void laden()}>Erneut versuchen</button></p> : null}
         {!stand && !fehler ? <p role="status">Wird geladen …</p> : null}
         {stand && info && Inhalt ? <>
           {zaehler ? <p className="erststart-zaehler">Schritt {zaehler.nummer} von {zaehler.gesamt}</p> : null}
-          <h1 id="erststart-titel">{info.titel}</h1>
+          <h1 id="erststart-titel">{schrittTitel(info.id, stand)}</h1>
           <Inhalt key={info.id} stand={stand} neuLesen={laden} weiter={weiterVon(info.id)} ueberspringen={ueberspringenVon(info.id)}
             zurueck={info.id === SCHRITTE[0].id ? null : () => gehe(nachbar(info.id, -1, stand))}
             gehe={gehe} entwurf={aenderung => { entwurf.current = aenderung; }} />

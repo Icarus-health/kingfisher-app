@@ -21,6 +21,8 @@ Geprüft wird im Browser:
 * 7: Kalender mit der Mailadresse: Anbieter erkannt, Passwort des Postfachs gilt, Kalender gefunden; falsches Passwort,
   unbekannter Anbieter und Google mit je einem Satz; unter Zugänge derselbe Weg.
 * 8: Sicherung ohne Helfer: ein Passwortfeld mit „anzeigen“, Download, die Datei lässt sich wiederherstellen.
+* V3: Ohne Quelle fragt der erste Schritt „Wie heißt du?“; gibt die Umgebung einen Namen, steht „Hallo Lena.“ mit dem
+  Namen im Feld da, und gespeichert ist noch nichts.
 * 10 und 11: „Dieser Rechner“ ohne Modellnamen, „Messlatte“ und „nachts“ im Vordergrund, mit selbst ermittelter
   Ausstattung, Größe und Dauer, einem Knopf; das Prüfmodell fällt durch, die übrigen werden trotzdem geladen, der Stand
   sagt „Prüfung nicht bestanden“, „Anderes Modell nehmen“ macht es bereit.
@@ -103,6 +105,11 @@ def main() -> int:
         domains=('example.org',), caldav_url=caldav.start))
     mail_anmeldung.ZEITGRENZE = 3.0
     ordner_lokal.im_container = lambda: False  # die Probe läuft wie ein Sidecar direkt auf dem Rechner
+    # Ein fester Rechner mit 32 GB, damit das Gesamtpaket passt, gleich wie groß der Rechner ist, auf dem die Probe läuft
+    # (auf einem Rechner mit 16 GB oder wenig freiem Platz lehnt der Sidecar das Paket zu Recht ab, und die Probe prüfte dann nichts mehr).
+    from icarus_memory import device_profile
+    device_profile.eigene_ausstattung = lambda: {'memory_gb': 32.0, 'platform': 'linux', 'untergrenze': False}
+    device_profile.freier_platz_gb = lambda *_a, **_k: 200.0  # ebenso genug freie Festplatte
 
     from icarus_memory import server_finden
     from tests.autoconfig_attrappe import kein_netz
@@ -185,6 +192,22 @@ def main() -> int:
             pruef['27_sieben_eine_zeile'] = zeile['zeilen'] == 1 and fertig['zeilen'] == 1 and zeile['seite'] <= 0
             bild('02-sieben-schritte-1280')
 
+            # -- V3: ein ableitbarer Name steht vorausgefüllt da, gespeichert erst mit „Weiter“ ---------------------
+            pruef['v3_ohne_quelle_frage'] = seite.request.get(basis + '/api/v1/einrichtung').json()['name_vorschlag'] is None \
+                and seite.locator('#erststart-name').input_value() == ''
+            os.environ['KINGFISHER_USER_NAME'] = 'Lena'  # wie ein Container, dem die Einrichtung den Namen mitgab
+            try:
+                seite.reload()
+                seite.get_by_role('heading', name='Hallo Lena.').wait_for(timeout=15000)
+                pruef['v3_vorschlag_im_feld'] = seite.locator('#erststart-name').input_value() == 'Lena' \
+                    and seite.get_by_text('Stimmt der Name?').count() == 1
+                pruef['v3_nicht_gespeichert'] = seite.request.get(basis + '/api/v1/einrichtung').json()['name'] == ''
+                bild('02b-name-vorgeschlagen')
+            finally:
+                os.environ.pop('KINGFISHER_USER_NAME', None)
+            seite.reload()
+            seite.get_by_role('heading', name='Wie heißt du?').wait_for(timeout=15000)
+
             # -- 25: Fertig-Seite ohne Verbindungen: der Weg zu den Zugängen ist ein Klick --------------------------
             schritt('fertig', 'Fertig – dein erstes Briefing entsteht jetzt')
             zugaenge = seite.locator('.erststart-inhalt a.verweis', has_text='Einstellungen → Zugänge')
@@ -219,7 +242,12 @@ def main() -> int:
                 and marken.get('Deine Fragen beantworten') == 'Bereit' and marken.get('Im Hintergrund einordnen') == 'Bereit'
             geladen = [b['model'] for m, pfad, b in ollama.anfragen if pfad == '/api/pull']
             pruef['11_geladen'] = geladen
-            pruef['11_uebrige_trotzdem_geladen'] = len(geladen) >= 4 and durchgefallen != []
+            # Geladen wurde jedes empfohlene Modell, auch nachdem das Prüfmodell durchfiel. Teilen sich Aufgaben ein Modell
+            # (je nach Ausstattung), wird es einmal geladen; gezählt wird darum je Modell, nicht je Aufgabe.
+            empfohlen = {r['empfohlen']['name'] for r in seite.request.get(basis + '/api/v1/models/recommendation').json()['rollen']}
+            pruef['11_empfohlen'] = sorted(empfohlen)
+            pruef['11_uebrige_trotzdem_geladen'] = durchgefallen != [] and len(set(geladen)) >= 3 \
+                and (empfohlen - set(durchgefallen)) <= set(geladen) | set(durchgefallen)
             problem = karte.locator('.rechner-problem')
             pruef['11_satz'] = problem.inner_text()
             pruef['11_kein_fachwort'] = 'Messlatte' not in pruef['11_satz'] and 'Alternativen' not in pruef['11_satz']
@@ -329,14 +357,11 @@ def main() -> int:
             pruef['25_fertig_ohne_weg_als_text'] = 'Einstellungen →' not in seite.evaluate(
                 "() => { const k = document.querySelector('.erststart-inhalt').cloneNode(true); "
                 "k.querySelectorAll('a.verweis').forEach(a => a.remove()); return k.innerText; }")
+            # Die Kachel „Wetter & Weg“ des früheren Briefings mit ihrem Verweis gibt es nicht mehr (Paket U, H1: Heute ist
+            # das Briefing; Wetter steht im Kopf, wenn es eingeschaltet ist). „Zum Briefing“ zeigt Heute.
             seite.goto(basis + '/today?briefing=1')
-            kachel = seite.locator('.weather-route-card a.verweis')
-            kachel.wait_for(timeout=20000)
-            pruef['25_briefing_text'] = kachel.inner_text()
-            kachel.click()
-            seite.wait_for_url(re.compile(r'/settings#darf$'), timeout=15000)
-            seite.locator('#settings-darf:not([hidden])').wait_for(timeout=15000)
-            pruef['25_briefing_springt'] = True
+            seite.locator('.today-page h1').wait_for(timeout=20000)
+            pruef['25_briefing_ist_heute'] = seite.url.endswith('/today')
             pruef['25_freigaben_springt'] = pruef['25_freigaben_ziel'] == '/settings#darf'
 
             # -- 6: Dokumente ohne Helfer, unter Zugänge ---------------------------------------------------------

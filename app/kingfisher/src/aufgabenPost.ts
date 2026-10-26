@@ -24,6 +24,6 @@ export function annehmenText(vorschlag: Pick<AufgabenPostVorschlag, "art">): str
 
 /** Die Antwort nach dem Klick, mit „Rückgängig“ im Blick (Grundsatz 4 und 5). */
 export function angenommenText(vorschlag: Pick<AufgabenPostVorschlag, "art">): string {
-  return vorschlag.art === "erledigt" ? "Als erledigt abgelegt. Rückgängig geht in der Aufgabenliste."
-    : "Die Aufgabe liegt wieder bei dir. Rückgängig geht in der Aufgabenliste.";
+  // „Rückgängig“ steht im Hinweis gleich daneben (V4).
+  return vorschlag.art === "erledigt" ? "Als erledigt abgelegt." : "Die Aufgabe liegt wieder bei dir.";
 }

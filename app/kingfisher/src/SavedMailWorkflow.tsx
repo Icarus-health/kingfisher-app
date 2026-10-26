@@ -1,10 +1,12 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {savedMailWorkflowApi,type SavedMailWorkflowView} from './savedMailWorkflowApi';
 import {initialSavedTask,savedTaskPayload,type SavedTaskDraft} from './savedMailWorkflowState';
 import {navigate} from './ui';
 
-export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,onTaskSaved}: {
+export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,onTaskSaved,nebenAktion}: {
  episodeId:string;sourceDigest:string;sourceVerified?:boolean;onTaskSaved?:()=>void;
+ /** Weitere leise Aktion des Lesers (Antwort), steht in derselben Zeile wie der Vorschlag. */
+ nebenAktion?:ReactNode;
 }) {
  const [view,setView]=useState<SavedMailWorkflowView|null>(null);
  const [drafts,setDrafts]=useState<Record<string,SavedTaskDraft>>({});
@@ -60,22 +62,24 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
   finally {if(active.current && version===epoch.current)setBusy('');}
  }
  return <section className="saved-mail-workflow" aria-label="Überblick und Aufgaben aus gespeicherter Mail">
-  <h2>Nächste Schritte</h2>
-  {loading && <p role="status">Vorbereiteter Überblick wird geprüft …</p>}
+  {loading && !view && <p role="status">Vorschläge werden geladen …</p>}
   {error && <p role="alert">{error}</p>}
   {view && <>
    {view.episode_id===episodeId && view.source_digest===sourceDigest && Object.entries(saved).map(([id,title])=><p key={id} role="status">Aufgabe gespeichert: {title} <a href="/vorhaben?view=mine" onClick={event=>{event.preventDefault();navigate('/vorhaben?view=mine');}}>Aufgaben öffnen</a></p>)}
    {(!sourceVerified || !readVerified) && <p role="status">Zuletzt geladener Überblick · Quellenstand ungeprüft. Deine Eingaben bleiben erhalten; Bestätigung erst nach erneuter Prüfung.</p>}
    {!readVerified && !loading && sourceVerified && <button type="button" onClick={()=>setRevision(value=>value+1)}>Quellenstand erneut prüfen</button>}
-   {view.temporal_status==='recent' ? <details className="quiet-details"><summary>Zeitliche Einordnung</summary><p className="saved-mail-workflow-context">{view.temporal_reason}</p></details> : <p className="saved-mail-workflow-context" role="status">{view.temporal_reason || 'Zeitliche Einordnung unbekannt · Aktualität prüfen.'}</p>}
+   {view.items.length>0 && view.status!=='archived' && (view.temporal_status==='recent' ? <details className="quiet-details"><summary>Zeitliche Einordnung</summary><p className="saved-mail-workflow-context">{view.temporal_reason}</p></details> : <p className="saved-mail-workflow-context" role="status">{view.temporal_reason || 'Zeitliche Einordnung unbekannt · Aktualität prüfen.'}</p>)}
    {(view.status==='unavailable' || view.status==='archived') && <p role="status">{view.detail}</p>}
    {view.quotes.length>0 && <details className="saved-mail-overview"><summary>Überblick aus Originalstellen ({view.quotes.length})</summary><p>{view.detail}</p>{view.quotes.map((quote,index)=><blockquote key={index}>{quote}</blockquote>)}</details>}
-   {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Wird lokal vorbereitet …':'Diese Mail lokal vorbereiten'}</button>}
+   {((view.status==='unprepared' || view.status==='unavailable') || nebenAktion) && <div className="saved-mail-actionline">
+    {(view.status==='unprepared' || view.status==='unavailable') && <button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Aufgaben werden gesucht …':'Aufgabe aus dieser Mail vorschlagen'}</button>}
+    {nebenAktion}
+   </div>}
    {(view.project_preparation_status==='unprepared' || view.project_preparation_status==='unavailable') && view.status==='ready' && <>
     <p role="status">{view.project_preparation_detail}</p><button type="button" disabled={!valid || Boolean(busy)} onClick={()=>void prepare()}>{busy==='prepare'?'Projektvorschläge werden lokal geprüft …':'Projektvorschläge erneut vorbereiten'}</button>
    </>}
    {view.status==='incomplete' && <p>Überblick über einen Ausschnitt. Aufgaben aus unvollständigem Text werden hier nicht neu vorgeschlagen.</p>}
-   {view.status==='ready' && !view.items.length && <p>Keine offenen belegten Aufgabenvorschläge aus dieser Quelle.</p>}
+   {view.status==='ready' && !view.items.length && <p>In dieser Mail steht keine offene Aufgabe für dich.</p>}
    {view.status!=='archived' && view.items.filter(item=>!saved[item.id]).map(item=>{
     const draft=drafts[item.id] || initialSavedTask(item,view.projects);
     const update=(change:Partial<SavedTaskDraft>)=>setDrafts(values=>({...values,[item.id]:{...draft,...change}}));
@@ -95,6 +99,6 @@ export function SavedMailWorkflow({episodeId,sourceDigest,sourceVerified=true,on
     </form>;
    })}
   </>}
-  {!loading && !view && <button type="button" onClick={()=>setRevision(value=>value+1)} disabled={!sourceVerified || Boolean(busy)}>Überblick erneut laden</button>}
+  {!loading && !view && <div className="saved-mail-actionline"><button type="button" onClick={()=>setRevision(value=>value+1)} disabled={!sourceVerified || Boolean(busy)}>Überblick erneut laden</button>{nebenAktion}</div>}
  </section>;
 }

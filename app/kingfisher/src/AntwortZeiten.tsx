@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Schalter } from "./grundlage";
 import { api, type AntwortZeitenProtokoll } from "./api";
 import { gueltigeZeiten, protokollSatz, protokollZeilen, ursacheSatz, zeitZeile } from "./antwortzeit";
 import { pruefungSchalterSatz } from "./pruefHinweis";
@@ -73,18 +74,12 @@ export function AntwortZeitenProtokoll() {
     {daten ? <p className="source-hint">
       Antworten formuliert: {daten.modelle.antwort ?? "kein Modell eingerichtet"}. Fragen verstanden: {daten.modelle.frage ?? "ohne Modell"}.
     </p> : null}
-    {daten ? <label className="antwortzeiten-schalter">
-      <input type="checkbox" role="switch" checked={daten.saetze === "an"} disabled={arbeitet}
-        onChange={event => void umschalten(event.target.checked)} />
-      <span><strong>Antworten in Sätzen formulieren</strong>
-        <small>Ein zweiter Modellaufruf schreibt die Antwort in Sätzen mit Belegnummern. Aus: Kingfisher zeigt die Belege wörtlich und spart diese Wartezeit.</small></span>
-    </label> : null}
-    {pruefung ? <label className="antwortzeiten-schalter">
-      <input type="checkbox" role="switch" checked={pruefung.schalter === "an" && pruefung.zustand !== "kein_modell"}
-        disabled={arbeitet || pruefung.zustand === "kein_modell"} onChange={event => void pruefungUmschalten(event.target.checked)} />
-      <span><strong>Sätze vom Prüfmodell gegenprüfen</strong>
-        <small>{pruefungSchalterSatz(pruefung)}</small></span>
-    </label> : null}
+    {daten ? <Schalter className="antwortzeiten-schalter" titel="Antworten in Sätzen formulieren" an={daten.saetze === "an"} deaktiviert={arbeitet}
+      satz="Ein zweiter Modellaufruf schreibt die Antwort in Sätzen mit Belegnummern. Aus: Kingfisher zeigt die Belege wörtlich und spart diese Wartezeit."
+      onWechsel={an => void umschalten(an)} /> : null}
+    {pruefung ? <Schalter className="antwortzeiten-schalter" titel="Sätze vom Prüfmodell gegenprüfen" satz={pruefungSchalterSatz(pruefung)}
+      an={pruefung.schalter === "an" && pruefung.zustand !== "kein_modell"} deaktiviert={arbeitet || pruefung.zustand === "kein_modell"}
+      onWechsel={an => void pruefungUmschalten(an)} /> : null}
     {hinweis ? <p role="status" className="source-hint">{hinweis}</p> : null}
     {fehler && daten ? <p role="alert" className="settings-error">{fehler}</p> : null}
   </section>;

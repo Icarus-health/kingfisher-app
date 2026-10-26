@@ -1,6 +1,8 @@
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import './DetailPanel.css';
 
+/** Seitenpaneel für eine Sache (Aufgabe, Termin, Auswahl): rechts neben der Liste, schmal als ganze Fläche (modal).
+ * Ein Titel, „Schließen“ als leiser Textknopf, Escape schließt, der Fokus kehrt zurück. */
 export function DetailPanel({title, children, onClose}: {title:string; children:ReactNode; onClose:()=>void}) {
   const button = useRef<HTMLButtonElement>(null);
   const panel=useRef<HTMLElement>(null);
@@ -21,7 +23,7 @@ export function DetailPanel({title, children, onClose}: {title:string; children:
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }}>
-    <header><h2>{title}</h2><button ref={button} type="button" onClick={onClose} aria-label={`${title} schließen`}>Schließen</button></header>
+    <header><h2>{title}</h2><button ref={button} type="button" className="g-knopf-schlicht" onClick={onClose} aria-label={`${title} schließen`}>Schließen</button></header>
     <div className="workspace-detail-body">{children}</div>
   </aside>;
 }

@@ -134,8 +134,8 @@ export function CalendarFollowup({ uid, start, onClose, onChange }: Props) {
   }
 
   const kopf = <div className="calendar-preparation-heading">
-    <div><p className="eyebrow">NACHBEREITEN</p><h2>{stand?.summary ?? "Termin"}</h2><p>{stand ? wann(stand.start) : ""}</p></div>
-    <button className="secondary-action" type="button" aria-label="Nachbereitung schließen" onClick={onClose}>Schließen</button>
+    <div><h2>{stand?.summary ?? "Termin"}</h2><p>Nachbereitung{stand ? ` · ${wann(stand.start)}` : ""}</p></div>
+    <button className="g-knopf-schlicht" type="button" aria-label="Nachbereitung schließen" onClick={onClose}>Schließen</button>
   </div>;
   if (fehler) return <section className="calendar-preparation calendar-followup" aria-label="Termin nachbereiten">{kopf}
     <p role="alert">{fehler === "weg" ? "Der Termin ist im verbundenen Kalender nicht mehr zu finden." : "Der Termin kann gerade nicht geladen werden. Bitte erneut versuchen."}</p></section>;
@@ -196,7 +196,7 @@ export function CalendarFollowup({ uid, start, onClose, onChange }: Props) {
       {projektFehler && <p className="calendar-preparation-empty" role="status">Die Projektzuordnung des Termins konnte nicht geladen werden. Wähle das Projekt hier, falls es eines gibt; die Zuordnung des Termins bleibt, wie sie ist.</p>}
       {sendFehler && <p role="alert">{sendFehler}</p>}
       <div className="calendar-followup-row">
-        <button className="primary-action" type="submit" disabled={sending || leer}>{sending ? "Wird festgehalten …" : "Festhalten"}</button>
+        <button className="g-knopf" type="submit" disabled={sending || leer}>{sending ? "Wird festgehalten …" : "Festhalten"}</button>
         {stand.stand === "offen" && <button className="secondary-action" type="button" disabled={sending} onClick={() => void nichts(true)}>Nicht nötig</button>}
         {ergaenzen && <button className="text-action" type="button" disabled={sending} onClick={() => setErgaenzen(false)}>Abbrechen</button>}
       </div>

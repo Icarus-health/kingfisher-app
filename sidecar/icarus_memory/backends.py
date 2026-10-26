@@ -104,6 +104,12 @@ class MemoryBackend:
     def __init__(self) -> None:
         self._data: dict[str, Assertion] = {}
         self._lock = threading.RLock()
+        self._aenderungen = 0
+
+    def aenderungsmarke(self) -> int:
+        """Zählt jedes Schreiben (für Zwischenspeicher, `zwischenspeicher.marke_von`)."""
+        with self._lock:
+            return self._aenderungen
 
     @contextmanager
     def transaction(self):
@@ -136,6 +142,7 @@ class MemoryBackend:
             if vorher is not None:
                 ensure_content_unchanged(vorher, assertion, support_change=_support_change)
             self._data[assertion.id] = deepcopy(assertion)
+            self._aenderungen += 1
 
     def get(self, assertion_id: str) -> Assertion | None:
         with self._lock:

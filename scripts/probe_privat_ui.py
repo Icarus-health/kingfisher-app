@@ -8,9 +8,9 @@ Regel-Einordnung) und öffnet die Oberfläche in Chromium (Playwright). Geprüft
   keine Aussage. Nach Kreis bestätigen und „Stimmt, übernehmen“ steht im Briefing „Morgen hat Gabriele Geburtstag.“
   Die Nachbarin (Kontakt, Geburtstag im Kalender) hat keine Karte, und im Briefing steht sie nie.
 * **Wiederkehrendes:** Die Akte der Stadtwerke zeigt „Monatlich: Abschlag, 94,00 €“ als Vorschlag.
-* **Sammelbestätigung:** Unter „Kingfisher und du“ steht „Alle 21 als Kollegen festlegen“; die Rückfrage ist ein
-  Satz („21 Personen als Kollegen festlegen?“), „Abbrechen“ speichert nichts, „Ja, festlegen“ legt alle 21 fest und
-  keinen aus dem inneren Kreis, „Liste zurücknehmen“ lässt sie wieder offen.
+* **Sammelbestätigung:** Unter „Kingfisher und du“ steht „Alle 21 als Kollegen festlegen“; seit V4 ohne Rückfrage: ein
+  Klick legt alle 21 fest und keinen aus dem inneren Kreis, der Hinweis bietet „Rückgängig“ (stellt den alten Stand
+  her), „Liste zurücknehmen“ lässt sie ebenso wieder offen.
 * **Anhänge:** Die Akte der Zahnarztpraxis zeigt die Rechnung aus dem PDF-Anhang als Quelle mit Seite, und die Frist
   daraus steht unter „Zur Prüfung“ mit dem Datum aus dem PDF; ein gescannter Anhang sagt ehrlich, dass er nicht
   gelesen ist.
@@ -165,6 +165,8 @@ def pruefen(instanz, app, args, ergebnis: dict, aufgenommen) -> None:
         pruef['briefing_daten'] = {'geburtstage': daten.get('geburtstage'), 'fehler': daten.get('fehler'),
                                    'zeilen': [z['art'] for z in (daten.get('tageslage') or {}).get('zeilen', [])]}
         seite.goto(basis + '/today')
+        # Seit der Oberfläche vom 23.10. steht die Tageslage aufklappbar unter „Tageslage & Verlauf“.
+        seite.locator('.today-activity-zeile').click(timeout=20000)
         zeile = seite.locator('li.tageslage-geburtstag')
         try:
             zeile.wait_for(timeout=20000)
@@ -193,16 +195,21 @@ def pruefen(instanz, app, args, ergebnis: dict, aufgenommen) -> None:
         seite.reload()
         knopf = seite.get_by_role('button', name='Alle 21 als Kollegen festlegen')
         knopf.wait_for(timeout=20000)
+        # Seit V4 (25.10.2026) ohne Rückfrage: ein Klick, der Hinweis sagt es und bietet „Rückgängig“.
         knopf.click()
-        frage = seite.locator('.kreis-frage')
-        pruef['rueckfrage'] = frage.locator('p').inner_text()
-        assert pruef['rueckfrage'] == '21 Personen als Kollegen festlegen?'
-        bild('sammel-frage')
-        frage.get_by_role('button', name='Abbrechen').click()
-        assert kreise() == vorher, 'Abbrechen darf nichts speichern'
+        hinweis = seite.locator('.g-hinweis')
+        hinweis.filter(has_text='21 Personen als Kollegen festgelegt.').wait_for(timeout=20000)
+        assert seite.locator('.kreis-frage').count() == 0 and seite.get_by_role('button', name='Ja, festlegen').count() == 0
+        bild('sammel-hinweis')
+        hinweis.get_by_role('button', name='Rückgängig').click()
+        hinweis.filter(has_text='Zurückgenommen: 21 Personen sind wieder offen.').wait_for(timeout=20000)
+        assert kreise() == vorher, '„Rückgängig“ im Hinweis stellt den alten Stand her'
+        pruef['rueckfrage'] = None
+        pruef['hinweis_zurueck'] = True
+        knopf = seite.get_by_role('button', name='Alle 21 als Kollegen festlegen')
+        knopf.wait_for(timeout=20000)
         knopf.click()
-        seite.locator('.kreis-frage').get_by_role('button', name='Ja, festlegen').click()
-        seite.wait_for_selector('text=21 Personen als Kollegen festgelegt.', timeout=20000)
+        hinweis.filter(has_text='21 Personen als Kollegen festgelegt.').wait_for(timeout=20000)
         nachher = kreise()
         neu = {s: k for s, k in nachher.items() if s not in vorher}
         pruef['sammel_neu'] = len(neu)
@@ -211,7 +218,7 @@ def pruefen(instanz, app, args, ergebnis: dict, aufgenommen) -> None:
         seite.wait_for_selector('text=Zuletzt 21 Personen gesammelt als Kollegen festgelegt.', timeout=10000)
         bild('sammel-fertig')
         seite.get_by_role('button', name='Liste zurücknehmen').click()
-        seite.wait_for_selector('text=Zurückgenommen: 21 Personen sind wieder offen.', timeout=10000)
+        hinweis.filter(has_text='Zurückgenommen: 21 Personen sind wieder offen.').wait_for(timeout=10000)
         assert kreise() == vorher
         pruef['sammel_zurueck'] = True
         weiter_teil_3_und_4(seite, basis, instanz, app, pruef, bild, akte)

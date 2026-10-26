@@ -89,7 +89,7 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
         aria-label="Kingfisher fragen"
         disabled={busy || disabled || recording}
         onChange={(event) => setMessage(event.target.value)}
-        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher etwas …    z. B. „Bereite mich auf meinen Termin um 11:30 vor“")}
+        placeholder={placeholder ?? (conversation ? "Nachricht oder Befehl …" : "Frag Kingfisher …")}
         ref={element=>{input.current=element;}}
         value={message}
       />}
@@ -98,6 +98,6 @@ export function CommandBar({ onSubmit, busy = false, conversation = false, disab
       <button aria-label="Nachricht senden" className="send-button" disabled={!message.trim() || busy || sharedSending || disabled || recording} type="submit">
         <InterfaceIcon name="arrow-up" />
       </button>
-    </form>{conversation && <p className="composer-hint" id="conversation-composer-hint">Enter sendet. Shift + Enter fügt eine Zeile hinzu. Diktat bleibt ein Entwurf bis zum Senden.</p>}</>
+    </form>{conversation && <p className="composer-hint" id="conversation-composer-hint">Enter sendet, Shift + Enter beginnt eine neue Zeile.{voice?.state.dictationAvailable ? " Diktat bleibt ein Entwurf bis zum Senden." : ""}</p>}</>
   );
 }

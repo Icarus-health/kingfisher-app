@@ -36,7 +36,6 @@ test("die Breitenregeln gelten für alle Seiten und werden zuletzt geladen", () 
   // Unter 900 px wird die Seitenleiste auf jeder Seite ein Streifen oben, die Seite eine Spalte.
   assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*\.shell \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*\.shell > \.sidebar \{ position: static;/);
-  assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*\.briefing-drawer \{ width: 100vw; \}/);
   // Unter 1100 px stapeln sich Gespräch und Gedächtnis; unter 700 px haben Aufgaben eine Spalte.
   assert.match(css, /@media \(max-width: 1100px\) \{[\s\S]*main\.conversation-page \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   assert.match(css, /@media \(max-width: 700px\) \{[\s\S]*\.task-row \{ grid-template-columns: 32px minmax\(0, 1fr\); \}/);

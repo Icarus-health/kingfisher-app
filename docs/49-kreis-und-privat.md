@@ -139,7 +139,7 @@ und im Protokoll `docs/runs/2026-10-21-stilprofil/README.md`.
 * **Private Arten nur für Organisationen.** Ein privater Vermieter mit Freemail-Adresse ist eine Person; seine
   Nebenkostenabrechnung wird kein Fristvorschlag. PDF-Anhänge von Organisationen werden seit dem Rest von M4
   gelesen (unten).
-* **Viele Kollegen-Vorschläge** bestätigt seit dem Rest von M4 ein Klick mit einer Rückfrage (unten).
+* **Viele Kollegen-Vorschläge** bestätigt seit dem Rest von M4 ein Klick; seit dem 25.10.2026 ohne Rückfrage, mit „Rückgängig“ im Hinweis (unten).
 * **Wirkung ist klein.** Gemessen ist eine Regel (Briefing ohne Fristen bestätigter Kontakte). Wie ein Modell den
   Hinweis `kreis` im Antwortkontext umsetzt, misst erst ein Lauf mit Modell.
 
@@ -239,10 +239,11 @@ Kontakt, verschwindet die Zeile.
 
 ### Teil 2: Sammelbestätigung
 
-Unter „Kingfisher und du“ steht bei offenen Vorschlägen für Kollegen „Alle 21 als Kollegen festlegen“. Die Rückfrage
-ist ein Satz: „21 Personen als Kollegen festlegen?“ mit „Ja, festlegen“ und „Abbrechen“. Gezählt werden alle offenen
-Vorschläge, nicht nur die angezeigten. Hat sich die Zahl seit der Rückfrage geändert, wird nichts gespeichert
-(„Inzwischen sind es 22 Vorschläge …“). Danach steht „Zuletzt 21 Personen gesammelt als Kollegen festgelegt.“ mit
+Unter „Kingfisher und du“ steht bei offenen Vorschlägen für Kollegen „Alle 21 als Kollegen festlegen“. Seit dem
+25.10.2026 (V4, „Ein Rückgängig für alles“) ist das ein Klick ohne Rückfrage: Die Sammlung lässt sich vollständig
+zurücknehmen, also antwortet der Hinweis unten mit „21 Personen als Kollegen festgelegt. · Rückgängig“ (CLAUDE.md,
+Prüfpunkt 5). Gezählt werden alle offenen Vorschläge, nicht nur die angezeigten; die Zahl im Knopf geht mit. Hat sie
+sich inzwischen geändert, wird nichts gespeichert („Inzwischen sind es 22 Vorschläge …“). Danach steht „Zuletzt 21 Personen gesammelt als Kollegen festgelegt.“ mit
 **„Liste zurücknehmen“**; das lässt genau diese Personen wieder offen, wer seitdem einzeln geändert wurde, bleibt.
 Für den inneren Kreis gibt es **keine** Sammelbestätigung (422): Er wird je Person in der Akte bestätigt. Ohne
 Migration: Alle Zeilen einer Sammlung tragen denselben Zeitpunkt `bestaetigt_am`; er ist die Kennung der Liste.

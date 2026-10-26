@@ -3,7 +3,8 @@ import type {FolderData, ViewRecord} from './workspaceViewApi';
 export const IMAGE_MAX_BYTES = 1_000_000;
 export function initials(label: string): string {
   const name = label.replace(/<[^>]*>/g, '').trim() || label;
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => Array.from(word)[0]).join('').toLocaleUpperCase('de');
+  // Klammern und Zeichen zählen nicht: „Rüsselsheim (Produktionsküche)“ wird „RP“, nicht „R(“.
+  return name.split(/\s+/).map(word => Array.from(word).find(zeichen => /[\p{L}\p{N}]/u.test(zeichen)) ?? '').filter(Boolean).slice(0, 2).join('').toLocaleUpperCase('de');
 }
 export function validateImageFile(file: {type: string; size: number}): string | null {
   if (!['image/png','image/jpeg','image/webp'].includes(file.type)) return 'Bitte ein PNG-, JPEG- oder WebP-Bild wählen.';
@@ -45,6 +46,11 @@ export async function batchCategorySave(previews: SourceCategoriesResult[], area
 import type {MemoryGraph} from './api';
 import type {FolderSource} from './MemoryFolders';
 export function contactDateFromGraph(graph: MemoryGraph, id: string): string {
+  // Das Verzeichnis (V7) bringt den letzten Kontakt nach derselben Regel schon mit (Sidecar `graph.verzeichnis`).
+  if (graph.verzeichnis) {
+    const zuletzt = graph.verzeichnis.letzter_kontakt[id];
+    return zuletzt && Number.isFinite(Date.parse(zuletzt)) ? new Date(Date.parse(zuletzt)).toLocaleDateString('de-DE') : 'unbekannt';
+  }
   // Being mentioned in a source does not establish actual contact.
   const sources = new Set(graph.edges.filter(edge=>edge.source===id&&edge.relation==='participated_in'&&edge.actual_contact===true).map(edge=>edge.target));
   const at = Date.parse(graph.generated_at);

@@ -32,7 +32,8 @@ export function MemoryPlaces({entries}: {entries:Array<{id:string;name:string}>}
     try{const result=undo?await workspaceViewApi.undo('place',selected,record?.revision??0):await workspaceViewApi.save('place',selected,position!,selectedRevision.current);const saved=result as ViewRecord<PositionData>;setLocal(saved);selectedRevision.current=saved.revision;if(undo){setLat(saved.data?String(saved.data.lat):'');setLng(saved.data?String(saved.data.lng):'');}setPreview(false);setPinning(false);setMessage(undo?'Vorheriger Pin wiederhergestellt.':'Koordinaten ausdrücklich gespeichert.');}
     catch{setMessage('Pin nicht gespeichert. Bitte aktuellen Stand erneut laden.');}finally{setBusy(false);}
   }
-  return <section className="memory-view-panel" aria-label="Bestätigte Orte"><h2>Orte auf der Karte</h2><p>Koordinaten werden nur mit deiner Bestätigung gespeichert. Orte ohne Pin bleiben in der Liste. Die Karte zeigt die bestätigten Pins dieser geladenen Seite.</p>
+  // Die Karte als Gruppe der Grundlage; der eine Satz darunter sagt, was gespeichert wird und was nicht.
+  return <section className="memory-view-panel gd-karte g-gruppe" aria-label="Bestätigte Orte"><div className="g-gruppe-kopf"><h2 className="g-gruppe-titel">Karte</h2></div><div className="g-flaeche g-flaeche-frei">
     {error&&<p role="alert">Ortskoordinaten nicht erreichbar. <button type="button" onClick={()=>void refresh()}>Erneut laden</button></p>}
     <PlacesMap enabled={overview?.online.maps===true} points={points} selected={selected} pinning={pinning} onSelect={id=>void choose(id)} onPin={(latitude,longitude)=>{if(!pinning||!selected)return;const pair=coordinatePair(String(latitude),String(longitude));if(pair){setLat(String(pair.lat));setLng(String(pair.lng));setPreview(true);setPinning(false);}}}/>
     <label>Ort auswählen<select value={selected??''} disabled={busy||!overview} onChange={event=>event.target.value&&void choose(event.target.value)}><option value="">Bitte Ort wählen</option>{entries.map(entry=><option key={entry.id} value={entry.id}>{entry.name}{points.some(point=>point.id===entry.id)?' · bestätigter Pin':' · ohne Pin'}</option>)}</select></label>
@@ -41,5 +42,6 @@ export function MemoryPlaces({entries}: {entries:Array<{id:string;name:string}>}
       {preview&&<div className="memory-view-preview"><p>Pin für <strong>{entries.find(entry=>entry.id===selected)?.name}</strong>: {lat}, {lng}</p><button type="button" disabled={busy} onClick={()=>void save()}>Pin bestätigen</button><button type="button" disabled={busy} onClick={()=>setPreview(false)}>Abbrechen</button></div>}
       {!!record?.revision&&<button type="button" disabled={busy} onClick={()=>void save(true)}>Pinänderung rückgängig</button>}
     </>}{message&&<p role="status">{message}</p>}
+  </div><p className="g-gruppe-fussnote">Koordinaten werden nur mit deiner Bestätigung gespeichert; die Karte zeigt die bestätigten Pins dieser Seite.</p>
   </section>;
 }

@@ -1,152 +1,332 @@
-/* Einstellungen in zwei Ebenen (docs/47-einstellungen.md). Nur Abstände, Breiten und Gliederung; Farben und Karten
-   kommen aus styles.css und theme.css (docs/16-gestaltung.md). */
+/* Einstellungen in zwei Ebenen (docs/47-einstellungen.md), gestaltet wie die Systemeinstellungen am Mac
+   (docs/16-gestaltung.md, „Grundlage vom 23.10.2026“): links eine Seitenliste mit Zeichen, rechts gruppierte Flächen mit
+   Zeilen; Titel, höchstens eine Nebenzeile, rechts Wert oder Schalter; Erklärungen als Fußnote unter der Gruppe.
+   Nur Werte der Grundlage (--g-*) und aus CalmUI.css. Die Komponenten-CSS steht im Bündel vor den globalen Dateien;
+   darum heben die Regeln hier mit `#root` an. */
 
-/* Seitenbreite: Die Einstellungen brauchen keine 1280 px. Darunter stapeln sich die Karten, die Seitenleiste wird ein
-   Streifen oben. Die globale Mindestbreite gilt für die übrigen Seiten weiter und wird hier aufgehoben. */
+/* Seitenbreite: Die Einstellungen brauchen keine 1280 px. Die globale Mindestbreite gilt hier nicht. */
 html:has(.settings-shell), body:has(.settings-shell), #root:has(.settings-shell) { min-width: 0; }
 .settings-shell { overflow-x: clip; }
-.settings-shell .settings-page { min-width: 0; max-width: 1280px; padding: 48px clamp(16px, 4vw, 64px) 72px; }
-.settings-shell .settings-heading h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.1; }
 .settings-shell .settings-layout { grid-template-columns: minmax(0, 1fr); }
 .settings-shell .settings-sources > * { min-width: 0; }
-.settings-shell .source-section, .settings-shell .source-form, .settings-shell .darf-zeile { min-width: 0; max-width: 100%; }
-.settings-shell .source-row { flex-wrap: wrap; }
-.settings-shell .source-row > span:nth-child(2) { flex: 1 1 160px; }
-.settings-shell .source-row em { margin-left: auto; text-align: right; }
-.settings-shell .source-form-actions { flex-wrap: wrap; }
-.settings-shell .source-section input, .settings-shell .source-section select, .settings-shell .source-section textarea { max-width: 100%; }
 .settings-shell pre, .settings-shell code { overflow-wrap: anywhere; white-space: pre-wrap; }
 
-/* Breite Inhalte brechen um, statt die Seite zu weiten: Knöpfe, Überschriftenzeilen, Raster mit Knöpfen darin. */
-.settings-shell :is(.source-section, .profile-card, .darf-zeile, .ich, .einstellungen-aufklapp) { overflow-wrap: anywhere; }
-.settings-shell button { max-width: 100%; white-space: normal; }
-.settings-shell .compact-integration-heading { flex-wrap: wrap; }
-.settings-shell :is(.transkript-status, .akten-ordner-block, .model-rec-row) { grid-template-columns: minmax(0, 1fr); }
-.settings-shell :is(.transkript-aktionen, .akten-ordner-aktionen, .model-rec-confirm) { flex-wrap: wrap; }
-
-@media (max-width: 900px) {
-  .shell.settings-shell::before { left: 0; }
-  .shell.settings-shell { grid-template-columns: minmax(0, 1fr); }
-  .shell.settings-shell > main { grid-column: 1; }
-  .settings-shell .settings-page { padding-top: 24px; }
+/* ── Rahmen ──────────────────────────────────────────────────────────────────────────────────────────────── */
+#root .shell.settings-shell { background: var(--g-grund); }
+#root .shell.settings-shell .settings-page {
+  box-sizing: border-box; min-width: 0; max-width: 1180px; min-height: 100vh;
+  padding: var(--g-a6) clamp(16px, 4vw, 56px) var(--g-a8); background: var(--g-grund);
 }
-@media (max-width: 700px) {
-  .settings-shell .source-form { grid-template-columns: minmax(0, 1fr); padding: 16px; }
-  .settings-shell .source-section-heading { padding: 16px; }
-  .settings-shell .source-row { padding: 12px 16px; }
-  .settings-shell .settings-data { padding: 16px; }
+#root .settings-shell .settings-kopf { margin-bottom: var(--g-a5); }
+#root .settings-shell .settings-layout { display: block; }
+#root .settings-shell .settings-sections { display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: var(--g-a6); align-items: start; }
+#root .settings-shell button { max-width: 100%; }
+#root .settings-shell .settings-error { margin: 0 0 var(--g-a4); font: var(--g-neben); color: var(--g-rot); }
+
+/* Die Seitenliste: Zeichen in einer Fläche in der Akzentfarbe, Name, die Auswahl getönt. */
+#root .shell.settings-shell .settings-section-nav {
+  position: sticky; top: var(--g-a5); display: flex; flex-direction: column; gap: 2px; width: auto;
+  margin: 0; padding: 0; border: 0; background: none; box-shadow: none;
 }
+#root .shell.settings-shell .settings-section-nav button {
+  display: flex; align-items: center; gap: var(--g-a3); flex: none; width: 100%; min-height: var(--g-ziel);
+  margin: 0; padding: 0 var(--g-a2); border: 0; border-radius: var(--g-radius-bedien); background: transparent;
+  color: var(--g-tinte); font: 500 15px/1.3 var(--g-schrift); text-align: left; cursor: pointer;
+  transition: background-color 150ms ease;
+}
+#root .shell.settings-shell .settings-section-nav button:hover:not([aria-pressed="true"]) { background: rgba(var(--g-tinte-rgb),.04); }
+#root .shell.settings-shell .settings-section-nav button[aria-pressed="true"] { background: var(--g-getoent-stark); color: var(--g-tinte); font-weight: 600; }
+#root .shell.settings-shell .settings-section-nav button:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+.settings-nav-zeichen { flex: 0 0 28px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--g-akzent); color: var(--g-auf-akzent); }
+.settings-nav-zeichen .interface-icon { width: 18px; height: 18px; }
+#root .shell.settings-shell .settings-section-nav .settings-section-hinten { position: relative; margin-top: var(--g-a5); color: var(--g-tinte); border: 0; }
+#root .shell.settings-shell .settings-section-nav .settings-section-hinten .settings-nav-zeichen { background: var(--g-leise); }
+#root .shell.settings-shell .settings-section-nav .settings-section-hinten::before { content: ""; position: absolute; top: calc(-1 * var(--g-a3)); left: var(--g-a2); right: var(--g-a2); border-top: 1px solid var(--g-linie); }
 
-/* Reiter: die vier vorderen, dann abgesetzt „Für Techniker“. */
-.settings-section-nav button.settings-section-hinten { flex: 0 0 auto; margin-left: auto; border: 1px dashed var(--kf-rand-d7e1df); }
-.settings-section-nav button.settings-section-hinten[aria-pressed="true"] { border-style: solid; }
-@media (max-width: 600px) { .settings-section-nav button.settings-section-hinten { margin-left: 0; flex-basis: 100%; } }
+/* Der Bereich: Titel und ein Satz, darunter die Gruppen. */
+#root .settings-shell .settings-section-panel { grid-column: 2; grid-row: 1; min-width: 0; }
+.settings-section-panel[hidden] { display: none; }
+#root .settings-shell .settings-section-panel > header { margin: 0 0 var(--g-a5); padding: 0; border: 0; border-radius: 0; background: none; }
+#root .settings-shell .settings-section-panel > header h2 { margin: 0; font: var(--g-titel); letter-spacing: -.01em; color: var(--g-tinte); }
+#root .settings-shell .settings-section-panel > header p { margin: var(--g-a1) 0 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .settings-sources { display: grid; gap: var(--g-a6); min-width: 0; }
 
-/* „Was Kingfisher darf“: fünf Zeilen, je ein Schalter mit Titel und dem Satz, was den Rechner verlässt. */
-.darf { display: grid; gap: 16px; }
-.darf-zeile { display: grid; gap: 10px; padding: 18px 22px; }
-.darf-zeile label:has(> input[role="switch"]) { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; font-size: 15px; cursor: pointer; }
-.darf-zeile input[role="switch"] { flex: none; width: 20px; height: 20px; margin: 2px 0 0; }
-.darf-zeile label > span { display: grid; gap: 4px; min-width: 0; }
-.darf-zeile label > span > strong { font-weight: 600; }
-.darf-zeile label > span > small { color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.55; font-weight: 400; }
-.darf-zeile p { margin: 0; }
-.darf-zeile select { min-height: 44px; max-width: 100%; }
-.darf-frage { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; background: var(--kf-flaeche-eef3f1); }
-.darf-frage p { font-size: 14px; line-height: 1.6; }
-.darf-frage-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; }
-.darf-zeile .autostart-meldung { margin-top: 0; }
+/* Datenschutz & Speicherung: ein Satz unter allem, ausgerichtet an den Gruppen. */
+#root .settings-shell .settings-storage { max-width: 720px; margin: var(--g-a6) 0 0 calc(216px + var(--g-a6)); padding: 0 var(--g-a4); }
+#root .settings-shell .settings-storage p { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
 
-/* Quellen zum Anklicken: ein Knopf je Quelle, an oder aus. */
-.darf-zeile .welt-vorschlaege { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 8px; margin: 4px 0; }
-.welt-vorgabe { display: grid; gap: 4px; min-width: 0; }
-.welt-vorgabe-knopf { display: grid; gap: 2px; min-height: 52px; padding: 8px 14px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: inherit; text-align: left; cursor: pointer; }
-.welt-vorgabe-knopf small { color: var(--kf-schrift-31535f); font-size: 12px; line-height: 1.4; }
-.welt-vorgabe-knopf[aria-pressed="true"] { color: var(--kf-schrift-fffefa); background: var(--kf-flaeche-075268); border-color: var(--kf-flaeche-075268); }
-.welt-vorgabe-knopf[aria-pressed="true"] small { color: var(--kf-schrift-fffefa); }
-.welt-vorgabe-knopf[aria-pressed="true"]::after { content: "dabei"; font-size: 11px; letter-spacing: .4px; }
-.welt-vorgabe-knopf:disabled { opacity: .6; cursor: default; }
-.welt-vorgabe-knopf:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; }
-.welt-eigene { display: grid; gap: 6px; margin-top: 6px; }
-.welt-eigene input { max-width: 520px; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
-.welt-eigene button { justify-self: start; }
-
-/* Zugänge und Kingfisher und du. */
-.zugang-kopf { margin-top: 8px; }
-.zugang-kopf h2 { margin: 0 0 4px; color: var(--kf-schrift-062b3a); font-size: 17px; }
-.zugang-kopf p { margin: 0; color: var(--kf-schrift-31535f); font-size: 13px; line-height: 1.6; }
-.ich { display: grid; gap: 22px; padding: 22px 26px; }
-.ich-feld { display: grid; gap: 6px; min-width: 0; }
-.ich-feld > label, .ich-feld > strong { font-size: 15px; font-weight: 600; }
-.ich-feld > div { display: flex; flex-wrap: wrap; gap: 10px; }
-.ich-feld input { flex: 1 1 240px; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; }
-.ich-feld p { margin: 0; }
-
-/* Für Techniker: eingeklappte Abschnitte mit einem Satz darunter. */
-.technik { display: grid; gap: 10px; }
-.einstellungen-aufklapp { min-width: 0; border: 1px solid var(--kf-rand-d7e1df); border-radius: 12px; background: var(--kf-flaeche-fffefa); }
-.einstellungen-aufklapp > summary { display: grid; gap: 2px; min-height: 44px; padding: 12px 16px; cursor: pointer; list-style: none; }
-.einstellungen-aufklapp > summary::-webkit-details-marker { display: none; }
-.einstellungen-aufklapp > summary > span { color: var(--kf-schrift-062b3a); font-size: 15px; font-weight: 600; }
-.einstellungen-aufklapp > summary > span::before { content: "›"; display: inline-block; width: 18px; transition: transform .15s; }
-.einstellungen-aufklapp[open] > summary > span::before { transform: rotate(90deg); }
-.einstellungen-aufklapp > summary > small { padding-left: 18px; color: var(--kf-schrift-31535f); font-size: 12px; line-height: 1.5; }
-.einstellungen-aufklapp > summary:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; border-radius: 12px; }
-.einstellungen-aufklapp-inhalt { display: grid; gap: 16px; padding: 0 16px 16px; min-width: 0; }
-.einstellungen-aufklapp-inhalt > * { min-width: 0; }
-.speicherorte ul { margin: 0; padding: 16px 20px 0 36px; display: grid; gap: 8px; font-size: 14px; line-height: 1.6; }
-.speicherorte .source-hint { padding: 12px 20px 16px; }
-@media (prefers-reduced-motion: reduce) { .einstellungen-aufklapp > summary > span::before { transition: none; } }
-
-/* Eine ruhige Arbeitsfläche: Zustand und Aktion vorne, Erklärungen auf Wunsch. */
-.shell.settings-shell .settings-page { max-width: 1240px; padding-top: 20px; }
-.shell.settings-shell .settings-heading { min-height: 0; padding-block: 8px 18px; margin-bottom: 20px; }
-.shell.settings-shell .settings-heading h1 { font-size: 28px; }
-.shell.settings-shell button { min-height: 44px; }
-.shell.settings-shell .settings-layout { display: block; }
-.shell.settings-shell .settings-sections { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; align-items: start; }
-.shell.settings-shell .settings-section-nav { display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0; border: 0; position: sticky; top: 24px; }
-.shell.settings-shell .settings-section-nav button { flex: none; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 8px; text-align: left; font-size: 14px; }
-.shell.settings-shell .settings-section-nav button[aria-pressed="true"] { background: var(--calm-inset); color: var(--calm-primary); }
-.shell.settings-shell .settings-section-nav .settings-section-hinten { margin: 20px 0 0; border-top: 1px solid var(--calm-line); border-radius: 0; color: var(--calm-muted); }
-.shell.settings-shell .settings-section-panel { grid-column: 2; grid-row: 1; min-width: 0; }
-.shell.settings-shell .settings-section-panel > header { margin-bottom: 16px; padding: 8px 0 12px; background: transparent; }
-.shell.settings-shell .settings-section-panel > header h2 { font-size: 18px; margin-bottom: 4px; }
-.shell.settings-shell .settings-sources { gap: 14px; }
-.shell.settings-shell .settings-sources .source-section { padding: 18px; }
-.shell.settings-shell .settings-sources .source-section:has(> .source-section-heading) { padding: 0; }
-.shell.settings-shell .source-section-heading { min-height: 68px; padding: 12px 18px; }
-.shell.settings-shell .source-empty { padding: 14px 18px; }
-.shell.settings-shell .source-section > .source-section-heading > div { flex: 1; }
-.shell.settings-shell .source-section > .source-section-heading .source-add { margin-left: auto; }
-.shell.settings-shell .settings-sources :is(.source-section,.einrichtung-assistent) h2 { font-size: 17px; line-height: 1.35; margin: 0; }
-.shell.settings-shell .settings-sources :is(.compact-integration-heading,.chatgpt-access > header) p { font-size: 13px; margin-block: 4px 0; }
-.shell.settings-shell .settings-sources .compact-model .source-form { padding: 12px 0 0; }
-.shell.settings-shell .chatgpt-access .cloud-memory { padding: 14px; }
-.shell.settings-shell .chatgpt-access .cloud-memory h3 { font-size: 16px; margin-block: 0 8px; }
-.shell.settings-shell .settings-storage { margin: 24px 0 0 194px; max-width: 720px; }
-.shell.settings-shell .settings-storage p { font-size: 13px; color: var(--calm-muted); line-height: 1.6; }
-.shell.settings-shell .einrichtung-assistent { padding: 16px 18px; }
-.shell.settings-shell .einrichtung-assistent p { font-size: 13px; margin-top: 4px; }
-.shell.settings-shell .einstellungen-aufklapp:not([open]) > summary > small { display: none; }
+/* Schmal: das Auswahlfeld statt der Seitenliste, als eine große Zeile. */
 .settings-section-picker { display: none; }
 @media (max-width: 1000px) {
-  .shell.settings-shell .settings-sections { display: block; }
-  .shell.settings-shell .settings-section-nav { display: none; }
-  .settings-section-picker { display: grid; gap: 6px; margin-bottom: 18px; font-size: 12px; color: var(--calm-muted); }
-  .settings-section-picker select { min-height: 46px; width: 100%; padding: 10px 12px; border: 1px solid var(--calm-line); border-radius: 10px; font: inherit; font-size: 15px; color: var(--calm-ink); background: var(--nordic-paper); }
-  .settings-section-picker select:focus-visible { outline: 3px solid var(--kf-rand-007e92); outline-offset: 3px; }
-  .shell.settings-shell .settings-storage { margin-left: 0; }
+  #root .settings-shell .settings-sections { display: block; }
+  #root .shell.settings-shell .settings-section-nav { display: none; }
+  #root .settings-shell .settings-section-picker { display: grid; gap: var(--g-a2); margin: 0 0 var(--g-a5); font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+  #root .settings-shell .settings-section-picker select {
+    width: 100%; min-height: var(--g-zeile); padding: 0 var(--g-a4); border: 0; border-radius: var(--g-radius-flaeche);
+    background-color: var(--g-flaeche); box-shadow: var(--g-schatten); font: 500 17px/1.3 var(--g-schrift); color: var(--g-tinte);
+  }
+  #root .settings-shell .settings-storage { margin-left: 0; }
 }
+@media (max-width: 900px) {
+  .shell.settings-shell { grid-template-columns: minmax(0, 1fr); }
+  .shell.settings-shell > main { grid-column: 1; }
+  #root .shell.settings-shell .settings-page { padding-top: var(--g-a5); }
+}
+
+/* ── Flächen ─────────────────────────────────────────────────────────────────────────────────────────────── */
+/* Jede Karte des Bestands wird eine Fläche der Grundlage: weiß, ohne Rahmen, mit Haarschatten. Fläche in Fläche wird
+   flach (keine Karten in Karten). */
+#root .settings-shell :is(.source-section, .source-form, .darf, .ich, .einrichtung-assistent, .lernt, .technik, .settings-data) {
+  box-sizing: border-box; min-width: 0; max-width: 100%; margin: 0; border: 0; border-radius: var(--g-radius-flaeche);
+  background: var(--g-flaeche); box-shadow: var(--g-schatten); overflow-wrap: anywhere;
+}
+#root .settings-shell :is(.source-section, .source-form, .darf, .ich, .lernt) :is(.source-section, .source-form, .source-card, .cloud-memory, .darf-frage, .settings-data) {
+  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+#root .settings-shell .source-section { padding: var(--g-a4) var(--g-a5); }
+#root .settings-shell .source-section > :first-child { margin-top: 0; }
+#root .settings-shell :is(.source-section, .source-form) :is(h2, .compact-integration-heading h2) { margin: 0; font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .settings-shell :is(.source-section, .source-form) h3 { margin: var(--g-a4) 0 var(--g-a2); font: 600 15px/1.35 var(--g-schrift); color: var(--g-tinte); }
+#root .settings-shell :is(.source-section, .source-form) p { margin: var(--g-a2) 0 0; font: var(--g-neben); color: var(--g-tinte); }
+#root .settings-shell :is(.source-hint, .source-empty, .settings-section > p) { font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .compact-integration-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-a2) var(--g-a4); min-height: 0; padding: 0; border: 0; }
+#root .settings-shell .compact-integration-heading p { margin: 2px 0 0; color: var(--g-leise); }
+#root .settings-shell .source-section :is(button.primary-action, button.secondary-action) { margin-top: var(--g-a3); }
+#root .settings-shell .source-section .compact-integration-heading button { margin-top: 0; }
+#root .settings-shell .source-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--g-a2); padding-top: var(--g-a2); }
+#root .settings-shell .source-form label { font: 500 14px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .settings-shell .source-form label small { font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell :is(.source-section, .source-form, .darf, .ich) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select) { box-sizing: border-box; max-width: 100%; min-height: var(--g-ziel); height: auto; font: var(--g-text); }
+
+/* Aufklapper in den Flächen: leise, mit dem drehenden Pfeil der Grundlage. */
+#root .settings-shell :is(.source-section, .source-form, .darf, .ich) details > summary { display: flex; align-items: center; min-height: var(--g-ziel); font: 500 15px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root .settings-shell :is(.source-section, .source-form, .darf, .ich) details[open] > summary { color: var(--g-tinte); }
+
+/* ── Zugänge ────────────────────────────────────────────────────────────────────────────────────────────── */
+/* Kopf mit Zahl und Fuß mit „hinzufügen“: der Baustein `Gruppe` (Grundlage.css). Den Abstand setzt das Raster. */
+.zugang-gruppe { min-width: 0; }
+#root .settings-shell .zugang-gruppe.g-gruppe { margin-bottom: 0; }
+#root .settings-shell .zugang-liste { min-width: 0; }
+#root .settings-shell .zugang-liste .source-empty { margin: 0; padding: var(--g-a4); }
+#root .settings-shell .zugang-liste .source-loading { padding: var(--g-a4); }
+.zugang-gruppe .zugang-neu .interface-icon { width: 18px; height: 18px; }
+.zugang-ordner .g-gruppe-fussnote { margin-top: var(--g-a2); }
+
+/* Eine Zeile je Zugang (Quellenformulare.tsx): Zeichen, Name und Adresse, rechts der Stand und Entfernen. */
+#root .settings-shell .source-row.g-zeile { flex-wrap: nowrap; min-height: var(--g-zeile); padding: 10px var(--g-a2) 10px var(--g-a4); border: 0; }
+#root .settings-shell .source-row .g-zeile-titel, #root .settings-shell .source-row .g-zeile-neben { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#root .settings-shell .source-row .g-zeile-titel { font: 500 16px/1.35 var(--g-schrift); }
+#root .settings-shell .source-row .g-zeile-wert { margin-left: auto; font-style: normal; }
+#root .settings-shell .source-remove { display: grid; place-items: center; flex: 0 0 var(--g-ziel); width: var(--g-ziel); height: var(--g-ziel); border: 0; border-radius: var(--g-radius-bedien); background: transparent; cursor: pointer; }
+#root .settings-shell .source-remove:hover:not(:disabled) { background: rgba(var(--g-rot-rgb),.08); }
+#root .settings-shell .source-remove img { width: 18px; height: 18px; opacity: .6; }
+#root .settings-shell .source-remove-confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-a2); margin-left: auto; font: var(--g-neben); color: var(--g-tinte); }
+#root .settings-shell .source-remove-confirm button { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--g-radius-bedien); background: var(--g-getoent); color: var(--g-akzent); font: 500 14px/1.2 var(--g-schrift); cursor: pointer; }
+.zugang-liste .neu-anmelden-status:empty { display: none; }
+
+/* Hinzufügen: eine Fläche mit Titel und „Schließen“, darin der Weg mit der Adresse. */
+#root .settings-shell .zugang-formular { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--g-a3); padding: var(--g-a4) var(--g-a5) var(--g-a5); }
+.zugang-formular-kopf { display: flex; align-items: center; justify-content: space-between; gap: var(--g-a3); }
+#root .settings-shell .zugang-formular .kalender-techniker { border-top: 1px solid var(--g-linie); padding-top: var(--g-a1); }
+#root .settings-shell .zugang-formular .kalender-techniker .source-form { padding: var(--g-a2) 0 0; }
+
+/* Meetings, Dokumentenordner und Dateien: drei Zeilen in einer Fläche, getrennt durch Haarlinien. */
+#root .settings-shell .zugang-ordner-liste > .source-section { border-radius: 0; box-shadow: none; background: transparent; padding: 14px var(--g-a4); }
+#root .settings-shell .zugang-ordner-liste > .source-section + .source-section { border-top: 1px solid var(--g-linie); }
+#root .settings-shell .zugang-ordner-liste .compact-integration-heading h2 { font: 500 16px/1.35 var(--g-schrift); }
+#root .settings-shell .zugang-ordner-liste .compact-integration-heading p { font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .zugang-ordner-liste details { margin: var(--g-a1) 0 0; }
+
+/* Microsoft, Google und Mac-Kalender: dieselben Flächen mit Überschrift und einer Zeile darunter. */
+#root .settings-shell .ms-zugang > .source-hint { margin-top: 2px; }
+#root .settings-shell .ms-zugang .ms-konto { display: grid; gap: var(--g-a1); margin-top: var(--g-a3); padding-top: var(--g-a3); border-top: 1px solid var(--g-linie); }
+
+/* Einrichtung oben unter Zugänge: Zeichen, Titel, was noch offen ist, der eine gefüllte Knopf. */
+#root .settings-shell .einrichtung-kopf { display: grid; gap: var(--g-a3); margin: 0; }
+#root .settings-shell .einrichtung-assistent { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--g-a3) var(--g-a4); padding: var(--g-a4) var(--g-a5); }
+#root .settings-shell .einrichtung-assistent > div { flex: 1 1 220px; min-width: 0; }
+#root .settings-shell .einrichtung-assistent h2 { margin: 0; font: var(--g-ueberschrift); color: var(--g-tinte); }
+#root .settings-shell .einrichtung-assistent p { margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .einrichtung-assistent .g-zeile-symbol { flex: 0 0 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--g-getoent); color: var(--g-akzent); }
+#root .settings-shell .einrichtung-assistent .g-zeile-symbol .interface-icon { width: 20px; height: 20px; }
+
+/* Schalter: der Baustein `Schalter` mit seinen Stilen in Grundlage.css („Schalter“). */
+
+/* ── Was Kingfisher darf ────────────────────────────────────────────────────────────────────────────────── */
+/* Eine Fläche, eine Zeile je Schalter, getrennt durch eingerückte Haarlinien. Was ein Schalter öffnet (Ort, Quellen,
+   Startort, Zustimmung), steht unter seiner Zeile in derselben Fläche. */
+#root .settings-shell .darf { display: block; padding: 0; overflow: hidden; }
+#root .settings-shell .darf > [role="listitem"] { position: relative; }
+#root .settings-shell .darf > :is([role="listitem"], .darf-zeile) + :is([role="listitem"], .darf-zeile)::before { content: ""; position: absolute; top: 0; left: var(--g-a4); right: 0; border-top: 1px solid var(--g-linie); }
+#root .settings-shell .darf > .darf-zeile { position: relative; }
+#root .settings-shell .darf-zeile { display: grid; gap: var(--g-a2); min-width: 0; max-width: 100%; margin: 0; padding: 10px var(--g-a4) 12px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+#root .settings-shell .darf-zeile:empty { display: none; }
+#root .settings-shell .darf > [role="listitem"]:has(> .darf-zeile:empty) { display: none; }
+#root .settings-shell .darf-zeile > p, #root .settings-shell .darf-zeile .source-hint { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .darf-zeile :is(form, .welt-suche, .wegezeit-startort, .mitteilungen-uhrzeit) { display: grid; gap: var(--g-a2); }
+#root .settings-shell .darf-zeile :is(form, .welt-suche, .wegezeit-startort, .mitteilungen-uhrzeit) > div { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .settings-shell .darf-zeile :is(form, .welt-suche, .wegezeit-startort, .mitteilungen-uhrzeit) > div > input { flex: 1 1 220px; min-width: 0; }
+#root .settings-shell .darf-zeile label:not(:has(> input[role="switch"])) { font: 500 14px/1.4 var(--g-schrift); color: var(--g-tinte); }
+#root .settings-shell .darf-zeile select { min-height: var(--g-ziel); max-width: 100%; }
+#root .settings-shell .darf-frage { display: grid; gap: var(--g-a3); padding: var(--g-a3) 0 var(--g-a1); border-top: 1px solid var(--g-linie); }
+#root .settings-shell .darf-frage p { margin: 0; font: var(--g-neben); }
+.darf-frage-knoepfe { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+#root .settings-shell .darf-zeile .autostart-wahl { margin: 0; }
+#root .settings-shell .darf-zeile .autostart-meldung { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .darf-zeile .autostart-meldung:empty { display: none; }
+#root .settings-shell .darf-zeile .welt-treffer { display: flex; flex-wrap: wrap; gap: var(--g-a2); margin: 0; padding: 0; list-style: none; }
+.darf-gruppe { min-width: 0; margin: 0; }
+.darf-gruppe .g-gruppe-kopf { margin: 0 0 var(--g-a2); padding: 0 var(--g-a4); }
+.darf-gruppe .g-gruppe-titel { margin: 0; font: 600 13px/1.4 var(--g-schrift); color: var(--g-leise); }
+.darf-gruppe .g-gruppe-fussnote { margin: var(--g-a2) 0 0; padding: 0 var(--g-a4); font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell fieldset.darf { min-inline-size: 0; }
+
+/* Quellen zum Anklicken: eine Kachel je Quelle, an oder aus. */
+.darf-zeile .welt-vorschlaege { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: var(--g-a2); margin: var(--g-a1) 0; }
+.welt-vorgabe { display: grid; gap: var(--g-a1); min-width: 0; }
+.welt-vorgabe-knopf { display: grid; gap: 2px; min-height: var(--g-zeile); padding: var(--g-a2) 14px; border: 0; border-radius: var(--g-radius-bedien); color: var(--g-tinte); background: var(--g-getoent); font: inherit; text-align: left; cursor: pointer; }
+.welt-vorgabe-knopf small { color: var(--g-leise); font: var(--g-fussnote); }
+.welt-vorgabe-knopf[aria-pressed="true"] { color: var(--g-auf-akzent); background: var(--g-akzent); }
+.welt-vorgabe-knopf[aria-pressed="true"] small { color: var(--g-auf-akzent); }
+.welt-vorgabe-knopf[aria-pressed="true"]::after { content: "dabei"; font-size: 11px; letter-spacing: .4px; }
+.welt-vorgabe-knopf:disabled { opacity: .6; cursor: default; }
+.welt-vorgabe-knopf:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; }
+.welt-eigene { display: grid; gap: 6px; margin-top: 6px; }
+.welt-eigene input { max-width: 520px; }
+.welt-eigene button { justify-self: start; }
+
+/* ── Kingfisher und du ──────────────────────────────────────────────────────────────────────────────────── */
+/* Eine Fläche, ein Feld je Zeile; die Erklärung steht leise darunter. */
+#root .settings-shell .ich { display: grid; gap: 0; padding: 0; }
+#root .settings-shell .ich > * { position: relative; padding: 14px var(--g-a4); }
+#root .settings-shell .ich > * + *::before { content: ""; position: absolute; top: 0; left: var(--g-a4); right: 0; border-top: 1px solid var(--g-linie); }
+.ich-feld { display: grid; gap: var(--g-a2); min-width: 0; }
+#root .settings-shell .ich-feld > label, #root .settings-shell .ich-feld > strong { font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); }
+.ich-feld > div { display: flex; flex-wrap: wrap; gap: var(--g-a2); }
+.ich-feld input { flex: 1 1 240px; min-width: 0; }
+#root .settings-shell .ich-feld p { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+
+/* ── KI & Modelle ────────────────────────────────────────────────────────────────────────────────────────── */
+/* Aufklappbare Einträge (Anbieter, ChatGPT-Anmeldung, Einordnung) sind Zeilen der Fläche mit Haarlinie, keine Kästen. */
+#root .settings-shell :is(.cloud-access, .chatgpt-access) { display: grid; gap: var(--g-a3); }
+#root .settings-shell :is(.cloud-access-entry, .chatgpt-access > details, .cloud-memory details) { margin: 0; padding: 0; border: 0; border-top: 1px solid var(--g-linie); border-radius: 0; }
+#root .settings-shell :is(.cloud-access-entry, .chatgpt-access > details, .cloud-memory details) > summary {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a1) var(--g-a3); min-height: var(--g-zeile); padding: 0;
+  font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte);
+}
+#root .settings-shell .cloud-access-entry > summary::before { content: ""; }
+#root .settings-shell .cloud-access-entry > summary > strong { font-weight: 500; }
+#root .settings-shell .cloud-access-entry > summary > span { margin-left: auto; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .cloud-access-entry:last-of-type, #root .settings-shell .chatgpt-access > details { border-bottom: 1px solid var(--g-linie); }
+#root .settings-shell .cloud-access-provider { padding: 0 0 var(--g-a4); border: 0; gap: var(--g-a3); }
+#root .settings-shell .cloud-access-provider legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+#root .settings-shell .chatgpt-access > details > :not(summary) { margin-top: var(--g-a2); }
+#root .settings-shell .chatgpt-access > details { padding-bottom: var(--g-a2); }
+#root .settings-shell .chatgpt-access > details:not([open]) { padding-bottom: 0; }
+#root .settings-shell :is(.chatgpt-connected, .cloud-memory, .cloud-memory-preview, .cloud-memory-progress) { padding: 0; border: 0; border-radius: 0; background: transparent; }
+#root .settings-shell .chatgpt-access > header h2 { margin: 0; font: var(--g-ueberschrift); }
+#root .settings-shell .chatgpt-access > header p { margin: 2px 0 0; font: var(--g-neben); color: var(--g-leise); }
+#root .settings-shell .chatgpt-access > p[role="alert"], #root .settings-shell .model-rec-warn { margin: 0; font: var(--g-neben); color: var(--g-tinte); }
+#root .settings-shell .chatgpt-access dialog.chatgpt-welcome { padding: var(--g-a5); border: 0; border-radius: var(--g-radius-flaeche); box-shadow: 0 20px 60px rgba(var(--g-schatten-rgb),.25); }
+#root .settings-shell .compact-model > .source-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-a3) var(--g-a4); margin: var(--g-a3) 0 0; padding: var(--g-a3) 0 0; border-top: 1px solid var(--g-linie); }
+#root .settings-shell .compact-model > .source-form > :is(p, .source-form-actions, .classification-offer, .classification-offer-note) { grid-column: 1 / -1; margin: 0; }
+#root .settings-shell .compact-model > .source-form > p[role="status"]:empty { display: none; }
+#root .settings-shell .compact-model > .source-form label { display: grid; gap: var(--g-a2); }
+
+/* Modell je Aufgabe (für Fortgeschrittene): Zeilen mit Haarlinie statt umrandeter Kästen. */
+#root .settings-shell .model-role-card { margin: 0; padding: var(--g-a3) 0; border: 0; border-top: 1px solid var(--g-linie); border-radius: 0; }
+#root .settings-shell .model-role-card legend { float: left; width: 100%; padding: 0 0 var(--g-a1); font: 500 16px/1.35 var(--g-schrift); }
+#root .settings-shell .model-role-card legend + * { clear: both; }
+
+/* Gruppen unter „Kingfisher und du“: Über dich, Kreis, Ton, Fassung, Antworten. */
+#root .settings-shell .ich-gruppen { display: grid; gap: var(--g-a6); min-width: 0; }
+#root .settings-shell .ich > .ich-meldung { padding-top: 0; }
+#root .settings-shell .ich > .ich-meldung::before { content: none; }
+#root .settings-shell .ich-mehr { margin: var(--g-a1) 0 0; padding: 0 var(--g-a4); }
+#root .settings-shell .ich-mehr > summary { min-height: var(--g-ziel-kompakt); font: 500 14px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root .settings-shell .ich-mehr p { margin: 0; font: var(--g-fussnote); color: var(--g-leise); }
+/* Offene Kreis-Vorschläge als Zeilen: Name, darunter leise der Grund; die ganze Zeile führt zur Akte. */
+#root .settings-shell .kreis-stand { display: grid; gap: var(--g-a2); }
+#root .settings-shell .kreis-stand > p { margin: 0; }
+#root .settings-shell .kreis-offen { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+#root .settings-shell .kreis-offen li + li { border-top: 1px solid var(--g-linie); }
+#root .settings-shell .kreis-offen button {
+  display: grid; gap: 2px; justify-items: start; width: 100%; min-height: var(--g-zeile); padding: var(--g-a2) 0; border: 0; border-radius: 0;
+  background: transparent; color: var(--g-tinte); font: 500 16px/1.35 var(--g-schrift); text-align: left;
+}
+#root .settings-shell .kreis-offen button:hover { background: rgba(var(--g-tinte-rgb),.035); }
+#root .settings-shell .kreis-offen button small { font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell .kreis-mehr > summary { min-height: var(--g-ziel); font: 500 15px/1.35 var(--g-schrift); color: var(--g-verweis); }
+#root .settings-shell :is(.kreis-ok, .kreis-fehler) { margin: 0; font: var(--g-neben); }
+#root .settings-shell .stil-kreise { gap: var(--g-a3); }
+#root .settings-shell .stil-beleg { border: 0; border-radius: var(--g-radius-bedien); background: var(--g-segment-grund); }
+/* Fassung: Titel, der Schalter, „Jetzt nachsehen“ und wann zuletzt. */
+#root .settings-shell .fassung-einstellung { gap: var(--g-a2); }
+#root .settings-shell .fassung-einstellung > strong { font: var(--g-ueberschrift); }
+#root .settings-shell .fassung-einstellung > div { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-a3); }
+#root .settings-shell .ich-gruppen > .technik { overflow: hidden; }
+
+/* ── Für Techniker ──────────────────────────────────────────────────────────────────────────────────────── */
+/* Eine ruhige Liste: je Abschnitt eine Zeile mit Pfeil; aufgeklappt steht der Inhalt darunter in derselben Fläche. */
+#root .settings-shell .technik { display: block; padding: 0; overflow: hidden; }
+.einstellungen-aufklapp { position: relative; min-width: 0; }
+#root .settings-shell .technik > .einstellungen-aufklapp + .einstellungen-aufklapp::before { content: ""; position: absolute; top: 0; left: var(--g-a4); right: 0; border-top: 1px solid var(--g-linie); z-index: 1; }
+#root .settings-shell .einstellungen-aufklapp > summary {
+  display: flex; align-items: center; gap: var(--g-a3); min-height: var(--g-zeile); padding: 0 var(--g-a4); border-radius: 0;
+  font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); cursor: pointer; list-style: none;
+}
+#root .settings-shell .einstellungen-aufklapp > summary::before { content: none; display: none; }
+#root .settings-shell .einstellungen-aufklapp > summary::after {
+  content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: 0 4px 0 auto; border: solid rgba(var(--g-tinte-rgb),.32);
+  border-width: 0 1.75px 1.75px 0; transform: rotate(-45deg); transition: transform var(--g-bewegung);
+}
+#root .settings-shell .einstellungen-aufklapp[open] > summary::after { transform: rotate(45deg); }
+#root .settings-shell .einstellungen-aufklapp > summary:hover { background: rgba(var(--g-tinte-rgb),.035); }
+#root .settings-shell .einstellungen-aufklapp > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: -2px; }
+.einstellungen-aufklapp > summary > span { min-width: 0; }
+.einstellungen-aufklapp > summary > small { display: none; }
+#root .settings-shell .einstellungen-aufklapp-inhalt { display: grid; gap: var(--g-a4); padding: 0 var(--g-a4) var(--g-a4); min-width: 0; }
+#root .settings-shell .einstellungen-aufklapp-inhalt > .einstellungen-satz { margin: 0; font: var(--g-neben); color: var(--g-leise); }
+.einstellungen-aufklapp-inhalt > * { min-width: 0; }
+/* Was in einem aufgeklappten Abschnitt steht, ist schon in der Fläche: keine zweite Karte darum. */
+#root .settings-shell .einstellungen-aufklapp-inhalt :is(.source-section, .source-form, .source-card, .settings-data) { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+/* Unter „KI & Modelle“ steht ein einzelner Aufklapper in einer Karte: dort ohne eigene Fläche. */
+#root .settings-shell .source-section .einstellungen-aufklapp > summary { padding: 0; min-height: var(--g-ziel); color: var(--g-verweis); font-size: 15px; }
+#root .settings-shell .source-section .einstellungen-aufklapp-inhalt { padding: 0 0 var(--g-a2); }
+/* Formulare in den Abschnitten: Bezeichnung über dem Feld, Felder nicht schmaler als nötig. */
+#root .settings-shell .einstellungen-aufklapp-inhalt form:not(.source-form) { display: grid; gap: var(--g-a2); justify-items: start; }
+#root .settings-shell .einstellungen-aufklapp-inhalt form:not(.source-form) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { width: 100%; max-width: 520px; }
+#root .settings-shell .einstellungen-aufklapp-inhalt form:not(.source-form) label { font: 500 14px/1.4 var(--g-schrift); color: var(--g-tinte); }
+/* Stand aller Bereiche: eine Liste statt Kacheln. */
+#root .settings-shell .setup-overview-grid { display: block; border-top: 1px solid var(--g-linie); }
+#root .settings-shell .setup-overview-card { display: flex; align-items: center; min-height: var(--g-zeile); padding: var(--g-a3) 0; border: 0; border-bottom: 1px solid var(--g-linie); border-radius: 0; background: transparent; }
+#root .settings-shell .setup-overview-card h3 { margin: 0; font: 500 16px/1.35 var(--g-schrift); color: var(--g-tinte); }
+#root .settings-shell .setup-overview-card strong { font: var(--g-neben); color: var(--g-tinte); }
+#root .settings-shell .setup-overview-card p { margin: 2px 0 0; font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell .setup-overview-actions { margin: 0; }
+#root .settings-shell .setup-overview-actions span { font: var(--g-fussnote); color: var(--g-leise); }
+#root .settings-shell .einstellungen-aufklapp-inhalt > .profile-card { padding: 0; border: 0; box-shadow: none; background: transparent; }
+.speicherorte ul { margin: 0; padding: 0 0 0 20px; display: grid; gap: var(--g-a2); font: var(--g-neben); }
+@media (prefers-reduced-motion: reduce) { #root .settings-shell .einstellungen-aufklapp > summary::after { transition: none; } }
+
+@media (max-width: 700px) {
+  .settings-shell .source-form { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  #root .settings-shell .source-section { padding: var(--g-a4); }
+  #root .settings-shell .zugang-formular { padding: var(--g-a4); }
+  #root .settings-shell .einrichtung-assistent { padding: var(--g-a4); }
+  #root .settings-shell .einrichtung-assistent .g-knopf { flex: 1 1 100%; }
+  #root .settings-shell .source-row .g-zeile-wert { display: none; }
+  #root .settings-shell .compact-model > .source-form { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Neu anmelden am Postfach, wenn die Anmeldung nicht mehr gilt (NeuAnmelden.tsx): unter der Zeile, gleicher Rand. */
-.neu-anmelden-stand { padding: 0 24px 16px 56px; display: grid; gap: 12px; justify-items: start; border-bottom: 1px solid var(--kf-rand-d7e1df); }
-.neu-anmelden-status { margin: 0; padding: 12px 24px 12px 56px; border-bottom: 1px solid var(--kf-rand-d7e1df); }
+.neu-anmelden-stand { padding: 0 var(--g-a4) var(--g-a4) 60px; display: grid; gap: var(--g-a3); justify-items: start; }
+.neu-anmelden-status { margin: 0; padding: var(--g-a2) var(--g-a4) var(--g-a2) 60px; }
 .neu-anmelden-status:empty { padding: 0; border: 0; }
 /* Der Fokus landet hier nur, damit Bildschirmleser „Angemeldet“ vorlesen; ein Satz ist kein Bedienelement. */
 .neu-anmelden-status:focus, .neu-anmelden-status:focus-visible { outline: none; }
-.neu-anmelden { width: 100%; display: grid; gap: 12px; }
-.neu-anmelden label { display: grid; gap: 8px; color: var(--kf-schrift-31535f); font-size: 11px; line-height: 16px; font-weight: 600; }
-.neu-anmelden input { width: 100%; max-width: 360px; height: 40px; border: 1px solid var(--kf-rand-d7e1df); border-radius: 8px; padding: 0 12px; color: var(--kf-schrift-062b3a); background: var(--kf-flaeche-fffefa); font: 400 12px "Inter", sans-serif; }
-.neu-anmelden input:focus { outline: 2px solid var(--kf-rand-00a7c4); outline-offset: 2px; }
+.neu-anmelden { width: 100%; display: grid; gap: var(--g-a3); }
+.neu-anmelden label { display: grid; gap: var(--g-a2); font: 500 14px/1.4 var(--g-schrift); color: var(--g-tinte); }
+.neu-anmelden input { width: 100%; max-width: 360px; }
 .neu-anmelden .source-form-actions { justify-content: flex-start; }
-@media (max-width: 700px) { .neu-anmelden-stand, .neu-anmelden-status { padding-left: 24px; } .neu-anmelden-status:empty { padding: 0; } }
+@media (max-width: 700px) { .neu-anmelden-stand, .neu-anmelden-status { padding-left: var(--g-a4); } .neu-anmelden-status:empty { padding: 0; } }

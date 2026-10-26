@@ -1,5 +1,5 @@
 import {useState, type ReactNode} from "react";
-import {ASSET, navigate} from "../ui";
+import {navigate} from "../ui";
 import {KingfisherLernt} from "./KingfisherLernt";
 import {naechsterHinweis} from "./schritte";
 import {useEinrichtung} from "./useEinrichtung";
@@ -25,7 +25,6 @@ export function HeuteLeer({leer, children}: {leer: boolean; children: ReactNode}
   const karten = stand !== null && laeuft === false && !hinweis;
   return <>
     {hinweis ? <section className="heute-naechster-schritt" aria-labelledby="heute-naechster-titel">
-      <img src={`${ASSET.media}kingfisher-flight-clean-v1.png`} alt="" />
       <div>
         <h2 id="heute-naechster-titel">Als Nächstes</h2>
         <p>{hinweis.text}</p>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError, api, type UebernehmenErgebnis, type UebernehmenVorschau, type UebernehmenVorschlag } from "./api";
 import { ergebnisText, saetzeText, vorgabeWahl, vorgeschlagenText } from "./uebernehmen";
 import { navigate } from "./ui";
+import { Bestaetigung } from "./grundlage";
 import "./Uebernehmen.css";
 
 type Entscheidung = "angenommen" | "abgelehnt" | "fehler";
@@ -80,21 +81,20 @@ export function InDieAkte({ conversationId, messageId }: { conversationId: strin
 
   const karte = (v: UebernehmenVorschlag, hinweise: string[]) => {
     const stand = entschieden[v.id] ?? (v.state === "accepted" ? "angenommen" : v.state === "rejected" ? "abgelehnt" : null);
-    return <section className="memory-candidate uebernehmen-karte" key={v.id} aria-label="Gedächtnisvorschlag">
-      <span>GEDÄCHTNISVORSCHLAG FÜR DIE AKTE</span>
+    return <Bestaetigung className="memory-candidate uebernehmen-karte" key={v.id} label="Gedächtnisvorschlag" titel="Vorschlag für die Akte">
       <strong>{v.statement}</strong>
       {v.evidence[0] ? <p className="memory-source">Beleg: „{v.evidence[0].quote}“</p> : null}
       {hinweise.map(h => <p className="memory-notice" key={h}>{h}</p>)}
       {stand === "angenommen" ? <p className="memory-decision" role="status">In der Akte{sacheAnzeige(v.subject_ref) ? ` von ${sacheAnzeige(v.subject_ref)}` : ""}.</p> : null}
       {stand === "abgelehnt" ? <p className="memory-decision" role="status">Nicht gespeichert.</p> : null}
-      <div className="memory-actions">
+      <div className="memory-actions g-bestaetigung-knoepfe">
         {stand === null && v.state === "pending" ? <>
           <button className="memory-confirm" type="button" disabled={arbeitet !== ""} onClick={() => void entscheiden(v.id, "annehmen")}>Bestätigen</button>
           <button className="memory-reject" type="button" disabled={arbeitet !== ""} onClick={() => void entscheiden(v.id, "ablehnen")}>Nicht speichern</button>
         </> : null}
         {stand === "angenommen" ? <button className="memory-reject" type="button" onClick={() => navigate(`/memory/akte/${encodeURIComponent(v.subject_ref)}`)}>Akte öffnen</button> : null}
       </div>
-    </section>;
+    </Bestaetigung>;
   };
 
   if (!offen) {

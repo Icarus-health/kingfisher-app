@@ -70,9 +70,7 @@ def _records(store):
              'data': json.loads(row['document']) if row['document'] is not None else None} for row in rows]
 
 
-def _snapshot(app, bezuege, register_token):
-    if bezuege.offene_zaehlen(register_token):
-        raise HTTPException(409, 'Die Organisationsbasis wird aktualisiert. Bitte erneut laden.')
+def _entries(bezuege):
     # Alle geltenden aktuellen Quellen, korrigierte Zuordnungen gewinnen.
     rows = bezuege._conn.execute('SELECT l.sache, l.episode_id, ' + FINGERABDRUCK +
             ' AS fp FROM (' + bezuege._links() + ") l JOIN episodes e ON e.id=l.episode_id WHERE l.sache LIKE 'organisation:%' ORDER BY l.sache,l.episode_id",
@@ -80,8 +78,18 @@ def _snapshot(app, bezuege, register_token):
     by_id = {}
     for row in rows:
         by_id.setdefault(row['sache'], []).append([row['episode_id'], row['fp']])
-    entries = [{'id': identifier, 'name': bezuege.beschriftung(identifier), 'sources': sources}
-               for identifier, sources in sorted(by_id.items())]
+    return [{'id': identifier, 'name': bezuege.beschriftung(identifier), 'sources': sources}
+            for identifier, sources in sorted(by_id.items())]
+
+
+def _snapshot(app, bezuege, register_token, vollstaendig=False):
+    if not vollstaendig and bezuege.offene_zaehlen(register_token):
+        raise HTTPException(409, 'Die Organisationsbasis wird aktualisiert. Bitte erneut laden.')
+    # Zwischengespeichert am Stand der Bezüge (V7: bei 10.000 Quellen 2,2–2,5 s je Aufruf, fast alles Namen und
+    # Verknüpfungen). Jede Änderung an Quellen oder Zuordnungen ändert `aenderungsstand`; die Gruppen und Ablehnungen
+    # unten werden jedes Mal frisch gelesen, sodass auch Vorschau und Schreiben auf dem neuesten Stand prüfen.
+    entries = bezuege.zwischen.holen(('organisationen', bezuege.aenderungsstand(), register_token),
+                                     lambda: _entries(bezuege))
     records = _records(app.state.workspace_views)
     groups = [row for row in records if row['kind'] == 'organisation_group' and row['data'] is not None]
     grouped = {member for group in groups for member in group['data']['members']}
@@ -100,11 +108,20 @@ def _current(app):
     # zum bestehenden deterministischen Bezüge-Hintergrundfaden.
     with app.state.conversation_lock:
         bezuege, _ = bausteine(app)
-        bezuege.aktualisieren()
+        # Wie `akten_routes._nachfuehren`: Wer den Stand seit dem letzten vollständigen Abgleich unverändert
+        # wiedersieht, muss nicht noch einmal den ganzen Bestand nachsehen (V7: 0,6 s je Aufruf).
+        geprueft = getattr(app.state, 'akten_geprueft', None)
+        if geprueft is None or geprueft[0] is not bezuege or geprueft[1] != bezuege.aenderungsstand():
+            if not bezuege.aktualisieren()['offen']:
+                app.state.akten_geprueft = (bezuege, bezuege.aenderungsstand())
+        geprueft = getattr(app.state, 'akten_geprueft', None)
         register_token = bezuege.register().token
         store = app.state.workspace_views
         with app.state.episodes._lock, store._lock:
-            yield _snapshot(app, bezuege, register_token), store
+            # Unter der Sperre noch einmal: Nur wenn seit dem vollständigen Abgleich nichts geschrieben wurde, entfällt
+            # die Zählung der offenen Quellen.
+            vollstaendig = geprueft is not None and geprueft[0] is bezuege and geprueft[1] == bezuege.aenderungsstand()
+            yield _snapshot(app, bezuege, register_token, vollstaendig), store
 
 
 class Basis(BaseModel):

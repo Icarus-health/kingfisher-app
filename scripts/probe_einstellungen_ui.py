@@ -15,6 +15,7 @@ Geprüft wird in Chromium (Playwright):
   Wegezeit lässt sich erst einschalten, wenn sie rechnen kann (Startort und Kartendienst, Befund 19). Cloud ohne Zugang sagt das in einem Satz; mit Zugang
   braucht es die Zustimmung, und ein Klick nimmt es zurück.
 * Kingfisher und du: Name und Startort speichern und bleiben nach dem Neuladen; Zeitzone steht da.
+* Zugänge, die nicht laden (V3): unter der Meldung je Gruppe „Nicht geladen.“, keine Ladebalken; „Wiederholen“ lädt.
 * Alte Verweise (`#world`, `#model`, `#memory`) kommen am neuen Ort an.
 
 Aufruf: `python scripts/probe_einstellungen_ui.py --ausgabe DIR [--chromium PFAD]` (PYTHONPATH: sidecar und Wurzel).
@@ -121,7 +122,16 @@ def main() -> int:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=args.chromium, args=['--no-sandbox'])
         seite = browser.new_context(viewport={'width': 1280, 'height': 1000}).new_page()
-        seite.on('console', lambda m: ergebnis['konsole'].append(f'{m.type}: {m.text}') if m.type in ('error', 'warning') else None)
+        # Während der Probe mit gesperrten Zugängen (V3) zählt die absichtlich ausgelöste 503 nicht als Konsolenfehler.
+        gesperrt = {'an': False}
+        ergebnis['erwartete_fehlantworten'] = []
+
+        def konsole(m) -> None:
+            if m.type not in ('error', 'warning'):
+                return
+            ziel = 'erwartete_fehlantworten' if gesperrt['an'] and m.text.startswith('Failed to load resource') else 'konsole'
+            ergebnis[ziel].append(f'{m.type}: {m.text}')
+        seite.on('console', konsole)
         seite.on('pageerror', lambda e: ergebnis['konsole'].append(f'pageerror: {e}'))
         seite.on('request', lambda r: anfragen.append(r.url))
 
@@ -129,9 +139,9 @@ def main() -> int:
             seite.set_viewport_size({'width': breite, 'height': 1000})
             seite.goto(basis + '/settings#' + kennung)
             seite.reload()
-            seite.wait_for_selector('.settings-section-nav')
-            alt = {'world': 'darf', 'model': 'technik', 'memory': 'technik'}
-            panel = kennung if kennung in ALLE else 'technik' if kennung.startswith('technik') else alt.get(kennung, 'zugaenge')
+            seite.wait_for_selector('.settings-section-nav', state='attached')  # schmal steht das Auswahlfeld statt der Liste
+            alt = {'world': 'darf', 'model': 'ki', 'memory': 'technik'}
+            panel = kennung if kennung in ALLE + ('ki',) else 'technik' if kennung.startswith('technik') else alt.get(kennung, 'zugaenge')
             seite.wait_for_selector(f'#settings-{panel}:not([hidden])')
             time.sleep(0.6)
 
@@ -147,10 +157,32 @@ def main() -> int:
         oeffne('zugaenge')
         reiter = [b.inner_text() for b in seite.locator('.settings-section-nav button').all()]
         pruef['reiter'] = reiter
-        assert reiter == ['Zugänge', 'Was Kingfisher darf', 'Kingfisher und du', 'Sicherung', 'Für Techniker'], reiter
+        # Seit „KI & Modelle“ ein eigener Bereich ist, stehen fünf Bereiche vorne, „Für Techniker“ abgesetzt dahinter.
+        assert reiter == ['Zugänge', 'KI & Modelle', 'Was Kingfisher darf', 'Kingfisher und du', 'Sicherung', 'Für Techniker'], reiter
         assert seite.locator('.settings-section-hinten').inner_text() == 'Für Techniker'
         pruef['technik_beim_oeffnen_nicht_geladen'] = not any('/models/recommendation' in a for a in anfragen)
         assert pruef['technik_beim_oeffnen_nicht_geladen'], 'Die Modellkarte darf nicht geladen sein, bevor jemand sie aufschlägt'
+
+        # 1b. Zugänge laden nicht (V3): unter der Meldung „Nicht geladen.“ je Gruppe statt grauer Ladebalken; „Wiederholen“ lädt
+        def sperre(route):
+            route.fulfill(status=503, body='{"detail":"nicht erreichbar"}', content_type='application/json')
+        gesperrt['an'] = True
+        seite.route('**/api/v1/integrations', sperre)
+        oeffne('zugaenge')
+        seite.get_by_text('Die lokalen Integrationen sind gerade nicht erreichbar.').wait_for(timeout=15000)
+        zugaenge = seite.locator('#settings-zugaenge')
+        pruef['zugaenge_ladefehler_nicht_geladen'] = zugaenge.get_by_text('Nicht geladen.', exact=True).count()
+        pruef['zugaenge_ladefehler_ohne_balken'] = zugaenge.locator('.source-loading').count()
+        bild('zugaenge-ladefehler')
+        assert pruef['zugaenge_ladefehler_nicht_geladen'] == 2, 'Je Gruppe (Postfächer, Kalender) gehört „Nicht geladen.“ unter die Meldung'
+        assert pruef['zugaenge_ladefehler_ohne_balken'] == 0, 'Nach dem Ladefehler dürfen keine Ladebalken stehen bleiben'
+        seite.unroute('**/api/v1/integrations', sperre)
+        seite.get_by_role('button', name='Wiederholen').click()
+        seite.get_by_text('Die lokalen Integrationen sind gerade nicht erreichbar.').wait_for(state='detached', timeout=15000)
+        seite.get_by_text('Noch kein Postfach verbunden.').wait_for(timeout=15000)
+        gesperrt['an'] = False
+        pruef['zugaenge_wiederholen_laedt'] = zugaenge.get_by_text('Nicht geladen.', exact=True).count() == 0
+        assert pruef['zugaenge_wiederholen_laedt']
 
         # 2. Kein Fachwort vorne (sichtbarer Text, eingeklappte Bereiche zählen nicht)
         for bereich in VORNE:
@@ -176,6 +208,8 @@ def main() -> int:
         # 4. Quellen zum Anklicken: ein Klick fügt hinzu, der zweite entfernt
         assert seite.get_by_role('group', name='Quellen zum Anklicken').count() == 0, 'ohne Schalter keine Quellen'
         schalter('Eine Meldung aus der Welt zeigen').click()
+        # Die Quellen stehen eingeklappt unter „Quellen ändern“; aufklappen wie ein Mensch.
+        seite.locator('#settings-darf summary', has_text='Quellen ändern').click()
         gruppe = seite.get_by_role('group', name='Quellen zum Anklicken')
         gruppe.wait_for(timeout=15000)
         knoepfe = gruppe.get_by_role('button')
@@ -256,7 +290,7 @@ def main() -> int:
 
         # 7. Cloud: ohne Zugang ein Satz, mit Zugang Zustimmung, ein Klick zurück
         schalter('Cloud für Fragen und Antworten nutzen').click()
-        seite.wait_for_selector('#settings-darf >> text=Dafür braucht es einen Zugang bei einem Cloudanbieter')
+        seite.wait_for_selector('#settings-darf >> text=Dafür braucht es einen gespeicherten Zugang')
         rollen = seite.request.get(basis + '/api/v1/models/roles').json()
         assert not any(r['wirksam']['quelle'] == 'cloud' for r in rollen['rollen'])
         pruef['cloud_ohne_zugang'] = True
@@ -290,10 +324,11 @@ def main() -> int:
         assert 'Hier muss nichts geändert werden' in text
         offene = seite.locator('.einstellungen-aufklapp[open]').count()
         pruef['technik_offen_beim_start'] = offene
-        assert offene == 0 and seite.locator('.einstellungen-aufklapp').count() == 16  # mit „Microsoft-Anmeldung vorbereiten“ (M5) und „Updates ohne App“
+        assert offene == 0 and seite.locator('#settings-technik .einstellungen-aufklapp').count() == 15  # die 15 Abschnitte aus gliederung.ts (TECHNIK)
         assert not any('/models/recommendation' in a for a in anfragen)
         bild('technik-zu-1280')
-        seite.locator('#technik-modelle > summary').click()
+        # Die Modellkarte steht seit dem eigenen Bereich unter „KI & Modelle“ und lädt erst, wenn jemand ihn aufschlägt.
+        oeffne('ki')
         seite.wait_for_selector('.model-recommendation', timeout=15000)
         assert any('/models/recommendation' in a for a in anfragen)
         pruef['technik_laedt_beim_aufklappen'] = True
@@ -302,7 +337,7 @@ def main() -> int:
         oeffne('world')
         assert seite.locator('#settings-darf:not([hidden])').count() == 1
         oeffne('model')
-        assert seite.locator('#settings-technik:not([hidden])').count() == 1 and seite.locator('#technik-modelle[open]').count() == 1
+        assert seite.locator('#settings-ki:not([hidden])').count() == 1
         oeffne('memory')
         assert seite.locator('#technik-suchindex[open]').count() == 1
         pruef['alte_verweise'] = True

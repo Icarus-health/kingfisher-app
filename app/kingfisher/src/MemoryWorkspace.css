@@ -1,32 +1,39 @@
 .memory-page.memory-page-workspace { display: flex; flex-direction: column; min-width: 0; }
-.memory-page-workspace .memory-filter { min-height: 0; padding: 18px 28px; border-right: 0; border-bottom: 1px solid var(--calm-line, #315563); }
+/* Inhalte behalten ihre Höhe und rollen mit der Seite; sonst liefen sie unter die leise Zeile am Ende. */
+.memory-page.memory-page-workspace > * { flex-shrink: 0; }
+.memory-page.memory-page-workspace > .memory-documents-workspace:has(> .memory-search) { flex: 1 0 auto; }
+.memory-page-workspace .memory-filter { min-height: 0; padding: 18px 28px; border-right: 0; border-bottom: 1px solid var(--calm-line); }
 .memory-page-workspace .memory-filter > p { margin: 0 0 10px; }
 .memory-page-workspace .memory-filter > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .memory-page-workspace .memory-filter button { min-height: 40px; padding: 8px 12px; }
-.memory-page-workspace .memory-tools { margin-top: 10px; font-size: 13px; color: var(--calm-muted, #b7cdd4); }
-.memory-tools summary { cursor: pointer; padding: 8px 0; }
-.memory-tools > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.memory-tools a { color: inherit; padding: 10px; }
+.memory-page-workspace .memory-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: auto; padding: 16px 28px 24px; border-top: 1px solid var(--calm-line); font-size: var(--calm-caption); color: var(--calm-muted); }
+.memory-page-workspace .memory-tools > span { margin-right: 4px; }
+.shell .memory-page-workspace .memory-tools :is(button, a) { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 8px; border: 0; border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; text-decoration: none; }
+.shell .memory-page-workspace .memory-tools :is(button, a):hover, .shell .memory-page-workspace .memory-tools button[aria-pressed=true] { color: var(--calm-ink); text-decoration: underline; text-underline-offset: 3px; }
 .memory-page-workspace .memory-directory { max-height: none; padding: 28px; }
 .memory-page-workspace .memory-directory header { margin-bottom: 20px; }
 .memory-page-workspace .memory-directory h1 { font-size: var(--calm-heading); }
 .memory-page-workspace .directory-list button { padding: 12px 8px; }
 .memory-search-form { display: flex; align-items: end; gap: 10px; }
 .memory-search-form .directory-search { flex: 1; }
-.memory-search-form > button, .memory-search-originals button { min-height: 44px; border: 1px solid var(--calm-line, #50707c); border-radius: 10px; background: var(--calm-soft, #104a5b); color: inherit; font: inherit; padding: 10px 16px; cursor: pointer; }
+.memory-search-form > button, .memory-search-originals button { min-height: 44px; border: 1px solid var(--calm-line); border-radius: 10px; background: var(--calm-soft); color: inherit; font: inherit; padding: 10px 16px; cursor: pointer; }
 .memory-search-form > button:disabled { opacity: .5; cursor: default; }
 .memory-search-results { list-style: none; padding: 0; display: grid; gap: 12px; }
-.memory-search-results > li { padding: 16px; border: 1px solid var(--calm-line, #315563); border-radius: 12px; background: var(--calm-inset, #0a3545); overflow-wrap: anywhere; }
+.memory-search-results > li { padding: 16px; border: 1px solid var(--calm-line); border-radius: 12px; background: var(--calm-inset); overflow-wrap: anywhere; }
 .memory-search-results h3 { font-size: 16px; line-height: 1.5; margin: 0 0 6px; }
-.memory-search-results p { margin: 6px 0; color: var(--calm-muted, #b7cdd4); font-size: 13px; }
-.memory-search-results blockquote { margin: 12px 0; padding: 12px 16px; border-left: 2px solid var(--calm-line, #50707c); white-space: pre-wrap; line-height: 1.6; }
+.memory-search-results p { margin: 6px 0; color: var(--calm-muted); font-size: 13px; }
+.memory-search-results blockquote { margin: 12px 0; padding: 12px 16px; border-left: 2px solid var(--calm-line); white-space: pre-wrap; line-height: 1.6; }
+/* Lange Wörter (Adressen, Verweise) brechen um, statt den Treffer über den Rand zu schieben: `break-word` aus
+   Seitenbreite.css verkleinert die Mindestbreite im Raster nicht, `anywhere` schon (V6, bei 390 px 577 px breit). */
+#root .memory-search-results blockquote { overflow-wrap: anywhere; }
 .memory-entry-link { color: inherit; border: 0; padding: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .memory-search-originals { margin-top: 28px; }
 .memory-search h2 { font-size: 19px; margin-top: 24px; }
-.memory-search-start { color: var(--calm-muted, #b7cdd4); line-height: 1.6; }
+.memory-search-start { color: var(--calm-muted); line-height: 1.6; }
 .memory-page-workspace :is(button, input, summary, a):focus-visible { outline: 3px solid var(--kf-rand-f58235); outline-offset: 3px; }
 @media (max-width: 700px) {
   .memory-page-workspace .memory-filter { padding: 12px 16px; }
+  .memory-page-workspace .memory-tools { padding: 12px 16px 20px; }
   .memory-page-workspace .memory-directory { padding: 20px 16px; }
   .memory-search-form { flex-wrap: wrap; align-items: stretch; }
   .memory-search-form .directory-search { min-width: min(100%, 280px); }

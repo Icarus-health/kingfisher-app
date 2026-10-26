@@ -55,9 +55,11 @@ export function PeopleMentions() {
     return () => controller.abort();
   }, [refresh]);
 
+  // Keine leere Gruppe: Ohne Hinweise (und ohne Fehler) steht der Abschnitt nicht da.
+  if (data && !loading && !error && !data.items.length) return null;
   return <section className="people-review-group" aria-label="Erwähnte Menschen · Quellenhinweise">
-    <h3>Erwähnte Menschen · Quellenhinweise</h3>
-    <p>Diese Namen wurden in aktuellen Quellen erkannt. Sie sind ungeprüfte Hinweise und werden keiner Personenakte zugeordnet.</p>
+    <h3>Erwähnte Menschen</h3>
+    <p className="g-fussnote">Ungeprüfte Hinweise aus deinen Quellen; sie gehören zu keiner Personenakte.</p>
     {loading && !data ? <p role="status">Quellenhinweise werden geladen …</p> : null}
     {error ? <p className="people-review-error" role="alert">Die Quellenhinweise konnten nicht geladen werden. <button type="button" onClick={() => void refresh()}>Erneut versuchen</button></p> : null}
     {data?.items.length ? <ul className="people-mentions-list">
@@ -71,6 +73,6 @@ export function PeopleMentions() {
       {data.scanned_sources} aktuelle Quellen geprüft (höchstens {data.scan_limit}); {data.total_in_scanned_sources} Hinweise in diesem Ausschnitt.
       {data.limited ? " Die Liste ist begrenzt; Aktualisieren zeigt den neuesten Stand." : ""}
     </small> : null}
-    {!loading && data ? <button className="people-review-secondary" type="button" onClick={() => void refresh()}>Quellenhinweise aktualisieren</button> : null}
+    {!loading && data ? <button className="g-knopf-schlicht g-kompakt" type="button" onClick={() => void refresh()}>Quellenhinweise aktualisieren</button> : null}
   </section>;
 }

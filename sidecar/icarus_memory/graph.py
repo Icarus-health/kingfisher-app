@@ -16,11 +16,13 @@ Aussage entstehen.
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Iterable
 
 from . import entscheidungen, identitaet, personen
+from .datumstext import iso_versuchen
 from .episodes import Episode, EpisodeState
 from .model import Assertion, now
 from .people_quality import annotate_people, ist_sammelpostfach, lokalteil
@@ -47,6 +49,17 @@ def person_id_fuer(schluessel: str) -> str:
 
 def topic_id(label: str) -> str:
     return _stable("topic", label.strip().casefold())
+
+
+# Technische Markierungen der Aufnahme („mail:message:<Prüfsumme>“, „mail:attachments:{…}“, „mail-parent:…“,
+# „source:truncated“, „entzogen:…“) sind keine Themen. Sie wurden je Mail zu eigenen Knoten: Bei 8.000 Mails waren es
+# über 9.000 Themenknoten und der größte Teil von 20 MB Graph, den jede Gedächtnisseite lädt (V6, viel Bestand).
+_TECHNISCH = re.compile(r"^[a-z][a-z0-9_-]*:")
+
+
+def ist_thema(tag: str) -> bool:
+    """Ein Schlagwort, das ein Mensch lesen soll (Ordnername, Kopfzeile `tags`), keine technische Markierung."""
+    return bool(tag and tag.strip()) and not _TECHNISCH.match(tag)
 
 
 @dataclass(frozen=True)
@@ -106,6 +119,53 @@ class KnowledgeGraph:
             "nodes": [node.to_dict() for node in self.nodes],
             "edges": [edge.to_dict() for edge in self.edges],
         }
+
+
+def verzeichnis(knowledge_graph: KnowledgeGraph) -> dict[str, Any]:
+    """Was die Listen des Gedächtnisses brauchen, ohne den ganzen Graphen (V7, Tempo).
+
+    Menschen, Projekte und die Suche nach Namen zeigen nur Personen- und Projektknoten; der Graph trägt dazu je Quelle
+    einen Knoten und alle Kanten (bei 10.000 Quellen 10 MB, davon 3 % für die Listen). Hier: dieselben Personen- und
+    Projektknoten unverändert, dazu `verzeichnis.hat_quellen` und je Person der letzte tatsächliche Kontakt
+    (`verzeichnis.letzter_kontakt`, ISO-Zeitpunkt, wie `contactDateFromGraph` in der Oberfläche ihn aus den Kanten
+    liest: nur echte Beteiligung, nur geltende Quellen, Termine nur, wenn sie begonnen haben). Keine Kanten.
+    """
+    daten = knowledge_graph.to_dict()
+    knoten = {node["id"]: node for node in daten["nodes"]}
+    jetzt = knowledge_graph.generated_at
+
+    def zeitpunkt(wert: Any) -> datetime | None:
+        moment = iso_versuchen(wert) if isinstance(wert, str) and wert else None
+        return None if moment is None else moment if moment.tzinfo else moment.astimezone()
+
+    letzter: dict[str, tuple[datetime, str]] = {}
+    for kante in daten["edges"]:
+        if kante["relation"] != "participated_in" or kante.get("actual_contact") is not True:
+            continue
+        quelle = knoten.get(kante["target"])
+        if quelle is None:
+            continue
+        attribute = quelle.get("attributes") or {}
+        if attribute.get("source_current") is False or attribute.get("state") == "ignored":
+            continue
+        moment = zeitpunkt(attribute.get("occurred_at"))
+        if moment is None or (attribute.get("episode_kind") == "event" and moment > jetzt):
+            continue
+        bisher = letzter.get(kante["source"])
+        if bisher is None or moment > bisher[0]:
+            letzter[kante["source"]] = (moment, attribute["occurred_at"])
+    personen_und_projekte = [node for node in daten["nodes"] if node["kind"] in ("person", "project")]
+    return {
+        "generated_at": daten["generated_at"],
+        "authority": daten["authority"],
+        "nodes": personen_und_projekte,
+        "edges": [],
+        "verzeichnis": {
+            "hat_quellen": any(node["kind"] == "episode" for node in daten["nodes"]),
+            "letzter_kontakt": {kennung: text for kennung, (_, text) in letzter.items()
+                                if knoten.get(kennung, {}).get("kind") == "person"},
+        },
+    }
 
 
 _DIRECTORY_KINDS = {"person", "project", "topic", "decision"}
@@ -310,7 +370,7 @@ def build(
             },
         )
         builder.node(project_node)
-        for tag in project.tags:
+        for tag in filter(ist_thema, project.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(
@@ -370,7 +430,7 @@ def build(
                     scope=episode.project_id,
                 )
 
-        for tag in episode.tags:
+        for tag in filter(ist_thema, episode.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(
@@ -410,7 +470,7 @@ def build(
                 f"note:{note.id}",
                 scope=note.project_id,
             )
-        for tag in note.tags:
+        for tag in filter(ist_thema, note.tags):
             topic = GraphNode(topic_id(tag), "topic", tag)
             builder.node(topic)
             builder.edge(node.id, topic.id, "about", f"note:{note.id}", scope=note.project_id)

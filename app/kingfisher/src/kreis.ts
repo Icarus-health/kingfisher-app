@@ -9,6 +9,8 @@ export type KreisStand = {
   neuer_vorschlag: boolean; wahlen: KreisWahl[];
   /** Es gibt nichts, worauf ein Vorschlag beruhen könnte (keine Mails, keine gemeinsamen Termine). */
   ohne_vorschlag?: boolean;
+  /** Das ist der Nutzer selbst: Für ihn gibt es keinen Kreis, die Akte zeigt keine Karte. */
+  eigene?: boolean;
 };
 export type KreisUebersicht = {
   bestaetigt: number; offen: number; geaendert: number; je_kreis: Record<KreisArt, number>;
@@ -67,12 +69,7 @@ export function aktePfad(sache: string): string {
   return `/memory/akte/${encodeURIComponent(sache)}`;
 }
 
-/** Die Rückfrage vor der Sammelbestätigung, in einem Satz. Nur für Kollegen, nie für den inneren Kreis. */
-export function sammelFrage(anzahl: number): string {
-  return anzahl === 1 ? "Eine Person als Kollegen festlegen?" : `${anzahl} Personen als Kollegen festlegen?`;
-}
-
-/** Die Beschriftung des Knopfs, der die Rückfrage öffnet. */
+/** Die Beschriftung des Knopfs, der alle offenen Kollegen-Vorschläge auf einmal festlegt (danach der Hinweis mit „Rückgängig“). */
 export function sammelKnopf(anzahl: number): string {
   return anzahl === 1 ? "Als Kollegen festlegen" : `Alle ${anzahl} als Kollegen festlegen`;
 }

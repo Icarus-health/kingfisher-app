@@ -32,8 +32,10 @@ import { DevelopmentPage } from "./DevelopmentPage";
 import {HealthPage} from "./HealthPage";
 import { TaskRow } from "./TaskRow";
 import {DetailPanel} from "./DetailPanel";
+import {Bestaetigung, Seitenkopf, Segmente, Gruppe, Zeile, Leer, zeigeHinweis, type Segment} from "./grundlage";
+import { erledigtHinweis, POST_ZURUECK, wartetHinweis, wiederOffenHinweis, zurueckZuMirHinweis } from "./aufgabenHinweis";
 import {ProjectBoard} from "./ProjectBoard";
-import {groupTasks} from "./taskWorkspaceModel";
+import {heuteKopfZeile, visibleTaskGroups} from "./taskWorkspaceModel";
 import {TaskPager, initialTaskPage, type TaskPageState} from './taskPager';
 import {ReviewPage} from './ReviewPage';
 import { TaskDetail } from "./TaskDetail";
@@ -58,8 +60,6 @@ import { GESTUETZT_AUF, OHNE_BELEG, belegStand, kontextLeerSatz } from "./beleg"
 import { AntwortZeile } from "./AntwortZeiten";
 import { ASSET, icon, navigate } from "./ui";
 import { EinstellungenSeite } from "./Einstellungen/Seite";
-import { Verweis } from "./VerweisLink";
-import { zaehlerText } from "./heute";
 import { PostfachStand } from "./PostfachStand";
 import { TodaySourceStatus } from "./TodaySourceStatus";
 import { createDailyRefresh } from "./dailyFlow";
@@ -67,17 +67,6 @@ import { MailReader } from "./MailReader";
 import {TaskSaveAttempt, TaskSavePreparationError, MANUAL_TASK_REQUEST_KEY, TASK_SAVE_UNCONFIRMED, TASK_SAVE_PENDING} from './taskSaveAttempt';
 import {TaskRetryReview} from './TaskRetryReview';
 
-
-
-function dateParts(value: string, timeZone?: string) {
-  const date = new Date(value);
-  // In der Zeitzone des Briefings (der eingestellten), nicht der des Browsers; eine unbekannte Zone fällt zurück.
-  const zone = timeZone && (() => { try { new Intl.DateTimeFormat("de-DE", { timeZone }); return timeZone; } catch { return undefined; } })();
-  const weekday = new Intl.DateTimeFormat("de-DE", { weekday: "short", timeZone: zone }).format(date).replace(".", "");
-  const day = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "long", year: "numeric", timeZone: zone }).format(date);
-  const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: zone }).format(date);
-  return { date: `${weekday}, ${day}`, time };
-}
 
 
 // Antwort auf eine Zeitrückfrage: ein Datum wählen statt ein Format zu tippen.
@@ -91,144 +80,27 @@ function SourceDateForm({busy, onSubmit}: {busy: boolean; onSubmit: (value: stri
   </form>;
 }
 
-/** Der Zähler einer Kachel im Briefing; bei null keiner (Fremdprobe 2, Befund 10). */
-function Zaehler({ anzahl, className }: { anzahl: number; className?: string }) {
-  const text = zaehlerText(anzahl);
-  return text ? <b className={className}>{text}</b> : null;
-}
-
 function LoadingMorning() {
+  // Das Skelett hat die Form der fertigen Seite: Kopf, Eingabe, zwei Flächen. Nichts springt, wenn der Überblick kommt.
   return (
-    <div className="morning-page loading" aria-label="Briefing wird geladen">
-      <div className="hero skeleton-hero" />
-      <div className="card-grid">
-        {[0, 1, 2].map((item) => <div className="brief-card skeleton-card" key={item}><i /><i /><i /></div>)}
+    <div className="morning-page today-page loading" aria-label="Heute wird geladen" aria-busy="true">
+      <div className="hero skeleton-hero"><i /><i /></div>
+      <div className="briefing-area">
+        <div className="skeleton-command" />
+        <div className="today-overview">
+          {[0, 1].map((item) => <div className="today-panel skeleton-card" key={item}><i /><i /><i /></div>)}
+        </div>
       </div>
     </div>
   );
 }
 
-
-export function BriefingDrawer({ briefing, open, onClose, onChange }: {
-  briefing: MorningBriefing;
-  open: boolean;
-  onClose: () => void;
-  onChange: (change?: "correction") => void;
-}) {
-  const panel = useRef<HTMLElement>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeButton.current?.focus({preventScroll:true});
-    return () => {
-      document.body.style.overflow = overflow;
-      if (previous?.isConnected) previous.focus({preventScroll:true});
-    };
-  }, [open]);
-  const sourceLabels: Record<string,string> = {termin:"Kalender",aufgabe:"Aufgabe",wartet:"Rückmeldung",zusage:"Zusage",mail:"Mail",working_memory:"gespeicherte Quelle",akte:"Gedächtnis"};
-  const [correctionSaved, setCorrectionSaved] = useState(false);
-  function sourceChanged(change?: "correction") {
-    if (change === "correction") setCorrectionSaved(true);
-    onChange(change);
-  }
-  const stamp = dateParts(briefing.generated_at, briefing.timezone);
-  const meeting = briefing.later_today.find((item) => /^Termin:/i.test(item.title)) ?? briefing.later_today[0];
-  const meetingTitle = meeting?.title.replace(/^Termin:\s*/i, "");
-  const fixtureNews = briefing.fixture ? [
-    ["aurora-network-tile.png", "Wirtschaft", "Neue Impulse für Europas Märkte", "Reuters · 06:45"],
-    ["ice-abstract-tile.png", "Technologie", "KI-Forschung erreicht neuen Meilenstein", "Handelsblatt · 06:15"],
-    ["network-constellation-tile.png", "Gesellschaft", "Digitale Zusammenarbeit verändert den Alltag", "Tagesschau · 05:30"],
-  ] : [];
-
-  return (
-    <>
-      <button aria-label="Briefing schließen" aria-hidden={!open} inert={!open} tabIndex={-1} className={`scrim ${open ? "open" : ""}`} onClick={onClose} type="button" />
-      <section ref={panel} role="dialog" aria-modal={open || undefined} inert={!open} aria-hidden={!open} aria-label="Briefing" className={`briefing-drawer ${open ? "open" : ""}`} onKeyDown={event => {
-        if (event.key === "Escape") {event.preventDefault();onClose();return;}
-        if (event.key !== "Tab" || !panel.current) return;
-        const fields = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex]')).filter(node => node.tabIndex >= 0 && node.getClientRects().length > 0);
-        const first=fields[0],last=fields.at(-1);
-        if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
-        else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
-      }}>
-        <button ref={closeButton} className="drawer-close" onClick={onClose} type="button">
-          <img src={icon("house", "Outline")} alt="" /><span>Zurück zu Heute</span>
-        </button>
-        <div className="drawer-hero">
-          <img className="drawer-landscape" src={`${ASSET.media}morning-lake-panorama-approved-v1.png`} alt="" />
-          <div className="drawer-heading">
-            {/* Deutsch und ohne Tageszeit: Es heißt morgens wie abends „Briefing“ (Fremdprobe, Befund 20). */}
-            <p>BRIEFING</p><h2>{briefing.greeting}</h2>
-            <span>{stamp.date} · {briefing.weather?.location ?? briefing.timezone}</span>
-          </div>
-          <img className="drawer-bird" src={`${ASSET.media}Freigestellter Eisvogel auf Zweig.png`} alt="" />
-        </div>
-        <div className="drawer-content">
-          {open ? <AudioBriefing briefing={briefing} /> : null}
-          <div className="drawer-grid">
-            <article className="drawer-card">
-              <header><span>HEUTIGE TOP-PRIORITÄTEN</span><Zaehler anzahl={briefing.needs_you.length} /></header>
-              {briefing.needs_you.length ? briefing.needs_you.map((item) => (
-                <div className="drawer-row" key={item.id}>
-                  <span><strong>{item.title}</strong>{[...new Set([item.reason,item.detail])].filter((line):line is string=>Boolean(line)&&line!==item.title).map(line=><small key={line}>{line===`Quelle: ${item.source}`?`Quelle: ${sourceLabels[item.source??""]??"gespeicherte Quelle"}`:line}</small>)}</span><em>{item.priority}</em>
-                </div>
-              )) : <p className="drawer-empty">Keine offenen Prioritäten</p>}
-            </article>
-
-            <article className="drawer-card meeting-card">
-              <header><span>MEETING-VORBEREITUNG</span></header>
-              {meeting ? (
-                <>
-                  <h3>{meetingTitle}</h3><p className="meeting-time">{meeting.detail || "Heute"} · {meeting.time}</p>
-                  <div className="meeting-context"><strong>Worum es geht</strong><p>{meeting.reason || meeting.detail}</p></div>
-                  {meeting.source_ref && <a className="secondary-action" href={`/calendar?prepare=${encodeURIComponent(meeting.source_ref)}`}>Termin vorbereiten</a>}
-                </>
-              ) : <p className="drawer-empty">Heute ist kein Termin vorzubereiten.</p>}
-            </article>
-
-            <article className="drawer-card">
-              <header><span>RELEVANTE NACHRICHTEN</span><Zaehler anzahl={briefing.happening_now.length} className="teal" /></header>
-              {correctionSaved && <p role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
-              {briefing.happening_now.length ? briefing.happening_now.map((item) => (
-                <div className="message-row" key={item.id}><span><strong>{item.title}</strong><small>{item.detail}</small></span>
-                  {item.source === "working_memory" && item.source_ref ? <ProfileSource kind="episode" id={item.source_ref} label="Quelle ansehen" allowDismiss onChange={sourceChanged} /> : null}
-                </div>
-              )) : <p className="drawer-empty">Keine neuen relevanten Nachrichten</p>}
-              {briefing.working_memory_more && <p className="drawer-empty">Nicht alle Quellen dieser Auswahl sind automatisch sortiert oder in diesem begrenzten Überblick enthalten.</p>}
-            </article>
-
-            <article className="drawer-card weather-route-card">
-              <header><span>WETTER & WEG</span></header>
-              {briefing.weather ? (
-                <div className="weather-route">
-                  <div><strong>{briefing.weather.temperature_c}°</strong><span>{briefing.weather.condition}<br />{briefing.weather.location}</span></div>
-                  <div className="route-state"><strong>Arbeitsweg</strong><span>Noch keine Route verbunden.</span></div>
-                </div>
-              ) : <p className="drawer-empty">Wetter ist nicht eingeschaltet. Du findest es unter <Verweis ziel="darf" />.</p>}
-              {briefing.weather?.attribution ? <a className="weather-attribution" href={briefing.weather.attribution_url} rel="noreferrer" target="_blank">Open-Meteo</a> : null}
-            </article>
-
-            <article className="drawer-card world-card">
-              <header><span>RELEVANTES AUS DER WELT</span><Zaehler anzahl={fixtureNews.length} /></header>
-              {fixtureNews.length ? (
-                <div className="news-grid">
-                  {fixtureNews.map(([image, section, title, source]) => (
-                    <div key={image}>
-                      <img src={`${ASSET.media}${image}`} alt="" />
-                      <span><small>{section}</small><strong>{title}</strong><em>{source}</em></span>
-                    </div>
-                  ))}
-                </div>
-              ) : <p className="drawer-empty">Noch keine Nachrichtenquelle gewählt. Du findest sie unter <Verweis ziel="darf" />.</p>}
-            </article>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+/** Wann der Überblick entstand, klein im Kopf von Heute (Paket U, H4); in der Zeitzone des Briefings. */
+function standText(briefing: MorningBriefing) {
+  const date = new Date(briefing.generated_at);
+  if (Number.isNaN(date.getTime())) return null;
+  try { return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: briefing.timezone }).format(date); }
+  catch { return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date); }
 }
 
 function Morning({ recentConversation, rememberConversation, chatAvailable, chatPlaceholder }: {
@@ -241,9 +113,9 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
   const [error, setError] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
-  // „Zum Briefing“ am Ende der Einrichtung öffnet es direkt (/today?briefing=1, Befund 23); die Adresse wird danach wieder schlicht.
-  const [briefingOpen, setBriefingOpen] = useState(() => new URLSearchParams(window.location.search).get("briefing") === "1");
-  useEffect(() => { if (briefingOpen && window.location.search) window.history.replaceState({}, "", "/today"); }, [briefingOpen]);
+  // Heute ist das Briefing (Paket U, H1): „Zum Briefing“ am Ende der Einrichtung (/today?briefing=1, Befund 23) zeigt
+  // einfach Heute, und die Adresse wird wieder schlicht.
+  useEffect(() => { if (new URLSearchParams(window.location.search).has("briefing")) window.history.replaceState({}, "", "/today"); }, []);
   const [pendingConversation, setPendingConversation] = useState<string | null>(null);
   const [correctionSaved, setCorrectionSaved] = useState(false);
   const [taskNotice, setTaskNotice] = useState("");
@@ -285,10 +157,12 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
       setBriefing(result); setError(false); setRefreshError(false);
     });
     refresher.current = refresh;
+    // Erst der Gruß, dann der Rest (V7, Tempo): Gleichzeitig teilten sich beide Abrufe den Sidecar und der Gruß kam
+    // erst mit dem vollen Briefing. Die volle Fassung startet, sobald die schnelle da ist oder scheitert.
     api.morning(false).then(result => {
       if (active && !fullReceived) { setBriefing(lastKnown(result)); setError(false); }
-    }).catch(() => { quickFailed = true; if (active && fullFailed && !fullReceived) setError(true); });
-    void refresh.run(true);
+    }).catch(() => { quickFailed = true; if (active && fullFailed && !fullReceived) setError(true); })
+      .finally(() => { if (active) void refresh.run(true); });
     const automatic = () => { if (document.visibilityState === "visible") void refresh.run(); };
     const timer = window.setInterval(automatic, 300000);
     window.addEventListener("focus", automatic);
@@ -321,20 +195,29 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
 
   if (!briefing && !error) return <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main><LoadingMorning /></main></div>;
   if (error || !briefing) return (
-    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page"><section className="brief-card error-state"><p>Das Briefing ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></section></main></div>
+    <div className="shell"><Sidebar active="Heute" recentConversation={recentConversation} /><main className="state-page today-state"><div className="g-flaeche today-fehler error-state" role="alert"><Leer zeichen="house" satz="Dein Überblick ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div></main></div>
   );
 
   const attentionCount = todayAttention(briefing).length;
+  const stand = standText(briefing);
   return (
     <div className="shell">
-      <Sidebar active="Heute" navigationDisabled={briefingOpen} briefingOpen={briefingOpen} onToday={() => setBriefingOpen(true)} recentConversation={recentConversation} />
-      <main inert={briefingOpen} className="morning-page today-page">
+      <Sidebar active="Heute" recentConversation={recentConversation} />
+      <main className="morning-page today-page">
         <div className="today-landscape" aria-hidden="true" />
+        {/* Der Eisvogel steht nur hier im Kopf, nicht noch einmal in einer Karte (Paket U, H2). */}
         <section className="hero">
           <img className="hero-bird" src={`${ASSET.media}Freigestellter Eisvogel auf Zweig.png`} alt="" />
-          <div className="hero-copy"><p className="today-hero-label">DEIN TAG MIT KINGFISHER</p><h1>{briefing.greeting}</h1>
-            <p className="today-hero-summary">{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht deine Aufmerksamkeit." : `${attentionCount} Punkte brauchen deine Aufmerksamkeit.`}</p>
-            <button className="today-briefing-button" onClick={() => setBriefingOpen(true)} type="button">Briefing öffnen <span aria-hidden="true">→</span></button>
+          {/* Ein großer Titel, eine Zeile darunter (Nachtrag 23.10.: wenig Text, Verständnis auf einen Blick). */}
+          <div className="hero-copy"><h1>{briefing.greeting}</h1>
+            <p className="today-hero-summary">
+              <span>{attentionCount === 0 ? "Dein Überblick ist da." : attentionCount === 1 ? "Ein Punkt braucht dich." : `${attentionCount} Punkte brauchen dich.`}</span>
+              {/* Ein Zeitpunkt, keine zweite Uhr: Die Uhr steht nur in der Seitenleiste (Fremdprobe 2, Befund 11). */}
+              {/* Während das volle Briefing kommt, atmet „Stand“ leise, statt Text anzuhängen: Der angehängte Text brach
+                  bei 390 px die Zeile um und schob beim Verschwinden die ganze Seite hoch (V7, CLS 0,18). */}
+              {stand ? <span className="today-stand" aria-busy={refreshing || undefined}>Stand {stand}{refreshing ? <span className="visually-hidden"> · wird aktualisiert …</span> : null}</span> : null}
+              <AudioBriefing briefing={briefing} />
+            </p>
           </div>
           {/* Eine Uhr reicht: die in der Seitenleiste (Fremdprobe 2, Befund 11). */}
           {briefing.weather ? (
@@ -347,6 +230,7 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
 
         <section className="briefing-area">
           <TodaySourceStatus briefing={briefing} refreshing={refreshing} refreshError={refreshError} onRefresh={() => load()} />
+          <PostfachStand ausstehend={Boolean(briefing.post_ausstehend)} />
           <div className="today-command">
             <CommandBar busy={sending} disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
             {sendError ? <p className="partial-error command-error">Die Frage konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
@@ -357,10 +241,8 @@ function Morning({ recentConversation, rememberConversation, chatAvailable, chat
           </HeuteLeer>
           <TodayPersonal />
           <FassungHeute />
-          <PostfachStand ausstehend={Boolean(briefing.post_ausstehend)} />
         </section>
       </main>
-      <BriefingDrawer briefing={briefing} onClose={() => setBriefingOpen(false)} onChange={load} open={briefingOpen} />
       {mailUid && <dialog ref={mailDialog} className="today-mail-dialog" aria-label="Nachricht bearbeiten" onCancel={() => setMailUid(null)} onClose={() => setMailUid(null)}>
         <MailReader key={mailUid} uid={mailUid} onClose={() => setMailUid(null)} onTaskSaved={() => load()} />
       </dialog>}
@@ -417,11 +299,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
     element.scrollTop = element.scrollHeight;
   }, [data?.messages.length, sending]);
 
+  // Ein neues Gespräch entsteht erst mit der ersten Frage: „Neues Gespräch“ führt zum leeren Eingabefeld.
   async function create() {
-    const created = await api.createConversation();
-    if (!live.current) return;
-    rememberConversation(created.conversation.id);
-    navigate(`/conversations/${created.conversation.id}`);
+    navigate("/conversations");
   }
 
   const contextLines = useMemo(
@@ -551,7 +431,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
       <main className={`conversation-page workspace-chat ${navigationOpen ? 'navigation-open' : ''}`}>
         <ConversationNavigation activeId={id} revision={data?.conversation.updated_at} onCreate={create} onSelect={selected => navigate(`/conversations/${selected}`)} />
         <section className="thread">
-          <header className="thread-header"><button className="conversation-navigation-toggle" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}>Gespräche</button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}>Verwendete Quellen</button></header>
+          <header className="thread-header"><button className="conversation-navigation-toggle" aria-label="Gespräche" aria-expanded={navigationOpen} type="button" onClick={() => setNavigationOpen(open => !open)}><span className="nur-breit">Gespräche</span></button><h1>{data?.conversation.title ?? "Gespräch"}</h1><button className="conversation-sources-toggle" aria-expanded={sourcesOpen} aria-controls="conversation-sources" type="button" onClick={() => setSourcesOpen(open => !open)}><span className="nur-breit">Verwendete </span>Quellen</button></header>
           {sourcesOpen && <aside className="conversation-sources" id="conversation-sources" aria-label="Verwendete Quellen">
             {contextLines.length ? contextLines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>) : data?.context.source_links?.length ? <p>{data.context.source_links.length} Originalquelle(n) zur Prüfung. Keine bestätigte Aussage.</p> : <p>{kontextLeerSatz(data?.messages ?? [])}</p>}
           </aside>}
@@ -559,9 +439,9 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
             const element = event.currentTarget;
             followBottom.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
           }}>
-            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2><p>Stelle eine Frage oder halte einen Gedanken fest.</p></div>}
+            {!error && data && !data.messages.length && <div className="conversation-empty"><h2>Womit möchtest du beginnen?</h2></div>}
 
-            {error ? <div className="message assistant error-message"><p>Das Gespräch ist gerade nicht erreichbar.</p><button onClick={() => load()}>Wiederholen</button></div> : null}
+            {error ? <div className="message assistant error-message" role="alert"><Leer zeichen="message-circle" satz="Das Gespräch ist gerade nicht erreichbar." aktion={<button className="g-knopf-getoent" type="button" onClick={() => load()}>Wiederholen</button>} /></div> : null}
             {!error && !data ? <div className="message assistant skeleton-message"><i /><i /><i /></div> : null}
             {data?.messages.map((message, messageIndex) => {
               const card = memoryCards.get(message.id);
@@ -574,7 +454,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 : card?.claim?.status === "disputed" ? "Grundlage geändert. Muss erneut geprüft werden."
                 : "Derzeit nicht als Wissen verwendbar.";
               return <article className={`message ${message.role} ${message.status}`} id={`message-${message.id}`} tabIndex={-1} key={message.id}>
-                <span>{message.role === "user" ? "DU" : "KINGFISHER"}</span>
+                <span className="message-wer">{message.role === "user" ? "Du" : "Kingfisher"}</span>
                 {message.metadata?.context?.satzantwort ? <SatzAntwort daten={message.metadata.context.satzantwort} onChange={load} /> : <MessageText content={message.content} />}
                 {message.role === "assistant" ? <VoiceReply voice={voice} message={message} disabled={sending || error} /> : null}
                 {message.role === "assistant" ? <AntwortZeile zeiten={message.metadata?.context?.zeiten} /> : null}
@@ -594,11 +474,10 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                 {/* Nur unter der letzten Antwort: Ältere Antworten sind Verlauf, danach wurde schon weitergefragt. */}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.refresh_available && message.metadata.context.original_question ? <div className="memory-actions"><button className="memory-reject" disabled={sending || !chatAvailable} onClick={() => void send(message.metadata!.context!.original_question!, { newQuestion: true }).catch(() => undefined)} type="button">Mit aktuellem Stand neu beantworten</button></div> : null}
                 {messageIndex === data.messages.length - 1 && message.metadata?.context?.clarification_date ? <SourceDateForm busy={sending || !chatAvailable} onSubmit={(value) => { const [year, month, day] = value.split("-"); void send(`Die Nachricht stammt vom ${day}.${month}.${year}.`, { date: value }).catch(() => undefined); }} /> : null}
-                {message.metadata?.context?.routing && <details><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
-                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small>Antwort fehlgeschlagen.{" "}<button disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
+                {message.metadata?.context?.routing && <details className="antwort-arbeitsweise"><summary>Modell und Arbeitsweise</summary><p>{message.metadata.context.routing.to === "research" ? "Recherche mit begrenzten Lesewerkzeugen" : "Persönlicher Assistent"}</p><p>{message.metadata.context.routing.reason}</p>{message.metadata.context.routing.trace.map((step, index) => <p key={index}>{step.model} · {step.outcome === "success" ? "Antwort erhalten" : step.outcome === "failed" ? "Nicht erreichbar, Alternative geprüft" : "Ausgewählt"}</p>)}</details>}
+                {message.status === "error" && !message.metadata?.resolved_approval_id ? <small className="antwort-fehler">Antwort fehlgeschlagen.{" "}<button className="g-knopf-schlicht" disabled={sending} onClick={() => void retry(message.id).catch(() => undefined)} type="button">Wiederholen</button></small> : null}
                 {data.action_requests?.filter((action) => action.message_id === message.id).map((action) => <ActionApprovalCard key={action.id} action={action} busy={sending} onResolve={resolveAction} />)}
-                {candidate ? <section className="memory-candidate" aria-label="Gedächtnisvorschlag">
-                  <span>GEDÄCHTNISVORSCHLAG</span>
+                {candidate ? <Bestaetigung className="memory-candidate" label="Gedächtnisvorschlag" titel="Gedächtnisvorschlag">
                   <strong>{candidate.statement}</strong>
                   {candidate.evidence[0] ? <p className="memory-source">Aus diesem Gespräch: „{candidate.evidence[0].quote}“</p> : null}
                   {requiresReplacement ? <div className="memory-conflict"><p>Bestehender Stand:</p>{card?.conflicts.map((conflict) => <p key={conflict.id}>{conflict.statement}</p>)}</div> : null}
@@ -606,7 +485,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                   {candidate.state === "accepted" ? <p className="memory-decision" role="status">{memoryDecision}</p> : null}
                   {candidate.state === "rejected" ? <p className="memory-decision">Nicht gespeichert.</p> : null}
                   {candidate.state === "superseded" ? <p className="memory-decision">Durch einen anderen bestätigten Stand ersetzt.</p> : null}
-                  <div className="memory-actions">
+                  <div className="memory-actions g-bestaetigung-knoepfe">
                     {candidate.state === "pending" ? <>
                     <button className="memory-confirm" disabled={sending} onClick={() => decideMemory(candidate.id, requiresReplacement)} type="button">{requiresReplacement ? "Bestehenden Stand ersetzen" : card?.competing_count ? "Diesen Stand bestätigen" : "Bestätigen"}</button>
                     <button className="memory-reject" disabled={sending} onClick={() => rejectMemory(candidate.id)} type="button">Nicht speichern</button>
@@ -614,7 +493,7 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
                     {candidate.state === "accepted" && (card?.claim?.status === "active" || card?.claim?.status === "disputed") ? <button className="memory-reject" disabled={sending} onClick={() => retractMemory(candidate.id)} type="button">Als falsch widerrufen</button> : null}
                     {card?.source_message_id && data.messages.some((item) => item.id === card.source_message_id) ? <button className="memory-reject" onClick={() => showMemorySource(card.source_message_id!)} type="button">Quelle anzeigen</button> : null}
                   </div>
-                </section> : null}
+                </Bestaetigung> : null}
               </article>;
             })}
             {correctionSaved && <p className="memory-decision thread-notice" role="status">Berichtigung gespeichert. Die frühere Angabe wird nicht mehr verwendet. Frage erneut nach dem aktuellen Stand.</p>}
@@ -633,34 +512,53 @@ function Conversation({ id, recentConversation, rememberConversation, chatAvaila
   );
 }
 
-function ConversationHistory({ recentConversation, rememberConversation }: {
+function ConversationHistory({ recentConversation, rememberConversation, chatAvailable, chatPlaceholder }: {
   recentConversation: string | null;
   rememberConversation: (id: string) => void;
+  chatAvailable: boolean;
+  chatPlaceholder?: string;
 }) {
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState(false);
-  const createPending = useRef(false);
+  // Kein leeres Gespräch auf Vorrat: Die Mitte ist gleich das Eingabefeld, das Gespräch entsteht mit der ersten Frage.
+  const [sending, setSending] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
+  const [sendError, setSendError] = useState(false);
+  const created = useRef<string | null>(null);
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
-  async function create() {
-    if (createPending.current) return;
-    createPending.current = true;
-    setCreating(true); setCreateError(false);
+  async function begin(message: string) {
+    if (!chatAvailable) return;
+    setSending(true); setSendError(false); setQuestion(message);
     try {
-      const created = await api.createConversation();
+      // Schlug nur das Senden fehl, nimmt der zweite Versuch dasselbe Gespräch; es entsteht kein zweites.
+      const id = created.current ?? (await api.createConversation()).conversation.id;
+      created.current = id;
       if (!live.current) return;
-      rememberConversation(created.conversation.id);
-      navigate(`/conversations/${created.conversation.id}`);
+      rememberConversation(id);
+      await api.sendMessage(id, message);
+      created.current = null;
+      if (live.current) navigate(`/conversations/${id}`);
     } catch (problem) {
-      if (live.current) setCreateError(true);
+      if (live.current) setSendError(true);
       throw problem;
-    } finally { createPending.current = false; if (live.current) setCreating(false); }
+    } finally { if (live.current) setSending(false); }
+  }
+  async function focusInput() {
+    document.querySelector<HTMLTextAreaElement>(".workspace-chat-start .thread-command textarea")?.focus();
   }
   return <div className="shell conversation-shell">
     <Sidebar active="Gespräche" recentConversation={recentConversation} />
     <main className="conversation-page workspace-chat workspace-chat-start">
-      <ConversationNavigation onCreate={create} onSelect={id => navigate(`/conversations/${id}`)} />
-      <section className="thread"><div className="conversation-empty"><h1>Was beschäftigt dich?</h1><p>Beginne ein Gespräch oder führe einen Gedanken aus der Liste weiter.</p><button className="secondary-action" type="button" disabled={creating} onClick={() => void create().catch(() => undefined)}>Neues Gespräch beginnen</button>{createError && <p role="alert">Das neue Gespräch konnte nicht angelegt werden. Bitte erneut versuchen.</p>}</div></section>
+      <ConversationNavigation onCreate={focusInput} onSelect={id => navigate(`/conversations/${id}`)} />
+      <section className="thread">
+        <div className="messages">
+          {question ? <article className="message user"><span className="message-wer">Du</span><MessageText content={question} /></article> : <div className="conversation-empty"><h1>Was beschäftigt dich?</h1></div>}
+        </div>
+        <div className="thread-command">
+          {sendError ? <p className="partial-error thread-send-error" role="alert">Die Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.</p> : null}
+          {sending && <p className="conversation-waiting" role="status" aria-live="polite">Kingfisher antwortet …</p>}
+          <CommandBar busy={sending} conversation disabled={!chatAvailable} onSubmit={begin} placeholder={chatPlaceholder} />
+        </div>
+      </section>
     </main>
   </div>;
 }
@@ -676,8 +574,11 @@ const TASK_VIEWS: Array<{ id: TaskView; label: string }> = [
 ];
 
 function Tasks({ recentConversation }: { recentConversation: string | null }) {
-  const [panel,setPanel] = useState<"tasks"|"projects"|"review">("tasks");
+  // Die Aufgabenseite zeigt Aufgaben, nicht Bedienung: Suche filtert beim Tippen, die Liste lädt selbst nach, leere
+  // Gruppen und Nullzähler entfallen, „Zur Prüfung“ erscheint nur, wenn etwas zu prüfen ist.
+  const [panel,setPanel] = useState<"tasks"|"projects"|"review">(() => new URLSearchParams(window.location.search).get("pruefen") === "1" ? "review" : "tasks");
   const [board,setBoard] = useState(false);
+  const [projektFormular, setProjektFormular] = useState(false);
   const [groupTime,setGroupTime] = useState(()=>new Date());
   useEffect(()=>{const id=window.setInterval(()=>setGroupTime(new Date()),60000);return()=>window.clearInterval(id);},[]);
   const [view, setView] = useState<TaskView>(() => {
@@ -685,6 +586,10 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     return requested === "waiting" || requested === "done" || requested === "decisions" || requested === "goals" ? requested : "mine";
   });
   const [selectedTask, setSelectedTask] = useState(() => new URLSearchParams(window.location.search).get("task"));
+  // 0: Aufgabe nur öffnen; sonst eine fortlaufende Nummer, damit jeder Klick auf einen Titel das Bearbeiten öffnet.
+  const [detailEdit, setDetailEdit] = useState(0);
+  const editRequests = useRef(0);
+  const [reviewTotal, setReviewTotal] = useState<number | null>(null);
   const [taskPage, setTaskPage] = useState<TaskPageState>(initialTaskPage);
   const [overviewRevision, setOverviewRevision] = useState(0);
   const [searchInput, setSearchInput] = useState('');
@@ -696,6 +601,11 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(() => new URLSearchParams(window.location.search).get("project") ?? "");
   const tasks = taskPage.selectionKey === JSON.stringify({view, projectId, q: search}) ? taskPage.tasks : null;
+  // Während Suche oder Änderung neu laden, bleibt die bisherige Liste derselben Ansicht stehen statt zu flackern.
+  const listKey = JSON.stringify({view, projectId});
+  const shownTasks = useRef<{key: string; tasks: LocalTask[]} | null>(null);
+  if (tasks) shownTasks.current = {key: listKey, tasks};
+  const listTasks = tasks ?? (taskPage.loading && shownTasks.current?.key === listKey ? shownTasks.current.tasks : null);
   const [newTaskProject, setNewTaskProject] = useState("");
   const [projectError, setProjectError] = useState(false);
   const currentProject = useRef(projectId);
@@ -710,9 +620,25 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   const [createError, setCreateError] = useState("");
   const [createReviewed, setCreateReviewed] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
+  const lastLoad = useRef(0);
+  // Zahlen an den Segmenten (nur über null): offene eigene und wartende Aufgaben, wie die Liste gefiltert.
+  const [zahlen, setZahlen] = useState<{mine?: number; waiting?: number}>({});
+  const [zahlenStand, setZahlenStand] = useState(0);
+  useEffect(() => {
+    let aktiv = true;
+    Promise.all([api.tasks("mine", projectId, {limit: 1}), api.tasks("waiting", projectId, {limit: 1})])
+      .then(([mine, waiting]) => { if (aktiv) setZahlen({mine: mine.total, waiting: waiting.total}); })
+      .catch(() => { if (aktiv) setZahlen({}); });
+    return () => { aktiv = false; };
+  }, [projectId, zahlenStand]);
 
   const currentView = useRef(view);
   currentView.current = view;
+
+  function openTask(id: string | null, edit = false) {
+    setDetailEdit(edit ? ++editRequests.current : 0);
+    setSelectedTask(id);
+  }
 
   function loadProjects() {
     const version = ++projectRequestVersion.current;
@@ -726,11 +652,35 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   useEffect(() => { loadProjects(); return () => { projectRequestVersion.current++; }; }, []);
 
   function load(nextView = currentView.current) {
+    lastLoad.current = Date.now();
     setOverviewRevision(n=>n+1);
+    setZahlenStand(n=>n+1);
     setError("");
     if (nextView === "decisions" || nextView === "goals") { pager.current!.cancel(); setTaskPage({...initialTaskPage(), tasks: []}); return; }
     void pager.current!.select({view: nextView, projectId: currentProject.current, q: currentSearch.current});
   }
+
+  // Kein Knopf „Liste aktualisieren“: Kommt das Fenster wieder in den Blick, lädt die Liste still nach (wie Heute).
+  useEffect(() => {
+    const again = () => {
+      if (document.visibilityState === "hidden" || Date.now() - lastLoad.current < 15000) return;
+      if (currentView.current === "decisions" || currentView.current === "goals") return;
+      lastLoad.current = Date.now();
+      setZahlenStand(n=>n+1);
+      void pager.current!.reload();
+    };
+    window.addEventListener("focus", again);
+    document.addEventListener("visibilitychange", again);
+    return () => { window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again); };
+  }, []);
+
+  // Die Suche filtert beim Tippen (entprellt); Enter sucht sofort.
+  useEffect(() => {
+    const next = searchInput.trim();
+    if (next === currentSearch.current) return;
+    const id = window.setTimeout(() => setSearch(next), 300);
+    return () => window.clearTimeout(id);
+  }, [searchInput]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -754,7 +704,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     try {
       const task = await attempt.save({ title: title.trim(), ...(newTaskProject ? { project_id: newTaskProject } : {}), ...(due ? { due: endOfTaskDay(due) } : {}) }, api.addTask);
       if (!task) return;
-      setSelectedTask(task.id);
+      openTask(task.id);
       setProjectId(newTaskProject);
       setTitle("");
       setDue("");
@@ -768,14 +718,19 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
     }
   }
 
+  // Jeder Klick am Kreis antwortet mit dem Hinweis unten, und „Rückgängig“ nimmt ihn über die Gegenroute zurück (V4).
+  const aufgabeVon = (taskId: string) => listTasks?.find(task => task.id === taskId) ?? { id: taskId, title: "Aufgabe" };
   async function complete(taskId: string, reopen = false) {
     if (completing) return;
     setCompleting(taskId);
     setError("");
+    const aufgabe = aufgabeVon(taskId);
     try {
       if (reopen) await api.reopenTask(taskId);
       else await api.completeTask(taskId);
       load();
+      zeigeHinweis(reopen ? wiederOffenHinweis(aufgabe, async () => { await api.completeTask(taskId); load(); })
+        : erledigtHinweis(aufgabe, async () => { await api.reopenTask(taskId); load(); }));
     } catch {
       setError("Der Aufgabenstatus konnte nicht gespeichert werden. Bitte erneut versuchen.");
     } finally {
@@ -786,7 +741,7 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   async function rueckgaengig(taskId: string) {
     if (completing) return;
     setCompleting(taskId); setError("");
-    try { await api.taskRueckgaengig(taskId); load(); }
+    try { await api.taskRueckgaengig(taskId); load(); zeigeHinweis({ text: POST_ZURUECK }); }
     catch { setError("Das ließ sich gerade nicht zurücknehmen. Bitte erneut versuchen."); }
     finally { setCompleting(null); }
   }
@@ -794,10 +749,13 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   async function wait(taskId: string, name?: string) {
     if (completing) return;
     setCompleting(taskId); setError("");
+    const aufgabe = aufgabeVon(taskId);
     try {
       if (name) await api.waitTask(taskId, name);
       else await api.unwaitTask(taskId);
       load();
+      zeigeHinweis(name ? wartetHinweis(aufgabe, name, async () => { await api.unwaitTask(taskId); load(); })
+        : zurueckZuMirHinweis(aufgabe, "wartet_auf" in aufgabe ? aufgabe.wartet_auf : null, async vorher => { await api.waitTask(taskId, vorher); load(); }));
     } catch { setError("Der Wartestatus konnte nicht gespeichert werden."); }
     finally { setCompleting(null); }
   }
@@ -833,49 +791,75 @@ function Tasks({ recentConversation }: { recentConversation: string | null }) {
   }
   function openProjectView(nextView: "mine" | "waiting" | "done", taskId: string | null = null) {
     currentSearch.current = '';
-    setSearchInput(''); setSearch(''); setSelectedTask(taskId); setView(nextView);
+    setSearchInput(''); setSearch(''); openTask(taskId); setView(nextView);
     load(nextView);
   }
-  const visibleTasks = tasks?.filter(task => (!projectId || task.project_id === projectId));
+  const visibleTasks = listTasks?.filter(task => (!projectId || task.project_id === projectId));
+  const listView = view === "mine" || view === "waiting" || view === "done";
 
   const heading = TASK_VIEWS.find((item) => item.id === view)?.label ?? "Meine Aufgaben";
+  // Segmente statt Reiter: alle bleiben erreichbar; „Zur Prüfung“ nur, wenn etwas zu prüfen ist (sonst über „Gedächtnis
+  // prüfen“). Zahlen nur über null: offene eigene, wartende und zu prüfende.
+  const tabs: Segment<string>[] = [
+    ...TASK_VIEWS.map(item => ({wert: item.id, titel: item.label, zahl: item.id === "mine" ? zahlen.mine : item.id === "waiting" ? zahlen.waiting : undefined})),
+    {wert: "projects", titel: "Projekte"},
+    ...(panel === "review" || (reviewTotal ?? 0) > 0 ? [{wert: "review", titel: "Zur Prüfung", zahl: reviewTotal ?? 0}] : [])];
+  const activeTab = panel === "tasks" ? view : panel;
+  function chooseTab(id: string) {
+    if (id === "projects") { setView("mine"); setPanel("projects"); }
+    else if (id === "review") { openTask(null); setView("mine"); setPanel("review"); }
+    else { setPanel("tasks"); setView(id as TaskView); }
+  }
+  // Rollt die Segmentleiste (schmales Fenster), steht der gewählte Abschnitt auch beim Öffnen per Adresse im Blick.
+  useEffect(() => { document.querySelector?.<HTMLElement>('.aufgaben-segmente [aria-selected="true"]')?.scrollIntoView?.({block: "nearest", inline: "nearest"}); }, [activeTab]);
+  // Eine Zeile unter dem Titel, nur wenn sie etwas sagt: wie viele Aufgaben heute dran oder überfällig sind.
+  const heuteDran = panel === "tasks" && view === "mine" && !search && listTasks ? visibleTaskGroups(listTasks, groupTime).filter(group => group.label === "Überfällig" || group.label === "Heute").reduce((sum, group) => sum + group.items.length, 0) : 0;
+  const kopfZeile = heuteKopfZeile(heuteDran, listTasks?.length ?? 0, {seite: taskPage.page, weitere: taskPage.canNext});
+  const row = (task: LocalTask) => <TaskRow compact onOpen={() => openTask(task.id, true)} showProjectName={!projectId} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view as "mine" | "waiting" | "done"} />;
+  const emptyText = search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben.";
+  // Genau ein gefüllter Knopf: Steht ein Formular offen, ist dessen Knopf der gefüllte und „Aufgabe“ tritt zurück; unter
+  // „Zur Prüfung“ ist das Prüfen die Hauptsache, dort ist „Aufgabe“ ebenfalls nur getönt.
+  const formOffen = (creating && panel === "tasks" && listView) || (panel === "projects" && projektFormular) || panel === "review";
+  const projectsFailedLine = <p className="tasks-error" role="alert">Projekte sind gerade nicht erreichbar. <button type="button" className="text-action" onClick={loadProjects}>Erneut laden</button></p>;
   return <div className="shell tasks-shell">
     <Sidebar active="Aufgaben" recentConversation={recentConversation} />
-    <main className="tasks-page workspace-tasks">
-      <header className="tasks-heading"><p className="eyebrow">AUFGABEN</p><h1>{panel === "projects" ? "Projekte" : panel === "review" ? "Zur Prüfung" : heading}</h1>{view !== "decisions" && view !== "goals" ? <button className="tasks-add" disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : null}</header>
-      {selectedTask && <DetailPanel title="Aufgabe" onClose={() => setSelectedTask(null)}>
-        <TaskDetail key={selectedTask} taskId={selectedTask} onChanged={() => load()} />
+    <main className="tasks-page workspace-tasks aufgaben">
+      <Seitenkopf className="tasks-heading" titel="Aufgaben" zeile={kopfZeile}
+        aktionen={view !== "decisions" && view !== "goals" ? <button className={formOffen ? "g-knopf-getoent" : "tasks-add"} disabled={submitting} onClick={startTask} type="button"><img src={icon("plus", "Outline")} alt="" />Aufgabe</button> : undefined} />
+      {selectedTask && <DetailPanel title="Aufgabe" onClose={() => openTask(null)}>
+        <TaskDetail key={`${selectedTask}:${detailEdit}`} taskId={selectedTask} editing={detailEdit > 0} onChanged={() => load()} />
       </DetailPanel>}
-      <nav aria-label="Aufgabenansichten" className="task-tabs">{TASK_VIEWS.map((item) => <button aria-pressed={panel === "tasks" && view === item.id} className={panel === "tasks" && view === item.id ? "active" : ""} key={item.id} onClick={() => {setPanel("tasks");setView(item.id);}} type="button">{item.label}</button>)}<button type="button" aria-pressed={panel === "projects"} onClick={()=>{setView("mine");setPanel("projects");}}>Projekte</button><button type="button" aria-pressed={panel === "review"} onClick={()=>{setSelectedTask(null);setView("mine");setPanel("review");}}>Zur Prüfung</button></nav>
-      {view !== "goals" && <div hidden={panel === "review"}>{(projectError ? <p className="tasks-error">Projekte sind gerade nicht erreichbar. <button type="button" onClick={loadProjects}>Erneut laden</button></p> : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} />)}</div>}
-      {(view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) setSelectedTask(task.id); }} />}
-      {(view === "mine" || view === "waiting") && <TaskSuggestions projects={projects} onPreview={()=>setSelectedTask(null)} initiallyExpanded={panel === "review" || new URLSearchParams(window.location.search).get("pruefen") === "1"} onAccepted={task => { loadProjects(); setPanel("tasks"); setSelectedTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />}
-      {panel === "projects" && <section className="workspace-projects" aria-label="Projekte">
-        <p>Aufgaben und Gedächtnis verwenden dieselben Projekte. Abgeschlossene Projekte bleiben erhalten.</p>
-        <div className="workspace-project-list">{projects.map(project=><button type="button" key={project.id} aria-pressed={projectId===project.id} onClick={()=>setProjectId(project.id)}><strong>{project.name}</strong><span>{project.status === "done" ? "Abgeschlossen" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : "Offen"}</span>{project.description && <small>{project.description}</small>}</button>)}</div>
-        {projectId && <div className="workspace-project-actions"><button type="button" aria-pressed={!board} onClick={()=>setBoard(false)}>Liste</button><button type="button" aria-pressed={board} onClick={()=>setBoard(true)}>Board</button><a href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
-        {projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>setSelectedTask(task.id)} />}
-      </section>}
-      {panel !== "review" && (view === "mine" || view === "waiting" || view === "done") && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
-      {error ? <p className="tasks-error">{error} <button onClick={() => load()} type="button">Wiederholen</button></p> : null}
-      {panel !== 'review' && (view === 'mine' || view === 'waiting' || view === 'done') && <>
-        <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
-          <label>Aufgaben durchsuchen<input type="search" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Titel, Notiz oder wartende Person" /></label>
-          <button type="submit" className="secondary-action">Suchen</button>
-          {search && <button type="button" className="text-action" onClick={() => {setSearchInput(''); setSearch('');}}>Suche löschen</button>}
-          <button type="button" className="text-action" disabled={taskPage.loading} onClick={() => load()}>Liste aktualisieren</button>
-        </form>
-        {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" onClick={() => load()}>Erneut laden</button></p>}
-        {taskPage.notice && <p role="status">{taskPage.notice}</p>}
-        {tasks && <p role="status">{taskPage.total} {search ? 'passende' : ''} Aufgaben · Seite {taskPage.page}{search ? ` · Suche: ${search}` : ''}</p>}
+      <Segmente className="aufgaben-segmente" label="Aufgabenansichten" optionen={tabs} wert={activeTab} onWahl={chooseTab} />
+      <section className="workspace-projects" aria-label="Projekte" hidden={panel !== "projects"}>
+        {panel === "projects" && (projects.length ? <Gruppe className="workspace-project-list">{projects.map(project=><Zeile key={project.id} onClick={()=>setProjectId(project.id)} aktiv={projectId===project.id} titel={project.name} neben={project.description || undefined} wert={project.status === "done" ? "Erledigt" : project.status === "dropped" ? "Verworfen" : project.status === "paused" ? "Pausiert" : project.status === "idea" ? "Idee" : "Aktiv"} />)}</Gruppe> : projectError ? null : <Leer className="task-empty" zeichen="project" satz="Noch keine Projekte." />)}
+        {projectError ? projectsFailedLine : <ProjectControls contextRevision={overviewRevision} projects={projects} selectedId={projectId} onSelect={setProjectId} onChanged={loadProjects} onFormular={setProjektFormular} />}
+        {panel === "projects" && projectId && <div className="workspace-project-actions"><Segmente kompakt label="Darstellung" optionen={[{wert: "liste", titel: "Liste"}, {wert: "board", titel: "Board"}]} wert={board ? "board" : "liste"} onWahl={wert => setBoard(wert === "board")} /><a className="g-knopf-schlicht" href={`/memory/projects/${encodeURIComponent(projectId)}`}>Im Gedächtnis öffnen</a></div>}
+        {panel === "projects" && projectId && board && <ProjectBoard projectId={projectId} revision={overviewRevision} onTask={task=>openTask(task.id)} />}
+      </section>
+      <div className="task-review" hidden={panel !== "review"}>
+        <TaskSuggestions projects={projects} onTotal={setReviewTotal} onPreview={()=>openTask(null)} onAccepted={task => { loadProjects(); setPanel("tasks"); openTask(task.id); setProjectId(task.project_id ?? ""); setView(task.wartet_auf ? "waiting" : "mine"); load(task.wartet_auf ? "waiting" : "mine"); }} />
+        {panel === "review" && reviewTotal === 0 ? <Leer className="task-empty" zeichen="check" satz="Nichts zu prüfen." /> : null}
+      </div>
+      {panel === "tasks" && (view === "mine" || view === "waiting") && <AufgabenPostVorschlaege onChanged={task => { load(); if (task) openTask(task.id); }} />}
+      {error ? <p className="tasks-error" role="alert">{error} <button className="text-action" onClick={() => load()} type="button">Wiederholen</button></p> : null}
+      {panel !== "review" && (listView || (view === "decisions" && (projects.length > 0 || projectError))) && <form className="task-search" role="search" onSubmit={event => {event.preventDefault(); setSearch(searchInput.trim());}}>
+        {listView && <input type="search" aria-label="Aufgaben durchsuchen" maxLength={200} value={searchInput} onChange={event => setSearchInput(event.target.value)} placeholder="Suchen" />}
+        {panel === "projects" ? null : projectError ? projectsFailedLine : projects.length > 0 && <select aria-label="Projekt" className="task-project-filter" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">Alle Projekte</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select>}
+      </form>}
+      {panel !== "review" && listView && <ProjectOverview key={projectId} projectId={projectId} revision={overviewRevision} onView={nextView=>openProjectView(nextView)} onTask={(id,nextView)=>openProjectView(nextView,id)} />}
+      {panel !== 'review' && listView && <>
+        {taskPage.error && <p role="alert" className="tasks-error">{taskPage.error} <button type="button" className="text-action" onClick={() => load()}>Erneut laden</button></p>}
+        {taskPage.notice && <p role="status" className="task-hinweis">{taskPage.notice}</p>}
+        {search && tasks && tasks.length > 0 ? <p role="status" className="task-count">{taskPage.total === 1 ? "1 Treffer" : `${taskPage.total} Treffer`}</p> : null}
       </>}
-      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
-        <header><span>Aufgabe</span><span>Fällig</span></header>
-        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label>Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am <small>(optional)</small><input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label><label className="task-project-create">Projekt <small>(optional)</small><select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><div><button className="secondary-action" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
-        {!tasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
-        {visibleTasks && (view === "mine" ? groupTasks(visibleTasks,groupTime) : [{label:heading,items:visibleTasks}]).map(group=><section className="workspace-task-group" key={group.label} aria-label={group.label}><h2>{group.label} <small>{group.items.length}</small></h2>{group.items.map(task=><TaskRow compact onOpen={()=>setSelectedTask(task.id)} projects={projects} onProjectChange={id => assignProject(task.id, id)} onEdit={data => editTask(task.id, data)} completing={completing !== null} key={task.id} onWait={name=>wait(task.id,name)} onComplete={()=>complete(task.id,task.status==="done")} onRueckgaengig={()=>void rueckgaengig(task.id)} task={task} view={view} />)}{group.items.length===0 && <p className="workspace-group-empty">Keine Aufgaben auf dieser Seite</p>}</section>)}
-        {visibleTasks && visibleTasks.length === 0 ? <div className="task-empty"><p>{search ? 'Keine passenden Aufgaben für diese Suche.' : selectedTask ? "Keine weiteren Aufgaben auf dieser Seite." : view === "mine" ? "Keine offenen Aufgaben für dich." : view === "waiting" ? "Aktuell wartest du auf niemanden." : "Noch keine erledigten Aufgaben."}</p>{view === "mine" && !creating ? <button onClick={startTask} type="button">Aufgabe anlegen</button> : null}</div> : null}
-        {(taskPage.canPrevious || taskPage.canNext) && <nav aria-label="Aufgabenseiten"><button type="button" className="secondary-action" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><button type="button" className="secondary-action" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
+      {view === "goals" ? <><GoalControls /><HabitControls /></> : view === "decisions" ? <DecisionControls key={projectId} projectId={projectId} kopf={false} /> : <section className="task-table" aria-label={heading} hidden={panel === "review" || (panel === "projects" && board && Boolean(projectId))}>
+        {creating ? <form className="task-create" onSubmit={create}>{createError && <p className="tasks-error" role="alert">{createError} <button className="text-action" disabled={submitting} type="submit">Wiederholen</button></p>}{createError && <TaskRetryReview reviewed={createReviewed} busy={submitting} onReviewed={setCreateReviewed} onPrepareNew={prepareNewTaskRequest} />}<label className="task-create-title">Aufgabe<input autoFocus disabled={submitting} onChange={(event) => setTitle(event.target.value)} placeholder="Was möchtest du erledigen?" required value={title} /></label><label>Fällig am<input disabled={submitting} onChange={(event) => setDue(event.target.value)} type="date" value={due} /></label>{projects.some(project => project.open) && <label className="task-project-create">Projekt<select value={newTaskProject} onChange={event => setNewTaskProject(event.target.value)} disabled={submitting || projectError}><option value="">Ohne Projekt</option>{projects.filter(project=>project.open).map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}<div className="task-create-actions"><button className="g-knopf-schlicht" disabled={submitting} onClick={() => setCreating(false)} type="button">Abbrechen</button><button className="primary-action" disabled={submitting || !title.trim()} type="submit">Lokal speichern</button></div></form> : null}
+        {!listTasks && !error && taskPage.loading ? <div className="task-loading" role="status" aria-label="Aufgaben werden geladen"><i /><i /><i /></div> : null}
+        {visibleTasks && visibleTasks.length > 0 && (view === "mine"
+          ? visibleTaskGroups(visibleTasks,groupTime).map(group=><Gruppe className="workspace-task-group" key={group.label} titel={group.label}>{group.items.map(row)}</Gruppe>)
+          : <Gruppe className="workspace-task-group">{visibleTasks.map(row)}</Gruppe>)}
+        {visibleTasks && visibleTasks.length === 0 && !creating ? <Leer className="task-empty" zeichen={search ? "search" : "check"} satz={emptyText} /> : null}
+        {(taskPage.canPrevious || taskPage.canNext) && <nav className="task-seiten" aria-label="Aufgabenseiten"><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canPrevious || completing !== null} onClick={() => void pager.current!.previous()}>Vorherige Seite</button><span className="task-page-number">Seite {taskPage.page}</span><button type="button" className="g-knopf-getoent g-kompakt" disabled={!taskPage.canNext || completing !== null} onClick={() => void pager.current!.next()}>Nächste Seite</button></nav>}
       </section>}
     </main>
   </div>;
@@ -925,7 +909,8 @@ export function App() {
 
   const chatPlaceholder = chatAvailable === true ? undefined : chatAvailable === null
     ? "Kingfisher wird verbunden …"
-    : "Frage nach Projekten und Quellen. Für freie Gespräche ein Modell verbinden.";
+    // Ohne Modell sagt die Antwort selbst, wenn eine Frage eines bräuchte; der Platzhalter nennt nur, was geht (H5).
+    : "Frag nach Menschen, Projekten, Terminen …";
 
   if (path === "/willkommen") return <Erststart />;
   if (erstePruefung) return <div className="shell"><main className="state-page" aria-busy="true" /></div>;
@@ -937,7 +922,7 @@ export function App() {
   if (path === "/world") return <WorldPage recentConversation={recentConversation} />;
   if (path === "/vorhaben") return <Tasks recentConversation={recentConversation} />;
   if (path === "/nachrichten") return <Messages recentConversation={recentConversation} />;
-  if (path === "/conversations") return <ConversationHistory recentConversation={recentConversation} rememberConversation={rememberConversation} />;
+  if (path === "/conversations") return <ConversationHistory chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const match = path.match(/^\/conversations\/([^/]+)$/);
   if (match) return <Conversation key={decodeURIComponent(match[1])} chatAvailable={chatAvailable !== null} chatPlaceholder={chatPlaceholder} id={decodeURIComponent(match[1])} recentConversation={recentConversation} rememberConversation={rememberConversation} />;
   const personMatch = path.match(/^\/memory\/people\/([^/]+)$/);
