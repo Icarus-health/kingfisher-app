@@ -128,3 +128,26 @@ def test_merken_nach_stand_rechnet_nach_einer_aenderung_neu(api):
     app.state.tasks.add('Neu', P(SourceType.USER_STATED))
     assert nach_stand_gemerkt(app, 'probe', 'x', rechnen) == {'n': 4}
     assert zaehler == [1, 1, 1, 1] and JETZT - timedelta(days=1) < JETZT
+
+
+def test_schnelles_briefing_zeigt_den_fertigen_teil_mit_zwischenstand(api, monkeypatch):
+    """Tageslage (Befund A4): erst der sofort fertige Teil, ohne Akten der Teilnehmer, Wege, Wetter und Welt; er
+    zählt nicht als Blick, damit die volle Fassung danach dieselben Zeilen „seit dem letzten Blick“ zeigt."""
+    from icarus_memory import logbuch, tag_routes
+    app, client = api
+    app.state.settings.mail.user = ICH
+    langsam = []
+    for name in ('vorbereiten_alle', 'wetter_am_termin', '_wetter', '_welt'):
+        echt = getattr(tag_routes, name)
+        monkeypatch.setattr(tag_routes, name, lambda *a, _n=name, _e=echt, **k: langsam.append(_n) or _e(*a, **k))
+    try:
+        logbuch.vermerke('export', was='selbstmodell')
+        schnell = client.get('/api/v1/tag/briefing', params={'schnell': True}).json()
+        assert schnell['zwischenstand'] == tag_routes.ZWISCHENSTAND and langsam == []
+        assert 'Export' in schnell['tageslage']['verlauf'][0] and app.state.logbuch._marke('blick') is None
+        voll = client.get('/api/v1/tag/briefing').json()
+        assert voll['zwischenstand'] is None and set(langsam) == {'vorbereiten_alle', 'wetter_am_termin', '_wetter', '_welt'}
+        assert voll['tageslage']['verlauf'] == schnell['tageslage']['verlauf']
+        assert app.state.logbuch._marke('blick') is not None
+    finally:
+        logbuch.verbinde(None)

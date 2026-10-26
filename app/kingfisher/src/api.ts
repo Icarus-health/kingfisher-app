@@ -973,7 +973,7 @@ export type WeltFeed = { id: string; url: string; label: string; enabled: boolea
 export type WeltStand = { aktiv: boolean; feeds: WeltFeed[]; weltquellen: Array<{ id: string; label: string; gewaehlt: boolean }>;
   abbestellt: Array<{ sache: string; name: string }>; vorschlaege: WeltVorgabe[]; vorschlaege_stand: { stand: string; abgerufen: string | null }; modell: boolean };
 export type TagGeburtstag = { sache: string; name: string; vorname: string; datum: string; wann: "heute" | "morgen" | "bald"; aussage_id: string; episode_id: string | null };
-export type TagBriefing = { jetzt: string; tageslage: TagLage | null; termine: TagTermin[]; fristen: TagFrist[]; geburtstage?: TagGeburtstag[]; fehler: Record<string, string>; wegezeit: WegezeitStand };
+export type TagBriefing = { jetzt: string; tageslage: TagLage | null; termine: TagTermin[]; fristen: TagFrist[]; geburtstage?: TagGeburtstag[]; fehler: Record<string, string>; wegezeit: WegezeitStand; zwischenstand?: string | null };
 export type AkteSachen = {
   gesamt: number; berechnung: { offen: number; berechnet: number };
   sachen: Array<{ sache: string; art: AkteSachenArt; art_text: string; name: string; quellen: number; letzte: string | null }>;
@@ -1632,7 +1632,7 @@ export const api = {
   bezugSetzen: (episodeId: string, sache: string, aktion: "zu" | "nicht") => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung`, { method: "PUT", body: JSON.stringify({ sache, aktion }) }),
   bezugEntfernen: (episodeId: string, sache: string) => request<QuellenBezuege>(`/api/v1/akten/quellen/${encodeURIComponent(episodeId)}/zuordnung?sache=${encodeURIComponent(sache)}`, { method: "DELETE" }),
   // `nachladen`: stilles Erneuern bei offenem Tab; es zählt nicht als Blick für das Logbuch.
-  tagBriefing: (nachladen = false) => request<TagBriefing>(`/api/v1/tag/briefing${nachladen ? "?nachladen=true" : ""}`),
+  tagBriefing: (nachladen = false, schnell = false) => request<TagBriefing>(`/api/v1/tag/briefing${schnell ? "?schnell=true" : nachladen ? "?nachladen=true" : ""}`),
   logbuch: (seit?: string) => request<LogbuchAnsicht>(`/api/v1/logbuch${seit ? `?seit=${encodeURIComponent(seit)}` : ""}`),
   /** Laufende Fassung und Update-Angebot (sidecar: fassung_routes.py). Lesen fragt nie nach außen. */
   fassung: () => request<FassungStand>("/api/v1/fassung"),

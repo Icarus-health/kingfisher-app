@@ -33,7 +33,11 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
     } catch { setFehler(true); }
   }, []);
   useEffect(() => {
-    void laden();
+    // Befund A4: Sofort der fertige Teil (Termine, Fristen, Post) mit Zwischenstand, dann die volle Fassung mit
+    // Vorbereitung, Wegen und Wetter. Die schnelle Fassung zählt nicht als Blick und überschreibt nie die volle.
+    let voll = false;
+    void api.tagBriefing(false, true).then(teil => { if (!voll) setDaten(alt => alt ?? teil); }).catch(() => {});
+    void laden().then(() => { voll = true; });
     // Das stille Erneuern zählt nicht als Blick: Das Logbuch bezieht sich auf das letzte Öffnen, nicht auf den offenen Tab.
     const takt = window.setInterval(() => { if (!document.hidden) void laden(true); }, 60_000);
     return () => { window.clearInterval(takt); window.clearTimeout(nachladen.current); };
@@ -67,7 +71,8 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
   }
 
   if (fehler && !daten) return <section className="tageslage" aria-label="Das zählt heute"><p className="tageslage-hinweis" role="status">Die Tageslage ist gerade nicht erreichbar.</p></section>;
-  if (!daten || !daten.tageslage) return null;
+  if (!daten) return <section className="tageslage" aria-label="Das zählt heute" aria-busy="true"><p className="tageslage-hinweis" role="status">Kingfisher stellt die Tageslage zusammen: Termine, Fristen und Post.</p></section>;
+  if (!daten.tageslage) return null;
   const lage = daten.tageslage;
   const termin = daten.termine.find(t => t.uid === offen) ?? null;
   const verlauf = lage.verlauf ?? [];
@@ -112,6 +117,7 @@ export function TagesLage({sourcesIncomplete = false}: {sourcesIncomplete?: bool
       <div><input id="tageslage-heimat" value={heimat} maxLength={300} placeholder="Straße, Ort" onChange={event => setHeimat(event.target.value)} autoComplete="street-address" />
         <button type="submit" className="primary-action" disabled={arbeitet || !heimat.trim()}>Speichern</button></div>
     </form>}
+    {daten.zwischenstand ? <p className="tageslage-hinweis tageslage-zwischenstand" role="status">{daten.zwischenstand}</p> : null}
     {meldung && <p className="tageslage-hinweis" role="status">{meldung}</p>}
     {termin && <TerminVorbereitung termin={termin} />}
     {Object.values(daten.fehler).map(text => <p key={text} className="tageslage-hinweis" role="status">{text}</p>)}
