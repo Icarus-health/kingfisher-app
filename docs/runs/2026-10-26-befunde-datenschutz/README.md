@@ -121,7 +121,7 @@ Firmenbilder und Onlinekarte (Kartenkacheln von OpenStreetMap, aus dem Browser).
 
 - Neue Tests Sidecar: 22 in `test_datenschutz_paket_d.py`; drei bestehende angepasst, einer präzisiert.
 - Oberfläche: `node --test` 954 bestanden, `tsc --noEmit` sauber, `vite build` sauber.
-- Volle Suite Sidecar: siehe unten.
+- Volle Suite Sidecar: 8152 bestanden, 3 übersprungen, 0 fehlgeschlagen (13 min, `-n 4`).
 - `scripts/probe_seiten_ui.py` hell und dunkel: je 75 Breiten geprüft, 0 nicht in Ordnung. `probe_fassung_ui.py` und
   `probe_tempo_ui.py` grün.
 
