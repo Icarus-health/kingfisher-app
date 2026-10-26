@@ -43,11 +43,12 @@ export function zumCloudSchalter() {
   navigate("/settings#darf");
   let versuche = 0;
   const suchen = () => {
-    const schalter = document.getElementById("darf-cloud");
+    // Erst wenn der Schalter geladen ist: Vorher ist der Abschnitt kürzer, und er rutschte danach aus dem Fenster.
+    const schalter = document.querySelector<HTMLElement>("#darf-cloud input[role=switch]") ? document.getElementById("darf-cloud") : null;
     if (schalter) {
       schalter.scrollIntoView({ block: "center" });
       schalter.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
-    } else if (++versuche < 40) window.setTimeout(suchen, 50);
+    } else if (++versuche < 100) window.setTimeout(suchen, 50);
   };
   window.setTimeout(suchen, 0);
 }

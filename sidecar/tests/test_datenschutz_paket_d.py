@@ -293,3 +293,38 @@ def test_protokoll_satz_ohne_inhalte():
     satz = nach_draussen.satz({'anbieter': 'anthropic', 'wofuer': 'einordnung', 'gesendet': ['mail']})
     assert satz.startswith('Mail einordnen')
     assert logbuch.VERBOTENE_FELDER.isdisjoint({'anbieter', 'modell', 'wofuer', 'gesendet'})
+
+
+# -- Kleinpunkt b: auch Einordnung und Aufbau aus der Cloud stehen im Protokoll ---------------------------------------
+
+
+class _Json:
+    name = 'anthropic'
+    model = 'synthetisch-cloud'
+    is_local = False
+
+    def __init__(self):
+        self.calls = 0
+
+    def complete_json(self, messages, *, max_tokens, schema):
+        self.calls += 1
+        return Reply(text='{}')
+
+
+def test_eingegrenzter_cloudanbieter_vermerkt_nur_was_wirklich_hinausgeht(monkeypatch):
+    from icarus_memory.providers import ProviderError
+    from icarus_memory.source_processing_policy import ScopedProvider
+    vermerkt = []
+    monkeypatch.setattr(logbuch, 'vermerke', lambda art, **daten: vermerkt.append((art, daten)) or True)
+    innen = _Json()
+    eingegrenzt = ScopedProvider(innen, None, lambda: None)
+    eingegrenzt.wofuer = 'einordnung'
+    eingegrenzt.complete_json([{'role': 'user', 'content': 'Mail von Anna Keller'}], max_tokens=100, schema={})
+    assert vermerkt == [('cloud_anfrage', {'anbieter': 'anthropic', 'modell': 'synthetisch-cloud', 'wofuer': 'einordnung'})]
+
+    def verweigert():
+        raise ProviderError('Die Freigabe hat sich geändert.')
+    gesperrt = ScopedProvider(innen, None, verweigert)
+    with pytest.raises(ProviderError):
+        gesperrt.complete_json([{'role': 'user', 'content': 'x'}], max_tokens=100, schema={})
+    assert len(vermerkt) == 1 and innen.calls == 1  # nichts gesendet, nichts vermerkt

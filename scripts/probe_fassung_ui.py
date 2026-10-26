@@ -4,7 +4,7 @@
 Startet den Sidecar mit einer leeren Instanz als Fassung 1.0.0 und eine Attrappe der Download-Seite auf diesem Rechner,
 die ein synthetisches `latest.json` für Fassung 1.2.0 ausliefert. Dann in Chromium (Playwright):
 
-* **Kingfisher und du:** „Fassung 1.0.0“, Schalter „Nach neuen Fassungen sehen“ an, mit dem Satz über GitHub;
+* **Kingfisher und du:** „Fassung 1.0.0“; der Schalter „Nach neuen Fassungen sehen“ steht unter „Was Kingfisher darf“, an, mit dem Satz über GitHub und die IP-Adresse;
   „Jetzt nachsehen“ antwortet „Neue Fassung 1.2.0 ist da.“, und die Attrappe sah genau eine GET-Anfrage ohne Kekse.
   Ausschalten antwortet mit einem Satz und bleibt gespeichert.
 * **Heute im Browser (ohne Brücke):** der ruhige Hinweis „Neue Fassung 1.2.0 ist da: …“ und statt des Knopfs
@@ -167,6 +167,8 @@ def main() -> int:
             kopf = download.anfragen[0]['kopf']
             assert 'cookie' not in kopf and kopf['user-agent'] == 'Kingfisher', kopf
             bild(seite, 'einstellung')
+            # Der Schalter steht unter „Was Kingfisher darf“ (Persona-Prüfung, Paket D).
+            seite.goto(basis + '/settings#darf')
             seite.get_by_role('switch', name='Nach neuen Fassungen sehen').click()
             seite.wait_for_selector('text=Kingfisher sieht nicht mehr von selbst nach.', timeout=10000)
             assert instanz.anfrage('GET', '/api/v1/fassung')['pruefen'] is False
