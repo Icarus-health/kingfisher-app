@@ -71,7 +71,7 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 | Reiter | Was dort ist | Bausteine (unverändert, nur anders einsortiert) |
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
-| **Was Kingfisher darf** | Sieben Schalter, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
+| **Was Kingfisher darf** | Zehn Schalter (Stand Paket D, 26.10.2026; drei davon von Haus aus an, siehe unten „Wege nach draußen“). Ursprünglich sieben, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
 | **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
 | **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |
@@ -464,7 +464,8 @@ Gedächtnisantwort lief nur lokal und sagte sonst „benötigt ein lokales Model
 ([66-automatik.md](66-automatik.md)): Mit gültiger Einwilligung der Rolle `antwort` wählt der Cloudanbieter auch die
 Quellen aus und formuliert die Sätze.
 
-- **Was hinausgeht:** die Frage und die dafür gefundenen Textstellen samt Absender, Betreff und Datum. Der Satz der
+- **Was hinausgeht:** die Frage und die dafür gefundenen Quellen samt Absender, Betreff und Datum (präzisiert in Paket D:
+  „Inhalte deiner Mails, Termine und Notizen, ganz oder in Auszügen“, mit Anbieter, Land und Region). Der Satz der
   Einwilligung sagt das jetzt wörtlich (erweitert, nicht gekürzt; Oberfläche `gliederung.ts`, Sidecar `ROLLEN["antwort"]`).
   Bestätigte Einträge der Wissensschicht gehen nie hinaus; sie stehen lokal gelesen unter der Antwort.
 - **Wann nie:** Schalter aus, Einwilligung fehlt oder unlesbar, kein Schlüssel (dann gilt der lokale Standard), ein
@@ -473,9 +474,33 @@ Quellen aus und formuliert die Sätze.
 - **Was lokal bleibt:** Prüfung (zweites Tor), Einbettung und Hintergrund, wie bisher.
 - **Sichtbar:** Unter einer solchen Antwort steht „Über Anthropic beantwortet.“; im Verlauf vermerkt
   `context.gedaechtnis_cloud` Anbieter, Modell und `gesendet: ["frage", "textstellen"]`.
-- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud geht es
-  in wenigen Sekunden.“ mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
+- **Ohne Cloud:** Ist eine lokale Antwort langsamer als 8 s, steht darunter „Lokal dauert das. Mit der Cloud ginge es
+  in wenigen Sekunden. Dann gingen deine Fragen und Inhalte deiner Mails an Anthropic (USA).“ (Empfänger seit Paket D) mit „Cloud einschalten“ (führt zu diesem Schalter, die Einwilligung bleibt hier) und „Nicht mehr
   zeigen“ (im Browser gemerkt).
+
+## Wege nach draußen: Widerruf, Webabruf, Update-Prüfung (Paket D, 26.10.2026)
+
+Aus der Persona-Prüfung (Datenschutzanwalt, Ärztin; [Protokoll](runs/2026-10-26-befunde-datenschutz/README.md)):
+
+- **Widerruf sofort.** Ausschalten wartet nie auf eine laufende Antwort (`model_roles_routes.put_role`: nur ein Widerruf
+  nimmt die Gesprächssperre nicht). Jeder einzelne Versand prüft die Einwilligung frisch: Gespräch vor jeder Runde, auch
+  nach einem Werkzeug, Fragen verstehen, Gedächtnisantwort (`Agent._cloud_vor_versand`, `gedaechtnis_cloud.py`),
+  Einordnung neuer Mails (`hintergrund_cloud.py`). Steht im Gespräch: „Die Cloud ist ausgeschaltet. Ab hier ist nichts mehr
+  an den Anbieter gegangen.“ Der Schalter steht beim Klick auf „aus“.
+- **Schalter erst nach Zustimmung an.** Solange die Zustimmung offen ist: „Noch aus: Die Cloud ist erst an, wenn du unten
+  zustimmst.“ Die Zustimmung nennt den Anbieter mit Land und Region (`nach_draussen.ANBIETER`, `gliederung.zustimmungCloud`).
+- **Webseiten im Gespräch abrufen** (`SCHALTER.web`, Vorgabe an): Jeder Abruf wartet auf eine Freigabe mit einem Klick, die
+  Adresse, Empfänger der IP-Adresse und die mit der Adresse gesendeten Angaben nennt (`policy.Policy._IMMER_FREIGABE`,
+  `tools.web_abruf_satz`); nach fremdem Inhalt bleibt die genaue Freigabe (Adresse abtippen). Aus: Das Modell bekommt das
+  Werkzeug nicht (`PUT /api/v1/darf/web`).
+- **Nach neuen Fassungen sehen** (`SCHALTER.updates`, Vorgabe an, vorher unter „Kingfisher und du“): ein Satz, was abgerufen
+  wird, dass GitHub die IP-Adresse sieht, und was „aus“ kostet. Unter „Kingfisher und du“ bleiben Fassung und „Jetzt
+  nachsehen“.
+- **Was an die Cloud ging:** aufklappbar unter dem Cloud-Schalter, je Anfrage Zeit, Anbieter und wofür, ohne Inhalt
+  (Logbuch-Art `cloud_anfrage`, `GET /api/v1/cloud/protokoll`). Gesprächsantworten aus der Cloud tragen wie
+  Gedächtnisantworten „Über Anthropic beantwortet.“ (`context.cloud_antwort`).
+- **IP-Adresse:** Wetter, Welt, Wegezeit, Webabruf und Update-Prüfung sagen, dass der Dienst sie sieht. Ohne Netz sagt
+  eine Weltquelle „… ist gerade nicht erreichbar“ statt „nicht erlaubt“.
 
 ## Aufgaben aus Mails selbst anlegen (26.10.2026)
 

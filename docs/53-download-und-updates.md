@@ -36,7 +36,10 @@ Quelltext bauen.
 * **Was hinausgeht:** genau eine GET-Anfrage je Tag an die Manifest-Adresse. Kein Keks (der Öffner hat keinen
   Keksspeicher), keine Kennung (User-Agent ist fest `Kingfisher`, ohne Fassung und ohne Rechnernamen), keine
   Anmeldung. Zeitgrenze 5 s, höchstens 64 KB. Nur HTTPS (unverschlüsselt nur an `127.0.0.1`, für Attrappen).
-  Weiterleitungen nur auf HTTPS. GitHub sieht dabei, wie bei jedem Seitenaufruf, die IP-Adresse.
+  Weiterleitungen nur auf HTTPS. GitHub sieht dabei, wie bei jedem Seitenaufruf, die IP-Adresse. Das steht seit Paket D
+  der Persona-Prüfung (26.10.2026) auch im Schalter „Nach neuen Fassungen sehen“ unter „Was Kingfisher darf“. Die
+  Vorgabe bleibt **an**: Ein Sicherheitsupdate soll Menschen erreichen, die nie in die Einstellungen schauen; abgerufen
+  wird nur eine öffentliche Datei, und der Preis (die IP-Adresse bei GitHub) ist dort in einem Satz benannt.
 * **Fehler sind still.** Kein Netz, Zeitgrenze, kaputtes JSON: nichts ändert sich, nur `geprueft_um` bleibt alt.
   Nächster Versuch nach einer Stunde, nicht im Takt.
 * **Strenge Prüfung.** Jede Angabe mit dem richtigen Typ, Fassungen als `X.Y.Z`, Datum als ISO-Tag, `dmg` als

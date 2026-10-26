@@ -3,7 +3,8 @@
 Entscheidung des Nutzers vom 26.10.2026 (`docs/66-automatik.md`, Paket T): Ist „Cloud für Fragen und
 Antworten“ eingeschaltet, beantwortet der gewählte Cloudanbieter auch Fragen an das Gedächtnis, also die
 Auswahl der Quellen (`working_memory_answers.prepare`) und die Sätze (`satzantwort.formulieren`). Der
-Einwilligungssatz der Rolle sagt, was dabei hinausgeht: die Frage und die dafür gefundenen Textstellen.
+Einwilligungssatz der Rolle sagt, was dabei hinausgeht: die Frage und Inhalte der dafür gefundenen Quellen, ganz oder in
+Auszügen (präzisiert in Paket D der Persona-Prüfung).
 
 Was hier gilt, ohne Ausnahme:
 
