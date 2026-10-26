@@ -17,7 +17,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
-from . import identitaet, satzpruefung_modell
+from . import gedaechtnis_cloud, identitaet, satzpruefung_modell
 from .consolidation import Consolidator
 from .model_roles import anbieter_fuer_frage, anbieter_fuer_pruefung, rollen_von
 from .self_model_support import EpisodeSupportResolver
@@ -177,6 +177,8 @@ def verdrahte_zusaetze(app: FastAPI, agent: Agent) -> None:
     agent._kommendes = lambda frage, jetzt=None: _kommendes(app, frage, jetzt)
     agent._eigene = lambda: identitaet.eigene_adressen(getattr(app.state, "settings", None))
     agent._frage_anbieter = lambda: anbieter_fuer_frage(rollen_von(app))
+    # Gedächtnisantworten über die Cloud: nur, solange die Einwilligung der Rolle `antwort` gilt (je Versand gelesen).
+    agent._antwort_cloud = lambda anbieter: gedaechtnis_cloud.freigabe_gueltig(app, anbieter)
     # Sätze an oder aus: dieselbe Stelle wie `Agent._saetze_an`; eine Änderung baut den Agenten neu.
     agent._saetze = getattr(getattr(app.state, "settings", None), "antwort_saetze", "an") != "aus"
     # Zweites Tor der Satzprüfung: Einstellung und Modell der Rolle `pruefung`, je Antwort frisch gelesen.
