@@ -103,7 +103,7 @@ lange Quellen. Rückfall-Wortlaut: neun Testdateien, `messlatte/tests`, zwei Bro
 
 - Neue Tests: 87 Backend, 2 Oberfläche. Oberfläche: `tsc` ohne Befund, 956/956 Tests, `vite build` grün.
 - `probe_seiten_ui.py` hell und dunkel: 75 Breiten geprüft, 0 nicht in Ordnung.
-- Volle Suite (`sidecar/tests` und `messlatte/tests`): siehe unten.
+- Volle Suite (`sidecar/tests` und `messlatte/tests`, `-n 4`): 8.543 bestanden, 3 übersprungen, 0 rot (13:47 min).
 
 ## Sabotageproben
 
