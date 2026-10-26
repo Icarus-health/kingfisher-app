@@ -134,7 +134,8 @@ def test_sentence_projection_preserves_search_coverage_notices(raum, coverage):
     episodes, claims, _ = raum
     wandel(episodes)
     if coverage == 'unclassified':
-        quelle(episodes, 'Noch offen', 'Die Einreichfrist wird erneut geprüft.', [STIFTUNG], tage=1)
+        # Lang genug, um keine Rohquelle zu sein (Befund A2): Sie bleibt gezählt und ohne Beleg.
+        quelle(episodes, 'Noch offen', 'Die Einreichfrist wird erneut geprüft.' + ' Weitere Hinweise folgen später.' * 500, [STIFTUNG], tage=1)
         search = None
         expected = 'fehlt ein nutzbarer Belegabschnitt'
     else:
@@ -155,7 +156,8 @@ def test_pending_source_metadata_change_invalidates_already_limited_answer(raum)
 
     episodes, claims, _ = raum
     wandel(episodes)
-    pending = source(episodes, 'Die Einreichfrist wird erneut geprüft.')
+    # Lang genug, um keine Rohquelle zu sein (Befund A2): Sie bleibt gezählt und macht die Antwort begrenzt.
+    pending = source(episodes, 'Die Einreichfrist wird erneut geprüft.' + ' Weitere Hinweise folgen später.' * 500)
     saved = wma.prepare(FRAGE, episodes, claims, Skript(stand_wandel), saetze=True, semantic_search=None)
     assert saved['limited'] is True
     assert wma.render(saved, episodes, claims)[2] == 'working_reports'

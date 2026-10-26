@@ -203,7 +203,7 @@ def test_lesestand_aus_postfach_und_einordnung(core, tmp_path, monkeypatch):
         assert agent_verdrahtung.lesestand_satz(app) == '', 'Ausgeschaltete Einordnung verspricht nichts'
         monkeypatch.setattr(plan, 'enabled', True)
         monkeypatch.setattr(plan, 'with_model', True)
-        assert agent_verdrahtung.lesestand_satz(app) == 'Kingfisher ordnet deine Post und Termine gerade noch ein (noch 1 von 1).'
+        assert agent_verdrahtung.lesestand_satz(app) == 'Kingfisher ordnet deine Post und Termine gerade noch ein (noch 1 von 1 Quelle).'
         app.state.hintergrund.pausieren(True)
         assert agent_verdrahtung.lesestand_satz(app) == '', 'Pausiert verspricht nichts'
     finally:

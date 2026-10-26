@@ -1160,7 +1160,7 @@ def _ueberholt_zeile(eintrag, episodes):
             'abgesagt': 'Vermutlich abgesagt', 'frist': 'Frist vermutlich geändert'}[eintrag.grund] + wo
 
 
-def _quelle_als_satz(episode):
+def _quelle_als_satz(episode, *, absender=True):
     """„E-Mail „Rechnung“ von Klaus Meier vom 22. Oktober 2026, 09:12 Uhr“, „Termin „…“ am 29. Oktober 2026, 18:00 Uhr“.
 
     Ohne eigenen Zeitpunkt: „…, ohne eigenes Datum, aufgenommen am …“. Gelesen wird nur, was gespeichert ist.
@@ -1169,7 +1169,10 @@ def _quelle_als_satz(episode):
     beleg = {'source_type': episode.provenance.source_type.value,
              'occurred_at': episode.occurred_at.isoformat() if episode.occurred_at else None,
              'recorded_at': episode.recorded_at.isoformat() if episode.recorded_at else None}
-    satz = quellenhinweis.text(beleg, quellenhinweis.angaben(episode))
+    angaben = quellenhinweis.angaben(episode)
+    if not absender:
+        angaben['absender'] = ''
+    satz = quellenhinweis.text(beleg, angaben)
     if episode.occurred_at is None:
         teile = satz.split(', aufgenommen am ', 1)
         satz = teile[0] + ', ohne eigenes Datum' + (f', aufgenommen am {teile[1]}' if len(teile) == 2 else '')
@@ -1212,20 +1215,20 @@ def _zitate(answer, episodes, fallback):
         # Satz, wie ein Mensch die Quelle nennt („E-Mail „…“ von Erika Schulte vom 23. Oktober 2026, 20:48 Uhr“).
         # Ohne eigenen Zeitpunkt bleibt er ausdrücklich unbekannt, damit „bis Freitag“ an kein falsches Datum
         # gebunden wird; wann Kingfisher die Quelle aufgenommen hat, hilft trotzdem beim Einordnen.
-        heading = _quelle_als_satz(episode)
+        # Bei einer Zusage kann der äußere Mailabsender fremden Text nur weiterleiten: Er steht dann nicht im Satz.
+        heading = _quelle_als_satz(episode, absender='commitment' not in source_kinds)
         if newest_marked and number == 1:
             heading += ', die neueste'
         if marken:
             heading += ', vermutlich überholt'
-        heading += ''.join({kennzeichnung.ANDERE_PERSON: ', von einem anderen Menschen gleichen Namens',
+        heading += ''.join({kennzeichnung.ANDERE_PERSON: ', andere Person gleichen Namens',
                             kennzeichnung.AUSSERHALB: ', außerhalb des gefragten Zeitraums'}[m.art] for m in fremd)
         arten = sorted(KINDS[kind] for kind in source_kinds if kind in KINDS and kind != 'fact')
+        if 'commitment' in source_kinds:
+            arten.append('wer zusagt, steht nur im Text: Urheber dort prüfen')
         if arten:
             heading += f" (darin: {', '.join(arten)})"
         lines.extend(['', heading + ':', episode.body])
-        if 'commitment' in source_kinds:
-            # Der äußere Mailabsender kann fremden Text nur weiterleiten: Wer zusagt, sagt allein der Wortlaut.
-            lines.append('Wer darin etwas zusagt, steht nur im Text selbst; der Absender muss es nicht sein.')
         for eintrag in marken[:2]:
             lines.append(_ueberholt_zeile(eintrag, episodes))
         lines.extend(m.text() for m in fremd)

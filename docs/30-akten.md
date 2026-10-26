@@ -371,6 +371,12 @@ Modell):
   Durchlauf; der Rest bleibt Vorschlag. Jeder Vorschlag wird einmal geprüft (Migration 5:
   `aufgaben_auto_geprueft` mit dem Ergebnis als Kürzel). Das erste Einlesen eines Postfachs erzeugt deshalb keine
   einzige Aufgabe.
+* **Zeitnah aus dem ersten Einlesen** (Persona-Prüfung, Befund A5, 26.10.2026): Eine Mail aus der Bestandsaufnahme, die
+  höchstens drei Tage vor dem Einlesen ankam (`mail_timeline.INVENTAR_ZEITNAH`), gilt in der zeitlichen Einordnung als
+  zeitnah wie neue Post: Vorschlag „noch unbestätigt“ statt „Historisch · Aktualität prüfen“, auf Heute unter
+  „Braucht dich“. Selbst angelegt wird daraus weiterhin nichts (Grund `bestand`). Ältere Bestandspost, Mails ohne
+  Datum und Bitten mit späterer Mail im Verlauf bleiben zur Prüfung; Heute sagt dann „Nichts Neues wartet auf dich.“
+  und „Bei 8 Vorschlägen ist unklar, ob sie noch gelten. Prüfen →“.
 * **Zugeordnet.** Person: wer bittet, bei einer Zusage der erste fremde Empfänger unter „An“ (`Task.person`, Adresse
   und Name; die Adresse führt zur Akte). Projekt: das Projekt der Quelle, sonst die Absenderregel, sonst ein
   gemerkter lokaler Hinweis (`task_project_hints.py`), nur vorhandene offene Projekte. Frist: nur, wenn die Textstelle

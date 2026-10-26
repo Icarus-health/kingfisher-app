@@ -218,7 +218,7 @@ def lesestand_satz(app: FastAPI) -> str:
     stand = WorkingMemoryStore(app.state.episodes).progress()
     if stand["remaining"] > 0:
         return (f"Kingfisher ordnet deine Post und Termine gerade noch ein (noch {mail_stand.zahl(stand['remaining'])} "
-                f"von {mail_stand.zahl(stand['total'])}).")
+                f"von {mail_stand.zahl(stand['total'])} {'Quelle' if stand['total'] == 1 else 'Quellen'}).")
     return ""
 
 

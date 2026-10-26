@@ -42,6 +42,11 @@ def _propose_pending(app, text: str = PENDING_STATEMENT):
         rationale="Synthetic pending contradiction",
         at=AT,
     )
+    # Die Quelle ist hier nur Beleg des Vorschlags und nicht im Arbeitsgedächtnis (ausgenommen). Seit Befund A2
+    # wäre eine noch nicht eingeordnete kurze Quelle sonst als Rohquelle Beleg der Gedächtnisantwort; dieser Test
+    # prüft den Weg über bestätigtes Wissen. Eine eingeordnete Quelle endet dort ebenfalls geschlossen.
+    from icarus_memory.working_memory_store import WorkingMemoryStore
+    assert WorkingMemoryStore(app.state.episodes).dismiss(source.id)
     return proposal, source
 
 
