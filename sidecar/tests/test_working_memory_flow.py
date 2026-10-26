@@ -42,7 +42,7 @@ def test_uploaded_conditional_source_is_answered_without_acceptance(core, tmp_pa
         run_working(app)
         message = _ask(client, _conversation(client), QUESTION)
         assert TEXT in message['content']
-        assert 'Quelle berichtet' in message['content']
+        assert 'So steht es in deinen Quellen' in message['content']
         assert message['metadata']['context']['working_answer']['refs'][0]['episode_id'] == source
         assert app.state.claims.revision == claims_before
         assert app.state.proposals.counts() == proposals_before

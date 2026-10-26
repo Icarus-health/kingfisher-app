@@ -78,7 +78,7 @@ class OhneSchliessen:
 
 def test_gemeldete_falsche_antwort_wird_fall_und_die_wiederholung_faellt_auf(instanz, tmp_path):
     gespraech, nachricht = _gefragt(instanz)
-    assert 'Quelle berichtet' in nachricht['content']
+    assert 'So steht es in deinen Quellen' in nachricht['content']
     _melde(instanz, gespraech, nachricht, 'falsch')
     fragen = lokal.lade_fragen(_fragen_datei(instanz, tmp_path))   # dieselbe Prüfung wie bei „lokal“
     (frage,) = fragen
@@ -145,7 +145,7 @@ def test_cli_faelle_aus_der_ablage_und_aus_json(instanz, tmp_path, capsys):
     # Terminal: Zähler und Hinweis, kein Frage- und kein Antworttext.
     ausgabe = capsys.readouterr()
     assert '2 Meldungen' in ausgabe.err and 'lokal --fragen' in ausgabe.err and 'Antworttexte' in ausgabe.err
-    for text in (FRAGE, 'Umsatzsteuervoranmeldung', 'Nirgendwo', 'Quelle berichtet'):
+    for text in (FRAGE, 'Umsatzsteuervoranmeldung', 'Nirgendwo', 'So steht es in deinen Quellen'):
         assert text not in ausgabe.out + ausgabe.err
     lokal.lade_fragen(ziel)
 

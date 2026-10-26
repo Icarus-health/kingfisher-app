@@ -194,7 +194,7 @@ def main() -> int:
             zeile = seite.locator('p.antwortzeit').last.inner_text()
             pruef['zeile_ohne_saetze'] = zeile
             assert 'Sätze' not in zeile and seite.locator('.satzantwort').count() == 0, zeile
-            assert 'Quelle berichtet' in seite.locator('article.message.assistant').last.inner_text()
+            assert 'So steht es in deinen Quellen' in seite.locator('article.message.assistant').last.inner_text()
             bild('zeile-ohne-saetze', full_page=True)
 
             # 6. Der Schalter bleibt nach dem Neuladen aus; wieder einschalten

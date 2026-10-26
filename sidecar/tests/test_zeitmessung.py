@@ -184,7 +184,7 @@ def test_schalter_aus_gibt_keine_satzantwort_und_keinen_zweiten_modellaufruf_der
     turn = agent.answer_memory('Bis wann ist die Einreichfrist?')
     assert agent.modell.satzanfragen == [], 'das Modell wurde für die Sätze nicht gefragt'
     assert 'satzantwort' not in turn.context and 'satzantwort' not in turn.context['working_answer']
-    assert 'Quelle berichtet' in turn.reply, 'die Antwort steht im Zitatmodus da'
+    assert 'So steht es in deinen Quellen' in turn.reply, 'die Antwort steht im Zitatmodus da'
     zeiten = turn.context['zeiten']
     assert 'antwort_modell' in zeiten and not {'saetze_modell', 'satzpruefung'} & set(zeiten)
 

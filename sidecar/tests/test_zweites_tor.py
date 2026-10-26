@@ -101,7 +101,7 @@ def test_unklar_und_fehler_lassen_keinen_satz_durch(raum, ausgabe):
     daten = gespeichert['satzantwort']
     assert daten['status'] == 'zitate' and daten['pruefung']['verworfen'] == 2
     text, _, _ = wma.render(gespeichert, episodes, claims)
-    assert text.startswith('Quelle berichtet') and FALSCH not in text
+    assert 'So steht es in deinen Quellen' in text.split('\n', 1)[0] and FALSCH not in text
 
 
 def test_das_zeitbudget_wird_eingehalten_und_ueberschreitung_ist_unklar(raum, monkeypatch):

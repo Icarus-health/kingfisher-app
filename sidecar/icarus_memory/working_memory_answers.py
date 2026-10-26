@@ -57,6 +57,9 @@ RELATIVE_TIME = re.compile(
     r'(?:ende|anfang|mitte)\s+(?:der|des|nächster|nächsten|dieser|dieses)\s+(?:woche|monats|jahres)|'
     r'today|tomorrow|yesterday|tonight|next|last|'
     r'(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b', re.I)
+#: Erster Satz des Zitatmodus (Befund A1): sagt in Alltagssprache, dass hier die Quellen selbst sprechen.
+ZITAT_EINLEITUNG = 'So steht es in deinen Quellen:'
+ZITAT_EINLEITUNG_NACH_SAETZEN = 'Eine kurze Antwort ließ sich nicht sicher genug belegen. So steht es in deinen Quellen:'
 KINDS = {'request': 'Bitte', 'commitment': 'Zusage', 'conditional': 'Bedingte Aussage',
          'change': 'Änderung', 'status': 'Statusmeldung', 'fact': 'Angabe',
          'uncertain': 'Unklare Einordnung', 'historical': 'Zeitbezug ungeklärt'}
@@ -1157,6 +1160,22 @@ def _ueberholt_zeile(eintrag, episodes):
             'abgesagt': 'Vermutlich abgesagt', 'frist': 'Frist vermutlich geändert'}[eintrag.grund] + wo
 
 
+def _quelle_als_satz(episode):
+    """„E-Mail „Rechnung“ von Klaus Meier vom 22. Oktober 2026, 09:12 Uhr“, „Termin „…“ am 29. Oktober 2026, 18:00 Uhr“.
+
+    Ohne eigenen Zeitpunkt: „…, ohne eigenes Datum, aufgenommen am …“. Gelesen wird nur, was gespeichert ist.
+    """
+    from . import quellenhinweis
+    beleg = {'source_type': episode.provenance.source_type.value,
+             'occurred_at': episode.occurred_at.isoformat() if episode.occurred_at else None,
+             'recorded_at': episode.recorded_at.isoformat() if episode.recorded_at else None}
+    satz = quellenhinweis.text(beleg, quellenhinweis.angaben(episode))
+    if episode.occurred_at is None:
+        teile = satz.split(', aufgenommen am ', 1)
+        satz = teile[0] + ', ohne eigenes Datum' + (f', aufgenommen am {teile[1]}' if len(teile) == 2 else '')
+    return satz
+
+
 def _zitate(answer, episodes, fallback):
     """Die Quellen der Antwort im Wortlaut, neueste zuerst: (Zeilen, Links), oder None, wenn eine Quelle nicht mehr gilt."""
     lines = []
@@ -1186,26 +1205,27 @@ def _zitate(answer, episodes, fallback):
         if episode.id in shown:
             continue
         shown.add(episode.id)
-        source_time = readable_time(episode.occurred_at)
         source_kinds = {r['kind'] for r in displayed if r['episode_id'] == episode.id}
-        kinds = ' · '.join(sorted(KINDS[kind] for kind in source_kinds))
-        if 'commitment' in source_kinds:
-            # Der äußere Mailabsender kann fremden Text nur weiterleiten. Den
-            # Quellentitel deshalb mit einem Hinweis auf den ungeklärten Urheber zeigen.
-            kinds += ' · Urheber in Quelle prüfen'
-        heading = f'{kinds} · {episode.title[:200]}' + (' · neueste Quelle' if newest_marked and number == 1 else '')
-        # Ohne eigenen Zeitpunkt bleibt die Quellenzeit unbekannt, damit „bis
-        # Freitag“ an kein falsches Datum gebunden wird. Wann Kingfisher die
-        # Quelle aufgenommen hat, hilft trotzdem beim Einordnen.
-        recorded = '' if episode.occurred_at else f' · Erfasst: {readable_time(episode.recorded_at)}'
         marken = kontext.ueberholt.get(episode.id, ())
         fremd = kennzeichnung.kennzeichen(episode, rahmen)
+        # Befund A1 der Persona-Prüfung: Statt „Angabe · Titel · neueste Quelle“ und „Quellenzeit: …“ steht ein
+        # Satz, wie ein Mensch die Quelle nennt („E-Mail „…“ von Erika Schulte vom 23. Oktober 2026, 20:48 Uhr“).
+        # Ohne eigenen Zeitpunkt bleibt er ausdrücklich unbekannt, damit „bis Freitag“ an kein falsches Datum
+        # gebunden wird; wann Kingfisher die Quelle aufgenommen hat, hilft trotzdem beim Einordnen.
+        heading = _quelle_als_satz(episode)
+        if newest_marked and number == 1:
+            heading += ', die neueste'
         if marken:
-            heading += ' · vermutlich überholt'
-        heading += ''.join({kennzeichnung.ANDERE_PERSON: ' · andere Person',
-                            kennzeichnung.AUSSERHALB: ' · außerhalb des Zeitraums'}[m.art] for m in fremd)
-        lines.extend(['', heading, episode.body,
-                      f'Quellenzeit: {source_time}{recorded}'])
+            heading += ', vermutlich überholt'
+        heading += ''.join({kennzeichnung.ANDERE_PERSON: ', von einem anderen Menschen gleichen Namens',
+                            kennzeichnung.AUSSERHALB: ', außerhalb des gefragten Zeitraums'}[m.art] for m in fremd)
+        arten = sorted(KINDS[kind] for kind in source_kinds if kind != 'fact')
+        if arten:
+            heading += f" (darin: {', '.join(arten)})"
+        lines.extend(['', heading + ':', episode.body])
+        if 'commitment' in source_kinds:
+            # Der äußere Mailabsender kann fremden Text nur weiterleiten: Wer zusagt, sagt allein der Wortlaut.
+            lines.append('Wer darin etwas zusagt, steht nur im Text selbst; der Absender muss es nicht sein.')
         for eintrag in marken[:2]:
             lines.append(_ueberholt_zeile(eintrag, episodes))
         lines.extend(m.text() for m in fremd)
@@ -1277,7 +1297,7 @@ def render(answer, episodes, claims, *, conflict_status=None):
         satz = None
     lines = ([] if satz is not None else
              ['Die automatische Quellenauswahl ist noch unklar. Diese bestätigten Angaben liegen vor.']
-             if fallback else ['Quelle berichtet · automatisch eingeordnet'])
+             if fallback else [ZITAT_EINLEITUNG_NACH_SAETZEN if answer.get('satzantwort') else ZITAT_EINLEITUNG])
     if isinstance(answer.get('choice'), str):
         lines.append(f"Deine Auswahl: {answer['choice'][:200]}")
         if answer.get('choice_kind') == 'conflict':

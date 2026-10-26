@@ -70,7 +70,7 @@ def test_bericht_enthaelt_keine_texte_keine_fragen_keine_erwartungen(instanz, fr
     ergebnis = lokal.messen(instanz.client, fragen)
     ausgabe = json.dumps(lokal.zu_dict(ergebnis), ensure_ascii=False) + lokal.markdown(ergebnis)
     for verboten in ('Umsatzsteuervoranmeldung', 'Finanzamt', '10. Oktober', 'Steuerberater Weber', 'Karl Weber',
-                     'Quelle berichtet', 'Dazu liegt', 'gibt-es-nicht', 'Telefonat', 'Lea Hartmann'):
+                     'So steht es in deinen Quellen', 'Dazu liegt', 'gibt-es-nicht', 'Telefonat', 'Lea Hartmann'):
         assert verboten not in ausgabe, verboten
     # Was drinsteht: IDs, Klassen, Zähler, Zeiten.
     assert 'e-1' in ausgabe and 'richtig' in ausgabe and 'Falsche Aussagen: 0 von 2 Antworten' in ausgabe
@@ -169,8 +169,8 @@ def test_cli_lokal_zeigen_gibt_antworten_nur_im_terminal_aus(instanz, monkeypatc
     monkeypatch.setattr(lokal, 'oeffne', lambda adresse, token: OhneSchliessen(instanz.client))
     ziel = tmp_path / 'bericht'
     assert main(['lokal', '--fragen', str(datei), '--zeigen', '--ausgabe', str(ziel)]) == 0
-    assert 'Quelle berichtet' in capsys.readouterr().out
-    assert all('Quelle berichtet' not in p.read_text(encoding='utf-8') for p in ziel.iterdir())
+    assert 'So steht es in deinen Quellen' in capsys.readouterr().out
+    assert all('So steht es in deinen Quellen' not in p.read_text(encoding='utf-8') for p in ziel.iterdir())
 
 
 def test_cli_lokal_ohne_instanz_endet_mit_code_1(monkeypatch, tmp_path, capsys):

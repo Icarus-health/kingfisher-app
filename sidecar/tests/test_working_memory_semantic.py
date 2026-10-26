@@ -274,7 +274,7 @@ def test_http_source_answer_discloses_partial_semantic_inventory(core, tmp_path,
         monkeypatch.setattr(satzantwort, 'wiederherstellen', lambda *args: SimpleNamespace(status='nichts'))
         text, _, status = working_memory_answers.render(working, app.state.episodes, app.state.claims)
         assert status == 'working_reports'
-        assert SOURCE in text and 'Quelle berichtet' in text
+        assert SOURCE in text and 'So steht es in deinen Quellen' in text
         assert 'keine Information vor' not in text
         assert 'begrenzt' in text
     finally:
