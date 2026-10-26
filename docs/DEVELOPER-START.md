@@ -1,7 +1,7 @@
 # Einstieg für Entwickler und Claude Code
 
-**Aktueller Stand (22.10.):** `main` ist **1.0.27**; veröffentlicht wird sie wie jede
-Fassung mit dem Release-Workflow (Tag `v1.0.27`, `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
+**Aktueller Stand (26.10.):** `main` ist **1.0.28**; veröffentlicht wird sie wie jede
+Fassung mit dem Release-Workflow (Tag `v1.0.28`, `Kingfisher.dmg` und Download-Seite). Die gemeinsame CoS-Vorschau (#46)
 und die Alltagsabläufe (#54) sind seit dem 12.10. in `main`, ebenso alle Commits der
 früheren Entwürfe #43 (lokaler Sprachentwurf) und #48 (korrigierte Quellen erneut
 prüfen). Neue Arbeit beginnt auf `main`, nicht auf älteren Vorschau-Branches. Die vier
@@ -16,7 +16,7 @@ Gedächtnis-Durchsicht „wie ein guter Stabschef“ (fünf Pakete):
 | 1.0.25 | #76 | Einmalige Belegkorrektur im Cloudpaket; historische Quellenfristen sichtbar | [Protokoll](runs/2026-10-19-belege-fristen-sonnet/README.md) |
 | 1.0.26 | #78–#84 | Deutsche Fristformulierungen; Akte mit „Braucht dich“, Entscheidungen und Zeitstrahl; Abrufen mit Umschrift, Zeitangaben und „Worauf warte ich noch?“; Ablage merkt sich Entscheidungen; neue Post trotz Pause, ehrliche Anmeldung, neueste zuerst; Kalender aus CalDAV und Abo; CI wieder grün | [Protokoll](runs/2026-10-20-stabschef-pakete/README.md) |
 | 1.0.27 | #86–#92 | Ziellinie (`65-ziellinie.md`); gesendete Mails; „Was brauche ich morgen?“; neue Mails in der Cloud einordnen (Anthropic, eigene Einwilligung); Aufgaben folgen der Post; Stilprofil aus gesendeten Mails; „Neue Akte?“; Mitteilungen auf dem Mac | [Protokoll](runs/2026-10-22-ziellinie-pakete/README.md) |
-| (nächste) | #94 | Oberfläche: Gestaltungsgrundlage (`16-gestaltung.md`, `Grundlage.css`, `src/grundlage/`), alle 196 Oberflächen ruhig, groß, auf einen Blick; Heute ist das Briefing | [Protokoll](runs/2026-10-24-oberflaeche/README.md) |
+| 1.0.28 | #94 | Oberfläche: Gestaltungsgrundlage (`16-gestaltung.md`, `Grundlage.css`, `src/grundlage/`), alle 196 Oberflächen ruhig, groß, auf einen Blick; Heute ist das Briefing; „Neu eingegangen“ ehrlich; Stand-Satz in der Akte; Namensvorschlag; Hinweis mit Rückgängig; Tempo bei viel Bestand; Dunkelmodus | [Protokoll](runs/2026-10-24-oberflaeche/README.md), [Verbesserungen](runs/2026-10-25-verbesserungen/README.md), [Viel Bestand](runs/2026-10-25-viel-bestand/README.md) |
 
 Offen laut diesen Protokollen: die Prüfung des normalen Mac-Updates seit 1.0.22, eine
 Probe mit aktuellen, handlungsrelevanten Mails statt der überwiegend historischen
