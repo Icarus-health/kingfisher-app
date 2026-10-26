@@ -10,6 +10,7 @@ const speicher = () => { const daten = new Map(); return {getItem: k => daten.ge
 test("Während des Wartens steht der echte Schritt des Sidecars, sonst die schlichte Vorgabe", () => {
   assert.equal(warteSatz(null), WARTEN_VORGABE);
   assert.equal(warteSatz({laeuft: false, schritt: null, satz: null}), WARTEN_VORGABE);
+  assert.equal(warteSatz({laeuft: false, schritt: "suche", satz: "Sucht in deinen Quellen …"}), WARTEN_VORGABE, "vorbei ist vorbei");
   assert.equal(warteSatz({laeuft: true, schritt: "antwort_modell", satz: "Wählt Quellen …"}), "Wählt Quellen …");
   // Nie eine Zeitangabe, nie ein erfundener Satz: Ein leerer oder fremder Wert ergibt die Vorgabe.
   assert.equal(warteSatz({laeuft: true, schritt: "x", satz: ""}), WARTEN_VORGABE);

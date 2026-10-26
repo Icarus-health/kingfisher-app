@@ -131,6 +131,7 @@ def test_vorwaermen_eines_eigenen_modells_entlaedt_erst_die_anderen(monkeypatch)
     None,
     OpenAICompatible('cloud-antwort', api_key='synthetisch'),  # Cloud
     OpenAICompatible('lokal-antwort:9b', base_url='http://127.0.0.1:8080/v1'),  # lokal, aber kein Ollama
+    OpenAICompatible('lokal-antwort:9b', base_url='http://ollama.example.invalid:11434/v1'),  # Ollama, nicht lokal
 ])
 def test_ohne_lokales_ollama_modell_kein_einziger_aufruf(monkeypatch, anbieter):
     calls = _ollama(monkeypatch)
