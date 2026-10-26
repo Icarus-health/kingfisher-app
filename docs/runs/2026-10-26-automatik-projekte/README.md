@@ -39,7 +39,7 @@ nichts Außenwirksames, keine Aussage über Personen.
 |---|---|
 | Neue Tests `test_projekt_automatik.py` | 25 bestanden |
 | Gezielt (`test_projekt_automatik`, `test_akten_vorschlaege`, `test_project_suggestions`, `test_migrations`, `test_bezuege`, `test_category_diagnostics`, `test_compact_search_index`) | 159 bestanden |
-| Volle Backend-Suite | VOLL_ERGEBNIS |
+| Volle Backend-Suite | 8058 bestanden, 3 übersprungen, 1 fehlgeschlagen: `test_cloud_access::test_anthropic_import_route_preview_start…` (Hintergrundfaden unter Last noch am Leben; allein 3 von 3 bestanden, ohne Bezug zu diesem Paket) |
 | Oberfläche: `tsc --noEmit`, `node --test tests/*.test.mjs`, `vite build` | ohne Fehler; 933 bestanden (neu `neue-projekte.test.mjs`, 7) |
 | Browserprobe `scripts/probe_projekte_automatik_ui.py`, hell und dunkel, 1280 und 390 px | `ok`, Konsole leer, kein Überlauf |
 | `scripts/probe_neue_akte_ui.py` (Bestand) | `ok` |
@@ -91,3 +91,6 @@ wieder an.“, ein weiterer Takt legt nichts wieder an.
 * Der Heute-Hinweis steht drei Tage nach der Anlage; es gibt kein „gesehen“.
 * Der Rückweg eines Rückgängig (Projekt wieder anlegen) ist „Akte anlegen“ in der Akte der Erwähnung (dann als eigene
   Entscheidung), kein zweites Rückgängig im Hinweis.
+* Während des Laufs war die gemeinsame Platte zeitweise voll; ein erster voller Lauf scheiterte daran. Der gezählte Lauf
+  lief mit `--basetemp` und `TMPDIR` im Arbeitsspeicher (`/dev/shm`) und `tmp_path_retention_policy=none`.
+* Ein automatisch angelegtes Projekt lässt `area` leer; der Bereich wird aus den Quellen abgeleitet (Paket K).
