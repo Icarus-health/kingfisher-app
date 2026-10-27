@@ -58,7 +58,7 @@ export function KontoZeile({ konto, konten, iconName, neben, ersatzStand, busy, 
   const stand = konto.stand;
   const ohneBereich = !konto.bereich;
   const offeneWahl = Boolean(konten) && (waehlen || (ohneBereich && !konto.vorschlag));
-  return <div className="konto">
+  return <div className="konto" data-konto={konto.id}>
     <div className="source-row g-zeile konto-zeile">
       <span className="g-zeile-symbol" aria-hidden="true"><InterfaceIcon name={iconName} /></span>
       <span className="g-zeile-text">

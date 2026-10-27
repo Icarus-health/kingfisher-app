@@ -247,7 +247,8 @@ export function Zugaenge({ integrationen, aktiv, einrichtungOffen = false }: { i
         die Servereinstellungen stehen eingeklappt für Techniker. */}
     {openForm === "mail" ? <div className="source-form postfach-hinzufuegen zugang-formular" aria-label="Postfach hinzufügen">
       <div className="zugang-formular-kopf"><h2>Postfach hinzufügen</h2><button className="g-knopf-schlicht" onClick={() => setOpenForm(null)} type="button">Schließen</button></div>
-      <PostfachMitAdresse anbieter={providers} idPraefix="zugang-postfach" beiVerbunden={() => { setOpenForm(null); load(); }} />
+      <PostfachMitAdresse anbieter={providers} idPraefix="zugang-postfach" beiVerbunden={() => { setOpenForm(null); load(); }}
+        zumPostfach={kontoId => { setOpenForm(null); requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-konto="${CSS.escape(kontoId)}"] .konto-name`)?.focus()); }} />
       <details className="kalender-techniker">
         <summary>Für Techniker: Servereinstellungen von Hand</summary>
         <MailSourceForm form={mail} provider={selectedProvider} providers={providers} submitting={submitting} fehler={formFehler} onCancel={() => setOpenForm(null)} onChange={setMail} onProviderChange={chooseProvider} onSubmit={addMail} />

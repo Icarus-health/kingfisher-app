@@ -1,7 +1,8 @@
 import {useEffect, useState, type FormEvent} from "react";
+import {PasswortFeld} from "./grundlage";
 import {api, ApiError, type IntegrationOverview, type MailAccount, type MailProvider} from "./api";
 import {GoogleKalenderAdresse} from "./GoogleKalenderAdresse";
-import {ADRESSE_FEHLT, ADRESSE_WO, SELBST_SUCHEN, kalenderWeg, postfachZurAdresse, verbundenSatz} from "./kalenderWeg";
+import {ADRESSE_FEHLT, ADRESSE_WO, SELBST_SUCHEN, kalenderWeg, postfachZurAdresse, verbundenSatz, vorbelegteAdresse} from "./kalenderWeg";
 import {hilfeText} from "./googleWeg";
 import {adresseLesen} from "./adresseEntwurf";
 import {useAnbieter} from "./useAnbieter";
@@ -34,12 +35,14 @@ export function KalenderMitAdresse({anbieter, postfaecher, beiVerbunden}: {
   const [erfolg, setErfolg] = useState("");
   const fehlerRef = useImBlick<HTMLParagraphElement>(fehler);
 
-  // Die Adresse des ersten Postfachs steht schon da, sonst die zuletzt getippte; getippt wird sie nicht noch einmal.
+  // Die Adresse eines Postfachs steht schon da, zuerst eines, dessen Kalender beim selben Anbieter mit demselben Passwort
+  // geht (`vorbelegteAdresse`), sonst die zuletzt getippte; getippt wird sie nicht noch einmal. Kommt der Katalog nach den
+  // Postfächern, gilt die bessere Wahl, solange niemand getippt hat.
   useEffect(() => {
-    if (beruehrt || adresse) return;
-    const vorhanden = postfaecher.find(konto => konto.secret_present)?.user ?? postfaecher[0]?.user ?? adresseLesen();
-    if (vorhanden) setAdresse(vorhanden);
-  }, [postfaecher, beruehrt, adresse]);
+    if (beruehrt) return;
+    const vorhanden = vorbelegteAdresse(postfaecher, anbieter) || (adresse ? "" : adresseLesen());
+    if (vorhanden && vorhanden !== adresse) setAdresse(vorhanden);
+  }, [postfaecher, anbieter, beruehrt, adresse]);
 
   const vomServer = useAnbieter(adresse, anbieter);
   const weg = kalenderWeg(adresse, anbieter, adresseVerlangt, vomServer.anbieter);
@@ -91,7 +94,7 @@ export function KalenderMitAdresse({anbieter, postfaecher, beiVerbunden}: {
       {postfach ? <p className="source-hint">Kingfisher nimmt dasselbe Passwort wie für dein Postfach. <button type="button" className="text-action" onClick={() => setEigenesPasswort(true)}>Anderes Passwort eingeben</button></p>
         : <>
           <label htmlFor="kalender-passwort">{weg.passwortLabel}</label>
-          <input id="kalender-passwort" type="password" value={passwort} autoComplete="new-password" onChange={event => setPasswort(event.target.value)} />
+          <PasswortFeld id="kalender-passwort" wert={passwort} onWert={setPasswort} />
           {weg.anbieter?.app_password && weg.anbieter.hint ? <p className="source-hint">{weg.anbieter.hint}{weg.anbieter.help_url ? <> <a href={weg.anbieter.help_url} rel="noreferrer" target="_blank">{hilfeText(weg.anbieter)}</a></> : null}</p> : null}
           <p className="source-hint">Das Passwort bleibt im Schlüsselbund dieses Rechners. Es geht nur an {wer}, wenn du auf den Knopf darunter klickst.</p>
         </>}
