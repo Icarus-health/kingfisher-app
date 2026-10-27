@@ -129,3 +129,16 @@ test("„Mehr“ unter „Neu eingegangen“ führt zu den neuen Mails, nicht in
   assert.equal(mehrZiel({ working_memory_more: true }), "/memory", "ein älterer Sidecar: wie bisher");
   assert.match(quelle("TodayOverview.tsx"), /\{mehrZiel\(briefing\) \? <a className="today-text-link" href=\{mehrZiel\(briefing\)!\}>Mehr<\/a>/);
 });
+
+test("Umbenennen steht sichtbar neben dem Namen; der Name selbst ist kein Knopf", async () => {
+  const { KontoZeile } = await server.ssrLoadModule("/src/Einstellungen/KontoZeile.tsx");
+  const konto = { id: "mail-a", name: "Kanzlei", adresse: "lea@kanzlei.example", bereich: "arbeit", vorschlag: null, stand: null };
+  const html = renderToStaticMarkup(createElement(KontoZeile, { konto, konten: null, iconName: "mail", neben: "lea@kanzlei.example",
+    busy: false, onUmbenennen: async () => null, onBereich() {}, onNeuerBereich: async () => null }));
+  assert.match(html, /<strong class="g-zeile-titel">Kanzlei<\/strong><button type="button" class="text-action konto-umbenennen" aria-label="Kanzlei umbenennen">Umbenennen<\/button>/);
+  assert.doesNotMatch(html, /<button[^>]*>Kanzlei<\/button>/);
+  assert.match(html, /data-konto="mail-a"/);
+  const mac = renderToStaticMarkup(createElement(KontoZeile, { konto: { ...konto, umbenennbar: false }, konten: null, iconName: "mail",
+    neben: "", busy: false, onUmbenennen: async () => null, onBereich() {}, onNeuerBereich: async () => null }));
+  assert.doesNotMatch(mac, /Umbenennen/, "ein Mac-Kalender heißt, wie er auf dem Mac heißt");
+});

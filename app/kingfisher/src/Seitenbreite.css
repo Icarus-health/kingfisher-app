@@ -183,7 +183,7 @@
   #root .shell main :is(select, input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file'])) { min-height: var(--g-ziel) !important; }
   #root .command-bar input { align-self: stretch; min-height: var(--g-ziel); }
   #root details > summary { min-height: var(--g-ziel) !important; display: flex; align-items: center; }
-  /* Der Name eines Kontos ist zugleich der Knopf zum Umbenennen; seine Fläche reicht über die Zeile, die Zeile rückt nicht. */
+  /* Der Name eines Kontos war bis Paket S der Knopf zum Umbenennen; die Regel bleibt für ältere Zeilen, die ihn noch tragen. */
   #root .settings-shell .konto-name { padding-block: 12px !important; margin-block: -12px; }
   /* „Hintergrund“ auf Heute steht mit negativem Rand in der Zeile; am Finger bekommt er seine ganze Höhe. */
   #root .today-hintergrund > summary { margin-block: 0; }
