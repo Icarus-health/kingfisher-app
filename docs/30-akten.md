@@ -433,6 +433,52 @@ Modell):
 Protokoll: [`runs/2026-10-26-automatik-aufgaben`](runs/2026-10-26-automatik-aufgaben/README.md); Rückweg:
 [`runs/2026-10-26-befunde-zahlen`](runs/2026-10-26-befunde-zahlen/README.md).
 
+### Alles zu einer Person: Auskunft und Löschen (Paket P, 27.10.2026)
+
+Befund D7 der Persona-Prüfung ([Protokoll](runs/2026-10-26-befunde-person/README.md)): Kein Export und kein Löschen je
+Person; das Auskunftsrecht (Art. 15 DSGVO) und die Löschung (Art. 17) waren in Kingfisher nicht bedienbar. Jetzt steht
+unter dem Kopf jeder Personenakte ein leises „Mehr“ (`PersonMehr.tsx`) mit zwei Wegen; keine neue Seite. Was zu einer
+Person gehört, entscheidet eine Stelle (`person_daten.umfang`), damit Auskunft, Rückfrage und Löschen nie
+auseinanderlaufen: die Quellen, in denen sie beteiligt ist (mit Adresse über die Adresse, ohne Adresse über einen Namen,
+den keine fremde Adresse trägt), getrennt in „nur sie“ (außer dir niemand) und „geteilt“; Anlagen einer Mail, die nur
+sie betrifft; bestätigtes Wissen mit ihr als Gegenstand, Bezug oder Rahmen und Wissen, das nur auf ihren Quellen
+beruht; Vorschläge aus ihren Quellen oder über sie; Aufgaben von ihr oder für sie (Person, „wartet auf“, Quelle);
+Zusammenführungen, Schreibweisen, ausdrücklich verknüpfte Einträge; Kreis, Art und Entscheidungen ihrer Akte;
+Logbuch-Vermerke, Befunde und Zusammenfassungen, die sie nennen.
+
+**Alles exportieren** (`GET /api/v1/memory/people/{name}/auskunft`): ein ZIP mit `Auskunft.html` (zum Lesen und
+Drucken, ohne Skript und ohne Verweise nach draußen) und `Auskunft.json` (`kingfisher-auskunft-v1`, dieselben
+Angaben). Ein ZIP mit beiden statt zwei Knöpfen: Wer eine Auskunft erteilt, braucht beides, und ein Knopf ist eine
+Entscheidung weniger. Es entsteht im Speicher und geht nur als Download an den Browser dieses Rechners; Kingfisher
+behält keine Kopie und sendet nichts. Aus Quellen, die nur sie betreffen, steht der Text da (bis 20.000 Zeichen), aus
+geteilten nur die Zeilen, die sie nennen; fremde Adressen sind darin unkenntlich, weitere Beteiligte nur gezählt. Zur
+Cloud steht ehrlich da, was es gibt: Kingfisher hält je Anfrage fest, wann, wohin und wofür, nicht welchen Inhalt; ob
+eine davon ihre Quellen enthielt, lässt sich daraus nicht sagen.
+
+**Alles löschen** (`GET`/`POST /api/v1/memory/people/{name}/loeschen`): Erst zählt Kingfisher, dann fragt es über den
+Baustein `Rueckfrage` („Alles zu Dora Lind löschen?“, Fokus auf „Abbrechen“, die Aktion rot), mit „Gelöscht wird“
+(Anzahlen) und „Bleibt“ (mit Grund). Was „löschen“ heißt:
+
+* Wissen, Vorschläge, Aufgaben (samt ihrem Verlauf), Zusammenführungen, Schreibweisen, Bezüge, Kreis, Akte und
+  personenbezogene Vermerke werden gelöscht. Verläufe, die sonst nur anhängen (Aufgabenverlauf, Logbuch), öffnen dafür
+  in einer Transaktion ihren Schutz und schließen ihn wieder; die Schemaprüfung beim nächsten Öffnen bestätigt das.
+* Quellen, die nur sie betreffen, verschwinden aus Kingfisher: Quelle, Anlagen, Volltextindex, Einordnung, Bezüge,
+  Bedeutungssuche (die Suche prüft jede Fundstelle gegen die Quelle; die Vektoren räumt Kingfisher gleich mit weg),
+  Zwischenspeicher der Akten und des Verzeichnisses. Im Postfach und im Kalender bleiben sie; die Mailaufnahme merkt
+  sich die Mail als ausgelassen (`filtered:gesperrt`), nicht als Fehler.
+* Geteilte Quellen bleiben, ohne sie als Beteiligte; ihr Text bleibt unverändert (er gehört auch den anderen). Der
+  Index liest sie neu, damit ihre Adresse nicht mehr gefunden wird.
+* Bleibt: deine Gespräche mit Kingfisher (deine Fragen, gezählt), Projekte, das Protokoll dessen, was Kingfisher in
+  deinem Namen getan hat (es hält fest, dass gelöscht wurde, nicht wen), ältere Sicherungen.
+* Zuerst entsteht der **Sperrvermerk** (`person_sperre.py`, Migration 26 der Episoden): je Adresse und Schreibweise nur
+  eine Prüfsumme, dazu der Anzeigename. Er wirkt an einer Stelle für alle Wege hinein (`EpisodeStore.record`,
+  `add_contacts`): Gesperrte fallen aus den Beteiligten; betrifft eine Quelle außer dir nur sie, wird sie nicht
+  aufgenommen (Mail: ausgelassen, Termin: ausgeschlossen). Eine Adresse sperrt nur diese Adresse, ein Name nur
+  Nennungen ohne Adresse; ein Namensvetter mit eigener Adresse bleibt eine eigene Person. Erwähnungen im Text geteilter
+  Quellen werden keine Akte (`bezuege.Register.gesperrt`). Aufheben unter Einstellungen → Kingfisher und du.
+* Die Quellen werden zuletzt gelöscht: Bricht vorher etwas ab, ist die Person noch auffindbar und das Löschen lässt
+  sich wiederholen. Die Regel des Gedächtnisses gilt weiter: Löschen schreibt keinen Fakt, es nimmt nur weg.
+
 ## Schnittstelle
 
 `akten_routes.py`; die Sachen-ID steht als Abfrageparameter oder im Körper, nie im Pfad.

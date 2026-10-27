@@ -94,6 +94,10 @@ def welt_starten(bereit: threading.Event, ende: threading.Event, ergebnis: dict)
                                                             proposed_by='probe/local/task-review-v1', task_context=current_task_context(app.state.episodes, e.id))
         aufgaben_von_selbst.schritt_fuer(app)
         nachfuehren(app, warten=True)
+        # Eine Sicherung, damit „Stand wiederherstellen“ seine Auswahl zeigt (Paket P, D7).
+        from icarus_memory.backup import snapshot_all
+        from icarus_memory.server import _data_dir
+        snapshot_all(_data_dir(), _data_dir() / 'sicherungen')
         uv = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=0, log_level='warning'))
         threading.Thread(target=uv.run, daemon=True).start()
         for _ in range(200):
@@ -137,6 +141,9 @@ SEITEN = [
     ('dokumente', '/memory?tab=documents', []),
     ('organisationen', '/memory?tab=organizations', []),
     ('akte', '/memory?tab=people', [('tippen', '.memory-directory .g-zeile, .memory-directory button')]),
+    # Personenakte → „Mehr“ offen: Export und Löschen (Paket P, D7).
+    ('akte-mehr', '/memory?tab=people', [('tippen', '.memory-directory .g-zeile, .memory-directory button'),
+                                         ('tippen', '.person-mehr > summary')]),
     ('einstellungen', '/settings', []),
     ('einstellungen-darf', '/settings#darf', []),
     ('einstellungen-ich', '/settings#ich', []),

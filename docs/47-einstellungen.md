@@ -72,8 +72,8 @@ ankommen; die alten Kennungen (`#world`, `#model`, `#memory`, …) führen an de
 |---|---|---|
 | **Zugänge** | Postfächer, Kalender, Ordner und Dateien: verbinden, trennen, Stand. Oben der Einrichtungsassistent und „Kingfisher lernt gerade“. | `GoogleSignIn`, Quellenliste und -formulare (`Quellenformulare.tsx`), `MacCalendarSettings`, `TranscriptSettings`, `FolderSyncSettings`, `DocumentImport`, `EinrichtungKopf` |
 | **Was Kingfisher darf** | Zehn Schalter (Stand Paket D, 26.10.2026; drei davon von Haus aus an, siehe unten „Wege nach draußen“). Ursprünglich sieben, alle aus: morgens das Wetter holen, eine Meldung aus der Welt zeigen, Wegezeit berechnen, beim Anmelden starten, Mitteilungen auf dem Mac (seit Oktober 2026, siehe unten), Cloud für Fragen und Antworten nutzen, neue Mails in der Cloud einordnen (nur Anthropic, eigene Einwilligung, [46-hintergrund.md](46-hintergrund.md#cloud-einordnung-neuer-mails)). Bei jedem ein Satz, was den Rechner verlässt. | `Wetter`, `Nachrichten` (`WeltSettings.tsx`), `WegezeitSettings`, `AutostartWahl`, `Mitteilungen`, `CloudSchalter`, `CloudEinordnungSchalter` |
-| **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `WorkingProfileSettings` |
-| **Sicherung** | Verschlüsselt sichern. | `RecoverySettings` |
+| **Kingfisher und du** | Name, Startort, Zeitzone (nur zum Lesen), Kreis (kommt später), „Gelöschte Personen“ (nur, wenn es welche gibt, siehe unten), ausgeklappt „Wie Kingfisher dir antwortet“. | `Ich.tsx`, `PersonSperren`, `WorkingProfileSettings` |
+| **Sicherung** | Verschlüsselt sichern; einen Stand aus der Liste wiederherstellen (seit 27.10.2026, siehe unten). | `RecoverySettings`, `SicherungZurueck` |
 | **Für Techniker** | „Hier muss nichts geändert werden.“ Fünfzehn eingeklappte Abschnitte, die erst beim Aufklappen laden. | siehe unten |
 
 Hinter „Für Techniker“: Modelle je Aufgabe und Speicherbedarf (mit lokaler Modellwahl und Gerät), Modellauswahl (Routing),
@@ -525,6 +525,43 @@ verlässt nichts den Rechner. Eindeutige Bitten an dich und deine Zusagen aus ne
 „Rückgängig“. Aus: Sie bleiben Vorschläge.“ Dahinter `GET/PUT /api/v1/aufgaben-von-selbst/einstellung` (`an`), gehalten
 in `tasks.sqlite3` (`aufgaben_auto_einstellung`, keine Zeile heißt an). Was eindeutig ist, steht in
 [`30-akten.md`](30-akten.md#aufgaben-von-selbst-26102026).
+
+## Sicherung wiederherstellen und gelöschte Personen (Paket P, 27.10.2026)
+
+Befund D7 der Persona-Prüfung ([Protokoll](runs/2026-10-26-befunde-person/README.md)): Unter „Sicherung“ stand
+„Verschlüsselt sichern und bei Bedarf wiederherstellen“, wiederherstellen ließ sich aber nichts. Kingfisher legt alle
+vier Stunden einen Schnappschuss im Datenordner an (`sicherungen/`, `backup.snapshot_all`), zurück kam man nur über
+`make zurueck-vor-update`, und danach stand die App im Prüfmodus.
+
+**Stand wiederherstellen** (`SicherungZurueck.tsx`, Sidecar `sicherung_zurueck.py`, Routen `GET /api/v1/sicherungen`,
+`POST /api/v1/sicherungen/wiederherstellen`):
+
+* Die Sicherungen dieses Rechners als Auswahl mit Zeitpunkt und Anlass („regelmäßig“, „vor einem Update“, „vor dem
+  Wiederherstellen“), vorne die fünf jüngsten, die jüngste regelmäßige vorgewählt; nie ein Pfad (Prüffrage 3).
+* Rückfrage in einem Satz: „Stand vom 26. Oktober, 14:05 wiederherstellen?“, darunter „Was seitdem dazukam, geht
+  verloren. Kingfisher sichert vorher den jetzigen Stand, du kannst es also rückgängig machen.“ Fokus auf „Abbrechen“.
+* Vorher sichert Kingfisher den jetzigen Stand (`vor-wiederherstellung-…`, eigene Rotation mit fünf). Danach lädt die
+  Seite neu, der Hinweis sagt „Wiederhergestellt: Jetzt gilt der Stand vom …“ und bietet „Rückgängig“ an (auch
+  Befehl Z); oben im Abschnitt steht, welcher Stand seit wann gilt.
+* Atomar: Prüfung (Manifest, Prüfsummen, `integrity_check`, Schema), Kopie in einen Arbeitsordner, Merkzettel
+  `wiederherstellung-laeuft.json`, erst dann Umhängen. Bricht etwas ab, hängt Kingfisher alles zurück; bricht der ganze
+  Vorgang ab (Strom), tut es der nächste Start, bevor eine Ablage öffnet. Während des Austauschs nimmt der Sidecar keine
+  andere Anfrage an (`restore_boundary.EXKLUSIV`), der Zeitplan ruht.
+* Nur das Gedächtnis kommt aus der Sicherung (Quellen, Wissen, Vorschläge, Aufgaben, Projekte, Gespräche, Kalenderstand,
+  Rückmeldungen, Befunde). Einstellungen samt Einwilligungen, Schlüsselablage, Dauerfreigaben, das Protokoll der
+  Aktionen, das Logbuch, ausstehende Kalenderaktionen und Cloud-Aufträge bleiben auf dem heutigen Stand. Eine alte
+  Sicherung bringt so keine widerrufene Freigabe zurück; deshalb braucht dieser Weg keinen Prüfmodus. Ein laufender
+  Cloud-Auftrag wird dabei beendet (Freigabe widerrufen), wie bisher bei jedem Austausch.
+* Sicherheit: nur Namen, wie Kingfisher sie vergibt, nur unmittelbar im eigenen Sicherungsordner, kein Verweis
+  (Symlink) auf die Sicherung oder eine Datei darin; geschrieben wird nur unter festen Namen im Datenordner.
+* Der Rückweg nach einem Update (`/backups/restore`, `make zurueck-vor-update`) bleibt, wie er war, mit Prüfmodus: Dort
+  kann auch die Fassung des Programms eine andere sein.
+
+**Gelöschte Personen** (`PersonSperren.tsx`, Routen `GET /api/v1/personen/sperre`, `DELETE …/{kennung}`,
+`POST …/{kennung}/zurueck`): Wer in seiner Personenakte „Alles löschen“ gewählt hat, steht unter „Kingfisher und du“ mit
+„Wieder aufnehmen“. Danach kommt die Person beim nächsten Einlesen wieder herein; der Hinweis bietet „Rückgängig“ an.
+Gespeichert sind nur der Anzeigename und Prüfsummen ihrer Adressen und Schreibweisen, siehe
+[30-akten.md](30-akten.md#alles-zu-einer-person-auskunft-und-löschen-paket-p-27102026).
 
 ## Wie man prüft
 
