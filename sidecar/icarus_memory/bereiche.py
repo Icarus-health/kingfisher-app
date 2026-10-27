@@ -167,15 +167,142 @@ class Vorschlag:
         return {"bereich": self.bereich, "grund": self.grund}
 
 
-def vorschlag_postfach(adresse: str | None) -> Vorschlag | None:
-    """Private Anbieter-Adresse → Privat, eigene Domäne einer Firma → Arbeit; ohne Adresse kein Vorschlag."""
+@dataclass(frozen=True)
+class Inhalt:
+    """Was in einem Postfach bisher steht, gezählt je Mail (`mail_einschaetzen`); ohne Text, nur Zahlen."""
+
+    beruflich: int = 0
+    privat: int = 0
+    neutral: int = 0
+    #: Die Domäne eines Geschäftspartners, für den Grund („etwa nordlicht-werke.example“).
+    beispiel: str = ""
+
+    @property
+    def gelesen(self) -> int:
+        return self.beruflich + self.privat + self.neutral
+
+
+#: Rechtsform oder Pflichtangabe einer Firma in der Signatur.
+_FIRMA = re.compile(r"(?<![\wäöüß])(?:GmbH|gGmbH|mbH|AG|SE|KG|KGaA|OHG|GbR|PartG|UG|e\.\s?K\.|Ltd\.?|Inc\.?|LLC|B\.V\.|S\.A\.)"
+                    r"(?![\wäöüß])|Geschäftsführ|Handelsregister|USt-?Id|Amtsgericht\s+\w+\s+HRB|(?<![\w])HRB\s?\d")
+#: Förmliche Anrede oder Gruß: „Sehr geehrte Frau Hartmann“, „Frau Hartmann,“ am Zeilenanfang, „Mit freundlichen Grüßen“.
+_FOERMLICH = re.compile(r"Sehr geehrte|(?:^|\n)\s*(?:(?:Guten Tag|Hallo|Liebe[rs]?)\s+)?(?:Frau|Herr)\s+(?:(?:Dr|Prof)\.\s+)*"
+                        r"[A-ZÄÖÜ][\wäöüß-]+\s*,|Mit freundlichen Grüßen|Freundliche Grüße")
+#: Was ein Unternehmen einem Privatkunden schreibt (Rechnung, Vertrag, Bestellung): kein Geschäftspartner.
+_KUNDE = re.compile(r"Kundennummer|Vertragsnummer|Rechnungsnummer|Bestellnummer|Ihre Bestellung|Ihr Vertrag|Ihre Rechnung"
+                    r"|Jahresabrechnung|Abbuchung|Lastschrift|abmelden|Newsletter", re.I)
+#: Adressen, hinter denen kein Mensch als Gegenüber steht.
+_ROLLEN = ("noreply", "no-reply", "donotreply", "do-not-reply", "info", "service", "kundenservice", "newsletter",
+           "support", "kontakt", "hello", "hallo", "news", "mailer-daemon", "notifications", "benachrichtigung")
+
+
+def _rollenadresse(adresse: str) -> bool:
+    lokal = adresse.split("@", 1)[0].casefold()
+    return any(lokal == r or lokal.startswith(r + ".") or lokal.startswith(r + "-") or lokal.startswith(r + "_")
+               for r in _ROLLEN)
+
+
+def mail_einschaetzen(gegenueber: str, text: str, *, projekt: bool = False, austausch: bool = False) -> str | None:
+    """Klingt eine Mail nach Arbeit (`ARBEIT`), nach privat (`PRIVAT`) oder nach keinem von beiden (None)?
+
+    `gegenueber` ist die Adresse des anderen (Absender, bei einer eigenen Mail der Empfänger), `projekt` sagt, ob die
+    Mail in einem Projekt liegt, das nicht Kingfisher selbst angelegt hat, `austausch`, ob der Nutzer dieser Domäne aus
+    demselben Postfach auch selbst geschrieben hat. Geschäftspartner ist, wer als Mensch (keine Rollenadresse) bei einer
+    Firma schreibt **und** mindestens ein zweites Zeichen trägt: Projekt, Austausch, förmliche Anrede oder Firma in der
+    Signatur. Eine Firma, die einem Privatkunden schreibt (Rechnung, Vertrag, Newsletter), ist kein Zeichen für Arbeit;
+    eine Einladung ohne zweites Zeichen auch nicht. Eine private Adresse mit Firmensignatur (Selbstständige mit
+    Gmail) zählt als Arbeit.
+    """
+    adresse = str(gegenueber or "").strip().casefold()
+    if "@" not in adresse:
+        return None
+    text = str(text or "")
+    firma_im_text = bool(_FIRMA.search(text))
+    if identitaet.ist_privater_anbieter(adresse):
+        return ARBEIT if firma_im_text and (projekt or austausch or _FOERMLICH.search(text)) else PRIVAT
+    if _rollenadresse(adresse) or _KUNDE.search(text):
+        return None
+    zeichen = sum((projekt, austausch, bool(_FOERMLICH.search(text)), firma_im_text))
+    return ARBEIT if zeichen >= 1 else None
+
+
+def vorschlag_postfach(adresse: str | None, inhalt: Inhalt | None = None) -> Vorschlag | None:
+    """Eigene Domäne einer Firma → Arbeit. Ein privater Anbieter (Gmail, GMX …) allein entscheidet nichts, denn viele
+    führen auch Kundenkonten bei Gmail: Erst was darin steht (`inhalt`), gibt den Ausschlag. Klar beruflich (mindestens
+    zwei Mails von Geschäftspartnern, doppelt so viele wie private) → Arbeit; nichts Berufliches → Privat; gemischt oder
+    noch nichts gelesen → kein Vorschlag, dann fragt die Zeile „Welcher Bereich?“. Ohne Adresse kein Vorschlag."""
     adresse = str(adresse or "").strip()
     domaene = identitaet.domaene(adresse).casefold()
     if not domaene or "." not in domaene:
         return None
-    if identitaet.ist_privater_anbieter(adresse):
-        return Vorschlag(PRIVAT, f"{domaene} ist ein privater Anbieter.")
-    return Vorschlag(ARBEIT, f"{domaene} ist eine Firmenadresse.")
+    if not identitaet.ist_privater_anbieter(adresse):
+        return Vorschlag(ARBEIT, f"{domaene} ist eine Firmenadresse.")
+    if inhalt is None or inhalt.gelesen == 0:
+        return None
+    if inhalt.beruflich >= 2 and inhalt.beruflich >= 2 * inhalt.privat:
+        etwa = f", etwa von {inhalt.beispiel}" if inhalt.beispiel else ""
+        return Vorschlag(ARBEIT, f"Die Mails darin kommen vor allem von Geschäftspartnern{etwa}.")
+    if inhalt.beruflich == 0:
+        return Vorschlag(PRIVAT, f"{domaene} ist ein privater Anbieter, und nichts darin klingt nach Arbeit.")
+    return None
+
+
+#: So viele jüngste Mails eines Postfachs schaut `inhalt_des_postfachs` an.
+INHALT_GRENZE = 200
+
+
+def inhalt_des_postfachs(app: Any, konto_id: str) -> Inhalt:
+    """Zählt die jüngsten Mails eines Postfachs nach `mail_einschaetzen`. Liest nur, schreibt nichts; ohne Gedächtnis
+    (oder bei einem Fehler) ein leerer Inhalt, also kein Vorschlag."""
+    store = getattr(getattr(app, "state", None), "episodes", None)
+    if store is None or not konto_id:
+        return Inhalt()
+    from .episodes import sql_aktuell
+    muster = konto_id.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + ":%"
+    try:
+        with store._lock:
+            zeilen = store._conn.execute(
+                "SELECT e.id, e.project_id, e.body, json_extract(e.document, '$.contacts') FROM episodes e "
+                "WHERE e.kind = 'message' AND json_extract(e.document, '$.provenance.source_ref') LIKE ? ESCAPE '\\' "
+                f"AND {sql_aktuell('e')} ORDER BY e.occurred_at DESC LIMIT ?", (muster, INHALT_GRENZE)).fetchall()
+            try:
+                automatisch = {str(z[0]) for z in store._conn.execute(
+                    "SELECT episode_id FROM projekt_automatik_zuordnungen").fetchall()}
+            except Exception:  # noqa: BLE001 - ohne Tabelle hat Kingfisher nichts selbst zugeordnet
+                automatisch = set()
+    except Exception:  # noqa: BLE001 - ein Fehler kostet den Vorschlag, nie die Übersicht
+        return Inhalt()
+    import json
+    mails = []
+    eigene_ziele: set[str] = set()
+    for kennung, projekt, text, kontakte_roh in zeilen:
+        try:
+            kontakte = json.loads(kontakte_roh) if kontakte_roh else []
+        except ValueError:
+            kontakte = []
+        von = next((k for k in kontakte if isinstance(k, dict) and k.get("rolle") == "von"), None)
+        if von is None:
+            continue
+        if von.get("ich"):
+            an = next((k for k in kontakte if isinstance(k, dict) and k.get("rolle") == "an" and not k.get("ich")), None)
+            gegenueber = str((an or {}).get("adresse") or "")
+            if gegenueber:
+                eigene_ziele.add(identitaet.domaene(gegenueber).casefold())
+        else:
+            gegenueber = str(von.get("adresse") or "")
+        mails.append((gegenueber, str(text or ""), bool(projekt) and str(kennung) not in automatisch))
+    zaehlung: Counter = Counter()
+    partner: Counter = Counter()
+    for gegenueber, text, projekt in mails:
+        domaene = identitaet.domaene(gegenueber).casefold()
+        urteil = mail_einschaetzen(gegenueber, text, projekt=projekt,
+                                   austausch=bool(domaene) and domaene in eigene_ziele
+                                   and not identitaet.ist_privater_anbieter(domaene))
+        zaehlung[urteil or ""] += 1
+        if urteil == ARBEIT and domaene:
+            partner[domaene] += 1
+    return Inhalt(beruflich=zaehlung[ARBEIT], privat=zaehlung[PRIVAT], neutral=zaehlung[""],
+                  beispiel=partner.most_common(1)[0][0] if partner else "")
 
 
 def _wort_im_namen(name: str) -> str | None:
@@ -189,8 +316,10 @@ def _wort_im_namen(name: str) -> str | None:
     return ARBEIT if arbeit else PRIVAT
 
 
-def vorschlag_kalender(name: str, *, adresse: str = "", konto: tuple[str, str] | None = None) -> Vorschlag | None:
-    """Erst der Name („Arbeit“, „Familie“), dann das zugehörige Postfach (`konto` = (Name, Bereich)), dann die Adresse.
+def vorschlag_kalender(name: str, *, adresse: str = "", konto: tuple[str, str] | None = None,
+                       inhalt: Inhalt | None = None) -> Vorschlag | None:
+    """Erst der Name („Arbeit“, „Familie“), dann das zugehörige Postfach (`konto` = (Name, Bereich)), dann die Adresse
+    samt dem, was im Postfach derselben Adresse steht (`inhalt`, wie bei `vorschlag_postfach`).
 
     Ohne Hinweis kein Vorschlag: lieber einmal fragen als falsch einsortieren.
     """
@@ -199,7 +328,7 @@ def vorschlag_kalender(name: str, *, adresse: str = "", konto: tuple[str, str] |
         return Vorschlag(aus_name, f"Der Name „{name}“ klingt nach {'Arbeit' if aus_name == ARBEIT else 'privat'}.")
     if konto is not None and konto[1]:
         return Vorschlag(konto[1], f"Er gehört zum Postfach {konto[0]}.")
-    aus_adresse = vorschlag_postfach(adresse)
+    aus_adresse = vorschlag_postfach(adresse, inhalt)
     if aus_adresse is not None:
         return Vorschlag(aus_adresse.bereich, f"Er gehört zu {adresse.strip()}: {aus_adresse.grund}")
     return None
