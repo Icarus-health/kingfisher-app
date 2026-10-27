@@ -2200,8 +2200,11 @@ def create_app(
             source_id = f"calendar-{uuid.uuid4().hex}"
             config.store_secret(getattr(app.state, "keychain", Keychain()),
                                 config.integration_secret_name("calendar", source_id), passwort)
-            neu.append(config.CalendarSourceSettings(id=source_id, label=f"{wer}: {kalender.name}"[:120], kind="caldav",
-                                                     url=kalender.url, user=adresse))
+            neu.append(config.CalendarSourceSettings(
+                id=source_id, label=kalender_anmeldung.kalender_name(
+                    anbieter.label if anbieter is not None else "", kalender.name, adresse,
+                    [e.label for e in [*settings.calendar_sources, *neu]])[:120],
+                kind="caldav", url=kalender.url, user=adresse))
         settings.calendar_sources.extend(neu)
         config.save(_data_dir(), settings)
         _build_agent(app)

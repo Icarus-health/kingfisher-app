@@ -203,3 +203,16 @@ def test_abo_ohne_freigabe_sagt_was_los_ist_und_was_zu_tun_ist() -> None:
     with pytest.raises(CalendarError) as fehler:
         ICalendarSubscription("https://kalender.example/abo.ics", transport=httpx.MockTransport(kein_netz)).events()
     assert "nicht erreichbar" in str(fehler.value) and "keine Verbindung" not in str(fehler.value)
+
+
+# -- Befund 2: Kalendername ohne Server ------------------------------------------------------------------------------
+
+
+def test_ein_gefundener_kalender_heisst_nach_seinem_namen_nicht_nach_dem_server() -> None:
+    from icarus_memory.kalender_anmeldung import kalender_name
+    assert kalender_name("", "Privat", "lena@eigene-domain.example", []) == "Privat"
+    assert kalender_name("GMX", "Privat", "lena@gmx.de", []) == "GMX: Privat"
+    # Schon vergeben (zweites Konto mit „Privat“): die Adresse dahinter, nie der Server.
+    zweiter = kalender_name("", "Privat", "praxis@praxis-fehr.example", ["privat"])
+    assert zweiter == "Privat · praxis@praxis-fehr.example"
+    assert kalender_name("", "  ", "a@b.example", []) == "Kalender"

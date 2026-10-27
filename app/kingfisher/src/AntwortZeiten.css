@@ -1,6 +1,13 @@
 /* Antwortzeit: unter der Antwort eine Zeile Nebeninformation, in den Einstellungen eine ruhige Tabelle. Keine Farbe, nichts blinkt. */
 .message p.antwortzeit { margin: 2px 0 0; color: var(--kf-schrift-5f777d); font-size: 11px; line-height: 16px; white-space: normal; font-variant-numeric: tabular-nums; }
 .antwortzeit-ursache { display: block; }
+/* Paket S, Befund 2: die Zahlen hinter „Details“, zugeklappt; das Wort leise wie die Zeile selbst. */
+.message .antwortzeit-details { margin: 2px 0 0; }
+.message .antwortzeit-details > summary {
+  display: inline-flex; align-items: center; min-height: 24px; color: var(--kf-schrift-5f777d); font-size: 12px; cursor: pointer;
+}
+.message .antwortzeit-details > summary:focus-visible { outline: 2px solid var(--g-auswahl-kante); outline-offset: 2px; border-radius: 4px; }
+@media (pointer: coarse) { .message .antwortzeit-details > summary { min-height: var(--g-ziel, 44px); } }
 
 .antwortzeiten { padding: 24px; }
 .antwortzeiten-tabelle { width: 100%; margin: 12px 0 0; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }

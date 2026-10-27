@@ -177,7 +177,8 @@ def test_unbekannter_anbieter_mit_eigener_adresse(client, attrappe):
     assert ohne.status_code == 422 and ohne.json()['grund'] == 'adresse_fehlt'
     mit = http.post('/api/v1/integrations/calendar/anmelden',
                     json={'adresse': 'lena@eigene-domain.example', 'password': PASSWORT, 'url': attrappe.start})
-    assert mit.status_code == 201 and mit.json()['calendar_sources'][0]['label'] == '127.0.0.1: Privat'
+    # Nach dem Namen, nicht nach dem Server (Paket S, Befund 2: vorher „127.0.0.1: Privat“).
+    assert mit.status_code == 201 and mit.json()['calendar_sources'][0]['label'] == 'Privat'
 
 
 def test_google_ohne_passwortweg_nennt_den_grund(client):

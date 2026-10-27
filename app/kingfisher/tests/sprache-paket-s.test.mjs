@@ -86,3 +86,14 @@ test("das Modell ist vorbelegt: gespeichert, sonst das empfohlene; die Wahl ist 
   assert.doesNotMatch(quelle("ChatGPTAccess.tsx"), /Continue with/);
   assert.doesNotMatch(quelle("Einstellungen/CloudSchalter.tsx"), /gespeicherten Zugang und ein Modell/);
 });
+
+// -- Befund 2: Technikzeile unter Antworten hinter „Details“, zu ------------------------------------------------------
+
+test("die Zeiten unter einer Antwort stehen hinter einem zugeklappten „Details“", async () => {
+  const { AntwortZeile } = await server.ssrLoadModule("/src/AntwortZeiten.tsx");
+  const html = renderToStaticMarkup(createElement(AntwortZeile, { zeiten: { gesamt: 10, antwort_modell: 4, saetze_modell: 6 } }));
+  assert.match(html, /^<details class="antwortzeit-details"><summary>Details<\/summary><p class="antwortzeit"/);
+  assert.doesNotMatch(html, /<details[^>]*open/, "Vorgabe: zu");
+  assert.match(html, /10 s · /);
+  assert.equal(renderToStaticMarkup(createElement(AntwortZeile, { zeiten: null })), "", "ohne Zeiten nichts, auch kein „Details“");
+});
